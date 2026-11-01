@@ -297,6 +297,9 @@ pub(super) fn layout(
                 nodes[a].to = Some(b);
                 nodes[b].from = Some(a);
             }
+            if edges.len() >= limit / 300 {
+                return None;
+            }
             edges.push((a, b, op, label));
             a = b;
             rest = tail;
@@ -324,6 +327,20 @@ pub(super) fn layout(
             node.y += shift_y;
         }
     }
+    let primary_center = |n: &Node| {
+        if horizontal {
+            n.x + n.w / 2
+        } else {
+            n.y + n.h / 2
+        }
+    };
+    let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
+    if nodes.iter().any(|n| n.loops > 0) {
+        for n in &nodes {
+            siblings.entry(primary_center(n)).or_default().push(n);
+        }
+    }
+    let mut intersection = None;
     let mut loop_index = vec![0; nodes.len()];
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
@@ -341,27 +358,52 @@ pub(super) fn layout(
         [15, 23, 42, 15]
     };
     for (idx, (a, b, op, label)) in edges.into_iter().enumerate() {
-        let (mut points, start_angle, angle) = if a == b {
+        let mut points = if a == b {
             let path = route::loop_points(&nodes[a], horizontal, loop_index[a], nodes[a].loops);
             loop_index[a] += 1;
-            let angle = if horizontal { 90 } else { 180 };
-            (path.to_vec(), angle, angle)
+            path.to_vec()
         } else {
             let (a, b) = (&nodes[a], &nodes[b]);
-            let (x, y, ex, ey, start_angle, angle) = match dir {
-                "LR" => (a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2, 180, 0),
-                "RL" => (a.x, a.y + a.h / 2, b.x + b.w, b.y + b.h / 2, 0, 180),
-                "BT" => (a.x + a.w / 2, a.y, b.x + b.w / 2, b.y + b.h, 90, -90),
-                _ => (a.x + a.w / 2, a.y + a.h, b.x + b.w / 2, b.y, -90, 90),
+            let (x, y, ex, ey) = match dir {
+                "LR" => (a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2),
+                "RL" => (a.x, a.y + a.h / 2, b.x + b.w, b.y + b.h / 2),
+                "BT" => (a.x + a.w / 2, a.y, b.x + b.w / 2, b.y + b.h),
+                _ => (a.x + a.w / 2, a.y + a.h, b.x + b.w / 2, b.y),
             };
-            (
-                vec![(x.into(), y.into()), (ex.into(), ey.into())],
-                start_angle,
-                angle,
-            )
+            vec![(x.into(), y.into()), (ex.into(), ey.into())]
         };
+        points.dedup_by(|b, a| (a.0 - b.0).hypot(a.1 - b.1) <= 0.25);
         let (x, y) = points[0];
         let (ex, ey) = *points.last()?;
+        let next = points[1];
+        let prev = points[points.len() - 2];
+        let start_angle = (y - next.1).atan2(x - next.0);
+        let angle = (ey - prev.1).atan2(ex - prev.0);
+        if a == b {
+            let (dx, dy) = (ex - prev.0, ey - prev.1);
+            let orthogonal = dx.abs() < 0.1 || dy.abs() < 0.1;
+            let len = dx.hypot(dy);
+            if !orthogonal || len < 11.9 {
+                return Some(Err(format!(
+                    "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 (target perpendicular stub): edge 'edge_{}' terminal segment length={len:.2}px orthogonal={orthogonal}\n",
+                    idx + 1
+                )));
+            }
+            if intersection.is_none()
+                && let Some((k, other)) = route::loop_intersection(
+                    &points,
+                    &nodes[a],
+                    &siblings[&primary_center(&nodes[a])],
+                    horizontal,
+                )
+            {
+                let id = &nodes[a].id;
+                intersection = Some(format!(
+                    "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 6 (edge-node intersection): edge \"edge_{}\" ({id}->{id}) segment [{k}] intersects unrelated node \"{other}\"\n",
+                    idx + 1
+                ));
+            }
+        }
         let arrow = op.ends_with('>');
         let start_arrow = op.starts_with('<');
         let stroke = if op.contains("==") { 2.25 } else { 1.25 };
@@ -379,8 +421,8 @@ pub(super) fn layout(
             dashed: !dash.is_empty(),
         });
         let marker =
-            |x: f64, y: f64, angle: i32, local: &[(f64, f64)], filled: bool, width: f64| {
-                let (sin, cos) = f64::from(angle).to_radians().sin_cos();
+            |x: f64, y: f64, angle: f64, local: &[(f64, f64)], filled: bool, width: f64| {
+                let (sin, cos) = angle.sin_cos();
                 Paint::Path {
                     points: local
                         .iter()
@@ -396,6 +438,7 @@ pub(super) fn layout(
             r#"<g class="mmdc-edge" data-id="edge_{}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
             idx + 1
         );
+        let degrees = |angle: f64| ((angle.to_degrees() * 100. + 0.5).floor()) / 100.;
         for (show, ex, ey, angle) in [(start_arrow, x, y, start_angle), (arrow, ex, ey, angle)] {
             if show {
                 edge_paint.push(marker(
@@ -406,6 +449,7 @@ pub(super) fn layout(
                     true,
                     0.9,
                 ));
+                let angle = degrees(angle);
                 write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
             }
         }
@@ -423,6 +467,7 @@ pub(super) fn layout(
                 edge_paint.push(marker(ex, ey, angle, &points, false, 1.75));
             }
         }
+        let angle = degrees(angle);
         match op {
             "--o" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="{edge}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>"#).ok()?,
             "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
@@ -461,6 +506,9 @@ pub(super) fn layout(
         }
         el.push_str("</g>");
         elements.push(el);
+    }
+    if let Some(error) = intersection {
+        return Some(Err(error));
     }
     for n in nodes {
         let (x, y, w, h) = (n.x, n.y, n.w, n.h);

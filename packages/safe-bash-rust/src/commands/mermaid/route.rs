@@ -123,3 +123,43 @@ pub(super) fn loop_points(node: &Node, horizontal: bool, index: usize, total: us
         [a, (x, a.1), (x, b.1), b]
     }
 }
+
+pub(super) fn loop_intersection<'a>(
+    points: &[Point],
+    node: &Node,
+    siblings: &[&'a Node],
+    horizontal: bool,
+) -> Option<(usize, &'a str)> {
+    for (k, seg) in points.windows(2).enumerate() {
+        let (a, b) = (seg[0], seg[1]);
+        let (x, y) = (a.0.min(b.0), a.1.min(b.1));
+        let (right, bottom) = (x + (a.0 - b.0).abs().max(1.), y + (a.1 - b.1).abs().max(1.));
+        // A self-loop stays within its own rank along the flow axis. Siblings
+        // are ordered across the rank, so skip those entirely before the segment.
+        let begin = siblings.partition_point(|n| {
+            if horizontal {
+                f64::from(n.y + n.h) <= y + 2.
+            } else {
+                f64::from(n.x + n.w) <= x + 2.
+            }
+        });
+        for n in &siblings[begin..] {
+            if if horizontal {
+                f64::from(n.y) >= bottom - 2.
+            } else {
+                f64::from(n.x) >= right - 2.
+            } {
+                break;
+            }
+            if n.id != node.id
+                && x + 2. < f64::from(n.x + n.w)
+                && right - 2. > f64::from(n.x)
+                && y + 2. < f64::from(n.y + n.h)
+                && bottom - 2. > f64::from(n.y)
+            {
+                return Some((k, n.id.as_str()));
+            }
+        }
+    }
+    None
+}

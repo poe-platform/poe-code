@@ -38268,6 +38268,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
+    fn mmdc_rejects_invalid_loop_geometry_before_replacing_output() {
+        let fs=MemoryVfs::new();
+        let crowded=format!("flowchart TD; {}",vec!["A-->A";55].join("; "));
+        for (source,message) in [
+            (crowded.as_str(), "Invariant 4 (target perpendicular stub): edge 'edge_1' terminal segment length=38.00px orthogonal=false"),
+            ("flowchart TD; A-->A; A-->A; B", r#"Invariant 6 (edge-node intersection): edge "edge_1" (A->A) segment [1] intersects unrelated node "B""#),
+        ] {
+            for path in ["/d.svg","/d.png","/d.pdf"] {
+                fs.write_file(path,b"previous").unwrap();
+                let r=try_run_structured_command("mmdc",&args(&["-i","-","-o",path]),source,"/",&BTreeMap::new(),&fs).unwrap();
+                assert_eq!(r.exit_code,1);
+                assert_eq!(r.stderr,format!("mmdc: E_LIMIT: Scene geometry verification failed: {message}\n"));
+                assert_eq!(fs.read_file(path).unwrap(),b"previous");
+            }
+        }
+    }
+
+    #[test]
     fn malformed_flowchart_preserves_raster_and_pdf_destinations() {
         let fs=MemoryVfs::new();
         for path in ["/chart.png","/chart.pdf"] {

@@ -3,6 +3,22 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("a destroyed session handle cannot read or destroy a later session", () => {
+  const bash = new RustWasmBash();
+  const x = bash.instance.exports;
+  try {
+    const stale = x.safe_bash_fork_session(bash.sessionId);
+    x.safe_bash_destroy_session(stale);
+    for (const create of [() => x.safe_bash_fork_session(bash.sessionId), () => x.safe_bash_create_session()]) {
+      const next = create();
+      assert.equal(x.safe_bash_session_snapshot(stale, 0), -1);
+      x.safe_bash_destroy_session(stale);
+      assert.ok(x.safe_bash_session_snapshot(next, 0) > 0);
+      x.safe_bash_destroy_session(next);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("find -exec children inherit the caller's stdin in both execution modes", async () => {
   const bash = new RustWasmBash({ files: { "/x": "", "/y": "" } });
   try {

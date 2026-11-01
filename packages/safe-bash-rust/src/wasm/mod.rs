@@ -6,6 +6,7 @@ use crate::shell::{ExecOptions, Shell, ShellOptions};
 use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::atomic::{AtomicU32, Ordering};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Profile { Memory, Overlay, Devices }
@@ -117,6 +118,11 @@ impl WasmSession {
 
 static SESSIONS: OnceLock<Mutex<BTreeMap<u32, WasmSession>>> = OnceLock::new();
 
+fn next_session_id() -> Option<u32> {
+    static LAST: AtomicU32 = AtomicU32::new(0);
+    LAST.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
+        .ok().map(|id| id + 1)
+}
 
 unsafe fn slice_from_raw<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
     if len == 0 || ptr.is_null() {
@@ -154,7 +160,7 @@ pub unsafe extern "C" fn safe_bash_dealloc(ptr: *mut u8, size: usize) {
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_create_session() -> u32 {
     let mut map = sessions().lock().unwrap();
-    let id = map.keys().next_back().copied().unwrap_or(0) + 1;
+    let Some(id) = next_session_id() else { return 0 };
     let vfs = MemoryVfs::new();
     vfs.set_devices(crate::vfs::memory::Devices::Null);
     let _ = vfs.mkdir_all("/workspace");
@@ -187,7 +193,7 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
 pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
     let mut map = sessions().lock().unwrap();
     let Some(parent) = map.get(&parent_id) else { return 0 };
-    let id = map.keys().next_back().copied().unwrap_or(0) + 1;
+    let Some(id) = next_session_id() else { return 0 };
     let child = WasmSession {
         shell: parent.shell.clone(),
         memory_vfs: parent.memory_vfs.clone(),

@@ -914,11 +914,7 @@ where
 
     let inherited_names: Vec<String> = sub_env
         .keys()
-        .filter(|k| {
-            !k.starts_with('\0')
-                && !k.contains('[')
-                && !sub_env.contains_key(&format!("\0unexported__{k}"))
-        })
+        .filter(|k| crate::shell::is_exported_scalar(&sub_env, k))
         .cloned()
         .collect();
     let mut added_names: Vec<String> = Vec::new();
@@ -1214,8 +1210,7 @@ fn split_env_string(
                 return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
             }
             let vname: String = chars[i + 2..end].iter().collect();
-            if !vname.starts_with('\0')
-                && !env.contains_key(&format!("\0unexported__{vname}"))
+            if crate::shell::is_exported_scalar(env, &vname)
                 && let Some(val) = env.get(&vname)
             {
                 work.account(val)?;

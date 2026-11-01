@@ -3414,13 +3414,13 @@ where
                         let mut vars_obj = Map::new();
                         if has_vars_flag {
                             for vn in &var_names {
-                                match env.get(vn) {
+                                match env.get(vn).filter(|_| crate::shell::is_exported_scalar(env, vn)) {
                                     Some(val) => vars_obj.insert(vn.clone(), JVal::Str(val.clone())),
                                     None => vars_obj.insert(vn.clone(), JVal::Null),
                                 }
                             }
                         } else {
-                            for (k, v) in env.iter() {
+                            for (k, v) in env.iter().filter(|(k, _)| crate::shell::is_exported_scalar(env, k)) {
                                 vars_obj.insert(k.clone(), JVal::Str(v.clone()));
                             }
                         }
@@ -3581,7 +3581,7 @@ where
                             }
                             let mut names: Vec<String> = Vec::new();
                             if scope == "complete" {
-                                for k in env.keys() {
+                                for k in env.keys().filter(|k| crate::shell::is_exported_scalar(env, k)) {
                                     if !names.contains(k) {
                                         names.push(k.clone());
                                     }

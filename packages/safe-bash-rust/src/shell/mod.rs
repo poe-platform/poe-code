@@ -10,6 +10,21 @@ use crate::fs::{MemoryVfs, SafeBashFs, normalize_posix_path};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+/// The environment seen by commands excludes shell storage and non-exported bindings.
+pub(crate) fn is_exported_scalar(env: &BTreeMap<String, String>, key: &str) -> bool {
+    if key.contains(['\0', '[']) || matches!(key, "!" | "0")
+        || env.contains_key(&format!("\0unexported__{key}"))
+        || env.contains_key(&format!("\0keys__{key}"))
+        || env.contains_key(&format!("\0assoc__{key}")) {
+        return false;
+    }
+    match key {
+        "PIPESTATUS" | "BASH_REMATCH" | "DIRSTACK" | "FUNCNAME" | "BASH_SOURCE" | "BASH_LINENO" => false,
+        "BASH_SUBSHELL" | "BASH_COMMAND" => env.get(&format!("\0attr__{key}")).is_some_and(|s| s.contains('x')),
+        _ => true,
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct ShellOptions {
     pub cwd: Option<String>,

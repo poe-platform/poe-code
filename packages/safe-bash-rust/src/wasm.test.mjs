@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("commands receive exported scalar values without array elements or shell bookkeeping", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const init = "hidden=secret; export __shown=ok; declare -a items=(private); export items; ";
+    for (const command of ["printenv", "env", "bash -c printenv"]) {
+      const result = await bash.exec(init + command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdout.trimEnd().split("\n").sort(), ["PWD=/workspace", "__shown=ok"]);
+    }
+    const restored = await bash.exec(init + "op environment snapshot create check >/dev/null; op environment snapshot restore check --shell bash");
+    assert.equal(restored.exitCode, 0, restored.stderr);
+    assert.match(restored.stdout, /__shown/);
+    assert.doesNotMatch(restored.stdout, /private|secret|hidden|items|BASH_COMMAND/);
+    const result = await bash.exec(init + "printenv 'items[0]' items hidden");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal((await bash.exec(init + "envsubst <<< '$items/$hidden/$__shown'")).stdout, "//ok\n");
+  } finally { bash.dispose(); }
+});
+
 test("double underscore variables survive exports, shell options and cold checkpoints", async () => {
   const bash = new RustWasmBash({ cwd: "/workspace", env: { __cwd: "cwd-value", __project: "initial" } });
   try {

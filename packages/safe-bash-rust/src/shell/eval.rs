@@ -5524,24 +5524,7 @@ impl<'a> EvalState<'a> {
                 || k == "\0epoch_realtime_sec"
             {
                 sub_env.insert(k.clone(), v.clone());
-            } else if !k.starts_with('\0')
-                && !k.contains('[')
-                && k != "0"
-                && !self.env.contains_key(&format!("\0unexported__{k}"))
-                && !self.env.contains_key(&format!("\0keys__{k}"))
-                && !self.env.contains_key(&format!("\0assoc__{k}"))
-                && !matches!(
-                    k.as_str(),
-                    "PIPESTATUS"
-                        | "BASH_REMATCH"
-                        | "DIRSTACK"
-                        | "FUNCNAME"
-                        | "BASH_SOURCE"
-                        | "BASH_LINENO"
-                        | "BASH_SUBSHELL"
-                        | "BASH_COMMAND"
-                )
-            {
+            } else if super::is_exported_scalar(self.env, k) {
                 sub_env.insert(k.clone(), v.clone());
                 sub_env.insert(format!("\0attr__{k}"), "x".to_string());
             }

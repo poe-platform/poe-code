@@ -5610,11 +5610,7 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
     if names.is_empty() {
         let mut out = String::new();
         for (k, v) in env {
-            if k.starts_with('\0')
-                || k.contains('[')
-                || k == "!"
-                || env.contains_key(&format!("\0unexported__{k}"))
-            {
+            if !crate::shell::is_exported_scalar(env, k) {
                 continue;
             }
             out.push_str(&format!("{k}={v}{sep}"));
@@ -5628,7 +5624,7 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
             code = 1;
             continue;
         }
-        if !env.contains_key(&format!("\0unexported__{k}"))
+        if crate::shell::is_exported_scalar(env, k)
             && let Some(v) = env.get(k)
         {
             out.push_str(&format!("{v}{sep}"));
@@ -5773,7 +5769,7 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
         if let Some((name, end_idx)) = matched {
             let allowed = whitelist.as_ref().map(|w| w.contains(name)).unwrap_or(true);
             if allowed {
-                if !env.contains_key(&format!("\0unexported__{name}"))
+                if crate::shell::is_exported_scalar(env, name)
                     && let Some(val) = env.get(name)
                 {
                     out.extend_from_slice(val.as_bytes());

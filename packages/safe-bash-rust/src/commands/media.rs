@@ -1230,240 +1230,236 @@ fn read_office_source(
         return (paras, Some(rows));
     }
     if lower.ends_with(".xlsx") || lower.ends_with(".ods") {
-        let entries = parse_ustar_archive(bytes);
+        let entries = crate::commands::structured::read_office_archive(bytes);
         let mut shared_strings: Vec<String> = Vec::new();
-        for e in &entries {
-            if e.name == "xl/sharedStrings.xml" {
-                let sst_xml = String::from_utf8_lossy(&e.content);
-                let mut rest = sst_xml.as_ref();
-                while let Some(si_pos) = rest.find("<si") {
-                    rest = &rest[si_pos + 3..];
-                    if let Some(si_end) = rest.find("</si>") {
-                        let si_body = &rest[..si_end];
-                        let mut val = String::new();
-                        let mut s_rest = si_body;
-                        while let Some(t_pos) = s_rest.find("<t") {
-                            let after_t = &s_rest[t_pos + 2..];
-                            if !after_t.starts_with('>') && !after_t.starts_with(' ') {
-                                s_rest = after_t;
+        if let Some(content) = entries.get("xl/sharedStrings.xml") {
+            let sst_xml = String::from_utf8_lossy(content);
+            let mut rest = sst_xml.as_ref();
+            while let Some(si_pos) = rest.find("<si") {
+                rest = &rest[si_pos + 3..];
+                if let Some(si_end) = rest.find("</si>") {
+                    let si_body = &rest[..si_end];
+                    let mut val = String::new();
+                    let mut s_rest = si_body;
+                    while let Some(t_pos) = s_rest.find("<t") {
+                        let after_t = &s_rest[t_pos + 2..];
+                        if !after_t.starts_with('>') && !after_t.starts_with(' ') {
+                            s_rest = after_t;
+                            continue;
+                        }
+                        if let Some(gt) = after_t.find('>') {
+                            let inner = &after_t[gt + 1..];
+                            if let Some(te) = inner.find("</t>") {
+                                val.push_str(&xml_unescape_str(&inner[..te]));
+                                s_rest = &inner[te + 4..];
                                 continue;
                             }
-                            if let Some(gt) = after_t.find('>') {
-                                let inner = &after_t[gt + 1..];
-                                if let Some(te) = inner.find("</t>") {
-                                    val.push_str(&xml_unescape_str(&inner[..te]));
-                                    s_rest = &inner[te + 4..];
-                                    continue;
-                                }
-                            }
-                            break;
                         }
-                        shared_strings.push(val);
-                        rest = &rest[si_end + 5..];
-                    } else {
                         break;
                     }
+                    shared_strings.push(val);
+                    rest = &rest[si_end + 5..];
+                } else {
+                    break;
                 }
             }
         }
-        for e in &entries {
-            if e.name == "xl/worksheets/sheet1.xml" || e.name.starts_with("xl/worksheets/sheet") {
-                let xml = String::from_utf8_lossy(&e.content);
-                let mut rows = Vec::new();
-                let mut rest = xml.as_ref();
-                while let Some(rs) = rest.find("<row") {
-                    rest = &rest[rs + 4..];
-                    if let Some(re) = rest.find("</row>") {
-                        let row_xml = &rest[..re];
-                        let mut cells: Vec<String> = Vec::new();
-                        let mut rcell = row_xml;
-                        while let Some(cs) = rcell.find("<c") {
-                            let after_c = &rcell[cs + 2..];
-                            if !after_c.starts_with(' ') && !after_c.starts_with('>') && !after_c.starts_with('/') {
-                                rcell = after_c;
-                                continue;
-                            }
-                            if let Some(gt) = after_c.find('>') {
-                                let attrs = &after_c[..gt];
-                                if let Some(r_pos) = attrs.find("r=\"") {
-                                    let r_rest = &attrs[r_pos + 3..];
-                                    if let Some(r_end) = r_rest.find('"') {
-                                        let ref_str = &r_rest[..r_end];
-                                        let mut col_idx = 0usize;
-                                        for ch in ref_str.chars() {
-                                            if ch.is_ascii_alphabetic() {
-                                                col_idx = col_idx * 26 + ((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1);
-                                            } else {
-                                                break;
-                                            }
+        if let Some(content) = entries.get("xl/worksheets/sheet1.xml").or_else(|| entries.iter().find(|(n,_)| n.starts_with("xl/worksheets/sheet")).map(|(_,v)|v)) {
+            let xml = String::from_utf8_lossy(content);
+            let mut rows = Vec::new();
+            let mut remaining_cells = fs.max_input_bytes() / size_of::<String>();
+            let mut rest = xml.as_ref();
+            while let Some(rs) = rest.find("<row") {
+                rest = &rest[rs + 4..];
+                if let Some(re) = rest.find("</row>") {
+                    let row_xml = &rest[..re];
+                    let mut cells: Vec<String> = Vec::new();
+                    let mut rcell = row_xml;
+                    while let Some(cs) = rcell.find("<c") {
+                        let after_c = &rcell[cs + 2..];
+                        if !after_c.starts_with(' ') && !after_c.starts_with('>') && !after_c.starts_with('/') {
+                            rcell = after_c;
+                            continue;
+                        }
+                        if let Some(gt) = after_c.find('>') {
+                            let attrs = &after_c[..gt];
+                            if let Some(r_pos) = attrs.find("r=\"") {
+                                let r_rest = &attrs[r_pos + 3..];
+                                if let Some(r_end) = r_rest.find('"') {
+                                    let ref_str = &r_rest[..r_end];
+                                    let mut col_idx = 0usize;
+                                    for ch in ref_str.chars() {
+                                        if ch.is_ascii_alphabetic() {
+                                            col_idx = col_idx * 26 + ((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1);
+                                            if col_idx > 16384 { return (Vec::new(), Some(Vec::new())); }
+                                        } else {
+                                            break;
                                         }
-                                        if col_idx > 0 {
-                                            let target_col = col_idx - 1;
-                                            while cells.len() < target_col {
-                                                cells.push(String::new());
-                                            }
+                                    }
+                                    if col_idx > 0 {
+                                        let target_col = col_idx - 1;
+                                        if target_col >= remaining_cells { return (Vec::new(), Some(Vec::new())); }
+                                        while cells.len() < target_col {
+                                            cells.push(String::new());
                                         }
                                     }
                                 }
-                                if attrs.ends_with('/') {
-                                    cells.push(String::new());
-                                    rcell = &after_c[gt + 1..];
-                                    continue;
-                                }
-                                let body_rest = &after_c[gt + 1..];
-                                if let Some(ce) = body_rest.find("</c>") {
-                                    let cell_body = &body_rest[..ce];
-                                    let is_shared = attrs.contains("t=\"s\"");
-                                    let is_inline = attrs.contains("t=\"inlineStr\"");
-                                    let val = if is_inline {
-                                        if let Some(ts) = cell_body.find("<t")
-                                            && let Some(tgt) = cell_body[ts + 2..].find('>')
-                                        {
-                                            let inner = &cell_body[ts + 2 + tgt + 1..];
-                                            if let Some(te) = inner.find("</t>") {
-                                                xml_unescape_str(&inner[..te])
-                                            } else {
-                                                String::new()
-                                            }
+                            }
+                            if attrs.ends_with('/') {
+                                cells.push(String::new());
+                                rcell = &after_c[gt + 1..];
+                                continue;
+                            }
+                            let body_rest = &after_c[gt + 1..];
+                            if let Some(ce) = body_rest.find("</c>") {
+                                let cell_body = &body_rest[..ce];
+                                let is_shared = attrs.contains("t=\"s\"");
+                                let is_inline = attrs.contains("t=\"inlineStr\"");
+                                let val = if is_inline {
+                                    if let Some(ts) = cell_body.find("<t")
+                                        && let Some(tgt) = cell_body[ts + 2..].find('>')
+                                    {
+                                        let inner = &cell_body[ts + 2 + tgt + 1..];
+                                        if let Some(te) = inner.find("</t>") {
+                                            xml_unescape_str(&inner[..te])
                                         } else {
                                             String::new()
                                         }
-                                    } else if let Some(vs) = cell_body.find("<v>")
-                                        && let Some(ve) = cell_body[vs + 3..].find("</v>")
-                                    {
-                                        let raw = xml_unescape_str(&cell_body[vs + 3..vs + 3 + ve]);
-                                        if is_shared {
-                                            let idx: usize = raw.trim().parse().unwrap_or(usize::MAX);
-                                            shared_strings.get(idx).cloned().unwrap_or_default()
-                                        } else {
-                                            raw
-                                        }
-                                    } else if let Some(ts) = cell_body.find("<t>")
-                                        && let Some(te) = cell_body[ts + 3..].find("</t>")
-                                    {
-                                        xml_unescape_str(&cell_body[ts + 3..ts + 3 + te])
                                     } else {
                                         String::new()
-                                    };
-                                    cells.push(val);
-                                    rcell = &body_rest[ce + 4..];
+                                    }
+                                } else if let Some(vs) = cell_body.find("<v>")
+                                    && let Some(ve) = cell_body[vs + 3..].find("</v>")
+                                {
+                                    let raw = xml_unescape_str(&cell_body[vs + 3..vs + 3 + ve]);
+                                    if is_shared {
+                                        let idx: usize = raw.trim().parse().unwrap_or(usize::MAX);
+                                        shared_strings.get(idx).cloned().unwrap_or_default()
+                                    } else {
+                                        raw
+                                    }
+                                } else if let Some(ts) = cell_body.find("<t>")
+                                    && let Some(te) = cell_body[ts + 3..].find("</t>")
+                                {
+                                    xml_unescape_str(&cell_body[ts + 3..ts + 3 + te])
                                 } else {
-                                    break;
-                                }
+                                    String::new()
+                                };
+                                cells.push(val);
+                                rcell = &body_rest[ce + 4..];
                             } else {
                                 break;
                             }
+                        } else {
+                            break;
                         }
-                        if !cells.is_empty() {
-                            rows.push(cells);
-                        }
-                        rest = &rest[re + 6..];
-                    } else {
-                        break;
                     }
+                    if !cells.is_empty() {
+                        let Some(left) = remaining_cells.checked_sub(cells.len()) else { return (Vec::new(), Some(Vec::new())); };
+                        remaining_cells = left;
+                        rows.push(cells);
+                    }
+                    rest = &rest[re + 6..];
+                } else {
+                    break;
                 }
-                let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
-                return (paras, Some(rows));
             }
+            let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
+            return (paras, Some(rows));
         }
-        for e in &entries {
-            if e.name == "content.xml" {
-                let xml = String::from_utf8_lossy(&e.content);
-                let mut rows = Vec::new();
-                let mut rest = xml.as_ref();
-                while let Some(rs) = rest.find("<table:table-row") {
-                    rest = &rest[rs + 16..];
-                    if let Some(re) = rest.find("</table:table-row>") {
-                        let row_xml = &rest[..re];
-                        let mut cells = Vec::new();
-                        let mut rcell = row_xml;
-                        while let Some(cs) = rcell.find("<table:table-cell") {
-                            rcell = &rcell[cs + 17..];
-                            if let Some(gt) = rcell.find('>') {
-                                let inner = &rcell[gt + 1..];
-                                if let Some(ce) = inner.find("</table:table-cell>") {
-                                    let cell_txt = strip_html_tags(&inner[..ce]).trim().to_string();
-                                    cells.push(cell_txt);
-                                    rcell = &inner[ce + 19..];
-                                } else {
-                                    break;
-                                }
+        if let Some(content) = entries.get("content.xml") {
+            let xml = String::from_utf8_lossy(content);
+            let mut rows = Vec::new();
+            let mut rest = xml.as_ref();
+            while let Some(rs) = rest.find("<table:table-row") {
+                rest = &rest[rs + 16..];
+                if let Some(re) = rest.find("</table:table-row>") {
+                    let row_xml = &rest[..re];
+                    let mut cells = Vec::new();
+                    let mut rcell = row_xml;
+                    while let Some(cs) = rcell.find("<table:table-cell") {
+                        rcell = &rcell[cs + 17..];
+                        if let Some(gt) = rcell.find('>') {
+                            let inner = &rcell[gt + 1..];
+                            if let Some(ce) = inner.find("</table:table-cell>") {
+                                let cell_txt = strip_html_tags(&inner[..ce]).trim().to_string();
+                                cells.push(cell_txt);
+                                rcell = &inner[ce + 19..];
                             } else {
                                 break;
                             }
+                        } else {
+                            break;
                         }
-                        if !cells.is_empty() {
-                            rows.push(cells);
-                        }
-                        rest = &rest[re + 18..];
-                    } else {
-                        break;
                     }
+                    if !cells.is_empty() {
+                        rows.push(cells);
+                    }
+                    rest = &rest[re + 18..];
+                } else {
+                    break;
                 }
-                let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
-                return (paras, Some(rows));
             }
+            let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
+            return (paras, Some(rows));
         }
     }
     if lower.ends_with(".docx") || lower.ends_with(".odt") || lower.ends_with(".pptx") {
-        let entries = parse_ustar_archive(bytes);
-        for e in &entries {
-            if e.name == "word/document.xml" {
-                let xml = String::from_utf8_lossy(&e.content);
-                let mut paras = Vec::new();
-                let mut rest = xml.as_ref();
-                while let Some(ps) = rest.find("<w:p") {
-                    let after_p = &rest[ps + 4..];
-                    if !after_p.starts_with('>') && !after_p.starts_with(' ') && !after_p.starts_with('/') {
-                        rest = after_p;
-                        continue;
-                    }
-                    if let Some(pe) = after_p.find("</w:p>") {
-                        let p_xml = &after_p[..pe];
-                        let mut line = String::new();
-                        let mut p_rest = p_xml;
-                        while let Some(ts) = p_rest.find("<w:t") {
-                            let after_t = &p_rest[ts + 4..];
-                            if let Some(gt) = after_t.find('>') {
-                                let t_inner = &after_t[gt + 1..];
-                                if let Some(te) = t_inner.find("</w:t>") {
-                                    line.push_str(&xml_unescape_str(&t_inner[..te]));
-                                    p_rest = &t_inner[te + 6..];
-                                    continue;
-                                }
+        let entries = crate::commands::structured::read_office_archive(bytes);
+        if let Some(content) = entries.get("word/document.xml") {
+            let xml = String::from_utf8_lossy(content);
+            let mut paras = Vec::new();
+            let mut rest = xml.as_ref();
+            while let Some(ps) = rest.find("<w:p") {
+                let after_p = &rest[ps + 4..];
+                if !after_p.starts_with('>') && !after_p.starts_with(' ') && !after_p.starts_with('/') {
+                    rest = after_p;
+                    continue;
+                }
+                if let Some(pe) = after_p.find("</w:p>") {
+                    let p_xml = &after_p[..pe];
+                    let mut line = String::new();
+                    let mut p_rest = p_xml;
+                    while let Some(ts) = p_rest.find("<w:t") {
+                        let after_t = &p_rest[ts + 4..];
+                        if let Some(gt) = after_t.find('>') {
+                            let t_inner = &after_t[gt + 1..];
+                            if let Some(te) = t_inner.find("</w:t>") {
+                                line.push_str(&xml_unescape_str(&t_inner[..te]));
+                                p_rest = &t_inner[te + 6..];
+                                continue;
                             }
-                            break;
                         }
-                        if !line.trim().is_empty() {
-                            paras.push(line.trim().to_string());
-                        }
-                        rest = &after_p[pe + 6..];
-                    } else {
                         break;
                     }
+                    if !line.trim().is_empty() {
+                        paras.push(line.trim().to_string());
+                    }
+                    rest = &after_p[pe + 6..];
+                } else {
+                    break;
                 }
-                return (paras, None);
             }
-            if e.name == "content.xml" {
-                let xml = String::from_utf8_lossy(&e.content);
-                let stripped = strip_html_tags(&xml);
-                let paras: Vec<String> = stripped
-                    .lines()
-                    .map(|l| l.trim().to_string())
-                    .filter(|l| !l.is_empty())
-                    .collect();
-                return (paras, None);
-            }
+            return (paras, None);
         }
-        let mut slide_entries: Vec<&TarEntry> = entries
+        if let Some(content) = entries.get("content.xml") {
+            let xml = String::from_utf8_lossy(content);
+            let stripped = strip_html_tags(&xml);
+            let paras: Vec<String> = stripped
+                .lines()
+                .map(|l| l.trim().to_string())
+                .filter(|l| !l.is_empty())
+                .collect();
+            return (paras, None);
+        }
+        let slide_entries = entries
             .iter()
-            .filter(|e| e.name.starts_with("ppt/slides/slide") && e.name.ends_with(".xml"))
-            .collect();
+            .filter(|(name,_)| name.starts_with("ppt/slides/slide") && name.ends_with(".xml"))
+            .collect::<Vec<_>>();
         if !slide_entries.is_empty() {
-            slide_entries.sort_by(|a, b| a.name.cmp(&b.name));
             let mut paras = Vec::new();
-            for se in slide_entries {
-                let xml = String::from_utf8_lossy(&se.content);
+            for (_, content) in slide_entries {
+                let xml = String::from_utf8_lossy(content);
                 let mut rest = xml.as_ref();
                 while let Some(ts) = rest.find("<a:t") {
                     let after_t = &rest[ts + 4..];

@@ -11689,7 +11689,7 @@ fn extract_xml_attr(tag: &str, attr_name: &str) -> Option<String> {
     None
 }
 
-fn read_zip_entries_for_xlsx(bytes: &[u8]) -> BTreeMap<String, Vec<u8>> {
+pub(super) fn read_office_archive(bytes: &[u8]) -> BTreeMap<String, Vec<u8>> {
 
     let mut entries = BTreeMap::new();
     let mut remaining = crate::budget::ShellLimits::default().max_input_bytes;
@@ -11933,7 +11933,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             Ok(b) => b,
             Err(e) => return err_out(&e, 1),
         };
-        let entries = read_zip_entries_for_xlsx(&raw_bytes);
+        let entries = read_office_archive(&raw_bytes);
         let wb_xml = entries
             .get("xl/workbook.xml")
             .map(|b| String::from_utf8_lossy(b).into_owned())
@@ -32052,7 +32052,7 @@ fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String]) -> Vec<Vec<
 }
 
 fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> {
-    let entries = read_zip_entries_for_xlsx(bytes);
+    let entries = read_office_archive(bytes);
     let wb_xml = entries
         .get("xl/workbook.xml")
         .map(|b| String::from_utf8_lossy(b).into_owned())
@@ -32163,7 +32163,7 @@ fn extract_ods_cell_text(cell_xml: &str) -> String {
 }
 
 fn read_ods_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> {
-    let entries = read_zip_entries_for_xlsx(bytes);
+    let entries = read_office_archive(bytes);
     let content_xml = entries
         .get("content.xml")
         .map(|b| String::from_utf8_lossy(b).into_owned())
@@ -34644,7 +34644,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             b
         }
         "docx" | "odt" | "epub" | "epub3" => {
-            let entries = read_zip_entries_for_xlsx(&raw_bytes);
+            let entries = read_office_archive(&raw_bytes);
             if let Some(md_bytes) = entries.get("__pandoc_source.md") {
                 parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false)
             } else if let Some(doc_xml) = entries.get("word/document.xml") {
@@ -38314,7 +38314,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let r = try_run_structured_command("ssconvert",&args(&["c.csv","out.xlsx"]),"","/",&BTreeMap::new(),&fs).unwrap();
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         let bytes=fs.read_file("/out.xlsx").unwrap();
-        let parts=read_zip_entries_for_xlsx(&bytes);
+        let parts=read_office_archive(&bytes);
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");

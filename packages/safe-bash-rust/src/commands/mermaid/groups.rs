@@ -284,6 +284,7 @@ pub(super) fn verify(
     order: &[usize],
     nodes: &[Node],
     pills: &[Option<[f64; 4]>],
+    edge_id: fn(usize) -> String,
     mut work: usize,
 ) -> Result<(), String> {
     let margins = |[x, y, w, h]: [i32; 4], [a, b, c, d]: [i32; 4]| {
@@ -318,8 +319,8 @@ pub(super) fn verify(
             .position(|p| p.is_some_and(|r| super::labels::overlaps(r, header, -0.5)))
         {
             return Err(violation(format!(
-                "Invariant 3 (pill header clearance): pill 'edge_{}:label' overlaps header band of '{id}'",
-                k + 1
+                "Invariant 3 (pill header clearance): pill '{}:label' overlaps header band of '{id}'",
+                edge_id(k)
             )));
         }
         if let Some(g) = group.parent {

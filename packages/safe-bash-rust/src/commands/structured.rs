@@ -29378,11 +29378,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let first_word = header.text.split([' ', '\t', '\r', '\n']).next().unwrap_or("");
     let graph_family = matches!(first_word,
-        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph"
+        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2"
     );
     let native_family = graph_family || matches!(first_word, "pie" | "gantt");
     if !native_family && !matches!(first_word,
-        "sequenceDiagram" | "classDiagram" | "stateDiagram" | "stateDiagram-v2" | "erDiagram"
+        "sequenceDiagram" | "classDiagram" | "erDiagram"
     ) {
         let reason = format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
         return err_out(&header.error("E_UNSUPPORTED", &header.text, &reason), 1);
@@ -38382,6 +38382,27 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("%%{init: {\"theme\":{\"light\":{\"elbowRadius\":3.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "svg", "bdb0550d32e4e3ec3bd694752c5d00e8c2fa919a825bf8a5a57e7e7201a181b5"),
             ("%%{init: {\"theme\":{\"light\":{\"elbowRadius\":3.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "png", "953f5ae4cb4a29ff2474b53841ba61fef6f86f987367dc5d11a7070f7e1ae3c1"),
             ("%%{init: {\"theme\":{\"light\":{\"elbowRadius\":3.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "pdf", "da8f01bef66901d56b805c7734e8cca917bef00a7d0ab8c545e537784a6c7f0c"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_flat_states_and_transitions() {
+        assert_mermaid_outputs(&[
+            ("stateDiagram-v2\nIdle --> Busy: start\nBusy --> Idle: stop", "svg", "f6ba28ab35ab08b49940e269252491ed9b6d21b429debca8e660a954a38459bb"),
+            ("stateDiagram-v2\nstate \"At rest\" as Idle", "svg", "fdfefd1c3603bee9808017f7dd5eba5f36692c0d0b664f9563ae811fdb7f8eed"),
+            ("stateDiagram-v2\n[*] --> Idle\nIdle --> Busy: go\nBusy --> [*]", "svg", "273a56d0de1023cb703014e35f9e41fd647a1ad98f92bb4b180dd71593efa39d"),
+            ("stateDiagram-v2\n[*] --> Idle\nIdle --> Busy: go\nBusy --> [*]", "png", "b68ce98c60944d5af4b9c839d03d23a8408fad4a5b740ca3b1e85cb7b413ee66"),
+            ("stateDiagram-v2\n[*] --> Idle\nIdle --> Busy: go\nBusy --> [*]", "pdf", "925dc00d19a77aec6917888d87fdd61fc101d7d4ca648bf399b75245ba0fe023"),
+            ("stateDiagram-v2\nstate Decide <<choice>>\n[*] --> Decide\nDecide --> Yes: ok\nDecide --> No", "svg", "eee8a60a66771c63696ad9f4fe13a907a19029642a4ddeb6151bb9b15692eff8"),
+            ("stateDiagram-v2\ndirection LR\nstate X <<fork>>\nX --> A\nX --> B", "svg", "baea16aa3174697853cc00cc32cbbf23b0ccf67e1152e04ce57f15ccfbecaae9"),
+            ("stateDiagram-v2\ndirection BT\nstate Ready\nReady --> [*]", "svg", "dae7602b23dcc8a639f2a0e969fa25d30e55b9c85aecd4e96b51d6d1e4b90a83"),
+            ("stateDiagram-v2\nIdle : No work\nIdle: Override\nIdle --> Busy\nBusy : do work", "svg", "f2e8735ad7d1b78310a6ef19f98827784bf848472f090ebb1ed1a8af6da6ba1b"),
+            ("stateDiagram-v2\nstate Run\nRun --> Run : tick", "svg", "2769bcf66d6a2a419e44f293cbebfe407322399e426e1c055fb3bdb22f0d3b1a"),
+            ("stateDiagram-v2\n\"A --> B\" --> \"C:D\" : \"report: start\"", "svg", "c90240221c907ec7b01e6815ccd796dbf6bcce60735caa86a8a6ef475cbed369"),
+            ("stateDiagram-v2\nstate \"ready as default\" as A\nA --> B\nstate \"Work\" as B", "svg", "cd8f0ac7fefe0bd830a255c3d6e65e566b2cf0fafb6de7d2b10ae1a3a3ed4411"),
+            ("stateDiagram-v2\nA -->", "svg", "mmdc: E_SYNTAX (line 2, column 1): Incomplete state transition 'A -->'\n"),
+            ("stateDiagram-v2\nRandom", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unknown or unsupported stateDiagram statement 'Random'\n"),
+            ("stateDiagram-v2\nstate \"<svg>\" as a", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<svg' in diagram label\n"),
         ]);
     }
 

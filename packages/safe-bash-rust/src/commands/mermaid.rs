@@ -32,6 +32,8 @@ pub(super) mod scanner;
 use scanner::Statement;
 #[path = "mermaid/source.rs"]
 pub(super) mod source;
+#[path = "mermaid/state.rs"]
+mod state;
 #[path = "mermaid/styles.rs"]
 mod styles;
 use styles::Styles;
@@ -76,6 +78,8 @@ enum Shape {
     Rect,
     Rounded,
     Stadium,
+    StateStart,
+    StateEnd,
     Circle,
     Diamond,
     Cylinder,
@@ -232,6 +236,10 @@ fn dimensions(
     line_height: f64,
     corner: f64,
 ) -> Option<()> {
+    if matches!(n.shape, Shape::StateStart | Shape::StateEnd) {
+        (n.w, n.h, n.radius) = (28, 28, 14.);
+        return Some(());
+    }
     let tallest;
     (n.lines, tallest) = text_block(&n.label, font_size, false, wrapping_width, *remaining_lines)?;
     *remaining_lines -= n.lines.len();
@@ -475,7 +483,7 @@ impl Pill {
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) struct Graph<'a> {
-    first_edge_id: usize,
+    edge_id: fn(usize) -> String,
     groups: Vec<Group>,
     nodes: Vec<Node>,
     edges: Vec<Edge<'static>>,
@@ -489,7 +497,7 @@ pub(super) struct Graph<'a> {
 impl Graph<'static> {
     fn core(wrapping_width: f64, limit: usize) -> Self {
         Self {
-            first_edge_id: 0,
+            edge_id: |i| format!("edge_{i}"),
             dir: "LR",
             nodes: Vec::new(),
             edges: Vec::new(),
@@ -502,8 +510,12 @@ impl Graph<'static> {
     }
 
     fn connect(&mut self, from: usize, to: usize, marker: &'static str) {
-        self.nodes[from].to.push(to);
-        self.nodes[to].from.push(from);
+        if from == to {
+            self.nodes[from].loops += 1;
+        } else {
+            self.nodes[from].to.push(to);
+            self.nodes[to].from.push(from);
+        }
         self.edges.push((from, to, marker, None));
     }
 }
@@ -520,6 +532,9 @@ pub(super) fn parse<'a>(
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
+    if matches!(keyword, "stateDiagram" | "stateDiagram-v2") {
+        return state::parse(lines, wrapping_width, secondary_size, limit);
+    }
     if keyword == "gitGraph" {
         return Some(git_graph::parse(lines, wrapping_width, limit));
     }
@@ -735,7 +750,7 @@ pub(super) fn parse<'a>(
         return None;
     }
     Some(Ok(Graph {
-        first_edge_id: 1,
+        edge_id: |i| format!("edge_{}", i + 1),
         groups,
         nodes,
         edges,
@@ -757,7 +772,7 @@ pub(super) fn layout(
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let Graph {
-        first_edge_id,
+        edge_id,
         mut groups,
         mut nodes,
         edges,
@@ -824,17 +839,17 @@ pub(super) fn layout(
         &edges,
         &pairs,
         (horizontal, reversed),
-        first_edge_id,
+        edge_id,
         limit,
     )
     else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
-    let positions = match labels::place(&nodes, &groups, &edges, &waypoints, limit) {
+    let positions = match labels::place(&nodes, &groups, &edges, &waypoints, edge_id, limit) {
         Ok(p) => p,
         Err(error) => return Some(Err(error)),
     };
-    if let Err(error) = groups::verify(&groups, &group_order, &nodes, &positions, limit) {
+    if let Err(error) = groups::verify(&groups, &group_order, &nodes, &positions, edge_id, limit) {
         return Some(Err(error));
     }
     let (mut min_x, mut min_y, mut max_x, mut max_y) = (
@@ -945,9 +960,8 @@ pub(super) fn layout(
         let prev = points[points.len() - 2];
         let start_angle = (y - next.1).atan2(x - next.0);
         let angle = (ey - prev.1).atan2(ex - prev.0);
-        if let Some(message) =
-            route::attachment_error(&points, &nodes[a], &nodes[b], idx + first_edge_id)
-        {
+        let id = edge_id(idx);
+        if let Some(message) = route::attachment_error(&points, &nodes[a], &nodes[b], &id) {
             return Some(Err(format!(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 {message}\n"
             )));
@@ -986,8 +1000,7 @@ pub(super) fn layout(
             };
         let stroke = nonnegative_number(stroke);
         let mut el = format!(
-            r#"<g class="mmdc-edge" data-id="edge_{}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
-            idx + first_edge_id
+            r#"<g class="mmdc-edge" data-id="{id}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#
         );
         let degrees = |angle: f64| ((angle.to_degrees() * 100. + 0.5).floor()) / 100.;
         for (show, ex, ey, angle) in [(start_arrow, x, y, start_angle), (arrow, ex, ey, angle)] {
@@ -1089,6 +1102,48 @@ pub(super) fn layout(
         let (x, y, w, h) = (n.x, n.y, n.w, n.h);
         let cx = x + w / 2;
         let cy = y + h / 2;
+        if matches!(n.shape, Shape::StateStart | Shape::StateEnd) {
+            let start = n.shape == Shape::StateStart;
+            let (fill, fill_rgba) = theme.color(if start { "accent" } else { "surface" });
+            let (border, border_rgba) = theme.color("accentBorder");
+            if let Err(e) = config::charge_attributes(
+                &mut styles.budget,
+                &[(fill, 1), (border, if start { 1 } else { 2 })],
+            ) {
+                return Some(Err(e));
+            }
+            let mut circle = |r: i32, fill, thickness| {
+                paint.push(Paint::Box {
+                    bounds: [
+                        (cx - r).into(),
+                        (cy - r).into(),
+                        (2 * r).into(),
+                        (2 * r).into(),
+                    ],
+                    shape: Shape::Rounded,
+                    shadow: None,
+                    style: BoxStyle {
+                        header: None,
+                        radius: r.into(),
+                        fill,
+                        border: border_rgba,
+                        thickness,
+                    },
+                })
+            };
+            let r = if start { 12 } else { 13 };
+            circle(r, fill_rgba, 1.5);
+            let outer = format!(
+                r#"<circle cx="{cx}" cy="{cy}" r="{r}" fill="{fill}" stroke="{border}" stroke-width="1.5"/>"#
+            );
+            elements.push(if start {
+                outer
+            } else {
+                circle(8, border_rgba, 1.);
+                format!(r#"<g>{outer}<circle cx="{cx}" cy="{cy}" r="8" fill="{border}"/></g>"#)
+            });
+            continue;
+        }
         let accented = !matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine);
         let styled = styles.node(&n.id);
         let (fill, fill_rgba) = styled

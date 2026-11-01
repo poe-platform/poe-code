@@ -111,7 +111,7 @@ fn port(
     let mut off = (index as f64 - (count - 1) as f64 / 2.) * spacing;
     let mut outer = depth;
     let normal = match node.shape {
-        Shape::Circle => {
+        Shape::Circle | Shape::StateStart | Shape::StateEnd => {
             outer = depth.min(half);
             off = off.clamp(-outer * 0.65, outer * 0.65);
             (outer * outer - off * off).sqrt()
@@ -169,7 +169,7 @@ pub(super) fn waypoints(
     edges: &[Edge],
     pairs: &BTreeMap<(usize, usize), usize>,
     (horizontal, reverse): (bool, bool),
-    first_edge_id: usize,
+    edge_id: fn(usize) -> String,
     mut work: usize,
 ) -> Option<Routes> {
     let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
@@ -560,8 +560,8 @@ pub(super) fn waypoints(
             && let Some((k, other)) = first_hit(&points, (&nodes[a], &nodes[b]), -2., &mut work)?
         {
             collision = Some(format!(
-                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 6 (edge-node intersection): edge \"edge_{}\" ({}->{}) segment [{k}] intersects unrelated node \"{}\"\n",
-                i + first_edge_id,
+                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 6 (edge-node intersection): edge \"{}\" ({}->{}) segment [{k}] intersects unrelated node \"{}\"\n",
+                edge_id(i),
                 nodes[a].id,
                 nodes[b].id,
                 other.id
@@ -579,7 +579,7 @@ pub(super) fn attachment_error(
     points: &[Point],
     source: &Node,
     target: &Node,
-    id: usize,
+    id: &str,
 ) -> Option<String> {
     let end = points.len() - 1;
     for (n, (x, y), side, tip) in [
@@ -593,13 +593,15 @@ pub(super) fn attachment_error(
         );
         let dist = match n.shape {
             Shape::Diamond => (xoff / w + yoff / h - 1.).abs() * w.min(h),
-            Shape::Circle => (xoff.hypot(yoff) - w.min(h)).abs(),
+            Shape::Circle | Shape::StateStart | Shape::StateEnd => {
+                (xoff.hypot(yoff) - w.min(h)).abs()
+            }
             _ if xoff > w || yoff > h => (xoff - w).max(0.).hypot((yoff - h).max(0.)),
             _ => (w - xoff).min(h - yoff),
         };
         if dist > 0.5 {
             return Some(format!(
-                "({side} port perimeter): edge 'edge_{id}' {tip} ({x},{y}) is {dist:.2}px from '{}' perimeter (> 0.5px)",
+                "({side} port perimeter): edge '{id}' {tip} ({x},{y}) is {dist:.2}px from '{}' perimeter (> 0.5px)",
                 n.id
             ));
         }
@@ -613,7 +615,7 @@ pub(super) fn attachment_error(
         let len = dx.hypot(dy);
         if !orthogonal || len < 11.9 {
             return Some(format!(
-                "({side} perpendicular stub): edge 'edge_{id}' {part} segment length={len:.2}px orthogonal={orthogonal}"
+                "({side} perpendicular stub): edge '{id}' {part} segment length={len:.2}px orthogonal={orthogonal}"
             ));
         }
     }

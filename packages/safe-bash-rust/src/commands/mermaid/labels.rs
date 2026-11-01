@@ -10,6 +10,7 @@ pub(super) fn place(
     groups: &[Group],
     edges: &[Edge],
     paths: &[Vec<Point>],
+    edge_id: fn(usize) -> String,
     mut work: usize,
 ) -> Result<Vec<Option<Rect>>, String> {
     let mut placed = vec![None; edges.len()];
@@ -112,8 +113,8 @@ pub(super) fn place(
             .position(|&n| overlaps(best, n, -0.5))
         {
             return Err(format!(
-                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 2 (label collision): pill 'edge_{}:label' overlaps node '{}'\n",
-                i + 1,
+                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 2 (label collision): pill '{}:label' overlaps node '{}'\n",
+                edge_id(i),
                 nodes[j].id
             ));
         }
@@ -124,9 +125,9 @@ pub(super) fn place(
         charge(labels.len() - k - 1)?;
         if let Some(&(j, _)) = labels[k + 1..].iter().find(|&&(_, p)| overlaps(r, p, -0.5)) {
             return Err(format!(
-                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 2 (pill collision): 'edge_{}:label' overlaps 'edge_{}:label'\n",
-                i + 1,
-                j + 1
+                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 2 (pill collision): '{}:label' overlaps '{}:label'\n",
+                edge_id(i),
+                edge_id(j)
             ));
         }
     }

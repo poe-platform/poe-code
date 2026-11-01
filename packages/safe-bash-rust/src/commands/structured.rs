@@ -29504,13 +29504,25 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
 
     let mut init_theme: Option<String> = None;
-    let mut search_idx = 0usize;
-    while let Some(rel) = src_text[search_idx..].find("%%{") {
-        let start_dir = search_idx + rel;
-        let Some(end_rel) = src_text[start_dir + 3..].find("}%%") else {
-            return err_out("mmdc: E_SYNTAX: Unclosed Mermaid directive\n", 1);
-        };
-        let dir_body = &src_text[start_dir + 3..start_dir + 3 + end_rel];
+    let mut directives = Vec::new();
+    let scanned = if mermaid::scanner::is_flowchart(&src_text) {
+        match mermaid::scanner::scan(&src_text, &mut directives) {
+            Ok(stmts) => Some(stmts),
+            Err(message) => return err_out(&message, 1),
+        }
+    } else {
+        let mut search_idx = 0usize;
+        while let Some(rel) = src_text[search_idx..].find("%%{") {
+            let start_dir = search_idx + rel;
+            let Some(end_rel) = src_text[start_dir + 3..].find("}%%") else {
+                return err_out("mmdc: E_SYNTAX: Unclosed Mermaid directive\n", 1);
+            };
+            directives.push(&src_text[start_dir + 3..start_dir + 3 + end_rel]);
+            search_idx = start_dir + 3 + end_rel + 3;
+        }
+        None
+    };
+    for dir_body in directives {
         for tname in ["dark", "forest", "neutral", "base", "light", "default"] {
             if dir_body.contains(&format!("\"{tname}\""))
                 || dir_body.contains(&format!("'{tname}'"))
@@ -29519,7 +29531,6 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 break;
             }
         }
-        search_idx = start_dir + 3 + end_rel + 3;
     }
 
     let mut acc_title: Option<String> = None;
@@ -29528,7 +29539,10 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut descr_lines: Vec<String> = Vec::new();
     let mut content_lines: Vec<&str> = Vec::new();
 
-    for raw_line in src_text.lines() {
+    let mut flow_lines = Vec::new();
+    let scanned_lines = scanned.iter().flatten().map(|stmt| (stmt.text.as_str(), Some(stmt)));
+    let legacy_lines = (scanned.is_none()).then(|| src_text.lines()).into_iter().flatten().map(|line| (line, None));
+    for (raw_line, stmt) in scanned_lines.chain(legacy_lines) {
         let t = raw_line.trim();
         if in_descr_block {
             if let Some(before_close) = t.strip_suffix('}') {
@@ -29567,6 +29581,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 }
                 continue;
             }
+        }
+        if let Some(stmt) = stmt {
+            flow_lines.push(stmt);
         }
         content_lines.push(t);
     }
@@ -29639,7 +29656,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             Err(message)=>return err_out(&message,1),
         }
     } else {
-        match mermaid::layout(&content_lines, &src_text, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes()) {
+        match mermaid::layout(&flow_lines, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes()) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -38301,6 +38318,26 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
+    fn mmdc_label_errors_preserve_the_destination() {
+        let fs=MemoryVfs::new();
+        for (source,message) in [
+            ("flowchart TD; A-->B[\"onerror=foo\"]","E_UNSUPPORTED (line 1, column 19): Unsupported HTML or active content 'onerror=' in diagram label"),
+            ("flowchart TD; A-->|<script>|B","E_UNSUPPORTED (line 1, column 16): Unsupported HTML or active content '<script' in diagram label"),
+            ("flowchart TD; 🦊-->","E_SYNTAX (line 1, column 20): Expected node identifier at ''"),
+            ("flowchart TD; A[\"a\nb\"]-->|<script>|B","E_UNSUPPORTED (line 1, column 23): Unsupported HTML or active content '<script' in diagram label"),
+            ("flowchart TD; A[Start","E_SYNTAX (line 1, column 15): Unclosed node shape '[...]'"),
+            ("flowchart TD; A-->","E_SYNTAX (line 1, column 19): Expected node identifier at ''"),
+            ("flowchart TD; A[\"unterminated","E_SYNTAX (line 1, column 15): Unterminated quoted string in diagram source"),
+        ] {
+            fs.write_file("/d.svg",b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o","/d.svg"]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,1);
+            assert_eq!(r.stderr,format!("mmdc: {message}\n"));
+            assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
+    }
+
+    #[test]
     fn mmdc_pie_validates_before_write_and_draws_each_slice() {
         let fs=MemoryVfs::new();
         for ext in ["svg","png","pdf"] {
@@ -38340,6 +38377,10 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart BT; A[First<BR/>second\\n]-->B","781a46a53dac26c6af25750ebc9c8ab38a46c357f696b3379b4eb17d1993a8cc"),
             ("flowchart LR; A-->|left<BR />right|B","e5971e4e3f3a3f6e64fb86f96812b354d179d41496e21e70cc9a02989e4b2721"),
             ("flowchart TD; A-->|a rather long transition label which needs a second line in the pill|B","6642e9b7e0109f2d38e3371b7a982cbf09959c130133b78a4129c58d2037d7a6"),
+            (r#"flowchart TD; A["literal %%{ dark"]-->B"#,"d3d8c899c81c8d95878c0e71b9c306feddf47e2ddcc279674ce79f87f3ea805b"),
+            (r#"flowchart TD; A["verify; then act"]-->|one;two|B"#,"da35a643400be95f717e22f487ba4098cd5dea111822a0d7b57165523237dc5e"),
+            ("flowchart TD; A[\"First\n second\"]-->B","3605f71682506867f5f474f8753ac2ebb5d71393fc688b03dfa631e8c5e8feae"),
+            (r#"flowchart TD; A["She said \"yes\""]-->|"try\\again"|B"#,"9b34f46d81543088bf74586f99d0b00ad5e9274848af061a88c55ba58dbba869"),
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
             ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
             ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")

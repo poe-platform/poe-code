@@ -13,6 +13,10 @@ mod raster;
 #[path = "mermaid/route.rs"]
 mod route;
 
+#[path = "mermaid/scanner.rs"]
+pub(super) mod scanner;
+use scanner::Statement;
+
 pub(super) struct Scene {
     pub width: f64,
     pub height: f64,
@@ -214,26 +218,29 @@ fn position(source: &str, at: &str) -> (usize, usize) {
         .count();
     (line, column)
 }
-fn syntax(source: &str, at: &str, message: String) -> String {
-    let (line, column) = position(source, at);
-    format!("mmdc: E_SYNTAX (line {line}, column {column}): {message}\n")
-}
 fn parse_node<'a>(
     s: &'a str,
+    stmt: &Statement,
     nodes: &mut Vec<Node>,
     ids: &mut BTreeMap<String, usize>,
-) -> Option<(usize, &'a str)> {
+) -> Result<(usize, &'a str), String> {
     let s = s.trim_start();
     let end = s
         .char_indices()
         .find(|&(i, c)| {
             !(c.is_alphanumeric()
-                || c == '_'
+                || !c.is_ascii()
+                || matches!(c, '_' | '.')
                 || (c == '-' && !EDGE_OPS.iter().any(|op| s[i..].starts_with(op))))
         })
         .map_or(s.len(), |(i, _)| i);
-    if end == 0 || end > 4096 {
-        return None;
+    if end == 0 {
+        let text = String::from_utf16_lossy(&s.encode_utf16().take(16).collect::<Vec<_>>());
+        return Err(stmt.error(
+            "E_SYNTAX",
+            s,
+            &format!("Expected node identifier at '{text}'"),
+        ));
     }
     let id = &s[..end];
     let i = *ids.entry(id.into()).or_insert_with(|| {
@@ -245,7 +252,7 @@ fn parse_node<'a>(
         });
         nodes.len() - 1
     });
-    let mut rest = s[end..].trim_start();
+    let mut rest = &s[end..];
     for (open, close, shape) in [
         ("((", "))", Shape::Circle),
         ("([", "])", Shape::Stadium),
@@ -257,14 +264,36 @@ fn parse_node<'a>(
         ("{", "}", Shape::Diamond),
     ] {
         if let Some(tail) = rest.strip_prefix(open) {
-            let (label, after) = tail.split_once(close)?;
-            nodes[i].label = label.trim().trim_matches('"').to_owned();
+            let mut quote = None;
+            let mut chars = tail.char_indices();
+            let closing = loop {
+                let Some((pos, c)) = chars.next() else {
+                    return Err(stmt.error(
+                        "E_SYNTAX",
+                        s,
+                        &format!("Unclosed node shape '{open}...{close}'"),
+                    ));
+                };
+                if let Some(q) = quote {
+                    if c == '\\' {
+                        chars.next();
+                    } else if c == q {
+                        quote = None;
+                    }
+                } else if matches!(c, '\'' | '"') {
+                    quote = Some(c);
+                } else if tail[pos..].starts_with(close) {
+                    break pos;
+                }
+            };
+            let after = &tail[closing + close.len()..];
+            nodes[i].label = scanner::label(&tail[..closing], stmt, s)?;
             nodes[i].shape = shape;
             rest = after.trim_start();
             break;
         }
     }
-    Some((i, rest))
+    Ok((i, rest.trim_start()))
 }
 type Edge<'a> = (usize, usize, &'a str, Option<Pill>);
 struct Pill {
@@ -309,19 +338,14 @@ impl Pill {
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) fn layout(
-    lines: &[&str],
-    source: &str,
+    lines: &[&Statement],
     theme: &str,
     prefix: &str,
     title: Option<&str>,
     limit: usize,
 ) -> Option<Result<Scene, String>> {
-    let mut stmts = lines
-        .iter()
-        .flat_map(|l| l.split(';'))
-        .map(str::trim)
-        .filter(|s| !s.is_empty());
-    let mut header = stmts.next()?.split_whitespace();
+    let mut stmts = lines.iter().copied();
+    let mut header = stmts.next()?.text.split_whitespace();
     if !matches!(header.next()?, "graph" | "flowchart") {
         return None;
     }
@@ -335,7 +359,10 @@ pub(super) fn layout(
     let mut ids = BTreeMap::new();
     let mut edges = vec![];
     for stmt in stmts {
-        let (mut a, mut rest) = parse_node(stmt, &mut nodes, &mut ids)?;
+        let (mut a, mut rest) = match parse_node(stmt.text.trim_end(), stmt, &mut nodes, &mut ids) {
+            Ok(node) => node,
+            Err(error) => return Some(Err(error)),
+        };
         while !rest.is_empty() {
             let (op, tail, label) = if let Some(op) =
                 EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
@@ -343,10 +370,10 @@ pub(super) fn layout(
                 let tail = rest[op.len()..].trim_start();
                 if let Some(tail) = tail.strip_prefix('|') {
                     let Some((label, tail)) = tail.split_once('|') else {
-                        return Some(Err(syntax(
-                            source,
+                        return Some(Err(stmt.error(
+                            "E_SYNTAX",
                             rest,
-                            "Unclosed edge label pipe '|'".into(),
+                            "Unclosed edge label pipe '|'",
                         )));
                     };
                     (op, tail, label.trim())
@@ -360,24 +387,22 @@ pub(super) fn layout(
                 if nodes[a].id.ends_with("--") {
                     let text =
                         String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
-                    return Some(Err(syntax(
-                        source,
+                    return Some(Err(stmt.error(
+                        "E_SYNTAX",
                         rest,
-                        format!("Unexpected flowchart syntax near '{text}'"),
+                        &format!("Unexpected flowchart syntax near '{text}'"),
                     )));
                 }
                 return None;
             };
-            // HTML-like content other than line breaks still uses the existing fallback.
-            if label.split('<').skip(1).any(|tail| {
-                !["br>", "br/>", "br />"].iter().any(|tag| {
-                    tail.get(..tag.len())
-                        .is_some_and(|p| p.eq_ignore_ascii_case(tag))
-                })
-            }) {
-                return None;
-            }
-            let (b, tail) = parse_node(tail, &mut nodes, &mut ids)?;
+            let label = match scanner::label(label, stmt, rest) {
+                Ok(label) => label,
+                Err(error) => return Some(Err(error)),
+            };
+            let (b, tail) = match parse_node(tail, stmt, &mut nodes, &mut ids) {
+                Ok(node) => node,
+                Err(error) => return Some(Err(error)),
+            };
             if a == b {
                 nodes[a].loops += 1;
             } else {
@@ -387,7 +412,7 @@ pub(super) fn layout(
             if edges.len() >= limit / 300 {
                 return None;
             }
-            edges.push((a, b, op, Pill::new(label)));
+            edges.push((a, b, op, Pill::new(&label)));
             a = b;
             rest = tail;
         }

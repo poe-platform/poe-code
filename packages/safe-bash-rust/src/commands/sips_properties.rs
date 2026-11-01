@@ -90,7 +90,8 @@ pub(super) fn read(bytes: &[u8]) -> Result<Properties, &'static str> {
     Ok(BTreeMap::new())
 }
 
-pub(super) fn edit_png(
+pub(super) fn edit(
+    format: &str,
     bytes: &[u8],
     ops: &[(&str, String, String)],
     limit: usize,
@@ -98,10 +99,23 @@ pub(super) fn edit_png(
     let mut raster = super::png_pixels::Raster::decode(bytes, limit)?;
     super::sips_geometry::transform(&mut raster, ops, limit)?;
     let mut props = read(bytes)?;
+    let mut quality = 85;
     for (op, key, value) in ops {
         match (*op, key.as_str()) {
             ("d", _) => set(&mut props, key.clone(), None),
-            ("s", "format" | "formatOptions") => {}
+            ("s", "format") => {}
+            ("s", "formatOptions") => {
+                quality = match value.trim().to_ascii_lowercase().as_str() {
+                    "low" => 30,
+                    "normal" => 60,
+                    "best" => 95,
+                    v => v
+                        .parse::<f64>()
+                        .ok()
+                        .filter(|n| (1. ..=100.).contains(n))
+                        .map_or(85, |n| n.round() as u8),
+                };
+            }
             ("s", "dpiWidth" | "dpiHeight") => {
                 if let Some(dpi) = value
                     .trim()
@@ -117,9 +131,18 @@ pub(super) fn edit_png(
             _ => {}
         }
     }
-    let mut png = raster.png();
+    if !props.is_empty() && !matches!(format, "png" | "jpeg") {
+        return Err(format!(
+            "sips property persistence is not supported for {format}; use PNG or JPEG output"
+        ));
+    }
+    let mut encoded = if format == "png" {
+        raster.png()
+    } else {
+        super::frame_output::encode(&raster, format, quality, raster.density, limit)?
+    };
     if props.is_empty() {
-        return Ok(png);
+        return Ok(encoded);
     }
     let mut entries = Vec::with_capacity(props.len());
     let mut size = 0;
@@ -140,14 +163,23 @@ pub(super) fn edit_png(
     if payload.len() > 65500 {
         return Err("sips metadata byte limit exceeded".into());
     }
-    let prefix = b"safe-bash-sips\0\0\0\0\0";
-    let mut chunk = ((prefix.len() + payload.len()) as u32)
-        .to_be_bytes()
-        .to_vec();
-    chunk.extend_from_slice(b"iTXt");
-    chunk.extend_from_slice(prefix);
-    chunk.extend_from_slice(payload.as_bytes());
-    chunk.extend_from_slice(&super::crc32_ieee(&chunk[4..]).to_be_bytes());
-    png.splice(33..33, chunk);
-    Ok(png)
+    if format == "png" {
+        let prefix = b"safe-bash-sips\0\0\0\0\0";
+        let mut chunk = ((prefix.len() + payload.len()) as u32)
+            .to_be_bytes()
+            .to_vec();
+        chunk.extend_from_slice(b"iTXt");
+        chunk.extend_from_slice(prefix);
+        chunk.extend_from_slice(payload.as_bytes());
+        chunk.extend_from_slice(&super::crc32_ieee(&chunk[4..]).to_be_bytes());
+        encoded.splice(33..33, chunk);
+    } else {
+        let prefix = b"safe-bash-sips\0";
+        let mut comment = vec![255, 254];
+        comment.extend_from_slice(&((2 + prefix.len() + payload.len()) as u16).to_be_bytes());
+        comment.extend_from_slice(prefix);
+        comment.extend_from_slice(payload.as_bytes());
+        encoded.splice(2..2, comment);
+    }
+    Ok(encoded)
 }

@@ -1,4 +1,4 @@
-// Baseline 4:4:4 JFIF, with the same quality-85 tables as image-ast.
+// Baseline 4:4:4 JFIF, with the same quantization tables as image-ast.
 use super::Raster;
 const ZIGZAG: [usize; 64] = [
     0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20,
@@ -114,19 +114,26 @@ fn coefficients(block: &[f64; 64], cos: &[[f64; 8]; 8], quant: &[u8; 64]) -> [i3
     })
 }
 
-pub(super) fn encode(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
+pub(super) fn encode(
+    im: &Raster,
+    quality: u8,
+    density: u32,
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
     let (w, h) = (im.width, im.height);
     if w == 0 || h == 0 || w > 65535 || h > 65535 {
         return Err("JPEG dimensions exceed 16-bit frame fields");
     }
     let mut out = vec![255, 216];
-    segment(
-        &mut out,
-        0xe0,
-        b"JFIF\0\x01\x01\x01\x00\x48\x00\x48\x00\x00",
-    );
+    let mut jfif = *b"JFIF\0\x01\x01\x01\x00\x48\x00\x48\x00\x00";
+    let dpi = (density.max(1) as u16).to_be_bytes();
+    jfif[8..10].copy_from_slice(&dpi);
+    jfif[10..12].copy_from_slice(&dpi);
+    segment(&mut out, 0xe0, &jfif);
+    let q = u32::from(quality).clamp(1, 100);
+    let scale = if q < 50 { 5000 / q } else { 200 - 2 * q };
     let quant = [LUMA_QUANT, CHROMA_QUANT]
-        .map(|base| ZIGZAG.map(|p| ((u16::from(base[p]) * 30 + 50) / 100).max(1) as u8));
+        .map(|base| ZIGZAG.map(|p| ((u32::from(base[p]) * scale + 50) / 100).clamp(1, 255) as u8));
     let mut dqt = Vec::new();
     for (i, q) in quant.iter().enumerate() {
         dqt.push(i as u8);

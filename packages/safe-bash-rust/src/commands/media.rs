@@ -11307,8 +11307,8 @@ fn cmd_media_doc(
                         format!("{}/{name}", opath.trim_end_matches('/'))
                     } else { opath.clone() }
                 } else { f.clone() };
-                let encoded = if meta.fmt == "PNG" && png_pixels::supported_still(&bytes) {
-                    match sips_properties::edit_png(&bytes, &ops, fs.max_input_bytes()) {
+                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM") && png_pixels::supported_still(&bytes) {
+                    match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
                         Ok(encoded) => encoded,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
                     }
@@ -13717,6 +13717,19 @@ mod media_unit_tests {
         let image = png_pixels::Raster::decode(&bytes, 1024).unwrap();
         assert_eq!((image.width, image.height), (1, 2));
         assert_eq!(image.pixels, [[0,0,0,255], [255,0,0,255]]);
+    }
+
+    #[test]
+    fn sips_exports_the_rgb_samples_and_rejects_properties_that_cannot_be_stored() {
+        let fs = MemoryVfs::new();
+        let png = pixel_png(2, 1, PngEncoding::Density(72), |x,_| [10+x as u8,20,30]);
+        fs.write_file("/photo.png", &png).unwrap();
+        let run = |args: &[&str]| cmd_media_doc("sips", &media_args(args), "", "/", &fs);
+        let failed = run(&["-s","format","ppm","-s","artist","Ada","photo.png"]);
+        assert_eq!(failed.exit_code, 1);
+        assert_eq!(fs.read_file("/photo.png").unwrap(), png);
+        assert_eq!(run(&["-s","format","ppm","photo.png"]).exit_code, 0);
+        assert_eq!(fs.read_file("/photo.png").unwrap(), b"P6\n2 1\n255\n\x0a\x14\x1e\x0b\x14\x1e");
     }
 
     #[test]

@@ -62,13 +62,19 @@ fn tiff(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
     Ok(out)
 }
 
-fn encode(im: &Raster, format: &str, limit: usize) -> Result<Vec<u8>, &'static str> {
+pub(super) fn encode(
+    im: &Raster,
+    format: &str,
+    quality: u8,
+    density: u32,
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
     let (w, h) = (im.width, im.height);
     if w.saturating_mul(h) > limit / 4 {
         return Err("image exceeds memory budget");
     }
     let data = match format {
-        "jpeg" => jpeg::encode(im, limit)?,
+        "jpeg" => jpeg::encode(im, quality, density, limit)?,
         "tiff" => tiff(im, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]
@@ -77,6 +83,32 @@ fn encode(im: &Raster, format: &str, limit: usize) -> Result<Vec<u8>, &'static s
             let mut out = format!("P6\n{w} {h}\n255\n").into_bytes();
             for p in &im.pixels {
                 out.extend_from_slice(&p[..3]);
+            }
+            out
+        }
+        "pgm" | "pbm" => {
+            let mut out = if format == "pgm" {
+                format!("P5\n{w} {h}\n255\n")
+            } else {
+                format!("P4\n{w} {h}\n")
+            }
+            .into_bytes();
+            for row in im.pixels.chunks_exact(w) {
+                let mut bits = 0;
+                for (i, &[r, g, b, _]) in row.iter().enumerate() {
+                    let luma = 0.299 * f64::from(r) + 0.587 * f64::from(g) + 0.114 * f64::from(b);
+                    if format == "pgm" {
+                        out.push(luma.round() as u8);
+                    } else {
+                        if luma < 128. {
+                            bits |= 1 << (7 - i % 8);
+                        }
+                        if i % 8 == 7 || i + 1 == w {
+                            out.push(bits);
+                            bits = 0;
+                        }
+                    }
+                }
             }
             out
         }
@@ -311,7 +343,7 @@ pub(super) fn render(
     let mut geometry = None;
     let dims = decode(pattern.is_some(), &mut |mut im, duration, _| {
         if let Some(fmt) = image_format {
-            let frame = encode(&im, fmt, limit)?;
+            let frame = encode(&im, fmt, 85, 72, limit)?;
             if let Some((i, j, width)) = pattern {
                 total = total.saturating_add(frame.len());
                 if total > limit {
@@ -359,7 +391,7 @@ pub(super) fn render(
                 density: 72,
                 pixels: vec![[0; 4]; w * h],
             };
-            encode(&blank, fmt, limit)?
+            encode(&blank, fmt, 85, 72, limit)?
         } else {
             super::y4m::header(w, h, fps)
         };

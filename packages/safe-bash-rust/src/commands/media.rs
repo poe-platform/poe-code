@@ -4615,13 +4615,14 @@ fn cmd_media_doc(
                         additional.push((id,data));
                     }
                 }
-                let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                if (generator.is_some() || y4m_output) && !video_copy {
+                let remux_inputs=supported && additional.len()+1==inputs.len() && fc_flag.is_empty();
+                if (generator.is_some() || y4m_output || mp4_output && remux_inputs) && !video_copy {
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
+                let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 let output=if mp4_output && let Some(video)=generator.as_ref() {
-                    match mp4::mux::lavfi(video,&vf_flags,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                    match mp4::mux::lavfi(video,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
@@ -4632,7 +4633,7 @@ fn cmd_media_doc(
                         else if real_mp4{mp4::decode_y4m(bytes,opts)}
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output || audio_output) && supported && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()){
+                } else if (mp4_output || subtitle_output || audio_output) && remux_inputs {
                     let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
@@ -13240,6 +13241,19 @@ mod media_unit_tests {
         assert_eq!((r.exit_code,r.stderr),(0,String::new()));
         let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,width,height,duration,nb_frames","-of","csv=p=0","v.mp4"]),"","/",&fs);
         assert_eq!(r.stdout,"h264,16,16,1.000000,0\n");
+    }
+
+    #[test]
+    fn ffmpeg_filters_mp4_video_and_retains_the_other_tracks() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let run=|args:&[&str]|cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs);
+        let r=run(&["-i","av.mp4","-s","12x8","out.mp4"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,width,height,nb_frames","-of","csv=p=0","out.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"h264,12,8,3\naac,33\n");
+        let r=run(&["-i","out.mp4","-frames:v","1","-f","yuv4mpegpipe","pipe:1"]);
+        assert!(crate::vfs::stream_string_to_bytes(&r.stdout).starts_with(b"YUV4MPEG2 W12 H8"));
     }
 
     #[test]

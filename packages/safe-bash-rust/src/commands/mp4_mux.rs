@@ -1,4 +1,8 @@
 use super::super::adts::{Frames, Options, RATES};
+use super::{
+    super::{png_pixels::Raster, y4m},
+    h264,
+};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
@@ -257,80 +261,11 @@ impl Track<'_> {
         });
     }
 }
-pub(in super::super) fn lavfi(
-    video: &super::super::lavfi::Video,
-    filters: &[String],
-    opts: Remux<'_>,
-) -> Result<Vec<u8>, String> {
-    use super::{super::y4m, h264};
-    let (w, h) = (video.width as usize, video.height as usize);
-    let count = (opts.end.unwrap_or(video.duration) * video.fps)
-        .round()
-        .max(1.) as usize;
-    if count > 200_000 || count > opts.limit / size_of::<Sample>() {
-        return Err("frame index exceeds memory budget".into());
+fn video_entry(w: usize, h: usize, fps: u32) -> Result<Vec<u8>, &'static str> {
+    if w == 0 || h == 0 || w > u16::MAX as usize || h > u16::MAX as usize {
+        return Err("invalid AVC sample dimensions");
     }
-    let mut dims = (w, h);
-    let mut fps = video.fps.round().max(1.) as u32;
-    let mut previous_buffer = None;
-    let mut samples = Vec::new();
-    let mut previous = Vec::new();
-    let mut ticks = 0u64;
-    let mut used = 0usize;
-    let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
-    let frame_opts = y4m::Options {
-        filters,
-        frames: if sliced { None } else { opts.frames },
-        start: 0.,
-        end: None,
-        no_video: false,
-        limit: opts.limit,
-    };
-    y4m::render_frames(
-        w,
-        h,
-        (0..count).map(|i| (i as f64 / video.fps, 1. / video.fps)),
-        frame_opts,
-        |i| Ok(video.image(i)),
-        |mut im, duration, buffer| {
-            if samples.is_empty() {
-                dims = (im.width, im.height);
-                fps = (1. / duration).round().max(1.) as u32;
-            }
-            // The MP4 encoder consumes the backing buffer. fps can reuse that
-            // buffer, in which case the JS encoder reads zero RGB on the next use.
-            if previous_buffer == Some(buffer) {
-                im.pixels.fill([0, 0, 0, 255]);
-            }
-            previous_buffer = Some(buffer);
-            let blocks = h264::macroblocks(im, opts.limit)?;
-            let data = h264::encode_slice(
-                &blocks,
-                &previous,
-                samples.len(),
-                opts.limit.saturating_sub(used),
-            )?;
-            previous = blocks;
-            used = used.saturating_add(data.len() + size_of::<Sample>());
-            if used > opts.limit {
-                return Err("output byte limit exceeded");
-            }
-            let duration = (duration * 90000.).round().max(1.) as u32;
-            ticks += u64::from(duration);
-            samples.push(Sample {
-                data: data.into(),
-                duration,
-                cts: 0,
-                key: true,
-                description: 1,
-            });
-            Ok(())
-        },
-    )?;
-    if samples.is_empty() {
-        ticks = (count as f64 / video.fps * 90000.).round() as u64;
-    }
-    let config = h264::configuration(dims.0, dims.1, fps)?;
+    let config = h264::configuration(w, h, fps)?;
     let mut stsd = Vec::new();
     words(&mut stsd, &[0, 1]);
     atom(&mut stsd, b"avc1", |b| {
@@ -343,7 +278,7 @@ pub(in super::super) fn lavfi(
                 0,
                 0,
                 0,
-                (dims.0 as u32) << 16 | dims.1 as u32,
+                (w as u32) << 16 | h as u32,
                 0x00480000,
                 0x00480000,
                 0,
@@ -354,24 +289,128 @@ pub(in super::super) fn lavfi(
         words(b, &[0x0018ffff]);
         atom(b, b"avcC", |b| b.extend_from_slice(&config));
     });
-    let track = Track {
-        samples,
+    Ok(stsd)
+}
+
+fn encode_video(
+    track: &mut Track<'_>,
+    movie_scale: u32,
+    times: impl Iterator<Item = (f64, f64)>,
+    opts: y4m::Options<'_>,
+    image: impl FnMut(usize) -> Result<Raster, &'static str>,
+) -> Result<(), &'static str> {
+    let limit = opts.limit;
+    let mut previous_buffer = None;
+    let mut samples = Vec::new();
+    let mut previous = Vec::new();
+    let mut ticks = 0u64;
+    let mut used = 0usize;
+    y4m::render_frames(
+        track.width as usize,
+        track.height as usize,
+        times,
+        opts,
+        image,
+        |mut im, duration, buffer| {
+            if samples.is_empty() {
+                track.width = im.width as u32;
+                track.height = im.height as u32;
+                track.stsd =
+                    video_entry(im.width, im.height, (1. / duration).round().max(1.) as u32)?
+                        .into();
+            }
+            // The MP4 encoder consumes the backing buffer. fps can reuse that
+            // buffer, in which case the JS encoder reads zero RGB on the next use.
+            if previous_buffer == Some(buffer) {
+                im.pixels.fill([0, 0, 0, 255]);
+            }
+            previous_buffer = Some(buffer);
+            let blocks = h264::macroblocks(im, limit)?;
+            let data = h264::encode_slice(
+                &blocks,
+                &previous,
+                samples.len(),
+                limit.saturating_sub(used),
+            )?;
+            previous = blocks;
+            used = used.saturating_add(data.len() + size_of::<Sample>());
+            if used > limit {
+                return Err("output byte limit exceeded");
+            }
+            let duration = (duration * f64::from(track.scale)).round().max(1.) as u32;
+            ticks += u64::from(duration);
+            samples.push(Sample {
+                data: data.into(),
+                duration,
+                cts: 0,
+                key: true,
+                description: 1,
+            });
+            Ok(())
+        },
+    )?;
+    if !samples.is_empty() {
+        track.media_ticks = ticks as u32;
+        if track.edits.is_empty() {
+            track.movie_ticks =
+                (ticks as f64 * f64::from(movie_scale) / f64::from(track.scale)).round() as u32;
+        }
+    }
+    track.samples = samples;
+    track.first_dts = 0;
+    Ok(())
+}
+
+pub(in super::super) fn lavfi(
+    video: &super::super::lavfi::Video,
+    mut opts: Remux<'_>,
+) -> Result<Vec<u8>, String> {
+    let (w, h) = (video.width as usize, video.height as usize);
+    let count = (opts.end.unwrap_or(video.duration) * video.fps)
+        .round()
+        .max(1.) as usize;
+    if count > 200_000 || count > opts.limit / size_of::<Sample>() {
+        return Err("frame index exceeds memory budget".into());
+    }
+    let ticks = (count as f64 / video.fps * 90000.).round() as u64;
+    let mut track = Track {
+        samples: vec![],
         scale: 90000,
         media_ticks: ticks as u32,
         movie_ticks: (ticks as f64 / 90.).round() as u32,
         first_dts: 0,
-        stsd: stsd.into(),
+        stsd: video_entry(w, h, video.fps.round().max(1.) as u32)?.into(),
         edits: vec![],
         kind: "video",
         enabled: true,
         volume: 0,
         matrix: MATRIX,
-        width: dims.0 as u32,
-        height: dims.1 as u32,
+        width: video.width,
+        height: video.height,
         language: 0x55c4,
         handler: *b"vide",
         name: b"VideoHandler",
     };
+    let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
+    let filters = if sliced {
+        &[]
+    } else {
+        std::mem::take(&mut opts.video_filters)
+    };
+    encode_video(
+        &mut track,
+        1000,
+        (0..count).map(|i| (i as f64 / video.fps, 1. / video.fps)),
+        y4m::Options {
+            filters,
+            frames: if sliced { None } else { opts.frames },
+            start: 0.,
+            end: None,
+            no_video: false,
+            limit: opts.limit,
+        },
+        |i| Ok(video.image(i)),
+    )?;
     let mut metadata = opts.metadata.clone();
     metadata
         .entry("encoder".to_owned())
@@ -660,6 +699,7 @@ pub(in super::super) struct Remux<'a> {
     pub rate: Option<u32>,
     pub channels: Option<u32>,
     pub audio_filters: &'a [&'a str],
+    pub video_filters: &'a [String],
     pub maps: &'a [&'a str],
     pub strip_audio: bool,
     pub strip_video: bool,
@@ -1059,7 +1099,10 @@ pub(in super::super) fn remux(
                 ]);
             }
         }
-        if video && let Some(n) = opts.frames {
+        if video
+            && opts.video_filters.is_empty()
+            && let Some(n) = opts.frames
+        {
             samples.truncate(n.max(1) as usize);
         }
         let mut ticks = samples.iter().map(|s| u64::from(s.duration)).sum::<u64>();
@@ -1071,7 +1114,7 @@ pub(in super::super) fn remux(
         } else {
             edits.iter().map(|r| u64::from(r[0])).sum::<u64>() as u32
         };
-        tracks.push(Track {
+        let mut track = Track {
             samples,
             scale: t.scale,
             media_ticks: ticks as u32,
@@ -1096,7 +1139,62 @@ pub(in super::super) fn remux(
             language,
             handler,
             name,
-        });
+        };
+        if video && !opts.video_filters.is_empty() && !track.samples.is_empty() {
+            let config = child(t.entry.get(78..).unwrap_or_default(), b"avcC");
+            let mut decoder = h264::Pcm::new(
+                t.sequence
+                    .as_ref()
+                    .ok_or("missing H.264 sequence parameters")?,
+                config,
+                opts.limit,
+            )?;
+            let input_samples = std::mem::take(&mut track.samples);
+            let times = input_samples.iter().scan(0u64, |dts, s| {
+                let at = *dts;
+                *dts += u64::from(s.duration);
+                Some((
+                    (at as f64 + s.cts as f64) / f64::from(t.scale),
+                    f64::from(s.duration) / f64::from(t.scale),
+                ))
+            });
+            let limit = opts.limit.saturating_sub(index_bytes);
+            let mut replay = 0usize;
+            encode_video(
+                &mut track,
+                scale,
+                times,
+                y4m::Options {
+                    filters: opts.video_filters,
+                    frames: opts.frames,
+                    start: 0.,
+                    end: None,
+                    no_video: false,
+                    limit,
+                },
+                |i| {
+                    if decoder.next > i + 1 {
+                        decoder.next = 0;
+                    }
+                    while decoder.next <= i {
+                        let data = &input_samples[decoder.next].data;
+                        replay = replay.saturating_add(data.len());
+                        if replay > opts.limit.saturating_mul(32) {
+                            return Err("H.264 decode work limit exceeded");
+                        }
+                        decoder.decode(data)?;
+                    }
+                    decoder.image((t.width as usize, t.height as usize), true, limit)
+                },
+            )?;
+            index_bytes = index_bytes
+                .saturating_sub(input_samples.capacity() * size_of::<Sample>())
+                .saturating_add(
+                    track.samples.capacity() * size_of::<Sample>()
+                        + track.samples.iter().map(|s| s.data.len()).sum::<usize>(),
+                );
+        }
+        tracks.push(track);
     }
     if audio.clear_samples {
         for (track, (j, i)) in tracks.iter_mut().zip(selected) {

@@ -21,6 +21,21 @@ struct Links {
     href: Option<String>,
     named: Vec<(String, String)>,
 }
+#[derive(Clone, Copy, PartialEq)]
+enum Placement {
+    Left,
+    Right,
+    Over,
+}
+struct Note {
+    step: usize,
+    side: Placement,
+    first: usize,
+    min: usize,
+    max: usize,
+    label: String,
+}
+
 struct Message {
     from: usize,
     to: usize,
@@ -76,6 +91,7 @@ fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, Option<bool>)>
 pub(in super::super) struct Sequence {
     participants: Vec<Participant>,
     messages: Vec<Message>,
+    notes: Vec<Note>,
     activations: Vec<(usize, usize, bool)>,
     links: BTreeMap<String, Links>,
 }
@@ -88,6 +104,7 @@ impl Sequence {
             let text = stmt.text.trim_end();
             let word = text.split_ascii_whitespace().next().unwrap_or("");
             let rest = text[word.len()..].trim_ascii();
+            let step = chart.messages.len() + chart.notes.len();
             let fail = |s: &str| stmt.error("E_SYNTAX", text, s);
             let mut participant =
                 |id: &str, label: Option<&str>, actor: bool| -> Result<usize, String> {
@@ -190,12 +207,40 @@ impl Sequence {
                 "activate" | "deactivate" => {
                     let id = participant(strip_quotes(rest), None, false)?;
                     chart.activations.push((
-                        chart.messages.len().saturating_sub(1),
+                        step.saturating_sub(1),
                         id,
                         word.eq_ignore_ascii_case("activate"),
                     ));
                 }
-                "note" | "box" | "loop" | "opt" | "alt" | "end" | "else" => return Ok(None),
+                "note" => {
+                    let i = outside(rest, |s| s.starts_with(':'))
+                        .ok_or_else(|| fail("Sequence 'Note' requires ': <text>'"))?;
+                    let header = rest[..i].trim_ascii();
+                    let lower = header.to_ascii_lowercase();
+                    let (side, prefix) = [("left of ",Placement::Left),("right of ",Placement::Right),("over ",Placement::Over)].into_iter().find_map(|(prefix,side)|lower.starts_with(prefix).then_some((side,prefix))).ok_or_else(||fail(&format!("Invalid sequence Note placement '{header}' (expected 'left of', 'right of', or 'over')")))?;
+                    let mut targets = header[prefix.len()..]
+                        .split(',')
+                        .map(|s| participant(strip_quotes(s), None, false));
+                    let first = targets.next().unwrap()?;
+                    let (mut min, mut max) = (first, first);
+                    for id in targets {
+                        let id = id?;
+                        min = min.min(id);
+                        max = max.max(id);
+                    }
+                    if step >= limit / 300 {
+                        return Err(BUDGET.into());
+                    }
+                    chart.notes.push(Note {
+                        step,
+                        side,
+                        first,
+                        min,
+                        max,
+                        label: strip_quotes(&rest[i + 1..]).into(),
+                    });
+                }
+                "box" | "loop" | "opt" | "alt" | "end" | "else" => return Ok(None),
                 _ => {
                     let Some((from, to, label, marker, dashed, activation)) = message(text) else {
                         return Err(fail(&format!(
@@ -208,11 +253,9 @@ impl Sequence {
                         return Err(BUDGET.into());
                     }
                     if let Some(open) = activation {
-                        chart.activations.push((
-                            chart.messages.len(),
-                            if open { to } else { from },
-                            open,
-                        ));
+                        chart
+                            .activations
+                            .push((step, if open { to } else { from }, open));
                     }
                     chart.messages.push(Message {
                         from,
@@ -293,8 +336,9 @@ impl Sequence {
             });
         }
         // Moving a suffix only widens existing spans, so one pass satisfies all constraints.
+        let mut constraints = Vec::new();
         for (msg, pill) in self.messages.iter().zip(&metrics) {
-            let (left, right, span) = if msg.from == msg.to {
+            constraints.push(if msg.from == msg.to {
                 let next = msg.from + 1;
                 if next == cards.len() {
                     continue;
@@ -310,7 +354,26 @@ impl Sequence {
                     msg.from.max(msg.to),
                     64. + pill.as_ref().map_or(48., |p| p.0),
                 )
-            };
+            });
+        }
+        let mut notes = Vec::with_capacity(self.notes.len());
+        for note in self.notes {
+            let (lines, w) = text_block(&note.label, 12., false, 240., remaining).ok_or(BUDGET)?;
+            remaining -= lines.len();
+            let w = (((w + 24.) / 4.).ceil() * 4.).max(96.);
+            let h = (lines.len() as f64 * 16. + 16.).max(36.);
+            match note.side {
+                Placement::Left if note.first > 0 => {
+                    constraints.push((note.first - 1, note.first, w + 48.))
+                }
+                Placement::Right if note.first + 1 < cards.len() => {
+                    constraints.push((note.first, note.first + 1, w + 48.))
+                }
+                _ => (),
+            }
+            notes.push((note, w, h, lines));
+        }
+        for (left, right, span) in constraints {
             let delta =
                 cards[left].0 + cards[left].1 / 2. + span - (cards[right].0 + cards[right].1 / 2.);
             if delta > 0. {
@@ -320,7 +383,7 @@ impl Sequence {
                 }
             }
         }
-        let min_x = cards.first().map_or(0., |c| c.0);
+        let mut min_x = cards.first().map_or(0., |c| c.0);
         right = cards.last().map_or(160., |c| c.0 + c.1);
         let mut cursor = max_h + 28.;
         let mut placed = Vec::with_capacity(metrics.len());
@@ -329,14 +392,22 @@ impl Sequence {
         let mut seen = vec![false; cards.len()];
         let mut opening_order = Vec::new();
         let mut bars = Vec::new();
-        let mut metrics = metrics.into_iter();
-        for step in 0..self.messages.len().max(1) {
-            let msg = self.messages.get(step);
-            let pill = metrics.next().flatten();
+        let step_count = self.messages.len() + notes.len();
+        let mut messages = self.messages.iter().zip(metrics);
+        let mut notes = notes.into_iter().peekable();
+        let mut placed_notes = Vec::new();
+        for step in 0..step_count.max(1) {
+            let note = notes.next_if(|(n, _, _, _)| n.step == step);
+            let (msg, pill) = if note.is_none() {
+                messages.next().map_or((None, None), |(m, p)| (Some(m), p))
+            } else {
+                (None, None)
+            };
             let (w, h) = pill.as_ref().map_or((0., 0.), |p| (p.0, p.1));
             let y = match msg {
                 Some(m) if m.from == m.to => cursor + 8.,
                 Some(_) => cursor + h + 10.,
+                None if note.is_some() => cursor,
                 None => max_h + 20.,
             };
             // The arrow also touches bars that close at this step, including ones
@@ -360,6 +431,22 @@ impl Sequence {
                 } else if let Some(start) = stack.pop() {
                     bars.push((id, stack.len(), start, (y - start).max(16.)));
                 }
+            }
+            if let Some((note, mut w, h, lines)) = note {
+                let left = cards[note.min].0 + cards[note.min].1 / 2.;
+                let last = cards[note.max].0 + cards[note.max].1 / 2.;
+                let x = match note.side {
+                    Placement::Left => left - 18. - w,
+                    Placement::Right => last + 18.,
+                    Placement::Over => {
+                        w = w.max(last - left + 48.);
+                        ((left + last - w) / 2.).round()
+                    }
+                };
+                min_x = min_x.min(x);
+                right = right.max(x + w);
+                placed_notes.push((x, y, w, h, lines));
+                cursor += h + 18.;
             }
             let Some(msg) = msg else { continue };
             let mut a = cards[msg.from].0 + cards[msg.from].1 / 2.;
@@ -587,55 +674,90 @@ impl Sequence {
             );
             el.push_str("</g>");
             edges.push(el);
-            if let Some((px, py, w, h, rows)) = pill {
-                let (x, y) = (px + dx, py + dy);
-                let cx = x + w / 2.;
-                let (fill, bg) = theme.color("edgeLabelBackground");
-                let (border, stroke) = theme.color("edgeLabelBorder");
-                let (color, ink) = theme.color("text");
-                charge_attributes(
-                    &mut budget,
-                    &[
-                        (fill, 1),
-                        (border, 1),
-                        (font, rows.len()),
-                        (color, rows.len()),
-                    ],
-                )?;
-                scene.paint.push(Paint::Box {
-                    bounds: [x, y, w, h],
-                    shape: Shape::Rounded,
-                    shadow: None,
-                    style: BoxStyle {
-                        radius: 5.,
-                        header: None,
-                        fill: bg,
-                        border: stroke,
-                        thickness: 1.,
-                    },
-                });
-                let mut el = format!(
-                    r#"<g class="mmdc-label-pill"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="5" fill="{fill}" stroke="{border}" stroke-width="1"/>"#
-                );
-                for (i, s) in rows.into_iter().enumerate().filter(|(_, s)| !s.is_empty()) {
-                    let baseline = py + 4. + (i as f64 + 0.78) * 16. + dy;
-                    write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="12" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&s)).unwrap();
-                    scene.paint.push(Paint::Text {
-                        mono: false,
-                        start: cx - measure(&s, 12., false) / 2.,
-                        baseline,
-                        size: 12.,
-                        weight: 500,
-                        color: ink,
-                        text: s,
-                    });
-                }
-                el.push_str("</g>");
-                pills.push(el);
+            if let Some(pill) = pill {
+                pills.push(pill);
             }
         }
         scene.elements.splice(edge_layer..edge_layer, edges);
-        scene.elements.extend(pills);
+        for (note, (px, py, w, h, rows)) in pills.into_iter().map(|p| (None, p)).chain(
+            placed_notes
+                .into_iter()
+                .enumerate()
+                .map(|(i, p)| (Some(i + 1), p)),
+        ) {
+            let (group, radius, thickness, weight, pad, filter) = if let Some(id) = note {
+                (
+                    format!(r#"<g class="mmdc-note" data-id="note_{id}">"#),
+                    6.,
+                    1.25,
+                    400,
+                    8.,
+                    format!(r#" filter="url(#{prefix}mmdc-shadow)""#),
+                )
+            } else {
+                (
+                    r#"<g class="mmdc-label-pill">"#.into(),
+                    5.,
+                    1.,
+                    500,
+                    4.,
+                    String::new(),
+                )
+            };
+            let (x, y) = (px + dx, py + dy);
+            let cx = x + w / 2.;
+            let (fill, bg) = theme.color(if note.is_some() {
+                "noteSurface"
+            } else {
+                "edgeLabelBackground"
+            });
+            let (border, stroke) = theme.color(if note.is_some() {
+                "noteBorder"
+            } else {
+                "edgeLabelBorder"
+            });
+            let (color, ink) = theme.color("text");
+            charge_attributes(
+                &mut budget,
+                &[
+                    (fill, 1),
+                    (border, 1),
+                    (font, rows.len()),
+                    (color, rows.len()),
+                ],
+            )?;
+            scene.paint.push(Paint::Box {
+                bounds: [x, y, w, h],
+                shape: Shape::Rounded,
+                shadow: note.map(|_| shadow),
+                style: BoxStyle {
+                    radius,
+                    header: None,
+                    fill: bg,
+                    border: stroke,
+                    thickness,
+                },
+            });
+            let mut el = format!(
+                r#"{group}<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{fill}" stroke="{border}" stroke-width="{thickness}"{filter}/>"#
+            );
+            for (i, s) in rows.into_iter().enumerate().filter(|(_, s)| !s.is_empty()) {
+                let baseline = py + pad + (i as f64 + 0.78) * 16. + dy;
+                write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="12" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&s)).unwrap();
+                scene.paint.push(Paint::Text {
+                    mono: false,
+                    start: cx - measure(&s, 12., false) / 2.,
+                    baseline,
+                    size: 12.,
+                    weight,
+                    color: ink,
+                    text: s,
+                });
+            }
+            el.push_str("</g>");
+            scene.elements.push(el);
+        }
+
         if let Some(t) = title {
             scene.add_title(t, padding, theme);
         }

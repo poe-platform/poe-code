@@ -38782,6 +38782,25 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_renders_sequence_notes_beside_and_over_participants() {
+        assert_mermaid_outputs(&[
+            ("sequenceDiagram\nNote right of A: Hello", "svg", "97ced6ecc575b960f56b9658c4c5599ce82ec20300359699ab9ba6f739764510"),
+            ("sequenceDiagram\nNote right of A: Hello", "png", "2f1d4af41faf385d2b6f502f7ce193d80f36c294229df0a1993376f73c573c0d"),
+            ("sequenceDiagram\nNote right of A: Hello", "pdf", "2129b4610d9afab94990e8961cceb9cf9fcd320b25f4cd13f23e7e17ce90698a"),
+            ("sequenceDiagram\nNote over A,B: group", "svg", "4aa6ce2ec2da328908cc165ae913a04c7d81aa15ef02020b914d21df13c1702c"),
+            ("sequenceDiagram\nNote over A,B: group", "png", "6517ace079c25c75ac7c742ed5ec9f79a49ba81c87cb5016d2921e36b6f01299"),
+            ("sequenceDiagram\nNote over A,B: group", "pdf", "73271e80e15ca045d94c1321296fd104d3d7e96483dbb10718a60dcb3325df07"),
+            ("sequenceDiagram\nactor A\nNote left of A: hi", "svg", "72c3699282000452b3316cb92f5af9e801a3e3b8a6d4e464fd23875914e8aa2d"),
+            ("sequenceDiagram\nactor A\nNote left of A: hi", "png", "7d8e794ddb2f9bb8af8cc9de3371dc2de4fecaa51a688fc69cbe249a1d53e3b0"),
+            ("sequenceDiagram\nactor A\nNote left of A: hi", "pdf", "183259dd802580f91ffb74eb9a749d2ca2bed839f87b6eba696f9eae7548543a"),
+            ("sequenceDiagram\nNote right of A: one<br/>two", "svg", "e2a2d56f011935f0f65f840eec72830a6e30aa8e57fac8f4cffae36c5b9d0b43"),
+            ("sequenceDiagram\nNote right of A: one<br/>two", "png", "a312184c9dde8a6d4c97b90ddb0b6848eaf8ddff60d3b1a7119f4d764110e08b"),
+            ("sequenceDiagram\nNote right of A: one<br/>two", "pdf", "9bf810f233502fb49fbf31c4482653b7a2205177dd5fc5e0dbd5c8ee4c2e782c"),
+            ("sequenceDiagram\nNote over A,B: hi\nactivate B\nB->>+A: run\nNote right of A: active\ndeactivate B\nB-->>-A: done", "svg", "4ab35552d30030fe4a882d99499d85ed562f02e247c95ab07b823433007f775e"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

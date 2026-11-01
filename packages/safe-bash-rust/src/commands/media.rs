@@ -110,6 +110,8 @@ mod sips_geometry;
 mod sips_properties;
 #[path = "image_header.rs"]
 mod image_header;
+#[path = "gif.rs"]
+mod gif;
 #[path = "webp.rs"]
 mod webp;
 #[path = "png_pixels.rs"]
@@ -211,6 +213,7 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
         if let Ok(h) = webp::header(bytes) { (meta.w, meta.h) = (h.width, h.height); }
     } else if bytes.starts_with(b"GIF8") {
         meta.fmt = "GIF".to_string();
+        if gif::signature(bytes) && let Ok(dims) = gif::dimensions(bytes) { (meta.w, meta.h) = dims; }
     }
     for line in bytes.split_inclusive(|&b| b == b'\n') {
         if !(line.starts_with(b"__IMG__:") || line.starts_with(b"__EXIF__:")) {
@@ -268,6 +271,9 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         meta.fmt = std::str::from_utf8(im.codec()).unwrap().trim_end().to_ascii_uppercase();
         meta.cs = if gray { "Gray" } else { "sRGB" }.into();
         (im.bit_depth(), if gray { 1 } else { 3 }, 72)
+    } else if gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
+        (meta.w,meta.h) = gif::dimensions(bytes)?;
+        (8,4,72)
     } else if webp::signature(bytes) && !bytes[12..].starts_with(b"\n__IMG__:") {
         let h = webp::header(bytes)?;
         (8, if h.alpha { 4 } else { 3 }, h.density)
@@ -11394,7 +11400,7 @@ fn cmd_media_doc(
                         format!("{}/{name}", opath.trim_end_matches('/'))
                     } else { opath.clone() }
                 } else { f.clone() };
-                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP") && png_pixels::supported_still(&bytes) {
+                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF") && png_pixels::supported_still(&bytes) {
                     match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
                         Ok(encoded) => encoded,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
@@ -14182,6 +14188,20 @@ mod media_unit_tests {
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.ppm").unwrap())), "c6213c31b8dc8aa74e5163435f70b978d406d919f0f33e7d0bcb65bab89fd010");
         assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=7x5:r=2:d=1", "%02d.webp"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/02.webp").unwrap())), "517792c6879004136e9ae816f1abd8dd522ee686f54368e84350bc2ec8f256ce");
+    }
+
+    #[test]
+    fn magick_encodes_gif_palette_transparency_and_lzw_subblocks() {
+        let fs = MemoryVfs::new();
+        for (size, canvas, digest) in [
+            ("65x33","gradient:red-blue","0a9f5db6b62bd223ef7f65f7c72676fbaeacc7597df72ca1d8b65b36e56b6098"),
+            ("4x3","xc:transparent","9f3e30cb67a4fe96b1f40aba568af529972cadc19212b4646b234b28dcad59ff"),
+        ] {
+            let run=|name,args:&[&str]|cmd_media_doc(name,&media_args(args),"","/",&fs);
+            assert_eq!(run("convert",&["-size",size,canvas,"GIF:frame"]).exit_code,0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame").unwrap())),digest);
+            assert_eq!(run("identify",&["-format","%m %wx%h %[channels]","frame"]).stdout,format!("GIF {size} srgba"));
+        }
     }
 
     #[test]

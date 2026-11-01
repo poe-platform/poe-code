@@ -77,6 +77,7 @@ pub(super) fn encode(
     let data = match format {
         "jpeg" => jpeg::encode(im, quality, density, limit)?,
         "tiff" => tiff(im, density, limit)?,
+        "gif" => super::gif::encode(im,limit)?,
         "webp" => super::webp::encode(im, density, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]

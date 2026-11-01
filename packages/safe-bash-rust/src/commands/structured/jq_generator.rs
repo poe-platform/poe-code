@@ -1,4 +1,5 @@
 //! Pull input only until the downstream filter stops requesting results.
+use super::jq_index::{index_value, indices, path_slice};
 use super::{
     JVal, JqScope, bind_jq_alternatives, eval_jq_atom, is_matching_outer_delim,
     parse_single_json_strict, split_jq_binary, split_jq_binary_right, split_jq_def_semi,
@@ -300,6 +301,19 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         }) {
             return flow;
         }
+        if let Some(filter) = args
+            && matches!(name, "indices" | "index" | "rindex")
+        {
+            return visit_jq(filter, input, vars, &mut |needle| {
+                let found = indices(input, &needle)?;
+                if name == "indices" {
+                    emit(found)
+                } else {
+                    let offset = if name == "index" { 0.0 } else { -1.0 };
+                    emit(index_value(&found, &JVal::Number(offset, None))?.clone())
+                }
+            });
+        }
         if let ("getpath", Some(filter)) = (name, args) {
             return visit_jq(filter, input, vars, &mut |candidate| {
                 let JVal::Array(path) = candidate else {
@@ -313,7 +327,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                             continue;
                         }
                         if matches!(value, JVal::Str(_) | JVal::Array(_)) {
-                            slice = path_slice(value, bounds)?;
+                            slice = path_slice(value, bounds, false)?;
                             value = &slice;
                             continue;
                         }
@@ -605,63 +619,6 @@ pub(super) fn invoke<'a>(
     Some(bind(&values, input, caller, &mut bound, &mut |scope| {
         run(&filter.body, scope)
     }))
-}
-
-fn index_value<'a>(base: &'a JVal, index: &JVal) -> Result<&'a JVal, String> {
-    match (base, index) {
-        (JVal::Object(fields), JVal::Str(key)) => Ok(fields
-            .iter()
-            .find(|(k, _)| k == key)
-            .map_or(&JVal::Null, |(_, v)| v)),
-        (JVal::Array(items), JVal::Number(n, _)) if n.is_finite() => {
-            let mut i = n.trunc();
-            if i < 0.0 {
-                i += items.len() as f64;
-            }
-            Ok(if i < 0.0 {
-                &JVal::Null
-            } else {
-                items.get(i as usize).unwrap_or(&JVal::Null)
-            })
-        }
-        (JVal::Null, JVal::Str(_)) => Ok(&JVal::Null),
-        (JVal::Null, JVal::Number(n, _)) if n.is_finite() => Ok(&JVal::Null),
-        _ => {
-            let detail = if matches!(index,JVal::Str(k) if k.len()<30) {
-                format!(" {}", index.to_json_string(true, false, 0))
-            } else {
-                String::new()
-            };
-            Err(format!(
-                "Cannot index {} with {}{detail}",
-                base.type_name(),
-                index.type_name()
-            ))
-        }
-    }
-}
-
-fn path_slice(value: &JVal, bounds: &[(String, JVal)]) -> Result<JVal, String> {
-    let len = match value {
-        JVal::Array(items) => items.len(),
-        JVal::Str(s) => s.chars().count(),
-        _ => unreachable!(),
-    };
-    let bound = |name, default| match bounds.iter().find(|(key, _)| key == name).map(|(_, v)| v) {
-        Some(JVal::Null) => Ok(default),
-        Some(JVal::Number(n, _)) if n.is_finite() => {
-            let i = if name == "start" { n.floor() } else { n.ceil() };
-            Ok((if i < 0.0 { len as f64 + i } else { i }).clamp(0.0, len as f64) as usize)
-        }
-        _ => Err("Array/string slice indices must be integers"),
-    };
-    let start = bound("start", 0)?;
-    let end = bound("end", len)?.max(start);
-    Ok(match value {
-        JVal::Array(items) => JVal::Array(items[start..end].to_vec()),
-        JVal::Str(s) => JVal::Str(s.chars().skip(start).take(end - start).collect()),
-        _ => unreachable!(),
-    })
 }
 
 // Catch failures in this filter. A failure raised by its consumer belongs outside the handler.

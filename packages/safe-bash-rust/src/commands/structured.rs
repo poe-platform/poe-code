@@ -9,6 +9,7 @@ mod in2csv_json;
 mod jq_generator;
 use jq_generator::{eval_jq, visit_jq};
 use std::ops::ControlFlow;
+mod jq_index;
 mod jq_input;
 mod jq_json;
 mod jq_number;
@@ -2622,58 +2623,6 @@ fn try_eval_jq_builtin(
                         jval_contains(&needle, input)
                     };
                     return Ok(Some(vec![JVal::Bool(res)]));
-                }
-                "indices" | "index" | "rindex" => {
-                    let needle_val = eval_jq(arg_expr, input, vars)?
-                        .into_iter()
-                        .next()
-                        .unwrap_or(JVal::Null);
-                    let mut idxs: Vec<usize> = Vec::new();
-                    match input {
-                        JVal::Str(st) => {
-                            let needle = needle_val.to_raw_string(true, false);
-                            if !needle.is_empty() {
-                                for (char_idx, (byte_pos, _)) in st.char_indices().enumerate() {
-                                    if st[byte_pos..].starts_with(&needle) {
-                                        idxs.push(char_idx);
-                                    }
-                                }
-                            }
-                        }
-                        JVal::Array(arr) => {
-                            if let JVal::Array(sub) = &needle_val {
-                                if !sub.is_empty() && sub.len() <= arr.len() {
-                                    for i in 0..=(arr.len() - sub.len()) {
-                                        if arr[i..i + sub.len()] == sub[..] {
-                                            idxs.push(i);
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (i, item) in arr.iter().enumerate() {
-                                    if item == &needle_val {
-                                        idxs.push(i);
-                                    }
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                    let res = match fname {
-                        "indices" => JVal::Array(
-                            idxs.into_iter().map(|i| JVal::Number(i as f64, None)).collect(),
-                        ),
-                        "index" => idxs
-                            .first()
-                            .map(|&i| JVal::Number(i as f64, None))
-                            .unwrap_or(JVal::Null),
-                        "rindex" => idxs
-                            .last()
-                            .map(|&i| JVal::Number(i as f64, None))
-                            .unwrap_or(JVal::Null),
-                        _ => JVal::Null,
-                    };
-                    return Ok(Some(vec![res]));
                 }
                 "test" => {
                     if let JVal::Str(st) = input {

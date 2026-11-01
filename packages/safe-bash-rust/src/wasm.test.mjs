@@ -3,6 +3,27 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq searches byte offsets and overlapping subsequences for every pattern", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout, error] of [
+      ['"ééé" | indices("éé")', "[0,2]\n"],
+      ['"𝄞a𝄞" | index(("a","𝄞"))', "4\n0\n"],
+      ["[1,1,1] | rindex(([1,1],[2]))", "1\nnull\n"],
+      ["[1.0,1.00,1] | indices([1,1])", "[0,1]\n"],
+      ['"abc" | indices(false)', "", "Cannot index string with boolean"],
+      ['{"x":[1,2]} | indices("x"),rindex("x")', "[1,2]\n2\n"],
+      ['"a" | first(indices(("a",error("late"))))', "[0]\n"],
+      ["[7,8,9] | indices({start:1,end:null})", "[8,9]\n"],
+      ['"abc" | indices({start:nan,end:2})', '"ab"\n'],
+      ["[1] | indices(empty)", ""],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [error ? 5 : 0, stdout, error ? `jq: error (at <unknown>): ${error}\n` : ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq iteration emits each object or array item until an error or early stop", async () => {
   const bash = new RustWasmBash();
   try {

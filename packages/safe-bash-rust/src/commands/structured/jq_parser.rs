@@ -270,6 +270,36 @@ pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
     root.filter(|_| lowest >= 3)
 }
 
+pub(super) fn fold(source: &str) -> Option<(&str, &str, &str)> {
+    let mut lexer = Lexer::new(source);
+    let start = lexer.next().ok()?.text.len();
+    loop {
+        let t = lexer.next().ok()?;
+        if t.kind == Kind::End {
+            return None;
+        }
+        if t.kind == Kind::Name && t.text == "as" {
+            let mut tail = Lexer::new(&source[t.at + 2..]);
+            if tail.next().ok()?.text != "$" {
+                continue;
+            }
+            let variable = tail.next().ok()?;
+            if variable.kind != Kind::Name {
+                continue;
+            }
+            let open = tail.next().ok()?;
+            let body = &source[t.at + 2 + open.at..];
+            if open.text == "(" && super::is_matching_outer_delim(body, '(', ')') {
+                return Some((
+                    &source[start..t.at],
+                    variable.text,
+                    &body[1..body.len() - 1],
+                ));
+            }
+        }
+    }
+}
+
 fn builtin(name: &str, arity: usize) -> bool {
     match name {
         "abs" | "add" | "arrays" | "ascii_downcase" | "ascii_upcase" | "booleans" | "ceil"

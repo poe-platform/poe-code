@@ -3,6 +3,27 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq reduce and foreach interleave their initial, source and update streams", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout] of [
+      ["[reduce (1,2) as $x (0; (.+$x, .+$x+10))]", "[23]\n"],
+      ["[foreach (1,2) as $x (0; (.+$x, .+$x+10))]", "[1,11,13,23]\n"],
+      ["7 | [reduce . as $x ((0,5); $x)]", "[7,null]\n"],
+      ["7 | [foreach . as $x ((0,5); $x)]", "[7,7]\n"],
+      ["[reduce inputs as $x (empty; .),inputs]", "[1,2,3]\n"],
+      ["[first(foreach inputs as $x (0; $x)),inputs]", "[1,2,3]\n"],
+      ["[foreach (1,2) as $x (0; empty; 42)]", "[]\n"],
+      ["reduce range(3) as $x (first(range(7;9)); .+$x)", "10\n"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}' <<< '1 2 3'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], filter);
+    }
+    const r = await bash.exec(`jq -nc 'foreach (1,error("bad")) as $x (0; $x)'`);
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "1\n", "jq: error (at <unknown>): bad\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq binary operators visit every operand in order and short-circuit unused filters", async () => {
   const bash = new RustWasmBash();
   try {

@@ -221,6 +221,39 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             })
         });
     }
+    if (s.starts_with("reduce") || s.starts_with("foreach"))
+        && let Some((source, variable, body)) = super::jq_parser::fold(s)
+        && let Some(stages) = split_jq_top(body, ';')
+        && stages.len() >= 2
+    {
+        let reduce = s.starts_with("reduce");
+        let mut source_input = input;
+        let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+        return visit_jq(&stages[0], input, vars, &mut |initial| {
+            let mut acc = initial;
+            let flow = visit_jq(source, source_input, vars, &mut |item| {
+                remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                let mut bound = vars.clone();
+                bound.bindings.insert(variable.to_owned(), item);
+                let previous = std::mem::replace(&mut acc, JVal::Null);
+                visit_jq(&stages[1], &previous, &bound, &mut |value| {
+                    acc = value;
+                    if reduce {
+                        Ok(Continue(()))
+                    } else if let Some(extract) = stages.get(2) {
+                        visit_jq(extract, &acc, &bound, emit)
+                    } else {
+                        emit(acc.clone())
+                    }
+                })
+            })?;
+            if !reduce || flow.is_break() {
+                return Ok(flow);
+            }
+            source_input = &JVal::Null;
+            emit(acc)
+        });
+    }
     if !vars.functions.is_empty() || s.ends_with(')') {
         let (name, args) = s
             .find('(')

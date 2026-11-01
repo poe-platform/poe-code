@@ -223,7 +223,7 @@ pub(super) fn strip_quotes(value: &str) -> &str {
     }
 }
 
-pub(super) fn outside(s: &str, token: impl Fn(&str) -> bool) -> Option<usize> {
+pub(super) fn outside<'a>(s: &'a str, mut token: impl FnMut(&'a str) -> bool) -> Option<usize> {
     let mut quote = None;
     for (i, c) in s.char_indices() {
         if let Some(q) = quote {

@@ -38635,6 +38635,132 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_draws_direct_and_self_sequence_messages() {
+        assert_mermaid_outputs(&[
+            (
+                "sequenceDiagram\nA->>B: ping\nparticipant B as Bee",
+                "svg",
+                "44bde55b29850dd1303457cca417b4c4a4d691ef5928a167ceba62dcefa59380",
+            ),
+            (
+                "sequenceDiagram\nA->>B: Hello",
+                "svg",
+                "73c21a1c336df7f081298ede8bb766b400b64c3e47813bce38a34a030855b5b2",
+            ),
+            (
+                "sequenceDiagram\nA->>B: start\nB-->>A: done",
+                "svg",
+                "ed03b3cb6605b26268e0f9c5bc2bc2687b532ad5a238f3dff4e0411314b2841f",
+            ),
+            (
+                "sequenceDiagram\nA->>B: start\nB-->>A: done",
+                "png",
+                "75bbe7035bee91d4fe7132882ce61d7a867dcd09b11b02b6b9916a9588b23551",
+            ),
+            (
+                "sequenceDiagram\nA->>B: start\nB-->>A: done",
+                "pdf",
+                "31547c79c992696f9df5520d7c3f1251d3242b8ea27e36cfc9c69bf4f2491fe5",
+            ),
+            (
+                "sequenceDiagram\nA->>A: retry",
+                "svg",
+                "ba46459ba4ff418cc375138d1fb1e3ed8dcdecb9c453a2dedcccfddee46f7138",
+            ),
+            (
+                "sequenceDiagram\nA->>A: retry",
+                "png",
+                "360fc7009cd9504a78a712e25982dc05421e408d1328721a97aeead768ecadc5",
+            ),
+            (
+                "sequenceDiagram\nA->>A: retry",
+                "pdf",
+                "fea3c3d7f68509cc07b09af866986eb9b454e564e0373c893726702a055f48a3",
+            ),
+            (
+                "sequenceDiagram\nA->>A",
+                "svg",
+                "d6f43f48eed56b92fd969011d9bd9e5c70b05c3e79a11cd0206789e8ea9a96b5",
+            ),
+            (
+                "sequenceDiagram\nactor A\nparticipant B\nA-->>A: testing long self call",
+                "svg",
+                "9d965436a93c9c92eba128d14cae99fc55f74de62192f2621d09200888276923",
+            ),
+            (
+                "sequenceDiagram\nactor A\nparticipant B\nA-->>A: testing long self call",
+                "png",
+                "4e7a9d08c9721db42e52d54357ecd5f856c4613c1b3dcd2509554fb82d17d0a5",
+            ),
+            (
+                "sequenceDiagram\nactor A\nparticipant B\nA-->>A: testing long self call",
+                "pdf",
+                "f12ff68c1f8cda4b6baa001f5f38cbe5dce96b3c8ca60f6d29b2ea41dcdd693b",
+            ),
+            (
+                "sequenceDiagram\n\"A -> B\" ->> \"C: D\": \"success: yes\"",
+                "svg",
+                "2083197b1bbc4ca7040b8f6b20da7a6ed8b25524b1ca175c3e331b393a360528",
+            ),
+            (
+                "sequenceDiagram\nsvc-x1->>svc-x2: named",
+                "svg",
+                "afe62c27449d7f0bf90b542c54b88b76289631b14998c079783d5bf663ba527f",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA->>B: there\nB->>A: return",
+                "svg",
+                "6e104aa6077ecb1baf77bf41d82eaf3a79b7a502abde06ce21e2b398adf5fa0a",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA-->>B: there\nB-->>A: return",
+                "svg",
+                "1783c53fb0786582e9184e182cfb101da1ba11537d81ea553b888843b72c434a",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA->B: there\nB->A: return",
+                "svg",
+                "46a6fabef128563bfea374d67b012653c51e0bfd68ef7ac14aea9970cab55c1f",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA-->B: there\nB-->A: return",
+                "svg",
+                "3ebfa9ac1bcda0a456051c30eb6c222c190c8e0077674b4a1cc08507ad86a4cf",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA--xB: there\nB--xA: return",
+                "svg",
+                "c88a6f9ab35fcc6279d4d52d7812acd89bb98becbc0809ec8bf69be4c4da7d9b",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA--xB: there\nB--xA: return",
+                "png",
+                "d7c189c9237724f94c6f401dd9a5c35b22c008e2c8544b0856b1c7d4b622c321",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA--xB: there\nB--xA: return",
+                "pdf",
+                "b568263673abe4e00cc59c9d378dc87eb8c1616e8733ec056feda51a8945bf60",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA-xB: there\nB-xA: return",
+                "svg",
+                "68e17ff101709d5e0475162cd310b64bf0ffe945b1a9c9fe1cf145bd86d986a2",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA--XB: there\nB--XA: return",
+                "svg",
+                "c88a6f9ab35fcc6279d4d52d7812acd89bb98becbc0809ec8bf69be4c4da7d9b",
+            ),
+            (
+                "sequenceDiagram\nparticipant A\nparticipant B\nA-XB: there\nB-XA: return",
+                "svg",
+                "68e17ff101709d5e0475162cd310b64bf0ffe945b1a9c9fe1cf145bd86d986a2",
+            ),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

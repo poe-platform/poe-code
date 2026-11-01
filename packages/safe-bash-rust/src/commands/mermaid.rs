@@ -480,6 +480,55 @@ fn interaction_href(source: &str) -> Result<Option<&str>, String> {
     }
     Ok(Some(href))
 }
+#[derive(Clone, Copy, PartialEq)]
+enum Marker {
+    Arrow,
+    Open,
+    Cross,
+}
+impl Marker {
+    fn paint(
+        self,
+        (ex, ey): (f64, f64),
+        angle: f64,
+        (edge, edge_color): (&str, [u8; 4]),
+        el: &mut String,
+        edge_paint: &mut Vec<raster::Paint>,
+    ) {
+        let (sin, cos) = angle.sin_cos();
+        let degrees = route::hundredth(angle.to_degrees());
+        let marker = |local: &[(f64, f64)], filled: bool, width: f64| raster::Paint::Path {
+            points: local
+                .iter()
+                .map(|&(a, b)| (ex + (a * cos - b * sin), ey + (a * sin + b * cos)))
+                .collect(),
+            fill: filled.then_some(edge_color),
+            stroke: edge_color,
+            width,
+            dashed: false,
+        };
+        match self {
+            Self::Arrow => {
+                edge_paint.push(marker(
+                    &[(-9., -3.5), (0., 0.), (-9., 3.5), (-6.8, 0.)],
+                    true,
+                    0.9,
+                ));
+                write!(el,r#"<g transform="translate({ex}, {ey}) rotate({degrees})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).unwrap();
+            }
+            Self::Open => {
+                edge_paint.push(marker(&[(-8., -3.5), (0., 0.), (-8., 3.5)], false, 1.5));
+                write!(el,r#"<g transform="translate({ex}, {ey}) rotate({degrees})"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="{edge}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>"#).unwrap();
+            }
+            Self::Cross => {
+                for points in [[(-9., -4.), (-1., 4.)], [(-9., 4.), (-1., -4.)]] {
+                    edge_paint.push(marker(&points, false, 1.75));
+                }
+                write!(el,r#"<g transform="translate({ex}, {ey}) rotate({degrees})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).unwrap();
+            }
+        }
+    }
+}
 type Edge<'a> = (usize, usize, &'a str, Option<Pill>);
 #[derive(Clone)]
 struct Pill {
@@ -1078,51 +1127,28 @@ pub(super) fn layout(
             width: stroke,
             dashed: !dash.is_empty(),
         });
-        let marker =
-            |x: f64, y: f64, angle: f64, local: &[(f64, f64)], filled: bool, width: f64| {
-                let (sin, cos) = angle.sin_cos();
-                Paint::Path {
-                    points: local
-                        .iter()
-                        .map(|&(a, b)| (x + (a * cos - b * sin), y + (a * sin + b * cos)))
-                        .collect(),
-                    fill: filled.then_some(edge_color),
-                    stroke: edge_color,
-                    width,
-                    dashed: false,
-                }
-            };
         let stroke = nonnegative_number(stroke);
         let mut el = format!(
             r#"<g class="mmdc-edge" data-id="{id}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#
         );
-        let degrees = |angle: f64| ((angle.to_degrees() * 100. + 0.5).floor()) / 100.;
-        for (show, ex, ey, angle) in [(start_arrow, x, y, start_angle), (arrow, ex, ey, angle)] {
-            if show {
-                edge_paint.push(marker(
-                    ex,
-                    ey,
-                    angle,
-                    &[(-9., -3.5), (0., 0.), (-9., 3.5), (-6.8, 0.)],
-                    true,
-                    0.9,
-                ));
-                let angle = degrees(angle);
-                write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
-            }
-        }
-        if open_arrow {
-            edge_paint.push(marker(
-                ex,
-                ey,
+        for (kind, tip, rotation) in [
+            (start_arrow.then_some(Marker::Arrow), (x, y), start_angle),
+            (
+                if arrow {
+                    Some(Marker::Arrow)
+                } else if open_arrow {
+                    Some(Marker::Open)
+                } else if op == "--x" {
+                    Some(Marker::Cross)
+                } else {
+                    None
+                },
+                (ex, ey),
                 angle,
-                &[(-8., -3.5), (0., 0.), (-8., 3.5)],
-                false,
-                1.5,
-            ));
-        } else if op == "--x" {
-            for points in [[(-9., -4.), (-1., 4.)], [(-9., 4.), (-1., -4.)]] {
-                edge_paint.push(marker(ex, ey, angle, &points, false, 1.75));
+            ),
+        ] {
+            if let Some(kind) = kind {
+                kind.paint(tip, rotation, (edge, edge_color), &mut el, &mut edge_paint);
             }
         }
         if let Some((left, right)) = er::cardinalities(op) {
@@ -1157,12 +1183,6 @@ pub(super) fn layout(
             ) {
                 return Some(Err(e));
             }
-        }
-        let angle = degrees(angle);
-        match op {
-            "--o" if open_arrow => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="{edge}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>"#).ok()?,
-            "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
-            _ => {}
         }
         for (slot, label) in [
             (labels::Slot::Center, label),

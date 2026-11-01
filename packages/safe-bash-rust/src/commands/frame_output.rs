@@ -9,6 +9,7 @@ pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
         "tiff" | "tif" => "tiff",
         "jpg" | "jpeg" => "jpeg",
         "bmp" => "bmp",
+        "webp" => "webp",
         "ppm" => "ppm",
         _ => return None,
     })
@@ -250,6 +251,12 @@ pub(super) fn still_info(
     bytes: &[u8],
     limit: usize,
 ) -> Result<(usize, usize, &'static [u8; 4]), &'static str> {
+    if super::webp::signature(bytes) {
+        let h=super::webp::header(bytes)?;
+        let (w,h)=(h.width as usize,h.height as usize);
+        if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
+        return Ok((w,h,b"webp"));
+    }
     if super::jpeg_decode::signature(bytes) {
         let header = super::image_header::jpeg(bytes)?;
         let (w,h)=(header.width as usize,header.height as usize);

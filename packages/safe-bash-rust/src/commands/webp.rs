@@ -139,3 +139,52 @@ pub(super) fn encode(im: &Raster, density: u32, limit: usize) -> Result<Vec<u8>,
     }
     Ok(out)
 }
+
+#[path = "webp_lossless.rs"]
+mod lossless;
+
+pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    let hdr = header(bytes)?;
+    let (w, h) = (hdr.width as usize, hdr.height as usize);
+    let count = w
+        .checked_mul(h)
+        .filter(|&n| n <= limit / 4)
+        .ok_or("image exceeds memory budget")?;
+    let mut im = Raster {
+        width: w,
+        height: h,
+        alpha: hdr.alpha,
+        gray: false,
+        density: hdr.density,
+        orientation: hdr.orientation,
+        pixels: Vec::new(),
+    };
+    for (kind, data) in chunks(bytes) {
+        if kind != b"VP8L" || data.len() < 5 || data[0] != 0x2f {
+            continue;
+        }
+        if data.get(5..7) == Some(&[0, 0x78])
+            && data.len() > 8
+            && let Ok((raw, end)) =
+                crate::commands::codecs::inflate_raw_bounded(&data[8..], count * 4)
+            && raw.len() == count * 4
+            && data.get(8 + end..12 + end)
+                == Some(&crate::commands::codecs::adler32(&raw).to_be_bytes())
+        {
+            im.pixels = raw.chunks_exact(4).map(|p| p.try_into().unwrap()).collect();
+            return Ok(im);
+        }
+        match lossless::decode(data, w, h, limit) {
+            Ok(pixels) => {
+                im.pixels = pixels;
+                return Ok(im);
+            }
+            Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
+            Err(_) => {}
+        }
+    }
+    // The production image library returns opaque black for lossy VP8.
+    im.orientation = None;
+    im.pixels = vec![[0, 0, 0, 255]; count];
+    Ok(im)
+}

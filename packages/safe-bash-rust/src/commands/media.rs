@@ -4690,7 +4690,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg","tif","tiff"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                    }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg","tif","tiff","webp"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -14153,6 +14153,17 @@ mod media_unit_tests {
             let png=pixel_png(257,129,PngEncoding::SplitDensity(72,None),|x,y|pixels[y*257+x]);
             assert_eq!(hex_enc(&sha256_bytes(&png)),expected);
         }
+    }
+
+    #[test]
+    fn webp_pixels_survive_image2_input_and_output() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/picture", &hex_dec("524946462a000000574542505650384c1e0000002f024000002f3002133003f31f28252550c836021cbad7e3142ea2ffb1bc")).unwrap();
+        let run = |args: &[&str]| cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs);
+        assert_eq!(run(&["-i", "picture", "o.ppm"]).exit_code, 0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.ppm").unwrap())), "c6213c31b8dc8aa74e5163435f70b978d406d919f0f33e7d0bcb65bab89fd010");
+        assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=7x5:r=2:d=1", "%02d.webp"]).exit_code, 0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/02.webp").unwrap())), "517792c6879004136e9ae816f1abd8dd522ee686f54368e84350bc2ec8f256ce");
     }
 
     #[test]

@@ -38761,6 +38761,27 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_positions_sequence_activations_and_message_tips() {
+        assert_mermaid_outputs(&[
+            ("sequenceDiagram\nA->>+B: run\nB-->>-A: result", "svg", "f052c3b204b909fe176af9d1a585d4cbf2833d9d9193196e944e518f9c7d8911"),
+            ("sequenceDiagram\nA->>+B: run\nB-->>-A: result", "png", "afef439215679fe214b17308a2ff3e81901ca58327d4f5f29958114595a976a6"),
+            ("sequenceDiagram\nA->>+B: run\nB-->>-A: result", "pdf", "cd5cf47c9dbc75b4ce4b433924fa1d276612c875363cb131c5173b4c481c1df9"),
+            ("sequenceDiagram\nparticipant A\nactivate A\nA->>B: signal\ndeactivate A", "svg", "0eba18c2bab987816713fcf54a087ed89513978ca95bf0094b0bab57bd2f96dd"),
+            ("sequenceDiagram\nparticipant A\nactivate A\nA->>B: signal\ndeactivate A", "png", "0c32f06f5895993b51f8c8c536f47c30fa577c7c1b06bb32fb09c65819d404f4"),
+            ("sequenceDiagram\nparticipant A\nactivate A\nA->>B: signal\ndeactivate A", "pdf", "b6d9e820ea74dba6c3831ba9a44379fdba8bcd5e5f47c93711ed46f5d4f44761"),
+            ("sequenceDiagram\nA->>+B: enter\nB->>+B: nested\nB-->>-A: exit", "svg", "2028dc31fa5baaae61573ab0b5f8e5c8c6b656a39991bb5b95bbc18317225648"),
+            ("sequenceDiagram\nA->>+B: enter\nB->>+B: nested\nB-->>-A: exit", "png", "97940a6460657921847c5f635fbbe037c894f5bbb72c576803a880dbcdc874e0"),
+            ("sequenceDiagram\nA->>+B: enter\nB->>+B: nested\nB-->>-A: exit", "pdf", "c89aa499defc4fd4c1a95af8b6b0d44f69bf338063935ed53531a9f5a57664a8"),
+            ("sequenceDiagram\nactivate X", "svg", "7950dc266e7e7d654e8a4cf338fe717cd4d39f3d16791f26e64e5813f1c7310f"),
+            ("sequenceDiagram\nactivate X", "png", "865f7337f12e3839fe84b26089252f0c05a271648398a6b12639a11d6725a4ee"),
+            ("sequenceDiagram\nactivate X", "pdf", "56535bd3a690718b8d6fc8fdcb8bf7b9f9858fd9e4fb8f98bd44cbf9bd2b1f2b"),
+            ("sequenceDiagram\ndeactivate X", "svg", "b5d30c925aab2b2bd72f1b1c8d0863ca07b1b148b1477a5935491c89f1ba1070"),
+            ("sequenceDiagram\ndeactivate X", "png", "723c2835ca7a03e1e86a5326f49671f00c5e88a60000b875c095871abbea0e61"),
+            ("sequenceDiagram\ndeactivate X", "pdf", "c926f58eb0cc3a1cad68ebbec6ee44a788f58ec5162e6f95979bd059cb827988"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

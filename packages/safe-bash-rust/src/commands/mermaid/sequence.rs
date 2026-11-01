@@ -29,7 +29,7 @@ struct Message {
     label: String,
 }
 
-fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, bool)> {
+fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, Option<bool>)> {
     let colon = outside(text, |s| s.starts_with(':')).unwrap_or(text.len());
     let ids = text[..colon].trim_ascii();
     let mut candidate = None;
@@ -40,9 +40,13 @@ fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, bool)> {
         let Some(op) = op else { return false };
         let from = &ids[..ids.len() - s.len()];
         let rest = &s[op.len()..];
-        let activation = rest.starts_with(['+', '-']);
-        let to = &rest[usize::from(activation)..];
-        if from.trim_ascii().is_empty() || to.trim_ascii().is_empty() {
+        let activation = match rest.as_bytes().first() {
+            Some(b'+') => Some(true),
+            Some(b'-') => Some(false),
+            _ => None,
+        };
+        let to = &rest[usize::from(activation.is_some())..];
+        if from.is_empty() || to.is_empty() {
             return false;
         }
         let marker = if op.ends_with(">>") {
@@ -72,6 +76,7 @@ fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, bool)> {
 pub(in super::super) struct Sequence {
     participants: Vec<Participant>,
     messages: Vec<Message>,
+    activations: Vec<(usize, usize, bool)>,
     links: BTreeMap<String, Links>,
 }
 
@@ -182,21 +187,32 @@ impl Sequence {
                         }
                     }
                 }
-                "activate" | "deactivate" | "note" | "box" | "loop" | "opt" | "alt" | "end"
-                | "else" => return Ok(None),
+                "activate" | "deactivate" => {
+                    let id = participant(strip_quotes(rest), None, false)?;
+                    chart.activations.push((
+                        chart.messages.len().saturating_sub(1),
+                        id,
+                        word.eq_ignore_ascii_case("activate"),
+                    ));
+                }
+                "note" | "box" | "loop" | "opt" | "alt" | "end" | "else" => return Ok(None),
                 _ => {
                     let Some((from, to, label, marker, dashed, activation)) = message(text) else {
                         return Err(fail(&format!(
                             "Unrecognized sequenceDiagram statement: '{text}'"
                         )));
                     };
-                    if activation {
-                        return Ok(None);
-                    }
                     let from = participant(strip_quotes(from), None, false)?;
                     let to = participant(strip_quotes(to), None, false)?;
                     if chart.messages.len() >= limit / 300 {
                         return Err(BUDGET.into());
+                    }
+                    if let Some(open) = activation {
+                        chart.activations.push((
+                            chart.messages.len(),
+                            if open { to } else { from },
+                            open,
+                        ));
                     }
                     chart.messages.push(Message {
                         from,
@@ -308,12 +324,56 @@ impl Sequence {
         right = cards.last().map_or(160., |c| c.0 + c.1);
         let mut cursor = max_h + 28.;
         let mut placed = Vec::with_capacity(metrics.len());
-        for (msg, pill) in self.messages.iter().zip(metrics) {
-            let a = cards[msg.from].0 + cards[msg.from].1 / 2.;
-            let b = cards[msg.to].0 + cards[msg.to].1 / 2.;
+        let mut events = self.activations.into_iter().peekable();
+        let mut stacks = vec![Vec::<f64>::new(); cards.len()];
+        let mut seen = vec![false; cards.len()];
+        let mut opening_order = Vec::new();
+        let mut bars = Vec::new();
+        let mut metrics = metrics.into_iter();
+        for step in 0..self.messages.len().max(1) {
+            let msg = self.messages.get(step);
+            let pill = metrics.next().flatten();
             let (w, h) = pill.as_ref().map_or((0., 0.), |p| (p.0, p.1));
+            let y = match msg {
+                Some(m) if m.from == m.to => cursor + 8.,
+                Some(_) => cursor + h + 10.,
+                None => max_h + 20.,
+            };
+            // The arrow also touches bars that close at this step, including ones
+            // opened and closed together. Keep the greatest depth at either tip.
+            let mut depths = msg.map_or([0; 2], |m| [stacks[m.from].len(), stacks[m.to].len()]);
+            while let Some((_, id, open)) = events.next_if(|e| e.0 == step) {
+                let stack = &mut stacks[id];
+                if open {
+                    if !seen[id] {
+                        opening_order.push(id);
+                        seen[id] = true;
+                    }
+                    stack.push(y);
+                    if let Some(m) = msg {
+                        for (i, p) in [m.from, m.to].into_iter().enumerate() {
+                            if p == id {
+                                depths[i] = depths[i].max(stack.len());
+                            }
+                        }
+                    }
+                } else if let Some(start) = stack.pop() {
+                    bars.push((id, stack.len(), start, (y - start).max(16.)));
+                }
+            }
+            let Some(msg) = msg else { continue };
+            let mut a = cards[msg.from].0 + cards[msg.from].1 / 2.;
+            let mut b = cards[msg.to].0 + cards[msg.to].1 / 2.;
+            let rightward = b >= a;
+            for (x, n, right) in [
+                (&mut a, depths[0], rightward),
+                (&mut b, depths[1], !rightward),
+            ] {
+                if n > 0 {
+                    *x += if right { 5. + (n - 1) as f64 * 4. } else { -5. };
+                }
+            }
             let (route, tip, angle, px, py) = if msg.from == msg.to {
-                let y = cursor + 8.;
                 let loop_h = (h + 6.).max(28.);
                 let end = y + loop_h;
                 let outer = a + 42.;
@@ -331,25 +391,28 @@ impl Sequence {
                     ((y + end - h) / 2.).round(),
                 )
             } else {
-                let y = cursor + h + 10.;
                 cursor = y + 18.;
                 let pull = match msg.marker {
                     Marker::Arrow => 6.8,
                     Marker::Open => 0.,
                     Marker::Cross => 5.,
                 };
-                let end = if b > a { b - pull } else { b + pull };
+                let end = if rightward { b - pull } else { b + pull };
                 (
                     Route {
                         start: (a, y),
                         segments: vec![Segment::Line((end, y))],
                     },
                     (b, y),
-                    if b > a { 0. } else { std::f64::consts::PI },
+                    if rightward { 0. } else { std::f64::consts::PI },
                     ((a + b - w) / 2.).round(),
                     (y - 6. - h).round(),
                 )
             };
+            right = right.max(route.start.0).max(tip.0);
+            if pill.is_some() {
+                right = right.max(px + w);
+            }
             placed.push((
                 route,
                 tip,
@@ -358,6 +421,11 @@ impl Sequence {
             ));
         }
         let bottom = cursor + 16.;
+        for id in opening_order {
+            while let Some(start) = stacks[id].pop() {
+                bars.push((id, stacks[id].len(), start, (bottom - 14. - start).max(20.)));
+            }
+        }
         let (width, height) = (
             right - min_x,
             if cards.is_empty() {
@@ -389,6 +457,27 @@ impl Sequence {
                 dashed: true,
             });
         }
+        let (fill, bg) = theme.color("accentSurface");
+        let (border, stroke) = theme.color("accentBorder");
+        charge_attributes(&mut budget, &[(fill, bars.len()), (border, bars.len())])?;
+        for (id, depth, start, h) in bars {
+            let x = cards[id].0 + cards[id].1 / 2. - 5. + depth as f64 * 4. + dx;
+            let y = start + dy;
+            scene.elements.push(format!(r#"<rect x="{x}" y="{y}" width="10" height="{h}" rx="2" fill="{fill}" stroke="{border}" stroke-width="1.25"/>"#));
+            scene.paint.push(Paint::Box {
+                bounds: [x, y, 10., h],
+                shape: Shape::Rounded,
+                shadow: None,
+                style: BoxStyle {
+                    radius: 2.,
+                    header: None,
+                    fill: bg,
+                    border: stroke,
+                    thickness: 1.25,
+                },
+            });
+        }
+        let edge_layer = scene.elements.len();
         let font = &theme.font;
         let (fill, rgba) = theme.color("surface");
         let shadow = theme.color("shadowColor").1;
@@ -545,9 +634,7 @@ impl Sequence {
                 pills.push(el);
             }
         }
-        scene
-            .elements
-            .splice(self.participants.len()..self.participants.len(), edges);
+        scene.elements.splice(edge_layer..edge_layer, edges);
         scene.elements.extend(pills);
         if let Some(t) = title {
             scene.add_title(t, padding, theme);

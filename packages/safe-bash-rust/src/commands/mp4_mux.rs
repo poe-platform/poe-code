@@ -1,4 +1,5 @@
 use super::super::adts::{Frames, Options, RATES};
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 // Boxes are nested directly in the output. Reserve a size word, then fill it
@@ -74,7 +75,7 @@ fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>, chapters: &[u8])
     });
 }
 struct Sample<'a> {
-    data: &'a [u8],
+    data: Cow<'a, [u8]>,
     duration: u32,
     cts: i64,
     key: bool,
@@ -86,7 +87,7 @@ struct Track<'a> {
     media_ticks: u32,
     movie_ticks: u32,
     first_dts: u64,
-    stsd: std::borrow::Cow<'a, [u8]>,
+    stsd: Cow<'a, [u8]>,
     edits: Vec<[u32; 3]>,
     kind: &'static str,
     enabled: bool,
@@ -271,7 +272,7 @@ pub(in super::super) fn adts(
             return Err("sample index exceeds memory budget");
         }
         samples.push(Sample {
-            data,
+            data: data.into(),
             duration: 1024,
             cts: 0,
             key: true,
@@ -337,7 +338,7 @@ pub(in super::super) fn adts(
         let data = super::super::adts::silent(channels);
         samples = (0..n)
             .map(|i| Sample {
-                data,
+                data: data.into(),
                 duration: (ticks - i * 1024).min(1024) as u32,
                 cts: 0,
                 key: true,
@@ -498,7 +499,7 @@ fn write(
                     b[at..at + 4].copy_from_slice(&pos.to_be_bytes());
                     at += 4;
                 }
-                b.extend_from_slice(s.data);
+                b.extend_from_slice(&s.data);
             }
         }
     });
@@ -669,30 +670,31 @@ pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, 
         let end = t.origin.saturating_add(opts.end.map_or(t.duration, |s| {
             ((s * f64::from(t.scale)).round() as u64).min(t.duration)
         }));
-        for s in t.samples(input.len()) {
-            if sliced {
-                if end <= start || s.dts >= end {
-                    break;
-                }
-                if s.dts + s.tick as u64 <= start {
-                    if !video {
-                        continue;
-                    }
+        let mut first = 0;
+        if sliced {
+            let mut key = None;
+            first = t
+                .samples(input.len())
+                .enumerate()
+                .find_map(|(i, s)| {
                     if s.key {
-                        samples.clear();
-                        begin = s.dts;
+                        key = Some(i);
                     }
-                } else if samples.is_empty() || (s.key && s.dts <= start) {
-                    samples.clear();
-                    begin = s.dts;
-                }
+                    (end > start && s.dts < end && s.dts.saturating_add(u64::from(s.tick)) > start)
+                        .then_some(if video { key.unwrap_or(i) } else { i })
+                })
+                .unwrap_or(t.stats.count);
+        }
+        for s in t.samples(input.len()).skip(first) {
+            if sliced && s.dts >= end {
+                break;
             }
             if samples.is_empty() {
                 first_dts = if sliced { 0 } else { s.dts };
                 begin = s.dts;
             }
             samples.push(Sample {
-                data: &input[s.offset..s.offset + s.size as usize],
+                data: input[s.offset..s.offset + s.size as usize].into(),
                 duration: if sliced {
                     s.tick
                         .min(end.saturating_sub(s.dts).min(u64::from(u32::MAX)) as u32)
@@ -705,8 +707,32 @@ pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, 
             });
         }
         if sliced {
-            if begin + samples.iter().map(|s| u64::from(s.duration)).sum::<u64>() <= start {
-                samples.clear()
+            if video
+                && let Some(sample) = samples.first_mut()
+                && sample.data.get(4).is_some_and(|v| v & 31 == 1)
+            {
+                let config = child(t.entry.get(78..).unwrap_or_default(), b"avcC");
+                let mut decoder = super::h264::Pcm::new(
+                    t.sequence
+                        .as_ref()
+                        .ok_or("missing H.264 sequence parameters")?,
+                    config,
+                    opts.limit,
+                )?;
+                let key = t
+                    .samples(input.len())
+                    .take(first + 1)
+                    .enumerate()
+                    .filter(|(_, s)| s.size > 4 && input[s.offset + 4] & 31 == 5)
+                    .map(|(i, _)| i)
+                    .last()
+                    .unwrap_or(0);
+                for s in t.samples(input.len()).skip(key).take(first - key + 1) {
+                    decoder.decode(&input[s.offset..s.offset + s.size as usize])?;
+                }
+                decoder.promote(t.width as usize, t.height as usize, opts.limit)?;
+                sample.data = decoder.idr(opts.limit)?.into();
+                sample.key = true;
             }
             edits.clear();
             if !samples.is_empty() && begin < start {

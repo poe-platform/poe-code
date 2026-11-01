@@ -413,6 +413,58 @@ impl<'a> Pcm<'a> {
         }
         Ok(())
     }
+    pub(super) fn idr(&self, limit: usize) -> Result<Vec<u8>, &'static str> {
+        // The slice promoted at a cut is frame zero of the new stream. All
+        // blocks use I_PCM and start their samples on a byte boundary.
+        let mut raw = Vec::new();
+        let mut at = 0;
+        let put = |raw: &mut Vec<u8>, at: &mut u32, value: u32, count: u32| {
+            for n in (0..count).rev() {
+                if *at == 0 {
+                    raw.push(0)
+                }
+                *raw.last_mut().unwrap() |= (((value >> n) & 1) as u8) << (7 - *at);
+                *at = (*at + 1) % 8;
+            }
+        };
+        let ue = |raw: &mut Vec<u8>, at: &mut u32, value: u32| {
+            let code = value + 1;
+            put(raw, at, code, 2 * (31 - code.leading_zeros()) + 1);
+        };
+        ue(&mut raw, &mut at, 0);
+        ue(&mut raw, &mut at, 7);
+        ue(&mut raw, &mut at, 0);
+        put(&mut raw, &mut at, 0, 4);
+        ue(&mut raw, &mut at, 0);
+        put(&mut raw, &mut at, 0, 6);
+        ue(&mut raw, &mut at, 0);
+        ue(&mut raw, &mut at, 1);
+        for block in &self.blocks {
+            ue(&mut raw, &mut at, 25);
+            at = 0;
+            if raw.len().saturating_add(block.len()) > limit {
+                return Err("output byte limit exceeded");
+            }
+            raw.extend_from_slice(block);
+        }
+        raw.push(0x80);
+        let mut sample = vec![0, 0, 0, 0, 0x65];
+        let mut zeros = 0;
+        for byte in raw {
+            if zeros == 2 && byte <= 3 {
+                sample.push(3);
+                zeros = 0
+            }
+            sample.push(byte);
+            zeros = if byte == 0 { zeros + 1 } else { 0 };
+            if sample.len() > limit {
+                return Err("output byte limit exceeded");
+            }
+        }
+        let size = (sample.len() - 4) as u32;
+        sample[..4].copy_from_slice(&size.to_be_bytes());
+        Ok(sample)
+    }
     pub(super) fn image(
         &self,
         track: (usize, usize),

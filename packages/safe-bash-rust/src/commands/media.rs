@@ -12941,6 +12941,16 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_trim_promotes_the_first_predictive_mp4_sample_to_an_idr() {
+        let fs=MemoryVfs::new();fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-ss","0.25","-i","av.mp4","-t","0.5","-an","-c","copy","cut.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let data=fs.read_file("/cut.mp4").unwrap();
+        let start=data.windows(4).position(|s|s==b"mdat").unwrap()+4;
+        assert_eq!(data[start+4]&31,5);
+    }
+
+    #[test]
     fn ffmpeg_remuxes_mp4_and_rebuilds_offsets_after_track_selection() {
         let fs=MemoryVfs::new();let av=include_bytes!("../../tests/fixtures/av.mp4");
         fs.write_file("/av.mp4",av).unwrap();

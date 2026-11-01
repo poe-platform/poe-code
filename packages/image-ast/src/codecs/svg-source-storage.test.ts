@@ -40,3 +40,22 @@ test('observes cancellation during a long non-painting SVG scan',async()=>{
  let timer:ReturnType<typeof setTimeout>|undefined;caller.storage.write=async(...args)=>{await write(...args);timer??=setTimeout(()=>controller.abort(reason),0);};
  try{await expect(svg.decodeSvgSourceToStorage(source,caller.storage,controller.signal)).rejects.toBe(reason);}finally{clearTimeout(timer);}
 });
+
+for(const mode of ['buffered','storage','source'] as const){
+ for(const [name,path,paint,checks] of [
+  ['open grid lines','M2 3H18 M2 11H18 M2 19H18','stroke="red"',[[10,3,255,0,0,255],[10,7,0,0,0,0],[10,15,0,0,0,0]]],
+  ['closed triangles','M2 2H8V8Z M12 12H18V18Z','fill="blue" stroke="red"',[[6,4,0,0,255,255],[16,14,0,0,255,255],[10,10,0,0,0,0]]],
+  ['implicitly closed fills','M2 2H8V8H2 M12 2H18V8H12','fill="blue"',[[4,4,0,0,255,255],[14,4,0,0,255,255],[10,4,0,0,0,0]]],
+  ['relative moves after closure','M2 2h6v6z m10 10h6v6z','fill="blue" stroke="red"',[[6,4,0,0,255,255],[16,14,0,0,255,255],[10,10,0,0,0,0]]],
+ ] as const)test(`${mode} keeps SVG subpaths separate: ${name}`,async()=>{
+  const bytes=new TextEncoder().encode(`<svg width="22" height="22"><path d="${path}" ${paint}/></svg>`);
+  let pixels:Uint8Array;
+  if(mode==='buffered')pixels=decodeSvgImage(bytes).data;
+  else{
+   const caller=backing(),signal=new AbortController().signal;
+   const image=mode==='storage'?await svg.decodeSvgToStorage(bytes,caller.storage,signal):await svg.decodeSvgSourceToStorage({size:bytes.length,async read(position,length){return bytes.subarray(position,position+length);}},caller.storage,signal);
+   pixels=await caller.pixels(image.position,22*22*4);
+  }
+  for(const [x,y,...rgba] of checks)expect(Array.from(pixels.subarray((y*22+x)*4,(y*22+x)*4+4))).toEqual(rgba);
+ });
+}

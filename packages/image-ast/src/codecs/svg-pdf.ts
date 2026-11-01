@@ -1,6 +1,6 @@
 import {multiplySvgMatrices,applySvgTransform} from "./svg-transform.js";
 import type {SvgMatrix} from "./svg-renderer.js";
-import {svgPathSteps,svgPathTokens} from "./svg-path.js";
+import {svgPathSteps,svgPathTokens,type SvgPathPoint} from "./svg-path.js";
 import {parseSvgNumber} from "./svg-number.js";
 import {rasterSvgElement,type SvgPixel} from "./svg-renderer.js";
 export type {SvgPixel} from "./svg-renderer.js";
@@ -241,12 +241,12 @@ export function* svgRasterSteps(
     return pts;
   };
 
-  const parsePathPoints = (dRaw: string | undefined): { readonly pts: Array<[number, number]>; readonly closed: boolean } => {
-    const tokens = svgPathTokens(dRaw ?? ""), steps = svgPathSteps(), pts: Array<[number, number]> = [];
+  const parsePathPoints = (dRaw: string | undefined): { readonly pts: SvgPathPoint[]; readonly closed: boolean } => {
+    const tokens = svgPathTokens(dRaw ?? ""), steps = svgPathSteps(), pts: SvgPathPoint[] = [];
     let next = steps.next();
     while (!next.done) {
       if (next.value === undefined) next = steps.next(tokens.next().value);
-      else { pts.push(mapPt(...next.value)); next = steps.next(); }
+      else { pts.push([...mapPt(next.value[0],next.value[1]),next.value[2]??0]); next = steps.next(); }
     }
     return {pts, closed: next.value};
   };

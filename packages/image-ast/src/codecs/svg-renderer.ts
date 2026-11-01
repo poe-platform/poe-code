@@ -4,7 +4,7 @@ import {parseSvgCoord,parseSvgNumber} from "./svg-number.js";
 
 export type SvgPixel = readonly [x:number,y:number,r:number,g:number,b:number,a:number];
 export type SvgMatrix = readonly [number,number,number,number,number,number];
-export type SvgPoint = readonly [number,number];
+export type SvgPoint = readonly [x:number,y:number,move?:0|1];
 export interface SvgRenderElement {
  readonly tag:string;
  readonly attrs:Readonly<Record<string,string|undefined>>;
@@ -18,7 +18,7 @@ export type SvgRenderReply = SvgPoint | number | undefined;
 
 /** Shared raster arithmetic. Drivers own syntax, point and character storage. */
 export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly width:number;readonly height:number;readonly vbW:number;readonly vbH:number}):Generator<SvgRenderEvent,void,SvgRenderReply> {
- const {tag,attrs,matrix:activeCtm,pointCount,closed,textLength}=element;
+ const {tag,attrs,matrix:activeCtm,pointCount,textLength}=element;
  const {width,height,vbW,vbH}=viewport;let rasterWork=0;
  const mapPt=(ux:number,uy:number):[number,number]=>[activeCtm[0]*ux+activeCtm[2]*uy+activeCtm[4],activeCtm[1]*ux+activeCtm[3]*uy+activeCtm[5]];
  const mapX=(ux:number)=>activeCtm[0]*ux+activeCtm[4];
@@ -199,15 +199,18 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
           if (++rasterWork % 16384 === 0) yield undefined;
             const px = x + 0.5;
             let inside = false;
-            let previous = yield* point(pointCount - 1);
-            for (let i = 0; i < pointCount; i++) {
-              const current = yield* point(i);
+            let previous = yield* point(0), start = previous;
+            for (let i = 1; i <= pointCount; i++) {
+              const next = i < pointCount ? yield* point(i) : undefined;
+              // Fill closes each subpath independently; a move does not draw an edge.
+              const current = next && !next[2] ? next : start;
               const [xi, yi] = current;
               const [xj, yj] = previous;
-              previous = current;
               if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
                 inside = !inside;
               }
+              if (next?.[2]) start = next;
+              if (next) previous = next;
             }
             if (inside) {
               yield* blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
@@ -219,9 +222,10 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
         const sCol = stroke.a > 0 ? stroke : parseColor(attrs["stroke"] ?? "#000000");
         for (let i = 0; i + 1 < pointCount; i++) {
           const a = yield* point(i), b = yield* point(i + 1);
+          if (b[2]) continue;
           yield* drawSegment(a[0], a[1], b[0], b[1], strokeW, sCol.r, sCol.g, sCol.b, sCol.a);
         }
-        if ((tag === "polygon" || (tag === "path" && closed)) && stroke.a > 0) {
+        if (tag === "polygon" && stroke.a > 0) {
           const last = yield* point(pointCount - 1), first = yield* point(0);
           yield* drawSegment(
             last[0],

@@ -125,8 +125,8 @@ export async function* svgSourcePixels(source:ImageByteSource,storage:ImageByteS
   }
   if(close)continue;
   const attrs=await fields(source,spans,signal),matrix=await transform(source,reader,spans.get('transform'),active,signal);
-  const mapPoint=(x:number,y:number):SvgPoint=>[matrix[0]*x+matrix[2]*y+matrix[4],matrix[1]*x+matrix[3]*y+matrix[5]];
-  const points=new SvgRecords(2,storage,signal),text=new SvgRecords(1,storage,signal);let closed=false;
+  const mapPoint=(x:number,y:number,move:0|1=0):readonly[number,number,0|1]=>[matrix[0]*x+matrix[2]*y+matrix[4],matrix[1]*x+matrix[3]*y+matrix[5],move];
+  const points=new SvgRecords(3,storage,signal),text=new SvgRecords(1,storage,signal);let closed=false;
   if(tag==='path'&&spans.has('d')){
    const tokens=pathTokens(reader,spans.get('d')!),steps=svgPathSteps();let next=steps.next();
    try{while(!next.done){if(next.value===undefined)next=steps.next((await tokens.next()).value);else{await points.push(mapPoint(...next.value));next=steps.next();}}closed=next.value;}finally{steps.return(false);await tokens.return(undefined);}

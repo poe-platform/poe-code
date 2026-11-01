@@ -2,25 +2,25 @@ import {expect,test} from "vitest";
 import * as path from "./svg-path.js";
 
 function points(tokens:Iterable<number|string>){
- const input=tokens[Symbol.iterator](),steps=path.svgPathSteps(),result:Array<readonly [number,number]>=[];
+ const input=tokens[Symbol.iterator](),steps=path.svgPathSteps(),result:path.SvgPathPoint[]=[];
  let next=steps.next();
  while(!next.done){if(next.value===undefined)next=steps.next(input.next().value);else{result.push(next.value);next=steps.next();}}
  return {points:result,closed:next.value};
 }
 
 test("consumes path tokens on demand and preserves relative commands and closure",()=>{
- expect(points(["M",2,3,"l",4,5,"h",2,"v",-4,"z"])).toEqual({points:[[2,3],[6,8],[8,8],[8,4]],closed:true});
+ expect(points(["M",2,3,"l",4,5,"h",2,"v",-4,"z"])).toEqual({points:[[2,3,1],[6,8],[8,8],[8,4],[2,3]],closed:true});
  const input=path.svgPathSteps();expect(input.next()).toEqual({done:false,value:undefined});
  expect(input.next("M")).toEqual({done:false,value:undefined});expect(input.next(1)).toEqual({done:false,value:undefined});
- expect(input.next(2)).toEqual({done:false,value:[1,2]});input.return(false);
+ expect(input.next(2)).toEqual({done:false,value:[1,2,1]});input.return(false);
 });
 
 test("preserves curve subdivision coordinates, implicit lines and incomplete arguments",()=>{
  const cubic=points(["M",0,0,"C",1,2,3,4,5,6]);expect(cubic.points).toHaveLength(13);expect(cubic.points.at(-1)).toEqual([5,6]);
  expect(cubic.points[1]).toEqual([0.2702546296296296,0.49999999999999994]);
  const quadratic=points(["m",1,2,"q",2,4,6,8]);expect(quadratic.points).toHaveLength(11);expect(quadratic.points.at(-1)).toEqual([7,10]);
- expect(points([1,2,3,4,"H"])).toEqual({points:[[1,2],[3,4],[0,4]],closed:false});
- expect(points(["M",1,"L",2,3]).points[0]).toEqual([1,NaN]);
+ expect(points([1,2,3,4,"H"])).toEqual({points:[[1,2,1],[3,4],[0,4]],closed:false});
+ expect(points(["M",1,"L",2,3]).points[0]).toEqual([1,NaN,1]);
 });
 
 test("tokenizes long decimal and exponent runs without token-sized scratch",()=>{

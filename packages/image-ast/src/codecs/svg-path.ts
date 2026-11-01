@@ -1,7 +1,7 @@
 import {SvgNumber} from "./svg-number.js";
 
 export type SvgPathToken = string | number;
-export type SvgPathPoint = readonly [number, number];
+export type SvgPathPoint = readonly [x: number, y: number, move?: 0 | 1];
 
 /** Shared path evaluation. Undefined requests one token; points use the existing
  * fixed curve subdivisions. The return value preserves any close-path command. */
@@ -20,6 +20,7 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
           closed = true;
           curX = startX;
           curY = startY;
+          yield [curX, curY];
           token = yield undefined;
           continue;
         }
@@ -38,7 +39,7 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         curY = cmd === "m" ? curY + ny : ny;
         startX = curX;
         startY = curY;
-        yield [curX, curY];
+        yield [curX, curY, 1];
         cmd = cmd === "m" ? "l" : "L";
       } else if (cmd === "L" || cmd === "l") {
         const nx = (yield* readNum());

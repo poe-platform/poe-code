@@ -11692,6 +11692,7 @@ fn extract_xml_attr(tag: &str, attr_name: &str) -> Option<String> {
 fn read_zip_entries_for_xlsx(bytes: &[u8]) -> BTreeMap<String, Vec<u8>> {
 
     let mut entries = BTreeMap::new();
+    let mut remaining = crate::budget::ShellLimits::default().max_input_bytes;
     let mut pos = 0usize;
     while pos + 30 <= bytes.len() {
         if &bytes[pos..pos + 4] != b"PK\x03\x04" {
@@ -11713,35 +11714,16 @@ fn read_zip_entries_for_xlsx(bytes: &[u8]) -> BTreeMap<String, Vec<u8>> {
         }
         let name = String::from_utf8_lossy(&bytes[name_start..name_start + name_len]).into_owned();
         let data_start = name_start + name_len + extra_len;
-        let data_end = (data_start + comp_size).min(bytes.len());
-        let raw_slice = &bytes[data_start..data_end];
-        let content = if compression == 0 {
-            raw_slice.to_vec()
-        } else if compression == 8 {
-            let mut out = Vec::new();
-            let mut dpos = 0usize;
-            while dpos + 5 <= raw_slice.len() {
-                let hdr = raw_slice[dpos];
-                let btype = (hdr >> 1) & 0x03;
-                if btype != 0 {
-                    break;
-                }
-                let bfinal = (hdr & 0x01) != 0;
-                let len = u16::from_le_bytes([raw_slice[dpos + 1], raw_slice[dpos + 2]]) as usize;
-                dpos += 5;
-                if dpos + len > raw_slice.len() {
-                    break;
-                }
-                out.extend_from_slice(&raw_slice[dpos..dpos + len]);
-                dpos += len;
-                if bfinal {
-                    break;
-                }
-            }
-            out
-        } else {
-            Vec::new()
+        let Some(data_end) = data_start.checked_add(comp_size) else { break };
+        let Some(raw_slice) = bytes.get(data_start..data_end) else { break };
+        let content = match compression {
+            0 if raw_slice.len() <= remaining => raw_slice.to_vec(),
+            8 => match crate::commands::codecs::inflate_raw_bounded(raw_slice, remaining) {
+                Ok((data,_)) => data, Err(_) => break,
+            },
+            _ => break,
         };
+        remaining -= content.len();
         entries.insert(name, content);
         pos = data_end.max(pos + 1);
     }
@@ -11795,7 +11777,7 @@ fn xlsx_col_ref_to_idx(cell_ref: &str) -> Option<usize> {
     }
     let mut idx = 0usize;
     for ch in letters.chars() {
-        idx = idx * 26 + ((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1);
+        idx = idx.checked_mul(26)?.checked_add((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1)?;
     }
     Some(idx - 1)
 }
@@ -31954,6 +31936,7 @@ fn write_zip_stored(entries: &[(&str, &[u8])]) -> Vec<u8> {
 
 #[derive(Clone, Debug)]
 struct WorkbookSheet {
+    delimited: bool,
     name: String,
     rows: Vec<Vec<String>>,
 }
@@ -32136,6 +32119,7 @@ fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet>
             .map(|b| String::from_utf8_lossy(b).into_owned())
             .unwrap_or_default();
         out.push(WorkbookSheet {
+            delimited: false,
             name: sname,
             rows: parse_xlsx_worksheet_xml(&ws_xml, &shared_strings),
         });
@@ -32244,7 +32228,7 @@ fn read_ods_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> 
             rows.push(row);
             rscan = &rafter[rend + 18..];
         }
-        sheets.push(WorkbookSheet { name: sname, rows });
+        sheets.push(WorkbookSheet { delimited:false, name: sname, rows });
         tscan = &tafter[tend + 14..];
     }
     sheets
@@ -32265,68 +32249,8 @@ fn xml_escape_text(s: &str) -> String {
     out
 }
 
-fn write_xlsx_workbook(sheets: &[WorkbookSheet]) -> Vec<u8> {
-    let mut content_types = String::from(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>",
-    );
-    let mut wb_xml = String::from(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>",
-    );
-    let mut wb_rels = String::from(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">",
-    );
-    let mut sheet_files: Vec<(String, Vec<u8>)> = Vec::new();
-
-    for (idx, sheet) in sheets.iter().enumerate() {
-        let num = idx + 1;
-        content_types.push_str(&format!(
-            "<Override PartName=\"/xl/worksheets/sheet{num}.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>"
-        ));
-        wb_xml.push_str(&format!(
-            "<sheet name=\"{}\" sheetId=\"{num}\" r:id=\"rId{num}\"/>",
-            xml_escape_text(&sheet.name)
-        ));
-        wb_rels.push_str(&format!(
-            "<Relationship Id=\"rId{num}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet{num}.xml\"/>"
-        ));
-
-        let mut ws = String::from(
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>",
-        );
-        for (r_idx, row) in sheet.rows.iter().enumerate() {
-            let r_num = r_idx + 1;
-            ws.push_str(&format!("<row r=\"{r_num}\">"));
-            for (c_idx, cell) in row.iter().enumerate() {
-                let col_ref = format!("{}{}", xlsx_idx_to_col_ref(c_idx), r_num);
-                ws.push_str(&format!(
-                    "<c r=\"{col_ref}\" t=\"inlineStr\"><is><t>{}</t></is></c>",
-                    xml_escape_text(cell)
-                ));
-            }
-            ws.push_str("</row>");
-        }
-        ws.push_str("</sheetData></worksheet>");
-        sheet_files.push((format!("xl/worksheets/sheet{num}.xml"), ws.into_bytes()));
-    }
-
-    content_types.push_str("</Types>");
-    wb_xml.push_str("</sheets></workbook>");
-    wb_rels.push_str("</Relationships>");
-    let root_rels = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>";
-
-    let mut owned_entries: Vec<(String, Vec<u8>)> = vec![
-        ("[Content_Types].xml".to_string(), content_types.into_bytes()),
-        ("_rels/.rels".to_string(), root_rels.as_bytes().to_vec()),
-        ("xl/workbook.xml".to_string(), wb_xml.into_bytes()),
-        ("xl/_rels/workbook.xml.rels".to_string(), wb_rels.into_bytes()),
-    ];
-    owned_entries.extend(sheet_files);
-    let refs: Vec<(&str, &[u8])> = owned_entries
-        .iter()
-        .map(|(k, v)| (k.as_str(), v.as_slice()))
-        .collect();
-    write_zip_stored(&refs)
-}
+#[path="xlsx.rs"]
+mod xlsx;
 
 fn write_ods_workbook(sheets: &[WorkbookSheet]) -> Vec<u8> {
     let mut content = String::from(
@@ -32396,15 +32320,9 @@ fn eval_ss_formula_expr(expr: &str, rows: &[Vec<String>]) -> Option<f64> {
                         if let (Some((r1, c1)), Some((r2, c2))) =
                             (parse_cell_coord(a), parse_cell_coord(b))
                         {
-                            for r in r1.min(r2)..=r1.max(r2) {
-                                for c in c1.min(c2)..=c1.max(c2) {
-                                    if let Some(v) = rows
-                                        .get(r)
-                                        .and_then(|row| row.get(c))
-                                        .and_then(|cell| cell.trim().parse::<f64>().ok())
-                                    {
-                                        vals.push(v);
-                                    }
+                            for row in rows.iter().take(r1.max(r2).saturating_add(1)).skip(r1.min(r2)) {
+                                for cell in row.iter().take(c1.max(c2).saturating_add(1)).skip(c1.min(c2)) {
+                                    if let Ok(v) = cell.trim().parse::<f64>() { vals.push(v); }
                                 }
                             }
                         }
@@ -32587,7 +32505,9 @@ fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
         for (c_idx, cell) in row.iter_mut().enumerate() {
             let trimmed = cell.trim();
             if let Some(f) = trimmed.strip_prefix('=') {
-                formulas.push((r_idx, c_idx, f.to_string()));
+                if f.len() <= 8192 && f.bytes().filter(|b| b"()+-*/".contains(b)).take(96).count() < 96 {
+                    formulas.push((r_idx, c_idx, f.to_string()));
+                }
             } else if !trimmed.is_empty()
                 && !trimmed.starts_with('0')
                 && let Ok(n) = trimmed.parse::<f64>()
@@ -32607,6 +32527,61 @@ fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
     }
 }
 
+fn workbook_text_rows(input:&str, csv:bool)->Vec<Vec<String>> {
+    let input = input.strip_prefix('\u{feff}').unwrap_or(input);
+    let pairs = input.matches("\r\n").count();
+    let lf = input.bytes().filter(|&c| c == b'\n').count()-pairs;
+    let cr = input.bytes().filter(|&c| c == b'\r').count()-pairs;
+    let ending = if lf>=cr.max(pairs) { "\n" } else if pairs>=cr { "\r\n" } else { "\r" };
+    let sample:Vec<_> = input.split(ending).take(999).collect();
+    let delim = if csv {
+        let punct = |c:char| !c.is_alphanumeric() && !c.is_whitespace() && c!='"' && !c.is_control();
+        let chosen = sample.iter().skip(1).find(|s|s.starts_with('"'))
+            .or_else(||sample.first().filter(|s|s.starts_with('"')))
+            .or_else(|| sample.iter().find(|s|s.contains('"')));
+        chosen.and_then(|s| {
+            let (before,rest)=s.split_once('"')?;
+            let mut chars=rest.chars().peekable();
+            while let Some(c)=chars.next() {
+                if c=='"' {
+                    if chars.next_if_eq(&'"').is_some(){continue;}
+                    chars.next();break;
+                }
+            }
+            chars.find(|c|!c.is_whitespace()).filter(|&c|punct(c)).or_else(||before.chars().rev().find(|&c|punct(c)))
+        }).unwrap_or(',')
+    } else {
+        let quantile=|c:char,q:f64|{
+            let mut n:Vec<_>=sample.iter().filter(|s|!s.is_empty()).map(|l|l.matches(c).count()).collect();
+            n.sort_unstable();n.get(((q*n.len() as f64).ceil() as usize).min(n.len().saturating_sub(1))).copied().unwrap_or(0)
+        };
+        if quantile('\t',0.2)>=1 && quantile('\t',0.2)>=quantile(',',0.2).saturating_sub(1){'\t'}
+        else{[',',':',';','|','!',' '].into_iter().find(|&c|quantile(c,0.5)>0).unwrap_or('\0')}
+    };
+    let mut rows=vec![];let mut row=vec![];let mut field=String::new();
+    let mut quoted=false;let mut ended=false;let mut started=false;
+    let mut it=input.chars().peekable();
+    while let Some(c)=it.next(){
+        let eol = (ending=="\n" && c=='\n') || (ending=="\r" && c=='\r') ||
+            (ending=="\r\n" && c=='\r' && it.next_if_eq(&'\n').is_some());
+        if quoted{
+            if c=='"'{
+                if it.next_if_eq(&'"').is_some(){field.push('"');}else{quoted=false;ended=true;}
+            }else if eol{field.push_str(ending);}else{field.push(c);}
+        }else if eol || (delim!='\0' && (c==delim || delim==' ' && c=='\t')){
+            if started || eol || delim!=' ' {
+                if csv{row.push(std::mem::take(&mut field));}else{row.push(field.trim().to_owned());field.clear();}
+            }
+            if eol{rows.push(std::mem::take(&mut row));}started=false;ended=false;
+        }else if !ended{
+            if !started && !csv && c.is_whitespace(){continue;}
+            if !started && c=='"'{quoted=true;}else{field.push(c);}started=true;
+        }
+    }
+    if started || !row.is_empty(){row.push(if csv{field}else{field.trim().to_owned()});rows.push(row);}
+    rows
+}
+
 fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<Vec<WorkbookSheet>, String> {
     let full = resolve_posix_path(cwd, path);
     if let Ok(meta) = fs.stat(&full)
@@ -32623,17 +32598,11 @@ fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result
         Ok(read_xlsx_all_sheets(&bytes, fname))
     } else if lower.ends_with(".ods") {
         Ok(read_ods_all_sheets(&bytes, fname))
-    } else if lower.ends_with(".tsv") {
-        let text = String::from_utf8_lossy(&bytes);
-        Ok(vec![WorkbookSheet {
-            name: fname.to_string(),
-            rows: parse_csv_rows(&text, '\t'),
-        }])
     } else {
-        let text = String::from_utf8_lossy(&bytes);
         Ok(vec![WorkbookSheet {
+            delimited: true,
             name: fname.to_string(),
-            rows: parse_csv_rows(&text, ','),
+            rows: workbook_text_rows(&String::from_utf8_lossy(&bytes),lower.ends_with(".csv")),
         }])
     }
 }
@@ -32648,7 +32617,7 @@ fn write_workbook_to_file(
     let full = resolve_posix_path(cwd, path);
     let lower = path.to_ascii_lowercase();
     if lower.ends_with(".xlsx") {
-        let bytes = write_xlsx_workbook(sheets);
+        let bytes = xlsx::write(sheets,fs.max_input_bytes()).ok_or("ssconvert: XLSX output exceeds byte limit\n")?;
         fs.write_file(&full, &bytes)
             .map_err(|e| format!("ssconvert: {path}: {e}\n"))
     } else if lower.ends_with(".ods") {
@@ -32949,7 +32918,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         for infile in &positional {
             match load_workbook_from_file(infile, cwd, fs) {
                 Ok(mut s) => {
-                    if recalc {
+                    if recalc && !target_out.to_ascii_lowercase().ends_with(".xlsx") {
                         for sh in &mut s {
                             recalc_workbook_sheet(sh);
                         }
@@ -32983,7 +32952,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         Ok(s) => s,
         Err(e) => return err_out(&e, 1),
     };
-    if recalc {
+    if recalc && !outfile.to_ascii_lowercase().ends_with(".xlsx") {
         for sh in &mut sheets {
             recalc_workbook_sheet(sh);
         }
@@ -38326,6 +38295,19 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         .unwrap();
         assert_eq!(bad_persist.exit_code, 1);
         assert!(bad_persist.stderr.contains("unsupported FTS5 binary persistence"));
+    }
+
+    #[test]
+    fn ssconvert_writes_typed_cells_and_the_complete_xlsx_package() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/c.csv", b"id,name\n1,alpha\n2,beta\n").unwrap();
+        let r = try_run_structured_command("ssconvert",&args(&["c.csv","out.xlsx"]),"","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        let bytes=fs.read_file("/out.xlsx").unwrap();
+        let parts=read_zip_entries_for_xlsx(&bytes);
+        let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
+        assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
+        assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
     }
 
     #[test]

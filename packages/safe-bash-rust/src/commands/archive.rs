@@ -7700,7 +7700,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         });
     }
     let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes);
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false);
     if let Some(sz) = split_size
         && out_bytes.len() > sz
     {

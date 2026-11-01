@@ -3199,10 +3199,10 @@ fn dos_to_unix_secs(dos_date: u16, dos_time: u16) -> u64 {
 }
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, 0, &[])
+    encode_zip_members(entries, 0, &[], false)
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str]) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str], document: bool) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3241,7 +3241,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let (method, version, stored): (u16, u16, &[u8]) = if compress && compressed.len() < payload.len() {
             (8, 20, &compressed)
         } else { (0, 10, payload) };
-        let text_attr = u16::from(compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
+        let text_attr = u16::from(!document && compress && payload.iter().all(|b| !matches!(b, 0..=6 | 14..=25 | 28..=31))
             && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)));
         let crc = crc32_ieee(payload);
         let sz = payload.len() as u32;

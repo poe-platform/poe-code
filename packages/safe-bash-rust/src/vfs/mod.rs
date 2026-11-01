@@ -24,7 +24,7 @@ pub enum VfsEntryKind {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum EntryIdentity {
-    Memory(u64, String),
+    Memory(u64, u64),
     Unix(u64, u64),
 }
 

@@ -350,6 +350,7 @@ const SAFE_DETERMINISTIC_CMDS = new Set([
 ]);
 
 export class RustWasmBash {
+  #identityScope = Symbol("Wasm filesystem");
   constructor(options = {}) {
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
       throw new TypeError("deviceView must be default or provided");
@@ -580,13 +581,16 @@ export class RustWasmBash {
         throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
-      const view = new DataView(this.exports.memory.buffer, outPtr, 20);
+      const view = new DataView(this.exports.memory.buffer, outPtr, len);
       const kindCode = view.getUint32(0, true);
       const size = view.getUint32(4, true);
       const mode = view.getUint32(8, true);
       const mtimeMs = Number(view.getBigUint64(12, true));
       const type = kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
+      const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
+      const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
       return {
+        ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope: this.#identityScope } : {}),
         type,
         size,
         mode,

@@ -608,3 +608,22 @@ test("the strict budget profile mounts the virtual devices used by production", 
     await assert.rejects(bash.fs.writeFile("/dev/urandom", "denied"), {code:"EPERM"});
   } finally { bash.dispose(); }
 });
+
+test("stat identifies aliases, renames and replacements within one filesystem", async () => {
+  const a = new RustWasmBash({files:{"/original":"value"}});
+  const b = new RustWasmBash({files:{"/original":"other"}});
+  try {
+    const key = st => [st.identityScope, st.dev, st.ino];
+    const original = await a.fs.stat("/original");
+    assert.equal(typeof original.identityScope, "symbol");
+    assert.ok(Number.isSafeInteger(original.dev) && Number.isSafeInteger(original.ino));
+    assert.notEqual((await b.fs.stat("/original")).identityScope, original.identityScope);
+    await a.fs.symlink("/original", "/link");
+    assert.deepEqual(key(await a.fs.stat("/link")), key(original));
+    assert.notDeepEqual(key(await a.fs.lstat("/link")), key(original));
+    await a.fs.rename("/original", "/renamed");
+    assert.deepEqual(key(await a.fs.stat("/renamed")), key(original));
+    await a.fs.writeFile("/original", "replacement");
+    assert.notDeepEqual(key(await a.fs.stat("/original")), key(original));
+  } finally { a.dispose(); b.dispose(); }
+});

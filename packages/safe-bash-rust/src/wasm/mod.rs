@@ -522,13 +522,17 @@ pub unsafe extern "C" fn safe_bash_stat(
                 VfsEntryKind::Directory => 1,
                 VfsEntryKind::Symlink => 2,
             };
-            let mut buf = Vec::with_capacity(20);
+            let mut buf = Vec::with_capacity(36);
             buf.extend_from_slice(&kind_code.to_le_bytes());
             buf.extend_from_slice(&(st.size as u32).to_le_bytes());
             buf.extend_from_slice(&st.mode.to_le_bytes());
             buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
+            if let Some(crate::vfs::EntryIdentity::Memory(dev, ino)) = st.identity {
+                buf.extend_from_slice(&dev.to_le_bytes());
+                buf.extend_from_slice(&ino.to_le_bytes());
+            }
             sess.last_output_buf = buf;
-            20
+            sess.last_output_buf.len() as i32
         }
         Err(_) => -1,
     }

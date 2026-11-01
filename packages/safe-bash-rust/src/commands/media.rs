@@ -9448,6 +9448,12 @@ fn cmd_media_doc(
             let mut scale_to: Option<i64> = None;
             let mut scale_to_x: Option<i64> = None;
             let mut scale_to_y: Option<i64> = None;
+            let mut crop_x = 0.;
+            let mut crop_y = 0.;
+            let mut cropbox = false;
+            let mut transparent = false;
+            let mut antialias = true;
+            let mut color_mode = "rgb";
             let mut crop_w: Option<f64> = None;
             let mut crop_h: Option<f64> = None;
             let mut pw_opt: Option<String> = None;
@@ -9556,12 +9562,14 @@ fn cmd_media_doc(
                         fmt = "PPM";
                     }
                     "-gray" => {
+                        color_mode = "gray";
                         if !explicit_container && ext == "ppm" {
                             ext = "pgm";
                             fmt = "PGM";
                         }
                     }
                     "-mono" => {
+                        color_mode = "mono";
                         if !explicit_container && ext == "ppm" {
                             ext = "pbm";
                             fmt = "PBM";
@@ -9666,6 +9674,7 @@ fn cmd_media_doc(
                             };
                             return err_out(&msg, 99);
                         }
+                        if arg == "-aaVector" { antialias = v == "yes"; }
                         i += 1;
                     }
                     "-thinlinemode" => {
@@ -9692,9 +9701,15 @@ fn cmd_media_doc(
                                 99,
                             );
                         }
+                        antialias = v != "none";
                         i += 1;
                     }
-                    "-x" | "-y" | "-jpegopt" | "-paper" | "-paperw" | "-paperh" | "-icc"
+                    "-x" | "-y" => {
+                        let v = args[i+1].parse().unwrap_or(0.);
+                        if arg == "-x" {crop_x = v;} else {crop_y = v;}
+                        i += 1;
+                    }
+                    "-jpegopt" | "-paper" | "-paperw" | "-paperh" | "-icc"
                     | "-freetype" | "-defaultgray" | "-defaultrgb" | "-defaultcmyk" => {
                         i += 1;
                     }
@@ -9710,7 +9725,9 @@ fn cmd_media_doc(
                         pw_opt = Some(args[i + 1].clone());
                         i += 1;
                     }
-                    "-cropbox" | "-hide-annotations" | "-overprint" | "-transp" | "-level2"
+                    "-cropbox" => cropbox = true,
+                    "-transp" => transparent = true,
+                    "-hide-annotations" | "-overprint" | "-level2"
                     | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink"
                     | "-nocenter" | "-duplex" => {}
                     a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
@@ -9891,33 +9908,39 @@ fn cmd_media_doc(
                     break;
                 }
             }
-            if prefix_arg.is_none() || prefix_arg == Some("-") {
-                let pno = selected_pages.first().copied().unwrap_or(1);
+            let options = pdf_reader::RasterOptions {
+                format: fmt, color: color_mode, transparent, antialias, dpi: [dpi_x,dpi_y],
+                scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
+                crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
+            };
+            let mut source = if matches!(fmt, "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b) } else { None };
+            let mut render = |pno| {
+                if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
                 let (w, h) = compute_dims(pno);
-                let im = ImageMeta {
-                    fmt: fmt.to_string(),
-                    w,
-                    h,
-                    cs: if fmt == "PGM" || fmt == "PBM" { "Gray".to_string() } else { "sRGB".to_string() },
+                Some(write_image_bytes(&ImageMeta {
+                    fmt: fmt.to_string(), w, h,
+                    cs: if matches!(fmt, "PGM" | "PBM") { "Gray".into() } else { "sRGB".into() },
                     exif: BTreeMap::new(),
-                };
-                let bytes = write_image_bytes(&im);
-                return ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
+                }))
+            };
+            if prefix_arg.is_none() || prefix_arg == Some("-") {
+                let mut bytes = Vec::new();
+                let mut status = ok_out("");
+                for pno in selected_pages {
+                    let Some(page) = render(pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
+                    if page.len() > fs.max_input_bytes().saturating_sub(bytes.len()) { return err_out("PDF raster output exceeds byte limit\n",1); }
+                    bytes.extend(page);
+                    if progress && !quiet { status.stderr.push_str(&format!("{pno} {end_p} -\n")); }
+                }
+                status.stdout = crate::vfs::bytes_to_stream_string(&bytes);
+                return status;
             }
             let pfx_rel = prefix_arg.unwrap();
             let pfx_full = resolve_posix_path(cwd, pfx_rel);
             let digits = total.to_string().len();
             let mut stderr_progress = String::new();
             for pno in &selected_pages {
-                let (w, h) = compute_dims(*pno);
-                let im = ImageMeta {
-                    fmt: fmt.to_string(),
-                    w,
-                    h,
-                    cs: if fmt == "PGM" || fmt == "PBM" { "Gray".to_string() } else { "sRGB".to_string() },
-                    exif: BTreeMap::new(),
-                };
-                let bytes = write_image_bytes(&im);
+                let Some(bytes) = render(*pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
                 let (rel_dst, dst) = if singlefile && !force_num {
                     (format!("{pfx_rel}.{ext}"), format!("{pfx_full}.{ext}"))
                 } else {
@@ -9930,7 +9953,7 @@ fn cmd_media_doc(
                     )
                 };
                 let _ = fs.write_file(&dst, &bytes);
-                if progress {
+                if progress && !quiet {
                     stderr_progress.push_str(&format!("{pno} {end_p} {rel_dst}\n"));
                 }
             }
@@ -13568,6 +13591,28 @@ mod media_unit_tests {
         let save = cmd_media_doc("pdfdetach", &media_args(&["-save", "1", "-o", "/dest", "book.pdf"]), "", "/", &fs);
         assert_eq!((save.exit_code,save.stderr.as_str()), (2,"I/O Error: Error saving embedded file as '/dest'\n"));
         assert_eq!(fs.read_file("/book.pdf").unwrap(), bytes);
+    }
+
+    #[test]
+    fn render_pdf_vector_fills_to_png_and_portable_bitmaps() {
+        let fs = MemoryVfs::new();
+        let stream = "0 0.5 1 rg 1 1 m 12 2 l 6 10 l h f";
+        let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 16 12] >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents], "");
+        fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
+        for (cmd, flags, ext, hash) in [
+            ("pdftoppm", "-png", "png", "176688f1156bc304d2ee5a247bc2bdec9f1ef54174df08e94b2aad06d05aad6a"),
+            ("pdftocairo", "-png -transp", "png", "67681714765e53fa834b887320e34914d9c0831da276df5f331bce6c5a5cc4bf"),
+            ("pdftoppm", "-gray", "pgm", "2996700b20eab9ff7c18de60f81d342f810d447ce56fc5bdcd011256e7c3734d"),
+            ("pdftoppm", "-mono", "pbm", "72d971a340d3f55d32aa340fe87503c8994e4e8d207ac687557e9792b0f35362"),
+        ] {
+            let args = format!("{flags} -singlefile -r 72 page.pdf out");
+            let r = cmd_media_doc(cmd, &media_args(&args.split_whitespace().collect::<Vec<_>>()), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/out.{ext}")).unwrap())), hash, "{cmd} {flags}");
+        }
     }
 
     #[test]

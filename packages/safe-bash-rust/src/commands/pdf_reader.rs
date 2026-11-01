@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
-pub(super) use pdf_copy::{PageOutput, PageSource};
+pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};
 
 #[path = "pdf_render.rs"]
 mod pdf_render;

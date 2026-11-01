@@ -8,6 +8,23 @@ mod pdf_fonts;
 #[path = "pdf_text_layout.rs"]
 mod pdf_text_layout;
 
+#[path = "pdf_raster.rs"]
+mod pdf_raster;
+pub(in crate::commands::archive) use pdf_raster::RasterOptions;
+
+type Matrix = [f64; 6];
+const ID: Matrix = [1., 0., 0., 1., 0., 0.];
+fn concat([a, b, c, d, e, f]: Matrix, n: Matrix) -> Matrix {
+    [
+        a * n[0] + b * n[2],
+        a * n[1] + b * n[3],
+        c * n[0] + d * n[2],
+        c * n[1] + d * n[3],
+        e * n[0] + f * n[2] + n[4],
+        e * n[1] + f * n[3] + n[5],
+    ]
+}
+
 pub(in super::super) struct PageSource<'a> {
     objects: Objects<'a>,
     pages: Vec<ObjectId>,

@@ -5,18 +5,7 @@ use std::{collections::BTreeMap, rc::Rc};
 #[path = "pdf_font_widths.rs"]
 mod widths;
 
-type Matrix = [f64; 6];
-const ID: Matrix = [1., 0., 0., 1., 0., 0.];
-fn concat([a, b, c, d, e, f]: Matrix, n: Matrix) -> Matrix {
-    [
-        a * n[0] + b * n[2],
-        a * n[1] + b * n[3],
-        c * n[0] + d * n[2],
-        c * n[1] + d * n[3],
-        e * n[0] + f * n[2] + n[4],
-        e * n[1] + f * n[3] + n[5],
-    ]
-}
+use super::{Matrix, ID, concat};
 fn shift(m: &mut Matrix, x: f64, y: f64) {
     m[4] += m[0] * x + m[2] * y;
     m[5] += m[1] * x + m[3] * y;

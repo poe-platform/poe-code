@@ -208,7 +208,11 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        let mut cur = self.read_file(path).unwrap_or_default();
+        let mut cur = match self.read_file(path) {
+            Ok(bytes) => bytes,
+            Err(e) if e.starts_with("ENOENT:") => Vec::new(),
+            Err(e) => return Err(e),
+        };
         cur.extend_from_slice(data);
         self.write_file(path, &cur)
     }
@@ -319,6 +323,25 @@ pub fn stream_string_to_bytes(s: &str) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_unreadable_file_cannot_be_replaced_by_a_fallback_append() {
+        struct WriteOnly;
+        impl SafeBashFs for WriteOnly {
+            fn read_file(&self, _: &str) -> Result<Vec<u8>, String> { Err("EACCES: permission denied".into()) }
+            fn write_file(&self, _: &str, _: &[u8]) -> Result<(), String> { panic!("append overwrote unreadable bytes") }
+            fn mkdir_all(&self, _: &str) -> Result<(), String> { unreachable!() }
+            fn remove_path(&self, _: &str) -> Result<(), String> { unreachable!() }
+            fn exists(&self, _: &str) -> bool { true }
+            fn is_dir(&self, _: &str) -> bool { false }
+            fn list_dir(&self, _: &str) -> Result<Vec<String>, String> { unreachable!() }
+            fn symlink(&self, _: &str, _: &str) -> Result<(), String> { unreachable!() }
+            fn readlink(&self, _: &str) -> Result<String, String> { unreachable!() }
+            fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> { unreachable!() }
+            fn replace_entries(&self, _: &[VfsFileEntry]) -> Result<(), String> { unreachable!() }
+        }
+        assert_eq!(WriteOnly.append_file("/log", b"tail").unwrap_err(), "EACCES: permission denied");
+    }
 
     #[test]
     fn unit_stream_string_arbitrary_byte_roundtrip_and_fs_error() {

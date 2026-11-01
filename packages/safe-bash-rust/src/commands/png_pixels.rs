@@ -109,7 +109,7 @@ impl Raster {
             return Ok(super::bmp::Bmp::parse(bytes, limit)?.decode());
         }
         let mut idat = Vec::new();
-        let header = super::png_header::Header::read(bytes, |data| {
+        let header = super::image_header::Png::read(bytes, |data| {
             if data.len() > limit - idat.len() { return Err("image exceeds memory budget"); }
             idat.extend_from_slice(data);
             Ok(())

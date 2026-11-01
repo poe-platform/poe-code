@@ -168,7 +168,7 @@ pub(super) fn format(
             "%[channels]" => format!(
                 "{}{}",
                 meta.cs.to_ascii_lowercase(),
-                if matches!(channels, 2 | 4) { "a" } else { "" }
+                if meta.has_alpha(channels) { "a" } else { "" }
             )
             .into(),
             "%b" | "%[size]" => format!("{size}B").into(),

@@ -1,4 +1,4 @@
-pub(super) struct Header<'a> {
+pub(super) struct Png<'a> {
     pub ihdr: Option<&'a [u8]>,
     pub palette: &'a [u8],
     pub transparency: Option<&'a [u8]>,
@@ -6,7 +6,7 @@ pub(super) struct Header<'a> {
     pub truncated: bool,
 }
 
-impl<'a> Header<'a> {
+impl<'a> Png<'a> {
     pub fn read(
         bytes: &'a [u8],
         mut idat: impl FnMut(&[u8]) -> Result<(), &'static str>,
@@ -118,4 +118,64 @@ fn exif_density(data: &[u8]) -> Option<u32> {
     resolution
         .filter(|&n| n > 0.)
         .map(|n| (n * if unit == 3 { 2.54 } else { 1. }).round() as u32)
+}
+
+pub(super) fn jpeg(bytes: &[u8]) -> Result<(u32, u32, u8, u32), &'static str> {
+    let mut data = &bytes[2..];
+    let mut dpi = 72;
+    while data.len() >= 4 {
+        let Some(start) = data.iter().position(|&b| b == 255) else {
+            break;
+        };
+        let Some(pos) = data[start..].iter().position(|&b| b != 255) else {
+            break;
+        };
+        let marker = data[start + pos];
+        data = &data[start + pos + 1..];
+        match marker {
+            0xd9 => break,
+            1 | 0xd0..=0xd8 => continue,
+            _ => (),
+        }
+        let Some(length) = data.get(..2) else {
+            break;
+        };
+        let len = usize::from(u16::from_be_bytes(length.try_into().unwrap()));
+        let Some(payload) = data.get(2..len) else {
+            break;
+        };
+        match marker {
+            0xe0 if len >= 14 && payload.starts_with(b"JFIF\0") => {
+                let x = u16::from_be_bytes([payload[8], payload[9]]);
+                if x > 0 {
+                    dpi = match payload[7] {
+                        1 => x.into(),
+                        2 => (f64::from(x) * 2.54).round() as u32,
+                        _ => dpi,
+                    };
+                }
+            }
+            0xe1 => {
+                if let Some(d) = exif_density(payload) {
+                    dpi = d;
+                }
+            }
+            0xc0..=0xc2 => {
+                let byte = |i: usize| u32::from(payload.get(i).copied().unwrap_or(0));
+                let (w, h) = ((byte(3) << 8) | byte(4), (byte(1) << 8) | byte(2));
+                if w == 0 || h == 0 {
+                    break;
+                }
+                let ch = match byte(5) {
+                    1 => 1,
+                    4 => 4,
+                    _ => 3,
+                };
+                return Ok((w, h, ch, dpi));
+            }
+            _ => (),
+        }
+        data = &data[len..];
+    }
+    Err("Invalid JPEG dimensions")
 }

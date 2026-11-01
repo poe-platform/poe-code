@@ -7,6 +7,12 @@ struct ImageMeta {
     exif: BTreeMap<String, String>,
 }
 
+impl ImageMeta {
+    fn has_alpha(&self, channels: u8) -> bool {
+        matches!(channels, 2 | 4) && self.cs != "CMYK"
+    }
+}
+
 fn format_from_path(path: &str) -> &'static str {
     let lower = path.to_ascii_lowercase();
     if lower.ends_with(".jpg") || lower.ends_with(".jpeg") {
@@ -97,8 +103,8 @@ mod identify;
 mod netpbm;
 #[path = "sips_properties.rs"]
 mod sips_properties;
-#[path = "png_header.rs"]
-mod png_header;
+#[path = "image_header.rs"]
+mod image_header;
 #[path = "png_pixels.rs"]
 mod png_pixels;
 #[path = "magick_coordinates.rs"]
@@ -242,7 +248,12 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         meta.h = im.height as u32;
         meta.fmt = "BMP".into();
         (8, if im.bpp == 32 { 4 } else { 3 }, im.density)
-    } else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") && let Ok(header) = png_header::Header::read(bytes, |_| Ok(())) {
+    } else if bytes.starts_with(b"\xff\xd8\xff") && bytes.get(20..29) != Some(b"\n__IMG__:") {
+        let (w, h, channels, dpi) = image_header::jpeg(bytes)?;
+        (meta.w, meta.h) = (w, h);
+        meta.cs = match channels { 1 => "Gray", 4 => "CMYK", _ => "sRGB" }.into();
+        (8, channels, dpi)
+    } else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") && let Ok(header) = image_header::Png::read(bytes, |_| Ok(())) {
         let (w, h, depth, color) = header.ihdr.map_or((0, 0, 8, 6), |v| (
             u32::from_be_bytes(v[..4].try_into().unwrap()), u32::from_be_bytes(v[4..8].try_into().unwrap()), v[8], v[9]));
         (meta.w, meta.h) = (w, h);
@@ -10794,7 +10805,7 @@ fn cmd_media_doc(
                     let details = if png_pixels::supported_still(&bytes) {
                         match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
                             Ok(image) => {
-                                let alpha = if matches!(channels, 2 | 4) { "True" } else { "False" };
+                                let alpha = if meta.has_alpha(channels) { "True" } else { "False" };
                                 format!("  Channels: {channels}\n  Alpha: {alpha}\n  Filesize: {}B\n  Entropy: {:.4}\n", bytes.len(), image.entropy())
                             }
                             Err(reason) => {
@@ -11137,8 +11148,8 @@ fn cmd_media_doc(
                             "dpiWidth" | "dpiHeight" => meta.exif.get(p).cloned().unwrap_or_else(|| format!("{dpi}.000")),
                             "samplesPerPixel" => channels.to_string(),
                             "bitsPerSample" => (if depth < 8 { 1 } else { depth }).to_string(),
-                            "hasAlpha" => if matches!(channels, 2 | 4) { "yes" } else { "no" }.into(),
-                            "space" => if meta.cs == "Gray" && !(meta.fmt == "PNG" && depth == 16) { "Gray" } else { "RGB" }.into(),
+                            "hasAlpha" => if meta.has_alpha(channels) { "yes" } else { "no" }.into(),
+                            "space" => match meta.cs.as_str() { "CMYK" => "CMYK", "Gray" if !(meta.fmt == "PNG" && depth == 16) => "Gray", _ => "RGB" }.into(),
                             other => meta
                                 .exif
                                 .get(other)
@@ -13669,6 +13680,17 @@ mod media_unit_tests {
         assert_eq!(run().stdout, "tag.png|artist: Ada|dpiWidth: 145.000|\n");
         fs.write_file("/tag.png", &png[..35+data.len()]).unwrap();
         assert_eq!(run().stderr, "Error: tag.png: Invalid PNG metadata chunk\n");
+    }
+
+    #[test]
+    fn identify_and_sips_read_cmyk_jpeg_dimensions_and_jfif_density() {
+        let fs = MemoryVfs::new();
+        let jpeg = b"\xff\xd8\xff\xe0\0\x10JFIF\0\x01\x01\x02\0\x76\0\x76\0\0\xff\xc2\0\x14\x08\0\x05\0\x08\x04\0\0\0\0\0\0\0\0\0\0\0\0\xff\xd9";
+        fs.write_file("/x", jpeg).unwrap();
+        let r = cmd_media_doc("identify", &media_args(&["-format","%m %wx%h %x %[channels]","x"]), "", "/", &fs);
+        assert_eq!(r.stdout, "JPEG 8x5 300 cmyk");
+        let r = cmd_media_doc("sips", &media_args(&["-1","-g","space","-g","hasAlpha","-g","samplesPerPixel","x"]), "", "/", &fs);
+        assert_eq!(r.stdout, "x|space: CMYK|hasAlpha: no|samplesPerPixel: 4|\n");
     }
 
     #[test]

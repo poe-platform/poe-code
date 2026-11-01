@@ -7237,26 +7237,38 @@ fn parse_yq_input_docs_with_meta(
     }
     let mut docs = Vec::new();
     let mut current_doc = String::new();
+    let mut started = false;
+    let finish = |doc: &mut String, docs: &mut Vec<_>| {
+        let meta = extract_yaml_doc_meta(doc, file_index, docs.len(), fname);
+        docs.push((parse_nested_yaml(doc), meta));
+        doc.clear();
+    };
     for line in input.lines() {
-        if line.trim() == "---" || line.trim() == "..." {
-            if !current_doc.trim().is_empty() {
-                let d_idx = docs.len();
-                let meta = extract_yaml_doc_meta(&current_doc, file_index, d_idx, fname);
-                docs.push((parse_nested_yaml(&current_doc), meta));
-                current_doc.clear();
+        let marker_tail = |prefix| line.strip_prefix(prefix)
+            .filter(|rest| rest.is_empty() || rest.starts_with([' ', '\t']));
+        let content = if let Some(rest) = marker_tail("---") {
+            if started {
+                finish(&mut current_doc, &mut docs);
             }
+            started = true;
+            rest.trim_start()
+        } else if marker_tail("...").is_some_and(|rest| {
+            let rest = rest.trim_start();
+            rest.is_empty() || rest.starts_with('#')
+        }) {
+            finish(&mut current_doc, &mut docs);
+            started = false;
+            continue;
         } else {
-            current_doc.push_str(line);
-            current_doc.push('\n');
-        }
+            line
+        };
+        let trimmed = content.trim();
+        started |= !trimmed.is_empty() && !trimmed.starts_with('#');
+        current_doc.push_str(content);
+        current_doc.push('\n');
     }
-    if !current_doc.trim().is_empty() {
-        let d_idx = docs.len();
-        let meta = extract_yaml_doc_meta(&current_doc, file_index, d_idx, fname);
-        docs.push((parse_nested_yaml(&current_doc), meta));
-    }
-    if docs.is_empty() {
-        docs.push((JVal::Null, single_meta()));
+    if started || docs.is_empty() {
+        finish(&mut current_doc, &mut docs);
     }
     docs
 }
@@ -7513,7 +7525,7 @@ fn parse_nested_yaml(input: &str) -> JVal {
         .filter_map(|l| {
             let trimmed = l.trim_end();
             let stripped = trimmed.trim_start();
-            if stripped.is_empty() || stripped.starts_with('#') || stripped == "---" {
+            if stripped.is_empty() || stripped.starts_with('#') || trimmed == "---" {
                 None
             } else {
                 let indent = trimmed.len() - stripped.len();
@@ -7521,12 +7533,15 @@ fn parse_nested_yaml(input: &str) -> JVal {
             }
         })
         .collect();
+    if lines.is_empty() {
+        return JVal::Null;
+    }
     let mut anchors = BTreeMap::new();
     if lines.len() == 1 {
         let only = lines[0].1;
         if (only.starts_with('\'') && only.ends_with('\''))
             || (only.starts_with('"') && only.ends_with('"'))
-            || (!only.starts_with('-') && !only.contains(':'))
+            || (only != "-" && !only.starts_with("- ") && !only.contains(':'))
         {
             return parse_yaml_scalar(only, &mut anchors);
         }
@@ -37551,6 +37566,14 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn yq_keeps_explicit_empty_documents_and_respects_marker_indentation() {
+        let input = "# intro\n--- 42\n... # end\n---\n--- # next\na: |\n  ---\n  ...\n---\n";
+        let r = cmd_yq(&args(&["-o=json", "-I=0", "[di,.]"]), input, "/", &BTreeMap::new(), &MemoryVfs::new());
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(r.stdout, "[0,42]\n[1,null]\n[2,{\"a\":\"---\\n...\\n\"}]\n[3,null]\n");
     }
 
     #[test]

@@ -10111,7 +10111,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10210,6 +10210,10 @@ fn cmd_media_doc(
                         fuzz=(value+0.5).floor();i+=1;
                     }
                     "-trim" => {ops.push(PixelOp::Trim(fuzz));i+=1;}
+                    "-gamma" => {
+                        let g=if i+1<args.len()-usize::from(!is_mogrify){i+=1;magick_number(&args[i],0.)}else{1.};
+                        ops.push(PixelOp::Gamma(g));i+=1;
+                    }
                     "-auto-orient" => {ops.push(PixelOp::AutoOrient);i+=1;}
                     "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
                     "-channel" if i+1<args.len() => { channels=magick_color::channel_mask(&args[i+1]);i+=2; }
@@ -10373,6 +10377,7 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Gamma(g)=>image.gamma(*g),
                         PixelOp::Trim(fuzz)=>image.trim(*fuzz,fs.max_input_bytes())?,
                         PixelOp::Clear=>image.pixels.fill([0;4]),
                         PixelOp::Morph(method,radii)=>image.morphology(method,*radii,fs.max_input_bytes())?,
@@ -14609,6 +14614,22 @@ mod media_unit_tests {
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-00.png").unwrap())),"9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f");
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-02.png").unwrap())),"862e92446a2e54553c1ccd96f66a2d90c7b3ec002fc0c59b89d58f6a725c2960");
+    }
+
+    #[test]
+    fn convert_gamma_quantizes_each_stage_without_changing_alpha() {
+        let fs=MemoryVfs::new();
+        let im=png_pixels::Raster{width:9,height:7,gray:false,alpha:true,density:96,orientation:Some(1),
+            pixels:(0..63).map(|i|std::array::from_fn(|j|((i*4+j)*43) as u8)).collect()};
+        fs.write_file("/in.png",&im.png()).unwrap();
+        for (gamma,hash) in [
+            ("2.2","6ebb33294c60ce318daec288ca5e10dd4b628dcdff9f3a7d0bf0569cb1284486"),
+            ("garbage","f06336f3721851cb6e53a9063080b494cd84c541275f98fad3da408823a514ab"),
+        ]{
+            let r=cmd_media_doc("convert",&media_args(&["in.png","-gamma",gamma,"o.png"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash);
+        }
     }
 
     #[test]

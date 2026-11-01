@@ -464,6 +464,19 @@ pub(super) fn negate(pixel: &mut [u8; 4], channels: [bool; 4], only_gray: bool) 
 }
 
 impl super::png_pixels::Raster {
+    pub fn gamma(&mut self, gamma: f64) {
+        let g = if gamma < 0.1 { 0.1 } else { gamma };
+        let lut: [u8; 256] = std::array::from_fn(|i| {
+            if g.is_nan() { return 0; }
+            let first = (255. * (i as f64 / 255.).powf(g)).floor();
+            (255. * (first / 255.).powf(1. / g)).floor() as u8
+        });
+        for p in &mut self.pixels {
+            for c in &mut p[..3] {
+                *c = lut[usize::from(*c)];
+            }
+        }
+    }
     pub fn threshold(&mut self, value: f64) {
         self.gray = true;
         for p in &mut self.pixels {

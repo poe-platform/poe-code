@@ -4597,21 +4597,24 @@ fn cmd_media_doc(
             if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || inputs.len()==1 && y4m_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
-                let generator = (inputs.len()==1 && (y4m_output || mp4_output) && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
-                let generated_audio=(inputs.len()==1 && (mp4_output || audio_output) && input_format==Some("lavfi") && matches!(source.split('=').next(),Some("sine"|"anullsrc"))).then(||parse_lavfi_input_doc(source)).flatten();
-                let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
-                let bytes=if generator.is_some() || generated_audio.is_some(){None}else{read(source)};
+                let generator = (y4m_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
+                let load=|source:&str,explicit| {
+                    if explicit==Some("lavfi") {
+                        return Some((Some("lavfi"),source.as_bytes().to_vec()));
+                    }
+                    let bytes=if media_stdin(source){crate::vfs::stream_string_to_bytes(stdin)}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()?};
+                    Some((media_format::detect(&bytes,source,explicit),bytes))
+                };
+                let (format,bytes)=load(source,input_format).map_or((None,None),|(f,b)|(f,Some(b)));
                 let start=ss_opt.unwrap_or(0.).max(0.);
                 let end=to_opt.or_else(||t_opt.map(|t|start+t));
-                let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
-                let remuxable=|format,data:&[u8]|matches!(format,Some("aac"|"srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+                let remuxable=|format,data:&[u8]|format==Some("lavfi") && matches!(data.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")) || matches!(format,Some("aac"|"srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
                 let supported=remuxable(format,bytes.as_deref().unwrap_or_default());
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
                 let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
                 if supported && (mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata")){
                     for (source,&explicit) in inputs[1..].iter().zip(&input_formats[1..]){
-                        let Some(data)=read(source)else{break};
-                        let fmt=media_format::detect(&data,source,explicit);
+                        let Some((fmt,data))=load(source,explicit)else{break};
                         let Some(id)=fmt.filter(|_|remuxable(fmt,&data))else{break};
                         admitted=admitted.saturating_add(data.len());if admitted>fs.max_input_bytes(){return err_out("ffmpeg: input byte limit exceeded\n",1)}
                         additional.push((id,data));
@@ -4623,11 +4626,7 @@ fn cmd_media_doc(
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                let output=if mp4_output && let Some(video)=generator.as_ref() {
-                    match mp4::mux::lavfi(video,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if let Some(audio)=generated_audio {
-                    match mp4::mux::lavfi_audio(audio.sample_rate,audio.channels,audio.duration,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
+                let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
@@ -13258,6 +13257,17 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"h264,12,8,3\naac,33\n");
         let r=run(&["-i","out.mp4","-frames:v","1","-f","yuv4mpegpipe","pipe:1"]);
         assert!(crate::vfs::stream_string_to_bytes(&r.stdout).starts_with(b"YUV4MPEG2 W12 H8"));
+    }
+
+    #[test]
+    fn ffmpeg_maps_generated_audio_and_video_into_one_playable_mp4() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=34x30:r=6:d=1","-f","lavfi","-i","sine=r=16000:d=0.37","-map","1:a","-map","0:v","out.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=index,codec_name,width,height,nb_frames","-of","csv=p=0","out.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"0,aac,7\n1,h264,34,30,6\n");
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","out.mp4","-frames:v","1","-f","yuv4mpegpipe","pipe:1"]),"","/",&fs);
+        assert!(crate::vfs::stream_string_to_bytes(&r.stdout).starts_with(b"YUV4MPEG2 W34 H30"));
     }
 
     #[test]

@@ -240,10 +240,20 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             _ => Err("negation requires a number".into()),
         });
     }
-    if let Some(inner) = s.strip_suffix('?')
-        && !inner.starts_with('.')
-    {
-        return protected(inner, input, vars, emit, |_, _| Ok(Continue(())));
+    let operand = s.strip_suffix('?').unwrap_or(s).trim_end();
+    let iteration = operand
+        .strip_suffix(']')
+        .and_then(|inner| inner.trim_end().strip_suffix('['))
+        .map(str::trim_end)
+        .filter(|base| !base.is_empty());
+    if operand != s && (iteration.is_some() || !operand.starts_with('.')) {
+        return protected(operand, input, vars, emit, |_, _| Ok(Continue(())));
+    }
+    if let Some(base) = iteration {
+        if base == "." {
+            return iterate(input, emit);
+        }
+        return visit_jq(base, input, vars, &mut |v| iterate(&v, emit));
     }
     if (s.starts_with("reduce") || s.starts_with("foreach"))
         && let Some((source, variable, body)) = super::jq_parser::fold(s)
@@ -495,6 +505,50 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             if emit(value)?.is_break() {
                 return Ok(Break(()));
             }
+        }
+    }
+    Ok(Continue(()))
+}
+
+fn iterate(value: &JVal, emit: &mut Emit<'_>) -> Flow {
+    match value {
+        JVal::Array(items) => {
+            for item in items {
+                if emit(item.clone())?.is_break() {
+                    return Ok(Break(()));
+                }
+            }
+        }
+        JVal::Object(fields) => {
+            for (_, item) in fields {
+                if emit(item.clone())?.is_break() {
+                    return Ok(Break(()));
+                }
+            }
+        }
+        scalar => {
+            let prefix;
+            let printable = if let JVal::Str(s) = scalar {
+                prefix = JVal::Str(s.chars().take(15).collect());
+                &prefix
+            } else {
+                scalar
+            };
+            let mut text = String::new();
+            super::JsonFormat {
+                indent: "",
+                strings: super::JsonStrings::Jq,
+                color: false,
+                sort_keys: false,
+            }
+            .write(printable, 0, &mut text);
+            if text.len() >= 15 {
+                text = format!("{}...", String::from_utf8_lossy(&text.as_bytes()[..11]));
+            }
+            return Err(format!(
+                "Cannot iterate over {} ({text})",
+                scalar.type_name()
+            ));
         }
     }
     Ok(Continue(()))

@@ -3,6 +3,24 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq iteration emits each object or array item until an error or early stop", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout, error] of [
+      ['([1,2],error("late"))[]', "1\n2\n", "late"],
+      ['first(([1],error("late"))[])', "1\n"],
+      ['({x:1,y:2},[3])[]', "1\n2\n3\n"],
+      ["(true,[3])[]?", ""],
+      ["[[1],false,[2]] | .[][]?", "1\n"],
+      ["0 | .[ ]", "", "Cannot iterate over number (0)"],
+      ['"ББББББББББ" | .[]', "", 'Cannot iterate over string ("БББББ...)'],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [error ? 5 : 0, stdout, error ? `jq: error (at <unknown>): ${error}\n` : ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq binds function value parameters as nested streams in the caller's scope", async () => {
   const bash = new RustWasmBash();
   try {

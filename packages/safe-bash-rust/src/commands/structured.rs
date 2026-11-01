@@ -1089,19 +1089,6 @@ fn eval_jq_atom(
         return Ok(vec![JVal::Null]);
     }
 
-    if let Some(base) = s.strip_suffix("[]")
-        && !base.is_empty()
-        && !base.starts_with('.')
-    {
-        let mut out = Vec::new();
-        for val in eval_jq(base, input, vars)? {
-            if let JVal::Array(items) = val {
-                out.extend(items);
-            }
-        }
-        return Ok(out);
-    }
-
     if s.starts_with('@')
         && let Some(q_idx) = s.find('"')
         && s.ends_with('"')
@@ -1703,20 +1690,6 @@ fn try_eval_jq_builtin(
     input: &JVal,
     vars: &JqScope<'_>,
 ) -> Result<Option<Vec<JVal>>, String> {
-    if let Some(stem) = s.strip_suffix("[]")
-        && !stem.is_empty()
-        && !stem.starts_with('.')
-        && !stem.starts_with('[')
-    {
-        let inner = eval_jq(stem, input, vars)?;
-        let mut out = Vec::new();
-        for item in inner {
-            if let JVal::Array(arr) = item {
-                out.extend(arr);
-            }
-        }
-        return Ok(Some(out));
-    }
     match s {
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),

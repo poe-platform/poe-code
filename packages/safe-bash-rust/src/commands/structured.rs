@@ -29652,7 +29652,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (true, None, None) => (vw, vh),
         _ => (f64::from(width), f64::from(height)),
     };
-    let raster = if output_format=="svg"{None}else{scene.as_ref().and_then(|s|s.raster(width,height,scale,&bg_color,&output_format,fs.max_input_bytes()))};
+    let raster = if output_format=="svg"{None}else{scene.as_ref().map(|s|s.raster(width,height,scale,&bg_color,&output_format,fs.max_input_bytes()))};
     let out_bytes: Vec<u8> = if let Some(result)=raster {
         match result {Ok(bytes)=>bytes,Err(e)=>return err_out(&e,1)}
     } else if output_format == "png" {
@@ -38252,6 +38252,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     fn mmdc_encodes_png_scanlines_and_embeds_the_raster_in_a_pdf() {
         let fs=MemoryVfs::new();
         for (source,path,hash) in [
+            ("flowchart TD; A-->B","/chart.png","06f9e52c0a4c42666b93e7125edba4f97f6ba1bdf6c32c307525a2bee73edd8f"),
+            ("flowchart TD; A-->B","/chart.pdf","5c99fac4e63502721f76629f092522bbb2a558fbe134df1d3434c91638592fe3"),
             ("flowchart TD","/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),
             ("flowchart TD","/chart.pdf","17c6a60bf2022217300c2073eee4f8ecad15ee3f863bae2676991629a8c66b1b"),
             ("pie title Test\n\"Yes\": 3\n\"No\":1","/chart.png","8fe6bafae690a6213dcb20a01fa003edd24addf2036e30a210937388787b9f4a"),

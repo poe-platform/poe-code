@@ -1,7 +1,10 @@
 // Pixel coordinates and sample positions follow the Mermaid rasterizer, including
 // its separate 8x8 coverage grid for embedded-font glyphs.
-use super::advance;
+use super::{Shape, advance};
+#[path = "raster_shapes.rs"]
+mod shapes;
 use crate::commands::archive::parse_color;
+pub(super) use shapes::BoxStyle;
 use std::ops::RangeInclusive;
 
 pub(super) enum Paint {
@@ -11,8 +14,16 @@ pub(super) enum Paint {
     },
     Box {
         bounds: [f64; 4],
-        radius: f64,
-        color: [u8; 4],
+        style: BoxStyle,
+        shape: Shape,
+        shadow: Option<[u8; 4]>,
+    },
+    Path {
+        points: Vec<(f64, f64)>,
+        fill: Option<[u8; 4]>,
+        stroke: [u8; 4],
+        width: f64,
+        dashed: bool,
     },
     Text {
         start: f64,
@@ -125,47 +136,18 @@ impl Frame {
                 }
             }
             Paint::Box {
-                bounds: [x, y, w, h],
-                radius,
-                color,
-            } => {
-                let (cx, cy, hw, hh) = (
-                    (x + w / 2.) * scale,
-                    (y + h / 2.) * scale,
-                    w / 2. * scale,
-                    h / 2. * scale,
-                );
-                let r = (radius * scale).min(hw).min(hh);
-                let (xs, ys) = self.bounds(cx - hw - 2., cy - hh - 2., cx + hw + 2., cy + hh + 2.);
-                let dist = |px: f64, py: f64| {
-                    let (qx, qy) = ((px - cx).abs() - (hw - r), (py - cy).abs() - (hh - r));
-                    qx.max(0.).hypot(qy.max(0.)) + qx.max(qy).min(0.) - r
-                };
-                for y in ys {
-                    for x in xs.clone() {
-                        let d = dist(x as f64 + 0.5, y as f64 + 0.5);
-                        if d > 1.2 {
-                            continue;
-                        }
-                        let c = color.map(f64::from);
-                        if d < -1.2 {
-                            self.blend(x, y, c, 1.);
-                            continue;
-                        }
-                        let mut hits = 0;
-                        let mut edge = 0;
-                        for sy in SUB {
-                            for sx in SUB {
-                                let d = dist(x as f64 + sx, y as f64 + sy);
-                                hits += usize::from(d <= 0.);
-                                edge += usize::from(d == 0.);
-                            }
-                        }
-                        self.blend(x, y, c, hits as f64 / 16.);
-                        self.blend(x, y, c, edge as f64 / 16.);
-                    }
-                }
-            }
+                bounds,
+                style,
+                shape,
+                shadow,
+            } => self.box_shape(*bounds, *style, *shape, *shadow),
+            Paint::Path {
+                points,
+                fill,
+                stroke,
+                width,
+                dashed,
+            } => self.path(points, *fill, *stroke, *width, *dashed),
             Paint::Text {
                 start,
                 baseline,
@@ -342,31 +324,28 @@ impl super::Scene {
         bg: &str,
         format: &str,
         limit: usize,
-    ) -> Option<Result<Vec<u8>, String>> {
+    ) -> Result<Vec<u8>, String> {
         use crate::commands::archive::{PngEncoding, image_pdf, pixel_png};
-        let ops = self.paint.as_ref()?;
+        let ops = &self.paint;
         let w = (width * scale).ceil().max(1.) as usize;
         let h = (height * scale).ceil().max(1.) as usize;
-        let mut frame = match Frame::new(
+        let mut frame = Frame::new(
             w,
             h,
             (w as f64 / self.width).min(h as f64 / self.height),
             bg,
             limit,
-        ) {
-            Ok(f) => f,
-            Err(e) => return Some(Err(e)),
-        };
+        )?;
         for op in ops {
             frame.draw(op);
         }
-        Some(if format == "png" {
+        if format == "png" {
             Ok(pixel_png(w, h, PngEncoding::Mermaid, |x, y| {
                 frame.pixels[y * w + x]
             }))
         } else {
             image_pdf(&frame.pixels, w, h, width * 0.75, height * 0.75, limit)
                 .ok_or_else(|| "mmdc: E_LIMIT: Output byte budget exceeded\n".into())
-        })
+        }
     }
 }

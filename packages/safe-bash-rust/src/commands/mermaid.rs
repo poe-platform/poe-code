@@ -11,7 +11,7 @@ pub(super) struct Scene {
     pub width: f64,
     pub height: f64,
     pub elements: Vec<String>,
-    paint: Option<Vec<raster::Paint>>,
+    paint: Vec<raster::Paint>,
 }
 #[derive(Default)]
 struct Node {
@@ -347,6 +347,17 @@ pub(super) fn layout(
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];
     let mut pills = Vec::new();
+    use crate::commands::archive::parse_color;
+    use raster::{BoxStyle, Paint};
+    let mut paint = Vec::new();
+    let mut edge_paint = Vec::new();
+    let mut pill_paint = Vec::new();
+    let edge_color = parse_color(edge).unwrap();
+    let shadow = if dark {
+        [0, 0, 0, 89]
+    } else {
+        [15, 23, 42, 15]
+    };
     for (idx, (a, b, op, label)) in edges.into_iter().enumerate() {
         let (a, b) = (&nodes[a], &nodes[b]);
         let (x, y, ex, ey, dx, dy, angle) = match dir {
@@ -359,7 +370,7 @@ pub(super) fn layout(
         let start_arrow = op.starts_with('<');
         let end_x = f64::from(ex) - if arrow { dx * 6.8 } else { 0. };
         let end_y = f64::from(ey) - if arrow { dy * 6.8 } else { 0. };
-        let stroke = if op.contains("==") { "2.25" } else { "1.25" };
+        let stroke = if op.contains("==") { 2.25 } else { 1.25 };
         let dash = if op.contains('.') {
             r#" stroke-dasharray="5 4""#
         } else {
@@ -367,6 +378,32 @@ pub(super) fn layout(
         };
         let start_x = f64::from(x) + if start_arrow { dx * 6.8 } else { 0. };
         let start_y = f64::from(y) + if start_arrow { dy * 6.8 } else { 0. };
+        edge_paint.push(Paint::Path {
+            points: vec![(start_x, start_y), (end_x, end_y)],
+            fill: None,
+            stroke: edge_color,
+            width: stroke,
+            dashed: !dash.is_empty(),
+        });
+        let marker =
+            |x: i32, y: i32, angle: i32, local: &[(f64, f64)], filled: bool, width: f64| {
+                let (sin, cos) = f64::from(angle).to_radians().sin_cos();
+                Paint::Path {
+                    points: local
+                        .iter()
+                        .map(|&(a, b)| {
+                            (
+                                f64::from(x) + (a * cos - b * sin),
+                                f64::from(y) + (a * sin + b * cos),
+                            )
+                        })
+                        .collect(),
+                    fill: filled.then_some(edge_color),
+                    stroke: edge_color,
+                    width,
+                    dashed: false,
+                }
+            };
         let mut el = format!(
             r#"<g class="mmdc-edge" data-id="edge_{}"><path d="M {start_x} {start_y} L {end_x} {end_y}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
             idx + 1
@@ -386,7 +423,29 @@ pub(super) fn layout(
             (arrow, ex, ey, angle),
         ] {
             if show {
+                edge_paint.push(marker(
+                    ex,
+                    ey,
+                    angle,
+                    &[(-9., -3.5), (0., 0.), (-9., 3.5), (-6.8, 0.)],
+                    true,
+                    0.9,
+                ));
                 write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
+            }
+        }
+        if op == "--o" {
+            edge_paint.push(marker(
+                ex,
+                ey,
+                angle,
+                &[(-8., -3.5), (0., 0.), (-8., 3.5)],
+                false,
+                1.5,
+            ));
+        } else if op == "--x" {
+            for points in [[(-9., -4.), (-1., 4.)], [(-9., 4.), (-1., -4.)]] {
+                edge_paint.push(marker(ex, ey, angle, &points, false, 1.75));
             }
         }
         match op {
@@ -416,6 +475,25 @@ pub(super) fn layout(
             } else {
                 ("#ffffff", "#e2e8f0", "#0f172a")
             };
+            pill_paint.push(Paint::Box {
+                bounds: [left, top, w, 23.],
+                shape: Shape::Rounded,
+                shadow: None,
+                style: BoxStyle {
+                    radius: f64::from(rx),
+                    fill: parse_color(fill).unwrap(),
+                    border: parse_color(border).unwrap(),
+                    thickness: 1.,
+                },
+            });
+            pill_paint.push(Paint::Text {
+                start: (left + w / 2.).round() - measure(label, size, short) / 2.,
+                baseline: top + if short { 14. } else { 15. },
+                size,
+                weight,
+                color: parse_color(color).unwrap(),
+                text: label.into(),
+            });
             pills.push(format!(r#"<g class="mmdc-label-pill"><rect x="{left}" y="{top}" width="{w}" height="23" rx="{rx}" fill="{fill}" stroke="{border}" stroke-width="1"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#,(left+w/2.).round(),top+if short{14.}else{15.},esc(label)));
         }
         el.push_str("</g>");
@@ -441,6 +519,23 @@ pub(super) fn layout(
             } else {
                 accent
             };
+        let radius = match n.shape {
+            Shape::Circle | Shape::Stadium => h / 2,
+            Shape::Diamond => 4,
+            Shape::Rounded => 12,
+            _ => 8,
+        };
+        paint.push(Paint::Box {
+            bounds: [x.into(), y.into(), w.into(), h.into()],
+            shape: n.shape,
+            shadow: Some(shadow),
+            style: BoxStyle {
+                radius: radius.into(),
+                fill: parse_color(fill).unwrap(),
+                border: parse_color(border).unwrap(),
+                thickness: 1.25,
+            },
+        });
         let join = if matches!(n.shape, Shape::Cylinder | Shape::Hexagon) {
             r#" stroke-linejoin="round""#
         } else {
@@ -501,11 +596,7 @@ pub(super) fn layout(
                 write!(el, r#"<path d="{path} Z" {style}/>"#).ok()?;
             }
             _ => {
-                let rx = match n.shape {
-                    Shape::Rounded => 12,
-                    Shape::Stadium => h / 2,
-                    _ => 8,
-                };
+                let rx = radius;
                 write!(
                     el,
                     r#"<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" {style}/>"#
@@ -515,6 +606,13 @@ pub(super) fn layout(
         }
         if n.shape == Shape::Subroutine {
             for pos in [x + 11, x + w - 11] {
+                paint.push(Paint::Path {
+                    points: vec![(pos.into(), y.into()), (pos.into(), (y + h).into())],
+                    fill: None,
+                    stroke: parse_color(accent.1).unwrap(),
+                    width: 1.5,
+                    dashed: false,
+                });
                 write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,accent.1).ok()?;
             }
         }
@@ -522,6 +620,14 @@ pub(super) fn layout(
             cy - (n.lines.len() as i32) * 10 + 14 + if n.shape == Shape::Cylinder { 8 } else { 0 };
         for (i, line) in n.lines.iter().enumerate() {
             if !line.is_empty() {
+                paint.push(Paint::Text {
+                    start: f64::from(cx) - measure(line, 13., false) / 2.,
+                    baseline: f64::from(first_y + i as i32 * 20),
+                    size: 13.,
+                    weight: 500,
+                    color: parse_color(color).unwrap(),
+                    text: line.clone(),
+                });
                 write!(el,r#"<text x="{cx}" y="{}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,first_y+i as i32*20,esc(line)).ok()?;
             }
         }
@@ -535,14 +641,35 @@ pub(super) fn layout(
         width = width.max(text_width + 64.);
         let fill = if dark { "#1e293b" } else { "#ffffff" };
         let color = if dark { "#f8fafc" } else { "#0f172a" };
+        paint.push(Paint::Box {
+            bounds: [32., height, width - 64., 24.],
+            shape: Shape::Rect,
+            shadow: None,
+            style: BoxStyle {
+                radius: 0.,
+                fill: parse_color(fill).unwrap(),
+                border: [0; 4],
+                thickness: 0.,
+            },
+        });
+        paint.push(Paint::Text {
+            start: (width - text_width) / 2.,
+            baseline: height + 18.,
+            size: 16.,
+            weight: 600,
+            color: parse_color(color).unwrap(),
+            text: t.into(),
+        });
         elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="32" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-64.,width/2.,height+18.,esc(t)));
         height += 56.;
     }
     elements.extend(pills);
+    paint.extend(edge_paint);
+    paint.extend(pill_paint);
     Some(Ok(Scene {
         width,
         height,
-        paint: elements.is_empty().then(Vec::new),
+        paint,
         elements,
     }))
 }

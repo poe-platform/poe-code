@@ -1,4 +1,4 @@
-use super::raster::Paint;
+use super::raster::{BoxStyle, Paint};
 use super::{FONT, Scene, esc, measure};
 use crate::commands::archive::parse_color;
 use std::fmt::Write;
@@ -272,8 +272,14 @@ impl Pie {
             let y = 32 + title_h + i * 48;
             paint.push(Paint::Box {
                 bounds: [312., y as f64, legend, 24.],
-                radius: 3.,
-                color: parse_color(fill).unwrap(),
+                shape: super::Shape::Rect,
+                shadow: None,
+                style: BoxStyle {
+                    radius: 3.,
+                    fill: parse_color(fill).unwrap(),
+                    border: parse_color(fill).unwrap(),
+                    thickness: 0.,
+                },
             });
             paint.push(Paint::Text {
                 start: 324.,
@@ -313,7 +319,7 @@ impl Pie {
             width,
             height,
             elements,
-            paint: Some(paint),
+            paint,
         }
     }
 }

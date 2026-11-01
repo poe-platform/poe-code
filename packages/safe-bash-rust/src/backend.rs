@@ -235,9 +235,9 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.chmod(path, mode)
     }
 
-    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.set_mtime(path, mtime_ms)
+        self.inner.set_times(path, atime_ms, mtime_ms)
     }
 
     fn generation(&self) -> u64 {

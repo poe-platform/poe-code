@@ -287,9 +287,9 @@ impl SafeBashFs for MountVfs {
         fs.chmod(&rel, mode)
     }
 
-    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
         let (fs, rel) = self.route(path, true)?;
-        fs.set_mtime(&rel, mtime_ms)
+        fs.set_times(&rel, atime_ms, mtime_ms)
     }
 
     fn generation(&self) -> u64 {

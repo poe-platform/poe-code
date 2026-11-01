@@ -29,6 +29,7 @@ impl RetainedFile {
             kind: VfsEntryKind::File,
             size: file.data.len(),
             mode: file.mode,
+            atime_ms: file.atime_ms,
             mtime_ms: file.mtime_ms,
         }
     }

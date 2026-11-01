@@ -3,12 +3,6 @@ use crate::vfs::{
     EntryIdentity, FileStat, SafeBashFs, VfsEntryKind, basename_posix_path, normalize_posix_path, resolve_posix_path,
 };
 use std::collections::{BTreeMap, VecDeque};
-use std::sync::{Mutex, OnceLock};
-
-fn atime_store() -> &'static Mutex<BTreeMap<String, u64>> {
-    static STORE: OnceLock<Mutex<BTreeMap<String, u64>>> = OnceLock::new();
-    STORE.get_or_init(|| Mutex::new(BTreeMap::new()))
-}
 
 pub fn try_run_fs_command(
     cmd: &str,
@@ -367,17 +361,15 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 else { e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason) };
             format!("{reason}, {} '{path}'", if follow { "stat" } else { "lstat" })
         });
-        let (mut physical, mut st) = checked(follow)?;
+        let (_, mut st) = checked(follow)?;
         if operand && st.kind == VfsEntryKind::Symlink && !dir_only && !long && indicator != "classify" {
             match checked(true) {
-                Ok((p, target)) if target.kind == VfsEntryKind::Directory => { physical = p; st = target; }
+                Ok((_, target)) if target.kind == VfsEntryKind::Directory => st = target,
                 Err(e) if !missing_target(&e) => return Err(e),
                 _ => {}
             }
         }
-        let time = if time_key == "atime" {
-            atime_store().lock().ok().and_then(|m| m.get(&physical).copied()).unwrap_or(st.mtime_ms)
-        } else { st.mtime_ms };
+        let time = if time_key == "atime" { st.atime_ms } else { st.mtime_ms };
         Ok(Entry { name, path, mode: st.mode, stat: Some(st), time })
     };
     let order = |entries: &mut [Entry], lexical: bool| {
@@ -1355,7 +1347,7 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
             fs.create_file(&target, &data, st.mode & 0o7777).map_err(|e| copy_error(&e, "writeStream", dst))?;
         }
     }
-    if settings.timestamps && !preserve_link && matches!(pass, CopyPass::Publish(_)) { fs.set_mtime(&target, st.mtime_ms)?; }
+    if settings.timestamps && !preserve_link && matches!(pass, CopyPass::Publish(_)) { fs.set_times(&target, Some(st.atime_ms), Some(st.mtime_ms))?; }
     if let (Some(links), Some(id), Some(target)) = (&mut settings.links, copy_id, physical_target) {
         if previous.is_none() { links.first.insert(id.clone(), (dst.to_owned(), fs.lstat(dst)?.identity)); }
         links.targets.insert(target, id);
@@ -2180,12 +2172,7 @@ fn cmd_touch(
             Ok(st) => {
                 if !has_d && !has_t {
                     ref_mtime = Some(st.mtime_ms);
-                    let at = atime_store()
-                        .lock()
-                        .ok()
-                        .and_then(|m| m.get(&rp).copied())
-                        .unwrap_or(st.mtime_ms);
-                    ref_atime = Some(at);
+                    ref_atime = Some(st.atime_ms);
                 }
             }
             Err(e) => {
@@ -2205,31 +2192,11 @@ fn cmd_touch(
                 let _ = fs.write_file(&p, &[]);
                 let mode = (0o666 & !umask_val) & 0o777;
                 let _ = fs.chmod(&p, mode);
-                let ms = ref_mtime.unwrap_or(1_700_000_000_000);
-                let _ = fs.set_mtime(&p, ms);
-                if let Ok(mut map) = atime_store().lock() {
-                    map.insert(p, ref_atime.unwrap_or(ms));
-                }
-            }
-        } else {
-            let cur_mtime = fs.stat(&p).map(|st| st.mtime_ms).unwrap_or(1_700_000_000_000);
-            if touch_m && !touch_a {
-                if let Ok(mut map) = atime_store().lock() {
-                    map.entry(p.clone()).or_insert(cur_mtime);
-                }
-            }
-            if touch_m {
-                if let Some(ms) = ref_mtime {
-                    let _ = fs.set_mtime(&p, ms);
-                }
-            }
-            if touch_a {
-                if let Some(at) = ref_atime.or(ref_mtime) {
-                    if let Ok(mut map) = atime_store().lock() {
-                        map.insert(p, at);
-                    }
-                }
-            }
+            } else { continue; }
+        }
+        let now = 1_700_000_000_000;
+        if let Err(e) = fs.set_times(&p, touch_a.then(|| ref_atime.unwrap_or(now)), touch_m.then(|| ref_mtime.unwrap_or(now))) {
+            return err_out(&format!("touch: {e}\n"), 1);
         }
     }
     ok_out("")
@@ -3831,11 +3798,6 @@ fn cmd_stat(
                         }
                     }
                 };
-                let atime_ms = atime_store()
-                    .lock()
-                    .ok()
-                    .and_then(|m| m.get(&p).copied())
-                    .unwrap_or(st.mtime_ms);
                 let spec = fmt_spec.as_deref().unwrap_or(if filesystem {
                     "  File: %n\n  Type: %T"
                 } else {
@@ -3970,13 +3932,13 @@ fn cmd_stat(
                     let val_text = match dir_code {
                         "X" => {
                             numeric = true;
-                            format_epoch_stat(atime_ms, precision.unwrap_or(0))
+                            format_epoch_stat(st.atime_ms, precision.unwrap_or(0))
                         }
                         "Y" | "Z" | "W" => {
                             numeric = true;
                             format_epoch_stat(st.mtime_ms, precision.unwrap_or(0))
                         }
-                        "x" => format_iso_stat_timestamp(atime_ms),
+                        "x" => format_iso_stat_timestamp(st.atime_ms),
                         "y" | "z" | "w" => format_iso_stat_timestamp(st.mtime_ms),
                         "bsdType" => match st.kind {
                             VfsEntryKind::Directory => "Directory".to_string(),
@@ -6848,6 +6810,24 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn access_time_belongs_to_the_inode_and_filesystem() {
+        let first = MemoryVfs::new();
+        let second = MemoryVfs::new();
+        for fs in [&first, &second] {
+            fs.write_file("/clock", b"x").unwrap();
+        }
+        first.hard_link("/clock", "/alias").unwrap();
+        let touched = cmd_touch(&args(&["-a", "-t", "200001010000", "/clock"]), "/", &BTreeMap::new(), &first);
+        assert_eq!(touched.exit_code, 0, "{}", touched.stderr);
+        let listing = |fs: &MemoryVfs, path| cmd_ls(&args(&["-lu", path]), "/", fs).stdout;
+        assert!(listing(&second, "/clock").contains("2023-11-14 22:13"));
+        assert!(listing(&first, "/alias").contains("2000-01-01 00:00"));
+        first.remove_one("/clock", false).unwrap();
+        first.write_file("/clock", b"new").unwrap();
+        assert!(listing(&first, "/clock").contains("2023-11-14 22:13"));
     }
 
     #[test]

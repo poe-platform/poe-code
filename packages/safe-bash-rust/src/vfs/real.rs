@@ -155,6 +155,7 @@ impl RealVfs {
             kind,
             mode,
             size: meta.len().try_into().map_err(|_| "EOVERFLOW: file size")?,
+            atime_ms: meta.accessed().map_err(|e| e.to_string())?.duration_since(UNIX_EPOCH).unwrap_or_default().as_millis() as u64,
             mtime_ms: meta
                 .modified()
                 .map_err(|e| e.to_string())?
@@ -189,14 +190,13 @@ impl SafeBashFs for RealVfs {
         std::fs::set_permissions(host, permissions).map_err(|e| e.to_string())
     }
 
-    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
-        let time = UNIX_EPOCH
-            .checked_add(Duration::from_millis(mtime_ms))
-            .ok_or("EOVERFLOW: modification time")?;
-        std::fs::File::open(host)
-            .and_then(|file| file.set_modified(time))
-            .map_err(|e| e.to_string())
+        let time = |ms| UNIX_EPOCH.checked_add(Duration::from_millis(ms)).ok_or("EOVERFLOW: file timestamp");
+        let mut times = std::fs::FileTimes::new();
+        if let Some(ms) = atime_ms { times = times.set_accessed(time(ms)?); }
+        if let Some(ms) = mtime_ms { times = times.set_modified(time(ms)?); }
+        std::fs::File::open(host).and_then(|file| file.set_times(times)).map_err(|e| e.to_string())
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {

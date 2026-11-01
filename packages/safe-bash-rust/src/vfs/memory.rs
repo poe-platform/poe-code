@@ -14,12 +14,14 @@ enum MemoryNode {
     Directory {
         ino: u64,
         mode: u32,
+        atime_ms: u64,
         mtime_ms: u64,
     },
     Symlink {
         ino: u64,
         target: Arc<str>,
         mode: u32,
+        atime_ms: u64,
         mtime_ms: u64,
     },
 }
@@ -35,6 +37,7 @@ struct MemoryFile {
     data: Vec<u8>,
     publication: Option<u64>,
     mode: u32,
+    atime_ms: u64,
     mtime_ms: u64,
     opens: usize,
     linked: bool,
@@ -210,7 +213,7 @@ impl MemoryVfs {
             MemoryNode::Directory {
                 ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                 mode: 0o40755,
-                mtime_ms: 1_700_000_000_000,
+                atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000,
             },
         );
         Self {
@@ -317,18 +320,18 @@ impl MemoryVfs {
         let state = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&state, path, follow).map_err(|e| e.message)?;
         let device = state.devices.entry(&resolved);
-        let (kind, size, mode, mtime_ms, ino) = if let Some(name) = device {
+        let (kind, size, mode, atime_ms, mtime_ms, ino) = if let Some(name) = device {
             let ino = match name { "" => 1, "null" => 2, "random" => 3, "urandom" => 4, "zero" => 5, "full" => 6, _ => unreachable!() };
-            if name.is_empty() { (VfsEntryKind::Directory, 0, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 }, 0, ino) }
-            else { (VfsEntryKind::File, 0, 0o20666, 0, ino) }
+            if name.is_empty() { (VfsEntryKind::Directory, 0, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 }, 0, 0, ino) }
+            else { (VfsEntryKind::File, 0, 0o20666, 0, 0, ino) }
         } else {
             match state.nodes.get(&resolved) {
                 Some(MemoryNode::File { ino }) => {
                     let file = &state.files[ino];
-                    (VfsEntryKind::File, file.data.len(), file.mode, file.mtime_ms, *ino)
+                    (VfsEntryKind::File, file.data.len(), file.mode, file.atime_ms, file.mtime_ms, *ino)
                 }
-                Some(MemoryNode::Directory { ino, mode, mtime_ms }) => (VfsEntryKind::Directory, 0, *mode, *mtime_ms, *ino),
-                Some(MemoryNode::Symlink { ino, target, mode, mtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *mtime_ms, *ino),
+                Some(MemoryNode::Directory { ino, mode, atime_ms, mtime_ms }) => (VfsEntryKind::Directory, 0, *mode, *atime_ms, *mtime_ms, *ino),
+                Some(MemoryNode::Symlink { ino, target, mode, atime_ms, mtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *atime_ms, *mtime_ms, *ino),
                 None => return Err(format!("ENOENT: no such file or directory, {} '{}'", if follow { "stat" } else { "lstat" }, normalize_posix_path(path))),
             }
         };
@@ -339,7 +342,7 @@ impl MemoryVfs {
             } else { 1 + state.extra_links.get(&ino).copied().unwrap_or(0) },
             identity: Some(EntryIdentity::Memory(if default_device { 0 } else { self.id }, ino)),
             allocated_bytes: default_device.then_some(0),
-            kind, size, mode, mtime_ms,
+            kind, size, mode, atime_ms, mtime_ms,
         })
     }
 
@@ -369,7 +372,7 @@ impl MemoryVfs {
         } else {
             let ino = NEXT_INODE.fetch_add(1, Ordering::Relaxed);
             state.files.insert(ino, MemoryFile { data: data.to_vec(), publication, mode: create_mode,
-                mtime_ms: 1_700_000_000_000, opens: 0, linked: true });
+                atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000, opens: 0, linked: true });
             state.nodes.insert(resolved, MemoryNode::File { ino });
         }
         Ok(())
@@ -434,7 +437,7 @@ impl MemoryVfs {
         }
         Self::store_file(&mut upper, path.to_owned(), data, 0o100000 | mode, None)?;
         for (parent, mode) in parents {
-            upper.insert_directory(parent, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode, mtime_ms: 1_700_000_000_000 });
+            upper.insert_directory(parent, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode, atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000 });
         }
         self.bump_generation();
         Ok(())
@@ -561,7 +564,7 @@ impl MemoryVfs {
                         MemoryNode::Directory {
                             ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                             mode: 0o40777,
-                            mtime_ms: 1_700_000_000_000,
+                            atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000,
                         },
                     );
                 }
@@ -682,7 +685,7 @@ impl SafeBashFs for MemoryVfs {
             }
             Self::store_file(&mut state, dest, data, 0o100666, None)?;
             for dir in missing {
-                state.insert_directory(dir.to_owned(), MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode: 0o40777, mtime_ms: 1_700_000_000_000 });
+                state.insert_directory(dir.to_owned(), MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode: 0o40777, atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000 });
             }
         } else {
             if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
@@ -811,7 +814,7 @@ impl SafeBashFs for MemoryVfs {
         }
         if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
         state.insert_directory(path, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-            mode: 0o40000 | (mode & 0o7777), mtime_ms: 1_700_000_000_000 });
+            mode: 0o40000 | (mode & 0o7777), atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000 });
         self.bump_generation();
         Ok(())
     }
@@ -839,7 +842,7 @@ impl SafeBashFs for MemoryVfs {
                     MemoryNode::Directory {
                         ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                         mode: 0o40777,
-                        mtime_ms: 1_700_000_000_000,
+                        atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000,
                     },
                 );
             }
@@ -957,7 +960,7 @@ impl SafeBashFs for MemoryVfs {
                 ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                 target: Arc::from(target),
                 mode: 0o120777,
-                mtime_ms: 1_700_000_000_000,
+                atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000,
             },
         );
         self.bump_generation();
@@ -1000,7 +1003,7 @@ impl SafeBashFs for MemoryVfs {
         Ok(())
     }
 
-    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
@@ -1009,11 +1012,13 @@ impl SafeBashFs for MemoryVfs {
                 let ino = *ino;
                 let file = guard.files.get_mut(&ino).unwrap();
                 file.publication = None;
-                file.mtime_ms = mtime_ms;
+                if let Some(value) = atime_ms { file.atime_ms = value; }
+                if let Some(value) = mtime_ms { file.mtime_ms = value; }
             }
-            Some(MemoryNode::Directory { mtime_ms: m, .. })
-            | Some(MemoryNode::Symlink { mtime_ms: m, .. }) => {
-                *m = mtime_ms;
+            Some(MemoryNode::Directory { atime_ms: a, mtime_ms: m, .. })
+            | Some(MemoryNode::Symlink { atime_ms: a, mtime_ms: m, .. }) => {
+                if let Some(value) = atime_ms { *a = value; }
+                if let Some(value) = mtime_ms { *m = value; }
             }
             None => return Err(format!("ENOENT: no such file or directory, utime '{norm}'")),
         }
@@ -1086,7 +1091,7 @@ impl SafeBashFs for MemoryVfs {
             MemoryNode::Directory {
                 ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                 mode: 0o40755,
-                mtime_ms: 1_700_000_000_000,
+                atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000,
             },
         );
         for entry in entries {
@@ -1098,7 +1103,7 @@ impl SafeBashFs for MemoryVfs {
                     MemoryNode::Directory {
                         ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                         mode: if entry.mode != 0 { entry.mode } else { 0o40755 },
-                        mtime_ms: 1_700_000_000_000,
+                        atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000,
                     },
                 );
             }
@@ -1117,7 +1122,7 @@ impl SafeBashFs for MemoryVfs {
             } else {
                 let target = entry.symlink_target.clone().ok_or("EINVAL: missing symlink target")?;
                 guard.nodes.insert(norm.clone(), MemoryNode::Symlink { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, mtime_ms: 1_700_000_000_000 });
+                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, atime_ms: 1_700_000_000_000, mtime_ms: 1_700_000_000_000 });
             }
             if let Some(group) = entry.link_group { groups.insert(group, guard.nodes[&norm].clone()); }
         }

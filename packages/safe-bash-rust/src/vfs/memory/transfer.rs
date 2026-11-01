@@ -152,14 +152,16 @@ impl MemoryVfs {
                             let MemoryNode::File { ino } = staged.nodes[&new_path] else {
                                 unreachable!()
                             };
-                            staged.files.get_mut(&ino).unwrap().mtime_ms = file.mtime_ms;
+                            let copy = staged.files.get_mut(&ino).unwrap();
+                            copy.atime_ms = file.atime_ms;
+                            copy.mtime_ms = file.mtime_ms;
                         }
                     }
                 }
                 MemoryNode::Symlink {
                     target,
                     mode,
-                    mtime_ms,
+                    atime_ms, mtime_ms,
                     ..
                 } => {
                     if device.is_some() {
@@ -173,11 +175,12 @@ impl MemoryVfs {
                             target: target.clone(),
                             ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                             mode: *mode,
+                            atime_ms: *atime_ms,
                             mtime_ms: *mtime_ms,
                         },
                     );
                 }
-                MemoryNode::Directory { mode, mtime_ms, .. } => {
+                MemoryNode::Directory { mode, atime_ms, mtime_ms, .. } => {
                     if mode & 0o500 != 0o500 {
                         return Err(format!(
                             "EACCES: permission denied, readdir '{display_from}{suffix}'"
@@ -192,6 +195,7 @@ impl MemoryVfs {
                         MemoryNode::Directory {
                             ino,
                             mode: *mode,
+                            atime_ms: *atime_ms,
                             mtime_ms: *mtime_ms,
                         },
                     );

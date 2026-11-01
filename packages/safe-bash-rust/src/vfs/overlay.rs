@@ -251,7 +251,7 @@ impl SafeBashFs for OverlayVfs {
                 }
                 if stat.kind != VfsEntryKind::Symlink {
                     self.upper.chmod(&path, stat.mode)?;
-                    self.upper.set_mtime(&path, stat.mtime_ms)?;
+                    self.upper.set_times(&path, Some(stat.atime_ms), Some(stat.mtime_ms))?;
                 }
             }
             if stat.kind == VfsEntryKind::Directory {
@@ -407,20 +407,22 @@ impl SafeBashFs for OverlayVfs {
         self.upper.chmod(&norm, mode)
     }
 
-    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        if !self.upper.lstat(&norm).is_ok() {
-            if self.is_deleted(&norm) || !self.lower.exists(&norm) {
-                return Err(format!("ENOENT: no such file or directory, utime '{norm}'"));
-            }
-            if self.lower.is_dir(&norm) {
+    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
+        let norm = self.access_path(path, true)?;
+        let mut atime = atime_ms;
+        let mut mtime = mtime_ms;
+        if self.upper.lstat(&norm).is_err() {
+            let st = self.stat(&norm)?;
+            atime = atime.or(Some(st.atime_ms));
+            mtime = mtime.or(Some(st.mtime_ms));
+            if st.kind == VfsEntryKind::Directory {
                 self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
             } else {
-                let bytes = self.lower.read_file(&norm)?;
-                self.upper.write_file(&norm, &bytes)?;
+                self.upper.write_file(&norm, &self.lower.read_file(&norm)?)?;
             }
+            self.upper.chmod(&norm, st.mode)?;
         }
-        self.upper.set_mtime(&norm, mtime_ms)
+        self.upper.set_times(&norm, atime, mtime)
     }
 
     fn generation(&self) -> u64 {

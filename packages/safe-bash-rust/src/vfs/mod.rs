@@ -48,6 +48,7 @@ pub struct FileStat {
     pub kind: VfsEntryKind,
     pub size: usize,
     pub mode: u32,
+    pub atime_ms: u64,
     pub mtime_ms: u64,
 }
 
@@ -205,6 +206,7 @@ pub trait SafeBashFs: Send + Sync {
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: 0o40755,
+                atime_ms: 1_700_000_000_000,
                 mtime_ms: 1_700_000_000_000,
             });
         }
@@ -216,6 +218,7 @@ pub trait SafeBashFs: Send + Sync {
                 kind: VfsEntryKind::File,
                 size: data.len(),
                 mode: 0o100644,
+                atime_ms: 1_700_000_000_000,
                 mtime_ms: 1_700_000_000_000,
             });
         }
@@ -232,6 +235,7 @@ pub trait SafeBashFs: Send + Sync {
                 kind: VfsEntryKind::Symlink,
                 size: target.len(),
                 mode: 0o120777,
+                atime_ms: 1_700_000_000_000,
                 mtime_ms: 1_700_000_000_000,
             });
         }
@@ -242,8 +246,12 @@ pub trait SafeBashFs: Send + Sync {
         Ok(())
     }
 
-    fn set_mtime(&self, _path: &str, _mtime_ms: u64) -> Result<(), String> {
-        Ok(())
+    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        self.set_times(path, None, Some(mtime_ms))
+    }
+
+    fn set_times(&self, _path: &str, _atime_ms: Option<u64>, _mtime_ms: Option<u64>) -> Result<(), String> {
+        Err("ENOTSUP: setting timestamps is unsupported".into())
     }
 
     fn generation(&self) -> u64 {

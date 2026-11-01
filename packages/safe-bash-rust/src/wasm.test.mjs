@@ -3,6 +3,30 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("session turns run in order across async hooks and recover after rejection", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const session = bash.createSession();
+    let resume, entered;
+    const gate = new Promise(resolve => { resume = resolve; });
+    const started = new Promise(resolve => { entered = resolve; });
+    const first = session.exec("echo first >> /order", { hooks: { async afterExec() {
+      entered();
+      await gate;
+      throw new Error("hook failed");
+    } } });
+    await started;
+    const second = session.exec("echo second >> /order");
+    await Promise.resolve();
+    const beforeRelease = bash.readText("/order");
+    resume();
+    await assert.rejects(first, /hook failed/);
+    await second;
+    assert.equal(beforeRelease, "first\n");
+    assert.equal(bash.readText("/order"), "first\nsecond\n");
+  } finally { bash.dispose(); }
+});
+
 test("ordinary calls isolate shell state while sharing filesystem changes", async () => {
   const bash = new RustWasmBash({ cwd: "/work", env: { BASE: "initial" }, directories: ["/work/sub"] });
   try {

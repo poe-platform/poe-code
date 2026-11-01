@@ -1167,10 +1167,12 @@ export class RustWasmBash extends WasmShell {
     let history = initialState?.rawHistory ? [...initialState.rawHistory] : [];
     let lastStatus = typeof initialState?.status === "number" ? initialState.status : 0;
     let lastUmask = typeof initialState?.umask === "number" ? initialState.umask : 0o022;
-    return {
+    let tail = Promise.resolve();
+    const session = {
       async dispose() {
         self.dispose();
         owner.#sessions.delete(self);
+        await tail;
       },
       get state() {
         return {
@@ -1200,30 +1202,39 @@ export class RustWasmBash extends WasmShell {
           lastStatus = r.exitCode;
         }
       },
-      async exec(script, opts = {}) {
-        if (opts.hooks?.beforeExec) {
-          await opts.hooks.beforeExec({ ...this.state, source: script });
-        }
-        history.push(script);
-        const umaskMatch = /\bumask\s+(0?[0-7]{1,4})\b/.exec(script);
-        if (umaskMatch) {
-          lastUmask = parseInt(umaskMatch[1], 8);
-        }
-        if (opts.cwd !== undefined) self.setEnv("__cwd", opts.cwd);
-        for (const [name, value] of Object.entries(opts.env ?? {})) {
-          self.setEnv(name, value);
-        }
-        const res = self.execSync(script, opts.stdin ?? "");
-        lastStatus = res.exitCode;
-        if (opts.hooks?.afterExec) {
-          await opts.hooks.afterExec(this.state, res);
-        }
-        if (opts.hooks?.onState) {
-          await opts.hooks.onState(this.state);
-        }
-        return res;
+      exec(script, opts = {}) {
+        const turn = tail.then(async () => {
+          if (!self.sessionId) throw new Error("Shell session is disposed");
+          opts.signal?.throwIfAborted();
+          if (opts.hooks?.beforeExec) {
+            await opts.hooks.beforeExec({ ...session.state, source: script });
+            if (!self.sessionId) throw new Error("Shell session is disposed");
+            opts.signal?.throwIfAborted();
+          }
+          history.push(script);
+          const umaskMatch = /\bumask\s+(0?[0-7]{1,4})\b/.exec(script);
+          if (umaskMatch) {
+            lastUmask = parseInt(umaskMatch[1], 8);
+          }
+          if (opts.cwd !== undefined) self.setEnv("__cwd", opts.cwd);
+          for (const [name, value] of Object.entries(opts.env ?? {})) {
+            self.setEnv(name, value);
+          }
+          const res = self.execSync(script, opts.stdin ?? "");
+          lastStatus = res.exitCode;
+          if (opts.hooks?.afterExec) {
+            await opts.hooks.afterExec(session.state, res);
+          }
+          if (opts.hooks?.onState) {
+            await opts.hooks.onState(session.state);
+          }
+          return res;
+        });
+        tail = turn.catch(() => {});
+        return turn;
       },
     };
+    return session;
   }
 
   dispose() {

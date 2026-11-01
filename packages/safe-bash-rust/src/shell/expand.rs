@@ -3722,6 +3722,32 @@ fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>) -> Str
     resolve_nameref_base(name, env).to_string()
 }
 
+pub(super) fn indexed_array_index(base: &str, idx: i64, env: &BTreeMap<String, String>) -> Result<i64, String> {
+    let final_idx = if idx < 0 {
+        let prefix = format!("{base}[");
+        let max_idx = env
+            .keys()
+            .filter_map(|k| {
+                k.strip_prefix(&prefix)
+                    .and_then(|s| s.strip_suffix(']'))
+                    .and_then(|sub| sub.parse::<i64>().ok())
+            })
+            .max()
+            .unwrap_or(if env.contains_key(base) {
+                0
+            } else {
+                -1
+            });
+        max_idx + (1 + idx)
+    } else {
+        idx
+    };
+    if !(0..=i64::from(i32::MAX)).contains(&final_idx) {
+        return Err("indexed array: index outside 0..2147483647".into());
+    }
+    Ok(final_idx)
+}
+
 fn resolve_var_key_mut(
     name: &str,
     env: &mut BTreeMap<String, String>,
@@ -3758,28 +3784,7 @@ fn resolve_var_key_mut(
                 visiting.remove(&key);
                 result?
             };
-            let final_idx = if idx < 0 {
-                let prefix = format!("{resolved_base}[");
-                let max_idx = env
-                    .keys()
-                    .filter_map(|k| {
-                        k.strip_prefix(&prefix)
-                            .and_then(|s| s.strip_suffix(']'))
-                            .and_then(|sub| sub.parse::<i64>().ok())
-                    })
-                    .max()
-                    .unwrap_or(if env.contains_key(&resolved_base) {
-                        0
-                    } else {
-                        -1
-                    });
-                max_idx.saturating_add(1).saturating_add(idx)
-            } else {
-                idx
-            };
-            if !(0..=i64::from(i32::MAX)).contains(&final_idx) {
-                return Err("indexed array: index outside 0..2147483647".into());
-            }
+            let final_idx = indexed_array_index(&resolved_base, idx, env)?;
             return Ok(format!("{resolved_base}[{final_idx}]"));
         }
         return Ok(format!("{resolved_base}[{clean_sub}]"));

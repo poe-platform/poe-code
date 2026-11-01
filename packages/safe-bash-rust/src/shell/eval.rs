@@ -10,7 +10,7 @@ use crate::shell::expand::{
     decode_ansi_c_escapes_with_locale, eval_arith, eval_arith_formatted,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
-    has_glob_meta_ext, is_param_operand_active, resolve_nameref_base,
+    has_glob_meta_ext, indexed_array_index, is_param_operand_active, resolve_nameref_base,
     sync_array_metadata, sync_getopts_env,
     try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
@@ -2450,9 +2450,10 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<(), EvalError> {
+    // An invalid index fails this command. Errors expanding its words can stop the shell.
+    fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<Option<String>, EvalError> {
         if word.starts_with('(') && word.ends_with(')') {
-            return self.assign_variable(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append);
+            return self.assign_variable(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append).map(|()| None);
         }
         if let Some((base, sub)) = lhs.split_once('[')
             && let Some(sub) = sub.strip_suffix(']')
@@ -2462,7 +2463,7 @@ impl<'a> EvalState<'a> {
             });
         }
         let value = self.expand_assignment_rhs(word)?;
-        self.assign_variable(lhs, &value, append)
+        self.assign_variable(lhs, &value, append).map(|()| None)
     }
 
     fn assign_element<'v>(
@@ -2471,7 +2472,7 @@ impl<'a> EvalState<'a> {
         raw_sub: &str,
         append: bool,
         value: impl FnOnce(&mut Self) -> Result<Cow<'v, str>, EvalError>,
-    ) -> Result<(), EvalError> {
+    ) -> Result<Option<String>, EvalError> {
         let resolved_base = resolve_nameref_base(base, self.env).to_string();
         if self
             .env
@@ -2496,29 +2497,15 @@ impl<'a> EvalState<'a> {
         } else {
             let sub_expanded = self.expand_word_to_string(raw_sub)?;
             let clean_sub = sub_expanded.trim_matches('"').trim_matches('\'');
-            if clean_sub.trim().is_empty() {
-                return Err(EvalError::Syntax(format!("{base}[{raw_sub}]: bad array subscript")));
+            if raw_sub.is_empty() {
+                return Ok(Some("indexed array: bad array subscript".into()));
             }
-            let idx = eval_arith(clean_sub, self.env).map_err(EvalError::Syntax)?;
-            let index = if idx < 0 {
-                let prefix = format!("{resolved_base}[");
-                let max_idx = self
-                    .env
-                    .keys()
-                    .filter_map(|k| {
-                        k.strip_prefix(&prefix)
-                            .and_then(|s| s.strip_suffix(']'))
-                            .and_then(|sub| sub.parse::<i64>().ok())
-                    })
-                    .max()
-                    .unwrap_or(if self.env.contains_key(&resolved_base) { 0 } else { -1 });
-                let resolved_idx = max_idx + (idx + 1);
-                if resolved_idx < 0 {
-                    return Err(EvalError::Syntax(format!("{base}[{raw_sub}]: bad array subscript")));
-                }
-                resolved_idx
-            } else {
-                idx
+            let index = match eval_arith_formatted(clean_sub, self.env)
+                .and_then(|i| indexed_array_index(&resolved_base, i, self.env))
+            {
+                Ok(i) => i,
+                Err(msg) if msg.starts_with("__nounset__") => return Err(EvalError::Syntax(msg)),
+                Err(msg) => return Ok(Some(msg)),
             };
             (index.to_string(), value(self)?)
         };
@@ -2594,14 +2581,17 @@ impl<'a> EvalState<'a> {
         }
         self.env.insert(key, val);
         sync_array_metadata(&resolved_base, self.env);
-        Ok(())
+        Ok(None)
     }
 
     pub fn assign_variable(&mut self, lhs: &str, raw_val: &str, append: bool) -> Result<(), EvalError> {
         if let Some((base, sub_rest)) = lhs.split_once('[')
             && let Some(raw_sub) = sub_rest.strip_suffix(']')
         {
-            return self.assign_element(base, raw_sub, append, |_| Ok(Cow::Borrowed(raw_val)));
+            return match self.assign_element(base, raw_sub, append, |_| Ok(Cow::Borrowed(raw_val)))? {
+                Some(msg) => Err(EvalError::Syntax(msg)),
+                None => Ok(()),
+            };
         }
 
         let resolved = resolve_nameref_base(lhs, self.env).to_string();
@@ -3268,28 +3258,36 @@ impl<'a> EvalState<'a> {
         if !has_inline_input && (is_posix || expanded_words.is_empty()) && has_readonly_assign {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                if let Err(e) = self.assign_shell_word(k, v, *append) {
-                    match e {
-                        EvalError::Syntax(msg) if msg.contains("readonly variable") => {
-                            let code =
-                                if is_posix && (is_special_head || expanded_words.is_empty()) {
-                                    127
-                                } else {
-                                    1
-                                };
-                            let prefix = self.diag_prefix();
-                            let mut err_out = BuiltinOutcome {
-                                stdout: debug_out.stdout,
-                                stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
-                                exit_code: code,
-                            };
-                            self.last_exit = code;
-                            self.exit_requested = Some(code);
-                            self.route_outcome(&mut err_out);
-                            return Ok(err_out);
-                        }
-                        other => return Err(other),
+                match self.assign_shell_word(k, v, *append) {
+                    Ok(None) => {}
+                    Ok(Some(msg)) => {
+                        let mut out = BuiltinOutcome {
+                            stdout: debug_out.stdout,
+                            stderr: format!("{}{}{msg}\n", debug_out.stderr, self.diag_prefix()),
+                            exit_code: 1,
+                        };
+                        self.route_outcome(&mut out);
+                        return Ok(out);
                     }
+                    Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
+                        let code =
+                            if is_posix && (is_special_head || expanded_words.is_empty()) {
+                                127
+                            } else {
+                                1
+                            };
+                        let prefix = self.diag_prefix();
+                        let mut err_out = BuiltinOutcome {
+                            stdout: debug_out.stdout,
+                            stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
+                            exit_code: code,
+                        };
+                        self.last_exit = code;
+                        self.exit_requested = Some(code);
+                        self.route_outcome(&mut err_out);
+                        return Ok(err_out);
+                    }
+                    Err(other) => return Err(other),
                 }
             }
         }
@@ -3348,24 +3346,28 @@ impl<'a> EvalState<'a> {
         if expanded_words.is_empty() {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                if let Err(e) = self.assign_shell_word(k, v, *append) {
-                    match e {
-                        EvalError::Syntax(msg) if msg.contains("readonly variable") => {
-                            let code = if is_posix { 127 } else { 1 };
-                            let prefix = self.diag_prefix();
-                            let mut err_out = BuiltinOutcome {
-                                stdout: debug_out.stdout,
-                                stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
-                                exit_code: code,
-                            };
-                            self.last_exit = code;
-                            self.exit_requested = Some(code);
-                            self.route_outcome(&mut err_out);
-                            self.restore_redirects(saved_fds, saved_in);
-                            return Ok(err_out);
-                        }
-                        other => return Err(other),
+                match self.assign_shell_word(k, v, *append) {
+                    Ok(None) => {}
+                    Ok(Some(msg)) => {
+                        debug_out.stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                        self.sub_exit = Some(1);
+                        break;
                     }
+                    Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
+                        let code = if is_posix { 127 } else { 1 };
+                        let prefix = self.diag_prefix();
+                        let mut err_out = BuiltinOutcome {
+                            stdout: debug_out.stdout,
+                            stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
+                            exit_code: code,
+                        };
+                        self.last_exit = code;
+                        self.exit_requested = Some(code);
+                        self.route_outcome(&mut err_out);
+                        self.restore_redirects(saved_fds, saved_in);
+                        return Ok(err_out);
+                    }
+                    Err(other) => return Err(other),
                 }
             }
             self.last_exit = self.sub_exit.take().unwrap_or(0);
@@ -16046,6 +16048,30 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn invalid_indexed_writes_fail_the_assignment_and_respect_shell_control_flow() {
+        for (script, code, stdout, stderr) in [
+            (r#"a=(); a[2147483648]=5"#, 1, "", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(); a[-1]=5 b=ok; echo "$?:$b""#, 0, "1:\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(); b=ok a[-1]=5; echo "$?:$b""#, 0, "1:ok\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(); a[-1]=$((b=5)); echo "$?:$b""#, 0, "1:\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(); a[2147483647]=yes; a[-1]+=ok; echo "${a[-1]}""#, 0, "yesok\n", ""),
+            (r#"a=(foo); a[-2]=x || echo fail:$?; echo "${a[@]}""#, 0, "fail:1\nfoo\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(10); a[-2]=5 2>err; cat err; echo ok"#, 0, "shell: line 1: indexed array: index outside 0..2147483647\nok\n", ""),
+            (r#"a=(10); a[1/0]=5; echo rc:$?"#, 0, "rc:1\n", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
+            (r#"a=(); a[0]="$((b[-2]))"; echo after"#, 1, "", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(); a[$((1/0))]=5; echo rc:$?"#, 1, "", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
+            (r#"set -u; a=(); a[missing]=5; echo rc:$?"#, 1, "", "shell: line 1: missing: unbound variable\n"),
+            (r#"a=(); a[$empty]=5; echo "$?:${a[@]}""#, 0, "0:5\n", ""),
+            (r#"a=(); a[]=5; echo rc:$?"#, 0, "rc:1\n", "shell: line 1: indexed array: bad array subscript\n"),
+            (r#"readonly x; a=(); a[-2]=2 x=5; echo rc:$?"#, 0, "rc:1\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+        }
     }
 
     #[test]

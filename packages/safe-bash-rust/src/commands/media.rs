@@ -4650,7 +4650,8 @@ fn cmd_media_doc(
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
             if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
                 let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
-                let chain = !fc_flag.is_empty() && !fc_flag.contains("concat=") && composition.is_none();
+                let concat=fc_flag.contains("concat=");
+                let chain = !fc_flag.is_empty() && !concat && composition.is_none();
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4663,7 +4664,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if (fc_flag.is_empty() || chain || composition.is_some()) && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                    }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -4688,11 +4689,19 @@ fn cmd_media_doc(
                 let supported=sources.first().is_some_and(MediaInput::remuxable);
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
                 let still_input=format==Some("image2") && supported;
-                let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable) && (fc_flag.is_empty() || chain || composition.is_some());
-                if (chain || composition.is_some()) && remux_inputs {
+                let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable);
+                if !fc_flag.is_empty() && remux_inputs {
                     maps.clear();
                     strip_video=false; strip_audio=false; strip_subtitles=false; rotation=None;
-                    if composition.is_some(){shortest=false;}
+                    if concat || composition.is_some(){shortest=false;}
+                    if concat {
+                        let disabled=|option:&str| fc_flag.match_indices("concat=").any(|(i,_)|{
+                            let args=fc_flag[i+7..].split([';','[']).next().unwrap_or("");
+                            let word=|c:char|c.is_ascii_alphanumeric()||c=='_';
+                            args.match_indices(option).any(|(j,_)|!args[..j].ends_with(word) && !args[j+option.len()..].starts_with(word))
+                        });
+                        strip_audio=disabled("a=0");strip_video=disabled("v=0");
+                    }
                 }
                 if chain && remux_inputs {
                     // The portable graph muxes all inputs first, then appends its
@@ -4712,12 +4721,13 @@ fn cmd_media_doc(
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
-                let mut remux=mp4::mux::Remux{composition,rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                let mut remux=mp4::mux::Remux{composition,concat,rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 // Cutting a graph first materializes its decoded frames as AVC. Let the
                 // packet slicer handle keyframes, partial samples, and edit lists.
                 let graph_movie;
-                let sources=if composition.is_some() && remux_inputs && (ss_opt.is_some() || end.is_some()){
+                let sources=if remux_inputs && (concat && inputs.len()>1 || composition.is_some() && (ss_opt.is_some() || end.is_some())){
                     let opts=mp4::mux::Remux{frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
+                    let opts=if concat{mp4::mux::Remux{start:None,end:None,strip_audio:false,strip_video:false,..opts}}else{opts};
                     graph_movie=match mp4::mux::remux(&sources,opts,0){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
                     remux.composition=None;
                     remux.input_times=&[InputTime{start:None,to:None,duration:None,loops:0}];
@@ -13874,6 +13884,16 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
         run(&["-i","a.mp4","-i","b.y4m","-filter_complex","[0:v][1:v]overlay=2:1[out]","o.y4m"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "1cea2fa505daf06b5c7f03d6603d376bad6510eb1ae9c9583c34740d76590c81");
+    }
+
+    #[test]
+    fn ffmpeg_concat_keeps_packets_with_different_video_descriptions() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
+        run(&["-i","a.mp4","-i","b.y4m","-filter_complex","concat=n=2:v=1:a=0","-map","[out]","o.mp4"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())), "803d19f01b3fec5c05cd7df3b53461c487929f3c6f0b6ffaba8088e346acd9c0");
     }
 
     #[test]

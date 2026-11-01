@@ -1025,6 +1025,9 @@ fn subtitle_track(
 
 // concatMp4 normalizes video to 90 kHz, drops edit lists, and extends the
 // final packet of shorter tracks at each boundary before the next copy starts.
+#[path = "mp4_concat.rs"]
+mod concat;
+
 fn repeat_tracks(
     tracks: &mut [Track<'_>],
     loops: usize,
@@ -1335,6 +1338,7 @@ impl Composition {
 
 pub(in super::super) struct Remux<'a> {
     pub composition: Option<Composition>,
+    pub concat: bool,
     pub rate: Option<u32>,
     pub channels: Option<u32>,
     pub audio_filters: &'a [&'a str],
@@ -1485,6 +1489,7 @@ pub(in super::super) fn input_slice(
         std::slice::from_ref(input),
         Remux {
             composition: None,
+            concat: false,
             start: seek.start,
             end: seek.end(),
             source_end,
@@ -1741,7 +1746,7 @@ fn mapped_tracks(
         "subtitle" => !opts.strip_subtitles,
         _ => true,
     });
-    if selected.len() > 32 {
+    if selected.len() > 32 && !opts.concat {
         return Err("output stream count exceeds limit".into());
     }
     let shortest = opts
@@ -2100,6 +2105,12 @@ pub(in super::super) fn remux(
     loops: usize,
 ) -> Result<Vec<u8>, String> {
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
+    if opts.concat && inputs.len() > 128 {
+        return Err(format!(
+            "Resource limit exceeded for maxConcatInputs: {} exceeds maximum allowed 128",
+            inputs.len()
+        ));
+    }
     let data = materialize(inputs, &opts)?;
     let sources = read_sources(inputs, &data, &opts)?;
     let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
@@ -2225,6 +2236,13 @@ pub(in super::super) fn remux(
             } else {
                 seconds
             };
+        let seconds = if opts.concat && range.is_none() {
+            (0..sources[0].2.len())
+                .map(|i| sources[0].2.seconds(i))
+                .fold(0., f64::max)
+        } else {
+            seconds
+        };
         let duration = if seconds == 0. { 1. } else { seconds };
         let frames = (duration * f64::from(rate)).round().max(1024.) as usize;
         return ffmpeg_wave::pcm16(rate, channels, frames, opts.limit);
@@ -2757,12 +2775,15 @@ pub(in super::super) fn remux(
             track.stsd = audio_entry(rate, channels, 2).into();
         }
     }
+    if opts.concat && sources.len() > 1 {
+        tracks = concat::join(tracks, sources, scale, opts.limit)?;
+    }
     if loops != 0 {
         repeat_tracks(&mut tracks, loops, scale, opts.limit)?;
     }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();
-    for (j, &(_, movie, ..)) in sources[..if opts.maps.is_empty() {
+    for (j, &(_, movie, ..)) in sources[..if opts.maps.is_empty() && !opts.concat {
         sources.len()
     } else {
         1

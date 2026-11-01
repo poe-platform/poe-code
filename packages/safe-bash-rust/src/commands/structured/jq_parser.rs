@@ -50,34 +50,28 @@ impl<'a> Lexer<'a> {
                         Kind::Interpolate
                     }
                     _ => {
-                        while let Some(&b) = bytes.get(self.pos) {
-                            if b == b'"' || bytes[self.pos..].starts_with(b"\\(") {
-                                break;
-                            }
-                            if b == b'\\' {
-                                let escape = self.pos;
-                                self.pos += 1;
-                                match bytes.get(self.pos) {
-                                    Some(b'u')
-                                        if bytes.get(self.pos + 1..self.pos + 5).is_some_and(
-                                            |d| d.iter().all(u8::is_ascii_hexdigit),
-                                        ) =>
-                                    {
-                                        self.pos += 5
-                                    }
-                                    Some(
-                                        b'"' | b'/' | b'\\' | b'b' | b'f' | b'n' | b'r' | b't',
-                                    ) => self.pos += 1,
-                                    None => return Err(self.unterminated()),
-                                    _ => {
-                                        return Err(format!(
-                                            "invalid string at offset {}",
-                                            self.source[..escape].encode_utf16().count()
-                                        ));
-                                    }
+                        let mut escaped = false;
+                        loop {
+                            match bytes.get(self.pos) {
+                                Some(b'"') => break,
+                                Some(b'\\') if bytes.get(self.pos + 1) == Some(&b'(') => break,
+                                Some(b'\\') => {
+                                    escaped = true;
+                                    self.pos += 2;
                                 }
-                            } else {
-                                self.pos += 1;
+                                Some(_) => self.pos += 1,
+                                None => return Err(self.unterminated()),
+                            }
+                        }
+                        if escaped {
+                            let mut chars = self.source[at..self.pos].chars();
+                            while let Some(c) = chars.next() {
+                                if c == '\\' && super::json_escape(&mut chars).is_none() {
+                                    return Err(format!(
+                                        "invalid string at offset {}",
+                                        self.source[..at - 1].encode_utf16().count()
+                                    ));
+                                }
                             }
                         }
                         Kind::Text
@@ -186,7 +180,7 @@ impl<'a> Lexer<'a> {
     fn unterminated(&self) -> String {
         format!(
             "unterminated string or interpolation at offset {}",
-            self.source.encode_utf16().count()
+            self.source.encode_utf16().count() + self.pos.saturating_sub(self.source.len())
         )
     }
 }
@@ -202,6 +196,9 @@ struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     fn take(&mut self) -> Result<Token<'a>, String> {
+        if self.current.kind == Kind::End {
+            return Ok(self.current);
+        }
         self.previous = self.current;
         self.current = self.lexer.next()?;
         Ok(self.previous)

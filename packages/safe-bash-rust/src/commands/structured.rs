@@ -660,49 +660,48 @@ fn parse_json_value(chars: &[char], idx: &mut usize) -> Result<JVal, String> {
     }
 }
 
+fn json_escape(chars: &mut impl Iterator<Item = char>) -> Option<char> {
+    fn unit(chars: &mut impl Iterator<Item = char>) -> Option<u32> {
+        (0..4).try_fold(0, |value, _| Some(value * 16 + chars.next()?.to_digit(16)?))
+    }
+    Some(match chars.next()? {
+        c @ ('"' | '\\' | '/') => c,
+        'b' => '\u{8}',
+        'f' => '\u{c}',
+        'n' => '\n',
+        'r' => '\r',
+        't' => '\t',
+        'u' => {
+            let high = unit(chars)?;
+            if (0xd800..=0xdbff).contains(&high) {
+                if chars.next()? != '\\' || chars.next()? != 'u' { return None; }
+                let low = unit(chars)?;
+                if !(0xdc00..=0xdfff).contains(&low) { return None; }
+                char::from_u32(0x10000 + ((high - 0xd800) << 10) + low - 0xdc00)?
+            } else {
+                char::from_u32(high)?
+            }
+        }
+        _ => return None,
+    })
+}
+
 fn parse_json_string(chars: &[char], idx: &mut usize) -> Result<String, String> {
-    if *idx >= chars.len() || chars[*idx] != '"' {
+    if chars.get(*idx) != Some(&'"') {
         return Err("expected '\"'".into());
     }
-    *idx += 1;
+    let mut rest = chars[*idx + 1..].iter().copied();
     let mut out = String::new();
-    while *idx < chars.len() {
-        let c = chars[*idx];
-        *idx += 1;
+    while let Some(c) = rest.next() {
         if c == '"' {
+            *idx = chars.len() - rest.len();
             return Ok(out);
         }
-        if c == '\\' {
-            if *idx >= chars.len() {
-                return Err("unexpected EOF in string escape".into());
-            }
-            let esc = chars[*idx];
-            *idx += 1;
-            match esc {
-                '"' => out.push('"'),
-                '\\' => out.push('\\'),
-                '/' => out.push('/'),
-                'b' => out.push('\u{0008}'),
-                'f' => out.push('\u{000c}'),
-                'n' => out.push('\n'),
-                'r' => out.push('\r'),
-                't' => out.push('\t'),
-                'u' => {
-                    if *idx + 4 <= chars.len() {
-                        let hex: String = chars[*idx..*idx + 4].iter().collect();
-                        *idx += 4;
-                        if let Ok(code) = u32::from_str_radix(&hex, 16) {
-                            if let Some(ch) = char::from_u32(code) {
-                                out.push(ch);
-                            }
-                        }
-                    }
-                }
-                other => out.push(other),
-            }
+        out.push(if c == '\\' {
+            json_escape(&mut rest).ok_or("invalid string escape")?
         } else {
-            out.push(c);
-        }
+            c
+        });
     }
     Err("unterminated string".into())
 }
@@ -29528,29 +29527,13 @@ fn eval_jq_interpolated_strings_with_fmt(
                     }
                     acc = next_acc;
                 }
-                'n' => {
+                _ => {
+                    let mut rest = chars[i + 1..].iter().copied();
+                    let ch = json_escape(&mut rest).ok_or("invalid string escape")?;
                     for s in &mut acc {
-                        s.push('\n');
+                        s.push(ch);
                     }
-                    i += 2;
-                }
-                't' => {
-                    for s in &mut acc {
-                        s.push('\t');
-                    }
-                    i += 2;
-                }
-                'r' => {
-                    for s in &mut acc {
-                        s.push('\r');
-                    }
-                    i += 2;
-                }
-                other => {
-                    for s in &mut acc {
-                        s.push(other);
-                    }
-                    i += 2;
+                    i = chars.len() - rest.len();
                 }
             }
         } else {

@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq validates complete string segments and decodes paired Unicode escapes", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, diagnostic] of [
+      [String.raw`"abc\q"`, "invalid string at offset 0"],
+      [String.raw`"\ud800"`, "invalid string at offset 0"],
+      [String.raw`"\udc00"`, "invalid string at offset 0"],
+      [String.raw`"x\(2)y\q"`, "invalid string at offset 5"],
+      ['"abc' + "\\", "unterminated string or interpolation at offset 6"],
+      ["[", "error: syntax error, unexpected end of file (Unix shell quoting issues?) at <top-level>, line 1:\n[\njq: 1 compile error"],
+    ]) {
+      const result = await bash.exec(`jq '${filter}' /missing-input`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [3, "", `jq: ${diagnostic}\n`]);
+    }
+    const result = await bash.exec(String.raw`jq -nc '["\ud83d\ude00","x\(2)\ud83d\ude00\b\f"]'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), ["😀", "x2😀\b\f"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq checks variable scope before reading input or evaluating branches", async () => {
   const bash = new RustWasmBash();
   try {

@@ -330,3 +330,38 @@ impl Canvas {
         }
     }
 }
+
+// image-ast converts through linear light and interpolates the rounded sRGB table.
+pub(super) fn gray(r: u8, g: u8, b: u8) -> u8 {
+    if r == g && g == b {
+        return r;
+    }
+    static LUTS: std::sync::OnceLock<([f32; 256], [u8; 257])> = std::sync::OnceLock::new();
+    let (linear, srgb) = LUTS.get_or_init(|| {
+        (
+            std::array::from_fn(|i| {
+                let s = i as f64 / 255.0;
+                (if s <= 0.04045 {
+                    s / 12.92
+                } else {
+                    ((s + 0.055) / 1.055).powf(2.4)
+                }) as f32
+            }),
+            std::array::from_fn(|i| {
+                let y = i as f64 / 255.0;
+                let s = if y <= 0.0031308 {
+                    12.92 * y
+                } else {
+                    1.055 * y.powf(1.0 / 2.4) - 0.055
+                };
+                (255.0 * s).round() as u8
+            }),
+        )
+    });
+    let y = (0.2126_f32 as f64 * linear[r as usize] as f64
+        + 0.7152_f32 as f64 * linear[g as usize] as f64
+        + 0.0722_f32 as f64 * linear[b as usize] as f64) as f32;
+    let t = y as f64 * 255.0;
+    let i = t as usize;
+    (srgb[i] as f64 + (srgb[i + 1] - srgb[i]) as f64 * t.fract()).round() as u8
+}

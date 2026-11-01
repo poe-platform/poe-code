@@ -4211,14 +4211,14 @@ fn qr_fmt_ratio(v: u8) -> String {
     }
 }
 
-fn rgba_png(width: usize, height: usize, dpi: u32, stored: bool, pixel: impl Fn(usize, usize) -> [u8; 4]) -> Vec<u8> {
-    let mut raw = Vec::with_capacity((width * 4 + 1) * height);
+fn pixel_png<const N: usize>(width: usize, height: usize, dpi: u32, stored: bool, pixel: impl Fn(usize, usize) -> [u8; N]) -> Vec<u8> {
+    let mut raw = Vec::with_capacity((width * N + 1) * height);
     for y in 0..height {
         raw.push(1); // Sub filter: store the channel difference from the pixel to the left.
-        let mut prev = [0; 4];
+        let mut prev = [0; N];
         for x in 0..width {
             let rgba = pixel(x, y);
-            for i in 0..4 { raw.push(rgba[i].wrapping_sub(prev[i])); }
+            for i in 0..N { raw.push(rgba[i].wrapping_sub(prev[i])); }
             prev = rgba;
         }
     }
@@ -4233,7 +4233,7 @@ fn rgba_png(width: usize, height: usize, dpi: u32, stored: bool, pixel: impl Fn(
     let mut header = [0; 13];
     header[..4].copy_from_slice(&(width as u32).to_be_bytes());
     header[4..8].copy_from_slice(&(height as u32).to_be_bytes());
-    header[8..10].copy_from_slice(&[8, 6]);
+    header[8..10].copy_from_slice(&[8, match N { 1 => 0, 2 => 4, 3 => 2, 4 => 6, _ => unreachable!() }]);
     chunk(b"IHDR", &header);
     let ppm = ((dpi as f64 / 0.0254).round() as u32).to_be_bytes();
     let mut phys = [1; 9];
@@ -4272,7 +4272,7 @@ fn qr_render(
         }
     };
     if rtype == "PNG" || rtype == "PNG32" {
-        return rgba_png(pixels, pixels, dpi, false, |x, y| if dark(x / size, y / size) { fg } else { bg });
+        return pixel_png(pixels, pixels, dpi, false, |x, y| if dark(x / size, y / size) { fg } else { bg });
     }
     let mut text = String::new();
     if rtype == "SVG" {
@@ -10094,7 +10094,7 @@ fn cmd_media_doc(
             let mut extent_opt: Option<(u32, u32)> = None;
             let mut rot_deg = 0i32;
             let mut transpose_swaps = 0usize;
-            let mut gray_cs = false;
+            let mut negates_before_gray = None;
             let mut negate_count = 0usize;
             let mut append_mode: Option<bool> = None;
             let mut mogrify_format: Option<String> = None;
@@ -10178,10 +10178,9 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-colorspace" | "-grayscale" if i + 1 < args.len() => {
-                        if args[i + 1].to_ascii_lowercase().contains("gray")
-                            || args[i + 1].to_ascii_lowercase().contains("luma")
-                        {
-                            gray_cs = true;
+                        let space = args[i + 1].to_ascii_lowercase();
+                        if space.contains("gray") || space.contains("grey") || matches!(space.as_str(), "rec709luma" | "rec601luma") {
+                            negates_before_gray.get_or_insert(negate_count);
                         }
                         i += 2;
                     }
@@ -10234,7 +10233,7 @@ fn cmd_media_doc(
                     meta.w = ew;
                     meta.h = eh;
                 }
-                if gray_cs {
+                if negates_before_gray.is_some() {
                     meta.cs = "Gray".to_string();
                 }
                 if let Some(Canvas::Solid([r, g, b, _])) = canvas {
@@ -10369,11 +10368,20 @@ fn cmd_media_doc(
                     if (w.saturating_mul(4).saturating_add(1)).saturating_mul(h) > fs.max_input_bytes() {
                         return err_out("magick: image exceeds memory budget\n", 1);
                     }
-                    let png = rgba_png(w, h, 72, true, |x, y| {
+                    let pixel = |x, y| {
                         let mut rgba = canvas.pixel(x, y, w, h);
-                        if negate_count % 2 == 1 { for c in &mut rgba[..3] { *c = 255 - *c; } }
+                        if negates_before_gray.unwrap_or(negate_count) % 2 == 1 {
+                            for c in &mut rgba[..3] { *c = 255 - *c; }
+                        }
                         rgba
-                    });
+                    };
+                    let png = if let Some(before) = negates_before_gray {
+                        pixel_png(w, h, 72, true, |x, y| {
+                            let [r,g,b,a] = pixel(x,y);
+                            let v = magick_color::gray(r,g,b);
+                            [if (negate_count-before) % 2 == 1 { 255-v } else { v }, a]
+                        })
+                    } else { pixel_png(w, h, 72, true, pixel) };
                     if stdout_png { return ok_out(&crate::vfs::bytes_to_stream_string(&png)); }
                     if let Err(e) = fs.write_file(&out_full, &png) { return err_out(&format!("magick: {e}\n"),1); }
                     return ok_out("");
@@ -12980,6 +12988,24 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn grayscale_png_preserves_alpha_and_operator_order() {
+        let fs = MemoryVfs::new();
+        for (operators, hash) in [
+            ("-colorspace gray", "ade7f1024157bb0d84bc2e5d7902327897f1d83d628dced156782ff208e68f45"),
+            ("-colorspace grey", "ade7f1024157bb0d84bc2e5d7902327897f1d83d628dced156782ff208e68f45"),
+            ("-negate -colorspace gray", "4927c66dbc586ff2a0a3b40ad74eeb167cfa56941336a8aa2ee0e95bfb818c68"),
+            ("-colorspace gray -negate", "958d93800f6bf3aef244645798eef9b3b06777b7908ba583d3a156869742e8f3"),
+        ] {
+            let mut args = vec!["-size", "12x8", "xc:#27881e66"];
+            args.extend(operators.split_whitespace());
+            args.push("gray.png");
+            let r = cmd_media_doc("magick", &media_args(&args), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/gray.png").unwrap())), hash, "{operators}");
+        }
     }
 
     #[test]

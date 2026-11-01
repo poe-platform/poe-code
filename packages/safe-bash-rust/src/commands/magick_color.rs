@@ -267,3 +267,66 @@ pub(super) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
     }
     Err(error())
 }
+
+#[derive(Clone, Copy)]
+pub(super) enum Canvas {
+    Solid([u8; 4]),
+    Gradient {
+        first: [u8; 4],
+        last: [u8; 4],
+        radial: bool,
+    },
+    Checker,
+}
+
+impl Canvas {
+    pub(super) fn parse(spec: &str) -> Option<Result<Self, String>> {
+        let (kind, colors) = spec.split_once(':')?;
+        Some(match kind.to_ascii_lowercase().as_str() {
+            "xc" | "canvas" => {
+                parse_color(if colors.is_empty() { "white" } else { colors }).map(Self::Solid)
+            }
+            "null" if colors.is_empty() => Ok(Self::Solid([0; 4])),
+            "pattern" | "plasma" => Ok(Self::Checker),
+            "gradient" | "radial-gradient" => {
+                let mut ends = colors.split('-');
+                let first = ends.next().filter(|s| !s.is_empty()).unwrap_or("white");
+                let last = ends.next().filter(|s| !s.is_empty()).unwrap_or("black");
+                parse_color(first).and_then(|first| {
+                    Ok(Self::Gradient {
+                        first,
+                        last: parse_color(last)?,
+                        radial: kind.eq_ignore_ascii_case("radial-gradient"),
+                    })
+                })
+            }
+            _ => return None,
+        })
+    }
+
+    pub(super) fn pixel(&self, x: usize, y: usize, w: usize, h: usize) -> [u8; 4] {
+        match *self {
+            Self::Solid(rgba) => rgba,
+            Self::Checker => {
+                let v = if (x / 8 + y / 8) % 2 == 0 { 102 } else { 153 };
+                [v, v, v, 255]
+            }
+            Self::Gradient {
+                first,
+                last,
+                radial,
+            } => {
+                let t = if radial {
+                    let cx = (w - 1) as f64 / 2.0;
+                    let cy = (h - 1) as f64 / 2.0;
+                    ((x as f64 - cx).hypot(y as f64 - cy) / cx.hypot(cy).max(1.0)).min(1.0)
+                } else {
+                    y as f64 / (h - 1).max(1) as f64
+                };
+                std::array::from_fn(|i| {
+                    (first[i] as f64 * (1.0 - t) + last[i] as f64 * t).round() as u8
+                })
+            }
+        }
+    }
+}

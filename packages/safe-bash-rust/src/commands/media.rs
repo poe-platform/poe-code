@@ -91,7 +91,7 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
 
 #[path = "magick_color.rs"]
 mod magick_color;
-use magick_color::parse_color;
+use magick_color::{Canvas, parse_color};
 
 fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
     let s = spec.trim();
@@ -10099,11 +10099,22 @@ fn cmd_media_doc(
             let mut append_mode: Option<bool> = None;
             let mut mogrify_format: Option<String> = None;
             let mut mogrify_path: Option<String> = None;
-            let mut pseudo_color = None;
+            let mut canvas = None;
             let mut has_pseudo_input = false;
             let mut pos_files: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
+                let arg = &args[i];
+                if i + 1 < args.len() && let Some(parsed) = Canvas::parse(arg) {
+                    canvas = Some(match parsed {
+                        Ok(c) => c,
+                        Err(e) => return err_out(&format!("magick: {e}\n"), 1),
+                    });
+                    if arg.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
+                    has_pseudo_input = true;
+                    i += 1;
+                    continue;
+                }
                 match args[i].as_str() {
                     "-size" if i + 1 < args.len() => {
                         if let Some((ws, hs)) = args[i + 1].split_once('x') {
@@ -10182,14 +10193,6 @@ fn cmd_media_doc(
                     {
                         i += 2;
                     }
-                    a if a.starts_with("xc:") || a.starts_with("canvas:") => {
-                        let c_str = a.split_once(':').map(|(_, r)| r).unwrap_or("white");
-                        pseudo_color = Some(match parse_color(if c_str.is_empty() { "white" } else { c_str }) {
-                            Ok(color) => color, Err(e) => return err_out(&format!("magick: {e}\n"), 1),
-                        });
-                        has_pseudo_input = true;
-                        i += 1;
-                    }
                     a if a == "rose:" || a == "logo:" || a == "wizard:" || a == "granite:" => {
                         if size_opt.is_none() {
                             size_opt = Some((70, 46));
@@ -10197,22 +10200,7 @@ fn cmd_media_doc(
                         has_pseudo_input = true;
                         i += 1;
                     }
-                    a if a.starts_with("gradient:")
-                        || a.starts_with("radial-gradient:")
-                        || a.starts_with("pattern:")
-                        || a.starts_with("plasma:") =>
-                    {
-                        has_pseudo_input = true;
-                        i += 1;
-                    }
-                    a if !a.starts_with('-')
-                        && !a.starts_with('+')
-                        && !a.starts_with("xc:")
-                        && !a.starts_with("canvas:")
-                        && !a.starts_with("gradient:")
-                        && !a.starts_with("radial-gradient:")
-                        && !a.starts_with("pattern:")
-                        && !a.starts_with("plasma:") =>
+                    a if !a.starts_with('-') && !a.starts_with('+') =>
                     {
                         pos_files.push(a.to_string());
                         i += 1;
@@ -10249,7 +10237,7 @@ fn cmd_media_doc(
                 if gray_cs {
                     meta.cs = "Gray".to_string();
                 }
-                if let Some([r, g, b, _]) = pseudo_color {
+                if let Some(Canvas::Solid([r, g, b, _])) = canvas {
                     meta.exif
                         .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
                 }
@@ -10364,7 +10352,7 @@ fn cmd_media_doc(
                         .map(|b| read_image_meta(&b, &in_full))
                         .unwrap_or_else(|_| read_image_meta(&[], &in_full))
                 } else {
-                    let (w, h) = size_opt.unwrap_or(if pseudo_color.is_some() { (1, 1) } else { (32, 32) });
+                    let (w, h) = size_opt.unwrap_or(if canvas.is_some() { (1, 1) } else { (32, 32) });
                     ImageMeta {
                         fmt: format_from_path(&out_full).to_string(),
                         w,
@@ -10375,14 +10363,17 @@ fn cmd_media_doc(
                 };
                 apply_ops(&mut meta);
                 let stdout_png = out_rel == "png:-" || out_rel == "-";
-                if let Some(mut rgba) = pseudo_color && pos_files.len() == 1
+                if let Some(canvas) = canvas && pos_files.len() == 1
                     && (out_full.to_ascii_lowercase().ends_with(".png") || stdout_png) {
-                    if negate_count % 2 == 1 { for c in &mut rgba[..3] { *c = 255 - *c; } }
                     let (w,h) = (meta.w.max(1) as usize, meta.h.max(1) as usize);
                     if (w.saturating_mul(4).saturating_add(1)).saturating_mul(h) > fs.max_input_bytes() {
                         return err_out("magick: image exceeds memory budget\n", 1);
                     }
-                    let png = rgba_png(w,h,72,true,|_,_|rgba);
+                    let png = rgba_png(w, h, 72, true, |x, y| {
+                        let mut rgba = canvas.pixel(x, y, w, h);
+                        if negate_count % 2 == 1 { for c in &mut rgba[..3] { *c = 255 - *c; } }
+                        rgba
+                    });
                     if stdout_png { return ok_out(&crate::vfs::bytes_to_stream_string(&png)); }
                     if let Err(e) = fs.write_file(&out_full, &png) { return err_out(&format!("magick: {e}\n"),1); }
                     return ok_out("");
@@ -12989,6 +12980,22 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn magick_renders_gradients_patterns_and_null_pixels() {
+        let fs = MemoryVfs::new();
+        for (size, source, hash) in [
+            ("4x3", "gradient:red-blue", "f8f2fd4b2f29cc6859667d77812130d85c838fa393ed6a4911fb7d3248fb7378"),
+            ("19x17", "radial-gradient:red-blue", "aa8f49a87097068e50627b7860fc9588709ce7082dc9de3ef94250e47a6214c6"),
+            ("33x5", "pattern:checkerboard", "d3abdb6d739a01fef321f8de5eb116f1ddf3d64398a99b5e04905e4987cd8c08"),
+            ("33x5", "plasma:", "d3abdb6d739a01fef321f8de5eb116f1ddf3d64398a99b5e04905e4987cd8c08"),
+            ("4x3", "null:", "41674c6de947204678be16c5a89b95251a6a23c438836b20d0e6d23112c9d7e9"),
+        ] {
+            let r = cmd_media_doc("magick", &media_args(&["-size", size, source, "image.png"]), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/image.png").unwrap())), hash, "{source}");
+        }
     }
 
     #[test]

@@ -10092,11 +10092,12 @@ fn cmd_media_doc(
             while i < args.len() {
                 let arg = &args[i];
                 if i + 1 < args.len() && let Some(parsed) = Canvas::parse(arg) {
-                    canvas = Some(match parsed {
+                    if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear(); }
+                    if arg.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
+                    canvas = Some((match parsed {
                         Ok(c) => c,
                         Err(e) => return err_out(&format!("magick: {e}\n"), 1),
-                    });
-                    if arg.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
+                    },size_opt.unwrap_or((1,1))));
                     has_pseudo_input = true;
                     i += 1;
                     continue;
@@ -10222,6 +10223,7 @@ fn cmd_media_doc(
                     }
                     a if !a.starts_with('-') && !a.starts_with('+') =>
                     {
+                        if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear(); }
                         pos_files.push(a.to_string());
                         i += 1;
                     }
@@ -10267,8 +10269,7 @@ fn cmd_media_doc(
                     image.alpha |= matches!(channels,2|4);
                     Ok(())
                 };
-                let mut image = if let Some(canvas) = canvas {
-                    let (w,h)=size_opt.unwrap_or((1,1));
+                let mut image = if let Some((canvas,(w,h))) = canvas {
                     let (width,height)=(w.max(1) as usize,h.max(1) as usize);
                     if width.saturating_mul(height)>fs.max_input_bytes()/4 {return Some(err_out("magick: image exceeds memory budget\n",1));}
                     let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
@@ -10331,7 +10332,7 @@ fn cmd_media_doc(
                 if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
                     meta.cs = "Gray".to_string();
                 }
-                if let Some(Canvas::Solid([r, g, b, _])) = canvas {
+                if let Some((Canvas::Solid([r, g, b, _]),_)) = canvas {
                     meta.exif
                         .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
                 }
@@ -14359,6 +14360,21 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_applies_operators_to_existing_images_and_captures_canvas_size_at_read() {
+        let fs=MemoryVfs::new();
+        let run=|s:&str|cmd_media_doc("convert",&media_args(&s.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("-size 4x2 gradient:red-blue in.png").exit_code,0);
+        for (cmd,hash) in [
+            ("-size 4x2 -negate in.png o.png","bfe8879ddb668559f4e7cfb6223d6940a4b9bbb590a6eb84caefaaa03049a0da"),
+            ("-size 4x2 -negate in.png -negate o.png","ced44570a1eb54979d0c53837a2e9214c38840c2b5077ffa45a93574349dd816"),
+            ("-size 3x2 xc:red -size 7x5 o.png","a7b4a29bcf61c9ede4a3eb7bfb3025b9adc96ace01098f5a091467d0a6e1e334")
+        ] {
+            assert_eq!(run(cmd).exit_code,0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{cmd}");
         }
     }
 

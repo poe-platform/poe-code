@@ -112,3 +112,100 @@ impl Raster {
         }
     }
 }
+
+fn short_lab([r, g, b, a]: [u8; 4], alpha: bool) -> [i16; 3] {
+    let f = f32::from(a) / 255.;
+    let [r, g, b] = [r, g, b]
+        .map(|c| super::magick_color::linear(if alpha { (f32::from(c) * f) as u8 } else { c }));
+    let curve = |v: f64| {
+        if v > 0.008856 {
+            v.cbrt()
+        } else {
+            7.787 * v + 16. / 116.
+        }
+    };
+    let x = curve((41.24 * r + 35.76 * g + 18.05 * b) / 95.047);
+    let y = curve((21.26 * r + 71.52 * g + 7.22 * b) / 100.);
+    let z = curve((1.93 * r + 11.92 * g + 95.05 * b) / 108.883);
+    [
+        (f64::from((116. * y - 16.) as f32) * 327.67) as i16,
+        (f64::from((500. * (x - y)) as f32) * 256.) as i16,
+        (f64::from((200. * (y - z)) as f32) * 256.) as i16,
+    ]
+}
+
+fn lab_rgb(l: f64, a: f64, b: f64) -> [u8; 3] {
+    let fy = (l + 16.) / 116.;
+    let inv = |v: f64| {
+        if v > 24. / 116. {
+            v * v * v
+        } else {
+            (v - 16. / 116.) / 7.787
+        }
+    };
+    let x = inv(fy + a / 500.) * 0.95047;
+    let y = inv(fy);
+    let z = inv(fy - b / 200.) * 1.08883;
+    [
+        3.2406 * x - 1.5372 * y - 0.4986 * z,
+        -0.9689 * x + 1.8758 * y + 0.0415 * z,
+        0.0557 * x - 0.204 * y + 1.057 * z,
+    ]
+    .map(super::magick_color::srgb_byte)
+}
+
+impl Raster {
+    pub(super) fn sharpen(&mut self, sigma: f64, alpha: bool) {
+        let sig2 = 2. * sigma * sigma;
+        let radius = (-sig2 * 0.1f64.ln()).sqrt().floor().clamp(1., 5000.) as i32;
+        let weights: Vec<_> = (0..=radius)
+            .map(|i| (20. * (-f64::from(i * i) / sig2).exp()).round_ties_even() as i32)
+            .collect();
+        let scale = i64::from(2 * weights.iter().sum::<i32>() - weights[0]);
+        let rounded = |n: i64| (n + scale / 2).div_euclid(scale) as i16;
+        let light: Vec<_> = self
+            .pixels
+            .iter()
+            .map(|&p| short_lab(p, alpha)[0])
+            .collect();
+        let mut horizontal = vec![0i16; light.len()];
+        convolve(
+            self.width,
+            self.height,
+            false,
+            &weights,
+            |i| [i32::from(light[i])],
+            |i, [sum]| horizontal[i] = rounded(sum),
+        );
+        convolve(
+            self.width,
+            self.height,
+            true,
+            &weights,
+            |i| [i32::from(horizontal[i])],
+            |i, [sum]| {
+                let delta = (f64::from(light[i]) - f64::from(rounded(sum))) / 327.67;
+                let boost = if delta < -2. {
+                    2. * (delta + 2.) - 2.
+                } else if delta < 2. {
+                    delta
+                } else {
+                    2. * (delta - 2.) + 2.
+                };
+                let l = (f64::from(light[i]) + (boost.clamp(-20., 10.) * 327.67).round_ties_even())
+                    .clamp(0., 32767.);
+                let p = &mut self.pixels[i];
+                let [_, a, b] = short_lab(*p, alpha);
+                let rgb = lab_rgb(l / 327.67, f64::from(a) / 256., f64::from(b) / 256.);
+                let f = if p[3] == 0 {
+                    0.
+                } else {
+                    255. / f32::from(p[3])
+                };
+                p[..3].copy_from_slice(
+                    &rgb.map(|c| if alpha { (f32::from(c) * f) as u8 } else { c }),
+                );
+            },
+        );
+    }
+}

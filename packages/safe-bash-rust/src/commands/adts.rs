@@ -48,68 +48,81 @@ impl<'a> Iterator for Frames<'a> {
     }
 }
 
-pub(super) fn remux(
-    input: &[u8],
-    start: f64,
-    end: Option<f64>,
-    rate: Option<u32>,
-    channels: Option<u32>,
-    clear_samples: bool,
-    strip_audio: bool,
-) -> Vec<u8> {
-    let mut frames = Frames::new(input);
-    frames.by_ref().for_each(drop);
-    let orig_rate = frames.rate;
-    let rate = if strip_audio {
-        44100
-    } else {
-        rate.unwrap_or(orig_rate)
-    };
-    let channels = if strip_audio {
-        2
-    } else {
-        channels.unwrap_or(frames.channels.into())
-    };
-    let frequency = RATES.iter().position(|&r| r == rate).unwrap_or(4) as u8;
-    let mut output = Vec::new();
-    let mut append = |data: &[u8]| {
-        if data.len() < 7 || data[0] != 255 || data[1] & 0xf0 != 0xf0 {
-            let len = data.len() + 7;
-            output.extend_from_slice(&[
-                255,
-                241,
-                64 | frequency << 2 | ((channels >> 2) & 1) as u8,
-                ((channels & 3) as u8) << 6 | (len >> 11) as u8 & 3,
-                (len >> 3) as u8,
-                (len as u8) << 5 | 31,
-                252,
-            ]);
-        }
-        output.extend_from_slice(data);
-    };
-    let mut written = false;
-    if !clear_samples && !strip_audio {
-        let start = (start * f64::from(orig_rate)).round() as u64;
-        let end = end.map_or(u64::MAX, |s| (s * f64::from(orig_rate)).round() as u64);
-        if end > start {
-            for (index, data) in Frames::new(input).enumerate() {
-                let pts = index as u64 * 1024;
-                if pts >= end {
-                    break;
-                }
-                if pts + 1024 > start {
-                    append(data);
-                    written = true;
-                }
+pub(super) struct Options {
+    pub start: f64,
+    pub end: Option<f64>,
+    pub rate: Option<u32>,
+    pub channels: Option<u32>,
+    pub clear_samples: bool,
+    pub strip_audio: bool,
+    pub limit: usize,
+}
+impl Options {
+    pub(super) fn encode<'a>(
+        &self,
+        rate: u32,
+        channels: u32,
+        samples: impl Iterator<Item = &'a [u8]>,
+    ) -> Result<Vec<u8>, &'static str> {
+        let rate = if self.strip_audio {
+            44100
+        } else {
+            self.rate.unwrap_or(rate)
+        };
+        let channels = if self.strip_audio {
+            2
+        } else {
+            self.channels.unwrap_or(channels)
+        };
+        let frequency = RATES.iter().position(|&r| r == rate).unwrap_or(4) as u8;
+        let mut output = Vec::new();
+        let mut append = |data: &[u8]| {
+            let header = data.len() < 7 || data[0] != 255 || data[1] & 0xf0 != 0xf0;
+            let len = data.len() + if header { 7 } else { 0 };
+            if len > self.limit - output.len() {
+                return Err("output byte limit exceeded");
+            }
+            if header {
+                output.extend_from_slice(&[
+                    255,
+                    241,
+                    64 | frequency << 2 | ((channels >> 2) & 1) as u8,
+                    ((channels & 3) as u8) << 6 | (len >> 11) as u8 & 3,
+                    (len >> 3) as u8,
+                    (len as u8) << 5 | 31,
+                    252,
+                ]);
+            }
+            output.extend_from_slice(data);
+            Ok(())
+        };
+        let mut written = false;
+        if !self.clear_samples && !self.strip_audio {
+            for data in samples {
+                append(data)?;
+                written = true;
             }
         }
+        if !written {
+            append(if channels == 1 {
+                &[1, 64, 32, 7, 246, 0, 0]
+            } else {
+                &[33, 16, 4, 96, 140, 28]
+            })?
+        }
+        Ok(output)
     }
-    if !written {
-        append(if channels == 1 {
-            &[1, 64, 32, 7, 246, 0, 0]
-        } else {
-            &[33, 16, 4, 96, 140, 28]
-        });
-    }
-    output
+}
+pub(super) fn remux(input: &[u8], opts: Options) -> Result<Vec<u8>, &'static str> {
+    let mut frames = Frames::new(input);
+    frames.by_ref().for_each(drop);
+    let rate = f64::from(frames.rate);
+    let start = (opts.start * rate).round() as u64;
+    let end = opts.end.map_or(u64::MAX, |s| (s * rate).round() as u64);
+    let samples = Frames::new(input)
+        .enumerate()
+        .take_while(|(index, _)| *index as u64 * 1024 < end)
+        .filter(|(index, _)| end > start && (*index as u64 + 1) * 1024 > start)
+        .map(|(_, data)| data);
+    opts.encode(frames.rate, frames.channels.into(), samples)
 }

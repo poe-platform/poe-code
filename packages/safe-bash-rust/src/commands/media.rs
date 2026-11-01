@@ -4591,9 +4591,12 @@ fn cmd_media_doc(
                     let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some())}
                         else {y4m::Stream::parse(bytes.as_deref().unwrap_or_default()).and_then(|s|s.encode(opts))};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if !y4m_output && format==Some("aac") {
+                } else if !y4m_output && (format==Some("aac") || matches!(format,Some("mp4"|"mov")) && !bytes.as_deref().unwrap_or_default().starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:")) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
-                    Some(adts::remux(bytes.as_deref().unwrap_or_default(),start,end,ar_opt.filter(|_|transform),ac_opt.filter(|_|transform),transform,strip_audio))
+                    let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
+                    let bytes=bytes.as_deref().unwrap_or_default();
+                    let output=if format==Some("aac"){adts::remux(bytes,opts).map_err(str::to_owned)}else{mp4::extract_adts(bytes,opts)};
+                    match output{Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
                 if let Some(output)=output {
                     if stdout {
@@ -12880,6 +12883,24 @@ mod media_unit_tests {
         for name in ["empty.aac","-"] {
             assert_eq!(run(&["-f","aac","-show_entries","stream=sample_rate,channels,nb_frames","-of","csv=p=0",name]).stdout, "44100,2,0\n");
         }
+    }
+
+    #[test]
+    fn ffmpeg_extracts_mp4_audio_payloads_and_applies_the_requested_time_range() {
+        let fs=MemoryVfs::new();
+        let mut mp4=include_bytes!("../../tests/fixtures/av.mp4").to_vec();
+        let payload=[33,16,4,96,140,28];
+        let first=mp4.windows(payload.len()).position(|s|s==payload).unwrap();
+        mp4[first+2]=97;
+        fs.write_file("/av.mp4",&mp4).unwrap();
+        let run=|args:&[&str]|cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs);
+        let r=run(&["-i","av.mp4","-c:a","copy","out.aac"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let data=fs.read_file("/out.aac").unwrap();
+        assert_eq!(data.len(),33*13);
+        assert_eq!(&data[..13],&[255,241,80,128,1,191,252,33,16,97,96,140,28]);
+        let r=run(&["-ss","0.2","-i","av.mp4","-t","0.12","-f","aac","-"]);
+        assert_eq!(crate::vfs::stream_string_to_bytes(&r.stdout),[&data[13..26];6].concat());
     }
 
     #[test]

@@ -70,6 +70,7 @@ struct Sample {
     dts: u64,
     pts: i128,
     size: u64,
+    offset: usize,
     pos: u64,
     key: bool,
 }
@@ -159,6 +160,7 @@ impl Tables<'_> {
                 dts,
                 pts: i128::from(dts) + i128::from(cts),
                 size,
+                offset: cursor.min(input_size as u64) as usize,
                 pos,
                 key,
             };
@@ -244,6 +246,7 @@ impl Run<'_> {
                 dts,
                 pts: i128::from(dts) + cts,
                 size,
+                offset: offset as usize,
                 pos,
                 key,
             };
@@ -292,6 +295,7 @@ struct Track<'a> {
     kind: &'static str,
     scale: u32,
     duration: u64,
+    origin: u64,
     tag: &'a [u8; 4],
     entry: &'a [u8],
     width: u32,
@@ -438,6 +442,13 @@ impl<'a> Track<'a> {
         let elst = child(child(trak, b"edts"), b"elst");
         let v1 = elst.first() == Some(&1);
         let mut edits = rows(elst, if v1 { 20 } else { 12 }).peekable();
+        let origin = edits.peek().map_or(0, |r| {
+            if v1 {
+                (wide(r, 8, true) as i64).max(0) as u64
+            } else {
+                (u32_at(r, 4) as i32).max(0) as u64
+            }
+        });
         let duration = if edits.peek().is_some() {
             (edits
                 .map(|r| {
@@ -480,6 +491,7 @@ impl<'a> Track<'a> {
             kind,
             scale,
             duration,
+            origin,
             tag,
             entry,
             width,
@@ -494,6 +506,20 @@ impl<'a> Track<'a> {
     }
     fn time(&self, ticks: f64) -> String {
         format!("{:.6}", ticks / f64::from(self.scale))
+    }
+    fn samples(&self, input_size: usize) -> impl Iterator<Item = Sample> + '_ {
+        self.tables.samples(input_size).chain(
+            self.runs
+                .iter()
+                .flat_map(move |r| r.samples(input_size, self.kind == "video")),
+        )
+    }
+    fn audio_rate(&self) -> u32 {
+        if self.entry.len() >= 28 {
+            ((u64::from(u32_at(self.entry, 24)) + 32768) >> 16) as u32
+        } else {
+            self.scale
+        }
     }
     fn channels(&self) -> u16 {
         if self.entry.len() >= 28 {
@@ -694,13 +720,11 @@ impl<'a> Track<'a> {
             ]);
         } else if self.kind == "audio" {
             let channels = self.channels();
-            let (rate, bits) = if self.entry.len() >= 28 {
-                (
-                    ((u64::from(u32_at(self.entry, 24)) + 32768) >> 16) as u32,
-                    u16_at(self.entry, 18),
-                )
+            let rate = self.audio_rate();
+            let bits = if self.entry.len() >= 28 {
+                u16_at(self.entry, 18)
             } else {
-                (self.scale, 16)
+                16
             };
             r.extend([
                 ("sample_fmt", Str(self.sample_fmt().into())),
@@ -868,12 +892,7 @@ fn chapters(moov: &[u8], duration: f64) -> impl Iterator<Item = Row> + '_ {
     })
 }
 
-pub(super) fn report(
-    input: &[u8],
-    filename: &str,
-    opts: ProbeOptions<'_>,
-) -> Result<String, String> {
-    let moov = movie(input)?;
+fn read_tracks<'a>(input: &'a [u8], moov: &'a [u8]) -> Result<(Vec<Track<'a>>, f64), String> {
     let (scale, ticks) = header_time(child(moov, b"mvhd"), 1000);
     let mut tracks = Vec::new();
     let mut duration = ticks as f64 / f64::from(scale);
@@ -888,6 +907,44 @@ pub(super) fn report(
         duration = duration.max(t.duration as f64 / f64::from(t.scale));
         tracks.push(t);
     }
+    Ok((tracks, duration))
+}
+
+pub(super) fn extract_adts(
+    input: &[u8],
+    mut opts: super::adts::Options,
+) -> Result<Vec<u8>, String> {
+    let (tracks, _) = read_tracks(input, movie(input)?)?;
+    let Some(t) = tracks.iter().find(|t| t.kind == "audio") else {
+        opts.strip_audio = true;
+        return opts
+            .encode(44100, 2, std::iter::empty())
+            .map_err(str::to_owned);
+    };
+    let scale = f64::from(t.scale);
+    let start = t.origin.saturating_add((opts.start * scale).round() as u64);
+    let end = t.origin.saturating_add(
+        opts.end
+            .map_or(t.duration, |s| ((s * scale).round() as u64).min(t.duration)),
+    );
+    let trim = opts.start > 0. || opts.end.is_some();
+    let samples = t
+        .samples(input.len())
+        .filter(|s| {
+            !trim || end > start && s.dts < end && s.dts.saturating_add(s.tick.into()) > start
+        })
+        .map(|s| &input[s.offset..s.offset + s.size as usize]);
+    opts.encode(t.audio_rate(), t.channels().into(), samples)
+        .map_err(str::to_owned)
+}
+
+pub(super) fn report(
+    input: &[u8],
+    filename: &str,
+    opts: ProbeOptions<'_>,
+) -> Result<String, String> {
+    let moov = movie(input)?;
+    let (tracks, duration) = read_tracks(input, moov)?;
     let counts = opts.counts;
     let select = opts.select;
     media_probe::report(opts, |section| match section {
@@ -917,13 +974,7 @@ pub(super) fn report(
                 .map(move |t| t.stream(counts)),
         ),
         "frame" | "packet" => Box::new(tracks.iter().flat_map(move |t| {
-            t.tables
-                .samples(input.len())
-                .chain(
-                    t.runs
-                        .iter()
-                        .flat_map(|r| r.samples(input.len(), t.kind == "video")),
-                )
+            t.samples(input.len())
                 .map(move |s| t.record(s, section == "frame"))
         })),
         _ => Box::new(std::iter::empty()),

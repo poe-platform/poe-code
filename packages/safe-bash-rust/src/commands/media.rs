@@ -2667,6 +2667,8 @@ mod lavfi;
 mod y4m;
 #[path = "adts.rs"]
 mod adts;
+#[path = "mp4.rs"]
+mod mp4;
 #[path = "media_format.rs"]
 mod media_format;
 #[path = "media_probe.rs"]
@@ -5095,6 +5097,9 @@ fn cmd_media_doc(
                     None => format!("{name}: Invalid data found when processing input or format AST not registered"),
                 });
             };
+            if matches!(container,"mp4" | "mov") && !raw_bytes.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:") && let Err(reason)=mp4::movie(&raw_bytes) {
+                return ffprobe_err(reason);
+            }
             if container == "wav" {
                 if !raw_bytes.starts_with(b"RIFF") || raw_bytes.get(8..12) != Some(b"WAVE") {
                     return ffprobe_err("Invalid WAV file: missing RIFF WAVE signature");
@@ -12806,6 +12811,16 @@ mod media_unit_tests {
             let args = media_args(&["-show_entries","format=filename:stream=nb_frames","-of","csv=p=0","-i",path]);
             let r = cmd_media_doc("ffprobe",&args,"YUV4MPEG2 W2 H2 F25:1\nFRAME\n111111","/",&fs);
             assert_eq!((r.exit_code,r.stdout,r.stderr),(0,format!("1\n{path}\n"),String::new()));
+        }
+    }
+
+    #[test]
+    fn ffprobe_requires_a_top_level_mp4_movie_atom() {
+        let fs=MemoryVfs::new();
+        for bytes in [b"not media".as_slice(), b"\0\0\0\0mdat\0\0\0\x08moov",b"\0\0\0\x01moov"] {
+            fs.write_file("/bad.mp4",bytes).unwrap();
+            let r=cmd_media_doc("ffprobe",&media_args(&["bad.mp4"]),"","/",&fs);
+            assert_eq!((r.exit_code,r.stdout,r.stderr),(1,String::new(),"ffprobe: Invalid MP4/ISOBMFF file: missing 'moov' atom\n".into()));
         }
     }
 

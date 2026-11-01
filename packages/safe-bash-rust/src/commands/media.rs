@@ -126,6 +126,8 @@ mod magick_coordinates;
 mod magick_morphology;
 #[path = "magick_filter.rs"]
 mod magick_filter;
+#[path = "magick_histogram.rs"]
+mod magick_histogram;
 #[path = "magick_resize.rs"]
 mod magick_resize;
 #[path = "magick_composite.rs"]
@@ -10115,7 +10117,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10125,7 +10127,7 @@ fn cmd_media_doc(
             let mut extent_opt: Option<(u32, u32)> = None;
             let mut rot_deg = 0i32;
             let mut transpose_swaps = 0usize;
-            let mut channels = [true,true,true,false];
+            let mut channels = None;
             let mut append_mode: Option<bool> = None;
             let mut mogrify_format: Option<String> = None;
             let mut mogrify_path: Option<String> = None;
@@ -10218,10 +10220,10 @@ fn cmd_media_doc(
                     }
                     "-auto-orient" => {ops.push(PixelOp::AutoOrient);i+=1;}
                     "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
-                    "-channel" if i+1<args.len() => { channels=magick_color::channel_mask(&args[i+1]);i+=2; }
-                    "+channel" => { channels=[true,true,true,false];i+=1; }
+                    "-channel" if i+1<args.len() => { channels=Some(magick_color::channel_mask(&args[i+1]));i+=2; }
+                    "+channel" => { channels=None;i+=1; }
                     "-negate" | "+negate" => {
-                        ops.push(PixelOp::Negate(channels,arg=="+negate"));
+                        ops.push(PixelOp::Negate(channels.unwrap_or([true,true,true,false]),arg=="+negate"));
                         i += 1;
                     }
                     "+clone"|"-clone"|"+duplicate"|"-duplicate"|"+delete"|"-delete"|"+swap"|"-swap"|"-reverse"|"+insert"|"-insert" => {
@@ -10316,6 +10318,17 @@ fn cmd_media_doc(
                             }
                         }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
                     }
+                    "-auto-level" | "-auto-gamma" | "-normalize" | "-equalize" | "-contrast-stretch" | "-linear-stretch" => {
+                        use magick_histogram::Adjustment;
+                        let op=match arg.as_str(){
+                            "-auto-level"=>Adjustment::AutoLevel(channels),
+                            "-auto-gamma"=>Adjustment::AutoGamma,
+                            "-equalize"=>Adjustment::Equalize,
+                            "-normalize"=>Adjustment::Stretch("2%x1%"),
+                            _=>Adjustment::Stretch(if i+1<args.len()-usize::from(!is_mogrify){i+=1;&args[i]}else{"0%x0%"}),
+                        };
+                        ops.push(PixelOp::Histogram(op));i+=1;
+                    }
                     "-sepia-tone" | "-solarize" | "-posterize" | "-colors" => {
                         let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-sepia-tone"=>"80%","-solarize"=>"50%",_=>"8"}};
                         ops.push(match arg.as_str(){
@@ -10399,6 +10412,7 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Histogram(op)=>op.apply(image),
                         PixelOp::Sepia(strength)=>image.sepia(*strength),
                         PixelOp::Solarize(threshold)=>for p in &mut image.pixels {for c in &mut p[..3] {if f64::from(*c)>*threshold {*c=255-*c;}}},
                         PixelOp::Posterize(levels)=>image.posterize(*levels),
@@ -14687,6 +14701,32 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&["in.png","-auto-orient","-auto-orient","o.png"]),"","/",&fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash);
+        }
+    }
+
+    #[test]
+    fn convert_derives_tone_curves_from_the_input_histogram() {
+        let fs=MemoryVfs::new();
+        let im=png_pixels::Raster{width:9,height:7,gray:false,alpha:true,density:240,orientation:Some(6),
+            pixels:(0..63).map(|i|std::array::from_fn(|c|((if c==3 {73}else{32})+((i*4+c)*43%99)) as u8)).collect()};
+        fs.write_file("/rgba.png",&im.png()).unwrap();
+        for (args,hash) in [
+            ("-normalize","aef438d4da4e968d2ffd8865fc76081d65aba9da9ca45bc311ddc8b0ee761377"),
+            ("-contrast-stretch 20%x10%","4c9cd3a4b690b330e31de2090649a867189b545482b47372fe76d3b12dba62cb"),
+            ("-linear-stretch 2x4","7e4ecfb25bbe472bad7005d59aab21ea3010377163802cc6acaa0290ed3361db"),
+            ("-auto-level","a2f8f6676159e9e87bbb3fdb1abf4f6491557a1795b9764f53043b5641ec9633"),
+            ("-channel RGBA -auto-level","7915f4b5b9f198ab14880d9f436ee229e225576c51ea7cf3c60a99a75c968417"),
+            ("-channel red -auto-level","eaf2fa6385971f700a99fc12e767638ed271e96af299fc6dfcf01fcd4c4c72d4"),
+            ("-channel blue +channel -auto-level","a2f8f6676159e9e87bbb3fdb1abf4f6491557a1795b9764f53043b5641ec9633"),
+            ("-auto-gamma","23d4e49eeac4f562fefdff76b82739aac602fb1c0a987b16e761ae8d984884a8"),
+            ("-equalize","4f38eccf4faa7ee785a8155126f122cb4c71aa7843e2ccdcb4f2d5388e2b5350"),
+            ("-alpha off -auto-gamma","ea82651c0b9953be4ed17e2d0d91eeede01a47d08ba208d6f3d10e620ef9add4"),
+            ("-auto-level -auto-gamma -equalize","dd1f320253009e0bfe31560920bb80c695cb8f02ebb329447e15c084946154f4"),
+        ] {
+            let argv=format!("rgba.png {args} out.png");
+            let r=cmd_media_doc("convert",&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),hash,"{args}");
         }
     }
 

@@ -3735,10 +3735,11 @@ fn cmd_stat(
     let mut code = 0;
 
     'operand: for t in targets {
-        let p = resolve_posix_path(cwd, &t);
-        let st_res = if deref || filesystem { fs.stat(&p) } else { fs.lstat(&p) };
-        match st_res {
-            Ok(st) => {
+        let path = absolute_operand(cwd, &t);
+        let follow = deref || filesystem;
+        let syscall = if follow { "stat" } else { "lstat" };
+        match fs.inspect_command_entry(&path, follow, syscall) {
+            Ok((p, st)) => {
                 let perm = st.mode & 0o7777;
                 let is_char_dev = st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000;
                 let ftype = match st.kind {
@@ -4068,7 +4069,12 @@ fn cmd_stat(
                 }
             }
             Err(e) => {
-                stderr.push_str(&format!("stat: {e}\n"));
+                let reason = if path.is_empty() { "ENOENT: no such file or directory ''".to_owned() }
+                    else if e.starts_with("ENOTDIR: not a directory '") || e.contains(", resolve '")
+                        || (e.starts_with("EACCES:") || e.starts_with("ENAMETOOLONG:")) && e.contains(", lstat '")
+                        || e.ends_with(&format!(", {syscall} '{path}'")) { e }
+                    else { copy_error(&e, syscall, &path) };
+                stderr.push_str(&format!("stat: {reason}\n"));
                 code = 1;
             }
         }
@@ -7525,6 +7531,20 @@ mod tests {
             0
         );
         assert!(!vfs.exists("/work/dir"));
+    }
+
+    #[test]
+    fn stat_walks_the_operand_before_applying_dot_dot_or_a_trailing_slash() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w/d/inner").unwrap();
+        fs.write_file("/w/d/f", b"f").unwrap();
+        fs.symlink("d/inner", "/w/link").unwrap();
+        let run = |opt: &str, name: &str| cmd_stat(&args(&[opt, "%F", name]), "/w", &BTreeMap::new(), &fs);
+        assert_eq!(run("-c", "link/../f").stdout, "regular file\n");
+        assert_eq!(run("-c", "link/").stdout, "directory\n");
+        assert_eq!(run("-c", "missing/../d").stderr, "stat: ENOENT: no such file or directory, lstat '/w/missing/../d'\n");
+        assert_eq!(run("-Lc", "d/f/.").stderr, "stat: ENOTDIR: not a directory, stat '/w/d/f/.'\n");
+        assert_eq!(run("-c", "").stderr, "stat: ENOENT: no such file or directory ''\n");
     }
 
     #[test]

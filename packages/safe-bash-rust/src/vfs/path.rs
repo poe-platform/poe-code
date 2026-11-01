@@ -101,18 +101,21 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     if access && path.ends_with('/') { pending.insert(0, ".".into()); }
     while let Some(part) = pending.pop() {
         if purpose != WalkPurpose::AllowMissingParents {
-            let (_, backend, local) = location(&current);
+            let (mount, backend, local) = location(&current);
             let st = backend.stat(&local).map_err(|e| if purpose == WalkPurpose::OverlayAccess {
                 format!("{}, overlay '{current}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason))
             } else { e })?;
             if st.kind != super::VfsEntryKind::Directory {
+                if purpose == WalkPurpose::Access && mount.is_none() && st.mode & 0o170000 == 0o020000 && st.allocated_bytes == Some(0) {
+                    return Err(format!("ENOTDIR: not a directory '{path}'"));
+                }
                 return Err(if purpose == WalkPurpose::OverlayAccess { format!("ENOTDIR: not a directory, overlay '{current}'") } else { "ENOTDIR: not a directory".into() });
             }
             if st.mode & 0o100 == 0 {
                 if purpose == WalkPurpose::OverlayAccess { return Err(format!("EACCES: permission denied, overlay '{current}'")); }
                 if access {
-                    let denied = if matches!(part.as_str(), "." | "..") { path.to_owned() }
-                        else { format!("{}/{part}", current.trim_end_matches('/')) };
+                    if matches!(part.as_str(), "." | "..") { return Err("EACCES: permission denied".into()); }
+                    let denied = format!("{}/{part}", current.trim_end_matches('/'));
                     return Err(format!("EACCES: permission denied, lstat '{denied}'"));
                 }
                 return Err("EACCES: permission denied".into());
@@ -131,9 +134,11 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             current = dirname_posix_path(&current);
             continue;
         }
-        if access && part.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
         let candidate = format!("{}/{part}", current.trim_end_matches('/'));
         let (prefix, backend, relative) = location(&candidate);
+        if access && part.len() > 255 {
+            return Err(if prefix.is_none() && purpose == WalkPurpose::Access { format!("ENAMETOOLONG: name too long, lstat '{candidate}'") } else { "ENAMETOOLONG: name too long".into() });
+        }
         if boundary.is_some() && boundary != prefix {
             return Err("EACCES: Permission denied".into());
         }

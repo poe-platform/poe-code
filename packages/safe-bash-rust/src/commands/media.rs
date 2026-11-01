@@ -12856,6 +12856,18 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_tiles_partial_batches_in_filter_order() {
+        let fs=MemoryVfs::new();
+        let mut clip=b"YUV4MPEG2 W1 H1 F4:1\n".to_vec();
+        for y in [30,50,70,90,110]{clip.extend(b"FRAME\n");clip.extend([y,128,128]);}
+        fs.write_file("/in",&clip).unwrap();
+        let args=media_args(&["-i","in","-vf","tile=2x1,hflip,tile=1x2,reverse","out.y4m"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+        let expected=[b"YUV4MPEG2 W2 H2 F4:1 Ip A1:1 C420jpeg\nFRAME\n".as_slice(),&[16,110,16,16,128,128],b"FRAME\n",&[50,30,90,70,128,128]].concat();
+        assert_eq!(fs.read_file("/out.y4m").unwrap(),expected);
+    }
+
+    #[test]
     fn ffmpeg_retains_frame_times_across_trims_and_rate_changes() {
         let fs=MemoryVfs::new();
         let mut clip=b"YUV4MPEG2 W1 H1 F4:1\n".to_vec();

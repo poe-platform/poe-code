@@ -208,6 +208,71 @@ struct TimedFrame {
     duration: f64,
 }
 
+struct TileStage<'a> {
+    cols: usize,
+    rows: usize,
+    margin: i64,
+    padding: i64,
+    inputs: Vec<TimedFrame>,
+    filters: Vec<super::video_filter::Filter<'a>>,
+}
+
+// Resolve only the cells used by this output; a frame cap or trim need not render the rest.
+fn render(
+    stages: &[TileStage<'_>],
+    index: usize,
+    limit: usize,
+    image: &mut impl FnMut(usize) -> Result<Raster, &'static str>,
+) -> Result<Raster, &'static str> {
+    let Some((stage, prior)) = stages.split_last() else {
+        return image(index);
+    };
+    let per = stage.cols.saturating_mul(stage.rows);
+    let start = index * per;
+    let mut canvas: Option<Raster> = None;
+    for (k, entry) in stage.inputs[start..].iter().take(per).enumerate() {
+        let remaining = limit - canvas.as_ref().map_or(0, |c| c.pixels.len() * 4);
+        let mut cell = render(prior, entry.index, remaining, image)?;
+        for filter in &stage.filters {
+            filter.apply(&mut cell, remaining)?;
+        }
+        let (w, h) = (cell.width as i64, cell.height as i64);
+        let dim = |n: usize, d: i64| -> Result<usize, &'static str> {
+            let n = n as i128;
+            let size =
+                n * d as i128 + (n - 1) * i128::from(stage.padding) + 2 * i128::from(stage.margin);
+            usize::try_from(size)
+                .ok()
+                .filter(|s| *s > 0)
+                .ok_or("invalid tile dimensions")
+        };
+        if canvas.is_none() {
+            let (dw, dh) = (dim(stage.cols, w)?, dim(stage.rows, h)?);
+            if dw.saturating_mul(dh) > limit.saturating_sub(cell.pixels.len() * 4) / 4 {
+                return Err("image exceeds memory budget");
+            }
+            canvas = Some(raster(dw, dh, vec![[0, 0, 0, 255]; dw * dh]));
+        }
+        let dst = canvas.as_mut().unwrap();
+        let x = i128::from(stage.margin)
+            + (k % stage.cols) as i128 * (i128::from(w) + i128::from(stage.padding));
+        let y = i128::from(stage.margin)
+            + (k / stage.cols) as i128 * (i128::from(h) + i128::from(stage.padding));
+        if x < 0
+            || y < 0
+            || x + i128::from(w) > dst.width as i128
+            || y + i128::from(h) > dst.height as i128
+        {
+            return Err("offset is out of bounds");
+        }
+        for (dy, row) in cell.pixels.chunks_exact(cell.width).enumerate() {
+            let i = (y as usize + dy) * dst.width + x as usize;
+            dst.pixels[i..i + cell.width].copy_from_slice(row);
+        }
+    }
+    canvas.ok_or("missing tile frame")
+}
+
 pub(super) fn encode(
     w: usize,
     h: usize,
@@ -237,6 +302,7 @@ pub(super) fn encode(
         }
     }
     let mut ops = Vec::new();
+    let mut stages = Vec::new();
     for stage in opts
         .filters
         .iter()
@@ -245,6 +311,55 @@ pub(super) fn encode(
     {
         let (key, arg) = stage.split_once('=').unwrap_or((stage, ""));
         match key {
+            "tile" if !frames.is_empty() => {
+                let layout = arg
+                    .split(':')
+                    .find_map(|s| s.strip_prefix("layout="))
+                    .or_else(|| arg.split(':').next())
+                    .unwrap_or("");
+                let (cols, rows) = layout.split_once(['x', 'X']).unwrap_or((layout, ""));
+                let dimension = |s: &str| {
+                    s.parse::<i32>()
+                        .ok()
+                        .filter(|&n| n != 0)
+                        .unwrap_or(2)
+                        .max(1) as usize
+                };
+                let (cols, rows) = (dimension(cols), dimension(rows));
+                let setting = |key: &str| {
+                    arg.split(':')
+                        .filter_map(|s| s.split_once('='))
+                        .find(|(k, _)| *k == key)
+                        .and_then(|(_, v)| v.parse::<i64>().ok())
+                        .unwrap_or(0)
+                };
+                let (margin, padding) = (setting("margin"), setting("padding"));
+                if cols == 1 && rows == 1 && margin == 0 {
+                    continue;
+                }
+                // Each nested tile renders one child layer on the Wasm stack.
+                if stages.len() >= 64 {
+                    return Err("video tile nesting limit exceeded");
+                }
+                let previous = std::mem::take(&mut frames);
+                frames = previous
+                    .chunks(cols.saturating_mul(rows))
+                    .enumerate()
+                    .map(|(index, group)| TimedFrame {
+                        index,
+                        pts: group[0].pts,
+                        duration: group.iter().map(|f| f.duration).sum(),
+                    })
+                    .collect();
+                stages.push(TileStage {
+                    cols,
+                    rows,
+                    margin,
+                    padding,
+                    inputs: previous,
+                    filters: std::mem::take(&mut ops),
+                });
+            }
             "reverse" | "setpts" => {
                 let mut factor = 1.;
                 if key == "reverse" {
@@ -333,7 +448,7 @@ pub(super) fn encode(
     let mut out = Vec::new();
     let fps = 1. / frames[0].duration;
     for frame in frames {
-        let mut im = image(frame.index)?;
+        let mut im = render(&stages, frame.index, opts.limit, &mut image)?;
         for op in &ops {
             op.apply(&mut im, opts.limit)?;
         }

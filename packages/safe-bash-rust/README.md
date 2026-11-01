@@ -58,6 +58,8 @@ The JavaScript entry point requires Node.js to load the packaged WebAssembly bin
 
 Use `await bash.fs.utimes(path, atimeMs, mtimeMs)` to set access and modification times, including fractional milliseconds and dates before 1970. Read both values with `await bash.fs.stat(path)`. Memory files also expose `birthtimeMs` (creation) and `ctimeMs` (last change to the inode). Appending changes modification and status times while preserving access time.
 
+Inode numbers are local to each filesystem. When comparing two entries with `stat`, compare `identityScope`, `dev`, and `ino` together. Metadata such as `nlink`, `uid`, `gid`, and `allocatedBytes` may be absent when the backing filesystem does not report it.
+
 By default the shell exposes a virtual `/dev/null` alongside files you supply under `/dev`. Use `deviceView: "provided"` to keep your own `/dev/null`, or call `bash.mountDevices()` to mount the device filesystem over `/dev`.
 
 ```ts

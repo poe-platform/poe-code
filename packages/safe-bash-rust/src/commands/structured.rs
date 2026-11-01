@@ -1330,10 +1330,6 @@ fn eval_jq_atom(
         return Ok(vec![JVal::Array(items)]);
     }
 
-    if s.starts_with('{') && s.ends_with('}') && is_matching_outer_delim(s, '{', '}') {
-        return eval_jq_object_construct(&s[1..s.len() - 1], input, vars);
-    }
-
     if let Some(var_name) = s.strip_prefix('$') {
         let mut id_end = 0usize;
         for (idx, ch) in var_name.char_indices() {
@@ -1607,58 +1603,6 @@ fn jq_if_clauses(s: &str) -> (Vec<(String, String)>, Option<String>) {
     };
 
     (clauses, else_branch)
-}
-
-fn eval_jq_object_construct(
-    inner: &str,
-    input: &JVal,
-    vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
-    let fields = split_jq_top(inner, ',').unwrap_or_else(|| {
-        if inner.trim().is_empty() {
-            Vec::new()
-        } else {
-            vec![inner.trim().to_string()]
-        }
-    });
-    let mut entries = Vec::new();
-    for f in fields {
-        let f = f.trim();
-        if f.is_empty() {
-            continue;
-        }
-        if let Some((k_raw, v_raw)) = split_jq_binary(f, ":") {
-            let k_trim = k_raw.trim();
-            let key = if k_trim.starts_with('(') && k_trim.ends_with(')') {
-                eval_jq(&k_trim[1..k_trim.len() - 1], input, vars)?
-                    .first()
-                    .map(|v| v.to_raw_string(true, false))
-                    .unwrap_or_default()
-            } else if k_trim.starts_with('"') && k_trim.ends_with('"') {
-                k_trim[1..k_trim.len() - 1].to_string()
-            } else {
-                k_trim.to_string()
-            };
-            let val = eval_jq(&v_raw, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null);
-            entries.push((key, val));
-        } else {
-            let key = f.trim_start_matches('.').trim_matches('"').to_string();
-            let path = if f.starts_with('.') || f.starts_with('$') {
-                f.to_string()
-            } else {
-                format!(".{key}")
-            };
-            let val = eval_jq(&path, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null);
-            entries.push((key, val));
-        }
-    }
-    Ok(vec![JVal::Object(entries)])
 }
 
 fn eval_jq_update(

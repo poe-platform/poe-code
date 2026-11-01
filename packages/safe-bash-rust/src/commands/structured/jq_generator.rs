@@ -126,6 +126,19 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
         return visit_jq(&s[1..s.len() - 1], input, vars, emit);
     }
+    if s.starts_with('{') && s.ends_with('}') && is_matching_outer_delim(s, '{', '}') {
+        let body = s[1..s.len() - 1].trim();
+        if body.is_empty() {
+            return emit(JVal::Object(Vec::new()));
+        }
+        let fields = split_jq_top(body, ',').unwrap_or_else(|| vec![body.to_owned()]);
+        let fields: Vec<_> = fields
+            .into_iter()
+            .map(|f| split_jq_binary(&f, ":").map_or_else(|| (f, None), |(k, v)| (k, Some(v))))
+            .collect();
+        let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+        return object(&fields, Vec::new(), input, vars, 0, &mut remaining, emit);
+    }
     if s.starts_with("if") && super::is_jq_if_expr(s) {
         let (clauses, fallback) = super::jq_if_clauses(s);
         if clauses.len() > 128 {
@@ -240,6 +253,98 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         }
     }
     Ok(Continue(()))
+}
+
+fn object(
+    mut fields: &[(String, Option<String>)],
+    mut entries: Vec<(String, JVal)>,
+    input: &JVal,
+    vars: &JqScope<'_>,
+    depth: usize,
+    remaining: &mut usize,
+    emit: &mut Emit<'_>,
+) -> Flow {
+    fn put(entries: &mut Vec<(String, JVal)>, key: String, value: JVal) {
+        if let Some((_, old)) = entries.iter_mut().find(|(k, _)| k == &key) {
+            *old = value;
+        } else {
+            entries.push((key, value));
+        }
+    }
+    while let Some(((raw, expr), tail)) = fields.split_first() {
+        let key = raw.trim();
+        let shorthand = key.starts_with('$') && expr.is_none();
+        let literal = if shorthand {
+            key.strip_prefix('$').map(str::to_owned)
+        } else if key.starts_with('"') {
+            match parse_single_json_strict(key) {
+                Ok(JVal::Str(s)) => Some(s),
+                _ => None,
+            }
+        } else if key.starts_with(['(', '$']) {
+            None
+        } else {
+            Some(key.trim_start_matches('.').into())
+        };
+        let filter = expr.as_deref().map(str::trim).or(shorthand.then_some(key));
+        // Common single-valued fields need no suspended generator or object copy.
+        if let Some(ref name) = literal {
+            let value = match filter {
+                None => super::step_field(std::slice::from_ref(input), name, false)?.pop(),
+                Some(".") => Some(input.clone()),
+                Some(f)
+                    if f.starts_with(['.', '$'])
+                        && f[1..]
+                            .bytes()
+                            .all(|b| b.is_ascii_alphanumeric() || b == b'_') =>
+                {
+                    eval_jq(f, input, vars)?.pop()
+                }
+                Some(f)
+                    if (f.starts_with(['"', '-'])
+                        || f.as_bytes().first().is_some_and(u8::is_ascii_digit))
+                        || matches!(f, "true" | "false" | "null") =>
+                {
+                    parse_single_json_strict(f).ok()
+                }
+                _ => None,
+            };
+            if let Some(value) = value {
+                put(&mut entries, name.clone(), value);
+                fields = tail;
+                continue;
+            }
+        }
+        if depth >= 128 {
+            return Err("maxAstDepth limit exceeded".into());
+        }
+        let mut field = |key| {
+            let JVal::Str(name) = key else {
+                return Err("object keys must be strings".into());
+            };
+            let mut extend = |value| {
+                *remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                let mut next = entries.clone();
+                put(&mut next, name.clone(), value);
+                object(tail, next, input, vars, depth + 1, remaining, emit)
+            };
+            if let Some(f) = filter {
+                visit_jq(f, input, vars, &mut extend)
+            } else {
+                extend(
+                    super::step_field(std::slice::from_ref(input), &name, false)?
+                        .pop()
+                        .unwrap(),
+                )
+            }
+        };
+        return if let Some(name) = literal {
+            field(JVal::Str(name))
+        } else {
+            visit_jq(key, input, vars, &mut field)
+        };
+    }
+    emit(JVal::Object(entries))
 }
 
 fn conditional(

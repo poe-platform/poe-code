@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq emits every combination of object fields in order and replaces duplicate keys", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, values] of [
+      ["{x:(1,2),y:(3,4)}", [{x:1,y:3}, {x:1,y:4}, {x:2,y:3}, {x:2,y:4}]],
+      ["{x:empty}", []],
+      ["{x:1,y:2,x:3}", [{x:3,y:2}]],
+      ['{("a","b"):first(inputs)}', [{a:1}, {b:2}]],
+      ['"key" as $x | {$x, $x:2}', [{x:"key",key:2}]],
+      ['{"a\\tb":1, "x\\(1)":2}', [{"a\tb":1,x1:2}]],
+      ['first({x:(1,error("late"))})', [{x:1}]],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}' <<< '1 2'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, values.map(v => JSON.stringify(v) + "\n").join(""), ""], filter);
+    }
+    const r = await bash.exec("jq -nc '{(1):2}'");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", "jq: error (at <unknown>): object keys must be strings\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq ranges and limits stream numeric arguments and stop when their consumer stops", async () => {
   const bash = new RustWasmBash();
   try {

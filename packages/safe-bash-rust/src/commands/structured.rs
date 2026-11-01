@@ -29638,13 +29638,13 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             Err(message)=>return err_out(&message,1),
         }
-    } else if output_format == "svg" {
+    } else {
         match mermaid::layout(&content_lines, &src_text, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes()) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
         }
-    } else { None };
+    };
     let (vw, vh) = scene.as_ref().map_or((f64::from(width), f64::from(height)), |s| (s.width, s.height));
     let (width, height) = match (scene.is_some(), cli_width.or(cfg_width), cli_height.or(cfg_height)) {
         (true, Some(w), None) => (f64::from(w), (f64::from(w) * vh / vw).round().max(1.)),
@@ -38243,6 +38243,18 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         fs.chmod("/out.svg",0o600).unwrap();
         assert_eq!(run("out.svg").exit_code,0);
         assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o600);
+    }
+
+    #[test]
+    fn malformed_flowchart_preserves_raster_and_pdf_destinations() {
+        let fs=MemoryVfs::new();
+        for path in ["/chart.png","/chart.pdf"] {
+            fs.write_file(path,b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o",path]),"flowchart TD; A-->|bad","/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,1);
+            assert_eq!(r.stderr,"mmdc: E_SYNTAX (line 1, column 16): Unclosed edge label pipe '|'\n");
+            assert_eq!(fs.read_file(path).unwrap(),b"previous");
+        }
     }
 
     #[test]

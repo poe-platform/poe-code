@@ -13551,6 +13551,18 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_reports_packet_failure_for_a_copied_still_track_without_overwriting_output() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/src.jpg",include_bytes!("../../tests/fixtures/subsampled-progressive.jpg")).unwrap();
+        let run=|args:&[&str]|cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs);
+        assert_eq!(run(&["-i","src.jpg","-c","copy","copied.mp4"]).exit_code,0);
+        fs.write_file("/frame.png",b"previous output").unwrap();
+        let result=run(&["-y","-i","copied.mp4","-frames:v","1","frame.png"]);
+        assert_eq!((result.exit_code,result.stderr),(1,"ffmpeg: H.264 packet decode failed (-1094995529)\n".into()));
+        assert_eq!(fs.read_file("/frame.png").unwrap(), b"previous output");
+    }
+
+    #[test]
     fn ffmpeg_decodes_numbered_jpeg_inputs_from_the_requested_start_number() {
         let fs=MemoryVfs::new();
         let jpeg=include_bytes!("../../tests/fixtures/subsampled-progressive.jpg");

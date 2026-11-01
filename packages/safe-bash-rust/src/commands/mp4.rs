@@ -1409,7 +1409,15 @@ fn render_track(
                 let s = t
                     .sequence
                     .as_ref()
-                    .ok_or("unsupported MP4 video codec or missing H.264 sequence parameters")?;
+                    .ok_or_else(|| {
+                        let sample = &samples[index];
+                        let packet = &input[sample.offset..sample.offset + sample.size as usize];
+                        if super::image_header::recognized_image(packet) {
+                            "H.264 packet decode failed (-1094995529)"
+                        } else {
+                            "unsupported MP4 video codec or missing H.264 sequence parameters"
+                        }
+                    })?;
                 decoder = Some(h264::Pcm::new(
                     s,
                     child(t.entry.get(78..).unwrap_or_default(), b"avcC"),

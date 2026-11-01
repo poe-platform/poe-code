@@ -91,6 +91,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
 
 #[path = "bmp.rs"]
 mod bmp;
+#[path = "identify.rs"]
+mod identify;
 #[path = "netpbm.rs"]
 mod netpbm;
 #[path = "png_pixels.rs"]
@@ -10753,54 +10755,9 @@ fn cmd_media_doc(
                 };
                 let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
                 if let Some(ref fmt_str) = fmt_opt {
-                    let fname = f.rsplit('/').next().unwrap_or(f);
-                    let (stem, ext) = match fname.rsplit_once('.') {
-                        Some((s, e)) => (s, e),
-                        None => (fname, ""),
-                    };
-                    let compression = match meta.fmt.as_str() {
-                        "PNG" => "Zip",
-                        "JPEG" => "JPEG",
-                        "GIF" => "LZW",
-                        _ => "None",
-                    };
-                    let rendered = fmt_str
-                        .replace("%%", "\x00PCT\x00")
-                        .replace("%m", &meta.fmt)
-                        .replace("%w", &meta.w.to_string())
-                        .replace("%h", &meta.h.to_string())
-                        .replace("%x", &dpi.to_string())
-                        .replace("%y", &dpi.to_string())
-                        .replace("%[channels]", &format!("{}{}", meta.cs.to_ascii_lowercase(), if channels == 4 || channels == 2 { "a" } else { "" }))
-                        .replace("%z", &depth.to_string())
-                        .replace("%q", &depth.to_string())
-                        .replace("%r", &format!("DirectClass {}", meta.cs))
-                        .replace("%t", stem)
-                        .replace("%e", ext)
-                        .replace("%i", f)
-                        .replace("%g", &format!("{}x{}+0+0", meta.w, meta.h))
-                        .replace("%P", &format!("{}x{}", meta.w, meta.h))
-                        .replace("%C", compression)
-                        .replace("%Q", "92")
-                        .replace("%n", "1")
-                        .replace("%s", "0")
-                        .replace("%[width]", &meta.w.to_string())
-                        .replace("%[height]", &meta.h.to_string())
-                        .replace("%[depth]", &depth.to_string())
-                        .replace("%[size]", &format!("{}B", bytes.len()))
-                        .replace("%[compression]", compression)
-                        .replace("%[quality]", "92")
-                        .replace("%[fx:w]", &meta.w.to_string())
-                        .replace("%[fx:h]", &meta.h.to_string())
-                        .replace("%[fx:w*h]", &(u64::from(meta.w) * u64::from(meta.h)).to_string())
-                        .replace("%[colorspace]", &meta.cs)
-                        .replace("%b", &format!("{}B", bytes.len()))
-                        .replace("%B", &bytes.len().to_string())
-                        .replace("%f", fname)
-                        .replace("\\n", "\n")
-                        .replace("\\t", "\t")
-                        .replace("\x00PCT\x00", "%");
-                    out.push_str(&rendered);
+                    if let Err(e) = identify::format(fmt_str, f, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
+                        return err_out(&format!("identify: {e}\n"), 1);
+                    }
                 } else if verbose {
                     let details = if netpbm::signature(&bytes) || bmp::signature(&bytes) {
                         match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
@@ -13653,6 +13610,14 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn identify_only_expands_properties_in_the_original_format() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/%[depth]%b.ppm", b"P3\n1 1\n1\n1 0 0").unwrap();
+        let r = cmd_media_doc("identify", &media_args(&["-format", r"%i|%[WIDTH]|\%w|%[missing:%m]|%[unclosed %w", "%[depth]%b.ppm"]), "", "/", &fs);
+        assert_eq!(r.stdout, "%[depth]%b.ppm|1|%w|%[missing:%m]|%[unclosed %w");
     }
 
     #[test]

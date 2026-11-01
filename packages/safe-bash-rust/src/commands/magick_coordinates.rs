@@ -121,6 +121,66 @@ fn bounded(w: usize, h: usize, limit: usize) -> Result<(), &'static str> {
 }
 
 impl Raster {
+    pub fn raise(&mut self, g: Geometry, raised: bool) {
+        let border = g.width.unwrap_or(4.).round().max(1.) as usize;
+        for (i, pixel) in self.pixels.iter_mut().enumerate() {
+            let (x, y) = (i % self.width, i / self.width);
+            let top_left = x < border || y < border;
+            let bottom_right =
+                x >= self.width.saturating_sub(border) || y >= self.height.saturating_sub(border);
+            if top_left || bottom_right {
+                let lighten = if raised { top_left } else { bottom_right };
+                for c in &mut pixel[..3] {
+                    *c = if lighten {
+                        c.saturating_add(40)
+                    } else {
+                        c.saturating_sub(40)
+                    };
+                }
+            }
+        }
+    }
+
+    pub fn shadow(&mut self, g: Geometry, bg: [u8; 4], limit: usize) -> Result<(), &'static str> {
+        let opacity = g.width.unwrap_or(80.).clamp(0., 100.) / 100.;
+        let sigma = g.height.unwrap_or(3.).max(0.5);
+        let pad = ((2. * sigma).ceil() + g.x.abs().max(g.y.abs())).max(2.);
+        let (w, h) = (self.width as f64 + 2. * pad, self.height as f64 + 2. * pad);
+        if (w * h * 4.).fract() != 0. || w * h * 4. > limit as f64 {
+            return Err("EFBIG: file too large");
+        }
+        if w.fract() != 0. || h.fract() != 0. {
+            return Err("Invalid stored image dimensions");
+        }
+        let (width, height) = (w as usize, h as usize);
+        let left = pad + (g.x + 0.5).floor();
+        let top = pad + (g.y + 0.5).floor();
+        let mut pixels = vec![[0; 4]; width * height];
+        // A half-pixel offset starts two bytes into a packed RGBA pixel.
+        // Samples beyond the final row are transparent, regardless of adjacent allocations.
+        let source = self.pixels.as_flattened();
+        let output = pixels.as_flattened_mut();
+        for row in 0..self.height {
+            let y = top.ceil() as usize + row;
+            let first = (((y as f64 - top) * self.width as f64) * 4.) as usize;
+            let start = y * width * 4 + (left * 4.) as usize;
+            for (x, pixel) in output[start..start + self.width * 4]
+                .chunks_exact_mut(4)
+                .enumerate()
+            {
+                let alpha = source.get(first + x * 4 + 3).copied().unwrap_or(0);
+                pixel[..3].copy_from_slice(&bg[..3]);
+                pixel[3] = (f64::from(alpha) * opacity).round() as u8;
+            }
+        }
+        self.width = width;
+        self.height = height;
+        self.pixels = pixels;
+        self.alpha = true;
+        self.blur(sigma, true);
+        Ok(())
+    }
+
     pub fn roll(&mut self, g: Geometry) {
         if self.width == 0 || self.height == 0 {
             return;
@@ -392,5 +452,29 @@ impl Raster {
         });
         self.alpha |= bg[3] < 255;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod shadow_tests {
+    use super::*;
+
+    #[test]
+    fn fractional_shadow_reads_only_source_bytes() {
+        let mut image = Raster {
+            width: 1,
+            height: 1,
+            pixels: vec![[1, 2, 3, 255]],
+            gray: false,
+            alpha: true,
+            orientation: None,
+            density: 72,
+        };
+        image
+            .shadow(Geometry::parse("100x0.5+1.5+0"), [8, 9, 10, 255], 1024)
+            .unwrap();
+        assert_eq!((image.width, image.height), (6, 6));
+        let row = &image.pixels[18..24];
+        assert_eq!(row[4..], [[0, 0, 8, 9], [10, 0, 0, 0]]);
     }
 }

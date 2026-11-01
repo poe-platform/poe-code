@@ -56,6 +56,20 @@ fn convolve<const C: usize>(
 }
 
 impl Raster {
+    pub(super) fn vignette(&mut self, background: [u8; 4]) {
+        let cx = (self.width - 1) as f64 / 2.;
+        let cy = (self.height - 1) as f64 / 2.;
+        for (i, pixel) in self.pixels.iter_mut().enumerate() {
+            let x = ((i % self.width) as f64 - cx) / cx.max(1.);
+            let y = ((i / self.width) as f64 - cy) / cy.max(1.);
+            let t = ((x.hypot(y) - 0.65) / 0.55).clamp(0., 1.);
+            for c in 0..3 {
+                pixel[c] =
+                    (f64::from(pixel[c]) * (1. - t) + f64::from(background[c]) * t).round() as u8;
+            }
+        }
+    }
+
     pub(super) fn blur(&mut self, sigma: f64, alpha: bool) {
         let exp = |i: i32| (-f64::from(i * i) / (2. * sigma * sigma)).exp();
         let mut weights: Vec<i32> = (0..5000)

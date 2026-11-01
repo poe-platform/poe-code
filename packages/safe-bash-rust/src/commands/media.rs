@@ -10111,7 +10111,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10312,6 +10312,14 @@ fn cmd_media_doc(
                             }
                         }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
                     }
+                    "-raise" | "+raise" | "-vignette" | "-shadow" => {
+                        let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else if arg=="-shadow"{"80x3+5+5"}else{"4"};
+                        ops.push(match arg.as_str(){
+                            "-shadow"=>PixelOp::Shadow(Geometry::parse(spec),background),
+                            "-vignette"=>PixelOp::Vignette(background),
+                            _=>PixelOp::Raise(Geometry::parse(spec),arg=="-raise"),
+                        });i+=1;
+                    }
                     "-convolve" | "-edge" | "-canny" | "-emboss" | "-charcoal" | "-sketch" => {
                         let spec=if i+1<args.len()-usize::from(!is_mogrify) {i+=1;args[i].as_str()}else{"1"};
                         let charcoal=matches!(arg.as_str(),"-charcoal"|"-sketch");
@@ -10375,6 +10383,9 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Raise(g,raised)=>image.raise(*g,*raised),
+                        PixelOp::Vignette(bg)=>image.vignette(*bg),
+                        PixelOp::Shadow(g,bg)=>image.shadow(*g,*bg,fs.max_input_bytes())?,
                         PixelOp::Gamma(g)=>image.gamma(*g),
                         PixelOp::Trim(fuzz)=>image.trim(*fuzz,fs.max_input_bytes())?,
                         PixelOp::Clear=>image.pixels.fill([0;4]),
@@ -14675,6 +14686,9 @@ mod media_unit_tests {
             ("-convolve","kernel:0,-0.5,0,-0.5,3,-0.5,0,-0.5,0","2e62f1aebc90a1384747d5d11643829d951a75bacae551f161b2f8962706b9a5"),
             ("-emboss","1","620e3e4fdb5d3f0f1dcabd7c8a517b3f97e900cc8e54c7aebe9c526ae182d480"),
             ("-charcoal","3","378d4c7520d098dc90c714142245a54109df0809766c5486765174934cb05ff8"),
+            ("+raise","2x1","8012345993a65f6bcb4396a6a59a68a567585f618c79c1687e6a566245054171"),
+            ("-vignette","1","d0e5348280feaace8faf4c12e32b52b0574912228d0ab593318f466847576dcd"),
+            ("-shadow","80x3+5+5","df41baa05f418a316cf74fae882386ac0e10e3377e53b8d85fd7195306c4e4c3"),
             ("-median","2","3e7a1534daa9c9114d4503a50766b5821dcd54fccaa1fa1fd0bf08403a37faa0"),
             ("-median","bad","e63ece18c92a810a89cd79ac67055f4d2a2583f92cb39680858bac575f910ad7"),
         ]{

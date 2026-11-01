@@ -37158,11 +37158,26 @@ fn ast_wildcard_match(pattern: &str, text: &str) -> bool {
 
 fn ast_glob_matches_path(glob: &str, rel_path: &str) -> bool {
     if !glob.contains('/') {
-        let base = rel_path.rsplit('/').next().unwrap_or(rel_path);
-        ast_wildcard_match(glob, base)
-    } else {
-        ast_wildcard_match(glob, rel_path)
+        return ast_wildcard_match(glob, rel_path.rsplit('/').next().unwrap_or(rel_path));
     }
+    let parts: Vec<_> = rel_path.split('/').collect();
+    let mut matched = vec![false; parts.len() + 1];
+    matched[0] = true;
+    for pattern in glob.trim_start_matches("./").split('/') {
+        if pattern == "**" {
+            for (i, part) in parts.iter().enumerate() {
+                matched[i + 1] |= matched[i] && !matches!(*part, "." | "..");
+            }
+        } else {
+            for i in (0..parts.len()).rev() {
+                matched[i + 1] = matched[i]
+                    && !(parts[i] == ".." && (pattern.starts_with('*') || pattern.starts_with(".*")))
+                    && ast_wildcard_match(pattern, parts[i]);
+            }
+            matched[0] = false;
+        }
+    }
+    matched[parts.len()]
 }
 
 fn cmd_ast_grep(
@@ -39343,6 +39358,21 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_wildcards_only_cross_directory_boundaries_for_globstar() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/src/nested").unwrap();
+        for (glob, deep) in [("src/*.js", b"f(1);"), ("./src/**/*.js", b"g(1);")] {
+            for path in ["/src/a.js", "/src/nested/b.js"] {
+                fs.write_file(path, b"f(1);").unwrap();
+            }
+            let r = try_run_structured_command("sg", &args(&["-p", "f($X)", "-r", "g($X)", "-U", "--globs", glob, "src"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+            assert_eq!(fs.read_file("/src/a.js").unwrap(), b"g(1);", "{glob}");
+            assert_eq!(fs.read_file("/src/nested/b.js").unwrap(), deep, "{glob}");
+        }
     }
 
     #[test]

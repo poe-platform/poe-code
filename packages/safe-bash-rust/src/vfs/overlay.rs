@@ -107,6 +107,48 @@ impl OverlayVfs {
         Ok(())
     }
 
+    fn publish_file(&self, path: &str, data: &[u8], exclusive_mode: Option<u32>) -> Result<(), String> {
+        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
+            return if exclusive_mode.is_some() { Err("ENOTSUP: overlay layers do not support exclusive file creation".into()) }
+                else { self.upper.write_file(&self.access_path(path, true)?, data) };
+        };
+        let versions = (lower.generation(), upper.generation());
+        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let target = self.access_path(path, exclusive_mode.is_none())?;
+        if exclusive_mode.is_some() && target != path { return Err("EAGAIN: resolved entry changed".into()); }
+        let existing = match self.lstat(&target) {
+            Ok(_) if exclusive_mode.is_some() => return Err("EEXIST: file already exists".into()),
+            Ok(st) => Some(st),
+            Err(e) if e.starts_with("ENOENT:") => None,
+            Err(e) => return Err(e),
+        };
+        let upper_exists = upper.lstat(&target).is_ok();
+        if let Some(st) = &existing {
+            if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 { return Err("EISDIR: illegal operation on a directory".into()); }
+            if st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
+            if !upper_exists {
+                if st.nlink > 1 { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{target}'")); }
+                if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{target}'")); }
+            }
+        }
+        let parent = crate::vfs::dirname_posix_path(&target);
+        let mut parents = Vec::new();
+        if !upper_exists {
+            let mut dir = parent.clone();
+            loop {
+                let st = self.stat(&dir)?;
+                if st.mode & 0o300 != 0o300 { return Err(format!("EACCES: permission denied, overlay '{dir}'")); }
+                if upper.exists(&dir) { break; }
+                parents.push((dir.clone(), st));
+                dir = crate::vfs::dirname_posix_path(&dir);
+            }
+        }
+        let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
+        let mode = exclusive_mode.unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
+        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, existing.map(|st| st.atime_ms)), parents))
+    }
+
     fn forget_directory(&self, path: &str) {
         let mut dirs = self.directories.lock().unwrap();
         dirs.remove(path);
@@ -162,33 +204,12 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
-        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
-            return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
-        };
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
-        let versions = (lower.generation(), upper.generation());
-        if self.access_path(path, false)? != path { return Err("EAGAIN: resolved entry changed".into()); }
-        match self.lstat(path) {
-            Ok(_) => return Err("EEXIST: file already exists".into()),
-            Err(e) if e.starts_with("ENOENT:") => {}
-            Err(e) => return Err(e),
-        }
-        let mut parent = crate::vfs::dirname_posix_path(path);
-        if self.stat(&parent)?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
-        let mut parents = Vec::new();
-        while !upper.exists(&parent) {
-            parents.push((parent.clone(), self.stat(&parent)?.mode));
-            parent = crate::vfs::dirname_posix_path(&parent);
-        }
-        let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
-        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during creation".into()); }
-        self.copy_up_directories(&crate::vfs::dirname_posix_path(path), || upper.create_overlay_file(lower, versions, path, data, mode, parents))
+        self.publish_file(path, data, Some(mode))
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        self.copy_up_directories(&crate::vfs::dirname_posix_path(&norm), || self.upper.write_file(&norm, data))
+        self.publish_file(path, data, None)
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
@@ -565,6 +586,30 @@ mod tests {
         assert_ne!(fs.stat("/a/b").unwrap().identity, b);
         lower.remove_path("/a").unwrap();
         assert_ne!(fs.stat("/a").unwrap().identity, replacement);
+    }
+
+    #[test]
+    fn writing_overlay_files_preserves_lower_modes_and_access_times() {
+        let lower = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        lower.write_file("/private/old", b"old").unwrap();
+        lower.chmod("/private", 0o710).unwrap();
+        lower.set_times("/private", Some(10.0), None).unwrap();
+        lower.chmod("/private/old", 0o600).unwrap();
+        lower.set_times("/private/old", Some(20.0), None).unwrap();
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        fs.write_file("/private/new", b"new").unwrap();
+        let parent = fs.stat("/private").unwrap();
+        assert_eq!((parent.mode & 0o777, parent.atime_ms), (0o710, 10.0));
+        upper.set_times("/", None, Some(-1.0)).unwrap();
+        fs.write_file("/private/old", b"replacement").unwrap();
+        let file = fs.stat("/private/old").unwrap();
+        assert_eq!((file.mode & 0o777, file.atime_ms), (0o600, 20.0));
+        assert!(upper.stat("/").unwrap().mtime_ms > 0.0);
+        upper.set_times("/", None, Some(-1.0)).unwrap();
+        fs.write_file("/private/old", b"second").unwrap();
+        assert_eq!(upper.stat("/").unwrap().mtime_ms, -1.0);
+        assert_eq!(lower.read_file("/private/old").unwrap(), b"old");
     }
 
     #[test]

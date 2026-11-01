@@ -473,15 +473,26 @@ impl MemoryVfs {
         Ok((base, upper))
     }
 
-    pub(super) fn create_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], mode: u32, parents: Vec<(String, u32)>) -> Result<(), String> {
+    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>) -> Result<(), String> {
         let (_base, mut upper) = self.overlay_layers(lower, versions)?;
-        if upper.nodes.contains_key(path) || upper.devices.entry(path).is_some() { return Err("EEXIST: file already exists".into()); }
-        if parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
+        let creating = !upper.nodes.contains_key(path);
+        if creating && parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
             return Err("ENOSPC: inode limit exceeded".into());
         }
         Self::store_file(&mut upper, path.to_owned(), data, 0o100000 | mode, None)?;
-        for (parent, mode) in parents {
-            upper.create_directory(parent, mode);
+        if creating {
+            let now = super::now_ms();
+            if let Some(atime) = atime {
+                let ino = upper.nodes[path].ino();
+                upper.files.get_mut(&ino).unwrap().atime_ms = atime;
+            }
+            for (parent, st) in parents {
+                let mut node = MemoryNode::directory(st.mode, now);
+                if let MemoryNode::Directory { atime_ms, .. } = &mut node { *atime_ms = st.atime_ms; }
+                upper.parent_changed(&parent, now);
+                upper.insert_directory(parent, node);
+            }
+            upper.directory_changed("/", now);
         }
         self.bump_generation();
         Ok(())

@@ -1,11 +1,15 @@
 use super::png_pixels::Raster;
 
+#[path = "jpeg.rs"]
+mod jpeg;
+
 fn encode(im: &Raster, format: &str, limit: usize) -> Result<Vec<u8>, &'static str> {
     let (w, h) = (im.width, im.height);
     if w.saturating_mul(h) > limit / 4 {
         return Err("image exceeds memory budget");
     }
     let data = match format {
+        "jpeg" | "jpg" => jpeg::encode(im, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]
         }),

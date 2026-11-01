@@ -4625,7 +4625,7 @@ fn cmd_media_doc(
                 None => media_format::by_filename(&out_rel),
             };
             let y4m_output = muxer == Some("y4m");
-            let image_format=out_lower.rsplit('.').next().filter(|f|muxer==Some("image2") && matches!(*f,"png"|"bmp"|"ppm"));
+            let image_format=out_lower.rsplit('.').next().filter(|f|muxer==Some("image2") && matches!(*f,"png"|"bmp"|"ppm"|"jpg"|"jpeg"));
             let frame_output=y4m_output || image_format.is_some();
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
@@ -13345,6 +13345,16 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
         assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: ENOENT: no such file or directory, writeFile '/missing/im1.png'\n".to_string()));
         assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
+    fn ffmpeg_encodes_the_jpeg_scan_for_an_odd_sized_red_frame() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","color=c=red:s=7x5:r=3:d=1","-frames:v","1","frame%d.jpg"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let bytes=fs.read_file("/frame1.jpg").unwrap();
+        assert!(bytes.starts_with(b"\xff\xd8\xff\xe0"));
+        assert!(bytes.ends_with(b"\x3f\x00\xf2\xca\xfc\xe8\xfe\xcc\x3f\xff\xd9"));
     }
 
     #[test]

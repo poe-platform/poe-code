@@ -426,12 +426,11 @@ fn render(
                 n * d as i128 + (n - 1) * i128::from(stage.padding) + 2 * i128::from(stage.margin);
             usize::try_from(size)
                 .ok()
-                .filter(|s| *s > 0)
                 .ok_or("invalid tile dimensions")
         };
         if canvas.is_none() {
             let (dw, dh) = (dim(stage.cols, w)?, dim(stage.rows, h)?);
-            if dw.saturating_mul(dh) > limit.saturating_sub(cell.pixels.len() * 4) / 4 {
+            if dw.max(1).saturating_mul(dh.max(1)) > limit.saturating_sub(cell.pixels.len() * 4) / 4 {
                 return Err("image exceeds memory budget");
             }
             charge_pixels(work, dw * dh)?;
@@ -451,7 +450,7 @@ fn render(
         }
         for (dy, row) in cell
             .pixels
-            .chunks_exact(cell.width)
+            .chunks_exact(cell.width.max(1))
             .take(h as usize)
             .enumerate()
         {

@@ -300,7 +300,7 @@ enum VideoCodec {
 }
 
 fn video_entry(w: usize, h: usize, codec: VideoCodec) -> Result<Vec<u8>, &'static str> {
-    if w == 0 || h == 0 || w > u16::MAX as usize || h > u16::MAX as usize {
+    if w > u16::MAX as usize || h > u16::MAX as usize {
         return Err("invalid AVC sample dimensions");
     }
     let (tag, config) = match codec {
@@ -1327,10 +1327,10 @@ impl Composition {
             .filter(|&n| n <= *remaining / 4)
             .ok_or("video frames exceed memory budget")?;
         let mut pixels = vec![[0; 4]; n];
-        for (row, src) in a.pixels.chunks_exact(a.width).enumerate() {
+        for (row, src) in a.pixels.chunks_exact(a.width.max(1)).enumerate() {
             pixels[row * w..row * w + a.width].copy_from_slice(src);
         }
-        for (row, src) in im.pixels.chunks_exact(im.width).enumerate() {
+        for (row, src) in im.pixels.chunks_exact(im.width.max(1)).enumerate() {
             let offset = (y + row) * w + x;
             pixels[offset..offset + im.width].copy_from_slice(src);
         }

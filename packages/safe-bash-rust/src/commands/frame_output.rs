@@ -15,6 +15,7 @@ pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
 }
 
 fn tiff(im: &Raster, density:u32, limit: usize) -> Result<Vec<u8>, &'static str> {
+    if im.width==0 || im.height==0 {return Err("TIFF layout exceeds classic TIFF offsets");}
     let byte_count = im
         .pixels
         .len()
@@ -92,7 +93,7 @@ pub(super) fn encode(
                 format!("P4\n{w} {h}\n")
             }
             .into_bytes();
-            for row in im.pixels.chunks_exact(w) {
+            for row in im.pixels.chunks_exact(w.max(1)) {
                 let mut bits = 0;
                 for (i, &[r, g, b, _]) in row.iter().enumerate() {
                     let luma = 0.299 * f64::from(r) + 0.587 * f64::from(g) + 0.114 * f64::from(b);
@@ -133,7 +134,7 @@ pub(super) fn encode(
             ] {
                 out.extend_from_slice(&v.to_le_bytes());
             }
-            for pixels in im.pixels.chunks_exact(w).rev() {
+            for pixels in im.pixels.chunks_exact(w.max(1)).rev() {
                 for &[r, g, b, _] in pixels {
                     out.extend_from_slice(&[b, g, r]);
                 }

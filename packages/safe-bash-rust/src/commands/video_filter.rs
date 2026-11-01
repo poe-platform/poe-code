@@ -41,7 +41,7 @@ impl<'a> Filter<'a> {
         let color =
             |default| super::lavfi::color_rgb(self.param(&["color", "c"], 4).unwrap_or(default));
         match self.name {
-            "hflip" => im.pixels.chunks_exact_mut(iw).for_each(|row| row.reverse()),
+            "hflip" => im.pixels.chunks_exact_mut(iw.max(1)).for_each(|row| row.reverse()),
             "vflip" => im.remap(iw, ih, |im, x, y| im.pixels[(ih - 1 - y) * iw + x]),
             "negate" => im
                 .pixels
@@ -60,6 +60,7 @@ impl<'a> Filter<'a> {
                     im.pixels[(ih - 1 - x) * iw + y]
                 }
             }),
+            "crop" if iw==0 || ih==0 => return Err("extract_area: bad extract area"),
             "crop" => {
                 let w = dim(&["w"], 0, iw).clamp(1, iw as i32) as usize;
                 let h = dim(&["h"], 1, ih).clamp(1, ih as i32) as usize;
@@ -103,6 +104,7 @@ impl<'a> Filter<'a> {
                     }
                 }
             }
+            "scale" if iw==0 || ih==0 => return Err("offset is out of bounds"),
             "scale" => {
                 let (mut dw, mut dh) = (dim(&["w", "width"], 0, iw), dim(&["h", "height"], 1, ih));
                 let auto = |d: i32, other: i32, n: usize, m: usize| {

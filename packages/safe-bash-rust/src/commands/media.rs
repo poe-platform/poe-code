@@ -262,6 +262,7 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         (im.bit_depth(), if gray { 1 } else { 3 }, 72)
     } else if tiff::signature(bytes) {
         let im = tiff::Tiff::parse(bytes,limit)?;
+        if im.width==0 || im.height==0 {return Err("Invalid TIFF dimensions");}
         meta.w=im.width as u32; meta.h=im.height as u32; meta.fmt="TIFF".into();
         meta.cs=if im.samples<3 {"Gray"} else {"sRGB"}.into();
         (im.depth, if im.samples==2 {3} else {im.samples as u8}, im.density)
@@ -13923,6 +13924,20 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
         run(&["-i","a.mp4","-i","b.y4m","-filter_complex","concat=n=2:v=1:a=0","o.y4m"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "b5e04cd714a2e692a3170253e1b815057bad55ddf37a2ff59e18163897d65b79");
+    }
+
+    #[test]
+    fn image2_preserves_empty_geometry_in_a_readable_tiff_directory() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/b.tif",b"II*\0\x08\0\0\0\0\0").unwrap();
+        let run=|cmd:&str,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        assert_eq!(run("ffprobe",&["-show_entries","stream=codec_name,width,height,coded_width,display_aspect_ratio","-of","csv=p=0","b.tif"]).stdout,"tiff,0,0\n");
+        assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","hflip","o.ppm"]).exit_code,0);
+        assert_eq!(fs.read_file("/o.ppm").unwrap(),b"P6\n0 0\n255\n");
+        assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","scale=2:2","o.png"]).stderr,"ffmpeg: offset is out of bounds\n");
+        assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","hflip","o.mp4"]).exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),"c42372af188eb8d660d9bd4bfc82842d39ff70b2f9bb0eaa7cd158f973bccb7c");
+        assert_eq!(run("identify",&["b.tif"]).stderr,"identify: improper image header 'b.tif': Invalid TIFF dimensions\n");
     }
 
     #[test]

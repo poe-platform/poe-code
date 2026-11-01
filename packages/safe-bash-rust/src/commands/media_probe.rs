@@ -214,14 +214,12 @@ impl Clip {
                     ),
                     ("width", Number(width.into())),
                     ("height", Number(height.into())),
-                    ("coded_width", Number(f64::from(width.div_ceil(16)) * 16.)),
-                    ("coded_height", Number(f64::from(height.div_ceil(16)) * 16.)),
-                    ("has_b_frames", Number(0.)),
-                    ("sample_aspect_ratio", Str("1:1".into())),
-                    (
-                        "display_aspect_ratio",
-                        Str(ratio(width.into(), height.into(), ':')),
-                    ),
+                ]);
+                if width!=0 {row.push(("coded_width",Number(f64::from(width.div_ceil(16))*16.)));}
+                if height!=0 {row.push(("coded_height",Number(f64::from(height.div_ceil(16))*16.)));}
+                row.extend([("has_b_frames",Number(0.)),("sample_aspect_ratio",Str("1:1".into()))]);
+                if width!=0 && height!=0 {row.push(("display_aspect_ratio",Str(ratio(width.into(),height.into(),':'))));}
+                row.extend([
                     (
                         "pix_fmt",
                         Str(if tag == b"raw " { "yuv420p" } else { "rgb24" }.into()),

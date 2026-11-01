@@ -448,11 +448,13 @@ impl<'a> Pcm<'a> {
 
 pub(super) fn macroblocks(mut im: Raster, limit: usize) -> Result<Vec<[u8; 384]>, &'static str> {
     let (w, h) = (im.width, im.height);
-    let (dw, dh) = (w.div_ceil(16) * 16, h.div_ceil(16) * 16);
-    if w == 0 || h == 0 || dw.saturating_mul(dh) > limit / 4 {
+    let (dw, dh) = (w.div_ceil(16).max(1) * 16, h.div_ceil(16).max(1) * 16);
+    if dw.saturating_mul(dh) > limit / 4 {
         return Err("image exceeds memory budget");
     }
-    if w != dw || h != dh {
+    if w==0 || h==0 {
+        im.width=dw; im.height=dh; im.pixels.resize(dw*dh,[0;4]);
+    } else if w != dw || h != dh {
         im.remap(dw, dh, |r, x, y| r.pixels[y.min(h - 1) * w + x.min(w - 1)])
     }
     let mut planes = Vec::new();
@@ -519,7 +521,7 @@ impl BitWriter {
 }
 
 pub(super) fn configuration(w: usize, h: usize, fps: u32) -> Result<Vec<u8>, &'static str> {
-    let (mw, mh) = (w.div_ceil(16), h.div_ceil(16));
+    let (mw, mh) = (w.div_ceil(16).max(1), h.div_ceil(16).max(1));
     let level = if w > 1280 || h > 720 { 40 } else { 31 };
     let mut b = BitWriter::default();
     b.bits(66, 8);

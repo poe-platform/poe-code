@@ -199,10 +199,7 @@ impl<'a> Tiff<'a> {
                 .unwrap_or(fallback)
         };
         let (width, height) = (get(256, 0), get(257, 0));
-        if width == 0 || height == 0 {
-            return Err("Invalid TIFF dimensions");
-        }
-        if width.saturating_mul(height) > limit / 4 {
+        if width.max(1).saturating_mul(height.max(1)) > limit / 4 {
             return Err("image exceeds memory budget");
         }
         let samples = get(277, 4);
@@ -230,7 +227,7 @@ impl<'a> Tiff<'a> {
             limit,
             compression: get(259, 1),
             jpeg_tables: field(347).map_or(&[][..], |f| f.bytes),
-            rows_per_strip: get(278, height).clamp(1, height),
+            rows_per_strip: get(278, height).clamp(1, height.max(1)),
             white_zero: get(262, 2) == 0,
             predictor: get(317, 1) == 2,
             tile,
@@ -329,6 +326,7 @@ impl<'a> Tiff<'a> {
     }
 
     pub fn decode(&self) -> Result<Raster, &'static str> {
+        if self.width==0 || self.height==0 {return Err("Invalid TIFF dimensions");}
         let default = [8u8];
         let offsets = self.offsets.unwrap_or(Field {
             bytes: &default,

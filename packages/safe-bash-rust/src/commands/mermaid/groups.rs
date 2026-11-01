@@ -286,7 +286,7 @@ pub(super) fn verify(
     groups: &[Group],
     order: &[usize],
     nodes: &[Node],
-    pills: &[Option<[f64; 4]>],
+    pills: &super::labels::Positions,
     edge_id: fn(usize) -> String,
     mut work: usize,
 ) -> Result<(), String> {
@@ -317,13 +317,14 @@ pub(super) fn verify(
                 }
             }
         }
-        if let Some(k) = pills
+        if let Some((&(k, slot), _)) = pills
             .iter()
-            .position(|p| p.is_some_and(|r| super::labels::overlaps(r, header, -0.5)))
+            .find(|&(_, r)| super::labels::overlaps(*r, header, -0.5))
         {
             return Err(violation(format!(
-                "Invariant 3 (pill header clearance): pill '{}:label' overlaps header band of '{id}'",
-                edge_id(k)
+                "Invariant 3 (pill header clearance): pill '{}:{}' overlaps header band of '{id}'",
+                edge_id(k),
+                slot.suffix()
             )));
         }
         if let Some(g) = group.parent {

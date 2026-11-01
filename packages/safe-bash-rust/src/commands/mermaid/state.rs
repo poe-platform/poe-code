@@ -452,7 +452,7 @@ pub(super) fn place_notes(
     notes: &mut [Note],
     nodes: &[Node],
     groups: &[super::Group],
-    pills: &[Option<[f64; 4]>],
+    pills: &super::labels::Positions,
     paths: &[Vec<super::route::Point>],
     mut work: usize,
 ) -> Result<(), String> {
@@ -466,7 +466,7 @@ pub(super) fn place_notes(
             .map(|n| ([n.x, n.y, n.w, n.h].map(f64::from), 24.)),
     );
     obstacles.extend(groups.iter().map(|g| (g.header(), 10.)));
-    obstacles.extend(pills.iter().flatten().map(|&b| (b, 12.)));
+    obstacles.extend(pills.values().map(|&b| (b, 12.)));
     for path in paths {
         for segment in path.windows(2) {
             let ((x, y), (a, b)) = (segment[0], segment[1]);

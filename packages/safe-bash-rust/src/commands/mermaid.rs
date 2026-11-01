@@ -530,6 +530,7 @@ const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;
 pub(super) struct Graph<'a> {
     edge_id: fn(usize) -> String,
     notes: Vec<state::Note>,
+    endpoints: labels::Endpoints,
     groups: Vec<Group>,
     nodes: Vec<Node>,
     edges: Vec<Edge<'a>>,
@@ -544,6 +545,7 @@ impl<'a> Graph<'a> {
     fn core(wrapping_width: f64, limit: usize) -> Self {
         Self {
             notes: Vec::new(),
+            endpoints: Default::default(),
             edge_id: |i| format!("edge_{i}"),
             dir: "LR",
             nodes: Vec::new(),
@@ -580,7 +582,7 @@ pub(super) fn parse<'a>(
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
     if keyword == "classDiagram" {
-        return class::parse(lines, wrapping_width, secondary_size, limit).transpose();
+        return Some(class::parse(lines, wrapping_width, secondary_size, limit));
     }
     if keyword == "erDiagram" {
         return Some(er::parse(lines, wrapping_width, secondary_size, limit));
@@ -804,6 +806,7 @@ pub(super) fn parse<'a>(
     }
     Some(Ok(Graph {
         notes: Vec::new(),
+        endpoints: Default::default(),
         edge_id: |i| format!("edge_{}", i + 1),
         groups,
         nodes,
@@ -827,6 +830,7 @@ pub(super) fn layout(
 ) -> Option<Result<Scene, String>> {
     let Graph {
         mut notes,
+        mut endpoints,
         edge_id,
         mut groups,
         mut nodes,
@@ -876,7 +880,13 @@ pub(super) fn layout(
         }
     }
     if ranks::place(
-        &mut nodes, &edges, &groups, horizontal, reversed, gaps, limit,
+        &mut nodes,
+        &edges,
+        &groups,
+        (horizontal, reversed),
+        &endpoints,
+        gaps,
+        limit,
     )
     .is_none()
     {
@@ -905,7 +915,9 @@ pub(super) fn layout(
     else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
-    let positions = match labels::place(&nodes, &groups, &edges, &waypoints, edge_id, limit) {
+    let positions = match labels::place(
+        &nodes, &groups, &edges, &waypoints, &endpoints, edge_id, limit,
+    ) {
         Ok(p) => p,
         Err(error) => return Some(Err(error)),
     };
@@ -937,7 +949,7 @@ pub(super) fn layout(
     for &(x, y) in waypoints.iter().flatten() {
         include(x - 4., y - 4., 8., 8.);
     }
-    for &[x, y, w, h] in positions.iter().flatten() {
+    for &[x, y, w, h] in positions.values() {
         include(x, y, w, h);
     }
     for n in &notes {
@@ -1150,17 +1162,30 @@ pub(super) fn layout(
             "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
             _ => {}
         }
-        if let (
-            Some([px, py, w, h]),
-            Some(Pill {
-                size,
-                weight,
-                radius: rx,
-                lines,
-                ..
-            }),
-        ) = (positions[idx], label)
-        {
+        for (slot, label) in [
+            (labels::Slot::Center, label),
+            (
+                labels::Slot::Source,
+                endpoints.remove(&(idx, labels::Slot::Source)),
+            ),
+            (
+                labels::Slot::Target,
+                endpoints.remove(&(idx, labels::Slot::Target)),
+            ),
+        ] {
+            let (
+                Some([px, py, w, h]),
+                Some(Pill {
+                    size,
+                    weight,
+                    radius: rx,
+                    lines,
+                    ..
+                }),
+            ) = (positions.get(&(idx, slot)).copied(), label)
+            else {
+                continue;
+            };
             let short = weight == 600;
             let left = px + f64::from(dx);
             let top = py + f64::from(dy);

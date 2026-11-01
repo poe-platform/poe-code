@@ -76,7 +76,7 @@ pub(super) fn parse(
     wrapping: f64,
     secondary: f64,
     limit: usize,
-) -> Result<Option<Graph<'static>>, String> {
+) -> Result<Graph<'static>, String> {
     let mut graph = Graph::core(wrapping, limit);
     graph.dir = "TD";
     graph.edge_id = |i| format!("class_edge_{}", i + 1);
@@ -227,9 +227,6 @@ pub(super) fn parse(
                 if !right.is_empty() {
                     let (left, source_label) = endpoint(&text[..i], true);
                     let (right, target_label) = endpoint(right, false);
-                    if source_label.is_some() || target_label.is_some() {
-                        return Ok(None);
-                    }
                     let (a, _) = ensure(left)?;
                     let (b, _) = ensure(right)?;
                     check_label(label, stmt, text)?;
@@ -237,12 +234,26 @@ pub(super) fn parse(
                         return Err("mmdc: E_LIMIT: Edge limit exceeded\n".into());
                     }
                     graph.connect(a, b, op);
-                    if !label.is_empty() {
-                        let pill =
-                            super::Pill::new(label, wrapping, secondary, graph.remaining_lines)
-                                .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
-                        graph.remaining_lines -= pill.lines.len();
-                        graph.edges.last_mut().unwrap().3 = Some(pill);
+                    use super::labels::Slot;
+                    for (slot, s) in [
+                        (Slot::Center, Some(label)),
+                        (Slot::Source, source_label),
+                        (Slot::Target, target_label),
+                    ] {
+                        let Some(s) = s.filter(|s| !s.is_empty()) else {
+                            continue;
+                        };
+                        if slot != Slot::Center {
+                            check_label(s, stmt, text)?;
+                        }
+                        let p = super::Pill::new(s, wrapping, secondary, graph.remaining_lines)
+                            .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
+                        graph.remaining_lines -= p.lines.len();
+                        if slot == Slot::Center {
+                            graph.edges.last_mut().unwrap().3 = Some(p);
+                        } else {
+                            graph.endpoints.insert((graph.edges.len() - 1, slot), p);
+                        }
                     }
                     continue;
                 }
@@ -278,7 +289,7 @@ pub(super) fn parse(
             &format!("Unclosed namespace block '{}'", graph.groups[i].id),
         ));
     }
-    Ok(Some(graph))
+    Ok(graph)
 }
 
 const OPS: &[&str] = &[

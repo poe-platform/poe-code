@@ -8,8 +8,8 @@ pub(super) fn place(
     nodes: &mut [Node],
     edges: &[Edge],
     groups: &[Group],
-    horizontal: bool,
-    reverse: bool,
+    (horizontal, reverse): (bool, bool),
+    endpoints: &super::labels::Endpoints,
     (rank_gap, node_gap): (f64, f64),
     work: usize,
 ) -> Option<()> {
@@ -169,8 +169,13 @@ pub(super) fn place(
     let mut allowance = vec![0_f64; layers.len()];
     let mut intervals: Vec<_> = edges
         .iter()
-        .filter_map(|(a, b, _, label)| {
-            let label = label.as_ref()?;
+        .enumerate()
+        .filter_map(|(i, (a, b, _, label))| {
+            use super::labels::Slot;
+            let label = label
+                .as_ref()
+                .or_else(|| endpoints.get(&(i, Slot::Source)))
+                .or_else(|| endpoints.get(&(i, Slot::Target)))?;
             let needed = if horizontal {
                 label.rank_size.0 + 36.
             } else {

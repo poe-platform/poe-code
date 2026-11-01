@@ -38580,6 +38580,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_places_class_endpoint_multiplicities() {
+        assert_mermaid_outputs(&[
+            ("classDiagram\nA \"1\" -- B", "svg", "daea43da7ec15de2448643aaeb8b611f4bee96b39708086bc97ad5f184cd2919"),
+            ("classDiagram\nA --> \"0..*\" B", "svg", "e57d3fc69e809a4ec7ca8949212e71a5be2642e946a23b5e1d7eb1620c8e75aa"),
+            ("classDiagram\ndirection LR\nA \"1\" --> \"many\" B: contains", "svg", "50625d48a8c80b465bc72a83decfe83682266d00ae7d87dccdb7fca1bf54807e"),
+            ("classDiagram\ndirection RL\nA \"0..1\" <|-- \"*\" B: base", "svg", "42f9c7dea84d5cc099848c700d459a5ba51a76f4e0ac882c01c9778ed2fc75de"),
+            ("classDiagram\ndirection BT\nA \"long source label\" o-- \"long destination label\" B", "svg", "492e9e6ea4763c4524f68d38881d89b1fb627d8ce94c3f4c2f3a905d25cc174e"),
+            ("classDiagram\nA \"1\" --> \"0..*\" B: link\nA \"1\" --> \"*\" C: link", "svg", "a460fe6ee6a309703c423d2a057e72405da87a4bafe034992b6fa43eb12c8091"),
+            ("classDiagram\nA \"1\" --> \"0..*\" B: link\nA \"1\" --> \"*\" C: link", "png", "f11778657a5a3ece345e4d40933fc272fb71f1a80cca5b5aedd049ca758b0454"),
+            ("classDiagram\nA \"1\" --> \"0..*\" B: link\nA \"1\" --> \"*\" C: link", "pdf", "8b09de1d9152349dc1458c1a3fea1af77fd49b1d9930fd4bfba154eba201d0c4"),
+            ("classDiagram\nA \"1\" --> \"*\" A: again", "svg", "93129083b11679b6a4c9f295dde3a8e2768f25a8918e101bd98faa83e0382885"),
+            ("classDiagram\nA \"1\" --> \"*\" B\nB \"0..1\" --> \"1\" A", "svg", "2b2336688b02dbf0b2fc9866e38cd486f3afe27e2486b488cb1038644fd640fe"),
+            ("classDiagram\nnamespace Shop {\nclass A\n}\nA \"1\" --> \"many\" B", "svg", "56224b31beb9d62d1452c5b54c6137338d1bff9c1fcfe2a474004f9787fa3d15"),
+            ("classDiagram\nA \"\" -- \"\" B", "svg", "c2fa56ac3871a4498920f96ed1549b0207c4f214ef4dcb1fcc080d32173bbc97"),
+            ("classDiagram\n\"Left class\" \"1\" -- \"2\" \"Right class\"", "svg", "3ed8a92e67cf85c2b7cd6ce0ebae5e6df2fed329b7ca1abf64765e670187bf1b"),
+            ("classDiagram\nA \" \" --> B", "svg", "d92ac4962dbb1c907239486862a9a8d1311afcfd68a795126fc4b55de9836cb0"),
+            ("classDiagram\nA \"∞\" --> \"many\" B\nC --> D", "svg", "87e2c971bacb579fa3a371167fba38b4f7c940552ea53829d8517888c7c8fa2d"),
+            ("classDiagram\nclass Foo\nFoo--Bar", "svg", "9adc817233d8f02ba89596e9fe51c87e1ab31ec080d8950ed0923a657f63f3d4"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

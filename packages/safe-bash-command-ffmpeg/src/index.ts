@@ -887,6 +887,8 @@ async function applyVideoFilterChain(
         }
         return { ...f, data: nextData };
       }, signal);
+    } else if (name !== "format" && name !== "null") {
+      throw new Error(`Unsupported video filter: ${name}`);
     }
   }
 

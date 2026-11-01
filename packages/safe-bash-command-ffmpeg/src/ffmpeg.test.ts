@@ -753,6 +753,36 @@ it("matches native ffprobe flat numeric and string field types", async () => {
 
 
 describe("animated GIF and lavfi source regressions", () => {
+  for (const [option, filter] of [
+    ["-vf", "not_a_video_filter"],
+    ["-filter:v", "palettegen"],
+    ["-vf", "paletteuse"],
+    ["-filter_complex", "[0:v]scale=8:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse"]
+  ]) {
+    it(`rejects unsupported video filter ${filter} without replacing an existing output`, async () => {
+      const original = new Uint8Array([17, 29, 43]);
+      const vfs = createTestVfs({
+        "/input.mp4": createSyntheticMp4({ width: 16, height: 12, frameCount: 2, includeAudio: false }),
+        "/output.gif": original
+      });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.mp4", option!, filter!, "/output.gif"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /unsupported video filter/i);
+      assert.deepEqual(vfs.store.get("/output.gif"), original);
+    });
+  }
+
+  it("keeps the null video filter as an explicit no-op", async () => {
+    const vfs = createTestVfs({ "/input.mp4": createSyntheticMp4({ width: 16, height: 12, frameCount: 2, includeAudio: false }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.mp4", "-vf", "null", "-frames:v", "1", "/output.png"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const before = parseMp4(vfs.store.get("/input.mp4")!).tracks[0]!;
+    const expected = [...decodeH264Samples(before.samples, before.codecDescriptions, 16, 12, before.timescale)];
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const actual = decodeImage(vfs.store.get("/output.png")!);
+    assert.deepEqual(actual.data, expected[0]!.data);
+  });
+
   it("encodes every filtered frame and probes animation timing", async () => {
     const vfs = createTestVfs();
     const source = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "testsrc=size=16x12:rate=4:duration=1.5", "master.mp4"], vfs);

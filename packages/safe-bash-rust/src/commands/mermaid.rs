@@ -28,6 +28,9 @@ enum Shape {
     Stadium,
     Circle,
     Diamond,
+    Cylinder,
+    Hexagon,
+    Subroutine,
 }
 
 fn advance(c: char, bold: bool) -> u32 {
@@ -91,6 +94,13 @@ fn dimensions(n: &mut Node) {
             let d = snap((tallest + 28.).hypot(text_height + 24.)).max(64);
             (d, d)
         }
+        Shape::Cylinder => (
+            snap(tallest + 30.).max(104),
+            snap(text_height + 38.).max(60),
+        ),
+        Shape::Hexagon | Shape::Subroutine => {
+            (snap(tallest + 48.).max(88), snap(text_height + 22.).max(40))
+        }
         _ => (snap(tallest + 36.).max(88), snap(text_height + 22.).max(40)),
     }
 }
@@ -143,6 +153,9 @@ fn parse_node<'a>(
     for (open, close, shape) in [
         ("((", "))", Shape::Circle),
         ("([", "])", Shape::Stadium),
+        ("[(", ")]", Shape::Cylinder),
+        ("[[", "]]", Shape::Subroutine),
+        ("{{", "}}", Shape::Hexagon),
         ("[", "]", Shape::Rect),
         ("(", ")", Shape::Rounded),
         ("{", "}", Shape::Diamond),
@@ -394,25 +407,48 @@ pub(super) fn layout(
         let (x, y, w, h) = (n.x, n.y, n.w, n.h);
         let cx = x + w / 2;
         let cy = y + h / 2;
-        let (fill, border, color) = if matches!(n.shape, Shape::Rect | Shape::Rounded) {
-            if dark {
-                ("#1e293b", "#334155", "#f8fafc")
+        let accent = match theme {
+            "dark" => ("#172554", "#3b82f6", "#dbeafe"),
+            "forest" => ("#f0fdf4", "#4ade80", "#166534"),
+            "neutral" => ("#f1f5f9", "#94a3b8", "#334155"),
+            _ => ("#eff6ff", "#60a5fa", "#1e3a8a"),
+        };
+        let (fill, border, color) =
+            if matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine) {
+                if dark {
+                    ("#1e293b", "#334155", "#f8fafc")
+                } else {
+                    ("#ffffff", "#cbd5e1", "#0f172a")
+                }
             } else {
-                ("#ffffff", "#cbd5e1", "#0f172a")
-            }
+                accent
+            };
+        let join = if matches!(n.shape, Shape::Cylinder | Shape::Hexagon) {
+            r#" stroke-linejoin="round""#
         } else {
-            match theme {
-                "dark" => ("#172554", "#3b82f6", "#dbeafe"),
-                "forest" => ("#f0fdf4", "#4ade80", "#166534"),
-                "neutral" => ("#f1f5f9", "#94a3b8", "#334155"),
-                _ => ("#eff6ff", "#60a5fa", "#1e3a8a"),
-            }
+            ""
         };
         let style = format!(
-            r#"fill="{fill}" stroke="{border}" stroke-width="1.25" filter="url(#{prefix}mmdc-shadow)""#
+            r#"fill="{fill}" stroke="{border}" stroke-width="1.25"{join} filter="url(#{prefix}mmdc-shadow)""#
         );
         let mut el = format!(r#"<g class="mmdc-node" data-id="{}">"#, esc(&n.id));
         match n.shape {
+            Shape::Cylinder => {
+                let rx = w / 2;
+                let ry = ((f64::from(w) * 0.075).round() as i32).clamp(9, 11);
+                let top = y + ry;
+                let bottom = y + h - ry;
+                let right = x + w;
+                let lid = if dark { "#1e3a8a" } else { "#dbeafe" };
+                write!(el,r#"<path d="M {x} {top} A {rx} {ry} 0 0 1 {right} {top} L {right} {bottom} A {rx} {ry} 0 0 1 {x} {bottom} Z" {style}/><ellipse cx="{cx}" cy="{top}" rx="{rx}" ry="{ry}" fill="{lid}" stroke="{border}" stroke-width="1.25"/>"#).ok()?;
+            }
+            Shape::Hexagon => {
+                let left = x + 12;
+                let right = x + w;
+                let inset = right - 12;
+                let bottom = y + h;
+                write!(el,r#"<polygon points="{left},{y} {inset},{y} {right},{cy} {inset},{bottom} {left},{bottom} {x},{cy}" {style}/>"#).ok()?;
+            }
             Shape::Circle => {
                 write!(el, r#"<circle cx="{cx}" cy="{cy}" r="{}" {style}/>"#, w / 2).ok()?
             }
@@ -459,7 +495,13 @@ pub(super) fn layout(
                 .ok()?;
             }
         }
-        let first_y = cy - (n.lines.len() as i32) * 10 + 14;
+        if n.shape == Shape::Subroutine {
+            for pos in [x + 11, x + w - 11] {
+                write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,accent.1).ok()?;
+            }
+        }
+        let first_y =
+            cy - (n.lines.len() as i32) * 10 + 14 + if n.shape == Shape::Cylinder { 8 } else { 0 };
         for (i, line) in n.lines.iter().enumerate() {
             if !line.is_empty() {
                 write!(el,r#"<text x="{cx}" y="{}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,first_y+i as i32*20,esc(line)).ok()?;

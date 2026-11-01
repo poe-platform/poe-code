@@ -38246,10 +38246,15 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     #[test]
     fn mmdc_places_flowchart_nodes_and_connectors() {
         let fs = MemoryVfs::new();
-        let r = try_run_structured_command("mmdc", &args(&["-i","-","-o","a.svg"]), "graph TD; A-->B;", "/", &BTreeMap::new(), &fs).unwrap();
-        assert_eq!(r.exit_code,0,"{}",r.stderr);
-        let bytes=fs.read_file("/a.svg").unwrap();
-        assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f");
+        for (source,hash) in [
+            ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
+            ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5")
+        ] {
+            let r = try_run_structured_command("mmdc", &args(&["-i","-","-o","a.svg"]), source, "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let bytes=fs.read_file("/a.svg").unwrap();
+            assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), hash);
+        }
     }
 
     #[test]

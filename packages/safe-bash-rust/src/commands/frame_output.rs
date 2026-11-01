@@ -58,7 +58,7 @@ fn encode(im: &Raster, format: &str, limit: usize) -> Result<Vec<u8>, &'static s
     Ok(data)
 }
 
-fn sequence(path: &str) -> Result<Option<(usize, usize, usize)>, &'static str> {
+pub(super) fn sequence(path: &str) -> Result<Option<(usize, usize, usize)>, &'static str> {
     for (i, _) in path.match_indices('%') {
         let suffix = &path[i + 1..];
         let n = suffix.bytes().take_while(u8::is_ascii_digit).count();
@@ -84,6 +84,7 @@ pub(super) fn render(
     cwd: &str,
     path: &str,
     image_format: Option<&str>,
+    pattern: Option<(usize, usize, usize)>,
     mut index: u64,
     decode: impl FnOnce(
         bool,
@@ -91,11 +92,6 @@ pub(super) fn render(
     ) -> Result<(usize, usize, u32), String>,
 ) -> Result<Option<Vec<u8>>, String> {
     let limit = fs.max_input_bytes();
-    let pattern = if image_format.is_some() {
-        sequence(path)?
-    } else {
-        None
-    };
     let mut data = Vec::new();
     let mut failure = None;
     let mut total = 0usize;

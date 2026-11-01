@@ -4620,12 +4620,20 @@ fn cmd_media_doc(
                     Err(_) => {}
                 }
             }
-            let muxer = match output_format {
+            let ext=out_lower.rsplit_once('.').map(|(_,ext)|ext);
+            let supported_image=|f:&str|matches!(f,"png"|"bmp"|"ppm"|"jpg"|"jpeg");
+            let sequence=if ext.is_some_and(supported_image) && !matches!(output_format,Some("null"|"hls"|"dash")) {
+                match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+            }else{None};
+            let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null"{None}else{match output_format {
                 Some(name) => media_format::by_name(name),
                 None => media_format::by_filename(&out_rel),
-            };
+            }};
             let y4m_output = muxer == Some("y4m");
-            let image_format=out_lower.rsplit('.').next().filter(|f|muxer==Some("image2") && matches!(*f,"png"|"bmp"|"ppm"|"jpg"|"jpeg"));
+            let named=output_format.map(str::to_ascii_lowercase);
+            let image_format=if muxer!=Some("image2"){None}else if sequence.is_some(){ext}else{
+                named.as_deref().or(ext).map(|f|if f=="image2"{"png"}else{f}).filter(|f|supported_image(f))
+            };
             let frame_output=y4m_output || image_format.is_some();
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
@@ -4668,7 +4676,7 @@ fn cmd_media_doc(
                 } else if frame_output && (format==Some("y4m") || supported) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
-                    let result=frame_output::render(fs,cwd,&out_rel,image_format,output_start,|sequence,emit|{
+                    let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
                         let bytes=bytes.as_deref().unwrap_or_default();
@@ -13345,6 +13353,16 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
         assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: ENOENT: no such file or directory, writeFile '/missing/im1.png'\n".to_string()));
         assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
+    fn ffmpeg_explicit_image_format_applies_only_to_single_images() {
+        let fs=MemoryVfs::new();
+        let render=|path:&str|cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","color=c=red:s=1x1:r=1:d=1","-f","ppm",path]),"","/",&fs);
+        assert_eq!(render("out.bmp").exit_code,0);
+        assert_eq!(fs.read_file("/out.bmp").unwrap(),b"P6\n1 1\n255\n\xff\x00\x00");
+        assert_eq!(render("out%d.bmp").exit_code,0);
+        assert!(fs.read_file("/out1.bmp").unwrap().starts_with(b"BM"));
     }
 
     #[test]

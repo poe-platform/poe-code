@@ -373,7 +373,7 @@ pub(super) fn waypoints(
     }
     let mut paths = Vec::with_capacity(edges.len());
     let mut collision = None;
-    for (i, &(a, b, _, _)) in edges.iter().enumerate() {
+    for (i, &(a, b, _, label)) in edges.iter().enumerate() {
         let [src, dst] = attachments[i];
         let (p, s) = src.point(&nodes[a]);
         let (q, t) = dst.point(&nodes[b]);
@@ -418,11 +418,25 @@ pub(super) fn waypoints(
             }
             let lane = if src.count >= dst.count { src } else { dst };
             let f = (lane.lane + 1) as f64 / (lane.count + 1) as f64;
+            let reserve = if label.is_empty() {
+                0.
+            } else if horizontal {
+                super::pill_style(label).3 + 24.
+            } else {
+                47.
+            };
             if horizontal {
-                let x = (s.0 + (t.0 - s.0) * f + 0.5).floor();
+                let delta = t.0 - s.0;
+                let end = t.0 - delta.signum() * reserve.min(delta.abs());
+                let x = (s.0 + (end - s.0) * f + 0.5).floor();
                 vec![p, (x, p.1), (x, q.1), q]
             } else {
-                let y = (s.1 + (t.1 - s.1) * f + 0.5).floor();
+                let end = if reverse {
+                    s.1.min(t.1 + reserve)
+                } else {
+                    s.1.max(t.1 - reserve)
+                };
+                let y = (s.1 + (end - s.1) * f + 0.5).floor();
                 vec![p, (p.0, y), (q.0, y), q]
             }
         })();

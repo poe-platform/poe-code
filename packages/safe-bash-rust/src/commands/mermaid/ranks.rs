@@ -77,17 +77,26 @@ pub(super) fn place(
     let mut center = vec![0; nodes.len()];
     let mut along = vec![0; nodes.len()];
     let mut allowance = vec![0_f64; layers.len()];
-    for &(a, b, _, label) in edges {
-        if !label.is_empty() {
-            let r = rank[a].min(rank[b]);
-            if rank[a].abs_diff(rank[b]) != 1 {
-                return None;
-            }
-            allowance[r] = allowance[r].max(if horizontal {
+    let mut intervals: Vec<_> = edges
+        .iter()
+        .filter(|e| !e.3.is_empty() && e.0 != e.1)
+        .map(|&(a, b, _, label)| {
+            let needed = if horizontal {
                 measure(label, 11.5, false) + 36.
             } else {
                 44.
-            });
+            };
+            (needed, rank[a].min(rank[b])..rank[a].max(rank[b]))
+        })
+        .collect();
+    if !intervals.is_empty() {
+        intervals.sort_unstable_by(|a, b| b.0.total_cmp(&a.0));
+        let mut free: std::collections::BTreeSet<_> = (0..max_rank).collect();
+        for (needed, span) in intervals {
+            while let Some(&r) = free.range(span.clone()).next() {
+                allowance[r] = needed;
+                free.remove(&r);
+            }
         }
     }
     let degree: Vec<_> = layers
@@ -192,21 +201,6 @@ pub(super) fn place(
     for i in 0..nodes.len() {
         min_cross = min_cross.min(center[i] - breadth[i] / 2);
         max_cross = max_cross.max(center[i] + breadth[i] / 2);
-    }
-    for &(a, b, _, label) in edges {
-        if !label.is_empty() && center[a] != center[b] {
-            return None;
-        }
-        if !label.is_empty() {
-            let pill = if horizontal {
-                23
-            } else {
-                super::pill_style(label).3 as i32
-            };
-            let start = center[a] - pill / 2;
-            min_cross = min_cross.min(start);
-            max_cross = max_cross.max(start + pill);
-        }
     }
     let length = along.iter().zip(&depth).map(|(a, d)| a + d).max()? + 64;
     let width = max_cross - min_cross + 64;

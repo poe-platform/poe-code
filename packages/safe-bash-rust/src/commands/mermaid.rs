@@ -2,6 +2,8 @@
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
 
+#[path = "mermaid/labels.rs"]
+mod labels;
 #[path = "mermaid/pie.rs"]
 pub(super) mod pie;
 #[path = "mermaid/ranks.rs"]
@@ -309,9 +311,6 @@ pub(super) fn layout(
             }
             let (b, tail) = parse_node(tail, &mut nodes, &mut ids)?;
             if a == b {
-                if !label.is_empty() {
-                    return None;
-                }
                 nodes[a].loops += 1;
             } else {
                 nodes[a].to.push(b);
@@ -350,6 +349,10 @@ pub(super) fn layout(
     else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
+    let positions = match labels::place(&nodes, &edges, &waypoints, limit) {
+        Ok(p) => p,
+        Err(error) => return Some(Err(error)),
+    };
     let (mut min_x, mut min_y, mut max_x, mut max_y) =
         (0_f64, 0_f64, f64::from(width), f64::from(height));
     for &(x, y) in waypoints.iter().flatten() {
@@ -357,6 +360,12 @@ pub(super) fn layout(
         min_y = min_y.min(y - 36.);
         max_x = max_x.max(x + 36.);
         max_y = max_y.max(y + 36.);
+    }
+    for &[x, y, w, h] in positions.iter().flatten() {
+        min_x = min_x.min(x - 32.);
+        min_y = min_y.min(y - 32.);
+        max_x = max_x.max(x + w + 32.);
+        max_y = max_y.max(y + h + 32.);
     }
     width = (max_x - min_x).ceil() as i32;
     height = (max_y - min_y).ceil() as i32;
@@ -387,9 +396,6 @@ pub(super) fn layout(
         [15, 23, 42, 15]
     };
     for (idx, ((a, b, op, label), mut points)) in edges.into_iter().zip(waypoints).enumerate() {
-        if !label.is_empty() && points.len() != 2 {
-            return None;
-        }
         let (x, y) = points[0];
         let (ex, ey) = *points.last()?;
         let next = points[1];
@@ -470,11 +476,11 @@ pub(super) fn layout(
             "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
             _ => {}
         }
-        if !label.is_empty() {
-            let (size, weight, rx, w) = pill_style(label);
+        if let Some([px, py, w, _]) = positions[idx] {
+            let (size, weight, rx, _) = pill_style(label);
             let short = weight == 600;
-            let left = (((x + ex) - w) * 0.5).round();
-            let top = (((y + ey) - 23.) * 0.5).round();
+            let left = px + f64::from(dx);
+            let top = py + f64::from(dy);
             let (fill, border, color) = if dark {
                 ("#1e293b", "#334155", "#f8fafc")
             } else {

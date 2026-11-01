@@ -38333,6 +38333,10 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart LR; A-->B; B-->A","616d23a0332a155b767a713169510d2daf0aff0d028ad83f2af4b42c950d1c24"),
             ("flowchart TD; A-->B-->C; A-->C","5fae7f22d9dd290e84e499c3f22eebe591df6dcbef80c37f43f382c95e6c2ce5"),
             ("flowchart LR; n0_2((OK)); n0_1-->n1_0; n0_2-->n1_2","9a5fdff5590d8a233e3f18df0eb3e70866e931fe835153408454e43b85fb2495"),
+            ("flowchart RL; A-->B-->C; A-->|skip a step|C","4adc9398236914f7bd2d81b0b819cc4197c057843191b25bd770b9cff5400907"),
+            ("flowchart BT; A-->|repeat|A","fb95753e39025eb3f5cd1c6128b0ca69575d288ef42b77abfb75f73310454b99"),
+            ("flowchart LR; A-->|first|B; A-->|second|B","c7accb4a44622b877073f6214f9d5dfe761b7b600f7eab08a3667f2cc8087eab"),
+            ("flowchart TD; A-->|yes|B; A-->|no|C","cd2899fabfdf4b982bac910c367657d310b0a77243da8feff6db9f817f8405c9"),
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
             ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
             ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")

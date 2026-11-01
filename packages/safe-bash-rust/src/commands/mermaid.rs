@@ -36,6 +36,8 @@ mod route;
 #[path = "mermaid/scanner.rs"]
 pub(super) mod scanner;
 use scanner::Statement;
+#[path = "mermaid/sequence.rs"]
+pub(super) mod sequence;
 #[path = "mermaid/source.rs"]
 pub(super) mod source;
 #[path = "mermaid/state.rs"]

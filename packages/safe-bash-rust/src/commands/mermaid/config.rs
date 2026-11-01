@@ -193,6 +193,7 @@ impl Theme<'_> {
             "surface" | "edgeLabelBackground" => base("#ffffff", "#1e293b"),
             "text" => base("#0f172a", "#f8fafc"),
             "border" | "groupBorder" => base("#cbd5e1", "#334155"),
+            "borderStrong" => "#64748b",
             "edge" => base("#64748b", "#94a3b8"),
             "shadowColor" => base("rgba(15, 23, 42, 0.06)", "rgba(0, 0, 0, 0.35)"),
             "mutedText" => base("#475569", "#94a3b8"),

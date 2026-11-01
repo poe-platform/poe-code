@@ -29380,7 +29380,10 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let graph_family = matches!(first_word,
         "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2" | "erDiagram" | "classDiagram"
     );
-    let native_family = graph_family || matches!(first_word, "pie" | "gantt");
+    let sequence = if first_word=="sequenceDiagram" {
+        match mermaid::sequence::Sequence::parse(&scanned,fs.max_input_bytes()) {Ok(chart)=>chart,Err(message)=>return err_out(&message,1)}
+    }else{None};
+    let native_family = graph_family || sequence.is_some() || matches!(first_word, "pie" | "gantt");
     if !native_family && !matches!(first_word,
         "sequenceDiagram"
     ) {
@@ -29520,6 +29523,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         pie.title=pie.title.or(acc_title);
         acc_title = pie.title.clone();
         Some(match pie.layout(&theme,padding,limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
+    } else if let Some(chart)=sequence {
+        Some(match chart.layout(&theme,padding,&id_prefix,acc_title.as_deref(),limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
     } else if let Some(chart) = gantt {
         Some(match chart.layout(&theme,padding,acc_title.as_deref(),limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
     } else if let Some(graph) = graph {
@@ -38599,6 +38604,34 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("classDiagram\nA \" \" --> B", "svg", "d92ac4962dbb1c907239486862a9a8d1311afcfd68a795126fc4b55de9836cb0"),
             ("classDiagram\nA \"∞\" --> \"many\" B\nC --> D", "svg", "87e2c971bacb579fa3a371167fba38b4f7c940552ea53829d8517888c7c8fa2d"),
             ("classDiagram\nclass Foo\nFoo--Bar", "svg", "9adc817233d8f02ba89596e9fe51c87e1ab31ec080d8950ed0923a657f63f3d4"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_sequence_participants_lifelines_and_links() {
+        assert_mermaid_outputs(&[
+            ("sequenceDiagram\n", "svg", "071bbab186626891c2aa5aa9b425a2408a916479960ae96d96b5c46895a4701a"),
+            ("sequenceDiagram\nparticipant Viewer", "svg", "881f7db7fa2fc6de0fdac2ecce7107657c2d17f010c3d7605ff9e49b922a58a5"),
+            ("sequenceDiagram\nactor User as Shopper", "svg", "c0bd556cf33e9094fdc726913c92eee5220a70e244a3afc98e3f5158a57fc707"),
+            ("sequenceDiagram\nactor User as Shopper", "png", "f01c8d5876cc54ebe7954ebe8e2e3294102301dfaaf62774b6c79fdaac4ddf50"),
+            ("sequenceDiagram\nactor User as Shopper", "pdf", "424105ce3d6e17c40525e47f746bc0a8447ec821cfed078633934f176838264f"),
+            ("sequenceDiagram\nparticipant API as Backend\nactor U as User", "svg", "2d76223a70d9fd4f5ef453b53ae23ce6a6afbe28e0b4e8d42cffed3b95071084"),
+            ("sequenceDiagram\nparticipant Q\nparticipant Q as Queue\nactor Q", "svg", "8a287f32c12436330d30cad0b1d7d014da497d9fcd5d3e98ed7f7d32a991b335"),
+            ("sequenceDiagram\nparticipant \"my as id\" as \"API Gateway\"", "svg", "fb3c15da94c8e3fab1e805fafff7036344a35219524f7936c90eaa537e8e0320"),
+            ("sequenceDiagram\nparticipant M as A long label that should wrap if it reaches the maximum width and continues for another several words", "svg", "49463c4e923b004a056f40079f71e540f89aded1100522d9119041eeeef5a134"),
+            ("sequenceDiagram\nautonumber", "svg", "071bbab186626891c2aa5aa9b425a2408a916479960ae96d96b5c46895a4701a"),
+            ("sequenceDiagram\nparticipant \"\"", "svg", "mmdc: E_SYNTAX (line 2, column 1): Missing participant identifier in sequenceDiagram\n"),
+            ("sequenceDiagram\nnot a message", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized sequenceDiagram statement: 'not a message'\n"),
+            ("sequenceDiagram\nlink A label", "svg", "mmdc: E_SYNTAX (line 2, column 1): Expected a sequence link target\n"),
+            ("sequenceDiagram\nlinks A: none", "svg", "mmdc: E_SYNTAX (line 2, column 1): Invalid sequence links mapping\n"),
+            ("sequenceDiagram\nclick A \"javascript:alert(1)\"", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content 'javascript:' in diagram label\n"),
+            ("sequenceDiagram\nparticipant A\nclick A href \"https://example.com\"", "svg", "f946aebc0656ab9fef778c289e19950267432c08fc90f274d41df60e3cd0958a"),
+            ("sequenceDiagram\nparticipant A\nlink A: Guide @ https://example.com", "svg", "1c602d855f540edc46857f041edaf061a8b64446ede9d9a116cac16cbdabaa9a"),
+            ("sequenceDiagram\nactor A\nlinks A: {\"Docs\":\"https://example.com\",\"Contact\":\"mailto:a@example.org\"}", "svg", "533b24a81f1f5e40ded6912f44e1765eb18c122bc13aa61eef8216d43b868491"),
+            ("sequenceDiagram\nactor A\nlinks A: {\"Docs\":\"https://example.com\",\"Contact\":\"mailto:a@example.org\"}", "png", "d878586c426405069839039b5d33d7ac90af862138765d7302b6701c071bf0e6"),
+            ("sequenceDiagram\nactor A\nlinks A: {\"Docs\":\"https://example.com\",\"Contact\":\"mailto:a@example.org\"}", "pdf", "198c923ba04a81c85d81f4fff893ef44dee9320576267407132aba6ca84d4f51"),
+            ("sequenceDiagram\nlink X: Guide @ https://example.org\nparticipant X", "svg", "d19aa5943f39b2bc842c9f35d20f9df5d1faacc8ecaae3401203dcfed0830064"),
+            ("sequenceDiagram\ntitle Demo\nparticipant A", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized sequenceDiagram statement: 'title Demo'\n"),
         ]);
     }
 

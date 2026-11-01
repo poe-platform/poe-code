@@ -4,11 +4,14 @@ use std::{collections::BTreeMap, fmt::Write};
 
 #[path = "mermaid/pie.rs"]
 pub(super) mod pie;
+#[path = "mermaid/raster.rs"]
+mod raster;
 
 pub(super) struct Scene {
     pub width: f64,
     pub height: f64,
     pub elements: Vec<String>,
+    paint: Option<Vec<raster::Paint>>,
 }
 #[derive(Default)]
 struct Node {
@@ -36,23 +39,30 @@ enum Shape {
     Subroutine,
 }
 
-fn advance(c: char, bold: bool) -> u32 {
-    // Little-endian code point, regular advance and bold advance from the UI and
-    // fallback mono hmtx tables, including each face's tracking.
-    let widths = include_bytes!("mermaid/advances.bin").as_chunks::<6>().0;
+const ADVANCES: &[[u8; 6]] = include_bytes!("mermaid/advances.bin").as_chunks::<6>().0;
+fn glyph_index(c: char) -> usize {
     let cp = c as u32;
-    if let Ok(i) = widths.binary_search_by_key(&cp, |r| u16::from_le_bytes([r[0], r[1]]) as u32) {
-        let n = if bold { 4 } else { 2 };
-        u16::from_le_bytes([widths[i][n], widths[i][n + 1]]) as u32
+    if let Ok(i) =
+        ADVANCES.binary_search_by_key(&cp, |r| u32::from(u16::from_le_bytes([r[0], r[1]])))
+    {
+        i
     } else if matches!(cp,0x1100..=0x11ff|0x2e80..=0x9fff|0xac00..=0xd7af|0xf900..=0xfaff|0x1f300..=0x1faff)
     {
-        980
+        ADVANCES.len() + cp as usize % 4
     } else {
-        advance('?', bold)
+        glyph_index('?')
     }
 }
-fn measure(s: &str) -> f64 {
-    (s.chars().map(|c| u64::from(advance(c, false))).sum::<u64>() as f64 * 1.3).ceil() / 100.
+fn advance(c: char, bold: bool) -> u32 {
+    let Some(r) = ADVANCES.get(glyph_index(c)) else {
+        return 980;
+    };
+    let n = if bold { 4 } else { 2 };
+    u16::from_le_bytes([r[n], r[n + 1]]) as u32
+}
+fn measure(s: &str, size: f64, bold: bool) -> f64 {
+    let units = s.chars().map(|c| u64::from(advance(c, bold))).sum::<u64>() as f64;
+    (units / 1000. * size * 100.).ceil() / 100.
 }
 fn snap(v: f64) -> i32 {
     (v / 8.).ceil() as i32 * 8
@@ -68,14 +78,17 @@ fn dimensions(n: &mut Node) {
     for l in label.lines() {
         let mut line = String::new();
         for word in l.split_whitespace() {
-            let width = measure(word);
-            if !line.is_empty() && measure(&line) + measure(" ") + width > 200. {
+            let width = measure(word, 13., false);
+            if !line.is_empty()
+                && measure(&line, 13., false) + measure(" ", 13., false) + width > 200.
+            {
                 n.lines.push(std::mem::take(&mut line));
             } else if !line.is_empty() {
                 line.push(' ');
             }
             for c in word.chars() {
-                if !line.is_empty() && measure(&line) + f64::from(advance(c, false)) * 0.013 > 200.
+                if !line.is_empty()
+                    && measure(&line, 13., false) + f64::from(advance(c, false)) * 0.013 > 200.
                 {
                     n.lines.push(std::mem::take(&mut line));
                 }
@@ -85,7 +98,7 @@ fn dimensions(n: &mut Node) {
         n.lines.push(line);
     }
     for l in &n.lines {
-        tallest = f64::max(tallest, measure(l));
+        tallest = f64::max(tallest, measure(l, 13., false));
     }
     let text_height = n.lines.len().max(1) as f64 * 20.;
     (n.w, n.h) = match n.shape {
@@ -238,7 +251,7 @@ pub(super) fn layout(
                 }
                 return None;
             };
-            if label.contains(['<', '\n']) || measure(label) > 200. {
+            if label.contains(['<', '\n']) || measure(label, 13., false) > 200. {
                 return None;
             }
             let (b, tail) = parse_node(tail, &mut nodes, &mut ids)?;
@@ -299,11 +312,7 @@ pub(super) fn layout(
     let mut label_breadth = 0;
     for &(a, b, _, label) in &edges {
         if !label.is_empty() {
-            let units = label
-                .chars()
-                .map(|c| u64::from(advance(c, false)))
-                .sum::<u64>() as f64;
-            let text_width = (units * 1.15).ceil() / 100.;
+            let text_width = measure(label, 11.5, false);
             allowances[if reversed { b } else { a }] =
                 if horizontal { text_width + 36. } else { 44. };
             label_breadth = label_breadth.max(if horizontal {
@@ -522,9 +531,7 @@ pub(super) fn layout(
     let mut width = f64::from(width);
     let mut height = f64::from(height);
     if let Some(t) = title.filter(|t| !t.is_empty()) {
-        let text_width = (t.chars().map(|c| u64::from(advance(c, true))).sum::<u64>() as f64 * 1.6)
-            .ceil()
-            / 100.;
+        let text_width = measure(t, 16., true);
         width = width.max(text_width + 64.);
         let fill = if dark { "#1e293b" } else { "#ffffff" };
         let color = if dark { "#f8fafc" } else { "#0f172a" };
@@ -535,6 +542,7 @@ pub(super) fn layout(
     Some(Ok(Scene {
         width,
         height,
+        paint: elements.is_empty().then(Vec::new),
         elements,
     }))
 }

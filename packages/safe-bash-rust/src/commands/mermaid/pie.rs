@@ -1,4 +1,6 @@
-use super::{FONT, Scene, advance, esc, measure};
+use super::raster::Paint;
+use super::{FONT, Scene, esc, measure};
+use crate::commands::archive::parse_color;
 use std::fmt::Write;
 
 pub(in super::super) struct Pie {
@@ -227,20 +229,20 @@ impl Pie {
                 format!("{pct:.1}")
             };
             let label = format!("{label}{data} ({percent}%)");
-            legend = legend.max(measure(&label));
+            legend = legend.max(measure(&label, 13., false));
             labels.push(label);
         }
         legend += 24.;
         let title = self.title.as_deref().filter(|s| !s.is_empty());
         let title_h = if title.is_some() { 40 } else { 0 };
         let cy = 152 + title_h;
-        let width = (344. + legend).max(title.map_or(0., |s| {
-            64. + (s.chars().map(|c| u64::from(advance(c, true))).sum::<u64>() as f64 * 1.6).ceil()
-                / 100.
-        }));
+        let title_width = title.map_or(0., |t| measure(t, 16., true));
+        let width = (344. + legend).max(title_width + 64.);
         let height = (64 + title_h + 240.max(self.slices.len() * 48)) as f64;
         let mut elements = Vec::new();
         let mut nodes = Vec::new();
+        let mut paint = Vec::new();
+        let mut ends = Vec::new();
         let mut angle = -std::f64::consts::FRAC_PI_2;
         let colors = [
             ("#4e79a7", "#fff"),
@@ -263,25 +265,55 @@ impl Pie {
                 write!(points, " {},{}", 152. + 120. * cos, cy as f64 + 120. * sin).unwrap();
             }
             angle += sweep;
+            ends.push((angle, parse_color(fill).unwrap()));
             elements.push(format!(
                 r#"<polygon class="mmdc-pie-slice" points="{points}" fill="{fill}" />"#
             ));
             let y = 32 + title_h + i * 48;
+            paint.push(Paint::Box {
+                bounds: [312., y as f64, legend, 24.],
+                radius: 3.,
+                color: parse_color(fill).unwrap(),
+            });
+            paint.push(Paint::Text {
+                start: 324.,
+                baseline: (y + 17) as f64,
+                size: 13.,
+                weight: 400,
+                color: parse_color(color).unwrap(),
+                text: label.clone(),
+            });
             nodes.push(format!(r#"<g class="mmdc-node" data-id="legend_{i}"><rect x="312" y="{y}" width="{legend}" height="24" rx="3" fill="{fill}" stroke="{fill}" stroke-width="0"/><text x="324" y="{}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="400" letter-spacing="0.025em" text-anchor="start">{}</text></g>"#,y+17,esc(&label)));
         }
         elements.extend(nodes);
+        paint.insert(
+            0,
+            Paint::Pie {
+                cy: cy as f64,
+                ends,
+            },
+        );
         if let Some(t) = title {
             let color = if theme == "dark" {
                 "#f8fafc"
             } else {
                 "#0f172a"
             };
+            paint.push(Paint::Text {
+                start: (width - title_width) / 2.,
+                baseline: 45.,
+                size: 16.,
+                weight: 600,
+                color: parse_color(color).unwrap(),
+                text: t.into(),
+            });
             elements.push(format!(r#"<g class="mmdc-node" data-id="pie_title"><rect x="32" y="32" width="{}" height="16" rx="0" fill="transparent" stroke="transparent" stroke-width="0"/><text x="{}" y="45" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#,width-64.,width/2.,esc(t)));
         }
         Scene {
             width,
             height,
             elements,
+            paint: Some(paint),
         }
     }
 }

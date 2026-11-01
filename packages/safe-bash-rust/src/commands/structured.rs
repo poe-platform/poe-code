@@ -29634,7 +29634,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         match mermaid::pie::Pie::parse(first_stmt,&src_text,fs.max_input_bytes()) {
             Ok(pie) => {
                 acc_title=pie.title.clone();
-                (output_format=="svg").then(||pie.layout(&resolved_theme))
+                Some(pie.layout(&resolved_theme))
             }
             Err(message)=>return err_out(&message,1),
         }
@@ -29652,51 +29652,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (true, None, None) => (vw, vh),
         _ => (f64::from(width), f64::from(height)),
     };
-    let class = if scene.is_some() { "" } else { r#" class="flowchart""# };
-    let mut parts = vec![format!(r#"<svg xmlns="http://www.w3.org/2000/svg"{id_attr}{class} width="{width}" height="{height}" viewBox="0 0 {vw} {vh}" role="img">"#)];
-    if let Some(ref t) = acc_title {
-        parts.push(format!("<title>{}</title>", escape_mmdc_xml(t)));
-    }
-    if let Some(ref d) = acc_descr {
-        parts.push(format!("<desc>{}</desc>", escape_mmdc_xml(d)));
-    }
-    parts.push(format!(
-        "<defs><filter id=\"{id_prefix}mmdc-shadow\" x=\"-12%\" y=\"-12%\" width=\"124%\" height=\"132%\"><feDropShadow dx=\"0\" dy=\"1.5\" stdDeviation=\"2.5\" flood-color=\"{shadow_col}\"/></filter><marker id=\"{id_prefix}mmdc-dart\" viewBox=\"0 0 9 7\" refX=\"9\" refY=\"3.5\" markerWidth=\"9\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z\" fill=\"{edge_col}\" stroke-linejoin=\"round\"/></marker></defs>"
-    ));
-    if bg_color.trim().to_ascii_lowercase() != "transparent" {
-        parts.push(format!(
-            "<rect width=\"{vw}\" height=\"{vh}\" fill=\"{}\"/>",
-            escape_mmdc_xml(bg_color.trim())
-        ));
-    }
-    let empty_canvas = scene.as_ref().is_some_and(|s|s.elements.is_empty());
-    let standard_svg = scene.is_some();
-    if let Some(scene) = scene {
-        parts.extend(scene.elements);
-    } else {
-        for (idx, line) in content_lines.iter().enumerate() {
-            let y_box = 24 + (idx as u32) * 40;
-            let y_txt = y_box + 22;
-            parts.push(format!(
-                "<g class=\"mmdc-node\" data-id=\"node_{idx}\"><rect x=\"24\" y=\"{y_box}\" width=\"180\" height=\"32\" rx=\"8\" fill=\"{surface}\" stroke=\"{border}\" stroke-width=\"1.25\"/><text x=\"114\" y=\"{y_txt}\" fill=\"{text_col}\" text-anchor=\"middle\">{}</text></g>",
-                escape_mmdc_xml(line)
-            ));
-        }
-    }
-    parts.push("</svg>".to_string());
-    let mut svg = parts.join("\n");
-    if !standard_svg { svg.push('\n'); }
-
-    let out_bytes: Vec<u8> = if empty_canvas && matches!(output_format.as_str(),"png"|"pdf") {
-        use crate::commands::archive::{PngEncoding,pixel_png,image_pdf,parse_color};
-        let w=(width*scale).ceil().max(1.) as usize;
-        let h=(height*scale).ceil().max(1.) as usize;
-        let Some(count)=w.checked_mul(h).filter(|n|*n<=fs.max_input_bytes()/4) else {return err_out("mmdc: E_LIMIT: Pixel budget exceeded\n",1);};
-        let Ok(mut color)=parse_color(&bg_color) else {return err_out(&format!("mmdc: E_CONFIG: Unsupported color format '{bg_color}'\n"),1);};
-        if color[3]==0{color=[0;4];}
-        if output_format=="png" {pixel_png(w,h,PngEncoding::Mermaid,|_,_|color)}
-        else if let Some(pdf)=image_pdf(&vec![color;count],w,h,width*0.75,height*0.75,fs.max_input_bytes()){pdf}
-        else{return err_out("mmdc: E_LIMIT: Output byte budget exceeded\n",1);}
+    let raster = if output_format=="svg"{None}else{scene.as_ref().and_then(|s|s.raster(width,height,scale,&bg_color,&output_format,fs.max_input_bytes()))};
+    let out_bytes: Vec<u8> = if let Some(result)=raster {
+        match result {Ok(bytes)=>bytes,Err(e)=>return err_out(&e,1)}
     } else if output_format == "png" {
         let png_w = ((width as f64) * scale).round().max(1.0) as u32;
         let png_h = ((height as f64) * scale).round().max(1.0) as u32;
@@ -29734,6 +29692,40 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         };
         format!("%PDF-1.4\n%%PAGE%%\n{body_txt}\n").into_bytes()
     } else {
+        let class = if scene.is_some() { "" } else { r#" class="flowchart""# };
+        let mut parts = vec![format!(r#"<svg xmlns="http://www.w3.org/2000/svg"{id_attr}{class} width="{width}" height="{height}" viewBox="0 0 {vw} {vh}" role="img">"#)];
+        if let Some(ref t) = acc_title {
+            parts.push(format!("<title>{}</title>", escape_mmdc_xml(t)));
+        }
+        if let Some(ref d) = acc_descr {
+            parts.push(format!("<desc>{}</desc>", escape_mmdc_xml(d)));
+        }
+        parts.push(format!(
+            "<defs><filter id=\"{id_prefix}mmdc-shadow\" x=\"-12%\" y=\"-12%\" width=\"124%\" height=\"132%\"><feDropShadow dx=\"0\" dy=\"1.5\" stdDeviation=\"2.5\" flood-color=\"{shadow_col}\"/></filter><marker id=\"{id_prefix}mmdc-dart\" viewBox=\"0 0 9 7\" refX=\"9\" refY=\"3.5\" markerWidth=\"9\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z\" fill=\"{edge_col}\" stroke-linejoin=\"round\"/></marker></defs>"
+        ));
+        if bg_color.trim().to_ascii_lowercase() != "transparent" {
+            parts.push(format!(
+                "<rect width=\"{vw}\" height=\"{vh}\" fill=\"{}\"/>",
+                escape_mmdc_xml(bg_color.trim())
+            ));
+        }
+        let standard_svg = scene.is_some();
+        if let Some(scene) = scene {
+            parts.extend(scene.elements);
+        } else {
+            for (idx, line) in content_lines.iter().enumerate() {
+                let y_box = 24 + (idx as u32) * 40;
+                let y_txt = y_box + 22;
+                parts.push(format!(
+                    "<g class=\"mmdc-node\" data-id=\"node_{idx}\"><rect x=\"24\" y=\"{y_box}\" width=\"180\" height=\"32\" rx=\"8\" fill=\"{surface}\" stroke=\"{border}\" stroke-width=\"1.25\"/><text x=\"114\" y=\"{y_txt}\" fill=\"{text_col}\" text-anchor=\"middle\">{}</text></g>",
+                    escape_mmdc_xml(line)
+                ));
+            }
+        }
+        parts.push("</svg>".to_string());
+        let mut svg = parts.join("\n");
+        if !standard_svg { svg.push('\n'); }
+
         svg.into_bytes()
     };
 
@@ -38259,8 +38251,13 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     #[test]
     fn mmdc_encodes_png_scanlines_and_embeds_the_raster_in_a_pdf() {
         let fs=MemoryVfs::new();
-        for (path,hash) in [("/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),("/chart.pdf","17c6a60bf2022217300c2073eee4f8ecad15ee3f863bae2676991629a8c66b1b")] {
-            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o",path]),"flowchart TD","/",&BTreeMap::new(),&fs).unwrap();
+        for (source,path,hash) in [
+            ("flowchart TD","/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),
+            ("flowchart TD","/chart.pdf","17c6a60bf2022217300c2073eee4f8ecad15ee3f863bae2676991629a8c66b1b"),
+            ("pie title Test\n\"Yes\": 3\n\"No\":1","/chart.png","8fe6bafae690a6213dcb20a01fa003edd24addf2036e30a210937388787b9f4a"),
+            ("pie title Test\n\"Yes\": 3\n\"No\":1","/chart.pdf","20f648c46c62debc682068608c6f65d77ea8c3a66e390b8de395b92032ca9160"),
+        ] {
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o",path]),source,"/",&BTreeMap::new(),&fs).unwrap();
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             let bytes=fs.read_file(path).unwrap();
             assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),hash);

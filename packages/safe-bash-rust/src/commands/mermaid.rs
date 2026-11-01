@@ -362,26 +362,55 @@ pub(super) fn layout(
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let mut stmts = lines.iter().copied();
-    let mut header = stmts.next()?.text.split_whitespace();
-    if !matches!(header.next()?, "graph" | "flowchart") {
+    let header_stmt = stmts.next()?;
+    let header = header_stmt.text.trim_end();
+    let keyword = header.split_ascii_whitespace().next()?;
+    if !matches!(keyword, "graph" | "flowchart") {
         return None;
     }
-    let dir = header.next().unwrap_or("TD");
-    if !matches!(dir, "TB" | "TD" | "BT" | "LR" | "RL") || header.next().is_some() {
-        return None;
+    let valid_direction = |value: &str| matches!(value, "TB" | "TD" | "BT" | "LR" | "RL");
+    let rest = header[keyword.len()..].trim_start();
+    let mut dir = "TB";
+    if let Some(word) = rest.split_ascii_whitespace().next() {
+        if !valid_direction(word) {
+            return Some(Err(header_stmt.error(
+                "E_SYNTAX",
+                word,
+                &format!("Invalid flowchart direction '{word}'. Supported: TB, TD, BT, LR, RL"),
+            )));
+        }
+        dir = word;
+        let trailing = rest[word.len()..].trim_start();
+        if !trailing.is_empty() {
+            return Some(Err(header_stmt.error(
+                "E_SYNTAX",
+                trailing,
+                &format!("Unexpected tokens after flowchart header: '{trailing}'"),
+            )));
+        }
     }
-    let horizontal = matches!(dir, "LR" | "RL");
-    let reversed = matches!(dir, "BT" | "RL");
     let mut nodes = Vec::new();
     let mut ids = BTreeMap::new();
     let mut edges = vec![];
     let mut label_bytes = 0usize;
     for stmt in stmts {
-        let (mut sources, mut rest) =
-            match parse_group(stmt.text.trim_end(), stmt, &mut nodes, &mut ids) {
-                Ok(node) => node,
-                Err(error) => return Some(Err(error)),
-            };
+        let text = stmt.text.trim_end();
+        if text.split_ascii_whitespace().next() == Some("direction") {
+            let value = text["direction".len()..].trim();
+            if !valid_direction(value) {
+                return Some(Err(stmt.error(
+                    "E_SYNTAX",
+                    text,
+                    &format!("Invalid direction '{value}'"),
+                )));
+            }
+            dir = value;
+            continue;
+        }
+        let (mut sources, mut rest) = match parse_group(text, stmt, &mut nodes, &mut ids) {
+            Ok(node) => node,
+            Err(error) => return Some(Err(error)),
+        };
         while !rest.is_empty() {
             let (op, tail, label) = if let Some(op) =
                 EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
@@ -457,6 +486,8 @@ pub(super) fn layout(
             }
         }
     }
+    let horizontal = matches!(dir, "LR" | "RL");
+    let reversed = matches!(dir, "BT" | "RL");
     for n in &mut nodes {
         dimensions(n, horizontal);
     }

@@ -1420,7 +1420,7 @@ fn materialize<'a>(
         let mut bytes = Cow::Borrowed(input);
         if (seek.start.is_some()
             || seek.end().is_some()
-            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "aac" | "image2"))
+            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "aac" | "image2" | "lavfi"))
             && !audio
             && !matches!(format, "wav" | "y4m")
             && (!matches!(source, MediaInput::Bytes("image2", _)) || seek.loops > 0)
@@ -1499,7 +1499,10 @@ fn read_sources<'a>(
         }
         if format == "lavfi" {
             let spec = std::str::from_utf8(input).map_err(|_| "invalid lavfi source")?;
-            if let Some(video) = super::super::lavfi::Video::parse(spec) {
+            if let Some(mut video) = super::super::lavfi::Video::parse(spec) {
+                video.duration = seek
+                    .generation_end(opts.source_end)
+                    .unwrap_or(video.duration);
                 sources.push((input, &[][..], Streams::GeneratedVideo(video)));
                 continue;
             }

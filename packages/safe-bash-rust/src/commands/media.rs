@@ -4701,7 +4701,7 @@ fn cmd_media_doc(
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || (real_mp4 || still_input) && seek.loops>0 {
+                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                             return mp4::mux::render_mapped(&sources,&remux,frames,sequence,emit);
                         }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13796,6 +13796,14 @@ mod media_unit_tests {
             args.extend_from_slice(extra); args.push(path); run(&args);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{path}")).unwrap())),expected);
         }
+    }
+
+    #[test]
+    fn ffmpeg_repeats_generated_video_packets_before_rendering_frames() {
+        let fs = MemoryVfs::new();
+        let args=media_args(&["-stream_loop","2","-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","out.y4m"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.y4m").unwrap())), "6483151e5fcb0024067c3bb3aabe4af99aa301a6ec5a4b42663a92939c6d1e58");
     }
 
     #[test]

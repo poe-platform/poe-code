@@ -606,24 +606,6 @@ fn head_tail_count(amount: &str) -> Result<usize, String> {
     Ok(total as usize)
 }
 
-fn split_records_inclusive(raw: &[u8], delimiter: u8) -> Vec<&[u8]> {
-    if raw.is_empty() {
-        return Vec::new();
-    }
-    let mut records = Vec::new();
-    let mut start = 0usize;
-    for (idx, &b) in raw.iter().enumerate() {
-        if b == delimiter {
-            records.push(&raw[start..=idx]);
-            start = idx + 1;
-        }
-    }
-    if start < raw.len() {
-        records.push(&raw[start..]);
-    }
-    records
-}
-
 fn prefix_len(chunk: &[u8], remaining: &mut usize, bytes: bool, delimiter: u8) -> usize {
     if *remaining == 0 { return 0; }
     if bytes {
@@ -823,75 +805,72 @@ fn run_head_or_tail(
         }
 
         let skip = name == "tail" && positive;
-        if (name == "head" && !negative) || skip {
-            let mut remaining = if skip { count.saturating_sub(1) } else { count };
-            if remaining == 0 && !skip { continue; }
-            let limits = fs.shell_limits();
-            let mut copy = |chunk: &[u8]| {
-                let offset = prefix_len(chunk, &mut remaining, bytes_mode, delimiter);
-                let selected = if skip { &chunk[offset..] } else { &chunk[..offset] };
-                if out_bytes.len().saturating_add(selected.len()) > limits.max_output_bytes {
-                    return Err(fs.limit_error("maxOutputBytes", limits.max_output_bytes));
-                }
-                out_bytes.extend_from_slice(selected);
-                Ok((skip || remaining != 0, if skip { chunk.len() } else { offset }))
-            };
-            if let Some(path) = path {
-                let mut available = limits.max_input_bytes;
-                if let Err(err) = fs.read_chunks(&path, &mut |chunk| {
-                    available = available.checked_sub(chunk.len())
-                        .ok_or_else(|| fs.limit_error("maxInputBytes", limits.max_input_bytes))?;
-                    copy(chunk).map(|(more, _)| more)
-                }) {
-                    if err.starts_with("EIO:") {
-                        stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{path}'\n"));
-                    } else {
-                        stderr.push_str(&format!("{name}: {err}\n"));
-                    }
-                    exit_code = 1;
-                }
-            } else {
-                let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin));
-                match copy(&bytes[consumed..]) {
-                    Ok((_, used)) => consumed += used,
-                    Err(err) => return err_out(&format!("{name}: {err}\n"), 1),
-                }
+        let prefix = (name == "head" && !negative) || skip;
+        let mut remaining = if skip { count.saturating_sub(1) } else { count };
+        if prefix && remaining == 0 && !skip { continue; }
+        let limits = fs.shell_limits();
+        let mut write = |bytes: &[u8]| {
+            if out_bytes.len().saturating_add(bytes.len()) > limits.max_output_bytes {
+                return Err(fs.limit_error("maxOutputBytes", limits.max_output_bytes));
             }
-            continue;
-        }
-
-        let file_bytes;
-        let raw_bytes: &[u8] = if let Some(path) = path {
-            match fs.read_file(&path) {
-                Ok(b) => { file_bytes = b; &file_bytes }
-                Err(_) => {
-                    stderr.push_str(&format!("{name}: ENOENT: no such file or directory, stat '{path}'\n"));
-                    exit_code = 1;
-                    continue;
-                }
-            }
-        } else {
-            &input.get_or_insert_with(|| stream_string_to_bytes(stdin))[consumed..]
+            out_bytes.extend_from_slice(bytes);
+            Ok(())
         };
-        if name == "head" {
-            let take = if bytes_mode {
-                raw_bytes.len().saturating_sub(count)
-            } else {
-                let records = split_records_inclusive(raw_bytes, delimiter);
-                records[..records.len().saturating_sub(count)].iter().map(|r| r.len()).sum()
-            };
-            out_bytes.extend_from_slice(&raw_bytes[..take]);
-        } else if bytes_mode {
-            let start = raw_bytes.len().saturating_sub(count);
-            out_bytes.extend_from_slice(&raw_bytes[start..]);
-        } else {
-            let records = split_records_inclusive(&raw_bytes, delimiter);
-            let start = records.len().saturating_sub(count);
-            for rec in &records[start..] {
-                out_bytes.extend_from_slice(rec);
+        let mut window = std::collections::VecDeque::<u8>::new();
+        let mut records = 0usize;
+        let mut copy = |chunk: &[u8], eof: bool| {
+            if prefix {
+                let offset = prefix_len(chunk, &mut remaining, bytes_mode, delimiter);
+                write(if skip { &chunk[offset..] } else { &chunk[..offset] })?;
+                return Ok((skip || remaining != 0, if skip { chunk.len() } else { offset }));
             }
+            window.extend(chunk);
+            let excess = if bytes_mode {
+                window.len().saturating_sub(count)
+            } else {
+                records += chunk.iter().filter(|&&b| b == delimiter).count();
+                if eof && window.back().is_some_and(|&b| b != delimiter) { records += 1; }
+                let excess = records.saturating_sub(count);
+                records -= excess;
+                if excess == 0 { 0 } else {
+                    window.iter().enumerate().filter(|&(_, &b)| b == delimiter)
+                        .nth(excess - 1).map_or(window.len(), |(i, _)| i + 1)
+                }
+            };
+            // head emits the evicted bytes; tail emits the retained window at EOF.
+            if name == "head" {
+                let (a, b) = window.as_slices();
+                write(&a[..excess.min(a.len())])?;
+                write(&b[..excess.saturating_sub(a.len())])?;
+            }
+            window.drain(..excess);
+            if eof && name == "tail" {
+                let (a, b) = window.as_slices();
+                write(a)?;
+                write(b)?;
+            }
+            Ok((true, chunk.len()))
+        };
+
+        let result = if let Some(ref path) = path {
+            let mut available = limits.max_input_bytes;
+            fs.read_chunks(path, &mut |chunk| {
+                available = available.checked_sub(chunk.len())
+                    .ok_or_else(|| fs.limit_error("maxInputBytes", limits.max_input_bytes))?;
+                copy(chunk, false).map(|(more, _)| more)
+            }).and_then(|()| copy(&[], true).map(|_| ()))
+        } else {
+            let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin));
+            copy(&bytes[consumed..], true).map(|(_, used)| { consumed += used; })
+        };
+        if let Err(err) = result {
+            if let Some(path) = path && err.starts_with("EIO:") {
+                stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{path}'\n"));
+            } else {
+                stderr.push_str(&format!("{name}: {err}\n"));
+            }
+            exit_code = 1;
         }
-        if file == "-" { consumed += raw_bytes.len(); }
     }
 
     if consumed != 0 && let Some(bytes) = input {

@@ -23,6 +23,29 @@ test("output budgets count the bytes written by each command and pipeline stage"
   }
 });
 
+test("tail and negative head retain the requested suffix across chunks until EOF", async () => {
+  const first = "a".repeat(65535) + "\n";
+  const second = "b".repeat(65534) + "\0\n";
+  const bash = new RustWasmBash({ files: { "/f": first + second + "last" }, deviceView: "provided" });
+  bash.mountDevices();
+  try {
+    for (const cmd of ["tail -c4", "tail -n0", "head -c-4", "head -n-1"]) {
+      await assert.rejects(bash.exec(cmd + " /dev/zero", { limits: { maxInputBytes: 65536 } }), /maxInputBytes/);
+    }
+    for (const [cmd, expected] of [
+      ["tail -n2", second + "last"], ["head -n-1", first + second],
+      ["tail -zn1", "\nlast"], ["tail -c6", "\0\nlast"], ["head -c-4", first + second],
+    ]) {
+      const result = await bash.exec(cmd + " /f");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+    await assert.rejects(bash.exec("head -c-1 /dev/zero", {
+      limits: { maxInputBytes: 65536, maxOutputBytes: 5 },
+    }), /maxOutputBytes/);
+  } finally { bash.dispose(); }
+});
+
 test("tail starting at a record skips across device chunks and reads to EOF or a limit", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

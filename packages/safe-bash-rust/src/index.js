@@ -67,20 +67,35 @@ export class WasmFileSystem {
   }
 
   async writeFile(filePath, data, options) {
-    if (this.bash._companion) {
-      await this.bash._ensureCompanionSynced();
-      return this.bash._companion.fs.writeFile(filePath, data, options);
+    options?.signal?.throwIfAborted();
+    const bytes = typeof data === "string" ? encoder.encode(data) : data;
+    if (!(bytes instanceof Uint8Array)) throw new TypeError("Files require Uint8Array data");
+    const bash = this.bash;
+    if (bash._companion) {
+      await bash._ensureCompanionSynced();
+      return bash._companion.fs.writeFile(filePath, bytes, options);
     }
-    if (this.bash.companionFactory && !this.bash.forceNative) {
-      const copy = typeof data === "string" ? encoder.encode(data) : new Uint8Array(data);
-      this.bash._history.push({
-        type: "fs",
-        run: (fs) => fs.writeFile(filePath, copy, options),
-      });
+    const flag = options?.flag ?? "w";
+    const mode = options?.mode ?? 0o666;
+    const flags = ["w", "wx", "a", "ax"].indexOf(flag);
+    if (flags < 0 || !Number.isInteger(mode) || mode < 0 || mode > 0o7777) {
+      throw fsOperationError("EINVAL", "writeFile", filePath);
     }
-    this.bash.writeFile(filePath, data);
-    if (options && typeof options === "object" && typeof options.mode === "number") {
-      this.bash.chmod(filePath, options.mode);
+    const path = bash._allocBytes(encoder.encode(filePath));
+    try {
+      const data = bash._allocBytes(bytes);
+      try {
+        const rc = bash.exports.safe_bash_fs_write_file(bash.sessionId, path.ptr, path.len, data.ptr, data.len, mode, flags);
+        if (rc === -1) throw new Error("Wasm session unavailable");
+        if (rc < 0) {
+          const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+          throw fsOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc)), "writeFile", filePath);
+        }
+      } finally { bash._freeBytes(data); }
+    } finally { bash._freeBytes(path); }
+    if (bash.companionFactory && !bash.forceNative) {
+      const copy = new Uint8Array(bytes);
+      bash._history.push({ type: "fs", run: (fs) => fs.writeFile(filePath, copy, { flag, mode }) });
     }
   }
 

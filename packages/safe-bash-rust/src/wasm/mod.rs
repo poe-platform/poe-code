@@ -1,6 +1,6 @@
 use crate::backend::BackendMode;
 use crate::budget::ShellLimits;
-use crate::fs::{MemoryVfs, MountVfs, OverlayVfs, SafeBashFs, VfsEntryKind};
+use crate::fs::{FileStat, MemoryVfs, MountVfs, OverlayVfs, SafeBashFs, VfsEntryKind};
 use crate::shell::{ExecOptions, Shell, ShellOptions};
 use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::collections::BTreeMap;
@@ -14,23 +14,18 @@ struct WasmSession {
 
 impl WasmSession {
     // The session lock covers validation and publication, including exclusive creates.
-    fn copy_file(&self, source: &str, destination: &str, exclusive: bool) -> Result<(), String> {
+    fn write_target(&self, destination: &str, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
         let fs = &self.shell.fs;
-        let from = fs.access_path(source, true)?;
-        let origin = fs.lstat(&from)?;
-        if origin.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
-        if origin.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
         let to = fs.access_path(destination, !exclusive)?;
         let existing = match fs.lstat(&to) {
             Ok(st) => Some(st),
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
-        let source_device = origin.mode & 0o170000 == 0o020000;
         let target_device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
         if let Some(st) = &existing {
             if exclusive { return Err("EEXIST: file already exists".into()); }
-            if !target_device && (from == to || (origin.identity.is_some() && st.identity == origin.identity)) {
+            if !target_device && source.is_some_and(|(from, origin)| from == to || (origin.identity.is_some() && st.identity == origin.identity)) {
                 return Err("EINVAL: invalid argument".into());
             }
             if st.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
@@ -38,6 +33,35 @@ impl WasmSession {
         } else if fs.stat(&crate::vfs::dirname_posix_path(&to))?.mode & 0o300 != 0o300 {
             return Err("EACCES: permission denied".into());
         }
+        Ok((to, existing))
+    }
+
+    fn write_file(&self, path: &str, data: &[u8], mode: u32, flag: u32) -> Result<(), String> {
+        if mode > 0o7777 || flag > 3 { return Err("EINVAL: invalid argument".into()); }
+        let fs = &self.shell.fs;
+        let (to, existing) = self.write_target(path, flag & 1 != 0, None)?;
+        let device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
+        if flag & 2 != 0 && existing.is_some() && !device {
+            let mut bytes = fs.read_file(&to)?;
+            bytes.extend_from_slice(data);
+            fs.write_file(&to, &bytes)?;
+        } else {
+            fs.write_file(&to, data)?;
+        }
+        // A lower-layer file may have been copied into a new overlay entry.
+        if !device { fs.chmod(&to, existing.map_or(mode, |st| st.mode & 0o7777))?; }
+        Ok(())
+    }
+
+    fn copy_file(&self, source: &str, destination: &str, exclusive: bool) -> Result<(), String> {
+        let fs = &self.shell.fs;
+        let from = fs.access_path(source, true)?;
+        let origin = fs.lstat(&from)?;
+        if origin.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+        if origin.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        let (to, existing) = self.write_target(destination, exclusive, Some((&from, &origin)))?;
+        let source_device = origin.mode & 0o170000 == 0o020000;
+        let target_device = existing.is_some_and(|st| st.mode & 0o170000 == 0o020000);
         fs.write_file(&to, &fs.read_file(&from)?)?;
         if !source_device && !target_device { fs.chmod(&to, origin.mode & 0o7777)?; }
         Ok(())
@@ -212,6 +236,21 @@ pub unsafe extern "C" fn safe_bash_write_file(
         0
     } else {
         -1
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_fs_write_file(
+    id: u32, ptr: *const u8, len: usize, data: *const u8, size: usize, mode: u32, flag: u32,
+) -> i32 {
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    match sess.write_file(unsafe { str_from_raw(ptr, len) }, unsafe { slice_from_raw(data, size) }, mode, flag) {
+        Ok(()) => 0,
+        Err(e) => {
+            sess.last_output_buf = e.into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
     }
 }
 

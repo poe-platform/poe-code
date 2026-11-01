@@ -44,7 +44,7 @@ export interface WasmFileStat {
 export class WasmFileSystem {
   constructor(bash: RustWasmBash);
   readFile(filePath: string): Promise<Uint8Array>;
-  writeFile(filePath: string, data: string | Uint8Array): Promise<void>;
+  writeFile(filePath: string, data: string | Uint8Array, options?: { flag?: "w" | "wx" | "a" | "ax"; mode?: number; signal?: AbortSignal }): Promise<void>;
   mkdir(dirPath: string, options?: { recursive?: boolean }): Promise<void>;
   readdir(dirPath: string): Promise<string[]>;
   stat(filePath: string): Promise<WasmFileStat>;

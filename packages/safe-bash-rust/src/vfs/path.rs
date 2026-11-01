@@ -91,6 +91,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
         .map(str::to_owned)
         .collect();
     let mut boundary = None;
+    let mut followed_final_mount_link = false;
     let mut links = 0;
     if purpose != WalkPurpose::AllowMissingParents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
     if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
@@ -130,6 +131,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                     return Err("ELOOP: too many symbolic links".into());
                 }
                 let target = backend.readlink(&relative)?;
+                followed_final_mount_link |= prefix.is_some() && pending.is_empty();
                 boundary = prefix;
                 if target.starts_with('/') {
                     current = prefix.unwrap_or("/").to_owned();
@@ -145,6 +147,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             }
             Ok(_) => current = candidate,
             Err(error) if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") => {
+                if purpose == WalkPurpose::Access && followed_final_mount_link { return Err(error); }
                 current = candidate
             }
             Err(error) => return Err(error),

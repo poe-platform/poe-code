@@ -484,7 +484,12 @@ test("copyFile preserves destinations on failed copies and applies the source mo
       assert.equal(bash.readText("/dest"), "bytes");
       assert.equal((await fs.lstat("/dest")).mode & 0o777, 0o640);
       assert.equal(await fs.readlink("/alias"), "dest");
-      await fs.copyFile("/same", "/dangling");
+      if (profile === "strict-budgets-mount-dev") {
+        await assert.rejects(fs.copyFile("/same", "/dangling"), {code:"ENOENT"});
+        await fs.copyFile("/same", "/new");
+      } else {
+        await fs.copyFile("/same", "/dangling");
+      }
       assert.equal(bash.readText("/new"), "bytes");
       await fs.chmod("/dest", 0o400);
       await assert.rejects(fs.copyFile("/same", "/dest"), {code:"EACCES"});
@@ -492,4 +497,55 @@ test("copyFile preserves destinations on failed copies and applies the source mo
       bash.dispose();
     }
   }
+});
+
+test("writeFile honors exclusive creation, append, permissions and cancellation", async () => {
+  for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, files:{"/keep":{content:"old",mode:0o640}}});
+    const fs = bash.fs;
+    try {
+      for (const flag of ["wx", "ax"]) {
+        await assert.rejects(fs.writeFile("/keep", "lost", {flag}), {code:"EEXIST"});
+      }
+      assert.equal(bash.readText("/keep"), "old");
+      await fs.writeFile("/keep", "!", {flag:"a",mode:0o400});
+      assert.equal(bash.readText("/keep"), "old!");
+      assert.equal((await fs.stat("/keep")).mode & 0o777, 0o640);
+      await fs.symlink("new", "/link");
+      await assert.rejects(fs.writeFile("/link", "no", {flag:"wx"}), {code:"EEXIST"});
+      if (profile === "strict-budgets-mount-dev") {
+        await assert.rejects(fs.writeFile("/link", "first", {flag:"a"}), {code:"ENOENT"});
+        await fs.writeFile("/new", "first", {flag:"ax",mode:0o400});
+      } else {
+        await fs.writeFile("/link", "first", {flag:"a",mode:0o400});
+      }
+      assert.equal(bash.readText("/new"), "first");
+      await assert.rejects(fs.writeFile("/new", "bad"), {code:"EACCES"});
+      await assert.rejects(fs.writeFile("/missing/file", "bad"), {code:"ENOENT"});
+      await assert.rejects(fs.writeFile("/keep", "bad", {flag:"r"}), {code:"EINVAL"});
+      await assert.rejects(fs.writeFile("/keep", "bad", {mode:0o10000}), {code:"EINVAL"});
+      await assert.rejects(fs.writeFile("/keep", "bad", {signal:AbortSignal.abort()}), {name:"AbortError"});
+      assert.equal(bash.readText("/keep"), "old!");
+      await fs.writeFile("/plain", "created");
+      assert.equal((await fs.stat("/plain")).mode & 0o777, 0o666);
+    } finally { bash.dispose(); }
+  }
+});
+
+test("companion replay retains only completed writes and their original bytes and options", async () => {
+  const companion = new RustWasmBash();
+  const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
+  try {
+    const controller = new AbortController();
+    const options = {flag:"wx", mode:0o600, signal:controller.signal};
+    const bytes = Buffer.from("original");
+    await bash.fs.writeFile("/created", bytes, options);
+    bytes.fill(0);
+    options.mode = 0o400;
+    controller.abort();
+    await assert.rejects(bash.fs.writeFile("/created", "bad", {flag:"ax"}), {code:"EEXIST"});
+    await bash.fs.realpath("/created");
+    assert.equal(companion.readText("/created"), "original");
+    assert.equal((await companion.fs.stat("/created")).mode & 0o777, 0o600);
+  } finally { bash.dispose(); companion.dispose(); }
 });

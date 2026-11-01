@@ -1,8 +1,5 @@
-pub(in crate::commands) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
-    let raw = raw.trim();
-    let s = raw.to_ascii_lowercase();
-    let error = || format!("Unable to parse color from string: {raw}");
-    let named = match s.as_str() {
+pub(in crate::commands) fn css_named_color(s: &str) -> Option<[u8; 4]> {
+    match s {
         "aliceblue" => Some([240, 248, 255, 255]),
         "antiquewhite" => Some([250, 235, 215, 255]),
         "aqua" | "cyan" => Some([0, 255, 255, 255]),
@@ -47,13 +44,12 @@ pub(in crate::commands) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
         "firebrick" => Some([178, 34, 34, 255]),
         "floralwhite" => Some([255, 250, 240, 255]),
         "forestgreen" => Some([34, 139, 34, 255]),
-        "fractal" => Some([128, 128, 128, 255]),
         "fuchsia" | "magenta" => Some([255, 0, 255, 255]),
         "gainsboro" => Some([220, 220, 220, 255]),
         "ghostwhite" => Some([248, 248, 255, 255]),
         "gold" => Some([255, 215, 0, 255]),
         "goldenrod" => Some([218, 165, 32, 255]),
-        "gray" | "grey" => Some([126, 126, 126, 255]),
+        "gray" | "grey" => Some([128, 128, 128, 255]),
         "green" => Some([0, 128, 0, 255]),
         "greenyellow" => Some([173, 255, 47, 255]),
         "honeydew" => Some([240, 255, 240, 255]),
@@ -98,7 +94,6 @@ pub(in crate::commands) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
         "moccasin" => Some([255, 228, 181, 255]),
         "navajowhite" => Some([255, 222, 173, 255]),
         "navy" => Some([0, 0, 128, 255]),
-        "none" | "transparent" => Some([0, 0, 0, 0]),
         "oldlace" => Some([253, 245, 230, 255]),
         "olive" => Some([128, 128, 0, 255]),
         "olivedrab" => Some([107, 142, 35, 255]),
@@ -145,6 +140,18 @@ pub(in crate::commands) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
         "yellow" => Some([255, 255, 0, 255]),
         "yellowgreen" => Some([154, 205, 50, 255]),
         _ => None,
+    }
+}
+
+pub(in crate::commands) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
+    let raw = raw.trim();
+    let s = raw.to_ascii_lowercase();
+    let error = || format!("Unable to parse color from string: {raw}");
+    let named = match s.as_str() {
+        "gray" | "grey" => Some([126, 126, 126, 255]),
+        "fractal" => Some([128, 128, 128, 255]),
+        "none" | "transparent" => Some([0; 4]),
+        _ => css_named_color(&s),
     };
     if let Some(c) = named {
         return Ok(c);

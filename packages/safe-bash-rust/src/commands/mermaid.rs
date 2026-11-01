@@ -16,6 +16,9 @@ mod route;
 #[path = "mermaid/scanner.rs"]
 pub(super) mod scanner;
 use scanner::Statement;
+#[path = "mermaid/styles.rs"]
+mod styles;
+use styles::Styles;
 
 pub(super) struct Scene {
     pub width: f64,
@@ -82,6 +85,16 @@ fn advance(c: char, bold: bool) -> u32 {
     };
     let n = if bold { 4 } else { 2 };
     u16::from_le_bytes([r[n], r[n + 1]]) as u32
+}
+// ECMAScript switches to exponent notation at these bounds for SVG attributes and labels.
+fn nonnegative_number(value: f64) -> String {
+    if value >= 1e21 {
+        format!("{value:e}").replace('e', "e+")
+    } else if value > 0. && value < 1e-6 {
+        format!("{value:e}")
+    } else {
+        value.abs().to_string()
+    }
 }
 fn measure(s: &str, size: f64, bold: bool) -> f64 {
     let units = s.chars().map(|c| u64::from(advance(c, bold))).sum::<u64>() as f64;
@@ -218,22 +231,26 @@ fn position(source: &str, at: &str) -> (usize, usize) {
         .count();
     (line, column)
 }
-fn parse_node<'a>(
-    s: &'a str,
-    stmt: &Statement,
-    nodes: &mut Vec<Node>,
-    ids: &mut BTreeMap<String, usize>,
-) -> Result<(usize, &'a str), String> {
-    let s = s.trim_start();
-    let end = s
-        .char_indices()
+fn identifier_len(s: &str, class: bool) -> usize {
+    s.char_indices()
         .find(|&(i, c)| {
             !(c.is_alphanumeric()
                 || !c.is_ascii()
                 || matches!(c, '_' | '.')
+                || (class && c == ',')
                 || (c == '-' && !EDGE_OPS.iter().any(|op| s[i..].starts_with(op))))
         })
-        .map_or(s.len(), |(i, _)| i);
+        .map_or(s.len(), |(i, _)| i)
+}
+fn parse_node<'a>(
+    s: &'a str,
+    stmt: &Statement,
+    styles: &mut Styles<'a>,
+    nodes: &mut Vec<Node>,
+    ids: &mut BTreeMap<String, usize>,
+) -> Result<(usize, &'a str), String> {
+    let s = s.trim_start();
+    let end = identifier_len(s, false);
     if end == 0 {
         let text = String::from_utf16_lossy(&s.encode_utf16().take(16).collect::<Vec<_>>());
         return Err(stmt.error(
@@ -253,6 +270,7 @@ fn parse_node<'a>(
         nodes.len() - 1
     });
     let mut rest = &s[end..];
+    let mut raw_label = None;
     for (open, close, shape) in [
         ("((", "))", Shape::Circle),
         ("([", "])", Shape::Stadium),
@@ -287,23 +305,41 @@ fn parse_node<'a>(
                 }
             };
             let after = &tail[closing + close.len()..];
-            nodes[i].label = scanner::label(&tail[..closing], stmt, s)?;
+            raw_label = Some(&tail[..closing]);
             nodes[i].shape = shape;
-            rest = after.trim_start();
+            rest = after;
             break;
         }
+    }
+    if let Some(classes) = rest.strip_prefix(":::") {
+        let len = identifier_len(classes, true);
+        let mut names = classes[..len]
+            .split(',')
+            .filter(|n| !n.is_empty())
+            .peekable();
+        if names.peek().is_none() {
+            return Err(stmt.error("E_SYNTAX", s, "Missing inline class name"));
+        }
+        for name in names {
+            styles.assign(id, name)?;
+        }
+        rest = &classes[len..];
+    }
+    if let Some(raw) = raw_label {
+        nodes[i].label = scanner::label(raw, stmt, s)?;
     }
     Ok((i, rest.trim_start()))
 }
 fn parse_group<'a>(
     mut rest: &'a str,
     stmt: &Statement,
+    styles: &mut Styles<'a>,
     nodes: &mut Vec<Node>,
     ids: &mut BTreeMap<String, usize>,
 ) -> Result<(Vec<usize>, &'a str), String> {
     let mut group = Vec::new();
     loop {
-        let (node, tail) = parse_node(rest, stmt, nodes, ids)?;
+        let (node, tail) = parse_node(rest, stmt, styles, nodes, ids)?;
         group.push(node);
         let Some(next) = tail.strip_prefix('&') else {
             return Ok((group, tail));
@@ -414,6 +450,7 @@ pub(super) fn layout(
         }
     }
     let mut hrefs = BTreeMap::new();
+    let mut styles = Styles::new(limit);
     let mut nodes = Vec::new();
     let mut ids = BTreeMap::new();
     let mut edges = vec![];
@@ -456,16 +493,20 @@ pub(super) fn layout(
             }
             continue;
         }
-        if matches!(
-            keyword,
-            "subgraph" | "class" | "style" | "classDef" | "linkStyle"
-        ) {
+        if matches!(keyword, "class" | "style" | "classDef" | "linkStyle") {
+            if let Err(error) = styles.declaration(keyword, text, stmt) {
+                return Some(Err(error));
+            }
+            continue;
+        }
+        if keyword == "subgraph" {
             return None;
         }
-        let (mut sources, mut rest) = match parse_group(text, stmt, &mut nodes, &mut ids) {
-            Ok(node) => node,
-            Err(error) => return Some(Err(error)),
-        };
+        let (mut sources, mut rest) =
+            match parse_group(text, stmt, &mut styles, &mut nodes, &mut ids) {
+                Ok(node) => node,
+                Err(error) => return Some(Err(error)),
+            };
         while !rest.is_empty() {
             let (op, tail, label) = if let Some(op) =
                 EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
@@ -489,7 +530,7 @@ pub(super) fn layout(
             } else {
                 if nodes[*sources.last()?].id.ends_with("--")
                     || rest.starts_with('{')
-                    || (rest.starts_with(':') && !rest.starts_with(":::"))
+                    || rest.starts_with(':')
                 {
                     let text =
                         String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
@@ -505,7 +546,7 @@ pub(super) fn layout(
                 Ok(label) => label,
                 Err(error) => return Some(Err(error)),
             };
-            let (targets, tail) = match parse_group(tail, stmt, &mut nodes, &mut ids) {
+            let (targets, tail) = match parse_group(tail, stmt, &mut styles, &mut nodes, &mut ids) {
                 Ok(group) => group,
                 Err(error) => return Some(Err(error)),
             };
@@ -604,6 +645,14 @@ pub(super) fn layout(
         [15, 23, 42, 15]
     };
     for (idx, ((a, b, op, label), mut points)) in edges.into_iter().zip(waypoints).enumerate() {
+        let styled = styles.edge(idx);
+        let (edge, edge_color) = styled.stroke.unwrap_or((edge, edge_color));
+        if let Err(error) = styles.charge_colors(&[
+            (styled.stroke, 5),
+            (styled.color, label.as_ref().map_or(0, |p| p.lines.len())),
+        ]) {
+            return Some(Err(error));
+        }
         let (x, y) = points[0];
         let (ex, ey) = *points.last()?;
         let next = points[1];
@@ -617,7 +666,9 @@ pub(super) fn layout(
         }
         let arrow = op.ends_with('>');
         let start_arrow = op.starts_with('<');
-        let stroke = if op.contains("==") { 2.25 } else { 1.25 };
+        let stroke = styled
+            .width
+            .unwrap_or(if op.contains("==") { 2.25 } else { 1.25 });
         let dash = if op.contains('.') {
             r#" stroke-dasharray="5 4""#
         } else {
@@ -645,6 +696,7 @@ pub(super) fn layout(
                     dashed: false,
                 }
             };
+        let stroke = nonnegative_number(stroke);
         let mut el = format!(
             r#"<g class="mmdc-edge" data-id="edge_{}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
             idx + 1
@@ -703,6 +755,9 @@ pub(super) fn layout(
             } else {
                 ("#ffffff", "#e2e8f0", "#0f172a")
             };
+            let (color, text_rgba) = styled
+                .color
+                .unwrap_or_else(|| (color, parse_color(color).unwrap()));
             pill_paint.push(Paint::Box {
                 bounds: [left, top, w, h],
                 shape: Shape::Rounded,
@@ -726,7 +781,7 @@ pub(super) fn layout(
                     baseline,
                     size,
                     weight,
-                    color: parse_color(color).unwrap(),
+                    color: text_rgba,
                     text,
                 });
             }
@@ -759,6 +814,24 @@ pub(super) fn layout(
             } else {
                 accent
             };
+        let styled = styles.node(&n.id);
+        if let Err(error) = styles.charge_colors(&[
+            (styled.fill, 1),
+            (styled.stroke, 2),
+            (styled.color, n.lines.len()),
+        ]) {
+            return Some(Err(error));
+        }
+        let (fill, fill_rgba) = styled
+            .fill
+            .unwrap_or_else(|| (fill, parse_color(fill).unwrap()));
+        let (border, border_rgba) = styled
+            .stroke
+            .unwrap_or_else(|| (border, parse_color(border).unwrap()));
+        let (color, text_rgba) = styled
+            .color
+            .unwrap_or_else(|| (color, parse_color(color).unwrap()));
+        let thickness = styled.width.unwrap_or(1.25);
         let radius = n.radius;
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
@@ -766,9 +839,9 @@ pub(super) fn layout(
             shadow: Some(shadow),
             style: BoxStyle {
                 radius: radius.into(),
-                fill: parse_color(fill).unwrap(),
-                border: parse_color(border).unwrap(),
-                thickness: 1.25,
+                fill: fill_rgba,
+                border: border_rgba,
+                thickness,
             },
         });
         let join = if matches!(n.shape, Shape::Cylinder | Shape::Hexagon) {
@@ -776,8 +849,9 @@ pub(super) fn layout(
         } else {
             ""
         };
+        let thickness = nonnegative_number(thickness);
         let style = format!(
-            r#"fill="{fill}" stroke="{border}" stroke-width="1.25"{join} filter="url(#{prefix}mmdc-shadow)""#
+            r#"fill="{fill}" stroke="{border}" stroke-width="{thickness}"{join} filter="url(#{prefix}mmdc-shadow)""#
         );
         let mut el = format!(r#"<g class="mmdc-node" data-id="{}">"#, esc(&n.id));
         match n.shape {
@@ -787,8 +861,12 @@ pub(super) fn layout(
                 let top = y + ry;
                 let bottom = y + h - ry;
                 let right = x + w;
-                let lid = if dark { "#1e3a8a" } else { "#dbeafe" };
-                write!(el,r#"<path d="M {x} {top} A {rx} {ry} 0 0 1 {right} {top} L {right} {bottom} A {rx} {ry} 0 0 1 {x} {bottom} Z" {style}/><ellipse cx="{cx}" cy="{top}" rx="{rx}" ry="{ry}" fill="{lid}" stroke="{border}" stroke-width="1.25"/>"#).ok()?;
+                let lid = if fill.eq_ignore_ascii_case("#172554") {
+                    "#1e3a8a"
+                } else {
+                    "#dbeafe"
+                };
+                write!(el,r#"<path d="M {x} {top} A {rx} {ry} 0 0 1 {right} {top} L {right} {bottom} A {rx} {ry} 0 0 1 {x} {bottom} Z" {style}/><ellipse cx="{cx}" cy="{top}" rx="{rx}" ry="{ry}" fill="{lid}" stroke="{border}" stroke-width="{thickness}"/>"#).ok()?;
             }
             Shape::Hexagon => {
                 let left = x + 12;
@@ -863,7 +941,7 @@ pub(super) fn layout(
                     baseline: f64::from(first_y + i as i32 * 20),
                     size: 13.,
                     weight: 500,
-                    color: parse_color(color).unwrap(),
+                    color: text_rgba,
                     text: line.clone(),
                 });
                 write!(el,r#"<text x="{cx}" y="{}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,first_y+i as i32*20,esc(line)).ok()?;

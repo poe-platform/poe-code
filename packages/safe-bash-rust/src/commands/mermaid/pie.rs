@@ -204,18 +204,7 @@ impl Pie {
         let mut legend: f64 = 120.;
         for (label, v) in &self.slices {
             let data = if self.show_data {
-                if *v == 0. {
-                    " [0]".into()
-                } else if !(1e-6..1e21).contains(v) {
-                    let scientific = format!("{v:e}");
-                    if *v >= 1e21 {
-                        format!(" [{}]", scientific.replace('e', "e+"))
-                    } else {
-                        format!(" [{scientific}]")
-                    }
-                } else {
-                    format!(" [{v}]")
-                }
+                format!(" [{}]", super::nonnegative_number(*v))
             } else {
                 String::new()
             };

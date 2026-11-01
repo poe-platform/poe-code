@@ -102,7 +102,7 @@ mod magick_compare;
 #[path = "magick_color.rs"]
 mod magick_color;
 use magick_color::Canvas;
-pub(super) use magick_color::parse_color;
+pub(super) use magick_color::{css_named_color, parse_color};
 
 fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
     let s = spec.trim();

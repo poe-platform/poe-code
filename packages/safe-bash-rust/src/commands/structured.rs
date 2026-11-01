@@ -29656,7 +29656,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     } else {
         match mermaid::layout(scanned.as_deref().unwrap_or_default(), &resolved_theme, &id_prefix, &mut acc_title, &mut acc_descr, fs.max_input_bytes()) {
             Some(Ok(scene)) => Some(scene),
-            Some(Err(message)) => return err_out(&message, 1),
+            Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
                 if let Some(stmts) = &scanned {
                     content_lines.clear();
@@ -38279,9 +38279,11 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     fn mmdc_encodes_png_scanlines_and_embeds_the_raster_in_a_pdf() {
         let fs=MemoryVfs::new();
         for (source,path,hash) in [
+            ("flowchart TD; A[(Data)]-->B{{OK}}; style A,B fill:#0055aa,stroke:#abc,stroke-width:3,color:white","/chart.png","ab16d377bc87eb0a33758db8c9eec2b7519f259fe0c774f738ee520d7c3c4336"),
             ("flowchart TD; A-->A","/chart.png","d8f7f78bab5707651399686cf9f01a5c9bde3ac85e953115d10a66fa977b10ea"),
             ("flowchart TD; A-->B","/chart.png","06f9e52c0a4c42666b93e7125edba4f97f6ba1bdf6c32c307525a2bee73edd8f"),
             (r#"flowchart TD; title "Shipping; now"; A-->B"#,"/chart.pdf","a17a5e236b49024c946df545d157417a91d470048026db398ef541bb587c4af1"),
+            ("flowchart TD; A -->|ok| B; linkStyle 0 stroke:#123456,color:#ff0000,stroke-width:3px","/chart.pdf","201424646bb17bf712b7c303efed019d34c21aafa08ffa0bba9f73ea42683595"),
             ("flowchart TD; A-->B","/chart.pdf","5c99fac4e63502721f76629f092522bbb2a558fbe134df1d3434c91638592fe3"),
             ("flowchart TD","/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),
             ("flowchart TD","/chart.pdf","17c6a60bf2022217300c2073eee4f8ecad15ee3f863bae2676991629a8c66b1b"),
@@ -38349,6 +38351,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(result.exit_code, 1);
         assert_eq!(result.stderr, "mmdc: E_LIMIT: Render work budget exceeded\n");
         assert_eq!(fs.read_file("/d.svg").unwrap(), b"previous");
+    }
+
+    #[test]
+    fn mmdc_rejects_invalid_flowchart_styles_before_writing() {
+        let fs=MemoryVfs::new();
+        for (source,status,message) in [
+            ("flowchart TD; A-->B; style B stroke-width:-1px",1,"E_SYNTAX: Invalid stroke width"),
+            ("flowchart TD; A-->B; style B fill:rgb(999, 2, 3)",2,"E_CONFIG: Out-of-range RGB/RGBA color 'rgb(999, 2, 3)'"),
+            ("flowchart TD; A::: --> B",1,"E_SYNTAX (line 1, column 15): Missing inline class name"),
+            ("flowchart TD; style A; A-->B",1,"E_SYNTAX (line 1, column 15): Missing style declaration"),
+            ("flowchart TD; style A fill:#xyz; A-->B",2,"E_CONFIG: Invalid hex color '#xyz'"),
+        ] {
+            fs.write_file("/d.svg", b"previous").unwrap();
+            let result=try_run_structured_command("mmdc",&args(&["-i","-","-o","/d.svg"]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(result.exit_code,status);
+            assert_eq!(result.stderr,format!("mmdc: {message}\n"));
+            assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
     }
 
     #[test]
@@ -38425,6 +38445,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             (r#"flowchart TD; title "Shipping; now"; A-->B"#,"66c1f2c96d1a78d8f3b2d4875fd4964f8e5a42f2b2470ed09db5d348a6c705f4"),
             (r#"flowchart TD; accTitle: First; accDescr: "quoted"; A-->B; title Second"#,"b6255478d03a8f84a913dfc2eccabbd31589f0e522ed3d7179d7680730dcceaa"),
             (r#"flowchart TD; A-->B; click A "https://example.test/x?a=1&b=2" "hint""#,"8ce5f62f6a0a4bc45e09a3df6798864354ce801be405bf9d44c8f2f677812668"),
+            ("flowchart TD; A:::one-->B; classDef default stroke:blue; classDef one fill:red; style A fill:green","d8c6fd0c1cd60f03ea4d10d81740d19dad02de7760723de845fca6b6f3e807f1"),
+            ("flowchart TD; A-->B; style A stroke-width:1e-8; linkStyle 0 stroke-width:1e-8","4cfee13874a75a26884e62c402c93124cb39c1cd15c09f04a83b785c692efdff"),
             (r#"flowchart TD; A["literal %%{ dark"]-->B"#,"d3d8c899c81c8d95878c0e71b9c306feddf47e2ddcc279674ce79f87f3ea805b"),
             (r#"flowchart TD; A["verify; then act"]-->|one;two|B"#,"da35a643400be95f717e22f487ba4098cd5dea111822a0d7b57165523237dc5e"),
             ("flowchart TD; A[\"First\n second\"]-->B","3605f71682506867f5f474f8753ac2ebb5d71393fc688b03dfa631e8c5e8feae"),

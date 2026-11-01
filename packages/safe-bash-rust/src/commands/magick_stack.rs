@@ -10,19 +10,66 @@ pub(super) enum Step<'a> {
     Append(bool, Gravity, [u8; 4]),
 }
 
-pub(super) fn append(
+pub(super) struct Images {
+    pub frames: Vec<Raster>,
+    delays: Vec<u16>,
+    repeat: Option<u16>,
+}
+
+impl Images {
+    pub fn gif(
+        self,
+        timing: gif::Timing,
+        kernel: super::magick_resize::Kernel,
+        limit: usize,
+    ) -> Result<Vec<u8>, &'static str> {
+        let mut frames = self.frames.into_iter();
+        let mut image = frames.next().ok_or("internal error")?;
+        let (w, h) = (image.width, image.height);
+        if (frames.len() + 1).saturating_mul(image.pixels.len()) > limit / 4 {
+            return Err("image exceeds memory budget");
+        }
+        image.pixels.reserve_exact(frames.len() * image.pixels.len());
+        let size = format!("{w}x{h}!");
+        for mut frame in frames {
+            if (frame.width, frame.height) != (w, h) {
+                frame.resize(&size, kernel, limit)?;
+            }
+            image.pixels.append(&mut frame.pixels);
+        }
+        gif::encode(
+            w,
+            h,
+            &image.pixels,
+            gif::Timing {
+                delays: if timing.explicit_delay {
+                    timing.delays
+                } else {
+                    &self.delays
+                },
+                repeat: timing.repeat.or(self.repeat),
+                explicit_delay: timing.explicit_delay,
+            },
+            limit,
+        )
+    }
+}
+
+pub(super) fn evaluate(
     steps: &[(usize, Step)],
     end: usize,
-    transform: impl Fn(&mut Raster, Range<usize>, bool) -> Result<(), &'static str>,
+    transform: impl Fn(&mut Raster, Range<usize>, bool) -> Result<bool, &'static str>,
     cwd: &str,
     fs: &dyn SafeBashFs,
-) -> Result<Option<Raster>, String> {
+) -> Result<Option<Images>, String> {
     let limit = fs.max_input_bytes();
     // Defer each image's pixel operations until the next append. Later inputs
     // don't see operations that occurred before they joined the stack.
     let mut stack: Vec<(Raster, usize, bool)> = Vec::new();
     let mut retained = 0usize;
+    let (mut delays, mut repeat) = (Vec::new(), None);
     for (at, step) in steps {
+        let first = stack.is_empty();
         let mut push = |im: Raster, gif_input| {
             retained = retained
                 .saturating_add(im.pixels.len().saturating_mul(4))
@@ -41,6 +88,19 @@ pub(super) fn append(
                     return Ok(None);
                 };
                 if gif::signature(&bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
+                    if first {
+                        repeat = match gif::packets(&bytes, |delay, _| {
+                            if delays.len() >= limit / size_of::<u16>() {
+                                return Err("image exceeds memory budget");
+                            }
+                            delays.push(delay);
+                            Ok(())
+                        }) {
+                            Ok(repeat) => repeat,
+                            Err(e @ "image exceeds memory budget") => return Err(e.into()),
+                            Err(_) => None,
+                        };
+                    }
                     gif::scenes(&bytes, limit, |im| push(im, true))?;
                 } else if let Some(im) = Raster::input(path, &bytes, limit)? {
                     push(im, false)?;
@@ -92,15 +152,34 @@ pub(super) fn append(
                     }
                     cursor += if *vertical { im.height } else { im.width };
                 }
+                delays.clear();
+                repeat = None;
                 retained = w * h * 4;
                 stack.push((out, *at, false));
             }
             Step::Append(..) => {}
         }
     }
-    let Some((mut image, start, gif_input)) = stack.pop() else {
+    if stack.is_empty() {
         return Ok(None);
-    };
-    transform(&mut image, start..end, gif_input)?;
-    Ok(Some(image))
+    }
+    retained = 0;
+    let mut frames = Vec::with_capacity(stack.len());
+    for (mut im, start, gif_input) in stack {
+        let keep_timing = transform(&mut im, start..end, gif_input)?;
+        if frames.is_empty() && !keep_timing {
+            delays.clear();
+            repeat = None;
+        }
+        retained = retained.saturating_add(im.pixels.len().saturating_mul(4));
+        if retained > limit {
+            return Err("image exceeds memory budget".into());
+        }
+        frames.push(im);
+    }
+    Ok(Some(Images {
+        frames,
+        delays,
+        repeat,
+    }))
 }

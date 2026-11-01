@@ -10239,7 +10239,7 @@ fn cmd_media_doc(
                     }
                 }
             }
-            let join_stack=!is_mogrify && stack_steps.iter().any(|(_,s)| matches!(s,magick_stack::Step::Append(..)));
+            let use_stack=!is_mogrify && stack_steps.len()>1;
             let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
                 // GIFs decode to four channels even if they did not declare transparency.
                 let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
@@ -10278,11 +10278,23 @@ fn cmd_media_doc(
                 let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
                 let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
                 let transform=|image: &mut png_pixels::Raster|apply_pixels(image,0..ops.len(),gif_input);
-                let mut image = if join_stack {
-                    match magick_stack::append(&stack_steps,ops.len(),apply_pixels,cwd,fs) {
-                        Ok(Some(image))=>image, Ok(None)=>return None, Err(e)=>return Some(fail(&e)),
+                if use_stack {
+                    let transform=|im:&mut png_pixels::Raster,range:std::ops::Range<usize>,gif| {
+                        let keep_timing=!ops[range.clone()].iter().any(|op| matches!(op,PixelOp::Extent(..)));
+                        apply_pixels(im,range,gif)?;
+                        Ok(keep_timing)
+                    };
+                    let mut images=match magick_stack::evaluate(&stack_steps,ops.len(),transform,cwd,fs) {
+                        Ok(Some(images))=>images, Ok(None)=>return None, Err(e)=>return Some(fail(&e)),
+                    };
+                    if dest.0=="gif" {
+                        return Some(match images.gif(timing,kernel,fs.max_input_bytes()) {
+                            Ok(bytes)=>png_pixels::Raster::publish_bytes(&bytes,dest.1,cwd,fs),Err(e)=>fail(e),
+                        });
                     }
-                } else if let Some((canvas,size)) = canvas {
+                    return Some(images.frames.pop()?.publish(dest,quality,cwd,fs));
+                }
+                let mut image = if let Some((canvas,size)) = canvas {
                     match canvas.raster(size,fs.max_input_bytes()) { Ok(im)=>im,Err(e)=>return Some(fail(e)) }
                 } else if gif_input {
                     if dest.0 == "gif" {
@@ -10306,7 +10318,7 @@ fn cmd_media_doc(
                         Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
                     }
                 };
-                if !join_stack && let Err(e)=transform(&mut image){return Some(fail(e));}
+                if let Err(e)=transform(&mut image){return Some(fail(e));}
                 if dest.0 == "gif" && (delay.is_some() || repeat.is_some()) {
                     return Some(match gif::encode(image.width,image.height,&image.pixels,timing,fs.max_input_bytes()) {
                         Ok(data)=>png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs),
@@ -10424,7 +10436,7 @@ fn cmd_media_doc(
             }
             if let Some(out_rel) = pos_files.last() {
                 let out_full = resolve_posix_path(cwd, out_rel);
-                if join_stack || canvas.is_some() && pos_files.len()==1 {
+                if use_stack || canvas.is_some() && pos_files.len()==1 {
                     if let Some(out)=raster_output("", &[], out_rel) {return out;}
                 } else if !has_pseudo_input && pos_files.len()==2 {
                     let path=pos_files[0].strip_prefix("png:").unwrap_or(&pos_files[0]);
@@ -14370,6 +14382,29 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_joins_mixed_gif_scenes_and_keeps_first_image_timing() {
+        let fs=MemoryVfs::new();
+        let run=|cmd,s:&str|cmd_media_doc(cmd,&media_args(&s.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("convert","-size 4x2 gradient:red-blue in.png").exit_code,0);
+        assert_eq!(run("ffmpeg","-f lavfi -i testsrc=s=3x2:r=5:d=0.5 a.gif").exit_code,0);
+        for (cmd,hash) in [
+            ("xc:red xc:blue o.gif","d5244bf69a2dd7254775dd7d967592d7beec04b27faa276089a2b5aaaaf15a1a"),
+            ("in.png -negate -size 2x3 gradient:red-blue o.gif","95802f2cf6725fbe9d6765b4e652cb7a5f174e5b5e2155947a9845ed40a9b552"),
+            ("in.png -negate -size 2x3 gradient:red-blue o.png","3735f381d92ce01060f71e1eab0f90e7c5e8afd684178a2ac565009916a3ba7d"),
+            ("a.gif in.png o.gif","7119221bfa97dec29789e5be0444037148e0a24508907a567db321b59bdaa2a2"),
+            ("in.png a.gif o.gif","961d9812234bb771f31611a9131b5aa188c8a533fbfe765fb415db202f51a964"),
+            ("-append a.gif -loop 3 -delay 19 o.gif","069970519fb9d0901e3a41114979712ec26c2b84e927dbd3aff32efad55584ca"),
+            ("a.gif +append in.png o.gif","56f422fd1e57e58e167ca29cefda01e767defd71c5cd866fb820c83134167323"),
+            ("in.png -append a.gif o.gif","961d9812234bb771f31611a9131b5aa188c8a533fbfe765fb415db202f51a964"),
+            ("a.gif -extent 4x3 in.png o.gif","15875119fbfaea252ba08ee117d2471c75cedad66a05be191c0de08d3565f938")
+        ] {
+            assert_eq!(run("convert",cmd).exit_code,0,"{cmd}");
+            let path=format!("/{}",cmd.split_whitespace().last().unwrap());
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&path).unwrap())),hash,"{cmd}");
         }
     }
 

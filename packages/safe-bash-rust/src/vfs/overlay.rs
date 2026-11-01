@@ -137,7 +137,7 @@ impl OverlayVfs {
             ancestor = crate::vfs::dirname_posix_path(&ancestor);
         }
         if !dir {
-            if st.nlink > 1 { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{norm}'")); }
+            if st.nlink.is_some_and(|n| n > 1) { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{norm}'")); }
             if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
         }
         match change {
@@ -193,7 +193,7 @@ impl OverlayVfs {
             if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 { return Err("EISDIR: illegal operation on a directory".into()); }
             if st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
             if !upper_exists {
-                if st.nlink > 1 { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{target}'")); }
+                if st.nlink.is_some_and(|n| n > 1) { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{target}'")); }
                 if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{target}'")); }
             }
         }

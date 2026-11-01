@@ -501,10 +501,9 @@ const SAFE_DETERMINISTIC_CMDS = new Set([
 ]);
 
 export class RustWasmBash {
-  #identityScope = Symbol("Wasm filesystem");
-  #directoryScopes = new Map();
+  #identityScopes = new Map();
   #releasedScopes = new FinalizationRegistry(scope => {
-    if (!this.#directoryScopes.get(scope)?.deref()) this.#directoryScopes.delete(scope);
+    if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
   });
   constructor(options = {}) {
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
@@ -764,26 +763,32 @@ export class RustWasmBash {
     const atimeMs = view.getFloat64(20, true);
     const ctimeMs = view.getFloat64(28, true), birthtimeMs = view.getFloat64(36, true);
     const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
-    const dev = len >= 60 ? Number(view.getBigUint64(44, true)) : undefined;
-    const ino = len >= 60 ? Number(view.getBigUint64(52, true)) : undefined;
-    let identityScope = this.#identityScope;
-    if (len >= 72) {
-      const scope = view.getBigUint64(64, true);
-      identityScope = this.#directoryScopes.get(scope)?.deref();
+    const fields = view.getUint32(44, true);
+    const allocatedBytes = view.getFloat64(60, true), ioBlockSize = view.getFloat64(68, true);
+    const ino = len >= 92 ? Number(view.getBigUint64(84, true)) : undefined;
+    let identityScope;
+    if (Number.isSafeInteger(ino)) {
+      // Memory filesystems report dev 0. Keep their identity scopes distinct,
+      // including synthetic device mounts and logical overlay directories.
+      const key = len >= 100 ? view.getBigUint64(92, true) : ~view.getBigUint64(76, true);
+      identityScope = this.#identityScopes.get(key)?.deref();
       if (!identityScope) {
-        identityScope = Symbol("overlay directory");
-        this.#directoryScopes.set(scope, new WeakRef(identityScope));
-        this.#releasedScopes.register(identityScope, scope);
+        identityScope = Symbol("Wasm filesystem identity");
+        this.#identityScopes.set(key, new WeakRef(identityScope));
+        this.#releasedScopes.register(identityScope, key);
       }
     }
     return {
-      ...(len >= 64 ? { nlink: view.getUint32(60, true) } : {}),
-      ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope } : {}),
+      ...(fields & 1 ? {uid: view.getUint32(48, true)} : {}),
+      ...(fields & 2 ? {gid: view.getUint32(52, true)} : {}),
+      ...(fields & 4 ? {nlink: view.getUint32(56, true)} : {}),
+      ...(fields & 8 ? {filesystemType: "memory"} : {}),
+      ...(Number.isFinite(allocatedBytes) ? {allocatedBytes} : {}),
+      ...(Number.isFinite(ioBlockSize) ? {ioBlockSize} : {}),
+      ...(identityScope ? { dev: 0, ino, identityScope } : {}),
       type,
       size,
       mode,
-      uid: 0,
-      gid: 0,
       mtime: new Date(mtimeMs),
       mtimeMs,
       atimeMs,
@@ -1250,7 +1255,7 @@ export class RustWasmBash {
   }
 
   dispose() {
-    this.#directoryScopes.clear();
+    this.#identityScopes.clear();
     if (this._companion) {
       void this._companion.shell.dispose();
     }

@@ -31,6 +31,11 @@ export interface RustWasmExecResult {
 }
 
 export interface WasmFileStat {
+  readonly uid?: number;
+  readonly gid?: number;
+  readonly allocatedBytes?: number;
+  readonly ioBlockSize?: number;
+  readonly filesystemType?: string;
   readonly dev?: number;
   readonly ino?: number;
   readonly nlink?: number;

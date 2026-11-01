@@ -1212,3 +1212,27 @@ test("writeFile reports overlay failures at the resolved operand and prioritizes
     await assert.rejects(bash.fs.writeFile("/dev/absent", "bad"), { code: "ENOENT", syscall: "writeFile", path: "/dev/absent" });
   } finally { bash.dispose(); }
 });
+
+test("stat distinguishes absent fields, a zero allocation, and a real inode", async () => {
+  const bash = new RustWasmBash({files:{"/f":"content","/g":"other"}});
+  try {
+    const {fs} = bash;
+    const f = await fs.stat("/f");
+    const nullDevice = await fs.stat("/dev/null");
+    assert.deepEqual([f.dev, f.uid, f.gid, f.ioBlockSize, f.filesystemType, f.allocatedBytes],
+                     [0, 0, 0, 65536, "memory", undefined]);
+    assert.equal(nullDevice.allocatedBytes, 0);
+    assert.equal(nullDevice.ino, 1);
+    assert.notEqual(f.identityScope, nullDevice.identityScope);
+    assert.equal(bash.execSync("stat -c '%i:%o' /f").stdout, f.ino + ":65536\n");
+    assert.notEqual(f.ino, (await fs.stat("/g")).ino);
+    assert.equal(bash.execSync("stat -c %b /f").stderr, "stat: ENOTSUP: filesystem does not expose b, stat\n");
+    assert.equal(bash.execSync("stat -c %b /dev/null").stdout, "0\n");
+    bash.mountDevices();
+    const mounted = await fs.stat("/dev/null");
+    for (const field of ["uid","gid","nlink","ioBlockSize","filesystemType","allocatedBytes"]) {
+      assert.equal(Object.hasOwn(mounted, field), false, field);
+    }
+    assert.equal(bash.execSync("stat -c %u /dev/null").stderr, "stat: ENOTSUP: filesystem does not expose u, stat\n");
+  } finally { bash.dispose(); }
+});

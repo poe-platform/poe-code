@@ -152,18 +152,18 @@ impl RealVfs {
             !0
         };
         #[cfg(unix)]
-        let (identity, allocated_bytes, nlink) = {
+        let (identity, allocated_bytes, nlink, uid, gid, io_block_size) = {
             use std::os::unix::fs::MetadataExt;
-            (Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())), meta.blocks().checked_mul(512), meta.nlink() as usize)
+            (Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())), meta.blocks().checked_mul(512), Some(meta.nlink() as usize), Some(meta.uid()), Some(meta.gid()), Some(meta.blksize()))
         };
         #[cfg(not(unix))]
-        let (identity, allocated_bytes, nlink) = (None, None, 1);
+        let (identity, allocated_bytes, nlink, uid, gid, io_block_size) = (None, None, None, None, None, None);
         let timestamp = |time: std::time::SystemTime| {
             let millis = |d: Duration| d.as_secs() as f64 * 1000.0 + d.subsec_nanos() as f64 / 1e6;
             time.duration_since(UNIX_EPOCH).map(millis).unwrap_or_else(|e| -millis(e.duration()))
         };
         Ok(FileStat {
-            nlink,
+            nlink, uid, gid, io_block_size, filesystem_type: None,
             identity,
             allocated_bytes,
             kind,
@@ -459,7 +459,7 @@ mod tests {
             vfs.hard_link("/nested/dir/link.txt", "/other-link").unwrap();
             let linked = vfs.lstat("/other-link").unwrap();
             assert_eq!(linked.identity, vfs.lstat("/nested/dir/link.txt").unwrap().identity);
-            assert_eq!(linked.nlink, 2);
+            assert_eq!(linked.nlink, Some(2));
             vfs.remove_path("/other-link").unwrap();
             vfs.symlink("/nested/dir/hello.txt", "/absolute").unwrap();
             assert_eq!(vfs.read_file("/absolute").unwrap(), b"real-vfs-bytes");

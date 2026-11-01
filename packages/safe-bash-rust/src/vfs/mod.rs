@@ -57,7 +57,11 @@ impl EntryIdentity {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FileStat {
-    pub nlink: usize,
+    pub nlink: Option<usize>,
+    pub uid: Option<u32>,
+    pub gid: Option<u32>,
+    pub io_block_size: Option<u64>,
+    pub filesystem_type: Option<&'static str>,
     pub allocated_bytes: Option<u64>,
     pub identity: Option<EntryIdentity>,
     pub kind: VfsEntryKind,
@@ -221,7 +225,7 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if self.is_dir(&norm) {
             return Ok(FileStat {
-                nlink: 1,
+                nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Directory,
@@ -234,7 +238,7 @@ pub trait SafeBashFs: Send + Sync {
         }
         if let Ok(data) = self.read_file(&norm) {
             return Ok(FileStat {
-                nlink: 1,
+                nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::File,
@@ -252,7 +256,7 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if let Ok(target) = self.readlink(&norm) {
             return Ok(FileStat {
-                nlink: 1,
+                nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Symlink,

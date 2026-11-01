@@ -353,7 +353,7 @@ impl MemoryVfs {
         let resolved = Self::resolve_symlinks_locked(&state, path, follow).map_err(|e| e.message)?;
         let device = state.devices.entry(&resolved);
         let (kind, size, mode, atime_ms, mtime_ms, ctime, birth, ino) = if let Some(name) = device {
-            let ino = match name { "" => 1, "null" => 2, "random" => 3, "urandom" => 4, "zero" => 5, "full" => 6, _ => unreachable!() };
+            let ino = match name { "" if state.devices == Devices::Null => 2, "null" if state.devices == Devices::Null => 1, "" => 1, "null" => 2, "random" => 3, "urandom" => 4, "zero" => 5, "full" => 6, _ => unreachable!() };
             let (kind, mode) = if name.is_empty() {
                 (VfsEntryKind::Directory, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 })
             } else { (VfsEntryKind::File, 0o20666) };
@@ -375,9 +375,11 @@ impl MemoryVfs {
         };
         let default_device = device.is_some() && state.devices == Devices::Null;
         Ok(FileStat {
-            nlink: if kind == VfsEntryKind::Directory && device.is_none() {
+            uid: (state.devices != Devices::Mounted).then_some(0), gid: (state.devices != Devices::Mounted).then_some(0),
+            io_block_size: device.is_none().then_some(65536), filesystem_type: device.is_none().then_some("memory"),
+            nlink: (state.devices != Devices::Mounted).then(|| if kind == VfsEntryKind::Directory && device.is_none() {
                 2 + state.child_dirs.get(&resolved).copied().unwrap_or(0)
-            } else { 1 + state.extra_links.get(&ino).copied().unwrap_or(0) },
+            } else { 1 + state.extra_links.get(&ino).copied().unwrap_or(0) }),
             identity: Some(EntryIdentity::Memory(if default_device { 0 } else { self.id }, ino)),
             allocated_bytes: default_device.then_some(0),
             kind, size, mode, atime_ms, mtime_ms, ctime_ms: Some(ctime), birthtime_ms: Some(birth),
@@ -1325,13 +1327,13 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.mkdir_all("/a/dir/sub").unwrap();
         fs.mkdir_all("/b").unwrap();
-        assert_eq!(fs.stat("/a").unwrap().nlink, 3);
+        assert_eq!(fs.stat("/a").unwrap().nlink, Some(3));
         fs.rename("/a/dir", "/b/dir", false).unwrap();
-        assert_eq!(fs.stat("/a").unwrap().nlink, 2);
-        assert_eq!(fs.stat("/b").unwrap().nlink, 3);
-        assert_eq!(fs.stat("/b/dir").unwrap().nlink, 3);
+        assert_eq!(fs.stat("/a").unwrap().nlink, Some(2));
+        assert_eq!(fs.stat("/b").unwrap().nlink, Some(3));
+        assert_eq!(fs.stat("/b/dir").unwrap().nlink, Some(3));
         fs.remove_path("/b/dir").unwrap();
-        assert_eq!(fs.stat("/b").unwrap().nlink, 2);
+        assert_eq!(fs.stat("/b").unwrap().nlink, Some(2));
     }
 
     #[test]

@@ -607,7 +607,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         VfsEntryKind::Directory => 1,
         VfsEntryKind::Symlink => 2,
     };
-    let mut buf = Vec::with_capacity(64);
+    let mut buf = Vec::with_capacity(100);
     buf.extend_from_slice(&kind_code.to_le_bytes());
     buf.extend_from_slice(&(st.size as u32).to_le_bytes());
     buf.extend_from_slice(&st.mode.to_le_bytes());
@@ -615,11 +615,18 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
     buf.extend_from_slice(&st.atime_ms.to_le_bytes());
     buf.extend_from_slice(&st.ctime_ms.unwrap_or(f64::NAN).to_le_bytes());
     buf.extend_from_slice(&st.birthtime_ms.unwrap_or(f64::NAN).to_le_bytes());
+    let fields = u32::from(st.uid.is_some()) | (u32::from(st.gid.is_some()) << 1)
+        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type == Some("memory")) << 3);
+    buf.extend_from_slice(&fields.to_le_bytes());
+    buf.extend_from_slice(&st.uid.unwrap_or(0).to_le_bytes());
+    buf.extend_from_slice(&st.gid.unwrap_or(0).to_le_bytes());
+    buf.extend_from_slice(&(st.nlink.unwrap_or(0) as u32).to_le_bytes());
+    buf.extend_from_slice(&st.allocated_bytes.map_or(f64::NAN, |n| n as f64).to_le_bytes());
+    buf.extend_from_slice(&st.io_block_size.map_or(f64::NAN, |n| n as f64).to_le_bytes());
     use crate::vfs::EntryIdentity;
     if let Some(EntryIdentity::Memory(dev, ino) | EntryIdentity::OverlayDirectory { dev, ino, .. }) = st.identity {
         buf.extend_from_slice(&dev.to_le_bytes());
         buf.extend_from_slice(&ino.to_le_bytes());
-        buf.extend_from_slice(&(st.nlink as u32).to_le_bytes());
         if let Some(EntryIdentity::OverlayDirectory { scope, .. }) = st.identity { buf.extend_from_slice(&scope.to_le_bytes()); }
     }
     buf

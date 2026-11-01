@@ -413,7 +413,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 if tenths < 100 { format!("{}.{}{unit}", tenths / 10, tenths % 10) } else { format!("{}{unit}", bytes.div_ceil(scale)) }
             } else { st.size.to_string() };
             let date = format_iso_stat_timestamp(entry.time.trunc()).ok_or("internal error")?;
-            write!(row, "{kind}{} {} 0 0 {size} {} ", format_perm_9(st.mode), st.nlink, &date[..16]).unwrap();
+            write!(row, "{kind}{} {} {} {} {size} {} ", format_perm_9(st.mode), st.nlink.unwrap_or(1), st.uid.unwrap_or(0), st.gid.unwrap_or(0), &date[..16]).unwrap();
         }
         row.push_str(&fmt_name(&entry.name));
         if long && entry.mode & 0o170000 == 0o120000 {
@@ -3909,7 +3909,7 @@ fn cmd_stat(
                     let start = idx;
                     idx = p_idx + consumed_code;
 
-                    let epoch_code = matches!(dir_code, "X" | "Y" | "Z" | "W");
+                    let epoch_code = !filesystem && matches!(dir_code, "X" | "Y" | "Z" | "W");
                     let width = if width_str.is_empty() { 0 } else { width_str.parse::<usize>().unwrap_or(usize::MAX) };
                     if width > limit { break Some("EFBIG: stat format width limit exceeded".into()); }
                     let precision = prec_str.map(|ps| {
@@ -3925,6 +3925,7 @@ fn cmd_stat(
 
                     let mut link_text: Option<String> = None;
                     let mut numeric = false;
+                    if filesystem && !matches!(dir_code, "%" | "n" | "T") { break Some(format!("ENOTSUP: unsupported filesystem stat format: %{dir_code}")); }
                     let val_text = match dir_code {
                         "X" | "Y" | "Z" | "W" | "x" | "y" | "z" | "w" => {
                             let ms = match dir_code {
@@ -3950,6 +3951,7 @@ fn cmd_stat(
                                 timestamp
                             }
                         }
+                        "bsdType" if is_char_dev => "Character Device".into(),
                         "bsdType" => match st.kind {
                             VfsEntryKind::Directory => "Directory".to_string(),
                             VfsEntryKind::Symlink => "Symbolic Link".to_string(),
@@ -3986,27 +3988,38 @@ fn cmd_stat(
                             st.size.to_string()
                         }
                         "F" => ftype.to_string(),
-                        "u" | "g" | "d" | "D" => {
-                            numeric = true;
-                            "0".to_string()
+                        "T" if filesystem => match st.filesystem_type {
+                            Some(name) => name.to_owned(),
+                            None => break Some("ENOTSUP: filesystem does not expose its type, stat".into()),
+                        },
+                        "U" | "G" => {
+                            let (id, field) = if dir_code == "U" { (st.uid, "u") } else { (st.gid, "g") };
+                            match id {
+                                Some(0) => "root".to_owned(),
+                                Some(id) => id.to_string(),
+                                None => break Some(format!("ENOTSUP: filesystem does not expose {field}, stat")),
+                            }
                         }
-                        "U" | "G" => "root".to_string(),
+                        "b" | "o" | "i" | "h" | "d" | "D" | "t" | "T" | "u" | "g" => {
+                            let value = match dir_code {
+                                "b" => st.allocated_bytes.map(|v| v.div_ceil(512)),
+                                "o" => st.io_block_size,
+                                "u" => st.uid.map(u64::from),
+                                "g" => st.gid.map(u64::from),
+                                "h" => st.nlink.map(|n| n as u64),
+                                "i" => st.identity.as_ref().map(|id| match id {
+                                    EntryIdentity::Unix(_, ino) | EntryIdentity::Memory(_, ino) | EntryIdentity::OverlayDirectory { ino, .. } => *ino,
+                                }),
+                                "d" | "D" => st.identity.as_ref().map(|id| match id { EntryIdentity::Unix(dev, _) => *dev, _ => 0 }),
+                                _ => None,
+                            };
+                            let Some(value) = value else { break Some(format!("ENOTSUP: filesystem does not expose {dir_code}, stat")); };
+                            numeric = true;
+                            if dir_code == "D" { format!("{value:x}") } else { value.to_string() }
+                        }
                         "B" => {
                             numeric = true;
                             "512".to_string()
-                        }
-                        "b" => {
-                            numeric = true;
-                            st.size.div_ceil(512).to_string()
-                        }
-                        "i" => {
-                            numeric = true;
-                            "1".to_string()
-                        }
-                        "T" if filesystem => "memory".to_string(),
-                        "h" => {
-                            numeric = true;
-                            st.nlink.to_string()
                         }
                         "m" => "/".to_string(),
                         other => break Some(format!("ENOTSUP: unsupported stat format: %{other}")),
@@ -7169,7 +7182,7 @@ mod tests {
             let stat = |dir: &str, name: &str| fs.lstat(&format!("/{dir}/{name}")).unwrap();
             assert_ne!(stat("dst", a).identity, stat("src", a).identity);
             assert_eq!(stat("dst", a).identity, stat("dst", b).identity);
-            assert_eq!(stat("dst", a).nlink, 2);
+            assert_eq!(stat("dst", a).nlink, Some(2));
         }
         assert_eq!(fs.readlink("/dst/b~").unwrap(), "keep");
         assert!(fs.is_dir("/dst/keep"));

@@ -5488,7 +5488,9 @@ where
             }
         },
         FindPred::Links { op, count } => {
-            let nlinks = st.nlink;
+            let Some(nlinks) = st.nlink else {
+                return Err(format!("ENOTSUP: link count unavailable '{full_path}'"));
+            };
             match op {
                 1 => nlinks > *count,
                 -1 => nlinks < *count,
@@ -5797,7 +5799,7 @@ fn walk_find<F>(
     let report = |error: String, op: &str| {
         if error.starts_with("ELOOP:") && !error.contains(", ") {
             format!("find: ELOOP: too many symbolic links encountered '{full}'\n")
-        } else if error.starts_with("EACCES:") && error.contains(", lstat '") {
+        } else if error.starts_with("ENOTSUP: link count unavailable ") || (error.starts_with("EACCES:") && error.contains(", lstat '")) {
             format!("find: {error}\n")
         } else {
             let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }

@@ -2470,6 +2470,14 @@ impl<'a> EvalState<'a> {
         self.assign_variable(lhs, &value, append).map(|()| None)
     }
 
+    fn associative_write_key(&mut self, word: &str) -> Result<String, EvalError> {
+        let key = self.expand_word_to_string(word)?;
+        if key.is_empty() {
+            return Err(EvalError::Syntax("associative array: bad array subscript".into()));
+        }
+        Ok(key)
+    }
+
     fn assign_element<'v>(
         &mut self,
         base: &str,
@@ -2496,8 +2504,7 @@ impl<'a> EvalState<'a> {
                 .is_some_and(|a| a.contains('A'));
         let (final_sub, raw_val) = if is_assoc {
             let value = value(self)?;
-            let key = self.expand_word_to_string(raw_sub)?;
-            (key.trim_matches('"').trim_matches('\'').to_string(), value)
+            (self.associative_write_key(raw_sub)?, value)
         } else {
             let sub_expanded = self.expand_word_to_string(raw_sub)?;
             let clean_sub = sub_expanded.trim_matches('"').trim_matches('\'');
@@ -2630,7 +2637,7 @@ impl<'a> EvalState<'a> {
             if keys_before_writes {
                 for (key, _, _) in &mut items {
                     if let Some(key) = key {
-                        *key = self.expand_word_to_string(key)?;
+                        *key = self.associative_write_key(key)?;
                     }
                 }
             }
@@ -2675,10 +2682,12 @@ impl<'a> EvalState<'a> {
 
             for (explicit_sub, item_val, item_append) in items {
                 if let Some(sub_k) = explicit_sub {
-                    let sub_k = if keys_before_writes { sub_k } else { self.expand_word_to_string(&sub_k)? };
-                    let final_k = if is_assoc {
+                    let final_k = if keys_before_writes {
                         sub_k
+                    } else if is_assoc {
+                        self.associative_write_key(&sub_k)?
                     } else {
+                        let sub_k = self.expand_word_to_string(&sub_k)?;
                         let idx = eval_arith(&sub_k, self.env).map_err(EvalError::Syntax)?;
                         next_idx = idx + 1;
                         idx.to_string()
@@ -16133,6 +16142,24 @@ hash -l
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+        }
+    }
+
+    #[test]
+    fn associative_writes_keep_literal_quotes_and_reject_empty_keys() {
+        for (script, code, stdout, stderr) in [
+            (r#"declare -A a; k='"hi"'; a[$k]=ok; echo "${!a[@]}:${a[$k]}""#, 0, "\"hi\":ok\n", ""),
+            (r#"declare -A a; k="'hi'"; a[$k]=ok; echo "${!a[@]}:${a[$k]}""#, 0, "'hi':ok\n", ""),
+            (r#"declare -A a; a[""]=v; echo after"#, 1, "", "shell: line 1: associative array: bad array subscript\n"),
+            (r#"declare -A a; a[$missing]=v; echo after"#, 1, "", "shell: line 1: associative array: bad array subscript\n"),
+            (r#"declare -A a; a=([x]=one [""]=two); echo after"#, 1, "", "shell: line 1: associative array: bad array subscript\n"),
+            (r#"declare -A a; (a[]=v 2>err; echo after); echo rc:$?; cat err"#, 0, "rc:1\nshell: line 1: associative array: bad array subscript\n", ""),
+            (r#"declare -A a; (a[""]=$((1/0)); echo after); echo rc:$?"#, 0, "rc:1\n", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
+            (r#"declare -A a; a=([' ']=yes); echo "<${!a[@]}>:${a[@]}""#, 0, "< >:yes\n", ""),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
         }
     }
 

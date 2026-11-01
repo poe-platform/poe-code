@@ -105,6 +105,10 @@ fn file_ext_key(name: &str) -> &str {
     }
 }
 
+fn absolute_operand(cwd: &str, operand: &str) -> String {
+    if operand.is_empty() || operand.starts_with('/') { operand.to_owned() } else { child_disp_path(cwd, operand) }
+}
+
 fn child_disp_path(parent: &str, name: &str) -> String {
     if parent == "/" {
         format!("/{name}")
@@ -1356,20 +1360,6 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
     Ok(true)
 }
 
-fn canonical_entry_identity(path: &str, follow: bool, fs: &dyn SafeBashFs) -> String {
-    let entries = fs.export_entries().unwrap_or_default();
-    let resolved = if follow {
-        canonicalize_posix_path(path, 'm', false, fs).unwrap_or_else(|_| normalize_posix_path(path))
-    } else {
-        let parent = crate::vfs::dirname_posix_path(path);
-        let base = basename_posix_path(path);
-        let canon_parent = canonicalize_posix_path(&parent, 'm', false, fs)
-            .unwrap_or_else(|_| normalize_posix_path(&parent));
-        child_disp_path(&canon_parent, &base)
-    };
-    resolve_hardlink_root_path(&resolved, &entries)
-}
-
 fn cmd_cp(
     args: &[String],
     stdin: &str,
@@ -1601,8 +1591,7 @@ fn cmd_cp(
     settings.no_clobber = no_clobber;
     if backup_mode != BackupMode::None { settings.backup = Some((backup_mode, backup_suffix)); }
     let dst_raw = eff_operands.last().unwrap();
-    let absolute = |path: &str| if path.is_empty() || path.starts_with('/') { path.to_owned() } else { child_disp_path(cwd, path) };
-    let dst_operand = absolute(dst_raw);
+    let dst_operand = absolute_operand(cwd, dst_raw);
     let dst_base = match fs.access_path(&dst_operand, false) {
         Ok(entry) => entry,
         Err(e) => {
@@ -1628,7 +1617,7 @@ fn cmd_cp(
     let sources = &eff_operands[..eff_operands.len() - 1];
     if sym_link || hard_link || settings.timestamps && !settings.archive && (deref_mode == 'P' || settings.recursive && deref_mode == 'H') {
         for operand in sources {
-            let src = absolute(operand);
+            let src = absolute_operand(cwd, operand);
             let target = if dst_is_dir { child_disp_path(&dst_base, &basename_posix_path(&src)) } else { dst_base.clone() };
             if let Err(e) = copy_entry(&src, &target, (operand, &target), fs, &settings, CopyPass::Admit { missing_parent: false }, &mut Default::default())
                 && e.starts_with("ENOTSUP:") {
@@ -1637,7 +1626,7 @@ fn cmd_cp(
         }
     }
     for src_raw in sources {
-        let operand = absolute(src_raw);
+        let operand = absolute_operand(cwd, src_raw);
         let (src, link) = match fs.inspect_command_entry(&operand, false, "lstat") {
             Ok(v) => v,
             Err(e) => { report.stderr.push_str(&format!("cp: {}\n", copy_error(&e, "lstat", &operand))); code = 1; continue; }
@@ -2537,16 +2526,27 @@ fn cmd_ln(
     };
 
     let last_op = eff_operands.last().unwrap();
-    let target_base = resolve_posix_path(cwd, last_op);
-    let is_dir = if no_target_dir {
-        false
-    } else if target_dir.is_some() || !no_deref {
-        fs.is_dir(&target_base)
-    } else {
-        fs.is_dir(&target_base) && fs.readlink(&target_base).is_err()
+    let target_operand = absolute_operand(cwd, last_op);
+    let follow_dir = target_dir.is_some() || !no_deref;
+    let operation = if symbolic { "symlink" } else { "link" };
+    let target_base = match fs.access_path(&target_operand, false) {
+        Ok(path) => path,
+        Err(e) => {
+            let syscall = if e.starts_with("ENOENT:") { operation }
+                else if no_target_dir || !follow_dir { "lstat" } else { "stat" };
+            return err_out(&format!("ln: {}\n", copy_error(&e, syscall, &target_operand)), 1);
+        }
     };
-    if (target_dir.is_some() || eff_operands.len() > 2) && !is_dir {
-        return err_out(&format!("ln: target '{last_op}' is not a directory\n"), 1);
+    let directory = if no_target_dir { None } else {
+        match fs.inspect_command_entry(&target_operand, follow_dir, if follow_dir { "stat" } else { "lstat" }) {
+            Ok((path, st)) if st.kind == VfsEntryKind::Directory => Some(path),
+            Ok(_) => None,
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+            Err(e) => return err_out(&format!("ln: {}\n", copy_error(&e, if follow_dir { "stat" } else { "lstat" }, &target_operand)), 1),
+        }
+    };
+    if (target_dir.is_some() || eff_operands.len() > 2) && directory.is_none() {
+        return err_out(&format!("ln: ENOTDIR: not a directory '{target_operand}'\n"), 1);
     }
 
     let mut stdout = String::new();
@@ -2557,48 +2557,47 @@ fn cmd_ln(
 
     for src_op in &eff_operands[..eff_operands.len() - 1] {
         let base_name = basename_posix_path(src_op);
-        let link_path = if is_dir {
-            child_disp_path(&target_base, &base_name)
+        let link_path = if let Some(dir) = &directory {
+            child_disp_path(dir, &base_name)
         } else {
             target_base.clone()
         };
-        let disp_target = if is_dir {
+        let disp_target = if directory.is_some() {
             child_disp_path(last_op, &base_name)
         } else {
             last_op.clone()
         };
-        let src_full = resolve_posix_path(cwd, src_op);
-        if !symbolic {
-            let src_exists = fs.exists(&src_full) || fs.lstat(&src_full).is_ok();
-            if !src_exists {
-                stderr.push_str(&format!(
-                    "ln: ENOENT: no such file or directory, link '{src_full}'\n"
-                ));
-                code = 1;
-                continue;
+        let operand = absolute_operand(cwd, src_op);
+        let existing = fs.lstat(&link_path).ok();
+        let replacing = existing.is_some() && (force || interactive || backup_mode != BackupMode::None);
+        let (src_full, source_stat) = if symbolic { (operand, None) } else {
+            let syscall = if logical { "realpath" } else if replacing { "lstat" } else { "link" };
+            match fs.inspect_command_entry(&operand, logical, syscall) {
+                Ok((path, stat)) => (path, Some(stat)),
+                Err(e) => {
+                    stderr.push_str(&format!("ln: {}\n", copy_error(&e, syscall, &operand)));
+                    code = 1;
+                    continue;
+                }
             }
-            let src_is_sym = fs
-                .readlink(&src_full)
-                .map(|t| !t.starts_with("__hardlink__:"))
-                .unwrap_or(false);
-            if fs.is_dir(&src_full) && !src_is_sym {
-                stderr.push_str(&format!(
-                    "ln: EPERM: operation not permitted, link '{src_full}' -> '{link_path}'\n"
-                ));
-                code = 1;
-                continue;
-            }
-        }
+        };
         if !symbolic && src_full == link_path {
             stderr.push_str(&format!("ln: EEXIST: file already exists '{link_path}'\n"));
             code = 1;
             continue;
         }
+        let relative_target = if relative {
+            let target = match canonicalize_posix_path(&src_full, 'm', false, fs) {
+                Ok(path) => path,
+                Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
+            };
+            Some(relative_posix_path(&crate::vfs::dirname_posix_path(&link_path), &target))
+        } else { None };
         let mut moved_backup = None;
-        if fs.exists(&link_path) || fs.lstat(&link_path).is_ok() {
-            let src_entry = canonical_entry_identity(&src_full, false, fs);
-            let dst_entry = canonical_entry_identity(&link_path, false, fs);
-            if src_entry == dst_entry && (force || interactive || backup_mode != BackupMode::None) {
+        if let Some(existing) = existing {
+            let src_entry = fs.access_path(&src_full, false);
+            if (force || interactive || backup_mode != BackupMode::None)
+                && src_entry.is_ok_and(|src| fs.access_path(&link_path, false).is_ok_and(|dst| src == dst)) {
                 stderr.push_str(&format!(
                     "ln: EEXIST: source and destination are the same file '{link_path}'\n"
                 ));
@@ -2618,7 +2617,7 @@ fn cmd_ln(
                 code = 1;
                 continue;
             }
-            if fs.is_dir(&link_path) && fs.readlink(&link_path).is_err() {
+            if existing.kind == VfsEntryKind::Directory {
                 stderr.push_str(&format!("ln: EISDIR: illegal operation on a directory '{link_path}'\n"));
                 code = 1;
                 continue;
@@ -2641,8 +2640,7 @@ fn cmd_ln(
                     code = 1; continue;
                 }
                 if !symbolic && let Ok(b) = fs.lstat(&backup) {
-                    let source = if logical { fs.stat(&src_full) } else { fs.lstat(&src_full) };
-                    if !source.is_ok_and(|s| s.identity.is_some() && b.identity.is_some() && s.identity != b.identity) {
+                    if !source_stat.as_ref().is_some_and(|s| s.identity.is_some() && b.identity.is_some() && s.identity != b.identity) {
                         stderr.push_str(&format!("ln: EINVAL: backup would overwrite source '{backup}'\n"));
                         code = 1; continue;
                     }
@@ -2658,32 +2656,18 @@ fn cmd_ln(
             }
         }
         let stored_target = if symbolic {
-            if relative {
-                let target_full = resolve_posix_path(cwd, src_op);
-                let link_dir = crate::vfs::dirname_posix_path(&link_path);
-                relative_posix_path(&link_dir, &target_full)
-            } else {
-                src_op.clone()
-            }
+            relative_target.unwrap_or_else(|| src_op.clone())
+        } else if !logical && let Ok(sym_t) = fs.readlink(&src_full) {
+            sym_t
         } else {
-            let target_full = if logical {
-                canonicalize_posix_path(&src_full, 'e', false, fs)
-                    .unwrap_or_else(|_| src_full.clone())
-            } else {
-                src_full.clone()
-            };
-            if !logical
-                && let Ok(sym_t) = fs.readlink(&target_full)
-                && !sym_t.starts_with("__hardlink__:")
-            {
-                sym_t
-            } else {
-                let entries = fs.export_entries().unwrap_or_default();
-                let canon = resolve_hardlink_root_path(&target_full, &entries);
-                format!("__hardlink__:{canon}")
-            }
+            let entries = fs.export_entries().unwrap_or_default();
+            let canon = resolve_hardlink_root_path(&src_full, &entries);
+            format!("__hardlink__:{canon}")
         };
-        if let Err(e) = fs.symlink(&stored_target, &link_path) {
+        let result = if source_stat.as_ref().is_some_and(|s| s.kind == VfsEntryKind::Directory) {
+            Err(format!("EPERM: operation not permitted, link '{src_full}' -> '{link_path}'"))
+        } else { fs.symlink(&stored_target, &link_path) };
+        if let Err(e) = result {
             if let Some(backup) = moved_backup && let Err(e) = fs.rename(&backup, &link_path, true) {
                 stderr.push_str(&format!("ln: {e}, restoring '{backup}' -> '{link_path}'\n"));
             }
@@ -7164,6 +7148,48 @@ mod tests {
         assert!(!fs.exists("/dst/z"));
         assert_eq!(copy(&["-RLp", "/src", "/new"]).exit_code, 0);
         assert_eq!(fs.read_file("/new/z").unwrap(), b"NEW");
+    }
+
+    #[test]
+    fn link_operands_check_each_parent_before_dot_dot_and_keep_relative_link_text() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/w/file", b"OUTER").unwrap();
+        fs.write_file("/w/real/file", b"INNER").unwrap();
+        fs.mkdir_all("/w/real/sub").unwrap();
+        fs.symlink("real/sub", "/w/alias").unwrap();
+        fs.write_file("/w/dst", b"KEEP").unwrap();
+        fs.mkdir_all("/w/private").unwrap();
+        fs.chmod("/w/private", 0o400).unwrap();
+        let run = |argv: &[&str]| cmd_ln(&args(argv), "", "/w", &BTreeMap::new(), &fs);
+        assert_eq!(run(&["-Pf", "private/../file", "dst"]).stderr, "ln: EACCES: permission denied, lstat '/w/private/../file'\n");
+        assert_eq!(run(&["-sf", "file", "missing/../dst"]).stderr, "ln: ENOENT: no such file or directory, symlink '/w/missing/../dst'\n");
+        assert_eq!(fs.read_file("/w/dst").unwrap(), b"KEEP");
+        assert_eq!(run(&["-Pf", "alias/../file", "out"]).exit_code, 0);
+        assert_eq!(fs.read_file("/w/out").unwrap(), b"INNER");
+        assert_eq!(run(&["-srf", "alias/../file", "dst"]).exit_code, 0);
+        assert_eq!(fs.readlink("/w/dst").unwrap(), "real/file");
+        assert_eq!(run(&["-srfT", "alias/../file", "alias"]).exit_code, 0);
+        assert_eq!(fs.readlink("/w/alias").unwrap(), "real/file");
+    }
+
+    #[test]
+    fn logical_ln_resolves_source_before_removing_or_backing_up_any_name() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/file", b"KEEP").unwrap();
+        fs.symlink("file", "/alias").unwrap();
+        fs.symlink("absent", "/dang").unwrap();
+        let run = |argv: &[&str]| cmd_ln(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        for opt in ["-Lf", "-Lb"] {
+            assert_eq!(run(&[opt, "/alias", "/file"]).stderr, "ln: EEXIST: file already exists '/file'\n");
+            assert_eq!(run(&[opt, "/dang", "/file"]).stderr, "ln: ENOENT: no such file or directory, realpath '/dang'\n");
+            assert_eq!(fs.read_file("/file").unwrap(), b"KEEP");
+            assert!(fs.lstat("/file~").is_err());
+        }
+        assert_eq!(run(&["-Lb", "/alias", "/alias"]).exit_code, 0);
+        assert_eq!(fs.readlink("/alias~").unwrap(), "file");
+        assert_eq!(fs.lstat("/alias").unwrap().identity, fs.lstat("/file").unwrap().identity);
+        assert_eq!(run(&["-Pf", "/file", "/alias"]).exit_code, 0);
+        assert_eq!(fs.read_file("/alias").unwrap(), b"KEEP");
     }
 
     #[test]

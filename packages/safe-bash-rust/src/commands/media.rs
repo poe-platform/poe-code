@@ -4721,12 +4721,13 @@ fn cmd_media_doc(
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
-                let mut remux=mp4::mux::Remux{composition,concat,rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                let mut decoded=mp4::mux::DecodedConcat{video:(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some())).then(BTreeMap::new)};
+                let mut remux=mp4::mux::Remux{composition,concat:concat.then_some(&mut decoded),rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 // Cutting a graph first materializes its decoded frames as AVC. Let the
                 // packet slicer handle keyframes, partial samples, and edit lists.
                 let graph_movie;
                 let sources=if remux_inputs && (concat && inputs.len()>1 || composition.is_some() && (ss_opt.is_some() || end.is_some())){
-                    let opts=mp4::mux::Remux{frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
+                    let opts=mp4::mux::Remux{concat:remux.concat.as_deref_mut(),frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
                     let opts=if concat{mp4::mux::Remux{start:None,end:None,strip_audio:false,strip_video:false,..opts}}else{opts};
                     graph_movie=match mp4::mux::remux(&sources,opts,0){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
                     remux.composition=None;
@@ -13894,6 +13895,16 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
         run(&["-i","a.mp4","-i","b.y4m","-filter_complex","concat=n=2:v=1:a=0","-map","[out]","o.mp4"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())), "803d19f01b3fec5c05cd7df3b53461c487929f3c6f0b6ffaba8088e346acd9c0");
+    }
+
+    #[test]
+    fn ffmpeg_concat_exports_decoded_frames_from_the_raw_segment() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
+        run(&["-i","a.mp4","-i","b.y4m","-filter_complex","concat=n=2:v=1:a=0","o.y4m"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "b5e04cd714a2e692a3170253e1b815057bad55ddf37a2ff59e18163897d65b79");
     }
 
     #[test]

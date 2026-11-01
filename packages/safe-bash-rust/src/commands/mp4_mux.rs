@@ -1027,6 +1027,7 @@ fn subtitle_track(
 // final packet of shorter tracks at each boundary before the next copy starts.
 #[path = "mp4_concat.rs"]
 mod concat;
+pub(in super::super) use concat::DecodedConcat;
 
 fn repeat_tracks(
     tracks: &mut [Track<'_>],
@@ -1338,7 +1339,7 @@ impl Composition {
 
 pub(in super::super) struct Remux<'a> {
     pub composition: Option<Composition>,
-    pub concat: bool,
+    pub concat: Option<&'a mut DecodedConcat>,
     pub rate: Option<u32>,
     pub channels: Option<u32>,
     pub audio_filters: &'a [&'a str],
@@ -1489,7 +1490,7 @@ pub(in super::super) fn input_slice(
         std::slice::from_ref(input),
         Remux {
             composition: None,
-            concat: false,
+            concat: None,
             start: seek.start,
             end: seek.end(),
             source_end,
@@ -1746,7 +1747,7 @@ fn mapped_tracks(
         "subtitle" => !opts.strip_subtitles,
         _ => true,
     });
-    if selected.len() > 32 && !opts.concat {
+    if selected.len() > 32 && opts.concat.is_none() {
         return Err("output stream count exceeds limit".into());
     }
     let shortest = opts
@@ -1821,6 +1822,35 @@ pub(in super::super) fn render_mapped(
         filters: opts.video_filters,
         limit: opts.limit,
     };
+    if let Some(seq) = opts.concat.as_deref().and_then(|c| c.video.as_ref()?.get(&i))
+        && let Streams::Mp4(tracks) = streams
+        && !seq.visible(options.start, options.end).is_empty()
+    {
+        let (w, h) = (tracks[i].0.width as usize, tracks[i].0.height as usize);
+        let show = seq.visible(options.start, options.end);
+        let geometry = options.filters.is_empty() && !full_size;
+        let limit = options.limit;
+        let mut emit = emit;
+        y4m::render_frames(
+            w,
+            h,
+            show.iter().map(|f| (f.0, f.1)),
+            options,
+            |k| Ok(show[k].2.clone()),
+            |mut im, d, b| {
+                if geometry {
+                    if w.saturating_mul(h) > limit / 4 {
+                        return Err("image exceeds memory budget");
+                    }
+                    im.width = w;
+                    im.height = h;
+                    im.pixels.resize(w * h, [0; 4]);
+                }
+                emit(im, d, b)
+            },
+        )?;
+        return Ok((w, h, 30));
+    }
     if let Some(sequence) = composed {
         let (w, h) = sequence.geometry;
         y4m::render_frames(
@@ -2105,7 +2135,7 @@ pub(in super::super) fn remux(
     loops: usize,
 ) -> Result<Vec<u8>, String> {
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
-    if opts.concat && inputs.len() > 128 {
+    if opts.concat.is_some() && inputs.len() > 128 {
         return Err(format!(
             "Resource limit exceeded for maxConcatInputs: {} exceeds maximum allowed 128",
             inputs.len()
@@ -2236,7 +2266,7 @@ pub(in super::super) fn remux(
             } else {
                 seconds
             };
-        let seconds = if opts.concat && range.is_none() {
+        let seconds = if opts.concat.is_some() && range.is_none() {
             (0..sources[0].2.len())
                 .map(|i| sources[0].2.seconds(i))
                 .fold(0., f64::max)
@@ -2585,7 +2615,39 @@ pub(in super::super) fn remux(
             handler,
             name,
         };
-        if let Some(sequence) = composed_video {
+        let (from, to) = range.unwrap_or((0., None));
+        let joined = opts
+            .concat
+            .as_deref()
+            .and_then(|c| c.video.as_ref()?.get(&i))
+            .map(|v| v.visible(from, to))
+            .filter(|v| {
+                !v.is_empty()
+                    && (track.samples.is_empty()
+                        || !opts.video_filters.is_empty()
+                        || opts.frames.is_some_and(|n| v.len() > n as usize))
+            });
+        if let Some(show) = joined {
+            let limit = opts.limit.saturating_sub(index_bytes);
+            encode_video(
+                &mut track,
+                scale,
+                show.iter().map(|f| ((f.0 - from).max(0.), f.1)),
+                y4m::Options {
+                    filters: opts.video_filters,
+                    frames: opts.frames,
+                    start: 0.,
+                    end: None,
+                    no_video: false,
+                    limit,
+                },
+                |_| false,
+                opts.fragmented,
+                |k| Ok(show[k].2.clone()),
+            )?;
+            index_bytes = index_bytes
+                .saturating_add(track.samples.iter().map(|s| s.data.len()).sum::<usize>());
+        } else if let Some(sequence) = composed_video {
             let consumed = selected[..ordinal]
                 .iter()
                 .any(|&(j, i)| sources[j].2.kind(i) == "video");
@@ -2775,15 +2837,17 @@ pub(in super::super) fn remux(
             track.stsd = audio_entry(rate, channels, 2).into();
         }
     }
-    if opts.concat && sources.len() > 1 {
-        tracks = concat::join(tracks, sources, scale, opts.limit)?;
+    if sources.len() > 1
+        && let Some(decoded) = opts.concat.as_deref_mut()
+    {
+        tracks = concat::join(tracks, sources, scale, opts.limit, decoded)?;
     }
     if loops != 0 {
         repeat_tracks(&mut tracks, loops, scale, opts.limit)?;
     }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();
-    for (j, &(_, movie, ..)) in sources[..if opts.maps.is_empty() && !opts.concat {
+    for (j, &(_, movie, ..)) in sources[..if opts.maps.is_empty() && opts.concat.is_none() {
         sources.len()
     } else {
         1

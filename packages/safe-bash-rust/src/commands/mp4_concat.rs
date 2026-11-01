@@ -2,6 +2,21 @@ use super::super::{atoms, child, esds, u16_at, u32_at};
 use super::{Source, Streams, Track, atom};
 use std::collections::{BTreeMap, HashMap};
 
+use super::{Raster, frame_output};
+
+#[derive(Default)]
+pub(in super::super::super) struct DecodedConcat {
+    pub(in super::super::super) video: Option<BTreeMap<usize, VideoFrames>>,
+}
+#[derive(Default)]
+pub(in super::super::super) struct VideoFrames(Vec<(f64, f64, Raster)>);
+impl VideoFrames {
+    pub(super) fn visible(&self, start: f64, end: Option<f64>) -> &[(f64, f64, Raster)] {
+        let from = self.0.partition_point(|f| f.0 + f.1 <= start);
+        let until = end.map_or(self.0.len(), |t| self.0.partition_point(|f| f.0 < t));
+        &self.0[from..until.max(from)]
+    }
+}
 #[derive(Eq, PartialEq, Hash)]
 struct Description {
     tag: [u8; 4],
@@ -76,8 +91,10 @@ pub(super) fn join<'a>(
     sources: &[Source<'_>],
     movie_scale: u32,
     limit: usize,
+    retained: &mut DecodedConcat,
 ) -> Result<Vec<Track<'a>>, String> {
     let mut tracks = tracks.into_iter();
+    let mut remaining = limit;
     let mut slots: Vec<Track<'a>> = Vec::new();
     let mut descriptions = Vec::new();
     let mut decoded = BTreeMap::new();
@@ -125,6 +142,31 @@ pub(super) fn join<'a>(
                         "concatMp4 requires all segments in a decoded audio track to be decoded"
                             .into(),
                     );
+                }
+            }
+            if let Some(frames) = retained.video.as_mut() {
+                let offset = f64::from(t.media_ticks) / f64::from(t.scale);
+                let mut retain = |pts: f64, duration: f64, image: Raster| -> Result<(), String> {
+                    remaining = remaining
+                        .checked_sub(image.pixels.len() * 4 + size_of::<(f64, f64, Raster)>())
+                        .ok_or("video frames exceed memory budget")?;
+                    frames
+                        .entry(slot)
+                        .or_default()
+                        .0
+                        .push((offset + pts, duration, image));
+                    Ok(())
+                };
+                match source {
+                    Streams::Y4m(clip) if !samples.is_empty() => {
+                        for (i, (pts, duration)) in clip.times().enumerate() {
+                            retain(pts, duration, clip.image(i))?;
+                        }
+                    }
+                    Streams::Still(_) if !samples.is_empty() => {
+                        retain(0., 0.04, frame_output::decode_still(sources[j].0, limit)?)?;
+                    }
+                    _ => {}
                 }
             }
             let stsd = t.stsd.to_mut();

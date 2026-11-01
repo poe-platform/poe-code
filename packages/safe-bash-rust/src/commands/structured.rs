@@ -38318,11 +38318,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
+    fn mmdc_bounds_group_expansion_before_writing() {
+        let fs = MemoryVfs::new();
+        let group = vec!["A"; 256].join(" & ");
+        let source = format!("flowchart TD; {group} --> {group}");
+        fs.write_file("/d.svg", b"previous").unwrap();
+        let result = try_run_structured_command("mmdc", &args(&["-i", "-", "-o", "/d.svg"]), &source, "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(result.exit_code, 1);
+        assert_eq!(result.stderr, "mmdc: E_LIMIT: Render work budget exceeded\n");
+        assert_eq!(fs.read_file("/d.svg").unwrap(), b"previous");
+    }
+
+    #[test]
     fn mmdc_label_errors_preserve_the_destination() {
         let fs=MemoryVfs::new();
         for (source,message) in [
             ("flowchart TD; A-->B[\"onerror=foo\"]","E_UNSUPPORTED (line 1, column 19): Unsupported HTML or active content 'onerror=' in diagram label"),
             ("flowchart TD; A-->|<script>|B","E_UNSUPPORTED (line 1, column 16): Unsupported HTML or active content '<script' in diagram label"),
+            ("flowchart TD; A --> B & {bad}","E_SYNTAX (line 1, column 25): Expected node identifier at '{bad}'"),
             ("flowchart TD; 🦊-->","E_SYNTAX (line 1, column 20): Expected node identifier at ''"),
             ("flowchart TD; A[\"a\nb\"]-->|<script>|B","E_UNSUPPORTED (line 1, column 23): Unsupported HTML or active content '<script' in diagram label"),
             ("flowchart TD; A[Start","E_SYNTAX (line 1, column 15): Unclosed node shape '[...]'"),
@@ -38377,6 +38390,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart BT; A[First<BR/>second\\n]-->B","781a46a53dac26c6af25750ebc9c8ab38a46c357f696b3379b4eb17d1993a8cc"),
             ("flowchart LR; A-->|left<BR />right|B","e5971e4e3f3a3f6e64fb86f96812b354d179d41496e21e70cc9a02989e4b2721"),
             ("flowchart TD; A-->|a rather long transition label which needs a second line in the pill|B","6642e9b7e0109f2d38e3371b7a982cbf09959c130133b78a4129c58d2037d7a6"),
+            ("flowchart TD; A & B -->|send| C & D --> E","4c7f144a915057a3792decc4776c9a4d04816bcf030ecd6dc8d4d1a05828d1e2"),
+            ("flowchart TD; A & B --> B & A","a8a482eacec329695cbb0180f51df3d378ac6a644d892430f9f544f3b6cfeb32"),
             (r#"flowchart TD; A["literal %%{ dark"]-->B"#,"d3d8c899c81c8d95878c0e71b9c306feddf47e2ddcc279674ce79f87f3ea805b"),
             (r#"flowchart TD; A["verify; then act"]-->|one;two|B"#,"da35a643400be95f717e22f487ba4098cd5dea111822a0d7b57165523237dc5e"),
             ("flowchart TD; A[\"First\n second\"]-->B","3605f71682506867f5f474f8753ac2ebb5d71393fc688b03dfa631e8c5e8feae"),

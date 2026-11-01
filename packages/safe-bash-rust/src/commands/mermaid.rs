@@ -295,7 +295,24 @@ fn parse_node<'a>(
     }
     Ok((i, rest.trim_start()))
 }
+fn parse_group<'a>(
+    mut rest: &'a str,
+    stmt: &Statement,
+    nodes: &mut Vec<Node>,
+    ids: &mut BTreeMap<String, usize>,
+) -> Result<(Vec<usize>, &'a str), String> {
+    let mut group = Vec::new();
+    loop {
+        let (node, tail) = parse_node(rest, stmt, nodes, ids)?;
+        group.push(node);
+        let Some(next) = tail.strip_prefix('&') else {
+            return Ok((group, tail));
+        };
+        rest = next;
+    }
+}
 type Edge<'a> = (usize, usize, &'a str, Option<Pill>);
+#[derive(Clone)]
 struct Pill {
     size: f64,
     weight: u16,
@@ -358,11 +375,13 @@ pub(super) fn layout(
     let mut nodes = Vec::new();
     let mut ids = BTreeMap::new();
     let mut edges = vec![];
+    let mut label_bytes = 0usize;
     for stmt in stmts {
-        let (mut a, mut rest) = match parse_node(stmt.text.trim_end(), stmt, &mut nodes, &mut ids) {
-            Ok(node) => node,
-            Err(error) => return Some(Err(error)),
-        };
+        let (mut sources, mut rest) =
+            match parse_group(stmt.text.trim_end(), stmt, &mut nodes, &mut ids) {
+                Ok(node) => node,
+                Err(error) => return Some(Err(error)),
+            };
         while !rest.is_empty() {
             let (op, tail, label) = if let Some(op) =
                 EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
@@ -384,7 +403,7 @@ pub(super) fn layout(
                 let (label, tail) = t.split_once("-->")?;
                 ("-->", tail, label.trim())
             } else {
-                if nodes[a].id.ends_with("--") {
+                if nodes[*sources.last()?].id.ends_with("--") {
                     let text =
                         String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
                     return Some(Err(stmt.error(
@@ -399,21 +418,28 @@ pub(super) fn layout(
                 Ok(label) => label,
                 Err(error) => return Some(Err(error)),
             };
-            let (b, tail) = match parse_node(tail, stmt, &mut nodes, &mut ids) {
-                Ok(node) => node,
+            let (targets, tail) = match parse_group(tail, stmt, &mut nodes, &mut ids) {
+                Ok(group) => group,
                 Err(error) => return Some(Err(error)),
             };
-            if a == b {
-                nodes[a].loops += 1;
-            } else {
-                nodes[a].to.push(b);
-                nodes[b].from.push(a);
+            let count = sources.len().saturating_mul(targets.len());
+            label_bytes = label_bytes.saturating_add(label.len().saturating_mul(count));
+            if edges.len().saturating_add(count) > limit / 300 || label_bytes > limit {
+                return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
             }
-            if edges.len() >= limit / 300 {
-                return None;
+            let pill = Pill::new(&label);
+            for &a in &sources {
+                for &b in &targets {
+                    if a == b {
+                        nodes[a].loops += 1;
+                    } else {
+                        nodes[a].to.push(b);
+                        nodes[b].from.push(a);
+                    }
+                    edges.push((a, b, op, pill.clone()));
+                }
             }
-            edges.push((a, b, op, Pill::new(&label)));
-            a = b;
+            sources = targets;
             rest = tail;
         }
     }

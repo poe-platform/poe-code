@@ -14191,6 +14191,15 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn magick_flops_the_decoded_pixels_of_a_paletted_gif() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/input", &hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021f904000a0000002c0000000003000200000809000108201060408180003b")).unwrap();
+        let run=cmd_media_doc("convert",&media_args(&["input","-flop","out.png"]),"","/",&fs);
+        assert_eq!(run.exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "a9813cc45c00b08d82c43b3bfd46883a4bba33db871d7f1488bcf5183dd9cf19");
+    }
+
+    #[test]
     fn magick_encodes_gif_palette_transparency_and_lzw_subblocks() {
         let fs = MemoryVfs::new();
         for (size, canvas, digest) in [

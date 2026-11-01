@@ -116,3 +116,209 @@ pub(super) fn encode(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str>
     out.extend_from_slice(&[0, 59]);
     Ok(out)
 }
+
+fn take<'a>(input: &mut &'a [u8], n: usize) -> &'a [u8] {
+    let (head, tail) = input.split_at(n.min(input.len()));
+    *input = tail;
+    head
+}
+fn byte(input: &mut &[u8]) -> u8 {
+    take(input, 1).first().copied().unwrap_or(0)
+}
+fn palette<'a>(input: &mut &'a [u8], flags: u8) -> &'a [u8] {
+    take(
+        input,
+        if flags & 128 == 0 {
+            0
+        } else {
+            3 << ((flags & 7) + 1)
+        },
+    )
+}
+fn blocks<'a>(mut input: &'a [u8]) -> impl Iterator<Item = &'a [u8]> {
+    std::iter::from_fn(move || {
+        let n = byte(&mut input) as usize;
+        if n == 0 || input.is_empty() {
+            input = &[];
+            None
+        } else {
+            Some(take(&mut input, n))
+        }
+    })
+}
+
+fn indices(
+    input: &[u8],
+    minimum: u8,
+    n: usize,
+    mut pixel: impl FnMut(u8),
+) -> Result<(), &'static str> {
+    if minimum > 11 {
+        return Err("Invalid GIF LZW dictionary");
+    }
+    let clear = 1usize << minimum;
+    let mut width = minimum + 1;
+    let mut next = clear + 2;
+    let mut old = None;
+    let mut first = 0;
+    let mut prefix = [0u16; 4096];
+    let mut suffix = [0u8; 4096];
+    let mut stack = [0u8; 4096];
+    let mut bytes = blocks(input).flatten();
+    let (mut buffer, mut bits) = (0u32, 0u8);
+    let mut written = 0;
+    'decode: while written < n {
+        while bits < width {
+            let Some(&v) = bytes.next() else {
+                break 'decode;
+            };
+            buffer |= u32::from(v) << bits;
+            bits += 8;
+        }
+        let code = (buffer as usize) & ((1 << width) - 1);
+        buffer >>= width;
+        bits -= width;
+        if code == clear {
+            width = minimum + 1;
+            next = clear + 2;
+            old = None;
+            continue;
+        }
+        if code == clear + 1 {
+            break;
+        }
+        let mut used = 0;
+        let mut c = code;
+        if c >= next {
+            let Some(prev) = old else { break };
+            stack[0] = first;
+            used = 1;
+            c = prev;
+        }
+        while c >= clear {
+            if used >= 4095 || c >= next {
+                return Err("Invalid GIF LZW dictionary");
+            }
+            stack[used] = suffix[c];
+            used += 1;
+            c = usize::from(prefix[c]);
+        }
+        first = c as u8;
+        stack[used] = first;
+        for &v in stack[..=used].iter().rev().take(n - written) {
+            pixel(v);
+            written += 1;
+        }
+        if let Some(prev) = old
+            && next < 4096
+        {
+            prefix[next] = prev as u16;
+            suffix[next] = first;
+            next += 1;
+            if next == 1 << width && width < 12 {
+                width += 1;
+            }
+        }
+        old = Some(code);
+    }
+    for _ in written..n {
+        pixel(0);
+    }
+    Ok(())
+}
+
+pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    let (w, h) = dimensions(bytes)?;
+    let (w, h) = (w as usize, h as usize);
+    let count = w
+        .checked_mul(h)
+        .filter(|&n| n <= limit / 4)
+        .ok_or("image exceeds memory budget")?;
+    let mut pixels = vec![[0u8; 4]; count];
+    let mut input = &bytes[13..];
+    let global = palette(&mut input, bytes[10]);
+    let mut transparent = None;
+    while let Some((&intro, rest)) = input.split_first() {
+        input = rest;
+        match intro {
+            33 => {
+                let label = byte(&mut input);
+                if label == 249 {
+                    let n = byte(&mut input) as usize;
+                    let gce = take(&mut input, n);
+                    transparent = if gce.first().is_some_and(|f| f & 1 != 0) {
+                        gce.get(3).copied()
+                    } else {
+                        None
+                    };
+                    byte(&mut input);
+                } else {
+                    loop {
+                        let len = byte(&mut input);
+                        if len == 0 {
+                            break;
+                        }
+                        take(&mut input, len as usize);
+                    }
+                }
+            }
+            44 => {
+                let head = take(&mut input, 9);
+                let word = |i| {
+                    usize::from(u16::from_le_bytes([
+                        head.get(i).copied().unwrap_or(0),
+                        head.get(i + 1).copied().unwrap_or(0),
+                    ]))
+                };
+                let (left, top, iw, ih) = (word(0), word(2), word(4), word(6));
+                let flags = head.get(8).copied().unwrap_or(0);
+                let colors = if flags & 128 != 0 {
+                    palette(&mut input, flags)
+                } else {
+                    global
+                };
+                let min = byte(&mut input);
+                let n = iw
+                    .checked_mul(ih)
+                    .filter(|&n| n <= limit / 4)
+                    .ok_or("image exceeds memory budget")?;
+                let (mut x, mut y, mut pass) = (0, 0, 0);
+                indices(input, min, n, |index| {
+                    if x + left < w && y + top < h && Some(index) != transparent {
+                        let i = usize::from(index) * 3;
+                        pixels[(y + top) * w + x + left] = [
+                            colors.get(i).copied().unwrap_or(0),
+                            colors.get(i + 1).copied().unwrap_or(0),
+                            colors.get(i + 2).copied().unwrap_or(0),
+                            255,
+                        ];
+                    }
+                    x += 1;
+                    if x == iw {
+                        x = 0;
+                        if flags & 64 != 0 {
+                            y += [8, 8, 4, 2][pass];
+                            while y >= ih && pass < 3 {
+                                pass += 1;
+                                y = [0, 4, 2, 1][pass];
+                            }
+                        } else {
+                            y += 1;
+                        }
+                    }
+                })?;
+                break;
+            }
+            _ => break,
+        }
+    }
+    Ok(Raster {
+        width: w,
+        height: h,
+        alpha: true,
+        gray: false,
+        density: 72,
+        orientation: None,
+        pixels,
+    })
+}

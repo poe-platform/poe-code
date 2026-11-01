@@ -931,6 +931,30 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn fatal_expansion_error(&mut self, msg: &str, stderr: &mut String) -> i32 {
+        let is_param_err = msg.starts_with("__param_err__");
+        let clean_msg = msg
+            .strip_prefix("__param_err__")
+            .or_else(|| msg.strip_prefix("__nounset__"))
+            .unwrap_or(msg);
+        let pfx = self.diag_prefix();
+        if clean_msg.starts_with(&pfx) || clean_msg.starts_with("bash:") {
+            stderr.push_str(&format!("{clean_msg}\n"));
+        } else {
+            stderr.push_str(&format!("{pfx}{clean_msg}\n"));
+        }
+        let is_subshell = self
+            .env
+            .get("BASH_SUBSHELL")
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or(0)
+            > 0;
+        let code = if is_param_err && !is_subshell { 127 } else { 1 };
+        self.last_exit = code;
+        self.exit_requested = Some(code);
+        code
+    }
+
     fn eval_script(&mut self, script: &Script, stdin: &mut String) -> Result<BuiltinOutcome, EvalError> {
         let mut stdout = String::new();
         let mut stderr = String::new();
@@ -1073,27 +1097,7 @@ impl<'a> EvalState<'a> {
             let out = match self.eval_and_or_list(list, stdin) {
                 Ok(o) => o,
                 Err(EvalError::Syntax(msg)) => {
-                    let is_param_err = msg.starts_with("__param_err__");
-                    let clean_msg = msg
-                        .strip_prefix("__param_err__")
-                        .or_else(|| msg.strip_prefix("__nounset__"))
-                        .unwrap_or(&msg);
-                    let pfx = self.diag_prefix();
-                    if clean_msg.starts_with(&pfx) || clean_msg.starts_with("bash:") {
-                        stderr.push_str(&format!("{clean_msg}\n"));
-                    } else {
-                        stderr.push_str(&format!("{pfx}{clean_msg}\n"));
-                    }
-                    let is_subshell = self
-                        .env
-                        .get("BASH_SUBSHELL")
-                        .and_then(|s| s.parse::<u32>().ok())
-                        .unwrap_or(0)
-                        > 0;
-                    let code = if is_param_err && !is_subshell { 127 } else { 1 };
-                    last_code = code;
-                    self.last_exit = code;
-                    self.exit_requested = Some(code);
+                    last_code = self.fatal_expansion_error(&msg, &mut stderr);
                     break;
                 }
                 Err(e) => return Err(e),
@@ -3353,21 +3357,25 @@ impl<'a> EvalState<'a> {
                         self.sub_exit = Some(1);
                         break;
                     }
-                    Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
-                        let code = if is_posix { 127 } else { 1 };
-                        let prefix = self.diag_prefix();
-                        let mut err_out = BuiltinOutcome {
-                            stdout: debug_out.stdout,
-                            stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
-                            exit_code: code,
+                    Err(EvalError::Syntax(msg)) => {
+                        let code = if msg.contains("readonly variable") {
+                            let code = if is_posix { 127 } else { 1 };
+                            debug_out.stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                            self.last_exit = code;
+                            self.exit_requested = Some(code);
+                            code
+                        } else {
+                            self.fatal_expansion_error(&msg, &mut debug_out.stderr)
                         };
-                        self.last_exit = code;
-                        self.exit_requested = Some(code);
-                        self.route_outcome(&mut err_out);
+                        debug_out.exit_code = code;
+                        self.route_outcome(&mut debug_out);
                         self.restore_redirects(saved_fds, saved_in);
-                        return Ok(err_out);
+                        return Ok(debug_out);
                     }
-                    Err(other) => return Err(other),
+                    Err(other) => {
+                        self.restore_redirects(saved_fds, saved_in);
+                        return Err(other);
+                    }
                 }
             }
             self.last_exit = self.sub_exit.take().unwrap_or(0);
@@ -16043,6 +16051,22 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn assignment_expansion_errors_follow_the_active_redirects() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for (script, code, stdout) in [
+            (r#"(a[0]=$((1/0)) 2>err; echo after); echo "$?"; cat err"#,
+             0, "1\nshell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
+            (r#"x=${missing:?bad} 2>&1 || echo after"#,
+             127, "shell: line 1: missing: bad\n"),
+            (r#"(x=${missing:?bad} 2>err) 2>outer; echo "$?"; cat err outer"#,
+             0, "1\nshell: line 1: missing: bad\n"),
+        ] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, ""), "{script}");
+        }
     }
 
     #[test]

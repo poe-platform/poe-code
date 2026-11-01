@@ -290,40 +290,44 @@ impl Track<'_> {
         });
     }
 }
-fn video_entry(w: usize, h: usize, fps: Option<u32>) -> Result<Vec<u8>, &'static str> {
+enum VideoCodec {
+    Avc(u32),
+    Still(&'static [u8; 4]),
+}
+
+fn video_entry(w: usize, h: usize, codec: VideoCodec) -> Result<Vec<u8>, &'static str> {
     if w == 0 || h == 0 || w > u16::MAX as usize || h > u16::MAX as usize {
         return Err("invalid AVC sample dimensions");
     }
-    let config = fps.map(|fps| h264::configuration(w, h, fps)).transpose()?;
+    let (tag, config) = match codec {
+        VideoCodec::Avc(fps) => (b"avc1", Some(h264::configuration(w, h, fps)?)),
+        VideoCodec::Still(tag) => (tag, None),
+    };
     let mut stsd = Vec::new();
     words(&mut stsd, &[0, 1]);
-    atom(
-        &mut stsd,
-        if config.is_some() { b"avc1" } else { b"png " },
-        |b| {
-            words(
-                b,
-                &[
-                    0,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    (w as u32) << 16 | h as u32,
-                    0x00480000,
-                    0x00480000,
-                    0,
-                ],
-            );
-            b.extend_from_slice(&1u16.to_be_bytes());
-            b.extend_from_slice(&[0; 32]);
-            words(b, &[0x0018ffff]);
-            if let Some(config) = config {
-                atom(b, b"avcC", |b| b.extend_from_slice(&config));
-            }
-        },
-    );
+    atom(&mut stsd, tag, |b| {
+        words(
+            b,
+            &[
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                (w as u32) << 16 | h as u32,
+                0x00480000,
+                0x00480000,
+                0,
+            ],
+        );
+        b.extend_from_slice(&1u16.to_be_bytes());
+        b.extend_from_slice(&[0; 32]);
+        words(b, &[0x0018ffff]);
+        if let Some(config) = config {
+            atom(b, b"avcC", |b| b.extend_from_slice(&config));
+        }
+    });
     Ok(stsd)
 }
 
@@ -355,7 +359,7 @@ fn encode_video(
                 track.stsd = video_entry(
                     im.width,
                     im.height,
-                    Some((1. / duration).round().max(1.) as u32),
+                    VideoCodec::Avc((1. / duration).round().max(1.) as u32),
                 )?
                 .into();
             }
@@ -411,7 +415,7 @@ fn encode_video(
 fn video_track<'a>(
     w: usize,
     h: usize,
-    fps: Option<u32>,
+    codec: VideoCodec,
     timescale: u32,
     ticks: u64,
     movie_scale: u32,
@@ -422,7 +426,7 @@ fn video_track<'a>(
         media_ticks: ticks as u32,
         movie_ticks: (ticks as f64 / f64::from(timescale) * f64::from(movie_scale)).round() as u32,
         first_dts: 0,
-        stsd: video_entry(w, h, fps)?.into(),
+        stsd: video_entry(w, h, codec)?.into(),
         edits: vec![],
         kind: "video",
         enabled: true,
@@ -436,7 +440,7 @@ fn video_track<'a>(
     })
 }
 
-fn png_track<'a>(
+fn still_track<'a>(
     input: &'a [u8],
     seek: InputTime,
     range: Option<(f64, Option<f64>)>,
@@ -445,22 +449,26 @@ fn png_track<'a>(
     repeated: bool,
     limit: usize,
 ) -> Result<Track<'a>, String> {
-    let (w, h) = frame_output::png_dimensions(input, limit)?;
+    let (w, h, tag) = frame_output::still_info(input, limit)?;
     let (start, end) = (seek.start.unwrap_or(0.).max(0.), seek.end().unwrap_or(0.04));
     let mut visible = start < 0.04 && end > 0.;
-    let mut packet = frame_output::png_sample(start, end);
-    // A sub-tick input cut can retain pixels after dropping the PNG packet.
+    let mut packet = frame_output::still_sample(start, end);
+    // A sub-tick input cut can retain pixels after dropping the image packet.
     // A subsequent cut materializes those pixels as AVC before slicing.
     let materialized = visible && !packet && range.is_some();
     if let Some((start, end)) = range {
         let end = end.unwrap_or(0.04);
         visible &= packet && start < 0.04 && end > 0.;
-        packet &= frame_output::png_sample(start, end);
+        packet &= frame_output::still_sample(start, end);
     }
     let mut track = video_track(
         w,
         h,
-        materialized.then_some(25),
+        if materialized {
+            VideoCodec::Avc(25)
+        } else {
+            VideoCodec::Still(tag)
+        },
         25,
         u64::from(packet),
         scale,
@@ -508,7 +516,7 @@ fn sequence_track(
     let mut track = video_track(
         first.width,
         first.height,
-        Some(seq.fps.round().max(1.) as u32),
+        VideoCodec::Avc(seq.fps.round().max(1.) as u32),
         90000,
         (90000. / seq.fps).round().max(1.) as u64,
         scale,
@@ -552,7 +560,7 @@ fn generated_video(
     let mut track = video_track(
         w,
         h,
-        Some(video.fps.round().max(1.) as u32),
+        VideoCodec::Avc(video.fps.round().max(1.) as u32),
         90000,
         ticks,
         movie_scale,
@@ -926,7 +934,7 @@ enum Streams<'a> {
     GeneratedAudio(GeneratedAudio),
     GeneratedVideo(super::super::lavfi::Video),
     Images(&'a ImageSequence),
-    Png(InputTime),
+    Still(InputTime),
     Aac {
         rate: u32,
         channels: u8,
@@ -938,7 +946,7 @@ impl Streams<'_> {
         match self {
             Self::Mp4(v) => v.len(),
             Self::Images(_)
-            | Self::Png(_)
+            | Self::Still(_)
             | Self::GeneratedVideo(_)
             | Self::GeneratedAudio(_)
             | Self::Captions(_)
@@ -950,7 +958,7 @@ impl Streams<'_> {
             Self::Mp4(v) => v[i].0.kind,
             Self::Captions(_) => "subtitle",
             Self::GeneratedAudio(_) | Self::Aac { .. } => "audio",
-            Self::Png(_) | Self::Images(_) | Self::GeneratedVideo(_) => "video",
+            Self::Still(_) | Self::Images(_) | Self::GeneratedVideo(_) => "video",
         }
     }
     fn seconds(&self, i: usize) -> f64 {
@@ -958,8 +966,9 @@ impl Streams<'_> {
             Self::Mp4(v) => v[i].0.duration as f64 / f64::from(v[i].0.scale),
             Self::Aac { rate, count, .. } => *count as f64 * 1024. / f64::from(*rate),
             Self::Images(seq) => seq.template_duration(),
-            Self::Png(seek) => {
-                if frame_output::png_sample(seek.start.unwrap_or(0.), seek.end().unwrap_or(0.04)) {
+            Self::Still(seek) => {
+                if frame_output::still_sample(seek.start.unwrap_or(0.), seek.end().unwrap_or(0.04))
+                {
                     0.04
                 } else {
                     0.
@@ -1158,7 +1167,7 @@ fn read_sources<'a>(
         let seek = opts.input_times.get(j).copied().unwrap_or_default();
         let input = data.as_ref();
         if format == "image2" {
-            sources.push((input, &[][..], Streams::Png(seek)));
+            sources.push((input, &[][..], Streams::Still(seek)));
             continue;
         }
         if format == "lavfi" {
@@ -1300,8 +1309,8 @@ pub(in super::super) fn render_mapped(
     };
     match streams {
         Streams::Images(seq) => seq.render(options, emit).map_err(str::to_owned),
-        Streams::Png(seek) => {
-            frame_output::render_png(input, options, *seek, cut, emit).map_err(str::to_owned)
+        Streams::Still(seek) => {
+            frame_output::render_still(input, options, *seek, cut, emit).map_err(str::to_owned)
         }
         Streams::GeneratedVideo(v) => v.render(options, false, emit).map_err(str::to_owned),
         Streams::Mp4(tracks) => {
@@ -1318,7 +1327,7 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
     let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
     let scale = match sources[0].2 {
         Streams::Aac { rate, .. } => rate,
-        Streams::Png(_) => 25,
+        Streams::Still(_) => 25,
         _ => header_time(child(moov, b"mvhd"), 1000).0,
     };
     let selected = mapped_tracks(&sources, &opts)?;
@@ -1412,8 +1421,8 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
             let limit = opts.limit.saturating_sub(index_bytes);
             let repeated = selected[..ordinal].contains(&(j, i));
             let mut track = match source {
-                Streams::Png(seek) => {
-                    png_track(input, *seek, range, &opts, scale, repeated, limit)?
+                Streams::Still(seek) => {
+                    still_track(input, *seek, range, &opts, scale, repeated, limit)?
                 }
                 Streams::Images(seq) => sequence_track(
                     seq,
@@ -1728,7 +1737,7 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
                 Streams::Mp4(v) => (v[i].0.audio_rate(), u32::from(v[i].0.channels())),
                 Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
                 Streams::GeneratedAudio(a) => (a.rate, a.channels),
-                Streams::Png(_)
+                Streams::Still(_)
                 | Streams::Images(_)
                 | Streams::GeneratedVideo(_)
                 | Streams::Captions(_) => continue,

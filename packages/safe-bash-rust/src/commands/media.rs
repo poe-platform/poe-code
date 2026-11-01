@@ -89,6 +89,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
+#[path = "netpbm.rs"]
+mod netpbm;
 #[path = "png_pixels.rs"]
 mod png_pixels;
 #[path = "magick_coordinates.rs"]
@@ -4369,7 +4371,7 @@ impl MediaInput {
     fn remuxable(&self)->bool {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
-            Self::Bytes("image2",b)=>b.starts_with(b"\x89PNG\r\n\x1a\n") && b.get(29..38)!=Some(b"\n__IMG__:"),
+            Self::Bytes("image2",b)=>netpbm::signature(b) || b.starts_with(b"\x89PNG\r\n\x1a\n") && b.get(29..38)!=Some(b"\n__IMG__:"),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
             Self::Images(_) | Self::Bytes("aac"|"srt"|"webvtt",_)=>true,
             _=>false,
@@ -4592,7 +4594,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if fc_flag.is_empty() && path.to_ascii_lowercase().ends_with(".png") && let Some(pattern)=match frame_output::sequence(path){
+                    }else if fc_flag.is_empty() && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -4616,7 +4618,7 @@ fn cmd_media_doc(
                 let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),_=>(None,&[][..])};
                 let supported=sources.first().is_some_and(MediaInput::remuxable);
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
-                let png_input=format==Some("image2") && supported;
+                let still_input=format==Some("image2") && supported;
                 let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable) && fc_flag.is_empty();
                 if (frame_output || mp4_output && remux_inputs) && !video_copy {
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
@@ -4645,7 +4647,7 @@ fn cmd_media_doc(
                                 mp4::render_video(&movie,y4m::Options{end,..opts},&maps,sequence,emit)
                             }else{seq.render(opts,emit).map_err(str::to_owned)}
                         }
-                        else if png_input {frame_output::render_png(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
+                        else if still_input {frame_output::render_still(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
                             mp4::mux::input_slice(input,seek.start,seek.end(),seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
                         }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
@@ -13364,6 +13366,23 @@ mod media_unit_tests {
             assert_eq!(fs.read_file(name).unwrap(), [b"P6\n1 1\n255\n".as_slice(), &[red, 13, 3]].concat());
         }
         assert!(!fs.exists("/out3.ppm"));
+    }
+
+    #[test]
+    fn ffmpeg_decodes_ascii_and_binary_portable_pixmaps_and_copies_the_still_packet() {
+        let fs = MemoryVfs::new();
+        let ascii = b"P3\n# size\n2 1\n15 # max\r\n15 0 0  0 0 15";
+        fs.write_file("/in0.ppm", ascii).unwrap();
+        fs.write_file("/in1.ppm", b"P6\n2 1\n1023\n\0\0\x03\xff\0\0\x03\xff\x03\xff\0\0").unwrap();
+        let run = |args: &[&str]| cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs);
+        let result = run(&["-i", "in%d.ppm", "-vf", "hflip", "frame%d.ppm"]);
+        assert_eq!((result.exit_code, result.stderr), (0, String::new()));
+        assert_eq!(fs.read_file("/frame1.ppm").unwrap(), b"P6\n2 1\n255\n\0\0\xff\xff\0\0");
+        assert_eq!(fs.read_file("/frame2.ppm").unwrap(), b"P6\n2 1\n255\n\xff\xff\0\0\xff\0");
+        assert_eq!(run(&["-i", "in0.ppm", "copy.mp4"]).exit_code, 0);
+        let movie = fs.read_file("/copy.mp4").unwrap();
+        assert!(movie.ends_with(ascii));
+        assert!(movie.windows(4).any(|b| b == b"ppm "));
     }
 
     #[test]

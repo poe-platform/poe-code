@@ -179,13 +179,16 @@ impl ImageSequence {
             if bytes.len() > remaining {
                 return Err("image exceeds memory budget".into());
             }
-            if !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+            let frame = if super::netpbm::signature(&bytes) {
+                super::netpbm::Netpbm::parse(&bytes, remaining)?.decode()
+            } else if !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
                 return Err("Input buffer contains unsupported image format".into());
-            }
-            let frame = Raster::decode(&bytes, remaining).map_err(|e| match e {
-                "Truncated PNG chunk" | "Truncated PNG image data" => "unexpected end of file",
-                _ => e,
-            })?;
+            } else {
+                Raster::decode(&bytes, remaining).map_err(|e| match e {
+                    "Truncated PNG chunk" | "Truncated PNG image data" => "unexpected end of file",
+                    _ => e,
+                })?
+            };
             used += frame.pixels.len() * 4 + size_of::<Raster>();
             if used > limit {
                 return Err("image exceeds memory budget".into());
@@ -216,7 +219,14 @@ impl ImageSequence {
     }
 }
 
-pub(super) fn png_dimensions(bytes: &[u8], limit: usize) -> Result<(usize, usize), &'static str> {
+pub(super) fn still_info(
+    bytes: &[u8],
+    limit: usize,
+) -> Result<(usize, usize, &'static [u8; 4]), &'static str> {
+    if super::netpbm::signature(bytes) {
+        let image = super::netpbm::Netpbm::parse(bytes, limit)?;
+        return Ok((image.width, image.height, image.codec()));
+    }
     // image2 retains the PNG dimensions for a damaged image.
     let dimension = |i| {
         bytes
@@ -233,15 +243,18 @@ pub(super) fn png_dimensions(bytes: &[u8], limit: usize) -> Result<(usize, usize
     if w.saturating_mul(h) > limit / 4 {
         return Err("image exceeds memory budget");
     }
-    Ok((w, h))
+    Ok((w, h, b"png "))
 }
 
 pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    if super::netpbm::signature(bytes) {
+        return Ok(super::netpbm::Netpbm::parse(bytes, limit)?.decode());
+    }
     Ok(match Raster::decode(bytes, limit) {
         Ok(im) => im,
         Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
         Err(_) => {
-            let (w, h) = png_dimensions(bytes, limit)?;
+            let (w, h, _) = still_info(bytes, limit)?;
             Raster {
                 width: w,
                 height: h,
@@ -254,11 +267,11 @@ pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'stati
     })
 }
 
-pub(super) fn png_sample(start: f64, end: f64) -> bool {
+pub(super) fn still_sample(start: f64, end: f64) -> bool {
     (start.max(0.) * 25.).round() < 1. && (end.min(0.04) * 25.).round() >= 1.
 }
 
-pub(super) fn render_png(
+pub(super) fn render_still(
     bytes: &[u8],
     opts: super::y4m::Options<'_>,
     seek: super::InputTime,
@@ -272,7 +285,7 @@ pub(super) fn render_png(
     let start = seek.start.unwrap_or(0.).max(0.);
     let end = seek.end().unwrap_or(0.04);
     let visible = start < 0.04 && end > 0.;
-    let packet = png_sample(start, end);
+    let packet = still_sample(start, end);
     let times = (visible && (!reslice || packet)).then_some((0., 0.04));
     super::y4m::render_frames(w, h, times.into_iter(), opts, |_| Ok(im.clone()), emit)?;
     Ok((w, h, 30))

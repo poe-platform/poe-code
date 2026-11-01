@@ -4701,7 +4701,7 @@ fn cmd_media_doc(
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || real_mp4 && seek.loops>0 {
+                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || (real_mp4 || still_input) && seek.loops>0 {
                             return mp4::mux::render_mapped(&sources,&remux,frames,sequence,emit);
                         }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13779,6 +13779,22 @@ mod media_unit_tests {
             let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
             assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: H.264 packet decode failed (-1094995529)\n".into()));
             assert!(!fs.exists(&format!("/{output}")));
+        }
+    }
+
+    #[test]
+    fn ffmpeg_loops_still_image_packets_and_reuses_the_decoded_frame() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs).exit_code, 0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6","-frames:v","1","x.jpg"]);
+        for (extra, path, expected) in [
+            (&[][..], "out.mp4", "fe1f710b3fdf9043aaf06cd7560413e3919f19756fc23d6d29035654281e3e5a"),
+            (&["-frames:v","2"][..], "out.mp4", "9318460ff964178e4cbbc19b3b18c80169c5a70cb7eb7b731fc9a9cb6a853e3d"),
+            (&[][..], "out.y4m", "120ccb72bc939fbf72ed7c747fad1fc5ad4cf97097ce7be72ab59b7c5390b7b7"),
+        ] {
+            let mut args=vec!["-y","-stream_loop","2","-i","x.jpg"];
+            args.extend_from_slice(extra); args.push(path); run(&args);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{path}")).unwrap())),expected);
         }
     }
 

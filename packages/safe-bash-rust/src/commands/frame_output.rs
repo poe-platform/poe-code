@@ -325,8 +325,16 @@ pub(super) fn render_still(
     let end = seek.end().unwrap_or(0.04);
     let visible = start < 0.04 && end > 0.;
     let packet = still_sample(start, end);
-    let times = (visible && (!reslice || packet)).then_some((0., 0.04));
-    super::y4m::render_frames(w, h, times.into_iter(), opts, |_| Ok(im.clone()), emit)?;
+    let count = if visible && (!reslice || packet) {
+        seek.loops.saturating_add(1)
+    } else {
+        0
+    };
+    if count > opts.limit / size_of::<(f64, f64)>() {
+        return Err("frame index exceeds memory budget");
+    }
+    let times = (0..count).map(|i| (i as f64 / 25., 0.04));
+    super::y4m::render_frames(w, h, times, opts, |_| Ok(im.clone()), emit)?;
     Ok((w, h, 30))
 }
 

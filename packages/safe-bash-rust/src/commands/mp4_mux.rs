@@ -1420,10 +1420,10 @@ fn materialize<'a>(
         let mut bytes = Cow::Borrowed(input);
         if (seek.start.is_some()
             || seek.end().is_some()
-            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "aac"))
+            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "aac" | "image2"))
             && !audio
             && !matches!(format, "wav" | "y4m")
-            && !matches!(source, MediaInput::Bytes("image2", _))
+            && (!matches!(source, MediaInput::Bytes("image2", _)) || seek.loops > 0)
         {
             bytes = Cow::Owned(input_slice(
                 source,
@@ -1681,6 +1681,12 @@ pub(in super::super) fn render_mapped(
         }
         Streams::GeneratedVideo(v) => v.render(options, false, emit).map_err(str::to_owned),
         Streams::Mp4(tracks) => {
+            if let MediaInput::Bytes("image2", bytes) = &inputs[j]
+                && tracks[i].0.tag != b"avc1"
+            {
+                return frame_output::render_still(bytes, options, opts.input_times[j], cut, emit)
+                    .map_err(str::to_owned);
+            }
             super::render_track(input, &tracks[i].0, duration, options, full_size, emit)
         }
         _ => unreachable!(),
@@ -2063,7 +2069,19 @@ pub(in super::super) fn remux(
                 ]);
             }
         }
+        let repeated_still = match &inputs[j] {
+            MediaInput::Bytes("image2", bytes)
+                if t.tag != b"avc1"
+                    && !samples.is_empty()
+                    && (!opts.video_filters.is_empty()
+                        || opts.frames.is_some_and(|n| samples.len() > n as usize)) =>
+            {
+                Some(bytes)
+            }
+            _ => None,
+        };
         if video
+            && repeated_still.is_none()
             && !temporal
             && let Some(n) = opts.frames
         {
@@ -2105,7 +2123,30 @@ pub(in super::super) fn remux(
             handler,
             name,
         };
-        if video && !opts.video_filters.is_empty() && !track.samples.is_empty() {
+        if let Some(bytes) = repeated_still {
+            let limit = opts.limit.saturating_sub(index_bytes);
+            let im = frame_output::decode_still(bytes, limit)?;
+            let mut consumed = selected[..ordinal].contains(&(j, i));
+            let (start, end) = range.unwrap_or((0., None));
+            encode_video(
+                &mut track,
+                scale,
+                (0..t.stats.count).map(|i| (i as f64 / 25., 0.04)),
+                y4m::Options {
+                    start,
+                    end,
+                    frames: opts.frames,
+                    filters: opts.video_filters,
+                    no_video: false,
+                    limit,
+                },
+                |_| std::mem::replace(&mut consumed, true),
+                opts.fragmented,
+                |_| Ok(im.clone()),
+            )?;
+            index_bytes = index_bytes
+                .saturating_add(track.samples.iter().map(|s| s.data.len()).sum::<usize>());
+        } else if video && !opts.video_filters.is_empty() && !track.samples.is_empty() {
             let config = child(t.entry.get(78..).unwrap_or_default(), b"avcC");
             let mut decoder = h264::Pcm::new(
                 t.sequence

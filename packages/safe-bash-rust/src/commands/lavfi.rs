@@ -13,6 +13,24 @@ enum Pattern {
     Bars,
 }
 
+pub(super) fn color_rgb(name: &str) -> [u8; 3] {
+    match name.trim().to_ascii_lowercase().as_str() {
+        other @ ("black" | "white" | "red" | "green" | "lime" | "blue" | "yellow" | "cyan"
+        | "magenta" | "gray" | "grey" | "orange" | "purple") => {
+            let [r, g, b, _] = super::css_named_color(other).unwrap();
+            [r, g, b]
+        }
+        other => other
+            .strip_prefix('#')
+            .or_else(|| other.strip_prefix("0x"))
+            .filter(|hex| hex.len() == 6 && hex.is_ascii())
+            .map(|hex| {
+                std::array::from_fn(|i| u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).unwrap_or(0))
+            })
+            .unwrap_or([40, 120, 220]),
+    }
+}
+
 impl Video {
     pub fn parse(spec: &str) -> Option<Self> {
         let (name, params) = spec.split_once('=').unwrap_or((spec, ""));
@@ -65,26 +83,8 @@ impl Video {
                     .or(params.get("_0"))
                     .copied()
                     .filter(|v| !v.is_empty())
-                    .unwrap_or("blue")
-                    .to_ascii_lowercase();
-                let rgb = match color.as_str() {
-                    "black" | "white" | "red" | "green" | "lime" | "blue" | "yellow" | "cyan"
-                    | "magenta" | "gray" | "grey" | "orange" | "purple" => {
-                        let [r, g, b, _] = super::parse_color(&color).ok()?;
-                        [r, g, b]
-                    }
-                    other => other
-                        .strip_prefix('#')
-                        .or_else(|| other.strip_prefix("0x"))
-                        .filter(|hex| hex.len() == 6 && hex.is_ascii())
-                        .map(|hex| {
-                            std::array::from_fn(|i| {
-                                u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).unwrap_or(0)
-                            })
-                        })
-                        .unwrap_or([40, 120, 220]),
-                };
-                Pattern::Color(rgb)
+                    .unwrap_or("blue");
+                Pattern::Color(color_rgb(color))
             }
             _ => return None,
         };

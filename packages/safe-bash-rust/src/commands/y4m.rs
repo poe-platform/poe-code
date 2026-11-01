@@ -1,4 +1,4 @@
-use super::{magick_resize::Kernel, png_pixels::Raster};
+use super::png_pixels::Raster;
 pub(super) struct Stream<'a> {
     pub width: u32,
     pub height: u32,
@@ -269,7 +269,7 @@ pub(super) fn encode(
                     pts + 1. / fps > start && pts < duration.map_or(end, |d| start + d)
                 });
             }
-            _ => ops.push((key, arg)),
+            _ => ops.push(super::video_filter::Filter::new(key, arg)),
         }
     }
     if let Some(n) = opts.frames {
@@ -284,56 +284,8 @@ pub(super) fn encode(
     let mut out = Vec::new();
     for id in ids {
         let mut im = image(id)?;
-        for &(op, arg) in &ops {
-            let (iw, ih) = (im.width, im.height);
-            match op {
-                "hflip" => im.pixels.chunks_exact_mut(iw).for_each(|row| row.reverse()),
-                "vflip" => im.remap(iw, ih, |im, x, y| im.pixels[(ih - 1 - y) * iw + x]),
-                "negate" => im
-                    .pixels
-                    .iter_mut()
-                    .for_each(|p| p[..3].iter_mut().for_each(|v| *v = 255 - *v)),
-                "format" if arg.contains("gray") => {
-                    for p in &mut im.pixels {
-                        let g = super::magick_color::gray(p[0], p[1], p[2]);
-                        p[..3].fill(g);
-                    }
-                }
-                "transpose" | "rotate" => im.remap(ih, iw, |im, x, y| {
-                    if op == "transpose" && matches!(arg, "2" | "dir=2") {
-                        im.pixels[x * iw + iw - 1 - y]
-                    } else {
-                        im.pixels[(ih - 1 - x) * iw + y]
-                    }
-                }),
-                "scale" => {
-                    let (wx, hx) = arg.split_once(':').unwrap_or((arg, "ih"));
-                    let dim = |s: &str, base| {
-                        super::eval_dim_expr(
-                            s.split('=').next_back().unwrap_or(s),
-                            iw as u32,
-                            ih as u32,
-                        )
-                        .unwrap_or(base)
-                    };
-                    let (mut dw, mut dh) = (dim(wx, iw as i32), dim(hx, ih as i32));
-                    let auto = |d: i32, other: i32, n: usize, m: usize| {
-                        let v = (other as f64 * n as f64 / m as f64).round().max(2.) as i32;
-                        if d == -2 { v.saturating_add(v % 2) } else { v }
-                    };
-                    if dw < 0 && dh > 0 {
-                        dw = auto(dw, dh, iw, ih);
-                    } else if dh < 0 && dw > 0 {
-                        dh = auto(dh, dw, ih, iw);
-                    }
-                    im.resize(
-                        &format!("{}x{}!", dw.max(2), dh.max(2)),
-                        Kernel::Lanczos3,
-                        opts.limit,
-                    )?;
-                }
-                _ => {}
-            }
+        for op in &ops {
+            op.apply(&mut im, opts.limit)?;
         }
         if out.is_empty() {
             out = header(im.width, im.height, fps.round().max(1.) as u32);

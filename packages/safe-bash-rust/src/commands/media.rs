@@ -2659,6 +2659,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+#[path = "video_filter.rs"]
+mod video_filter;
 #[path = "lavfi.rs"]
 mod lavfi;
 #[path = "y4m.rs"]
@@ -12850,6 +12852,18 @@ mod media_unit_tests {
         let args = media_args(&["-n","-y","-i","-","out.aac"]);
         assert_eq!(cmd_media_doc("ffmpeg",&args,&input,"/",&fs).exit_code,0);
         assert_eq!(fs.read_file("/out.aac").unwrap(),crate::vfs::stream_string_to_bytes(&input));
+    }
+
+    #[test]
+    fn ffmpeg_composes_drawbox_crop_and_pad_on_frame_pixels() {
+        let fs=MemoryVfs::new();
+        let mut clip=b"YUV4MPEG2 W5 H3 F4:1\nFRAME\n".to_vec();
+        clip.extend((0..27).map(|j|(j*23+81) as u8));
+        fs.write_file("/in",&clip).unwrap();
+        let args=media_args(&["-i","in","-vf","drawbox=2:1:3:1:purple,crop=4:3:1:0,pad=8:4:2:0:lime","out.y4m"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+        let frame=fs.read_file("/out.y4m").unwrap();
+        assert_eq!(frame.strip_prefix(b"YUV4MPEG2 W8 H4 F4:1 Ip A1:1 C420jpeg\nFRAME\n"),Some([144,144,109,127,147,163,144,144,144,144,199,62,62,62,144,144,144,144,74,116,136,152,144,144,144,144,144,144,144,144,144,144,54,168,170,54,54,100,55,54,34,94,133,34,34,82,92,34].as_slice()));
     }
 
     #[test]

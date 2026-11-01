@@ -270,6 +270,75 @@ pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
     root.filter(|_| lowest >= 3)
 }
 
+pub(super) enum Subscript<'a> {
+    Iterate,
+    Index(&'a str),
+    Slice(&'a str, &'a str),
+}
+
+// Find the final postfix brackets; quoted strings, object fields and nested
+// expressions may themselves contain brackets or colons.
+pub(super) fn subscript(source: &str) -> Result<Option<(&str, Subscript<'_>)>, super::JqFault> {
+    if !source.ends_with(']') {
+        return Ok(None);
+    }
+    let mut lexer = Lexer::new(source);
+    let (mut depth, mut strings, mut count) = (0usize, 0usize, 0usize);
+    let (mut open, mut colon) = (0, None);
+    let mut definition = false;
+    loop {
+        let Ok(t) = lexer.next() else { return Ok(None) };
+        match t.kind {
+            Kind::End => return Ok(None),
+            Kind::Quote => {
+                strings += 1;
+                continue;
+            }
+            Kind::EndQuote => {
+                strings -= 1;
+                continue;
+            }
+            _ if strings != 0 => continue,
+            _ => {}
+        }
+        match t.text {
+            "(" | "[" | "{" => {
+                if depth == 0 && t.text == "[" {
+                    open = t.at;
+                    colon = None;
+                    definition = false;
+                    count += 1;
+                }
+                depth += 1;
+            }
+            ")" | "]" | "}" => {
+                if depth == 0 {
+                    return Ok(None);
+                }
+                depth -= 1;
+                if depth == 0 && t.at + 1 == source.len() && open > 0 {
+                    if count > 128 {
+                        return Err(super::JqFault::Limit("maxAstDepth"));
+                    }
+                    let inner = &source[open + 1..t.at];
+                    let op = if inner.trim().is_empty() {
+                        Subscript::Iterate
+                    } else if let Some(c) = colon {
+                        Subscript::Slice(source[open + 1..c].trim(), source[c + 1..t.at].trim())
+                    } else {
+                        Subscript::Index(inner)
+                    };
+                    return Ok(Some((source[..open].trim_end(), op)));
+                }
+            }
+            "def" if depth == 1 && !source[..t.at].ends_with(['.', '$']) => definition = true,
+            ":" if depth == 1 && definition => definition = false,
+            ":" if depth == 1 => colon = Some(t.at),
+            _ => {}
+        }
+    }
+}
+
 pub(super) fn fold(source: &str) -> Option<(&str, &str, &str)> {
     let mut lexer = Lexer::new(source);
     let start = lexer.next().ok()?.text.len();

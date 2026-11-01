@@ -3,6 +3,35 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq evaluates bracket indexes and slice bounds before each base", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, status, stdout, stderr] of [
+      ["([7,8],[5,6])[(1,0)]", 0, "8\n6\n7\n5\n", ""],
+      [".[(0,error(\"late\"))]", 5, "null\n", "jq: error (at <unknown>): late\n"],
+      [".[false]", 5, "", "jq: error (at <unknown>): Cannot index null with boolean\n"],
+      ["[4,5][1]", 0, "5\n", ""],
+      ["[1,2,1][[1]]", 0, "[0,2]\n", ""],
+      ["[1,2,3][{start:1,end:null}]", 0, "[2,3]\n", ""],
+      ["[1,2,3][(0,1):(1,3)]", 0, "[1]\n[1,2,3]\n[]\n[2,3]\n", ""],
+      ["\"𝄞ab\" | .[-2:]", 0, "\"ab\"\n", ""],
+      ["{x:[5,6]} | .x[(1,0)]", 0, "6\n5\n", ""],
+      ["first(([1], error(\"late\"))[0])", 0, "1\n", ""],
+      ["[.,.][halt]", 0, "", ""],
+      ["[1,2] | .[false]?", 0, "", ""],
+      ["[1,2] | .[(0,error(\"late\"))]?", 0, "1\n", ""],
+      ["\"ab\" | .[0]", 5, "", "jq: error (at <unknown>): Cannot index string with number\n"],
+      ["null | .[1:false]", 5, "", "jq: error (at <unknown>): slice end must be a finite number or null\n"],
+      ["{\"a\":1,\"b\":2} | .[\"a\",\"b\"]", 0, "1\n2\n", ""],
+      ["[1,2] as $a | $a[0:1]", 0, "[1]\n", ""],
+      ["[0,1,2] | .[nan:1.5]", 0, "[0,1]\n", ""],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [status, stdout, stderr], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq halt exits the program across catches and preserves prior output", async () => {
   const bash = new RustWasmBash();
   try {

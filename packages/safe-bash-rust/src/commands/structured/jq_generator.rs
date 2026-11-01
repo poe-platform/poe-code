@@ -253,19 +253,43 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         });
     }
     let operand = s.strip_suffix('?').unwrap_or(s).trim_end();
-    let iteration = operand
-        .strip_suffix(']')
-        .and_then(|inner| inner.trim_end().strip_suffix('['))
-        .map(str::trim_end)
-        .filter(|base| !base.is_empty());
-    if operand != s && (iteration.is_some() || !operand.starts_with('.')) {
+    use super::jq_parser::Subscript;
+    let subscript = super::jq_parser::subscript(operand)?;
+    if operand != s && (subscript.is_some() || !operand.starts_with('.')) {
         return protected(operand, input, vars, emit, |_, _| Ok(Continue(())));
     }
-    if let Some(base) = iteration {
-        if base == "." {
-            return iterate(input, emit);
-        }
-        return visit_jq(base, input, vars, &mut |v| iterate(&v, emit));
+    if let Some((base, op)) = subscript {
+        let bases = |each: &mut dyn FnMut(&JVal) -> Flow| {
+            if base == "." {
+                each(input)
+            } else {
+                visit_jq(base, input, vars, &mut |v| each(&v))
+            }
+        };
+        return match op {
+            Subscript::Iterate => bases(&mut |v| iterate(v, emit)),
+            Subscript::Index(filter) => visit_jq(filter, input, vars, &mut |key| {
+                bases(&mut |v| {
+                    if (matches!(key, JVal::Object(_))
+                        && matches!(v, JVal::Null | JVal::Str(_) | JVal::Array(_)))
+                        || (matches!(key, JVal::Array(_)) && matches!(v, JVal::Array(_)))
+                    {
+                        emit(indices(v, &key)?)
+                    } else {
+                        emit(index_value(v, &key)?.clone())
+                    }
+                })
+            }),
+            Subscript::Slice(start, end) => {
+                let start = if start.is_empty() { "null" } else { start };
+                let end = if end.is_empty() { "null" } else { end };
+                visit_jq(start, input, vars, &mut |lo| {
+                    visit_jq(end, input, vars, &mut |hi| {
+                        bases(&mut |v| emit(super::jq_index::slice_value(v, &lo, &hi)?))
+                    })
+                })
+            }
+        };
     }
     if (s.starts_with("reduce") || s.starts_with("foreach"))
         && let Some((source, variable, body)) = super::jq_parser::fold(s)

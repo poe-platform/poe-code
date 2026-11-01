@@ -39,22 +39,35 @@ pub(super) fn path_slice(
     bounds: &[(String, JVal)],
     nan_is_null: bool,
 ) -> Result<JVal, String> {
+    let bound = |name| match bounds.iter().find(|(key, _)| key == name).map(|(_, v)| v) {
+        Some(v @ JVal::Null) => Ok(v),
+        Some(v @ JVal::Number(n, _)) if n.is_finite() || (nan_is_null && n.is_nan()) => Ok(v),
+        _ => Err("Array/string slice indices must be integers"),
+    };
+    slice_value(value, bound("start")?, bound("end")?)
+}
+
+pub(super) fn slice_value(value: &JVal, start: &JVal, end: &JVal) -> Result<JVal, String> {
+    let bound = |v: &JVal, name| match v {
+        JVal::Null => Ok(None),
+        JVal::Number(n, _) if n.is_nan() => Ok(None),
+        JVal::Number(n, _) if n.is_finite() => {
+            Ok(Some(if name == "start" { n.floor() } else { n.ceil() }))
+        }
+        _ => Err(format!("slice {name} must be a finite number or null")),
+    };
+    let start = bound(start, "start")?;
+    let end = bound(end, "end")?;
     let len = match value {
         JVal::Array(items) => items.len(),
         JVal::Str(s) => s.chars().count(),
-        _ => unreachable!(),
+        JVal::Null => return Ok(JVal::Null),
+        _ => return Err(format!("cannot slice {}", value.type_name())),
     };
-    let bound = |name, default| match bounds.iter().find(|(key, _)| key == name).map(|(_, v)| v) {
-        Some(JVal::Null) => Ok(default),
-        Some(JVal::Number(n, _)) if nan_is_null && n.is_nan() => Ok(default),
-        Some(JVal::Number(n, _)) if n.is_finite() => {
-            let i = if name == "start" { n.floor() } else { n.ceil() };
-            Ok((if i < 0.0 { len as f64 + i } else { i }).clamp(0.0, len as f64) as usize)
-        }
-        _ => Err("Array/string slice indices must be integers"),
-    };
-    let start = bound("start", 0)?;
-    let end = bound("end", len)?.max(start);
+    let offset =
+        |n: f64| (if n < 0.0 { len as f64 + n } else { n }).clamp(0.0, len as f64) as usize;
+    let start = start.map_or(0, offset);
+    let end = end.map_or(len, offset).max(start);
     Ok(match value {
         JVal::Array(items) => JVal::Array(items[start..end].to_vec()),
         JVal::Str(s) => JVal::Str(s.chars().skip(start).take(end - start).collect()),

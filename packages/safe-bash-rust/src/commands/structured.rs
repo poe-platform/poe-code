@@ -7,6 +7,7 @@ mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
 mod jq_input;
+mod jq_json;
 mod jq_parser;
 use jq_input::JqInputs;
 mod json_format;
@@ -736,6 +737,7 @@ fn cmd_jq_core(
     let mut sort_keys = false;
     let mut join_output = false;
     let mut stream_mode = false;
+    let mut stream_errors = false;
     let mut seq_mode = false;
     let mut lib_dirs: Vec<String> = Vec::new();
     let mut args_mode: Option<bool> = None;
@@ -826,6 +828,7 @@ fn cmd_jq_core(
                 seq_mode = true;
             } else {
                 stream_mode = true;
+                stream_errors |= a == "--stream-errors";
             }
             i += 1;
             continue;
@@ -994,7 +997,7 @@ fn cmd_jq_core(
         if slurp && !raw_input { xml_vals = vec![JVal::Array(xml_vals)]; }
         *inputs.borrow_mut() = JqInputs::new(xml_vals.into_iter().map(Ok));
     } else {
-        *inputs.borrow_mut() = jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode);
+        *inputs.borrow_mut() = jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors);
     }
 
     let mut out = String::new();
@@ -3797,34 +3800,6 @@ fn walk_jval(
         .into_iter()
         .next()
         .unwrap_or(JVal::Null))
-}
-
-fn collect_jq_stream_events(val: &JVal, path: &mut Vec<JVal>, out: &mut Vec<JVal>) {
-    match val {
-        JVal::Array(items) if !items.is_empty() => {
-            for (idx, item) in items.iter().enumerate() {
-                path.push(JVal::Number(idx as f64));
-                collect_jq_stream_events(item, path, out);
-                path.pop();
-            }
-            let mut close_path = path.clone();
-            close_path.push(JVal::Number((items.len() - 1) as f64));
-            out.push(JVal::Array(vec![JVal::Array(close_path)]));
-        }
-        JVal::Object(entries) if !entries.is_empty() => {
-            for (k, v) in entries {
-                path.push(JVal::Str(k.clone()));
-                collect_jq_stream_events(v, path, out);
-                path.pop();
-            }
-            let mut close_path = path.clone();
-            close_path.push(JVal::Str(entries.last().unwrap().0.clone()));
-            out.push(JVal::Array(vec![JVal::Array(close_path)]));
-        }
-        leaf => {
-            out.push(JVal::Array(vec![JVal::Array(path.clone()), leaf.clone()]));
-        }
-    }
 }
 
 fn collect_pattern_vars(pat: &str, out: &mut Vec<String>) {

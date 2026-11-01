@@ -3,6 +3,29 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq emits JSON stream events before a container closes and reports parse errors at byte positions", async () => {
+  const bash = new RustWasmBash({ files: { "/workspace/prefix": "[10," } });
+  try {
+    const first = await bash.exec("jq -cn --stream 'first(inputs)' prefix missing");
+    assert.deepEqual([first.exitCode, first.stdout, first.stderr], [0, "[[0],10]\n", ""]);
+    for (const [flags, text, code, stdout, stderr] of [
+      ["", "1 bad\n", 5, "1\n", "jq: parse error: Invalid numeric literal at line 2, column 0\n"],
+      ["", "[1,]", 5, "", "jq: parse error: Expected another array element at line 1, column 4\n"],
+      ["", '{"x":}', 5, "", "jq: parse error: Unmatched '}' at line 1, column 6\n"],
+      ["", '"é\\q"', 5, "", "jq: parse error: Invalid escape at line 1, column 6\n"],
+      ["", "[1", 5, "", "jq: parse error: Unfinished JSON term at EOF at line 1, column 2\n"],
+      ["", "\ufeff2", 0, "2\n", ""],
+      ["", "\ufeffbad", 5, "", "jq: parse error: Invalid numeric literal at EOF at line 1, column 3\n"],
+      ["--stream", '{"x":[1,2],"x":3}', 0, '[["x",0],1]\n[["x",1],2]\n[["x",1]]\n[["x"],3]\n[["x"]]\n', ""],
+      ["--stream-errors", "[1,]\n[2]\n", 0, '[[0],1]\n["Expected another array element at line 1, column 4",[1]]\n[[0],2]\n[[0]]\n', ""],
+    ]) {
+      await bash.fs.writeFile("/workspace/data", new TextEncoder().encode(text));
+      const r = await bash.exec(`jq -c ${flags} . data`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], text);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq opens input files on demand and shares a cursor with inputs", async () => {
   const bash = new RustWasmBash({ files: {
     "/workspace/numbers": "10 20", "/workspace/start": "1", "/workspace/end": "2\n",

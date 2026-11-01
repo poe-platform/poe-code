@@ -1,7 +1,4 @@
-use super::{
-    JVal, SafeBashFs, collect_jq_stream_events, parse_single_json_strict, read_stream_diag,
-    resolve_posix_path,
-};
+use super::{JVal, SafeBashFs, jq_json::Parser, read_stream_diag, resolve_posix_path};
 use std::borrow::Cow;
 
 pub(super) struct JqInputs<'a> {
@@ -73,8 +70,12 @@ struct Values<'a> {
     raw: bool,
     slurp: bool,
     sequence: bool,
-    stream: bool,
-    events: std::vec::IntoIter<JVal>,
+    parser: Parser,
+    stream_errors: bool,
+    failed: bool,
+    line: usize,
+    column: usize,
+    eof: bool,
     done: bool,
 }
 
@@ -93,71 +94,66 @@ impl Values<'_> {
             return Ok(Some(JVal::Str(String::from_utf8_lossy(&line).into_owned())));
         }
 
-        if let Some(event) = self.events.next() {
-            return Ok(Some(event));
-        }
-        let first = loop {
-            let Some(b) = self.bytes.peek()? else {
+        loop {
+            if let Some(event) = self.parser.events.pop_front() {
+                return Ok(Some(event));
+            }
+            if self.eof {
                 return Ok(None);
-            };
-            if !b.is_ascii_whitespace() && !(self.sequence && b == 0x1e) {
-                break b;
             }
-            self.bytes.at += 1;
-        };
-        let scalar = !matches!(first, b'[' | b'{' | b'"');
-        let mut buf = Vec::new();
-        let mut depth = 0usize;
-        let mut quoted = false;
-        let mut escape = false;
-        while let Some(b) = self.bytes.peek()? {
-            if scalar
-                && !buf.is_empty()
-                && (b.is_ascii_whitespace() || matches!(b, b'[' | b'{' | b'"' | b']' | b'}' | 0x1e))
-            {
-                break;
-            }
-            self.bytes.at += 1;
-            buf.push(b);
-            if scalar {
-                continue;
-            }
-            if quoted {
-                if escape {
-                    escape = false;
-                } else if b == b'\\' {
-                    escape = true;
-                } else if b == b'"' {
-                    quoted = false;
+            let byte = self.bytes.peek()?;
+            let parsed = if let Some(b) = byte {
+                self.bytes.at += 1;
+                if b == b'\n' {
+                    self.line += 1;
+                    self.column = 0;
+                } else {
+                    self.column += 1;
                 }
-            } else {
-                match b {
-                    b'[' | b'{' => {
-                        depth += 1;
-                        if depth > 256 {
-                            return Err((4, "parse error: maxDepth limit exceeded".into()));
-                        }
+                if self.sequence && b == 0x1e {
+                    continue;
+                }
+                if self.failed {
+                    if b == b'\n' {
+                        self.parser = Parser::new(true, self.line, self.column);
+                        self.failed = false;
                     }
-                    b']' | b'}' => depth = depth.saturating_sub(1),
-                    b'"' => quoted = true,
-                    _ => {}
+                    continue;
                 }
-            }
-            if depth == 0 && !quoted {
-                break;
+                self.parser.feed(b)
+            } else {
+                self.eof = true;
+                if self.failed {
+                    return Ok(None);
+                }
+                self.parser.finish()
+            };
+            if let Err(detail) = parsed {
+                self.parser.events.clear();
+                let message = if detail == "Malformed BOM" {
+                    detail.into()
+                } else {
+                    format!(
+                        "{detail} at line {}, column {}",
+                        self.parser.line, self.parser.column
+                    )
+                };
+                if self.stream_errors {
+                    let path = self.parser.path();
+                    self.failed = true;
+                    if byte == Some(b'\n') {
+                        self.parser = Parser::new(true, self.line, self.column);
+                        self.failed = false;
+                    }
+                    return Ok(Some(JVal::Array(vec![
+                        JVal::Str(message),
+                        JVal::Array(path),
+                    ])));
+                }
+                return Err((5, format!("parse error: {message}")));
             }
         }
-        let value = parse_single_json_strict(&String::from_utf8_lossy(&buf))
-            .map_err(|e| (4, format!("parse error: {e}")))?;
-        if self.stream {
-            let mut events = Vec::new();
-            collect_jq_stream_events(&value, &mut Vec::new(), &mut events);
-            self.events = events.into_iter();
-            return Ok(self.events.next());
-        }
-        Ok(Some(value))
     }
-
     fn pull(&mut self) -> Result<Option<JVal>, (i32, String)> {
         if self.done {
             return Ok(None);
@@ -189,6 +185,7 @@ pub(super) fn files<'a>(
     slurp: bool,
     sequence: bool,
     stream: bool,
+    stream_errors: bool,
 ) -> JqInputs<'a> {
     if files.is_empty() {
         files.push("-".into());
@@ -205,8 +202,12 @@ pub(super) fn files<'a>(
         raw,
         slurp,
         sequence,
-        stream,
-        events: Vec::new().into_iter(),
+        parser: Parser::new(stream, 1, 0),
+        stream_errors,
+        failed: false,
+        line: 1,
+        column: 0,
+        eof: false,
         done: false,
     };
     JqInputs::new(std::iter::from_fn(move || {

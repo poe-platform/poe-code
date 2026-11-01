@@ -4,15 +4,58 @@ pub(super) struct Raster {
     pub width: usize,
     pub height: usize,
     pub alpha: bool,
+    pub gray: bool,
+    pub density: u32,
     pub pixels: Vec<[u8; 4]>,
 }
 
 impl Raster {
+    pub fn input(spec: &str, bytes: &[u8], limit: usize) -> Result<Option<Self>, String> {
+        if let Some(canvas) = super::Canvas::parse(spec) {
+            return Ok(Some(Self {
+                width: 1,
+                height: 1,
+                alpha: true,
+                gray: false,
+                density: 72,
+                pixels: vec![canvas?.pixel(0, 0, 1, 1)],
+            }));
+        }
+        // Other Rust codecs still emit the legacy private header in place of pixel data.
+        if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") {
+            return Self::decode(bytes, limit).map(Some).map_err(String::from);
+        }
+        Ok(None)
+    }
+    pub fn png(&self) -> Vec<u8> {
+        let pixel = |x: usize, y: usize| self.pixels[y * self.width + x];
+        match (self.gray, self.alpha) {
+            (true, true) => {
+                super::pixel_png(self.width, self.height, self.density, true, |x, y| {
+                    let [v, _, _, a] = pixel(x, y);
+                    [v, a]
+                })
+            }
+            (true, false) => {
+                super::pixel_png(self.width, self.height, self.density, true, |x, y| {
+                    [pixel(x, y)[0]]
+                })
+            }
+            (false, false) => {
+                super::pixel_png(self.width, self.height, self.density, true, |x, y| {
+                    let [r, g, b, _] = pixel(x, y);
+                    [r, g, b]
+                })
+            }
+            (false, true) => super::pixel_png(self.width, self.height, self.density, true, pixel),
+        }
+    }
     pub fn decode(png: &[u8], limit: usize) -> Result<Self, &'static str> {
         let mut input = png
             .strip_prefix(b"\x89PNG\r\n\x1a\n")
             .ok_or("Invalid PNG header")?;
         let mut header = None;
+        let mut density = 72;
         let mut palette = &[][..];
         let mut trns = &[][..];
         let mut idat = Vec::new();
@@ -24,6 +67,16 @@ impl Raster {
             let data = &input[8..8 + size];
             match &input[4..8] {
                 b"IHDR" if size >= 13 => header = Some(data),
+                b"pHYs" if size >= 9 => {
+                    let x = u32::from_be_bytes(data[..4].try_into().unwrap());
+                    if x > 0 {
+                        density = if data[8] == 1 {
+                            (x as f64 * 0.0254).round().max(1.) as u32
+                        } else {
+                            x
+                        };
+                    }
+                }
                 b"PLTE" => palette = data,
                 b"tRNS" => trns = data,
                 b"IDAT" => {
@@ -192,6 +245,8 @@ impl Raster {
         Ok(Self {
             width,
             height,
+            gray: color == 4 || (color == 0 && trns.is_empty()),
+            density,
             alpha: matches!(color, 4 | 6) || !trns.is_empty(),
             pixels,
         })

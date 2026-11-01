@@ -91,6 +91,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
 
 #[path = "png_pixels.rs"]
 mod png_pixels;
+#[path = "magick_composite.rs"]
+mod magick_composite;
 #[path = "magick_compare.rs"]
 mod magick_compare;
 #[path = "magick_color.rs"]
@@ -10105,6 +10107,7 @@ fn cmd_media_doc(
             if let Some(list_out) = try_magick_list_option(args) {
                 return list_out;
             }
+            if cmd!="mogrify" && args.iter().any(|a| a=="-composite") && let Some(r)=magick_composite::run(cmd,args,cwd,fs) { return r; }
             let is_mogrify = cmd == "mogrify";
             if !is_mogrify && args.is_empty() {
                 return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
@@ -10440,6 +10443,7 @@ fn cmd_media_doc(
             ok_out("")
         }
         "composite" => {
+            if let Some(r)=magick_composite::run(cmd,args,cwd,fs) { return r; }
             if let Some(list_out) = try_magick_list_option(args) {
                 return list_out;
             }
@@ -10725,17 +10729,7 @@ fn cmd_media_doc(
             };
             let default_null = "null:".to_string();
             let out_spec = operands.get(2).unwrap_or(&default_null);
-            // A few unmigrated writers still return private header-only images.
-            // Decode production PNGs and generated inputs before the legacy metadata path.
-            let raster = |spec: &str, bytes: &[u8]| -> Result<Option<png_pixels::Raster>, String> {
-                if let Some(canvas) = Canvas::parse(spec) {
-                    return Ok(Some(png_pixels::Raster {width:1,height:1,alpha:true,pixels:vec![canvas?.pixel(0,0,1,1)]}));
-                }
-                if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38)!=Some(b"\n__IMG__:") {
-                    return png_pixels::Raster::decode(bytes,fs.max_input_bytes()).map(Some).map_err(String::from);
-                }
-                Ok(None)
-            };
+            let raster = |spec: &str, bytes: &[u8]| png_pixels::Raster::input(spec,bytes,fs.max_input_bytes());
             if out_spec.eq_ignore_ascii_case("null:") || out_spec=="-" || out_spec.to_ascii_lowercase().starts_with("png:") || out_spec.to_ascii_lowercase().ends_with(".png") {
                 match (raster(&operands[0], &bytes_a),raster(&operands[1], &bytes_b)) {
                     (Ok(Some(a)), Ok(Some(b))) => return magick_compare::compare([&a,&b],&metric,&options,out_spec,cwd,fs),
@@ -13075,11 +13069,30 @@ mod media_unit_tests {
         assert!(!fs.exists("/dir.png/nested.png"));
     }
 
-    #[test]
-    fn compare_measures_alpha_and_missing_pixels_in_production_pngs() {
+    fn gradient_png_pair() -> MemoryVfs {
         let fs = MemoryVfs::new();
         fs.write_file("/a.png", &hex_dec("89504e470d0a1a0a0000000d494844520000000d000000090806000000e97aa66a000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000003b4944415463945170facf40226034b3f2235d53404814e99ab2f25249d7d4da5148baa6f98b6a49d7b4734f27e99a2e5f9b42baa6b71f1690ac0900dff8166cd748a1f90000000049454e44ae426082")).unwrap();
         fs.write_file("/b.png", &hex_dec("89504e470d0a1a0a0000000d4948445200000007000000050806000000899af6d8000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000006149444154639c51a6f4ff2d37cbe34f9c4c2f7f33337d67fdfb8f93effb3f71e1af7f64197b6b54debde263b9fb9687e5e13736a68f5cbffef10b7ff9232ff6e98f326357bdea8b177cacb75ef0b3dc06d1129f7eab497cfca30aa2f1ebc4672700f4c246b0d78da95f0000000049454e44ae426082")).unwrap();
+        fs
+    }
+
+    #[test]
+    fn composite_blends_and_clips_pixels_from_both_pngs() {
+        let fs = gradient_png_pair();
+        for (args, hash) in [
+            ("-gravity center -geometry -3+2 b.png a.png out.png", "9d35ea3fc54e963c55bcfde93e5187845d75c76b8181e8caac93c9fd444ad8ec"),
+            ("-dissolve 36x71 a.png b.png out.png", "cc5798df115b8f32c269be09cf2d9f12455be0605ef32ab344ff82f2030728b3"),
+            ("-compose multiply b.png a.png out.png", "a046abb52bfd314a17e4158433aae2d73c0c69788b42a8e5b22bd946d715e52e"),
+        ] {
+            let r = cmd_media_doc("composite", &media_args(&args.split_whitespace().collect::<Vec<_>>()), "", "/", &fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),hash,"{args}");
+        }
+    }
+
+    #[test]
+    fn compare_measures_alpha_and_missing_pixels_in_production_pngs() {
+        let fs = gradient_png_pair();
         let r = cmd_media_doc("compare", &media_args(&["-metric", "MAE", "a.png", "b.png", "diff.png"]), "", "/", &fs);
         assert_eq!(r.exit_code, 1);
         assert_eq!(r.stderr, "34700.969532 (0.529503)\n");

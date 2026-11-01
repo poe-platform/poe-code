@@ -48,6 +48,8 @@ let sorted = String::from_utf8(vfs.read_file("/workspace/sorted.txt").unwrap()).
 assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 ```
 
+If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` create a destination. It must create the file with the requested mode and return `EEXIST` if the name is already occupied, including by a dangling symlink.
+
 ### 2. WebAssembly Shell from JavaScript / TypeScript
 
 The JavaScript entry point requires Node.js to load the packaged WebAssembly binary. Use `await bash.fs.open(path, { access: "readwrite" })` for positioned I/O on memory files. The descriptor stays attached to the opened file after renames and unlinks; call `await descriptor.close()` to release it. By default the shell exposes a virtual `/dev/null` alongside files you supply under `/dev`. Use `deviceView: "provided"` to keep your own `/dev/null`, or call `bash.mountDevices()` to mount the device filesystem over `/dev`.

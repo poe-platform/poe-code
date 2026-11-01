@@ -121,43 +121,42 @@ enum BackupMode {
     Numbered,
 }
 
-fn parse_backup_control(s: &str) -> BackupMode {
-    match s {
-        "none" | "off" => BackupMode::None,
-        "simple" | "never" => BackupMode::Simple,
-        "existing" | "nil" => BackupMode::Existing,
-        "numbered" | "t" => BackupMode::Numbered,
-        _ => BackupMode::Existing,
+fn parse_backup_control(control: Option<&str>) -> Result<BackupMode, String> {
+    let Some(s) = control else { return Ok(BackupMode::None) };
+    let mut matched = None;
+    for (aliases, mode) in [(["none", "off"], BackupMode::None), (["simple", "never"], BackupMode::Simple),
+        (["existing", "nil"], BackupMode::Existing), (["numbered", "t"], BackupMode::Numbered)] {
+        if aliases.contains(&s) { return Ok(mode); }
+        if aliases.iter().any(|a| a.starts_with(s)) && matched.replace(mode).is_some() {
+            return Err(format!("ambiguous argument '{s}' for 'backup type'"));
+        }
     }
+    matched.ok_or_else(|| format!("invalid argument '{s}' for 'backup type'"))
 }
 
-fn backup_path(
-    target: &str,
-    mode: BackupMode,
-    suffix: &str,
-    fs: &dyn SafeBashFs,
-) -> String {
-    let mut largest = 0usize;
+fn backup_path(target: &str, mode: BackupMode, suffix: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
+    let mut largest = String::new();
     if mode != BackupMode::Simple {
         let parent = crate::vfs::dirname_posix_path(target);
         let prefix = format!("{}.~", basename_posix_path(target));
-        for entry in fs.list_dir(&parent).unwrap_or_default() {
-            if let Some(rest) = entry.strip_prefix(&prefix)
-                && let Some(digits) = rest.strip_suffix('~')
-                && !digits.is_empty()
-                && !digits.starts_with('0')
-                && digits.chars().all(|c| c.is_ascii_digit())
-                && let Ok(n) = digits.parse::<usize>()
-                && n > largest
-            {
-                largest = n;
+        for entry in fs.list_dir(&parent).map_err(|e| copy_error(&e, "readdir", &parent))? {
+            if let Some(n) = entry.strip_prefix(&prefix).and_then(|rest| rest.strip_suffix('~'))
+                && !n.is_empty() && !n.starts_with('0') && n.bytes().all(|c| c.is_ascii_digit())
+                && (n.len(), n) > (largest.len(), largest.as_str()) {
+                largest = n.to_owned();
             }
         }
     }
-    if mode == BackupMode::Numbered || (mode == BackupMode::Existing && largest > 0) {
-        format!("{target}.~{}~", largest as u128 + 1)
+    if mode == BackupMode::Numbered || !largest.is_empty() {
+        let mut number = largest.into_bytes();
+        match number.iter().rposition(|&b| b != b'9') {
+            Some(i) => { number[i] += 1; number[i + 1..].fill(b'0'); }
+            None => { number.fill(b'0'); number.insert(0, b'1'); }
+        }
+        Ok(format!("{target}.~{}~", String::from_utf8(number).unwrap()))
     } else {
-        format!("{target}{suffix}")
+        let suffix = if suffix.is_empty() || suffix.contains('/') { "~" } else { suffix };
+        Ok(format!("{target}{suffix}"))
     }
 }
 
@@ -1113,6 +1112,7 @@ struct CopySettings {
     timestamps: bool,
     force: bool,
     remove_destination: bool,
+    backup: Option<(BackupMode, String)>,
 }
 
 fn copy_error(error: &str, op: &str, path: &str) -> String {
@@ -1120,6 +1120,21 @@ fn copy_error(error: &str, op: &str, path: &str) -> String {
         else if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
         else { error.split_once(", ").map_or(error, |(reason, _)| reason) };
     format!("{reason}, {op} '{path}'")
+}
+
+fn backup_copy_target(fs: &dyn SafeBashFs, src: &str, target: &str, mode: BackupMode, suffix: &str) -> Result<(), String> {
+    let backup = backup_path(target, mode, suffix, fs)?;
+    let from = fs.access_path(src, false)?;
+    let referent = |p: &str| match fs.inspect_command_entry(p, true, "realpath") {
+        Ok((path, _)) => Ok(Some(path)),
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
+        Err(e) => Err(e),
+    };
+    let existing = referent(&backup)?;
+    if from == backup || existing.is_some() && existing == referent(src)? {
+        return Err(format!("EINVAL: backup would destroy source '{backup}'"));
+    }
+    fs.rename(target, &backup, false).map_err(|e| format!("{e}, rename '{target}' -> '{backup}'"))
 }
 
 fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings, ancestors: &mut std::collections::BTreeSet<String>) -> Result<(), String> {
@@ -1146,6 +1161,11 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
     }
     if !directory && target_stat.as_ref().is_some_and(|t| t.kind == VfsEntryKind::Directory) {
         return Err(format!("EISDIR: illegal operation on a directory '{dst}'"));
+    }
+    if !directory && target_stat.is_some() && let Some((mode, suffix)) = &settings.backup {
+        backup_copy_target(fs, src, &entry, *mode, suffix)?;
+        target = entry.clone();
+        target_stat = None;
     }
     if preserve_link {
         let text = fs.readlink(&source)?;
@@ -1191,10 +1211,13 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
             return Err(format!("EACCES: permission denied, writeStream '{dst}'"));
         }
         let data = fs.read_file(&source)?;
-        fs.write_file(&target, &data)?;
-        if !target_stat.as_ref().is_some_and(|t| t.mode & 0o170000 == 0o020000) {
-            let mode = if settings.mode { st.mode } else { target_stat.as_ref().map_or(st.mode, |t| t.mode) };
-            fs.chmod(&target, mode & 0o7777)?;
+        if let Some(t) = target_stat {
+            fs.write_file(&target, &data)?;
+            if t.mode & 0o170000 != 0o020000 {
+                fs.chmod(&target, (if settings.mode { st.mode } else { t.mode }) & 0o7777)?;
+            }
+        } else {
+            fs.create_file(&target, &data, st.mode & 0o7777).map_err(|e| copy_error(&e, "writeStream", dst))?;
         }
     }
     if settings.timestamps { fs.set_mtime(&target, st.mtime_ms)?; }
@@ -1429,12 +1452,11 @@ fn cmd_cp(
     if eff_operands.len() < 2 {
         return err_out("cp: missing operand\n", 2);
     }
-    let backup_mode = if let Some(ref ctrl) = backup_control {
-        parse_backup_control(ctrl)
-    } else if backup_flag || suffix_flag {
-        parse_backup_control(env.get("VERSION_CONTROL").map(|s| s.as_str()).unwrap_or("existing"))
-    } else {
-        BackupMode::None
+    let control = backup_control.as_deref().or_else(|| (backup_flag || suffix_flag)
+        .then(|| env.get("VERSION_CONTROL").map(String::as_str).unwrap_or("existing")));
+    let backup_mode = match parse_backup_control(control) {
+        Ok(mode) => mode,
+        Err(e) => return err_out(&format!("cp: {e}\n"), 2),
     };
     if backup_mode != BackupMode::None && no_clobber {
         return err_out(
@@ -1445,6 +1467,7 @@ fn cmd_cp(
     let deref_mode = deref_opt.unwrap_or(if recursive { 'P' } else { 'H' });
     settings.dereference = deref_mode;
     settings.remove_destination = remove_destination;
+    if backup_mode != BackupMode::None { settings.backup = Some((backup_mode, backup_suffix)); }
     let dst_raw = eff_operands.last().unwrap();
     let absolute = |path: &str| if path.is_empty() || path.starts_with('/') { path.to_owned() } else { child_disp_path(cwd, path) };
     let dst_operand = absolute(dst_raw);
@@ -1573,17 +1596,11 @@ fn cmd_cp(
                 continue;
             }
         }
-        if target_exists && backup_mode != BackupMode::None {
-            let backup = backup_path(&target, backup_mode, &backup_suffix, fs);
-            let backup_settings = CopySettings { dereference: 'P', mode: true, timestamps: true, ..Default::default() };
-            if let Err(e) = copy_entry(&target, &backup, fs, &backup_settings, &mut Default::default()) { stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
-        }
-        if target_exists && (sym_link || hard_link || attributes_only && remove_destination && !src_is_dir && backup_mode == BackupMode::None)
-            && let Err(e) = unlink_destination(&target, fs)
-        {
-            stderr.push_str(&format!("cp: {e}\n"));
-            code = 1;
-            continue;
+        if target_exists && (sym_link || hard_link || attributes_only && !src_is_dir) {
+            let removal = if let Some((mode, suffix)) = &settings.backup {
+                backup_copy_target(fs, &src, &target, *mode, suffix)
+            } else if sym_link || hard_link || remove_destination { unlink_destination(&target, fs) } else { Ok(()) };
+            if let Err(e) = removal { stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
         }
         let copy_res = if sym_link {
             fs.symlink(src_raw, &target)
@@ -1593,7 +1610,11 @@ fn cmd_cp(
             if (!target_exists || remove_destination || backup_mode != BackupMode::None)
                 && !preserve_top_link
             {
-                let _ = fs.write_file(&target, &[]);
+                if let Err(e) = fs.create_file(&target, &[], source_stat.mode & 0o777) {
+                    stderr.push_str(&format!("cp: {}\n", copy_error(&e, "writeFile", &target)));
+                    code = 1;
+                    continue;
+                }
             }
             if let Ok(st) = fs.stat(&src) {
                 let _ = fs.chmod(&target, st.mode);
@@ -1745,12 +1766,11 @@ fn cmd_mv(
     if t_count > 1 {
         return err_out("mv: multiple target directories specified\n", 2);
     }
-    let backup_mode = if let Some(ref ctrl) = backup_control {
-        parse_backup_control(ctrl)
-    } else if backup_flag || suffix_flag {
-        parse_backup_control(env.get("VERSION_CONTROL").map(|s| s.as_str()).unwrap_or("existing"))
-    } else {
-        BackupMode::None
+    let control = backup_control.as_deref().or_else(|| (backup_flag || suffix_flag)
+        .then(|| env.get("VERSION_CONTROL").map(String::as_str).unwrap_or("existing")));
+    let backup_mode = match parse_backup_control(control) {
+        Ok(mode) => mode,
+        Err(e) => return err_out(&format!("mv: {e}\n"), 2),
     };
     if backup_mode != BackupMode::None && no_clobber {
         return err_out("mv: options --backup and --no-clobber are mutually exclusive\n", 2);
@@ -1856,7 +1876,7 @@ fn cmd_mv(
                 }
             }
             if backup_mode != BackupMode::None {
-                let bak = backup_path(&target, backup_mode, &backup_suffix, fs);
+                let bak = match backup_path(&target, backup_mode, &backup_suffix, fs) { Ok(p) => p, Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; } };
                 if (source_stat.kind == VfsEntryKind::Directory) != (target_stat.kind == VfsEntryKind::Directory) {
                     let e = if source_stat.kind == VfsEntryKind::Directory { "ENOTDIR: not a directory" } else { "EISDIR: illegal operation on a directory" };
                     stderr.push_str(&format!("mv: {e} '{target}'\n")); code = 1; continue;
@@ -2415,12 +2435,11 @@ fn cmd_ln(
     } else {
         operands
     };
-    let backup_mode = if let Some(ref ctrl) = backup_control {
-        parse_backup_control(ctrl)
-    } else if backup_flag || suffix_flag {
-        parse_backup_control(env.get("VERSION_CONTROL").map(|s| s.as_str()).unwrap_or("existing"))
-    } else {
-        BackupMode::None
+    let control = backup_control.as_deref().or_else(|| (backup_flag || suffix_flag)
+        .then(|| env.get("VERSION_CONTROL").map(String::as_str).unwrap_or("existing")));
+    let backup_mode = match parse_backup_control(control) {
+        Ok(mode) => mode,
+        Err(e) => return err_out(&format!("ln: {e}\n"), 2),
     };
 
     let last_op = eff_operands.last().unwrap();
@@ -2481,6 +2500,7 @@ fn cmd_ln(
             code = 1;
             continue;
         }
+        let mut moved_backup = None;
         if fs.exists(&link_path) || fs.lstat(&link_path).is_ok() {
             let src_entry = canonical_entry_identity(&src_full, false, fs);
             let dst_entry = canonical_entry_identity(&link_path, false, fs);
@@ -2519,11 +2539,25 @@ fn cmd_ln(
                 }
             }
             if backup_mode != BackupMode::None {
-                let backup = backup_path(&link_path, backup_mode, &backup_suffix, fs);
-                let backup_settings = CopySettings { dereference: 'P', mode: true, timestamps: true, ..Default::default() };
-                if let Err(e) = copy_entry(&link_path, &backup, fs, &backup_settings, &mut Default::default()) { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
-            }
-            if let Err(e) = unlink_destination(&link_path, fs) {
+                let backup = match backup_path(&link_path, backup_mode, &backup_suffix, fs) {
+                    Ok(p) => p, Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
+                };
+                if backup == src_full || backup == link_path {
+                    stderr.push_str(&format!("ln: EINVAL: backup would overwrite source or destination '{backup}'\n"));
+                    code = 1; continue;
+                }
+                if !symbolic && let Ok(b) = fs.lstat(&backup) {
+                    let source = if logical { fs.stat(&src_full) } else { fs.lstat(&src_full) };
+                    if !source.is_ok_and(|s| s.identity.is_some() && b.identity.is_some() && s.identity != b.identity) {
+                        stderr.push_str(&format!("ln: EINVAL: backup would overwrite source '{backup}'\n"));
+                        code = 1; continue;
+                    }
+                }
+                if let Err(e) = fs.rename(&link_path, &backup, false) {
+                    stderr.push_str(&format!("ln: {e}, rename '{link_path}' -> '{backup}'\n")); code = 1; continue;
+                }
+                if fs.lstat(&link_path).is_err() { moved_backup = Some(backup); }
+            } else if let Err(e) = unlink_destination(&link_path, fs) {
                 stderr.push_str(&format!("ln: {e}\n"));
                 code = 1;
                 continue;
@@ -2556,7 +2590,12 @@ fn cmd_ln(
             }
         };
         if let Err(e) = fs.symlink(&stored_target, &link_path) {
-            stderr.push_str(&format!("ln: {e}\n"));
+            if let Some(backup) = moved_backup && let Err(e) = fs.rename(&backup, &link_path, true) {
+                stderr.push_str(&format!("ln: {e}, restoring '{backup}' -> '{link_path}'\n"));
+            }
+            if !symbolic && e.starts_with("EEXIST:") {
+                stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"));
+            } else { stderr.push_str(&format!("ln: {e}\n")); }
             code = 1;
             continue;
         }
@@ -6921,6 +6960,70 @@ mod tests {
         assert_eq!(failed.exit_code, 1);
         assert_eq!(fs.read_file("/to").unwrap(), b"new");
         assert_eq!(fs.read_file("/locked/file").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn backup_selection_rejects_ambiguous_controls_and_increments_large_numbers() {
+        let fs = MemoryVfs::new();
+        let nines = "9".repeat(30);
+        fs.write_file("/src", b"NEW").unwrap();
+        fs.write_file("/dst", b"OLD").unwrap();
+        fs.write_file(&format!("/dst.~{nines}~"), b"earlier").unwrap();
+        for cmd in ["cp", "mv", "ln"] {
+            let r = try_run_fs_command(cmd, &args(&["--backup=n", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code, 2);
+            assert_eq!(fs.read_file("/dst").unwrap(), b"OLD");
+        }
+        let r = cmd_cp(&args(&["--backup=nu", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(fs.read_file(&format!("/dst.~1{}~", "0".repeat(30))).unwrap(), b"OLD");
+    }
+
+    #[test]
+    fn backup_aliases_must_remain_intact_when_the_destination_is_still_linked() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src", b"NEW").unwrap();
+        fs.write_file("/dst", b"OLD").unwrap();
+        assert_eq!(cmd_ln(&args(&["/dst", "/dst~"]), "", "/", &BTreeMap::new(), &fs).exit_code, 0);
+        for cmd in ["cp", "ln"] {
+            let r = try_run_fs_command(cmd, &args(&["-b", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code, 1);
+            assert_eq!(fs.read_file("/dst~").unwrap(), b"OLD");
+            assert_eq!(fs.read_file("/dst").unwrap(), b"OLD");
+        }
+    }
+
+    #[test]
+    fn backups_never_overwrite_the_source_and_retain_the_original_entry() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/file~", b"SOURCE").unwrap();
+        fs.write_file("/file", b"OLD").unwrap();
+        for cmd in ["ln", "cp"] {
+            let result = try_run_fs_command(cmd, &args(&["-b", "/file~", "/file"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(result.exit_code, 1, "{cmd}");
+            assert_eq!(fs.read_file("/file~").unwrap(), b"SOURCE");
+            assert_eq!(fs.read_file("/file").unwrap(), b"OLD");
+        }
+        fs.symlink("file", "/alias").unwrap();
+        let before = fs.lstat("/alias").unwrap().identity;
+        let result = cmd_cp(&args(&["-b", "/file~", "/alias"]), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(fs.lstat("/alias~").unwrap().identity, before);
+        assert_eq!(fs.readlink("/alias~").unwrap(), "file");
+        assert_eq!(fs.read_file("/file").unwrap(), b"OLD");
+        assert_eq!(fs.read_file("/alias").unwrap(), b"SOURCE");
+    }
+
+    #[test]
+    fn recursive_copy_backs_up_replaced_children_and_keeps_the_existing_directory() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src/a", b"NEW").unwrap();
+        fs.write_file("/dst/a", b"OLD").unwrap();
+        let result = cmd_cp(&args(&["-RbT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(fs.read_file("/dst/a~").unwrap(), b"OLD");
+        assert!(!fs.exists("/dst~"));
+        assert_eq!(fs.read_file("/dst/a").unwrap(), b"NEW");
     }
 
     #[test]

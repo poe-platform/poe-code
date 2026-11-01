@@ -90,6 +90,31 @@ impl SafeBashFs for OverlayVfs {
         self.lower.read_file(&norm)
     }
 
+    fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
+        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
+            return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
+        };
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let versions = (lower.generation(), upper.generation());
+        if self.access_path(path, false)? != path { return Err("EAGAIN: resolved entry changed".into()); }
+        match self.lstat(path) {
+            Ok(_) => return Err("EEXIST: file already exists".into()),
+            Err(e) if e.starts_with("ENOENT:") => {}
+            Err(e) => return Err(e),
+        }
+        let mut parent = crate::vfs::dirname_posix_path(path);
+        if self.stat(&parent)?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        let mut parents = Vec::new();
+        while !upper.exists(&parent) {
+            parents.push((parent.clone(), self.stat(&parent)?.mode));
+            parent = crate::vfs::dirname_posix_path(&parent);
+        }
+        let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during creation".into()); }
+        upper.create_overlay_file(lower, versions, path, data, mode, parents)
+    }
+
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         self.upper.write_file(&norm, data)
@@ -354,6 +379,21 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn exclusive_copy_creation_keeps_lower_entries_and_copies_parent_modes() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/private/old", b"lower").unwrap();
+        lower.chmod("/private", 0o710).unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        let overlay = OverlayVfs::new(lower.clone(), upper.clone());
+        assert!(overlay.create_file("/private/old", b"no", 0o600).unwrap_err().starts_with("EEXIST"));
+        overlay.create_file("/private/new", b"new", 0o640).unwrap();
+        assert_eq!(upper.stat("/private").unwrap().mode & 0o777, 0o710);
+        assert_eq!(upper.stat("/private/new").unwrap().mode & 0o777, 0o640);
+        assert_eq!(overlay.read_file("/private/old").unwrap(), b"lower");
+        assert!(!lower.exists("/private/new"));
+    }
 
     #[test]
     fn overlay_vfs_isolates_upper_writes_and_tracks_whiteouts() {

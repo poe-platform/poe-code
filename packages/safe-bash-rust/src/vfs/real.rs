@@ -203,6 +203,21 @@ impl SafeBashFs for RealVfs {
         std::fs::read(host).map_err(|e| e.to_string())
     }
 
+    fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
+        use std::io::Write;
+        let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
+        let mut options = std::fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        #[cfg(unix)]
+        std::os::unix::fs::OpenOptionsExt::mode(&mut options, mode);
+        let mut file = options.open(host).map_err(mutation_error)?;
+        file.write_all(data).map_err(mutation_error)?;
+        #[cfg(unix)]
+        file.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(mode)).map_err(mutation_error)?;
+        Ok(())
+    }
+
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
         if let Some(parent) = host.parent() {
@@ -395,6 +410,8 @@ mod tests {
         #[cfg(unix)]
         {
             vfs.symlink("hello.txt", "/nested/dir/link.txt").unwrap();
+            assert!(vfs.create_file("/nested/dir/link.txt", b"no", 0o600).unwrap_err().starts_with("EEXIST"));
+            assert_eq!(vfs.read_file("/nested/dir/hello.txt").unwrap(), b"real-vfs-bytes");
             assert_eq!(vfs.readlink("/nested/dir/link.txt").unwrap(), "hello.txt");
             vfs.symlink("/nested/dir/hello.txt", "/absolute").unwrap();
             assert_eq!(vfs.read_file("/absolute").unwrap(), b"real-vfs-bytes");

@@ -91,6 +91,10 @@ pub trait SafeBashFs: Send + Sync {
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
+    /// Create at the resolved entry with the requested mode. An occupied name is never followed or overwritten.
+    fn create_file(&self, _path: &str, _data: &[u8], _mode: u32) -> Result<(), String> {
+        Err("ENOTSUP: exclusive file creation is unsupported".into())
+    }
     /// Filesystem identity and revision covering a patch target and its local ancestors.
     fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
         Err("filesystem does not support race-safe patch mutations".into())

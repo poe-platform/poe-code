@@ -90,6 +90,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.read_file(path)
     }
 
+    fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(data.len())?;
+        self.inner.create_file(path, data, mode)
+    }
+
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

@@ -73,6 +73,13 @@ impl SafeBashFs for MountVfs {
         fs.read_file(&rel)
     }
 
+    fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
+        let entry = self.resolve(path, false, WalkPurpose::Rename)?;
+        if entry != path { return Err("EAGAIN: resolved entry changed".into()); }
+        let (_, fs, rel) = self.location(&entry);
+        fs.create_file(&rel, data, mode)
+    }
+
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let (fs, rel) = self.route(path, true)?;
         fs.write_file(&rel, data)

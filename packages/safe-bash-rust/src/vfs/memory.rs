@@ -384,11 +384,13 @@ impl MemoryVfs {
         Ok(())
     }
 
-    // The overlay holds its whiteout lock. Bind its merged lookup to both namespaces
-    // before removing an upper entry or allowing it to hide a lower one.
-    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool, recursive: bool) -> Result<(), String> {
+    // The overlay holds its whiteout lock. Pin both layers at the inspected revisions
+    // before publishing any change to the merged namespace.
+    fn overlay_layers<'a>(&'a self, lower: &'a Self, versions: (u64, u64)) -> Result<(
+        std::sync::RwLockReadGuard<'a, MemoryState>, std::sync::RwLockWriteGuard<'a, MemoryState>
+    ), String> {
         if self.id == lower.id { return Err("ENOTSUP: aliased overlay layers".into()); }
-        let (base, mut upper) = if lower.id < self.id {
+        let (base, upper) = if lower.id < self.id {
             let base = lower.state.read().map_err(|_| "EIO: input/output error")?;
             (base, self.state.write().map_err(|_| "EIO: input/output error")?)
         } else {
@@ -396,6 +398,25 @@ impl MemoryVfs {
             (lower.state.read().map_err(|_| "EIO: input/output error")?, upper)
         };
         if versions != (lower.generation(), self.generation()) { return Err("EBUSY: overlay entries changed".into()); }
+        Ok((base, upper))
+    }
+
+    pub(super) fn create_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], mode: u32, parents: Vec<(String, u32)>) -> Result<(), String> {
+        let (_base, mut upper) = self.overlay_layers(lower, versions)?;
+        if upper.nodes.contains_key(path) || upper.devices.entry(path).is_some() { return Err("EEXIST: file already exists".into()); }
+        if parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
+            return Err("ENOSPC: inode limit exceeded".into());
+        }
+        Self::store_file(&mut upper, path.to_owned(), data, 0o100000 | mode, None)?;
+        for (parent, mode) in parents {
+            upper.nodes.insert(parent, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode, mtime_ms: 1_700_000_000_000 });
+        }
+        self.bump_generation();
+        Ok(())
+    }
+
+    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool, recursive: bool) -> Result<(), String> {
+        let (base, mut upper) = self.overlay_layers(lower, versions)?;
         if path == "/" || upper.devices.entry(path).is_some() || base.devices.entry(path).is_some() {
             return Err("EBUSY: resource busy or locked".into());
         }
@@ -597,6 +618,22 @@ impl SafeBashFs for MemoryVfs {
             }
             None => Err(format!("ENOENT: no such file or directory, open '{norm}'")),
         }
+    }
+
+    fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let entry = Self::mutation_entry(&state, path)?;
+        if entry != path { return Err("EAGAIN: resolved entry changed".into()); }
+        if state.nodes.contains_key(path) || state.devices.entry(path).is_some() { return Err("EEXIST: file already exists".into()); }
+        if state.devices == Devices::Mounted { return Err("EROFS: read-only file system".into()); }
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        let parent = super::dirname_posix_path(path);
+        if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+            return Err("EACCES: permission denied".into());
+        }
+        Self::store_file(&mut state, entry, data, 0o100000 | mode, None)?;
+        self.bump_generation();
+        Ok(())
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
@@ -1115,6 +1152,30 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn concurrent_exclusive_creates_publish_only_one_writer() {
+        let fs = MemoryVfs::new();
+        let gate = std::sync::Barrier::new(4);
+        let winner = std::thread::scope(|scope| {
+            let jobs: Vec<_> = (0..4u8).map(|n| {
+                let (fs, gate) = (&fs, &gate);
+                scope.spawn(move || { gate.wait(); (n, fs.create_file("/dst", &[n], 0o600)) })
+            }).collect();
+            let mut winners = Vec::new();
+            for job in jobs {
+                let (n, result) = job.join().unwrap();
+                match result {
+                    Ok(()) => winners.push(n),
+                    Err(e) => assert!(e.starts_with("EEXIST:")),
+                }
+            }
+            assert_eq!(winners.len(), 1);
+            winners[0]
+        });
+        assert_eq!(fs.read_file("/dst").unwrap(), [winner]);
+        assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, 0o600);
+    }
 
     #[test]
     fn identities_survive_moves_and_hardlink_promotion_but_not_recreation() {

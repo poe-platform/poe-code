@@ -1875,6 +1875,9 @@ pub(in super::super) fn render_mapped(
         )?;
         return Ok((w, h, 30));
     }
+    let duration = if cut && options.filters.is_empty() && matches!(streams, Streams::Mp4(_)) {
+        presentation_duration(sources, &selected, movie_scale(sources), Some((options.start, Some(opts.end.unwrap_or(duration).min(duration)))))
+    } else { duration };
     render_source(
         &sources[j],
         i,
@@ -2141,12 +2144,45 @@ fn cut_packets<'a>(
     )
 }
 
+fn movie_scale(sources: &[Source<'_>]) -> u32 {
+    match sources[0].2 {
+        Streams::Wave(ref w) => w.wav.rate,
+        Streams::Aac { rate, .. } => rate,
+        Streams::Still(_) => 25,
+        _ => super::header_time(super::child(sources[0].1, b"mvhd"), 1000).0,
+    }
+}
+
+pub(super) fn cut_duration(t: &super::Track<'_>, input_len: usize, scale: u32, range: (f64, Option<f64>)) -> f64 {
+    let (_, start, end, mut packets) = cut_packets(t, input_len, Some(range));
+    let Some(first) = packets.next() else { return 0.; };
+    let ticks = u64::from(first.tick) + packets.map(|s| u64::from(s.tick)).sum::<u64>();
+    if first.dts >= start {
+        return ticks as f64 / f64::from(t.scale);
+    }
+    let visible = end.min(first.dts.saturating_add(ticks)).saturating_sub(start);
+    let segment = (visible as f64 * f64::from(scale) / f64::from(t.scale)).round();
+    (segment * f64::from(t.scale) / f64::from(scale)).round() / f64::from(t.scale)
+}
+
+fn presentation_duration(sources: &[Source<'_>], selected: &[(usize, usize)], scale: u32, range: Option<(f64, Option<f64>)>) -> f64 {
+    selected.iter().map(|&(j, i)| {
+        let (bytes, _, stream) = &sources[j];
+        let seconds = stream.seconds(i);
+        match (range, stream) {
+            (None, _) => seconds,
+            (Some(range), Streams::Mp4(tracks)) => cut_duration(&tracks[i].0, bytes.len(), scale, range),
+            (Some((from, to)), _) => (to.unwrap_or(seconds).min(seconds) - from).max(0.),
+        }
+    }).fold(0., f64::max)
+}
+
 pub(in super::super) fn remux(
     inputs: &[MediaInput],
     mut opts: Remux<'_>,
     loops: usize,
 ) -> Result<Vec<u8>, String> {
-    use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
+    use super::{atoms, child, rows, u16_at, u32_at, wide};
     if opts.concat.is_some() && inputs.len() > 128 {
         return Err(format!(
             "Resource limit exceeded for maxConcatInputs: {} exceeds maximum allowed 128",
@@ -2155,13 +2191,8 @@ pub(in super::super) fn remux(
     }
     let data = materialize(inputs, &opts)?;
     let sources = read_sources(inputs, &data, &opts)?;
-    let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
-    let scale = match sources[0].2 {
-        Streams::Wave(ref w) => w.wav.rate,
-        Streams::Aac { rate, .. } => rate,
-        Streams::Still(_) => 25,
-        _ => header_time(child(moov, b"mvhd"), 1000).0,
-    };
+    let &(input, ..) = sources.first().ok_or("no MP4 inputs")?;
+    let scale = movie_scale(&sources);
     let composed = opts
         .composition
         .map(|s| compose_frames(s, &sources, inputs, &opts))
@@ -2203,33 +2234,7 @@ pub(in super::super) fn remux(
         limit: opts.limit,
     };
     if opts.format == "wav" {
-        let seconds = selected
-            .iter()
-            .map(|&(j, i)| {
-                let (bytes, _, stream) = &sources[j];
-                let seconds = stream.seconds(i);
-                let Some((from, to)) = range else {
-                    return seconds;
-                };
-                let Streams::Mp4(tracks) = stream else {
-                    return (to.unwrap_or(seconds).min(seconds) - from).max(0.);
-                };
-                let t = &tracks[i].0;
-                let (_, start, end, mut packets) = cut_packets(t, bytes.len(), range);
-                let Some(first) = packets.next() else {
-                    return 0.;
-                };
-                let ticks = u64::from(first.tick) + packets.map(|s| u64::from(s.tick)).sum::<u64>();
-                if first.dts >= start {
-                    return ticks as f64 / f64::from(t.scale);
-                }
-                let visible = end
-                    .min(first.dts.saturating_add(ticks))
-                    .saturating_sub(start);
-                let segment = (visible as f64 * f64::from(scale) / f64::from(t.scale)).round();
-                (segment * f64::from(t.scale) / f64::from(scale)).round() / f64::from(t.scale)
-            })
-            .fold(0., f64::max);
+        let seconds = presentation_duration(sources, &selected, scale, range);
         let mut rate = 44100;
         let mut channels = 2;
         opts.end = end;

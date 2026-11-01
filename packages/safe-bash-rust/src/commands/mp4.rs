@@ -1353,7 +1353,8 @@ pub(super) fn render_video(
     full_size: bool,
     emit: impl FnMut(super::png_pixels::Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
-    let (tracks, duration) = read_tracks(input, movie(input)?)?;
+    let moov = movie(input)?;
+    let (tracks, duration) = read_tracks(input, moov)?;
     let selected = mux::select_tracks(maps, 1, |_| tracks.len(), |_, i| tracks[i].kind)?;
     let Some(t) = selected
         .iter()
@@ -1362,6 +1363,10 @@ pub(super) fn render_video(
     else {
         return Ok((64, 64, 10));
     };
+    let duration = if opts.filters.is_empty() && (opts.start > 0. || opts.end.is_some()) {
+        let scale = header_time(child(moov, b"mvhd"), 1000).0;
+        selected.iter().map(|&(_, i)| mux::cut_duration(&tracks[i], input.len(), scale, (opts.start, opts.end))).fold(0., f64::max)
+    } else { duration };
     render_track(input, t, Some(duration), opts, full_size, emit)
 }
 
@@ -1471,9 +1476,8 @@ fn render_track(
     let filtered = duration.is_none() || !opts.filters.is_empty();
     let duration = duration.unwrap_or_default();
     let produced = count.min(opts.frames.map_or(usize::MAX, |n| n.max(1) as usize));
-    let sliced_duration = (opts.end.unwrap_or(duration).min(duration) - opts.start).max(0.);
-    let uniform = if sliced_duration > 0. && produced != 0 {
-        sliced_duration / produced as f64
+    let uniform = if duration > 0. && produced != 0 {
+        duration / produced as f64
     } else {
         1. / 30.
     };

@@ -13924,6 +13924,16 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_reports_the_movie_tick_duration_of_a_partial_video_sample() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-i","a.mp4","a.png"]);
+        run(&["-ss","0.02","-stream_loop","2","-i","a.png","-i","a.png","-filter_complex","concat=n=2","-ss","0.045","-t","0.05","o.y4m"]);
+        assert!(fs.read_file("/o.y4m").unwrap().starts_with(b"YUV4MPEG2 W8 H6 F50:1 "));
+    }
+
+    #[test]
     fn ffmpeg_exports_materialized_subtitle_packets_after_concat_or_loop() {
         let fs=MemoryVfs::new();
         let run=|args:&[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);

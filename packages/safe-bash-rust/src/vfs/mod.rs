@@ -293,6 +293,22 @@ pub trait SafeBashFs: Send + Sync {
 
 pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
     if let Ok(s) = std::str::from_utf8(bytes) {
+        // U+E080..U+E0FF represent individual raw bytes internally. Quote
+        // literal occurrences as their UTF-8 bytes so decoding is reversible.
+        if bytes.contains(&0xee) && let Some(start) = s.find(is_stream_byte) {
+            let mut out = String::with_capacity(s.len());
+            out.push_str(&s[..start]);
+            for c in s[start..].chars() {
+                if is_stream_byte(c) {
+                    for b in c.encode_utf8(&mut [0; 4]).bytes() {
+                        out.push(char::from_u32(0xE000 + u32::from(b)).unwrap());
+                    }
+                } else {
+                    out.push(c);
+                }
+            }
+            return out;
+        }
         return s.to_string();
     }
     let mut out = String::with_capacity(bytes.len() * 2);
@@ -306,14 +322,18 @@ pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
     out
 }
 
+fn is_stream_byte(c: char) -> bool {
+    ('\u{e080}'..='\u{e0ff}').contains(&c)
+}
+
 pub fn stream_string_to_bytes(s: &str) -> Vec<u8> {
-    if !s.chars().any(|c| (0xE080..=0xE0FF).contains(&(c as u32))) {
+    if !s.as_bytes().contains(&0xee) || !s.contains(is_stream_byte) {
         return s.as_bytes().to_vec();
     }
     let mut out = Vec::with_capacity(s.len());
     for c in s.chars() {
         let code = c as u32;
-        if (0xE080..=0xE0FF).contains(&code) {
+        if is_stream_byte(c) {
             out.push((code - 0xE000) as u8);
         } else {
             let mut buf = [0u8; 4];
@@ -358,6 +378,11 @@ mod tests {
         let utf8_str = bytes_to_stream_string(utf8_bytes);
         assert_eq!(utf8_str, "hello 🌍");
         assert_eq!(stream_string_to_bytes(&utf8_str), utf8_bytes);
+
+        let private_use = "é\u{e080}Ā\u{e0ff}🌍";
+        let encoded = bytes_to_stream_string(private_use.as_bytes());
+        assert_eq!(stream_string_to_bytes(&encoded), private_use.as_bytes());
+        assert!(encoded.starts_with('é') && encoded.ends_with('🌍'));
 
         let err = FsError::new(FsErrorCode::NotFound, "No such file");
         assert_eq!(err.code, FsErrorCode::NotFound);

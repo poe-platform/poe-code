@@ -460,7 +460,7 @@ pub(in super::super) fn subtitles(
     write(
         &tracks,
         1000,
-        if opts.mov {
+        if opts.format == "mov" {
             b"qt  \0\0\x02\0qt  "
         } else {
             b"isom\0\0\x02\0isomiso2avc1mp41"
@@ -596,7 +596,7 @@ pub(in super::super) struct Remux<'a> {
     pub start: Option<f64>,
     pub end: Option<f64>,
     pub frames: Option<u32>,
-    pub mov: bool,
+    pub format: &'a str,
     pub fragmented: bool,
     pub metadata: &'a BTreeMap<String, String>,
     pub rotation: Option<i32>,
@@ -681,6 +681,19 @@ pub(in super::super) fn remux(inputs: &[&[u8]], opts: Remux<'_>) -> Result<Vec<u
     } else {
         None
     };
+    if matches!(opts.format, "srt" | "webvtt") {
+        let mut writer = super::super::subtitles::Writer::new(opts.format == "webvtt", opts.limit);
+        if let Some((j, i)) = selected
+            .into_iter()
+            .find(|&(j, i)| sources[j].2[i].kind == "subtitle")
+        {
+            let end = shortest.map(|s| s.min(opts.end.unwrap_or(s))).or(opts.end);
+            let range = (opts.start.is_some() || end.is_some())
+                .then_some((opts.start.unwrap_or(0.).max(0.), end));
+            sources[j].2[i].write_subtitles(sources[j].0, &mut writer, range)?;
+        }
+        return Ok(writer.output.into_bytes());
+    }
     let mut tracks = Vec::new();
     let mut index_bytes = 0usize;
     for (j, i) in selected {
@@ -938,7 +951,7 @@ pub(in super::super) fn remux(inputs: &[&[u8]], opts: Remux<'_>) -> Result<Vec<u
         .find(|(k, _)| *k == b"ftyp")
         .or_else(|| atoms(input).find(|(k, _)| *k == b"styp"))
         .map_or(&[][..], |(_, b)| b);
-    let mov = opts.mov
+    let mov = opts.format == "mov"
         || brands.get(..4) == Some(b"qt  ")
         || brands
             .get(8..)

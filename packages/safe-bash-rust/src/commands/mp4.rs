@@ -670,6 +670,105 @@ impl<'a> Track<'a> {
                 .flat_map(move |r| r.samples(input_size, self.kind == "video")),
         )
     }
+    fn subtitle_cues<'b>(
+        &'b self,
+        input: &'b [u8],
+    ) -> impl Iterator<Item = (Sample, &'b [u8])> + 'b {
+        let payload = |s: &Sample| &input[s.offset..s.offset + s.size as usize];
+        self.tables
+            .samples(input.len())
+            .filter_map(move |s| {
+                let mut data = payload(&s);
+                if data.len() >= 2 {
+                    let n = usize::from(u16_at(data, 0));
+                    if n == 0 {
+                        return None;
+                    }
+                    if n <= data.len() - 2 {
+                        data = &data[2..2 + n]
+                    }
+                }
+                Some((s, data))
+            })
+            .chain(
+                self.runs
+                    .iter()
+                    .flat_map(move |r| r.samples(input.len(), false))
+                    .map(move |s| {
+                        let data = payload(&s);
+                        (s, data)
+                    }),
+            )
+    }
+
+    fn write_subtitles(
+        &self,
+        input: &[u8],
+        writer: &mut super::subtitles::Writer,
+        range: Option<(f64, Option<f64>)>,
+    ) -> Result<(), &'static str> {
+        let scale = f64::from(self.scale);
+        let ms = |t: i128| (t as f64 * 1000. / scale).round() as i64;
+        let emit = |writer: &mut super::subtitles::Writer, pts: i128, tick: u64, data: &[u8]| {
+            writer.cue(
+                ms(pts),
+                ms(pts + i128::from(tick)),
+                &String::from_utf8_lossy(data),
+            )
+        };
+        let Some((start, end)) = range else {
+            for (s, data) in self.subtitle_cues(input) {
+                emit(writer, s.pts, u64::from(s.tick), data)?;
+            }
+            return Ok(());
+        };
+        let start = self.origin.saturating_add((start * scale).round() as u64);
+        let end = self.origin.saturating_add(end.map_or(self.duration, |s| {
+            ((s * scale).round() as u64).min(self.duration)
+        }));
+        if end <= start {
+            return Ok(());
+        }
+        let packed = self
+            .subtitle_cues(input)
+            .all(|(_, data)| data.len() >= 2 && usize::from(u16_at(data, 0)) == data.len() - 2);
+        let mut out_dts = 0u64;
+        let mut packet = |dts: u64, cts: i128, tick: u64, data: &[u8]| {
+            if dts < end && dts.saturating_add(tick) > start {
+                let tick = tick.min(end - dts);
+                emit(writer, i128::from(out_dts) + cts, tick, data)?;
+                out_dts = out_dts.saturating_add(tick);
+            }
+            Ok(())
+        };
+        let mut cursor = 0;
+        let mut wrapped = Vec::new();
+        for (s, data) in self.subtitle_cues(input) {
+            if packed {
+                if s.dts >= end {
+                    break;
+                }
+                packet(s.dts, s.pts - i128::from(s.dts), u64::from(s.tick), data)?;
+            } else {
+                let dts = cursor.max(s.pts.max(0) as u64);
+                if dts > cursor {
+                    packet(cursor, 0, dts - cursor, &[0, 0])?;
+                }
+                if dts >= end {
+                    break;
+                }
+                let tick = u64::from(s.tick.max(1));
+                if dts.saturating_add(tick) > start {
+                    wrapped.clear();
+                    wrapped.extend_from_slice(&(data.len() as u16).to_be_bytes());
+                    wrapped.extend_from_slice(data);
+                    packet(dts, 0, tick, &wrapped)?;
+                }
+                cursor = dts.saturating_add(tick);
+            }
+        }
+        Ok(())
+    }
     fn audio_rate(&self) -> u32 {
         if let Some(a) = &self.audio
             && a.rate > 0

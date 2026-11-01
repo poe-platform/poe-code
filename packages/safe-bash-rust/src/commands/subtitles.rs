@@ -135,6 +135,55 @@ fn timestamp(out: &mut String, ms: i64, sep: char) {
     .unwrap();
 }
 
+pub(super) struct Writer {
+    pub output: String,
+    index: usize,
+    vtt: bool,
+    limit: usize,
+}
+
+impl Writer {
+    pub fn new(vtt: bool, limit: usize) -> Self {
+        Self {
+            output: if vtt {
+                "WEBVTT\n".into()
+            } else {
+                String::new()
+            },
+            index: 0,
+            vtt,
+            limit,
+        }
+    }
+
+    pub fn cue(&mut self, start: i64, end: i64, body: &str) -> Result<(), &'static str> {
+        let body = body.trim_matches(|c: char| c.is_whitespace() || c == '\u{feff}');
+        if body.is_empty() {
+            return Ok(());
+        }
+        if body.len() > self.limit.saturating_sub(self.output.len()) {
+            return Err("output byte limit exceeded");
+        }
+        let out = &mut self.output;
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        self.index += 1;
+        if !self.vtt {
+            writeln!(out, "{}", self.index).unwrap();
+        }
+        let sep = if self.vtt { '.' } else { ',' };
+        timestamp(out, start, sep);
+        out.push_str(" --> ");
+        timestamp(out, end, sep);
+        writeln!(out, "\n{body}").unwrap();
+        if out.len() > self.limit {
+            return Err("output byte limit exceeded");
+        }
+        Ok(())
+    }
+}
+
 pub(super) fn convert(
     input: &[u8],
     vtt: bool,
@@ -143,42 +192,23 @@ pub(super) fn convert(
     limit: usize,
 ) -> Result<Vec<u8>, &'static str> {
     let text = String::from_utf8_lossy(input);
-    let mut out = if vtt {
-        "WEBVTT\n".to_owned()
-    } else {
-        String::new()
-    };
-    let sep = if vtt { '.' } else { ',' };
-    let mut index = 0;
-    let mut emit = |start: i64, duration: i64, body: &str| {
-        if !out.is_empty() {
-            out.push('\n');
-        }
-        index += 1;
-        if !vtt {
-            writeln!(out, "{index}").unwrap();
-        }
-        timestamp(&mut out, start, sep);
-        out.push_str(" --> ");
-        timestamp(&mut out, start.saturating_add(duration), sep);
-        writeln!(out, "\n{body}").unwrap();
-        if out.len() > limit {
-            return Err("output byte limit exceeded");
-        }
-        Ok(())
-    };
+    let mut writer = Writer::new(vtt, limit);
     if selected {
         if slice.is_some() {
             let mut dts = 0i64;
             for (body, duration, _, _) in packets(&text, slice) {
-                emit(dts, duration, String::from_utf8_lossy(&body).trim())?;
+                writer.cue(
+                    dts,
+                    dts.saturating_add(duration),
+                    &String::from_utf8_lossy(&body),
+                )?;
                 dts = dts.saturating_add(duration);
             }
         } else {
             for c in cues(&text) {
-                emit(c.start, c.duration, &c.text)?
+                writer.cue(c.start, c.start.saturating_add(c.duration), &c.text)?
             }
         }
     }
-    Ok(out.into_bytes())
+    Ok(writer.output.into_bytes())
 }

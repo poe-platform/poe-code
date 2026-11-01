@@ -3764,6 +3764,8 @@ fn cmd_stat(
         return err_out("stat: missing operand\n", 1);
     }
 
+    let limits = fs.shell_limits();
+    let limit = limits.max_output_bytes.min(limits.max_memory_bytes).min(isize::MAX as usize);
     let quoting_style = env.get("QUOTING_STYLE").map(|s| s.as_str());
     let mut out = String::new();
     let mut stderr = String::new();
@@ -3821,7 +3823,16 @@ fn cmd_stat(
                 let bytes = spec.as_bytes();
                 let mut idx = 0usize;
                 let mut rendered = String::new();
-                while idx < bytes.len() {
+                let error = loop {
+                    if rendered.len() > limit.saturating_sub(out.len()) {
+                        break Some("EFBIG: stat format output limit exceeded".into());
+                    }
+                    if idx == bytes.len() {
+                        if !is_printf && rendered.len() == limit.saturating_sub(out.len()) {
+                            break Some("EFBIG: metadata output limit exceeded".into());
+                        }
+                        break None;
+                    }
                     if is_printf && bytes[idx] == b'\\' {
                         let next_ch = bytes.get(idx + 1).copied().unwrap_or(0) as char;
                         let named = match next_ch {
@@ -3881,7 +3892,7 @@ fn cmd_stat(
                     while p_idx < bytes.len() && bytes[p_idx].is_ascii_digit() {
                         p_idx += 1;
                     }
-                    let width = spec[width_start..p_idx].parse::<usize>().unwrap_or(0);
+                    let width_str = &spec[width_start..p_idx];
                     let mut prec_str: Option<&str> = None;
                     if p_idx < bytes.len() && bytes[p_idx] == b'.' {
                         p_idx += 1;
@@ -3891,11 +3902,10 @@ fn cmd_stat(
                         }
                         prec_str = Some(&spec[ps..p_idx]);
                     }
-                    if p_idx >= bytes.len() {
-                        rendered.push('%');
-                        idx += 1;
-                        continue;
-                    }
+                    let Some(ch) = spec[p_idx..].chars().next() else {
+                        break Some("invalid stat format directive".into());
+                    };
+                    let single = &spec[p_idx..p_idx + ch.len_utf8()];
                     let (dir_code, consumed_code) = if is_bsd {
                         let rem = &spec[p_idx..];
                         if rem.starts_with("Lp") {
@@ -3909,8 +3919,7 @@ fn cmd_stat(
                         } else if rem.starts_with("HT") {
                             ("bsdType", 2)
                         } else {
-                            let c1 = &rem[..1];
-                            let mapped = match c1 {
+                            let mapped = match single {
                                 "z" => "s",
                                 "N" => "n",
                                 "m" => "Y",
@@ -3923,23 +3932,33 @@ fn cmd_stat(
                                 "l" => "h",
                                 "Y" => "bsdTarget",
                                 "%" => "%",
-                                other => other,
+                                _ => {
+                                    let reported = if ch.len_utf16() == 1 { ch } else { char::REPLACEMENT_CHARACTER };
+                                    break Some(format!("unsupported BSD stat format: %{reported}"));
+                                }
                             };
                             (mapped, 1)
                         }
                     } else {
-                        (&spec[p_idx..p_idx + 1], 1usize)
+                        if ch != '%' && !ch.is_ascii_alphabetic() { break Some("invalid stat format directive".into()); }
+                        (single, 1usize)
                     };
+                    let start = idx;
                     idx = p_idx + consumed_code;
 
                     let epoch_code = matches!(dir_code, "X" | "Y" | "Z" | "W");
+                    let width = if width_str.is_empty() { 0 } else { width_str.parse::<usize>().unwrap_or(usize::MAX) };
+                    if width > limit { break Some("EFBIG: stat format width limit exceeded".into()); }
                     let precision = prec_str.map(|ps| {
                         if ps.is_empty() {
                             if epoch_code { 9 } else { 0 }
                         } else {
-                            ps.parse::<usize>().unwrap_or(0)
+                            ps.parse::<usize>().unwrap_or(usize::MAX)
                         }
                     });
+
+                    if precision.is_some_and(|n| n > limit) { break Some("EFBIG: stat format precision limit exceeded".into()); }
+                    if dir_code == "%" && idx - start != 2 { break Some("invalid stat format directive".into()); }
 
                     let mut link_text: Option<String> = None;
                     let mut numeric = false;
@@ -4027,7 +4046,7 @@ fn cmd_stat(
                             st.nlink.to_string()
                         }
                         "m" => "/".to_string(),
-                        other => format!("%{other}"),
+                        other => break Some(format!("ENOTSUP: unsupported stat format: %{other}")),
                     };
 
                     rendered.push_str(&format_stat_field(
@@ -4051,6 +4070,12 @@ fn cmd_stat(
                             false,
                         ));
                     }
+                };
+                if let Some(reason) = error {
+                    stderr.push_str(&format!("stat: {reason}\n"));
+                    code = 1;
+                    if reason.starts_with("EFBIG:") { break 'operand; }
+                    continue;
                 }
                 out.push_str(&rendered);
                 if !is_printf {
@@ -7515,6 +7540,23 @@ mod tests {
             0
         );
         assert!(!vfs.exists("/work/dir"));
+    }
+
+    #[test]
+    fn stat_rejects_invalid_or_oversized_directives_before_formatting() {
+        let fs = MemoryVfs::new();
+        for (opt, fmt, reason) in [
+            ("-c", "%é", "invalid stat format directive"),
+            ("-f", "%é", "unsupported BSD stat format: %é"),
+            ("-c", "%9999999999999999999999999s", "EFBIG: stat format width limit exceeded"),
+            ("-c", "%.9999999999999999999999999Y", "EFBIG: stat format precision limit exceeded"),
+            ("-c", "%2%", "invalid stat format directive"),
+            ("-c", "%", "invalid stat format directive"),
+            ("-c", "%q", "ENOTSUP: unsupported stat format: %q"),
+        ] {
+            let got = cmd_stat(&args(&[opt, fmt, "/"]), "/", &BTreeMap::new(), &fs);
+            assert_eq!((got.exit_code, got.stdout, got.stderr), (1, String::new(), format!("stat: {reason}\n")));
+        }
     }
 
     #[test]

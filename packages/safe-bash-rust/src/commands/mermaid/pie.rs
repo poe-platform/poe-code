@@ -264,6 +264,7 @@ impl Pie {
                 shape: super::Shape::Rect,
                 shadow: None,
                 style: BoxStyle {
+                    header: None,
                     radius: 3.,
                     fill: parse_color(fill).unwrap(),
                     border: parse_color(fill).unwrap(),

@@ -1,4 +1,4 @@
-use super::{Edge, Node, Shape};
+use super::{Edge, Group, Node, Shape};
 use std::{collections::BTreeMap, fmt::Write};
 
 pub(super) type Point = (f64, f64);
@@ -165,6 +165,7 @@ pub(super) struct Routes {
 
 pub(super) fn waypoints(
     nodes: &[Node],
+    groups: &[Group],
     edges: &[Edge],
     pairs: &BTreeMap<(usize, usize), usize>,
     horizontal: bool,
@@ -176,6 +177,9 @@ pub(super) fn waypoints(
     for n in nodes {
         siblings.entry(n.center(horizontal)).or_default().push(n);
         max_depth = max_depth.max(if horizontal { n.w / 2 } else { n.h / 2 });
+    }
+    for layer in siblings.values_mut() {
+        layer.sort_by_key(|n| n.center(!horizontal));
     }
     let first_hit = |points: &[Point],
                      ends: (&Node, &Node),
@@ -228,10 +232,19 @@ pub(super) fn waypoints(
             (n.y, n.y + n.h)
         }
     };
-    let extremes = nodes.iter().fold((i32::MAX, i32::MIN), |(lo, hi), n| {
-        let (l, h) = cross(n);
-        (lo.min(l), hi.max(h))
-    });
+    let (primary, transverse) = if horizontal { (0, 1) } else { (1, 0) };
+    let extremes = nodes
+        .iter()
+        .map(cross)
+        .chain(groups.iter().map(|g| {
+            (
+                g.bounds[transverse],
+                g.bounds[transverse] + g.bounds[transverse + 2],
+            )
+        }))
+        .fold((i32::MAX, i32::MIN), |(lo, hi), (l, h)| {
+            (lo.min(l), hi.max(h))
+        });
     let mut rails = vec![None; edges.len()];
     let mut bypass_index = 0;
     let mut detour_offset = vec![0.; edges.len()];
@@ -313,6 +326,18 @@ pub(super) fn waypoints(
                 x: !horizontal,
                 positive,
             }; 2];
+            if !back {
+                let low = along(src).0.min(along(dst).0) - 12;
+                let high = along(src).1.max(along(dst).1) + 12;
+                work = work.checked_sub(groups.len())?;
+                for g in groups {
+                    let b = g.bounds;
+                    if b[primary] <= high && b[primary] + b[primary + 2] >= low {
+                        local.0 = local.0.min(b[transverse]);
+                        local.1 = local.1.max(b[transverse] + b[transverse + 2]);
+                    }
+                }
+            }
             let (lo, hi) = if back { extremes } else { local };
             let sign = if positive { 1. } else { -1. };
             let outer = if positive { hi } else { lo };
@@ -431,12 +456,27 @@ pub(super) fn waypoints(
                 let x = (s.0 + (end - s.0) * f + 0.5).floor();
                 vec![p, (x, p.1), (x, q.1), q]
             } else {
+                let (mut start, mut end) = (s.1, t.1);
+                if !reverse && nodes[a].group != nodes[b].group {
+                    if let Some(g) = nodes[a].group {
+                        let [_, y, _, h] = groups[g].bounds;
+                        if f64::from(y + h) < end {
+                            start = start.max(f64::from(y + h + 10));
+                        }
+                    }
+                    if let Some(g) = nodes[b].group {
+                        let y = groups[g].bounds[1];
+                        if f64::from(y) > start {
+                            end = end.min(f64::from(y - 10));
+                        }
+                    }
+                }
                 let end = if reverse {
-                    s.1.min(t.1 + reserve)
+                    start.min(end + reserve)
                 } else {
-                    s.1.max(t.1 - reserve)
+                    start.max(end - reserve)
                 };
-                let y = (s.1 + (end - s.1) * f + 0.5).floor();
+                let y = (start + (end - start) * f + 0.5).floor();
                 vec![p, (p.0, y), (q.0, y), q]
             }
         })();

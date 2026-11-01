@@ -38291,6 +38291,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let fs=MemoryVfs::new();
         for (source,path,hash) in [
             ("flowchart TD; A[(Data)]-->B{{OK}}; style A,B fill:#0055aa,stroke:#abc,stroke-width:3,color:white","/chart.png","ab16d377bc87eb0a33758db8c9eec2b7519f259fe0c774f738ee520d7c3c4336"),
+            ("flowchart TD; subgraph Outer; subgraph Inner; A-->B; end; end","/chart.png","6176c1dc58139f816ce6c25ac7ce9f91278e4846e7819d1d57ca324eec856739"),
+            ("flowchart LR; subgraph \"Job\"; A:::s --> B; end; style A fill:gold","/chart.pdf","a19393902ac3b0f3c7108144b3758d0cc54df3a769458c037c6619bab81f0d96"),
             ("flowchart TD; A-->A","/chart.png","d8f7f78bab5707651399686cf9f01a5c9bde3ac85e953115d10a66fa977b10ea"),
             ("flowchart TD; A-->B","/chart.png","06f9e52c0a4c42666b93e7125edba4f97f6ba1bdf6c32c307525a2bee73edd8f"),
             (r#"flowchart TD; title "Shipping; now"; A-->B"#,"/chart.pdf","a17a5e236b49024c946df545d157417a91d470048026db398ef541bb587c4af1"),
@@ -38313,6 +38315,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let fs=MemoryVfs::new();
         let crowded=format!("flowchart TD; {}",vec!["A-->A";55].join("; "));
         for (source,message) in [
+            ("flowchart TD; subgraph G; subgraph H; end; subgraph I; end; end","Invariant 3 (nested subgraph containment): 'I' in 'G' has margins L=210 R=-166 T=22 B=22 (< 16px)"),
             (crowded.as_str(), "Invariant 4 (target perpendicular stub): edge 'edge_1' terminal segment length=38.00px orthogonal=false"),
             ("flowchart TD; A-->A; A-->A; B", r#"Invariant 6 (edge-node intersection): edge "edge_1" (A->A) segment [1] intersects unrelated node "B""#),
             ("flowchart LR; n0_0{Choice?}; n1_0[([Store])]; n1_1{Choice?}; n1_2[([Store])]; n0_0-->n1_0; n0_0-->n1_1; n0_0-->n1_3", "Invariant 4 (source port perimeter): edge 'edge_2' start (204,216) is 3.00px from 'n0_0' perimeter (> 0.5px)"),
@@ -38419,6 +38422,10 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart TD; accDescr: <iframe; A-->B","E_UNSUPPORTED (line 1, column 15): Unsupported HTML or active content '<iframe' in diagram label"),
             (r#"flowchart TD; A-->B; click A "data:text/plain,hello""#,"E_UNSUPPORTED: Unsupported link URL scheme"),
             (r#"flowchart TD; A-->B; click A "JaVaScRiPt:run()""#,"E_UNSUPPORTED (line 1, column 22): Unsupported HTML or active content 'javascript:' in diagram label"),
+            ("flowchart TD; subgraph G[<script>]; A; end","E_UNSUPPORTED (line 1, column 15): Unsupported HTML or active content '<script' in diagram label"),
+            ("flowchart TD; subgraph G; A; end trailing","E_SYNTAX (line 1, column 30): Unexpected tokens after 'end': 'trailing'"),
+            ("flowchart TD; A; end","E_SYNTAX (line 1, column 18): Unexpected 'end' without matching 'subgraph'"),
+            ("flowchart TD; subgraph G; A","E_SYNTAX (line 1, column 1): Unclosed subgraph 'G' at end of diagram"),
             ("flowchart TD; 🦊-->","E_SYNTAX (line 1, column 20): Expected node identifier at ''"),
             ("flowchart TD; A[\"a\nb\"]-->|<script>|B","E_UNSUPPORTED (line 1, column 23): Unsupported HTML or active content '<script' in diagram label"),
             ("flowchart TD; A[Start","E_SYNTAX (line 1, column 15): Unclosed node shape '[...]'"),
@@ -38481,6 +38488,12 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             (r#"flowchart TD; A-->B; click A "https://example.test/x?a=1&b=2" "hint""#,"8ce5f62f6a0a4bc45e09a3df6798864354ce801be405bf9d44c8f2f677812668"),
             ("flowchart TD; A:::one-->B; classDef default stroke:blue; classDef one fill:red; style A fill:green","d8c6fd0c1cd60f03ea4d10d81740d19dad02de7760723de845fca6b6f3e807f1"),
             ("flowchart TD; A-->B; style A stroke-width:1e-8; linkStyle 0 stroke-width:1e-8","4cfee13874a75a26884e62c402c93124cb39c1cd15c09f04a83b785c692efdff"),
+            ("flowchart TD; X-->A; subgraph Process; A-->B; end; B-->Y","23c60a5392fb8400214cbb0c0ee0d2529c4347b681bf9aed825eaef9157033d6"),
+            ("flowchart TD; subgraph Jobs; A-->B; B-->C; C-->A; end","c9a6770ba511bea571c9520c405db32542630d3ff362f31502598e3934072d43"),
+            ("flowchart BT; subgraph LongTitleHere; A-->B; A-->C; end; B-->|ok|D; C-->|fail|D","164fcede395c720c6b869abdcca677be1cf75ada111564d87ca964ae529d9f18"),
+            ("flowchart TD; subgraph G; end","96293836a617537ed4c783efbabccd8ee2a420c75bfd5821919f91a81902cf3b"),
+            ("flowchart TD; subgraph Left; A-->B; end; subgraph Right; C-->D; end; B-->C","b40297bdb55d1d2ae81f8ead7f0ebebed23af9cf6b8d96429494a6bde21c32cc"),
+            ("flowchart TD; subgraph Outer; subgraph Inner; A-->B; end; end","6e9d9fca9c54bc8f3deccf118f76d72c989f7132df1fcc8bd49993853316488e"),
             (r#"flowchart TD; A["literal %%{ dark"]-->B"#,"d3d8c899c81c8d95878c0e71b9c306feddf47e2ddcc279674ce79f87f3ea805b"),
             (r#"flowchart TD; A["verify; then act"]-->|one;two|B"#,"da35a643400be95f717e22f487ba4098cd5dea111822a0d7b57165523237dc5e"),
             ("flowchart TD; A[\"First\n second\"]-->B","3605f71682506867f5f474f8753ac2ebb5d71393fc688b03dfa631e8c5e8feae"),

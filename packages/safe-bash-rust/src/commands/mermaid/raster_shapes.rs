@@ -5,6 +5,7 @@ use super::{Frame, SUB};
 pub(in super::super) struct BoxStyle {
     pub radius: f64,
     pub fill: [u8; 4],
+    pub header: Option<(f64, [u8; 4])>,
     pub border: [u8; 4],
     pub thickness: f64,
 }
@@ -134,25 +135,38 @@ impl Frame {
             cx + hw + half + 2.,
             cy + hh + half + 2.,
         );
+        let cut = style
+            .header
+            .map_or(f64::NEG_INFINITY, |(height, _)| (y + height) * scale);
+        let header = style.header.map_or(style.fill, |(_, color)| color);
         for py in ys {
             for px in xs.clone() {
                 let d = dist(px as f64 + 0.5, py as f64 + 0.5);
                 if d > half + 1.2 {
                     continue;
                 }
-                if d < -half - 1.2 {
-                    self.blend(px, py, style.fill.map(f64::from), 1.);
+                let center = py as f64 + 0.5;
+                if d < -half - 1.2 && (center - cut).abs() > 1.2 {
+                    let color = if center <= cut { header } else { style.fill };
+                    self.blend(px, py, color.map(f64::from), 1.);
                     continue;
                 }
-                let (mut fill, mut border) = (0, 0);
+                let (mut fill, mut top, mut border) = (0, 0, 0);
                 for sy in SUB {
                     for sx in SUB {
                         let d = dist(px as f64 + sx, py as f64 + sy);
-                        fill += u32::from(d <= 0.);
+                        if py as f64 + sy <= cut {
+                            top += u32::from(d <= 0.);
+                        } else {
+                            fill += u32::from(d <= 0.);
+                        }
                         border += u32::from(d.abs() <= half);
                     }
                 }
                 self.blend(px, py, style.fill.map(f64::from), f64::from(fill) / 16.);
+                if top != 0 {
+                    self.blend(px, py, header.map(f64::from), f64::from(top) / 16.);
+                }
                 self.blend(px, py, style.border.map(f64::from), f64::from(border) / 16.);
             }
         }

@@ -1,12 +1,13 @@
-use super::{Edge, Node, route::Point};
+use super::{Edge, Group, Node, route::Point};
 
 type Rect = [f64; 4];
-fn overlaps([x, y, w, h]: Rect, [a, b, c, d]: Rect, margin: f64) -> bool {
+pub(super) fn overlaps([x, y, w, h]: Rect, [a, b, c, d]: Rect, margin: f64) -> bool {
     x - margin < a + c && x + w + margin > a && y - margin < b + d && y + h + margin > b
 }
 
 pub(super) fn place(
     nodes: &[Node],
+    groups: &[Group],
     edges: &[Edge],
     paths: &[Vec<Point>],
     mut work: usize,
@@ -18,6 +19,7 @@ pub(super) fn place(
     let boxes: Vec<_> = nodes
         .iter()
         .map(|n| [n.x.into(), n.y.into(), n.w.into(), n.h.into()])
+        .chain(groups.iter().map(Group::header))
         .collect();
     let segments: Vec<_> = paths
         .iter()
@@ -105,7 +107,10 @@ pub(super) fn place(
             }
         }
         charge(boxes.len())?;
-        if let Some(j) = boxes.iter().position(|&n| overlaps(best, n, -0.5)) {
+        if let Some(j) = boxes[..nodes.len()]
+            .iter()
+            .position(|&n| overlaps(best, n, -0.5))
+        {
             return Err(format!(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 2 (label collision): pill 'edge_{}:label' overlaps node '{}'\n",
                 i + 1,

@@ -1,6 +1,10 @@
-// Flowchart layout for ungrouped graphs.
+// Flowchart parsing and layout.
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
+
+#[path = "mermaid/groups.rs"]
+mod groups;
+use groups::Group;
 
 #[path = "mermaid/labels.rs"]
 mod labels;
@@ -29,6 +33,7 @@ pub(super) struct Scene {
 }
 #[derive(Default)]
 struct Node {
+    group: Option<usize>,
     id: String,
     order: usize,
     label: String,
@@ -247,6 +252,7 @@ fn parse_node<'a>(
     s: &'a str,
     stmt: &Statement,
     styles: &mut Styles<'a>,
+    group_id: Option<usize>,
     nodes: &mut Vec<Node>,
     ids: &mut BTreeMap<String, usize>,
 ) -> Result<(usize, &'a str), String> {
@@ -270,6 +276,7 @@ fn parse_node<'a>(
         });
         nodes.len() - 1
     });
+    nodes[i].group = nodes[i].group.or(group_id);
     let mut rest = &s[end..];
     let mut raw_label = None;
     for (open, close, shape) in [
@@ -335,12 +342,13 @@ fn parse_group<'a>(
     mut rest: &'a str,
     stmt: &Statement,
     styles: &mut Styles<'a>,
+    group_id: Option<usize>,
     nodes: &mut Vec<Node>,
     ids: &mut BTreeMap<String, usize>,
 ) -> Result<(Vec<usize>, &'a str), String> {
     let mut group = Vec::new();
     loop {
-        let (node, tail) = parse_node(rest, stmt, styles, nodes, ids)?;
+        let (node, tail) = parse_node(rest, stmt, styles, group_id, nodes, ids)?;
         group.push(node);
         let Some(next) = tail.strip_prefix('&') else {
             return Ok((group, tail));
@@ -415,6 +423,7 @@ impl Pill {
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) struct Flowchart<'a> {
+    groups: Vec<Group>,
     nodes: Vec<Node>,
     edges: Vec<Edge<'static>>,
     hrefs: BTreeMap<&'a str, &'a str>,
@@ -456,6 +465,9 @@ pub(super) fn parse<'a>(
             )));
         }
     }
+    let mut groups = Vec::<Group>::new();
+    let mut current = None;
+    let mut auto = 0;
     let mut hrefs = BTreeMap::new();
     let mut styles = Styles::new(limit);
     let mut nodes = Vec::new();
@@ -479,7 +491,9 @@ pub(super) fn parse<'a>(
                     &format!("Invalid direction '{value}'"),
                 )));
             }
-            dir = value;
+            if current.is_none() {
+                dir = value;
+            }
             continue;
         }
         if matches!(keyword, "click" | "callback") {
@@ -507,10 +521,38 @@ pub(super) fn parse<'a>(
             continue;
         }
         if keyword == "subgraph" {
-            return None;
+            let index = groups.len();
+            if index >= limit / 300 {
+                return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+            }
+            match Group::parse(text, stmt, index, &groups, current, &mut auto) {
+                Ok(group) => groups.push(group),
+                Err(error) => return Some(Err(error)),
+            }
+            current = Some(index);
+            continue;
+        }
+        if keyword == "end" {
+            let tail = text[3..].trim();
+            if !tail.is_empty() {
+                return Some(Err(stmt.error(
+                    "E_SYNTAX",
+                    text,
+                    &format!("Unexpected tokens after 'end': '{tail}'"),
+                )));
+            }
+            let Some(index) = current else {
+                return Some(Err(stmt.error(
+                    "E_SYNTAX",
+                    text,
+                    "Unexpected 'end' without matching 'subgraph'",
+                )));
+            };
+            current = groups[index].parent;
+            continue;
         }
         let (mut sources, mut rest) =
-            match parse_group(text, stmt, &mut styles, &mut nodes, &mut ids) {
+            match parse_group(text, stmt, &mut styles, current, &mut nodes, &mut ids) {
                 Ok(node) => node,
                 Err(error) => return Some(Err(error)),
             };
@@ -553,10 +595,11 @@ pub(super) fn parse<'a>(
                 Ok(label) => label,
                 Err(error) => return Some(Err(error)),
             };
-            let (targets, tail) = match parse_group(tail, stmt, &mut styles, &mut nodes, &mut ids) {
-                Ok(group) => group,
-                Err(error) => return Some(Err(error)),
-            };
+            let (targets, tail) =
+                match parse_group(tail, stmt, &mut styles, current, &mut nodes, &mut ids) {
+                    Ok(group) => group,
+                    Err(error) => return Some(Err(error)),
+                };
             let count = sources.len().saturating_mul(targets.len());
             label_bytes = label_bytes.saturating_add(label.len().saturating_mul(count));
             if edges.len().saturating_add(count) > limit / 300 || label_bytes > limit {
@@ -578,10 +621,18 @@ pub(super) fn parse<'a>(
             rest = tail;
         }
     }
+    if let Some(index) = current {
+        return Some(Err(header_stmt.error(
+            "E_SYNTAX",
+            header,
+            &format!("Unclosed subgraph '{}' at end of diagram", groups[index].id),
+        )));
+    }
     if nodes.len() > limit / 300 {
         return None;
     }
     Some(Ok(Flowchart {
+        groups,
         nodes,
         edges,
         hrefs,
@@ -598,6 +649,7 @@ pub(super) fn layout(
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let Flowchart {
+        mut groups,
         mut nodes,
         edges,
         hrefs,
@@ -620,20 +672,51 @@ pub(super) fn layout(
     for n in &mut nodes {
         dimensions(n, horizontal);
     }
-    let (mut width, mut height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
+    let (mut width, mut height) =
+        match ranks::place(&mut nodes, &edges, &groups, horizontal, reversed, limit) {
+            Some(bounds) => bounds,
+            None => return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into())),
+        };
+    let Some(group_order) = groups::place(&mut groups, &mut nodes, limit) else {
+        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+    };
     let Some(route::Routes {
         paths: mut waypoints,
         intersection,
-    }) = route::waypoints(&nodes, &edges, &pairs, horizontal, reversed, limit)
+    }) = route::waypoints(&nodes, &groups, &edges, &pairs, horizontal, reversed, limit)
     else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
-    let positions = match labels::place(&nodes, &edges, &waypoints, limit) {
+    if !groups.is_empty()
+        && let Err(error) = groups::verify_nodes(&nodes, horizontal, limit)
+    {
+        return Some(Err(error));
+    }
+    let positions = match labels::place(&nodes, &groups, &edges, &waypoints, limit) {
         Ok(p) => p,
         Err(error) => return Some(Err(error)),
     };
+    if let Err(error) = groups::verify(&groups, &group_order, &nodes, &positions, limit) {
+        return Some(Err(error));
+    }
     let (mut min_x, mut min_y, mut max_x, mut max_y) =
         (0_f64, 0_f64, f64::from(width), f64::from(height));
+    if !groups.is_empty() {
+        min_x = f64::INFINITY;
+        min_y = f64::INFINITY;
+        max_x = f64::NEG_INFINITY;
+        max_y = f64::NEG_INFINITY;
+        for [x, y, w, h] in groups
+            .iter()
+            .map(|g| g.bounds)
+            .chain(nodes.iter().map(|n| [n.x, n.y, n.w, n.h]))
+        {
+            min_x = min_x.min(f64::from(x) - 32.);
+            min_y = min_y.min(f64::from(y) - 32.);
+            max_x = max_x.max(f64::from(x + w) + 32.);
+            max_y = max_y.max(f64::from(y + h) + 32.);
+        }
+    }
     for &(x, y) in waypoints.iter().flatten() {
         min_x = min_x.min(x - 36.);
         min_y = min_y.min(y - 36.);
@@ -666,6 +749,19 @@ pub(super) fn layout(
     use crate::commands::archive::parse_color;
     use raster::{BoxStyle, Paint};
     let mut paint = Vec::new();
+    if !groups.is_empty()
+        && waypoints
+            .iter()
+            .map(Vec::len)
+            .sum::<usize>()
+            .saturating_mul(groups.len())
+            > limit
+    {
+        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+    }
+    for (idx, group) in group_order.into_iter().enumerate() {
+        elements.push(groups[group].paint(idx, prefix, dark, (dx, dy), &waypoints, &mut paint));
+    }
     let mut edge_paint = Vec::new();
     let mut pill_paint = Vec::new();
     let edge_color = parse_color(edge).unwrap();
@@ -793,6 +889,7 @@ pub(super) fn layout(
                 shape: Shape::Rounded,
                 shadow: None,
                 style: BoxStyle {
+                    header: None,
                     radius: f64::from(rx),
                     fill: parse_color(fill).unwrap(),
                     border: parse_color(border).unwrap(),
@@ -868,6 +965,7 @@ pub(super) fn layout(
             shape: n.shape,
             shadow: Some(shadow),
             style: BoxStyle {
+                header: None,
                 radius: radius.into(),
                 fill: fill_rgba,
                 border: border_rgba,
@@ -995,6 +1093,7 @@ pub(super) fn layout(
             shape: Shape::Rect,
             shadow: None,
             style: BoxStyle {
+                header: None,
                 radius: 0.,
                 fill: parse_color(fill).unwrap(),
                 border: [0; 4],

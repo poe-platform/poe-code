@@ -2888,10 +2888,33 @@ impl<'a> EvalState<'a> {
         let mut selector = None;
         let mut brackets = Vec::new();
         let mut quote = None;
-        let mut chars = inner.char_indices();
-        while let Some((i, ch)) = chars.next() {
+        let chars: Vec<char> = inner.chars().collect();
+        let mut pos = 0;
+        let mut offset = 0;
+        while pos < chars.len() {
+            let first = pos;
+            let i = offset;
+            let ch = chars[pos];
+            pos += 1;
             if ch == '\\' && quote != Some('\'') {
-                chars.next();
+                pos = (pos + 1).min(chars.len());
+            } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'(') {
+                if chars.get(pos + 1) == Some(&'(')
+                    && let Some((_, end)) = crate::shell::lexer::find_arithmetic_end(&chars, pos + 2, true).map_err(EvalError::Syntax)?
+                {
+                    pos = end;
+                } else {
+                    scan_nested_command_sub(&chars, &mut pos)?;
+                }
+            } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'{') {
+                scan_nested_brace_sub(&chars, &mut pos)?;
+            } else if ch == '`' && quote != Some('\'') {
+                while pos < chars.len() {
+                    let c = chars[pos];
+                    pos += 1;
+                    if c == '`' { break; }
+                    if c == '\\' && pos < chars.len() { pos += 1; }
+                }
             } else if let Some(q) = quote {
                 if ch == q {
                     quote = None;
@@ -2919,6 +2942,7 @@ impl<'a> EvalState<'a> {
                     _ => {}
                 }
             }
+            offset += chars[first..pos].iter().map(|c| c.len_utf8()).sum::<usize>();
         }
 
         if start < inner.len() {
@@ -16183,6 +16207,8 @@ hash -l
     #[test]
     fn compound_array_entries_preserve_subscripts_and_word_boundaries() {
         for (script, expected) in [
+            (r#"declare -A a; a=([x]=$(echo one two) [y]=$((4 << 2))); printf "<%s>\n" "${a[@]}""#, "<one two>\n<16>\n"),
+            (r#"a=(${v:-one two} "$(echo "three four")" `echo five six`); printf "<%s>\n" "${a[@]}""#, "<one>\n<two>\n<three four>\n<five>\n<six>\n"),
             (r#"a=([0]=10 [a[0] + 1]=20); echo "${!a[@]}:${a[@]}""#, "0 11:10 20\n"),
             (r#"a=([0]=foo]+=bar); echo "${a[0]}""#, "foo]+=bar\n"),
             (r#"a=([1]=abc [1]+=def); echo "${a[1]}""#, "abcdef\n"),

@@ -21,7 +21,7 @@ use crate::shell::parser::{
     parse_script, parse_script_with_aliases_and_extglob, parse_script_with_extglob,
     validate_basic_syntax, validate_basic_syntax_with_extglob,
 };
-use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_string_to_bytes};
+use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_byte_len, stream_string_to_bytes};
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
@@ -1106,10 +1106,10 @@ impl<'a> EvalState<'a> {
                 Err(e) => return Err(e),
             };
             self.budget
-                .record_stdout(out.stdout.len())
+                .record_stdout(stream_byte_len(&out.stdout))
                 .map_err(EvalError::Budget)?;
             self.budget
-                .record_stderr(out.stderr.len())
+                .record_stderr(stream_byte_len(&out.stderr))
                 .map_err(EvalError::Budget)?;
             if !self.pending_stdout.is_empty() {
                 stdout.push_str(&std::mem::take(&mut self.pending_stdout));
@@ -1456,7 +1456,7 @@ impl<'a> EvalState<'a> {
             }
             sub.run_exit_trap_if_needed(&mut stage_out);
             if !is_last {
-                if let Err(e) = self.budget.record_stdout(stage_out.stdout.len()) {
+                if let Err(e) = self.budget.record_stdout(stream_byte_len(&stage_out.stdout)) {
                     self.in_condition = prev_cond;
                     return Err(EvalError::Budget(e));
                 }
@@ -1894,7 +1894,7 @@ impl<'a> EvalState<'a> {
                         .cloned()
                         .unwrap_or_else(|| "#? ".to_string());
                     stderr.push_str(&ps3);
-                    if stream_string_to_bytes(&stderr).len() + stream_string_to_bytes(&stdout).len()
+                    if stream_byte_len(&stderr) + stream_byte_len(&stdout)
                         > self.budget.limits.max_output_bytes
                     {
                         self.loop_depth -= 1;

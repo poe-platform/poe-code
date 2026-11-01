@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("output budgets count the bytes written by each command and pipeline stage", async () => {
+  for (const bytes of [Uint8Array.of(255), new TextEncoder().encode("\uE080")]) {
+    const bash = new RustWasmBash({ files: { "/bytes": bytes } });
+    try {
+      for (const [script, channel, writes] of [
+        ["head -c3 /bytes", "stdoutBytes", 1],
+        ["cat /bytes >&2", "stderrBytes", 1],
+        ["cat /bytes | cat", "stdoutBytes", 2],
+      ]) {
+        const limit = writes * bytes.length;
+        const result = await bash.exec(script, { limits: { maxOutputBytes: limit } });
+        assert.deepEqual(result[channel], bytes);
+        if (limit > 1) {
+          await assert.rejects(bash.exec(script, { limits: { maxOutputBytes: limit - 1 } }), /maxOutputBytes/);
+        }
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
 test("head reads device chunks until its byte or record count is satisfied", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

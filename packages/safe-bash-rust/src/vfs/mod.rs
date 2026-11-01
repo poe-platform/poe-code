@@ -337,6 +337,12 @@ fn is_stream_byte(c: char) -> bool {
     ('\u{e080}'..='\u{e0ff}').contains(&c)
 }
 
+pub(crate) fn stream_byte_len(s: &str) -> usize {
+    if !s.as_bytes().contains(&0xee) { return s.len(); }
+    // Each encoded raw byte occupies three UTF-8 bytes in the internal string.
+    s.len() - 2 * s.chars().filter(|&c| is_stream_byte(c)).count()
+}
+
 pub fn stream_string_to_bytes(s: &str) -> Vec<u8> {
     if !s.as_bytes().contains(&0xee) || !s.contains(is_stream_byte) {
         return s.as_bytes().to_vec();

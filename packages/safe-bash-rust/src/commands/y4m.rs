@@ -186,7 +186,7 @@ impl Stream<'_> {
     pub fn render(
         &self,
         options: Options<'_>,
-        emit: impl FnMut(Raster, f64, usize) -> Result<(), &'static str>,
+        emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), &'static str> {
         let (w, h) = (self.width as usize, self.height as usize);
         let mut frames = Vec::new();
@@ -219,10 +219,16 @@ impl Stream<'_> {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum Buffer {
+    Input(usize),
+    Filtered(usize),
+}
+
 #[derive(Clone, Copy)]
 struct TimedFrame {
     index: usize,
-    buffer: usize,
+    buffer: Buffer,
     pts: f64,
     duration: f64,
 }
@@ -259,6 +265,7 @@ fn render(
     let per = stage.cols.saturating_mul(stage.rows);
     let start = index * per;
     let mut canvas: Option<Raster> = None;
+    let mut cell_dimensions = None;
     for (k, entry) in stage.inputs[start..].iter().take(per).enumerate() {
         let remaining = limit - canvas.as_ref().map_or(0, |c| c.pixels.len() * 4);
         let mut cell = render(prior, entry.index, remaining, work, image)?;
@@ -266,7 +273,7 @@ fn render(
             filter.apply(&mut cell, remaining)?;
             charge_pixels(work, cell.pixels.len())?;
         }
-        let (w, h) = (cell.width as i64, cell.height as i64);
+        let (w, h) = *cell_dimensions.get_or_insert((cell.width as i64, cell.height as i64));
         let dim = |n: usize, d: i64| -> Result<usize, &'static str> {
             let n = n as i128;
             let size =
@@ -296,9 +303,15 @@ fn render(
         {
             return Err("offset is out of bounds");
         }
-        for (dy, row) in cell.pixels.chunks_exact(cell.width).enumerate() {
+        for (dy, row) in cell
+            .pixels
+            .chunks_exact(cell.width)
+            .take(h as usize)
+            .enumerate()
+        {
             let i = (y as usize + dy) * dst.width + x as usize;
-            dst.pixels[i..i + cell.width].copy_from_slice(row);
+            let n = row.len().min(w as usize);
+            dst.pixels[i..i + n].copy_from_slice(&row[..n]);
         }
     }
     canvas.ok_or("missing tile frame")
@@ -313,17 +326,19 @@ pub(super) fn render_frames(
     times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
-    mut emit: impl FnMut(Raster, f64, usize) -> Result<(), &'static str>,
+    mut emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
 ) -> Result<(), &'static str> {
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
-        if pts + duration > opts.start && opts.end.is_none_or(|t| pts < t) {
+        if (opts.start == 0. && opts.end.is_none())
+            || pts + duration > opts.start && opts.end.is_none_or(|t| pts < t)
+        {
             if frames.len() >= opts.limit / size_of::<TimedFrame>() {
                 return Err("frame index exceeds memory budget");
             }
             frames.push(TimedFrame {
                 index,
-                buffer: index,
+                buffer: Buffer::Input(index),
                 pts: (pts - opts.start).max(0.),
                 duration,
             });
@@ -375,7 +390,7 @@ pub(super) fn render_frames(
                     .enumerate()
                     .map(|(index, group)| TimedFrame {
                         index,
-                        buffer: index,
+                        buffer: Buffer::Filtered(index),
                         pts: group[0].pts,
                         duration: group.iter().map(|f| f.duration).sum(),
                     })
@@ -482,7 +497,7 @@ pub(super) fn render_frames(
                 ) || key == "format" && arg.contains("gray")
                 {
                     for (i, f) in frames.iter_mut().enumerate() {
-                        f.buffer = i;
+                        f.buffer = Buffer::Filtered(i);
                     }
                 }
                 ops.push(super::video_filter::Filter::new(key, arg));

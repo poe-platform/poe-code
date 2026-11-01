@@ -321,6 +321,7 @@ fn encode_video(
     movie_scale: u32,
     times: impl Iterator<Item = (f64, f64)>,
     opts: y4m::Options<'_>,
+    repeated_input: bool,
     image: impl FnMut(usize) -> Result<Raster, &'static str>,
 ) -> Result<(), &'static str> {
     let limit = opts.limit;
@@ -345,10 +346,15 @@ fn encode_video(
             }
             // The MP4 encoder consumes the backing buffer. fps can reuse that
             // buffer, in which case the JS encoder reads zero RGB on the next use.
-            if previous_buffer == Some(buffer) {
+            if previous_buffer == Some(buffer)
+                || repeated_input && matches!(buffer, y4m::Buffer::Input(_))
+            {
                 im.pixels.fill([0, 0, 0, 255]);
             }
             previous_buffer = Some(buffer);
+            im.width = track.width as usize;
+            im.height = track.height as usize;
+            im.pixels.resize(im.width * im.height, [0; 4]);
             let blocks = h264::macroblocks(im, limit)?;
             let data = h264::encode_slice(
                 &blocks,
@@ -385,6 +391,105 @@ fn encode_video(
     Ok(())
 }
 
+fn video_track(
+    w: usize,
+    h: usize,
+    fps: f64,
+    ticks: u64,
+    movie_scale: u32,
+) -> Result<Track<'static>, &'static str> {
+    Ok(Track {
+        samples: vec![],
+        scale: 90000,
+        media_ticks: ticks as u32,
+        movie_ticks: (ticks as f64 / 90000. * f64::from(movie_scale)).round() as u32,
+        first_dts: 0,
+        stsd: video_entry(w, h, fps.round().max(1.) as u32)?.into(),
+        edits: vec![],
+        kind: "video",
+        enabled: true,
+        volume: 0,
+        matrix: MATRIX,
+        width: w as u32,
+        height: h as u32,
+        language: 0x55c4,
+        handler: *b"vide",
+        name: b"VideoHandler",
+    })
+}
+
+pub(in super::super) fn sequence_movie(
+    seq: &super::super::frame_output::ImageSequence,
+    opts: Option<&Remux<'_>>,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
+    let mut tracks = Vec::new();
+    let mut remaining = limit;
+    let maps = opts.map_or(&[][..], |o| o.maps);
+    for _ in select_tracks(maps, 1, |_| 1, |_, _| "video")?
+        .into_iter()
+        .filter(|_| !opts.is_some_and(|o| o.strip_video))
+    {
+        let first = &seq.frames[0];
+        let mut track = video_track(
+            first.width,
+            first.height,
+            seq.fps,
+            (90000. / seq.fps).round().max(1.) as u64,
+            1000,
+        )?;
+        let original_duration = track.movie_ticks;
+        encode_video(
+            &mut track,
+            1000,
+            (0..seq.frames.len()).map(|i| (i as f64 / seq.fps, 1. / seq.fps)),
+            y4m::Options {
+                filters: opts.map_or(&[][..], |o| o.video_filters),
+                frames: opts.and_then(|o| o.frames),
+                start: 0.,
+                end: None,
+                no_video: false,
+                limit: remaining,
+            },
+            !tracks.is_empty(),
+            |i| Ok(seq.frames[i].clone()),
+        )?;
+        if track.samples.is_empty() {
+            return Err(
+                "Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into(),
+            );
+        }
+        if opts.is_some_and(|o| o.fragmented) {
+            track.movie_ticks = original_duration;
+        }
+        track.matrix = rotation_matrix(opts.and_then(|o| o.rotation).unwrap_or(0));
+        remaining = remaining.saturating_sub(
+            track.samples.capacity() * size_of::<Sample>()
+                + track.samples.iter().map(|s| s.data.len()).sum::<usize>(),
+        );
+        tracks.push(track);
+    }
+    let mut metadata = BTreeMap::from([("encoder".into(), "@poe-code/mp4-ast".into())]);
+    if let Some(opts) = opts {
+        metadata.extend(opts.metadata.clone());
+    }
+    let ftyp = if opts.is_some_and(|o| o.format == "mov") {
+        b"qt  \0\0\x02\0qt  ".as_slice()
+    } else {
+        b"isom\0\0\x02\0isomiso2avc1mp41"
+    };
+    write(
+        &tracks,
+        1000,
+        ftyp,
+        &metadata,
+        &[],
+        opts.is_some_and(|o| o.fragmented),
+        limit,
+    )
+    .map_err(str::to_owned)
+}
+
 fn generated_video(
     video: &super::super::lavfi::Video,
     movie_scale: u32,
@@ -398,24 +503,7 @@ fn generated_video(
         return Err("frame index exceeds memory budget".into());
     }
     let ticks = (count as f64 / video.fps * 90000.).round() as u64;
-    let mut track = Track {
-        samples: vec![],
-        scale: 90000,
-        media_ticks: ticks as u32,
-        movie_ticks: (ticks as f64 / 90000. * f64::from(movie_scale)).round() as u32,
-        first_dts: 0,
-        stsd: video_entry(w, h, video.fps.round().max(1.) as u32)?.into(),
-        edits: vec![],
-        kind: "video",
-        enabled: true,
-        volume: 0,
-        matrix: MATRIX,
-        width: video.width,
-        height: video.height,
-        language: 0x55c4,
-        handler: *b"vide",
-        name: b"VideoHandler",
-    };
+    let mut track = video_track(w, h, video.fps, ticks, movie_scale)?;
     encode_video(
         &mut track,
         movie_scale,
@@ -428,6 +516,7 @@ fn generated_video(
             no_video: false,
             limit,
         },
+        false,
         |i| Ok(video.image(i)),
     )?;
     Ok(track)
@@ -1392,6 +1481,7 @@ pub(in super::super) fn remux(
                     no_video: false,
                     limit,
                 },
+                false,
                 |i| {
                     if decoder.next > i + 1 {
                         decoder.next = 0;
@@ -1407,6 +1497,11 @@ pub(in super::super) fn remux(
                     decoder.image((t.width as usize, t.height as usize), true, limit)
                 },
             )?;
+            if track.samples.is_empty() && !track.edits.is_empty() {
+                track.media_ticks = (f64::from(track.movie_ticks) * f64::from(track.scale)
+                    / f64::from(scale))
+                .round() as u32;
+            }
             index_bytes = index_bytes
                 .saturating_sub(input_samples.capacity() * size_of::<Sample>())
                 .saturating_add(

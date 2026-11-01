@@ -1318,7 +1318,7 @@ pub(super) fn render_video(
     opts: super::y4m::Options<'_>,
     maps: &[&str],
     full_size: bool,
-    emit: impl FnMut(super::png_pixels::Raster, f64, usize) -> Result<(), &'static str>,
+    emit: impl FnMut(super::png_pixels::Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let (tracks, duration) = read_tracks(input, movie(input)?)?;
     let selected = mux::select_tracks(maps, 1, |_| tracks.len(), |_, i| tracks[i].kind)?;

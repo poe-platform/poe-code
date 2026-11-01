@@ -139,12 +139,86 @@ pub(super) fn sequence(path: &str) -> Result<Option<(usize, usize, usize)>, &'st
     Ok(None)
 }
 
+pub(super) struct ImageSequence {
+    pub frames: Vec<Raster>,
+    pub fps: f64,
+}
+
+impl ImageSequence {
+    pub fn read(
+        fs: &dyn super::SafeBashFs,
+        cwd: &str,
+        path: &str,
+        pattern: (usize, usize, usize),
+        start: Option<u64>,
+        fps: f64,
+    ) -> Result<Self, String> {
+        let (i, j, width) = pattern;
+        let mut index = start.unwrap_or(0);
+        let limit = fs.max_input_bytes();
+        let mut frames = Vec::new();
+        let mut used = 0;
+        loop {
+            let name = format!("{}{index:0width$}{}", &path[..i], &path[j..]);
+            let full = super::resolve_posix_path(cwd, &name);
+            let bytes = match fs.read_file(&full) {
+                Ok(b) => b,
+                Err(e) if e.starts_with("ENOENT:") => {
+                    if index == 0 && start.is_none() {
+                        index += 1;
+                        continue;
+                    }
+                    break;
+                }
+                Err(e) => return Err(e),
+            };
+            let remaining = limit.saturating_sub(used);
+            if bytes.len() > remaining {
+                return Err("image exceeds memory budget".into());
+            }
+            if !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+                return Err("Input buffer contains unsupported image format".into());
+            }
+            let frame = Raster::decode(&bytes, remaining).map_err(|e| match e {
+                "Truncated PNG chunk" | "Truncated PNG image data" => "unexpected end of file",
+                _ => e,
+            })?;
+            used += frame.pixels.len() * 4 + size_of::<Raster>();
+            if used > limit {
+                return Err("image exceeds memory budget".into());
+            }
+            frames.push(frame);
+            index += 1;
+        }
+        if frames.is_empty() {
+            return Err(format!("{path}: No matching image sequence files found"));
+        }
+        Ok(Self { frames, fps })
+    }
+    pub fn render(
+        &self,
+        opts: super::y4m::Options<'_>,
+        emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+    ) -> Result<(usize, usize, u32), &'static str> {
+        let (w, h) = (self.frames[0].width, self.frames[0].height);
+        super::y4m::render_frames(
+            w,
+            h,
+            (0..self.frames.len()).map(|i| (i as f64 / self.fps, 1. / self.fps)),
+            opts,
+            |i| Ok(self.frames[i].clone()),
+            emit,
+        )?;
+        Ok((w, h, 30))
+    }
+}
+
 pub(super) fn render_png(
     bytes: &[u8],
     opts: super::y4m::Options<'_>,
     seek: super::InputTime,
     reslice: bool,
-    emit: impl FnMut(Raster, f64, usize) -> Result<(), &'static str>,
+    emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), &'static str> {
     let im = match Raster::decode(bytes, opts.limit) {
         Ok(im) => im,
@@ -197,14 +271,15 @@ pub(super) fn render(
     mut index: u64,
     decode: impl FnOnce(
         bool,
-        &mut dyn FnMut(Raster, f64, usize) -> Result<(), &'static str>,
+        &mut dyn FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String>,
 ) -> Result<Option<Vec<u8>>, String> {
     let limit = fs.max_input_bytes();
     let mut data = Vec::new();
     let mut failure = None;
     let mut total = 0usize;
-    let dims = decode(pattern.is_some(), &mut |im, duration, _| {
+    let mut geometry = None;
+    let dims = decode(pattern.is_some(), &mut |mut im, duration, _| {
         if let Some(fmt) = image_format {
             let frame = encode(&im, fmt, limit)?;
             if let Some((i, j, width)) = pattern {
@@ -228,6 +303,10 @@ pub(super) fn render(
                 data =
                     super::y4m::header(im.width, im.height, (1. / duration).round().max(1.) as u32);
             }
+            let (w, h) = *geometry.get_or_insert((im.width, im.height));
+            im.width = w;
+            im.height = h;
+            im.pixels.resize(w * h, [0; 4]);
             data.extend_from_slice(b"FRAME\n");
             super::y4m::append_planes(&mut data, &im, limit)?;
         }

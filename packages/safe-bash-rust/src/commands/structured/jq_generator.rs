@@ -126,7 +126,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
         return visit_jq(&s[1..s.len() - 1], input, vars, emit);
     }
-    if !vars.functions.is_empty() {
+    if !vars.functions.is_empty() || s.starts_with("range") || s.starts_with("limit") {
         let (name, args) = s
             .find('(')
             .filter(|&pos| s.ends_with(')') && is_matching_outer_delim(&s[pos..], '(', ')'))
@@ -140,6 +140,75 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                 }
             }
             return Ok(Continue(()));
+        }
+        if let Some(args) = args
+            && matches!(name, "range" | "limit")
+        {
+            let parts = split_jq_top(args, ';').unwrap_or_else(|| vec![args.to_owned()]);
+            if name == "range" && (1..=3).contains(&parts.len()) {
+                let (start, end) = if parts.len() == 1 {
+                    ("0", &parts[0])
+                } else {
+                    (parts[0].as_str(), &parts[1])
+                };
+                let step = parts.get(2).map_or("1", String::as_str);
+                let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+                return visit_jq(start, input, vars, &mut |a| {
+                    visit_jq(end, input, vars, &mut |b| {
+                        visit_jq(step, input, vars, &mut |increment| {
+                            let (JVal::Number(start), JVal::Number(stop), JVal::Number(step)) =
+                                (&a, &b, increment)
+                            else {
+                                return Err("range requires numbers".into());
+                            };
+                            let mut value = *start;
+                            while (step > 0.0 && value < *stop) || (step < 0.0 && value > *stop) {
+                                remaining =
+                                    remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                                if emit(JVal::Number(value))?.is_break() {
+                                    return Ok(Break(()));
+                                }
+                                let next = value + step;
+                                if !next.is_finite() {
+                                    return Err("nonfinite range increment".into());
+                                }
+                                if next == value {
+                                    return Err("range increment makes no progress".into());
+                                }
+                                value = next;
+                            }
+                            Ok(Continue(()))
+                        })
+                    })
+                });
+            }
+            if name == "limit"
+                && let [count, filter] = parts.as_slice()
+            {
+                return visit_jq(count, input, vars, &mut |n| {
+                    let JVal::Number(n) = n else {
+                        return Err("limit requires a nonnegative integer".into());
+                    };
+                    if !(0.0..=9_007_199_254_740_991.0).contains(&n) || n.fract() != 0.0 {
+                        return Err("limit requires a nonnegative integer".into());
+                    }
+                    if n == 0.0 {
+                        return Ok(Continue(()));
+                    }
+                    let mut remaining = n as u64;
+                    let mut downstream = Continue(());
+                    let _ = visit_jq(filter, input, vars, &mut |value| {
+                        downstream = emit(value)?;
+                        remaining -= 1;
+                        Ok(if remaining == 0 {
+                            Break(())
+                        } else {
+                            downstream
+                        })
+                    })?;
+                    Ok(downstream)
+                });
+            }
         }
     }
     if s == "inputs" {

@@ -3444,64 +3444,6 @@ fn try_eval_jq_builtin(
                         return Ok(Some(vec![JVal::Bool(res)]));
                     }
                 }
-                "range" => {
-                    if let Some((a_e, rest_e)) = split_jq_binary(arg_expr, ";") {
-                        let a = eval_jq(&a_e, input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(n) => Some(*n),
-                                _ => None,
-                            })
-                            .unwrap_or(0.0);
-                        if let Some((b_e, step_e)) = split_jq_binary(&rest_e, ";") {
-                            let b = eval_jq(&b_e, input, vars)?
-                                .first()
-                                .and_then(|v| match v {
-                                    JVal::Number(n) => Some(*n),
-                                    _ => None,
-                                })
-                                .unwrap_or(0.0);
-                            let step = eval_jq(&step_e, input, vars)?
-                                .first()
-                                .and_then(|v| match v {
-                                    JVal::Number(n) => Some(*n),
-                                    _ => None,
-                                })
-                                .unwrap_or(1.0);
-                            let mut out = Vec::new();
-                            let mut cur = a;
-                            if step > 0.0 {
-                                while cur < b {
-                                    out.push(JVal::Number(clean_jval_num(cur)));
-                                    cur += step;
-                                }
-                            } else if step < 0.0 {
-                                while cur > b {
-                                    out.push(JVal::Number(clean_jval_num(cur)));
-                                    cur += step;
-                                }
-                            }
-                            return Ok(Some(out));
-                        }
-                        let b = eval_jq(&rest_e, input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(n) => Some(*n as i64),
-                                _ => None,
-                            })
-                            .unwrap_or(0);
-                        return Ok(Some(((a as i64)..b).map(|n| JVal::Number(n as f64)).collect()));
-                    } else {
-                        let n = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(n) => Some(*n as i64),
-                                _ => None,
-                            })
-                            .unwrap_or(0);
-                        return Ok(Some((0..n).map(|i| JVal::Number(i as f64)).collect()));
-                    }
-                }
                 "error" => {
                     let v = eval_jq(arg_expr, input, vars)?
                         .into_iter()
@@ -3533,19 +3475,6 @@ fn try_eval_jq_builtin(
                                 .unwrap_or(JVal::Null);
                         }
                         return Ok(Some(out));
-                    }
-                }
-                "limit" => {
-                    if let Some((n_e, expr_e)) = split_jq_binary(arg_expr, ";") {
-                        let n = eval_jq(n_e.trim(), input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(num) => Some(*num as usize),
-                                _ => None,
-                            })
-                            .unwrap_or(0);
-                        let vals = eval_jq_limited(expr_e.trim(), n, input, vars)?;
-                        return Ok(Some(vals.into_iter().take(n).collect()));
                     }
                 }
                 "first" => {

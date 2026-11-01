@@ -3,6 +3,30 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq ranges and limits stream numeric arguments and stop when their consumer stops", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout] of [
+      ["[range(0.5;3)]", "[0.5,1.5,2.5]\n"],
+      ["[range((0,2);(2,4);2)]", "[0,0,2,2]\n"],
+      ["[range(0;3;(1,2))]", "[0,1,2,0,2]\n"],
+      ["[limit((1,2);range(4))]", "[0,0,1]\n"],
+      ["[first(limit(100000000;range(1000000000)))]", "[0]\n"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], filter);
+    }
+    for (const [filter, message] of [
+      ["limit(-1;1)", "limit requires a nonnegative integer"],
+      ["limit(0.5;1)", "limit requires a nonnegative integer"],
+      ['range("2")', "range requires numbers"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", `jq: error (at <unknown>): ${message}\n`]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq stops input generators after producing enough output and preserves results before errors", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/items": "1 2 3 4\n", "/workspace/good": "7 8" } });
   try {

@@ -1,6 +1,7 @@
 use super::{InputTime, mp4::mux::Remux};
 
 /// FFmpeg's portable demuxer uses the last data chunk and accepts truncated sample data.
+#[derive(Clone, Copy)]
 pub(super) struct Wave<'a> {
     pub rate: u32,
     pub channels: usize,
@@ -70,6 +71,12 @@ impl<'a> Wave<'a> {
 }
 pub(super) enum Input<'a> {
     Wave(Wave<'a>),
+    Encoded {
+        rate: u32,
+        channels: usize,
+        seconds: f64,
+        volume: f64,
+    },
     Generated {
         frequency: f64,
         rate: u32,
@@ -123,6 +130,15 @@ impl<'a> Input<'a> {
 
     pub fn render(&self, seek: InputTime, opts: &Remux) -> Result<Vec<u8>, String> {
         let (rate, channels, decoded, mut ticks) = match self {
+            Self::Encoded {
+                rate,
+                channels,
+                seconds,
+                ..
+            } => {
+                let n = (seconds * f64::from(*rate)).round() as usize;
+                (*rate, *channels, n, n)
+            }
             Self::Wave(w) => {
                 let n = w.data.len() / w.stride();
                 (w.rate, w.channels, n, n)
@@ -190,7 +206,12 @@ impl<'a> Input<'a> {
         };
         let filtered = selected
             && (opts.rate.is_some() || opts.channels.is_some() || !opts.audio_filters.is_empty());
-        let (mut volume, mut tempo, mut reverse) = (1., 1., false);
+        let mut volume = if let Self::Encoded { volume, .. } = self {
+            *volume
+        } else {
+            1.
+        };
+        let (mut tempo, mut reverse) = (1., false);
         if filtered {
             for item in opts
                 .audio_filters
@@ -232,49 +253,31 @@ impl<'a> Input<'a> {
         } else {
             count
         };
-        let align = out_ch
-            .checked_mul(2)
-            .filter(|&a| a > 0 && a <= u16::MAX.into())
-            .ok_or("invalid audio channel count")?;
-        let size = frames
-            .checked_mul(align)
-            .filter(|&s| s <= opts.limit.saturating_sub(44) && s <= u32::MAX as usize - 36)
-            .ok_or("audio output exceeds memory budget")?;
-        let byte_rate = target_rate
-            .checked_mul(align as u32)
-            .ok_or("invalid audio sample rate")?;
-        let mut out = Vec::with_capacity(44 + size);
-        out.extend_from_slice(b"RIFF");
-        out.extend_from_slice(&(36 + size as u32).to_le_bytes());
-        out.extend_from_slice(b"WAVEfmt \x10\0\0\0\x01\0");
-        out.extend_from_slice(&(out_ch as u16).to_le_bytes());
-        out.extend_from_slice(&target_rate.to_le_bytes());
-        out.extend_from_slice(&byte_rate.to_le_bytes());
-        out.extend_from_slice(&(align as u16).to_le_bytes());
-        out.extend_from_slice(b"\x10\0data");
-        out.extend_from_slice(&(size as u32).to_le_bytes());
-        for i in 0..frames {
+        let mut out = pcm16(target_rate, out_ch, frames, opts.limit)?;
+        for (i, frame) in out[44..].chunks_exact_mut(out_ch * 2).enumerate() {
             let i = if reverse { frames - 1 - i } else { i };
             let index = if filtered {
                 ((i as f64 / frames as f64 * count as f64) as usize).min(count.saturating_sub(1))
             } else {
                 i
             };
+            let src = from_out.saturating_add(index);
             let src = if copies > 1 && ticks > 0 {
-                (from_out + index) % ticks
+                src % ticks
             } else {
-                from_out + index
+                src
             };
-            for ch in 0..out_ch {
+            for (ch, sample) in frame.chunks_exact_mut(2).enumerate() {
                 let v = if !selected {
                     0.
-                } else if count == 0 && filtered {
+                } else if (count == 0 || matches!(self, Self::Encoded { .. })) && filtered {
                     (2. * std::f64::consts::PI * 440. * i as f64 / f64::from(target_rate)).sin()
                         * 0.2
                 } else if src >= len {
                     0.
                 } else {
                     match self {
+                        Self::Encoded { .. } => 0.,
                         Self::Wave(w) => f64::from(w.sample(from + src, ch.min(channels - 1))),
                         Self::Generated { frequency, .. } => f64::from(
                             ((2. * std::f64::consts::PI * frequency * (from + src) as f64
@@ -289,11 +292,42 @@ impl<'a> Input<'a> {
                 } else {
                     v
                 };
-                out.extend_from_slice(
+                sample.copy_from_slice(
                     &((v.clamp(-1., 1.) * 32767. + 0.5).floor() as i16).to_le_bytes(),
                 );
             }
         }
         Ok(out)
     }
+}
+
+pub(super) fn pcm16(
+    target_rate: u32,
+    out_ch: usize,
+    frames: usize,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
+    let align = out_ch
+        .checked_mul(2)
+        .filter(|&a| a > 0 && a <= u16::MAX.into())
+        .ok_or("invalid audio channel count")?;
+    let size = frames
+        .checked_mul(align)
+        .filter(|&s| s <= limit.saturating_sub(44) && s <= u32::MAX as usize - 36)
+        .ok_or("audio output exceeds memory budget")?;
+    let byte_rate = target_rate
+        .checked_mul(align as u32)
+        .ok_or("invalid audio sample rate")?;
+    let mut out = Vec::with_capacity(44 + size);
+    out.extend_from_slice(b"RIFF");
+    out.extend_from_slice(&(36 + size as u32).to_le_bytes());
+    out.extend_from_slice(b"WAVEfmt \x10\0\0\0\x01\0");
+    out.extend_from_slice(&(out_ch as u16).to_le_bytes());
+    out.extend_from_slice(&target_rate.to_le_bytes());
+    out.extend_from_slice(&byte_rate.to_le_bytes());
+    out.extend_from_slice(&(align as u16).to_le_bytes());
+    out.extend_from_slice(b"\x10\0data");
+    out.extend_from_slice(&(size as u32).to_le_bytes());
+    out.resize(44 + size, 0);
+    Ok(out)
 }

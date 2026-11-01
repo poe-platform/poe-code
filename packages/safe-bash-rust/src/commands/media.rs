@@ -4692,7 +4692,7 @@ fn cmd_media_doc(
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                let output=if muxer==Some("wav") && inputs.len()==1 && fc_flag.is_empty() {
+                let output=if muxer==Some("wav") && !remux_inputs && inputs.len()==1 && fc_flag.is_empty() {
                     match ffmpeg_wave::Input::parse(format.unwrap_or(""),bytes).map_err(str::to_owned).and_then(|input|input.map(|a|a.render(input_times[0],&remux)).transpose()){
                         Ok(data)=>data, Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }
@@ -4731,7 +4731,7 @@ fn cmd_media_doc(
                             }else{Ok((64,64,10))}
                     });
                     match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output || audio_output) && remux_inputs {
+                } else if (mp4_output || subtitle_output || audio_output || muxer==Some("wav")) && remux_inputs {
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
                 if let Some(output)=output {
@@ -13704,6 +13704,15 @@ mod media_unit_tests {
         assert_eq!(run(&["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=8000:duration=0.25", "x.wav"]).exit_code, 0);
         assert_eq!(run(&["-ss", "0.125", "-t", "0.125", "-stream_loop", "2", "-i", "x.wav", "out.mp4"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), "e328d1819a18bdc070d732d89491698429a669c9794c0a35c7965016fef34ba0");
+    }
+
+    #[test]
+    fn ffmpeg_selects_encoded_audio_from_a_second_input_for_wav_filters() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs);
+        assert_eq!(run(&["-f", "lavfi", "-i", "sine=f=631:r=8000:d=0.25", "audio.mp4"]).exit_code, 0);
+        assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=8x6:r=4:d=1", "-i", "audio.mp4", "-map", "1:a", "-af", "volume=0.3,atempo=2,areverse", "-ar", "11025", "-ac", "2", "out.wav"]).exit_code, 0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.wav").unwrap())), "30e61cbf00936a82b3c286a4790128481a8b36398b43fb77f071f3e553fbfbfe");
     }
 
     #[test]

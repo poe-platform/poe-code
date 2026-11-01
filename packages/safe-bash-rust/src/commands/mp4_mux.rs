@@ -2,7 +2,7 @@ use super::super::adts::{Frames, Options, RATES};
 use super::{
     super::{
         InputTime, MediaInput,
-        ffmpeg_wave::Wave,
+        ffmpeg_wave::{self, Wave},
         frame_output::{self, ImageSequence},
         png_pixels::Raster,
         y4m,
@@ -1443,7 +1443,10 @@ pub(in super::super) fn render_mapped(
     }
 }
 
-pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<Vec<u8>, String> {
+pub(in super::super) fn remux(
+    inputs: &[MediaInput],
+    mut opts: Remux<'_>,
+) -> Result<Vec<u8>, String> {
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
     let data = materialize(inputs, &opts)?;
     let sources = read_sources(inputs, &data, &opts)?;
@@ -1477,6 +1480,58 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
         strip_audio: opts.strip_audio,
         limit: opts.limit,
     };
+    if opts.format == "wav" {
+        let seconds = selected
+            .iter()
+            .map(|&(j, i)| sources[j].2.seconds(i))
+            .fold(0., f64::max);
+        let seconds = (end.unwrap_or(seconds).min(seconds) - opts.start.unwrap_or(0.)).max(0.);
+        let mut rate = 44100;
+        let mut channels = 2;
+        opts.end = end;
+        opts.maps = &[]; // mapped_tracks has already resolved selectors across all inputs.
+        if let Some(&(j, i)) = selected
+            .iter()
+            .find(|&&(j, i)| sources[j].2.kind(i) == "audio")
+        {
+            let (bytes, _, stream) = &sources[j];
+            let seek = opts.input_times.get(j).copied().unwrap_or_default();
+            let volume;
+            (rate, channels, volume) = match stream {
+                Streams::Wave(w) => return ffmpeg_wave::Input::Wave(w.wav).render(seek, &opts),
+                Streams::GeneratedAudio(_) => {
+                    return ffmpeg_wave::Input::parse("lavfi", bytes)?
+                        .ok_or("invalid audio generator")?
+                        .render(seek, &opts);
+                }
+                Streams::Aac { rate, channels, .. } => (*rate, usize::from(*channels), 1.),
+                Streams::Mp4(t) => {
+                    let (track, trak) = &t[i];
+                    let tk = child(trak, b"tkhd");
+                    (
+                        track.audio_rate(),
+                        usize::from(track.channels()),
+                        f64::from(u16_at(tk, if tk.first() == Some(&1) { 48 } else { 36 }) as i16)
+                            / 256.,
+                    )
+                }
+                _ => unreachable!(),
+            };
+            if audio.clear_samples {
+                let input = ffmpeg_wave::Input::Encoded {
+                    rate,
+                    channels,
+                    seconds: stream.seconds(i),
+                    volume,
+                };
+                return input.render(InputTime::default(), &opts);
+            }
+        }
+        // Without decoded audio the WAV serializer fills the movie duration with silence.
+        let duration = if seconds == 0. { 1. } else { seconds };
+        let frames = (duration * f64::from(rate)).round().max(1024.) as usize;
+        return ffmpeg_wave::pcm16(rate, channels, frames, opts.limit);
+    }
     if opts.format == "aac" {
         for &(j, i) in &selected {
             let (input, _, streams) = &sources[j];

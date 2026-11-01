@@ -2458,10 +2458,7 @@ impl<'a> EvalState<'a> {
     // An invalid index fails this command. Errors expanding its words can stop the shell.
     fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<Option<String>, EvalError> {
         if word.starts_with('(') && word.ends_with(')') {
-            return match self.assign_variable(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append) {
-                Err(EvalError::Syntax(msg)) if msg == MISSING_ASSOC_SUBSCRIPT => Ok(Some(msg)),
-                result => result.map(|()| None),
-            };
+            return self.assign_value(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append);
         }
         if let Some((base, sub)) = lhs.split_once('[')
             && let Some(sub) = sub.strip_suffix(']')
@@ -2471,7 +2468,7 @@ impl<'a> EvalState<'a> {
             });
         }
         let value = self.expand_assignment_rhs(word)?;
-        self.assign_variable(lhs, &value, append).map(|()| None)
+        self.assign_value(lhs, &value, append)
     }
 
     fn associative_write_key(&mut self, word: &str) -> Result<String, EvalError> {
@@ -2480,6 +2477,18 @@ impl<'a> EvalState<'a> {
             return Err(EvalError::Syntax("associative array: bad array subscript".into()));
         }
         Ok(key)
+    }
+
+    fn indexed_write_subscript(&mut self, base: &str, raw: &str) -> Result<Result<i64, String>, EvalError> {
+        if raw.is_empty() {
+            return Ok(Err("indexed array: bad array subscript".into()));
+        }
+        let expanded = self.expand_word_to_string(raw)?;
+        let word = expanded.trim_matches('"').trim_matches('\'');
+        match eval_arith_formatted(word, self.env).and_then(|i| indexed_array_index(base, i, self.env)) {
+            Err(msg) if msg.starts_with("__nounset__") => Err(EvalError::Syntax(msg)),
+            result => Ok(result),
+        }
     }
 
     fn assign_element<'v>(
@@ -2510,16 +2519,8 @@ impl<'a> EvalState<'a> {
             let value = value(self)?;
             (self.associative_write_key(raw_sub)?, value)
         } else {
-            let sub_expanded = self.expand_word_to_string(raw_sub)?;
-            let clean_sub = sub_expanded.trim_matches('"').trim_matches('\'');
-            if raw_sub.is_empty() {
-                return Ok(Some("indexed array: bad array subscript".into()));
-            }
-            let index = match eval_arith_formatted(clean_sub, self.env)
-                .and_then(|i| indexed_array_index(&resolved_base, i, self.env))
-            {
+            let index = match self.indexed_write_subscript(&resolved_base, raw_sub)? {
                 Ok(i) => i,
-                Err(msg) if msg.starts_with("__nounset__") => return Err(EvalError::Syntax(msg)),
                 Err(msg) => return Ok(Some(msg)),
             };
             (index.to_string(), value(self)?)
@@ -2600,13 +2601,17 @@ impl<'a> EvalState<'a> {
     }
 
     pub fn assign_variable(&mut self, lhs: &str, raw_val: &str, append: bool) -> Result<(), EvalError> {
+        match self.assign_value(lhs, raw_val, append)? {
+            Some(msg) => Err(EvalError::Syntax(msg)),
+            None => Ok(()),
+        }
+    }
+
+    fn assign_value(&mut self, lhs: &str, raw_val: &str, append: bool) -> Result<Option<String>, EvalError> {
         if let Some((base, sub_rest)) = lhs.split_once('[')
             && let Some(raw_sub) = sub_rest.strip_suffix(']')
         {
-            return match self.assign_element(base, raw_sub, append, |_| Ok(Cow::Borrowed(raw_val)))? {
-                Some(msg) => Err(EvalError::Syntax(msg)),
-                None => Ok(()),
-            };
+            return self.assign_element(base, raw_sub, append, |_| Ok(Cow::Borrowed(raw_val)));
         }
 
         let resolved = resolve_nameref_base(lhs, self.env).to_string();
@@ -2633,7 +2638,11 @@ impl<'a> EvalState<'a> {
                     .get(&format!("__attr__{resolved}"))
                     .is_some_and(|a| a.contains('A'));
             let inner = &arr_lit[1..arr_lit.len() - 1];
-            let mut items = self.expand_array_literal_items(inner, is_assoc)?;
+            let entries = scan_array_literal_entries(inner)?;
+            if is_assoc && entries.iter().any(|(_, _, selector)| selector.is_none()) {
+                return Ok(Some(MISSING_ASSOC_SUBSCRIPT.into()));
+            }
+            let mut items = self.expand_array_literal_items(inner, is_assoc, entries)?;
             // Ordinary associative keys see the old binding. Integer attributes
             // and indexed subscripts instead see each preceding element write.
             let keys_before_writes = is_assoc
@@ -2691,8 +2700,13 @@ impl<'a> EvalState<'a> {
                     } else if is_assoc {
                         self.associative_write_key(&sub_k)?
                     } else {
-                        let sub_k = self.expand_word_to_string(&sub_k)?;
-                        let idx = eval_arith(&sub_k, self.env).map_err(EvalError::Syntax)?;
+                        let idx = match self.indexed_write_subscript(&resolved, &sub_k)? {
+                            Ok(i) => i,
+                            Err(msg) => {
+                                sync_array_metadata(&resolved, self.env);
+                                return Ok(Some(msg));
+                            }
+                        };
                         next_idx = idx + 1;
                         idx.to_string()
                     };
@@ -2761,7 +2775,7 @@ impl<'a> EvalState<'a> {
             if let Some(first) = self.env.get(&format!("{resolved}[0]")).cloned() {
                 self.env.insert(resolved, first);
             }
-            return Ok(());
+            return Ok(None);
         }
 
         let arr_prefix = format!("{resolved}[");
@@ -2859,7 +2873,7 @@ impl<'a> EvalState<'a> {
                 .insert(format!("__unexported__{resolved}"), "1".to_string());
         }
         if write_dynamic_variable(&resolved, &final_val, self.env) {
-            return Ok(());
+            return Ok(None);
         }
         if is_existing_array {
             self.env.insert(format!("{resolved}[0]"), final_val.clone());
@@ -2879,82 +2893,15 @@ impl<'a> EvalState<'a> {
         if is_optind {
             sync_getopts_env(self.env);
         }
-        Ok(())
+        Ok(None)
     }
 
     fn expand_array_literal_items(
         &mut self,
         inner: &str,
         is_assoc: bool,
+        entries: Vec<(usize, usize, Option<usize>)>,
     ) -> Result<Vec<(Option<String>, String, bool)>, EvalError> {
-        let mut entries = Vec::new();
-        let mut start = 0;
-        let mut selector = None;
-        let mut brackets = Vec::new();
-        let mut quote = None;
-        let chars: Vec<char> = inner.chars().collect();
-        let mut pos = 0;
-        let mut offset = 0;
-        while pos < chars.len() {
-            let first = pos;
-            let i = offset;
-            let ch = chars[pos];
-            pos += 1;
-            if ch == '\\' && quote != Some('\'') {
-                pos = (pos + 1).min(chars.len());
-            } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'(') {
-                if chars.get(pos + 1) == Some(&'(')
-                    && let Some((_, end)) = crate::shell::lexer::find_arithmetic_end(&chars, pos + 2, true).map_err(EvalError::Syntax)?
-                {
-                    pos = end;
-                } else {
-                    scan_nested_command_sub(&chars, &mut pos)?;
-                }
-            } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'{') {
-                scan_nested_brace_sub(&chars, &mut pos)?;
-            } else if ch == '`' && quote != Some('\'') {
-                while pos < chars.len() {
-                    let c = chars[pos];
-                    pos += 1;
-                    if c == '`' { break; }
-                    if c == '\\' && pos < chars.len() { pos += 1; }
-                }
-            } else if let Some(q) = quote {
-                if ch == q {
-                    quote = None;
-                }
-            } else {
-                match ch {
-                    '\'' | '"' => quote = Some(ch),
-                    '[' => brackets.push((i == start).then_some((i, entries.len()))),
-                    ']' => {
-                        if let Some(Some((open, n))) = brackets.pop()
-                            && (inner[i + 1..].starts_with('=') || inner[i + 1..].starts_with("+="))
-                        {
-                            // Spaces in an explicit subscript belong to that entry.
-                            entries.truncate(n);
-                            start = open;
-                            selector = Some(i);
-                        }
-                    }
-                    _ if ch.is_whitespace() => {
-                        if start < i {
-                            entries.push((start, i, selector.take()));
-                        }
-                        start = i + ch.len_utf8();
-                    }
-                    _ => {}
-                }
-            }
-            offset += chars[first..pos].iter().map(|c| c.len_utf8()).sum::<usize>();
-        }
-
-        if start < inner.len() {
-            entries.push((start, inner.len(), selector));
-        }
-        if is_assoc && entries.iter().any(|(_, _, selector)| selector.is_none()) {
-            return Err(EvalError::Syntax(MISSING_ASSOC_SUBSCRIPT.into()));
-        }
         let mut out = Vec::new();
         for (start, end, selector) in entries {
             let tok = &inner[start..end];
@@ -7639,22 +7586,19 @@ impl<'a> EvalState<'a> {
             }
 
             if let Some(v) = val_opt {
-                match self.assign_variable(&base_name, &v, append) {
-                    Err(EvalError::Syntax(msg)) if msg == MISSING_ASSOC_SUBSCRIPT => {
-                        if new_assoc {
-                            self.env.remove(&format!("__assoc__{base_name}"));
-                            let key = format!("__attr__{base_name}");
-                            if let Some(attr) = self.env.get_mut(&key) {
-                                attr.retain(|c| c != 'A');
-                                if attr.is_empty() { self.env.remove(&key); }
-                            }
+                if let Some(msg) = self.assign_value(&base_name, &v, append)? {
+                    if new_assoc {
+                        self.env.remove(&format!("__assoc__{base_name}"));
+                        let key = format!("__attr__{base_name}");
+                        if let Some(attr) = self.env.get_mut(&key) {
+                            attr.retain(|c| c != 'A');
+                            if attr.is_empty() { self.env.remove(&key); }
                         }
-                        self.env.insert(format!("__declared__{base_name}"), "1".into());
-                        decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
-                        decl_status = 1;
-                        break;
                     }
-                    result => result?,
+                    self.env.insert(format!("__declared__{base_name}"), "1".into());
+                    decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                    decl_status = 1;
+                    break;
                 }
             } else if is_indexed || is_assoc {
                 sync_array_metadata(&base_name, self.env);
@@ -13244,6 +13188,75 @@ impl<'a> EvalState<'a> {
     }
 }
 
+fn scan_array_literal_entries(inner: &str) -> Result<Vec<(usize, usize, Option<usize>)>, EvalError> {
+    let mut entries = Vec::new();
+    let mut start = 0;
+    let mut selector = None;
+    let mut brackets = Vec::new();
+    let mut quote = None;
+    let chars: Vec<char> = inner.chars().collect();
+    let mut pos = 0;
+    let mut offset = 0;
+    while pos < chars.len() {
+        let first = pos;
+        let i = offset;
+        let ch = chars[pos];
+        pos += 1;
+        if ch == '\\' && quote != Some('\'') {
+            pos = (pos + 1).min(chars.len());
+        } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'(') {
+            if chars.get(pos + 1) == Some(&'(')
+                && let Some((_, end)) = crate::shell::lexer::find_arithmetic_end(&chars, pos + 2, true).map_err(EvalError::Syntax)?
+            {
+                pos = end;
+            } else {
+                scan_nested_command_sub(&chars, &mut pos)?;
+            }
+        } else if ch == '$' && quote != Some('\'') && chars.get(pos) == Some(&'{') {
+            scan_nested_brace_sub(&chars, &mut pos)?;
+        } else if ch == '`' && quote != Some('\'') {
+            while pos < chars.len() {
+                let c = chars[pos];
+                pos += 1;
+                if c == '`' { break; }
+                if c == '\\' && pos < chars.len() { pos += 1; }
+            }
+        } else if let Some(q) = quote {
+            if ch == q {
+                quote = None;
+            }
+        } else {
+            match ch {
+                '\'' | '"' => quote = Some(ch),
+                '[' => brackets.push((i == start).then_some((i, entries.len()))),
+                ']' => {
+                    if let Some(Some((open, n))) = brackets.pop()
+                        && (inner[i + 1..].starts_with('=') || inner[i + 1..].starts_with("+="))
+                    {
+                        // Spaces in an explicit subscript belong to that entry.
+                        entries.truncate(n);
+                        start = open;
+                        selector = Some(i);
+                    }
+                }
+                _ if ch.is_whitespace() => {
+                    if start < i {
+                        entries.push((start, i, selector.take()));
+                    }
+                    start = i + ch.len_utf8();
+                }
+                _ => {}
+            }
+        }
+        offset += chars[first..pos].iter().map(|c| c.len_utf8()).sum::<usize>();
+    }
+
+    if start < inner.len() {
+        entries.push((start, inner.len(), selector));
+    }
+    Ok(entries)
+}
+
 fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, EvalError> {
     *idx += 1; // skip '('
     let mut out = String::new();
@@ -16209,6 +16222,20 @@ hash -l
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+        }
+    }
+
+    #[test]
+    fn compound_indexed_subscripts_observe_preceding_writes_and_fail_the_command() {
+        for (script, stdout, stderr) in [
+            (r#"a=(old); a=([2]=new [-1]+=yes); declare -p a"#, "declare -a a=([2]=\"newyes\")\n", ""),
+            (r#"a=(old); a=([1]=new [9223372036854775807]=$((i++))); echo "$?:$i:${!a[@]}:${a[@]}""#, "1:1:1:new\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"declare -ai a=([1]=9 [-3]=4); declare -p a"#, "declare -ai a=([1]=\"9\")\n", "shell: line 1: indexed array: index outside 0..2147483647\n"),
+            (r#"a=(old); a=([1/0]=x); echo "$?:${a[@]}""#, "1:\n", "shell: line 1: 1/0: division by 0 (error token is \"0\")\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
         }
     }
 

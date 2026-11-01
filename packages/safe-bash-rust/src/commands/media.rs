@@ -10175,6 +10175,22 @@ fn cmd_media_doc(
                         ops.push(PixelOp::Negate(channels,arg=="+negate"));
                         i += 1;
                     }
+                    "+clone"|"-clone"|"+duplicate"|"-duplicate"|"+delete"|"-delete"|"+swap"|"-swap"|"-reverse"|"+insert"|"-insert" => {
+                        let mut spec=match arg.as_str(){"+swap"|"-swap"=>"-2,-1","+insert"|"-insert"=>"0",_=>"-1"};
+                        let mut count=1;
+                        let has_value=i+1<args.len()-usize::from(!is_mogrify);
+                        if has_value && matches!(arg.as_str(),"-clone"|"-delete"|"-swap"|"-insert") {
+                            i+=1;spec=&args[i];
+                        } else if has_value && arg=="-duplicate" && args[i+1].as_bytes().first().is_some_and(u8::is_ascii_digit) {
+                            i+=1;
+                            let value=&args[i];
+                            let digits=value.bytes().take_while(u8::is_ascii_digit).count();
+                            count=value[..digits].parse().unwrap_or(usize::MAX);
+                            if let Some((_,s))=value.split_once(',') && !s.is_empty() {spec=s;}
+                        }
+                        stack_steps.push((ops.len(),magick_stack::Step::Edit(arg,spec,count)));
+                        i+=1;
+                    }
                     "-append" => {
                         stack_steps.push((ops.len(),magick_stack::Step::Append(true,gravity,background)));
                         append_mode = Some(true);
@@ -10241,7 +10257,7 @@ fn cmd_media_doc(
                     }
                 }
             }
-            let use_stack=!is_mogrify && stack_steps.len()>1;
+            let use_stack=(!is_mogrify && stack_steps.len()>1) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
             let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
                 // GIFs decode to four channels even if they did not declare transparency.
                 let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
@@ -10262,7 +10278,7 @@ fn cmd_media_doc(
                         PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
                         PixelOp::Extent(g,gravity,bg) => {image.extent(*g,*gravity,*bg,fs.max_input_bytes())?;channels=4;},
                         PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
-                        PixelOp::Rotate(deg,bg) => image.rotate(*deg,*bg,fs.max_input_bytes())?,
+                        PixelOp::Rotate(deg,bg) => {if !deg.is_finite() {return Err("Invalid rotation angle");}image.rotate(*deg,*bg,fs.max_input_bytes())?;},
                         PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
                         PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
                         PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
@@ -10288,11 +10304,15 @@ fn cmd_media_doc(
                         apply_pixels(im,range,gif)?;
                         Ok(keep_timing)
                     };
-                    let target=[(0,magick_stack::Step::File(input))];
-                    let steps=if is_mogrify { &target[..] } else { &stack_steps[..] };
+                    let target;
+                    let steps=if is_mogrify {
+                        target=std::iter::once((0,magick_stack::Step::File(input))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)))).collect::<Vec<_>>();
+                        &target[..]
+                    } else { &stack_steps[..] };
                     let mut images=match magick_stack::evaluate(steps,ops.len(),transform,cwd,fs) {
                         Ok(Some(images))=>images, Ok(None)=>return None, Err(e)=>return Some(fail(&e)),
                     };
+                    if images.frames.is_empty() {return Some(fail(&format!("no images defined '{}'",dest.1)));}
                     if split && images.frames.len()>1 {return Some(images.split(scene_name,dest,quality,cwd,fs));}
                     if dest.0=="gif" {
                         return Some(match images.gif(timing,kernel,fs.max_input_bytes()) {
@@ -14390,6 +14410,32 @@ mod media_unit_tests {
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
         }
+    }
+
+    #[test]
+    fn convert_edits_the_scene_stack_in_argument_order() {
+        let fs=MemoryVfs::new();
+        let run=|s:&str|cmd_media_doc("convert",&media_args(&s.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        for (cmd,hash) in [
+            ("xc:red xc:blue xc:none -reverse out.gif","76d364b242a76a192d4c032e4b18d970cea29e063e73c1c84405b41437bd1e15"),
+            ("xc:red xc:blue xc:none +swap out.gif","b661f8b79f076a2939962d5b257427bc7258f288563bed2bb066e1d01d016172"),
+            ("xc:red xc:blue xc:none -swap 0.5,0 out.gif","3ea7e266185e58e9ec3952f8dea3311aa230a569e836eb0faf755280277c336d"),
+            ("xc:red xc:blue xc:none +insert out.gif","e23a48348e6bdd927ad16cc14cb242437f77a7edac8681ec8f349f2fb27e431c"),
+            ("xc:red xc:blue xc:none +delete out.gif","d5244bf69a2dd7254775dd7d967592d7beec04b27faa276089a2b5aaaaf15a1a"),
+            ("xc:red xc:blue xc:none -delete 0-1 out.gif","32038505046f36ef2cebc3ecbaef19a522149ed17824089949d0aec2d980e22d"),
+            ("xc:red xc:blue xc:none -clone 2-0,-1,99 out.gif","d040605bbc5a6ec603f327cbb91ebd185fbbb59276303659ecffbf1fd65843cc"),
+            ("xc:red xc:blue xc:none -duplicate 2,1-0 out.gif","e8f6dec8f2d39c80a704bb3d0e0e1f9bc966c6bb9e1b4662a7a13eb9e7ed84f4"),
+            ("xc:red xc:blue xc:none -reverse -append out.gif","d26b8392994d6f81213dccbf73f2c846f475e7969851eba1af2d6e3137ae13b4")
+        ] {
+            assert_eq!(run(cmd).exit_code,0,"{cmd}");
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.gif").unwrap())),hash,"{cmd}");
+        }
+        let invalid=run("xc:white -rotate bad +delete xc:red bad.gif");
+        assert_eq!(invalid.stderr,"magick: Invalid rotation angle\n");
+        assert!(!fs.exists("/bad.gif"));
+        let empty=run("xc:red +delete empty.gif");
+        assert_eq!(empty.stderr,"magick: no images defined 'empty.gif'\n");
+        assert!(!fs.exists("/empty.gif"));
     }
 
     #[test]

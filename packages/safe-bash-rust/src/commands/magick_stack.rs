@@ -4,9 +4,11 @@ use super::{
 };
 use std::{ops::Range, rc::Rc};
 
+#[derive(Clone, Copy)]
 pub(super) enum Step<'a> {
     Canvas(Canvas, (u32, u32)),
     File(&'a str),
+    Edit(&'a str, &'a str, usize),
     Append(bool, Gravity, [u8; 4]),
 }
 
@@ -15,6 +17,7 @@ struct SourceTiming {
     repeat: Option<u16>,
 }
 
+#[derive(Clone)]
 pub(super) struct Scene {
     pub image: Raster,
     timing: Option<Rc<SourceTiming>>,
@@ -169,6 +172,55 @@ impl Images {
     }
 }
 
+fn indices(spec: &str, len: usize, limit: usize) -> Result<Vec<usize>, &'static str> {
+    let mut out = Vec::new();
+    if len == 0 {
+        return Ok(out);
+    }
+    let resolve = |v: f64| if v < 0. { len as f64 + v } else { v };
+    for part in spec.split(',').map(str::trim) {
+        let integer = |s: &str| {
+            let s = s.strip_prefix('-').unwrap_or(s);
+            !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit())
+        };
+        if let Some((offset, _)) = part.char_indices().skip(1).find(|(_, c)| *c == '-') {
+            let (a, b) = (&part[..offset], &part[offset + 1..]);
+            if integer(a) && integer(b) {
+                let cv = |s: &str| {
+                    resolve(s.parse().unwrap_or(f64::INFINITY)).clamp(0., (len - 1) as f64) as usize
+                };
+                let (a, b) = (cv(a), cv(b));
+                if out.len().saturating_add(a.abs_diff(b) + 1) > limit / size_of::<usize>() {
+                    return Err("frame index exceeds memory budget");
+                }
+                if a <= b {
+                    out.extend(a..=b);
+                } else {
+                    out.extend((b..=a).rev());
+                }
+                continue;
+            }
+        }
+        let prefix = part.strip_prefix(['+', '-']).unwrap_or(part);
+        let digits = prefix.bytes().take_while(u8::is_ascii_digit).count();
+        if digits == 0 {
+            continue;
+        }
+        let index = resolve(
+            part[..part.len() - prefix.len() + digits]
+                .parse()
+                .unwrap_or(f64::INFINITY),
+        );
+        if (0. ..len as f64).contains(&index) {
+            if out.len() >= limit / size_of::<usize>() {
+                return Err("frame index exceeds memory budget");
+            }
+            out.push(index as usize);
+        }
+    }
+    Ok(out)
+}
+
 pub(super) fn evaluate(
     steps: &[(usize, Step)],
     end: usize,
@@ -179,17 +231,17 @@ pub(super) fn evaluate(
     let limit = fs.max_input_bytes();
     // Defer each image's pixel operations until the next append. Later inputs
     // don't see operations that occurred before they joined the stack.
-    let mut stack: Vec<(Scene, usize)> = Vec::new();
+    let mut stack: Vec<(Rc<Scene>, usize)> = Vec::new();
     let mut retained = 0usize;
     for (at, step) in steps {
         let mut push = |im: Raster, timing| {
             retained = retained
                 .saturating_add(im.pixels.len().saturating_mul(4))
-                .saturating_add(size_of::<Raster>());
+                .saturating_add(size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>());
             if retained > limit {
                 return Err("image exceeds memory budget");
             }
-            stack.push((Scene { image: im, timing }, *at));
+            stack.push((Rc::new(Scene { image: im, timing }), *at));
             Ok(())
         };
         match step {
@@ -220,10 +272,87 @@ pub(super) fn evaluate(
                     return Ok(None);
                 }
             }
+            Step::Edit(op, spec, count) if !stack.is_empty() => {
+                let len = stack.len();
+                match *op {
+                    "-reverse" => stack.reverse(),
+                    "+swap" | "-swap" => {
+                        let mut parts = spec.split(',');
+                        let index = |s: &str| {
+                            let v = super::magick_number(s, 0.);
+                            let v = if v < 0. { len as f64 + v } else { v };
+                            (v.fract() == 0. && (0. ..len as f64).contains(&v))
+                                .then_some(v as usize)
+                        };
+                        if let (Some(a), Some(b)) = (
+                            index(parts.next().unwrap_or("-2")),
+                            index(parts.next().unwrap_or("-1")),
+                        ) {
+                            stack.swap(a, b);
+                        }
+                    }
+                    "+insert" | "-insert" => {
+                        let n = super::magick_number(spec, 0.);
+                        if !n.is_nan() {
+                            let at = (if n < 0. { len as f64 + n } else { n })
+                                .clamp(0., (len - 1) as f64)
+                                as usize;
+                            stack[at..].rotate_right(1);
+                        }
+                    }
+                    "+delete" | "-delete" => {
+                        let mut remove = vec![false; len];
+                        for i in indices(spec, len, limit)? {
+                            remove[i] = true;
+                        }
+                        for ((scene, start), drop) in
+                            std::mem::take(&mut stack).into_iter().zip(remove)
+                        {
+                            if !drop {
+                                stack.push((scene, start));
+                                continue;
+                            }
+                            retained = retained.saturating_sub(size_of::<(Rc<Scene>, usize)>());
+                            if Rc::strong_count(&scene) == 1 {
+                                retained = retained.saturating_sub(
+                                    scene.image.pixels.len() * 4 + size_of::<Scene>(),
+                                );
+                            }
+                            // A later deletion cannot discard an earlier operator's error.
+                            if start < *at {
+                                let mut scene = Rc::unwrap_or_clone(scene);
+                                transform(&mut scene.image, start..*at, scene.timing.is_some())?;
+                            }
+                        }
+                    }
+                    _ if *count > 0 => {
+                        let selected = indices(spec, len, limit)?;
+                        if !selected.is_empty() {
+                            retained = retained.saturating_add(
+                                selected
+                                    .len()
+                                    .saturating_mul(*count)
+                                    .saturating_mul(size_of::<(Rc<Scene>, usize)>()),
+                            );
+                            if retained > limit {
+                                return Err("image exceeds memory budget".into());
+                            }
+                            for _ in 0..*count {
+                                for &i in &selected {
+                                    stack.push(stack[i].clone());
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Step::Edit(..) => {}
             Step::Append(vertical, gravity, bg) if stack.len() > 1 => {
                 let (mut w, mut h) = (0usize, 0usize);
                 retained = 0;
                 for (scene, start) in &mut stack {
+                    let scene = Rc::make_mut(scene);
                     let im = &mut scene.image;
                     transform(im, *start..*at, scene.timing.is_some())?;
                     retained = retained.saturating_add(im.pixels.len() * 4);
@@ -251,7 +380,8 @@ pub(super) fn evaluate(
                     pixels: vec![*bg; w * h],
                 };
                 let mut cursor = 0;
-                for (Scene { image: im, .. }, _) in stack.drain(..) {
+                for (scene, _) in stack.drain(..) {
+                    let im = &scene.image;
                     let (x, y) = if *vertical {
                         (gravity.offset(w - im.width, 0).0, cursor)
                     } else {
@@ -267,22 +397,20 @@ pub(super) fn evaluate(
                 }
                 retained = w * h * 4;
                 stack.push((
-                    Scene {
+                    Rc::new(Scene {
                         image: out,
                         timing: None,
-                    },
+                    }),
                     *at,
                 ));
             }
             Step::Append(..) => {}
         }
     }
-    if stack.is_empty() {
-        return Ok(None);
-    }
     retained = 0;
     let mut frames = Vec::with_capacity(stack.len());
-    for (mut scene, start) in stack {
+    for (scene, start) in stack {
+        let mut scene = Rc::unwrap_or_clone(scene);
         let im = &mut scene.image;
         if !transform(im, start..end, scene.timing.is_some())? {
             scene.timing = None;

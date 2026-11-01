@@ -4578,12 +4578,14 @@ fn cmd_media_doc(
                     Err(_) => {}
                 }
             }
-            let output_kind = output_format.unwrap_or_else(||out_lower.rsplit_once('.').map_or("",|(_,ext)|ext));
-            let y4m_output = output_kind.eq_ignore_ascii_case("y4m") || output_kind.eq_ignore_ascii_case("yuv4mpegpipe");
-            // Explicit mov resolves to the MP4 format alias; a .mov filename selects QuickTime.
-            let mov_output=output_format.is_none() && output_kind.eq_ignore_ascii_case("mov");
-            let mp4_output=matches!(output_kind.to_ascii_lowercase().as_str(),"mp4"|"m4a"|"mov");
-            if mp4_output || inputs.len()==1 && (output_kind.eq_ignore_ascii_case("aac") || y4m_output){
+            let muxer = match output_format {
+                Some(name) => media_format::by_name(name),
+                None => media_format::by_filename(&out_rel),
+            };
+            let y4m_output = muxer == Some("y4m");
+            let mov_output = muxer == Some("mov");
+            let mp4_output = matches!(muxer, Some("mp4" | "mov"));
+            if mp4_output || inputs.len()==1 && (muxer==Some("aac") || y4m_output){
                 let source=&inputs[0];
                 let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
                 let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
@@ -4785,12 +4787,8 @@ fn cmd_media_doc(
             if output_format == Some("null") || out_rel == "/dev/null" {
                 return ok_out("");
             }
-            if out_lower.ends_with(".ass")
-                || out_lower.ends_with(".aiff")
-                || out_lower.ends_with(".au")
-                || out_lower.ends_with(".caf")
-            {
-                let fmt_desc = if fmt_flag.is_empty() { &out_rel } else { &fmt_flag };
+            if muxer.is_none() && !out_lower.ends_with(".mpd") && !out_lower.ends_with(".m3u") && !out_lower.ends_with(".m3u8") {
+                let fmt_desc = output_format.unwrap_or(&out_rel);
                 return err_out(
                     &format!(
                         "ffmpeg: Unable to find a suitable output format for '{fmt_desc}' (format AST not registered)\n"
@@ -12954,11 +12952,15 @@ mod media_unit_tests {
     #[test]
     fn ffmpeg_explicit_mov_alias_and_filename_select_different_muxers() {
         let fs=MemoryVfs::new();fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
-        for (args,brand) in [(vec!["-i","av.mp4","named.mov"],b"qt  "),(vec!["-i","av.mp4","-f","mov","explicit.mov"],b"isom")] {
+        for (args,brand) in [(vec!["-i","av.mp4","named.mov"],b"qt  "),(vec!["-i","av.mp4","-f","mov","explicit.mov"],b"isom"),(vec!["-i","av.mp4","sample.M4V"],b"isom"),(vec!["-i","av.mp4","-f","qt","explicit.mp4"],b"qt  "),(vec!["-i","av.mp4","-f","mj2","explicit.mj2"],b"isom")] {
             let r=cmd_media_doc("ffmpeg",&media_args(&args),"","/",&fs);
             assert_eq!((r.exit_code,r.stderr),(0,String::new()));
             assert_eq!(&fs.read_file(&format!("/{}",args.last().unwrap())).unwrap()[8..12],brand);
         }
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","named.mj2"]),"","/",&fs);
+        assert_eq!(r.exit_code,1);
+        assert_eq!(r.stderr,"ffmpeg: Unable to find a suitable output format for 'named.mj2' (format AST not registered)\n");
+        assert!(!fs.exists("/named.mj2"));
     }
 
     #[test]

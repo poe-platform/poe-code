@@ -33,9 +33,10 @@ const FORMATS: &[(&str, &str, &[&str])] = &[
     ("dash", "dash", &["mpd"]),
 ];
 
-pub(super) fn detect(bytes: &[u8], filename: &str, explicit: Option<&str>) -> Option<&'static str> {
-    if let Some(format) = explicit
-        && let Some((id, _, _)) = FORMATS.iter().find(|(id, name, exts)| {
+pub(super) fn by_name(format: &str) -> Option<&'static str> {
+    FORMATS
+        .iter()
+        .find(|(id, name, exts)| {
             id.eq_ignore_ascii_case(format)
                 || name.eq_ignore_ascii_case(format)
                 || name
@@ -43,16 +44,24 @@ pub(super) fn detect(bytes: &[u8], filename: &str, explicit: Option<&str>) -> Op
                     .chain(exts.iter().copied())
                     .any(|s| s.eq_ignore_ascii_case(format))
         })
-    {
-        return Some(id);
-    }
-    let file = filename.split('?').next().unwrap_or(filename);
-    let extension = file.rsplit('.').next().unwrap_or("");
-    let named = FORMATS
+        .map(|f| f.0)
+}
+
+pub(super) fn by_filename(filename: &str) -> Option<&'static str> {
+    let file = filename.split('?').next()?;
+    let extension = file.rsplit('.').next()?;
+    FORMATS
         .iter()
         .find(|(_, _, exts)| exts.iter().any(|s| s.eq_ignore_ascii_case(extension)))
-        .map(|x| x.0);
-    let suffix = if file == filename { named } else { None };
+        .map(|f| f.0)
+}
+
+pub(super) fn detect(bytes: &[u8], filename: &str, explicit: Option<&str>) -> Option<&'static str> {
+    if let Some(format) = explicit.and_then(by_name) {
+        return Some(format);
+    }
+    let named = by_filename(filename);
+    let suffix = if filename.contains('?') { None } else { named };
     let text = |limit| String::from_utf8_lossy(&bytes[..bytes.len().min(limit)]);
     let mp4 = matches!(
         bytes.get(4..8),

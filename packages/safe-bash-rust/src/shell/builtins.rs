@@ -2300,7 +2300,7 @@ pub fn eval_test_unary_predicate(
         "-u" => fs.stat(&path).map(|s| (s.mode & 0o4000) != 0).unwrap_or(false),
         "-g" => fs.stat(&path).map(|s| (s.mode & 0o2000) != 0).unwrap_or(false),
         "-k" => fs.stat(&path).map(|s| (s.mode & 0o1000) != 0).unwrap_or(false),
-        "-s" => fs.read_file(&path).map(|b| !b.is_empty()).unwrap_or(false),
+        "-s" => fs.stat(&path).is_ok_and(|s| s.size > 0),
         "-L" | "-h" => fs.readlink(&path).is_ok(),
         "-r" => fs.stat(&path).map(|s| s.mode & 0o444 != 0).unwrap_or(false),
         "-w" => fs.stat(&path).map(|s| s.mode & 0o222 != 0).unwrap_or(false),
@@ -2322,7 +2322,7 @@ pub fn eval_test_unary_predicate(
                 .unwrap_or(0);
             fs.stat(&path).is_ok() && egid == 0
         }
-        "-N" => fs.stat(&path).map(|s| s.mtime_ms > 0).unwrap_or(false),
+        "-N" => fs.stat(&path).is_ok_and(|s| s.mtime_ms > s.atime_ms),
         _ => fs.stat(&path).is_ok(),
     }
 }
@@ -3642,6 +3642,20 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn file_predicates_check_metadata_without_reading_contents() {
+        let fs = crate::vfs::MemoryVfs::new();
+        fs.write_file("/file", b"hello").unwrap();
+        let mut env = BTreeMap::new();
+        let mut test = |op| eval_test_unary_predicate(op, "/file", "/", &mut env, &fs);
+        assert!(!test("-N"));
+        fs.set_times("/file", Some(10), Some(20)).unwrap();
+        assert!(test("-s"));
+        assert!(test("-N"));
+        fs.read_file("/file").unwrap();
+        assert!(!test("-N"));
     }
 
     #[test]

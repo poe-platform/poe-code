@@ -511,6 +511,7 @@ pub(in super::super) struct Remux<'a> {
     pub strip_audio: bool,
     pub strip_video: bool,
     pub strip_subtitles: bool,
+    pub shortest: bool,
     pub start: Option<f64>,
     pub end: Option<f64>,
     pub frames: Option<u32>,
@@ -521,24 +522,34 @@ pub(in super::super) struct Remux<'a> {
     pub limit: usize,
 }
 
-pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, String> {
+pub(in super::super) fn remux(inputs: &[&[u8]], opts: Remux<'_>) -> Result<Vec<u8>, String> {
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
-    let moov = super::movie(input)?;
+    let mut sources = Vec::new();
+    for &input in inputs {
+        let moov = super::movie(input)?;
+        let (tracks, _) = super::read_tracks(input, moov)?;
+        let boxes: Vec<_> = atoms(moov)
+            .filter_map(|(k, v)| (k == b"trak").then_some(v))
+            .collect();
+        sources.push((input, moov, tracks, boxes));
+    }
+    let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
     let (scale, _) = header_time(child(moov, b"mvhd"), 1000);
-    let (source, _) = super::read_tracks(input, moov)?;
-    let boxes: Vec<_> = atoms(moov)
-        .filter_map(|(k, b)| (k == b"trak").then_some(b))
-        .collect();
     let mut selected = Vec::new();
     if opts.maps.is_empty() {
-        selected.extend(0..source.len())
+        for (j, (_, _, tracks, _)) in sources.iter().enumerate() {
+            selected.extend((0..tracks.len()).map(|i| (j, i)));
+        }
     }
     for map in opts.maps {
         let raw = map.trim_end_matches('?');
         let mut fields = raw.trim_start_matches('-').split(':');
-        if fields.next().and_then(|s| s.parse::<u32>().ok()) != Some(0) {
+        let Some(j) = fields.next().and_then(|v| v.parse::<usize>().ok()) else {
             continue;
-        }
+        };
+        let Some((_, _, source, _)) = sources.get(j) else {
+            continue;
+        };
         let selector = fields.next();
         let kind = match selector {
             Some("v") => Some("video"),
@@ -560,28 +571,43 @@ pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, 
                 continue;
             }
             if raw.starts_with('-') {
-                selected.retain(|&v| v != t.index)
+                selected.retain(|&v| v != (j, t.index))
             } else {
-                selected.push(t.index)
+                selected.push((j, t.index))
             }
         }
         if selected.len() > 32 {
             return Err("output stream count exceeds limit".into());
         }
     }
+    selected.retain(|&(j, i)| match sources[j].2[i].kind {
+        "video" => !opts.strip_video,
+        "audio" => !opts.strip_audio,
+        "subtitle" => !opts.strip_subtitles,
+        _ => true,
+    });
+    if selected.len() > 32 {
+        return Err("output stream count exceeds limit".into());
+    }
+    let shortest = if opts.shortest {
+        selected
+            .iter()
+            .map(|&(j, i)| {
+                let t = &sources[j].2[i];
+                t.duration as f64 / f64::from(t.scale)
+            })
+            .reduce(f64::min)
+    } else {
+        None
+    };
     let mut tracks = Vec::new();
     let mut index_bytes = 0usize;
-    for index in selected {
-        let t = &source[index];
-        let trak = boxes[index];
+    for (j, i) in selected {
+        let &(input, _, ref source, ref boxes) = &sources[j];
+        let t = &source[i];
+        let trak = boxes[i];
         let video = t.kind == "video";
         let audio = t.kind == "audio";
-        if video && opts.strip_video
-            || audio && opts.strip_audio
-            || t.kind == "subtitle" && opts.strip_subtitles
-        {
-            continue;
-        }
         let tk = child(trak, b"tkhd");
         let long = tk.first() == Some(&1);
         let mdia = child(trak, b"mdia");
@@ -663,13 +689,18 @@ pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, 
         let mut samples = Vec::with_capacity(t.stats.count);
         let mut first_dts = 0;
         let mut begin = 0;
-        let sliced = opts.start.is_some() || opts.end.is_some();
+        let sliced = opts.start.is_some() || opts.end.is_some() || shortest.is_some();
         let start = t
             .origin
             .saturating_add((opts.start.unwrap_or(0.) * f64::from(t.scale)).round() as u64);
-        let end = t.origin.saturating_add(opts.end.map_or(t.duration, |s| {
-            ((s * f64::from(t.scale)).round() as u64).min(t.duration)
-        }));
+        let end = t.origin.saturating_add(
+            shortest
+                .map(|secs| secs.min(opts.end.unwrap_or(secs)))
+                .or(opts.end)
+                .map_or(t.duration, |s| {
+                    ((s * f64::from(t.scale)).round() as u64).min(t.duration)
+                }),
+        );
         let mut first = 0;
         if sliced {
             let mut key = None;
@@ -782,13 +813,47 @@ pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, 
             name,
         });
     }
-    let mut metadata: BTreeMap<_, _> = super::tags(input, moov)
-        .into_iter()
-        .filter_map(|(k, v)| match v {
-            super::Str(s) => Some((k, s)),
-            _ => None,
-        })
-        .collect();
+    let mut metadata = BTreeMap::new();
+    let mut chapters = Vec::new();
+    for &(data, movie, ..) in &sources[..if opts.maps.is_empty() {
+        sources.len()
+    } else {
+        1
+    }] {
+        metadata.extend(
+            super::tags(data, movie)
+                .into_iter()
+                .filter_map(|(k, v)| match v {
+                    super::Str(s) => Some((k, s)),
+                    _ => None,
+                }),
+        );
+        let chpl = child(child(movie, b"udta"), b"chpl");
+        if let Some(&n) = chpl.get(8) {
+            let (count, mut rest) = if n == 0 {
+                (u32_at(chpl, 9), chpl.get(13..).unwrap_or_default())
+            } else {
+                (u32::from(n), &chpl[9..])
+            };
+            for _ in 0..count {
+                if rest.len() < 9 || chapters.get(8) == Some(&255) {
+                    break;
+                }
+                if chapters.is_empty() {
+                    chapters.extend_from_slice(&[1, 0, 0, 0, 0, 0, 0, 0, 0])
+                }
+                let len = usize::from(rest[8]).min(rest.len() - 9);
+                let title = String::from_utf8_lossy(&rest[9..9 + len]);
+                let utf8 = title.trim_start_matches('\u{feff}').as_bytes();
+                let take = utf8.len().min(255);
+                chapters[8] += 1;
+                chapters.extend_from_slice(&rest[..8]);
+                chapters.push(take as u8);
+                chapters.extend_from_slice(&utf8[..take]);
+                rest = &rest[9 + len..];
+            }
+        }
+    }
     metadata.extend(opts.metadata.clone());
     if !opts.metadata.contains_key("date")
         && let Some(year) = opts.metadata.get("year")
@@ -830,7 +895,7 @@ pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, 
         scale,
         &ftyp,
         &metadata,
-        child(child(moov, b"udta"), b"chpl"),
+        &chapters,
         opts.fragmented,
         opts.limit,
     )

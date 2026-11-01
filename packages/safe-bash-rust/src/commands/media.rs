@@ -4424,7 +4424,7 @@ fn cmd_media_doc(
             let mut inputs: Vec<String> = Vec::new();
             let (mut input_format,mut output_format) = (None,None);
             let (mut audio_copy,mut video_copy)=(false,false);
-            let mut audio_filters=Vec::new();let mut fragmented=false;let mut maps=Vec::new();let mut strip_subtitles=false;let mut rotation=None;
+            let mut audio_filters=Vec::new();let mut fragmented=false;let mut maps=Vec::new();let mut strip_subtitles=false;let mut rotation=None;let mut shortest=false;
             let mut fmt_flag = String::new();
             let mut vf_flags: Vec<String> = Vec::new();
             let mut fc_flag = String::new();
@@ -4530,6 +4530,7 @@ fn cmd_media_doc(
                     "-c" | "-codec" | "-c:a" | "-acodec" | "-codec:a" if i + 1 < args.len() => { audio_copy = args[i+1] == "copy"; if matches!(args[i].as_str(),"-c"|"-codec") {video_copy=audio_copy;} i += 2; }
                     "-c:v" | "-vcodec" | "-codec:v" if i + 1 < args.len() => { video_copy = args[i+1] == "copy"; i += 2; }
                     "-map" if i+1<args.len()=>{maps.push(args[i+1].as_str());i+=2;}
+                    "-shortest"=>{shortest=true;i+=1;}
                     "-sn"=>{strip_subtitles=true;i+=1;}
                     "-display_rotation" if i+1<args.len()=>{rotation=Some(args[i+1].parse::<i32>().unwrap_or(0).saturating_abs());i+=2;}
                     "-movflags" if i+1<args.len()=>{let flags=&args[i+1];fragmented|=flags.contains("frag_keyframe")||flags.contains("empty_moov");i+=2;}
@@ -4582,17 +4583,24 @@ fn cmd_media_doc(
             // Explicit mov resolves to the MP4 format alias; a .mov filename selects QuickTime.
             let mov_output=output_format.is_none() && output_kind.eq_ignore_ascii_case("mov");
             let mp4_output=matches!(output_kind.to_ascii_lowercase().as_str(),"mp4"|"m4a"|"mov");
-            if let [source] = inputs.as_slice()
-                && (output_kind.eq_ignore_ascii_case("aac") || y4m_output || mp4_output)
-            {
+            if mp4_output || inputs.len()==1 && (output_kind.eq_ignore_ascii_case("aac") || y4m_output){
+                let source=&inputs[0];
                 let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
-                let bytes = if generator.is_some() {None} else if media_stdin(source) {
-                    Some(crate::vfs::stream_string_to_bytes(stdin))
-                } else { fs.read_file(&resolve_posix_path(cwd,source)).ok() };
+                let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
+                let bytes=if generator.is_some(){None}else{read(source)};
                 let start=ss_opt.unwrap_or(0.).max(0.);
                 let end=to_opt.or_else(||t_opt.map(|t|start+t));
                 let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
                 let real_mp4=matches!(format,Some("mp4"|"mov")) && !bytes.as_deref().unwrap_or_default().starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+                let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
+                if real_mp4 && mp4_output{
+                    for source in &inputs[1..]{
+                        let Some(data)=read(source)else{break};
+                        if !matches!(media_format::detect(&data,source,input_format),Some("mp4"|"mov")) || data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"){break}
+                        admitted=admitted.saturating_add(data.len());if admitted>fs.max_input_bytes(){return err_out("ffmpeg: input byte limit exceeded\n",1)}
+                        additional.push(data);
+                    }
+                }
                 let output=if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
                     if !video_copy {
                         if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
@@ -4604,10 +4612,11 @@ fn cmd_media_doc(
                         else if real_mp4{mp4::decode_y4m(bytes,opts)}
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if mp4_output && real_mp4 && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
-                    let opts=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,start:ss_opt,end,frames:vframes_opt,mov:mov_output,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                    match mp4::mux::remux(bytes.as_deref().unwrap_or_default(),opts){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if !y4m_output && (format==Some("aac") || !mp4_output && real_mp4) {
+                } else if mp4_output && real_mp4 && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
+                    let opts=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,mov:mov_output,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                    let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
+                    match mp4::mux::remux(&sources,opts){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if inputs.len()==1 && !y4m_output && (format==Some("aac") || !mp4_output && real_mp4) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || !audio_filters.is_empty());
                     let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
                     let bytes=bytes.as_deref().unwrap_or_default();
@@ -12960,6 +12969,20 @@ mod media_unit_tests {
         let data=fs.read_file("/cut.mp4").unwrap();
         let start=data.windows(4).position(|s|s==b"mdat").unwrap()+4;
         assert_eq!(data[start+4]&31,5);
+    }
+
+    #[test]
+    fn ffmpeg_maps_tracks_across_mp4_inputs_in_argument_order() {
+        let fs=MemoryVfs::new();let a=include_bytes!("../../tests/fixtures/av.mp4");
+        fs.write_file("/first.mp4",a).unwrap();
+        let mut b=a.to_vec();let at=b.windows(6).position(|s|s==[33,16,4,96,140,28]).unwrap();b[at+2]=77;
+        fs.write_file("/second.mp4",&b).unwrap();
+        let run=|cmd,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        let r=run("ffmpeg",&["-i","first.mp4","-i","second.mp4","-map","1:a","-map","0:v","-c","copy","out.mp4"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        assert_eq!(run("ffprobe",&["-show_entries","stream=index,codec_name","-of","csv=p=0","out.mp4"]).stdout,"0,aac\n1,h264\n");
+        assert_eq!(run("ffmpeg",&["-i","out.mp4","out.aac"]).exit_code,0);
+        assert_eq!(fs.read_file("/out.aac").unwrap()[9],77);
     }
 
     #[test]

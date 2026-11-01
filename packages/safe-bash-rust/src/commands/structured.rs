@@ -35982,6 +35982,16 @@ fn parse_js_function_decl(b: &mut AstBuilder<'_>, fn_start: usize, end: usize) -
         return Err("expected function name".to_string());
     }
     let name_node = b.leaf("VariableDefinition", name_start, name_end, false);
+    let mut children = vec![fn_kw, name_node];
+    let after = parse_js_params_and_body(b, name_end, end, &mut children)?;
+    Ok((b.branch("FunctionDeclaration", fn_start, after, children), after))
+}
+
+fn parse_js_params_and_body(
+    b: &mut AstBuilder<'_>, name_end: usize, end: usize, children: &mut Vec<AstCodeNode>,
+) -> Result<usize, String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
     let param_open = skip_ws_and_comments(s, name_end, end, true, true);
     if param_open >= end || bytes[param_open] != b'(' {
         return Err("expected '(' after function name".to_string());
@@ -36019,15 +36029,101 @@ fn parse_js_function_decl(b: &mut AstBuilder<'_>, fn_start: usize, end: usize) -
         return Err("expected function body '{'".to_string());
     }
     let (block, after_block) = parse_js_block(b, body_open, end)?;
-    Ok((
-        b.branch(
-            "FunctionDeclaration",
-            fn_start,
-            after_block,
-            vec![fn_kw, name_node, param_list, block],
-        ),
-        after_block,
-    ))
+    children.extend([param_list, block]);
+    Ok(after_block)
+}
+
+fn js_identifier_end(bytes: &[u8], start: usize) -> Result<usize, String> {
+    if !bytes.get(start).copied().is_some_and(is_js_ident_start) {
+        return Err("expected identifier".into());
+    }
+    let mut end = start + 1;
+    while end < bytes.len() && is_js_ident_cont(bytes[end]) { end += 1; }
+    Ok(end)
+}
+
+fn parse_js_decorators(
+    b: &mut AstBuilder<'_>, mut pos: usize, end: usize, children: &mut Vec<AstCodeNode>,
+) -> Result<usize, String> {
+    let s = b.source;
+    let bytes = &s.as_bytes()[..end];
+    while bytes.get(pos) == Some(&b'@') {
+        let at = b.leaf("@", pos, pos + 1, false);
+        let start = skip_ws_and_comments(s, pos + 1, end, true, true);
+        let mut stop = js_identifier_end(bytes, start)?;
+        loop {
+            let next = skip_ws_and_comments(s, stop, end, true, true);
+            match bytes.get(next) {
+                Some(b'.') => stop = js_identifier_end(bytes, skip_ws_and_comments(s, next + 1, end, true, true))?,
+                Some(b'(') => stop = find_matching_delim(s, next, end, b'(', b')').ok_or("unclosed decorator arguments")? + 1,
+                _ => break,
+            }
+        }
+        let (expr, _) = parse_js_expr(b, start, stop)?;
+        children.push(b.branch("Decorator", pos, stop, vec![at, expr]));
+        pos = skip_ws_and_comments(s, stop, end, true, true);
+    }
+    Ok(pos)
+}
+
+fn parse_js_class_decl(b: &mut AstBuilder<'_>, start: usize, end: usize) -> Result<AstCodeNode, String> {
+    let s = b.source;
+    let bytes = &s.as_bytes()[..end];
+    let mut children = Vec::new();
+    let kw = parse_js_decorators(b, start, end, &mut children)?;
+    if !s[kw..end].starts_with("class") { return Err("expected class declaration".into()); }
+    children.push(b.leaf("class", kw, kw + 5, false));
+    let name = skip_ws_and_comments(s, kw + 5, end, true, true);
+    let name_end = js_identifier_end(bytes, name)?;
+    children.push(b.leaf("VariableDefinition", name, name_end, false));
+    let mut open = skip_ws_and_comments(s, name_end, end, true, true);
+    if s[open..end].starts_with("extends") {
+        children.push(b.leaf("extends", open, open + 7, false));
+        let base = skip_ws_and_comments(s, open + 7, end, true, true);
+        open = base + s[base..end].find('{').ok_or("expected class body")?;
+        children.push(parse_js_expr(b, base, open)?.0);
+    }
+    if bytes.get(open) != Some(&b'{') { return Err("expected class body".into()); }
+    let close = find_matching_delim(s, open, end, b'{', b'}').ok_or("unclosed class body")?;
+    let mut members = vec![b.leaf("{", open, open + 1, false)];
+    let mut i = skip_ws_and_comments(s, open + 1, close, true, true);
+    while i < close {
+        if bytes[i] == b';' {
+            members.push(b.leaf(";", i, i + 1, false));
+            i = skip_ws_and_comments(s, i + 1, close, true, true);
+            continue;
+        }
+        let mut member = Vec::new();
+        let mut name = parse_js_decorators(b, i, close, &mut member)?;
+        let mut stop = js_identifier_end(&bytes[..close], name)?;
+        let mut next = skip_ws_and_comments(s, stop, close, true, true);
+        if &s[name..stop] == "static" && next < close && is_js_ident_start(bytes[next]) {
+            member.push(b.leaf("static", name, stop, false));
+            name = next;
+            stop = js_identifier_end(&bytes[..close], name)?;
+            next = skip_ws_and_comments(s, stop, close, true, true);
+        }
+        member.push(b.leaf("PropertyDefinition", name, stop, false));
+        let node = if bytes.get(next) == Some(&b'(') {
+            let after = parse_js_params_and_body(b, stop, close, &mut member)?;
+            b.branch("MethodDeclaration", i, after, member)
+        } else {
+            let (stop, semi) = find_stmt_end(b, stop, close);
+            if next < stop && bytes[next] == b'=' {
+                member.push(b.leaf("Equals", next, next + 1, false));
+                member.push(parse_js_expr(b, next + 1, stop)?.0);
+            } else if next < stop {
+                return Err("unsupported class member".into());
+            }
+            if let Some(pos) = semi { member.push(b.leaf(";", pos, pos + 1, false)); }
+            b.branch("PropertyDeclaration", i, semi.map_or(stop, |p| p + 1), member)
+        };
+        i = skip_ws_and_comments(s, node.range.1, close, true, true);
+        members.push(node);
+    }
+    members.push(b.leaf("}", close, close + 1, false));
+    children.push(b.branch("ClassBody", open, close + 1, members));
+    Ok(b.branch("ClassDeclaration", start, close + 1, children))
 }
 
 fn parse_js_var_decl(
@@ -36090,6 +36186,13 @@ fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Resul
         if s[i..end].starts_with("export ") || s[i..end].starts_with("export\t") {
             let exp_kw = b.leaf("export", i, i + 6, false);
             let inner_start = skip_ws_and_comments(s, i + 6, end, true, true);
+            if s[inner_start..end].starts_with("class ") || bytes.get(inner_start) == Some(&b'@') {
+                let class = parse_js_class_decl(b, inner_start, end)?;
+                let after = class.range.1;
+                stmts.push(b.branch("ExportDeclaration", i, after, vec![exp_kw, class]));
+                i = after;
+                continue;
+            }
             if s[inner_start..end].starts_with("function ") || s[inner_start..end].starts_with("function\t") {
                 let (fn_decl, after_fn) = parse_js_function_decl(b, inner_start, end)?;
                 stmts.push(b.branch("ExportDeclaration", i, after_fn, vec![exp_kw, fn_decl]));
@@ -36110,6 +36213,12 @@ fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Resul
             if i > inner_start {
                 continue;
             }
+        }
+        if bytes[i] == b'@' || s[i..end].starts_with("class") && bytes.get(i + 5).is_some_and(u8::is_ascii_whitespace) {
+            let class = parse_js_class_decl(b, i, end)?;
+            i = class.range.1;
+            stmts.push(class);
+            continue;
         }
         if s[i..end].starts_with("function ") || s[i..end].starts_with("function\t") {
             let (fn_decl, after_fn) = parse_js_function_decl(b, i, end)?;
@@ -39236,6 +39345,16 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_matches_decorators_and_calls_in_class_method_bodies() {
+        let fs = MemoryVfs::new();
+        let source = "@memo(1)\nclass A extends Base { @memo(2) static m(v: T) { return memo(v); } } memo(3);";
+        fs.write_file("/input.ts", source.as_bytes()).unwrap();
+        let r = try_run_structured_command("sg", &args(&["-p", "memo($V)", "-r", "g($V)", "-U", "/input.ts"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+        assert_eq!(fs.read_file("/input.ts").unwrap(), b"@g(1)\nclass A extends Base { @g(2) static m(v: T) { return g(v); } } g(3);");
     }
 
     #[test]

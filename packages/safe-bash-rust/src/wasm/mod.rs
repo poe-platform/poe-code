@@ -6,9 +6,13 @@ use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock};
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Profile { Memory, Overlay, StrictMount, Devices }
+
 struct WasmSession {
     shell: Shell,
     memory_vfs: MemoryVfs,
+    profile: Profile,
     last_output_buf: Vec<u8>,
 }
 
@@ -127,6 +131,7 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
         WasmSession {
             shell,
             memory_vfs: vfs,
+            profile: Profile::Memory,
             last_output_buf: Vec::new(),
         },
     );
@@ -141,11 +146,12 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match profile {
+    sess.profile = match profile {
         1 => {
             let upper = Arc::new(MemoryVfs::new());
             upper.set_devices(crate::vfs::memory::Devices::None);
             sess.shell.fs = Arc::new(OverlayVfs::new(sess.shell.fs.clone(), upper));
+            Profile::Overlay
         }
         2 | 3 => {
             let dev_fs = Arc::new(MemoryVfs::new());
@@ -170,10 +176,11 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
                     max_expansion_bytes: 1024 * 1024,
                     ..ShellLimits::default()
                 });
-            }
+                Profile::StrictMount
+            } else { Profile::Devices }
         }
-        _ => {}
-    }
+        _ => return 0,
+    };
     0
 }
 
@@ -259,6 +266,7 @@ pub unsafe extern "C" fn safe_bash_read_file(
     id: u32,
     path_ptr: *const u8,
     path_len: usize,
+    max_bytes: f64,
 ) -> i32 {
     let path = unsafe {
         str_from_raw(path_ptr, path_len)
@@ -269,13 +277,34 @@ pub unsafe extern "C" fn safe_bash_read_file(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match sess.shell.fs.read_file(path) {
+    // Memory validates options first; mounts resolve the path before calling
+    // their backend, and the overlay checks access before admitting the read.
+    let invalid_limit = max_bytes < 0.0;
+    let fs = &sess.shell.fs;
+    let result = (|| {
+        if sess.profile == Profile::Memory && invalid_limit { return Err("EINVAL: invalid argument".into()); }
+        let p = fs.access_path(path, true)?;
+        let st = fs.lstat(&p)?;
+        if sess.profile != Profile::Overlay && invalid_limit { return Err("EINVAL: invalid argument".into()); }
+        let device = st.mode & 0o170000 == 0o020000;
+        if sess.profile == Profile::Devices && device && max_bytes == f64::INFINITY { return Err("EINVAL: invalid argument".into()); }
+        if st.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+        if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        if invalid_limit { return Err("EINVAL: invalid argument".into()); }
+        if device && crate::vfs::basename_posix_path(&p) != "null" { return Err("EFBIG: device has no EOF".into()); }
+        if st.size as f64 > max_bytes { return Err("EFBIG: file too large".into()); }
+        fs.read_file(&p)
+    })();
+    match result {
         Ok(bytes) => {
             let len = bytes.len() as i32;
             sess.last_output_buf = bytes;
             len
         }
-        Err(_) => -1,
+        Err(e) => {
+            sess.last_output_buf = e.into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
     }
 }
 

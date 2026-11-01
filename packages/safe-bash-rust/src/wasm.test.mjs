@@ -562,3 +562,39 @@ test("constructor seeds use the same creation mode as fs.writeFile", async () =>
     assert.equal((await bash.fs.stat("/private")).mode & 0o777, 0o600);
   } finally { bash.dispose(); }
 });
+
+test("readFile enforces read and directory search permissions, byte caps, and aborts", async () => {
+  for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, files:{"/dir/file":"data", "/secret":{content:"hidden",mode:0o200}}, symlinks:{"/alias":"secret"}});
+    const fs = bash.fs;
+    try {
+      for (const path of ["/secret", "/alias"]) {
+        await assert.rejects(fs.readFile(path), {name:"FsError",code:"EACCES",syscall:"readFile",path});
+      }
+      await assert.rejects(fs.readFile("/dir"), {code:"EISDIR"});
+      await assert.rejects(fs.readFile("/dir/file", {maxBytes:3}), {code:"EFBIG"});
+      await assert.rejects(fs.readFile("/dir/file", {maxBytes:-1}), {code:"EINVAL"});
+      await assert.rejects(fs.readFile("/missing", {maxBytes:-1}), {code:profile ? "ENOENT" : "EINVAL"});
+      await assert.rejects(fs.readFile("/secret", {maxBytes:-1}), {code:profile === "overlay-cow-fs" ? "EACCES" : "EINVAL"});
+      await assert.rejects(fs.readFile("/dir/file", {signal:AbortSignal.abort()}), {name:"AbortError"});
+      for (const maxBytes of [4, Infinity]) {
+        assert.deepEqual(await fs.readFile("/dir/file", {maxBytes}), new TextEncoder().encode("data"));
+      }
+      await fs.chmod("/dir", 0o600);
+      await assert.rejects(fs.readFile("/dir/file"), {code:"EACCES"});
+    } finally { bash.dispose(); }
+  }
+});
+
+
+test("mounted streams without EOF cannot be read as whole files", async () => {
+  const bash = new RustWasmBash({deviceView:"provided"});
+  try {
+    bash.mountDevices();
+    for (const name of ["zero", "urandom", "random"]) {
+      await assert.rejects(bash.fs.readFile("/dev/" + name, {maxBytes:4}), {code:"EFBIG"});
+    }
+    assert.deepEqual(await bash.fs.readFile("/dev/null", {maxBytes:0}), new Uint8Array());
+    await assert.rejects(bash.fs.readFile("/dev/null", {maxBytes:Infinity}), {code:"EINVAL"});
+  } finally { bash.dispose(); }
+});

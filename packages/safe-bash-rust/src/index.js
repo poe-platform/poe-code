@@ -58,12 +58,13 @@ export class WasmFileSystem {
     this.bash = bash;
   }
 
-  async readFile(filePath) {
+  async readFile(filePath, options) {
     if (this.bash._companion) {
+      options?.signal?.throwIfAborted();
       await this.bash._ensureCompanionSynced();
-      return this.bash._companion.fs.readFile(filePath);
+      return this.bash._companion.fs.readFile(filePath, options);
     }
-    return this.bash.readFile(filePath);
+    return this.bash.readFile(filePath, options);
   }
 
   async writeFile(filePath, data, options) {
@@ -483,12 +484,17 @@ export class RustWasmBash {
     }
   }
 
-  readFile(filePath) {
+  readFile(filePath, options) {
+    options?.signal?.throwIfAborted();
+    const limit = options?.maxBytes;
+    const maxBytes = limit === undefined ? NaN : limit === Infinity || Number.isSafeInteger(limit) ? limit : -1;
     const p = this._allocBytes(encoder.encode(filePath));
     try {
-      const len = this.exports.safe_bash_read_file(this.sessionId, p.ptr, p.len);
+      const len = this.exports.safe_bash_read_file(this.sessionId, p.ptr, p.len, maxBytes);
+      if (len === -1) throw new Error("Wasm session unavailable");
       if (len < 0) {
-        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
+        const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+        throw fsOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -len)), "readFile", filePath);
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       return new Uint8Array(this.exports.memory.buffer.slice(outPtr, outPtr + len));

@@ -27677,16 +27677,16 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     ok_out(&out)
 }
 #[derive(Clone, Debug)]
-enum HtmlNode {
+pub(super) enum HtmlNode {
     Text(String),
     Element(HtmlElement),
 }
 
 #[derive(Clone, Debug)]
-struct HtmlElement {
-    tag: String,
+pub(super) struct HtmlElement {
+    pub(super) tag: String,
     attrs: Vec<(String, String)>,
-    children: Vec<HtmlNode>,
+    pub(super) children: Vec<HtmlNode>,
 }
 
 #[derive(Clone, Debug)]
@@ -27723,10 +27723,20 @@ fn is_void_html_tag(tag: &str) -> bool {
 
 fn parse_html_dom(src: &str) -> Vec<HtmlNode> {
     let mut pos = 0usize;
-    parse_html_children(src, &mut pos, None)
+    parse_html_children(src, &mut pos, None, usize::MAX)
 }
 
-fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>) -> Vec<HtmlNode> {
+pub(super) fn bounded_html_dom(src: &str) -> Option<Vec<HtmlNode>> {
+    let mut pos = 0usize;
+    let nodes = parse_html_children(src, &mut pos, None, 96);
+    (pos <= src.len()).then_some(nodes)
+}
+
+fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth: usize) -> Vec<HtmlNode> {
+    if depth == 0 {
+        *pos = src.len() + 1;
+        return vec![];
+    }
     let mut out = Vec::new();
     let bytes = src.as_bytes();
     while *pos < bytes.len() {
@@ -27823,7 +27833,7 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>) -> Ve
                     }
                     continue;
                 }
-                let mut children = parse_html_children(src, pos, Some(&tag_name));
+                let mut children = parse_html_children(src, pos, Some(&tag_name), depth - 1);
                 if tag_name == "table"
                     && children.iter().any(|c| matches!(c, HtmlNode::Element(el) if el.tag == "tr"))
                     && !children.iter().any(|c| matches!(c, HtmlNode::Element(el) if el.tag == "tbody"))

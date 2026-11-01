@@ -5566,6 +5566,16 @@ fn cmd_media_doc(
                 };
                 let (paras, rows_opt) = read_office_source(&full, &bytes, fs);
                 match target_ext.as_str() {
+                    "pdf" if ![".pdf", ".docx", ".pptx", ".odt", ".odp", ".ods", ".xlsx", ".rtf"].iter().any(|ext| lower_in.ends_with(ext)) => {
+                        let source = String::from_utf8_lossy(&bytes);
+                        let rows = lower_in.ends_with(".csv").then_some(rows_opt).flatten();
+                        let Some(pdf) = pdf_reader::render_office(&source, &lower_in, rows, stem, filter_opts, fs.max_input_bytes()) else {
+                            return err_out("Error: conversion failed: PDF exceeds resource limits\n", 1);
+                        };
+                        if fs.write_file(&dest, &pdf).is_err() {
+                            return err_out("Error: conversion failed: cannot write PDF\n", 1);
+                        }
+                    }
                     "pdf" => {
                         let mut pdf = if full.to_ascii_lowercase().ends_with(".pdf") {
                             PdfDoc::parse(&bytes)
@@ -13446,6 +13456,17 @@ mod media_unit_tests {
         fs.chmod("/new", 0o600).unwrap();
         assert_eq!(run("/source", "/new").exit_code, 0);
         assert_eq!(fs.stat("/new").unwrap().mode & 0o777, 0o600);
+    }
+
+    #[test]
+    fn soffice_writes_standard_pdf_objects_for_html() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/page.html", b"<p>alpha</p>").unwrap();
+        let result = cmd_media_doc("soffice", &media_args(&["--convert-to", "pdf", "page.html"]), "", "/", &fs);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        let bytes = fs.read_file("/page.pdf").unwrap();
+        assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b| format!("{b:02x}")).collect::<String>(),
+                   "035035a4cc7f3bed1d8cca27139e7f1f7712abb2879c24976818b4808fed53db");
     }
 
     #[test]

@@ -232,11 +232,23 @@ impl PageOutput {
         source: &mut PageSource<'_>,
         single_page: Option<usize>,
     ) -> Option<()> {
-        let page_offset = self.pages.len();
         let selection = match single_page {
             Some(i) => i..i.checked_add(1)?,
             None => 0..source.len(),
         };
+        self.copy_pages(source, selection, single_page.is_none())
+    }
+
+    // Office's PageRange creates a new document, with fresh metadata.
+    pub(super) fn selected(source: &mut PageSource<'_>, pages: std::ops::Range<usize>, limit: usize) -> Option<Vec<u8>> {
+        let mut doc = Self::new(limit);
+        doc.bodies[2] = b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec();
+        doc.copy_pages(source, pages, false)?;
+        doc.finish()
+    }
+
+    fn copy_pages(&mut self, source: &mut PageSource<'_>, selection: std::ops::Range<usize>, whole_document: bool) -> Option<()> {
+        let page_offset = self.pages.len();
         let mut ids = BTreeMap::new();
         for i in selection.clone() {
             let n = self.bodies.len() + 1;
@@ -244,7 +256,7 @@ impl PageOutput {
             self.pages.push(n);
             self.bodies.push(vec![]);
         }
-        if single_page.is_none() {
+        if whole_document {
             for (name, id) in source.attachments()? {
                 if !self.attachment_names.insert(super::text(&name)) {
                     continue;
@@ -267,7 +279,7 @@ impl PageOutput {
             copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
             copy.output.bodies[2] = body;
         }
-        if single_page.is_none() {
+        if whole_document {
             for (index, label) in copy.objects.labels(source.catalog.get(b"PageLabels"))? {
                 let mut pair = Vec::new();
                 write!(pair, "{} ", page_offset.checked_add(index)?).ok()?;

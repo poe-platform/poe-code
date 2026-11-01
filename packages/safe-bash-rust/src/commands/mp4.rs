@@ -706,6 +706,7 @@ impl<'a> Track<'a> {
         input: &[u8],
         writer: &mut super::subtitles::Writer,
         range: Option<(f64, Option<f64>)>,
+        materialized: bool,
     ) -> Result<(), &'static str> {
         let scale = f64::from(self.scale);
         let ms = |t: i128| (t as f64 * 1000. / scale).round() as i64;
@@ -716,8 +717,20 @@ impl<'a> Track<'a> {
                 &String::from_utf8_lossy(data),
             )
         };
+        // An input slice already holds timed-text packets. Reopening it as an
+        // external MP4 would unpack the text a second time and discard gaps.
+        let cues = || -> Box<dyn Iterator<Item = (Sample, &[u8])> + '_> {
+            if materialized {
+                Box::new(self.samples(input.len()).map(|s| {
+                    let body = &input[s.offset..s.offset + s.size as usize];
+                    (s, body)
+                }))
+            } else {
+                Box::new(self.subtitle_cues(input))
+            }
+        };
         let Some((start, end)) = range else {
-            for (s, data) in self.subtitle_cues(input) {
+            for (s, data) in cues() {
                 emit(writer, s.pts, u64::from(s.tick), data)?;
             }
             return Ok(());
@@ -729,9 +742,9 @@ impl<'a> Track<'a> {
         if end <= start {
             return Ok(());
         }
-        let packed = self
-            .subtitle_cues(input)
-            .all(|(_, data)| data.len() >= 2 && usize::from(u16_at(data, 0)) == data.len() - 2);
+        let packed = materialized
+            || cues()
+                .all(|(_, data)| data.len() >= 2 && usize::from(u16_at(data, 0)) == data.len() - 2);
         let mut out_dts = 0u64;
         let mut packet = |dts: u64, cts: i128, tick: u64, data: &[u8]| {
             if dts < end && dts.saturating_add(tick) > start {
@@ -743,7 +756,7 @@ impl<'a> Track<'a> {
         };
         let mut cursor = 0;
         let mut wrapped = Vec::new();
-        for (s, data) in self.subtitle_cues(input) {
+        for (s, data) in cues() {
             if packed {
                 if s.dts >= end {
                     break;

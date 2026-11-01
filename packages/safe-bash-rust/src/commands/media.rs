@@ -4105,6 +4105,22 @@ fn qr_render(
     text.into_bytes()
 }
 
+#[derive(Clone, Copy, Default)]
+struct InputTime {
+    start: Option<f64>,
+    to: Option<f64>,
+    duration: Option<f64>,
+}
+impl InputTime {
+    fn end(self) -> Option<f64> {
+        self.to.or_else(||self.duration.map(|d|self.start.unwrap_or(0.)+d))
+    }
+    fn generation_end(self, output_end: Option<f64>) -> Option<f64> {
+        let start=self.start.unwrap_or(0.);
+        self.duration.map(|d|start+d).or(self.to).or_else(||output_end.map(|e|start+e))
+    }
+}
+
 fn parse_ffmpeg_timestamp(spec: &str) -> Option<f64> {
     let trimmed = spec.trim();
     if trimmed.is_empty() {
@@ -4430,6 +4446,8 @@ fn cmd_media_doc(
             let mut inputs: Vec<String> = Vec::new();
             let (mut pending_format,mut output_format) = (None,None);
             let mut input_formats=Vec::new();
+            let mut input_times=Vec::new();
+            let mut pending_time=InputTime::default();
             let (mut audio_copy,mut video_copy)=(false,false);
             let mut audio_filters=Vec::new();let mut fragmented=false;let mut maps=Vec::new();let mut strip_subtitles=false;let mut rotation=None;let mut shortest=false;
             let mut fmt_flag = String::new();
@@ -4471,6 +4489,7 @@ fn cmd_media_doc(
                     "-i" if i + 1 < args.len() => {
                         inputs.push(args[i + 1].clone());
                         input_formats.push(pending_format.take());
+                        input_times.push(std::mem::take(&mut pending_time));
                         i += 2;
                     }
                     "-f" if i + 1 < args.len() => {
@@ -4501,15 +4520,18 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-ss" if i + 1 < args.len() => {
-                        ss_opt = parse_ffmpeg_timestamp(&args[i + 1]);
+                        let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.start}else{&mut ss_opt};
+                        *target = parse_ffmpeg_timestamp(&args[i + 1]);
                         i += 2;
                     }
                     "-to" if i + 1 < args.len() => {
-                        to_opt = parse_ffmpeg_timestamp(&args[i + 1]);
+                        let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.to}else{&mut to_opt};
+                        *target = parse_ffmpeg_timestamp(&args[i + 1]);
                         i += 2;
                     }
                     "-t" if i + 1 < args.len() => {
-                        t_opt = parse_ffmpeg_timestamp(&args[i + 1]);
+                        let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.duration}else{&mut t_opt};
+                        *target = parse_ffmpeg_timestamp(&args[i + 1]);
                         i += 2;
                     }
                     "-frames:v" | "-vframes" if i + 1 < args.len() => {
@@ -4625,16 +4647,22 @@ fn cmd_media_doc(
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
-                let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
+                } else if y4m_output && (format==Some("y4m") || supported) {
+                    let seek=input_times[0];
                     let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
                     let bytes=bytes.as_deref().unwrap_or_default();
-                    let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some()).map_err(str::to_owned)}
+                    let result=if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
+                        mp4::mux::input_slice(format.unwrap(),bytes,seek.start,seek.end(),seek.generation_end(end),fs.max_input_bytes()).and_then(|b|mp4::decode_y4m(&b,opts))
+                    } else if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some()).map_err(str::to_owned)}
                         else if real_mp4{mp4::decode_y4m(bytes,opts)}
-                        else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
+                        else if format==Some("y4m") {let s=seek.start.unwrap_or(0.);
+                            let end=match (seek.end(),end.map(|v|v+s)) {(Some(a),Some(b))=>Some(a.min(b)),(a,b)=>a.or(b)};
+                            y4m::Stream::parse(bytes).and_then(|stream|stream.encode(y4m::Options{start:start+s,end,..opts})).map_err(str::to_owned)
+                        }else{Ok(b"YUV4MPEG2 W64 H64 F10:1 Ip A1:1 C420jpeg\n".to_vec())};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if (mp4_output || subtitle_output || audio_output) && remux_inputs {
                     let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
@@ -4654,6 +4682,10 @@ fn cmd_media_doc(
                     };
                 }
             }
+            let InputTime{start:input_ss,to:input_to,duration:input_duration}=input_times[0];
+            let ss_opt=ss_opt.or(input_ss);
+            let to_opt=to_opt.or(input_to);
+            let t_opt=t_opt.or(input_duration);
             let mut doc = MediaDoc::default_video();
             let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
             for inp in &inputs {
@@ -13257,6 +13289,16 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"h264,12,8,3\naac,33\n");
         let r=run(&["-i","out.mp4","-frames:v","1","-f","yuv4mpegpipe","pipe:1"]);
         assert!(crate::vfs::stream_string_to_bytes(&r.stdout).starts_with(b"YUV4MPEG2 W12 H8"));
+    }
+
+    #[test]
+    fn ffmpeg_input_duration_only_trims_the_following_input() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-t","0.25","-i","av.mp4","-f","lavfi","-i","sine=r=16000:d=0.37","-map","0:v","-map","1:a","out.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,duration,nb_frames","-of","csv=p=0","out.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"h264,0.250000,1\naac,0.400000,7\n");
     }
 
     #[test]

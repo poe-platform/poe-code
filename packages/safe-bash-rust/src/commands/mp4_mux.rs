@@ -438,6 +438,8 @@ struct GeneratedAudio {
     channels: u32,
     ticks: u64,
     decoded_ticks: u64,
+    duration_ticks: u64,
+    origin: u64,
 }
 impl GeneratedAudio {
     fn track(
@@ -457,6 +459,8 @@ impl GeneratedAudio {
         };
         let end = end.min(total);
         let ticks = end.saturating_sub(start);
+        let start = self.origin.saturating_add(start);
+        let end = self.origin.saturating_add(end);
         let first = start / 1024;
         let last = if ticks == 0 {
             first
@@ -763,6 +767,8 @@ pub(in super::super) struct Remux<'a> {
     pub shortest: bool,
     pub start: Option<f64>,
     pub end: Option<f64>,
+    pub source_end: Option<f64>,
+    pub input_times: &'a [super::super::InputTime],
     pub frames: Option<u32>,
     pub format: &'a str,
     pub fragmented: bool,
@@ -805,7 +811,7 @@ impl Streams<'_> {
             Self::Mp4(v) => v[i].0.duration as f64 / f64::from(v[i].0.scale),
             Self::Aac { rate, count, .. } => *count as f64 * 1024. / f64::from(*rate),
             Self::GeneratedVideo(v) => (v.duration * v.fps).round().max(1.) / v.fps,
-            Self::GeneratedAudio(a) => a.ticks as f64 / f64::from(a.rate),
+            Self::GeneratedAudio(a) => a.duration_ticks as f64 / f64::from(a.rate),
             Self::Captions(text) => {
                 super::super::subtitles::cues(text)
                     .map(|c| c.start.saturating_add(c.duration))
@@ -818,6 +824,40 @@ impl Streams<'_> {
     }
 }
 
+pub(in super::super) fn input_slice(
+    format: &str,
+    input: &[u8],
+    start: Option<f64>,
+    end: Option<f64>,
+    source_end: Option<f64>,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
+    remux(
+        &[(format, input)],
+        Remux {
+            start,
+            end,
+            source_end,
+            input_times: &[],
+            limit,
+            rate: None,
+            channels: None,
+            audio_filters: &[],
+            video_filters: &[],
+            maps: &[],
+            strip_audio: false,
+            strip_video: false,
+            strip_subtitles: false,
+            shortest: false,
+            frames: None,
+            format: "mp4",
+            fragmented: false,
+            metadata: &BTreeMap::new(),
+            rotation: None,
+        },
+    )
+}
+
 pub(in super::super) fn remux(
     inputs: &[(&str, &[u8])],
     opts: Remux<'_>,
@@ -826,14 +866,29 @@ pub(in super::super) fn remux(
     let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
     let mut materialized = Vec::new();
     let mut admitted = 0usize;
-    for &(format, input) in inputs {
+    for (j, &(format, input)) in inputs.iter().enumerate() {
+        let seek = opts.input_times.get(j).copied().unwrap_or_default();
+        let audio = format == "lavfi"
+            && matches!(
+                input.split(|&b| b == b'=').next(),
+                Some(b"sine" | b"anullsrc")
+            );
         let mut bytes = Cow::Borrowed(input);
-        if sliced
+        if (seek.start.is_some() || seek.end().is_some()) && !audio {
+            bytes = Cow::Owned(input_slice(
+                format,
+                input,
+                seek.start,
+                seek.end(),
+                seek.generation_end(opts.source_end),
+                opts.limit.saturating_sub(admitted),
+            )?);
+        } else if sliced
             && format == "lavfi"
             && let Some(mut video) =
                 super::super::lavfi::Video::parse(std::str::from_utf8(input).unwrap_or(""))
         {
-            video.duration = opts.end.unwrap_or(video.duration);
+            video.duration = opts.source_end.unwrap_or(video.duration);
             let limit = opts.limit.saturating_sub(admitted);
             let track = generated_video(&video, 1000, &[], None, limit)?;
             bytes = Cow::Owned(write(
@@ -853,29 +908,44 @@ pub(in super::super) fn remux(
         materialized.push(bytes);
     }
     let mut sources = Vec::new();
-    for (&(format, _), data) in inputs.iter().zip(&materialized) {
+    for (j, (&(format, _), data)) in inputs.iter().zip(&materialized).enumerate() {
+        let format = if matches!(data, Cow::Owned(_)) {
+            "mp4"
+        } else {
+            format
+        };
+        let seek = opts.input_times.get(j).copied().unwrap_or_default();
         let input = data.as_ref();
-        if format == "lavfi" && matches!(data, Cow::Borrowed(_)) {
+        if format == "lavfi" {
             let spec = std::str::from_utf8(input).map_err(|_| "invalid lavfi source")?;
             if let Some(video) = super::super::lavfi::Video::parse(spec) {
                 sources.push((input, &[][..], Streams::GeneratedVideo(video)));
                 continue;
             }
             let a = super::super::parse_lavfi_input_doc(spec).ok_or("invalid lavfi source")?;
-            let duration = opts.end.unwrap_or(a.duration);
+            let duration = seek.generation_end(opts.source_end).unwrap_or(a.duration);
             let rate = f64::from(a.sample_rate);
             // The synthetic movie's AAC packet table is timed on a 10 fps grid;
             // the decoded channel buffers retain the requested duration.
+            let origin = (seek.start.unwrap_or(0.) * rate).round() as u64;
+            let end = seek.end().map_or(u64::MAX, |s| (s * rate).round() as u64);
+            let clip = |n: f64| ((n.round().max(1024.) as u64).min(end)).saturating_sub(origin);
+            let ticks = clip((duration * 10.).round().max(1.) / 10. * rate);
+            let decoded_ticks = clip(duration * rate);
             sources.push((
                 input,
                 &[][..],
                 Streams::GeneratedAudio(GeneratedAudio {
                     rate: a.sample_rate,
                     channels: a.channels,
-                    ticks: ((duration * 10.).round().max(1.) / 10. * rate)
-                        .round()
-                        .max(1024.) as u64,
-                    decoded_ticks: (duration * rate).round().max(1024.) as u64,
+                    ticks,
+                    decoded_ticks,
+                    origin,
+                    duration_ticks: if seek.start.is_some() || seek.end().is_some() {
+                        decoded_ticks
+                    } else {
+                        ticks
+                    },
                 }),
             ));
             continue;
@@ -1028,7 +1098,13 @@ pub(in super::super) fn remux(
         for (j, i) in selected {
             match &sources[j].2 {
                 Streams::Mp4(v) if v[i].0.kind == "subtitle" => {
-                    v[i].0.write_subtitles(sources[j].0, &mut writer, range)?
+                    let seek = opts.input_times.get(j).copied().unwrap_or_default();
+                    v[i].0.write_subtitles(
+                        sources[j].0,
+                        &mut writer,
+                        range,
+                        seek.start.is_some() || seek.end().is_some(),
+                    )?
                 }
                 Streams::Captions(text) => {
                     super::super::subtitles::convert(text, &mut writer, range)?

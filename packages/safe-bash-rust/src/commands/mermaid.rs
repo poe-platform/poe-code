@@ -535,7 +535,7 @@ pub(super) fn parse<'a>(
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
     if matches!(keyword, "stateDiagram" | "stateDiagram-v2") {
-        return state::parse(lines, wrapping_width, secondary_size, limit);
+        return Some(state::parse(lines, wrapping_width, secondary_size, limit));
     }
     if keyword == "gitGraph" {
         return Some(git_graph::parse(lines, wrapping_width, limit));
@@ -972,7 +972,9 @@ pub(super) fn layout(
         let start_angle = (y - next.1).atan2(x - next.0);
         let angle = (ey - prev.1).atan2(ex - prev.0);
         let id = edge_id(idx);
-        if let Some(message) = route::attachment_error(&points, &nodes[a], &nodes[b], &id) {
+        if let Some(message) =
+            route::attachment_error(&points, &nodes[a], &nodes[b], &id, &groups, (dx, dy))
+        {
             return Some(Err(format!(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 {message}\n"
             )));

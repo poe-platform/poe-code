@@ -30,31 +30,48 @@ pub(super) fn parse(
     wrapping: f64,
     secondary: f64,
     limit: usize,
-) -> Option<Result<Graph<'static>, String>> {
-    // Composite transitions still use the existing rendering path.
-    if lines[1..]
-        .iter()
-        .any(|s| s.text.trim_end().ends_with('{') && !s.text.contains("-->"))
-    {
-        return None;
-    }
-    Some(flat(lines, wrapping, secondary, limit))
-}
-
-fn flat(
-    lines: &[Statement],
-    wrapping: f64,
-    secondary: f64,
-    limit: usize,
 ) -> Result<Graph<'static>, String> {
     let mut graph = Graph::core(wrapping, limit);
     graph.dir = "TD";
     graph.edge_id = |i| format!("state_edge_{}", i + 1);
     let mut ids = BTreeMap::<String, usize>::new();
+    let mut group_ids = BTreeMap::<String, usize>::new();
+    let mut stack = Vec::<usize>::new();
+    let mut starts = BTreeMap::new();
+    let mut ends = BTreeMap::new();
+    let mut group_work = limit;
     let mut stmts = lines[1..].iter();
     while let Some(stmt) = stmts.next() {
         let text = stmt.text.trim_end();
         let fail = |s: &str| stmt.error("E_SYNTAX", text, s);
+        let current = stack.last().copied();
+        let mut open_group = |id: &str, label: &str| -> Result<(), String> {
+            use super::Group;
+            if graph.groups.len() >= limit / 300 {
+                return Err(BUDGET.into());
+            }
+            let i = *group_ids.entry(id.into()).or_insert(graph.groups.len());
+            group_work = group_work.checked_sub(stack.len()).ok_or(BUDGET)?;
+            if stack.contains(&i) {
+                return Err("mmdc: E_LIMIT: Nesting depth limit exceeded\n".into());
+            }
+            let group = Group {
+                composite: true,
+                id: id.into(),
+                label: label.into(),
+                parent: current,
+                root: stack.first().copied().unwrap_or(i),
+                depth: stack.len() + 1,
+                bounds: [0; 4],
+            };
+            if i == graph.groups.len() {
+                graph.groups.push(group);
+            } else {
+                graph.groups[i] = group;
+            }
+            stack.push(i);
+            Ok(())
+        };
         let mut ensure = |nodes: &mut Vec<Node>,
                           raw: &str,
                           label: Option<&str>,
@@ -89,11 +106,15 @@ fn flat(
                 label: label.unwrap_or(id).into(),
                 shape: shape.unwrap_or(Shape::Rounded),
                 order: idx,
+                group: current,
                 ..Default::default()
             });
             Ok(idx)
         };
         if text == "}" {
+            if stack.pop().is_some() {
+                continue;
+            }
             return Err(fail("Unexpected '}' without open composite state"));
         }
         let kw = text.split_ascii_whitespace().next().unwrap_or("");
@@ -164,7 +185,8 @@ fn flat(
                 size: secondary,
             });
         } else if kw.eq_ignore_ascii_case("state") {
-            let mut body = body;
+            let block = body.strip_suffix('{');
+            let mut body = block.unwrap_or(body).trim_end();
             let mut shape = None;
             if let Some((before, kind)) = body.strip_suffix(">>").and_then(|s| s.rsplit_once("<<"))
             {
@@ -208,7 +230,20 @@ fn flat(
             } else {
                 label
             };
-            ensure(&mut graph.nodes, id, Some(label), shape)?;
+            if block.is_some() {
+                open_group(id, label)?;
+            } else {
+                ensure(&mut graph.nodes, id, Some(label), shape)?;
+            }
+        } else if let Some(raw) = text.strip_suffix('{')
+            && !text.contains("-->")
+        {
+            let id = strip_quotes(raw);
+            if id.is_empty() {
+                return Err(fail("Missing composite state name before '{'"));
+            }
+            check_label(id, stmt, text)?;
+            open_group(id, id)?;
         } else if let Some(i) = outside(text, |s| s.starts_with("-->")) {
             let left = text[..i].trim_ascii();
             let rest = text[i + 3..].trim_ascii();
@@ -221,12 +256,18 @@ fn flat(
             }
             let mut endpoint = |raw: &str, source| {
                 if raw == "[*]" {
-                    let (id, shape) = if source {
-                        ("__state_start_1", Shape::StateStart)
+                    let (scopes, shape, prefix) = if source {
+                        (&mut starts, Shape::StateStart, "start")
                     } else {
-                        ("__state_end_1", Shape::StateEnd)
+                        (&mut ends, Shape::StateEnd, "end")
                     };
-                    ensure(&mut graph.nodes, id, Some(""), Some(shape))
+                    if let Some(&idx) = scopes.get(&current) {
+                        return Ok(idx);
+                    }
+                    let id = format!("__state_{prefix}_{}", scopes.len() + 1);
+                    let idx = ensure(&mut graph.nodes, &id, Some(""), Some(shape))?;
+                    scopes.insert(current, idx);
+                    Ok(idx)
                 } else {
                     ensure(&mut graph.nodes, raw, None, None)
                 }
@@ -248,6 +289,13 @@ fn flat(
             && !desc.is_empty()
         {
             check_label(desc, stmt, text)?;
+            if let Some(&g) = group_ids.get(id) {
+                let g = &mut graph.groups[g];
+                if g.label == id {
+                    g.label = format!("{id} — {desc}");
+                }
+                continue;
+            }
             let idx = ensure(&mut graph.nodes, id, None, None)?;
             let node = &mut graph.nodes[idx];
             if node.id == node.label {
@@ -258,6 +306,149 @@ fn flat(
             return Err(fail(&format!(
                 "Unknown or unsupported stateDiagram statement '{text}'"
             )));
+        }
+    }
+    if let Some(i) = stack.last() {
+        return Err(format!(
+            "mmdc: E_SYNTAX: Unclosed composite state '{}' (missing '}}')\n",
+            graph.groups[*i].id
+        ));
+    }
+    if !graph.groups.is_empty() {
+        // Reopened groups may have moved. Recompute ancestry before the graph layout walks it.
+        for i in 0..graph.groups.len() {
+            let mut root = i;
+            let mut depth = 1;
+            while let Some(parent) = graph.groups[root].parent {
+                group_work = group_work.checked_sub(1).ok_or(BUDGET)?;
+                depth += 1;
+                if depth > graph.groups.len() {
+                    return Err(BUDGET.into());
+                }
+                root = parent;
+            }
+            graph.groups[i].root = root;
+            graph.groups[i].depth = depth;
+        }
+        let mut removed = vec![false; graph.nodes.len()];
+        let mut members = vec![Vec::new(); graph.groups.len()];
+        let mut children = vec![Vec::new(); graph.groups.len()];
+        for (i, g) in graph.groups.iter().enumerate() {
+            if let Some(p) = g.parent {
+                children[p].push(i);
+            }
+        }
+        for (i, n) in graph.nodes.iter().enumerate() {
+            if let Some(g) = n.group
+                && !group_ids.contains_key(&n.id)
+            {
+                members[g].push(i);
+            }
+        }
+        for (g, group) in graph.groups.iter().enumerate() {
+            let Some(&duplicate) = ids.get(&group.id) else {
+                continue;
+            };
+            let mut endpoint = |source: bool| -> Result<Option<usize>, String> {
+                let mut search = vec![g];
+                while let Some(g) = search.pop() {
+                    group_work = group_work
+                        .checked_sub(1 + children[g].len() + members[g].len())
+                        .ok_or(BUDGET)?;
+                    let m = &members[g];
+                    if m.is_empty() {
+                        if source {
+                            search.extend(&children[g]);
+                        } else {
+                            search.extend(children[g].iter().rev());
+                        }
+                        continue;
+                    }
+                    if let Some(&idx) = if source {
+                        ends.get(&Some(g))
+                    } else {
+                        starts.get(&Some(g))
+                    } {
+                        return Ok(Some(idx));
+                    }
+                    let pool = |i: usize| !source || graph.nodes[i].shape != Shape::StateStart;
+                    let mut busy = std::collections::BTreeSet::new();
+                    group_work = group_work.checked_sub(graph.edges.len()).ok_or(BUDGET)?;
+                    for &(a, b, _, _) in &graph.edges {
+                        if a != b
+                            && graph.nodes[a].group == Some(g)
+                            && graph.nodes[b].group == Some(g)
+                            && pool(a)
+                            && pool(b)
+                            && !group_ids.contains_key(&graph.nodes[a].id)
+                            && !group_ids.contains_key(&graph.nodes[b].id)
+                        {
+                            busy.insert(if source { a } else { b });
+                        }
+                    }
+                    let choice = if source {
+                        m.iter()
+                            .rev()
+                            .copied()
+                            .find(|&i| pool(i) && !busy.contains(&i))
+                            .or_else(|| m.iter().rev().copied().find(|&i| pool(i)))
+                            .or(m.last().copied())
+                    } else {
+                        m.iter()
+                            .copied()
+                            .find(|i| !busy.contains(i))
+                            .or(m.first().copied())
+                    };
+                    return Ok(choice);
+                }
+                Ok(None)
+            };
+            if let (Some(entry), Some(exit)) = (endpoint(false)?, endpoint(true)?) {
+                removed[duplicate] = true;
+                group_work = group_work
+                    .checked_sub(graph.edges.len() + graph.notes.len())
+                    .ok_or(BUDGET)?;
+                for (a, b, _, _) in &mut graph.edges {
+                    if *a == duplicate {
+                        *a = exit;
+                    }
+                    if *b == duplicate {
+                        *b = entry;
+                    }
+                }
+                for note in &mut graph.notes {
+                    if note.target == duplicate {
+                        note.target = entry;
+                    }
+                }
+            }
+        }
+        let mut remap = vec![0; removed.len()];
+        let mut order = 0;
+        graph.nodes.retain_mut(|n| {
+            if removed[n.order] {
+                return false;
+            }
+            remap[n.order] = order;
+            n.order = order;
+            order += 1;
+            n.from.clear();
+            n.to.clear();
+            n.loops = 0;
+            true
+        });
+        for (a, b, _, _) in &mut graph.edges {
+            *a = remap[*a];
+            *b = remap[*b];
+            if a == b {
+                graph.nodes[*a].loops += 1;
+            } else {
+                graph.nodes[*a].to.push(*b);
+                graph.nodes[*b].from.push(*a);
+            }
+        }
+        for note in &mut graph.notes {
+            note.target = remap[note.target];
         }
     }
     Ok(graph)

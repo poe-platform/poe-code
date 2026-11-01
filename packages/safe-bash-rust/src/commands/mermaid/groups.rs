@@ -8,6 +8,7 @@ use std::fmt::Write;
 
 #[derive(Default)]
 pub(super) struct Group {
+    pub composite: bool,
     pub id: String,
     pub label: String,
     pub parent: Option<usize>,
@@ -50,6 +51,7 @@ impl Group {
             (id.into(), if tail.is_empty() { id } else { tail })
         };
         Ok(Self {
+            composite: false,
             id,
             label: scanner::label(raw, stmt, text)?,
             parent,

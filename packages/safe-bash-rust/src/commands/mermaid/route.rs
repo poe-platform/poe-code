@@ -397,11 +397,67 @@ pub(super) fn waypoints(
         }
     }
     let mut paths = Vec::with_capacity(edges.len());
+    let internal: Vec<_> = nodes
+        .iter()
+        .map(|n| n.group.is_some() && n.to.iter().any(|&i| nodes[i].group == n.group))
+        .collect();
     let mut collision = None;
     for (i, &(a, b, _, ref label)) in edges.iter().enumerate() {
-        let [src, dst] = attachments[i];
-        let (p, s) = src.point(&nodes[a]);
-        let (q, t) = dst.point(&nodes[b]);
+        let [mut src, mut dst] = attachments[i];
+        let (mut p, mut s) = src.point(&nodes[a]);
+        let (mut q, mut t) = dst.point(&nodes[b]);
+        if nodes[a].group != nodes[b].group {
+            let boundary = |mut point: Point, face: Face, normal: Face, [x, y, w, h]: [i32; 4]| {
+                if face.x {
+                    point.0 = f64::from(if face.positive { x + w } else { x });
+                } else {
+                    point.1 = f64::from(if face.positive { y + h } else { y });
+                }
+                let mut stub = point;
+                let dist = if normal.positive { 16. } else { -16. };
+                if normal.x {
+                    stub.0 += dist;
+                } else {
+                    stub.1 += dist;
+                }
+                (point, stub)
+            };
+            let original_dst = dst.face;
+            if let Some(g) = nodes[a].group
+                && groups[g].composite
+                && !internal[a]
+            {
+                let bounds @ [x, y, w, h] = groups[g].bounds;
+                let target = &nodes[b];
+                let positive = if horizontal && target.x >= x + w + 24
+                    || !horizontal && target.y >= y + h + 24
+                {
+                    Some(true)
+                } else if horizontal && target.x + target.w <= x - 24 {
+                    Some(false)
+                } else {
+                    None
+                };
+                if let Some(positive) = positive {
+                    src.face = Face {
+                        x: horizontal,
+                        positive,
+                    };
+                    dst.face = Face {
+                        x: horizontal,
+                        positive: !positive,
+                    };
+                    (q, t) = dst.point(target);
+                }
+                (p, s) = boundary(p, src.face, src.face, bounds);
+            }
+            if let Some(g) = nodes[b].group
+                && groups[g].composite
+                && nodes[b].shape == Shape::StateStart
+            {
+                (q, t) = boundary(q, original_dst, dst.face, groups[g].bounds);
+            }
+        }
         let mut points = (|| {
             if a == b {
                 let n = &nodes[a];
@@ -580,6 +636,8 @@ pub(super) fn attachment_error(
     source: &Node,
     target: &Node,
     id: &str,
+    groups: &[Group],
+    (dx, dy): (i32, i32),
 ) -> Option<String> {
     let end = points.len() - 1;
     for (n, (x, y), side, tip) in [
@@ -598,6 +656,21 @@ pub(super) fn attachment_error(
             }
             _ if xoff > w || yoff > h => (xoff - w).max(0.).hypot((yoff - h).max(0.)),
             _ => (w - xoff).min(h - yoff),
+        };
+        let dist = if let Some(g) = n.group {
+            let [gx, gy, gw, gh] = groups[g].bounds;
+            let (w, h) = (f64::from(gw) / 2., f64::from(gh) / 2.);
+            let (a, b) = (
+                (x - f64::from(gx + dx) - w).abs() - w,
+                (y - f64::from(gy + dy) - h).abs() - h,
+            );
+            dist.min(if a > 0. || b > 0. {
+                a.max(0.).hypot(b.max(0.))
+            } else {
+                -a.max(b)
+            })
+        } else {
+            dist
         };
         if dist > 0.5 {
             return Some(format!(

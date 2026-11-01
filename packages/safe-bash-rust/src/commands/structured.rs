@@ -38422,6 +38422,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_resolves_transitions_and_notes_on_composite_states() {
+        assert_mermaid_outputs(&[
+            ("stateDiagram-v2\nstate \"Outer\" as G {\n[*] --> Wait\nWait --> Run: go\nRun --> [*]\n}\n[*] --> G\nG --> Done", "svg", "ce58c59b8330962c3c31cc793d495ee75b49201b8d7dfb0200a2b1b172c1020e"),
+            ("stateDiagram-v2\nstate Top {\n  Inner {\n    A --> B\n  }\n}\nTop --> C", "svg", "814a47920f2eb253c4f649c0a8a749b5510b54bb2c23ae595209e6ea885c9bcc"),
+            ("stateDiagram-v2\nFlow {\nstate Foo\n}\nFlow : team", "svg", "0022c2f5c577cb14e7c5ba7b534b1fcabff2c610698f280979bdba0922c03a49"),
+            ("stateDiagram-v2\nstate A {\n A --> B", "svg", "mmdc: E_SYNTAX: Unclosed composite state 'A' (missing '}')\n"),
+            ("stateDiagram-v2\n{", "svg", "mmdc: E_SYNTAX (line 2, column 1): Missing composite state name before '{'\n"),
+            ("stateDiagram-v2\n[*] --> G\nstate G {\n [*] --> A\n A --> B\n B --> [*]\n}\nG --> [*]", "svg", "d94e1a1265f8bad4251399ade9b6d3abe8ef70fbad1155f74fe48830df6018de"),
+            ("stateDiagram-v2\n[*] --> G\nstate G {\n [*] --> A\n A --> B\n B --> [*]\n}\nG --> [*]", "png", "9955aa83ef5e7721d9eb780e68c158cb27418dbd3d00b1f9470f9041595dc7e1"),
+            ("stateDiagram-v2\n[*] --> G\nstate G {\n [*] --> A\n A --> B\n B --> [*]\n}\nG --> [*]", "pdf", "f36cd442ba6c16842156f514cbde0848286e7b73638d1c671684a9a363cd4c9a"),
+            ("stateDiagram-v2\nstate G {\n state A\n}\nstate S {\n state B\n}\nG --> S", "svg", "3c4ee4b16352a128ba52f62a46b80717417f495912194a6e6169172f85cea98c"),
+            ("stateDiagram-v2\nstate G {\nstate A\n}\nstate G {\n A --> B\n}\nZ --> G", "svg", "6ff6f5b0258ed41cdefffa7a9538e585864868fb570aa388d657f0617cc6e944"),
+            ("stateDiagram-v2\nstate G {\n}\nG --> X", "svg", "d0261b8f79111ef4f5cbcec246c44cbf4df0ffca79a5267de4d351e33a9745d6"),
+            ("stateDiagram-v2\nstate G {\n A --> B\n B --> C\n}\nG --> D", "svg", "9b880ce3efe942c086d147ddda72395368828aea12411a5c56ee5588d586aa94"),
+            ("stateDiagram-v2\nstate Outer {\n  [*] --> A\n}\nOuter --> Next", "svg", "285da13ac372c690a3227408300e9a4275642152e67e1a7617a3037da30c52ec"),
+            ("stateDiagram-v2\nstate Cluster {\n [*] --> A\n}\nnote left of Cluster : Hello", "svg", "d6c583cd42d0a6d982392c22fe77e1ce21c8614af4766b120416fa6677df9232"),
+            ("stateDiagram-v2\nCluster {\n}\nCluster: description\nX-->Cluster", "svg", "63a7fff644d3f846fd963532be7bbaf60ec74cfd5620a3cc771a5243a2e09f91"),
+            ("stateDiagram-v2\nstate Missing {\n Random", "svg", "mmdc: E_SYNTAX (line 3, column 2): Unknown or unsupported stateDiagram statement 'Random'\n"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

@@ -9273,7 +9273,7 @@ impl<'a> EvalState<'a> {
         let mut saved_fd_table: Vec<(u32, Option<FdTarget>)> = Vec::new();
         let mut saved_aliases: Vec<(u32, Option<u32>)> = Vec::new();
         let mut saved_in: Vec<(u32, Option<String>)> = Vec::new();
-        let mut local_stdin = default_stdin.to_string();
+        let mut local_stdin = String::new();
         let mut use_local = false;
         let mut dup_fd: Option<u32> = None;
 
@@ -9799,7 +9799,7 @@ impl<'a> EvalState<'a> {
                                     self.fd_table.remove(&0);
                                     self.in_fd_aliases.remove(&0);
                                     if canon == STDIN_STREAM_FD {
-                                        local_stdin = default_stdin.to_string();
+                                        local_stdin.clear();
                                         use_local = false;
                                         dup_fd = None;
                                     } else if canon != 0 {
@@ -15657,6 +15657,20 @@ mod tests {
             expand_braces("literal_without_range"),
             vec!["literal_without_range"]
         );
+    }
+
+    #[test]
+    fn output_redirects_do_not_buffer_inherited_input() {
+        let fs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_owned();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &custom, false);
+        let redirect = Redirect { kind: RedirectKind::Out(1), target: "/log".into() };
+        let (_, _, local_input, redirected, _, error) =
+            state.setup_redirects(&[redirect], "still on descriptor zero").unwrap();
+        assert!(error.is_none() && !redirected && local_input.is_empty());
     }
 
     #[test]

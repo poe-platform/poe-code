@@ -580,6 +580,20 @@ test("writeFile honors exclusive creation, append, permissions and cancellation"
   }
 });
 
+test("a memory file write publishes its mode and timestamps together", async t => {
+  let tick = Date.UTC(2040, 0, 1);
+  t.mock.method(Date, "now", () => ++tick);
+  const bash = new RustWasmBash();
+  try {
+    for (const flag of ["wx", "a", "w"]) {
+      await bash.fs.writeFile("/f", "data", {flag, mode:0o620});
+      const {mode, mtimeMs, ctimeMs} = await bash.fs.stat("/f");
+      assert.equal(mode & 0o777, 0o620);
+      assert.equal(ctimeMs, mtimeMs);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("companion replay retains only completed writes and their original bytes and options", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});

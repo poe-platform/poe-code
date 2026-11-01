@@ -86,15 +86,11 @@ impl WasmSession {
         }
         let fs = &self.shell.fs;
         let (to, existing) = self.write_target(path, flag & 1 != 0, None)?;
-        let device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
-        if flag & 2 != 0 && existing.is_some() && !device {
-            fs.append_file(&to, data)?;
-        } else {
-            fs.write_file(&to, data)?;
+        match existing {
+            None => fs.create_file(&to, data, mode),
+            Some(st) if flag & 2 != 0 && st.mode & 0o170000 != 0o020000 => fs.append_file(&to, data),
+            Some(_) => fs.write_file(&to, data),
         }
-        // A lower-layer file may have been copied into a new overlay entry.
-        if !device { fs.chmod(&to, existing.map_or(mode, |st| st.mode & 0o7777))?; }
-        Ok(())
     }
 
     fn copy_file(&self, source: &str, destination: &str, exclusive: bool) -> Result<(), String> {

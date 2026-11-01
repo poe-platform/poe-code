@@ -4649,6 +4649,8 @@ fn cmd_media_doc(
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
             if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
+                let chain = !fc_flag.is_empty() && !fc_flag.contains("concat=") &&
+                    (inputs.len()<2 || !["xfade","vstack","hstack","overlay"].iter().any(|s|fc_flag.contains(s)));
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4661,7 +4663,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if fc_flag.is_empty() && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                    }else if (fc_flag.is_empty() || chain) && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -4686,7 +4688,23 @@ fn cmd_media_doc(
                 let supported=sources.first().is_some_and(MediaInput::remuxable);
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
                 let still_input=format==Some("image2") && supported;
-                let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable) && fc_flag.is_empty();
+                let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable) && (fc_flag.is_empty() || chain);
+                if chain && remux_inputs {
+                    maps.clear();
+                    strip_video=false; strip_audio=false; strip_subtitles=false; rotation=None;
+                    // The portable graph muxes all inputs first, then appends its
+                    // unlabelled chain after any explicit video filters.
+                    let mut rest=fc_flag.as_str();
+                    let mut filter=String::new();
+                    while let Some((prefix,suffix))=rest.split_once('[') {
+                        let Some((label,tail))=suffix.split_once(']') else {break;};
+                        filter.push_str(prefix);
+                        if label.is_empty(){filter.push_str("[]");}
+                        rest=tail;
+                    }
+                    filter.push_str(rest);
+                    if !filter.trim().is_empty(){vf_flags.push(filter);}
+                }
                 if (frame_output || mp4_output && remux_inputs) && !video_copy {
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
@@ -13814,6 +13832,15 @@ mod media_unit_tests {
             assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{path}")).unwrap())),expected);
         }
+    }
+
+    #[test]
+    fn ffmpeg_applies_a_labelled_complex_filter_to_the_movie() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-i","a.mp4","-filter_complex","[0:v]hflip[out]","-map","[out]","o.mp4"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())), "207ab56e4e0b34a6d1668f4a3b111492b985d6da9d160af4a47579ffefe800ac");
     }
 
     #[test]

@@ -1911,7 +1911,7 @@ export function buildProbeResultFromDoc(
       count: materialized.samples.length,
       ticks: materialized.samples.reduce((total, sample) => total + sample.duration, 0),
       firstPts,
-      hasCts: materialized.samples.some(sample => sample.cts !== 0)
+      hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
     streams.push(stream);
     const w = stream.width, h = stream.height, sampleFormat = stream.sample_fmt;

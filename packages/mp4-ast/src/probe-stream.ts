@@ -3,7 +3,7 @@ import { probeSampleFormat, type Mp4CodecMetadata } from './mp4-codec-metadata.j
 import type { MediaTrack, MediaProbeStream, MediaProbeText } from './types.js';
 
 export type ProbeStreamTrack<T> = Pick<MediaTrack, 'id' | 'type' | 'timescale' | 'duration' | 'width' | 'height' | 'language' | 'rotation' | 'enabled'> & { handlerName?: T | undefined };
-export interface ProbeSampleStats { totalBytes: number; count: number; ticks: number; firstPts: number; hasCts: boolean }
+export interface ProbeSampleStats { totalBytes: number; count: number; ticks: number; firstPts: number; hasReorderedSamples: boolean }
 const CODEC_LONG_NAMES: Record<string, string> = {
   h264: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
   hevc: "H.265 / HEVC (High Efficiency Video Coding)",
@@ -77,7 +77,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     height: h,
     coded_width: w ? Math.ceil(w / 16) * 16 : undefined,
     coded_height: h ? Math.ceil(h / 16) * 16 : undefined,
-    has_b_frames: track.type === "video" ? (desc?.maxNumReorderFrames ?? (stats.hasCts ? 1 : 0)) : undefined,
+    has_b_frames: track.type === "video" ? (desc?.maxNumReorderFrames ?? (stats.hasReorderedSamples ? 1 : 0)) : undefined,
     sample_aspect_ratio:
       track.type === "video"
         ? `${desc?.sarWidth ?? 1}:${desc?.sarHeight ?? 1}`

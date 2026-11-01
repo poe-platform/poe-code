@@ -164,11 +164,12 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     formatStart = Math.min(formatStart, start);
     formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
-    let bytePos = 0, cursor = 0;
-    const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasCts: false };
+    let bytePos = 0, cursor = 0, previousPts = -Infinity;
+    const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasReorderedSamples: false };
     const packet = (sample: ProbeSample['sample']): ProbeSample => {
       if (mode === 'streams') {
-        stats.count++; stats.totalBytes += sample.size; stats.ticks += sample.duration; stats.hasCts ||= sample.pts !== sample.dts;
+        stats.count++; stats.totalBytes += sample.size; stats.ticks += sample.duration;
+        stats.hasReorderedSamples ||= sample.pts < previousPts; previousPts = sample.pts;
       }
       const record = { sample, track, bytePos }; bytePos += sample.size; return record;
     };

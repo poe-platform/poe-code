@@ -24,7 +24,7 @@ it('reads H.264 maximum reorder depth after optional HRD parameters', () => {
 });
 
 for (const reader of ['resident', 'source']) {
-  it(`${reader} probes use codec reorder depth, retaining offset fallback when absent`, async () => {
+  it(`${reader} probes use codec reorder depth without mistaking a fixed delay for reordering`, async () => {
     const base = parseMp4(createSyntheticMp4({ width: 64, height: 48, frameCount: 3, includeAudio: false }));
     const track = base.tracks[0]!, description = track.codecDescriptions[0]!;
     for (const offset of [0, 9000]) {
@@ -40,11 +40,26 @@ for (const reader of ['resident', 'source']) {
         }, { syncSamples() { const keys = new Set<number>(); return { add(n: number) { keys.add(n); }, has(n: number) { return keys.has(n); } }; } });
         let count = 0;
         for await (const stream of probe.streams) {
-          assert.equal(stream.has_b_frames, expected ?? (offset ? 1 : 0), `depth ${expected}, offset ${offset}`);
+          assert.equal(stream.has_b_frames, expected ?? 0, `depth ${expected}, offset ${offset}`);
           count++;
         }
         assert.equal(count, 1);
       }
+    }
+  });
+
+  it(`${reader} probes infer reordering from presentation order when codec depth is absent`, async () => {
+    const base = parseMp4(createSyntheticMp4({ width: 64, height: 48, frameCount: 3, includeAudio: false }));
+    const track = base.tracks[0]!;
+    for (const [expected, times] of [[0, [0, 9000, 18000]], [0, [9000, 18000, 27000]], [0, [0, 18000, 27000]], [1, [0, 18000, 9000]]] as const) {
+      const bytes = serializeMp4({ ...base, tracks: [{ ...track,
+        samples: track.samples.map((sample, i) => ({ ...sample, pts: times[i]!, cts: times[i]! - sample.dts }))
+      }] });
+      const probe = reader === 'resident' ? probeMp4(bytes) : await probeMp4Source({
+        size: bytes.length,
+        async read(start, length) { return bytes.slice(start, start + Math.min(length, 31)); }
+      }, { syncSamples() { const keys = new Set<number>(); return { add(n: number) { keys.add(n); }, has(n: number) { return keys.has(n); } }; } });
+      for await (const stream of probe.streams) assert.equal(stream.has_b_frames, expected, `presentation times ${times}`);
     }
   });
 }

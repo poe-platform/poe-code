@@ -3,6 +3,23 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq env and $ENV read exported variables independently of jq arguments", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const init = "hidden=secret; declare -a a=(private); export __label=first; ";
+    for (const [query, expected] of [
+      ["jq -nc 'env | keys'", ["PWD", "__label"]],
+      ["jq -nc '[env.__label,$ENV.__label,env.hidden,$ENV.a]'", ["first", "first", null, null]],
+      [`jq --arg __label argument --arg ENV other -nc '[env.__label,$__label,$ENV]'`, ["first", "argument", "other"]],
+      [`jq -nc 'def env: "overridden"; [env,$ENV.__label]'`, ["overridden", "first"]],
+    ]) {
+      const result = await bash.exec(init + query);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout), expected);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("commands receive exported scalar values without array elements or shell bookkeeping", async () => {
   const bash = new RustWasmBash();
   try {

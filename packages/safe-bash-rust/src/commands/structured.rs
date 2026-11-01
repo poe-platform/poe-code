@@ -19,6 +19,7 @@ static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
 
 #[derive(Clone)]
 struct JqScope<'a> {
+    env: &'a BTreeMap<String, String>,
     bindings: BTreeMap<String, JVal>,
     inputs: &'a RefCell<VecDeque<JVal>>,
     yq: Option<&'a YqDocuments<'a>>,
@@ -41,6 +42,13 @@ struct YqDocuments<'a> {
 }
 
 impl JqScope<'_> {
+    fn environment(&self) -> JVal {
+        JVal::Object(self.env.iter()
+            .filter(|(k, _)| crate::shell::is_exported_scalar(self.env, k))
+            .map(|(k, v)| (k.clone(), JVal::Str(v.clone())))
+            .collect())
+    }
+
     fn pop_input(&self) -> Option<JVal> {
         let input = self.inputs.borrow_mut().pop_front()?;
         if let Some(yq) = self.yq {
@@ -783,9 +791,6 @@ fn cmd_jq_core(
     let mut positional_args: Vec<JVal> = Vec::new();
     let mut named_args: Vec<(String, JVal)> = Vec::new();
     let mut vars: BTreeMap<String, JVal> = BTreeMap::new();
-    for (k, v) in env {
-        vars.insert(k.clone(), JVal::Str(v.clone()));
-    }
     let mut filter: Option<String> = None;
     let mut program_file: Option<String> = None;
     let mut files: Vec<String> = Vec::new();
@@ -1090,7 +1095,7 @@ fn cmd_jq_core(
     }
 
     let inputs = RefCell::new(VecDeque::from(stream_inputs));
-    let vars = JqScope { bindings: vars, inputs: &inputs, yq };
+    let vars = JqScope { env, bindings: vars, inputs: &inputs, yq };
 
     let mut out = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1556,7 +1561,12 @@ fn eval_jq(
         }
         let vname = &var_name[..id_end];
         let rest = &var_name[id_end..];
-        if let Some(v) = vars.bindings.get(vname) {
+        let environment;
+        let binding = match vars.bindings.get(vname) {
+            None if vname == "ENV" => { environment = vars.environment(); Some(&environment) }
+            binding => binding,
+        };
+        if let Some(v) = binding {
             if rest.is_empty() {
                 return Ok(vec![v.clone()]);
             }
@@ -1633,8 +1643,13 @@ fn eval_jq(
         return eval_jq(body, input, &call_vars);
     }
 
-    if let Some(env_var) = s.strip_prefix("env.") {
-        return Ok(vec![vars.bindings.get(env_var).cloned().unwrap_or(JVal::Str(String::new()))]);
+    if s == "env" { return Ok(vec![vars.environment()]); }
+    if let Some(path) = s.strip_prefix("env").filter(|path| path.starts_with(['.', '['])) {
+        let mut out = Vec::new();
+        for value in eval_jq("env", input, vars)? {
+            out.extend(eval_jq_path_with_root(path, &value, input, vars)?);
+        }
+        return Ok(out);
     }
     if let Some(open_p) = s.find('(')
         && !s.starts_with('(')
@@ -3809,21 +3824,13 @@ fn try_eval_jq_builtin(
                     let found = srcs.iter().any(|sv| stream_vals.iter().any(|tv| sv == tv));
                     return Ok(Some(vec![JVal::Bool(found)]));
                 }
-                "strenv" => {
-                    let vname = arg_expr.trim().trim_matches('"').trim_matches('\'');
-                    let val = match vars.bindings.get(vname) {
-                        Some(JVal::Str(s)) => s.clone(),
-                        Some(other) => other.to_raw_string(true, false),
-                        None => String::new(),
-                    };
-                    return Ok(Some(vec![JVal::Str(val)]));
-                }
-                "env" => {
-                    let vname = arg_expr.trim().trim_matches('"').trim_matches('\'');
-                    let val = match vars.bindings.get(vname) {
-                        Some(JVal::Str(s)) => parse_yaml_scalar(s, &mut BTreeMap::new()),
-                        Some(other) => other.clone(),
-                        None => JVal::Null,
+                "strenv" | "env" => {
+                    let name = arg_expr.trim().trim_matches('"').trim_matches('\'');
+                    let value = vars.env.get(name).filter(|_| crate::shell::is_exported_scalar(vars.env, name));
+                    let val = if fname == "strenv" {
+                        JVal::Str(value.cloned().unwrap_or_default())
+                    } else {
+                        value.map_or(JVal::Null, |v| parse_yaml_scalar(v, &mut BTreeMap::new()))
                     };
                     return Ok(Some(vec![val]));
                 }
@@ -6488,12 +6495,8 @@ fn cmd_yq(
             "json" | "j" => "json",
             other => other,
         };
-        let mut base_vars: BTreeMap<String, JVal> = BTreeMap::new();
-        for (k, v) in env {
-            base_vars.insert(k.clone(), JVal::Str(v.clone()));
-        }
         let inputs = RefCell::default();
-        let mut base_vars = JqScope { bindings: base_vars, inputs: &inputs, yq: None };
+        let mut base_vars = JqScope { env, bindings: BTreeMap::new(), inputs: &inputs, yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));
             let name = eval_jq(s_exp, v, &base_vars)

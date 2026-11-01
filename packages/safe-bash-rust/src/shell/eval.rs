@@ -12206,6 +12206,7 @@ impl<'a> EvalState<'a> {
             sub_env.insert(rk.clone(), rv.clone());
             sub_env.remove(&format!("\0unexported__{rk}"));
         }
+        let mut sub_in = self.in_fds.remove(&0).unwrap_or_default();
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.callback_line_offset = self.current_line.saturating_sub(1);
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
@@ -12225,7 +12226,6 @@ impl<'a> EvalState<'a> {
             if sub.errexit { "1" } else { "0" }.to_string(),
         );
         sub.fd_table.insert(1, FdTarget::Stdout);
-        let mut sub_in = self.in_fds.remove(&0).unwrap_or_default();
         let res = sub.eval_script_units(cmd_str, &mut sub_in);
         if !sub_in.is_empty() {
             self.in_fds.insert(0, sub_in);
@@ -16225,6 +16225,16 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn nested_command_substitutions_consume_the_original_stdin_in_order() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        let result = shell.exec_with_options(
+            r#"echo "$(printf '[%s]' "$(head -c1)")$(head -c2)"; cat"#,
+            crate::shell::ExecOptions { stdin: Some("abcdef".into()), ..Default::default() },
+        ).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "[a]bc\ndef", ""));
     }
 
     #[test]

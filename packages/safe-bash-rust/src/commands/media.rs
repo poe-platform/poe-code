@@ -10748,17 +10748,24 @@ fn cmd_media_doc(
             let mut err_buf = String::new();
             let mut exit_code = 0;
             for f in &files {
-                let full = resolve_posix_path(cwd, f);
-                let Ok(bytes) = fs.read_file(&full) else {
+                let operand = identify::operand(f);
+                let full = resolve_posix_path(cwd, operand.0);
+                let data = if operand.0 == "-" { Ok(crate::vfs::stream_string_to_bytes(stdin)) } else { fs.read_file(&full) };
+                let Ok(bytes) = data else {
                     err_buf.push_str(&format!(
                         "identify: unable to open image '{f}': No such file or directory\n"
                     ));
                     exit_code = 1;
                     continue;
                 };
+                if !identify::recognized_image(&bytes) {
+                    err_buf.push_str(&format!("identify: improper image header '{f}': Input buffer contains unsupported image format\n"));
+                    exit_code = 1;
+                    continue;
+                }
                 let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
                 if let Some(ref fmt_str) = fmt_opt {
-                    if let Err(e) = identify::format(fmt_str, f, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
+                    if let Err(e) = identify::format(fmt_str, operand, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
                         return err_out(&format!("identify: {e}\n"), 1);
                     }
                 } else if verbose {
@@ -13613,6 +13620,18 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn identify_reads_piped_pixels_and_normalizes_prefixed_scene_names() {
+        let fs = MemoryVfs::new();
+        let ppm = "P3\n2 1\n1\n1 0 0 0 1 0";
+        fs.write_file("/a.bin", ppm.as_bytes()).unwrap();
+        let run = |name: &str, input: &str| cmd_media_doc("identify", &media_args(&["-format","%i|%s|%m|%wx%h",name]), input, "/", &fs);
+        assert_eq!(run("png:a.bin[04]", "").stdout, "a.bin|4|PPM|2x1");
+        assert_eq!(run("ppm:-", ppm).stdout, "-|0|PPM|2x1");
+        let unknown = run("-", "junk");
+        assert_eq!((unknown.exit_code, unknown.stderr.as_str()), (1,"identify: improper image header '-': Input buffer contains unsupported image format\n"));
     }
 
     #[test]

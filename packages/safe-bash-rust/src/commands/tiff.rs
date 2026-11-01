@@ -1,4 +1,5 @@
 use super::png_pixels::Raster;
+use std::borrow::Cow;
 
 pub(super) fn signature(bytes: &[u8]) -> bool {
     bytes.len() >= 8
@@ -11,6 +12,123 @@ fn word(bytes: &[u8], little: bool) -> u32 {
         bytes.iter().rev().fold(0, |n, b| n << 8 | u32::from(*b))
     } else {
         bytes.iter().fold(0, |n, b| n << 8 | u32::from(*b))
+    }
+}
+
+// TIFF LZW reads its codes most-significant bit first. Every dictionary
+// phrase is a previous output span followed by the first byte of the next span.
+fn lzw(input: &[u8], expected: usize) -> Vec<u8> {
+    let mut out = Vec::with_capacity(expected);
+    let mut phrases: Vec<(usize, usize)> = Vec::new();
+    let mut previous: Option<(usize, usize)> = None;
+    let (mut bit, mut width) = (0u64, 9usize);
+    while out.len() < expected && bit + width as u64 <= input.len() as u64 * 8 {
+        let mut code = 0usize;
+        for _ in 0..width {
+            code = code * 2 + usize::from(input[(bit / 8) as usize] >> (7 - bit % 8) & 1);
+            bit += 1;
+        }
+        if code == 256 {
+            phrases.clear();
+            previous = None;
+            width = 9;
+            continue;
+        }
+        if code == 257 {
+            break;
+        }
+        let at = out.len();
+        if code < 256 {
+            out.push(code as u8);
+        } else if let Some(&(from, n)) = phrases.get(code - 258) {
+            out.extend_from_within(from..from + n.min(expected - at));
+        } else if code == 258 + phrases.len()
+            && let Some((from, n)) = previous
+        {
+            out.extend_from_within(from..from + n.min(expected - at));
+            if out.len() < expected {
+                out.push(out[from]);
+            }
+        } else {
+            break;
+        }
+        if let Some((from, n)) = previous
+            && phrases.len() < 4096 - 258
+        {
+            phrases.push((from, n + 1));
+            if phrases.len() + 258 == (1 << width) - 1 && width < 12 {
+                width += 1;
+            }
+        }
+        previous = Some((at, out.len() - at));
+    }
+    out.resize(expected, 0);
+    out
+}
+
+fn strip(
+    input: &[u8],
+    compression: usize,
+    expected: usize,
+    limit: usize,
+) -> Result<Cow<'_, [u8]>, &'static str> {
+    use crate::commands::codecs::{adler32, gzip_decompress_bounded, inflate_raw_bounded};
+    if compression == 1 {
+        return Ok(Cow::Borrowed(input));
+    }
+    if expected > limit {
+        return Err("image exceeds memory budget");
+    }
+    match compression {
+        5 => Ok(Cow::Owned(lzw(input, expected))),
+        32773 => {
+            let mut out = Vec::with_capacity(expected);
+            let mut data = input;
+            while out.len() < expected
+                && let Some((&n, rest)) = data.split_first()
+            {
+                data = rest;
+                let left = expected - out.len();
+                match n {
+                    0..=127 => {
+                        let n = (usize::from(n) + 1).min(left).min(data.len());
+                        out.extend_from_slice(&data[..n]);
+                        data = &data[n..];
+                    }
+                    129..=255 => {
+                        let count = (257 - usize::from(n)).min(left);
+                        out.resize(out.len() + count, data.first().copied().unwrap_or(0));
+                        data = data.get(1..).unwrap_or_default();
+                    }
+                    _ => {}
+                }
+            }
+            out.resize(expected, 0);
+            Ok(Cow::Owned(out))
+        }
+        _ => {
+            let decoded = if input.starts_with(&[31, 139]) {
+                gzip_decompress_bounded(input, limit)
+            } else if input.len() >= 6
+                && input[0] & 15 == 8
+                && u16::from_be_bytes([input[0], input[1]]) % 31 == 0
+            {
+                inflate_raw_bounded(&input[2..], limit).and_then(|(v, n)| {
+                    if input.get(2 + n..6 + n) == Some(&adler32(&v).to_be_bytes()) {
+                        Ok(v)
+                    } else {
+                        Err("checksum".into())
+                    }
+                })
+            } else {
+                return Ok(Cow::Borrowed(input));
+            };
+            match decoded {
+                Ok(v) => Ok(Cow::Owned(v)),
+                Err(e) if e.contains("limit") => Err("image exceeds memory budget"),
+                Err(_) => Ok(Cow::Borrowed(input)), // The JS TIFF reader falls back to the original strip.
+            }
+        }
     }
 }
 
@@ -36,6 +154,9 @@ pub(super) struct Tiff<'a> {
     pub samples: usize,
     pub density: u32,
     orientation: Option<u8>,
+    limit: usize,
+    compression: usize,
+    rows_per_strip: usize,
     white_zero: bool,
     predictor: bool,
     offsets: Option<Field<'a>>,
@@ -87,7 +208,7 @@ impl<'a> Tiff<'a> {
         let depth = get(258, 8);
         if !(1..=4).contains(&samples)
             || !matches!(depth, 8 | 16)
-            || get(259, 1) != 1
+            || !matches!(get(259, 1), 1 | 5 | 8 | 32946 | 32773)
             || field(324).is_some()
         {
             return Err("unsupported TIFF encoding");
@@ -102,6 +223,9 @@ impl<'a> Tiff<'a> {
             samples,
             density: dpi.unwrap_or(72).max(1),
             orientation,
+            limit,
+            compression: get(259, 1),
+            rows_per_strip: get(278, height).clamp(1, height),
             white_zero: get(262, 2) == 0,
             predictor: get(317, 1) == 2,
             offsets: field(273),
@@ -109,7 +233,7 @@ impl<'a> Tiff<'a> {
         })
     }
 
-    pub fn decode(&self) -> Raster {
+    pub fn decode(&self) -> Result<Raster, &'static str> {
         let default = [8u8];
         let offsets = self.offsets.unwrap_or(Field {
             bytes: &default,
@@ -120,20 +244,53 @@ impl<'a> Tiff<'a> {
             stride: 1,
         });
         let mut counts = counts.values(self.little);
-        let mut raw = offsets.values(self.little).flat_map(|off| {
-            let strip = self.bytes.get(off..).unwrap_or_default();
-            let n = counts.next().unwrap_or(strip.len()).min(strip.len());
-            strip[..n].iter().copied()
-        });
+        let mut offsets = offsets.values(self.little);
+        let mut decoded = Cow::Borrowed(&[][..]);
+        let (mut pos, mut read) = (0usize, 0usize);
+        let stride = self
+            .width
+            .checked_mul(self.samples * usize::from(self.depth / 8))
+            .ok_or("image exceeds memory budget")?;
+        let total = stride
+            .checked_mul(self.height)
+            .ok_or("image exceeds memory budget")?;
+        let scratch = self.limit - self.width * self.height * 4;
+        let mut work = self.limit.saturating_mul(8);
+        let mut byte = || -> Result<u8, &'static str> {
+            while pos >= decoded.len() {
+                let Some(off) = offsets.next() else {
+                    return Ok(0);
+                };
+                let data = self.bytes.get(off..).unwrap_or_default();
+                let n = counts.next().unwrap_or(data.len()).min(data.len());
+                if self.compression != 1 {
+                    work = work
+                        .checked_sub(n)
+                        .ok_or("image decompression work limit exceeded")?;
+                }
+                drop(std::mem::replace(&mut decoded, Cow::Borrowed(&[])));
+                decoded = strip(
+                    &data[..n],
+                    self.compression,
+                    (total - read).min(stride * self.rows_per_strip),
+                    scratch,
+                )?;
+                pos = 0;
+            }
+            let v = decoded[pos];
+            pos += 1;
+            read += 1;
+            Ok(v)
+        };
         let mut pixels = Vec::with_capacity(self.width * self.height);
         for _ in 0..self.height {
             let mut prev = [0u16; 4];
             for _ in 0..self.width {
                 let mut pixel = [0, 0, 0, 255];
                 for c in 0..self.samples {
-                    let first = raw.next().unwrap_or(0);
+                    let first = byte()?;
                     let value = if self.depth == 16 {
-                        let b = [first, raw.next().unwrap_or(0)];
+                        let b = [first, byte()?];
                         if self.little {
                             u16::from_le_bytes(b)
                         } else {
@@ -160,7 +317,7 @@ impl<'a> Tiff<'a> {
                 pixels.push(pixel);
             }
         }
-        Raster {
+        Ok(Raster {
             width: self.width,
             height: self.height,
             pixels,
@@ -168,6 +325,72 @@ impl<'a> Tiff<'a> {
             orientation: self.orientation,
             alpha: matches!(self.samples, 2 | 4),
             gray: self.samples == 1 || self.samples == 2 && self.depth == 8,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decompresses_predictor_encoded_big_endian_strips() {
+        // Two grayscale rows; each strip resets the horizontal predictor.
+        let rows = [[8u8, 2, 4], [20, 254, 3]];
+        for compression in [5u32, 8, 32773] {
+            let mut strips = Vec::new();
+            for row in rows {
+                strips.push(match compression {
+                    5 => {
+                        let mut bits = 0u64;
+                        for code in [256, row[0] as u16, row[1] as u16, row[2] as u16, 257] {
+                            bits = bits << 9 | u64::from(code);
+                        }
+                        (bits << 3).to_be_bytes()[2..].to_vec()
+                    }
+                    8 => crate::commands::codecs::zlib_compress(&row),
+                    _ => [vec![2], row.to_vec()].concat(),
+                });
+            }
+            let mut b = b"MM\0*\0\0\0\x08".to_vec();
+            let fields = [
+                (256, 3),
+                (257, 2),
+                (259, compression),
+                (273, 122),
+                (277, 1),
+                (278, 1),
+                (279, 130),
+                (317, 2),
+                (262, 1),
+            ];
+            b.extend_from_slice(&(fields.len() as u16).to_be_bytes());
+            for (tag, v) in fields {
+                b.extend_from_slice(&(tag as u16).to_be_bytes());
+                b.extend_from_slice(&4u16.to_be_bytes());
+                b.extend_from_slice(
+                    &(if matches!(tag, 273 | 279) { 2u32 } else { 1 }).to_be_bytes(),
+                );
+                b.extend_from_slice(&v.to_be_bytes());
+            }
+            for v in [
+                0u32,
+                138,
+                138 + strips[0].len() as u32,
+                strips[0].len() as u32,
+                strips[1].len() as u32,
+            ] {
+                b.extend_from_slice(&v.to_be_bytes());
+            }
+            for strip in strips {
+                b.extend(strip);
+            }
+            let image = Tiff::parse(&b, 8192).unwrap().decode().unwrap();
+            assert_eq!(
+                image.pixels,
+                [8, 10, 14, 20, 18, 21].map(|g| [g, g, g, 255]),
+                "compression {compression}"
+            );
         }
     }
 }

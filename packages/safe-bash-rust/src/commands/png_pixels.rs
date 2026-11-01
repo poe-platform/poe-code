@@ -109,7 +109,7 @@ impl Raster {
             return Ok(super::netpbm::Netpbm::parse(bytes, limit)?.decode());
         }
         if super::tiff::signature(bytes) {
-            return Ok(super::tiff::Tiff::parse(bytes, limit)?.decode());
+            return super::tiff::Tiff::parse(bytes, limit)?.decode();
         }
         if super::bmp::signature(bytes) {
             return Ok(super::bmp::Bmp::parse(bytes, limit)?.decode());

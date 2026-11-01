@@ -267,6 +267,20 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
             continue;
         }
 
+        // The lexer emits the three arithmetic clauses as words. Their semicolons
+        // do not start shell commands; the closing pair does start the loop body.
+        if for_state == 1
+            && matches!(&tokens[idx..], [Token::LParen, Token::LParen, ..])
+            && let Some(end) = tokens[idx + 2..]
+                .windows(2)
+                .position(|pair| matches!(pair, [Token::RParen, Token::RParen]))
+        {
+            idx += end + 4;
+            for_state = 0;
+            at_cmd_start = true;
+            continue;
+        }
+
         let tok = &tokens[idx];
         idx += 1;
         match tok {
@@ -1810,6 +1824,20 @@ fn validate_conditional_words(words: &[String]) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn arithmetic_for_header_ends_before_an_adjacent_do() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for separator in ["", " ", "; ", "\n"] {
+            let source = format!(r#"for ((i=0;i<(1+1);i++)){separator}do for ((j=0;j<1;j++))do echo "$i:$j"; done; done"#);
+            let r = shell.exec(&source).unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (0, "0:0\n1:0\n", ""),
+                "{source}"
+            );
+        }
+    }
 
     #[test]
     fn unit_validate_syntax_and_parse_compound_constructs() {

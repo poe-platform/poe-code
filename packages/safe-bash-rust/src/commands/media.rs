@@ -2659,6 +2659,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+#[path = "y4m.rs"]
+mod y4m;
 #[path = "adts.rs"]
 mod adts;
 #[path = "media_format.rs"]
@@ -4446,7 +4448,7 @@ fn cmd_media_doc(
             }
             let mut inputs: Vec<String> = Vec::new();
             let (mut input_format,mut output_format) = (None,None);
-            let (mut audio_copy,mut audio_filter) = (false,false);
+            let (mut audio_copy,mut audio_filter,mut video_copy) = (false,false,false);
             let mut fmt_flag = String::new();
             let mut vf_flags: Vec<String> = Vec::new();
             let mut fc_flag = String::new();
@@ -4547,9 +4549,9 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-af" | "-filter:a" if i + 1 < args.len() => { audio_filter = true; i += 2; }
-                    "-c" | "-codec" | "-c:a" | "-acodec" | "-codec:a" if i + 1 < args.len() => { audio_copy = args[i+1] == "copy"; i += 2; }
-                    "-c:v"
-                    | "-vcodec" | "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
+                    "-c" | "-codec" | "-c:a" | "-acodec" | "-codec:a" if i + 1 < args.len() => { audio_copy = args[i+1] == "copy"; if matches!(args[i].as_str(),"-c"|"-codec") {video_copy=audio_copy;} i += 2; }
+                    "-c:v" | "-vcodec" | "-codec:v" if i + 1 < args.len() => { video_copy = args[i+1] == "copy"; i += 2; }
+                    "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
                     | "-pix_fmt" | "-v" | "-loglevel" | "-map" | "-movflags" | "-preset"
                     | "-crf" | "-threads" | "-stream_loop"
                         if i + 1 < args.len() =>
@@ -4593,28 +4595,47 @@ fn cmd_media_doc(
                     Err(_) => {}
                 }
             }
+            let output_kind = output_format.unwrap_or_else(||out_lower.rsplit_once('.').map_or("",|(_,ext)|ext));
+            let y4m_output = output_kind.eq_ignore_ascii_case("y4m") || output_kind.eq_ignore_ascii_case("yuv4mpegpipe");
             if let [source] = inputs.as_slice()
-                && output_format.map_or_else(|| out_lower.ends_with(".aac"), |f| f.eq_ignore_ascii_case("aac"))
+                && (output_kind.eq_ignore_ascii_case("aac") || y4m_output)
             {
                 let bytes = if media_stdin(source) {
                     Some(crate::vfs::stream_string_to_bytes(stdin))
                 } else { fs.read_file(&resolve_posix_path(cwd,source)).ok() };
-                if let Some(bytes) = bytes && media_format::detect(&bytes,source,input_format) == Some("aac") {
+                if let Some(bytes) = bytes {
                     let start = ss_opt.unwrap_or(0.).max(0.);
-                    let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
-                    let output = adts::remux(&bytes,start,to_opt.or_else(||t_opt.map(|t|start+t)),
-                        ar_opt.filter(|_|transform),ac_opt.filter(|_|transform),transform,strip_audio);
-                    if stdout {
-                        return ok_out(&crate::vfs::bytes_to_stream_string(&output));
-                    }
-                    let parent = crate::vfs::dirname_posix_path(&out_full);
-                    if !fs.is_dir(&parent) {
-                        let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
-                        return err_out(&format!("ffmpeg: {reason}, writeFile '{out_full}'\n"),1);
-                    }
-                    return match fs.write_file(&out_full,&output) {
-                        Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
+                    let end=to_opt.or_else(||t_opt.map(|t|start+t));
+                    let output = match (media_format::detect(&bytes,source,input_format),y4m_output) {
+                        (Some("aac"),false)=>{
+                            let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
+                            Some(adts::remux(&bytes,start,end,ar_opt.filter(|_|transform),ac_opt.filter(|_|transform),transform,strip_audio))
+                        }
+                        (Some("y4m"),true)=>{
+                            if !video_copy {
+                                if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
+                                if let Some(fps)=framerate_opt {vf_flags.push(format!("fps={fps}"));}
+                            }
+                            let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
+                            match y4m::Stream::parse(&bytes).and_then(|stream|stream.encode(opts)) {
+                                Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1),
+                            }
+                        }
+                        _=>None,
                     };
+                    if let Some(output)=output {
+                        if stdout {
+                            return ok_out(&crate::vfs::bytes_to_stream_string(&output));
+                        }
+                        let parent = crate::vfs::dirname_posix_path(&out_full);
+                        if !fs.is_dir(&parent) {
+                            let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
+                            return err_out(&format!("ffmpeg: {reason}, writeFile '{out_full}'\n"),1);
+                        }
+                        return match fs.write_file(&out_full,&output) {
+                            Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
+                        };
+                    }
                 }
             }
             let mut doc = MediaDoc::default_video();
@@ -12863,6 +12884,23 @@ mod media_unit_tests {
         let args = media_args(&["-n","-y","-i","-","out.aac"]);
         assert_eq!(cmd_media_doc("ffmpeg",&args,&input,"/",&fs).exit_code,0);
         assert_eq!(fs.read_file("/out.aac").unwrap(),crate::vfs::stream_string_to_bytes(&input));
+    }
+
+    #[test]
+    fn ffmpeg_writes_y4m_frames_from_real_planes() {
+        let fs = MemoryVfs::new();
+        let clip = [b"YUV4MPEG2 W3 H1 F10:1\nFRAME Xtag\n".as_slice(), &[0,100,210,128,77,220,130], b"FRAME\n", &[25,30,42,33,22,88,99]].concat();
+        fs.write_file("/movie", &clip).unwrap();
+        let run = |options: &[&str]| {
+            let args = [&["-y","-i","movie"][..], options, &["o.y4m"]].concat();
+            let result = cmd_media_doc("ffmpeg",&media_args(&args),"","/",&fs);
+            assert_eq!((result.exit_code,result.stderr),(0,String::new()));
+            fs.read_file("/o.y4m").unwrap()
+        };
+        let header = b"YUV4MPEG2 W3 H1 F10:1 Ip A1:1 C420jpeg\nFRAME\n";
+        assert_eq!(run(&["-c","copy"]), [header.as_slice(), &[54,100,210,117,77,206,130],b"FRAME\n",&[56,59,64,104,101,98,93]].concat());
+        assert_eq!(run(&["-vf","hflip","-frames:v","1"]),[header.as_slice(), &[210,100,54,103,106,175,192]].concat());
+        assert_eq!(run(&["-s","2x2","-frames:v","1"]),[b"YUV4MPEG2 W2 H2 F10:1 Ip A1:1 C420jpeg\nFRAME\n".as_slice(), &[64,122,64,122,109,193]].concat());
     }
 
     #[test]

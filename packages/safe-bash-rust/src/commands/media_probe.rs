@@ -23,57 +23,12 @@ enum Track {
     },
 }
 
-fn integer(input: &str, fallback: u32) -> Result<u32, &'static str> {
-    let input = input.strip_prefix('+').unwrap_or(input);
-    if input.starts_with('-') {
-        return Err("Invalid YUV4MPEG2 dimensions or frame rate");
-    }
-    let digits = input.bytes().take_while(u8::is_ascii_digit).count();
-    if digits == 0 {
-        return Ok(fallback);
-    }
-    let value = input[..digits]
-        .parse()
-        .map_err(|_| "Invalid YUV4MPEG2 dimensions or frame rate")?;
-    Ok(if value == 0 { fallback } else { value })
-}
-
 impl Clip {
     pub(super) fn y4m(input: &[u8]) -> Result<Self, &'static str> {
-        if !input.starts_with(b"YUV4MPEG2 ") {
-            return Err("Invalid YUV4MPEG2 stream: missing 'YUV4MPEG2 ' magic");
-        }
-        let end = input
-            .iter()
-            .position(|b| *b == b'\n')
-            .unwrap_or(input.len());
-        let (mut width, mut height, mut fps) = (64u32, 64u32, 30.);
-        for token in String::from_utf8_lossy(&input[..end]).split_whitespace() {
-            if let Some(w) = token.strip_prefix('W') {
-                width = integer(w, width)?;
-            }
-            if let Some(h) = token.strip_prefix('H') {
-                height = integer(h, height)?;
-            }
-            if let Some(rate) = token.strip_prefix('F') {
-                let mut parts = rate.split(':');
-                fps = f64::from(integer(parts.next().unwrap_or(""), 30)?)
-                    / f64::from(integer(parts.next().unwrap_or(""), 1)?);
-            }
-        }
-        let frame_size = (u64::from(width) * u64::from(height))
-            .checked_add(2 * u64::from(width.div_ceil(2)) * u64::from(height.div_ceil(2)))
-            .ok_or("Invalid YUV4MPEG2 dimensions or frame rate")?;
-        let mut rest = input.get(end + 1..).unwrap_or_default();
-        let mut count = 0;
-        while let Some(tag_end) = rest.iter().position(|b| *b == b'\n') {
-            rest = &rest[tag_end + 1..];
-            if frame_size > rest.len() as u64 {
-                break;
-            }
-            rest = &rest[frame_size as usize..];
-            count += 1;
-        }
+        let stream = super::y4m::Stream::parse(input)?;
+        let (width, height, fps, frame_size) =
+            (stream.width, stream.height, stream.fps, stream.frame_size);
+        let count = stream.frames().count();
         Ok(Self {
             track: Track::Y4m {
                 width,

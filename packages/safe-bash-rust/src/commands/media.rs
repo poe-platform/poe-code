@@ -189,8 +189,11 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     } else if bytes.starts_with(b"GIF8") {
         meta.fmt = "GIF".to_string();
     }
-    let text = String::from_utf8_lossy(bytes);
-    for line in text.lines() {
+    for line in bytes.split_inclusive(|&b| b == b'\n') {
+        if !(line.starts_with(b"__IMG__:") || line.starts_with(b"__EXIF__:")) {
+            continue;
+        }
+        let line = String::from_utf8_lossy(line.strip_suffix(b"\r\n").or_else(|| line.strip_suffix(b"\n")).unwrap_or(line));
         if let Some(rest) = line.strip_prefix("__IMG__:") {
             for kv in rest.split(';') {
                 if let Some((k, v)) = kv.split_once('=') {

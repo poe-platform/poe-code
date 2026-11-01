@@ -951,3 +951,19 @@ test("recursive removal checks all nonempty directories before deleting anything
     } finally { bash.dispose(); }
   }
 });
+
+test("overlay removal resolves every ancestor before changing either layer", async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/g/sub/data":"lower","/open/keep":"KEEP"},symlinks:{"/link":"/g"}});
+  try {
+    await bash.fs.writeFile("/g/sub/new", new TextEncoder().encode("upper"));
+    await bash.fs.chmod("/g", 0);
+    for (const [p,code] of [["/g/../open","EACCES"],["/missing/../open","ENOENT"],["/link/","EACCES"]]) {
+      await assert.rejects(bash.fs.rm(p, {recursive:true}), {code});
+      assert.equal(bash.readText("/open/keep"), "KEEP");
+    }
+    await bash.fs.rm("/g", {recursive:true});
+    await assert.rejects(bash.fs.lstat("/g/sub/new"), {code:"ENOENT"});
+    await assert.rejects(bash.fs.lstat("/g/sub/data"), {code:"ENOENT"});
+    assert.equal((await bash.fs.lstat("/link")).type, "symlink");
+  } finally { bash.dispose(); }
+});

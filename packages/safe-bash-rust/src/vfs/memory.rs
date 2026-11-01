@@ -386,9 +386,9 @@ impl MemoryVfs {
 
     // The overlay holds its whiteout lock. Bind its merged lookup to both namespaces
     // before removing an upper entry or allowing it to hide a lower one.
-    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool) -> Result<(), String> {
+    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool, recursive: bool) -> Result<(), String> {
         if self.id == lower.id { return Err("ENOTSUP: aliased overlay layers".into()); }
-        let (_base, mut upper) = if lower.id < self.id {
+        let (base, mut upper) = if lower.id < self.id {
             let base = lower.state.read().map_err(|_| "EIO: input/output error")?;
             (base, self.state.write().map_err(|_| "EIO: input/output error")?)
         } else {
@@ -396,8 +396,19 @@ impl MemoryVfs {
             (lower.state.read().map_err(|_| "EIO: input/output error")?, upper)
         };
         if versions != (lower.generation(), self.generation()) { return Err("EBUSY: overlay entries changed".into()); }
+        if path == "/" || upper.devices.entry(path).is_some() || base.devices.entry(path).is_some() {
+            return Err("EBUSY: resource busy or locked".into());
+        }
         if upper.nodes.contains_key(path) {
-            Self::remove_one_locked(&mut upper, path, directory)?;
+            if recursive {
+                // The overlay detaches the upper subtree as a single namespace change.
+                let prefix = format!("{path}/");
+                let keys: Vec<_> = upper.nodes.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)).map(|(k, _)| k.clone()).collect();
+                for key in keys { Self::unlink_locked(&mut upper, &key); }
+                Self::unlink_locked(&mut upper, path);
+            } else {
+                Self::remove_one_locked(&mut upper, path, directory)?;
+            }
             self.bump_generation();
         }
         Ok(())

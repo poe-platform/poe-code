@@ -259,7 +259,7 @@ impl SafeBashFs for RealVfs {
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let host = self.walk(&self.root, path, Walk::Entry, false)?;
+        let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
         if host == self.root
             || matches!(
                 path.trim_end_matches('/').rsplit('/').next(),
@@ -422,6 +422,7 @@ mod tests {
             vfs.rename("/nested/dir/hello.txt", "/moved", true).unwrap();
             vfs.rename("/moved", "/nested/dir/hello.txt", false).unwrap();
         }
+        assert!(vfs.remove_path("/absent/../nested").is_err());
         assert!(vfs.remove_path("/").is_err());
         vfs.remove_path("/nested/dir/hello.txt").unwrap();
         assert!(!vfs.exists("/nested/dir/hello.txt"));

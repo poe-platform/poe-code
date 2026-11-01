@@ -42,7 +42,40 @@ impl OverlayVfs {
         false
     }
 
-
+    fn remove_entry(&self, path: &str, directory: bool, recursive: bool) -> Result<(), String> {
+        // Whiteouts are only inserted, so their count also identifies the visible namespace.
+        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let versions = (self.lower.generation(), self.upper.generation());
+        if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+        let trimmed = path.trim_end_matches('/');
+        if !recursive && matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
+        if trimmed.is_empty() { return Err("EBUSY: resource busy or locked".into()); }
+        let entry = super::path::walk_path(if recursive { path } else { trimmed }, false, super::path::WalkPurpose::OverlayRemoval, |p| {
+            let backend: &dyn SafeBashFs = if self.upper.lstat(p).is_ok() { self.upper.as_ref() }
+                else if self.is_deleted(p) { self } else { self.lower.as_ref() };
+            (None, backend, p.to_owned())
+        })?;
+        if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
+        let st = self.lstat(&entry)?;
+        if st.mode & 0o170000 == 0o020000 {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let is_dir = st.kind == VfsEntryKind::Directory;
+        if !is_dir && (directory || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
+        if self.stat(&crate::vfs::dirname_posix_path(&entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        if is_dir && !recursive {
+            if !directory { return Err("EISDIR: illegal operation on a directory".into()); }
+            if !self.list_dir(&entry)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }
+        }
+        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
+            return Err("ENOTSUP: overlay layers do not support conditional removal".into());
+        };
+        let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
+        if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during removal".into()); }
+        upper.remove_overlay_entry(lower, versions, &entry, directory, recursive)?;
+        whiteouts.insert(entry);
+        Ok(())
+    }
 }
 
 impl SafeBashFs for OverlayVfs {
@@ -140,43 +173,11 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
-        let versions = (self.lower.generation(), self.upper.generation());
-        if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
-        let trimmed = path.trim_end_matches('/');
-        if matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
-        if trimmed.is_empty() { return Err("EBUSY: resource busy or locked".into()); }
-        let entry = self.access_path(trimmed, false)?;
-        let st = self.lstat(&entry)?;
-        if st.mode & 0o170000 == 0o020000 {
-            return Err("EBUSY: resource busy or locked".into());
-        }
-        let is_dir = st.kind == VfsEntryKind::Directory;
-        if !is_dir && (directory || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
-        if self.stat(&crate::vfs::dirname_posix_path(&entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
-        if is_dir {
-            if !directory { return Err("EISDIR: illegal operation on a directory".into()); }
-            if !self.list_dir(&entry)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }
-        }
-        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
-            return Err("ENOTSUP: overlay layers do not support conditional removal".into());
-        };
-        let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
-        upper.remove_overlay_entry(lower, versions, &entry, directory)?;
-        whiteouts.insert(entry);
-        Ok(())
+        self.remove_entry(path, directory, false)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        let existed = self.exists(&norm);
-        if !existed {
-            return Err(format!("ENOENT: no such file or directory, unlink '{norm}'"));
-        }
-        let _ = self.upper.remove_path(&norm);
-        if let Ok(mut guard) = self.whiteouts.write() {
-            guard.insert(norm);
-        }
-        Ok(())
+        self.remove_entry(path, false, true)
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {

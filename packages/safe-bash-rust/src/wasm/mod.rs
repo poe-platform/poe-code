@@ -397,20 +397,11 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     let path = unsafe { str_from_raw(path_ptr, path_len) };
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
-    let result = (|| -> Result<(), String> {
-        match operation {
-            1 | 2 => return sess.shell.fs.remove_one(path, operation == 2),
-            0 => {}
-            _ => return Err("EINVAL: invalid removal operation".into()),
-        }
-        if matches!(path.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
-            return Err(format!("EINVAL: invalid argument '{path}'"));
-        }
-        if crate::vfs::normalize_posix_path(path) == "/" {
-            return Err("EBUSY: cannot remove root directory '/'".into());
-        }
-        sess.shell.fs.remove_path(path)
-    })();
+    let result = match operation {
+        0 => sess.shell.fs.remove_path(path),
+        1 | 2 => sess.shell.fs.remove_one(path, operation == 2),
+        _ => Err("EINVAL: invalid removal operation".into()),
+    };
     match result {
         Ok(()) => 0,
         Err(e) if force && e.starts_with("ENOENT:") => 0,

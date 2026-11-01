@@ -71,6 +71,7 @@ pub fn dirname_posix_path(path: &str) -> String {
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum WalkPurpose {
     AllowMissingParents,
+    OverlayRemoval,
     Access,
     Rename,
 }
@@ -83,6 +84,8 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     purpose: WalkPurpose,
     location: impl Fn(&str) -> (Option<&'a str>, &'a F, String),
 ) -> Result<String, String> {
+    let access = matches!(purpose, WalkPurpose::Access | WalkPurpose::OverlayRemoval);
+    let mut link_checks = Vec::new();
     let mut current = "/".to_string();
     let mut pending: Vec<String> = path
         .split('/')
@@ -95,14 +98,14 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     let mut links = 0;
     if purpose != WalkPurpose::AllowMissingParents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
     if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
-    if purpose == WalkPurpose::Access && path.ends_with('/') { pending.insert(0, ".".into()); }
+    if access && path.ends_with('/') { pending.insert(0, ".".into()); }
     while let Some(part) = pending.pop() {
         if purpose != WalkPurpose::AllowMissingParents {
             let (_, backend, local) = location(&current);
             let st = backend.stat(&local)?;
             if st.kind != super::VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
             if st.mode & 0o100 == 0 {
-                if purpose == WalkPurpose::Access {
+                if access {
                     let denied = if matches!(part.as_str(), "." | "..") { path.to_owned() }
                         else { format!("{}/{part}", current.trim_end_matches('/')) };
                     return Err(format!("EACCES: permission denied, lstat '{denied}'"));
@@ -129,7 +132,8 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             return Err("EACCES: Permission denied".into());
         }
         if !follow_final && pending.is_empty() {
-            return Ok(candidate);
+            current = candidate;
+            break;
         }
         match backend.lstat(&relative) {
             Ok(st) if st.kind == super::VfsEntryKind::Symlink => {
@@ -137,13 +141,20 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                 if links > 40 {
                     return Err("ELOOP: too many symbolic links".into());
                 }
+                // Overlay links can cross layers only when their own backend confirms
+                // the same final entry. Never unlink an unrelated upper replacement.
+                if purpose == WalkPurpose::OverlayRemoval {
+                    let mut remaining = relative.clone();
+                    for part in pending.iter().rev() { remaining.push('/'); remaining.push_str(part); }
+                    link_checks.push((backend, remaining));
+                }
                 let target = backend.readlink(&relative)?;
                 followed_final_mount_link |= prefix.is_some() && pending.is_empty();
                 boundary = prefix;
                 if target.starts_with('/') {
                     current = prefix.unwrap_or("/").to_owned();
                 }
-                if purpose == WalkPurpose::Access && target.ends_with('/') { pending.push(".".into()); }
+                if access && target.ends_with('/') { pending.push(".".into()); }
                 pending.extend(
                     target
                         .split('/')
@@ -154,11 +165,16 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             }
             Ok(_) => current = candidate,
             Err(error) if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") => {
-                if purpose == WalkPurpose::Access && followed_final_mount_link { return Err(error); }
+                if access && followed_final_mount_link { return Err(error); }
                 current = candidate
             }
             Err(error) => return Err(error),
         }
+    }
+    for (backend, remaining) in link_checks {
+        let dest = backend.access_path(&remaining, follow_final)?;
+        backend.lstat(&dest)?;
+        if dest != current { return Err("ENOTSUP: inconsistent overlay symlink namespace".into()); }
     }
     Ok(current)
 }

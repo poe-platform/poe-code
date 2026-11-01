@@ -868,6 +868,10 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
+        Ok(self.directory_entries(path, usize::MAX)?.into_iter().map(|(n, _)| n).collect())
+    }
+
+    fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
@@ -885,18 +889,25 @@ impl SafeBashFs for MemoryVfs {
         let prefix = if resolved == "/" { "/".into() } else { format!("{resolved}/") };
         let mut children = Vec::new();
         if directory {
-            children.push("null".into());
+            children.push(("null".into(), 0o020000));
             if matches!(guard.devices, Devices::Extended | Devices::Mounted) {
-                children.extend(["random", "urandom", "zero"].map(str::to_string));
+                children.extend(["random", "urandom", "zero"].map(|n| (n.to_owned(), 0o020000)));
             }
         } else if guard.devices != Devices::None && resolved == "/" {
-            children.push("dev".into());
+            children.push(("dev".into(), 0o040000));
         }
         let device_count = children.len();
-        for (key, _) in guard.nodes.range(prefix.clone()..) {
+        if device_count > limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+        for (key, node) in guard.nodes.range(prefix.clone()..) {
             let Some(name) = key.strip_prefix(&prefix) else { break };
-            if !name.is_empty() && !name.contains('/') && !children[..device_count].iter().any(|c| c == name) {
-                children.push(name.to_owned());
+            if !name.is_empty() && !name.contains('/') && !children[..device_count].iter().any(|(n, _)| n == name) {
+                if children.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+                let mode = match node {
+                    MemoryNode::File { .. } => 0o100000,
+                    MemoryNode::Directory { .. } => 0o040000,
+                    MemoryNode::Symlink { .. } => 0o120000,
+                };
+                children.push((name.to_owned(), mode));
             }
         }
         Ok(children)

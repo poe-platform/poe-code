@@ -188,6 +188,11 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.list_dir(path)
     }
 
+    fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
+        self.budget.limits.check_path(path)?;
+        self.inner.directory_entries(path, limit)
+    }
+
     fn supports_hard_links(&self, path: &str) -> bool { self.inner.supports_hard_links(path) }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {

@@ -824,6 +824,31 @@ test("mkdir replay retains parents created before a recursive failure", async ()
   } finally { bash.dispose(); companion.dispose(); }
 });
 
+test("async readdir returns typed entries in JavaScript order and admits bounded listings", async () => {
+  for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, directories:["/dir/𐀀"], files:{"/dir/":"data"}, symlinks:{"/dir/link":"missing"}});
+    try {
+      assert.deepEqual(await bash.fs.readdir("/dir", {maxEntries:3}), [
+        {name:"link", type:"symlink"}, {name:"𐀀", type:"directory"}, {name:"", type:"file"},
+      ]);
+      assert.ok(bash.readdir("/dir").every(name => typeof name === "string"));
+      await assert.rejects(bash.fs.readdir("/dir", {maxEntries:2}), {code:"EFBIG", path:"/dir"});
+      await assert.rejects(bash.fs.readdir("/missing", {maxEntries:-1}), {code:"EINVAL", syscall:"readdir"});
+      assert.deepEqual(await bash.fs.readdir("/dir/𐀀", {maxEntries:0}), []);
+      if (profile === "strict-budgets-mount-dev") {
+        assert.ok((await bash.fs.readdir("/dev")).every(e => e.type === "character"));
+        await assert.rejects(bash.fs.readdir("/dev", {maxEntries:Infinity}), {code:"EINVAL"});
+      }
+      if (profile === "overlay-cow-fs") {
+        await bash.fs.unlink("/dir/link");
+        await assert.rejects(bash.fs.readdir("/dir", {maxEntries:2}), {code:"EFBIG"});
+        await bash.fs.writeFile("/dir/link", "upper");
+        assert.equal((await bash.fs.readdir("/dir", {maxEntries:3}))[0].type, "file");
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
 test("readdir refuses unreadable directories and resolves ancestors before '..'", async () => {
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
     const bash = new RustWasmBash({profile, files:{"/private/secret":"value", "/readable/file":"data", "/dev/secret":"value"}});

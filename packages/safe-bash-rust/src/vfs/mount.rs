@@ -230,6 +230,21 @@ impl SafeBashFs for MountVfs {
         Ok(entries)
     }
 
+    fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
+        let parent = self.resolve(path, true, WalkPurpose::Access)?;
+        let (_, fs, rel) = self.location(&parent);
+        let mut entries = fs.directory_entries(&rel, limit)?;
+        for mount in self.mounts.keys() {
+            if let Some(suffix) = mount.strip_prefix(&format!("{}/", parent.trim_end_matches('/')))
+                && let Some(name) = suffix.split('/').next() {
+                if let Some((_, mode)) = entries.iter_mut().find(|(n, _)| n == name) { *mode = 0o040000; }
+                else if entries.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+                else { entries.push((name.to_owned(), 0o040000)); }
+            }
+        }
+        Ok(entries)
+    }
+
     fn supports_hard_links(&self, path: &str) -> bool {
         self.route(path, false).is_ok_and(|(fs, local)| fs.supports_hard_links(&local))
     }

@@ -329,6 +329,20 @@ impl SafeBashFs for RealVfs {
         Ok(names)
     }
 
+    fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
+        let mut entries = Vec::new();
+        for entry in std::fs::read_dir(host).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            if entries.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+            let kind = entry.file_type().map_err(|e| e.to_string())?;
+            let mode = if kind.is_file() { 0o100000 } else if kind.is_symlink() { 0o120000 }
+                else if kind.is_dir() { 0o040000 } else { return Err("ENOTSUP: unsupported file type".into()); };
+            entries.push((entry.file_name().to_string_lossy().into_owned(), mode));
+        }
+        Ok(entries)
+    }
+
     fn supports_hard_links(&self, _path: &str) -> bool { true }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {

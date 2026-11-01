@@ -271,6 +271,26 @@ impl SafeBashFs for OverlayVfs {
         Ok(names.into_iter().collect())
     }
 
+    fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
+        let mut entries = BTreeMap::new();
+        if self.upper.is_dir(path) { entries.extend(self.upper.directory_entries(path, limit)?); }
+        if !self.is_deleted(path) && self.lower.is_dir(path) {
+            for (name, mode) in self.lower.directory_entries(path, limit)? {
+                if !entries.contains_key(&name) && entries.len() == limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+                entries.entry(name).or_insert(mode);
+            }
+        }
+        entries.retain(|name, _| {
+            let p = format!("{}/{name}", path.trim_end_matches('/'));
+            !self.is_deleted(&p) || self.upper.lstat(&p).is_ok()
+        });
+        if !entries.is_empty() && self.stat(path)?.mode & 0o100 == 0 {
+            let name = entries.keys().min_by(|a,b| a.encode_utf16().cmp(b.encode_utf16())).unwrap();
+            return Err(format!("EACCES: permission denied, lstat '{}/{name}'", path.trim_end_matches('/')));
+        }
+        Ok(entries.into_iter().collect())
+    }
+
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         self.upper.symlink(target, &norm)

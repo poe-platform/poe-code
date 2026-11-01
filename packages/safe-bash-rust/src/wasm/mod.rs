@@ -565,6 +565,8 @@ pub unsafe extern "C" fn safe_bash_readdir(
     id: u32,
     path_ptr: *const u8,
     path_len: usize,
+    typed: bool,
+    limit: f64,
 ) -> i32 {
     let path = unsafe {
         str_from_raw(path_ptr, path_len)
@@ -576,19 +578,30 @@ pub unsafe extern "C" fn safe_bash_readdir(
         return -1;
     };
     let fs = &sess.shell.fs;
+    let mut listing_path = None;
     let result = (|| {
+        if typed && limit < 0.0 { return Err("EINVAL: invalid directory entry limit".into()); }
         let p = fs.access_path(path, true)?;
+        listing_path = Some(p.clone());
         let st = fs.lstat(&p)?;
         if st.kind != VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
         if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
-        fs.list_dir(&p)
+        if typed {
+            // The mounted device backend requires a finite limit when explicitly supplied.
+            if sess.profile == Profile::Devices && p == "/dev" && limit == f64::INFINITY { return Err("EINVAL: invalid argument".into()); }
+            fs.directory_entries(&p, limit as usize)
+        } else {
+            fs.list_dir(&p).map(|names| names.into_iter().map(|name| (name, 0)).collect())
+        }
     })();
     match result {
         Ok(mut entries) => {
-            entries.sort();
+            if typed { entries.sort_unstable_by(|(a, _), (b, _)| a.encode_utf16().cmp(b.encode_utf16())); }
+            else { entries.sort_unstable(); }
             let mut buf = Vec::new();
             buf.extend_from_slice(&(entries.len() as u32).to_le_bytes());
-            for entry in entries {
+            for (entry, mode) in entries {
+                if typed { buf.push((mode >> 12) as u8); }
                 let b = entry.as_bytes();
                 buf.extend_from_slice(&(b.len() as u32).to_le_bytes());
                 buf.extend_from_slice(b);
@@ -599,9 +612,22 @@ pub unsafe extern "C" fn safe_bash_readdir(
         }
         Err(e) => {
             let code = e.split_once(':').map_or("EIO", |(c, _)| c);
-            let syscall = if sess.profile == Profile::Overlay { "overlay" } else { "readdir" };
-            let root = if sess.profile == Profile::Devices && !path.starts_with('/') { "/" } else { "" };
-            sess.last_output_buf = format!("{code}:{syscall}:{root}{path}").into_bytes();
+            let over = sess.profile == Profile::Overlay;
+            let bounded = code == "EFBIG" || typed && limit < 0.0;
+            let mut syscall = if over && !bounded { "overlay" } else { "readdir" };
+            let detail = if bounded && sess.profile != Profile::Devices {
+                if code == "EINVAL" { "directory entry limit must be a nonnegative safe integer or Infinity" }
+                else { "directory entry limit exceeded" }
+            } else { "" };
+            let mut operand = path.to_owned();
+            if over && !(typed && limit < 0.0) {
+                if code == "EACCES" && listing_path.is_some() && e.contains(", lstat '") { syscall = "lstat"; }
+                operand = e.split_once(", lstat '").or_else(|| e.split_once(", stat '"))
+                    .and_then(|(_, p)| p.strip_suffix('\'')).map(str::to_owned)
+                    .or(listing_path).unwrap_or_else(|| crate::vfs::normalize_posix_path(path));
+                if path.ends_with('/') && syscall == "overlay" { operand = crate::vfs::normalize_posix_path(&operand); }
+            } else if sess.profile == Profile::Devices && !path.starts_with('/') { operand.insert(0, '/'); }
+            sess.last_output_buf = format!("{code}:{syscall}:{detail}:{operand}").into_bytes();
             -(sess.last_output_buf.len() as i32)
         }
     }

@@ -143,6 +143,15 @@ pub trait SafeBashFs: Send + Sync {
     /// The caller has already resolved the parent and checked traversal access.
     fn indexed_directory_entry(&self, _path: &str) -> Option<bool> { None }
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String>;
+    /// Read names and no-follow file type bits from a resolved, readable directory.
+    fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
+        let names = self.list_dir(path)?;
+        if names.len() > limit { return Err("EFBIG: directory entry limit exceeded".into()); }
+        names.into_iter().map(|name| {
+            let mode = self.lstat(&format!("{}/{name}", path.trim_end_matches('/')))?.mode;
+            Ok((name, mode & 0o170000))
+        }).collect()
+    }
     fn supports_hard_links(&self, _path: &str) -> bool { false }
     /// Create a second name for the source inode without following its final symlink.
     fn hard_link(&self, _source: &str, _destination: &str) -> Result<(), String> {

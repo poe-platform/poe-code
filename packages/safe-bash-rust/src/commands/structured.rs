@@ -38252,6 +38252,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     fn mmdc_encodes_png_scanlines_and_embeds_the_raster_in_a_pdf() {
         let fs=MemoryVfs::new();
         for (source,path,hash) in [
+            ("flowchart TD; A-->A","/chart.png","d8f7f78bab5707651399686cf9f01a5c9bde3ac85e953115d10a66fa977b10ea"),
             ("flowchart TD; A-->B","/chart.png","06f9e52c0a4c42666b93e7125edba4f97f6ba1bdf6c32c307525a2bee73edd8f"),
             ("flowchart TD; A-->B","/chart.pdf","5c99fac4e63502721f76629f092522bbb2a558fbe134df1d3434c91638592fe3"),
             ("flowchart TD","/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),
@@ -38302,6 +38303,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         for (source,hash) in [
             ("flowchart RL; A-->B; C-->D","6ce3c8b4a2b890f6509a5c474ee80c0af1adb5488293e889848f307902ad8d07"),
             ("flowchart TD; A-->B; C","740f643492317e39204c3354a597ed2c2f3f9c464e92a09ef8a2f0083dc9757f"),
+            ("flowchart LR; A((Round))-->A","4bbf9a56e86d6cd88c6d63b4793e9f12a8a6707fb0c74d9e4deb936559363e44"),
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
             ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
             ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")

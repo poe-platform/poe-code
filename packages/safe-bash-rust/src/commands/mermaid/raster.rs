@@ -8,6 +8,12 @@ pub(super) use shapes::BoxStyle;
 use std::ops::RangeInclusive;
 
 pub(super) enum Paint {
+    Edge {
+        route: super::route::Route,
+        stroke: [u8; 4],
+        width: f64,
+        dashed: bool,
+    },
     Pie {
         cy: f64,
         ends: Vec<(f64, [u8; 4])>,
@@ -141,13 +147,19 @@ impl Frame {
                 shape,
                 shadow,
             } => self.box_shape(*bounds, *style, *shape, *shadow),
+            Paint::Edge {
+                route,
+                stroke,
+                width,
+                dashed,
+            } => self.path(&route.pixels(scale), 1., None, *stroke, *width, *dashed),
             Paint::Path {
                 points,
                 fill,
                 stroke,
                 width,
                 dashed,
-            } => self.path(points, *fill, *stroke, *width, *dashed),
+            } => self.path(points, scale, *fill, *stroke, *width, *dashed),
             Paint::Text {
                 start,
                 baseline,

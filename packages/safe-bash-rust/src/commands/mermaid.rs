@@ -8,6 +8,8 @@ pub(super) mod pie;
 mod ranks;
 #[path = "mermaid/raster.rs"]
 mod raster;
+#[path = "mermaid/route.rs"]
+mod route;
 
 pub(super) struct Scene {
     pub width: f64,
@@ -27,6 +29,7 @@ struct Node {
     y: i32,
     from: Option<usize>,
     to: Option<usize>,
+    loops: usize,
 }
 #[derive(Default, Clone, Copy, PartialEq)]
 enum Shape {
@@ -41,6 +44,16 @@ enum Shape {
     Subroutine,
 }
 
+impl Node {
+    fn radius(&self) -> i32 {
+        match self.shape {
+            Shape::Circle | Shape::Stadium => self.h / 2,
+            Shape::Diamond => 4,
+            Shape::Rounded => 12,
+            _ => 8,
+        }
+    }
+}
 const ADVANCES: &[[u8; 6]] = include_bytes!("mermaid/advances.bin").as_chunks::<6>().0;
 fn glyph_index(c: char) -> usize {
     let cp = c as u32;
@@ -273,11 +286,17 @@ pub(super) fn layout(
                 return None;
             }
             let (b, tail) = parse_node(tail, &mut nodes, &mut ids)?;
-            if nodes[a].to.is_some() || nodes[b].from.is_some() {
+            if a == b {
+                if !label.is_empty() {
+                    return None;
+                }
+                nodes[a].loops += 1;
+            } else if nodes[a].to.is_some() || nodes[b].from.is_some() {
                 return None;
+            } else {
+                nodes[a].to = Some(b);
+                nodes[b].from = Some(a);
             }
-            nodes[a].to = Some(b);
-            nodes[b].from = Some(a);
             edges.push((a, b, op, label));
             a = b;
             rest = tail;
@@ -289,7 +308,23 @@ pub(super) fn layout(
     for n in &mut nodes {
         dimensions(n);
     }
-    let (width, height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
+    let (mut width, mut height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
+    let mut shift_y = 0;
+    for node in nodes.iter().filter(|n| n.loops != 0) {
+        let clearance = 42 + (node.loops as i32 - 1) * 20;
+        if horizontal {
+            shift_y = shift_y.max(32 + clearance - node.y);
+        } else {
+            width = width.max(node.x + node.w + clearance + 32);
+        }
+    }
+    if shift_y > 0 {
+        height += shift_y;
+        for node in &mut nodes {
+            node.y += shift_y;
+        }
+    }
+    let mut loop_index = vec![0; nodes.len()];
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];
@@ -306,44 +341,50 @@ pub(super) fn layout(
         [15, 23, 42, 15]
     };
     for (idx, (a, b, op, label)) in edges.into_iter().enumerate() {
-        let (a, b) = (&nodes[a], &nodes[b]);
-        let (x, y, ex, ey, dx, dy, angle) = match dir {
-            "LR" => (a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2, 1., 0., 0),
-            "RL" => (a.x, a.y + a.h / 2, b.x + b.w, b.y + b.h / 2, -1., 0., 180),
-            "BT" => (a.x + a.w / 2, a.y, b.x + b.w / 2, b.y + b.h, 0., -1., -90),
-            _ => (a.x + a.w / 2, a.y + a.h, b.x + b.w / 2, b.y, 0., 1., 90),
+        let (mut points, start_angle, angle) = if a == b {
+            let path = route::loop_points(&nodes[a], horizontal, loop_index[a], nodes[a].loops);
+            loop_index[a] += 1;
+            let angle = if horizontal { 90 } else { 180 };
+            (path.to_vec(), angle, angle)
+        } else {
+            let (a, b) = (&nodes[a], &nodes[b]);
+            let (x, y, ex, ey, start_angle, angle) = match dir {
+                "LR" => (a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2, 180, 0),
+                "RL" => (a.x, a.y + a.h / 2, b.x + b.w, b.y + b.h / 2, 0, 180),
+                "BT" => (a.x + a.w / 2, a.y, b.x + b.w / 2, b.y + b.h, 90, -90),
+                _ => (a.x + a.w / 2, a.y + a.h, b.x + b.w / 2, b.y, -90, 90),
+            };
+            (
+                vec![(x.into(), y.into()), (ex.into(), ey.into())],
+                start_angle,
+                angle,
+            )
         };
+        let (x, y) = points[0];
+        let (ex, ey) = *points.last()?;
         let arrow = op.ends_with('>');
         let start_arrow = op.starts_with('<');
-        let end_x = f64::from(ex) - if arrow { dx * 6.8 } else { 0. };
-        let end_y = f64::from(ey) - if arrow { dy * 6.8 } else { 0. };
         let stroke = if op.contains("==") { 2.25 } else { 1.25 };
         let dash = if op.contains('.') {
             r#" stroke-dasharray="5 4""#
         } else {
             ""
         };
-        let start_x = f64::from(x) + if start_arrow { dx * 6.8 } else { 0. };
-        let start_y = f64::from(y) + if start_arrow { dy * 6.8 } else { 0. };
-        edge_paint.push(Paint::Path {
-            points: vec![(start_x, start_y), (end_x, end_y)],
-            fill: None,
+        let route = route::Route::rounded(&mut points, start_arrow, arrow);
+        let path = route.svg();
+        edge_paint.push(Paint::Edge {
+            route,
             stroke: edge_color,
             width: stroke,
             dashed: !dash.is_empty(),
         });
         let marker =
-            |x: i32, y: i32, angle: i32, local: &[(f64, f64)], filled: bool, width: f64| {
+            |x: f64, y: f64, angle: i32, local: &[(f64, f64)], filled: bool, width: f64| {
                 let (sin, cos) = f64::from(angle).to_radians().sin_cos();
                 Paint::Path {
                     points: local
                         .iter()
-                        .map(|&(a, b)| {
-                            (
-                                f64::from(x) + (a * cos - b * sin),
-                                f64::from(y) + (a * sin + b * cos),
-                            )
-                        })
+                        .map(|&(a, b)| (x + (a * cos - b * sin), y + (a * sin + b * cos)))
                         .collect(),
                     fill: filled.then_some(edge_color),
                     stroke: edge_color,
@@ -352,23 +393,10 @@ pub(super) fn layout(
                 }
             };
         let mut el = format!(
-            r#"<g class="mmdc-edge" data-id="edge_{}"><path d="M {start_x} {start_y} L {end_x} {end_y}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
+            r#"<g class="mmdc-edge" data-id="edge_{}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
             idx + 1
         );
-        for (show, ex, ey, angle) in [
-            (
-                start_arrow,
-                x,
-                y,
-                match angle {
-                    0 => 180,
-                    90 => -90,
-                    180 => 0,
-                    _ => 90,
-                },
-            ),
-            (arrow, ex, ey, angle),
-        ] {
+        for (show, ex, ey, angle) in [(start_arrow, x, y, start_angle), (arrow, ex, ey, angle)] {
             if show {
                 edge_paint.push(marker(
                     ex,
@@ -403,8 +431,8 @@ pub(super) fn layout(
         if !label.is_empty() {
             let (size, weight, rx, w) = pill_style(label);
             let short = weight == 600;
-            let left = ((f64::from(x + ex) - w) * 0.5).round();
-            let top = ((f64::from(y + ey) - 23.) * 0.5).round();
+            let left = (((x + ex) - w) * 0.5).round();
+            let top = (((y + ey) - 23.) * 0.5).round();
             let (fill, border, color) = if dark {
                 ("#1e293b", "#334155", "#f8fafc")
             } else {
@@ -454,12 +482,7 @@ pub(super) fn layout(
             } else {
                 accent
             };
-        let radius = match n.shape {
-            Shape::Circle | Shape::Stadium => h / 2,
-            Shape::Diamond => 4,
-            Shape::Rounded => 12,
-            _ => 8,
-        };
+        let radius = n.radius();
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
             shape: n.shape,

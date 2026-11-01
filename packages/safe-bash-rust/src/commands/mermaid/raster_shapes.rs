@@ -64,7 +64,14 @@ impl Frame {
                 (x + 13., y + h),
                 (x, y + h / 2.),
             ];
-            self.path(&p, Some(style.fill), style.border, style.thickness, false);
+            self.path(
+                &p,
+                self.scale,
+                Some(style.fill),
+                style.border,
+                style.thickness,
+                false,
+            );
             return;
         }
         if shape == Shape::Cylinder {
@@ -81,7 +88,14 @@ impl Frame {
                     });
                 }
             }
-            self.path(&p, Some(style.fill), style.border, style.thickness, false);
+            self.path(
+                &p,
+                self.scale,
+                Some(style.fill),
+                style.border,
+                style.thickness,
+                false,
+            );
             p.clear();
             for i in 0..=32 {
                 let t = std::f64::consts::TAU * i as f64 / 32.;
@@ -104,7 +118,14 @@ impl Frame {
                     a,
                 ]
             };
-            self.path(&p, Some(lid), style.border, style.thickness, false);
+            self.path(
+                &p,
+                self.scale,
+                Some(lid),
+                style.border,
+                style.thickness,
+                false,
+            );
             return;
         }
         let (xs, ys) = self.bounds(
@@ -140,6 +161,7 @@ impl Frame {
     pub(super) fn path(
         &mut self,
         pts: &[(f64, f64)],
+        point_scale: f64,
         fill: Option<[u8; 4]>,
         stroke: [u8; 4],
         width: f64,
@@ -156,7 +178,7 @@ impl Frame {
             f64::NEG_INFINITY,
         );
         for (i, &(x, y)) in pts.iter().enumerate() {
-            let (x, y) = (x * scale, y * scale);
+            let (x, y) = (x * point_scale, y * point_scale);
             minx = minx.min(x);
             miny = miny.min(y);
             maxx = maxx.max(x);
@@ -165,7 +187,7 @@ impl Frame {
                 break;
             }
             let (qx, qy) = pts[(i + 1) % pts.len()];
-            let (qx, qy) = (qx * scale, qy * scale);
+            let (qx, qy) = (qx * point_scale, qy * point_scale);
             let (dx, dy) = (qx - x, qy - y);
             let len = dx.hypot(dy);
             edges.push((x, y, qx, qy, dx, dy, dx * dx + dy * dy, arc, len));

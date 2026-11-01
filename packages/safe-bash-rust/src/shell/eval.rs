@@ -16029,6 +16029,46 @@ hash -l
     }
 
     #[test]
+    fn arithmetic_array_references_preserve_scalar_zero_and_report_invalid_indices() {
+        for (script, status, stdout, stderr) in [
+            (r#"a=10; ((a[2]=42)); echo "${a[@]}""#, 0, "10 42\n", ""),
+            (r#"a=10; echo "$((a[-1]))""#, 0, "10\n", ""),
+            (
+                r#"a=(10); echo "$((a[-2]))""#,
+                1,
+                "",
+                "shell: line 1: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"a=(10); ((a[2147483648]=7))"#,
+                1,
+                "",
+                "shell: line 1: ((: indexed array: index outside 0..2147483647\n",
+            ),
+            (
+                r#"i="a[i]"; echo "$((a[i]))""#,
+                1,
+                "",
+                "shell: line 1: Arithmetic subscript recursion nesting\n",
+            ),
+            (
+                r#"a=("a[1]+1" "a[2]+2" 7); echo "$((a[0]))""#,
+                0,
+                "10\n",
+                "",
+            ),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!(
+                (r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+                (status, stdout, stderr),
+                "{script}"
+            );
+        }
+    }
+
+    #[test]
     fn unit_eval_arithmetic_arrays_and_parameter_transforms_parity() {
         let vfs = crate::vfs::MemoryVfs::new();
         let mut cwd = "/".to_string();

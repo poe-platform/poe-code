@@ -521,7 +521,14 @@ pub fn eval_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64,
 }
 
 pub fn eval_arith_formatted(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64, String> {
-    let mut visiting = BTreeSet::new();
+    eval_arith_formatted_inner(expr, env, &mut BTreeSet::new())
+}
+
+fn eval_arith_formatted_inner(
+    expr: &str,
+    env: &mut BTreeMap<String, String>,
+    visiting: &mut BTreeSet<String>,
+) -> Result<i64, String> {
     let joined = expr.replace("\\\n", "");
     let src = joined.as_str();
     if src.trim().is_empty() {
@@ -550,7 +557,7 @@ pub fn eval_arith_formatted(expr: &str, env: &mut BTreeMap<String, String>) -> R
             tokens[pos].1,
         ));
     }
-    match eval_arith_ast(&ast, env, &mut visiting) {
+    match eval_arith_ast(&ast, env, visiting) {
         Ok(v) => Ok(v),
         Err(e) => {
             if let Some(rest) = e.strip_prefix("__syntax__")
@@ -1059,10 +1066,6 @@ fn resolve_arith_var_resolved(
     env: &mut BTreeMap<String, String>,
     visiting: &mut BTreeSet<String>,
 ) -> Result<i64, String> {
-    let base = resolved
-        .split_once('[')
-        .map(|(b, _)| b)
-        .unwrap_or(resolved);
     let raw_opt = if resolved == "RANDOM" {
         read_dynamic_random(env)
     } else if resolved == "SECONDS" {
@@ -1102,12 +1105,11 @@ fn resolve_arith_var_resolved(
     if let Ok(n) = trimmed.parse::<i64>() {
         return Ok(n);
     }
-    if visiting.contains(base) {
+    if !visiting.insert(resolved.to_string()) {
         return Err("Arithmetic variable recursion".to_string());
     }
-    visiting.insert(base.to_string());
     let res = eval_arith_with_visiting(trimmed, env, visiting);
-    visiting.remove(base);
+    visiting.remove(resolved);
     res
 }
 
@@ -1130,7 +1132,12 @@ fn set_arith_var_resolved(
     if write_dynamic_variable(&resolved, &val_s, env) {
         return Ok(());
     }
-    if !resolved.contains('[') && env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
+    if !resolved.contains('[')
+        && env
+            .get("__set_allexport")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+    {
         let attr_key = format!("__attr__{base}");
         let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
         if !attr.contains('x') {
@@ -1149,6 +1156,13 @@ fn set_arith_var_resolved(
         env.insert(format!("{resolved}[0]"), val_s);
         sync_array_metadata(&resolved, env);
         return Ok(());
+    }
+    if let Some((base, _)) = resolved.split_once('[')
+        && !env.contains_key(&format!("__keys__{base}"))
+        && !env.contains_key(&format!("__assoc__{base}"))
+        && let Some(scalar) = env.get(base).cloned()
+    {
+        env.entry(format!("{base}[0]")).or_insert(scalar);
     }
     env.insert(resolved.clone(), val_s);
     if resolved == "OPTIND" {
@@ -1415,7 +1429,7 @@ fn eval_arith_ast(
     match node {
         ArithNode::Num(n, _) => Ok(*n),
         ArithNode::Var(name, _) => {
-            let resolved_key = resolve_var_key_mut(name, env);
+            let resolved_key = resolve_var_key_mut(name, env, visiting)?;
             resolve_arith_var_resolved(name, &resolved_key, env, visiting)
         }
         ArithNode::Group(inner, _) => eval_arith_ast(inner, env, visiting),
@@ -1424,7 +1438,7 @@ fn eval_arith_ast(
                 let ArithNode::Var(var, _) = arg.as_ref() else {
                     return Err("Arithmetic increment/decrement requires a variable".to_string());
                 };
-                let resolved_key = resolve_var_key_mut(var, env);
+                let resolved_key = resolve_var_key_mut(var, env, visiting)?;
                 let cur = resolve_arith_var_resolved(var, &resolved_key, env, visiting)?;
                 let next = if op == "++" {
                     cur.wrapping_add(1)
@@ -1454,11 +1468,11 @@ fn eval_arith_ast(
         ArithNode::Assign { op, target, right, .. } => {
             if op == "=" {
                 let rhs = eval_arith_ast(right, env, visiting)?;
-                let resolved_key = resolve_var_key_mut(target, env);
+                let resolved_key = resolve_var_key_mut(target, env, visiting)?;
                 set_arith_var_resolved(resolved_key, rhs, env)?;
                 return Ok(rhs);
             }
-            let resolved_key = resolve_var_key_mut(target, env);
+            let resolved_key = resolve_var_key_mut(target, env, visiting)?;
             let cur = resolve_arith_var_resolved(target, &resolved_key, env, visiting)?;
             let rhs = eval_arith_ast(right, env, visiting)?;
             let next = apply_arith_binary(op.trim_end_matches('='), cur, rhs, right.start())?;
@@ -1960,7 +1974,7 @@ pub fn expand_parameter_expr(
                     expand_tilde_prefix(def_raw, env, false, true)
                 };
                 let def = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
-                let resolved = resolve_var_key_mut(var, env);
+                let resolved = resolve_var_key_mut(var, env, &mut BTreeSet::new())?;
                 let base = resolved
                     .split_once('[')
                     .map(|(b, _)| b)
@@ -2024,7 +2038,7 @@ pub fn expand_parameter_expr(
                     expand_tilde_prefix(def_raw, env, false, true)
                 };
                 let def = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
-                let resolved = resolve_var_key_mut(var, env);
+                let resolved = resolve_var_key_mut(var, env, &mut BTreeSet::new())?;
                 let base = resolved
                     .split_once('[')
                     .map(|(b, _)| b)
@@ -3718,7 +3732,11 @@ fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>) -> Str
     resolve_nameref_base(name, env).to_string()
 }
 
-pub fn resolve_var_key_mut(name: &str, env: &mut BTreeMap<String, String>) -> String {
+fn resolve_var_key_mut(
+    name: &str,
+    env: &mut BTreeMap<String, String>,
+    visiting: &mut BTreeSet<String>,
+) -> Result<String, String> {
     if let Some((base, sub_rest)) = name.split_once('[')
         && let Some(raw_sub) = sub_rest.strip_suffix(']')
     {
@@ -3741,7 +3759,14 @@ pub fn resolve_var_key_mut(name: &str, env: &mut BTreeMap<String, String>) -> St
             let idx = if let Ok(n) = clean_sub.parse::<i64>() {
                 n
             } else {
-                eval_arith(&clean_sub, env).unwrap_or(0)
+                // Subscripts can themselves refer back to this unresolved element.
+                let key = format!("[{resolved_base}[{raw_sub}]]");
+                if !visiting.insert(key.clone()) {
+                    return Err("Arithmetic subscript recursion nesting".into());
+                }
+                let result = eval_arith_formatted_inner(&clean_sub, env, visiting);
+                visiting.remove(&key);
+                result?
             };
             let final_idx = if idx < 0 {
                 let prefix = format!("{resolved_base}[");
@@ -3753,16 +3778,23 @@ pub fn resolve_var_key_mut(name: &str, env: &mut BTreeMap<String, String>) -> St
                             .and_then(|sub| sub.parse::<i64>().ok())
                     })
                     .max()
-                    .unwrap_or(-1);
-                max_idx + 1 + idx
+                    .unwrap_or(if env.contains_key(&resolved_base) {
+                        0
+                    } else {
+                        -1
+                    });
+                max_idx.saturating_add(1).saturating_add(idx)
             } else {
                 idx
             };
-            return format!("{resolved_base}[{final_idx}]");
+            if !(0..=i64::from(i32::MAX)).contains(&final_idx) {
+                return Err("indexed array: index outside 0..2147483647".into());
+            }
+            return Ok(format!("{resolved_base}[{final_idx}]"));
         }
-        return format!("{resolved_base}[{clean_sub}]");
+        return Ok(format!("{resolved_base}[{clean_sub}]"));
     }
-    resolve_nameref_base(name, env).to_string()
+    Ok(resolve_nameref_base(name, env).to_string())
 }
 
 

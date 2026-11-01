@@ -929,3 +929,25 @@ test("find does not run depth-first actions when directory traversal fails", asy
     assert.equal(bash.readText("/open/data"), "OTHER");
   } finally { bash.dispose(); }
 });
+
+test("recursive removal checks all nonempty directories before deleting anything", async () => {
+  for (const profile of [undefined, "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, files:{"/tree/first":"A","/tree/z/last":"B","/open/file":"C"}});
+    try {
+      await bash.fs.chmod("/tree/z", 0o500);
+      const r = await bash.exec("rm -rf /tree");
+      assert.deepEqual([r.exitCode,r.stderr], [1,"rm: EACCES: permission denied, rm '/tree'\n"]);
+      await assert.rejects(bash.fs.rm("/tree", {recursive:true,force:true}), {code:"EACCES"});
+      await bash.fs.chmod("/tree/z", 0);
+      await assert.rejects(bash.fs.rm("/tree/z/../../open", {recursive:true}), {code:"EACCES"});
+      const interactive = await bash.exec("rm -ri /tree/z", {stdin:"y\n"});
+      assert.deepEqual([interactive.exitCode,interactive.stderr], [1,"rm: EACCES: permission denied, readdir '/tree/z'\n"]);
+      await bash.fs.chmod("/tree/z", 0o700);
+      assert.equal(bash.readText("/tree/first"), "A");
+      assert.equal(bash.readText("/tree/z/last"), "B");
+      assert.equal(bash.readText("/open/file"), "C");
+      await bash.fs.rm("/tree", {recursive:true});
+      await assert.rejects(bash.fs.stat("/tree"), {code:"ENOENT"});
+    } finally { bash.dispose(); }
+  }
+});

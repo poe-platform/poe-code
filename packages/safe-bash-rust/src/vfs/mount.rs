@@ -167,7 +167,7 @@ impl SafeBashFs for MountVfs {
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let resolved = self.resolve(path, false, WalkPurpose::AllowMissingParents)?;
+        let resolved = self.resolve(path, false, WalkPurpose::Rename)?;
         if self
             .mounts
             .keys()
@@ -175,7 +175,8 @@ impl SafeBashFs for MountVfs {
         {
             return Err("EBUSY: cannot remove a mount or its parent".into());
         }
-        let (_, fs, rel) = self.location(&resolved);
+        let (_, fs, mut rel) = self.location(&resolved);
+        if path.ends_with('/') { rel.push('/'); }
         fs.remove_path(&rel)
     }
 

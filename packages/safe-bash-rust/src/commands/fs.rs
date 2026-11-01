@@ -963,7 +963,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         stdout: &mut String,
         stderr: &mut String,
         code: &mut i32,
-    ) -> bool {
+    ) -> Result<bool, ()> {
         let trimmed = operand.trim_end_matches('/');
         let last_seg = trimmed.rsplit('/').next().unwrap_or(trimmed);
         let p = resolve_posix_path(cwd, operand);
@@ -972,42 +972,46 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "rm: cannot remove '{operand}': refusing to remove root, '.' or '..'\n"
             ));
             *code = 1;
-            return false;
+            return Err(());
         }
-        let is_sym = fs
-            .readlink(&p)
-            .map(|lt| !lt.starts_with("__hardlink__:"))
-            .unwrap_or(false);
-        let exists = fs.exists(&p) || fs.lstat(&p).is_ok();
-        if !exists {
-            if !force {
-                stderr.push_str(&format!(
-                    "rm: ENOENT: no such file or directory, rm '{p}'\n"
-                ));
+        let raw = if operand.starts_with('/') || operand.is_empty() { operand.to_owned() } else { child_disp_path(cwd, operand) };
+        let (p, stat) = match fs.access_path(raw.trim_end_matches('/'), false)
+            .and_then(|p| fs.lstat(&p).map(|st| (p, st))) {
+            Ok(entry) => entry,
+            Err(e) => {
+                if force && e.starts_with("ENOENT:") { return Ok(true); }
+                let reason = if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+                    else { e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason) };
+                stderr.push_str(&format!("rm: {reason}, rm '{raw}'\n"));
                 *code = 1;
+                return Err(());
             }
-            return true;
-        }
+        };
+        let is_sym = stat.kind == VfsEntryKind::Symlink;
         if operand.ends_with('/') && (!fs.is_dir(&p) || is_sym && !fs.is_dir(&p)) {
             stderr.push_str(&format!("rm: cannot remove '{operand}': Not a directory\n"));
             *code = 1;
-            return false;
+            return Err(());
         }
-        let is_real_dir = fs.is_dir(&p) && !is_sym;
+        let is_real_dir = stat.kind == VfsEntryKind::Directory;
         if is_real_dir && !recursive && !dir_mode {
             stderr.push_str(&format!("rm: EISDIR: illegal operation on a directory, rm '{p}'\n"));
             *code = 1;
-            return false;
+            return Err(());
         }
         if interactive == "always" {
             if is_real_dir && recursive {
-                let entries = fs.list_dir(&p).unwrap_or_default();
+                let entries = fs.list_dir(&p).map_err(|e| {
+                    let reason = e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason);
+                    stderr.push_str(&format!("rm: {reason}, readdir '{raw}'\n"));
+                    *code = 1;
+                })?;
                 if !entries.is_empty() {
                     stderr.push_str(&format!("rm: descend into directory '{operand}'? "));
                     let ans = stdin_lines.next().unwrap_or("");
                     let first = ans.trim_start().chars().next().unwrap_or('n');
                     if first != 'y' && first != 'Y' {
-                        return false;
+                        return Ok(false);
                     }
                     let mut all_removed = true;
                     for e in entries {
@@ -1025,12 +1029,12 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                             stdout,
                             stderr,
                             code,
-                        ) {
+                        )? {
                             all_removed = false;
                         }
                     }
                     if !all_removed {
-                        return false;
+                        return Ok(false);
                     }
                 }
             }
@@ -1038,7 +1042,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "symbolic link"
             } else if is_real_dir {
                 "directory"
-            } else if fs.lstat(&p).map(|s| s.size == 0).unwrap_or(false) {
+            } else if stat.size == 0 {
                 "regular empty file"
             } else {
                 "regular file"
@@ -1047,35 +1051,31 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             let ans = stdin_lines.next().unwrap_or("");
             let first = ans.trim_start().chars().next().unwrap_or('n');
             if first != 'y' && first != 'Y' {
-                return false;
+                return Ok(false);
             }
         }
         let single = !recursive || interactive == "always";
-        let raw = if operand.starts_with('/') || operand.is_empty() { operand.to_owned() } else { child_disp_path(cwd, operand) };
-        let result = if single { fs.remove_one(&raw, is_real_dir) } else { fs.remove_path(&p) };
+        let result = if single { fs.remove_one(&raw, is_real_dir) } else { fs.remove_path(&raw) };
         match result {
             Ok(()) => {
                 if verbose {
                     stdout.push_str(&format!("removed '{operand}'\n"));
                 }
-                true
+                Ok(true)
             }
             Err(e) => {
-                if single && !(force && e.starts_with("ENOENT:")) {
-                    let op = if is_real_dir { "rmdir" } else { "rm" };
+                if !(force && e.starts_with("ENOENT:")) {
+                    let op = if single && is_real_dir { "rmdir" } else { "rm" };
                     stderr.push_str(&format!("rm: {e}, {op} '{raw}'\n"));
                     *code = 1;
-                } else if !force {
-                    stderr.push_str(&format!("rm: cannot remove '{operand}': {e}\n"));
-                    *code = 1;
                 }
-                false
+                Err(())
             }
         }
     }
 
     for t in targets {
-        remove_operand(
+        let _ = remove_operand(
             &t,
             cwd,
             force,

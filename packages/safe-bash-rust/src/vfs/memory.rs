@@ -417,16 +417,13 @@ impl MemoryVfs {
     }
 
     fn remove_entry(&self, path: &str, publication: Option<u64>) -> Result<bool, String> {
-        let norm = normalize_posix_path(path);
-        if norm == "/" {
-            return Err("EBUSY: cannot remove root directory '/'".to_string());
-        }
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
-        if guard.devices.entry(&resolved).is_some() {
-            return Err(format!("EBUSY: device or resource busy, unlink '{norm}'"));
+        let resolved = Self::mutation_entry(&guard, path)?;
+        if resolved == "/" || guard.devices.entry(&resolved).is_some() {
+            return Err("EBUSY: resource busy or locked".into());
         }
         if let Some(expected) = publication {
+            let norm = normalize_posix_path(path);
             if resolved != norm {
                 return Ok(false);
             }
@@ -438,24 +435,28 @@ impl MemoryVfs {
             if !matches!(guard.nodes.get(&dest), Some(MemoryNode::File { ino }) if guard.files[ino].publication == Some(expected)) {
                 return Ok(false);
             }
-        }
-        let keys: Vec<String> = if publication.is_some() {
-            vec![resolved]
         } else {
-            let prefix = format!("{resolved}/");
-            guard.nodes.keys()
-                .filter(|k| **k == resolved || k.starts_with(&prefix))
-                .cloned()
-                .collect()
-        };
-        if keys.is_empty() {
-            return Err(format!(
-                "ENOENT: no such file or directory, unlink '{norm}'"
-            ));
+            let node = guard.nodes.get(&resolved).ok_or("ENOENT: no such file or directory")?;
+            let directory = matches!(node, MemoryNode::Directory { .. });
+            if !directory && path.ends_with('/') { return Err("ENOTDIR: not a directory".into()); }
+            let parent = super::dirname_posix_path(&resolved);
+            if !matches!(guard.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+                return Err("EACCES: permission denied".into());
+            }
+            if directory {
+                let prefix = format!("{resolved}/");
+                let mut children = Vec::new();
+                for (child, _) in guard.nodes.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)) {
+                    let (parent, _) = child.rsplit_once('/').unwrap();
+                    if !matches!(guard.nodes.get(parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o700 == 0o700) {
+                        return Err("EACCES: permission denied".into());
+                    }
+                    children.push(child.clone());
+                }
+                for child in children { Self::unlink_locked(&mut guard, &child); }
+            }
         }
-        for k in keys {
-            Self::unlink_locked(&mut guard, &k);
-        }
+        Self::unlink_locked(&mut guard, &resolved);
         self.bump_generation();
         Ok(true)
     }

@@ -4434,7 +4434,7 @@ impl MediaInput {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
             Self::Bytes("image2",b)=>png_pixels::supported_still(b),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("aac"|"srt"|"webvtt",_)=>true,
+            Self::Images(_) | Self::Bytes("aac"|"wav"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4703,7 +4703,7 @@ fn cmd_media_doc(
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 {
+                        if inputs.len()>1 || format==Some("wav") {
                             return mp4::mux::render_mapped(&sources,&remux,frames,sequence,emit);
                         }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13695,6 +13695,15 @@ mod media_unit_tests {
         let args=media_args(&["-f","lavfi","-i","sine=f=631:r=8000:d=0.25","-af","volume=0.3,atempo=2,areverse","out.wav"]);
         assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.wav").unwrap())), "901bc772d9fcf2f3c29c9ad19986a7d11b42d29fad0a3a3df79b377770cd7265");
+    }
+
+    #[test]
+    fn ffmpeg_muxes_trimmed_repeated_wav_packets() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs);
+        assert_eq!(run(&["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=8000:duration=0.25", "x.wav"]).exit_code, 0);
+        assert_eq!(run(&["-ss", "0.125", "-t", "0.125", "-stream_loop", "2", "-i", "x.wav", "out.mp4"]).exit_code, 0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), "e328d1819a18bdc070d732d89491698429a669c9794c0a35c7965016fef34ba0");
     }
 
     #[test]

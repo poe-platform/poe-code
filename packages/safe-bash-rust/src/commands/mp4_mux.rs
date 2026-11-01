@@ -2,6 +2,7 @@ use super::super::adts::{Frames, Options, RATES};
 use super::{
     super::{
         InputTime, MediaInput,
+        ffmpeg_wave::Wave,
         frame_output::{self, ImageSequence},
         png_pixels::Raster,
         y4m,
@@ -652,6 +653,116 @@ impl GeneratedAudio {
     }
 }
 
+// A WAV packet carries up to 1024 PCM frames. Trimming changes its duration,
+// but the muxer keeps the entire payload, including a partial first or last packet.
+struct WaveStream<'a> {
+    wav: Wave<'a>,
+    start: u64,
+    length: u64,
+    ticks: u64,
+}
+impl<'a> WaveStream<'a> {
+    fn read(input: &'a [u8], seek: InputTime) -> Result<Self, &'static str> {
+        let wav = Wave::read(input)?;
+        let frames = (wav.data.len() / wav.stride()) as u64;
+        let clock = |s: f64| (s * f64::from(wav.rate)).round() as u64;
+        let start = seek.start.map_or(0, clock).min(frames);
+        let length = seek
+            .end()
+            .map_or(frames, clock)
+            .min(frames)
+            .saturating_sub(start);
+        let ticks = length
+            .checked_mul((seek.loops as u64).saturating_add(1))
+            .filter(|&n| n <= u64::from(u32::MAX))
+            .ok_or("audio duration exceeds limit")?;
+        Ok(Self {
+            wav,
+            start,
+            length,
+            ticks,
+        })
+    }
+
+    fn track(
+        &self,
+        opts: &Options,
+        movie_scale: u32,
+        limit: usize,
+    ) -> Result<Track<'a>, &'static str> {
+        let w = &self.wav;
+        let clock = |s: f64| (s * f64::from(w.rate)).round() as u64;
+        let mut tick = clock(opts.start);
+        let end = opts.end.map_or(self.ticks, clock).min(self.ticks);
+        let media_ticks = end.saturating_sub(tick) as u32;
+        let stride = w.stride();
+        let data = &w.data[..w.data.len() / stride * stride];
+        let mut samples = Vec::new();
+        while tick < end {
+            if samples.len() >= (limit / size_of::<Sample>()).min(200_000) {
+                return Err("sample index exceeds memory budget");
+            }
+            let pos = tick % self.length;
+            let frame = self.start + pos;
+            let packet = frame / 1024 * 1024;
+            let duration = (packet + 1024 - frame)
+                .min(self.length - pos)
+                .min(end - tick);
+            let from = packet as usize * stride;
+            let bytes = &data[from..][..(data.len() - from).min(stride.saturating_mul(1024))];
+            samples.push(Sample {
+                data: bytes.into(),
+                duration: duration as u32,
+                cts: 0,
+                key: true,
+                description: 1,
+            });
+            tick += duration;
+        }
+        let stsd = if samples.is_empty() {
+            audio_entry(w.rate, w.channels as u32, 2)
+        } else {
+            let mut entry = Vec::new();
+            words(&mut entry, &[0, 1]);
+            let [lo, hi] = w.tag.to_le_bytes();
+            atom(&mut entry, &[lo, hi, 0, 0], |b| {
+                words(
+                    b,
+                    &[
+                        0,
+                        1,
+                        0,
+                        0,
+                        ((w.channels as u32) << 16) | u32::from(w.bits),
+                        0,
+                        w.rate.min(65535) << 16,
+                    ],
+                )
+            });
+            entry
+        };
+        Ok(Track {
+            samples,
+            scale: w.rate,
+            media_ticks,
+            movie_ticks: (f64::from(media_ticks) / f64::from(w.rate) * f64::from(movie_scale))
+                .round() as u32,
+            first_dts: 0,
+            stsd: stsd.into(),
+            edits: vec![],
+            kind: "audio",
+            enabled: true,
+            volume: 256,
+            matrix: MATRIX,
+            width: 0,
+            height: 0,
+            language: 0x55c4,
+            handler: *b"soun",
+            name: b"SoundHandler",
+        })
+    }
+}
+
 fn adts_track<'a>(
     input: &'a [u8],
     opts: &Options,
@@ -929,6 +1040,7 @@ pub(in super::super) struct Remux<'a> {
 }
 
 enum Streams<'a> {
+    Wave(WaveStream<'a>),
     Mp4(Vec<(super::Track<'a>, &'a [u8])>),
     Captions(Cow<'a, str>),
     GeneratedAudio(GeneratedAudio),
@@ -945,7 +1057,8 @@ impl Streams<'_> {
     fn len(&self) -> usize {
         match self {
             Self::Mp4(v) => v.len(),
-            Self::Images(_)
+            Self::Wave(_)
+            | Self::Images(_)
             | Self::Still(_)
             | Self::GeneratedVideo(_)
             | Self::GeneratedAudio(_)
@@ -957,7 +1070,7 @@ impl Streams<'_> {
         match self {
             Self::Mp4(v) => v[i].0.kind,
             Self::Captions(_) => "subtitle",
-            Self::GeneratedAudio(_) | Self::Aac { .. } => "audio",
+            Self::Wave(_) | Self::GeneratedAudio(_) | Self::Aac { .. } => "audio",
             Self::Still(_) | Self::Images(_) | Self::GeneratedVideo(_) => "video",
         }
     }
@@ -965,6 +1078,7 @@ impl Streams<'_> {
         match self {
             Self::Mp4(v) => v[i].0.duration as f64 / f64::from(v[i].0.scale),
             Self::Aac { rate, count, .. } => *count as f64 * 1024. / f64::from(*rate),
+            Self::Wave(w) => w.ticks as f64 / f64::from(w.wav.rate),
             Self::Images(seq) => seq.template_duration(),
             Self::Still(seek) => {
                 if frame_output::still_sample(seek.start.unwrap_or(0.), seek.end().unwrap_or(0.04))
@@ -1095,6 +1209,7 @@ fn materialize<'a>(
         let mut bytes = Cow::Borrowed(input);
         if (seek.start.is_some() || seek.end().is_some())
             && !audio
+            && format != "wav"
             && !matches!(source, MediaInput::Bytes("image2", _))
         {
             bytes = Cow::Owned(input_slice(
@@ -1201,6 +1316,14 @@ fn read_sources<'a>(
                         ticks
                     },
                 }),
+            ));
+            continue;
+        }
+        if format == "wav" {
+            sources.push((
+                input,
+                &[][..],
+                Streams::Wave(WaveStream::read(input, seek)?),
             ));
             continue;
         }
@@ -1326,6 +1449,7 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
     let sources = read_sources(inputs, &data, &opts)?;
     let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
     let scale = match sources[0].2 {
+        Streams::Wave(ref w) => w.wav.rate,
         Streams::Aac { rate, .. } => rate,
         Streams::Still(_) => 25,
         _ => header_time(child(moov, b"mvhd"), 1000).0,
@@ -1357,6 +1481,16 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
         for &(j, i) in &selected {
             let (input, _, streams) = &sources[j];
             match streams {
+                Streams::Wave(w) => {
+                    let t = w.track(&audio, scale, opts.limit)?;
+                    return audio
+                        .encode(
+                            w.wav.rate,
+                            w.wav.channels as u32,
+                            t.samples.iter().map(|s| s.data.as_ref()),
+                        )
+                        .map_err(str::to_owned);
+                }
                 Streams::GeneratedAudio(a) => {
                     let t = a.track(&audio, scale, opts.limit)?;
                     return audio
@@ -1445,6 +1579,12 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
                     let track = a.track(&audio, scale, limit)?;
                     index_bytes += track.samples.capacity() * size_of::<Sample>();
                     tracks.push(track);
+                    continue;
+                }
+                Streams::Wave(w) => {
+                    let t = w.track(&audio, scale, limit)?;
+                    index_bytes += t.samples.capacity() * size_of::<Sample>();
+                    tracks.push(t);
                     continue;
                 }
                 Streams::Aac { .. } => {
@@ -1737,6 +1877,7 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
                 Streams::Mp4(v) => (v[i].0.audio_rate(), u32::from(v[i].0.channels())),
                 Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
                 Streams::GeneratedAudio(a) => (a.rate, a.channels),
+                Streams::Wave(w) => (w.wav.rate, w.wav.channels as u32),
                 Streams::Still(_)
                 | Streams::Images(_)
                 | Streams::GeneratedVideo(_)

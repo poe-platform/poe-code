@@ -1114,3 +1114,16 @@ test("memory file timestamps use the host clock when created, read, written and 
     assert.deepEqual(await times(), [now, now]);
   } finally { bash.dispose(); }
 });
+
+test("date uses the host clock and prefers an existing numeric reference over epoch seconds", async t => {
+  t.mock.method(Date, "now", () => 2208988800123);
+  const bash = new RustWasmBash({files:{"/w/5":"x"},cwd:"/w"});
+  try {
+    await bash.fs.utimes("/w/5", 0, -1.25);
+    const result = bash.execSync("SOURCE_DATE_EPOCH=5 date +%s.%N; date -d yesterday +%s.%N; date -r 5 +%s.%N; date -r 6 +%s.%N");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "2208988800.123000000\n2208902400.123000000\n-1.998750000\n6.000000000\n");
+    assert.equal(bash.execSync("date -r '5.' +%s").stderr, "date: ENOENT: no such file or directory, stat '/w/5.'\n");
+    assert.equal(bash.execSync("date -r 999999999999999999999999 +%s").stderr, "date: date is outside the supported range\n");
+  } finally { bash.dispose(); }
+});

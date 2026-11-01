@@ -99,7 +99,7 @@ fn file_ext_key(name: &str) -> &str {
     }
 }
 
-fn absolute_operand(cwd: &str, operand: &str) -> String {
+pub(super) fn absolute_operand(cwd: &str, operand: &str) -> String {
     if operand.is_empty() || operand.starts_with('/') { operand.to_owned() } else { child_disp_path(cwd, operand) }
 }
 
@@ -3521,17 +3521,22 @@ fn stat_seconds(ms: f64) -> (String, String) {
     (seconds.to_owned(), format!("{millis}{fraction}"))
 }
 
-fn format_iso_stat_timestamp(ms: f64) -> Option<String> {
+pub(super) fn calendar_instant(ms: f64, nearest: bool) -> Option<(i64, u32)> {
     if !(-8_640_000_000_000_000.0..=8_640_000_000_000_000.0).contains(&ms) { return None; }
     let ns = if ms.fract() == 0.0 { ms as i128 * 1_000_000 } else {
         let (seconds, frac) = stat_seconds(ms);
+        let increment = if nearest { frac.as_bytes().get(9).is_some_and(|b| *b >= b'5') }
+            else { ms < 0.0 && frac.bytes().skip(9).any(|b| b != b'0') };
         let value = seconds.parse::<i128>().ok()? * 1_000_000_000
             + format!("{:0<9}", &frac[..frac.len().min(9)]).parse::<i128>().ok()?
-            + i128::from(frac.as_bytes().get(9).is_some_and(|b| *b >= b'5'));
+            + i128::from(increment);
         if ms < 0.0 { -value } else { value }
     };
-    let secs = ns.div_euclid(1_000_000_000) as i64;
-    let nanos = ns.rem_euclid(1_000_000_000);
+    Some((ns.div_euclid(1_000_000_000) as i64, ns.rem_euclid(1_000_000_000) as u32))
+}
+
+fn format_iso_stat_timestamp(ms: f64) -> Option<String> {
+    let (secs, nanos) = calendar_instant(ms, true)?;
     let (y, m, d) = epoch_days_to_civil(secs.div_euclid(86400));
     let rem = secs.rem_euclid(86400);
     let year = if (0..=9999).contains(&y) { format!("{y:04}") } else { format!("{y:+07}") };

@@ -8469,7 +8469,7 @@ fn normalize_year_month(year: i64, month_1based: i64) -> (i64, u32) {
 fn parse_date_spec_full(
     spec: &str,
     default_tz_offset: i64,
-    now_sec: i64,
+    (now_sec, now_ns): (i64, u32),
 ) -> Result<(i64, u32), String> {
     let s = spec.trim();
     if s.is_empty() {
@@ -8480,13 +8480,13 @@ fn parse_date_spec_full(
         return Ok((sec, ns));
     }
     if s == "now" || s == "today" {
-        return Ok((now_sec, 0));
+        return Ok((now_sec, now_ns));
     }
     if s == "yesterday" {
-        return Ok((now_sec - 86400, 0));
+        return Ok((now_sec - 86400, now_ns));
     }
     if s == "tomorrow" {
-        return Ok((now_sec + 86400, 0));
+        return Ok((now_sec + 86400, now_ns));
     }
 
     let tokens: Vec<&str> = s.split_whitespace().collect();
@@ -8533,7 +8533,7 @@ fn parse_date_spec_full(
                     let base_str = tokens[..base_end].join(" ");
                     let (base_sec, base_ns, base_tz) =
                         if base_str.is_empty() || base_str == "now" {
-                            (now_sec, 0, default_tz_offset)
+                            (now_sec, now_ns, default_tz_offset)
                         } else {
                             parse_absolute_date_spec(&base_str, default_tz_offset)?
                         };
@@ -9214,10 +9214,9 @@ fn cmd_date(
         .or(style_fmt)
         .unwrap_or_else(|| "%a %b %e %H:%M:%S %Z %Y".to_string());
     let (tz_offset, tz_label) = parse_tz_spec(env.get("TZ").map(|s| s.as_str()), utc);
-    let now_sec = env
-        .get("SOURCE_DATE_EPOCH")
-        .and_then(|s| s.trim().parse::<i64>().ok())
-        .unwrap_or(1700000000);
+    let Some(now) = super::fs::calendar_instant(crate::vfs::now_ms(), false) else {
+        return err_out("date: invalid clock or modification time\n", 1);
+    };
 
     if let Some(ref fpath) = batch_file {
         let content = if fpath == "-" {
@@ -9250,7 +9249,7 @@ fn cmd_date(
         }
         for line in raw_lines {
             let clean = line.strip_suffix('\r').unwrap_or(line);
-            let (mut sec, ns) = match parse_date_spec_full(clean, tz_offset, now_sec) {
+            let (mut sec, ns) = match parse_date_spec_full(clean, tz_offset, now) {
                 Ok(v) => v,
                 Err(msg) => {
                     err_buf.push_str(&msg);
@@ -9277,28 +9276,33 @@ fn cmd_date(
     }
 
     let (mut epoch_sec, ns) = if let Some(ref spec) = input_spec {
-        match parse_date_spec_full(spec, tz_offset, now_sec) {
+        match parse_date_spec_full(spec, tz_offset, now) {
             Ok(v) => v,
             Err(msg) => return err_out(&msg, 1),
         }
     } else if let Some((ref rval, allow_epoch)) = ref_spec {
-        if allow_epoch
-            && let Some((sec, ns)) = parse_epoch_ns(&format!("@{rval}"))
-        {
-            (sec, ns)
-        } else {
-            let resolved = resolve_posix_path(cwd, rval);
-            let st = match fs.stat(&resolved) {
-                Ok(s) => s,
-                Err(e) => return err_out(&format!("date: {e}\n"), 1),
-            };
-            let mtime_ms = st.mtime_ms as i64;
-            let sec = mtime_ms.div_euclid(1000);
-            let ns = (mtime_ms.rem_euclid(1000) as u32) * 1_000_000;
-            (sec, ns)
+        let path = super::fs::absolute_operand(cwd, rval);
+        match fs.access_path(&path, true).and_then(|p| fs.stat(&p)) {
+            Ok(st) => match super::fs::calendar_instant(st.mtime_ms, false) {
+                Some(instant) => instant,
+                None => return err_out("date: invalid clock or modification time\n", 1),
+            },
+            Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => {
+                let number = rval.strip_prefix(['+', '-']).unwrap_or(rval);
+                let (whole, fraction) = number.split_once('.').map_or((number, None), |(w,f)| (w, Some(f)));
+                let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+                if !allow_epoch || !digits(whole) || !fraction.is_none_or(digits) {
+                    return err_out(&format!("date: ENOENT: no such file or directory, stat '{path}'\n"), 1);
+                }
+                match parse_epoch_ns(&format!("@{rval}")) {
+                    Some((sec, ns)) if (-8_640_000_000_000..8_640_000_000_000).contains(&sec) || (sec, ns) == (8_640_000_000_000, 0) => (sec, ns),
+                    _ => return err_out("date: date is outside the supported range\n", 1),
+                }
+            }
+            Err(e) => return err_out(&format!("date: {e}\n"), 1),
         }
     } else {
-        (now_sec, 0)
+        now
     };
 
     if !adjustments.is_empty() {

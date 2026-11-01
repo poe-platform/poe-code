@@ -1195,3 +1195,15 @@ test("chmod reports why a change was denied and leaves permissions intact", asyn
     await assert.rejects(bash.fs.chmod("/dev/null", 0o600), { code: "ENOTSUP", syscall: "chmod", path: "/dev/null" });
   } finally { bash.dispose(); }
 });
+
+test("writeFile reports overlay failures at the resolved operand and prioritizes mount errors", async () => {
+  const bash = new RustWasmBash({ profile: "overlay-cow-fs", files: { "/f": { content: "keep", mode: 0o444 } }, symlinks: { "/link": "f" } });
+  try {
+    await assert.rejects(bash.fs.writeFile("/link", "bad"), { code: "EACCES", syscall: "overlay", path: "/f" });
+    await assert.rejects(bash.fs.writeFile("/absent/new", "bad"), { code: "ENOENT", syscall: "overlay", path: "/absent" });
+    assert.equal(new TextDecoder().decode(await bash.fs.readFile("/f")), "keep");
+    bash.mountDevices();
+    await assert.rejects(bash.fs.writeFile("/dev", "bad", { flag: "invalid" }), { code: "EBUSY", syscall: "writeFile", path: "/dev" });
+    await assert.rejects(bash.fs.writeFile("/dev/absent", "bad"), { code: "ENOENT", syscall: "writeFile", path: "/dev/absent" });
+  } finally { bash.dispose(); }
+});

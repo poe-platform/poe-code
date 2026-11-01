@@ -157,20 +157,18 @@ export class WasmFileSystem {
       return bash._companion.fs.writeFile(filePath, bytes, options);
     }
     const flag = options?.flag ?? "w";
-    const mode = options?.mode ?? 0o666;
+    const mode = options?.mode === undefined ? 0o666 : options.mode;
+    const validMode = Number.isInteger(mode) && mode >= 0 && mode <= 0o7777;
     const flags = ["w", "wx", "a", "ax"].indexOf(flag);
-    if (flags < 0 || !Number.isInteger(mode) || mode < 0 || mode > 0o7777) {
-      throw fsOperationError("EINVAL", "writeFile", filePath);
-    }
     const path = bash._allocBytes(encoder.encode(filePath));
     try {
-      const data = bash._allocBytes(bytes);
+      const data = bash._allocBytes(validMode && flags >= 0 ? bytes : new Uint8Array());
       try {
-        const rc = bash.exports.safe_bash_fs_write_file(bash.sessionId, path.ptr, path.len, data.ptr, data.len, mode, flags);
+        const rc = bash.exports.safe_bash_fs_write_file(bash.sessionId, path.ptr, path.len, data.ptr, data.len, validMode ? mode : 0x1000, flags);
         if (rc === -1) throw new Error("Wasm session unavailable");
         if (rc < 0) {
           const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
-          throw fsOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc)), "writeFile", filePath);
+          throw readOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc)));
         }
       } finally { bash._freeBytes(data); }
     } finally { bash._freeBytes(path); }

@@ -34,8 +34,8 @@ impl WasmSession {
                 if let Some((message, at)) = reason.split_once(", ")
                     && let Some((syscall, arg)) = at.split_once(" '")
                     && let Some(arg) = arg.strip_suffix('\'')
-                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat") {
-                    op = if syscall == "stat" { "overlay" } else { syscall };
+                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat" | "writeFile") {
+                    op = if matches!(syscall, "stat" | "writeFile") { "overlay" } else { syscall };
                     operand = arg.to_owned();
                     if code == "ENOTSUP" { detail = message.trim_start(); }
                 }
@@ -51,28 +51,39 @@ impl WasmSession {
     // The session lock covers validation and publication, including exclusive creates.
     fn write_target(&self, destination: &str, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
         let fs = &self.shell.fs;
+        let operation = if source.is_some() { "copyFile" } else { "writeFile" };
         let to = fs.access_path(destination, !exclusive)?;
         let existing = match fs.lstat(&to) {
             Ok(st) => Some(st),
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
+        if source.is_none() && self.profile == Profile::Devices {
+            if to == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
+            if to.starts_with("/dev/") && existing.is_none() { return Err("ENOENT: no such file or directory".into()); }
+        }
         let target_device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
         if let Some(st) = &existing {
-            if exclusive { return Err("EEXIST: file already exists".into()); }
+            if exclusive { return Err(format!("EEXIST: file already exists, {operation} '{destination}'")); }
             if !target_device && source.is_some_and(|(from, origin)| from == to || (origin.identity.is_some() && st.identity == origin.identity)) {
                 return Err("EINVAL: invalid argument".into());
             }
-            if st.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
-            if st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
-        } else if fs.stat(&crate::vfs::dirname_posix_path(&to))?.mode & 0o300 != 0o300 {
-            return Err("EACCES: permission denied".into());
+            if st.kind == VfsEntryKind::Directory { return Err(format!("EISDIR: illegal operation on a directory, {operation} '{to}'")); }
+            if st.mode & 0o200 == 0 { return Err(format!("EACCES: permission denied, {operation} '{to}'")); }
+        } else {
+            let parent = crate::vfs::dirname_posix_path(&to);
+            if fs.stat(&parent)?.mode & 0o300 != 0o300 { return Err(format!("EACCES: permission denied, {operation} '{parent}'")); }
         }
         Ok((to, existing))
     }
 
     fn write_file(&self, path: &str, data: &[u8], mode: u32, flag: u32) -> Result<(), String> {
-        if mode > 0o7777 || flag > 3 { return Err("EINVAL: invalid argument".into()); }
+        if mode > 0o7777 || flag > 3 {
+            if self.profile == Profile::Devices && self.shell.fs.access_path(path, flag & 1 == 0)? == "/dev" {
+                return Err("EBUSY: resource busy or locked".into());
+            }
+            return Err("EINVAL: invalid argument".into());
+        }
         let fs = &self.shell.fs;
         let (to, existing) = self.write_target(path, flag & 1 != 0, None)?;
         let device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
@@ -305,12 +316,11 @@ pub unsafe extern "C" fn safe_bash_fs_write_file(
 ) -> i32 {
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
-    match sess.write_file(unsafe { str_from_raw(ptr, len) }, unsafe { slice_from_raw(data, size) }, mode, flag) {
+    let path = unsafe { str_from_raw(ptr, len) };
+    match sess.write_file(path, unsafe { slice_from_raw(data, size) }, mode, flag) {
         Ok(()) => 0,
-        Err(e) => {
-            sess.last_output_buf = e.into_bytes();
-            -(sess.last_output_buf.len() as i32)
-        }
+        Err(e) => sess.read_error(&e, "writeFile", path,
+            (sess.profile == Profile::Overlay && (mode > 0o7777 || flag > 3 || path.is_empty())).then_some(path), None),
     }
 }
 

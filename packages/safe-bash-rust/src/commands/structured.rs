@@ -11,7 +11,7 @@ mod mermaid;
 use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
 };
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::sync::Mutex;
 
@@ -21,6 +21,7 @@ static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
 struct JqScope<'a> {
     bindings: BTreeMap<String, JVal>,
     inputs: &'a RefCell<VecDeque<JVal>>,
+    yq: Option<&'a YqDocuments<'a>>,
 }
 
 #[derive(Clone, Default)]
@@ -34,46 +35,34 @@ struct YqDocMeta {
     styles: BTreeMap<String, String>,
 }
 
-struct YqRuntimeState {
-    active: bool,
-    queue: Vec<YqDocMeta>,
-    current: YqDocMeta,
+struct YqDocuments<'a> {
+    docs: &'a [YqDocMeta],
+    next: Cell<usize>,
 }
 
-static YQ_RUNTIME_STATE: Mutex<YqRuntimeState> = Mutex::new(YqRuntimeState {
-    active: false,
-    queue: Vec::new(),
-    current: YqDocMeta {
-        file_index: 0,
-        doc_index: 0,
-        filename: String::new(),
-        head_comment: String::new(),
-        anchors: BTreeMap::new(),
-        aliases: BTreeMap::new(),
-        styles: BTreeMap::new(),
-    },
-});
+impl JqScope<'_> {
+    fn pop_input(&self) -> Option<JVal> {
+        let input = self.inputs.borrow_mut().pop_front()?;
+        if let Some(yq) = self.yq {
+            yq.next.set((yq.next.get() + 1).min(yq.docs.len()));
+        }
+        Some(input)
+    }
 
-fn in_yq_mode() -> bool {
-    YQ_RUNTIME_STATE.lock().map(|g| g.active).unwrap_or(false)
-}
+    fn yq_meta(&self) -> Option<&YqDocMeta> {
+        let yq = self.yq?;
+        yq.docs.get(yq.next.get().saturating_sub(1))
+    }
 
-fn get_yq_doc_meta() -> YqDocMeta {
-    YQ_RUNTIME_STATE
-        .lock()
-        .map(|g| g.current.clone())
-        .unwrap_or_default()
-}
-
-fn lookup_yq_path_meta(kind: &str, path: &str) -> Option<String> {
-    let meta = get_yq_doc_meta();
-    let val = match kind {
-        "anchor" => meta.anchors.get(path).cloned().unwrap_or_default(),
-        "alias" => meta.aliases.get(path).cloned().unwrap_or_default(),
-        "style" => meta.styles.get(path).cloned().unwrap_or_default(),
-        _ => return None,
-    };
-    Some(val)
+    fn yq_path_meta(&self, kind: &str, path: &str) -> String {
+        let Some(meta) = self.yq_meta() else { return String::new() };
+        match kind {
+            "anchor" => meta.anchors.get(path),
+            "alias" => meta.aliases.get(path),
+            "style" => meta.styles.get(path),
+            _ => None,
+        }.cloned().unwrap_or_default()
+    }
 }
 
 fn yq_tag(v: &JVal) -> &'static str {
@@ -237,16 +226,6 @@ fn extract_yaml_doc_meta(
     }
 }
 
-fn pop_jq_input(inputs: &RefCell<VecDeque<JVal>>) -> Option<JVal> {
-    let input = inputs.borrow_mut().pop_front()?;
-    if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock()
-        && yq_state.active
-        && !yq_state.queue.is_empty()
-    {
-        yq_state.current = yq_state.queue.remove(0);
-    }
-    Some(input)
-}
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::{BTreeMap, BTreeSet};
@@ -774,7 +753,7 @@ pub(crate) fn cmd_jq_with_env(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    cmd_jq_core(args, stdin, cwd, env, fs, false)
+    cmd_jq_core(args, stdin, cwd, env, fs, false, None)
 }
 
 fn cmd_jq_core(
@@ -784,6 +763,7 @@ fn cmd_jq_core(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
     xml_input: bool,
+    yq: Option<&YqDocuments<'_>>,
 ) -> BuiltinOutcome {
     const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
     let mut raw_output = false;
@@ -1110,7 +1090,7 @@ fn cmd_jq_core(
     }
 
     let inputs = RefCell::new(VecDeque::from(stream_inputs));
-    let vars = JqScope { bindings: vars, inputs: &inputs };
+    let vars = JqScope { bindings: vars, inputs: &inputs, yq };
 
     let mut out = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1123,7 +1103,7 @@ fn cmd_jq_core(
             }
             first_null_done = true;
             JVal::Null
-        } else if let Some(v) = pop_jq_input(vars.inputs) {
+        } else if let Some(v) = vars.pop_input() {
             v
         } else {
             break;
@@ -1247,13 +1227,11 @@ fn eval_jq(
     }
 
     if let Some(pipes) = split_jq_top(s, '|') {
-        if pipes.len() == 2 && in_yq_mode() {
+        if pipes.len() == 2 && vars.yq.is_some() {
             let p0 = pipes[0].trim();
             let p1 = pipes[1].trim();
             if matches!(p1, "anchor" | "alias" | "style") && p0.starts_with('.') {
-                if let Some(val) = lookup_yq_path_meta(p1, p0) {
-                    return Ok(vec![JVal::Str(val)]);
-                }
+                return Ok(vec![JVal::Str(vars.yq_path_meta(p1, p0))]);
             }
         }
         let mut current = vec![(input.clone(), vars.clone())];
@@ -1477,7 +1455,7 @@ fn eval_jq(
                 .next()
                 .unwrap_or(JVal::Null);
             let ord = compare_jval(&lv, &rv);
-            let yq_eq = if in_yq_mode()
+            let yq_eq = if vars.yq.is_some()
                 && let (JVal::Str(lx), JVal::Str(ry)) = (&lv, &rv)
                 && (ry.contains('*') || ry.contains('?'))
             {
@@ -2347,7 +2325,7 @@ fn try_eval_jq_builtin(
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),
         "type" => {
-            let t = if in_yq_mode() {
+            let t = if vars.yq.is_some() {
                 yq_tag(input)
             } else {
                 input.type_name()
@@ -2367,30 +2345,30 @@ fn try_eval_jq_builtin(
             }
         }
         "documentIndex" | "di" | "document_index" => {
-            return Ok(Some(vec![JVal::Number(get_yq_doc_meta().doc_index as f64)]));
+            return Ok(Some(vec![JVal::Number(vars.yq_meta().map_or(0, |m| m.doc_index) as f64)]));
         }
         "fileIndex" | "fi" | "file_index" => {
-            return Ok(Some(vec![JVal::Number(get_yq_doc_meta().file_index as f64)]));
+            return Ok(Some(vec![JVal::Number(vars.yq_meta().map_or(0, |m| m.file_index) as f64)]));
         }
         "filename" => {
-            return Ok(Some(vec![JVal::Str(get_yq_doc_meta().filename)]));
+            return Ok(Some(vec![JVal::Str(vars.yq_meta().map(|m| m.filename.clone()).unwrap_or_default())]));
         }
         "head_comment" => {
-            return Ok(Some(vec![JVal::Str(get_yq_doc_meta().head_comment)]));
+            return Ok(Some(vec![JVal::Str(vars.yq_meta().map(|m| m.head_comment.clone()).unwrap_or_default())]));
         }
         "anchor" => {
             return Ok(Some(vec![JVal::Str(
-                lookup_yq_path_meta("anchor", ".").unwrap_or_default(),
+                vars.yq_path_meta("anchor", "."),
             )]));
         }
         "alias" => {
             return Ok(Some(vec![JVal::Str(
-                lookup_yq_path_meta("alias", ".").unwrap_or_default(),
+                vars.yq_path_meta("alias", "."),
             )]));
         }
         "style" => {
             return Ok(Some(vec![JVal::Str(
-                lookup_yq_path_meta("style", ".").unwrap_or_default(),
+                vars.yq_path_meta("style", "."),
             )]));
         }
         "..." => {
@@ -2646,7 +2624,7 @@ fn try_eval_jq_builtin(
             return Ok(Some(vec![JVal::Str(res.to_string())]));
         }
         "input" => {
-            if let Some(v) = pop_jq_input(vars.inputs) {
+            if let Some(v) = vars.pop_input() {
                 return Ok(Some(vec![v]));
             }
             return Err("break".to_string());
@@ -6469,18 +6447,8 @@ fn cmd_yq(
         }
     }
 
-    if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock() {
-        yq_state.active = !xq_xml_mode;
-        yq_state.current = doc_metas.first().cloned().unwrap_or_default();
-        yq_state.queue = doc_metas;
-    }
-
-    let outcome = cmd_jq_with_env(&jq_args, &docs.join("\n"), cwd, env, fs);
-
-    if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock() {
-        yq_state.active = false;
-        yq_state.queue.clear();
-    }
+    let yq = YqDocuments { docs: &doc_metas, next: Cell::new(0) };
+    let outcome = cmd_jq_core(&jq_args, &docs.join("\n"), cwd, env, fs, false, (!xq_xml_mode).then_some(&yq));
 
     if outcome.exit_code != 0 {
         return outcome;
@@ -6525,7 +6493,7 @@ fn cmd_yq(
             base_vars.insert(k.clone(), JVal::Str(v.clone()));
         }
         let inputs = RefCell::default();
-        let mut base_vars = JqScope { bindings: base_vars, inputs: &inputs };
+        let mut base_vars = JqScope { bindings: base_vars, inputs: &inputs, yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));
             let name = eval_jq(s_exp, v, &base_vars)
@@ -6611,7 +6579,7 @@ fn cmd_xq(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    cmd_jq_core(args, stdin, cwd, env, fs, true)
+    cmd_jq_core(args, stdin, cwd, env, fs, true, None)
 }
 
 pub(super) fn unescape_xml_entities(s: &str) -> String {
@@ -37583,6 +37551,26 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn concurrent_yq_commands_keep_their_own_filenames() {
+        let start = std::sync::Barrier::new(4);
+        std::thread::scope(|scope| {
+            for filename in ["a.yaml", "b.yaml", "c.yaml", "d.yaml"] {
+                let start = &start;
+                scope.spawn(move || {
+                    let fs = MemoryVfs::new();
+                    fs.write_file(&format!("/{filename}"), ["1"; 512].join("\n---\n").as_bytes()).unwrap();
+                    start.wait();
+                    let r = cmd_yq(&args(&["-o=json", "-I=0", "filename", filename]), "", "/", &BTreeMap::new(), &fs);
+                    assert_eq!(r.exit_code, 0, "{}", r.stderr);
+                    let expected = format!("\"{filename}\"");
+                    assert_eq!(r.stdout.lines().count(), 512);
+                    assert!(r.stdout.lines().all(|line| line == expected), "wrong filename for {filename}: {:?}", r.stdout.lines().find(|line| *line != expected));
+                });
+            }
+        });
     }
 
     #[test]

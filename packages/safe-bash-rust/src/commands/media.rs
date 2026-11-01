@@ -234,6 +234,7 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
 }
 
 fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, u8, u8, u32), &'static str> {
+    if !image_header::recognized_image(bytes) { return Err("Input buffer contains unsupported image format"); }
     if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.len() < 24 { return Err("Invalid PNG header"); }
     let mut meta = read_image_meta(bytes, path);
     let (depth, channels, dpi) = if netpbm::signature(bytes) && let Ok(im) = netpbm::Netpbm::parse(bytes, limit) {
@@ -10782,11 +10783,6 @@ fn cmd_media_doc(
                     exit_code = 1;
                     continue;
                 };
-                if !identify::recognized_image(&bytes) {
-                    err_buf.push_str(&format!("identify: improper image header '{f}': Input buffer contains unsupported image format\n"));
-                    exit_code = 1;
-                    continue;
-                }
                 let (meta, depth, channels, dpi) = match inspect_raster(&bytes, &full, fs.max_input_bytes()) {
                     Ok(info) => info,
                     Err(reason) => {
@@ -11098,7 +11094,7 @@ fn cmd_media_doc(
                     other => format!("public.{other}"),
                 }
             };
-            if !get_props.is_empty() {
+            if !has_mod && out_path.is_none() {
                 let mut out = String::new();
                 let mut err_out_str = String::new();
                 for f in &files {
@@ -11113,6 +11109,10 @@ fn cmd_media_doc(
                         Ok(pair) => pair,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
                     };
+                    if get_props.is_empty() {
+                        if verify_mode { out.push_str(f); out.push('\n'); }
+                        continue;
+                    }
                     let fmt_lower = meta.fmt.to_ascii_lowercase();
                     let xml = get_props.iter().any(|p| p == "allxml");
                     let mut expanded_props = Vec::new();
@@ -11198,15 +11198,10 @@ fn cmd_media_doc(
                 };
             }
             let mut err_out_str = String::new();
-            let mut verify_out = String::new();
             for f in &files {
                 let in_full = resolve_posix_path(cwd, f);
                 if !fs.exists(&in_full) {
                     err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
-                    continue;
-                }
-                if verify_mode && !has_mod && out_path.is_none() {
-                    verify_out.push_str(&format!("{f}\n"));
                     continue;
                 }
                 let mut meta = fs
@@ -11313,7 +11308,7 @@ fn cmd_media_doc(
                 let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
             }
             BuiltinOutcome {
-                stdout: verify_out,
+                stdout: String::new(),
                 stderr: err_out_str.clone(),
                 exit_code: if err_out_str.is_empty() { 0 } else { 1 },
             }
@@ -13663,6 +13658,22 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn sips_inspection_without_a_requested_edit_never_rewrites_the_file() {
+        let fs = MemoryVfs::new();
+        let png = pixel_png(2, 1, PngEncoding::Density(72), |x,_| [x as u8, 2, 3]);
+        fs.write_file("/photo.png", &png).unwrap();
+        let run = |args: &[&str]| cmd_media_doc("sips", &media_args(args), "", "/", &fs);
+        assert_eq!(run(&["photo.png"]).exit_code, 0);
+        assert_eq!(fs.read_file("/photo.png").unwrap(), png);
+        fs.write_file("/broken", b"broken").unwrap();
+        let result = run(&["--verify", "broken", "photo.png"]);
+        assert_eq!(result.exit_code, 1);
+        assert_eq!(result.stdout, "photo.png\n");
+        assert_eq!(result.stderr, "Error: broken: Input buffer contains unsupported image format\n");
+        assert_eq!(fs.read_file("/broken").unwrap(), b"broken");
     }
 
     #[test]

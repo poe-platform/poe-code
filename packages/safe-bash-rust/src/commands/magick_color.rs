@@ -474,30 +474,76 @@ impl super::png_pixels::Raster {
         }
     }
 
-    pub fn posterize(&mut self, levels: f64) {
-        let max = levels - 1.;
-        let step = 255. / max;
-        let lut: [u8; 256] = std::array::from_fn(|c| ((c as f64 / 255. * max).round() * step).round() as u8);
-        for pixel in &mut self.pixels {
-            for c in &mut pixel[..3] {
-                *c = lut[usize::from(*c)];
-            }
-        }
-    }
-
-    pub fn gamma(&mut self, gamma: f64) {
-        let g = if gamma < 0.1 { 0.1 } else { gamma };
-        let lut: [u8; 256] = std::array::from_fn(|i| {
-            if g.is_nan() { return 0; }
-            let first = (255. * (i as f64 / 255.).powf(g)).floor();
-            (255. * (first / 255.).powf(1. / g)).floor() as u8
-        });
+    fn map_rgb(&mut self, curve: impl Fn(f64) -> u8) {
+        let lut: [u8; 256] = std::array::from_fn(|i| curve(i as f64));
         for p in &mut self.pixels {
             for c in &mut p[..3] {
                 *c = lut[usize::from(*c)];
             }
         }
     }
+
+    pub fn linear(&mut self, slope: f64, offset: f64, gray_alpha: bool) {
+        self.map_rgb(|v| (v * slope + offset + 1e-6).floor() as u8);
+        if gray_alpha {
+            for p in &mut self.pixels {
+                let gray = p[0];
+                p[1..3].fill(gray);
+            }
+        }
+    }
+
+    pub fn sigmoidal_contrast(&mut self, spec: &str) {
+        let mut parts = spec.split('x');
+        let beta = super::magick_float(parts.next().filter(|s| !s.is_empty()).unwrap_or("3"));
+        let beta = if beta < 1e-4 { 1e-4 } else { beta };
+        let midpoint = parts.next().unwrap_or("50%");
+        let mid = super::magick_float(if midpoint.is_empty() { "50" } else { midpoint });
+        let alpha = mid / if midpoint.ends_with('%') { 100. } else { 255. };
+        let sigmoid = |v: f64| 1. / (1. + (beta * (alpha - v)).exp());
+        let low = sigmoid(0.);
+        let span = (sigmoid(1.) - low).max(1e-6);
+        self.map_rgb(|v| ((sigmoid(v / 255.) - low) / span * 255.).round() as u8);
+    }
+
+    pub fn level(&mut self, spec: &str, inverse: bool) {
+        let mut parts = spec.split(',');
+        let percent = spec.contains('%');
+        let point = |s: Option<&str>, default| s.filter(|s| !s.is_empty()).map_or(default, |s| {
+            let n = super::magick_float(s);
+            if percent { n / 100. * 255. } else { n }
+        });
+        let black = point(parts.next(), 0.);
+        let white = point(parts.next(), 255.);
+        let gamma = parts.next().map_or(1., super::magick_float);
+        let exponent = 1. / gamma.max(0.01);
+        let span = (white - black).max(1e-6);
+        self.map_rgb(|v| {
+            if gamma.is_nan() || black.is_nan() || white.is_nan() { return 0; }
+            let n = if inverse {
+                black + (v / 255.).powf(exponent) * span
+            } else {
+                ((v - black) / span).clamp(0., 1.).powf(exponent) * 255.
+            };
+            if n.is_finite() { n.round() as u8 } else { 0 }
+        });
+    }
+
+    pub fn posterize(&mut self, levels: f64) {
+        let max = levels - 1.;
+        let step = 255. / max;
+        self.map_rgb(|v| ((v / 255. * max).round() * step).round() as u8);
+    }
+
+    pub fn gamma(&mut self, gamma: f64) {
+        let g = if gamma < 0.1 { 0.1 } else { gamma };
+        self.map_rgb(|v| {
+            if g.is_nan() { return 0; }
+            let first = (255. * (v / 255.).powf(g)).floor();
+            (255. * (first / 255.).powf(1. / g)).floor() as u8
+        });
+    }
+
     pub fn threshold(&mut self, value: f64) {
         self.gray = true;
         for p in &mut self.pixels {

@@ -40,6 +40,10 @@ impl Geometry {
         let w = g.width.unwrap_or(1.).round().max(1.);
         (w as u32, g.height.unwrap_or(w).round().max(1.) as u32)
     }
+    pub fn brightness_contrast(self) -> (f64, f64) {
+        (1. + self.height.unwrap_or(0.) / 100., self.width.unwrap_or(0.) / 100. * 255.)
+    }
+
     pub fn sigma(self) -> f64 {
         self.height.or(self.width).unwrap_or(1.).max(0.3)
     }

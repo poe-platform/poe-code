@@ -10117,7 +10117,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10318,6 +10318,18 @@ fn cmd_media_doc(
                             }
                         }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
                     }
+                    "-contrast" | "+contrast" => {
+                        let slope=if arg=="-contrast"{1.15}else{0.87};
+                        ops.push(PixelOp::Linear(slope,128.*(1.-slope)));i+=1;
+                    }
+                    "-brightness-contrast" | "-sigmoidal-contrast" | "+sigmoidal-contrast" | "-level" | "+level" => {
+                        let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-brightness-contrast"=>"0x0","-level"|"+level"=>"0,100%",_=>"3x50%"}};
+                        ops.push(match arg.as_str(){
+                            "-brightness-contrast"=>{let (slope,offset)=Geometry::parse(spec).brightness_contrast();PixelOp::Linear(slope,offset)}
+                            "-level"|"+level"=>PixelOp::Level(spec,arg=="+level"),
+                            _=>PixelOp::Sigmoid(spec),
+                        });i+=1;
+                    }
                     "-auto-level" | "-auto-gamma" | "-normalize" | "-equalize" | "-contrast-stretch" | "-linear-stretch" => {
                         use magick_histogram::Adjustment;
                         let op=match arg.as_str(){
@@ -10412,6 +10424,9 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Linear(slope,offset)=>image.linear(*slope,*offset,channels==2),
+                        PixelOp::Sigmoid(spec)=>image.sigmoidal_contrast(spec),
+                        PixelOp::Level(spec,inverse)=>image.level(spec,*inverse),
                         PixelOp::Histogram(op)=>op.apply(image),
                         PixelOp::Sepia(strength)=>image.sepia(*strength),
                         PixelOp::Solarize(threshold)=>for p in &mut image.pixels {for c in &mut p[..3] {if f64::from(*c)>*threshold {*c=255-*c;}}},
@@ -14705,7 +14720,7 @@ mod media_unit_tests {
     }
 
     #[test]
-    fn convert_derives_tone_curves_from_the_input_histogram() {
+    fn convert_applies_tone_curves_to_translucent_pixels() {
         let fs=MemoryVfs::new();
         let im=png_pixels::Raster{width:9,height:7,gray:false,alpha:true,density:240,orientation:Some(6),
             pixels:(0..63).map(|i|std::array::from_fn(|c|((if c==3 {73}else{32})+((i*4+c)*43%99)) as u8)).collect()};
@@ -14722,6 +14737,17 @@ mod media_unit_tests {
             ("-equalize","4f38eccf4faa7ee785a8155126f122cb4c71aa7843e2ccdcb4f2d5388e2b5350"),
             ("-alpha off -auto-gamma","ea82651c0b9953be4ed17e2d0d91eeede01a47d08ba208d6f3d10e620ef9add4"),
             ("-auto-level -auto-gamma -equalize","dd1f320253009e0bfe31560920bb80c695cb8f02ebb329447e15c084946154f4"),
+            ("-contrast","6fffafb7ca8cffa7b4f5e270c92255b4f3d12effa46ee66d8d170959adc37524"),
+            ("+contrast","119fe95616ed3681e78937071528cae6bddc7cbb5fc6b89cfa38286370a1cf8f"),
+            ("-brightness-contrast 20x30","2970a31154a11c7c00d90a29b7f3e06c500462b77c679a8bc39db88f29a3cea5"),
+            ("-sigmoidal-contrast 3x50%","4592bbba2d2e2bc360ce306a129df7edecb4fdc07cb8fc335cc1f510e6f76c70"),
+            ("+sigmoidal-contrast 5x128","38c0d41e2c9821d10f0527cf564141b60f2471f6e29765be11316f7658c88208"),
+            ("-sigmoidal-contrast bad","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
+            ("-level 10%,90%,1.2","a88e81ef5c9f83a80c26e6843890ec3202502e742a9c0c30a95ec21cf2b0966b"),
+            ("+level 23,210,2","ac28c0367f1a112b26bea4098f3f7fba8b0c52634ea18bcc5071a3bdd83094c4"),
+            ("-level 80%,20%","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
+            ("-level bad","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
+            ("-level 0,255,bad","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
         ] {
             let argv=format!("rgba.png {args} out.png");
             let r=cmd_media_doc("convert",&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);

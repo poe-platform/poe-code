@@ -48,6 +48,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
 }
 
 fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) -> Flow {
+    vars.check_stack()?;
     if let Some(def_rest) = s.strip_prefix("def ")
         && let Some((sig_and_body, after_semi)) = split_jq_def_semi(def_rest)
         && let Some((sig, body)) = sig_and_body.split_once(':')
@@ -678,22 +679,7 @@ pub(super) fn invoke<'a>(
             split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()])
         });
     let filter = overloads.get(&args.len())?;
-    let marker = 0u8;
-    let frame = (&raw const marker).addr();
-    // Debug and optimized builds use different amounts of stack per filter.
-    // Bound the live interpreter frames as well as the logical call depth.
-    if caller.call_depth >= 256 || frame.abs_diff(caller.stack_origin) > 960 * 1024 {
-        return Some(Err(JqFault::Limit("maxDepth")));
-    }
-    #[cfg(target_arch = "wasm32")]
-    {
-        // The generator's Rust frames share linear memory with the module.
-        // Leave room for the next filter's parser, callbacks and diagnostics.
-        unsafe extern "C" { static __stack_low: u8; }
-        if frame.saturating_sub((&raw const __stack_low).addr()) < 64 * 1024 {
-            return Some(Err(JqFault::Limit("maxDepth")));
-        }
-    }
+    if caller.call_depth >= 256 { return Some(Err(JqFault::Limit("maxDepth"))); }
     let mut bound = filter.scope.clone();
     bound.call_depth = caller.call_depth + 1;
     if let Some(original) = &filter.recursive_name {

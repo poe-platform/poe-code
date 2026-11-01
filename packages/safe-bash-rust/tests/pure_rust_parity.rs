@@ -25,6 +25,9 @@ fn recursive_jq_functions_return_a_diagnostic_and_leave_the_shell_usable() {
         let result = shell.exec(&format!("jq -n '{filter}'")).unwrap();
         assert_eq!((result.exit_code, result.stderr.as_str()), (5, "jq: maxDepth limit exceeded\n"));
     }
+    let chain = vec!["first(range(1; 2))"; 2500].join("+");
+    let result = shell.exec(&format!("jq -n '{chain}'")).unwrap();
+    assert_eq!((result.exit_code, result.stderr.as_str()), (5, "jq: maxDepth limit exceeded\n"));
     assert_eq!(shell.exec("echo ok").unwrap().stdout, "ok\n");
 }
 

@@ -298,6 +298,16 @@ test("jq accepts leading decimal points in numeric filters and arithmetic operan
   } finally { bash.dispose(); }
 });
 
+test("jq reports exhaustion in nested generator expressions before losing its session", () => {
+  const bash = new RustWasmBash();
+  try {
+    const filter = Array(2500).fill("first(range(1; 2))").join("+");
+    const r = bash.execSync("jq -n '" + filter + "'");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", "jq: maxDepth limit exceeded\n"]);
+    assert.equal(bash.execSync("echo ok").stdout, "ok\n");
+  } finally { bash.dispose(); }
+});
+
 test("a long jq operator chain cannot exhaust the shell stack", () => {
   const bash = new RustWasmBash();
   try {

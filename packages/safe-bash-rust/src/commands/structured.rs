@@ -62,6 +62,24 @@ struct YqDocuments<'a> {
 }
 
 impl<'a> JqScope<'a> {
+    fn check_stack(&self) -> Result<(), JqFault> {
+        let marker = 0u8;
+        let frame = (&raw const marker).addr();
+        // Debug and optimized builds use different amounts of stack per filter.
+        if frame.abs_diff(self.stack_origin) > 960 * 1024 {
+            return Err(JqFault::Limit("maxDepth"));
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            // Leave room for parser frames, downstream callbacks and diagnostics.
+            unsafe extern "C" { static __stack_low: u8; }
+            if frame.saturating_sub((&raw const __stack_low).addr()) < 64 * 1024 {
+                return Err(JqFault::Limit("maxDepth"));
+            }
+        }
+        Ok(())
+    }
+
     fn define(&mut self, name: &str, params: Vec<String>, body: &str, scope: Self, recursive: bool) {
         self.functions.entry(name.into()).or_default().insert(params.len(), Rc::new(JqFilter {
             params, body: body.into(), scope, recursive_name: recursive.then(|| name.into()),
@@ -1259,6 +1277,7 @@ fn resolve_jq_lhs_paths(
     input: &JVal,
     vars: &JqScope<'_>,
 ) -> Result<Vec<Vec<JVal>>, JqFault> {
+    vars.check_stack()?;
     let mut s = lhs.trim();
     while s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
         s = s[1..s.len() - 1].trim();

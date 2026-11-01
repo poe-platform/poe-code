@@ -1,6 +1,6 @@
 use super::super::adts::{Frames, Options, RATES};
 use super::{
-    super::{png_pixels::Raster, y4m},
+    super::{MediaInput, frame_output::ImageSequence, png_pixels::Raster, y4m},
     h264,
 };
 use std::borrow::Cow;
@@ -418,76 +418,46 @@ fn video_track(
     })
 }
 
-pub(in super::super) fn sequence_movie(
-    seq: &super::super::frame_output::ImageSequence,
-    opts: Option<&Remux<'_>>,
+fn sequence_track(
+    seq: &ImageSequence,
+    scale: u32,
+    filters: &[String],
+    frames: Option<u32>,
+    repeated: bool,
+    fragmented: bool,
     limit: usize,
-) -> Result<Vec<u8>, String> {
-    let mut tracks = Vec::new();
-    let mut remaining = limit;
-    let maps = opts.map_or(&[][..], |o| o.maps);
-    for _ in select_tracks(maps, 1, |_| 1, |_, _| "video")?
-        .into_iter()
-        .filter(|_| !opts.is_some_and(|o| o.strip_video))
-    {
-        let first = &seq.frames[0];
-        let mut track = video_track(
-            first.width,
-            first.height,
-            seq.fps,
-            (90000. / seq.fps).round().max(1.) as u64,
-            1000,
-        )?;
-        let original_duration = track.movie_ticks;
-        encode_video(
-            &mut track,
-            1000,
-            (0..seq.frames.len()).map(|i| (i as f64 / seq.fps, 1. / seq.fps)),
-            y4m::Options {
-                filters: opts.map_or(&[][..], |o| o.video_filters),
-                frames: opts.and_then(|o| o.frames),
-                start: 0.,
-                end: None,
-                no_video: false,
-                limit: remaining,
-            },
-            !tracks.is_empty(),
-            |i| Ok(seq.frames[i].clone()),
-        )?;
-        if track.samples.is_empty() {
-            return Err(
-                "Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into(),
-            );
-        }
-        if opts.is_some_and(|o| o.fragmented) {
-            track.movie_ticks = original_duration;
-        }
-        track.matrix = rotation_matrix(opts.and_then(|o| o.rotation).unwrap_or(0));
-        remaining = remaining.saturating_sub(
-            track.samples.capacity() * size_of::<Sample>()
-                + track.samples.iter().map(|s| s.data.len()).sum::<usize>(),
-        );
-        tracks.push(track);
+) -> Result<Track<'static>, String> {
+    let first = &seq.frames[0];
+    let mut track = video_track(
+        first.width,
+        first.height,
+        seq.fps,
+        (90000. / seq.fps).round().max(1.) as u64,
+        scale,
+    )?;
+    let original_duration = track.movie_ticks;
+    encode_video(
+        &mut track,
+        scale,
+        (0..seq.frames.len()).map(|i| (i as f64 / seq.fps, 1. / seq.fps)),
+        y4m::Options {
+            filters,
+            frames,
+            start: 0.,
+            end: None,
+            no_video: false,
+            limit,
+        },
+        repeated,
+        |i| Ok(seq.frames[i].clone()),
+    )?;
+    if track.samples.is_empty() {
+        return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
     }
-    let mut metadata = BTreeMap::from([("encoder".into(), "@poe-code/mp4-ast".into())]);
-    if let Some(opts) = opts {
-        metadata.extend(opts.metadata.clone());
+    if fragmented {
+        track.movie_ticks = original_duration;
     }
-    let ftyp = if opts.is_some_and(|o| o.format == "mov") {
-        b"qt  \0\0\x02\0qt  ".as_slice()
-    } else {
-        b"isom\0\0\x02\0isomiso2avc1mp41"
-    };
-    write(
-        &tracks,
-        1000,
-        ftyp,
-        &metadata,
-        &[],
-        opts.is_some_and(|o| o.fragmented),
-        limit,
-    )
-    .map_err(str::to_owned)
+    Ok(track)
 }
 
 fn generated_video(
@@ -871,6 +841,7 @@ enum Streams<'a> {
     Captions(Cow<'a, str>),
     GeneratedAudio(GeneratedAudio),
     GeneratedVideo(super::super::lavfi::Video),
+    Images(&'a ImageSequence),
     Aac {
         rate: u32,
         channels: u8,
@@ -881,7 +852,8 @@ impl Streams<'_> {
     fn len(&self) -> usize {
         match self {
             Self::Mp4(v) => v.len(),
-            Self::GeneratedVideo(_)
+            Self::Images(_)
+            | Self::GeneratedVideo(_)
             | Self::GeneratedAudio(_)
             | Self::Captions(_)
             | Self::Aac { .. } => 1,
@@ -892,13 +864,14 @@ impl Streams<'_> {
             Self::Mp4(v) => v[i].0.kind,
             Self::Captions(_) => "subtitle",
             Self::GeneratedAudio(_) | Self::Aac { .. } => "audio",
-            Self::GeneratedVideo(_) => "video",
+            Self::Images(_) | Self::GeneratedVideo(_) => "video",
         }
     }
     fn seconds(&self, i: usize) -> f64 {
         match self {
             Self::Mp4(v) => v[i].0.duration as f64 / f64::from(v[i].0.scale),
             Self::Aac { rate, count, .. } => *count as f64 * 1024. / f64::from(*rate),
+            Self::Images(seq) => seq.template_duration(),
             Self::GeneratedVideo(v) => (v.duration * v.fps).round().max(1.) / v.fps,
             Self::GeneratedAudio(a) => a.duration_ticks as f64 / f64::from(a.rate),
             Self::Captions(text) => {
@@ -967,15 +940,14 @@ pub(in super::super) fn select_tracks(
 }
 
 pub(in super::super) fn input_slice(
-    format: &str,
-    input: &[u8],
+    input: &MediaInput,
     start: Option<f64>,
     end: Option<f64>,
     source_end: Option<f64>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
     remux(
-        &[(format, input)],
+        std::slice::from_ref(input),
         Remux {
             start,
             end,
@@ -1000,15 +972,16 @@ pub(in super::super) fn input_slice(
     )
 }
 
-pub(in super::super) fn remux(
-    inputs: &[(&str, &[u8])],
-    opts: Remux<'_>,
-) -> Result<Vec<u8>, String> {
+pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<Vec<u8>, String> {
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
     let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
     let mut materialized = Vec::new();
     let mut admitted = 0usize;
-    for (j, &(format, input)) in inputs.iter().enumerate() {
+    for (j, source) in inputs.iter().enumerate() {
+        let (format, input) = match source {
+            MediaInput::Bytes(f, b) => (*f, b.as_slice()),
+            MediaInput::Images(_) => ("image2", &[][..]),
+        };
         let seek = opts.input_times.get(j).copied().unwrap_or_default();
         let audio = format == "lavfi"
             && matches!(
@@ -1018,12 +991,23 @@ pub(in super::super) fn remux(
         let mut bytes = Cow::Borrowed(input);
         if (seek.start.is_some() || seek.end().is_some()) && !audio {
             bytes = Cow::Owned(input_slice(
-                format,
-                input,
+                source,
                 seek.start,
                 seek.end(),
                 seek.generation_end(opts.source_end),
                 opts.limit.saturating_sub(admitted),
+            )?);
+        } else if sliced && let MediaInput::Images(seq) = source {
+            let limit = opts.limit.saturating_sub(admitted);
+            let track = sequence_track(seq, 1000, &[], None, false, false, limit)?;
+            bytes = Cow::Owned(write(
+                &[track],
+                1000,
+                b"isom\0\0\x02\0isomiso2avc1mp41",
+                &BTreeMap::new(),
+                &[],
+                false,
+                limit,
             )?);
         } else if sliced
             && format == "lavfi"
@@ -1050,11 +1034,17 @@ pub(in super::super) fn remux(
         materialized.push(bytes);
     }
     let mut sources = Vec::new();
-    for (j, (&(format, _), data)) in inputs.iter().zip(&materialized).enumerate() {
+    for (j, (source, data)) in inputs.iter().zip(&materialized).enumerate() {
         let format = if matches!(data, Cow::Owned(_)) {
             "mp4"
         } else {
-            format
+            match source {
+                MediaInput::Bytes(f, _) => *f,
+                MediaInput::Images(seq) => {
+                    sources.push((&[][..], &[][..], Streams::Images(seq)));
+                    continue;
+                }
+            }
         };
         let seek = opts.input_times.get(j).copied().unwrap_or_default();
         let input = data.as_ref();
@@ -1118,7 +1108,16 @@ pub(in super::super) fn remux(
             continue;
         }
         let moov = super::movie(input)?;
-        let (tracks, _) = super::read_tracks(input, moov)?;
+        let (mut tracks, _) = super::read_tracks(input, moov)?;
+        if seek.start.is_none()
+            && seek.end().is_none()
+            && let MediaInput::Images(seq) = source
+        {
+            // Before materialization the PNG sequence inherits the single sample
+            // duration of the synthetic movie used as its track template.
+            tracks[0].duration =
+                (seq.template_duration() * f64::from(tracks[0].scale)).round() as u64;
+        }
         let boxes = atoms(moov).filter_map(|(k, v)| (k == b"trak").then_some(v));
         sources.push((
             input,
@@ -1221,9 +1220,25 @@ pub(in super::super) fn remux(
     }
     let mut tracks = Vec::new();
     let mut index_bytes = 0usize;
-    for &(j, i) in &selected {
+    for (ordinal, &(j, i)) in selected.iter().enumerate() {
         let (input, _, source) = &sources[j];
         let (t, trak) = match source {
+            Streams::Images(seq) => {
+                let mut track = sequence_track(
+                    seq,
+                    scale,
+                    opts.video_filters,
+                    opts.frames,
+                    selected[..ordinal].contains(&(j, i)),
+                    opts.fragmented,
+                    opts.limit.saturating_sub(index_bytes),
+                )?;
+                track.matrix = rotation_matrix(opts.rotation.unwrap_or(0));
+                index_bytes += track.samples.capacity() * size_of::<Sample>()
+                    + track.samples.iter().map(|s| s.data.len()).sum::<usize>();
+                tracks.push(track);
+                continue;
+            }
             Streams::GeneratedVideo(v) => {
                 let mut track = generated_video(
                     v,
@@ -1520,7 +1535,7 @@ pub(in super::super) fn remux(
                 Streams::Mp4(v) => (v[i].0.audio_rate(), u32::from(v[i].0.channels())),
                 Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
                 Streams::GeneratedAudio(a) => (a.rate, a.channels),
-                Streams::GeneratedVideo(_) | Streams::Captions(_) => continue,
+                Streams::Images(_) | Streams::GeneratedVideo(_) | Streams::Captions(_) => continue,
             };
             // Slicing can keep a partial first packet hidden by an edit list.
             let duration = if range.is_none() {
@@ -1608,7 +1623,10 @@ pub(in super::super) fn remux(
         .iter()
         .enumerate()
     {
-        if inputs[j].0 == "lavfi" {
+        if matches!(
+            inputs[j],
+            MediaInput::Images(_) | MediaInput::Bytes("lavfi", _)
+        ) {
             metadata.insert("encoder".into(), "@poe-code/mp4-ast".into());
         }
         metadata.extend(super::text_tags(movie).map(|(k, v)| (k.to_owned(), v)));

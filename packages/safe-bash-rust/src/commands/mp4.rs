@@ -1261,7 +1261,7 @@ pub(super) fn media_doc(input: &[u8]) -> Option<super::MediaDoc> {
 }
 
 pub(super) fn ffmetadata(
-    inputs: &[&[u8]],
+    inputs: &[super::MediaInput],
     mapped: bool,
     overrides: &std::collections::BTreeMap<String, String>,
     limit: usize,
@@ -1269,7 +1269,15 @@ pub(super) fn ffmetadata(
     use std::fmt::Write;
     let mut metadata = std::collections::BTreeMap::new();
     let mut chapter_text = String::new();
-    for (i, &input) in inputs.iter().enumerate() {
+    for (i,source) in inputs.iter().enumerate(){
+        let input=match source{
+            super::MediaInput::Bytes("mp4"|"mov",b)=>b,
+            super::MediaInput::Bytes("lavfi",_) | super::MediaInput::Images(_)=>{
+                if i==0 || !mapped{metadata.insert("encoder","@poe-code/mp4-ast".into());}
+                continue;
+            }
+            _=>continue,
+        };
         let moov = movie(input)?;
         let (_, duration) = read_tracks(input, moov)?;
         if i != 0 && mapped {

@@ -145,6 +145,9 @@ pub(super) struct ImageSequence {
 }
 
 impl ImageSequence {
+    pub fn template_duration(&self) -> f64 {
+        (90000. / self.fps).round().max(1.) / 90000.
+    }
     pub fn read(
         fs: &dyn super::SafeBashFs,
         cwd: &str,
@@ -152,10 +155,10 @@ impl ImageSequence {
         pattern: (usize, usize, usize),
         start: Option<u64>,
         fps: f64,
+        limit: usize,
     ) -> Result<Self, String> {
         let (i, j, width) = pattern;
         let mut index = start.unwrap_or(0);
-        let limit = fs.max_input_bytes();
         let mut frames = Vec::new();
         let mut used = 0;
         loop {

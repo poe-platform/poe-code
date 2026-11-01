@@ -4437,6 +4437,22 @@ fn write_ffmpeg_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result<
     fs.write_file(path, bytes)
 }
 
+enum MediaInput {
+    Bytes(&'static str,Vec<u8>),
+    Images(frame_output::ImageSequence),
+}
+
+impl MediaInput {
+    fn remuxable(&self)->bool {
+        match self {
+            Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
+            Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
+            Self::Images(_) | Self::Bytes("aac"|"srt"|"webvtt",_)=>true,
+            _=>false,
+        }
+    }
+}
+
 fn cmd_media_doc(
     cmd: &str,
     args: &[String],
@@ -4477,6 +4493,7 @@ fn cmd_media_doc(
             let mut overwrite = false;
             let mut output_start=1u64;
             let mut input_start=None;
+            let mut image_options=Vec::new();
             let mut meta_title: Option<String> = None;
             let mut meta_tags: BTreeMap<String, String> = BTreeMap::new();
             let mut out_arg: Option<String> = None;
@@ -4502,6 +4519,7 @@ fn cmd_media_doc(
                     "-i" if i + 1 < args.len() => {
                         inputs.push(args[i + 1].clone());
                         input_formats.push(pending_format.take());
+                        image_options.push((input_start.take(),input_fps.take()));
                         input_times.push(std::mem::take(&mut pending_time));
                         i += 2;
                     }
@@ -4641,75 +4659,70 @@ fn cmd_media_doc(
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
-                let load=|source:&str,explicit| {
-                    if explicit==Some("lavfi") {
-                        return Some((Some("lavfi"),source.as_bytes().to_vec()));
-                    }
-                    let bytes=if media_stdin(source){crate::vfs::stream_string_to_bytes(stdin)}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()?};
-                    Some((media_format::detect(&bytes,source,explicit),bytes))
-                };
                 let start=ss_opt.unwrap_or(0.).max(0.);
-                let mut end=to_opt.or_else(||t_opt.map(|t|start+t));
-                let pattern=if inputs.len()==1 && fc_flag.is_empty() && source.to_ascii_lowercase().ends_with(".png") && input_format!=Some("lavfi"){
-                    match frame_output::sequence(source){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                }else{None};
-                let images=if let Some(p)=pattern {
-                    match frame_output::ImageSequence::read(fs,cwd,source,p,input_start,input_fps.unwrap_or(25.)){
-                        Ok(seq)=>Some(seq),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
-                    }
-                }else{None};
-                let seek=input_times[0];
-                let cut=seek.start.is_some() || seek.end().is_some() || ss_opt.is_some() || end.is_some() || shortest;
-                let (format,bytes)=if let Some(seq)=&images {
-                    if cut || !(frame_output || mp4_output) {
-                        let template_duration=(90000./seq.fps).round().max(1.)/90000.;
-                        if seek.start.is_some() || seek.end().is_some(){input_times[0].to=Some(seek.end().unwrap_or(template_duration).min(template_duration));}
-                        else if cut{end=Some(end.unwrap_or(template_duration).min(template_duration));}
-                        let movie=match mp4::mux::sequence_movie(seq,None,fs.max_input_bytes()){
-                            Ok(b)=>b,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+                let end=to_opt.or_else(||t_opt.map(|t|start+t));
+                let limit=fs.max_input_bytes();
+                let mut remaining=limit;
+                let mut sources=Vec::new();
+                for (i,path) in inputs.iter().enumerate(){
+                    let explicit=input_formats[i];
+                    let input=if explicit==Some("lavfi"){
+                        MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
+                    }else if fc_flag.is_empty() && path.to_ascii_lowercase().ends_with(".png") && let Some(pattern)=match frame_output::sequence(path){
+                        Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+                    }{
+                        let (number,fps)=image_options[i];
+                        match frame_output::ImageSequence::read(fs,cwd,path,pattern,number,fps.unwrap_or(25.),remaining){
+                            Ok(seq)=>MediaInput::Images(seq),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+                        }
+                    }else{
+                        let data=if media_stdin(path){crate::vfs::stream_string_to_bytes(stdin)}else{
+                            let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{break};b
                         };
-                        (Some("mp4"),Some(movie))
-                    }else{(Some("image2"),None)}
-                }else{load(source,input_format).map_or((None,None),|(f,b)|(f,Some(b)))};
-                let remuxable=|format,data:&[u8]|format==Some("lavfi") && matches!(data.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")) || matches!(format,Some("aac"|"srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
-                let supported=remuxable(format,bytes.as_deref().unwrap_or_default());
-                let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
-                let png_input=format==Some("image2") && bytes.as_deref().is_some_and(|b|b.starts_with(b"\x89PNG\r\n\x1a\n") && b.get(29..38)!=Some(b"\n__IMG__:"));
-                let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
-                if supported && (mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata")){
-                    for (source,&explicit) in inputs[1..].iter().zip(&input_formats[1..]){
-                        let Some((fmt,data))=load(source,explicit)else{break};
-                        let Some(id)=fmt.filter(|_|remuxable(fmt,&data))else{break};
-                        admitted=admitted.saturating_add(data.len());if admitted>fs.max_input_bytes(){return err_out("ffmpeg: input byte limit exceeded\n",1)}
-                        additional.push((id,data));
-                    }
+                        let Some(id)=media_format::detect(&data,path,explicit)else{break};
+                        MediaInput::Bytes(id,data)
+                    };
+                    let size=match &input {MediaInput::Bytes(_,b)=>b.len(),MediaInput::Images(seq)=>seq.frames.iter().map(|im|im.pixels.len()*4+size_of::<png_pixels::Raster>()).sum()};
+                    let Some(left)=remaining.checked_sub(size)else{return err_out("ffmpeg: input byte limit exceeded\n",1)};
+                    remaining=left;
+                    let supported=input.remuxable();
+                    sources.push(input);
+                    if !supported{break;}
                 }
-                let remux_inputs=supported && additional.len()+1==inputs.len() && fc_flag.is_empty();
-                if (frame_output || mp4_output && (remux_inputs || images.is_some())) && !video_copy {
+                let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),_=>(None,&[][..])};
+                let supported=sources.first().is_some_and(MediaInput::remuxable);
+                let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
+                let png_input=format==Some("image2") && bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38)!=Some(b"\n__IMG__:");
+                let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable) && fc_flag.is_empty();
+                if (frame_output || mp4_output && remux_inputs) && !video_copy {
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                let output=if mp4_output && !cut && let Some(seq)=&images {
-                    match mp4::mux::sequence_movie(seq,Some(&remux),fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                }else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
-                    let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
-                    match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if frame_output && (format==Some("y4m") || images.is_some() || png_input || supported) {
+                let output=if muxer==Some("ffmetadata") && remux_inputs {
+                    match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,limit){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if frame_output && (format==Some("y4m") || png_input || supported) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
-                        let bytes=bytes.as_deref().unwrap_or_default();
+                        let input=&sources[0];
                         let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
                         if no_video {Ok((64,64,10))}
-                        else if !cut && let Some(seq)=&images{seq.render(opts,emit).map_err(str::to_owned)}
+                        else if let MediaInput::Images(seq)=input {
+                            let input_cut=seek.start.is_some() || seek.end().is_some();
+                            if input_cut || shortest || ss_opt.is_some() || end.is_some(){
+                                let movie=mp4::mux::input_slice(input,seek.start,seek.end(),None,limit)?;
+                                let end=if input_cut{end}else{Some(end.unwrap_or(seq.template_duration()).min(seq.template_duration()))};
+                                mp4::render_video(&movie,y4m::Options{end,..opts},&maps,sequence,emit)
+                            }else{seq.render(opts,emit).map_err(str::to_owned)}
+                        }
                         else if png_input {frame_output::render_png(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
-                            mp4::mux::input_slice(format.unwrap(),bytes,seek.start,seek.end(),seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
+                            mp4::mux::input_slice(input,seek.start,seek.end(),seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
                         }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
-                            mp4::mux::input_slice("lavfi",bytes,Some(start),end,end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
+                            mp4::mux::input_slice(input,Some(start),end,end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
                         } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
                             else if format==Some("y4m") {let s=seek.start.unwrap_or(0.);
@@ -4719,7 +4732,6 @@ fn cmd_media_doc(
                     });
                     match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if (mp4_output || subtitle_output || audio_output) && remux_inputs {
-                    let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
                 if let Some(output)=output {
@@ -4737,7 +4749,7 @@ fn cmd_media_doc(
             let t_opt=t_opt.or(input_duration);
             let mut doc = MediaDoc::default_video();
             let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
-            for inp in &inputs {
+            for (source_idx,inp) in inputs.iter().enumerate() {
                 if let Some(lavfi_doc) = parse_lavfi_input_doc(inp) {
                     if parsed_input_docs.is_empty() {
                         doc = lavfi_doc.clone();
@@ -4788,7 +4800,7 @@ fn cmd_media_doc(
                         }
                     }
                     doc.nb_frames = count.max(1);
-                    if let Some(fr) = input_fps {
+                    if let Some(fr) = image_options[source_idx].1 {
                         doc.fps = fr.round() as u32;
                     }
                     doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
@@ -13377,6 +13389,20 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
         assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: ENOENT: no such file or directory, writeFile '/missing/im1.png'\n".to_string()));
         assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
+    fn ffmpeg_maps_two_image_sequences_with_independent_numbering_and_rates() {
+        let fs=MemoryVfs::new();
+        for (prefix,start,n,w) in [("x",0,2,2),("y",7,3,4)] {
+            for i in start..start+n {
+                fs.write_file(&format!("/{prefix}{i}.png"),&pixel_png(w,2,PngEncoding::Density(72),|_,_|[i as u8,100,0,255])).unwrap();
+            }
+        }
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-framerate","4","-i","x%d.png","-framerate","2","-start_number","7","-i","y%d.png","-map","1:v","-map","0:v","mixed.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=width,height,duration,nb_frames","-of","csv=p=0","mixed.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"4,2,1.500000,3\n2,2,0.500000,2\n");
     }
 
     #[test]

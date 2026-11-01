@@ -201,6 +201,9 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
         meta.h = u32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]);
     } else if bytes.starts_with(b"\xff\xd8\xff") {
         meta.fmt = "JPEG".to_string();
+        if let Ok(header) = image_header::jpeg(bytes) {
+            (meta.w, meta.h) = (header.width, header.height);
+        }
     } else if bytes.starts_with(b"GIF8") {
         meta.fmt = "GIF".to_string();
     }

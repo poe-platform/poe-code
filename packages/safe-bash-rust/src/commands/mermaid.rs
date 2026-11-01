@@ -20,6 +20,7 @@ pub(super) struct Scene {
 #[derive(Default)]
 struct Node {
     id: String,
+    order: usize,
     label: String,
     shape: Shape,
     lines: Vec<String>,
@@ -199,6 +200,7 @@ fn parse_node<'a>(
     let i = *ids.entry(id.into()).or_insert_with(|| {
         nodes.push(Node {
             id: id.into(),
+            order: nodes.len(),
             label: id.into(),
             ..Node::default()
         });
@@ -341,15 +343,12 @@ pub(super) fn layout(
         dimensions(n, horizontal);
     }
     let (mut width, mut height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
-    let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
-    for n in &nodes {
-        siblings.entry(n.center(horizontal)).or_default().push(n);
-    }
-    let mut waypoints = match route::waypoints(
-        &nodes, &edges, &pairs, &siblings, horizontal, reversed, limit,
-    ) {
-        Some(paths) => paths,
-        None => return Some(Err("mmdc: E_LIMIT: Work budget exceeded\n".into())),
+    let Some(route::Routes {
+        paths: mut waypoints,
+        intersection,
+    }) = route::waypoints(&nodes, &edges, &pairs, horizontal, reversed, limit)
+    else {
+        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
     let (mut min_x, mut min_y, mut max_x, mut max_y) =
         (0_f64, 0_f64, f64::from(width), f64::from(height));
@@ -363,7 +362,6 @@ pub(super) fn layout(
     height = (max_y - min_y).ceil() as i32;
     let (dx, dy) = ((-min_x).round() as i32, (-min_y).round() as i32);
     if dx != 0 || dy != 0 {
-        drop(siblings);
         for n in &mut nodes {
             n.x += dx;
             n.y += dy;
@@ -372,12 +370,7 @@ pub(super) fn layout(
             p.0 = route::hundredth(p.0 + f64::from(dx));
             p.1 = route::hundredth(p.1 + f64::from(dy));
         }
-        siblings = BTreeMap::new();
-        for n in &nodes {
-            siblings.entry(n.center(horizontal)).or_default().push(n);
-        }
     }
-    let mut intersection = None;
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];
@@ -397,38 +390,16 @@ pub(super) fn layout(
         if !label.is_empty() && points.len() != 2 {
             return None;
         }
-        points.dedup_by(|b, a| (a.0 - b.0).hypot(a.1 - b.1) <= 0.25);
         let (x, y) = points[0];
         let (ex, ey) = *points.last()?;
         let next = points[1];
         let prev = points[points.len() - 2];
         let start_angle = (y - next.1).atan2(x - next.0);
         let angle = (ey - prev.1).atan2(ex - prev.0);
-        if a == b {
-            let (dx, dy) = (ex - prev.0, ey - prev.1);
-            let orthogonal = dx.abs() < 0.1 || dy.abs() < 0.1;
-            let len = dx.hypot(dy);
-            if !orthogonal || len < 11.9 {
-                return Some(Err(format!(
-                    "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 (target perpendicular stub): edge 'edge_{}' terminal segment length={len:.2}px orthogonal={orthogonal}\n",
-                    idx + 1
-                )));
-            }
-            if intersection.is_none()
-                && let Some((k, other)) = route::intersection(
-                    &points,
-                    (&nodes[a], &nodes[b]),
-                    &siblings[&nodes[a].center(horizontal)],
-                    horizontal,
-                    -2.,
-                )
-            {
-                let id = &nodes[a].id;
-                intersection = Some(format!(
-                    "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 6 (edge-node intersection): edge \"edge_{}\" ({id}->{id}) segment [{k}] intersects unrelated node \"{other}\"\n",
-                    idx + 1
-                ));
-            }
+        if let Some(message) = route::attachment_error(&points, &nodes[a], &nodes[b], idx + 1) {
+            return Some(Err(format!(
+                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 {message}\n"
+            )));
         }
         let arrow = op.ends_with('>');
         let start_arrow = op.starts_with('<');

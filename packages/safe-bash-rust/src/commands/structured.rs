@@ -38268,12 +38268,15 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
-    fn mmdc_rejects_invalid_loop_geometry_before_replacing_output() {
+    fn mmdc_rejects_invalid_edge_geometry_before_replacing_output() {
         let fs=MemoryVfs::new();
         let crowded=format!("flowchart TD; {}",vec!["A-->A";55].join("; "));
         for (source,message) in [
             (crowded.as_str(), "Invariant 4 (target perpendicular stub): edge 'edge_1' terminal segment length=38.00px orthogonal=false"),
             ("flowchart TD; A-->A; A-->A; B", r#"Invariant 6 (edge-node intersection): edge "edge_1" (A->A) segment [1] intersects unrelated node "B""#),
+            ("flowchart LR; n0_0{Choice?}; n1_0[([Store])]; n1_1{Choice?}; n1_2[([Store])]; n0_0-->n1_0; n0_0-->n1_1; n0_0-->n1_3", "Invariant 4 (source port perimeter): edge 'edge_2' start (204,216) is 3.00px from 'n0_0' perimeter (> 0.5px)"),
+            ("flowchart LR; n0_0-->n1_0; n0_0-->n1_1; n0_0-->n1_2; n0_0-->n1_3; n1_0-->n2_1; n1_0-->n2_2; n1_1-->n2_1; n1_1-->n2_2; n1_2-->n2_0; n1_3-->n2_1", "Invariant 4 (source perpendicular stub): edge 'edge_5' initial segment length=6.00px orthogonal=true"),
+            ("flowchart LR; n2_2((OK)); n0_0-->n1_2; n0_0-->n1_3; n1_0-->n2_0; n1_1-->n2_2; n1_3-->n2_0; n1_3-->n2_1; n2_0-->n3_1; n2_1-->n3_1; n2_2-->n3_0", r#"Invariant 6 (edge-node intersection): edge "edge_9" (n2_2->n3_0) segment [10] intersects unrelated node "n3_1""#),
         ] {
             for path in ["/d.svg","/d.png","/d.pdf"] {
                 fs.write_file(path,b"previous").unwrap();
@@ -38329,6 +38332,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart TD; A-->B; A-->C","202553f2ea633a0d9e271faf9ed2b28de03156b50bc2de39b89f07e228e22612"),
             ("flowchart LR; A-->B; B-->A","616d23a0332a155b767a713169510d2daf0aff0d028ad83f2af4b42c950d1c24"),
             ("flowchart TD; A-->B-->C; A-->C","5fae7f22d9dd290e84e499c3f22eebe591df6dcbef80c37f43f382c95e6c2ce5"),
+            ("flowchart LR; n0_2((OK)); n0_1-->n1_0; n0_2-->n1_2","9a5fdff5590d8a233e3f18df0eb3e70866e931fe835153408454e43b85fb2495"),
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
             ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
             ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")

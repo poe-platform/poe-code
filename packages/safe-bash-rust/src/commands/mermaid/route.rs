@@ -158,15 +158,50 @@ impl Attachment {
     }
 }
 
+pub(super) struct Routes {
+    pub paths: Vec<Vec<Point>>,
+    pub intersection: Option<String>,
+}
+
 pub(super) fn waypoints(
     nodes: &[Node],
     edges: &[(usize, usize, &str, &str)],
     pairs: &BTreeMap<(usize, usize), usize>,
-    siblings: &BTreeMap<i32, Vec<&Node>>,
     horizontal: bool,
     reverse: bool,
     mut work: usize,
-) -> Option<Vec<Vec<Point>>> {
+) -> Option<Routes> {
+    let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
+    let mut max_depth = 0;
+    for n in nodes {
+        siblings.entry(n.center(horizontal)).or_default().push(n);
+        max_depth = max_depth.max(if horizontal { n.w / 2 } else { n.h / 2 });
+    }
+    let first_hit = |points: &[Point],
+                     ends: (&Node, &Node),
+                     margin: f64,
+                     work: &mut usize|
+     -> Option<Option<(usize, &Node)>> {
+        for (k, seg) in points.windows(2).enumerate() {
+            let a = if horizontal { seg[0].0 } else { seg[0].1 };
+            let b = if horizontal { seg[1].0 } else { seg[1].1 };
+            let low = (a.min(b) - margin).floor() as i32 - max_depth;
+            let high = (a.max(b) + margin + 1.).ceil() as i32 + max_depth;
+            let mut earliest: Option<&Node> = None;
+            for (_, layer) in siblings.range(low..=high) {
+                *work = work.checked_sub(1)?;
+                if let Some((_, hit)) = intersection(seg, ends, layer, horizontal, margin)
+                    && earliest.is_none_or(|n| hit.order < n.order)
+                {
+                    earliest = Some(hit);
+                }
+            }
+            if let Some(hit) = earliest {
+                return Some(Some((k, hit)));
+            }
+        }
+        Some(None)
+    };
     let forward = Face {
         x: horizontal,
         positive: !reverse,
@@ -199,6 +234,7 @@ pub(super) fn waypoints(
     });
     let mut rails = vec![None; edges.len()];
     let mut bypass_index = 0;
+    let mut detour_offset = vec![0.; edges.len()];
     let mut back_index = 0;
     let mut lanes = [0; 2];
     let mut seen = BTreeMap::new();
@@ -270,6 +306,7 @@ pub(super) fn waypoints(
             if back {
                 back_index += 1;
             }
+            detour_offset[i] = f64::from(bypass_index) * 16.;
             bypass_index += 1;
             let dir = usize::from(positive);
             faces = [Face {
@@ -297,16 +334,7 @@ pub(super) fn waypoints(
                 let p = port(src, side.x, if side.positive { 1. } else { -1. }, 0, 1, 0.).0;
                 let q = port(dst, towards.x, if reverse { 1. } else { -1. }, 0, 1, 0.).0;
                 let turn = if side.x { (q.0, p.1) } else { (p.0, q.1) };
-                if [src, dst].iter().all(|n| {
-                    intersection(
-                        &[p, turn, q],
-                        (src, dst),
-                        &siblings[&n.center(horizontal)],
-                        horizontal,
-                        8.,
-                    )
-                    .is_none()
-                }) {
+                if first_hit(&[p, turn, q], (src, dst), 8., &mut work)?.is_none() {
                     faces[0] = side;
                 }
             }
@@ -343,73 +371,208 @@ pub(super) fn waypoints(
             at.spacing = spacing;
         }
     }
-    Some(
-        edges
-            .iter()
-            .enumerate()
-            .map(|(i, &(a, b, _, _))| {
-                let [src, dst] = attachments[i];
-                let (p, s) = src.point(&nodes[a]);
-                let (q, t) = dst.point(&nodes[b]);
-                if a == b {
-                    let n = &nodes[a];
-                    let out = 38. + 20. * offsets[i] as f64;
-                    if horizontal {
-                        let y = f64::from(n.y) - out;
-                        return vec![p, (p.0, y), (q.0, y), q];
-                    }
-                    let x = f64::from(n.x + n.w) + out;
-                    return vec![p, (x, p.1), (x, q.1), q];
-                }
-                if let Some((outer, sign, distance)) = rails[i] {
-                    let (v, w) = if horizontal { (s.1, t.1) } else { (s.0, t.0) };
-                    let rail =
-                        sign * ((outer * sign).max(v * sign).max(w * sign) + f64::from(distance));
-                    return if horizontal {
-                        vec![p, (p.0, rail), (q.0, rail), q]
-                    } else {
-                        vec![p, (rail, p.1), (rail, q.1), q]
-                    };
-                }
-                if src.face.x != dst.face.x {
-                    return vec![p, if src.face.x { (q.0, p.1) } else { (p.0, q.1) }, q];
-                }
-                let (u, v) = if horizontal { (p.1, q.1) } else { (p.0, q.0) };
-                if (u - v).abs() <= 4. && pairs[&(a.min(b), a.max(b))] == 1 {
-                    let c = if nodes[b].shape == Shape::Diamond {
-                        v
-                    } else if nodes[a].shape == Shape::Diamond {
-                        u
-                    } else {
-                        ((u + v) * 0.5 + 0.5).floor()
-                    };
-                    return if horizontal {
-                        vec![(p.0, c), (q.0, c)]
-                    } else {
-                        vec![(c, p.1), (c, q.1)]
-                    };
-                }
-                let lane = if src.count >= dst.count { src } else { dst };
-                let f = (lane.lane + 1) as f64 / (lane.count + 1) as f64;
+    let mut paths = Vec::with_capacity(edges.len());
+    let mut collision = None;
+    for (i, &(a, b, _, _)) in edges.iter().enumerate() {
+        let [src, dst] = attachments[i];
+        let (p, s) = src.point(&nodes[a]);
+        let (q, t) = dst.point(&nodes[b]);
+        let mut points = (|| {
+            if a == b {
+                let n = &nodes[a];
+                let out = 38. + 20. * offsets[i] as f64;
                 if horizontal {
-                    let x = (s.0 + (t.0 - s.0) * f + 0.5).floor();
-                    vec![p, (x, p.1), (x, q.1), q]
-                } else {
-                    let y = (s.1 + (t.1 - s.1) * f + 0.5).floor();
-                    vec![p, (p.0, y), (q.0, y), q]
+                    let y = f64::from(n.y) - out;
+                    return vec![p, (p.0, y), (q.0, y), q];
                 }
-            })
-            .collect(),
-    )
+                let x = f64::from(n.x + n.w) + out;
+                return vec![p, (x, p.1), (x, q.1), q];
+            }
+            if let Some((outer, sign, distance)) = rails[i] {
+                let (v, w) = if horizontal { (s.1, t.1) } else { (s.0, t.0) };
+                let rail =
+                    sign * ((outer * sign).max(v * sign).max(w * sign) + f64::from(distance));
+                return if horizontal {
+                    vec![p, (p.0, rail), (q.0, rail), q]
+                } else {
+                    vec![p, (rail, p.1), (rail, q.1), q]
+                };
+            }
+            if src.face.x != dst.face.x {
+                return vec![p, if src.face.x { (q.0, p.1) } else { (p.0, q.1) }, q];
+            }
+            let (u, v) = if horizontal { (p.1, q.1) } else { (p.0, q.0) };
+            if (u - v).abs() <= 4. && pairs[&(a.min(b), a.max(b))] == 1 {
+                let c = if nodes[b].shape == Shape::Diamond {
+                    v
+                } else if nodes[a].shape == Shape::Diamond {
+                    u
+                } else {
+                    ((u + v) * 0.5 + 0.5).floor()
+                };
+                return if horizontal {
+                    vec![(p.0, c), (q.0, c)]
+                } else {
+                    vec![(c, p.1), (c, q.1)]
+                };
+            }
+            let lane = if src.count >= dst.count { src } else { dst };
+            let f = (lane.lane + 1) as f64 / (lane.count + 1) as f64;
+            if horizontal {
+                let x = (s.0 + (t.0 - s.0) * f + 0.5).floor();
+                vec![p, (x, p.1), (x, q.1), q]
+            } else {
+                let y = (s.1 + (t.1 - s.1) * f + 0.5).floor();
+                vec![p, (p.0, y), (q.0, y), q]
+            }
+        })();
+        if a != b {
+            for _ in 0..6 {
+                let Some((k, obstacle)) =
+                    first_hit(&points, (&nodes[a], &nodes[b]), 4., &mut work)?
+                else {
+                    break;
+                };
+                work = work.checked_sub(nodes.len())?;
+                let (u, v) = (points[k], points[k + 1]);
+                let vertical = (u.0 - v.0).abs() < 1.;
+                // Work in (cross, along) coordinates for both kinds of detour.
+                let axes = |(x, y): Point| if vertical { (x, y) } else { (y, x) };
+                let ((c0, l0), (_, l1)) = (axes(u), axes(v));
+                let rect = |n: &Node| {
+                    if vertical {
+                        (n.x, n.w, n.y, n.h)
+                    } else {
+                        (n.y, n.h, n.x, n.w)
+                    }
+                };
+                let (oc, ow, ol, oh) = rect(obstacle);
+                let (mut low, mut high) = (oc, oc + ow);
+                for n in nodes.iter().filter(|n| n.order != a && n.order != b) {
+                    let (c, w, l, h) = rect(n);
+                    if f64::from(l + h) >= l0.min(l1) - 12.
+                        && f64::from(l) <= l0.max(l1) + 12.
+                        && (f64::from(c + w / 2) - c0).abs()
+                            <= f64::from(w.max(if vertical { 220 } else { 160 }))
+                    {
+                        low = low.min(c);
+                        high = high.max(c + w);
+                    }
+                }
+                let pad = detour_offset[i] + if vertical { 28. } else { 24. };
+                let (low, high) = (f64::from(low) - pad, f64::from(high) + pad);
+                let detour = (if (high - c0).abs() <= (c0 - low).abs() {
+                    high
+                } else {
+                    low
+                })
+                .round();
+                if vertical && points.len() == 4 && (k == 0 || k == 2) {
+                    points = vec![p, s, (detour, s.1), (detour, t.1), t, q];
+                } else if !vertical && points.len() == 4 && k == 1 {
+                    points = vec![
+                        points[0],
+                        (points[0].0, detour),
+                        (points[3].0, detour),
+                        points[3],
+                    ];
+                } else {
+                    let (enter, exit) = if l0 <= l1 {
+                        (
+                            l0.max(f64::from(ol) - 18.),
+                            l1.min(f64::from(ol + oh) + 18.),
+                        )
+                    } else {
+                        (
+                            l0.min(f64::from(ol + oh) + 18.),
+                            l1.max(f64::from(ol) - 18.),
+                        )
+                    };
+                    points.splice(
+                        k + 1..k + 1,
+                        [
+                            (c0, enter),
+                            (detour, enter),
+                            (detour, exit),
+                            (axes(v).0, exit),
+                        ]
+                        .map(axes),
+                    );
+                }
+            }
+        }
+        points.dedup_by(|b, a| (a.0 - b.0).hypot(a.1 - b.1) <= 0.25);
+        if collision.is_none()
+            && let Some((k, other)) = first_hit(&points, (&nodes[a], &nodes[b]), -2., &mut work)?
+        {
+            collision = Some(format!(
+                "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 6 (edge-node intersection): edge \"edge_{}\" ({}->{}) segment [{k}] intersects unrelated node \"{}\"\n",
+                i + 1,
+                nodes[a].id,
+                nodes[b].id,
+                other.id
+            ));
+        }
+        paths.push(points);
+    }
+    Some(Routes {
+        paths,
+        intersection: collision,
+    })
 }
 
-pub(super) fn intersection<'a>(
+pub(super) fn attachment_error(
+    points: &[Point],
+    source: &Node,
+    target: &Node,
+    id: usize,
+) -> Option<String> {
+    let end = points.len() - 1;
+    for (n, (x, y), side, tip) in [
+        (source, points[0], "source", "start"),
+        (target, points[end], "target", "end"),
+    ] {
+        let (w, h) = (f64::from(n.w) / 2., f64::from(n.h) / 2.);
+        let (xoff, yoff) = (
+            (x - f64::from(n.center(true))).abs(),
+            (y - f64::from(n.center(false))).abs(),
+        );
+        let dist = match n.shape {
+            Shape::Diamond => (xoff / w + yoff / h - 1.).abs() * w.min(h),
+            Shape::Circle => (xoff.hypot(yoff) - w.min(h)).abs(),
+            _ if xoff > w || yoff > h => (xoff - w).max(0.).hypot((yoff - h).max(0.)),
+            _ => (w - xoff).min(h - yoff),
+        };
+        if dist > 0.5 {
+            return Some(format!(
+                "({side} port perimeter): edge 'edge_{id}' {tip} ({x},{y}) is {dist:.2}px from '{}' perimeter (> 0.5px)",
+                n.id
+            ));
+        }
+    }
+    for (a, b, side, part) in [
+        (0, 1, "source", "initial"),
+        (end, end - 1, "target", "terminal"),
+    ] {
+        let (dx, dy) = (points[a].0 - points[b].0, points[a].1 - points[b].1);
+        let orthogonal = dx.abs() < 0.1 || dy.abs() < 0.1;
+        let len = dx.hypot(dy);
+        if !orthogonal || len < 11.9 {
+            return Some(format!(
+                "({side} perpendicular stub): edge 'edge_{id}' {part} segment length={len:.2}px orthogonal={orthogonal}"
+            ));
+        }
+    }
+    None
+}
+
+fn intersection<'a>(
     points: &[Point],
     endpoints: (&Node, &Node),
     siblings: &[&'a Node],
     horizontal: bool,
     margin: f64,
-) -> Option<(usize, &'a str)> {
+) -> Option<(usize, &'a Node)> {
     for (k, seg) in points.windows(2).enumerate() {
         let (a, b) = (seg[0], seg[1]);
         let (x, y) = (a.0.min(b.0), a.1.min(b.1));
@@ -437,7 +600,7 @@ pub(super) fn intersection<'a>(
                 && y - margin < f64::from(n.y + n.h)
                 && bottom + margin > f64::from(n.y)
             {
-                return Some((k, n.id.as_str()));
+                return Some((k, n));
             }
         }
     }

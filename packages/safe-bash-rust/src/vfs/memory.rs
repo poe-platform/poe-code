@@ -61,7 +61,7 @@ struct MemoryFile {
     linked: bool,
 }
 
-static NEXT_PUBLICATION: AtomicU64 = AtomicU64::new(1);
+pub(super) static NEXT_PUBLICATION: AtomicU64 = AtomicU64::new(1);
 static NEXT_LINK_GROUP: AtomicU64 = AtomicU64::new(1);
 static NEXT_FS_ID: AtomicU64 = AtomicU64::new(1);
 
@@ -521,7 +521,7 @@ impl MemoryVfs {
         Ok((base, upper))
     }
 
-    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>, append: bool) -> Result<(), String> {
+    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>, append: bool, publication: Option<u64>) -> Result<(), String> {
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
         let creating = !upper.nodes.contains_key(path);
         if creating && parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
@@ -531,7 +531,7 @@ impl MemoryVfs {
             let Some(MemoryNode::File { ino }) = base.nodes.get(path) else { return Err("EBUSY: lower file changed".into()); };
             base.files[ino].data.as_slice()
         } else if append { &[] } else { data };
-        Self::store_file(&mut upper, path.to_owned(), initial, 0o100000 | mode, None, append.then_some(data))?;
+        Self::store_file(&mut upper, path.to_owned(), initial, 0o100000 | mode, publication, append.then_some(data))?;
         if creating {
             let now = super::now_ms();
             if let Some(atime) = atime {
@@ -594,10 +594,14 @@ impl MemoryVfs {
         Ok(())
     }
 
-    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool, recursive: bool) -> Result<(), String> {
+    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool, recursive: bool, publication: Option<u64>) -> Result<bool, String> {
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
         if path == "/" || upper.devices.entry(path).is_some() || base.devices.entry(path).is_some() {
             return Err("EBUSY: resource busy or locked".into());
+        }
+        if let Some(stamp) = publication
+            && !matches!(upper.nodes.get(path), Some(MemoryNode::File { ino }) if upper.files[ino].publication == Some(stamp)) {
+            return Ok(false);
         }
         if upper.nodes.contains_key(path) {
             if recursive {
@@ -611,7 +615,7 @@ impl MemoryVfs {
             }
             self.bump_generation();
         }
-        Ok(())
+        Ok(true)
     }
 
     fn mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {

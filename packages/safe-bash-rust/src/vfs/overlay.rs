@@ -13,7 +13,10 @@ struct DirectoryObservation {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum FileWrite { Create(u32), Replace, Append }
+enum FileWrite<'a> {
+    Create(u32), Replace, Append,
+    Publish { inputs: &'a [String], version: u64, stamp: u64 },
+}
 
 enum MetadataChange {
     Mode(u32),
@@ -169,7 +172,7 @@ impl OverlayVfs {
         self.upper.set_times(&norm, Some(st.atime_ms), Some(st.mtime_ms))
     }
 
-    fn publish_file(&self, path: &str, data: &[u8], operation: FileWrite) -> Result<(), String> {
+    fn write_entry(&self, path: &str, data: &[u8], operation: FileWrite<'_>) -> Result<(), String> {
         let exclusive_mode = match operation { FileWrite::Create(mode) => Some(mode), _ => None };
         let memory_layers = self.lower.memory_backend().zip(self.upper.memory_backend());
         if exclusive_mode.is_some() && memory_layers.is_none() {
@@ -177,7 +180,18 @@ impl OverlayVfs {
         }
         let versions = (self.lower.generation(), self.upper.generation());
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
-        let target = self.access_path(path, exclusive_mode.is_none())?;
+        let publication = if let FileWrite::Publish { version, stamp, .. } = operation {
+            if memory_layers.is_none() {
+                return Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into());
+            }
+            if self.generation() != version {
+                return Err("EAGAIN: filesystem changed before publication".into());
+            }
+            Some(stamp)
+        } else {
+            None
+        };
+        let target = self.access_path(path, exclusive_mode.is_none() && publication.is_none())?;
         if exclusive_mode.is_some() && target != path { return Err("EAGAIN: resolved entry changed".into()); }
         let existing = match self.lstat(&target) {
             Ok(_) if exclusive_mode.is_some() => return Err("EEXIST: file already exists".into()),
@@ -185,6 +199,30 @@ impl OverlayVfs {
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
+        if let FileWrite::Publish { inputs, .. } = operation {
+            if existing
+                .as_ref()
+                .is_some_and(|st| st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000)
+            {
+                return Err("INVALID_VALUE: Output must be a regular VFS file or absent".into());
+            }
+            for input in inputs {
+                let entry = self.access_path(input, true)?;
+                let identity = match self.lstat(&entry) {
+                    Ok(st) => st.identity,
+                    Err(e) if e.starts_with("ENOENT:") => None,
+                    Err(e) => return Err(e),
+                };
+                if entry == target
+                    || identity.is_some()
+                        && existing.as_ref().and_then(|s| s.identity.as_ref()) == identity.as_ref()
+                {
+                    return Err(
+                        "INVALID_VALUE: Input and output VFS identities must be distinct".into(),
+                    );
+                }
+            }
+        }
         let upper_exists = self.upper.lstat(&target).is_ok();
         if let Some(st) = &existing {
             if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 { return Err("EISDIR: illegal operation on a directory".into()); }
@@ -214,7 +252,7 @@ impl OverlayVfs {
         let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
         let mode = exclusive_mode.unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
-        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, existing.map(|st| st.atime_ms)), parents, operation == FileWrite::Append))
+        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, existing.map(|st| st.atime_ms)), parents, operation == FileWrite::Append, publication))
     }
 
     fn forget_directory(&self, path: &str) {
@@ -252,7 +290,7 @@ impl OverlayVfs {
         };
         let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during removal".into()); }
-        upper.remove_overlay_entry(lower, versions, &entry, directory, recursive)?;
+        upper.remove_overlay_entry(lower, versions, &entry, directory, recursive, None)?;
         if is_dir { self.forget_directory(&entry); }
         whiteouts.insert(entry);
         Ok(())
@@ -273,15 +311,65 @@ impl SafeBashFs for OverlayVfs {
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        self.publish_file(path, data, FileWrite::Create(mode))
+        self.write_entry(path, data, FileWrite::Create(mode))
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        self.publish_file(path, data, FileWrite::Replace)
+        self.write_entry(path, data, FileWrite::Replace)
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        self.publish_file(path, data, FileWrite::Append)
+        self.write_entry(path, data, FileWrite::Append)
+    }
+
+    fn publish_file(
+        &self,
+        path: &str,
+        data: &[u8],
+        inputs: &[String],
+        version: u64,
+    ) -> Result<u64, String> {
+        let stamp = super::memory::NEXT_PUBLICATION.fetch_add(1, Ordering::Relaxed);
+        self.write_entry(
+            path,
+            data,
+            FileWrite::Publish {
+                inputs,
+                version,
+                stamp,
+            },
+        )?;
+        Ok(stamp)
+    }
+
+    fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
+        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend())
+        else {
+            return Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file removal".into());
+        };
+        let count = self
+            .whiteouts
+            .read()
+            .map_err(|_| "EIO: input/output error")?
+            .len();
+        let versions = (lower.generation(), upper.generation());
+        let entry = self.access_path(path, false)?;
+        if entry != normalize_posix_path(path) {
+            return Ok(false);
+        }
+        let mut whiteouts = self
+            .whiteouts
+            .write()
+            .map_err(|_| "EIO: input/output error")?;
+        if count != whiteouts.len() {
+            return Err("EBUSY: overlay changed during removal".into());
+        }
+        let removed =
+            upper.remove_overlay_entry(lower, versions, &entry, false, false, Some(publication))?;
+        if removed {
+            whiteouts.insert(entry);
+        }
+        Ok(removed)
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
@@ -500,6 +588,7 @@ impl SafeBashFs for OverlayVfs {
             .generation()
             .wrapping_mul(31)
             .wrapping_add(self.upper.generation())
+            .wrapping_add(self.whiteouts.read().unwrap().len() as u64)
     }
 
     fn fs_id(&self) -> u64 {
@@ -535,6 +624,42 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn conditional_publications_respect_the_merged_namespace_and_file_version() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/docs/page", b"source").unwrap();
+        lower.write_file("/docs/result", b"prior").unwrap();
+        lower.symlink("/docs/page", "/docs/link").unwrap();
+        lower.hard_link("/docs/page", "/docs/alias").unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        let overlay = OverlayVfs::new(lower.clone(), upper.clone());
+        let publish =
+            |name: &str, v| SafeBashFs::publish_file(&overlay, name, b"PDF", &["/docs/page".into()], v);
+        let v = overlay.generation();
+        assert!(
+            publish("/docs/link", v)
+                .unwrap_err()
+                .contains("regular VFS file")
+        );
+        assert!(
+            publish("/docs/alias", v)
+                .unwrap_err()
+                .contains("identities must be distinct")
+        );
+        assert!(!upper.exists("/docs"));
+        overlay.remove_one("/docs/alias", false).unwrap();
+        assert!(publish("/docs/new", v).unwrap_err().starts_with("EAGAIN:"));
+        let stamp = publish("/docs/result", overlay.generation()).unwrap();
+        assert_eq!(lower.read_file("/docs/result").unwrap(), b"prior");
+        assert_eq!(overlay.read_file("/docs/result").unwrap(), b"PDF");
+        overlay.write_file("/docs/result", b"newer").unwrap();
+        assert!(!overlay.remove_published("/docs/result", stamp).unwrap());
+        let stamp = publish("/docs/result", overlay.generation()).unwrap();
+        assert!(overlay.remove_published("/docs/result", stamp).unwrap());
+        assert!(!overlay.exists("/docs/result"));
+        assert_eq!(lower.read_file("/docs/result").unwrap(), b"prior");
+    }
 
     #[test]
     fn copying_up_from_a_mount_rejects_writes_that_would_split_hard_links() {

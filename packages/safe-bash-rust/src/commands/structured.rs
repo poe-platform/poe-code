@@ -38805,6 +38805,35 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_parses_inline_flowchart_edge_labels_and_rejects_incomplete_operators() {
+        assert_mermaid_outputs(&[
+            ("flowchart TD\nA -- hello --- B", "svg", "5d26f2f1e8844ae228b0f6cf70bcbbc1c46d0f2e7966a876436da06a36c0e38e"),
+            ("flowchart TD\nA -. hello .-> B", "svg", "cd1e6d80ef66c6da9182be69ca0c1d196c93c800e16c2bfb6afa03cbf3806285"),
+            ("flowchart TD\nA -. hello -.- B", "svg", "95b8d6d80fefc87350c6a8e19334301c0cc84ed3ebf81839a0809cc111313ec8"),
+            ("flowchart TD\nA == hello ==> B", "svg", "c6fbacf39a989d88972c14de83a9afe34cf65af6260c18a82e825bf9d724aad3"),
+            ("flowchart TD\nA == hello === B", "svg", "0f00a0fbc257302fe5953c4369bd85dba00641cb7f8c8ac58bbd52a2f067f180"),
+            ("flowchart TD\nA -. \"with spaces\" .-> |override| B", "svg", "62f12999432558d93959885371d8547ef4b0e626a1445f9948d64c21d45cac4a"),
+            ("flowchart TD\nA -- hello ---> B", "svg", "mmdc: E_SYNTAX (line 2, column 15): Expected node identifier at '> B'\n"),
+            ("flowchart TD\nA == no tail", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unexpected flowchart syntax near '== no tail'\n"),
+            ("flowchart TD\nA -. unterminated", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unexpected flowchart syntax near '-. unterminated'\n"),
+            ("flowchart TD\nA -- incomplete", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unexpected flowchart syntax near '-- incomplete'\n"),
+            ("flowchart TD\nA ?? B", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unexpected flowchart syntax near '?? B'\n"),
+            ("flowchart TD\nA -. a .-> B -- beta --- C", "svg", "8deec9d7028f180335ff38b4f3d199e544abd0c2edf76f18916921e026f602a1"),
+            ("flowchart TD\nA -. a .-> B -- beta --- C", "png", "f9f227c49b9ac8001644e6b75ca5a0862f719a4ab39527aca058c25c5044e519"),
+            ("flowchart TD\nA -. a .-> B -- beta --- C", "pdf", "5a4fecd4ab9d4943d73e7d9ae8b2b82e3ed110a13bee3c39153f8cc131e0c82e"),
+            ("flowchart TD\nA & B == total ==> C & D", "svg", "5ba8b9ccf8f4f9e0afac56d291ccff3ba29f95be6c00843f61b38097bd346cbe"),
+            ("flowchart TD\nA & B == total ==> C & D", "png", "cbe5a50741b9774f1a70a06ba7b930ba663c239bdba4a5a45b86bb3c0492e3fe"),
+            ("flowchart TD\nA & B == total ==> C & D", "pdf", "835e539ce98f7c6fa97412a98c7f5a995bf0e438e9c03a6b3bc09c5dc23900b6"),
+            ("flowchart TD\nA == \"quoted <br/> green\" === B", "svg", "975776c187e0bc1470af8dac8b81d04d88b83c99906b986f08705acf69093980"),
+            ("flowchart TD\nA == ==>|first| B", "svg", "e497052cb7ef2349e064ced2055a0e2925a6564d767dfc53e068435adbf804be"),
+            ("flowchart TD\nA -. x .->|bad", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unclosed edge label pipe '|'\n"),
+            ("flowchart TD\nA -- first --- B -- second --> C", "svg", "a02d8ccc6a30105fad967197d61b07afdb90c0e1876f69f8b787148fa9e6a775"),
+            ("flowchart TD\nA -. cool -.- B -. go .-> C", "svg", "d5d6f98449ac0e2c027231483b302ef8d2e42f84eb21cce8740d617ff463a6f7"),
+            ("flowchart TD\nA ? ζζζζζζζζζζζζζζζζζζζζζζζζζζζζ", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unexpected flowchart syntax near '? ζζζζζζζζζζζζζζζζζζζζζζ'\n"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

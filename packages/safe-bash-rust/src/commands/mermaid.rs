@@ -768,39 +768,50 @@ pub(super) fn parse<'a>(
                 Err(error) => return Some(Err(error)),
             };
         while !rest.is_empty() {
-            let (op, tail, label) = if let Some(op) =
-                EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
-            {
-                let tail = rest[op.len()..].trim_start();
-                if let Some(tail) = tail.strip_prefix('|') {
-                    let Some((label, tail)) = tail.split_once('|') else {
-                        return Some(Err(stmt.error(
-                            "E_SYNTAX",
-                            rest,
-                            "Unclosed edge label pipe '|'",
-                        )));
-                    };
-                    (op, tail, label.trim())
+            let inline = || {
+                let (arrow, line, arrow_op) = match rest.as_bytes().get(..2)? {
+                    b"--" => ("-->", "---", "-->"),
+                    b"-." => (".->", "-.-", "-.->"),
+                    b"==" => ("==>", "===", "==>"),
+                    _ => return None,
+                };
+                let tail = &rest[2..];
+                let i = tail
+                    .as_bytes()
+                    .windows(3)
+                    .position(|s| s == arrow.as_bytes() || s == line.as_bytes())?;
+                let op = if tail[i..].starts_with(arrow) {
+                    arrow_op
                 } else {
-                    (op, tail, "")
-                }
-            } else if let Some(t) = rest.strip_prefix("--") {
-                let (label, tail) = t.split_once("-->")?;
-                ("-->", tail, label.trim())
-            } else {
-                if nodes[*sources.last()?].id.ends_with("--")
-                    || rest.starts_with('{')
-                    || rest.starts_with(':')
-                {
-                    let text =
-                        String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
+                    line
+                };
+                Some((op, &tail[i + 3..], &tail[..i]))
+            };
+            let Some((op, tail, label)) = EDGE_OPS
+                .iter()
+                .copied()
+                .find_map(|op| rest.strip_prefix(op).map(|tail| (op, tail, "")))
+                .or_else(inline)
+            else {
+                let near =
+                    String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
+                return Some(Err(stmt.error(
+                    "E_SYNTAX",
+                    rest,
+                    &format!("Unexpected flowchart syntax near '{near}'"),
+                )));
+            };
+            let (label, tail) = if let Some(piped) = tail.trim_start().strip_prefix('|') {
+                let Some(pair) = piped.split_once('|') else {
                     return Some(Err(stmt.error(
                         "E_SYNTAX",
                         rest,
-                        &format!("Unexpected flowchart syntax near '{text}'"),
+                        "Unclosed edge label pipe '|'",
                     )));
-                }
-                return None;
+                };
+                pair
+            } else {
+                (label, tail)
             };
             let label = match scanner::label(label, stmt, rest) {
                 Ok(label) => label,

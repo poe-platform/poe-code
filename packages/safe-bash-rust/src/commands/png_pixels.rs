@@ -11,7 +11,7 @@ pub(super) struct Raster {
 }
 
 pub(super) fn supported_still(bytes: &[u8]) -> bool {
-    super::bmp::signature(bytes)
+    super::jpeg_decode::signature(bytes) || super::bmp::signature(bytes)
         || super::netpbm::signature(bytes)
         || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
 }
@@ -102,6 +102,7 @@ impl Raster {
         }
     }
     pub fn decode(bytes: &[u8], limit: usize) -> Result<Self, &'static str> {
+        if super::jpeg_decode::signature(bytes) {return super::jpeg_decode::decode(bytes,limit);}
         if super::netpbm::signature(bytes) {
             return Ok(super::netpbm::Netpbm::parse(bytes, limit)?.decode());
         }

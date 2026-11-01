@@ -2645,6 +2645,10 @@ mod video_filter;
 mod lavfi;
 #[path = "y4m.rs"]
 mod y4m;
+#[path = "jpeg.rs"]
+mod jpeg;
+#[path = "jpeg_decode.rs"]
+mod jpeg_decode;
 #[path = "frame_output.rs"]
 mod frame_output;
 #[path = "subtitles.rs"]
@@ -13515,6 +13519,24 @@ mod media_unit_tests {
         let bytes=fs.read_file("/frame1.jpg").unwrap();
         assert!(bytes.starts_with(b"\xff\xd8\xff\xe0"));
         assert!(bytes.ends_with(b"\x3f\x00\xf2\xca\xfc\xe8\xfe\xcc\x3f\xff\xd9"));
+    }
+
+    #[test]
+    fn sips_decodes_jpeg_samples_across_mcu_boundaries() {
+        let fs = MemoryVfs::new();
+        let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+        assert_eq!(run("ffmpeg", &["-f","lavfi","-i","testsrc=s=19x15","-frames:v","1","src.jpg"]).exit_code, 0);
+        assert_eq!(run("sips", &["-s","format","ppm","src.jpg","--out","out.ppm"]).exit_code, 0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.ppm").unwrap())), "2df0453f1d45a7b01b3f6566d8e51791f618f97985a8c00e0048e019a39bfc66");
+    }
+
+    #[test]
+    fn sips_decodes_progressive_subsampled_jpeg_with_restarts() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src.jpg", include_bytes!("../../tests/fixtures/subsampled-progressive.jpg")).unwrap();
+        let result=cmd_media_doc("sips", &media_args(&["-s","format","ppm","src.jpg","--out","out.ppm"]), "", "/", &fs);
+        assert_eq!((result.exit_code,result.stderr),(0,String::new()));
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.ppm").unwrap())), "1cb420ac977b4837ae7fbd6e12a3802087ebf72575788c274f5de45e67878cd0");
     }
 
     #[test]

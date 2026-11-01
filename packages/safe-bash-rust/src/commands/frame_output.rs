@@ -1,7 +1,6 @@
 use super::png_pixels::Raster;
 
-#[path = "jpeg.rs"]
-mod jpeg;
+use super::jpeg;
 
 pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
     Some(match name {
@@ -249,6 +248,12 @@ pub(super) fn still_info(
     bytes: &[u8],
     limit: usize,
 ) -> Result<(usize, usize, &'static [u8; 4]), &'static str> {
+    if super::jpeg_decode::signature(bytes) {
+        let (w,h,_,_) = super::image_header::jpeg(bytes)?;
+        let (w,h)=(w as usize,h as usize);
+        if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
+        return Ok((w,h,b"mjpe"));
+    }
     if super::netpbm::signature(bytes) {
         let image = super::netpbm::Netpbm::parse(bytes, limit)?;
         return Ok((image.width, image.height, image.codec()));

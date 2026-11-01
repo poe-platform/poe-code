@@ -110,6 +110,10 @@ pub trait SafeBashFs: Send + Sync {
         Err("ENOTSUP: operation not supported".into())
     }
     fn remove_path(&self, path: &str) -> Result<(), String>;
+    /// Create one new directory. Never change an existing entry's permissions.
+    fn mkdir_one(&self, _path: &str, _mode: u32) -> Result<(), String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
     fn mkdir_all(&self, path: &str) -> Result<(), String>;
     fn exists(&self, path: &str) -> bool;
     fn is_dir(&self, path: &str) -> bool;

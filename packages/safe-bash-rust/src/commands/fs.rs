@@ -617,6 +617,7 @@ fn cmd_mkdir(
             code = 1;
             continue;
         }
+        let mut new_parents = Vec::new();
         if !recursive {
             let parent = crate::vfs::dirname_posix_path(&p);
             if !fs.exists(&parent) || !fs.is_dir(&parent) {
@@ -639,7 +640,9 @@ fn cmd_mkdir(
             for seg in p.split('/').filter(|s| !s.is_empty()) {
                 anc.push('/');
                 anc.push_str(seg);
-                if (fs.exists(&anc) || fs.lstat(&anc).is_ok()) && !fs.is_dir(&anc) {
+                if !fs.exists(&anc) && fs.lstat(&anc).is_err() {
+                    if anc != p { new_parents.push(anc.clone()); }
+                } else if !fs.is_dir(&anc) {
                     stderr.push_str(&format!(
                         "mkdir: ENOTDIR: not a directory, mkdir '{p}'\n"
                     ));
@@ -673,12 +676,12 @@ fn cmd_mkdir(
             }
             created.push(a.clone());
         }
-        if let Err(e) = fs.mkdir_all(&p) {
+        let result = new_parents.iter().try_for_each(|parent| fs.mkdir_one(parent, default_mode | 0o300))
+            .and_then(|()| fs.mkdir_one(&p, explicit_mode.unwrap_or(default_mode)));
+        if let Err(e) = result {
             stderr.push_str(&format!("mkdir: cannot create directory '{a}': {e}\n"));
             code = 1;
         } else {
-            let mode = explicit_mode.unwrap_or(default_mode);
-            let _ = fs.chmod(&p, mode);
             for d in created {
                 stdout.push_str(&format!("mkdir: created directory '{d}'\n"));
             }

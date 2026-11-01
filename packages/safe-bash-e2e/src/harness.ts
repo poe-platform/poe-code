@@ -674,7 +674,6 @@ export class SafeBashE2EHarness {
       for (const dir of sortedDirs) {
         if (dir === "/") continue;
         rustBash.mkdirAll(dir);
-        rustBash.chmod(dir, 0o777);
       }
       for (const [rawPath, init] of Object.entries(options.files ?? {})) {
         const normalizedPath = sb.normalizePath(rawPath);

@@ -258,6 +258,15 @@ impl SafeBashFs for RealVfs {
         }
     }
 
+    fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
+        let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
+        let mut builder = std::fs::DirBuilder::new();
+        #[cfg(unix)]
+        std::os::unix::fs::DirBuilderExt::mode(&mut builder, mode);
+        builder.create(host).map_err(|e| e.to_string())?;
+        self.chmod(path, mode)
+    }
+
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
         std::fs::create_dir_all(host).map_err(|e| e.to_string())
@@ -418,6 +427,9 @@ mod tests {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
+            vfs.mkdir_one("/shared", 0o777).unwrap();
+            assert!(vfs.mkdir_one("/shared", 0o700).is_err());
+            assert_eq!(vfs.stat("/shared").unwrap().mode & 0o777, 0o777);
             vfs.symlink("confined.txt", "/alias").unwrap();
             vfs.chmod("/alias", 0o610).unwrap();
             vfs.set_mtime("/alias", 1_600_000_001_234).unwrap();

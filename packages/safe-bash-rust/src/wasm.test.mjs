@@ -754,3 +754,24 @@ test("mv unlinks the source only after a successful cross-device write", async (
     await reader.close();
   } finally { bash.dispose(); }
 });
+
+test("seed directories and implicit parents use the production memory filesystem modes", async () => {
+  const bash = new RustWasmBash({cwd:"/project/work", directories:["/seed/deep"], files:{"/nested/files/a":"data"}});
+  try {
+    assert.equal((await bash.fs.stat("/")).mode & 0o7777, 0o755);
+    for (const dir of ["/workspace", "/project", "/project/work", "/seed", "/seed/deep", "/nested", "/nested/files"]) {
+      assert.equal((await bash.fs.stat(dir)).mode & 0o7777, 0o777, dir);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("mkdir -p applies the shell umask to new parents and -m to the final directory", async () => {
+  const bash = new RustWasmBash({directories:["/existing"]});
+  try {
+    const result = await bash.exec("umask 077; mkdir -pm 750 /existing/private/leaf");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await bash.fs.stat("/existing/private")).mode & 0o7777, 0o700);
+    assert.equal((await bash.fs.stat("/existing/private/leaf")).mode & 0o7777, 0o750);
+    assert.equal((await bash.fs.stat("/existing")).mode & 0o7777, 0o777);
+  } finally { bash.dispose(); }
+});

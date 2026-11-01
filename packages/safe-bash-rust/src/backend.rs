@@ -141,6 +141,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.remove_path(path)
     }
 
+    fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.mkdir_one(path, mode)
+    }
+
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.inner.mkdir_all(path)

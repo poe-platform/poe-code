@@ -156,6 +156,12 @@ impl SafeBashFs for MountVfs {
         fs.remove_path(&rel)
     }
 
+    fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
+        let p = self.resolve(path, false, WalkPurpose::Access)?;
+        let (_, fs, local) = self.location(&p);
+        fs.mkdir_one(&local, mode)
+    }
+
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         let (fs, rel) = self.route(path, true)?;
         fs.mkdir_all(&rel)

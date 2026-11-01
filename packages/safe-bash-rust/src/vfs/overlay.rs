@@ -152,6 +152,22 @@ impl SafeBashFs for OverlayVfs {
         Ok(())
     }
 
+    fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
+        let path = self.access_path(path, false)?;
+        if self.lstat(&path).is_ok() { return Err("EEXIST: file already exists".into()); }
+        let mut parent = crate::vfs::dirname_posix_path(&path);
+        let st = self.stat(&parent)?;
+        if st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        let mut missing = Vec::new();
+        while !self.upper.exists(&parent) {
+            let mode = self.stat(&parent)?.mode;
+            missing.push((parent.clone(), mode));
+            parent = crate::vfs::dirname_posix_path(&parent);
+        }
+        for (dir, mode) in missing.into_iter().rev() { self.upper.mkdir_one(&dir, mode & 0o7777)?; }
+        self.upper.mkdir_one(&path, mode)
+    }
+
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         self.upper.mkdir_all(&norm)
@@ -326,6 +342,20 @@ mod tests {
         overlay.remove_path("/app/keep.txt").unwrap();
         assert!(!overlay.exists("/app/keep.txt"));
         assert!(lower.exists("/app/keep.txt"));
+    }
+
+    #[test]
+    fn mkdir_copies_parent_modes_without_exposing_private_ancestors() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.mkdir_all("/private/shared").unwrap();
+        lower.chmod("/private", 0o700).unwrap();
+        lower.chmod("/private/shared", 0o750).unwrap();
+        let overlay = OverlayVfs::new(lower.clone(), Arc::new(MemoryVfs::new()));
+        overlay.mkdir_one("/private/shared/new", 0o711).unwrap();
+        assert_eq!(overlay.stat("/private").unwrap().mode & 0o777, 0o700);
+        assert_eq!(overlay.stat("/private/shared").unwrap().mode & 0o777, 0o750);
+        assert_eq!(overlay.stat("/private/shared/new").unwrap().mode & 0o777, 0o711);
+        assert!(!lower.exists("/private/shared/new"));
     }
 
     #[test]

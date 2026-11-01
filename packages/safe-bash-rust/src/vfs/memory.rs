@@ -488,7 +488,7 @@ impl MemoryVfs {
                         resolved,
                         MemoryNode::Directory {
                             ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                            mode: 0o40755,
+                            mode: 0o40777,
                             mtime_ms: 1_700_000_000_000,
                         },
                     );
@@ -729,6 +729,26 @@ impl SafeBashFs for MemoryVfs {
         self.remove_entry(path, Some(publication))
     }
 
+    fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let path = Self::resolve_symlinks_locked(&state, path, false).map_err(|e| e.message)?;
+        if state.nodes.contains_key(&path) || state.devices.entry(&path).is_some() {
+            return Err("EEXIST: file already exists".into());
+        }
+        if state.devices == Devices::Mounted { return Err("EROFS: read-only file system".into()); }
+        match state.nodes.get(&crate::vfs::dirname_posix_path(&path)) {
+            Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 => {}
+            Some(MemoryNode::Directory { .. }) => return Err("EACCES: permission denied".into()),
+            Some(_) => return Err("ENOTDIR: not a directory".into()),
+            None => return Err("ENOENT: no such file or directory".into()),
+        }
+        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        state.nodes.insert(path, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
+            mode: 0o40000 | (mode & 0o7777), mtime_ms: 1_700_000_000_000 });
+        self.bump_generation();
+        Ok(())
+    }
+
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         if norm == "/" {
@@ -751,7 +771,7 @@ impl SafeBashFs for MemoryVfs {
                     resolved,
                     MemoryNode::Directory {
                         ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                        mode: 0o40755,
+                        mode: 0o40777,
                         mtime_ms: 1_700_000_000_000,
                     },
                 );

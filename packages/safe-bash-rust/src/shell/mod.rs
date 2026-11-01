@@ -170,6 +170,17 @@ mod tests {
     use super::*;
 
     #[test]
+    fn positional_arguments_and_exported_functions_survive_shell_turns() {
+        let (mut shell, _) = Shell::with_memory_fs();
+        shell.exec("set -- alpha 'two words'; f() { echo child; }; export -f f").unwrap();
+        let second = shell.exec("echo \"$#:$2\"; bash -c f").unwrap();
+        assert_eq!((second.exit_code, second.stdout.as_str()), (0, "2:two words\nchild\n"));
+        shell.exec("shift; export -n -f f").unwrap();
+        let fourth = shell.exec("echo \"$#:$1\"; bash -c 'type -t f'").unwrap();
+        assert_eq!((fourth.exit_code, fourth.stdout.as_str()), (1, "1:two words\n"));
+    }
+
+    #[test]
     fn unit_shell_with_memory_fs_exec_options_and_limits() {
         let (mut shell, vfs) = Shell::with_memory_fs();
         vfs.mkdir_all("/app").unwrap();

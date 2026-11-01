@@ -4,7 +4,7 @@ use crate::vfs::FileStat;
 use crate::shell::eval::{EvalError, EvalState};
 use crate::shell::parser::CommandNode;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -36,12 +36,19 @@ pub struct CommandContext<'a> {
 pub type RustCommand =
     Arc<dyn Fn(&mut CommandContext<'_>) -> Result<CommandResult, String> + Send + Sync>;
 
+#[derive(Clone, Default)]
+struct ShellBindings {
+    functions: BTreeMap<String, CommandNode>,
+    exported_functions: BTreeSet<String>,
+    positional: Vec<String>,
+}
+
 #[derive(Default)]
 pub struct HybridBackend {
     pub mode: BackendMode,
     pub(crate) provided_devices: bool,
     commands: BTreeMap<String, RustCommand>,
-    functions: Mutex<BTreeMap<String, CommandNode>>,
+    bindings: Mutex<ShellBindings>,
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
 }
 
@@ -51,8 +58,8 @@ impl Clone for HybridBackend {
             mode: self.mode,
             provided_devices: self.provided_devices,
             commands: self.commands.clone(),
+            bindings: Mutex::new(self.bindings.lock().unwrap().clone()),
             used_typescript_bridge: self.used_typescript_bridge.clone(),
-            functions: Mutex::new(self.functions.lock().unwrap().clone()),
         }
     }
 }
@@ -263,7 +270,7 @@ impl HybridBackend {
             mode,
             provided_devices: false,
             commands: BTreeMap::new(),
-            functions: Mutex::new(BTreeMap::new()),
+            bindings: Mutex::default(),
             used_typescript_bridge: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -314,8 +321,10 @@ impl HybridBackend {
         let mut eval = EvalState::new(cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         eval.provided_devices = self.provided_devices;
-        if let Ok(guard) = self.functions.lock() {
-            eval.functions = guard.clone();
+        if let Ok(bindings) = self.bindings.lock() {
+            eval.functions.clone_from(&bindings.functions);
+            eval.exported_functions.clone_from(&bindings.exported_functions);
+            eval.pos_args.clone_from(&bindings.positional);
         }
         let eval_res = eval.eval_script_str(script, stdin);
         if let Err(exceeded_msg) = budget.check_exceeded() {
@@ -324,8 +333,12 @@ impl HybridBackend {
         match eval_res {
             Ok(res) => {
                 let last_exit_str = res.exit_code.to_string();
-                if let Ok(mut guard) = self.functions.lock() {
-                    *guard = eval.functions;
+                if let Ok(mut bindings) = self.bindings.lock() {
+                    *bindings = ShellBindings {
+                        functions: eval.functions,
+                        exported_functions: eval.exported_functions,
+                        positional: eval.pos_args,
+                    };
                 }
                 if script != ":" {
                     env.insert("__last_exit".to_string(), last_exit_str);

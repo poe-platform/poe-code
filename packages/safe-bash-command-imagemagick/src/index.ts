@@ -3106,6 +3106,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const d = tokens[i++] ?? "";
             svgElements.push(`<path d="${escapeXml(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
         }
+        else {
+            throw new Error(`Unsupported drawing primitive: ${cmd}`);
+        }
     }
     if (svgElements.length > 0) yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>` };
 }

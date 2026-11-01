@@ -42,6 +42,19 @@ it.each(["buffered", "retained"])("draw floodfill follows earlier vector strokes
     expect([...image.data.slice(0, 4)]).toEqual([255, 0, 0, 255]);
     expect([...image.data.slice((3 * 7 + 3) * 4, (3 * 7 + 3) * 4 + 4)]).toEqual([255, 255, 255, 255]);
 });
+it.each(["buffered", "retained"].flatMap(mode => [
+    { draw: "matte 0,0 floodfill", primitive: "matte" },
+    { draw: "not-a-primitive 0,0", primitive: "not-a-primitive" },
+    { draw: "rectangle 1,1 5,5 matte 0,0 floodfill", primitive: "matte" }
+].map(test => ({ mode, ...test }))))("rejects unsupported drawing without replacing output ($mode, $draw)", async ({ mode, draw, primitive }) => {
+    const original = new TextEncoder().encode("existing output");
+    const files = new Map([["out.png", original]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out.png", original);
+    const result = await runConvertCli(["-size", "7x7", "xc:white", "-alpha", "on", "-fill", "none", "-draw", draw, "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain(`Unsupported drawing primitive: ${primitive}`);
+    expect(mode === "buffered" ? files.get("out.png") : await fs.readFile("/out.png")).toEqual(original);
+});
 it("preserves original floodfill pixel vectors", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {

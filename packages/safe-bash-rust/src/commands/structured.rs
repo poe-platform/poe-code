@@ -32,7 +32,7 @@ struct JqFilter<'a> {
     params: Vec<String>,
     body: String,
     scope: JqScope<'a>,
-    recursive: bool,
+    recursive_name: Option<String>,
 }
 
 #[derive(Clone, Default)]
@@ -52,9 +52,9 @@ struct YqDocuments<'a> {
 }
 
 impl<'a> JqScope<'a> {
-    fn define(&mut self, name: &str, params: Vec<String>, body: &str, scope: &Self, recursive: bool) {
+    fn define(&mut self, name: &str, params: Vec<String>, body: &str, scope: Self, recursive: bool) {
         self.functions.entry(name.into()).or_default().insert(params.len(), Rc::new(JqFilter {
-            params, body: body.into(), scope: scope.clone(), recursive,
+            params, body: body.into(), scope, recursive_name: recursive.then(|| name.into()),
         }));
     }
 
@@ -66,8 +66,8 @@ impl<'a> JqScope<'a> {
         let args = arguments.map_or_else(Vec::new, |s| split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()]));
         let Some(filter) = overloads.get(&args.len()) else { return Ok(None) };
         let mut base = filter.scope.clone();
-        if filter.recursive {
-            base.functions.entry(name.into()).or_default().insert(args.len(), filter.clone());
+        if let Some(original) = &filter.recursive_name {
+            base.functions.entry(original.clone()).or_default().insert(args.len(), filter.clone());
         }
         let mut scopes = vec![base];
         for (param, argument) in filter.params.iter().zip(args) {
@@ -80,7 +80,7 @@ impl<'a> JqScope<'a> {
                 })).collect();
             } else {
                 for scope in &mut scopes {
-                    scope.define(param, Vec::new(), &argument, self, false);
+                    scope.define(param, Vec::new(), &argument, self.clone(), false);
                 }
             }
         }
@@ -1040,14 +1040,16 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    let filter_str = if !xml_input && yq.is_none() && lib_dirs.is_empty() {
-        match jq_parser::compile(&raw_filter, vars.keys().map(String::as_str), false) {
+    let inputs = RefCell::new(VecDeque::new());
+    let mut vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: &inputs, yq };
+    let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
+        match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
             Err(error) => return err_out(&format!("jq: {error}\n"), 3),
         }
     } else {
         if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) { return compile_err; }
-        std::borrow::Cow::Owned(preprocess_jq_imports(&raw_filter, &lib_dirs, cwd, fs))
+        std::borrow::Cow::Borrowed(raw_filter.as_str())
     };
     let mut stream_inputs: Vec<JVal> = Vec::new();
     let mut deferred_xml_err: Option<(String, i32)> = None;
@@ -1145,8 +1147,7 @@ fn cmd_jq_core(
         }
     }
 
-    let inputs = RefCell::new(VecDeque::from(stream_inputs));
-    let vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: &inputs, yq };
+    *inputs.borrow_mut() = stream_inputs.into();
 
     let mut out = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1245,7 +1246,7 @@ fn eval_jq(
         };
         let mut next_vars = vars.clone();
         let params = param.split(';').map(str::trim).filter(|p| !p.is_empty()).map(str::to_owned).collect();
-        next_vars.define(fname, params, body.trim(), vars, true);
+        next_vars.define(fname, params, body.trim(), vars.clone(), true);
         return eval_jq(after_semi.trim(), input, &next_vars);
     }
 
@@ -4179,70 +4180,6 @@ fn iso8601_to_epoch(s: &str) -> i64 {
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     let days = era * 146097 + doe - 719468;
     days * 86400 + hh * 3600 + mm * 60 + ss
-}
-
-fn preprocess_jq_imports(
-    filter: &str,
-    lib_dirs: &[String],
-    cwd: &str,
-    fs: &dyn SafeBashFs,
-) -> String {
-    let mut cur = filter.trim().to_string();
-    let mut collected_defs = String::new();
-    let mut aliases: Vec<String> = Vec::new();
-    loop {
-        let trimmed = cur.trim_start();
-        if let Some(after_imp) = trimmed.strip_prefix("import ")
-            && let Some((imp_spec, rest)) = split_jq_binary(after_imp, ";")
-            && let Some((mod_part, alias_part)) = imp_spec.split_once(" as ")
-        {
-            let mod_name = mod_part.trim().trim_matches('"');
-            let alias = alias_part.trim().to_string();
-            let mod_src = load_jq_module(mod_name, lib_dirs, cwd, fs);
-            let expanded_mod = preprocess_jq_imports(&mod_src, lib_dirs, cwd, fs);
-            for part in expanded_mod.split(';') {
-                let pt = part.trim();
-                if let Some(def_body) = pt.strip_prefix("def ") {
-                    let rewritten = def_body.replace(&format!("{alias}::"), &format!("{alias}__"));
-                    collected_defs.push_str(&format!("def {alias}__{rewritten}; "));
-                }
-            }
-            aliases.push(alias);
-            cur = rest;
-            continue;
-        }
-        if let Some(after_inc) = trimmed.strip_prefix("include ")
-            && let Some((inc_spec, rest)) = split_jq_binary(after_inc, ";")
-        {
-            let mod_name = inc_spec.trim().trim_matches('"');
-            let mod_src = load_jq_module(mod_name, lib_dirs, cwd, fs);
-            let expanded_mod = preprocess_jq_imports(&mod_src, lib_dirs, cwd, fs);
-            collected_defs.push_str(&expanded_mod);
-            collected_defs.push(' ');
-            cur = rest;
-            continue;
-        }
-        break;
-    }
-    let mut final_str = format!("{collected_defs}{cur}");
-    for alias in aliases {
-        final_str = final_str.replace(&format!("{alias}::"), &format!("{alias}__"));
-    }
-    final_str
-}
-
-fn load_jq_module(mod_name: &str, lib_dirs: &[String], cwd: &str, fs: &dyn SafeBashFs) -> String {
-    for dir in lib_dirs {
-        let p = resolve_posix_path(cwd, &format!("{dir}/{mod_name}.jq"));
-        if let Ok(b) = fs.read_file(&p) {
-            return String::from_utf8_lossy(&b).into_owned();
-        }
-    }
-    let p = resolve_posix_path(cwd, &format!("{mod_name}.jq"));
-    if let Ok(b) = fs.read_file(&p) {
-        return String::from_utf8_lossy(&b).into_owned();
-    }
-    String::new()
 }
 
 fn collect_jq_recurse(val: &JVal, out: &mut Vec<JVal>) {

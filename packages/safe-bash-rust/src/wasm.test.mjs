@@ -3,6 +3,30 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq compiles nested modules in their own scope before opening inputs", async () => {
+  const bash = new RustWasmBash({ files: {
+    "/workspace/lib/base.jq": 'def pair($a;$b): [$a,$b]; def tag: "m::tag";',
+    "/workspace/lib/top.jq": 'include "base"; def run: pair(tag;42);',
+    "/workspace/lib/loop.jq": 'include "loop";',
+    "/workspace/lib/bad.jq": 'def f: $lost;',
+    "/workspace/cwd.jq": 'def ignored: 1;',
+  } });
+  try {
+    const result = await bash.exec(`jq -Llib -nc 'import "top" as m; [m::run,"m::tag",m::pair(3;4)]'`);
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, '[["m::tag",42],"m::tag",[3,4]]\n', ""]);
+    for (const [filter, diagnostic] of [
+      ['$lost', 'undefined variable $lost at offset 5'],
+      ['include "cwd"; .', 'module not found: cwd'],
+      ['include "bad"; .', 'undefined variable $lost at offset 12'],
+      ['include "../cwd"; .', 'invalid module path'],
+      ['include "loop"; .', 'module dependency cycle: loop'],
+    ]) {
+      const r = await bash.exec(`jq -Llib '${filter}' /missing`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [3, "", `jq: ${diagnostic}\n`]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq validates complete string segments and decodes paired Unicode escapes", async () => {
   const bash = new RustWasmBash();
   try {

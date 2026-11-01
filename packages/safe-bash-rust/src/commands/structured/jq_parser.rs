@@ -1,6 +1,7 @@
 //! Compile-time syntax and binding checks. jq compiles the entire program before
 //! opening its inputs, including definitions and branches that will never execute.
-use std::borrow::Cow;
+use super::{JqScope, SafeBashFs, resolve_posix_path};
+use std::{borrow::Cow, ops::Range};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Kind {
@@ -31,6 +32,15 @@ struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    fn new(source: &'a str) -> Self {
+        Self {
+            source,
+            pos: 0,
+            string: false,
+            parentheses: Vec::new(),
+            comments: Vec::new(),
+        }
+    }
     fn next(&mut self) -> Result<Token<'a>, String> {
         let bytes = self.source.as_bytes();
         loop {
@@ -185,7 +195,8 @@ impl<'a> Lexer<'a> {
     }
 }
 
-struct Parser<'a> {
+struct Parser<'a, 'b> {
+    arguments: &'b std::collections::BTreeMap<String, super::JVal>,
     lexer: Lexer<'a>,
     current: Token<'a>,
     previous: Token<'a>,
@@ -194,7 +205,7 @@ struct Parser<'a> {
     depth: usize,
 }
 
-impl<'a> Parser<'a> {
+impl<'a> Parser<'a, '_> {
     fn take(&mut self) -> Result<Token<'a>, String> {
         if self.current.kind == Kind::End {
             return Ok(self.current);
@@ -234,7 +245,7 @@ impl<'a> Parser<'a> {
     }
     fn variable(&mut self) -> Result<(), String> {
         let name = self.name("expected variable name")?;
-        if name != "ENV" && !self.variables.contains(&name) {
+        if name != "ENV" && !self.variables.contains(&name) && !self.arguments.contains_key(name) {
             return Err(self.fail(&format!("undefined variable ${name}")));
         }
         Ok(())
@@ -323,8 +334,9 @@ impl<'a> Parser<'a> {
         }
         self.expect(if array { "]" } else { "}" })
     }
-    fn definition(&mut self) -> Result<(), String> {
-        self.name("expected function name")?;
+    fn definition(&mut self) -> Result<(&'a str, Vec<String>, Range<usize>), String> {
+        let function = self.name("expected function name")?;
+        let mut formal = Vec::new();
         let mark = self.variables.len();
         if self.accept("(")? {
             let mut params = Vec::new();
@@ -335,6 +347,11 @@ impl<'a> Parser<'a> {
                     return Err(self.fail("expected unique parameter name"));
                 }
                 params.push(name);
+                formal.push(if value {
+                    format!("${name}")
+                } else {
+                    name.to_owned()
+                });
                 if value {
                     self.variables.push(name);
                 }
@@ -345,10 +362,12 @@ impl<'a> Parser<'a> {
             self.expect(")")?;
         }
         self.expect(":")?;
+        let start = self.current.at;
         self.expr(0, false)?;
+        let body = start..self.current.at;
         self.expect(";")?;
         self.variables.truncate(mark);
-        Ok(())
+        Ok((function, formal, body))
     }
     fn expr(&mut self, min: u8, stop_comma: bool) -> Result<(), String> {
         if self.depth >= 128 {
@@ -547,30 +566,47 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub(super) fn compile<'a, 'b>(
+fn without_comments<'a>(
     source: &'a str,
-    variables: impl Iterator<Item = &'b str>,
+    range: Range<usize>,
+    comments: &[Range<usize>],
+) -> Cow<'a, str> {
+    let from = comments.partition_point(|c| c.end <= range.start);
+    let to = comments.partition_point(|c| c.start < range.end);
+    if from == to {
+        return Cow::Borrowed(&source[range]);
+    }
+    let mut cleaned = String::with_capacity(range.len());
+    let mut start = range.start;
+    for comment in &comments[from..to] {
+        cleaned.push_str(&source[start..comment.start]);
+        start = comment.end;
+    }
+    cleaned.push_str(&source[start..range.end]);
+    Cow::Owned(cleaned)
+}
+
+fn parse<'a>(
+    source: &'a str,
+    scope: &mut JqScope<'_>,
     module: bool,
 ) -> Result<Cow<'a, str>, String> {
-    let mut lexer = Lexer {
-        source,
-        pos: 0,
-        string: false,
-        parentheses: Vec::new(),
-        comments: Vec::new(),
-    };
+    let mut lexer = Lexer::new(source);
     let current = lexer.next()?;
     let mut p = Parser {
         lexer,
         current,
         previous: current,
-        variables: variables.collect(),
+        arguments: &scope.bindings,
+        variables: Vec::new(),
         labels: vec![],
         depth: 0,
     };
+    let mut definitions = Vec::new();
     while p.accept("def")? {
-        p.definition()?;
+        definitions.push(p.definition()?);
     }
+    let start = p.current.at;
     if module {
         if p.current.kind != Kind::End {
             return Err(p.fail("module must contain only imports and definitions"));
@@ -581,15 +617,136 @@ pub(super) fn compile<'a, 'b>(
             return Err(p.syntax(p.current, true));
         }
     }
-    if p.lexer.comments.is_empty() {
-        return Ok(Cow::Borrowed(source));
+    let comments = p.lexer.comments;
+    for (name, params, range) in definitions {
+        let body = without_comments(source, range, &comments);
+        scope.define(name, params, body.trim(), scope.clone(), true);
     }
-    let mut cleaned = String::with_capacity(source.len());
-    let mut start = 0;
-    for range in p.lexer.comments {
-        cleaned.push_str(&source[start..range.start]);
-        start = range.end;
+    Ok(without_comments(source, start..source.len(), &comments))
+}
+
+pub(super) fn compile<'a>(
+    source: &'a str,
+    scope: &mut JqScope<'_>,
+    dirs: &[String],
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> Result<Cow<'a, str>, String> {
+    if dirs.is_empty() {
+        return parse(source, scope, false);
     }
-    cleaned.push_str(&source[start..]);
-    Ok(Cow::Owned(cleaned))
+    let mut modules = Modules {
+        dirs,
+        cwd,
+        fs,
+        active: Vec::new(),
+        remaining: crate::budget::ShellLimits::default().max_source_bytes,
+    };
+    modules.compile(source, scope)
+}
+
+struct Modules<'a> {
+    dirs: &'a [String],
+    cwd: &'a str,
+    fs: &'a dyn SafeBashFs,
+    active: Vec<String>,
+    remaining: usize,
+}
+
+impl Modules<'_> {
+    fn compile<'a>(
+        &mut self,
+        source: &'a str,
+        scope: &mut JqScope<'_>,
+    ) -> Result<Cow<'a, str>, String> {
+        self.remaining = self
+            .remaining
+            .checked_sub(source.len())
+            .ok_or("maxSourceBytes limit exceeded")?;
+        if self.active.len() >= 128 {
+            return Err("maxAstDepth limit exceeded".into());
+        }
+        let mut lexer = Lexer::new(source);
+        let mut token = lexer.next()?;
+        while token.kind == Kind::Name && matches!(token.text, "import" | "include") {
+            let qualified = token.text == "import";
+            if lexer.next()?.kind != Kind::Quote {
+                return Err("module directive requires a string path".into());
+            }
+            let mut path = String::new();
+            let mut segment = lexer.next()?;
+            if segment.kind == Kind::Text {
+                let mut chars = segment.text.chars();
+                while let Some(c) = chars.next() {
+                    path.push(if c == '\\' {
+                        super::json_escape(&mut chars).ok_or("invalid module path")?
+                    } else {
+                        c
+                    });
+                }
+                segment = lexer.next()?;
+            }
+            if segment.kind != Kind::EndQuote {
+                return Err("module directive requires a string path".into());
+            }
+            let alias = if qualified {
+                if lexer.next()?.text != "as" {
+                    return Err("import requires a namespace".into());
+                }
+                let name = lexer.next()?;
+                if name.kind != Kind::Name {
+                    return Err("import requires a namespace".into());
+                }
+                Some(name.text)
+            } else {
+                None
+            };
+            if lexer.next()?.text != ";" {
+                return Err("module directive requires ';'".into());
+            }
+            if path
+                .split('/')
+                .any(|p| p.is_empty() || matches!(p, "." | "..") || p.contains('\0'))
+            {
+                return Err("invalid module path".into());
+            }
+            let mut found = false;
+            for dir in self.dirs {
+                let full = resolve_posix_path(self.cwd, &format!("{dir}/{path}.jq"));
+                if self.active.contains(&full) {
+                    return Err(format!("module dependency cycle: {path}"));
+                }
+                let bytes = match self.fs.read_file(&full) {
+                    Ok(bytes) => bytes,
+                    Err(e) if e.starts_with("ENOENT") || e.starts_with("ENOTDIR") => continue,
+                    Err(e) => return Err(e),
+                };
+                let contents =
+                    std::str::from_utf8(&bytes).map_err(|_| "program file is not valid UTF-8")?;
+                self.active.push(full);
+                let mut child = JqScope {
+                    functions: Default::default(),
+                    bindings: scope.bindings.clone(),
+                    ..*scope
+                };
+                self.compile(contents, &mut child)?;
+                self.active.pop();
+                for (name, overloads) in child.functions {
+                    let name = if let Some(a) = alias {
+                        format!("{a}::{name}")
+                    } else {
+                        name
+                    };
+                    scope.functions.entry(name).or_default().extend(overloads);
+                }
+                found = true;
+                break;
+            }
+            if !found {
+                return Err(format!("module not found: {path}"));
+            }
+            token = lexer.next()?;
+        }
+        parse(&source[token.at..], scope, !self.active.is_empty())
+    }
 }

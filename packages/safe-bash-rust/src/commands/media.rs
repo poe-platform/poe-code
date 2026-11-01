@@ -2659,6 +2659,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+#[path = "adts.rs"]
+mod adts;
 #[path = "media_format.rs"]
 mod media_format;
 #[path = "media_probe.rs"]
@@ -4439,6 +4441,8 @@ fn cmd_media_doc(
                 }
             }
             let mut inputs: Vec<String> = Vec::new();
+            let (mut input_format,mut output_format) = (None,None);
+            let (mut audio_copy,mut audio_filter) = (false,false);
             let mut fmt_flag = String::new();
             let mut vf_flags: Vec<String> = Vec::new();
             let mut fc_flag = String::new();
@@ -4481,6 +4485,8 @@ fn cmd_media_doc(
                     }
                     "-f" if i + 1 < args.len() => {
                         fmt_flag = args[i + 1].clone();
+                        if args[i+2..].iter().any(|arg| arg == "-i") { input_format = Some(args[i+1].as_str()); }
+                        else { output_format = Some(args[i+1].as_str()); }
                         i += 2;
                     }
                     "-vf" | "-filter:v" if i + 1 < args.len() => {
@@ -4492,11 +4498,11 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-ar" if i + 1 < args.len() => {
-                        ar_opt = args[i + 1].parse().ok();
+                        ar_opt = args[i + 1].parse().ok().filter(|v| *v != 0);
                         i += 2;
                     }
                     "-ac" if i + 1 < args.len() => {
-                        ac_opt = args[i + 1].parse().ok();
+                        ac_opt = args[i + 1].parse().ok().filter(|v| *v != 0);
                         i += 2;
                     }
                     "-framerate" | "-r" if i + 1 < args.len() => {
@@ -4536,7 +4542,9 @@ fn cmd_media_doc(
                         }
                         i += 2;
                     }
-                    "-af" | "-filter:a" | "-c" | "-codec" | "-c:a" | "-acodec" | "-c:v"
+                    "-af" | "-filter:a" if i + 1 < args.len() => { audio_filter = true; i += 2; }
+                    "-c" | "-codec" | "-c:a" | "-acodec" | "-codec:a" if i + 1 < args.len() => { audio_copy = args[i+1] == "copy"; i += 2; }
+                    "-c:v"
                     | "-vcodec" | "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
                     | "-pix_fmt" | "-v" | "-loglevel" | "-map" | "-movflags" | "-preset"
                     | "-crf" | "-threads" | "-stream_loop"
@@ -4555,7 +4563,7 @@ fn cmd_media_doc(
                         }
                         i += 2;
                     }
-                    a if !a.starts_with('-') => {
+                    a if a == "-" || !a.starts_with('-') => {
                         out_arg = Some(a.to_string());
                         i += 1;
                     }
@@ -4575,6 +4583,30 @@ fn cmd_media_doc(
             let out_full = resolve_posix_path(cwd, &out_rel);
             if explicit_no_overwrite && fs.read_file(&out_full).is_ok() {
                 return err_out(&format!("File '{out_rel}' already exists. Exiting.\n"), 1);
+            }
+            if let [source] = inputs.as_slice()
+                && output_format.map_or_else(|| out_lower.ends_with(".aac"), |f| f.eq_ignore_ascii_case("aac"))
+            {
+                let bytes = if matches!(source.as_str(), "-" | "pipe:" | "pipe:0" | "/dev/stdin" | "/dev/fd/0") {
+                    Some(crate::vfs::stream_string_to_bytes(stdin))
+                } else { fs.read_file(&resolve_posix_path(cwd,source)).ok() };
+                if let Some(bytes) = bytes && media_format::detect(&bytes,source,input_format) == Some("aac") {
+                    let start = ss_opt.unwrap_or(0.).max(0.);
+                    let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
+                    let output = adts::remux(&bytes,start,to_opt.or_else(||t_opt.map(|t|start+t)),
+                        ar_opt.filter(|_|transform),ac_opt.filter(|_|transform),transform,strip_audio);
+                    if matches!(out_rel.as_str(), "-" | "pipe:" | "pipe:1" | "/dev/stdout" | "/dev/fd/1") {
+                        return ok_out(&crate::vfs::bytes_to_stream_string(&output));
+                    }
+                    let parent = crate::vfs::dirname_posix_path(&out_full);
+                    if !fs.is_dir(&parent) {
+                        let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
+                        return err_out(&format!("ffmpeg: {reason}, writeFile '{out_full}'\n"),1);
+                    }
+                    return match fs.write_file(&out_full,&output) {
+                        Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
+                    };
+                }
             }
             let mut doc = MediaDoc::default_video();
             let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
@@ -12777,6 +12809,39 @@ mod media_unit_tests {
         for name in ["empty.aac","-"] {
             assert_eq!(run(&["-f","aac","-show_entries","stream=sample_rate,channels,nb_frames","-of","csv=p=0",name]).stdout, "44100,2,0\n");
         }
+    }
+
+    #[test]
+    fn ffmpeg_adts_supports_binary_streams_and_fails_on_missing_parent() {
+        let fs = MemoryVfs::new();
+        let bytes = [255,241,76,64,1,63,252,12,13];
+        let stdin = crate::vfs::bytes_to_stream_string(&bytes);
+        for dest in ["-", "pipe:1"] {
+            let args = media_args(&["-i","-","-f","aac","-ar","0","-ac","0",dest]);
+            let result = cmd_media_doc("ffmpeg",&args,&stdin,"/",&fs);
+            assert_eq!((result.exit_code,result.stdout,result.stderr),(0,stdin.clone(),String::new()));
+            assert!(!fs.exists(&format!("/{dest}")));
+        }
+        let result = cmd_media_doc("ffmpeg",&media_args(&["-i","-","absent/out.aac"]),&stdin,"/",&fs);
+        assert_eq!(result.stderr,"ffmpeg: ENOENT: no such file or directory, writeFile '/absent/out.aac'\n");
+        assert!(!fs.exists("/absent"));
+    }
+
+    #[test]
+    fn ffmpeg_remuxes_adts_payloads_and_slices_on_sample_boundaries() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/sound", &[255,241,76,64,1,63,252,12,13,0,255,240,76,64,1,159,252,0,0,14,15,16]).unwrap();
+        let run = |options: &[&str]| {
+            let args = [&["-i","sound"][..],options,&["out.aac"]].concat();
+            assert_eq!(cmd_media_doc("ffmpeg", &media_args(&args), "", "/", &fs).exit_code, 0);
+            fs.read_file("/out.aac").unwrap()
+        };
+        let first = [255,241,76,64,1,63,252,12,13];
+        let second = [255,241,76,64,1,95,252,14,15,16];
+        assert_eq!(run(&["-c","copy"]), [first.as_slice(), second.as_slice()].concat());
+        assert_eq!(run(&["-t","0.020"]), first);
+        assert_eq!(run(&["-ss","0.022"]), second);
+        assert_eq!(run(&["-ac","2"]), [255,241,76,128,1,191,252,33,16,4,96,140,28]);
     }
 
     #[test]

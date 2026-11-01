@@ -87,38 +87,21 @@ impl Clip {
             ticks: (90000. / fps).round().max(1.) as u64,
         })
     }
-    pub(super) fn adts(mut input: &[u8], records: bool) -> Self {
-        let rates = [
-            96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350,
-        ];
-        let (mut timescale, mut channels, mut count, mut payload) = (44100, 2, 0, 0);
+    pub(super) fn adts(input: &[u8], records: bool) -> Self {
+        let mut frames = super::adts::Frames::new(input);
+        let (mut payload, mut count) = (0, 0);
         let mut ends = Vec::new();
-        while input.len() >= 7 {
-            if input[0] != 255 || input[1] & 0xf0 != 0xf0 {
-                input = &input[1..];
-                continue;
-            }
-            if let Some(rate) = rates.get(usize::from(input[2] >> 2 & 15)) {
-                timescale = *rate;
-            }
-            channels = (input[2] & 1) << 2 | input[3] >> 6;
-            let header = if input[1] & 1 == 0 { 9 } else { 7 };
-            let length = usize::from(input[3] & 3) << 11
-                | usize::from(input[4]) << 3
-                | usize::from(input[5] >> 5);
-            if length <= header || length > input.len() {
-                break;
-            }
-            payload += length - header;
+        for data in frames.by_ref() {
+            payload += data.len();
             if records {
                 ends.push(payload);
             }
             count += 1;
-            input = &input[length..];
         }
+        let timescale = frames.rate;
         Self {
             track: Track::Aac {
-                channels: if channels == 0 { 2 } else { channels },
+                channels: frames.channels,
                 ends,
             },
             timescale,

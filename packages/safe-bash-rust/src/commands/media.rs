@@ -12886,6 +12886,19 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffprobe_and_ffmpeg_use_the_mp4_decoder_specific_audio_config() {
+        let fs=MemoryVfs::new();let mut mp4=include_bytes!("../../tests/fixtures/av.mp4").to_vec();
+        // Change the AAC AudioSpecificConfig to HE-AAC, 48 kHz, mono; leave stsd stereo.
+        let at=mp4.windows(4).position(|s|s==[5,2,18,16]).unwrap();
+        mp4[at+2..at+4].copy_from_slice(&[0x29,0x88]);
+        fs.write_file("/av.mp4",&mp4).unwrap();
+        let r=cmd_media_doc("ffprobe",&media_args(&["-select_streams","a","-show_entries","stream=codec_name,profile,sample_rate,channels","-of","csv=p=0","av.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
+        assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
     fn ffmpeg_extracts_mp4_audio_payloads_and_applies_the_requested_time_range() {
         let fs=MemoryVfs::new();
         let mut mp4=include_bytes!("../../tests/fixtures/av.mp4").to_vec();

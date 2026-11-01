@@ -289,6 +289,86 @@ fn check_samples(n: usize) -> Result<(), String> {
     }
 }
 
+// MPEG-4 ES descriptors contain a variable-length header. The decoder-specific
+// descriptor holds the actual sampling frequency and channel configuration.
+struct AudioConfig {
+    indication: u8,
+    object: u8,
+    rate: u32,
+    channels: u16,
+}
+fn esds(payload: &[u8]) -> AudioConfig {
+    let mut at = if payload.len() >= 4 { 4 } else { 0 };
+    let mut indication = 0x40;
+    let mut asc = &[0x12, 0x10][..];
+    while let Some(&tag) = payload.get(at) {
+        at += 1;
+        let mut len = 0;
+        for _ in 0..4 {
+            let Some(&b) = payload.get(at) else { break };
+            at += 1;
+            len = (len << 7) | usize::from(b & 127);
+            if b & 128 == 0 {
+                break;
+            }
+        }
+        match tag {
+            3 => {
+                let flags = payload.get(at + 2).copied().unwrap_or(0);
+                at += 3;
+                if flags & 128 != 0 {
+                    at += 2
+                }
+                if flags & 64 != 0 {
+                    at += 1 + usize::from(payload.get(at).copied().unwrap_or(0))
+                }
+                if flags & 32 != 0 {
+                    at += 2
+                }
+            }
+            4 => {
+                indication = payload.get(at).copied().unwrap_or(0);
+                at += 13
+            }
+            5 => {
+                asc = &payload[at..(at + len.min(6)).min(payload.len())];
+                break;
+            }
+            _ => at = at.saturating_add(len),
+        }
+    }
+    let mut bits = 0u64;
+    if asc.len() < 2 {
+        asc = &[0x12, 0x10]
+    }
+    for (i, &b) in asc.iter().enumerate() {
+        bits |= u64::from(b) << (56 - i * 8)
+    }
+    let mut take = |n: u32| {
+        let v = (bits >> (64 - n)) as u32;
+        bits <<= n;
+        v
+    };
+    let object = match take(5) {
+        31 => 32 + take(6),
+        v => v,
+    } as u8;
+    let rate = match take(4) {
+        15 => take(24),
+        i => super::adts::RATES.get(i as usize).copied().unwrap_or(44100),
+    };
+    let channels = match take(4) {
+        0 => 2,
+        v => v as u16,
+    };
+    AudioConfig {
+        indication,
+        object,
+        rate,
+        channels,
+    }
+}
+
 struct Track<'a> {
     index: usize,
     id: u32,
@@ -297,6 +377,7 @@ struct Track<'a> {
     duration: u64,
     origin: u64,
     tag: &'a [u8; 4],
+    audio: Option<AudioConfig>,
     entry: &'a [u8],
     width: u32,
     height: u32,
@@ -366,6 +447,19 @@ impl<'a> Track<'a> {
         let (tag, entry) = atoms(stsd.get(8..).unwrap_or_default())
             .next()
             .unwrap_or((if kind == "video" { b"avc1" } else { b"mp4a" }, &[]));
+        let audio = if kind == "audio" {
+            let offset = match u16_at(entry, 8) {
+                1 => 44,
+                2 => 64,
+                _ => 28,
+            };
+            atoms(entry.get(offset..).unwrap_or_default())
+                .filter(|(k, _)| *k == b"esds")
+                .last()
+                .map(|(_, b)| esds(b))
+        } else {
+            None
+        };
         let mut stats = Stats::default();
         for s in tables.samples(input_size) {
             stats.add(&s)
@@ -493,6 +587,7 @@ impl<'a> Track<'a> {
             duration,
             origin,
             tag,
+            audio,
             entry,
             width,
             height,
@@ -515,6 +610,11 @@ impl<'a> Track<'a> {
         )
     }
     fn audio_rate(&self) -> u32 {
+        if let Some(a) = &self.audio
+            && a.rate > 0
+        {
+            return a.rate;
+        }
         if self.entry.len() >= 28 {
             ((u64::from(u32_at(self.entry, 24)) + 32768) >> 16) as u32
         } else {
@@ -522,6 +622,9 @@ impl<'a> Track<'a> {
         }
     }
     fn channels(&self) -> u16 {
+        if let Some(a) = &self.audio {
+            return a.channels;
+        }
         if self.entry.len() >= 28 {
             u16_at(self.entry, 16)
         } else {
@@ -536,6 +639,14 @@ impl<'a> Track<'a> {
             b"vp09" => ("vp9", "Google VP9"),
             b"vp08" => ("vp8", "On2 VP8"),
             b"mp4v" => ("mpeg4", "MPEG-4 part 2"),
+            b"mp4a"
+                if self
+                    .audio
+                    .as_ref()
+                    .is_some_and(|a| matches!(a.indication, 0x69 | 0x6b)) =>
+            {
+                ("mp3", "MP3 (MPEG audio layer 3)")
+            }
             b"mp4a" => ("aac", "AAC (Advanced Audio Coding)"),
             b"jpeg" | b"mjpa" => ("mjpeg", "Motion JPEG"),
             b"png " => ("png", "PNG (Portable Network Graphics) image"),
@@ -644,7 +755,15 @@ impl<'a> Track<'a> {
         let children = self.entry.get(78..).unwrap_or_default();
         let avc = child(children, b"avcC");
         if codec == "aac" && !self.entry.is_empty() {
-            r.push(("profile", Str("LC".into())))
+            r.push((
+                "profile",
+                Str(if self.audio.as_ref().is_some_and(|a| a.object == 5) {
+                    "HE-AAC"
+                } else {
+                    "LC"
+                }
+                .into()),
+            ))
         }
         if codec == "h264" && avc.len() >= 11 && avc[5] & 31 != 0 && u16_at(avc, 6) >= 3 {
             let profile = match avc[9] {

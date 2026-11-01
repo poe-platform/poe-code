@@ -290,6 +290,25 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("jq repeats strings and splits each separator value with Unicode and empty-input semantics", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, expected] of [
+      ['["ab"*2.9,2*"π",""*infinite,"a"*(-1),"a"*0]', ["abab", "ππ", "", null, ""]],
+      ['["π😀"/"",""/"x","x,"/","]', [["π","😀"], [], ["x",""]]],
+      ['["a,b;c"|split((",", ";"))]', [["a","b;c"], ["a,b","c"]]],
+      ['[try ("a,b"|split((",",3))) catch .]', [["a","b"], "split input and separator must be strings"]],
+      ['first("x,y"|split((",",error("late"))))', ["x","y"]],
+      ['["x"|split(empty)]', []],
+    ]) {
+      const r = bash.execSync("jq -nc '" + filter + "'");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, JSON.stringify(expected) + "\n", ""], filter);
+    }
+    const tooBig = await bash.exec(`jq -n 'try ("π"*5) catch 0'`, { limits: { maxMemoryBytes: 9 } });
+    assert.deepEqual([tooBig.exitCode, tooBig.stdout, tooBig.stderr], [5, "", "jq: maxValueBytes limit exceeded\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq numeric remainder uses signed 64-bit operands and operators describe errors", () => {
   const bash = new RustWasmBash();
   try {

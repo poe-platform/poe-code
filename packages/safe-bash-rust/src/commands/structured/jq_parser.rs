@@ -296,14 +296,14 @@ pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
 
 // Literal right operands cannot consume input or yield extra values. Apply the
 // suffix in source order, keeping only the accumulator and the current token.
-pub(super) fn apply_literal_chain(mut value: super::JVal, suffix: &str) -> Result<super::JVal, super::JqFault> {
+pub(super) fn apply_literal_chain(mut value: super::JVal, suffix: &str, max_value_bytes: usize) -> Result<super::JVal, super::JqFault> {
     let mut lexer = Lexer::new(suffix);
     loop {
         let op = lexer.next()?;
         if op.kind == Kind::End { return Ok(value); }
         let operand = lexer.next()?;
         let number = super::jq_number::literal(operand.text).ok_or("invalid numeric literal")?;
-        value = super::apply_jq_arith(&value, &number, op.text)?;
+        value = super::apply_jq_arith(&value, &number, op.text, max_value_bytes)?;
     }
 }
 

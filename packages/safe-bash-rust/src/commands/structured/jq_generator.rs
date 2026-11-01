@@ -164,7 +164,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 let mut remaining = crate::ShellLimits::default().max_loop_iterations;
                 return visit_jq(left, input, vars, &mut |v| {
                     remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
-                    emit(super::jq_parser::apply_literal_chain(v, suffix)?)
+                    emit(super::jq_parser::apply_literal_chain(v, suffix, vars.max_value_bytes)?)
                 });
             }
         };
@@ -226,7 +226,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                             }
                             rhs.clone()
                         } else {
-                            super::apply_jq_arith(&old, &rhs, &op[..1])?
+                            super::apply_jq_arith(&old, &rhs, &op[..1], vars.max_value_bytes)?
                         }
                     };
                     super::set_jq_jval_path(&mut updated, &path, value)?;
@@ -259,7 +259,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                             _ => order.is_ge(),
                         })
                     }
-                    _ => super::apply_jq_arith(&l, &r, op)?,
+                    _ => super::apply_jq_arith(&l, &r, op, vars.max_value_bytes)?,
                 };
                 emit(value)
             })
@@ -386,6 +386,16 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
                 return visit_jq(filter, input, vars, &mut |code| halt_error(input, code));
             }
             _ => {}
+        }
+        if let ("split", Some(filter)) = (name, args)
+            && split_jq_top(filter, ';').is_none()
+        {
+            return visit_jq(filter, input, vars, &mut |sep| {
+                let (JVal::Str(text), JVal::Str(separator)) = (input, sep) else {
+                    return Err("split input and separator must be strings".into());
+                };
+                emit(super::split_jq_string(text, &separator, vars.max_value_bytes)?)
+            });
         }
         if let ("getpath", Some(filter)) = (name, args) {
             return visit_jq(filter, input, vars, &mut |candidate| {

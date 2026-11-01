@@ -29,6 +29,7 @@ use std::rc::Rc;
 struct JqScope<'a> {
     call_depth: usize,
     stack_origin: usize,
+    max_value_bytes: usize,
     env: &'a BTreeMap<String, String>,
     functions: BTreeMap<String, BTreeMap<usize, Rc<JqFilter<'a>>>>,
     bindings: BTreeMap<String, JVal>,
@@ -924,7 +925,7 @@ fn cmd_jq_core(
         filter.unwrap_or_else(|| ".".to_string())
     };
     let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
-    let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
+    let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
@@ -1511,7 +1512,20 @@ fn resolve_jq_lhs_paths(
     Ok(paths)
 }
 
-fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
+fn split_jq_string(text: &str, separator: &str, max_value_bytes: usize) -> Result<JVal, JqFault> {
+    let mut parts = Vec::new();
+    let mut remaining = max_value_bytes;
+    if !text.is_empty() {
+        for part in text.split(separator) {
+            if separator.is_empty() && part.is_empty() { continue; }
+            remaining = remaining.checked_sub(size_of::<JVal>() + part.len()).ok_or(JqFault::Limit("maxValueBytes"))?;
+            parts.push(JVal::Str(part.to_owned()));
+        }
+    }
+    Ok(JVal::Array(parts))
+}
+
+fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str, max_value_bytes: usize) -> Result<JVal, JqFault> {
     match (lv, rv, op) {
         (JVal::Null, other, "+") => Ok(other.clone()),
         (other, JVal::Null, "+") => Ok(other.clone()),
@@ -1523,17 +1537,22 @@ fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
             if *b == 0.0 || (op == "%" && b.trunc() == 0.0) => {
                 let remainder = if op == "%" { " (remainder)" } else { "" };
                 Err(format!("{} and {} cannot be divided{remainder} because the divisor is zero",
-                    jq_generator::describe(lv), jq_generator::describe(rv)))
+                    jq_generator::describe(lv), jq_generator::describe(rv)).into())
             }
         (JVal::Number(a, _), JVal::Number(b, _), "/") => Ok(JVal::Number(a / b, None)),
         (JVal::Number(a, _), JVal::Number(b, _), "%") =>
             Ok(JVal::Number((*a as i64).wrapping_rem(*b as i64) as f64, None)),
         (JVal::Str(a), JVal::Str(b), "+") => Ok(JVal::Str(format!("{a}{b}"))),
-        (JVal::Str(a), JVal::Str(b), "/") => Ok(JVal::Array(
-            a.split(b.as_str())
-                .map(|p| JVal::Str(p.to_string()))
-                .collect(),
-        )),
+        (JVal::Str(text), JVal::Number(n, _), "*") | (JVal::Number(n, _), JVal::Str(text), "*") => {
+            if n.is_nan() || *n < 0.0 { return Ok(JVal::Null); }
+            if text.is_empty() { return Ok(JVal::Str(String::new())); }
+            let count = *n as usize;
+            if !n.is_finite() || text.len().checked_mul(count).is_none_or(|len| len > max_value_bytes) {
+                return Err(JqFault::Limit("maxValueBytes"));
+            }
+            Ok(JVal::Str(text.repeat(count)))
+        }
+        (JVal::Str(text), JVal::Str(separator), "/") => split_jq_string(text, separator, max_value_bytes),
         (JVal::Array(a), JVal::Array(b), "+") => {
             let mut v = a.clone();
             v.extend(b.iter().cloned());
@@ -1559,7 +1578,7 @@ fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
             for (k, v) in b {
                 if let Some(pos) = m.iter().position(|(ek, _)| ek == k) {
                     if matches!((&m[pos].1, v), (JVal::Object(_), JVal::Object(_))) {
-                        m[pos].1 = apply_jq_arith(&m[pos].1, v, "*")?;
+                        m[pos].1 = apply_jq_arith(&m[pos].1, v, "*", max_value_bytes)?;
                     } else {
                         m[pos].1 = v.clone();
                     }
@@ -1570,12 +1589,12 @@ fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
             Ok(JVal::Object(m))
         }
         (_, _, "+" | "-") => Err(format!("{} and {} cannot be {}",
-            jq_generator::describe(lv), jq_generator::describe(rv), if op == "+" { "added" } else { "subtracted" })),
+            jq_generator::describe(lv), jq_generator::describe(rv), if op == "+" { "added" } else { "subtracted" }).into()),
         _ => Err(format!(
             "cannot apply {op} to {} and {}",
             lv.type_name(),
             rv.type_name()
-        )),
+        ).into()),
     }
 }
 
@@ -1804,7 +1823,7 @@ fn try_eval_jq_builtin(
                 }
                 let mut acc = a[0].clone();
                 for item in &a[1..] {
-                    acc = apply_jq_arith(&acc, item, "+")?;
+                    acc = apply_jq_arith(&acc, item, "+", vars.max_value_bytes)?;
                 }
                 return Ok(Some(vec![acc]));
             }
@@ -2516,19 +2535,8 @@ fn try_eval_jq_builtin(
                     }
                 }
                 "split" => {
-                    if let JVal::Str(st) = input {
-                        if split_jq_binary(arg_expr, ";").is_some() {
-                            let parts = eval_jq_splits_regex(st, arg_expr, input, vars)?;
-                            return Ok(Some(vec![JVal::Array(parts)]));
-                        }
-                        let sep = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
-                        let parts: Vec<JVal> = st
-                            .split(&sep)
-                            .map(|p| JVal::Str(p.to_string()))
-                            .collect();
+                    if let JVal::Str(st) = input && split_jq_binary(arg_expr, ";").is_some() {
+                        let parts = eval_jq_splits_regex(st, arg_expr, input, vars)?;
                         return Ok(Some(vec![JVal::Array(parts)]));
                     }
                 }
@@ -5132,7 +5140,7 @@ fn cmd_yq(
             other => other,
         };
         let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
-        let mut base_vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
+        let mut base_vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64, None));
             let name = eval_jq(s_exp, v, &base_vars)

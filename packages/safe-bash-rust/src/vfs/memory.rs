@@ -578,7 +578,7 @@ impl SafeBashFs for MemoryVfs {
     fn memory_backend(&self) -> Option<&MemoryVfs> { Some(self) }
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let norm = normalize_posix_path(path);
-        let guard = self.state.read().map_err(|e| e.to_string())?;
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         let device = guard.devices.entry(&resolved);
         if device == Some("") {
@@ -596,7 +596,11 @@ impl SafeBashFs for MemoryVfs {
             return Ok(buf);
         }
         match guard.nodes.get(&resolved) {
-            Some(MemoryNode::File { ino }) => Ok(guard.files[ino].data.clone()),
+            Some(&MemoryNode::File { ino }) => {
+                let file = guard.files.get_mut(&ino).unwrap();
+                file.atime_ms = 1_700_000_000_000;
+                Ok(file.data.clone())
+            }
             Some(MemoryNode::Directory { .. }) => {
                 Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"))
             }
@@ -880,7 +884,7 @@ impl SafeBashFs for MemoryVfs {
 
     fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
         let norm = normalize_posix_path(path);
-        let guard = self.state.read().map_err(|e| e.to_string())?;
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         let directory = guard.devices.entry(&resolved) == Some("");
         if matches!(guard.nodes.get(&resolved), Some(MemoryNode::Directory { mode, .. }) if mode & 0o400 == 0) {
@@ -916,6 +920,9 @@ impl SafeBashFs for MemoryVfs {
                 };
                 children.push((name.to_owned(), mode));
             }
+        }
+        if let Some(MemoryNode::Directory { atime_ms, .. }) = guard.nodes.get_mut(&resolved) {
+            *atime_ms = 1_700_000_000_000;
         }
         Ok(children)
     }
@@ -1147,6 +1154,27 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn reads_refresh_access_times_only_after_admission() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/d/f", b"hi").unwrap();
+        fs.set_times("/d", Some(1), Some(7)).unwrap();
+        fs.set_times("/d/f", Some(2), Some(8)).unwrap();
+        let handle = fs.retain_file("/d/f").unwrap();
+        assert!(fs.directory_entries("/d", 0).is_err());
+        assert_eq!(fs.stat("/d").unwrap().atime_ms, 1);
+        fs.directory_entries("/d", 1).unwrap();
+        assert!(fs.stat("/d").unwrap().atime_ms > 1);
+        assert_eq!(fs.stat("/d/f").unwrap().atime_ms, 2);
+        fs.read_file("/d/f").unwrap();
+        assert!(handle.stat().atime_ms > 2);
+        fs.set_times("/d/f", Some(3), None).unwrap();
+        fs.remove_one("/d/f", false).unwrap();
+        assert_eq!(handle.read(0, 1), b"h");
+        assert!(handle.stat().atime_ms > 3);
+        assert_eq!(handle.stat().mtime_ms, 8);
+    }
 
     #[test]
     fn concurrent_exclusive_creates_publish_only_one_writer() {

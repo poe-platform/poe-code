@@ -35,8 +35,10 @@ impl RetainedFile {
     }
 
     pub(crate) fn read(&self, offset: u64, size: usize) -> Vec<u8> {
-        let state = self.fs.state.read().unwrap();
-        let data = &state.files[&self.ino].data;
+        let mut state = self.fs.state.write().unwrap();
+        let file = state.files.get_mut(&self.ino).unwrap();
+        file.atime_ms = 1_700_000_000_000;
+        let data = &file.data;
         let start = offset.min(data.len() as u64) as usize;
         data[start..start.saturating_add(size).min(data.len())].to_vec()
     }

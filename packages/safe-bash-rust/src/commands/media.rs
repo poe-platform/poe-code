@@ -10073,6 +10073,7 @@ fn cmd_media_doc(
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
             let mut quality=92.;
+            let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
             enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
@@ -10206,6 +10207,7 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
+                    "-adjoin" | "+adjoin" => {adjoin=arg=="-adjoin";i+=1;}
                     "-delay" | "-loop" if i+1<args.len() => {
                         let n=magick_number(&args[i+1],0.);
                         if arg=="-delay" { delay=Some((n.round().max(0.) % 65536.) as u16); }
@@ -10278,21 +10280,26 @@ fn cmd_media_doc(
                 let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
                 let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
                 let transform=|image: &mut png_pixels::Raster|apply_pixels(image,0..ops.len(),gif_input);
-                if use_stack {
+                let scene_name=magick_stack::SceneName::parse(dest.1);
+                let split=!adjoin || !matches!(scene_name,magick_stack::SceneName::Literal);
+                if use_stack || split {
                     let transform=|im:&mut png_pixels::Raster,range:std::ops::Range<usize>,gif| {
                         let keep_timing=!ops[range.clone()].iter().any(|op| matches!(op,PixelOp::Extent(..)));
                         apply_pixels(im,range,gif)?;
                         Ok(keep_timing)
                     };
-                    let mut images=match magick_stack::evaluate(&stack_steps,ops.len(),transform,cwd,fs) {
+                    let target=[(0,magick_stack::Step::File(input))];
+                    let steps=if is_mogrify { &target[..] } else { &stack_steps[..] };
+                    let mut images=match magick_stack::evaluate(steps,ops.len(),transform,cwd,fs) {
                         Ok(Some(images))=>images, Ok(None)=>return None, Err(e)=>return Some(fail(&e)),
                     };
+                    if split && images.frames.len()>1 {return Some(images.split(scene_name,dest,quality,cwd,fs));}
                     if dest.0=="gif" {
                         return Some(match images.gif(timing,kernel,fs.max_input_bytes()) {
                             Ok(bytes)=>png_pixels::Raster::publish_bytes(&bytes,dest.1,cwd,fs),Err(e)=>fail(e),
                         });
                     }
-                    return Some(images.frames.pop()?.publish(dest,quality,cwd,fs));
+                    return Some(images.frames.pop()?.image.publish(dest,quality,cwd,fs));
                 }
                 let mut image = if let Some((canvas,size)) = canvas {
                     match canvas.raster(size,fs.max_input_bytes()) { Ok(im)=>im,Err(e)=>return Some(fail(e)) }
@@ -14383,6 +14390,27 @@ mod media_unit_tests {
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
         }
+    }
+
+    #[test]
+    fn convert_splits_images_into_numbered_outputs_and_preserves_existing_files() {
+        let fs=MemoryVfs::new();
+        let run=|s:&str|cmd_media_doc("convert",&media_args(&s.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        fs.write_file("/scene.png",b"keep").unwrap();
+        assert_eq!(run("xc:red xc:blue +adjoin scene.png").exit_code,0);
+        assert_eq!(fs.read_file("/scene.png").unwrap(),b"keep");
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/scene-1.png").unwrap())),"1ea0744618f48e903fd693d5638c86fb07181cdb4ac46c90067aa5285740dbc8");
+        assert_eq!(run("xc:red xc:blue o%d-%02d.png").exit_code,0);
+        assert!(fs.exists("/o%d-00.png"));
+        assert!(!fs.exists("/o%d-%02d.png"));
+        assert_eq!(run("xc:red only%02d.png").exit_code,0);
+        assert!(fs.exists("/only%02d.png"));
+        assert_eq!(cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=3x2:r=5:d=0.5","a.gif"]),"","/",&fs).exit_code,0);
+        let before=fs.read_file("/a.gif").unwrap();
+        assert_eq!(cmd_media_doc("mogrify",&media_args(&["+adjoin","a.gif"]),"","/",&fs).exit_code,0);
+        assert_eq!(fs.read_file("/a.gif").unwrap(),before);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/a-2.gif").unwrap())),"807103500cec4195ebd528d763644a27a6b56702a3700953874e1153293bf74e");
+
     }
 
     #[test]

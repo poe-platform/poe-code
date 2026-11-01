@@ -1,4 +1,5 @@
 pub mod memory;
+mod mkdir;
 pub mod mount;
 pub mod overlay;
 pub mod path;
@@ -110,6 +111,10 @@ pub trait SafeBashFs: Send + Sync {
         Err("ENOTSUP: operation not supported".into())
     }
     fn remove_path(&self, path: &str) -> Result<(), String>;
+    fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
+        mkdir::mkdir(path, recursive, mode, mkdir::Namespace::Direct, |p| (None, self, p.to_owned()))
+    }
+
     /// Create one new directory. Never change an existing entry's permissions.
     fn mkdir_one(&self, _path: &str, _mode: u32) -> Result<(), String> {
         Err("ENOTSUP: operation not supported".into())

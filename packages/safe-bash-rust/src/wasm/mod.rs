@@ -199,6 +199,32 @@ pub extern "C" fn safe_bash_destroy_session(id: u32) {
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_fs_mkdir(id: u32, ptr: *const u8, len: usize, recursive: u32, mode: u32, string_path: u32) -> i32 {
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let operand = unsafe { str_from_raw(ptr, len) };
+    let revision = sess.shell.fs.generation();
+    let invalid = string_path == 0 || operand.contains('\0');
+    let result = if invalid {
+        let path = if sess.profile == Profile::Devices && !operand.starts_with('/') { format!("/{operand}") } else { operand.to_owned() };
+        Err(("EINVAL".to_owned(), path))
+    } else { sess.shell.fs.mkdir(operand, recursive != 0, mode) };
+    match result {
+        Ok(()) => 0,
+        Err((code, path)) => {
+            let syscall = match sess.profile {
+                Profile::Overlay if invalid && mode <= 0o7777 => "resolve",
+                Profile::Overlay => "overlay",
+                _ => "mkdir",
+            };
+            let changed = u8::from(revision != sess.shell.fs.generation());
+            sess.last_output_buf = format!("{changed}{code}:{syscall}:{path}").into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_mkdir_all(
     id: u32,
     path_ptr: *const u8,

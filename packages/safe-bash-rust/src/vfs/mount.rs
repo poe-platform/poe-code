@@ -156,6 +156,13 @@ impl SafeBashFs for MountVfs {
         fs.remove_path(&rel)
     }
 
+    fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
+        super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Mounted, |p| {
+            let (prefix, fs, local) = self.location(p);
+            (Some(prefix), fs, local)
+        })
+    }
+
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         let p = self.resolve(path, false, WalkPurpose::Access)?;
         let (_, fs, local) = self.location(&p);

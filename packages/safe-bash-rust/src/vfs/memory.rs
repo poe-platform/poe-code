@@ -732,10 +732,13 @@ impl SafeBashFs for MemoryVfs {
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         let path = Self::resolve_symlinks_locked(&state, path, false).map_err(|e| e.message)?;
+        if state.devices == Devices::Mounted {
+            return Err(if state.devices.entry(&path).is_some() { "EEXIST: file already exists" } else { "ENOTSUP: operation not supported" }.into());
+        }
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
         if state.nodes.contains_key(&path) || state.devices.entry(&path).is_some() {
             return Err("EEXIST: file already exists".into());
         }
-        if state.devices == Devices::Mounted { return Err("EROFS: read-only file system".into()); }
         match state.nodes.get(&crate::vfs::dirname_posix_path(&path)) {
             Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 => {}
             Some(MemoryNode::Directory { .. }) => return Err("EACCES: permission denied".into()),

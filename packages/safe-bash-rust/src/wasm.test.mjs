@@ -775,3 +775,50 @@ test("mkdir -p applies the shell umask to new parents and -m to the final direct
     assert.equal((await bash.fs.stat("/existing")).mode & 0o7777, 0o777);
   } finally { bash.dispose(); }
 });
+
+test("fs.mkdir creates only requested entries, respects search permissions and preserves existing modes", async () => {
+  for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, directories:["/keep"], files:{"/file":"data"}, symlinks:{"/alias":"/keep","/dang":"missing/dir"}});
+    const fs = bash.fs;
+    try {
+      await assert.rejects(fs.mkdir("/absent/leaf"), {code:"ENOENT", path:profile === "overlay-cow-fs" ? "/absent" : "/absent/leaf", syscall:profile === "overlay-cow-fs" ? "overlay" : "mkdir"});
+      await assert.rejects(fs.stat("/absent"), {code:"ENOENT"});
+      await assert.rejects(fs.mkdir("/keep", {mode:0}), {code:"EEXIST"});
+      await fs.mkdir("/keep", {recursive:true, mode:0});
+      assert.equal((await fs.stat("/keep")).mode & 0o777, 0o777);
+      await fs.mkdir("/new/child", {recursive:true, mode:0o710});
+      for (const path of ["/new","/new/child"]) assert.equal((await fs.stat(path)).mode & 0o777, 0o710);
+      await assert.rejects(fs.mkdir("/file", {recursive:true}), {code:"EEXIST"});
+      await assert.rejects(fs.mkdir("/file/", {recursive:true}), {code:"ENOTDIR"});
+      await assert.rejects(fs.mkdir("/locked/child", {recursive:true,mode:0}), {code:"EACCES"});
+      assert.equal((await fs.stat("/locked")).mode & 0o777, 0);
+      await assert.rejects(fs.mkdir(null), {code:"EINVAL"});
+      await assert.rejects(fs.stat("/null"), {code:"ENOENT"});
+      await assert.rejects(fs.mkdir("/abort", {signal:AbortSignal.abort()}), {name:"AbortError"});
+      await assert.rejects(fs.stat("/abort"), {code:"ENOENT"});
+      if (profile === "strict-budgets-mount-dev") {
+        await assert.rejects(fs.mkdir("/dev"), {code:"EBUSY"});
+        await assert.rejects(fs.mkdir("/dev/foo"), {code:"ENOTSUP"});
+        await assert.rejects(fs.mkdir("/dang", {recursive:true}), {code:"ENOENT"});
+        await assert.rejects(fs.mkdir("/staged/../file", {recursive:true}), {code:"EEXIST"});
+        await assert.rejects(fs.stat("/staged"), {code:"ENOENT"});
+      } else if (profile === "overlay-cow-fs") {
+        await assert.rejects(fs.mkdir("/dang", {recursive:true}), {code:"ENOTSUP"});
+      } else {
+        await fs.mkdir("/dang", {recursive:true});
+        assert.equal((await fs.stat("/missing/dir")).type, "directory");
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
+test("mkdir replay retains parents created before a recursive failure", async () => {
+  const companion = new RustWasmBash();
+  const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
+  try {
+    await assert.rejects(bash.fs.mkdir("/unsearchable/child", {recursive:true, mode:0}), {code:"EACCES"});
+    assert.equal((await bash.fs.stat("/unsearchable")).mode & 0o777, 0);
+    await bash.fs.realpath("/");
+    assert.equal((await companion.fs.stat("/unsearchable")).mode & 0o777, 0);
+  } finally { bash.dispose(); companion.dispose(); }
+});

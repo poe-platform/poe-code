@@ -152,6 +152,10 @@ impl SafeBashFs for OverlayVfs {
         Ok(())
     }
 
+    fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
+        super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Overlay, |p| (None, self, p.to_owned()))
+    }
+
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         let path = self.access_path(path, false)?;
         if self.lstat(&path).is_ok() { return Err("EEXIST: file already exists".into()); }

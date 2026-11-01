@@ -8,11 +8,11 @@ const encoder = new TextEncoder();
 const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
 function fsErr(code, msg) { const e = new Error(msg); e.code = code; e[FS_ERROR_BRAND] = true; return e; }
 let systemErrors;
-function fsOperationError(text, syscall, path, dest) {
+function fsOperationError(text, syscall, path, dest, detail) {
   const code = text.split(":", 1)[0];
   systemErrors ??= new Map(Array.from(getSystemErrorMap(), ([errno, [name, description]]) => [name, [errno, description]]));
   const [errno, description] = systemErrors.get(code) ?? systemErrors.get("EIO");
-  const message = `${code}: ${description}, ${syscall} '${path}'` + (dest === undefined ? "" : ` -> '${dest}'`);
+  const message = `${code}: ${detail ?? description}, ${syscall}` + (path === undefined ? "" : ` '${path}'`) + (dest === undefined ? "" : ` -> '${dest}'`);
   const error = Object.assign(fsErr(code, message), { name: "FsError", errno, syscall, path });
   if (dest !== undefined) error.dest = dest;
   return error;
@@ -176,20 +176,40 @@ export class WasmFileSystem {
   }
 
   async mkdir(dirPath, options) {
-    if (this.bash._companion) {
-      await this.bash._ensureCompanionSynced();
-      return this.bash._companion.fs.mkdir(dirPath, options);
+    options?.signal?.throwIfAborted();
+    const bash = this.bash;
+    if (bash._companion) {
+      await bash._ensureCompanionSynced();
+      return bash._companion.fs.mkdir(dirPath, options);
     }
-    if (this.bash.companionFactory && !this.bash.forceNative) {
-      this.bash._history.push({
-        type: "fs",
-        run: (fs) => fs.mkdir(dirPath, options),
-      });
+    const recursive = !!options?.recursive, mode = options?.mode ?? 0o777;
+    let failure;
+    const operand = String(dirPath);
+    const encoded = bash._allocBytes(encoder.encode(operand));
+    try {
+      const rc = bash.exports.safe_bash_fs_mkdir(bash.sessionId, encoded.ptr, encoded.len, recursive,
+        Number.isInteger(mode) && mode >= 0 && mode <= 0o7777 ? mode : 0xffffffff, typeof dirPath === "string");
+      if (rc === -1) throw new Error("Wasm session unavailable");
+      if (rc < 0) {
+        const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+        const text = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc));
+        const sep = text.indexOf(":"), end = text.indexOf(":", sep + 1);
+        const code = text.slice(1, sep), syscall = text.slice(sep + 1, end), path = text.slice(end + 1);
+        const detail = syscall === "resolve" ? "paths must be strings without NUL bytes"
+          : code === "ENOTSUP" ? (syscall === "overlay" ? "recursive creation through symlinks cannot be verified before mutation" : "operation not supported") : undefined;
+        failure = fsOperationError(code, syscall, syscall === "resolve" ? undefined : path === operand ? dirPath : path, undefined, detail);
+        if (text[0] === "0") throw failure;
+      }
+    } finally { bash._freeBytes(encoded); }
+    if (bash.companionFactory && !bash.forceNative) {
+      const exactMode = options?.exactMode;
+      bash._history.push({type:"fs", run: async (fs) => {
+        try { await fs.mkdir(dirPath, {recursive, mode, exactMode}); }
+        catch (error) { if (failure && error.code === failure.code) return; throw error; }
+        if (failure) throw new Error("Companion mkdir unexpectedly succeeded");
+      }});
     }
-    this.bash.mkdirAll(dirPath);
-    if (options && typeof options === "object" && typeof options.mode === "number") {
-      this.bash.chmod(dirPath, options.mode);
-    }
+    if (failure) throw failure;
   }
 
   async readdir(dirPath, options) {

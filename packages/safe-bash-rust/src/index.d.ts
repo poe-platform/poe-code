@@ -65,7 +65,7 @@ export class WasmFileSystem {
   constructor(bash: RustWasmBash);
   readFile(filePath: string, options?: { maxBytes?: number; signal?: AbortSignal }): Promise<Uint8Array>;
   writeFile(filePath: string, data: string | Uint8Array, options?: { flag?: "w" | "wx" | "a" | "ax"; mode?: number; signal?: AbortSignal }): Promise<void>;
-  mkdir(dirPath: string, options?: { recursive?: boolean }): Promise<void>;
+  mkdir(dirPath: string, options?: { recursive?: boolean; mode?: number; exactMode?: boolean; signal?: AbortSignal }): Promise<void>;
   readdir(dirPath: string): Promise<string[]>;
   stat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;
   lstat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;

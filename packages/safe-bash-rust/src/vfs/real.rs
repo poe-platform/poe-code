@@ -427,7 +427,8 @@ mod tests {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            vfs.mkdir_one("/shared", 0o777).unwrap();
+            vfs.mkdir("/shared/nested", true, 0o777).unwrap();
+            assert_eq!(vfs.stat("/shared/nested").unwrap().mode & 0o777, 0o777);
             assert!(vfs.mkdir_one("/shared", 0o700).is_err());
             assert_eq!(vfs.stat("/shared").unwrap().mode & 0o777, 0o777);
             vfs.symlink("confined.txt", "/alias").unwrap();

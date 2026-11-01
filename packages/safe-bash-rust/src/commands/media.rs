@@ -13220,6 +13220,29 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_resamples_lavfi_before_consuming_each_avc_frame_buffer() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]|cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs);
+        for (filter,expected) in [("fps=4",16),("fps=4,hflip",82)] {
+            let r=run(&["-y","-f","lavfi","-i","color=c=red:s=16x16:r=3:d=1","-vf",filter,"v.mp4"]);
+            assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+            let r=run(&["-i","v.mp4","-f","yuv4mpegpipe","pipe:1"]);
+            let raw=crate::vfs::stream_string_to_bytes(&r.stdout);
+            let ys:Vec<_>=raw.windows(7).filter(|s|&s[..6]==b"FRAME\n").map(|s|s[6]).collect();
+            assert_eq!(ys,[82,expected,82,82]);
+        }
+    }
+
+    #[test]
+    fn ffmpeg_empty_lavfi_filter_retains_the_original_track_description() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=16x16:r=4:d=1","-vf","trim=start=9","v.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,width,height,duration,nb_frames","-of","csv=p=0","v.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"h264,16,16,1.000000,0\n");
+    }
+
+    #[test]
     fn ffmpeg_generates_y4m_pixels_from_lavfi_sources() {
         let fs = MemoryVfs::new();
         let run = |spec: &str, filters: &[&str]| {

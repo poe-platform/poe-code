@@ -271,7 +271,8 @@ pub(in super::super) fn lavfi(
         return Err("frame index exceeds memory budget".into());
     }
     let mut dims = (w, h);
-    let mut stsd = Vec::new();
+    let mut fps = video.fps.round().max(1.) as u32;
+    let mut previous_buffer = None;
     let mut samples = Vec::new();
     let mut previous = Vec::new();
     let mut ticks = 0u64;
@@ -291,37 +292,17 @@ pub(in super::super) fn lavfi(
         (0..count).map(|i| (i as f64 / video.fps, 1. / video.fps)),
         frame_opts,
         |i| Ok(video.image(i)),
-        |im, duration| {
+        |mut im, duration, buffer| {
             if samples.is_empty() {
                 dims = (im.width, im.height);
-                let config = h264::configuration(
-                    im.width,
-                    im.height,
-                    (1. / duration).round().max(1.) as u32,
-                )?;
-                words(&mut stsd, &[0, 1]);
-                atom(&mut stsd, b"avc1", |b| {
-                    words(
-                        b,
-                        &[
-                            0,
-                            1,
-                            0,
-                            0,
-                            0,
-                            0,
-                            (im.width as u32) << 16 | im.height as u32,
-                            0x00480000,
-                            0x00480000,
-                            0,
-                        ],
-                    );
-                    b.extend_from_slice(&1u16.to_be_bytes());
-                    b.extend_from_slice(&[0; 32]);
-                    words(b, &[0x0018ffff]);
-                    atom(b, b"avcC", |b| b.extend_from_slice(&config));
-                });
+                fps = (1. / duration).round().max(1.) as u32;
             }
+            // The MP4 encoder consumes the backing buffer. fps can reuse that
+            // buffer, in which case the JS encoder reads zero RGB on the next use.
+            if previous_buffer == Some(buffer) {
+                im.pixels.fill([0, 0, 0, 255]);
+            }
+            previous_buffer = Some(buffer);
             let blocks = h264::macroblocks(im, opts.limit)?;
             let data = h264::encode_slice(
                 &blocks,
@@ -346,6 +327,33 @@ pub(in super::super) fn lavfi(
             Ok(())
         },
     )?;
+    if samples.is_empty() {
+        ticks = (count as f64 / video.fps * 90000.).round() as u64;
+    }
+    let config = h264::configuration(dims.0, dims.1, fps)?;
+    let mut stsd = Vec::new();
+    words(&mut stsd, &[0, 1]);
+    atom(&mut stsd, b"avc1", |b| {
+        words(
+            b,
+            &[
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                (dims.0 as u32) << 16 | dims.1 as u32,
+                0x00480000,
+                0x00480000,
+                0,
+            ],
+        );
+        b.extend_from_slice(&1u16.to_be_bytes());
+        b.extend_from_slice(&[0; 32]);
+        words(b, &[0x0018ffff]);
+        atom(b, b"avcC", |b| b.extend_from_slice(&config));
+    });
     let track = Track {
         samples,
         scale: 90000,

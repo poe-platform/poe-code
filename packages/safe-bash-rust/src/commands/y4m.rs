@@ -216,6 +216,7 @@ impl Stream<'_> {
 #[derive(Clone, Copy)]
 struct TimedFrame {
     index: usize,
+    buffer: usize,
     pts: f64,
     duration: f64,
 }
@@ -299,7 +300,7 @@ pub(super) fn encode(
     }
     let limit = opts.limit;
     let mut out = Vec::new();
-    render_frames(w, h, times, opts, image, |im, duration| {
+    render_frames(w, h, times, opts, image, |im, duration, _| {
         if out.is_empty() {
             out = header(im.width, im.height, (1. / duration).round().max(1.) as u32)
         }
@@ -317,7 +318,7 @@ pub(super) fn render_frames(
     times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
-    mut emit: impl FnMut(Raster, f64) -> Result<(), &'static str>,
+    mut emit: impl FnMut(Raster, f64, usize) -> Result<(), &'static str>,
 ) -> Result<(), &'static str> {
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
@@ -327,6 +328,7 @@ pub(super) fn render_frames(
             }
             frames.push(TimedFrame {
                 index,
+                buffer: index,
                 pts: (pts - opts.start).max(0.),
                 duration,
             });
@@ -378,6 +380,7 @@ pub(super) fn render_frames(
                     .enumerate()
                     .map(|(index, group)| TimedFrame {
                         index,
+                        buffer: index,
                         pts: group[0].pts,
                         duration: group.iter().map(|f| f.duration).sum(),
                     })
@@ -431,12 +434,14 @@ pub(super) fn render_frames(
                     return Err("frame index exceeds memory budget");
                 }
                 frames = (0..n)
-                    .map(|i| TimedFrame {
-                        index: frames
-                            [((i as f64 / n as f64) * frames.len() as f64).floor() as usize]
-                            .index,
-                        pts: i as f64 / rate,
-                        duration: 1. / rate,
+                    .map(|i| {
+                        let src =
+                            frames[((i as f64 / n as f64) * frames.len() as f64).floor() as usize];
+                        TimedFrame {
+                            pts: i as f64 / rate,
+                            duration: 1. / rate,
+                            ..src
+                        }
                     })
                     .collect();
             }
@@ -464,7 +469,29 @@ pub(super) fn render_frames(
                     keep
                 });
             }
-            _ => ops.push(super::video_filter::Filter::new(key, arg)),
+            _ => {
+                // A spatial transform gives each occurrence its own pixel buffer.
+                if matches!(
+                    key,
+                    "hflip"
+                        | "vflip"
+                        | "scale"
+                        | "crop"
+                        | "pad"
+                        | "negate"
+                        | "transpose"
+                        | "rotate"
+                        | "drawbox"
+                        | "drawtext"
+                        | "subtitles"
+                ) || key == "format" && arg.contains("gray")
+                {
+                    for (i, f) in frames.iter_mut().enumerate() {
+                        f.buffer = i;
+                    }
+                }
+                ops.push(super::video_filter::Filter::new(key, arg));
+            }
         }
     }
     if let Some(n) = opts.frames {
@@ -481,7 +508,7 @@ pub(super) fn render_frames(
         for op in &ops {
             op.apply(&mut im, opts.limit)?;
         }
-        emit(im, frame.duration)?;
+        emit(im, frame.duration, frame.buffer)?;
     }
     Ok(())
 }

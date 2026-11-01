@@ -155,7 +155,18 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
             emit,
         );
     }
-    if let Some((left, op, right)) = super::jq_parser::binary(s) {
+    if let Some(binary) = super::jq_parser::binary(s) {
+        use super::jq_parser::Binary;
+        let (left, op, right) = match binary {
+            Binary::Pair(left, op, right) => (left, op, right),
+            Binary::LiteralChain { left, suffix } => {
+                let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+                return visit_jq(left, input, vars, &mut |v| {
+                    remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
+                    emit(super::jq_parser::apply_literal_chain(v, suffix)?)
+                });
+            }
+        };
         if op == "//" {
             let mut found = false;
             let flow = visit_jq(left, input, vars, &mut |v| {

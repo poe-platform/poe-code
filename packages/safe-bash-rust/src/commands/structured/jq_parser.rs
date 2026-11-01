@@ -213,10 +213,19 @@ fn precedence(op: &str) -> Option<u8> {
 
 // The evaluator still accepts source slices (including yq expressions). Use the
 // compiler's tokens so exponent signs, strings and nested filters remain intact.
-pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
+pub(super) enum Binary<'a> {
+    Pair(&'a str, &'a str, &'a str),
+    LiteralChain { left: &'a str, suffix: &'a str },
+}
+
+pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
     let mut lexer = Lexer::new(source);
     let mut lowest = u8::MAX;
-    let mut root = None;
+    let mut root: Option<Token<'_>> = None;
+    let mut chain: Option<usize> = None;
+    let single_number = |operand: &str, last: &str| {
+        last.as_bytes().first().is_some_and(u8::is_ascii_digit) && operand.trim() == last
+    };
     let (mut depth, mut strings, mut conditions) = (0usize, 0usize, 0usize);
     let mut can_end = false;
     let mut previous = "";
@@ -256,7 +265,14 @@ pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
             && let Some(prec) = precedence(t.text)
         {
             if prec < lowest || (prec == lowest && prec != 4) {
-                root = Some((&source[..t.at], t.text, &source[t.at + t.text.len()..]));
+                if let Some(prev) = root && prec == lowest && prec >= 9
+                    && single_number(&source[prev.at + prev.text.len()..t.at], previous)
+                {
+                    chain.get_or_insert(prev.at);
+                } else {
+                    chain = None;
+                }
+                root = Some(t);
                 lowest = prec;
             }
             can_end = false;
@@ -267,7 +283,26 @@ pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
             || matches!(t.text, "." | ".." | ")" | "]" | "}" | "?");
         previous = t.text;
     }
-    root.filter(|_| lowest >= 3)
+    let root = root.filter(|_| lowest >= 3)?;
+    let right = &source[root.at + root.text.len()..];
+    if let Some(start) = chain && single_number(right, previous) {
+        Some(Binary::LiteralChain { left: &source[..start], suffix: &source[start..] })
+    } else {
+        Some(Binary::Pair(&source[..root.at], root.text, right))
+    }
+}
+
+// Literal right operands cannot consume input or yield extra values. Apply the
+// suffix in source order, keeping only the accumulator and the current token.
+pub(super) fn apply_literal_chain(mut value: super::JVal, suffix: &str) -> Result<super::JVal, super::JqFault> {
+    let mut lexer = Lexer::new(suffix);
+    loop {
+        let op = lexer.next()?;
+        if op.kind == Kind::End { return Ok(value); }
+        let operand = lexer.next()?;
+        let number = super::jq_number::literal(operand.text).ok_or("invalid numeric literal")?;
+        value = super::apply_jq_arith(&value, &number, op.text)?;
+    }
 }
 
 pub(super) enum Subscript<'a> {

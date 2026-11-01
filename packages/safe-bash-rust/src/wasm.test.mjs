@@ -290,6 +290,21 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("a long jq operator chain cannot exhaust the shell stack", () => {
+  const bash = new RustWasmBash();
+  try {
+    const r = bash.execSync("jq -n '" + Array(2500).fill("inputs").join("+") + "'");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "", ""]);
+    const leftDeep = bash.execSync("jq -n '" + Array(2500).fill("1").join("+") + "'");
+    assert.deepEqual([leftDeep.exitCode, leftDeep.stdout, leftDeep.stderr], [0, "2500\n", ""]);
+    const stream = bash.execSync("jq -nc '[(first(inputs),first(inputs))+first(inputs)+2*3*4-5-6]'", "1 2 3");
+    assert.deepEqual([stream.exitCode, stream.stdout], [0, "[16,17]\n"]);
+    const early = bash.execSync(`jq -nc 'first((1,error("late"))+2+3)'`);
+    assert.deepEqual([early.exitCode, early.stdout], [0, "6\n"]);
+    assert.equal(bash.execSync("echo ok").stdout, "ok\n");
+  } finally { bash.dispose(); }
+});
+
 test("exhausted jq function and path recursion reports a limit and leaves the shell usable", () => {
   const bash = new RustWasmBash();
   try {

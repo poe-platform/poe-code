@@ -150,7 +150,7 @@ fn blank(s: &str) -> impl Iterator<Item = char> + '_ {
 
 #[derive(Default)]
 pub(in super::super) struct Metadata {
-    pub title: Option<String>,
+    title: Option<String>,
     config: Option<Yaml>,
     bytes: usize,
 }
@@ -199,28 +199,33 @@ impl Metadata {
         source.replace_range(..fence_end, &masked);
         Ok(meta)
     }
-    pub fn directives(&mut self, bodies: Vec<&str>, limit: usize) -> Result<Option<Value>, String> {
-        let mut merged = self.config.take();
-        let mut total = self.bytes;
-        let mut work = limit;
-        for body in bodies {
-            let Some((key, text)) = body.trim().split_once(':') else {
-                continue;
-            };
-            if !matches!(key.trim(), "init" | "initialize") {
-                continue;
-            }
-            total = total.saturating_add(text.len());
-            work = work
-                .checked_sub(total)
-                .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
-            let value = mapping(text)?;
-            merged = Some(match merged {
-                None => value,
-                Some(old) => config_data::merge(&old, &value, None)
-                    .map_err(|e| format!("mmdc: E_CONFIG: {e}\n"))?,
-            });
+    pub(super) fn directive(&mut self, body: &str, work: &mut usize) -> Result<(), String> {
+        let Some((key, text)) = body.trim().split_once(':') else {
+            return Ok(());
+        };
+        if !matches!(key.trim(), "init" | "initialize") {
+            return Ok(());
         }
-        Ok(merged.map(json))
+        self.bytes = self.bytes.saturating_add(text.len());
+        *work = work
+            .checked_sub(self.bytes)
+            .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
+        let value = mapping(text)?;
+        self.config = Some(match self.config.take() {
+            None => value,
+            Some(old) => config_data::merge(&old, &value, None)
+                .map_err(|e| format!("mmdc: E_CONFIG: {e}\n"))?,
+        });
+        Ok(())
+    }
+
+    pub(in super::super) fn finish(
+        self,
+    ) -> (Option<String>, Result<super::config::Config, String>) {
+        let config = match self.config {
+            Some(value) => super::config::Config::parse(&json(value), true),
+            None => Ok(super::config::Config::default()),
+        };
+        (self.title.filter(|t| !t.is_empty()), config)
     }
 }

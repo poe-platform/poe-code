@@ -36,18 +36,34 @@ impl Statement {
     }
 }
 
-pub(in super::super) fn scan<'a>(
-    source: &'a str,
-    directives: &mut Vec<&'a str>,
+pub(in super::super) fn scan(
+    source: &str,
+    metadata: &mut super::source::Metadata,
+    mut work: usize,
 ) -> Result<Vec<Statement>, String> {
     let mut stmts = Vec::new();
     let (mut i, mut line, mut column) = (0, 1, 1);
     let mut start = (1, 1);
     let mut text = String::new();
     let mut quote = None;
-    let mut escaped = false;
+
     let mut depth = 0usize;
     let mut pipe = false;
+    let mut flush = |text: &mut String, (line, column)| {
+        // JavaScript trims the text, but keeps the column of the first non-ASCII-space token.
+        let whitespace = |c: char| (c.is_whitespace() && c != '\u{0085}') || c == '\u{feff}';
+        let end = text.trim_end_matches(whitespace).len();
+        text.truncate(end);
+        if !text.is_empty() {
+            let start = text.len() - text.trim_start_matches(whitespace).len();
+            text.drain(..start);
+            stmts.push(Statement {
+                text: std::mem::take(text),
+                line,
+                column,
+            });
+        }
+    };
     while i < source.len() {
         let rest = &source[i..];
         if quote.is_none() && rest.starts_with("%%") {
@@ -57,7 +73,7 @@ pub(in super::super) fn scan<'a>(
                         "mmdc: E_SYNTAX (line {line}, column {column}): Unclosed Mermaid directive\n"
                     ));
                 };
-                directives.push(directive);
+                metadata.directive(directive, &mut work)?;
                 let len = directive.len() + 6;
                 for c in rest[..len].chars() {
                     if c == '\n' {
@@ -94,10 +110,12 @@ pub(in super::super) fn scan<'a>(
         }
         if let Some(q) = quote {
             text.push(c);
-            if escaped {
-                escaped = false;
-            } else if c == '\\' {
-                escaped = true;
+            if c == '\\'
+                && let Some(next) = source[i..].chars().next()
+            {
+                text.push(next);
+                i += next.len_utf8();
+                column += next.len_utf16();
             } else if q == c {
                 quote = None;
             }
@@ -109,20 +127,14 @@ pub(in super::super) fn scan<'a>(
             '[' | '(' | '{' if !pipe => depth += 1,
             ']' | ')' | '}' if !pipe => depth = depth.saturating_sub(1),
             '\n' | ';' if c == '\n' || (depth == 0 && !pipe) => {
-                if !text.is_empty() {
-                    stmts.push(Statement {
-                        text: std::mem::take(&mut text),
-                        line: start.0,
-                        column: start.1,
-                    });
-                }
+                flush(&mut text, start);
                 depth = 0;
                 pipe = false;
                 continue;
             }
             _ => {}
         }
-        if !text.is_empty() || !c.is_whitespace() {
+        if !text.is_empty() || !matches!(c, ' ' | '\t' | '\r' | '\n') {
             text.push(c);
         }
     }
@@ -132,13 +144,7 @@ pub(in super::super) fn scan<'a>(
             start.0, start.1
         ));
     }
-    if !text.is_empty() {
-        stmts.push(Statement {
-            text,
-            line: start.0,
-            column: start.1,
-        });
-    }
+    flush(&mut text, start);
     Ok(stmts)
 }
 

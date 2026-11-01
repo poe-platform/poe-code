@@ -29365,33 +29365,18 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Ok(meta)=>meta,
         Err(e)=>return err_out(&e,if e.starts_with("mmdc: E_CONFIG:"){2}else{1}),
     };
-    let mut directives = Vec::new();
-    let scanned = match mermaid::scanner::scan(&src_text, &mut directives) {
+    let scanned = match mermaid::scanner::scan(&src_text, &mut metadata, fs.max_input_bytes()) {
         Ok(statements) => statements,
-        Err(message) => return err_out(&message, 1),
+        Err(message) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") {2} else {1}),
     };
-    let source_config = match metadata.directives(directives, fs.max_input_bytes()) {
-        Ok(Some(value)) => mermaid::config::Config::parse(&value, true),
-        Ok(None) => Ok(mermaid::config::Config::default()),
-        Err(e) => {
-            return err_out(
-                &e,
-                if e.starts_with("mmdc: E_CONFIG:") {
-                    2
-                } else {
-                    1
-                },
-            );
-        }
-    };
+    let (mut acc_title, source_config) = metadata.finish();
     let defaults = mermaid::config::Config::default();
     let source_cfg = source_config.as_ref().unwrap_or(&defaults);
-    let mut acc_title = metadata.title.filter(|s|!s.is_empty());
     let mut acc_descr: Option<String> = None;
     let Some(header) = scanned.first() else {
         return err_out("mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n", 1);
     };
-    let first_word = header.text.trim_end().split([' ', '\t', '\r', '\n']).next().unwrap_or("");
+    let first_word = header.text.split([' ', '\t', '\r', '\n']).next().unwrap_or("");
     let graph_family = matches!(first_word,
         "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph"
     );
@@ -38282,6 +38267,21 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_reports_scanner_errors_in_source_order() {
+        assert_mermaid_outputs(&[
+            ("flowchart TD;\u{a0}A -->", "svg", "mmdc: E_SYNTAX (line 1, column 19): Expected node identifier at ''\n"),
+            (" \u{85}bad", "svg", "mmdc: E_UNSUPPORTED (line 1, column 2): Unsupported or unrecognized Mermaid diagram family '\u{85}bad'\n"),
+            (" \u{feff}bad", "svg", "mmdc: E_UNSUPPORTED (line 1, column 2): Unsupported or unrecognized Mermaid diagram family 'bad'\n"),
+            ("  \u{a0}bad", "svg", "mmdc: E_UNSUPPORTED (line 1, column 3): Unsupported or unrecognized Mermaid diagram family 'bad'\n"),
+            ("%%{init: []}%%\nflowchart TD; A[\"unterminated", "svg", "mmdc: E_CONFIG: Mermaid configuration must be a mapping\n"),
+            ("%%{init: {theme: dark}}%%; %%{init: { a: [ }}%%; bad \"hi", "svg", "mmdc: E_CONFIG: Flow sequence in block collection must be sufficiently indented and end with a ] at line 1, column 9:\n\n { a: [ }\n        ^\n\n"),
+            ("%%{init: {theme: bad}}%%\nflowchart TD; A[\"unterminated", "svg", "mmdc: E_SYNTAX (line 2, column 15): Unterminated quoted string in diagram source\n"),
+            ("pie; \"prefix\\\nline\":3; bad", "svg", "mmdc: E_SYNTAX (line 1, column 24): Pie labels must be quoted\n"),
+            ("pie; \"prefix\\\rline\":3; bad", "svg", "mmdc: E_SYNTAX (line 1, column 24): Pie labels must be quoted\n"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {
@@ -38291,7 +38291,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             let bytes = fs.read_file(&path).unwrap();
             if expected.starts_with("mmdc:") {
                 assert_eq!(result.stderr, expected, "{source}");
-                assert_eq!(result.exit_code, 1);
+                assert_eq!(result.exit_code, if expected.starts_with("mmdc: E_CONFIG:") {2} else {1});
                 assert_eq!(bytes, b"previous");
             } else {
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);

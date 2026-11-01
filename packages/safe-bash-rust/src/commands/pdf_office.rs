@@ -1,4 +1,5 @@
 // Writer and Calc text and table layout for Office PDF export.
+use super::super::office::Block;
 use super::{
     PageOutput, PageSource,
     pdf_copy::{literal, write_objects},
@@ -6,126 +7,9 @@ use super::{
 };
 use crate::commands::{
     codecs::zlib_compress,
-    structured::{HtmlNode, JVal, bounded_html_dom, parse_json_stream},
+    structured::{JVal, parse_json_stream},
 };
 use std::io::Write;
-
-enum Block {
-    Text(String, bool),
-    Table(Vec<Vec<String>>),
-}
-fn html_blocks(source: &str) -> Option<Vec<Block>> {
-    #[derive(Default)]
-    struct Table {
-        rows: Vec<Vec<String>>,
-        row: Vec<String>,
-        cell: Option<String>,
-    }
-    let dom = bounded_html_dom(source)?;
-    let mut blocks = Vec::new();
-    let mut tables: Vec<Table> = Vec::new();
-    let mut buf = String::new();
-    let mut heading = false;
-    let flush = |blocks: &mut Vec<Block>, buf: &mut String, heading| {
-        if !buf.trim().is_empty() {
-            blocks.push(Block::Text(std::mem::take(buf), heading));
-        }
-        buf.clear();
-    };
-    let mut stack: Vec<_> = dom.iter().rev().map(|n| (n, false)).collect();
-    while let Some((node, exit)) = stack.pop() {
-        let el = match node {
-            HtmlNode::Text(t) => {
-                if let Some(tbl) = tables.last_mut() {
-                    if let Some(c) = &mut tbl.cell {
-                        c.push_str(t);
-                    }
-                } else {
-                    buf.push_str(t);
-                }
-                continue;
-            }
-            HtmlNode::Element(el) => el,
-        };
-        let tag = el.tag.as_str();
-        if matches!(tag, "head" | "script" | "style" | "template") {
-            continue;
-        }
-        let title = matches!(tag, "h1" | "h2" | "h3" | "h4" | "h5" | "h6");
-        let boundary = title
-            || matches!(
-                tag,
-                "p" | "div"
-                    | "section"
-                    | "article"
-                    | "header"
-                    | "footer"
-                    | "main"
-                    | "aside"
-                    | "blockquote"
-                    | "li"
-                    | "ul"
-                    | "ol"
-                    | "pre"
-                    | "dl"
-                    | "dt"
-                    | "dd"
-            );
-        if tag == "table" {
-            if !exit {
-                if tables.is_empty() {
-                    flush(&mut blocks, &mut buf, heading);
-                }
-                tables.push(Table::default());
-            } else {
-                let rows = tables.pop().unwrap().rows;
-                if let Some(parent) = tables.last_mut() {
-                    if let Some(cell) = &mut parent.cell {
-                        cell.push_str(
-                            &rows
-                                .into_iter()
-                                .map(|row| row.join(" "))
-                                .collect::<Vec<_>>()
-                                .join(" "),
-                        );
-                    }
-                } else {
-                    blocks.push(Block::Table(rows));
-                }
-            }
-        } else if let Some(t) = tables.last_mut() {
-            match (tag, exit) {
-                ("tr", true) => t.rows.push(std::mem::take(&mut t.row)),
-                ("td" | "th", false) => t.cell = Some(String::new()),
-                ("td" | "th", true) => t.row.push(
-                    t.cell
-                        .take()
-                        .unwrap_or_default()
-                        .split_ascii_whitespace()
-                        .collect::<Vec<_>>()
-                        .join(" "),
-                ),
-                _ if boundary || tag == "br" => {
-                    if let Some(c) = &mut t.cell {
-                        c.push(' ');
-                    }
-                }
-                _ => {}
-            }
-        } else if boundary {
-            flush(&mut blocks, &mut buf, heading);
-            heading = title && !exit;
-        } else if tag == "br" {
-            buf.push(' ');
-        }
-        if !exit {
-            stack.push((node, true));
-            stack.extend(el.children.iter().rev().map(|n| (n, false)));
-        }
-    }
-    flush(&mut blocks, &mut buf, heading);
-    Some(blocks)
-}
 
 #[derive(Default)]
 struct Page {
@@ -154,29 +38,11 @@ impl Page {
     }
 }
 pub(in super::super) fn render_office(
-    source: &str,
-    filename: &str,
-    rows: Option<Vec<Vec<String>>>,
+    blocks: Vec<Block>,
     title: &str,
     filter: Option<&str>,
     limit: usize,
 ) -> Option<Vec<u8>> {
-    let blocks = if let Some(rows) = rows {
-        vec![Block::Table(rows)]
-    } else if filename.ends_with(".html") || filename.ends_with(".htm") {
-        html_blocks(source)?
-    } else {
-        source
-            .lines()
-            .filter(|l| !l.trim().is_empty())
-            .map(|l| {
-                Block::Text(
-                    l.strip_prefix("# ").unwrap_or(l).to_owned(),
-                    l.starts_with("# "),
-                )
-            })
-            .collect()
-    };
     let mut pages = vec![Page::default()];
     let mut y = 720;
     let mut finished = 0usize;

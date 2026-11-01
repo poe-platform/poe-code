@@ -306,6 +306,9 @@ struct PdfDoc {
 #[path = "wkhtmltopdf.rs"]
 mod wkhtmltopdf;
 
+#[path = "office.rs"]
+mod office;
+
 #[path = "pdf_reader.rs"]
 mod pdf_reader;
 
@@ -1186,48 +1189,14 @@ fn read_office_source(
     full_path: &str,
     bytes: &[u8],
     fs: &dyn SafeBashFs,
-) -> (Vec<String>, Option<Vec<Vec<String>>>) {
+) -> Result<(Vec<String>, Option<Vec<Vec<String>>>), &'static str> {
     let lower = full_path.to_ascii_lowercase();
     if lower.ends_with(".csv") || lower.ends_with(".tsv") {
         let delim = if lower.ends_with(".tsv") { '\t' } else { ',' };
         let text = String::from_utf8_lossy(bytes);
-        let rows: Vec<Vec<String>> = text
-            .lines()
-            .filter(|l| !l.trim().is_empty())
-            .map(|line| {
-                let mut row: Vec<String> = Vec::new();
-                let mut field = String::new();
-                let mut quoted = false;
-                let chars: Vec<char> = line.chars().collect();
-                let mut idx = 0usize;
-                while idx < chars.len() {
-                    let ch = chars[idx];
-                    if ch == '"' {
-                        if quoted && idx + 1 < chars.len() && chars[idx + 1] == '"' {
-                            field.push('"');
-                            idx += 2;
-                            continue;
-                        } else if quoted || field.is_empty() {
-                            quoted = !quoted;
-                            idx += 1;
-                            continue;
-                        } else {
-                            field.push(ch);
-                        }
-                    } else if !quoted && ch == delim {
-                        row.push(field.clone());
-                        field.clear();
-                    } else {
-                        field.push(ch);
-                    }
-                    idx += 1;
-                }
-                row.push(field);
-                row
-            })
-            .collect();
+        let rows = office::delimited(&text,delim)?;
         let paras: Vec<String> = rows.iter().map(|r| r.join(",")).collect();
-        return (paras, Some(rows));
+        return Ok((paras, Some(rows)));
     }
     if lower.ends_with(".xlsx") || lower.ends_with(".ods") {
         let entries = crate::commands::structured::read_office_archive(bytes);
@@ -1291,14 +1260,14 @@ fn read_office_source(
                                     for ch in ref_str.chars() {
                                         if ch.is_ascii_alphabetic() {
                                             col_idx = col_idx * 26 + ((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1);
-                                            if col_idx > 16384 { return (Vec::new(), Some(Vec::new())); }
+                                            if col_idx > 16384 { return Err("Error: conversion failed: worksheet exceeds cell limit\n"); }
                                         } else {
                                             break;
                                         }
                                     }
                                     if col_idx > 0 {
                                         let target_col = col_idx - 1;
-                                        if target_col >= remaining_cells { return (Vec::new(), Some(Vec::new())); }
+                                        if target_col >= remaining_cells { return Err("Error: conversion failed: worksheet exceeds cell limit\n"); }
                                         while cells.len() < target_col {
                                             cells.push(String::new());
                                         }
@@ -1355,7 +1324,7 @@ fn read_office_source(
                         }
                     }
                     if !cells.is_empty() {
-                        let Some(left) = remaining_cells.checked_sub(cells.len()) else { return (Vec::new(), Some(Vec::new())); };
+                        let Some(left) = remaining_cells.checked_sub(cells.len()) else { return Err("Error: conversion failed: worksheet exceeds cell limit\n"); };
                         remaining_cells = left;
                         rows.push(cells);
                     }
@@ -1365,7 +1334,7 @@ fn read_office_source(
                 }
             }
             let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
-            return (paras, Some(rows));
+            return Ok((paras, Some(rows)));
         }
         if let Some(content) = entries.get("content.xml") {
             let xml = String::from_utf8_lossy(content);
@@ -1401,7 +1370,7 @@ fn read_office_source(
                 }
             }
             let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
-            return (paras, Some(rows));
+            return Ok((paras, Some(rows)));
         }
     }
     if lower.ends_with(".docx") || lower.ends_with(".odt") || lower.ends_with(".pptx") {
@@ -1440,7 +1409,7 @@ fn read_office_source(
                     break;
                 }
             }
-            return (paras, None);
+            return Ok((paras, None));
         }
         if let Some(content) = entries.get("content.xml") {
             let xml = String::from_utf8_lossy(content);
@@ -1450,7 +1419,7 @@ fn read_office_source(
                 .map(|l| l.trim().to_string())
                 .filter(|l| !l.is_empty())
                 .collect();
-            return (paras, None);
+            return Ok((paras, None));
         }
         let slide_entries = entries
             .iter()
@@ -1477,7 +1446,7 @@ fn read_office_source(
                     break;
                 }
             }
-            return (paras, None);
+            return Ok((paras, None));
         }
     }
     if lower.ends_with(".pdf") || bytes.starts_with(b"%PDF-") {
@@ -1490,11 +1459,11 @@ fn read_office_source(
                 }
             }
         }
-        return (paras, None);
+        return Ok((paras, None));
     }
     let text = String::from_utf8_lossy(bytes);
     if lower.ends_with(".rtf") || text.trim_start().starts_with("{\\rtf") {
-        return (parse_rtf_paragraphs(&text, fs), None);
+        return Ok((parse_rtf_paragraphs(&text, fs), None));
     }
     if lower.ends_with(".html") || lower.ends_with(".htm") {
         let stripped = strip_html_tags(&text);
@@ -1503,7 +1472,7 @@ fn read_office_source(
             .map(|l| l.trim().to_string())
             .filter(|l| !l.is_empty())
             .collect();
-        return (paras, None);
+        return Ok((paras, None));
     }
     if lower.ends_with(".md") {
         let md_rows = parse_markdown_pipe_table_rows(&text);
@@ -1512,14 +1481,14 @@ fn read_office_source(
             .map(|l| l.trim().trim_start_matches("# ").to_string())
             .filter(|l| !l.is_empty())
             .collect();
-        return (paras, if md_rows.is_empty() { None } else { Some(md_rows) });
+        return Ok((paras, if md_rows.is_empty() { None } else { Some(md_rows) }));
     }
     let paras = text
         .lines()
         .map(|l| l.trim().trim_start_matches("# ").to_string())
         .filter(|l| !l.is_empty())
         .collect();
-    (paras, None)
+    Ok((paras, None))
 }
 
 fn parse_qpdf_page_spec(spec: &str, total: usize) -> Vec<usize> {
@@ -5497,7 +5466,7 @@ fn cmd_media_doc(
                             )
                         }
                     };
-                    let (paras, _) = read_office_source(&full, &bytes, fs);
+                    let (paras, _) = match read_office_source(&full, &bytes, fs) { Ok(v) => v, Err(e) => return err_out(e, 1) };
                     for p in paras {
                         out.push_str(&p);
                         out.push('\n');
@@ -5563,17 +5532,28 @@ fn cmd_media_doc(
                     Some(s) if !s.is_empty() => s.to_string(),
                     _ => default_filter,
                 };
-                let (paras, rows_opt) = read_office_source(&full, &bytes, fs);
+                let (paras, mut rows_opt) = match read_office_source(&full, &bytes, fs) { Ok(v) => v, Err(e) => return err_out(e, 1) };
+                let source = String::from_utf8_lossy(&bytes);
+                let Some(blocks) = office::blocks(&source,&lower_in,&paras,rows_opt.as_deref()) else {
+                    return err_out("Error: conversion failed: document exceeds nesting limit\n",1);
+                };
+                let input_ext = lower_in.rsplit('.').next().unwrap_or("");
+                if matches!(target_ext.as_str(),"xlsx"|"csv") && matches!(input_ext,"html"|"htm") {
+                    let mut rows=Vec::new();
+                    for b in &blocks { if let office::Block::Table(t)=b { rows.extend(t.iter().cloned()); } }
+                    if rows.is_empty() { rows.extend(blocks.iter().map(|b|vec![match b {office::Block::Text(t,_)=>t.clone(),_=>String::new()}])); }
+                    rows_opt=Some(rows);
+                }
+                if rows_opt.is_none() && matches!(target_ext.as_str(),"xlsx"|"csv") && !matches!(input_ext,"rtf"|"docx"|"odt"|"odp"|"pptx"|"pdf") {
+                    let delim=if source.contains('\t') {'\t'} else {','};
+                    rows_opt=Some(match office::delimited(&source,delim){Ok(rows)=>rows, Err(e)=>return err_out(e,1)});
+                }
                 match target_ext.as_str() {
-                    "pdf" if ![".pdf", ".docx", ".pptx", ".odt", ".odp", ".ods", ".xlsx", ".rtf"].iter().any(|ext| lower_in.ends_with(ext)) => {
-                        let source = String::from_utf8_lossy(&bytes);
-                        let rows = lower_in.ends_with(".csv").then_some(rows_opt).flatten();
-                        let Some(pdf) = pdf_reader::render_office(&source, &lower_in, rows, stem, filter_opts, fs.max_input_bytes()) else {
+                    "pdf" if !matches!(input_ext,"pdf"|"pptx"|"odp"|"docx"|"odt"|"ods") => {
+                        let Some(pdf) = pdf_reader::render_office(blocks, stem, filter_opts, fs.max_input_bytes()) else {
                             return err_out("Error: conversion failed: PDF exceeds resource limits\n", 1);
                         };
-                        if fs.write_file(&dest, &pdf).is_err() {
-                            return err_out("Error: conversion failed: cannot write PDF\n", 1);
-                        }
+                        if fs.write_file(&dest, &pdf).is_err() { return err_out("Error: conversion failed: cannot write PDF\n", 1); }
                     }
                     "pdf" => {
                         let mut pdf = if full.to_ascii_lowercase().ends_with(".pdf") {
@@ -5620,98 +5600,17 @@ fn cmd_media_doc(
                         }
                         let _ = fs.write_file(&dest, &pdf.serialize());
                     }
-                    "docx" | "odt" => {
-                        let mut doc_xml = String::from(
-                            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body>",
-                        );
-                        for p in &paras {
-                            doc_xml.push_str(&format!(
-                                "<w:p><w:r><w:t>{}</w:t></w:r></w:p>",
-                                html_escape_str(p)
-                            ));
-                        }
-                        doc_xml.push_str("</w:body></w:document>\n");
-                        let ct_xml = b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"></Types>\n".to_vec();
-                        let entries = vec![
-                            TarEntry {
-                                name: "[Content_Types].xml".to_string(),
-                                typeflag: b'0',
-                                mode: 0o644,
-                                mtime: 1700000000,
-                                uid: 0,
-                                gid: 0,
-                                linkname: String::new(),
-                                content: ct_xml,
-                            },
-                            TarEntry {
-                                name: "word/document.xml".to_string(),
-                                typeflag: b'0',
-                                mode: 0o644,
-                                mtime: 1700000000,
-                                uid: 0,
-                                gid: 0,
-                                linkname: String::new(),
-                                content: doc_xml.into_bytes(),
-                            },
-                        ];
-                        let _ = fs.write_file(&dest, &serialize_ustar_archive(&entries));
+                    "docx" => {
+                        let Some(doc) = office::docx(&blocks, fs.max_input_bytes()) else { return err_out("Error: conversion failed: document exceeds byte limit\n",1); };
+                        if fs.write_file(&dest,&doc).is_err() { return err_out("Error: conversion failed: cannot write document\n",1); }
                     }
-                    "xlsx" | "ods" => {
-                        let rows = rows_opt.unwrap_or_else(|| {
-                            paras
-                                .iter()
-                                .map(|l| l.split(',').map(|c| c.to_string()).collect())
-                                .collect()
-                        });
-                        let mut sheet_xml = String::from(
-                            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<worksheet><sheetData>",
-                        );
-                        for (r_idx, row) in rows.iter().enumerate() {
-                            sheet_xml.push_str(&format!("<row r=\"{}\">", r_idx + 1));
-                            for (c_idx, cell) in row.iter().enumerate() {
-                                let col_char = (b'A' + (c_idx as u8)) as char;
-                                sheet_xml.push_str(&format!(
-                                    "<c r=\"{col_char}{}\" t=\"inlineStr\"><is><t>{}</t></is></c>",
-                                    r_idx + 1,
-                                    html_escape_str(cell)
-                                ));
-                            }
-                            sheet_xml.push_str("</row>");
-                        }
-                        sheet_xml.push_str("</sheetData></worksheet>\n");
-                        let entries = vec![
-                            TarEntry {
-                                name: "[Content_Types].xml".to_string(),
-                                typeflag: b'0',
-                                mode: 0o644,
-                                mtime: 1700000000,
-                                uid: 0,
-                                gid: 0,
-                                linkname: String::new(),
-                                content: b"<Types/>".to_vec(),
-                            },
-                            TarEntry {
-                                name: "xl/workbook.xml".to_string(),
-                                typeflag: b'0',
-                                mode: 0o644,
-                                mtime: 1700000000,
-                                uid: 0,
-                                gid: 0,
-                                linkname: String::new(),
-                                content: b"<workbook/>".to_vec(),
-                            },
-                            TarEntry {
-                                name: "xl/worksheets/sheet1.xml".to_string(),
-                                typeflag: b'0',
-                                mode: 0o644,
-                                mtime: 1700000000,
-                                uid: 0,
-                                gid: 0,
-                                linkname: String::new(),
-                                content: sheet_xml.into_bytes(),
-                            },
-                        ];
-                        let _ = fs.write_file(&dest, &serialize_ustar_archive(&entries));
+                    "xlsx" | "csv" if matches!(input_ext,"rtf"|"docx"|"odt"|"odp") => {
+                        let _=fs.write_file(&dest, office::text(&blocks).as_bytes());
+                    }
+                    "xlsx" => {
+                        let rows = rows_opt.unwrap_or_else(|| paras.iter().map(|p| vec![p.clone()]).collect());
+                        let Some(book) = office::xlsx(&rows, fs.max_input_bytes()) else { return err_out("Error: conversion failed: workbook exceeds byte limit\n",1); };
+                        if fs.write_file(&dest,&book).is_err() { return err_out("Error: conversion failed: cannot write workbook\n",1); }
                     }
                     "csv" => {
                         let mut delim = ',';
@@ -5733,12 +5632,7 @@ fn cmd_media_doc(
                             }
                             quote_all = fparts.get(6) == Some(&"true") || fopts.ends_with(",true");
                         }
-                        let rows = rows_opt.unwrap_or_else(|| {
-                            paras
-                                .iter()
-                                .map(|l| l.split(',').map(|c| c.to_string()).collect())
-                                .collect()
-                        });
+                        let rows = rows_opt.unwrap_or_else(|| paras.iter().map(|p| vec![p.clone()]).collect());
                         let mut csv_out = String::new();
                         let q_str = quote.to_string();
                         let qq_str = format!("{quote}{quote}");
@@ -5765,34 +5659,9 @@ fn cmd_media_doc(
                         }
                         let _ = fs.write_file(&dest, csv_out.as_bytes());
                     }
-                    "html" => {
-                        let mut html_out = String::from("<!DOCTYPE html>\n<html><body>");
-                        if let Some(rows) = rows_opt {
-                            html_out.push_str("<table>");
-                            for r in rows {
-                                html_out.push_str("<tr>");
-                                for c in r {
-                                    html_out.push_str(&format!("<td>{}</td>", html_escape_str(&c)));
-                                }
-                                html_out.push_str("</tr>");
-                            }
-                            html_out.push_str("</table>");
-                        } else {
-                            for (idx, p) in paras.iter().enumerate() {
-                                if idx == 0 {
-                                    html_out.push_str(&format!("\n<h1>{}</h1>\n", html_escape_str(p)));
-                                } else {
-                                    html_out.push_str(&format!("<p>{}</p>\n", html_escape_str(p)));
-                                }
-                            }
-                        }
-                        html_out.push_str("</body></html>\n");
-                        let _ = fs.write_file(&dest, html_out.as_bytes());
-                    }
-                    "txt" => {
-                        let txt_out = format!("{}\n", paras.join("\n\n"));
-                        let _ = fs.write_file(&dest, txt_out.as_bytes());
-                    }
+                    "html" => { let _=fs.write_file(&dest, office::html(&blocks,stem).as_bytes()); }
+                    "txt" if !matches!(input_ext,"html"|"htm"|"md"|"rtf"|"docx"|"odt"|"ods"|"odp"|"pptx"|"pdf"|"csv"|"xlsx") => { let _=fs.write_file(&dest,&bytes); }
+                    "txt" | "ods" | "odt" => { let _=fs.write_file(&dest,office::text(&blocks).as_bytes()); }
                     "png" => {
                         let im = ImageMeta {
                             fmt: "PNG".to_string(),
@@ -13455,6 +13324,23 @@ mod media_unit_tests {
         fs.chmod("/new", 0o600).unwrap();
         assert_eq!(run("/source", "/new").exit_code, 0);
         assert_eq!(fs.stat("/new").unwrap().mode & 0o777, 0o600);
+    }
+
+    #[test]
+    fn soffice_writes_production_word_and_spreadsheet_packages() {
+        let fs = MemoryVfs::new();
+        for (input, bytes, ext, expected) in [
+            ("d.rtf", br"{\rtf1\ansi Project Titan Architecture\par Body text.\par}".as_slice(), "docx",
+             "2bfb2063907fbb4f95bd73859e2cbc9d73d29f3cbcb7f5368e1198027d28fbeb"),
+            ("d.csv", b"name,value\nA,4\nB,9\n", "xlsx",
+             "8fcd5d476cdd59a9032813ff2e7a0e8c4e393542b21391f419cc367fe8bb932e"),
+        ] {
+            fs.write_file(&format!("/{input}"), bytes).unwrap();
+            let result = cmd_media_doc("soffice", &media_args(&["--convert-to", ext, input]), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let output = fs.read_file(&format!("/d.{ext}")).unwrap();
+            assert_eq!(crate::commands::archive::sha256_bytes(&output).iter().map(|b|format!("{b:02x}")).collect::<String>(), expected);
+        }
     }
 
     #[test]

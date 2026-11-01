@@ -31885,7 +31885,7 @@ fn crc32_ieee(data: &[u8]) -> u32 {
     !crc
 }
 
-fn write_zip_stored(entries: &[(&str, &[u8])]) -> Vec<u8> {
+pub(super) fn write_zip_stored(entries: &[(&str, &[u8])]) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::new();
     let mut cd: Vec<u8> = Vec::new();
     for &(name, data) in entries {
@@ -31951,7 +31951,7 @@ struct WorkbookSheet {
     rows: Vec<Vec<String>>,
 }
 
-fn xlsx_idx_to_col_ref(mut idx: usize) -> String {
+pub(super) fn xlsx_idx_to_col_ref(mut idx: usize) -> String {
     let mut chars = Vec::new();
     loop {
         chars.push((b'A' + (idx % 26) as u8) as char);

@@ -211,7 +211,7 @@ pub(super) fn run(
                     amounts = v;
                 }
             }
-            "-quality" => quality=super::magick_quality(iter.next()?),
+            "-quality" => quality=super::magick_number(iter.next()?,1.),
             "-background" => {
                 iter.next()?;
             }

@@ -249,9 +249,9 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     meta
 }
 
-fn magick_quality(value: &str) -> f64 {
+fn magick_number(value: &str, empty: f64) -> f64 {
     let s=value.trim();
-    if s.is_empty() {return 1.;}
+    if s.is_empty() {return empty;}
     for (prefix,radix) in [("0x",16),("0o",8),("0b",2)] {
         if s.get(..2).is_some_and(|p|p.eq_ignore_ascii_case(prefix)) {
             return u64::from_str_radix(&s[2..],radix).map_or(f64::NAN,|v|v as f64);
@@ -10071,6 +10071,7 @@ fn cmd_media_doc(
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
             let mut quality=92.;
+            let (mut delay, mut repeat) = (None, None);
             enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10197,7 +10198,13 @@ fn cmd_media_doc(
                         if arg=="-background"{background=color;}else{border_color=color;}
                         i+=2;
                     }
-                    "-quality" if i+1<args.len()=>{quality=magick_quality(&args[i+1]);i+=2;}
+                    "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
+                    "-delay" | "-loop" if i+1<args.len() => {
+                        let n=magick_number(&args[i+1],0.);
+                        if arg=="-delay" { delay=Some((n.round().max(0.) % 65536.) as u16); }
+                        else { repeat=Some(((n-1.).trunc().max(0.) % 65536.) as u16); }
+                        i+=2;
+                    }
                     "-alpha" if i+1<args.len() => {ops.push(PixelOp::Alpha(args[i+1].to_ascii_lowercase(),background));i+=2;}
                     "-blur" | "-sharpen" | "-threshold" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
@@ -10226,6 +10233,7 @@ fn cmd_media_doc(
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
                 let dest=png_pixels::destination(dest)?;
                 let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
+                let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
                 let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
                 let transform = |image: &mut png_pixels::Raster| {
                     // GIFs decode to four channels even if they did not declare transparency.
@@ -10269,7 +10277,7 @@ fn cmd_media_doc(
                     if dest.0 == "gif" {
                         // Extent composites each scene onto a new canvas with default timing.
                         let inherit_timing = !ops.iter().any(|op| matches!(op,PixelOp::Extent(..)));
-                        match gif::edit_frames(bytes,fs.max_input_bytes(),inherit_timing,transform) {
+                        match gif::edit_frames(bytes,fs.max_input_bytes(),inherit_timing,timing,transform) {
                             Ok(Some(data))=>return Some(png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs)),
                             Ok(None)=>{}, Err(e)=>return Some(fail(e)),
                         }
@@ -10288,6 +10296,12 @@ fn cmd_media_doc(
                     }
                 };
                 if let Err(e)=transform(&mut image){return Some(fail(e));}
+                if dest.0 == "gif" && (delay.is_some() || repeat.is_some()) {
+                    return Some(match gif::encode(image.width,image.height,&image.pixels,timing,fs.max_input_bytes()) {
+                        Ok(data)=>png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs),
+                        Err(e)=>fail(e),
+                    });
+                }
                 Some(image.publish(dest,quality,cwd,fs))
             };
             let apply_ops = |meta: &mut ImageMeta| {
@@ -10586,7 +10600,7 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-gravity" if i+1 < args.len() => {gravity=args[i+1].to_ascii_lowercase().replace(['-','_',' '],"");i+=2;}
-                    "-quality" if i+1<args.len()=>{quality=magick_quality(&args[i+1]);i+=2;}
+                    "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
                     "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-mode"
                         if i + 1 < args.len() => {i+=2;}
                     a if a.starts_with('-') => {
@@ -10713,7 +10727,7 @@ fn cmd_media_doc(
                     "-compose" | "-dissimilarity-threshold" | "-density" | "-quality" | "-format" | "-alpha" | "-channel" if i+1 < args.len() => {
                         let value=&args[i+1];
                         match args[i].as_str() {
-                            "-quality" => options.quality=magick_quality(value),
+                            "-quality" => options.quality=magick_number(value,1.),
                             "-compose" => options.compose_src |= matches!(value.to_ascii_lowercase().as_str(),"src"|"source"|"copy"),
                             "-density" => options.density=value.split('x').next().and_then(|v|v.parse::<f64>().ok()).unwrap_or(72.).round().max(1.) as u32,
                             "-dissimilarity-threshold" => options.threshold=Some(value.parse().unwrap_or(f64::NAN)), _=>{}
@@ -14345,6 +14359,29 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_writes_requested_gif_delay_and_loop_count() {
+        let fs=MemoryVfs::new();
+        let gen_cmd=media_args(&["-f","lavfi","-i","testsrc=s=4x3:r=8:d=0.5","a.gif"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&gen_cmd,"","/",&fs).exit_code,0);
+        for (cmd,hash) in [
+            ("-size 2x1 xc:red -delay 4 out.gif","f5ab99e0bed21fe23859175a9582c3ffdac56b5486d7487131c9e8f42d334d06"),
+            ("-size 2x1 xc:red -loop 3 out.gif","bd06d5d7c7e4496386f7f7cb1a2e983f831eff59d06e2ad50b0114cf29b7d4ee"),
+            ("a.gif -delay 4 out.gif","c328850d111bfaeb0a5425cfe64920ad59967185646eee1073edca6afec40b78"),
+            ("a.gif -loop 0 -delay 1.5 out.gif","fa63f21bb31dabfeda2a8eaf2ba76cdc1845f0e89aeb7660e98901cc151b118f"),
+            ("a.gif -delay 12.7 -loop 3.9 out.gif","a1e162e2ddc0dfa2bdeb1e33fc77ddaf7a4250d6f8b97e281c458da5b67c6bea"),
+            ("a.gif -loop 65537 -delay 65537 out.gif","a2400d80bc4a5d6a8f3060b8e3b7c23cbcf014f3407a2b6e9c54381ac28c8e21"),
+            ("a.gif -loop 2 -loop 1 out.gif","2ea300b9420b4a02d4ebc5bb83a45ebdbf430bf4a5d1cfe52dd4b64cd4e2d48f"),
+            ("a.gif -extent 6x3 -delay 4 out.gif","490733a7edb2f2f8d2c29bb1e3ed474f169c20ba97901373276b0995c9e75071"),
+            ("-size 2x2 xc:none -loop 3 out.gif","ffe3ae903db1ee5b57d5fce93ffbec0db3e24846bbfa012e5d9753035e3d9782")
+        ] {
+            let args:Vec<_>=cmd.split_whitespace().collect();
+            let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{cmd}: {}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.gif").unwrap())),hash,"{cmd}");
         }
     }
 

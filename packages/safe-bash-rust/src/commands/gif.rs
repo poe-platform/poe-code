@@ -12,7 +12,7 @@ pub(super) fn dimensions(bytes: &[u8]) -> Result<(u32, u32), &'static str> {
     Ok((dim(6), dim(8)))
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default)]
 pub(super) struct Timing<'a> {
     pub delays: &'a [u16],
     pub repeat: Option<u16>,
@@ -93,6 +93,7 @@ pub(super) fn encode(
             let delay = timing
                 .delays
                 .get(index)
+                .or_else(|| timing.delays.last().filter(|_| timing.explicit_delay))
                 .copied()
                 .unwrap_or(if animated { 10 } else { 0 })
                 .to_le_bytes();
@@ -417,6 +418,7 @@ pub(super) fn edit_frames(
     bytes: &[u8],
     limit: usize,
     inherit_timing: bool,
+    timing: Timing,
     mut transform: impl FnMut(&mut Raster) -> Result<(), &'static str>,
 ) -> Result<Option<Vec<u8>>, &'static str> {
     let (w, h) = dimensions(bytes)?;
@@ -458,14 +460,14 @@ pub(super) fn edit_frames(
         dims.0,
         dims.1,
         &pixels,
-        if inherit_timing {
-            Timing {
-                delays: &delays,
-                repeat,
-                explicit_delay: false,
-            }
-        } else {
-            Timing::default()
+        Timing {
+            delays: if inherit_timing && !timing.explicit_delay {
+                &delays
+            } else {
+                timing.delays
+            },
+            repeat: timing.repeat.or(if inherit_timing { repeat } else { None }),
+            explicit_delay: timing.explicit_delay,
         },
         limit,
     )

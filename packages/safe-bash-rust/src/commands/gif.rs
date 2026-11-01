@@ -365,3 +365,49 @@ pub(super) fn decode(bytes: &[u8], last: bool, limit: usize) -> Result<Raster, &
         pixels,
     })
 }
+
+// A GIF packet starts after the preceding image and includes every extension
+// before the next image. The final packet also owns the trailer.
+pub(super) fn packets(
+    bytes: &[u8],
+    mut frame: impl FnMut(u16, usize) -> Result<(), &'static str>,
+) -> Result<(), &'static str> {
+    let mut input = bytes.get(13..).ok_or("Invalid GIF header")?;
+    palette(&mut input, bytes[10]);
+    let mut delay = 10;
+    while let Some((&marker, rest)) = input.split_first() {
+        input = rest;
+        match marker {
+            59 => break,
+            33 => {
+                if byte(&mut input) == 249
+                    && input
+                        .first()
+                        .is_some_and(|&n| n >= 4 && (n as usize) < input.len())
+                {
+                    delay = u16::from_le_bytes([input[2], input[3]]);
+                }
+            }
+            44 => {
+                let h = input.get(..9).ok_or("Truncated GIF image descriptor")?;
+                let flags = h[8];
+                input = &input[9..];
+                palette(&mut input, flags);
+                byte(&mut input);
+            }
+            _ => return Err("Invalid GIF block"),
+        }
+        loop {
+            let (&len, rest) = input.split_first().ok_or("Truncated GIF data block")?;
+            input = rest.get(len as usize..).ok_or("Truncated GIF data block")?;
+            if len == 0 {
+                break;
+            }
+        }
+        if marker == 44 {
+            frame(delay, bytes.len() - input.len())?;
+            delay = 10;
+        }
+    }
+    Ok(())
+}

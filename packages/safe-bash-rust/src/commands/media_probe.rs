@@ -11,12 +11,17 @@ pub(super) struct Clip {
     count: usize,
 }
 
+enum VideoPackets {
+    Fixed(u64),
+    Gif(Vec<(u64,usize)>), // cumulative duration and end offset of each packet
+}
+
 enum Track {
     Video {
         tag: &'static [u8; 4],
         width: u32,
         height: u32,
-        frame_size: u64,
+        packets: VideoPackets,
     },
     Subtitle {
         webvtt: bool,
@@ -40,7 +45,7 @@ impl Clip {
                 tag: b"raw ",
                 width,
                 height,
-                frame_size,
+                packets: VideoPackets::Fixed(frame_size),
             },
             timescale: 90000,
             payload_bytes: count as u64 * frame_size,
@@ -56,7 +61,7 @@ impl Clip {
                 tag,
                 width: width as u32,
                 height: height as u32,
-                frame_size: input.len() as u64,
+                packets: VideoPackets::Fixed(input.len() as u64),
             },
             timescale: 25,
             ticks: 1,
@@ -64,6 +69,26 @@ impl Clip {
             duration: 0.04,
             payload_bytes: input.len() as u64,
         })
+    }
+    pub(super) fn gif(input:&[u8], records:bool, limit:usize) -> Result<Self,&'static str> {
+        let (width,height)=super::gif::dimensions(input)?;
+        if !super::gif::signature(input) {return Err("Input buffer contains unsupported image format");}
+        if u64::from(width)*u64::from(height) > (limit/4) as u64 {return Err("image exceeds memory budget");}
+        let (mut ticks,mut count)=(0u64,0usize);
+        let mut ends=Vec::new();
+        super::gif::packets(input, |delay, end| {
+            ticks+=u64::from(delay);
+            if records {
+                if count>=limit/size_of::<(u64,usize)>() {return Err("sample index exceeds memory budget");}
+                ends.push((ticks,end));
+            }
+            count+=1;
+            Ok(())
+        })?;
+        if count==0 {return Err("Cannot read properties of undefined (reading 'byteLength')");}
+        if let Some(last)=ends.last_mut(){last.1=input.len();}
+        Ok(Self { track:Track::Video{tag:b"gif ",width,height,packets:VideoPackets::Gif(ends)},timescale:100,
+            payload_bytes:input.len() as u64, ticks, duration:ticks as f64/100.,count })
     }
     pub(super) fn subtitles(
         input: &[u8],
@@ -166,14 +191,15 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
 impl Clip {
     fn stream(&self, count_frames: bool, count_packets: bool) -> Row {
         let (start, ticks) = match self.track {
+            Track::Video { packets: VideoPackets::Gif(_), .. } => (0., self.ticks as f64),
             Track::Subtitle { first_pts, .. } => (first_pts as f64, self.ticks as f64),
             _ => (0., self.count as f64 * self.ticks as f64),
         };
         let duration = ticks / f64::from(self.timescale);
-        let rate = if self.count == 0 || !matches!(self.track, Track::Video { .. }) {
+        let rate = if self.count == 0 || ticks == 0. || !matches!(self.track, Track::Video { .. }) {
             "0/0".into()
         } else {
-            ratio(self.timescale.into(), self.ticks, '/')
+            ratio(self.timescale as u64 * self.count as u64, ticks as u64, '/')
         };
         let mut row = vec![("index", Number(0.)), ("id", Str("0x1".into()))];
         match self.track {
@@ -200,6 +226,7 @@ impl Clip {
                 let (name, long) = match tag {
                     b"mjpe" => ("mjpeg", "Motion JPEG"),
                     b"webp" => ("webp", "WebP image"),
+                    b"gif " => ("gif", "GIF (Graphics Interchange Format)"),
                     b"raw " => ("rawvideo", "raw video"),
                     b"png " => ("png", "PNG (Portable Network Graphics) image"),
                     _ => (fourcc.trim_end(), fourcc.trim_end()),
@@ -223,7 +250,7 @@ impl Clip {
                 row.extend([
                     (
                         "pix_fmt",
-                        Str(if tag == b"raw " { "yuv420p" } else { "rgb24" }.into()),
+                        Str(match tag { b"gif "=>"rgb8", b"raw "=>"yuv420p", _=>"rgb24" }.into()),
                     ),
                     ("color_range", Str("tv".into())),
                     ("color_space", Str("bt709".into())),
@@ -287,6 +314,7 @@ impl Clip {
             Track::Subtitle { .. } => ("srt", "SubRip subtitle"),
             Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
             Track::Video { tag: b"raw ", .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
+            Track::Video { tag: b"gif ", .. } => ("gif","CompuServe Graphics Interchange Format (GIF)"),
             Track::Video { .. } => ("image2", "image2 sequence"),
         };
         format_row(filename, bytes, (name, long_name), 1, duration, vec![])
@@ -309,7 +337,12 @@ impl Clip {
                     "audio",
                 )
             }
-            Track::Video { frame_size, .. } => (
+            Track::Video { packets: VideoPackets::Gif(ends), .. } => {
+                let (pts,pos)=if i==0 {(0,0)} else {ends[i-1]};
+                let (end,offset)=ends[i];
+                (pts as f64,(end-pts) as f64,(offset-pos) as u64,pos as u64,"video")
+            }
+            Track::Video { packets: VideoPackets::Fixed(frame_size), .. } => (
                 default_pts,
                 self.ticks as f64,
                 *frame_size,
@@ -317,13 +350,14 @@ impl Clip {
                 "video",
             ),
         };
+        let key = i==0 || !matches!(self.track,Track::Video {packets: VideoPackets::Gif(_), ..});
         let time = || Str(format!("{:.6}", pts / f64::from(self.timescale)));
         let duration = Str(format!("{:.6}", ticks / f64::from(self.timescale)));
         if frame {
             let mut row = vec![
                 ("media_type", Str(kind.into())),
                 ("stream_index", Number(0.)),
-                ("key_frame", Number(1.)),
+                ("key_frame", Number(f64::from(key))),
                 ("pts", Number(pts)),
                 ("pts_time", time()),
                 ("pkt_dts", Number(pts)),
@@ -348,9 +382,9 @@ impl Clip {
                     ("height", Number(height.into())),
                     (
                         "pix_fmt",
-                        Str(if tag == b"raw " { "yuv420p" } else { "rgb24" }.into()),
+                        Str(match tag { b"gif "=>"rgb8", b"raw "=>"yuv420p", _=>"rgb24" }.into()),
                     ),
-                    ("pict_type", Str("I".into())),
+                    ("pict_type", Str(if key {"I"} else {"P"}.into())),
                 ]),
             }
             row
@@ -366,7 +400,7 @@ impl Clip {
                 ("duration_time", duration),
                 ("size", Str(size.to_string())),
                 ("pos", Str(pos.to_string())),
-                ("flags", Str("K_".into())),
+                ("flags", Str(if key {"K_"} else {"__"}.into())),
             ]
         }
     }

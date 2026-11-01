@@ -5313,7 +5313,8 @@ fn cmd_media_doc(
                 }
             }
             let still = container == "image2" && png_pixels::supported_still(&raw_bytes);
-            if still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
+            let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
+            if gif || still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
                 let records=requested.contains("packet") || requested.contains("frame");
                 let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
                     writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
@@ -5322,7 +5323,9 @@ fn cmd_media_doc(
                         Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
                     };
                 }
-                let clip = if still {
+                let clip = if gif {
+                    media_probe::Clip::gif(&raw_bytes,records,fs.max_input_bytes())
+                } else if still {
                     media_probe::Clip::still(&raw_bytes, fs.max_input_bytes())
                 } else if matches!(container,"srt" | "webvtt") {
                     media_probe::Clip::subtitles(&raw_bytes,container=="webvtt",records,fs.max_input_bytes())
@@ -14193,6 +14196,20 @@ mod media_unit_tests {
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.ppm").unwrap())), "c6213c31b8dc8aa74e5163435f70b978d406d919f0f33e7d0bcb65bab89fd010");
         assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=7x5:r=2:d=1", "%02d.webp"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/02.webp").unwrap())), "517792c6879004136e9ae816f1abd8dd522ee686f54368e84350bc2ec8f256ce");
+    }
+
+    #[test]
+    fn ffprobe_reads_gif_packet_boundaries_and_individual_frame_delays() {
+        let fs=MemoryVfs::new();
+        let mut data=b"GIF89a\x01\0\x01\0\0\0\0".to_vec();
+        for delay in [5,20,0] {
+            data.extend_from_slice(&[33,249,4,0,delay,0,0,0,44,0,0,0,0,1,0,1,0,0,2,2,68,1,0]);
+        }
+        data.push(59);
+        fs.write_file("/anim",&data).unwrap();
+        let probe=|show,entries| cmd_media_doc("ffprobe",&media_args(&[show,"-show_entries",entries,"-of","csv=p=0","anim"]),"","/",&fs).stdout;
+        assert_eq!(probe("-show_packets","packet=pts,duration,size,pos,flags"),"0,5,36,0,K_\n5,20,23,36,__\n25,0,24,59,__\n");
+        assert_eq!(probe("-show_streams","stream=codec_name,avg_frame_rate,time_base,duration_ts,nb_frames"),"gif,12/1,1/100,25,3\n");
     }
 
     #[test]

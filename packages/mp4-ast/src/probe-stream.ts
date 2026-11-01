@@ -86,8 +86,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       track.type === "video" && w && h ? `${w / darGcd}:${h / darGcd}` : undefined,
     pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
     level: desc?.level,
-    color_range: track.type === "video" ? "tv" : undefined,
-    color_space: track.type === "video" ? "bt709" : undefined,
+    color_range: track.type === "video" ? desc?.colorRange : undefined,
+    color_space: track.type === "video" ? desc?.colorSpace : undefined,
     sample_fmt: sampleFormat,
     sample_rate:
       track.type === "audio" ? String(desc?.sampleRate ?? track.timescale) : undefined,

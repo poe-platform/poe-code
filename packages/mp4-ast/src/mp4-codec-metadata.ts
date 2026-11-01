@@ -44,6 +44,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
       if (child.sps) {
         const sps = parseH264Sps(child.sps);
         metadata.maxNumReorderFrames = sps.maxNumReorderFrames;
+        metadata.colorRange = sps.colorRange; metadata.colorSpace = sps.colorSpace;
         metadata.profile = sps.profileName; metadata.width = sps.width || metadata.width; metadata.height = sps.height || metadata.height;
         metadata.pixFmt = sps.pixFmt; metadata.sarWidth = sps.sarWidth; metadata.sarHeight = sps.sarHeight;
       }

@@ -40,6 +40,8 @@ export interface ParsedH264Sps {
   readonly fps?: number | undefined;
   readonly maxNumRefFrames: number;
   readonly maxNumReorderFrames?: number | undefined;
+  readonly colorRange?: string | undefined;
+  readonly colorSpace?: string | undefined;
 }
 
 const H264_PROFILES: Record<number, string> = {
@@ -50,6 +52,12 @@ const H264_PROFILES: Record<number, string> = {
   110: "High 10",
   122: "High 4:2:2",
   244: "High 4:4:4 Predictive"
+};
+
+const H264_COLOR_SPACES: Record<number, string> = {
+  0: 'gbr', 1: 'bt709', 4: 'fcc', 5: 'bt470bg', 6: 'smpte170m',
+  7: 'smpte240m', 8: 'ycgco', 9: 'bt2020nc', 10: 'bt2020c',
+  11: 'smpte2085', 12: 'chroma-derived-nc', 13: 'chroma-derived-c', 14: 'ictcp'
 };
 
 const H264_SAR_TABLE: ReadonlyArray<readonly [number, number]> = [
@@ -188,6 +196,8 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
   let sarHeight = 1;
   let fps: number | undefined;
   let maxNumReorderFrames: number | undefined;
+  let colorRange: string | undefined;
+  let colorSpace: string | undefined;
 
   const vuiPresent = bits.readBit();
   if (vuiPresent && bits.bitsRemaining > 0) {
@@ -207,10 +217,11 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     const videoSignalTypePresent = bits.readBit();
     if (videoSignalTypePresent) {
       bits.readBits(3);
-      bits.readBit();
+      colorRange = bits.readBit() ? 'pc' : 'tv';
       const colourDescriptionPresent = bits.readBit();
       if (colourDescriptionPresent) {
-        bits.readBits(24);
+        bits.readBits(16); // colour_primaries, transfer_characteristics
+        colorSpace = H264_COLOR_SPACES[bits.readBits(8)];
       }
     }
     const chromaLocInfoPresent = bits.readBit();
@@ -291,7 +302,9 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     sarHeight,
     fps,
     maxNumRefFrames,
-    maxNumReorderFrames
+    maxNumReorderFrames,
+    colorRange,
+    colorSpace
   };
 }
 

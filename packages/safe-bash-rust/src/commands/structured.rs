@@ -29381,66 +29381,13 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2" | "erDiagram" | "classDiagram"
     );
     let sequence = if first_word=="sequenceDiagram" {
-        match mermaid::sequence::Sequence::parse(&scanned,fs.max_input_bytes()) {Ok(chart)=>chart,Err(message)=>return err_out(&message,1)}
+        match mermaid::sequence::Sequence::parse(&scanned,fs.max_input_bytes()) {Ok(chart)=>Some(chart),Err(message)=>return err_out(&message,1)}
     }else{None};
-    let native_family = graph_family || sequence.is_some() || matches!(first_word, "pie" | "gantt");
-    if !native_family && !matches!(first_word,
-        "sequenceDiagram"
-    ) {
+    if !graph_family && sequence.is_none() && !matches!(first_word,"pie" | "gantt") {
         let reason = format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
         return err_out(&header.error("E_UNSUPPORTED", &header.text, &reason), 1);
     }
-    let mut content_lines: Vec<&str> = if native_family {
-        scanned.iter().map(|stmt| stmt.text.trim_end()).collect()
-    } else {
-        let mut in_descr_block = false;
-        let mut descr_lines: Vec<String> = Vec::new();
-        let mut content_lines = Vec::new();
-        for stmt in &scanned {
-            let t = stmt.text.trim_end();
-            if in_descr_block {
-                if let Some(before_close) = t.strip_suffix('}') {
-                    if !before_close.trim().is_empty() {
-                        descr_lines.push(before_close.trim().to_string());
-                    }
-                    acc_descr = Some(descr_lines.join(" "));
-                    descr_lines.clear();
-                    in_descr_block = false;
-                } else if !t.is_empty() {
-                    descr_lines.push(t.to_string());
-                }
-                continue;
-            }
-            if t.is_empty() || t.starts_with("%%") {
-                continue;
-            }
-            if let Some(rest) = t.strip_prefix("accTitle:") {
-                acc_title = Some(rest.trim().to_string());
-                continue;
-            }
-            if let Some(rest) = t.strip_prefix("accDescr:") {
-                acc_descr = Some(rest.trim().to_string());
-                continue;
-            }
-            if let Some(rest) = t.strip_prefix("accDescr") {
-                let r = rest.trim();
-                if let Some(inner) = r.strip_prefix('{') {
-                    if let Some(closed) = inner.strip_suffix('}') {
-                        acc_descr = Some(closed.trim().to_string());
-                    } else {
-                        in_descr_block = true;
-                        if !inner.trim().is_empty() {
-                            descr_lines.push(inner.trim().to_string());
-                        }
-                    }
-                    continue;
-                }
-            }
-            content_lines.push(t);
-        }
-        content_lines
-    };
-
+    let mut content_lines = Vec::new();
     let width = cli_width.map(f64::from).or(cfg.width).or(source_cfg.width);
     let height = cli_height.map(f64::from).or(cfg.height).or(source_cfg.height);
     let scale = cli_scale.or(cfg.scale).unwrap_or(1.0);
@@ -29490,10 +29437,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     } else { None };
     let graph = if graph_family {
         match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, wrapping_width, num_token("secondaryFontSize").unwrap_or(11.5), limit) {
-            Some(Ok(graph)) => Some(graph),
+            Some(Ok(graph)) => {content_lines.extend(scanned.iter().map(|stmt|stmt.text.trim_end()));Some(graph)},
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
-                content_lines.clear();
                 for stmt in &scanned {
                     match stmt.read_metadata(&mut acc_title, &mut acc_descr) {
                         Ok(false) => content_lines.push(stmt.text.trim_end()),
@@ -38835,6 +38781,27 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("sequenceDiagram\nalt Empty\nelse\nend\nbox blue B\nparticipant X\nend", "svg", "78187e58cc28f644d8ed6de6a255aae789c8451a9a08d0c67056761b64b14f66"),
             ("sequenceDiagram\nloop L\nbox red Team\nactor X\nend\nend", "svg", "263f76c7bc660769bb365e0129963e0b77df0e82a75987d8ab8c10ed6a823ea6"),
             ("sequenceDiagram\nloop Start\nactivate X\nend\nX->>X: after", "svg", "ec5d3e2af7cab61f69f9e4316e627bf3494b11e8cb33d0c118965d2c2298812e"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_nested_sequence_blocks_and_branch_dividers() {
+        assert_mermaid_outputs(&[
+            ("sequenceDiagram\nalt x\nA->>B: ready\nelse no\nA--xA: cancel\nelse fatal\nB-xA\nend", "svg", "110916718212c42acb7df3606cabad9ff54b1c459dc65c2d3c7b9bb8322fa721"),
+            ("sequenceDiagram\nalt x\nA->>B: ready\nelse no\nA--xA: cancel\nelse fatal\nB-xA\nend", "png", "9f09028599f9f74bb13aff85281c0aac9692a192a8adbe6e4b0a1fee66f6e492"),
+            ("sequenceDiagram\nalt x\nA->>B: ready\nelse no\nA--xA: cancel\nelse fatal\nB-xA\nend", "pdf", "6822adb8b2c3768a7c1170516c1f6544fa9f446b1f33aab22aea3e0fb31336d8"),
+            ("sequenceDiagram\nloop Outer\nalt Inner\nNote over A,B: hi\nelse second\nopt Verify\nA->>+B: check\nend\nend\nNote left of B: got it\nend", "svg", "218564b18a0467af397c9a54b860f4da3658f5a403bacedded6108de8edf76c0"),
+            ("sequenceDiagram\nloop Outer\nalt Inner\nNote over A,B: hi\nelse second\nopt Verify\nA->>+B: check\nend\nend\nNote left of B: got it\nend", "png", "90832eda5d6407fe779708321d169d94f5674fb47af593d45cfbe376e3c522a0"),
+            ("sequenceDiagram\nloop Outer\nalt Inner\nNote over A,B: hi\nelse second\nopt Verify\nA->>+B: check\nend\nend\nNote left of B: got it\nend", "pdf", "34ef4eda47d8b7d0ba2701ebb196de690f204f2a2d3088e879514a2e3bcf7496"),
+            ("sequenceDiagram\nopt A\nNote left of A: wide line line line line line line line line line line line line line line line \nend", "svg", "8ea3cef26cf888c6c2394c9f2a10e2cacfc1dd2b1efc46b01b15291be6704891"),
+            ("sequenceDiagram\nalt A\nelse B\nA->>B\nelse C\nend", "svg", "cf74f05844e78b05e8a19311b2d49a04b417448b812750fa8a29758a1770c835"),
+            ("sequenceDiagram\nbox purple Team\nparticipant B\nloop Check\nNote left of B: inspect\nend\nend", "svg", "bce6279ac516c58fc855c1beedb261eebdce7e373b377cc0bb09add8b3a71897"),
+            ("sequenceDiagram\nbox purple Team\nparticipant B\nloop Check\nNote left of B: inspect\nend\nend", "png", "1ffb80410cff219d9d0ec4837489f4f0fa454ce20cd58849dabc4d4d9cb4d104"),
+            ("sequenceDiagram\nbox purple Team\nparticipant B\nloop Check\nNote left of B: inspect\nend\nend", "pdf", "e09996e8e70e2f8b5683335cd42a7d0974c7e6193dc0bdd72571fdbaa2b3774a"),
+            ("sequenceDiagram\nloop outer\nloop inner\nA->>A\nend\nend", "svg", "5c1364a4578fc1db380e3711c5a8933d18040c8ae52934a1f7828e3b20022ac8"),
+            ("sequenceDiagram\nopt one\nB->A\nend\nopt two\nC->>A\nend", "svg", "4f6ecfe40b51d595170a7c6de746a0b78f2ed7edd58f2b142e063f2d9eae98eb"),
+            ("sequenceDiagram\nloop L\nbox Red Team\nA->>B: ping\nend\nend", "svg", "a484f36c55232a4c6d2fd449b88b69e8a4348c5a70403ab212a60c6254e7a8b9"),
+            ("sequenceDiagram\nloop <img src=x>\nA->>B\nend", "svg", "fcd130883ad35d734e95bef17b13b983f4ae9eb92dc3f76c81660aba33e66d53"),
         ]);
     }
 

@@ -3,6 +3,7 @@ use super::{Frame, SUB};
 
 #[derive(Clone, Copy)]
 pub(in super::super) struct BoxStyle {
+    pub dashed: bool,
     pub radius: f64,
     pub fill: [u8; 4],
     pub header: Option<(f64, [u8; 4])>,
@@ -160,7 +161,14 @@ impl Frame {
                         } else {
                             fill += u32::from(d <= 0.);
                         }
-                        border += u32::from(d.abs() <= half);
+                        border += u32::from(
+                            d.abs() <= half
+                                && (!style.dashed
+                                    || (((px as f64 + sx) + (py as f64 + sy)) / (4. * scale))
+                                        .floor() as i64
+                                        % 2
+                                        == 0),
+                        );
                     }
                 }
                 self.blend(px, py, style.fill.map(f64::from), f64::from(fill) / 16.);

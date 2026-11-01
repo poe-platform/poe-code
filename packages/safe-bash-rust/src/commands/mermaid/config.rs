@@ -191,6 +191,7 @@ impl Theme<'_> {
         let value = match key {
             "canvas" => base("#f8fafc", "#0b1120"),
             "surface" | "edgeLabelBackground" => base("#ffffff", "#1e293b"),
+            "surfaceElevated" => base("#ffffff", "#263449"),
             "text" => base("#0f172a", "#f8fafc"),
             "border" | "groupBorder" => base("#cbd5e1", "#334155"),
             "borderStrong" => "#64748b",

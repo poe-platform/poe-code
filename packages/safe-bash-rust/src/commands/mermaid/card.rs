@@ -133,6 +133,7 @@ pub(super) fn paint_members(
                 shape: Shape::Rounded,
                 shadow: None,
                 style: BoxStyle {
+                    dashed: false,
                     radius: 4.,
                     header: None,
                     fill: fill_rgba,

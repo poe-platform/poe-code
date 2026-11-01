@@ -537,6 +537,7 @@ impl Note {
             shape: Shape::Rounded,
             shadow: Some(theme.color("shadowColor").1),
             style: BoxStyle {
+                dashed: false,
                 header: None,
                 radius: 6.,
                 fill: fill_rgba,

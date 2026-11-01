@@ -9,6 +9,9 @@ use super::{
 };
 use mcp_protocol_rust::json::{self, Value};
 use std::{collections::BTreeMap, fmt::Write};
+#[path = "sequence/blocks.rs"]
+mod blocks;
+use blocks::{Block, Step};
 const BUDGET: &str = "mmdc: E_LIMIT: Render work budget exceeded\n";
 
 struct Participant {
@@ -90,6 +93,7 @@ fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, Option<bool>)>
 
 struct ParticipantBox {
     id: usize,
+    order: usize,
     label: String,
     fill: Option<(String, [u8; 4])>,
 }
@@ -99,18 +103,19 @@ pub(in super::super) struct Sequence {
     messages: Vec<Message>,
     notes: Vec<Note>,
     boxes: Vec<ParticipantBox>,
+    blocks: Vec<Block>,
     activations: Vec<(usize, usize, bool)>,
     links: BTreeMap<String, Links>,
 }
 
 impl Sequence {
-    pub fn parse(stmts: &[Statement], limit: usize) -> Result<Option<Self>, String> {
+    pub fn parse(stmts: &[Statement], limit: usize) -> Result<Self, String> {
         let mut chart = Self::default();
         let mut ids = BTreeMap::<String, usize>::new();
         let mut open_box: Option<&Statement> = None;
         let mut stack = Vec::new();
         let mut closed = 0;
-        let mut has_frame = false;
+
         for stmt in &stmts[1..] {
             let text = stmt.text.trim_end();
             let word = text.split_ascii_whitespace().next().unwrap_or("");
@@ -282,16 +287,21 @@ impl Sequence {
                     check_label(label, stmt, text)?;
                     chart.boxes.push(ParticipantBox {
                         id: closed,
+                        order: closed,
                         label: strip_quotes(label).into(),
                         fill,
                     });
                     open_box = Some(stmt);
                 }
                 "end" => {
-                    if let Some((_, _, start)) = stack.pop() {
-                        has_frame |= start < step;
+                    if let Some((_, _, idx)) = stack.pop() {
+                        let b: &mut Block = &mut chart.blocks[idx];
+                        b.end = step;
+                        b.order = closed;
                     } else if open_box.take().is_none() {
                         return Err(fail("Unexpected 'end' without matching sequence block"));
+                    } else {
+                        chart.boxes.last_mut().unwrap().order = closed;
                     }
                     closed += 1;
                 }
@@ -299,7 +309,16 @@ impl Sequence {
                     if stack.len() >= limit / 64 {
                         return Err(BUDGET.into());
                     }
-                    stack.push((word, stmt, step));
+                    let idx = chart.blocks.len();
+                    chart.blocks.push(Block::new(
+                        closed + stack.len() + 1,
+                        word,
+                        strip_quotes(rest),
+                        stack.last().map(|&(_, _, i)| i),
+                        stack.len(),
+                        step,
+                    ));
+                    stack.push((word, stmt, idx));
                 }
                 "else" => {
                     if !stack
@@ -308,6 +327,11 @@ impl Sequence {
                     {
                         return Err(fail("'else' is only valid inside an 'alt' sequence block"));
                     }
+                    let idx = stack.last().unwrap().2;
+                    let label = strip_quotes(rest);
+                    chart.blocks[idx]
+                        .branches
+                        .insert(step, if label.is_empty() { "else" } else { label }.into());
                 }
                 _ => {
                     let Some((from, to, label, marker, dashed, activation)) = message(text) else {
@@ -345,7 +369,7 @@ impl Sequence {
         if let Some(stmt) = open_box {
             return Err(stmt.error("E_SYNTAX", &stmt.text, "Unclosed participant box"));
         }
-        Ok((!has_frame).then_some(chart))
+        Ok(chart)
     }
 
     pub fn layout(
@@ -471,10 +495,35 @@ impl Sequence {
         let mut opening_order = Vec::new();
         let mut bars = Vec::new();
         let step_count = self.messages.len() + notes.len();
+        let mut steps = vec![Step::default(); step_count];
+        let mut blocks = self.blocks;
+        // Closed order also determines which else divider comes first in nested blocks.
+        let mut close_order = (0..blocks.len()).collect::<Vec<_>>();
+        close_order.sort_by_key(|&i| blocks[i].order);
+        for i in close_order {
+            let b = &blocks[i];
+            if b.start == b.end {
+                continue;
+            }
+            steps[b.start].open += 1;
+            steps[b.end - 1].close += 1;
+            for &step in b.branches.keys().take_while(|&&s| s < b.end) {
+                steps[step].dividers.push(i);
+            }
+        }
         let mut messages = self.messages.iter().zip(metrics);
         let mut notes = notes.into_iter().peekable();
         let mut placed_notes = Vec::new();
         for step in 0..step_count.max(1) {
+            if let Some(s) = steps.get_mut(step) {
+                cursor += 42. * s.open as f64;
+                for &i in &s.dividers {
+                    cursor += 10.;
+                    blocks[i].dividers.push((step, cursor));
+                    cursor += 26.;
+                }
+                s.top = cursor;
+            }
             let note = notes.next_if(|(n, _, _, _)| n.step == step);
             let (msg, pill) = if note.is_none() {
                 messages.next().map_or((None, None), |(m, p)| (Some(m), p))
@@ -525,10 +574,12 @@ impl Sequence {
                 right = right.max(x + w);
                 placed_notes.push((x, y, w, h, lines));
                 cursor += h + 18.;
+                steps[step].finish(&mut cursor, x, x + w);
             }
             let Some(msg) = msg else { continue };
             let mut a = cards[msg.from].0 + cards[msg.from].1 / 2.;
             let mut b = cards[msg.to].0 + cards[msg.to].1 / 2.;
+            let (l, mut r) = (a.min(b) - 12., a.max(b) + 12.);
             let rightward = b >= a;
             for (x, n, right) in [
                 (&mut a, depths[0], rightward),
@@ -542,7 +593,8 @@ impl Sequence {
                 let loop_h = (h + 6.).max(28.);
                 let end = y + loop_h;
                 let outer = a + 42.;
-                right = right.max(outer + if pill.is_some() { 10. + w } else { 0. });
+                r = outer + if pill.is_some() { 10. + w } else { 0. };
+                right = right.max(r);
                 cursor += loop_h + 22.;
                 (
                     Route::rounded(
@@ -578,6 +630,7 @@ impl Sequence {
             if pill.is_some() {
                 right = right.max(px + w);
             }
+            steps[step].finish(&mut cursor, l, r);
             placed.push((
                 route,
                 tip,
@@ -612,6 +665,25 @@ impl Sequence {
             min_y = -48.;
             max_y = max_y.max(b + 16.);
         }
+        let centers: Vec<_> = cards.iter().map(|c| c.0 + c.1 / 2.).collect();
+        blocks::place(&mut blocks, &steps, &centers, &mut budget)?;
+        let mut groups = Vec::new();
+        for (i, g) in self.boxes.iter().enumerate() {
+            if extents[i].is_some() {
+                groups.push((0, g.order));
+            }
+        }
+        for b in &blocks {
+            if b.start < b.end {
+                let [x, y, w, h] = b.bounds;
+                min_x = min_x.min(x);
+                right = right.max(x + w);
+                min_y = min_y.min(y);
+                max_y = max_y.max(y + h);
+                groups.push((b.depth, b.order));
+            }
+        }
+        groups.sort_unstable();
         let (width, height) = (right - min_x, max_y - min_y);
         let dx = (padding - min_x + 0.5).floor();
         let dy = (padding - min_y + 0.5).floor();
@@ -621,7 +693,7 @@ impl Sequence {
             elements: vec![],
             paint: vec![],
         };
-        let mut frame_idx = 0;
+
         for (group, extent) in self.boxes.into_iter().zip(extents) {
             let Some([left, right, base]) = extent else {
                 continue;
@@ -644,6 +716,8 @@ impl Sequence {
                 ],
             )?;
             let mut el = super::groups::GroupFrame {
+                header_height: 32.,
+                dashed: false,
                 bounds: [x, y, w, h],
                 radius: 0.,
                 thickness: 1.,
@@ -653,11 +727,11 @@ impl Sequence {
             }
             .paint(
                 &format!("participant_box_{}", group.id),
-                frame_idx,
+                groups.binary_search(&(0, group.order)).unwrap(),
                 prefix,
                 &mut scene.paint,
             );
-            frame_idx += 1;
+
             if !group.label.is_empty() {
                 let cx = (left + right) / 2. + dx;
                 let baseline = y + 22.;
@@ -690,6 +764,20 @@ impl Sequence {
                 dashed: true,
             });
         }
+        let mut headers = Vec::new();
+        blocks.sort_by_key(|b| (b.depth, b.order));
+        for b in blocks.into_iter().filter(|b| b.start < b.end) {
+            let idx = groups.binary_search(&(b.depth, b.order)).unwrap();
+            b.paint(
+                idx,
+                prefix,
+                (dx, dy),
+                theme,
+                &mut budget,
+                &mut scene,
+                &mut headers,
+            )?;
+        }
         let (fill, bg) = theme.color("accentSurface");
         let (border, stroke) = theme.color("accentBorder");
         charge_attributes(&mut budget, &[(fill, bars.len()), (border, bars.len())])?;
@@ -702,6 +790,7 @@ impl Sequence {
                 shape: Shape::Rounded,
                 shadow: None,
                 style: BoxStyle {
+                    dashed: false,
                     radius: 2.,
                     header: None,
                     fill: bg,
@@ -710,6 +799,7 @@ impl Sequence {
                 },
             });
         }
+        scene.paint.extend(headers);
         let edge_layer = scene.elements.len();
         let font = &theme.font;
         let (fill, rgba) = theme.color("surface");
@@ -733,6 +823,7 @@ impl Sequence {
                     shape: Shape::Rounded,
                     shadow: Some(shadow),
                     style: BoxStyle {
+                        dashed: false,
                         radius: 8.,
                         header: None,
                         fill: rgba,
@@ -877,6 +968,7 @@ impl Sequence {
                 shape: Shape::Rounded,
                 shadow: note.map(|_| shadow),
                 style: BoxStyle {
+                    dashed: false,
                     radius,
                     header: None,
                     fill: bg,

@@ -294,6 +294,7 @@ impl Cardinality {
                 shape: Shape::Rounded,
                 shadow: None,
                 style: BoxStyle {
+                    dashed: false,
                     header: None,
                     radius: 3.2,
                     fill: rgba,

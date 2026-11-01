@@ -1226,6 +1226,7 @@ pub(super) fn layout(
                 shape: Shape::Rounded,
                 shadow: None,
                 style: BoxStyle {
+                    dashed: false,
                     header: None,
                     radius: f64::from(rx),
                     fill: fill_rgba,
@@ -1284,6 +1285,7 @@ pub(super) fn layout(
                     shape: Shape::Rounded,
                     shadow: None,
                     style: BoxStyle {
+                        dashed: false,
                         header: None,
                         radius: r.into(),
                         fill,
@@ -1356,6 +1358,7 @@ pub(super) fn layout(
             shape: n.shape,
             shadow: Some(shadow),
             style: BoxStyle {
+                dashed: false,
                 header: header.map(|(h, (_, rgba))| (h, rgba)),
                 radius,
                 fill: fill_rgba,
@@ -1583,6 +1586,7 @@ impl Scene {
             shape: Shape::Rect,
             shadow: None,
             style: BoxStyle {
+                dashed: false,
                 header: None,
                 radius: 0.,
                 fill: fill_rgba,

@@ -320,6 +320,7 @@ impl Gantt {
                 },
                 shadow: None,
                 style: BoxStyle {
+                    dashed: false,
                     radius: 3.,
                     fill: fill_rgba,
                     border: border_rgba,

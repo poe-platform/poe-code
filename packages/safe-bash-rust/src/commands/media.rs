@@ -4587,10 +4587,10 @@ fn cmd_media_doc(
                 None => media_format::by_filename(&out_rel),
             };
             let y4m_output = muxer == Some("y4m");
-            let mov_output = muxer == Some("mov");
+            let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-            if mp4_output || subtitle_output || muxer==Some("ffmetadata") || inputs.len()==1 && (muxer==Some("aac") || y4m_output){
+            if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || inputs.len()==1 && y4m_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4599,11 +4599,11 @@ fn cmd_media_doc(
                 let start=ss_opt.unwrap_or(0.).max(0.);
                 let end=to_opt.or_else(||t_opt.map(|t|start+t));
                 let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
-                let remuxable=|format,data:&[u8]|matches!(format,Some("srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+                let remuxable=|format,data:&[u8]|matches!(format,Some("aac"|"srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
                 let supported=remuxable(format,bytes.as_deref().unwrap_or_default());
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
                 let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
-                if supported && (mp4_output || subtitle_output || muxer==Some("ffmetadata")){
+                if supported && (mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata")){
                     for (source,&explicit) in inputs[1..].iter().zip(&input_formats[1..]){
                         let Some(data)=read(source)else{break};
                         let fmt=media_format::detect(&data,source,explicit);
@@ -4612,7 +4612,7 @@ fn cmd_media_doc(
                         additional.push((id,data));
                     }
                 }
-                let remux=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
@@ -4627,16 +4627,9 @@ fn cmd_media_doc(
                         else if real_mp4{mp4::decode_y4m(bytes,opts)}
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output) && supported && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
+                } else if (mp4_output || subtitle_output || audio_output) && supported && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_output || format==Some("aac") && inputs.len()==1 || audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
                     let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if inputs.len()==1 && (mp4_output && format==Some("aac") || muxer==Some("aac") && (format==Some("aac") || real_mp4)) {
-                    let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || !audio_filters.is_empty());
-                    let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
-                    let bytes=bytes.as_deref().unwrap_or_default();
-                    let output=if mp4_output{mp4::mux::adts(bytes,opts,&meta_tags,mov_output,fragmented,&audio_filters).map_err(str::to_owned)}
-                        else if format==Some("aac"){adts::remux(bytes,opts).map_err(str::to_owned)}else{mp4::extract_adts(bytes,opts)};
-                    match output{Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
                 if let Some(output)=output {
                     if stdout {
@@ -12961,6 +12954,21 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_maps_external_aac_into_mp4_and_back_to_adts() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/video.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let audio=[255,241,80,128,1,191,252,33,16,99,96,140,28].repeat(3);
+        fs.write_file("/audio.aac",&audio).unwrap();
+        let run=|cmd,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        assert_eq!(run("ffmpeg",&["-i","video.mp4","-i","audio.aac","-map","0:v","-map","1:a","-c","copy","movie.mp4"]).exit_code,0);
+        assert_eq!(run("ffprobe",&["-select_streams","a","-show_entries","stream=codec_name,nb_frames","-of","csv=p=0","movie.mp4"]).stdout,"aac,3\n");
+        for source in ["movie.mp4","audio.aac"] {
+            let r=run("ffmpeg",&["-i","video.mp4","-i",source,"-map","1:a","-c","copy","-f","aac","-"]);
+            assert_eq!(crate::vfs::stream_string_to_bytes(&r.stdout),audio);
+        }
     }
 
     #[test]

@@ -257,18 +257,18 @@ impl Track<'_> {
         });
     }
 }
-pub(in super::super) fn adts(
-    input: &[u8],
-    opts: Options,
-    metadata: &BTreeMap<String, String>,
-    mov: bool,
-    fragmented: bool,
+fn adts_track<'a>(
+    input: &'a [u8],
+    opts: &Options,
+    movie_scale: u32,
     filters: &[&str],
-) -> Result<Vec<u8>, &'static str> {
+    index_bytes: &mut usize,
+) -> Result<Track<'a>, &'static str> {
     let mut frames = Frames::new(input);
+    let available = opts.limit.saturating_sub(*index_bytes) / size_of::<Sample>();
     let mut samples = Vec::new();
     for data in frames.by_ref() {
-        if samples.len() >= 200_000 || samples.len() >= opts.limit / size_of::<Sample>() {
+        if samples.len() >= 200_000 || samples.len() >= available {
             return Err("sample index exceeds memory budget");
         }
         samples.push(Sample {
@@ -306,7 +306,7 @@ pub(in super::super) fn adts(
     let mut channels = u32::from(frames.channels);
     let mut object = frames.object;
     let mut volume = 1.;
-    if opts.clear_samples && !opts.strip_audio {
+    if opts.clear_samples {
         let mut tempo = 1.;
         for f in filters.iter().flat_map(|f| f.split(',')).map(str::trim) {
             if let Some(s) = f.strip_prefix("atempo=") {
@@ -332,7 +332,7 @@ pub(in super::super) fn adts(
             .round()
             .max(1.) as u64;
         let n = ticks.div_ceil(1024);
-        if n > 200_000 || n > (opts.limit / size_of::<Sample>()) as u64 {
+        if n > 200_000 || n > available as u64 {
             return Err("sample index exceeds memory budget");
         }
         let data = super::super::adts::silent(channels);
@@ -350,45 +350,31 @@ pub(in super::super) fn adts(
             movie_ticks = (ticks as f64 * f64::from(scale) / f64::from(rate)).round() as u32;
         }
     }
-    let tracks = if opts.strip_audio {
-        vec![]
-    } else {
-        vec![Track {
-            samples,
-            scale: rate,
-            media_ticks,
-            movie_ticks,
-            first_dts: 0,
-            stsd: audio_entry(rate, channels, object).into(),
-            edits: if skip != 0 {
-                vec![[movie_ticks, skip, 65536]]
-            } else {
-                vec![]
-            },
-            kind: "audio",
-            enabled: true,
-            volume: (volume * 256.).round() as i32 as u32,
-            matrix: MATRIX,
-            width: 0,
-            height: 0,
-            language: 0x55c4,
-            handler: *b"soun",
-            name: b"SoundHandler",
-        }]
-    };
-    write(
-        &tracks,
-        scale,
-        if mov {
-            b"qt  \0\0\x02\0qt  "
+    *index_bytes += samples.capacity() * size_of::<Sample>();
+    let movie_ticks =
+        (f64::from(movie_ticks) * f64::from(movie_scale) / f64::from(scale)).round() as u32;
+    Ok(Track {
+        samples,
+        scale: rate,
+        media_ticks,
+        movie_ticks,
+        first_dts: 0,
+        stsd: audio_entry(rate, channels, object).into(),
+        edits: if skip != 0 {
+            vec![[movie_ticks, skip, 65536]]
         } else {
-            b"isom\0\0\x02\0isomiso2avc1mp41"
+            vec![]
         },
-        metadata,
-        &[],
-        fragmented,
-        opts.limit,
-    )
+        kind: "audio",
+        enabled: true,
+        volume: (volume * 256.).round() as i32 as u32,
+        matrix: MATRIX,
+        width: 0,
+        height: 0,
+        language: 0x55c4,
+        handler: *b"soun",
+        name: b"SoundHandler",
+    })
 }
 
 fn subtitle_track(
@@ -575,6 +561,9 @@ fn write(
 }
 
 pub(in super::super) struct Remux<'a> {
+    pub rate: Option<u32>,
+    pub channels: Option<u32>,
+    pub audio_filters: &'a [&'a str],
     pub maps: &'a [&'a str],
     pub strip_audio: bool,
     pub strip_video: bool,
@@ -593,23 +582,30 @@ pub(in super::super) struct Remux<'a> {
 enum Streams<'a> {
     Mp4(Vec<(super::Track<'a>, &'a [u8])>),
     Captions(Cow<'a, str>),
+    Aac {
+        rate: u32,
+        channels: u8,
+        count: usize,
+    },
 }
 impl Streams<'_> {
     fn len(&self) -> usize {
         match self {
             Self::Mp4(v) => v.len(),
-            Self::Captions(_) => 1,
+            Self::Captions(_) | Self::Aac { .. } => 1,
         }
     }
     fn kind(&self, i: usize) -> &'static str {
         match self {
             Self::Mp4(v) => v[i].0.kind,
             Self::Captions(_) => "subtitle",
+            Self::Aac { .. } => "audio",
         }
     }
     fn seconds(&self, i: usize) -> f64 {
         match self {
             Self::Mp4(v) => v[i].0.duration as f64 / f64::from(v[i].0.scale),
+            Self::Aac { rate, count, .. } => *count as f64 * 1024. / f64::from(*rate),
             Self::Captions(text) => {
                 super::super::subtitles::cues(text)
                     .map(|c| c.start.saturating_add(c.duration))
@@ -629,6 +625,23 @@ pub(in super::super) fn remux(
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
     let mut sources = Vec::new();
     for &(format, input) in inputs {
+        if format == "aac" {
+            let mut frames = Frames::new(input);
+            let count = frames.by_ref().count();
+            if count > 200_000 {
+                return Err("sample index exceeds memory budget".into());
+            }
+            sources.push((
+                input,
+                &[][..],
+                Streams::Aac {
+                    rate: frames.rate,
+                    channels: frames.channels,
+                    count,
+                },
+            ));
+            continue;
+        }
         if matches!(format, "srt" | "webvtt") {
             sources.push((
                 input,
@@ -647,7 +660,10 @@ pub(in super::super) fn remux(
         ));
     }
     let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
-    let (scale, _) = header_time(child(moov, b"mvhd"), 1000);
+    let scale = match sources[0].2 {
+        Streams::Aac { rate, .. } => rate,
+        _ => header_time(child(moov, b"mvhd"), 1000).0,
+    };
     let mut selected = Vec::new();
     if opts.maps.is_empty() {
         for (j, (_, _, tracks)) in sources.iter().enumerate() {
@@ -712,18 +728,49 @@ pub(in super::super) fn remux(
     let end = shortest.map(|s| s.min(opts.end.unwrap_or(s))).or(opts.end);
     let range =
         (opts.start.is_some() || end.is_some()).then_some((opts.start.unwrap_or(0.).max(0.), end));
+    let mut audio = Options {
+        start: opts.start.unwrap_or(0.).max(0.),
+        end,
+        rate: opts.rate,
+        channels: opts.channels,
+        clear_samples: opts.rate.is_some()
+            || opts.channels.is_some()
+            || !opts.audio_filters.is_empty(),
+        strip_audio: opts.strip_audio,
+        limit: opts.limit,
+    };
+    if opts.format == "aac" {
+        for &(j, i) in &selected {
+            let (input, _, streams) = &sources[j];
+            match streams {
+                Streams::Mp4(v) if v[i].0.kind == "audio" => {
+                    return v[i].0.extract_adts(input, &audio).map_err(str::to_owned);
+                }
+                Streams::Aac { rate, channels, .. } => {
+                    return super::super::adts::remux(input, *rate, *channels, &audio)
+                        .map_err(str::to_owned);
+                }
+                _ => {}
+            }
+        }
+        audio.strip_audio = true;
+        return audio
+            .encode(44100, 2, std::iter::empty())
+            .map_err(str::to_owned);
+    }
     if matches!(opts.format, "srt" | "webvtt") {
         let mut writer = super::super::subtitles::Writer::new(opts.format == "webvtt", opts.limit);
-        if let Some((j, i)) = selected
-            .into_iter()
-            .find(|&(j, i)| sources[j].2.kind(i) == "subtitle")
-        {
+        for (j, i) in selected {
             match &sources[j].2 {
-                Streams::Mp4(v) => v[i].0.write_subtitles(sources[j].0, &mut writer, range)?,
+                Streams::Mp4(v) if v[i].0.kind == "subtitle" => {
+                    v[i].0.write_subtitles(sources[j].0, &mut writer, range)?
+                }
                 Streams::Captions(text) => {
                     super::super::subtitles::convert(text, &mut writer, range)?
                 }
+                _ => continue,
             }
+            break;
         }
         return Ok(writer.output.into_bytes());
     }
@@ -732,6 +779,16 @@ pub(in super::super) fn remux(
     for (j, i) in selected {
         let (input, _, source) = &sources[j];
         let (t, trak) = match source {
+            Streams::Aac { .. } => {
+                tracks.push(adts_track(
+                    input,
+                    &audio,
+                    scale,
+                    opts.audio_filters,
+                    &mut index_bytes,
+                )?);
+                continue;
+            }
             Streams::Mp4(v) => &v[i],
             Streams::Captions(text) => {
                 tracks.push(subtitle_track(

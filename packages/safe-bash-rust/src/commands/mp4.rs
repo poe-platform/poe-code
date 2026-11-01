@@ -781,6 +781,29 @@ impl<'a> Track<'a> {
             self.scale
         }
     }
+    fn extract_adts(
+        &self,
+        input: &[u8],
+        opts: &super::adts::Options,
+    ) -> Result<Vec<u8>, &'static str> {
+        let scale = f64::from(self.scale);
+        let start = self
+            .origin
+            .saturating_add((opts.start * scale).round() as u64);
+        let end = self
+            .origin
+            .saturating_add(opts.end.map_or(self.duration, |s| {
+                ((s * scale).round() as u64).min(self.duration)
+            }));
+        let trim = opts.start > 0. || opts.end.is_some();
+        let samples = self
+            .samples(input.len())
+            .filter(|s| {
+                !trim || end > start && s.dts < end && s.dts.saturating_add(s.tick.into()) > start
+            })
+            .map(|s| &input[s.offset..s.offset + s.size as usize]);
+        opts.encode(self.audio_rate(), self.channels().into(), samples)
+    }
     fn channels(&self) -> u16 {
         if let Some(a) = &self.audio {
             return a.channels;
@@ -1348,34 +1371,6 @@ pub(super) fn decode_y4m(input: &[u8], opts: super::y4m::Options<'_>) -> Result<
         },
     )
     .map_err(str::to_owned)
-}
-
-pub(super) fn extract_adts(
-    input: &[u8],
-    mut opts: super::adts::Options,
-) -> Result<Vec<u8>, String> {
-    let (tracks, _) = read_tracks(input, movie(input)?)?;
-    let Some(t) = tracks.iter().find(|t| t.kind == "audio") else {
-        opts.strip_audio = true;
-        return opts
-            .encode(44100, 2, std::iter::empty())
-            .map_err(str::to_owned);
-    };
-    let scale = f64::from(t.scale);
-    let start = t.origin.saturating_add((opts.start * scale).round() as u64);
-    let end = t.origin.saturating_add(
-        opts.end
-            .map_or(t.duration, |s| ((s * scale).round() as u64).min(t.duration)),
-    );
-    let trim = opts.start > 0. || opts.end.is_some();
-    let samples = t
-        .samples(input.len())
-        .filter(|s| {
-            !trim || end > start && s.dts < end && s.dts.saturating_add(s.tick.into()) > start
-        })
-        .map(|s| &input[s.offset..s.offset + s.size as usize]);
-    opts.encode(t.audio_rate(), t.channels().into(), samples)
-        .map_err(str::to_owned)
 }
 
 pub(super) fn report(

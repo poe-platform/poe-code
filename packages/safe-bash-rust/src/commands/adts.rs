@@ -119,10 +119,13 @@ impl Options {
         Ok(output)
     }
 }
-pub(super) fn remux(input: &[u8], opts: Options) -> Result<Vec<u8>, &'static str> {
-    let mut frames = Frames::new(input);
-    frames.by_ref().for_each(drop);
-    let rate = f64::from(frames.rate);
+pub(super) fn remux(
+    input: &[u8],
+    sample_rate: u32,
+    channels: u8,
+    opts: &Options,
+) -> Result<Vec<u8>, &'static str> {
+    let rate = f64::from(sample_rate);
     let start = (opts.start * rate).round() as u64;
     let end = opts.end.map_or(u64::MAX, |s| (s * rate).round() as u64);
     let samples = Frames::new(input)
@@ -130,5 +133,5 @@ pub(super) fn remux(input: &[u8], opts: Options) -> Result<Vec<u8>, &'static str
         .take_while(|(index, _)| *index as u64 * 1024 < end)
         .filter(|(index, _)| end > start && (*index as u64 + 1) * 1024 > start)
         .map(|(_, data)| data);
-    opts.encode(frames.rate, frames.channels.into(), samples)
+    opts.encode(sample_rate, channels.into(), samples)
 }

@@ -13870,6 +13870,18 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_uses_movie_audio_defaults_for_an_unknown_sample_entry() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","sine=r=8000:d=0.2","s.wav"]);
+        run(&["-i","s.wav","a.mp4"]);
+        run(&["-i","a.mp4","o.wav"]);
+        let bytes=fs.read_file("/o.wav").unwrap();
+        assert_eq!(u16::from_le_bytes(bytes[22..24].try_into().unwrap()),2);
+        assert_eq!(u32::from_le_bytes(bytes[24..28].try_into().unwrap()),8000);
+    }
+
+    #[test]
     fn ffprobe_wave_reads_pcm_and_filters_requested_rows() {
         let fs = MemoryVfs::new();
         let pcm = PcmAudio { sample_rate: 8000, channels: vec![vec![0.0; 80]] };

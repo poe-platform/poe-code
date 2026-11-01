@@ -461,6 +461,13 @@ impl<'a> Track<'a> {
         let (tag, entry) = atoms(stsd.get(8..).unwrap_or_default())
             .next()
             .unwrap_or((if kind == "video" { b"avc1" } else { b"mp4a" }, &[]));
+        // An unknown audio FourCC is opaque: the track still has a timescale,
+        // but its bytes do not declare a QuickTime audio sample entry.
+        let entry = if kind == "audio" && !matches!(tag,
+            b"mp4a" | b"Opus" | b"fLaC" | b"alac" | b"ac-3" | b"ec-3" |
+            b"sowt" | b"twos" | b"lpcm" | b".mp3" | b"ulaw" | b"alaw") {
+            &[][..]
+        } else { entry };
         let mut sequence = None;
         let mut sar = (1, 1);
         if matches!(

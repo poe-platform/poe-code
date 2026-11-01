@@ -230,24 +230,35 @@ struct TileStage<'a> {
     filters: Vec<super::video_filter::Filter<'a>>,
 }
 
+fn charge_pixels(remaining: &mut usize, pixels: usize) -> Result<(), &'static str> {
+    *remaining = remaining
+        .checked_sub(pixels)
+        .ok_or("video pixel work limit exceeded")?;
+    Ok(())
+}
+
 // Resolve only the cells used by this output; a frame cap or trim need not render the rest.
 fn render(
     stages: &[TileStage<'_>],
     index: usize,
     limit: usize,
+    work: &mut usize,
     image: &mut impl FnMut(usize) -> Result<Raster, &'static str>,
 ) -> Result<Raster, &'static str> {
     let Some((stage, prior)) = stages.split_last() else {
-        return image(index);
+        let frame = image(index)?;
+        charge_pixels(work, frame.pixels.len())?;
+        return Ok(frame);
     };
     let per = stage.cols.saturating_mul(stage.rows);
     let start = index * per;
     let mut canvas: Option<Raster> = None;
     for (k, entry) in stage.inputs[start..].iter().take(per).enumerate() {
         let remaining = limit - canvas.as_ref().map_or(0, |c| c.pixels.len() * 4);
-        let mut cell = render(prior, entry.index, remaining, image)?;
+        let mut cell = render(prior, entry.index, remaining, work, image)?;
         for filter in &stage.filters {
             filter.apply(&mut cell, remaining)?;
+            charge_pixels(work, cell.pixels.len())?;
         }
         let (w, h) = (cell.width as i64, cell.height as i64);
         let dim = |n: usize, d: i64| -> Result<usize, &'static str> {
@@ -264,6 +275,7 @@ fn render(
             if dw.saturating_mul(dh) > limit.saturating_sub(cell.pixels.len() * 4) / 4 {
                 return Err("image exceeds memory budget");
             }
+            charge_pixels(work, dw * dh)?;
             canvas = Some(raster(dw, dh, vec![[0, 0, 0, 255]; dw * dh]));
         }
         let dst = canvas.as_mut().unwrap();
@@ -503,12 +515,42 @@ pub(super) fn render_frames(
     if w.saturating_mul(h) > opts.limit / 4 {
         return Err("image exceeds memory budget");
     }
+    // As with H.264 replay, allow 32 input budgets of work. Count RGBA pixels
+    // even when identical frames compress to only a few bytes.
+    let mut work = (opts.limit / 4).saturating_mul(32);
     for frame in frames {
-        let mut im = render(&stages, frame.index, opts.limit, &mut image)?;
+        let mut im = render(&stages, frame.index, opts.limit, &mut work, &mut image)?;
         for op in &ops {
             op.apply(&mut im, opts.limit)?;
+            charge_pixels(&mut work, im.pixels.len())?;
         }
         emit(im, frame.duration, frame.buffer)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn repeated_frames_cannot_hide_pixel_work_behind_a_small_encoded_output() {
+        let spec = super::super::lavfi::Video::parse("color=s=128x128:r=100:d=1").unwrap();
+        let result = render_frames(
+            128,
+            128,
+            (0..100).map(|i| (i as f64 / 100., 0.01)),
+            Options {
+                filters: &[],
+                frames: None,
+                start: 0.,
+                end: None,
+                no_video: false,
+                limit: 128 * 1024,
+            },
+            |i| Ok(spec.image(i)),
+            |_, _, _| Ok(()),
+        );
+        assert_eq!(result, Err("video pixel work limit exceeded"));
+    }
 }

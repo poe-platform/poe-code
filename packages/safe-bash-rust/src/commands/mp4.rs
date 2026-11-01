@@ -1313,10 +1313,21 @@ pub(super) fn ffmetadata(
     Ok(out.into_bytes())
 }
 
-pub(super) fn decode_y4m(input: &[u8], opts: super::y4m::Options<'_>) -> Result<Vec<u8>, String> {
+pub(super) fn render_video(
+    input: &[u8],
+    opts: super::y4m::Options<'_>,
+    maps: &[&str],
+    full_size: bool,
+    emit: impl FnMut(super::png_pixels::Raster, f64, usize) -> Result<(), &'static str>,
+) -> Result<(usize, usize, u32), String> {
     let (tracks, duration) = read_tracks(input, movie(input)?)?;
-    let Some(t) = tracks.iter().find(|t| t.kind == "video" && !opts.no_video) else {
-        return Ok(b"YUV4MPEG2 W64 H64 F10:1 Ip A1:1 C420jpeg\n".to_vec());
+    let selected = mux::select_tracks(maps, 1, |_| tracks.len(), |_, i| tracks[i].kind)?;
+    let Some(t) = selected
+        .iter()
+        .map(|&(_, i)| &tracks[i])
+        .find(|t| t.kind == "video" && !opts.no_video)
+    else {
+        return Ok((64, 64, 10));
     };
     let (w, h) = (t.width as usize, t.height as usize);
     let limit = opts.limit;
@@ -1364,7 +1375,7 @@ pub(super) fn decode_y4m(input: &[u8], opts: super::y4m::Options<'_>) -> Result<
     });
     let mut decoder = None;
     let mut replay_bytes = 0usize;
-    super::y4m::encode(
+    super::y4m::render_frames(
         w,
         h,
         times,
@@ -1405,10 +1416,11 @@ pub(super) fn decode_y4m(input: &[u8], opts: super::y4m::Options<'_>) -> Result<
                     d.promote(w, h, limit)?;
                 }
             }
-            d.image((w, h), filtered, limit)
+            d.image((w, h), full_size || filtered, limit)
         },
-    )
-    .map_err(str::to_owned)
+        emit,
+    )?;
+    Ok((w, h, 30))
 }
 
 pub(super) fn report(

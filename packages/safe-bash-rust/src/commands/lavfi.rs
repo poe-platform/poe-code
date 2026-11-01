@@ -179,7 +179,12 @@ impl Video {
         }
     }
 
-    pub fn encode(&self, opts: y4m::Options<'_>, sliced: bool) -> Result<Vec<u8>, &'static str> {
+    pub fn render(
+        &self,
+        opts: y4m::Options<'_>,
+        sliced: bool,
+        emit: impl FnMut(Raster, f64, usize) -> Result<(), &'static str>,
+    ) -> Result<(usize, usize, u32), &'static str> {
         let (w, h) = (self.width as usize, self.height as usize);
         let count = (opts.end.unwrap_or(self.duration) * self.fps)
             .round()
@@ -207,7 +212,7 @@ impl Video {
         }
         let limit = opts.limit;
         let has_filters = !opts.filters.is_empty();
-        y4m::encode(
+        y4m::render_frames(
             w,
             h,
             (0..n).map(|i| (i as f64 / fps, 1. / fps)),
@@ -224,6 +229,8 @@ impl Video {
                     Ok(im)
                 }
             },
-        )
+            emit,
+        )?;
+        Ok((w, h, 30))
     }
 }

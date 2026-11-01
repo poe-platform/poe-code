@@ -2668,6 +2668,8 @@ mod video_filter;
 mod lavfi;
 #[path = "y4m.rs"]
 mod y4m;
+#[path = "frame_output.rs"]
+mod frame_output;
 #[path = "subtitles.rs"]
 mod subtitles;
 #[path = "adts.rs"]
@@ -4426,6 +4428,15 @@ fn media_stdin(name: &str) -> bool {
     matches!(name, "-" | "pipe:" | "pipe:0" | "/dev/stdin" | "/dev/fd/0")
 }
 
+fn write_ffmpeg_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
+    let parent = crate::vfs::dirname_posix_path(path);
+    if !fs.is_dir(&parent) {
+        let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
+        return Err(format!("{reason}, writeFile '{path}'"));
+    }
+    fs.write_file(path, bytes)
+}
+
 fn cmd_media_doc(
     cmd: &str,
     args: &[String],
@@ -4464,6 +4475,7 @@ fn cmd_media_doc(
             let mut strip_audio = false;
             let mut strip_video = false;
             let mut overwrite = false;
+            let mut output_start=1u64;
             let mut meta_title: Option<String> = None;
             let mut meta_tags: BTreeMap<String, String> = BTreeMap::new();
             let mut out_arg: Option<String> = None;
@@ -4572,14 +4584,10 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-start_number" => {
-                        let ok = args
-                            .get(i + 1)
-                            .and_then(|s| s.parse::<i64>().ok())
-                            .map(|v| v >= 0)
-                            .unwrap_or(false);
-                        if !ok {
-                            return err_out("ffmpeg: invalid start_number\n", 1);
-                        }
+                        let Some(n)=args.get(i+1).and_then(|s|s.parse::<u64>().ok()).filter(|&n|n<=9007199254740991) else {
+                            return err_out("ffmpeg: invalid start_number\n",1);
+                        };
+                        if !args[i+2..].iter().any(|a|a=="-i") {output_start=n;}
                         i += 2;
                     }
                     a if a == "-" || !a.starts_with('-') => {
@@ -4602,6 +4610,10 @@ fn cmd_media_doc(
             let out_full = resolve_posix_path(cwd, &out_rel);
             let stdout = matches!(out_rel.as_str(), "-" | "pipe:" | "pipe:1" | "/dev/stdout" | "/dev/fd/1");
             if !overwrite && !stdout && output_format != Some("null") {
+                let parent=crate::vfs::dirname_posix_path(&out_full);
+                if fs.exists(&parent) && !fs.is_dir(&parent) {
+                    return err_out(&format!("ffmpeg: ENOTDIR: not a directory, stat '{out_full}'\n"),1);
+                }
                 match fs.stat(&out_full) {
                     Ok(_) => return err_out(&format!("File '{out_rel}' already exists. Exiting.\n"), 1),
                     Err(reason) if !reason.starts_with("ENOENT:") => return err_out(&format!("ffmpeg: {reason}\n"),1),
@@ -4613,13 +4625,15 @@ fn cmd_media_doc(
                 None => media_format::by_filename(&out_rel),
             };
             let y4m_output = muxer == Some("y4m");
+            let image_format=out_lower.rsplit('.').next().filter(|f|muxer==Some("image2") && matches!(*f,"png"|"bmp"|"ppm"));
+            let frame_output=y4m_output || image_format.is_some();
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-            if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || inputs.len()==1 && y4m_output{
+            if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || inputs.len()==1 && frame_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
-                let generator = (y4m_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
+                let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
                 let load=|source:&str,explicit| {
                     if explicit==Some("lavfi") {
                         return Some((Some("lavfi"),source.as_bytes().to_vec()));
@@ -4643,7 +4657,7 @@ fn cmd_media_doc(
                     }
                 }
                 let remux_inputs=supported && additional.len()+1==inputs.len() && fc_flag.is_empty();
-                if (generator.is_some() || y4m_output || mp4_output && remux_inputs) && !video_copy {
+                if (frame_output || mp4_output && remux_inputs) && !video_copy {
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
@@ -4651,19 +4665,27 @@ fn cmd_media_doc(
                 let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if y4m_output && (format==Some("y4m") || supported) {
+                } else if frame_output && (format==Some("y4m") || supported) {
                     let seek=input_times[0];
-                    let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
-                    let bytes=bytes.as_deref().unwrap_or_default();
-                    let result=if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
-                        mp4::mux::input_slice(format.unwrap(),bytes,seek.start,seek.end(),seek.generation_end(end),fs.max_input_bytes()).and_then(|b|mp4::decode_y4m(&b,opts))
-                    } else if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some()).map_err(str::to_owned)}
-                        else if real_mp4{mp4::decode_y4m(bytes,opts)}
-                        else if format==Some("y4m") {let s=seek.start.unwrap_or(0.);
-                            let end=match (seek.end(),end.map(|v|v+s)) {(Some(a),Some(b))=>Some(a.min(b)),(a,b)=>a.or(b)};
-                            y4m::Stream::parse(bytes).and_then(|stream|stream.encode(y4m::Options{start:start+s,end,..opts})).map_err(str::to_owned)
-                        }else{Ok(b"YUV4MPEG2 W64 H64 F10:1 Ip A1:1 C420jpeg\n".to_vec())};
-                    match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                    let limit=fs.max_input_bytes();
+                    let result=frame_output::render(fs,cwd,&out_rel,image_format,output_start,|sequence,emit|{
+                        let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
+                        let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
+                        let bytes=bytes.as_deref().unwrap_or_default();
+                        let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
+                        if no_video {Ok((64,64,10))}
+                            else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
+                            mp4::mux::input_slice(format.unwrap(),bytes,seek.start,seek.end(),seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
+                        }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
+                            mp4::mux::input_slice("lavfi",bytes,Some(start),end,end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
+                        } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
+                            else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
+                            else if format==Some("y4m") {let s=seek.start.unwrap_or(0.);
+                                let end=match (seek.end(),end.map(|v|v+s)) {(Some(a),Some(b))=>Some(a.min(b)),(a,b)=>a.or(b)};
+                                y4m::Stream::parse(bytes).and_then(|stream|stream.render(y4m::Options{start:start+s,end,..opts},emit)).map_err(str::to_owned)
+                            }else{Ok((64,64,10))}
+                    });
+                    match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if (mp4_output || subtitle_output || audio_output) && remux_inputs {
                     let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
@@ -4672,12 +4694,7 @@ fn cmd_media_doc(
                     if stdout {
                         return ok_out(&crate::vfs::bytes_to_stream_string(&output));
                     }
-                    let parent = crate::vfs::dirname_posix_path(&out_full);
-                    if !fs.is_dir(&parent) {
-                        let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
-                        return err_out(&format!("ffmpeg: {reason}, writeFile '{out_full}'\n"),1);
-                    }
-                    return match fs.write_file(&out_full,&output) {
+                    return match write_ffmpeg_output(fs,&out_full,&output) {
                         Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
                     };
                 }
@@ -13319,6 +13336,27 @@ mod media_unit_tests {
         assert_eq!((r.exit_code,r.stderr),(0,String::new()));
         let r=cmd_media_doc("ffprobe",&media_args(&["-show_packets","-show_entries","packet=pts,duration,size","-of","csv=p=0","v.m4a"]),"","/",&fs);
         assert_eq!(r.stdout,"0,1024,7\n1024,576,7\n");
+    }
+
+    #[test]
+    fn ffmpeg_sequence_does_not_create_missing_directories() {
+        let fs=MemoryVfs::new();
+        let args=media_args(&["-f","lavfi","-i","color=s=2x2","missing/im%d.png"]);
+        let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: ENOENT: no such file or directory, writeFile '/missing/im1.png'\n".to_string()));
+        assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
+    fn ffmpeg_writes_numbered_pngs_with_decodable_frame_pixels() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=16x32:r=2:d=1","-start_number","7","frame%02d.png"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        for (name,pixel) in [("/frame07.png",[127,127,127,255]),("/frame08.png",[255,255,255,255])] {
+            let frame=fs.read_file(name).unwrap();
+            let im=png_pixels::Raster::decode(&frame,fs.max_input_bytes()).unwrap();
+            assert_eq!((im.width,im.height,im.pixels[0]),(16,32,pixel));
+        }
     }
 
     #[test]

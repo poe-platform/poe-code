@@ -824,6 +824,59 @@ impl Streams<'_> {
     }
 }
 
+pub(in super::super) fn select_tracks(
+    maps: &[&str],
+    sources: usize,
+    count: impl Fn(usize) -> usize,
+    kind_at: impl Fn(usize, usize) -> &'static str,
+) -> Result<Vec<(usize, usize)>, String> {
+    let mut selected = Vec::new();
+    if maps.is_empty() {
+        for j in 0..sources {
+            selected.extend((0..count(j)).map(|i| (j, i)));
+        }
+    }
+    for map in maps {
+        let raw = map.trim_end_matches('?');
+        let mut fields = raw.trim_start_matches('-').split(':');
+        let Some(j) = fields.next().and_then(|v| v.parse::<usize>().ok()) else {
+            continue;
+        };
+        if j >= sources {
+            continue;
+        };
+        let selector = fields.next();
+        let kind = match selector {
+            Some("v") => Some("video"),
+            Some("a") => Some("audio"),
+            Some("s") => Some("subtitle"),
+            _ => None,
+        };
+        let ordinal = if kind.is_some() {
+            fields.next()
+        } else {
+            selector
+        };
+        for (i, index) in (0..count(j))
+            .filter(|&i| kind.is_none_or(|k| kind_at(j, i) == k))
+            .enumerate()
+        {
+            if ordinal.is_some_and(|s| s.parse::<usize>() != Ok(i)) {
+                continue;
+            }
+            if raw.starts_with('-') {
+                selected.retain(|&v| v != (j, index))
+            } else {
+                selected.push((j, index))
+            }
+        }
+        if selected.len() > 32 {
+            return Err("output stream count exceeds limit".into());
+        }
+    }
+    Ok(selected)
+}
+
 pub(in super::super) fn input_slice(
     format: &str,
     input: &[u8],
@@ -989,50 +1042,12 @@ pub(in super::super) fn remux(
         Streams::Aac { rate, .. } => rate,
         _ => header_time(child(moov, b"mvhd"), 1000).0,
     };
-    let mut selected = Vec::new();
-    if opts.maps.is_empty() {
-        for (j, (_, _, tracks)) in sources.iter().enumerate() {
-            selected.extend((0..tracks.len()).map(|i| (j, i)));
-        }
-    }
-    for map in opts.maps {
-        let raw = map.trim_end_matches('?');
-        let mut fields = raw.trim_start_matches('-').split(':');
-        let Some(j) = fields.next().and_then(|v| v.parse::<usize>().ok()) else {
-            continue;
-        };
-        let Some((_, _, source)) = sources.get(j) else {
-            continue;
-        };
-        let selector = fields.next();
-        let kind = match selector {
-            Some("v") => Some("video"),
-            Some("a") => Some("audio"),
-            Some("s") => Some("subtitle"),
-            _ => None,
-        };
-        let ordinal = if kind.is_some() {
-            fields.next()
-        } else {
-            selector
-        };
-        for (i, index) in (0..source.len())
-            .filter(|&i| kind.is_none_or(|k| source.kind(i) == k))
-            .enumerate()
-        {
-            if ordinal.is_some_and(|s| s.parse::<usize>() != Ok(i)) {
-                continue;
-            }
-            if raw.starts_with('-') {
-                selected.retain(|&v| v != (j, index))
-            } else {
-                selected.push((j, index))
-            }
-        }
-        if selected.len() > 32 {
-            return Err("output stream count exceeds limit".into());
-        }
-    }
+    let mut selected = select_tracks(
+        opts.maps,
+        sources.len(),
+        |j| sources[j].2.len(),
+        |j, i| sources[j].2.kind(i),
+    )?;
     selected.retain(|&(j, i)| match sources[j].2.kind(i) {
         "video" => !opts.strip_video,
         "audio" => !opts.strip_audio,

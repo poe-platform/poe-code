@@ -183,7 +183,11 @@ pub(super) struct Options<'a> {
 }
 
 impl Stream<'_> {
-    pub fn encode(&self, options: Options<'_>) -> Result<Vec<u8>, &'static str> {
+    pub fn render(
+        &self,
+        options: Options<'_>,
+        emit: impl FnMut(Raster, f64, usize) -> Result<(), &'static str>,
+    ) -> Result<(usize, usize, u32), &'static str> {
         let (w, h) = (self.width as usize, self.height as usize);
         let mut frames = Vec::new();
         for f in self.frames() {
@@ -192,7 +196,7 @@ impl Stream<'_> {
             }
             frames.push(f);
         }
-        encode(
+        render_frames(
             w,
             h,
             (0..frames.len()).map(|i| (i as f64 / self.fps, 1. / self.fps)),
@@ -209,7 +213,9 @@ impl Stream<'_> {
                     ]
                 }))
             },
-        )
+            emit,
+        )?;
+        Ok((w, h, 30))
     }
 }
 
@@ -298,31 +304,8 @@ fn render(
     canvas.ok_or("missing tile frame")
 }
 
-pub(super) fn encode(
-    w: usize,
-    h: usize,
-    times: impl Iterator<Item = (f64, f64)>,
-    opts: Options<'_>,
-    image: impl FnMut(usize) -> Result<Raster, &'static str>,
-) -> Result<Vec<u8>, &'static str> {
-    let header =
-        |w, h, fps| format!("YUV4MPEG2 W{w} H{h} F{fps}:1 Ip A1:1 C420jpeg\n").into_bytes();
-    if opts.no_video {
-        return Ok(header(64, 64, 10));
-    }
-    let limit = opts.limit;
-    let mut out = Vec::new();
-    render_frames(w, h, times, opts, image, |im, duration, _| {
-        if out.is_empty() {
-            out = header(im.width, im.height, (1. / duration).round().max(1.) as u32)
-        }
-        out.extend_from_slice(b"FRAME\n");
-        append_planes(&mut out, &im, limit)
-    })?;
-    if out.is_empty() {
-        out = header(w, h, 30)
-    }
-    Ok(out)
+pub(super) fn header(w: usize, h: usize, fps: u32) -> Vec<u8> {
+    format!("YUV4MPEG2 W{w} H{h} F{fps}:1 Ip A1:1 C420jpeg\n").into_bytes()
 }
 pub(super) fn render_frames(
     w: usize,

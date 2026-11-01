@@ -661,7 +661,7 @@ fn iterate(value: &JVal, emit: &mut Emit<'_>) -> Flow {
     Ok(Continue(()))
 }
 
-fn describe(scalar: &JVal) -> String {
+pub(super) fn describe(scalar: &JVal) -> String {
     let prefix;
     let printable = if let JVal::Str(s) = scalar {
         prefix = JVal::Str(s.chars().take(15).collect());

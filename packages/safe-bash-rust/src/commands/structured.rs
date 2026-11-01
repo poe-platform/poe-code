@@ -1518,22 +1518,16 @@ fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
         (JVal::Number(a, _), JVal::Number(b, _), "+") => Ok(JVal::Number(*a + *b, None)),
         (JVal::Number(a, _), JVal::Number(b, _), "-") => Ok(JVal::Number(*a - *b, None)),
         (JVal::Number(a, _), JVal::Number(b, _), "*") => Ok(JVal::Number(*a * *b, None)),
-        (JVal::Number(a, _), JVal::Number(b, _), "/") => {
-            let cb = *b;
-            if cb == 0.0 {
-                Err("division by zero".to_string())
-            } else {
-                Ok(JVal::Number(*a / cb, None))
+        (JVal::Number(a, _), JVal::Number(b, _), "%") if a.is_nan() || b.is_nan() => Ok(JVal::Number(f64::NAN, None)),
+        (JVal::Number(_, _), JVal::Number(b, _), "/" | "%")
+            if *b == 0.0 || (op == "%" && b.trunc() == 0.0) => {
+                let remainder = if op == "%" { " (remainder)" } else { "" };
+                Err(format!("{} and {} cannot be divided{remainder} because the divisor is zero",
+                    jq_generator::describe(lv), jq_generator::describe(rv)))
             }
-        }
-        (JVal::Number(a, _), JVal::Number(b, _), "%") => {
-            let cb = *b;
-            if cb == 0.0 {
-                Err("division by zero".to_string())
-            } else {
-                Ok(JVal::Number(*a % cb, None))
-            }
-        }
+        (JVal::Number(a, _), JVal::Number(b, _), "/") => Ok(JVal::Number(a / b, None)),
+        (JVal::Number(a, _), JVal::Number(b, _), "%") =>
+            Ok(JVal::Number((*a as i64).wrapping_rem(*b as i64) as f64, None)),
         (JVal::Str(a), JVal::Str(b), "+") => Ok(JVal::Str(format!("{a}{b}"))),
         (JVal::Str(a), JVal::Str(b), "/") => Ok(JVal::Array(
             a.split(b.as_str())
@@ -1575,8 +1569,10 @@ fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
             }
             Ok(JVal::Object(m))
         }
+        (_, _, "+" | "-") => Err(format!("{} and {} cannot be {}",
+            jq_generator::describe(lv), jq_generator::describe(rv), if op == "+" { "added" } else { "subtracted" })),
         _ => Err(format!(
-            "cannot apply '{op}' to {} and {}",
+            "cannot apply {op} to {} and {}",
             lv.type_name(),
             rv.type_name()
         )),

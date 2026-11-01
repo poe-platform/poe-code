@@ -290,6 +290,24 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("jq numeric remainder uses signed 64-bit operands and operators describe errors", () => {
+  const bash = new RustWasmBash();
+  try {
+    const r = bash.execSync("jq -nc '[5.9%2.5,(-5.9)%2.5,18446744073709551616%3,-9223372036854775808 % -1,nan%0]'");
+    assert.deepEqual([r.exitCode, r.stdout], [0, "[1,-1,1,0,null]\n"]);
+    for (const [expr, message] of [
+      ["1/0", "number (1) and number (0) cannot be divided because the divisor is zero"],
+      ["5.9%0.1", "number (5.9) and number (0.1) cannot be divided (remainder) because the divisor is zero"],
+      ["true+{}", "boolean (true) and object ({}) cannot be added"],
+      ['{a:2}-[1]', 'object ({"a":2}) and array ([1]) cannot be subtracted'],
+      ["false*3", "cannot apply * to boolean and number"],
+    ]) {
+      const err = bash.execSync("jq -nr 'try (" + expr + ") catch .'");
+      assert.deepEqual([err.exitCode, err.stdout], [0, message + "\n"]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq recurse emits each node before requesting children and preserves suspended sibling streams", () => {
   const bash = new RustWasmBash();
   try {

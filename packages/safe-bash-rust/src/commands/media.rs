@@ -4652,7 +4652,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if fc_flag.is_empty() && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                    }else if fc_flag.is_empty() && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -13548,6 +13548,19 @@ mod media_unit_tests {
         let args=media_args(&["-r","90","-p","9","19","-Z","8","-s","format","png","src.jpg","--out","out.png"]);
         assert_eq!(cmd_media_doc("sips",&args,"","/",&fs).exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "dbf41ea98710cede4c2280ddc3bf314e1f041df84c192664f409ced9b29d4917");
+    }
+
+    #[test]
+    fn ffmpeg_decodes_numbered_jpeg_inputs_from_the_requested_start_number() {
+        let fs=MemoryVfs::new();
+        let jpeg=include_bytes!("../../tests/fixtures/subsampled-progressive.jpg");
+        for name in ["/im3.jpeg","/im4.jpeg"] {fs.write_file(name,jpeg).unwrap();}
+        let args=media_args(&["-start_number","3","-framerate","4","-i","im%d.jpeg","-frames:v","2","numbered%02d.png"]);
+        let result=cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!((result.exit_code,result.stderr),(0,String::new()));
+        for name in ["/numbered01.png","/numbered02.png"] {
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(name).unwrap())), "ac6885753036dea41ff2ec15e046d26294322000e8056aa30d35fa17a68ef5a5");
+        }
     }
 
     #[test]

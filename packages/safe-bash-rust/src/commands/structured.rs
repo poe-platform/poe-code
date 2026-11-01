@@ -34435,6 +34435,7 @@ struct AstCodeNode {
 
 #[derive(Debug, Clone)]
 struct AstCapture {
+    name: String,
     many: bool,
     nodes: Vec<AstCodeNode>,
     text: String,
@@ -34444,7 +34445,7 @@ struct AstCapture {
 #[derive(Debug, Clone)]
 struct AstMatch {
     node: AstCodeNode,
-    captures: BTreeMap<String, AstCapture>,
+    captures: Vec<AstCapture>,
 }
 
 #[derive(Debug, Clone)]
@@ -36586,45 +36587,43 @@ fn ast_capture(
     name: &str,
     nodes: &[AstCodeNode],
     owner: &AstCodeNode,
-    captures: &BTreeMap<String, AstCapture>,
+    captures: &[AstCapture],
     many: bool,
     source: &str,
-) -> Option<BTreeMap<String, AstCapture>> {
+) -> Option<Vec<AstCapture>> {
     if name.is_empty() || name == "_" {
-        return Some(captures.clone());
+        return Some(captures.to_vec());
     }
-    if let Some(prev) = captures.get(name) {
+    let previous = captures.iter().position(|c| c.name == name);
+    if let Some(i) = previous {
+        let prev = &captures[i];
         if prev.nodes.len() != nodes.len()
-            || !nodes
-                .iter()
-                .zip(prev.nodes.iter())
-                .all(|(x, y)| ast_same(x, y))
+            || !nodes.iter().zip(&prev.nodes).all(|(x, y)| ast_same(x, y))
         {
             return None;
         }
     }
     let start = nodes.first().map(|n| n.range.0).unwrap_or(owner.range.0);
     let end = nodes.last().map(|n| n.range.1).unwrap_or(start);
-    let text = source.get(start..end).unwrap_or("").to_string();
-    let mut next = captures.clone();
-    next.insert(
-        name.to_string(),
-        AstCapture {
-            many,
-            nodes: nodes.to_vec(),
-            text,
-            range: (start, end),
-        },
-    );
+    let capture = AstCapture {
+        name: name.to_owned(), many, nodes: nodes.to_vec(),
+        text: source.get(start..end).unwrap_or("").to_owned(), range: (start, end),
+    };
+    let mut next = captures.to_vec();
+    if let Some(i) = previous {
+        next[i] = capture;
+    } else {
+        next.push(capture);
+    }
     Some(next)
 }
 
 fn ast_structural(
     pattern: &AstCodeNode,
     node: &AstCodeNode,
-    captures: &BTreeMap<String, AstCapture>,
+    captures: &[AstCapture],
     source: &str,
-) -> Option<BTreeMap<String, AstCapture>> {
+) -> Option<Vec<AstCapture>> {
     if let Some((vname, many)) = ast_variable(pattern) {
         let first_ch = node.kind.bytes().next().unwrap_or(0);
         if node.trivia || node.kind == "ERROR" || !first_ch.is_ascii_uppercase() {
@@ -36638,7 +36637,7 @@ fn ast_structural(
     let ps = ast_children(pattern);
     let ns = ast_children(node);
     if ps.is_empty() && ns.is_empty() {
-        return (pattern.text == node.text).then(|| captures.clone());
+        return (pattern.text == node.text).then(|| captures.to_vec());
     }
     fn seq(
         ps: &[AstCodeNode],
@@ -36646,11 +36645,11 @@ fn ast_structural(
         pi: usize,
         ni: usize,
         owner: &AstCodeNode,
-        state: &BTreeMap<String, AstCapture>,
+        state: &[AstCapture],
         source: &str,
-    ) -> Option<BTreeMap<String, AstCapture>> {
+    ) -> Option<Vec<AstCapture>> {
         if pi == ps.len() {
-            return (ni == ns.len()).then(|| state.clone());
+            return (ni == ns.len()).then(|| state.to_vec());
         }
         let p = &ps[pi];
         if let Some((vname, true)) = ast_variable(p) {
@@ -36763,13 +36762,13 @@ fn eval_ast_pattern(
     compiled: &BTreeMap<&str, AstCodeNode>,
     root: &AstCodeNode,
     node: &AstCodeNode,
-    captures: &BTreeMap<String, AstCapture>,
+    captures: &[AstCapture],
     source: &str,
-) -> Option<BTreeMap<String, AstCapture>> {
+) -> Option<Vec<AstCapture>> {
     match pattern {
         AstPattern::Text(text) => ast_structural(&compiled[text.as_str()], node, captures, source),
         AstPattern::Rule(spec) => {
-            let mut state = captures.clone();
+            let mut state = captures.to_vec();
             if let Some(ref pat_str) = spec.pattern {
                 state = ast_structural(&compiled[pat_str.as_str()], node, &state, source)?;
             }
@@ -36875,8 +36874,7 @@ fn ast_find_matches(
         if n.trivia || n.kind == "ERROR" {
             continue;
         }
-        let empty = BTreeMap::new();
-        if let Some(captures) = eval_ast_pattern(pattern, &compiled, root, n, &empty, source) {
+        if let Some(captures) = eval_ast_pattern(pattern, &compiled, root, n, &[], source) {
             out.push(AstMatch {
                 node: n.clone(),
                 captures,
@@ -36918,7 +36916,7 @@ fn ast_replacement(template: &str, m: &AstMatch) -> Result<String, String> {
             end += 1;
         }
         let name = &template[i + pfx..end];
-        let Some(cap) = m.captures.get(name) else {
+        let Some(cap) = m.captures.iter().find(|c| c.name == name) else {
             return Err(format!("Unknown rewrite capture: {}", &template[start..end]));
         };
         out.push_str(&cap.text);
@@ -36998,7 +36996,8 @@ fn ast_json_record(
     let ec = ast_unicode_col(lines.get(node.end.0).copied().unwrap_or(""), node.end.1);
     let mut single = Vec::new();
     let mut multi = Vec::new();
-    for (name, c) in &m.captures {
+    for c in &m.captures {
+        let name = &c.name;
         if !c.many {
             if let Some(first) = c.nodes.first() {
                 single.push((name.clone(), ast_capture_jval(first, lines)));
@@ -39343,6 +39342,16 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_serializes_captures_in_first_match_order() {
+        let fs = MemoryVfs::new();
+        for (pattern, source) in [("f($Z, $A, $Z)", "f(x, y, x)"), ("f($$$Z, cut, $$$A)", "f(x, cut, y)")] {
+            let r = try_run_structured_command("sg", &args(&["-l", "js", "-p", pattern, "--json=compact", "--stdin"]), source, "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert!(r.stdout.find("\"Z\":").unwrap() < r.stdout.find("\"A\":").unwrap(), "{pattern}");
+        }
     }
 
     #[test]

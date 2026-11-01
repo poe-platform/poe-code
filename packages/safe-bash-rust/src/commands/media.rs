@@ -10707,22 +10707,41 @@ fn cmd_media_doc(
             let spec=format!("{}x{}",cell_w.map(|v|v.to_string()).unwrap_or_default(),cell_h.map(|v|v.to_string()).unwrap_or_default());
             let destination=png_pixels::destination(out_rel);
             for p in in_paths {
-                let path=p.strip_prefix("png:").unwrap_or(p);
+                let (base,modifier)=magick_stack::input_spec(p);
+                let kernel=magick_resize::Kernel::Lanczos3;
+                if destination.is_some() {
+                    let step=match Canvas::parse(base) {
+                        Some(Ok(canvas))=>magick_stack::Step::Canvas(canvas,(1,1),modifier,kernel),
+                        Some(Err(e))=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
+                        None=>magick_stack::Step::File(base,modifier,kernel),
+                    };
+                    match magick_stack::evaluate(&[(0,step)],0,|im,_,_|{
+                        im.resize(&spec,kernel,limit)?;
+                        Ok((false,false))
+                    },cwd,fs,&mut Default::default()) {
+                        Ok(Some(images)) if images.frames.is_empty()=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1),
+                        Ok(Some(images))=>{
+                            for scene in images.frames {
+                                let image=scene.image;
+                                if image.pixels.len()>limit/4-retained{return err_out("montage: image exceeds memory budget\n",1);}
+                                retained+=image.pixels.len();
+                                thumb_dims.push(((image.width as u32).saturating_add(border_w.saturating_mul(2)),(image.height as u32).saturating_add(border_w.saturating_mul(2))));
+                                tiles.push(image);
+                            }
+                            continue;
+                        }
+                        Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
+                        Ok(None)=>{}
+                    }
+                }
+                let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
                 let full=resolve_posix_path(cwd,path);
-                let bytes=if Canvas::parse(p).is_some(){Vec::new()}else{
+                let bytes=if Canvas::parse(base).is_some(){Vec::new()}else{
                     match fs.read_file(&full){Ok(bytes)=>bytes,Err(_)=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1)}
                 };
-                let (tw,th)=match if destination.is_some() {png_pixels::Raster::input(p,&bytes,limit)} else {Ok(None)} {
-                    Ok(Some(mut image))=>{
-                        if let Err(e)=image.resize(&spec,magick_resize::Kernel::Lanczos3,limit){return err_out(&format!("montage: {e}\n"),1);}
-                        let (w,h)=(image.width as u32,image.height as u32);
-                        if image.pixels.len()>limit/4-retained {return err_out("montage: image exceeds memory budget\n",1);}
-                        retained+=image.pixels.len();tiles.push(image);(w,h)
-                    }
-                    Ok(None)=>{let meta=read_image_meta(&bytes,&full);apply_magick_resize_geom(meta.w,meta.h,&spec)}
-                    Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1)
-                };
-                thumb_dims.push((tw.saturating_add(border_w.saturating_mul(2)),th.saturating_add(border_w.saturating_mul(2))));
+                let meta=read_image_meta(&bytes,&full);
+                let (w,h)=apply_magick_resize_geom(meta.w,meta.h,&spec);
+                thumb_dims.push((w.saturating_add(border_w.saturating_mul(2)),h.saturating_add(border_w.saturating_mul(2))));
             }
             let n = thumb_dims.len();
             let cols = tile_cols.unwrap_or_else(|| {
@@ -14482,6 +14501,22 @@ mod media_unit_tests {
         assert_eq!(png_pixels::Raster::decode(&corrupt,4096).unwrap().pixels,vec![[0,0,0,255];20]);
         corrupt.extend(im.png());
         assert_eq!(png_pixels::Raster::decode(&corrupt,4096).unwrap().pixels,im.pixels);
+    }
+
+    #[test]
+    fn montage_lays_out_selected_gif_scenes() {
+        let fs=MemoryVfs::new();
+        let run=|cmd,argv:&str|cmd_media_doc(cmd,&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("convert","-size 4x2 xc:red gradient:blue-yellow xc:green -delay 9 -loop 5 a.gif").exit_code,0);
+        assert_eq!(run("convert","-size 3x2 gradient:red-blue p.png").exit_code,0);
+        for (input,hash) in [
+            ("a.gif","0105e1037f6a1804c883639012d292fff7658579bc5e2915398519e610dc8d0b"),
+            ("a.gif[-1]","91aef1971810b01088d54a5e628e6b37a0670af405cc7bd101ccb2db256fc535"),
+        ]{
+            let r=run("montage",&format!("{input} p.png -tile 2x1 -geometry +0+0 o.png"));
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash);
+        }
     }
 
     #[test]

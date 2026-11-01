@@ -10217,6 +10217,10 @@ fn cmd_media_doc(
                     if width.saturating_mul(height)>fs.max_input_bytes()/4 {return Some(err_out("magick: image exceeds memory budget\n",1));}
                     let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
                     png_pixels::Raster {width,height,density:72,orientation:None,gray:false,alpha:true,pixels}
+                } else if gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
+                    match gif::decode(bytes,true,fs.max_input_bytes()) {
+                        Ok(im)=>im,Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
+                    }
                 } else {
                     match png_pixels::Raster::input(input,bytes,fs.max_input_bytes()) {
                         Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
@@ -10231,8 +10235,8 @@ fn cmd_media_doc(
                         PixelOp::Resize(size,kernel) => if let Err(e)=image.resize(size,*kernel,fs.max_input_bytes()) {return Some(err_out(&format!("magick: {e}\n"),1));},
                         PixelOp::Negate => for p in &mut image.pixels { for c in &mut p[..3] { *c=255-*c; } },
                         PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
-                        PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width){row.reverse();}}
-                        PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width){row.reverse();},
+                        PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
+                        PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
                     }
                 }
                 Some(image.publish(dest,quality,cwd,fs))
@@ -14188,6 +14192,15 @@ mod media_unit_tests {
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.ppm").unwrap())), "c6213c31b8dc8aa74e5163435f70b978d406d919f0f33e7d0bcb65bab89fd010");
         assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=7x5:r=2:d=1", "%02d.webp"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/02.webp").unwrap())), "517792c6879004136e9ae816f1abd8dd522ee686f54368e84350bc2ec8f256ce");
+    }
+
+    #[test]
+    fn convert_uses_the_last_composited_gif_frame_for_a_single_png() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/anim",&hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021ff0b4e45545343415045322e30030103000021f904000a0000002c00000000030002000008090001082010604081800021f904010a0006002c01000000020002008200458a11569bee3378ff4489dc2166ed32770000000000000807000510185020200021f904010a0006002c01000000020002008200458a11569bff448910559afe43880f5499000000000000080700051018502020003b")).unwrap();
+        let r=cmd_media_doc("convert",&media_args(&["anim","-flop","out.png"]),"","/",&fs);
+        assert_eq!(r.exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),"b42039e70d78d673a4a66b520cd59e36f16ccf0a8480bd415b0f0c9d249f3f91");
     }
 
     #[test]

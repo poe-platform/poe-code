@@ -227,7 +227,7 @@ fn indices(
     Ok(())
 }
 
-pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+pub(super) fn decode(bytes: &[u8], last: bool, limit: usize) -> Result<Raster, &'static str> {
     let (w, h) = dimensions(bytes)?;
     let (w, h) = (w as usize, h as usize);
     let count = w
@@ -238,6 +238,10 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str>
     let mut input = &bytes[13..];
     let global = palette(&mut input, bytes[10]);
     let mut transparent = None;
+    let mut disposal = 0;
+    let mut prior = None;
+    let mut saved = Vec::new();
+    let mut work = (limit / 4).saturating_mul(32);
     while let Some((&intro, rest)) = input.split_first() {
         input = rest;
         match intro {
@@ -246,6 +250,7 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str>
                 if label == 249 {
                     let n = byte(&mut input) as usize;
                     let gce = take(&mut input, n);
+                    disposal = (gce.first().copied().unwrap_or(0) >> 2) & 7;
                     transparent = if gce.first().is_some_and(|f| f & 1 != 0) {
                         gce.get(3).copied()
                     } else {
@@ -282,6 +287,33 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str>
                     .checked_mul(ih)
                     .filter(|&n| n <= limit / 4)
                     .ok_or("image exceeds memory budget")?;
+                if let Some((op, l, t, r, b)) = prior.take() {
+                    if op == 2 {
+                        for y in t..b {
+                            pixels[y * w + l..y * w + r].fill([0; 4]);
+                        }
+                    } else if op == 3 {
+                        std::mem::swap(&mut saved, &mut pixels);
+                    }
+                }
+                if last {
+                    work = work
+                        .checked_sub(n.saturating_add(if disposal == 3 { count } else { 0 }))
+                        .ok_or("GIF pixel work limit exceeded")?;
+                    if disposal == 3 {
+                        if count > limit / 8 {
+                            return Err("image exceeds memory budget");
+                        }
+                        saved.clone_from(&pixels);
+                    }
+                    prior = Some((
+                        disposal,
+                        left.min(w),
+                        top.min(h),
+                        (left + iw).min(w),
+                        (top + ih).min(h),
+                    ));
+                }
                 let (mut x, mut y, mut pass) = (0, 0, 0);
                 indices(input, min, n, |index| {
                     if x + left < w && y + top < h && Some(index) != transparent {
@@ -307,7 +339,18 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str>
                         }
                     }
                 })?;
-                break;
+                if !last {
+                    break;
+                }
+                loop {
+                    let n = byte(&mut input);
+                    if n == 0 {
+                        break;
+                    }
+                    take(&mut input, n as usize);
+                }
+                transparent = None;
+                disposal = 0;
             }
             _ => break,
         }

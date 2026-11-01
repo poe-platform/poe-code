@@ -118,7 +118,7 @@ impl Raster {
         }
     }
     pub fn decode(bytes: &[u8], limit: usize) -> Result<Self, &'static str> {
-        if super::gif::signature(bytes) { return super::gif::decode(bytes,limit); }
+        if super::gif::signature(bytes) { return super::gif::decode(bytes,false,limit); }
         if super::webp::signature(bytes) { return super::webp::decode(bytes,limit); }
         if super::jpeg_decode::signature(bytes) {return super::jpeg_decode::decode(bytes,limit);}
         if super::netpbm::signature(bytes) {

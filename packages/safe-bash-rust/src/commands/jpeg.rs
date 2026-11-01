@@ -95,6 +95,9 @@ fn segment(out: &mut Vec<u8>, marker: u8, body: &[u8]) {
 }
 
 fn coefficients(block: &[f64; 64], cos: &[[f64; 8]; 8], quant: &[u8; 64]) -> [i32; 64] {
+    // A nonnumeric quality produces zero quantizers; JS stores the nonfinite
+    // coefficients as zeros in its Int32Array.
+    if quant[0]==0 {return [0;64];}
     let mut temp = [[0.; 8]; 8];
     for (row, src) in temp.iter_mut().zip(block.chunks_exact(8)) {
         for (v, c) in row.iter_mut().zip(cos) {
@@ -128,7 +131,7 @@ pub(super) fn cosines() -> [[f64; 8]; 8] {
 
 pub(super) fn encode(
     im: &Raster,
-    quality: u8,
+    quality: f64,
     density: u32,
     limit: usize,
 ) -> Result<Vec<u8>, &'static str> {
@@ -147,10 +150,9 @@ pub(super) fn encode(
         payload.extend_from_slice(&super::image_header::encode_exif(o, density));
         segment(&mut out, 0xe1, &payload);
     }
-    let q = u32::from(quality).clamp(1, 100);
-    let scale = if q < 50 { 5000 / q } else { 200 - 2 * q };
-    let quant = [LUMA_QUANT, CHROMA_QUANT]
-        .map(|base| ZIGZAG.map(|p| ((u32::from(base[p]) * scale + 50) / 100).clamp(1, 255) as u8));
+    let q=quality.round().clamp(1.,100.);
+    let scale=if q<50.{(5000./q).floor()}else{200.-2.*q};
+    let quant=[LUMA_QUANT,CHROMA_QUANT].map(|base| ZIGZAG.map(|p| ((f64::from(base[p])*scale+50.)/100.).floor().clamp(1.,255.) as u8));
     let mut dqt = Vec::new();
     for (i, q) in quant.iter().enumerate() {
         dqt.push(i as u8);

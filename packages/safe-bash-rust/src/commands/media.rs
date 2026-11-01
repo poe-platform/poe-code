@@ -238,6 +238,17 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     meta
 }
 
+fn magick_quality(value: &str) -> f64 {
+    let s=value.trim();
+    if s.is_empty() {return 1.;}
+    for (prefix,radix) in [("0x",16),("0o",8),("0b",2)] {
+        if s.get(..2).is_some_and(|p|p.eq_ignore_ascii_case(prefix)) {
+            return u64::from_str_radix(&s[2..],radix).map_or(f64::NAN,|v|v as f64);
+        }
+    }
+    s.parse().unwrap_or(f64::NAN)
+}
+
 fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, u8, u8, u32), &'static str> {
     if !image_header::recognized_image(bytes) { return Err("Input buffer contains unsupported image format"); }
     if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.len() < 24 { return Err("Invalid PNG header"); }
@@ -10037,6 +10048,7 @@ fn cmd_media_doc(
             let mut gravity=Gravity::parse("northwest");
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
+            let mut quality=92.;
             enum PixelOp<'a> { Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10154,7 +10166,8 @@ fn cmd_media_doc(
                         if arg=="-background"{background=color;}else{border_color=color;}
                         i+=2;
                     }
-                    "-channel" | "-blur" | "-sharpen" | "-threshold" | "-quality" | "-depth" | "-fill"
+                    "-quality" if i+1<args.len()=>{quality=magick_quality(&args[i+1]);i+=2;}
+                    "-channel" | "-blur" | "-sharpen" | "-threshold" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
                     | "-draw" | "-annotate" | "-alpha" | "-define"
                         if i + 1 < args.len() =>
@@ -10204,7 +10217,7 @@ fn cmd_media_doc(
                         PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width){row.reverse();},
                     }
                 }
-                Some(image.publish(dest,cwd,fs))
+                Some(image.publish(dest,quality,cwd,fs))
             };
             let apply_ops = |meta: &mut ImageMeta| {
                 if let Some(ref rspec) = resize_spec {
@@ -10443,6 +10456,7 @@ fn cmd_media_doc(
             if let Some(list_out) = try_magick_list_option(args) {
                 return list_out;
             }
+            let mut quality=92.;
             let mut tile_cols: Option<usize> = None;
             let mut tile_rows: Option<usize> = None;
             let mut cell_w: Option<u32> = None;
@@ -10505,7 +10519,8 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-gravity" if i+1 < args.len() => {gravity=args[i+1].to_ascii_lowercase().replace(['-','_',' '],"");i+=2;}
-                    "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-quality" | "-mode"
+                    "-quality" if i+1<args.len()=>{quality=magick_quality(&args[i+1]);i+=2;}
+                    "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-mode"
                         if i + 1 < args.len() => {i+=2;}
                     a if a.starts_with('-') => {
                         i += 1;
@@ -10585,7 +10600,7 @@ fn cmd_media_doc(
                         *d=magick_composite::blend(src,*d,"over",1.,1.);
                     }}
                 }
-                return sheet.publish(dest,cwd,fs);
+                return sheet.publish(dest,quality,cwd,fs);
             }
             let out_full = resolve_posix_path(cwd, out_rel);
             let out_meta = ImageMeta {
@@ -10604,7 +10619,7 @@ fn cmd_media_doc(
             }
             let mut metric = "rmse".to_string();
             let mut options = magick_compare::Options {
-                fuzz: 0., highlight: [241,0,30,255], lowlight: None, compose_src: false, threshold: None, density: 72,
+                fuzz: 0., highlight: [241,0,30,255], lowlight: None, compose_src: false, threshold: None, density: 72, quality:92.,
             };
             let mut operands: Vec<String> = Vec::new();
             let mut i = 0usize;
@@ -10631,6 +10646,7 @@ fn cmd_media_doc(
                     "-compose" | "-dissimilarity-threshold" | "-density" | "-quality" | "-format" | "-alpha" | "-channel" if i+1 < args.len() => {
                         let value=&args[i+1];
                         match args[i].as_str() {
+                            "-quality" => options.quality=magick_quality(value),
                             "-compose" => options.compose_src |= matches!(value.to_ascii_lowercase().as_str(),"src"|"source"|"copy"),
                             "-density" => options.density=value.split('x').next().and_then(|v|v.parse::<f64>().ok()).unwrap_or(72.).round().max(1.) as u32,
                             "-dissimilarity-threshold" => options.threshold=Some(value.parse().unwrap_or(f64::NAN)), _=>{}
@@ -14096,6 +14112,17 @@ mod media_unit_tests {
             })).collect();
             let png=pixel_png(257,129,PngEncoding::SplitDensity(72,None),|x,y|pixels[y*257+x]);
             assert_eq!(hex_enc(&sha256_bytes(&png)),expected);
+        }
+    }
+
+    #[test]
+    fn magick_encodes_jpeg_with_the_requested_quality() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]| assert_eq!(cmd_media_doc("convert",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-size","7x5","xc:red","a.png"]);
+        for (quality,expected) in [("35","deb751e6dfd9dea608baf38cec494084985eebe96c29538c3eb7c3dc64ba3950"),("66.7","e6c41ddca922d73758fc5906eed10150bf01165466a2e0bcd123ea009e65e2d7"),("bogus","dae4ecf44407349b6baa0d480eaf26487334a07b55219525530d03e57a004f94")] {
+            run(&["a.png","-flop","-quality",quality,"JPEG:o.bin"]);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.bin").unwrap())),expected);
         }
     }
 

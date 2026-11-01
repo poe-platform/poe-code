@@ -64,7 +64,7 @@ fn tiff(im: &Raster, density:u32, limit: usize) -> Result<Vec<u8>, &'static str>
 pub(super) fn encode(
     im: &Raster,
     format: &str,
-    quality: u8,
+    quality: f64,
     density: u32,
     limit: usize,
 ) -> Result<Vec<u8>, &'static str> {
@@ -362,7 +362,7 @@ pub(super) fn render(
     let dims = decode(pattern.is_some(), &mut |mut im, duration, _| {
         if let Some(fmt) = image_format {
             if fmt=="tiff" { im.orientation=None; }
-            let frame = encode(&im, fmt, 85, 72, limit)?;
+            let frame = encode(&im, fmt, 85., 72, limit)?;
             if let Some((i, j, width)) = pattern {
                 total = total.saturating_add(frame.len());
                 if total > limit {
@@ -411,7 +411,7 @@ pub(super) fn render(
                 orientation: None,
                 pixels: vec![[0; 4]; w * h],
             };
-            encode(&blank, fmt, 85, 72, limit)?
+            encode(&blank, fmt, 85., 72, limit)?
         } else {
             super::y4m::header(w, h, fps)
         };

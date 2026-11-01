@@ -174,6 +174,7 @@ pub(super) fn run(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    let mut quality=92.;
     let mut mode = "over".to_owned();
     let mut gravity = "northwest".to_owned();
     let mut amounts = "";
@@ -210,7 +211,8 @@ pub(super) fn run(
                     amounts = v;
                 }
             }
-            "-background" | "-quality" => {
+            "-quality" => quality=super::magick_quality(iter.next()?),
+            "-background" => {
                 iter.next()?;
             }
             "-composite" => {}
@@ -320,5 +322,5 @@ pub(super) fn run(
             | "softlight"
             | "saturate"
     ) || base.pixels.iter().any(|p| p[3] < 255);
-    Some(base.publish(dest, cwd, fs))
+    Some(base.publish(dest, quality, cwd, fs))
 }

@@ -9,6 +9,7 @@ pub(super) struct Options {
     pub compose_src: bool,
     pub threshold: Option<f64>,
     pub density: u32,
+    pub quality: f64,
 }
 
 fn number(n: f64) -> String {
@@ -122,7 +123,7 @@ pub(super) fn compare(
     };
     let mut stdout = String::new();
     if let Some((pixels,dest)) = diff.zip(dest) {
-        let out=Raster{width:w,height:h,alpha:true,gray:false,density:opts.density,orientation:None,pixels}.publish(dest,cwd,fs);
+        let out=Raster{width:w,height:h,alpha:true,gray:false,density:opts.density,orientation:None,pixels}.publish(dest,opts.quality,cwd,fs);
         if out.exit_code!=0{return out;}
         stdout=out.stdout;
     }

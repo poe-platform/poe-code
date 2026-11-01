@@ -144,7 +144,7 @@ pub(super) fn edit(
     let mut encoded = if format == "png" {
         raster.png()
     } else {
-        super::frame_output::encode(&raster, format, quality, raster.density, limit)?
+        super::frame_output::encode(&raster, format, f64::from(quality), raster.density, limit)?
     };
     if props.is_empty() {
         return Ok(encoded);

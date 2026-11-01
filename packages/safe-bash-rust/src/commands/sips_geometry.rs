@@ -166,7 +166,7 @@ pub(super) fn transform(
         if jpeg {
             // sips encodes and reopens the image after a flip, rotation, or integer crop/pad.
             // The lossy intermediate JPEG affects even a subsequent lossless export.
-            let bytes = super::jpeg::encode(raster, 85, raster.density, limit)?;
+            let bytes = super::jpeg::encode(raster, 85., raster.density, limit)?;
             *raster = super::jpeg_decode::decode(&bytes, limit)?;
         }
         dims = (raster.width, raster.height);

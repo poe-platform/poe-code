@@ -19,7 +19,7 @@ pub(super) fn supported_still(bytes: &[u8]) -> bool {
 
 pub(super) fn destination(spec: &str) -> Option<(&'static str, &str)> {
     let format=|name:&str| match name.to_ascii_lowercase().as_str() {
-        "png"=>Some("png"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
+        "png"=>Some("png"),"jpg"|"jpeg"=>Some("jpeg"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
         "ppm"=>Some("ppm"),"pgm"=>Some("pgm"),"pbm"=>Some("pbm"),_=>None
     };
     if let Some((prefix,path))=spec.split_once(':') && let Some(fmt)=format(prefix) {return Some((fmt,path));}
@@ -74,11 +74,12 @@ impl Raster {
     pub fn publish(
         &self,
         (format,path): (&str,&str),
+        quality: f64,
         cwd: &str,
         fs: &dyn super::SafeBashFs,
     ) -> super::BuiltinOutcome {
         let bytes=if format=="png"{self.png()}else{
-            match super::frame_output::encode(self,format,85,self.density,fs.max_input_bytes()) {
+            match super::frame_output::encode(self,format,quality,self.density,fs.max_input_bytes()) {
                 Ok(data)=>data,Err(e)=>return super::err_out(&format!("magick: {e}\n"),1),
             }
         };

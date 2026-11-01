@@ -465,3 +465,31 @@ test("realpath walks links before parent components and stays inside a mount", a
     assert.equal(await fs.realpath("/dev/."), "/dev");
   } finally { bash.dispose(); }
 });
+
+test("copyFile preserves destinations on failed copies and applies the source mode", async () => {
+  for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, files: {"/dir/source": {content:"bytes",mode:0o640}, "/dest": {content:"keep",mode:0o600}}});
+    const fs = bash.fs;
+    try {
+      await fs.symlink("/dir/source", "/same");
+      await fs.symlink("dest", "/alias");
+      await fs.symlink("new", "/dangling");
+      await assert.rejects(fs.copyFile("/dir/source", "/alias", {exclusive:true}), {code:"EEXIST"});
+      await assert.rejects(fs.copyFile("/dir/source", "/dangling", {exclusive:true}), {code:"EEXIST"});
+      await assert.rejects(fs.copyFile("/dir/source", "/same"), {code:"EINVAL"});
+      await assert.rejects(fs.copyFile("/dir/source", "/missing/file"), {code:"ENOENT"});
+      await assert.rejects(fs.copyFile("/dir/source", "/dest", {signal:AbortSignal.abort()}), {name:"AbortError"});
+      assert.equal(bash.readText("/dest"), "keep");
+      await fs.copyFile("/same", "/alias");
+      assert.equal(bash.readText("/dest"), "bytes");
+      assert.equal((await fs.lstat("/dest")).mode & 0o777, 0o640);
+      assert.equal(await fs.readlink("/alias"), "dest");
+      await fs.copyFile("/same", "/dangling");
+      assert.equal(bash.readText("/new"), "bytes");
+      await fs.chmod("/dest", 0o400);
+      await assert.rejects(fs.copyFile("/same", "/dest"), {code:"EACCES"});
+    } finally {
+      bash.dispose();
+    }
+  }
+});

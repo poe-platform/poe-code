@@ -59,7 +59,7 @@ export class WasmFileSystem {
   realpath(filePath: string, options?: { signal?: AbortSignal }): Promise<string>;
   open(filePath: string, flags?: string | number, mode?: number): Promise<unknown>;
   rename(oldPath: string, newPath: string, options?: { noReplace?: boolean; signal?: AbortSignal }): Promise<void>;
-  copyFile(srcPath: string, destPath: string): Promise<void>;
+  copyFile(srcPath: string, destPath: string, options?: { exclusive?: boolean; signal?: AbortSignal }): Promise<void>;
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 

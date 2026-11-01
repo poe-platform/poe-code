@@ -12,6 +12,38 @@ struct WasmSession {
     last_output_buf: Vec<u8>,
 }
 
+impl WasmSession {
+    // The session lock covers validation and publication, including exclusive creates.
+    fn copy_file(&self, source: &str, destination: &str, exclusive: bool) -> Result<(), String> {
+        let fs = &self.shell.fs;
+        let from = fs.access_path(source, true)?;
+        let origin = fs.lstat(&from)?;
+        if origin.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+        if origin.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        let to = fs.access_path(destination, !exclusive)?;
+        let existing = match fs.lstat(&to) {
+            Ok(st) => Some(st),
+            Err(e) if e.starts_with("ENOENT:") => None,
+            Err(e) => return Err(e),
+        };
+        let source_device = origin.mode & 0o170000 == 0o020000;
+        let target_device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
+        if let Some(st) = &existing {
+            if exclusive { return Err("EEXIST: file already exists".into()); }
+            if !target_device && (from == to || (origin.identity.is_some() && st.identity == origin.identity)) {
+                return Err("EINVAL: invalid argument".into());
+            }
+            if st.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+            if st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
+        } else if fs.stat(&crate::vfs::dirname_posix_path(&to))?.mode & 0o300 != 0o300 {
+            return Err("EACCES: permission denied".into());
+        }
+        fs.write_file(&to, &fs.read_file(&from)?)?;
+        if !source_device && !target_device { fs.chmod(&to, origin.mode & 0o7777)?; }
+        Ok(())
+    }
+}
+
 static SESSIONS: OnceLock<Mutex<BTreeMap<u32, WasmSession>>> = OnceLock::new();
 
 
@@ -219,6 +251,23 @@ pub unsafe extern "C" fn safe_bash_realpath(id: u32, ptr: *const u8, len: usize)
             sess.last_output_buf = p.into_bytes();
             sess.last_output_buf.len() as i32
         }
+        Err(e) => {
+            sess.last_output_buf = e.into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_copy_file(
+    id: u32, src_ptr: *const u8, src_len: usize, dst_ptr: *const u8, dst_len: usize, exclusive: bool,
+) -> i32 {
+    let source = unsafe { str_from_raw(src_ptr, src_len) };
+    let destination = unsafe { str_from_raw(dst_ptr, dst_len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    match sess.copy_file(source, destination, exclusive) {
+        Ok(()) => 0,
         Err(e) => {
             sess.last_output_buf = e.into_bytes();
             -(sess.last_output_buf.len() as i32)

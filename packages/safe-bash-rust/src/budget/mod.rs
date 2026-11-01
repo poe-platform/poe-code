@@ -26,6 +26,10 @@ pub struct ShellLimits {
 }
 
 impl ShellLimits {
+    pub(crate) fn output_limit_error(&self) -> String {
+        format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", self.max_output_bytes)
+    }
+
     pub(crate) fn check_path(&self, path: &str) -> Result<(), String> {
         if path.len() > self.max_pathname_components
             && path.split('/').filter(|s| !s.is_empty()).nth(self.max_pathname_components).is_some()
@@ -240,10 +244,7 @@ impl ExecutionBudget {
         }
         let prev = self.output_bytes.fetch_add(bytes, Ordering::Relaxed);
         if prev.saturating_add(bytes) > self.limits.max_output_bytes {
-            return Err(self.record_exceeded(format!(
-                "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
-                self.limits.max_output_bytes
-            )));
+            return Err(self.record_exceeded(self.limits.output_limit_error()));
         }
         Ok(())
     }

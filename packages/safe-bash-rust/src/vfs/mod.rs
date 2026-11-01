@@ -126,6 +126,13 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
+    /// Deliver successive file chunks until EOF or the consumer returns false.
+    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+        for chunk in self.read_file(path)?.chunks(65536) {
+            if !consume(chunk)? { break; }
+        }
+        Ok(())
+    }
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
     /// Create at the resolved entry with the requested mode. An occupied name is never followed or overwritten.
     fn create_file(&self, _path: &str, _data: &[u8], _mode: u32) -> Result<(), String> {
@@ -197,6 +204,10 @@ pub trait SafeBashFs: Send + Sync {
 
     fn shell_limits(&self) -> crate::budget::ShellLimits {
         crate::budget::ShellLimits::default()
+    }
+
+    fn output_limit_error(&self) -> String {
+        self.shell_limits().output_limit_error()
     }
 
     fn max_input_bytes(&self) -> usize {

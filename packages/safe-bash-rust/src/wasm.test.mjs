@@ -3,6 +3,38 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("head reads device chunks until its byte or record count is satisfied", async t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  try {
+    const random = t.mock.method(globalThis.crypto, "getRandomValues", view => {
+      view.fill(97);
+      view[view.length - 1] = 10;
+      return view;
+    });
+    const zeros = await bash.exec("head -c65539 /dev/zero");
+    assert.deepEqual([zeros.exitCode, zeros.stdoutBytes.length, zeros.stdoutBytes.some(b => b !== 0)], [0, 65539, false]);
+    assert.equal((await bash.exec("head -c0 /dev/random")).stdout, "");
+    assert.equal(random.mock.callCount(), 0);
+    const lines = await bash.exec("head -n2 /dev/urandom");
+    assert.equal(lines.exitCode, 0, lines.stderr);
+    assert.equal(random.mock.callCount(), 2);
+    assert.equal(lines.stdoutBytes.length, 2 * 65536);
+    assert.equal(lines.stdoutBytes[65535], 10);
+    await assert.rejects(bash.exec("head -c20 /dev/zero > /dest", { limits: { maxOutputBytes: 10 } }), /maxOutputBytes/);
+    const denied = await bash.exec("touch /private; chmod 000 /private; head -vc0 /private /dev/zero");
+    assert.deepEqual([denied.exitCode, denied.stdout, denied.stderr], [
+      1, "==> /dev/zero <==\n", "head: EACCES: permission denied, access '/private'\n"
+    ]);
+    random.mock.mockImplementation(() => { throw new Error("source unavailable"); });
+    const failed = await bash.exec("head -vc1 /dev/random");
+    assert.deepEqual([failed.exitCode, failed.stdout, failed.stderr], [
+      1, "==> /dev/random <==\n", "head: EIO: input/output error, readStream '/dev/random'\n"
+    ]);
+    await assert.rejects(bash.exec("head -n1 /dev/zero", { limits: { maxInputBytes: 65536 } }), /maxInputBytes/);
+  } finally { bash.dispose(); }
+});
+
 test("a host callback can inspect the parent session while a child is executing", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

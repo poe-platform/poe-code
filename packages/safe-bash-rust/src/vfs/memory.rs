@@ -768,6 +768,33 @@ impl SafeBashFs for MemoryVfs {
         }
     }
 
+    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+        let (resolved, devices) = {
+            let state = self.state.read().map_err(|e| e.to_string())?;
+            (Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?, state.devices)
+        };
+        match devices.entry(&resolved) {
+            Some("null") => Ok(()),
+            Some(name @ ("zero" | "random" | "urandom")) => {
+                let mut chunk = vec![0; 65536];
+                loop {
+                    if name != "zero" { fill_random(&mut chunk)?; }
+                    if !consume(&chunk)? { return Ok(()); }
+                }
+            }
+            Some("") => Err(format!("EISDIR: illegal operation on a directory, read '{path}'")),
+            _ => {
+                let file = self.retain_file(&resolved)?;
+                let mut offset = 0;
+                loop {
+                    let chunk = file.read(offset, 65536);
+                    if chunk.is_empty() || !consume(&chunk)? { return Ok(()); }
+                    offset += chunk.len() as u64;
+                }
+            }
+        }
+    }
+
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         let entry = Self::mutation_entry(&state, path)?;

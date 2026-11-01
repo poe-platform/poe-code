@@ -88,6 +88,10 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.clone()
     }
 
+    fn output_limit_error(&self) -> String {
+        self.budget.record_exceeded(self.budget.limits.output_limit_error())
+    }
+
     fn max_input_bytes(&self) -> usize {
         self.budget.limits.max_input_bytes
     }
@@ -108,6 +112,19 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.inner.read_file(path)
+    }
+
+    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        let mut remaining = self.budget.limits.max_input_bytes;
+        self.inner.read_chunks(path, &mut |chunk| {
+            self.budget.check_cancelled()?;
+            remaining = remaining.checked_sub(chunk.len()).ok_or_else(|| self.budget.record_exceeded(
+                format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", self.budget.limits.max_input_bytes)
+            ))?;
+            consume(chunk)
+        })
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {

@@ -624,6 +624,21 @@ fn split_records_inclusive(raw: &[u8], delimiter: u8) -> Vec<&[u8]> {
     records
 }
 
+fn head_prefix<'a>(chunk: &'a [u8], remaining: &mut usize, bytes: bool, delimiter: u8) -> &'a [u8] {
+    if bytes {
+        let n = chunk.len().min(*remaining);
+        *remaining -= n;
+        return &chunk[..n];
+    }
+    for (i, &b) in chunk.iter().enumerate() {
+        if b == delimiter {
+            *remaining -= 1;
+            if *remaining == 0 { return &chunk[..=i]; }
+        }
+    }
+    chunk
+}
+
 fn run_head_or_tail(
     name: &str,
     raw_args: &[String],
@@ -781,39 +796,22 @@ fn run_head_or_tail(
     let mut input = None;
     let mut consumed = 0;
     for file in &names {
-        let file_bytes;
-        let raw_bytes: &[u8] = if file == "-" {
-            &input.get_or_insert_with(|| stream_string_to_bytes(stdin))[consumed..]
-        } else {
+        let path = if file == "-" { None } else {
             let p = resolve_posix_path(cwd, file);
-            match fs.stat(&p) {
-                Ok(st) => {
-                    if st.kind == crate::vfs::VfsEntryKind::Directory {
-                        stderr.push_str(&format!(
-                            "{name}: EISDIR: illegal operation on a directory '{p}'\n"
-                        ));
-                        exit_code = 1;
-                        continue;
-                    }
-                }
-                Err(_) => {
-                    stderr.push_str(&format!(
-                        "{name}: ENOENT: no such file or directory, stat '{p}'\n"
-                    ));
-                    exit_code = 1;
-                    continue;
-                }
+            let error = match fs.stat(&p) {
+                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory =>
+                    Some(format!("{name}: EISDIR: illegal operation on a directory '{p}'\n")),
+                Ok(st) if st.mode & 0o400 == 0 =>
+                    Some(format!("{name}: EACCES: permission denied, access '{p}'\n")),
+                Ok(_) => None,
+                Err(_) => Some(format!("{name}: ENOENT: no such file or directory, stat '{p}'\n")),
+            };
+            if let Some(error) = error {
+                stderr.push_str(&error);
+                exit_code = 1;
+                continue;
             }
-            match fs.read_file(&p) {
-                Ok(b) => { file_bytes = b; &file_bytes }
-                Err(_) => {
-                    stderr.push_str(&format!(
-                        "{name}: ENOENT: no such file or directory, stat '{p}'\n"
-                    ));
-                    exit_code = 1;
-                    continue;
-                }
-            }
+            Some(p)
         };
 
         if show_headers {
@@ -823,18 +821,56 @@ fn run_head_or_tail(
             header_written = true;
         }
 
-        let mut read = raw_bytes.len();
+        if name == "head" && !negative {
+            let mut remaining = count;
+            if remaining == 0 { continue; }
+            if let Some(path) = path {
+                let limit = fs.shell_limits().max_output_bytes;
+                if let Err(err) = fs.read_chunks(&path, &mut |chunk| {
+                    let prefix = head_prefix(chunk, &mut remaining, bytes_mode, delimiter);
+                    if out_bytes.len().saturating_add(prefix.len()) > limit {
+                        return Err(fs.output_limit_error());
+                    }
+                    out_bytes.extend_from_slice(prefix);
+                    Ok(remaining != 0)
+                }) {
+                    if err.starts_with("EIO:") {
+                        stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{path}'\n"));
+                    } else {
+                        stderr.push_str(&format!("{name}: {err}\n"));
+                    }
+                    exit_code = 1;
+                }
+            } else {
+                let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin));
+                let prefix = head_prefix(&bytes[consumed..], &mut remaining, bytes_mode, delimiter);
+                consumed += prefix.len();
+                out_bytes.extend_from_slice(prefix);
+            }
+            continue;
+        }
+
+        let file_bytes;
+        let raw_bytes: &[u8] = if let Some(path) = path {
+            match fs.read_file(&path) {
+                Ok(b) => { file_bytes = b; &file_bytes }
+                Err(_) => {
+                    stderr.push_str(&format!("{name}: ENOENT: no such file or directory, stat '{path}'\n"));
+                    exit_code = 1;
+                    continue;
+                }
+            }
+        } else {
+            &input.get_or_insert_with(|| stream_string_to_bytes(stdin))[consumed..]
+        };
         if name == "head" {
             let take = if bytes_mode {
-                if negative { read.saturating_sub(count) } else { count.min(read) }
-            } else if negative {
+                raw_bytes.len().saturating_sub(count)
+            } else {
                 let records = split_records_inclusive(raw_bytes, delimiter);
                 records[..records.len().saturating_sub(count)].iter().map(|r| r.len()).sum()
-            } else {
-                raw_bytes.split_inclusive(|&b| b == delimiter).take(count).map(|r| r.len()).sum()
             };
             out_bytes.extend_from_slice(&raw_bytes[..take]);
-            if !negative { read = take; }
         } else if bytes_mode {
             let start = if positive {
                 count.saturating_sub(1).min(raw_bytes.len())
@@ -853,7 +889,7 @@ fn run_head_or_tail(
                 out_bytes.extend_from_slice(rec);
             }
         }
-        if file == "-" { consumed += read; }
+        if file == "-" { consumed += raw_bytes.len(); }
     }
 
     if consumed != 0 && let Some(bytes) = input {
@@ -21764,6 +21800,14 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn standalone_head_rejects_unterminated_device_input_at_the_output_limit() {
+        let fs = MemoryVfs::new();
+        let out = try_run_coreutil("head", &args(&["-n1", "/dev/zero"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_ne!(out.exit_code, 0);
+        assert!(out.stderr.contains("maxOutputBytes"));
     }
 
     #[test]

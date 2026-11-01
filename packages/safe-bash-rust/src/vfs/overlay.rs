@@ -32,6 +32,17 @@ pub struct OverlayVfs {
 }
 
 impl OverlayVfs {
+    fn read_source(&self, path: &str) -> Result<(&dyn SafeBashFs, String), String> {
+        let norm = self.access_path(path, true)?;
+        if self.upper.lstat(&norm).is_ok() {
+            return Ok((self.upper.as_ref(), norm));
+        }
+        if self.is_deleted(&norm) {
+            return Err(format!("ENOENT: no such file or directory, open '{norm}'"));
+        }
+        Ok((self.lower.as_ref(), norm))
+    }
+
     pub fn new(lower: Arc<dyn SafeBashFs>, upper: Arc<dyn SafeBashFs>) -> Self {
         Self {
             lower,
@@ -299,14 +310,13 @@ impl OverlayVfs {
 
 impl SafeBashFs for OverlayVfs {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        let norm = self.access_path(path, true)?;
-        if self.upper.lstat(&norm).is_ok() {
-            return self.upper.read_file(&norm);
-        }
-        if self.is_deleted(&norm) {
-            return Err(format!("ENOENT: no such file or directory, open '{norm}'"));
-        }
-        self.lower.read_file(&norm)
+        let (fs, path) = self.read_source(path)?;
+        fs.read_file(&path)
+    }
+
+    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+        let (fs, path) = self.read_source(path)?;
+        fs.read_chunks(&path, consume)
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {

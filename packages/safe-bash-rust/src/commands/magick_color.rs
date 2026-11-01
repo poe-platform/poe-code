@@ -490,6 +490,19 @@ fn lab_to_srgb(l: f64, a: f64, b: f64) -> [u8; 3] {
 }
 
 impl super::png_pixels::Raster {
+    pub fn modulate(&mut self, [brightness, saturation, hue]: [f64; 3]) {
+        let brightness = brightness / 100.;
+        let saturation = saturation / 100.;
+        let offset = ((hue - 100.) * 1.8).to_radians();
+        for pixel in &mut self.pixels {
+            let [l, a, b] = srgb_to_lab([pixel[0], pixel[1], pixel[2]]);
+            let chroma = a.hypot(b) * saturation;
+            let (sin, cos) = (b.atan2(a) + offset).sin_cos();
+            pixel[..3].copy_from_slice(&lab_to_srgb(l * brightness, chroma * cos, chroma * sin));
+        }
+        self.gray = false;
+    }
+
     pub fn tint(&mut self, [r, g, b, _]: [u8; 4]) {
         let [_, a, b] = srgb_to_lab([r, g, b]);
         let lut: [[u8; 3]; 256] = std::array::from_fn(|i| {

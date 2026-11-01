@@ -10118,7 +10118,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Modulate([f64;3]), Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10283,6 +10283,11 @@ fn cmd_media_doc(
                         }else if opaque{[0,0,0,255]}else{[255;4]};
                         ops.push(PixelOp::Replace(color,opaque.then_some(fill),fuzz,arg.starts_with('+')));i+=1;
                     }
+                    "-modulate" => {
+                        let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{"100"};
+                        let mut parts=spec.split(',');
+                        ops.push(PixelOp::Modulate(std::array::from_fn(|_|parts.next().map_or(100.,|s|magick_number(s,0.)))));i+=1;
+                    }
                     "-tint" | "-colorize" => {
                         if i+1<args.len()-usize::from(!is_mogrify){i+=1;}
                         ops.push(PixelOp::Tint(fill));i+=1;
@@ -10438,6 +10443,7 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Modulate(values)=>{image.modulate(*values);channels=if image.alpha{4}else{3};},
                         PixelOp::Tint(fill)=>{image.tint(*fill);channels=if image.alpha{4}else{3};},
                         PixelOp::Replace(target,fill,fuzz,invert)=>image.replace_color(*target,*fill,*fuzz,*invert),
                         PixelOp::Linear(slope,offset)=>image.linear(*slope,*offset,channels==2),
@@ -14786,6 +14792,9 @@ mod media_unit_tests {
             ("-fill red -tint 50%","be38665ffa9ddbcb8b93fc392cc8a959fa7f6d86e2687b6a707ba8b66d90cd92"),
             ("-fill orange -colorize 10","8f6acef886915c7c4d198adaa1d147605fd4981cf76e6d890948037aadb7f280"),
             ("-tint 50","fd7962c819885a3b7c43f804220fe541c61a502aa0d4c583e9b12fa590e8eef0"),
+            ("-modulate 120,60,80","27e531f3f93da888c60239c8c81123a2d9fa5edfc5e4499ebaa2dd362238a206"),
+            ("-modulate 50,-30","7445043b7de7a28e89dcf69dc7d409d6a52abe20aa033f8d7080f5c8eaa6ee3b"),
+            ("-modulate bad","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
         ] {
             let argv=format!("rgba.png {args} out.png");
             let r=cmd_media_doc("convert",&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);

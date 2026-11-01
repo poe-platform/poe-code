@@ -3674,6 +3674,7 @@ fn cmd_stat(
     let mut is_printf = false;
     let mut is_bsd = false;
     let mut filesystem = false;
+    let mut terse = false;
     let mut deref = false;
     let mut ended = false;
     let mut targets = Vec::new();
@@ -3687,8 +3688,10 @@ fn cmd_stat(
             deref = true;
         } else if a == "--file-system" {
             filesystem = true;
-        } else if matches!(a, "--cached=never" | "--cached=always" | "--cached=default" | "--terse") {
+        } else if matches!(a, "--cached=never" | "--cached=always" | "--cached=default") {
             continue;
+        } else if a == "--terse" {
+            terse = true;
         } else if a.starts_with("--") {
             let (option, inline) = a.split_once('=').map_or((a, None), |(o, v)| (o, Some(v)));
             if !matches!(option, "--format" | "--printf") { return err_out(&format!("stat: unrecognized option '{a}'\n"), 1); }
@@ -3701,7 +3704,7 @@ fn cmd_stat(
             while let Some(flag) = flags.next() {
                 match flag {
                     'L' => deref = true,
-                    't' => {}
+                    't' => terse = true,
                     'c' => {
                         let rest = flags.as_str();
                         fmt_spec = if rest.is_empty() { operands.next() } else { Some(rest) };
@@ -3727,6 +3730,7 @@ fn cmd_stat(
         return err_out("stat: missing operand\n", 1);
     }
 
+    let terse = terse && fmt_spec.is_none();
     let limits = fs.shell_limits();
     let limit = limits.max_output_bytes.min(limits.max_memory_bytes).min(isize::MAX as usize);
     let quoting_style = env.get("QUOTING_STYLE").map(|s| s.as_str());
@@ -3777,7 +3781,14 @@ fn cmd_stat(
                         }
                     }
                 };
-                let spec = fmt_spec.unwrap_or(if filesystem {
+                if filesystem && terse {
+                    stderr.push_str("stat: ENOTSUP: filesystem terse stat is unsupported\n");
+                    code = 1;
+                    continue;
+                }
+                let spec = fmt_spec.unwrap_or(if terse {
+                    "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %W %o"
+                } else if filesystem {
                     "  File: %n\n  Type: %T"
                 } else {
                     "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w"
@@ -3934,21 +3945,18 @@ fn cmd_stat(
                                 "Z" | "z" => st.ctime_ms,
                                 _ => st.birthtime_ms,
                             };
-                            let Some(ms) = ms else {
-                                stderr.push_str(&format!("stat: ENOTSUP: filesystem does not expose {dir_code}, stat\n"));
-                                code = 1;
-                                continue 'operand;
-                            };
-                            if epoch_code {
-                                numeric = true;
-                                format_epoch_stat(ms, precision.unwrap_or(0))
-                            } else {
-                                let Some(timestamp) = format_iso_stat_timestamp(ms) else {
-                                    stderr.push_str("stat: EIO: invalid filesystem timestamp\n");
-                                    code = 1;
-                                    continue 'operand;
-                                };
-                                timestamp
+                            match ms {
+                                Some(ms) if epoch_code => {
+                                    numeric = true;
+                                    format_epoch_stat(ms, precision.unwrap_or(0))
+                                }
+                                Some(ms) => match format_iso_stat_timestamp(ms) {
+                                    Some(value) => value,
+                                    None => break Some("EIO: invalid filesystem timestamp".into()),
+                                },
+                                None if dir_code == "w" => "-".into(),
+                                None if terse => "?".into(),
+                                None => break Some(format!("ENOTSUP: filesystem does not expose {dir_code}, stat")),
                             }
                         }
                         "bsdType" if is_char_dev => "Character Device".into(),
@@ -4013,9 +4021,14 @@ fn cmd_stat(
                                 "d" | "D" => st.identity.as_ref().map(|id| match id { EntryIdentity::Unix(dev, _) => *dev, _ => 0 }),
                                 _ => None,
                             };
-                            let Some(value) = value else { break Some(format!("ENOTSUP: filesystem does not expose {dir_code}, stat")); };
-                            numeric = true;
-                            if dir_code == "D" { format!("{value:x}") } else { value.to_string() }
+                            match value {
+                                Some(value) => {
+                                    numeric = true;
+                                    if dir_code == "D" { format!("{value:x}") } else { value.to_string() }
+                                }
+                                None if terse => "?".into(),
+                                None => break Some(format!("ENOTSUP: filesystem does not expose {dir_code}, stat")),
+                            }
                         }
                         "B" => {
                             numeric = true;
@@ -7516,6 +7529,17 @@ mod tests {
             0
         );
         assert!(!vfs.exists("/work/dir"));
+    }
+
+    #[test]
+    fn terse_stat_marks_unknown_fields_and_defers_to_explicit_formats() {
+        let fs = MemoryVfs::new();
+        fs.set_devices(crate::vfs::memory::Devices::Null);
+        let run = |opts: &[&str]| cmd_stat(&args(opts), "/", &BTreeMap::new(), &fs);
+        assert_eq!(run(&["--terse", "/dev/null"]).stdout, "/dev/null 0 0 21b6 0 0 0 1 1 ? ? 0 0 0 0 ?\n");
+        assert_eq!(run(&["-tfc", "%T", "/dev/null"]).stderr, "stat: ENOTSUP: filesystem does not expose its type, stat\n");
+        assert_eq!(run(&["-ft", "/"]).stderr, "stat: ENOTSUP: filesystem terse stat is unsupported\n");
+        assert_eq!(run(&["-tc", "%s", "/dev/null"]).stdout, "0\n");
     }
 
     #[test]

@@ -2659,6 +2659,9 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+#[path = "y4m.rs"]
+mod y4m;
+
 fn format_wave_probe(
     info: &WavStreamInfo,
     size: usize,
@@ -4892,6 +4895,9 @@ fn cmd_media_doc(
                 }
             };
             let mut audio_options = true;
+            let mut explicit_format = None;
+            let mut requested = std::collections::BTreeSet::new();
+            let mut entry_filter = None;
             let mut sections = BTreeMap::new();
             let mut of_fmt = "default".to_string();
             let mut in_arg: Option<String> = None;
@@ -4914,6 +4920,7 @@ fn cmd_media_doc(
                             return ffprobe_err(&format!("Missing value for {}", args[i]));
                         };
                         show_entries = v.clone();
+                        entry_filter = Some(v.as_str());
                         for entry in v.split(':') {
                             let mut parts = entry.split('=');
                             let section = parts.next().unwrap();
@@ -4944,16 +4951,18 @@ fn cmd_media_doc(
                         if i + 1 >= args.len() {
                             return ffprobe_err(&format!("Missing value for {}", args[i]));
                         }
+                        if args[i]=="-f" { explicit_format=Some(args[i+1].as_str()); }
                         audio_options &= args[i] == "-v" && matches!(args[i+1].as_str(), "quiet" | "error" | "warning" | "info");
                         i += 2;
                     }
                     "-hide_banner" | "-show_format" | "-show_streams" | "-show_packets"
                     | "-show_frames" | "-show_chapters" | "-show_programs" => {
-                        match args[i].as_str() {
-                            "-show_streams" => { sections.insert("stream", None); }
-                            "-show_format" => { sections.insert("format", None); }
-                            _ => audio_options = false,
-                        }
+                        if let Some(section) = args[i].strip_prefix("-show_") {
+                            let section = section.strip_suffix('s').unwrap_or(section);
+                            requested.insert(section);
+                            if matches!(section, "stream" | "format") { sections.insert(section, None); }
+                            else { audio_options = false; }
+                        } else { audio_options = false; }
                         i += 1;
                     }
                     "-count_frames" => {
@@ -5001,6 +5010,7 @@ fn cmd_media_doc(
                     audio_options &= !matches!(k, "compact" | "c");
                 } else {
                     audio_options = false;
+                    settings.insert(param,"1");
                 }
                 if param.is_empty() {
                     continue;
@@ -5044,6 +5054,15 @@ fn cmd_media_doc(
             };
             if audio_options && !count_frames && !count_packets && let Ok(info) = probe_wav_info(&raw_bytes) {
                 return ok_out(&format_wave_probe(&info, raw_bytes.len(), in_arg.as_deref().unwrap(), &sections, &writer, &settings));
+            }
+            let name = in_arg.as_deref().unwrap();
+            let y4m_input = raw_bytes.starts_with(b"YUV4MPEG2 ") || name.split('?').next().unwrap_or(name).rsplit('.').next().is_some_and(|ext| ext.eq_ignore_ascii_case("y4m"));
+            if explicit_format.is_some_and(|f| f.eq_ignore_ascii_case("y4m") || f.eq_ignore_ascii_case("yuv4mpegpipe")) || explicit_format.is_none() && y4m_input {
+                let opts=y4m::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
+                    writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+                return match y4m::Clip::parse(&raw_bytes).and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
+                    Ok(output)=>ok_out(&output), Err(reason)=>ffprobe_err(reason),
+                };
             }
             let doc = MediaDoc::parse(&raw_bytes, &path_str);
             let dur_val = if doc.duration > 0.0 {
@@ -12711,6 +12730,20 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffprobe_y4m_counts_complete_odd_sized_frames_at_the_header_rate() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/clip", b"YUV4MPEG2 W3 H1 F30000:1001\nFRAME\n1234567FRAME Xtag\n1234567FRAME\n0").unwrap();
+        let run = |opts: &[&str]| cmd_media_doc("ffprobe", &media_args(opts), "", "/", &fs);
+        assert_eq!(run(&["-show_entries", "stream=codec_name,width,height,r_frame_rate,nb_frames:format=duration", "-of", "csv=p=0", "clip"]).stdout,
+            "rawvideo,3,1,30000/1001,2\n0.066733\n");
+        assert_eq!(run(&["-show_packets", "-show_entries", "packet=size,pos,pts", "-of", "json=c=1", "clip"]).stdout,
+            "{\"packets\":[{\"pts\":0,\"size\":\"7\",\"pos\":\"0\"},{\"pts\":3003,\"size\":\"7\",\"pos\":\"7\"}]}\n");
+        assert_eq!(run(&["-select_streams", "a", "-show_streams", "-of", "json=c=1", "clip"]).stdout, "{\"streams\":[]}\n");
+        fs.write_file("/bad.y4m", b"no").unwrap();
+        assert_eq!(run(&["bad.y4m"]).stderr, "ffprobe: Invalid YUV4MPEG2 stream: missing 'YUV4MPEG2 ' magic\n");
     }
 
     #[test]

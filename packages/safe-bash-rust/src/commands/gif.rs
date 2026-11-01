@@ -436,12 +436,12 @@ pub(super) fn edit_frames(
     };
     let mut pixels = Vec::new();
     let mut dims = (w as usize, h as usize);
-    decode(bytes, true, limit, |rgba, _| {
+    decode(bytes, true, limit, |rgba, declared_alpha| {
         let mut frame = Raster {
             width: w as usize,
             height: h as usize,
             density: 72,
-            alpha: true,
+            alpha: declared_alpha || rgba.iter().any(|p| p[3] < 255),
             gray: false,
             orientation: None,
             pixels: rgba.to_vec(),

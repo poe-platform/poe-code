@@ -381,14 +381,79 @@ pub(super) fn channel_mask(spec: &str) -> [bool; 4] {
         "alpha" | "opacity" | "a" => [false, false, false, true],
         _ => {
             let channels = ['r', 'g', 'b', 'a'].map(|c| s.contains(c));
-            if channels.contains(&true) { channels } else { [true, true, true, false] }
+            if channels.contains(&true) {
+                channels
+            } else {
+                [true, true, true, false]
+            }
         }
     }
 }
 
 pub(super) fn negate(pixel: &mut [u8; 4], channels: [bool; 4], only_gray: bool) {
-    if only_gray && (pixel[0] != pixel[1] || pixel[1] != pixel[2]) { return; }
+    if only_gray && (pixel[0] != pixel[1] || pixel[1] != pixel[2]) {
+        return;
+    }
     for (c, selected) in pixel.iter_mut().zip(channels) {
-        if selected { *c = 255 - *c; }
+        if selected {
+            *c = 255 - *c;
+        }
+    }
+}
+
+impl super::png_pixels::Raster {
+    pub fn apply_alpha(&mut self, mode: &str, bg: [u8; 4], channels: &mut u8) {
+        match mode {
+            "remove" => {
+                for p in &mut self.pixels {
+                    let a = u32::from(p[3]);
+                    for i in 0..3 {
+                        let background = bg[if *channels == 2 { 0 } else { i }];
+                        p[i] =
+                            ((u32::from(p[i]) * a + u32::from(background) * (255 - a)) / 255) as u8;
+                    }
+                    p[3] = 255;
+                }
+                self.alpha = false;
+                if matches!(*channels, 2 | 4) {
+                    *channels -= 1;
+                }
+            }
+            "off" | "deactivate" | "opaque" | "transparent" => {
+                for p in &mut self.pixels {
+                    p[3] = if mode == "transparent" { 0 } else { 255 };
+                }
+                self.alpha = matches!(mode, "opaque" | "transparent");
+            }
+            "copy" | "shape" => {
+                for p in &mut self.pixels {
+                    p[3] = (0.212656 * f64::from(p[0])
+                        + 0.715158 * f64::from(p[1])
+                        + 0.072186 * f64::from(p[2]))
+                    .round() as u8;
+                    if mode == "shape" {
+                        p[..3].copy_from_slice(&bg[..3]);
+                    }
+                }
+                self.alpha = true;
+            }
+            "on" | "set" | "activate" if !self.alpha => {
+                for p in &mut self.pixels {
+                    p[3] = 255;
+                }
+                self.alpha = true;
+                *channels = 4;
+            }
+            "extract" => {
+                for p in &mut self.pixels {
+                    let a = if self.alpha { p[3] } else { 255 };
+                    *p = [a, a, a, 255];
+                }
+                self.gray = true;
+                self.alpha = false;
+                *channels = 1;
+            }
+            _ => {}
+        }
     }
 }

@@ -10071,7 +10071,7 @@ fn cmd_media_doc(
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
             let mut quality=92.;
-            enum PixelOp<'a> { Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
+            enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut kernel = Kernel::Lanczos3;
             let mut resize_spec: Option<String> = None;
@@ -10198,9 +10198,10 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-quality" if i+1<args.len()=>{quality=magick_quality(&args[i+1]);i+=2;}
+                    "-alpha" if i+1<args.len() => {ops.push(PixelOp::Alpha(args[i+1].to_ascii_lowercase(),background));i+=2;}
                     "-blur" | "-sharpen" | "-threshold" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
-                    | "-draw" | "-annotate" | "-alpha" | "-define"
+                    | "-draw" | "-annotate" | "-define"
                         if i + 1 < args.len() =>
                     {
                         i += 2;
@@ -10225,32 +10226,37 @@ fn cmd_media_doc(
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
                 let dest=png_pixels::destination(dest)?;
                 let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
+                let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
                 let transform = |image: &mut png_pixels::Raster| {
+                    // GIFs decode to four channels even if they did not declare transparency.
+                    let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
                     for op in &ops {
                         if image.width==0 || image.height==0 {
                             match op {
-                                PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) => {}
+                                PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) | PixelOp::Alpha(..) => {}
                                 PixelOp::Crop(..) => return Err("internal error"),
                                 _ => return Err("Invalid stored image dimensions"),
                             }
                         }
                         match op {
+                            PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
                             PixelOp::Roll(g) => image.roll(*g),
                             PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
                             PixelOp::Chop(g,gravity) => image.chop(*g,*gravity),
                             PixelOp::Shave(g) => image.shave(*g),
                             PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
-                            PixelOp::Extent(g,gravity,bg) => image.extent(*g,*gravity,*bg,fs.max_input_bytes())?,
+                            PixelOp::Extent(g,gravity,bg) => {image.extent(*g,*gravity,*bg,fs.max_input_bytes())?;channels=4;},
                             PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
                             PixelOp::Rotate(deg,bg) => image.rotate(*deg,*bg,fs.max_input_bytes())?,
                             PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
                             PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
-                            PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
+                            PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
                             PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
                             PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
                         }
                     }
                     if image.width==0 || image.height==0 {return Err("internal error");}
+                    image.alpha |= matches!(channels,2|4);
                     Ok(())
                 };
                 let mut image = if let Some(canvas) = canvas {
@@ -10259,7 +10265,7 @@ fn cmd_media_doc(
                     if width.saturating_mul(height)>fs.max_input_bytes()/4 {return Some(err_out("magick: image exceeds memory budget\n",1));}
                     let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
                     png_pixels::Raster {width,height,density:72,orientation:None,gray:false,alpha:true,pixels}
-                } else if gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
+                } else if gif_input {
                     if dest.0 == "gif" {
                         // Extent composites each scene onto a new canvas with default timing.
                         let inherit_timing = !ops.iter().any(|op| matches!(op,PixelOp::Extent(..)));
@@ -10271,11 +10277,7 @@ fn cmd_media_doc(
                     let mut declared_alpha=false;
                     match gif::decode(bytes,true,fs.max_input_bytes(), |_,alpha| {declared_alpha=alpha; Ok(())}) {
                         Ok(mut im)=>{
-                            // GIF decodes to RGBA. Grayscale drops the fourth channel unless
-                            // the source declared transparency or a pixel actually uses it.
-                            if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
-                                im.alpha=declared_alpha || im.pixels.iter().any(|p| p[3]<255);
-                            }
+                            im.alpha=declared_alpha || im.pixels.iter().any(|p| p[3]<255);
                             im
                         },
                         Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
@@ -14343,6 +14345,30 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_alpha_modes_preserve_pixels_and_channel_layout() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/input.ppm",b"P6\n2 1\n255\n\x12\x34\x56\x78\x99\x01").unwrap();
+        for (src,mode,hash) in [
+            ("input.ppm","off -extent 3x3 -alpha off","bd7d4469623f8e870a38bf300a9bf8209ed60c18f3aeff9741a9ebb84acebcae"),
+            ("-size 2x1 xc:#12345678","remove","c8eca70711f16eab12e1a6da3c86e922de9620435e9a460aafd5ba9c685f43c6"),
+            ("-size 2x1 xc:#12345678","off","0c238e60da2ad42895d2886473b18ae67526492d250bb2adf3ce7293e48d41cc"),
+            ("-size 2x1 xc:#12345678","copy","647fb7ea3f3f9ef8bbff73498deda0c82c53bacd12565e471cf26bd691068ced"),
+            ("-size 2x1 xc:#12345678","shape","5559648b1cfa69c24fb8190bf72fca05416329b9d183cc7521a4010e3052b277"),
+            ("-size 2x1 xc:#12345678","extract","f161a406a4c6d64456c4f9c5aedb75dae31c8a6de02d9d582d42fdf44a90edf9"),
+            ("-size 2x1 xc:#12345678","off -channel A -negate -alpha on","0c238e60da2ad42895d2886473b18ae67526492d250bb2adf3ce7293e48d41cc"),
+            ("-size 2x1 xc:#12345678","copy -alpha extract","5cf67c847bc269ba3dc6c81e04c9f8985bb45cdeede2e2971d13581985510dc6"),
+            ("input.ppm","shape","3e2010ca64903f06ecf50591899acaf9144bd8b75941f63fa3d83be99ec714e7"),
+            ("-size 2x1 xc:#abc5 -colorspace gray","off","d73825746839179b7accc8259a5e4ffcc2f1d7d045b14a4f53ef66cd1d47d8b6")
+        ] {
+            let cmd=format!("{src} -background #38a4e080 -alpha {mode} out.png");
+            let args:Vec<_>=cmd.split_whitespace().collect();
+            let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{cmd}: {}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),hash,"{cmd}");
         }
     }
 

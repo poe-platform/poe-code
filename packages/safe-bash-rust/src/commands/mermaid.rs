@@ -2,6 +2,8 @@
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
 
+#[path = "mermaid/config.rs"]
+pub(super) mod config;
 #[path = "mermaid/groups.rs"]
 mod groups;
 use groups::Group;

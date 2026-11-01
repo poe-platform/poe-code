@@ -29192,221 +29192,60 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("mmdc: E_ARGUMENT: Input and output paths must not be empty\n", 2);
     }
 
-    let mut wrapping_width = 200.;
-    let mut rank_gap = None;
-    let mut rank_spacing = 56.;
-    let mut node_gap = None;
-    let mut node_spacing = 32.;
-    let mut padding = 32.;
-    let mut cfg_theme: Option<String> = None;
-    let mut cfg_width: Option<u32> = None;
-    let mut cfg_height: Option<u32> = None;
-    let mut cfg_scale: Option<f64> = None;
-    let mut cfg_bg: Option<String> = None;
-
-    if let Some(ref cfg_path) = config_file {
+    let cfg = if let Some(ref cfg_path) = config_file {
         let full_cfg = resolve_posix_path(cwd, cfg_path);
-        let raw_cfg = match fs.read_file(&full_cfg) {
-            Ok(b) => b,
-            Err(_) => {
+        let too_large = || {
+            err_out(
+                &format!("mmdc: E_IO: EFBIG: file too large, readFile '{full_cfg}'\n"),
+                1,
+            )
+        };
+        if let Ok(meta) = fs.stat(&full_cfg) {
+            if meta.kind == crate::vfs::VfsEntryKind::Directory {
                 return err_out(
-                    &format!("mmdc: E_IO: Configuration file not found: {cfg_path}\n"),
+                    &format!(
+                        "mmdc: E_IO: EISDIR: illegal operation on a directory, readFile '{full_cfg}'\n"
+                    ),
                     1,
-                )
-            }
-        };
-        let cfg_text = match std::str::from_utf8(&raw_cfg) {
-            Ok(s) => s,
-            Err(_) => {
-                return err_out("mmdc: E_CONFIG: Configuration file must be valid UTF-8\n", 2)
-            }
-        };
-        let vals = match parse_json_stream(cfg_text) {
-            Ok(v) if v.len() == 1 => v,
-            _ => return err_out("mmdc: E_CONFIG: Invalid JSON in configuration file\n", 2),
-        };
-        let JVal::Object(pairs) = &vals[0] else {
-            return err_out(
-                "mmdc: E_CONFIG: Configuration file must contain a JSON object\n",
-                2,
-            );
-        };
-        const ALLOWED_KEYS: &[&str] = &[
-            "theme",
-            "rankGap",
-            "nodeGap",
-            "padding",
-            "width",
-            "height",
-            "scale",
-            "backgroundColor",
-            "flowchart",
-            "themeVariables",
-        ];
-        for (k, v) in pairs {
-            if !ALLOWED_KEYS.contains(&k.as_str()) {
-                return err_out(
-                    &format!("mmdc: E_CONFIG: Unknown configuration key '{k}'\n"),
-                    2,
                 );
             }
-            match k.as_str() {
-                "theme" => match v {
-                    JVal::Str(s) => {
-                        if !is_valid_mmdc_theme(s) {
-                            return err_out(
-                                &format!("mmdc: E_CONFIG: Unsupported theme '{s}' in config file\n"),
-                                2,
-                            );
-                        }
-                        cfg_theme = Some(s.clone());
-                    }
-                    JVal::Object(tpairs) => {
-                        for (tk, tv) in tpairs {
-                            if tk != "mode" && tk != "light" && tk != "dark" {
-                                return err_out(
-                                    &format!("mmdc: E_CONFIG: Unknown theme configuration key '{tk}'\n"),
-                                    2,
-                                );
-                            }
-                            if tk == "mode" {
-                                if let JVal::Str(ms) = tv
-                                    && is_valid_mmdc_theme(ms)
-                                {
-                                    cfg_theme = Some(ms.clone());
-                                } else {
-                                    return err_out("mmdc: E_CONFIG: Unsupported theme mode\n", 2);
-                                }
-                            }
-                        }
-                    }
-                    _ => {
-                        return err_out(
-                            "mmdc: E_CONFIG: Invalid 'theme' value in configuration file\n",
-                            2,
-                        )
-                    }
-                },
-                "width" => match v {
-                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {
-                        cfg_width = Some(n.round() as u32)
-                    }
-                    _ => {
-                        return err_out(
-                            "mmdc: E_CONFIG: Configuration 'width' must be a positive number\n",
-                            2,
-                        )
-                    }
-                },
-                "height" => match v {
-                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {
-                        cfg_height = Some(n.round() as u32)
-                    }
-                    _ => {
-                        return err_out(
-                            "mmdc: E_CONFIG: Configuration 'height' must be a positive number\n",
-                            2,
-                        )
-                    }
-                },
-                "scale" => match v {
-                    JVal::Number(n) if n.is_finite() && *n > 0.0 => cfg_scale = Some(*n),
-                    _ => {
-                        return err_out(
-                            "mmdc: E_CONFIG: Configuration 'scale' must be a positive number\n",
-                            2,
-                        )
-                    }
-                },
-                "backgroundColor" => match v {
-                    JVal::Str(s) => cfg_bg = Some(s.clone()),
-                    _ => {
-                        return err_out(
-                            "mmdc: E_CONFIG: Configuration 'backgroundColor' must be a string\n",
-                            2,
-                        )
-                    }
-                },
-                "rankGap" | "nodeGap" | "padding" => match v {
-                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {
-                        match k.as_str() {
-                            "rankGap" => rank_gap = Some(*n),
-                            "nodeGap" => node_gap = Some(*n),
-                            _ => padding = *n,
-                        }
-                    }
-                    _ => {
-                        return err_out(
-                            &format!("mmdc: E_CONFIG: Configuration '{k}' must be a positive number\n"),
-                            2,
-                        )
-                    }
-                },
-                "flowchart" => match v {
-                    JVal::Object(fpairs) => {
-                        for (fk, fv) in fpairs {
-                            if !matches!(fk.as_str(), "rankSpacing" | "nodeSpacing" | "wrappingWidth") {
-                                return err_out(
-                                    &format!("mmdc: E_CONFIG: Unsupported flowchart configuration '{fk}'\n"),
-                                    2,
-                                );
-                            }
-                            if let JVal::Number(n) = fv && n.is_finite() && *n > 0.0 {
-                                match fk.as_str() {
-                                    "wrappingWidth" => wrapping_width = *n,
-                                    "rankSpacing" => rank_spacing = *n,
-                                    "nodeSpacing" => node_spacing = *n,
-                                    _ => {}
-                                }
-                            } else {
-                                return err_out(
-                                    &format!("mmdc: E_CONFIG: Configuration 'flowchart.{fk}' must be a positive number\n"),
-                                    2,
-                                );
-                            }
-                        }
-                    }
-                    _ => {
-                        return err_out("mmdc: E_CONFIG: Configuration 'flowchart' must be an object\n", 2);
-                    }
-                },
-                "themeVariables" => match v {
-                    JVal::Object(vpairs) => {
-                        for (vk, vv) in vpairs {
-                            if !matches!(
-                                vk.as_str(),
-                                "primaryColor"
-                                    | "primaryTextColor"
-                                    | "primaryBorderColor"
-                                    | "lineColor"
-                                    | "textColor"
-                                    | "background"
-                                    | "noteBkgColor"
-                                    | "noteTextColor"
-                                    | "noteBorderColor"
-                            ) {
-                                return err_out(
-                                    &format!("mmdc: E_CONFIG: Unsupported theme variable '{vk}'\n"),
-                                    2,
-                                );
-                            }
-                            if !matches!(vv, JVal::Str(_)) {
-                                return err_out(
-                                    &format!("mmdc: E_CONFIG: Theme variable '{vk}' must be a color string\n"),
-                                    2,
-                                );
-                            }
-                        }
-                    }
-                    _ => {
-                        return err_out("mmdc: E_CONFIG: Configuration 'themeVariables' must be an object\n", 2);
-                    }
-                },
-                _ => {}
+            if meta.size > 65536 {
+                return too_large();
             }
         }
-    }
-
+        let Ok(raw_cfg) = fs.read_file(&full_cfg) else {
+            return err_out(
+                &format!("mmdc: E_IO: ENOENT: no such file or directory, readFile '{full_cfg}'\n"),
+                1,
+            );
+        };
+        if raw_cfg.len() > 65536 {
+            return too_large();
+        }
+        let raw_cfg = raw_cfg.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&raw_cfg);
+        if std::str::from_utf8(raw_cfg).is_err() {
+            return err_out(
+                "mmdc: E_CONFIG: Configuration file must be valid UTF-8\n",
+                2,
+            );
+        }
+        use mcp_protocol_rust::json;
+        let Ok(value) = json::parse(
+            raw_cfg,
+            json::Limits {
+                max_depth: 256,
+                ..Default::default()
+            },
+        ) else {
+            return err_out("mmdc: E_CONFIG: Invalid JSON in configuration file\n", 2);
+        };
+        match mermaid::config::Config::parse(&value) {
+            Ok(config) => config,
+            Err(e) => return err_out(&format!("mmdc: E_CONFIG: {e}\n"), 2),
+        }
+    } else {
+        mermaid::config::Config::default()
+    };
     let mut input = in_file.unwrap_or_else(|| "-".to_string());
     if input == "/dev/stdin" {
         input = "-".to_string();
@@ -29638,14 +29477,14 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         );
     }
 
-    let width = cli_width.or(cfg_width).unwrap_or(800);
-    let height = cli_height.or(cfg_height).unwrap_or(600);
-    let scale = cli_scale.or(cfg_scale).unwrap_or(1.0);
-    let resolved_theme = cfg_theme
+    let width = cli_width.map(f64::from).or(cfg.width);
+    let height = cli_height.map(f64::from).or(cfg.height);
+    let scale = cli_scale.or(cfg.scale).unwrap_or(1.0);
+    let resolved_theme = cfg.theme
         .or(cli_theme)
         .or(init_theme)
         .unwrap_or_else(|| "light".to_string());
-    let bg_color = cli_bg.or(cfg_bg).unwrap_or_else(|| "white".to_string());
+    let bg_color = cli_bg.or(cfg.background).unwrap_or_else(|| "white".to_string());
 
     let (surface, border, text_col, edge_col, shadow_col) = match resolved_theme.as_str() {
         "dark" => ("#1e293b", "#334155", "#f8fafc", "#94a3b8", "rgba(0, 0, 0, 0.35)"),
@@ -29672,7 +29511,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     } else { None };
     let flow = if let Some(stmts) = &scanned {
-        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, wrapping_width, limit) {
+        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, cfg.wrapping_width.unwrap_or(200.), limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
@@ -29688,26 +29527,38 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
         }
     } else { None };
+    for (key, value) in [("width", width), ("height", height)] {
+        if value.is_some_and(|v| v.fract() != 0. || v > 9_007_199_254_740_991.) {
+            return err_out(
+                &format!("mmdc: E_ARGUMENT: Viewport {key} must be a positive integer\n"),
+                2,
+            );
+        }
+    }
     let (bg_color, bg_rgba) = match mermaid::css_color(&bg_color) {
         Ok(color) => color,
         Err(error) => return err_out(&error, 2),
     };
     let scene = if let Some(pie) = pie {
         acc_title = pie.title.clone();
-        Some(pie.layout(&resolved_theme,padding))
+        Some(pie.layout(&resolved_theme,cfg.padding.unwrap_or(32.)))
     } else if let Some(graph) = flow {
-        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (rank_gap.unwrap_or(rank_spacing),node_gap.unwrap_or(node_spacing)), padding, limit) {
+        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (cfg.rank_gap.unwrap_or(56.),cfg.node_gap.unwrap_or(32.)), cfg.padding.unwrap_or(32.), limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
         }
     } else { None };
-    let (vw, vh) = scene.as_ref().map_or((f64::from(width), f64::from(height)), |s| (s.width, s.height));
-    let (width, height) = match (scene.is_some(), cli_width.or(cfg_width), cli_height.or(cfg_height)) {
-        (true, Some(w), None) => (f64::from(w), (f64::from(w) * vh / vw).round().max(1.)),
-        (true, None, Some(h)) => ((f64::from(h) * vw / vh).round().max(1.), f64::from(h)),
+    let (vw, vh) = scene
+        .as_ref()
+        .map_or((width.unwrap_or(800.), height.unwrap_or(600.)), |s| {
+            (s.width, s.height)
+        });
+    let (width, height) = match (scene.is_some(), width, height) {
+        (true, Some(w), None) => (w, (w * vh / vw).round().max(1.)),
+        (true, None, Some(h)) => ((h * vw / vh).round().max(1.), h),
         (true, None, None) => (vw, vh),
-        _ => (f64::from(width), f64::from(height)),
+        _ => (width.unwrap_or(800.), height.unwrap_or(600.)),
     };
     let raster = if output_format=="svg"{None}else{scene.as_ref().map(|s|s.raster(width,height,scale,bg_rgba,&output_format,fs.max_input_bytes()))};
     let out_bytes: Vec<u8> = if let Some(result)=raster {
@@ -38341,6 +38192,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
         }
+    }
+
+    #[test]
+    fn mmdc_validates_config_before_layout_and_keeps_the_output_on_error() {
+        let fs=MemoryVfs::new();
+        for (config,message) in [
+            (r#"{"width":-1,"extra":0}"#,"E_CONFIG: Unknown configuration key 'extra'"),
+            (r#"{"theme":{"mode":["bad"]}}"#,"E_CONFIG: Unsupported theme mode 'bad'"),
+            (r#"{"theme":{"light":null}}"#,"E_CONFIG: Theme configuration 'light' must be an object"),
+            (r#"{"width":1.5,"backgroundColor":"bogus"}"#,"E_ARGUMENT: Viewport width must be a positive integer"),
+            (r#"{"height":9007199254740992}"#,"E_ARGUMENT: Viewport height must be a positive integer"),
+        ]{
+            fs.write_file("/c",config.as_bytes()).unwrap();
+            fs.write_file("/d.svg",b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-c","/c","-o","/d.svg"]),"flowchart TD; A-->B","/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!((r.exit_code,r.stderr),(2,format!("mmdc: {message}\n")));
+            assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
+        fs.write_file("/c","\u{feff}{\"width\":4294967296,\"themeVariables\":null,\"flowchart\":null}".as_bytes()).unwrap();
+        let r=try_run_structured_command("mmdc",&args(&["-i","-","-c","/c","-o","-"]),"flowchart TD; A-->B","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert!(r.stdout.starts_with(r#"<svg xmlns="http://www.w3.org/2000/svg" width="4294967296""#));
     }
 
     #[test]

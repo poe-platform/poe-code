@@ -10948,6 +10948,7 @@ fn cmd_media_doc(
                             );
                         }
                         has_mod = true;
+                        ops.push(("f", dir, String::new()));
                         i += 2;
                     }
                     "-c" | "--cropToHeightWidth" => {
@@ -11033,6 +11034,9 @@ fn cmd_media_doc(
                     | "--addIcon"
                     | "--repair"
                     | "--debug" => {
+                        if args[i] == "--deleteColorManagementProperties" {
+                            ops.push(("s", "profile".into(), "sRGB IEC61966-2.1".into()));
+                        }
                         has_mod = true;
                         i += 1;
                     }
@@ -11131,7 +11135,7 @@ fn cmd_media_doc(
                     }
                     let mut kvs = Vec::new();
                     for p in expanded_props {
-                        let val = if let Some(value) = props.get(p).filter(|_| !xml || !matches!(p, "hasAlpha" | "path")) {
+                        let val = if let Some((_, value)) = props.get(p).filter(|_| !xml || !matches!(p, "hasAlpha" | "path")) {
                             value.clone().unwrap_or_else(|| match (xml, p) {
                                 (false, _) => "<nil>".into(),
                                 (true, "dpiWidth" | "dpiHeight") => dpi.to_string(),
@@ -11197,6 +11201,7 @@ fn cmd_media_doc(
                     exit_code: if err_out_str.is_empty() { 0 } else { 1 },
                 };
             }
+            let mut out = String::new();
             let mut err_out_str = String::new();
             for f in &files {
                 let in_full = resolve_posix_path(cwd, f);
@@ -11204,10 +11209,11 @@ fn cmd_media_doc(
                     err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
                     continue;
                 }
-                let mut meta = fs
-                    .read_file(&in_full)
-                    .map(|b| read_image_meta(&b, &in_full))
-                    .unwrap_or_else(|_| read_image_meta(&[], &in_full));
+                let bytes = fs.read_file(&in_full).unwrap_or_default();
+                let mut meta = match inspect_raster(&bytes, &in_full, fs.max_input_bytes()) {
+                    Ok((meta, ..)) => meta,
+                    Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
+                };
                 for (op, a1, a2) in &ops {
                     match *op {
                         "z" | "c" | "p" => {
@@ -11285,30 +11291,32 @@ fn cmd_media_doc(
                         _ => {}
                     }
                 }
-                let dst_full = if let Some(ref opath) = out_path {
-                    let ofull = resolve_posix_path(cwd, opath);
-                    if opath.ends_with('/') || fs.is_dir(&ofull) {
-                        let fname = f.rsplit('/').next().unwrap_or(f);
-                        let stem = fname.rsplit_once('.').map(|(s, _)| s).unwrap_or(fname);
-                        let ext = if meta.fmt == "JPEG" {
-                            "jpg".to_string()
-                        } else {
-                            meta.fmt.to_ascii_lowercase()
-                        };
-                        format!("{}/{stem}.{ext}", ofull.trim_end_matches('/'))
-                    } else {
-                        if meta.fmt == "PNG" && format_from_path(&ofull) != "PNG" {
-                            meta.fmt = format_from_path(&ofull).to_string();
+                let target_format = ops.iter().any(|(op, key, _)| *op == "s" && key == "format");
+                let dst = if let Some(opath) = &out_path {
+                    if files.len() > 1 || opath.ends_with('/') || fs.is_dir(&resolve_posix_path(cwd, opath)) {
+                        let mut name = f.rsplit('/').next().unwrap_or(f).to_string();
+                        if target_format {
+                            let stem = name.rfind('.').filter(|&i| i > 0).map_or(name.as_str(), |i| &name[..i]);
+                            let ext = match meta.fmt.as_str() { "JPEG" => "jpg".into(), "TIFF" => "tif".into(), fmt => fmt.to_ascii_lowercase() };
+                            name = format!("{stem}.{ext}");
                         }
-                        ofull
+                        format!("{}/{name}", opath.trim_end_matches('/'))
+                    } else { opath.clone() }
+                } else { f.clone() };
+                let encoded = if meta.fmt == "PNG" && png_pixels::supported_still(&bytes)
+                    && ops.iter().all(|(op, _, _)| matches!(*op, "s" | "d" | "f")) {
+                    match sips_properties::edit_png(&bytes, &ops, fs.max_input_bytes()) {
+                        Ok(encoded) => encoded,
+                        Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
                     }
-                } else {
-                    in_full
-                };
-                let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
+                } else { write_image_bytes(&meta) };
+                match fs.write_file(&resolve_posix_path(cwd, &dst), &encoded) {
+                    Ok(()) => out.push_str(&format!("{f}\n  {dst}\n")),
+                    Err(reason) => err_out_str.push_str(&format!("Error: {f}: {reason}\n")),
+                }
             }
             BuiltinOutcome {
-                stdout: String::new(),
+                stdout: out,
                 stderr: err_out_str.clone(),
                 exit_code: if err_out_str.is_empty() { 0 } else { 1 },
             }
@@ -13674,6 +13682,25 @@ mod media_unit_tests {
         assert_eq!(result.stdout, "photo.png\n");
         assert_eq!(result.stderr, "Error: broken: Input buffer contains unsupported image format\n");
         assert_eq!(fs.read_file("/broken").unwrap(), b"broken");
+    }
+
+    #[test]
+    fn sips_property_edits_preserve_pixels_and_store_deletions_in_the_png() {
+        let fs = MemoryVfs::new();
+        let png = pixel_png(2, 1, PngEncoding::Density(72), |x,_| [10 + x as u8, 20, 30]);
+        fs.write_file("/photo.png", &png).unwrap();
+        let run = |args: &[&str]| cmd_media_doc("sips", &media_args(args), "", "/", &fs);
+        let result = run(&["-s", "artist", "Ada", "-s", "dpiWidth", "144.2", "--out", "tagged", "photo.png"]);
+        assert_eq!(result.stdout, "photo.png\n  tagged\n");
+        assert_eq!(fs.read_file("/photo.png").unwrap(), png);
+        let result = run(&["-d", "artist", "tagged"]);
+        assert_eq!(result.exit_code, 0);
+        let tagged = fs.read_file("/tagged").unwrap();
+        let raster = png_pixels::Raster::decode(&tagged, 1024).unwrap();
+        assert_eq!(raster.pixels, [[10, 20, 30, 255], [11, 20, 30, 255]]);
+        assert_eq!(raster.density, 144);
+        let payload = br#"[["artist",null],["dpiWidth","144.200"]]"#;
+        assert!(tagged.windows(payload.len()).any(|w| w == payload));
     }
 
     #[test]

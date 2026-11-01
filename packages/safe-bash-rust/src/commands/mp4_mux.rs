@@ -1226,7 +1226,14 @@ fn write(
     Ok(out)
 }
 
+#[derive(Clone, Copy)]
+pub(in super::super) enum Stack {
+    Horizontal,
+    Vertical,
+}
+
 pub(in super::super) struct Remux<'a> {
+    pub stack: Option<Stack>,
     pub rate: Option<u32>,
     pub channels: Option<u32>,
     pub audio_filters: &'a [&'a str],
@@ -1376,6 +1383,7 @@ pub(in super::super) fn input_slice(
     remux(
         std::slice::from_ref(input),
         Remux {
+            stack: None,
             start: seek.start,
             end: seek.end(),
             source_end,
@@ -1404,7 +1412,8 @@ fn materialize<'a>(
     inputs: &'a [MediaInput],
     opts: &Remux<'_>,
 ) -> Result<Vec<Cow<'a, [u8]>>, String> {
-    let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
+    let sliced =
+        opts.stack.is_none() && (opts.start.is_some() || opts.end.is_some() || opts.shortest);
     let mut materialized = Vec::new();
     let mut admitted = 0usize;
     for (j, source) in inputs.iter().enumerate() {
@@ -1644,7 +1653,9 @@ fn mapped_tracks(
         })
         .flatten();
     for &(j, _) in &selected {
-        if let Streams::Y4m(clip) = &sources[j].2 {
+        if opts.stack.is_none()
+            && let Streams::Y4m(clip) = &sources[j].2
+        {
             if let Some(end) = shortest {
                 clip.check_slice(0., end)?;
             }
@@ -1669,14 +1680,23 @@ pub(in super::super) fn render_mapped(
 ) -> Result<(usize, usize, u32), String> {
     let data = materialize(inputs, opts)?;
     let sources = read_sources(inputs, &data, opts)?;
-    let (selected, shortest) = mapped_tracks(&sources, opts)?;
+    let stacked = opts
+        .stack
+        .map(|s| stack_frames(s, &sources, inputs, opts))
+        .transpose()?;
+    let sources = if stacked.is_some() {
+        &sources[..1]
+    } else {
+        &sources[..]
+    };
+    let (selected, shortest) = mapped_tracks(sources, opts)?;
     let Some(&(j, i)) = selected
         .iter()
         .find(|&&(j, i)| sources[j].2.kind(i) == "video")
     else {
         return Ok((64, 64, 10));
     };
-    let (input, _, streams) = &sources[j];
+    let streams = &sources[j].2;
     let durations = selected.iter().map(|&(j, i)| sources[j].2.seconds(i));
     let duration = shortest
         .or_else(|| durations.reduce(f64::max))
@@ -1695,6 +1715,39 @@ pub(in super::super) fn render_mapped(
         filters: opts.video_filters,
         limit: opts.limit,
     };
+    if let Some(sequence) = stacked {
+        let (w, h) = sequence.geometry;
+        y4m::render_frames(
+            w,
+            h,
+            sequence.times(),
+            options,
+            |i| Ok(sequence.frames[i].0.clone()),
+            emit,
+        )?;
+        return Ok((w, h, 30));
+    }
+    render_source(
+        &sources[j],
+        i,
+        (&inputs[j], opts.input_times[j]),
+        Some(duration),
+        options,
+        full_size,
+        emit,
+    )
+}
+
+fn render_source(
+    (input, _, streams): &Source<'_>,
+    i: usize,
+    (source, seek): (&MediaInput, InputTime),
+    duration: Option<f64>,
+    options: y4m::Options<'_>,
+    full_size: bool,
+    emit: impl FnMut(Raster, f64, y4m::Buffer) -> Result<(), &'static str>,
+) -> Result<(usize, usize, u32), String> {
+    let cut = options.start != 0. || options.end.is_some();
     match streams {
         Streams::Y4m(v) => v.render(options, emit).map_err(str::to_owned),
         Streams::Images(seq) => seq.render(options, emit).map_err(str::to_owned),
@@ -1703,16 +1756,141 @@ pub(in super::super) fn render_mapped(
         }
         Streams::GeneratedVideo(v) => v.render(options, false, emit).map_err(str::to_owned),
         Streams::Mp4(tracks) => {
-            if let MediaInput::Bytes("image2", bytes) = &inputs[j]
+            if let MediaInput::Bytes("image2", bytes) = source
                 && tracks[i].0.tag != b"avc1"
             {
-                return frame_output::render_still(bytes, options, opts.input_times[j], cut, emit)
+                return frame_output::render_still(bytes, options, seek, cut, emit)
                     .map_err(str::to_owned);
             }
             super::render_track(input, &tracks[i].0, duration, options, full_size, emit)
         }
         _ => unreachable!(),
     }
+}
+
+struct StackedFrames {
+    frames: Vec<(Raster, f64)>,
+    geometry: (usize, usize),
+}
+
+impl StackedFrames {
+    fn times(&self) -> impl Iterator<Item = (f64, f64)> {
+        self.frames.iter().scan(0., |at, (_, duration)| {
+            let pts = *at;
+            *at += duration;
+            Some((pts, *duration))
+        })
+    }
+    fn encode(
+        &self,
+        track: &mut Track<'_>,
+        scale: u32,
+        opts: &Remux<'_>,
+        consumed: bool,
+        used: &mut usize,
+    ) -> Result<(), String> {
+        (track.width, track.height) = (self.geometry.0 as u32, self.geometry.1 as u32);
+        let limit = opts.limit.saturating_sub(*used);
+        encode_video(
+            track,
+            scale,
+            self.times(),
+            y4m::Options {
+                filters: opts.video_filters,
+                frames: opts.frames,
+                start: 0.,
+                end: None,
+                no_video: false,
+                limit,
+            },
+            |_| consumed,
+            opts.fragmented,
+            |i| Ok(self.frames[i].0.clone()),
+        )?;
+        *used += track.samples.len() * size_of::<Sample>()
+            + track.samples.iter().map(|s| s.data.len()).sum::<usize>();
+        Ok(())
+    }
+}
+
+fn stack_frames(
+    stack: Stack,
+    sources: &[Source<'_>],
+    inputs: &[MediaInput],
+    opts: &Remux<'_>,
+) -> Result<StackedFrames, String> {
+    let mut frames = Vec::new();
+    let mut remaining = opts.limit;
+    let mut geometry = (64, 64);
+    for (j, source) in sources.iter().take(2).enumerate() {
+        let streams = &source.2;
+        let i = (0..streams.len())
+            .find(|&i| streams.kind(i) == "video")
+            .ok_or("Cannot read properties of undefined (reading 'decodedVideoFrames')")?;
+        let mut index = 0;
+        let options = y4m::Options {
+            start: 0.,
+            end: None,
+            filters: &[],
+            frames: None,
+            no_video: false,
+            limit: remaining,
+        };
+        let (w, h, _) = render_source(
+            source,
+            i,
+            (&inputs[j], opts.input_times[j]),
+            None,
+            options,
+            true,
+            |im, tick, _| {
+                if j == 0 {
+                    remaining = remaining
+                        .checked_sub(im.pixels.len() * 4 + size_of::<(Raster, f64)>())
+                        .ok_or("video frames exceed memory budget")?;
+                    frames.push((im, tick));
+                } else if let Some((a, _)) = frames.get_mut(index) {
+                    let (w, h, x, y) = match stack {
+                        Stack::Horizontal => {
+                            (a.width + im.width, a.height.max(im.height), a.width, 0)
+                        }
+                        Stack::Vertical => {
+                            (a.width.max(im.width), a.height + im.height, 0, a.height)
+                        }
+                    };
+                    let n = w
+                        .checked_mul(h)
+                        .filter(|&n| n <= remaining / 4)
+                        .ok_or("video frames exceed memory budget")?;
+                    let mut pixels = vec![[0; 4]; n];
+                    for (row, src) in a.pixels.chunks_exact(a.width).enumerate() {
+                        pixels[row * w..row * w + a.width].copy_from_slice(src);
+                    }
+                    for (row, src) in im.pixels.chunks_exact(im.width).enumerate() {
+                        let offset = (y + row) * w + x;
+                        pixels[offset..offset + im.width].copy_from_slice(src);
+                    }
+                    remaining = remaining + 4 * a.pixels.len() - 4 * n;
+                    a.pixels = pixels;
+                    a.width = w;
+                    a.height = h;
+                    a.gray = false;
+                    a.alpha = true;
+                }
+                index += 1;
+                Ok(())
+            },
+        )?;
+        if j == 0 {
+            geometry = (w, h);
+        } else {
+            frames.truncate(index);
+        }
+    }
+    if let Some((im, _)) = frames.first() {
+        geometry = (im.width, im.height);
+    }
+    Ok(StackedFrames { frames, geometry })
 }
 
 pub(in super::super) fn remux(
@@ -1730,12 +1908,26 @@ pub(in super::super) fn remux(
         Streams::Still(_) => 25,
         _ => header_time(child(moov, b"mvhd"), 1000).0,
     };
-    let (selected, shortest) = mapped_tracks(&sources, &opts)?;
+    let stacked = opts
+        .stack
+        .map(|s| stack_frames(s, &sources, inputs, &opts))
+        .transpose()?;
+    let sources = if stacked.is_some() {
+        &sources[..1]
+    } else {
+        &sources[..]
+    };
+    let (selected, shortest) = mapped_tracks(sources, &opts)?;
     if opts.format == "null" {
         return Ok(Vec::new());
     }
     if opts.format == "ffmetadata" {
-        return super::ffmetadata(inputs, !opts.maps.is_empty(), opts.metadata, opts.limit);
+        return super::ffmetadata(
+            &inputs[..sources.len()],
+            !opts.maps.is_empty(),
+            opts.metadata,
+            opts.limit,
+        );
     }
     let end = shortest.map(|s| s.min(opts.end.unwrap_or(s))).or(opts.end);
     let range =
@@ -1877,6 +2069,27 @@ pub(in super::super) fn remux(
     let mut index_bytes = 0usize;
     for (ordinal, &(j, i)) in selected.iter().enumerate() {
         let (input, _, source) = &sources[j];
+        if let Some(sequence) = &stacked
+            && !matches!(source, Streams::Mp4(_))
+            && source.kind(i) == "video"
+        {
+            let (w, h) = sequence.geometry;
+            let ts = match source {
+                Streams::Still(_) => 25,
+                _ => 90000,
+            };
+            let mut t = video_track(
+                w,
+                h,
+                VideoCodec::Avc(30),
+                ts,
+                (source.seconds(i) * f64::from(ts)).round() as u64,
+                scale,
+            )?;
+            sequence.encode(&mut t, scale, &opts, false, &mut index_bytes)?;
+            tracks.push(t);
+            continue;
+        }
         let Streams::Mp4(v) = source else {
             let limit = opts.limit.saturating_sub(index_bytes);
             let repeated = selected[..ordinal].contains(&(j, i));
@@ -1999,11 +2212,17 @@ pub(in super::super) fn remux(
                 ]
             })
             .collect();
-        index_bytes = index_bytes.saturating_add(t.stats.count.saturating_mul(size_of::<Sample>()));
+        let stacked_video = stacked.as_ref().filter(|_| video);
+        let count = if stacked_video.is_some() {
+            0
+        } else {
+            t.stats.count
+        };
+        index_bytes = index_bytes.saturating_add(count.saturating_mul(size_of::<Sample>()));
         if index_bytes > opts.limit {
             return Err("sample index exceeds memory budget".into());
         }
-        let mut samples = Vec::with_capacity(t.stats.count);
+        let mut samples = Vec::with_capacity(count);
         let mut first_dts = 0;
         let mut begin = 0;
         let sliced = opts.start.is_some() || opts.end.is_some() || shortest.is_some();
@@ -2033,7 +2252,7 @@ pub(in super::super) fn remux(
                 })
                 .unwrap_or(t.stats.count);
         }
-        for s in t.samples(input.len()).skip(first) {
+        for s in t.samples(input.len()).take(count).skip(first) {
             if sliced && s.dts >= end {
                 break;
             }
@@ -2145,7 +2364,12 @@ pub(in super::super) fn remux(
             handler,
             name,
         };
-        if let Some(bytes) = repeated_still {
+        if let Some(sequence) = stacked_video {
+            let consumed = selected[..ordinal]
+                .iter()
+                .any(|&(j, i)| sources[j].2.kind(i) == "video");
+            sequence.encode(&mut track, scale, &opts, consumed, &mut index_bytes)?;
+        } else if let Some(bytes) = repeated_still {
             let limit = opts.limit.saturating_sub(index_bytes);
             let im = frame_output::decode_still(bytes, limit)?;
             let mut consumed = selected[..ordinal].contains(&(j, i));

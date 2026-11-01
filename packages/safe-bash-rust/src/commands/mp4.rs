@@ -1339,13 +1339,13 @@ pub(super) fn render_video(
     else {
         return Ok((64, 64, 10));
     };
-    render_track(input, t, duration, opts, full_size, emit)
+    render_track(input, t, Some(duration), opts, full_size, emit)
 }
 
 fn render_track(
     input: &[u8],
     t: &Track<'_>,
-    duration: f64,
+    duration: Option<f64>,
     opts: super::y4m::Options<'_>,
     full_size: bool,
     emit: impl FnMut(super::png_pixels::Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
@@ -1373,7 +1373,8 @@ fn render_track(
     };
     let first = range.start;
     let count = range.len();
-    let filtered = !opts.filters.is_empty();
+    let filtered = duration.is_none() || !opts.filters.is_empty();
+    let duration = duration.unwrap_or_default();
     let produced = count.min(opts.frames.map_or(usize::MAX, |n| n.max(1) as usize));
     let sliced_duration = (opts.end.unwrap_or(duration).min(duration) - opts.start).max(0.);
     let uniform = if sliced_duration > 0. && produced != 0 {

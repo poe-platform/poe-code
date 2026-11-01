@@ -10071,7 +10071,7 @@ fn cmd_media_doc(
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
             let mut quality=92.;
-            enum PixelOp<'a> { Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
+            enum PixelOp<'a> { Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut kernel = Kernel::Lanczos3;
             let mut resize_spec: Option<String> = None;
@@ -10080,8 +10080,7 @@ fn cmd_media_doc(
             let mut extent_opt: Option<(u32, u32)> = None;
             let mut rot_deg = 0i32;
             let mut transpose_swaps = 0usize;
-            let mut negates_before_gray = None;
-            let mut negate_count = 0usize;
+            let mut channels = [true,true,true,false];
             let mut append_mode: Option<bool> = None;
             let mut mogrify_format: Option<String> = None;
             let mut mogrify_path: Option<String> = None;
@@ -10163,9 +10162,10 @@ fn cmd_media_doc(
                     }
                     "-filter" if i+1 < args.len() => {kernel=Kernel::parse(&args[i+1]);i+=2;}
                     "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
-                    "-negate" => {
-                        ops.push(PixelOp::Negate);
-                        negate_count += 1;
+                    "-channel" if i+1<args.len() => { channels=magick_color::channel_mask(&args[i+1]);i+=2; }
+                    "+channel" => { channels=[true,true,true,false];i+=1; }
+                    "-negate" | "+negate" => {
+                        ops.push(PixelOp::Negate(channels,arg=="+negate"));
                         i += 1;
                     }
                     "-append" => {
@@ -10188,7 +10188,6 @@ fn cmd_media_doc(
                         let space = args[i + 1].to_ascii_lowercase();
                         if space.contains("gray") || space.contains("grey") || matches!(space.as_str(), "rec709luma" | "rec601luma") {
                             ops.push(PixelOp::Gray);
-                            negates_before_gray.get_or_insert(negate_count);
                         }
                         i += 2;
                     }
@@ -10199,7 +10198,7 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-quality" if i+1<args.len()=>{quality=magick_quality(&args[i+1]);i+=2;}
-                    "-channel" | "-blur" | "-sharpen" | "-threshold" | "-depth" | "-fill"
+                    "-blur" | "-sharpen" | "-threshold" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
                     | "-draw" | "-annotate" | "-alpha" | "-define"
                         if i + 1 < args.len() =>
@@ -10230,7 +10229,7 @@ fn cmd_media_doc(
                     for op in &ops {
                         if image.width==0 || image.height==0 {
                             match op {
-                                PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate => {}
+                                PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) => {}
                                 PixelOp::Crop(..) => return Err("internal error"),
                                 _ => return Err("Invalid stored image dimensions"),
                             }
@@ -10245,7 +10244,7 @@ fn cmd_media_doc(
                             PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
                             PixelOp::Rotate(deg,bg) => image.rotate(*deg,*bg,fs.max_input_bytes())?,
                             PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
-                            PixelOp::Negate => for p in &mut image.pixels { for c in &mut p[..3] { *c=255-*c; } },
+                            PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
                             PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
                             PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
                             PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
@@ -10269,8 +10268,17 @@ fn cmd_media_doc(
                             Ok(None)=>{}, Err(e)=>return Some(fail(e)),
                         }
                     }
-                    match gif::decode(bytes,true,fs.max_input_bytes(), |_| Ok(())) {
-                        Ok(im)=>im,Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
+                    let mut declared_alpha=false;
+                    match gif::decode(bytes,true,fs.max_input_bytes(), |_,alpha| {declared_alpha=alpha; Ok(())}) {
+                        Ok(mut im)=>{
+                            // GIF decodes to RGBA. Grayscale drops the fourth channel unless
+                            // the source declared transparency or a pixel actually uses it.
+                            if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
+                                im.alpha=declared_alpha || im.pixels.iter().any(|p| p[3]<255);
+                            }
+                            im
+                        },
+                        Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
                     }
                 } else {
                     match png_pixels::Raster::input(input,bytes,fs.max_input_bytes()) {
@@ -10304,24 +10312,20 @@ fn cmd_media_doc(
                     meta.w = ew;
                     meta.h = eh;
                 }
-                if negates_before_gray.is_some() {
+                if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
                     meta.cs = "Gray".to_string();
                 }
                 if let Some(Canvas::Solid([r, g, b, _])) = canvas {
                     meta.exif
                         .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
                 }
-                if negate_count % 2 == 1 {
-                    let cur = meta
-                        .exif
-                        .get("__color")
-                        .cloned()
-                        .unwrap_or_else(|| "#ffffff".to_string());
-                    let [r,g,b,_] = parse_color(&cur).unwrap_or([255;4]);
-                    meta.exif.insert(
-                        "__color".to_string(),
-                        format!("#{:02x}{:02x}{:02x}", 255 - r, 255 - g, 255 - b),
-                    );
+                for op in &ops {
+                    if let PixelOp::Negate(ch,only_gray)=op {
+                        let mut pixel=meta.exif.get("__color").and_then(|c|parse_color(c).ok()).unwrap_or([255;4]);
+                        magick_color::negate(&mut pixel,*ch,*only_gray);
+                        let [r,g,b,_]=pixel;
+                        meta.exif.insert("__color".into(),format!("#{r:02x}{g:02x}{b:02x}"));
+                    }
                 }
             };
             if is_mogrify {
@@ -14339,6 +14343,24 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_negate_honors_channels_and_gray_only_selection() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/a.gif",&hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021f904000a0000002c0000000003000200000809000108201060408180003b")).unwrap();
+        for (options,hash) in [
+            (&["-channel","R","-negate"][..],"795cc9a024e6a08a668d8b15ef1d990814ac3c216f05b74e7215a88c83ad0a45"),
+            (&["-channel","Alpha","-negate"][..],"4b78289d6b1e3982e7220ee7be36e4d23d26d99023767451055efed4e3129040"),
+            (&["-channel","R","-negate","+channel","-negate"][..],"169eede7a6cebfc4a6660c19047a1b1285354bea16a7d72fb61cde8ae85ebfb7"),
+            (&["-colorspace","gray","+negate"][..],"3970752a1ed3680060c7c23da907715b2c1f50fd61ab0b2d5aae83a333def392"),
+            (&["-channel","B","-negate","-colorspace","gray"][..],"8f696b0e910716fb831e32c29e952b28d36b04588bbe49250016c7edb8b56efb")
+        ] {
+            let args=[&["a.gif"][..],options,&["o.png"]].concat();
+            let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{options:?}");
         }
     }
 

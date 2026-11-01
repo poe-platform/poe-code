@@ -270,7 +270,7 @@ pub(super) fn decode(
     bytes: &[u8],
     last: bool,
     limit: usize,
-    mut visit: impl FnMut(&[[u8; 4]]) -> Result<(), &'static str>,
+    mut visit: impl FnMut(&[[u8; 4]], bool) -> Result<(), &'static str>,
 ) -> Result<Raster, &'static str> {
     let (w, h) = dimensions(bytes)?;
     let (w, h) = (w as usize, h as usize);
@@ -282,6 +282,7 @@ pub(super) fn decode(
     let mut input = &bytes[13..];
     let global = palette(&mut input, bytes[10]);
     let mut transparent = None;
+    let mut declared_alpha = false;
     let mut disposal = 0;
     let mut prior = None;
     let mut saved = Vec::new();
@@ -383,7 +384,8 @@ pub(super) fn decode(
                         }
                     }
                 })?;
-                visit(&pixels)?;
+                declared_alpha |= transparent.is_some();
+                visit(&pixels, declared_alpha)?;
                 if !last {
                     break;
                 }
@@ -434,7 +436,7 @@ pub(super) fn edit_frames(
     };
     let mut pixels = Vec::new();
     let mut dims = (w as usize, h as usize);
-    decode(bytes, true, limit, |rgba| {
+    decode(bytes, true, limit, |rgba, _| {
         let mut frame = Raster {
             width: w as usize,
             height: h as usize,
@@ -579,7 +581,7 @@ impl Animation {
             .ok_or("Cannot read properties of undefined (reading 'byteLength')")?
             .end = bytes.len();
         let mut slots = frames.iter_mut();
-        decode(bytes, true, *remaining, |pixels| {
+        decode(bytes, true, *remaining, |pixels, _| {
             if let Some(frame) = slots.next() {
                 frame.pixels = pixels.to_vec();
             }

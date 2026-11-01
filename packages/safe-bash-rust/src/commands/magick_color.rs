@@ -372,3 +372,23 @@ pub(super) fn gray(r: u8, g: u8, b: u8) -> u8 {
     let i = t as usize;
     (srgb[i] as f64 + (srgb[i + 1] - srgb[i]) as f64 * t.fract()).round() as u8
 }
+
+pub(super) fn channel_mask(spec: &str) -> [bool; 4] {
+    let s = spec.trim().to_ascii_lowercase();
+    match s.as_str() {
+        "all" | "rgba" | "sync,rgba" => [true; 4],
+        "rgb" | "default" => [true, true, true, false],
+        "alpha" | "opacity" | "a" => [false, false, false, true],
+        _ => {
+            let channels = ['r', 'g', 'b', 'a'].map(|c| s.contains(c));
+            if channels.contains(&true) { channels } else { [true, true, true, false] }
+        }
+    }
+}
+
+pub(super) fn negate(pixel: &mut [u8; 4], channels: [bool; 4], only_gray: bool) {
+    if only_gray && (pixel[0] != pixel[1] || pixel[1] != pixel[2]) { return; }
+    for (c, selected) in pixel.iter_mut().zip(channels) {
+        if selected { *c = 255 - *c; }
+    }
+}

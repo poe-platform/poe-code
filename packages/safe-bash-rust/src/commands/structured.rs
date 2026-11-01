@@ -29366,10 +29366,12 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Err(e)=>return err_out(&e,if e.starts_with("mmdc: E_CONFIG:"){2}else{1}),
     };
     let mut directives = Vec::new();
-    let flowchart = mermaid::scanner::is_flowchart(&src_text);
-    let scanned = if flowchart || src_text.contains("%%{") {
+    let family = mermaid::scanner::family(&src_text);
+    let flowchart = matches!(family, "flowchart" | "graph");
+    let statement_family = flowchart || family == "gantt";
+    let scanned = if statement_family || src_text.contains("%%{") {
         match mermaid::scanner::scan(&src_text, &mut directives) {
-            Ok(stmts) => flowchart.then_some(stmts),
+            Ok(stmts) => statement_family.then_some(stmts),
             Err(message) => return err_out(&message, 1),
         }
     } else {
@@ -29377,7 +29379,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     // Line-oriented families consume the original source, including its diagnostic positions.
     let masked;
-    let src_text = if !flowchart && !directives.is_empty() {
+    let src_text = if !statement_family && !directives.is_empty() {
         let mut output = String::with_capacity(src_text.len());
         let mut from = 0;
         for body in &directives {
@@ -29527,7 +29529,13 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             Err(message) => return err_out(&message, 1),
         }
     } else { None };
-    let flow = if let Some(stmts) = &scanned {
+    let gantt = if first_word == "gantt" {
+        match mermaid::gantt::Gantt::parse(scanned.as_deref().unwrap_or_default(), &mut acc_title, limit) {
+            Ok(chart) => Some(chart),
+            Err(message) => return err_out(&message, 1),
+        }
+    } else { None };
+    let flow = if let Some(stmts) = scanned.as_ref().filter(|_| flowchart) {
         match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, cfg.wrapping_width.or(source_cfg.wrapping_width).unwrap_or(200.), limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
@@ -29561,6 +29569,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         pie.title=pie.title.or(acc_title);
         acc_title = pie.title.clone();
         Some(pie.layout(&resolved_theme,cfg.padding.or(source_cfg.padding).unwrap_or(32.)))
+    } else if let Some(chart) = gantt {
+        Some(chart.layout(&resolved_theme, cfg.padding.or(source_cfg.padding).unwrap_or(32.), acc_title.as_deref()))
     } else if let Some(graph) = flow {
         match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (cfg.rank_gap.or(source_cfg.rank_gap).unwrap_or(56.),cfg.node_gap.or(source_cfg.node_gap).unwrap_or(32.)), cfg.padding.or(source_cfg.padding).unwrap_or(32.), limit) {
             Some(Ok(scene)) => Some(scene),
@@ -38210,6 +38220,41 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             assert_eq!(r.stderr,"mmdc: E_LIMIT: Render work budget exceeded\n");
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
+    }
+
+    #[test]
+    fn mmdc_renders_gantt_schedules_and_rejects_invalid_tasks_before_publication() {
+        let fs = MemoryVfs::new();
+        for (source, format, expected) in [
+            ("gantt\ndateFormat YYYY-MM-DD\nsection Develop\nBuild: done, build, 2024-01-31, 2d\nTest: crit, test, after build, 8h\nsection Publish\nRelease: milestone, rel, after build test, 0d", "svg", "110698603b1bc11085052f2b64a6dd75752003612374bd02dc1e53bdfcbcbb57"),
+            ("gantt\ndateFormat YYYY-MM-DD\nsection Develop\nBuild: done, build, 2024-01-31, 2d\nTest: crit, test, after build, 8h\nsection Publish\nRelease: milestone, rel, after build test, 0d", "png", "4dba628e7431acd413969d787da7214b366cda85211e1f15751ecb049a6982b9"),
+            ("gantt\ndateFormat YYYY-MM-DD\nsection Develop\nBuild: done, build, 2024-01-31, 2d\nTest: crit, test, after build, 8h\nsection Publish\nRelease: milestone, rel, after build test, 0d", "pdf", "c4180cc88234c8c3e636ef76bc1a41d8a51247f06938454de954186dd5211ba6"),
+            ("gantt\ntitle Schedule\nFirst: v1, 2024-02-29, 2024-03-01\nSecond: 3w", "svg", "bf2e94ac39a6fcac6211d8f30b401299c83a64233194947739952447710e4f4c"),
+            ("gantt\n", "svg", "mmdc: E_SYNTAX: gantt requires data\n"),
+            ("gantt\ndateFormat D-M-Y", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Gantt dateFormat supports YYYY-MM-DD\n"),
+            ("gantt\nA: x, 2023-02-29, 1d", "svg", "mmdc: E_SYNTAX (line 2, column 1): Gantt requires valid dates, dependencies, and nonnegative durations\n"),
+            ("gantt\nA: after B, 1d", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unknown Gantt dependency\n"),
+            ("gantt\n<img>: 2024-01-01, 2d", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("gantt\nAlpha: r, 2020-01-01, 1d\nBeta: r, 1d", "svg", "mmdc: E_SYNTAX (line 3, column 1): Duplicate node 'r'\n"),
+            ("gantt\nA: x, y, z, w", "svg", "mmdc: E_SYNTAX (line 2, column 1): Invalid Gantt schedule\n"),
+            ("gantt\nA: 2d", "svg", "mmdc: E_SYNTAX (line 2, column 1): Gantt requires valid dates, dependencies, and nonnegative durations\n"),
+            ("gantt\nA: 2024-01-01, -2d", "svg", "mmdc: E_SYNTAX (line 2, column 1): Gantt requires valid dates, dependencies, and nonnegative durations\n"),
+            ("gantt\ntitle Report\nsection Empty", "svg", "mmdc: E_SYNTAX: gantt requires data\n"),
+            ("gantt\nA task with no dates", "svg", "mmdc: E_SYNTAX (line 2, column 1): Gantt task requires a label and schedule\n"),
+        ] {
+            let path = format!("/chart.{format}");
+            fs.write_file(&path, b"previous").unwrap();
+            let result = try_run_structured_command("mmdc", &args(&["-i", "-", "-o", &path]), source, "/", &BTreeMap::new(), &fs).unwrap();
+            let bytes = fs.read_file(&path).unwrap();
+            if expected.starts_with("mmdc:") {
+                assert_eq!(result.stderr, expected, "{source}");
+                assert_eq!(result.exit_code, 1);
+                assert_eq!(bytes, b"previous");
+            } else {
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b| format!("{b:02x}")).collect::<String>(), expected, "{format}: {source}");
+            }
         }
     }
 

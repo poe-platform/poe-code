@@ -4,6 +4,8 @@ use std::{collections::BTreeMap, fmt::Write};
 
 #[path = "mermaid/config.rs"]
 pub(super) mod config;
+#[path = "mermaid/gantt.rs"]
+pub(super) mod gantt;
 #[path = "mermaid/groups.rs"]
 mod groups;
 use groups::Group;
@@ -773,8 +775,8 @@ pub(super) fn layout(
     if padding > f64::from(i32::MAX / 4) {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     }
-    let mut width = (max_x - min_x + 2. * padding).ceil();
-    let mut height = (max_y - min_y + 2. * padding).ceil();
+    let width = (max_x - min_x + 2. * padding).ceil();
+    let height = (max_y - min_y + 2. * padding).ceil();
     let (dx, dy) = (
         (padding - min_x + 0.5).floor() as i32,
         (padding - min_y + 0.5).floor() as i32,
@@ -1068,34 +1070,8 @@ pub(super) fn layout(
             )
             .ok()?,
             Shape::Diamond => {
-                let mut path = String::new();
-                let (wx, hy) = (w as f64 / 2., h as f64 / 2.);
-                let len = wx.hypot(hy);
-                let (ox, oy) = (wx / len * 4., hy / len * 4.);
-                let p = |px: i32, py: i32, dx: f64, dy: f64| {
-                    format!(
-                        "{} {}",
-                        ((px as f64 + dx) * 100.).round() / 100.,
-                        ((py as f64 + dy) * 100.).round() / 100.
-                    )
-                };
-                let start = p(cx, y, ox, oy);
-                write!(path, "M {start}").ok()?;
-                for (px, py, ax, ay, bx, by) in [
-                    (x + w, cy, -ox, -oy, -ox, oy),
-                    (cx, y + h, ox, -oy, -ox, -oy),
-                    (x, cy, ox, oy, ox, -oy),
-                    (cx, y, -ox, oy, ox, oy),
-                ] {
-                    write!(
-                        path,
-                        " L {} Q {px} {py} {}",
-                        p(px, py, ax, ay),
-                        p(px, py, bx, by)
-                    )
-                    .ok()?;
-                }
-                write!(el, r#"<path d="{path} Z" {style}/>"#).ok()?;
+                let path = diamond_path(x.into(), y.into(), w.into(), h.into());
+                write!(el, r#"<path d="{path}" {style}/>"#).ok()?;
             }
             _ => {
                 let rx = radius;
@@ -1139,12 +1115,65 @@ pub(super) fn layout(
         }
         elements.push(el);
     }
+    let mut scene = Scene {
+        width,
+        height,
+        paint,
+        elements,
+    };
     if let Some(t) = title {
+        scene.add_title(t, padding, dark);
+    }
+    scene.elements.extend(pills);
+    scene.paint.extend(edge_paint);
+    scene.paint.extend(pill_paint);
+    Some(Ok(scene))
+}
+
+fn diamond_path(x: f64, y: f64, w: f64, h: f64) -> String {
+    let mut path = String::new();
+    let (wx, hy) = (w / 2., h / 2.);
+    let (cx, cy) = (x + wx, y + hy);
+    let len = wx.hypot(hy);
+    let r = 4.0_f64.min(len * 0.25);
+    let (ox, oy) = (wx / len * r, hy / len * r);
+    let p = |px: f64, py: f64, dx: f64, dy: f64| {
+        format!(
+            "{} {}",
+            ((px + dx) * 100.).round() / 100.,
+            ((py + dy) * 100.).round() / 100.
+        )
+    };
+    let start = p(cx, y, ox, oy);
+    write!(path, "M {start}").unwrap();
+    for (px, py, ax, ay, bx, by) in [
+        (x + w, cy, -ox, -oy, -ox, oy),
+        (cx, y + h, ox, -oy, -ox, -oy),
+        (x, cy, ox, oy, ox, -oy),
+        (cx, y, -ox, oy, ox, oy),
+    ] {
+        write!(
+            path,
+            " L {} Q {px} {py} {}",
+            p(px, py, ax, ay),
+            p(px, py, bx, by)
+        )
+        .unwrap();
+    }
+    path.push_str(" Z");
+    path
+}
+
+impl Scene {
+    fn add_title(&mut self, t: &str, padding: f64, dark: bool) {
+        use self::raster::{BoxStyle, Paint};
+        use crate::commands::archive::parse_color;
+        let height = self.height;
         let text_width = measure(t, 16., true);
-        width = width.max(text_width + 2. * padding);
+        let width = self.width.max(text_width + 2. * padding);
         let fill = if dark { "#1e293b" } else { "#ffffff" };
         let color = if dark { "#f8fafc" } else { "#0f172a" };
-        paint.push(Paint::Box {
+        self.paint.push(Paint::Box {
             bounds: [padding, height, width - 2. * padding, 24.],
             shape: Shape::Rect,
             shadow: None,
@@ -1156,7 +1185,7 @@ pub(super) fn layout(
                 thickness: 0.,
             },
         });
-        paint.push(Paint::Text {
+        self.paint.push(Paint::Text {
             start: (width - text_width) / 2.,
             baseline: height + 18.,
             size: 16.,
@@ -1164,16 +1193,8 @@ pub(super) fn layout(
             color: parse_color(color).unwrap(),
             text: t.into(),
         });
-        elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="{padding}" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-2.*padding,width/2.,height+18.,esc(t)));
-        height += 24. + padding;
+        self.elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="{padding}" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-2.*padding,width/2.,height+18.,esc(t)));
+        self.width = width;
+        self.height += 24. + padding;
     }
-    elements.extend(pills);
-    paint.extend(edge_paint);
-    paint.extend(pill_paint);
-    Some(Ok(Scene {
-        width,
-        height,
-        paint,
-        elements,
-    }))
 }

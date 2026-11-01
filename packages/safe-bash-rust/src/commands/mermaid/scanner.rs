@@ -36,21 +36,21 @@ impl Statement {
     }
 }
 
-pub(in super::super) fn is_flowchart(mut source: &str) -> bool {
+pub(in super::super) fn family(mut source: &str) -> &str {
     loop {
         source = source.trim_start();
         if let Some(body) = source.strip_prefix("%%{") {
             let Some((_, tail)) = body.split_once("}%%") else {
-                return false;
+                return "";
             };
             source = tail;
         } else if source.starts_with("%%") {
             source = source.trim_start_matches(|c| c != '\r' && c != '\n');
         } else {
-            return matches!(
-                source.split(|c: char| c.is_whitespace() || c == ';').next(),
-                Some("flowchart" | "graph")
-            );
+            return source
+                .split(|c: char| c.is_whitespace() || c == ';')
+                .next()
+                .unwrap_or("");
         }
     }
 }

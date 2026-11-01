@@ -29441,12 +29441,24 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let width = cli_width.map(f64::from).or(cfg.width).or(source_cfg.width);
     let height = cli_height.map(f64::from).or(cfg.height).or(source_cfg.height);
     let scale = cli_scale.or(cfg.scale).unwrap_or(1.0);
-    let resolved_theme = source_cfg.theme.clone().or(cfg.theme)
-        .or(cli_theme)
-        .unwrap_or_else(|| "light".to_string());
-    let bg_color = cli_bg.or(cfg.background).or_else(||source_cfg.background.clone()).unwrap_or_else(|| "white".to_string());
+    let resolved_theme = source_cfg.theme.as_deref()
+        .or(cfg.theme.as_deref()).or(cli_theme.as_deref()).unwrap_or("light");
+    let bg_color = cli_bg.as_deref().or(cfg.background.as_deref())
+        .or(source_cfg.background.as_deref()).unwrap_or("white");
+    let tokens = mermaid::config::theme_tokens(source_cfg, &cfg, resolved_theme);
+    let num_token = |key: &str| match tokens.as_ref().ok().and_then(|t| t.get(key)) {
+        Some(mcp_protocol_rust::json::Value::Number(n)) => Some(*n),
+        _ => None,
+    };
+    let wrapping_width = cfg.wrapping_width.or(source_cfg.wrapping_width)
+        .or_else(|| num_token("wrappingWidth")).unwrap_or(200.);
+    let padding = cfg.padding.or(source_cfg.padding).or_else(|| num_token("padding")).unwrap_or(32.);
+    let gaps = (
+        cfg.rank_gap.or(source_cfg.rank_gap).or_else(|| num_token("rankGap")).unwrap_or(56.),
+        cfg.node_gap.or(source_cfg.node_gap).or_else(|| num_token("nodeGap")).unwrap_or(32.),
+    );
 
-    let (surface, border, text_col, edge_col, shadow_col) = match resolved_theme.as_str() {
+    let (surface, border, text_col, edge_col, shadow_col) = match resolved_theme {
         "dark" => ("#1e293b", "#334155", "#f8fafc", "#94a3b8", "rgba(0, 0, 0, 0.35)"),
         "forest" => ("#dcfce7", "#4ade80", "#166534", "#64748b", "rgba(15, 23, 42, 0.06)"),
         "neutral" => ("#e2e8f0", "#94a3b8", "#334155", "#64748b", "rgba(15, 23, 42, 0.06)"),
@@ -29477,7 +29489,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     } else { None };
     let graph = if graph_family {
-        match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, cfg.wrapping_width.or(source_cfg.wrapping_width).unwrap_or(200.), limit) {
+        match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, wrapping_width, limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
@@ -29502,18 +29514,19 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             );
         }
     }
-    let (bg_color, bg_rgba) = match mermaid::css_color(&bg_color) {
+    if let Err(message) = tokens { return err_out(&message, 2); }
+    let (bg_color, bg_rgba) = match mermaid::css_color(bg_color) {
         Ok(color) => color,
         Err(error) => return err_out(&error, 2),
     };
     let scene = if let Some(mut pie) = pie {
         pie.title=pie.title.or(acc_title);
         acc_title = pie.title.clone();
-        Some(pie.layout(&resolved_theme,cfg.padding.or(source_cfg.padding).unwrap_or(32.)))
+        Some(pie.layout(resolved_theme,padding))
     } else if let Some(chart) = gantt {
-        Some(chart.layout(&resolved_theme, cfg.padding.or(source_cfg.padding).unwrap_or(32.), acc_title.as_deref()))
+        Some(chart.layout(resolved_theme, padding, acc_title.as_deref()))
     } else if let Some(graph) = graph {
-        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (cfg.rank_gap.or(source_cfg.rank_gap).unwrap_or(56.),cfg.node_gap.or(source_cfg.node_gap).unwrap_or(32.)), cfg.padding.or(source_cfg.padding).unwrap_or(32.), limit) {
+        match mermaid::layout(graph, resolved_theme, &id_prefix, acc_title.as_deref(), gaps, padding, limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -38280,6 +38293,39 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("pie; \"prefix\\\nline\":3; bad", "svg", "mmdc: E_SYNTAX (line 1, column 24): Pie labels must be quoted\n"),
             ("pie; \"prefix\\\rline\":3; bad", "svg", "mmdc: E_SYNTAX (line 1, column 24): Pie labels must be quoted\n"),
         ]);
+    }
+
+    #[test]
+    fn mmdc_validates_active_theme_tokens_and_resolves_layout_overrides() {
+        let fs=MemoryVfs::new();
+        for (config,source,expected) in [
+            (r#"{"theme":{"mode":"light","light":{"zebra":true}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Unknown theme token 'zebra'\n"),
+            (r#"{"theme":{"mode":"dark","light":{"zebra":true}}}"#, "flowchart LR; A-->B", "21bdf392b3dfac5db93984452939fc8a517eca420009753baf1ab2f6f6f5a0e5"),
+            (r#"{"theme":{"mode":"light","light":{"surface":1}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Theme token 'surface' must be a valid color string\n"),
+            (r#"{"theme":{"mode":"light","light":{"canvas":"rgb(-1, 2, 2)"}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Out-of-range RGB/RGBA color 'rgb(-1, 2, 2)'\n"),
+            (r#"{"theme":{"mode":"light","light":{"fontFamily":""}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Theme token 'fontFamily' must be a non-empty string\n"),
+            (r#"{"theme":{"mode":"light","light":{"lineHeight":0}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Theme token 'lineHeight' must be a positive finite number\n"),
+            (r#"{"theme":{"mode":"light","light":{"rankGap":88,"padding":12}}}"#, "flowchart LR; A-->B", "084e1972630dd418ff1d2bbdcb4dd72f19500a36dd88692fa052f2c131944332"),
+            (r#"{"themeVariables":{"lineColor":"unknown"}}"#, "pie; \"One\":1", "mmdc: E_CONFIG: Unsupported color format 'unknown'\n"),
+            (r#"{"theme":{"light":{"unknown":1}}}"#, "gantt; A: after B, 1d", "mmdc: E_SYNTAX (line 1, column 8): Unknown Gantt dependency\n"),
+            (r#"{}"#, "%%{init: {theme: {dark: {key: 1},mode: dark}}}%%\nflowchart TD; A", "mmdc: E_CONFIG: Unknown theme token 'key'\n"),
+            (r#"{"theme":{"light":{"text":"INVALID"}}}"#, "%%{init: {themeVariables: {textColor: red}}}%%\nflowchart TD; A", "mmdc: E_CONFIG: Unsupported color format 'INVALID'\n"),
+            (r#"{"theme":{"light":{"text":"red"},"dark":{"text":"INVALID"}}}"#, "%%{init: {theme: dark}}%%\nflowchart TD; A", "mmdc: E_CONFIG: Unsupported color format 'INVALID'\n"),
+            (r#"{"theme":{"light":{"unknown":1,"surface":"INVALID"}}}"#, "flowchart TD; A", "mmdc: E_CONFIG: Unknown theme token 'unknown'\n"),
+        ] {
+            fs.write_file("/c",config.as_bytes()).unwrap();
+            fs.write_file("/chart.svg",b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-c","/c","-o","/chart.svg"]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            let bytes=fs.read_file("/chart.svg").unwrap();
+            if expected.starts_with("mmdc:") {
+                assert_eq!(r.stderr,expected,"{config}");
+                assert_eq!(r.exit_code,if expected.starts_with("mmdc: E_CONFIG:"){2}else{1});
+                assert_eq!(bytes,b"previous");
+            } else {
+                assert_eq!(r.exit_code,0,"{}",r.stderr);
+                assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),expected,"{config}");
+            }
+        }
     }
 
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {

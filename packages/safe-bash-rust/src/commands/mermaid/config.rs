@@ -1,8 +1,11 @@
 use mcp_protocol_rust::json::{self, Value};
+use std::collections::BTreeMap;
 
 #[derive(Default)]
 pub(in super::super) struct Config {
     pub theme: Option<String>,
+    overrides: [Vec<(String, Value)>; 2],
+    palette: Vec<(&'static [&'static str], Value)>,
     pub background: Option<String>,
     pub width: Option<f64>,
     pub height: Option<f64>,
@@ -83,9 +86,16 @@ impl Config {
                     }
                     config.theme = Some(name);
                 }
-                for name in ["light", "dark"] {
-                    if t.get(name).is_some_and(|v| !matches!(v, Value::Object(_))) {
-                        return Err(format!("Theme configuration '{name}' must be an object"));
+                for (i, name) in ["light", "dark"].into_iter().enumerate() {
+                    if let Some(value) = t.get(name) {
+                        let Value::Object(pairs) = value else {
+                            return Err(format!("Theme configuration '{name}' must be an object"));
+                        };
+                        config.overrides[i].extend(
+                            pairs
+                                .iter()
+                                .map(|(k, v)| (String::from_utf16_lossy(k), v.clone())),
+                        );
                     }
                 }
             }
@@ -129,26 +139,23 @@ impl Config {
             };
             for (key, val) in pairs {
                 let key = String::from_utf16_lossy(key);
-                if !matches!(
-                    key.as_str(),
-                    "primaryColor"
-                        | "primaryTextColor"
-                        | "primaryBorderColor"
-                        | "lineColor"
-                        | "textColor"
-                        | "background"
-                        | "noteBkgColor"
-                        | "noteTextColor"
-                        | "noteBorderColor"
-                ) {
-                    if source {
-                        continue;
-                    }
-                    return Err(format!("Unsupported theme variable '{key}'"));
-                }
+                let keys: &[&str] = match key.as_str() {
+                    "primaryColor" => &["surface", "surfaceAccent", "accentSurface"],
+                    "primaryTextColor" => &["text", "accentText"],
+                    "primaryBorderColor" => &["border", "accentBorder"],
+                    "lineColor" => &["edge"],
+                    "textColor" => &["text"],
+                    "background" => &["canvas"],
+                    "noteBkgColor" => &["noteSurface"],
+                    "noteTextColor" => &["noteText"],
+                    "noteBorderColor" => &["noteBorder"],
+                    _ if source => continue,
+                    _ => return Err(format!("Unsupported theme variable '{key}'")),
+                };
                 if !matches!(val, Value::String(_)) {
                     return Err(format!("Theme variable '{key}' must be a color string"));
                 }
+                config.palette.push((keys, val.clone()));
             }
         }
         for (key, slot) in [
@@ -165,4 +172,97 @@ impl Config {
         }
         Ok(config)
     }
+}
+
+/// Apply object-spread precedence before validating: an overwritten invalid token is unobservable.
+pub(in super::super) fn theme_tokens<'a>(
+    source: &'a Config,
+    file: &'a Config,
+    mode: &str,
+) -> Result<BTreeMap<&'a str, &'a Value>, String> {
+    let index = usize::from(mode == "dark");
+    let mut values = BTreeMap::new();
+    let mut order = Vec::new();
+    for config in [source, file] {
+        let overrides = config.overrides[index].iter().map(|(k, v)| (k.as_str(), v));
+        let variables = config
+            .palette
+            .iter()
+            .flat_map(|(keys, v)| keys.iter().map(move |&k| (k, v)));
+        for (key, value) in overrides.chain(variables) {
+            if values.insert(key, value).is_none() {
+                order.push(key);
+            }
+        }
+    }
+    // Object.keys visits canonical array indices first, then other keys in insertion order.
+    order.sort_by_key(|key| {
+        key.parse::<u32>()
+            .ok()
+            .filter(|n| n.to_string() == *key)
+            .unwrap_or(u32::MAX)
+    });
+    for key in order {
+        let val = values[key];
+        let invalid = |msg: &str| format!("mmdc: E_CONFIG: Theme token '{key}' must be {msg}\n");
+        match key {
+            "canvas"
+            | "surface"
+            | "surfaceElevated"
+            | "surfaceAccent"
+            | "text"
+            | "mutedText"
+            | "border"
+            | "borderStrong"
+            | "edge"
+            | "edgeLabelBackground"
+            | "edgeLabelBorder"
+            | "accent"
+            | "accentSurface"
+            | "accentBorder"
+            | "accentText"
+            | "groupSurface"
+            | "groupHeaderSurface"
+            | "groupBorder"
+            | "noteSurface"
+            | "noteBorder"
+            | "noteText"
+            | "activationSurface"
+            | "shadowColor" => {
+                let Value::String(value) = val else {
+                    return Err(invalid("a valid color string"));
+                };
+                super::css_color(&String::from_utf16_lossy(value))?;
+            }
+            "fontSize" | "secondaryFontSize" | "lineHeight" | "strokeWidth" | "edgeStrokeWidth"
+            | "cornerRadius" | "elbowRadius" | "rankGap" | "nodeGap" | "wrappingWidth"
+            | "padding" => {
+                if !matches!(val,Value::Number(n) if n.is_finite() && *n>0.) {
+                    return Err(invalid("a positive finite number"));
+                }
+            }
+            "fontFamily" | "monospaceFontFamily" => {
+                if !matches!(val,Value::String(v) if !String::from_utf16_lossy(v).trim().is_empty())
+                {
+                    return Err(invalid("a non-empty string"));
+                }
+            }
+            // Inherited Object properties are present in the default JS token object,
+            // but they do not designate mutable theme tokens.
+            "constructor"
+            | "toString"
+            | "valueOf"
+            | "hasOwnProperty"
+            | "isPrototypeOf"
+            | "propertyIsEnumerable"
+            | "toLocaleString"
+            | "__proto__"
+            | "__defineGetter__"
+            | "__defineSetter__"
+            | "__lookupGetter__"
+            | "__lookupSetter__" => (),
+            _ => return Err(format!("mmdc: E_CONFIG: Unknown theme token '{key}'\n")),
+        }
+    }
+    Ok(values)
 }

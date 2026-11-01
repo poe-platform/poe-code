@@ -29446,25 +29446,30 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     };
 
-    if input != "-" && output != "-" {
-        let in_full = resolve_posix_path(cwd, &input);
-        let out_full = resolve_posix_path(cwd, &output);
-        if in_full == out_full {
-            return err_out(
-                "mmdc: E_IO: Input and output file paths must be distinct\n",
-                1,
-            );
+    let output_version = fs.generation();
+    let mut inputs = Vec::new();
+    if output != "-" {
+        let out = resolve_posix_path(cwd, &output);
+        let input_path = (input != "-").then(|| resolve_posix_path(cwd, &input));
+        if input_path.as_ref() == Some(&out) {
+            return err_out("mmdc: E_IO: Input and output file paths must be distinct\n", 1);
         }
-        if let Ok(meta) = fs.stat(&out_full)
-            && meta.kind == crate::vfs::VfsEntryKind::Directory
-        {
+        let existing = fs.lstat(&out).ok();
+        if existing.as_ref().is_some_and(|e| e.kind != crate::vfs::VfsEntryKind::File || e.mode & 0o170000 == 0o020000) {
             return err_out("mmdc: E_IO: Output target must be a regular file\n", 1);
         }
-        if fs.stat(&in_full).is_err() {
-            return err_out(
-                &format!("mmdc: E_IO: ENOENT: no such file or directory, realpath '{in_full}'\n"),
-                1,
-            );
+        if let Some(path) = input_path {
+            let Ok(meta) = fs.stat(&path) else {
+                return err_out(&format!("mmdc: E_IO: ENOENT: no such file or directory, realpath '{path}'\n"),1);
+            };
+            if meta.identity.is_some() && meta.identity.as_ref() == existing.as_ref().and_then(|e|e.identity.as_ref()) {
+                return err_out("mmdc: E_IO: Input and output VFS entries must not alias the same file\n",1);
+            }
+            inputs.push(path);
+        }
+        let parent = crate::vfs::dirname_posix_path(&out);
+        if !fs.exists(&parent) {
+            return err_out(&format!("mmdc: E_IO: ENOENT: no such file or directory, realpath '{parent}'\n"),1);
         }
     }
 
@@ -29719,11 +29724,14 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
     } else {
         let full = resolve_posix_path(cwd, &output);
-        if fs.is_dir(&full) {
-            return err_out("mmdc: E_IO: Output target must be a regular file\n", 1);
-        }
-        if fs.write_file(&full, &out_bytes).is_err() {
-            return err_out(&format!("mmdc: E_IO: failed to write output '{output}'\n"), 1);
+        match fs.publish_file(&full, &out_bytes, &inputs, output_version) {
+            Ok(_) => {}
+            Err(e) if e.starts_with("UNSUPPORTED_CAPABILITY:") => {
+                if fs.write_file(&full, &out_bytes).is_err() {
+                    return err_out(&format!("mmdc: E_IO: failed to write output '{output}'\n"),1);
+                }
+            }
+            Err(e) => return err_out(&format!("mmdc: E_IO: {e}\n"),1),
         }
         ok_out("")
     }
@@ -38321,6 +38329,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         .unwrap();
         assert_eq!(bad_persist.exit_code, 1);
         assert!(bad_persist.stderr.contains("unsupported FTS5 binary persistence"));
+    }
+
+    #[test]
+    fn mmdc_preserves_existing_modes_and_rejects_aliases() {
+        let fs=MemoryVfs::new();
+        let source=b"graph TD; A-->B;";
+        fs.write_file("/flow.mmd", source).unwrap();
+        fs.symlink("/flow.mmd","/link.svg").unwrap();
+        fs.symlink("__hardlink__:/flow.mmd","/alias.svg").unwrap();
+        let run=|out|try_run_structured_command("mmdc",&args(&["-i","flow.mmd","-o",out]),"","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(run("link.svg").stderr,"mmdc: E_IO: Output target must be a regular file\n");
+        assert_eq!(run("alias.svg").stderr,"mmdc: E_IO: Input and output VFS entries must not alias the same file\n");
+        assert_eq!(fs.read_file("/flow.mmd").unwrap(),source);
+        assert_eq!(run("out.svg").exit_code,0);
+        assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o666);
+        fs.chmod("/out.svg",0o600).unwrap();
+        assert_eq!(run("out.svg").exit_code,0);
+        assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o600);
     }
 
     #[test]

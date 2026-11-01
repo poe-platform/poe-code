@@ -1231,12 +1231,32 @@ pub(in super::super) enum Composition {
     Horizontal,
     Vertical,
     Overlay(usize, usize),
+    Fade { duration: f64, offset: Option<f64> },
 }
 
 impl Composition {
     pub(in super::super) fn parse(graph: &str) -> Option<Self> {
-        if graph.contains("concat=") || graph.contains("xfade") {
+        if graph.contains("concat=") {
             return None;
+        }
+        if graph.contains("xfade") {
+            let seconds = |key: &str| {
+                graph.match_indices(key).find_map(|(i, _)| {
+                    let text = &graph[i + key.len()..];
+                    let mut dot = false;
+                    let len = text
+                        .bytes()
+                        .take_while(|c| {
+                            c.is_ascii_digit() || *c == b'.' && !std::mem::replace(&mut dot, true)
+                        })
+                        .count();
+                    text[..len].parse::<f64>().ok()
+                })
+            };
+            return Some(Self::Fade {
+                duration: seconds("duration=").filter(|&s| s != 0.).unwrap_or(0.5),
+                offset: seconds("offset="),
+            });
         }
         if graph.contains("vstack") {
             return Some(Self::Vertical);
@@ -1269,6 +1289,7 @@ impl Composition {
         remaining: &mut usize,
     ) -> Result<(), &'static str> {
         let (w, h, x, y) = match self {
+            Self::Fade { .. } => unreachable!(),
             Self::Horizontal => (a.width + im.width, a.height.max(im.height), a.width, 0),
             Self::Vertical => (a.width.max(im.width), a.height + im.height, 0, a.height),
             Self::Overlay(x, y) => {
@@ -1867,14 +1888,38 @@ impl ComposedFrames {
         scale: u32,
         opts: &Remux<'_>,
         consumed: bool,
+        preparing_cut: bool,
         used: &mut usize,
     ) -> Result<(), String> {
         (track.width, track.height) = (self.geometry.0 as u32, self.geometry.1 as u32);
         let limit = opts.limit.saturating_sub(*used);
+        // A cut sees the original track duration even if the graph added frames.
+        let hz = f64::from(track.scale);
+        let origin = track
+            .edits
+            .first()
+            .map_or(0, |r| (r[1] as i32).max(0) as u64);
+        let mut remaining = u64::from(track.media_ticks) + origin;
+        let times = self.times().map_while(|(pts, duration)| {
+            if !preparing_cut {
+                return Some((pts, duration));
+            }
+            let ticks = (duration * hz).round().max(1.) as u64;
+            let take = remaining.min(ticks);
+            remaining -= take;
+            (take != 0).then_some((
+                pts,
+                if take == ticks {
+                    duration
+                } else {
+                    take as f64 / hz
+                },
+            ))
+        });
         encode_video(
             track,
             scale,
-            self.times(),
+            times,
             y4m::Options {
                 filters: opts.video_filters,
                 frames: opts.frames,
@@ -1893,6 +1938,47 @@ impl ComposedFrames {
     }
 }
 
+fn crossfade(
+    frames: &mut Vec<(Raster, f64)>,
+    next: Vec<(Raster, f64)>,
+    duration: f64,
+    offset: Option<f64>,
+) -> Result<(), String> {
+    if frames.is_empty() || next.is_empty() {
+        return Err("Cannot read properties of undefined (reading 'data')".into());
+    }
+    let tick = frames[0].1;
+    let fps = if tick > 0. { (1. / tick).round() } else { 25. };
+    let overlap = ((duration * fps).round() as usize)
+        .min(frames.len())
+        .min(next.len())
+        .max(1);
+    let before = frames.len() - overlap;
+    let before = offset.map_or(before, |s| before.min((s * fps).round() as usize));
+    frames.truncate(before + overlap);
+    for (k, (b, tick)) in next.into_iter().enumerate() {
+        if k >= overlap {
+            frames.push((b, tick));
+            continue;
+        }
+        let a = &mut frames[before + k].0;
+        let alpha = (k + 1) as f64 / (overlap + 1) as f64;
+        for (i, p) in a.pixels.iter_mut().enumerate() {
+            if let Some(other) = b.pixels.get(i) {
+                for c in 0..3 {
+                    p[c] = (f64::from(p[c]) * (1. - alpha) + f64::from(other[c]) * alpha).round()
+                        as u8;
+                }
+            } else {
+                p[..3].fill(0);
+            }
+            p[3] = 255;
+        }
+        a.gray = false;
+    }
+    Ok(())
+}
+
 fn compose_frames(
     composition: Composition,
     sources: &[Source<'_>],
@@ -1900,6 +1986,7 @@ fn compose_frames(
     opts: &Remux<'_>,
 ) -> Result<ComposedFrames, String> {
     let mut frames = Vec::new();
+    let mut next = Vec::new();
     let mut remaining = opts.limit;
     let mut geometry = (64, 64);
     for (j, source) in sources.iter().take(2).enumerate() {
@@ -1925,11 +2012,15 @@ fn compose_frames(
             options,
             true,
             |im, tick, _| {
-                if j == 0 {
+                if j == 0 || matches!(composition, Composition::Fade { .. }) {
                     remaining = remaining
                         .checked_sub(im.pixels.len() * 4 + size_of::<(Raster, f64)>())
                         .ok_or("video frames exceed memory budget")?;
-                    frames.push((im, tick));
+                    if j == 0 {
+                        frames.push((im, tick));
+                    } else {
+                        next.push((im, tick));
+                    }
                 } else if let Some((a, _)) = frames.get_mut(index) {
                     composition.combine(a, &im, &mut remaining)?;
                     if matches!(composition, Composition::Overlay(..)) {
@@ -1942,6 +2033,8 @@ fn compose_frames(
         )?;
         if j == 0 {
             geometry = (w, h);
+        } else if let Composition::Fade { duration, offset } = composition {
+            crossfade(&mut frames, std::mem::take(&mut next), duration, offset)?;
         } else if matches!(composition, Composition::Overlay(..)) {
             if let Some(im) = last {
                 for (a, _) in frames.iter_mut().skip(index) {
@@ -2025,6 +2118,11 @@ pub(in super::super) fn remux(
     } else {
         &sources[..]
     };
+    let preparing_cut = composed.is_some() && (opts.start.is_some() || opts.end.is_some());
+    if preparing_cut {
+        opts.start = None;
+        opts.end = None;
+    }
     let (selected, shortest) = mapped_tracks(sources, &opts)?;
     if opts.format == "null" {
         return Ok(Vec::new());
@@ -2121,6 +2219,12 @@ pub(in super::super) fn remux(
             }
         }
         // Without decoded audio the WAV serializer fills the movie duration with silence.
+        let seconds =
+            if let (Some(Composition::Fade { .. }), Some(seq)) = (opts.composition, &composed) {
+                seq.frames.iter().map(|(_, d)| d).sum()
+            } else {
+                seconds
+            };
         let duration = if seconds == 0. { 1. } else { seconds };
         let frames = (duration * f64::from(rate)).round().max(1024.) as usize;
         return ffmpeg_wave::pcm16(rate, channels, frames, opts.limit);
@@ -2216,7 +2320,7 @@ pub(in super::super) fn remux(
                 (source.seconds(i) * f64::from(ts)).round() as u64,
                 scale,
             )?;
-            sequence.encode(&mut t, scale, &opts, false, &mut index_bytes)?;
+            sequence.encode(&mut t, scale, &opts, false, preparing_cut, &mut index_bytes)?;
             tracks.push(t);
             continue;
         }
@@ -2467,7 +2571,14 @@ pub(in super::super) fn remux(
             let consumed = selected[..ordinal]
                 .iter()
                 .any(|&(j, i)| sources[j].2.kind(i) == "video");
-            sequence.encode(&mut track, scale, &opts, consumed, &mut index_bytes)?;
+            sequence.encode(
+                &mut track,
+                scale,
+                &opts,
+                consumed,
+                preparing_cut,
+                &mut index_bytes,
+            )?;
         } else if let Some(bytes) = repeated_still {
             let limit = opts.limit.saturating_sub(index_bytes);
             let im = frame_output::decode_still(bytes, limit)?;

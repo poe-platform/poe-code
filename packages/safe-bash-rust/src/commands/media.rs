@@ -4650,7 +4650,7 @@ fn cmd_media_doc(
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
             if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
                 let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
-                let chain = !fc_flag.is_empty() && !fc_flag.contains("concat=") && composition.is_none() && (inputs.len()<2 || !fc_flag.contains("xfade"));
+                let chain = !fc_flag.is_empty() && !fc_flag.contains("concat=") && composition.is_none();
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4717,7 +4717,7 @@ fn cmd_media_doc(
                 // packet slicer handle keyframes, partial samples, and edit lists.
                 let graph_movie;
                 let sources=if composition.is_some() && remux_inputs && (ss_opt.is_some() || end.is_some()){
-                    let opts=mp4::mux::Remux{start:None,end:None,frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
+                    let opts=mp4::mux::Remux{frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
                     graph_movie=match mp4::mux::remux(&sources,opts,0){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
                     remux.composition=None;
                     remux.input_times=&[InputTime{start:None,to:None,duration:None,loops:0}];
@@ -13874,6 +13874,18 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
         run(&["-i","a.mp4","-i","b.y4m","-filter_complex","[0:v][1:v]overlay=2:1[out]","o.y4m"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "1cea2fa505daf06b5c7f03d6603d376bad6510eb1ae9c9583c34740d76590c81");
+    }
+
+    #[test]
+    fn ffmpeg_crossfades_frames_across_different_frame_rates() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
+        run(&["-i","a.mp4","-i","b.y4m","-filter_complex","xfade=duration=0.25:offset=0.25","o.mp4"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())), "39c4d028da2c317348c89e3c75549349b5adf46aecf046f1d0e69ecbba370388");
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","-i","b.y4m","-filter_complex","xfade","-ss","0.1","-t","0.22","cut.mp4"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/cut.mp4").unwrap())), "3c95a744a43ed6359e834c0832cc6e3ecb96021192d8078bbc5517011b26d083");
     }
 
     #[test]

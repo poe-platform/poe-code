@@ -29367,7 +29367,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let mut directives = Vec::new();
     let family = mermaid::scanner::family(&src_text);
-    let graph_family = matches!(family, "flowchart" | "graph" | "timeline" | "journey");
+    let graph_family = matches!(family, "flowchart" | "graph" | "timeline" | "journey" | "mindmap");
     let statement_family = graph_family || family == "gantt";
     let scanned = if statement_family || src_text.contains("%%{") {
         match mermaid::scanner::scan(&src_text, &mut directives) {
@@ -38261,6 +38261,25 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("journey\nReview: 0", "svg", "mmdc: E_SYNTAX (line 2, column 1): Journey tasks require a score from 1 to 5\n"),
             ("journey\njob: 3: <svg>", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<svg' in diagram label\n"),
             ("journey\n", "svg", "mmdc: E_SYNTAX: journey requires data\n"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_mindmap_shapes_and_validates_parentage() {
+        assert_mermaid_outputs(&[
+            ("mindmap\n  root((Release))\n    one[First]\n      child(Planning)\n    two{{Second}}", "svg", "09d87a2349d6aa071b9632e9658ea3959082a4f5348368f52bf836a3443563f6"),
+            ("mindmap\n  root((Release))\n    one[First]\n      child(Planning)\n    two{{Second}}", "png", "911a5bf3a864b7e9c67cf40c71c95450c986f4c1834c85ff7a6c714db2875fd7"),
+            ("mindmap\n  root((Release))\n    one[First]\n      child(Planning)\n    two{{Second}}", "pdf", "fe4f433433b03982cb9a0ac13a7a582fce05c7c166589b02b8d0943a68c15f80"),
+            ("mindmap\na\nb", "svg", "mmdc: E_SYNTAX (line 3, column 1): Mindmap must have one indented root\n"),
+            ("mindmap\n  a[bad", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unclosed mindmap shape\n"),
+            ("mindmap\n  ::icon(test)", "svg", "mmdc: E_UNSUPPORTED (line 2, column 3): Mindmap icons and CSS classes are unsupported\n"),
+            ("mindmap\n  a[root]\n    a(child)", "svg", "mmdc: E_SYNTAX (line 3, column 5): Duplicate node 'a'\n"),
+            ("mindmap\n  item[<img>]", "svg", "mmdc: E_UNSUPPORTED (line 2, column 3): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("mindmap\n  root((Façade))\n    left[Build]\n      a(Alpha)\n      b)Beta(\n    right{{Review}}", "svg", "mmdc: E_SYNTAX (line 5, column 7): Unclosed mindmap shape\n"),
+            ("mindmap\na[\"A & B\"]\n  b(\"Hello\")", "svg", "4ca06a413d35c2d869337b8166c82116c124ae4147c52fc947fdcae7a98c4709"),
+            ("mindmap\nRoot\n  child()", "svg", "mmdc: E_SYNTAX (line 3, column 3): Empty mindmap node\n"),
+            ("mindmap\nRoot; child", "svg", "d51e94ab0fe55529a4a710368e1d329cc33cde3e73066f332cfff1e58ab23ce0"),
+            ("mindmap\nRoot\n  ::icon(fa fa-book)", "svg", "mmdc: E_UNSUPPORTED (line 3, column 3): Mindmap icons and CSS classes are unsupported\n"),
         ]);
     }
 

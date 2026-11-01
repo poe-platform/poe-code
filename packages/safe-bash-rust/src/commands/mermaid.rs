@@ -14,6 +14,8 @@ use groups::Group;
 
 #[path = "mermaid/labels.rs"]
 mod labels;
+#[path = "mermaid/mindmap.rs"]
+mod mindmap;
 #[path = "mermaid/pie.rs"]
 pub(super) mod pie;
 #[path = "mermaid/ranks.rs"]
@@ -482,6 +484,28 @@ pub(super) struct Graph<'a> {
     wrapping_width: f64,
 }
 
+impl Graph<'static> {
+    fn core(wrapping_width: f64, limit: usize) -> Self {
+        Self {
+            first_edge_id: 0,
+            dir: "LR",
+            nodes: Vec::new(),
+            edges: Vec::new(),
+            groups: Vec::new(),
+            styles: Styles::new(limit),
+            hrefs: Default::default(),
+            remaining_lines: limit / 256,
+            wrapping_width,
+        }
+    }
+
+    fn connect(&mut self, from: usize, to: usize, marker: &'static str) {
+        self.nodes[from].to.push(to);
+        self.nodes[to].from.push(from);
+        self.edges.push((from, to, marker, None));
+    }
+}
+
 pub(super) fn parse<'a>(
     lines: &'a [Statement],
     title: &mut Option<String>,
@@ -493,6 +517,9 @@ pub(super) fn parse<'a>(
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
+    if keyword == "mindmap" {
+        return Some(mindmap::parse(lines, wrapping_width, limit));
+    }
     if matches!(keyword, "timeline" | "journey") {
         return Some(linear::parse(keyword, lines, title, wrapping_width, limit));
     }

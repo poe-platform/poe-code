@@ -1,7 +1,7 @@
 pub(in super::super) struct Statement {
     pub text: String,
     line: usize,
-    column: usize,
+    pub(super) column: usize,
 }
 
 impl Statement {
@@ -162,6 +162,12 @@ pub(in super::super) fn scan<'a>(
 }
 
 pub(super) fn label(raw: &str, stmt: &Statement, token: &str) -> Result<String, String> {
+    let text = unquote(raw);
+    check_label(&text, stmt, token)?;
+    Ok(text)
+}
+
+pub(super) fn unquote(raw: &str) -> String {
     let raw = raw.trim();
     let mut text = String::new();
     if let Some(q) = raw.chars().next().filter(|q| matches!(q, '\'' | '"'))
@@ -188,8 +194,7 @@ pub(super) fn label(raw: &str, stmt: &Statement, token: &str) -> Result<String, 
     } else {
         text.push_str(raw);
     }
-    check_label(&text, stmt, token)?;
-    Ok(text)
+    text
 }
 
 pub(super) fn check_label(text: &str, stmt: &Statement, token: &str) -> Result<(), String> {

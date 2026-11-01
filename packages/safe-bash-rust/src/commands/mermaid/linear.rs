@@ -1,4 +1,4 @@
-use super::{Graph, Group, Node, Shape, Statement, Styles, number, scanner::check_label};
+use super::{Graph, Group, Node, Shape, Statement, number, scanner::check_label};
 
 pub(super) fn parse(
     family: &str,
@@ -7,17 +7,7 @@ pub(super) fn parse(
     wrapping_width: f64,
     limit: usize,
 ) -> Result<Graph<'static>, String> {
-    let mut graph = Graph {
-        first_edge_id: 0,
-        dir: "LR",
-        nodes: Vec::new(),
-        edges: Vec::new(),
-        groups: Vec::new(),
-        styles: Styles::new(limit),
-        hrefs: Default::default(),
-        remaining_lines: limit / 256,
-        wrapping_width,
-    };
+    let mut graph = Graph::core(wrapping_width, limit);
     for stmt in &stmts[1..] {
         let text = stmt.text.trim_end();
         if let Some(raw) = text.strip_prefix("title ") {
@@ -86,7 +76,7 @@ pub(super) fn parse(
         };
         check_label(&label, stmt, text)?;
         let i = graph.nodes.len();
-        let mut node = Node {
+        let node = Node {
             group: graph.groups.len().checked_sub(1),
             id: format!("{family}_{i}"),
             order: i,
@@ -94,12 +84,10 @@ pub(super) fn parse(
             shape: Shape::Rounded,
             ..Node::default()
         };
-        if i > 0 {
-            node.from.push(i - 1);
-            graph.nodes[i - 1].to.push(i);
-            graph.edges.push((i - 1, i, "-->", None));
-        }
         graph.nodes.push(node);
+        if i > 0 {
+            graph.connect(i - 1, i, "-->");
+        }
     }
     if graph.nodes.is_empty() {
         return Err(format!("mmdc: E_SYNTAX: {family} requires data\n"));

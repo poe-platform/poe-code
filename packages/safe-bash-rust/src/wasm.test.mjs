@@ -1167,3 +1167,20 @@ test("find compares the requested inode time at exact minute and day boundaries"
     }
   } finally { bash.dispose(); }
 });
+
+test("mounted devices retain their creation time while the default null device uses the epoch", async t => {
+  let now = Date.UTC(2040, 0, 1);
+  t.mock.method(Date, "now", () => now);
+  const bash = new RustWasmBash();
+  try {
+    assert.equal((await bash.fs.stat("/dev/null")).birthtimeMs, 0);
+    now += 60_000;
+    const mounted = now;
+    bash.mountDevices();
+    now += 60_000;
+    for (const path of ["/dev", "/dev/null", "/dev/zero"]) {
+      const st = await bash.fs.stat(path);
+      assert.deepEqual([st.birthtimeMs, st.ctimeMs, st.atimeMs, st.mtimeMs], Array(4).fill(mounted));
+    }
+  } finally { bash.dispose(); }
+});

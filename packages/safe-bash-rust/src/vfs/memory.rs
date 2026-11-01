@@ -350,8 +350,14 @@ impl MemoryVfs {
         let device = state.devices.entry(&resolved);
         let (kind, size, mode, atime_ms, mtime_ms, ctime, birth, ino) = if let Some(name) = device {
             let ino = match name { "" => 1, "null" => 2, "random" => 3, "urandom" => 4, "zero" => 5, "full" => 6, _ => unreachable!() };
-            if name.is_empty() { (VfsEntryKind::Directory, 0, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 }, 0.0, 0.0, 0.0, 0.0, ino) }
-            else { (VfsEntryKind::File, 0, 0o20666, 0.0, 0.0, 0.0, 0.0, ino) }
+            let (kind, mode) = if name.is_empty() {
+                (VfsEntryKind::Directory, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 })
+            } else { (VfsEntryKind::File, 0o20666) };
+            let created = if state.devices == Devices::Mounted {
+                let MemoryNode::Directory { birthtime_ms, .. } = &state.nodes["/"] else { unreachable!() };
+                *birthtime_ms
+            } else { 0.0 };
+            (kind, 0, mode, created, created, created, created, ino)
         } else {
             match state.nodes.get(&resolved) {
                 Some(MemoryNode::File { ino }) => {

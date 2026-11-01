@@ -1,13 +1,16 @@
 // PDF page coordinates are in points from the bottom left. Rasterize the paths
 // at the horizontal resolution, then resample, rotate and crop the bitmap.
-use super::super::Cursor;
-use super::{ID, Matrix, PageSource, Value, concat};
+use super::pdf_text_layout::Draw;
+#[path = "pdf_glyph.rs"]
+mod pdf_glyph;
+use super::{PageSource, Value};
 type Point = [f64; 2];
 pub(in crate::commands::archive) struct RasterOptions<'a> {
     pub format: &'a str,
     pub color: &'a str,
     pub transparent: bool,
     pub antialias: bool,
+    pub text_aa: bool,
     pub dpi: [f64; 2],
     pub scale: [i64; 3],
     pub crop: [f64; 4],
@@ -263,7 +266,12 @@ impl PageSource<'_> {
         }
         let w = (pw * sx).round().max(1.) as usize;
         let h = (ph * sx).round().max(1.) as usize;
-        let target_h = (ph * sy).round().max(1.) as usize;
+        let resample = (sx - sy).abs() > 1e-6;
+        let target_h = if resample {
+            (ph * sy).round().max(1.) as usize
+        } else {
+            h
+        };
         if w.checked_mul(h.max(target_h))? > opt.limit / 4 {
             return None;
         }
@@ -273,122 +281,132 @@ impl PageSource<'_> {
             pixels: vec![if opt.transparent { [0; 4] } else { [255; 4] }; w * h],
             work: opt.limit.saturating_mul(4),
         };
-        let streams = match page.get(b"Contents") {
-            Some(Value::Ref(r)) => vec![*r],
-            Some(Value::Array(a)) => a.iter().map(Value::reference).collect::<Option<Vec<_>>>()?,
-            None => vec![],
-            _ => return None,
-        };
-        let mut ctm: Matrix = ID;
+        let mut faces = std::collections::BTreeMap::new();
         let mut fill = [0.; 3];
         let mut stroke = [0.; 3];
         let mut width = 1.;
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut stack = vec![];
-        for id in streams {
-            let bytes = self.objects.decoded_stream(id)?;
-            let mut c = Cursor(&bytes);
-            let mut args = vec![];
-            loop {
-                c.skip();
-                if c.0.is_empty() {
-                    break;
+        self.draw_page(&page, |event| {
+            let (op, args, ctm) = match event {
+                Draw::Operator(op, args, ctm) => (op, args, ctm),
+                Draw::Glyph {
+                    byte,
+                    family,
+                    matrix,
+                    mode,
+                    ..
+                } => {
+                    if matches!(mode, 0 | 2 | 4 | 6) {
+                        let outline = pdf_glyph::outline(
+                            &mut faces,
+                            family,
+                            byte,
+                            &mut bitmap.work,
+                            |x, y| {
+                                [
+                                    (x * matrix[0] + y * matrix[2] + matrix[4] - ox) * sx,
+                                    (ph - (x * matrix[1] + y * matrix[3] + matrix[5] - oy)) * sx,
+                                ]
+                            },
+                        )?;
+                        bitmap.paint(&outline, fill, false, opt.text_aa)?;
+                    }
+                    return Some(());
                 }
-                let v = c.value(0, &mut self.objects.tokens)?;
-                let op = match v.word() {
-                    Some(op) if !op.starts_with(b"/") && v.number().is_none() => op,
-                    _ => {
-                        if args.len() >= 64 {
-                            return None;
-                        }
-                        args.push(v);
-                        continue;
+            };
+            let n = |i: usize| args.get(i)?.number();
+            let pt = |x: f64, y: f64| {
+                [
+                    (x * ctm[0] + y * ctm[2] + ctm[4] - ox) * sx,
+                    (ph - (x * ctm[1] + y * ctm[3] + ctm[5] - oy)) * sx,
+                ]
+            };
+            match op {
+                b"q" => {
+                    if stack.len() >= 256 {
+                        return None;
                     }
-                };
-                let n = |i: usize| args.get(i)?.number();
-                let pt = |x: f64, y: f64| {
-                    [
-                        (x * ctm[0] + y * ctm[2] + ctm[4] - ox) * sx,
-                        (ph - (x * ctm[1] + y * ctm[3] + ctm[5] - oy)) * sx,
-                    ]
-                };
-                match op {
-                    b"q" => {
-                        if stack.len() >= 256 {
-                            return None;
-                        }
-                        stack.push((ctm, fill, stroke, width));
+                    stack.push((fill, stroke, width));
+                }
+                b"Q" => {
+                    if let Some(state) = stack.pop() {
+                        (fill, stroke, width) = state;
                     }
-                    b"Q" => {
-                        if let Some(state) = stack.pop() {
-                            (ctm, fill, stroke, width) = state;
-                        }
+                }
+                b"rg" | b"RG" | b"g" | b"G" => {
+                    let c = if op.len() == 2 {
+                        [n(0)?, n(1)?, n(2)?]
+                    } else {
+                        [n(0)?; 3]
+                    };
+                    if op[0].is_ascii_lowercase() {
+                        fill = c;
+                    } else {
+                        stroke = c;
                     }
-                    b"cm" => ctm = concat([n(0)?, n(1)?, n(2)?, n(3)?, n(4)?, n(5)?], ctm),
-                    b"rg" | b"RG" | b"g" | b"G" => {
-                        let c = if op.len() == 2 {
-                            [n(0)?, n(1)?, n(2)?]
-                        } else {
-                            [n(0)?; 3]
-                        };
-                        if op[0].is_ascii_lowercase() {
-                            fill = c;
-                        } else {
-                            stroke = c;
-                        }
+                }
+                b"w" => width = n(0)?,
+                b"re" => {
+                    let (x, y, w, h) = (n(0)?, n(1)?, n(2)?, n(3)?);
+                    paths.push(vec![
+                        pt(x, y),
+                        pt(x + w, y),
+                        pt(x + w, y + h),
+                        pt(x, y + h),
+                        pt(x, y),
+                    ]);
+                }
+                b"m" => paths.push(vec![pt(n(0)?, n(1)?)]),
+                b"l" => paths.last_mut()?.push(pt(n(0)?, n(1)?)),
+                b"c" | b"v" | b"y" => {
+                    let path = paths.last_mut()?;
+                    let start = *path.last()?;
+                    let (a, b, end) = match op {
+                        b"c" => (pt(n(0)?, n(1)?), pt(n(2)?, n(3)?), pt(n(4)?, n(5)?)),
+                        b"v" => (start, pt(n(0)?, n(1)?), pt(n(2)?, n(3)?)),
+                        _ => (pt(n(0)?, n(1)?), pt(n(2)?, n(3)?), pt(n(2)?, n(3)?)),
+                    };
+                    pdf_glyph::cubic(path, start, a, b, end, &mut bitmap.work)?;
+                }
+                b"h" => {
+                    if let Some(path) = paths.last_mut() {
+                        path.push(*path.first()?);
                     }
-                    b"w" => width = n(0)?,
-                    b"re" => {
-                        let (x, y, w, h) = (n(0)?, n(1)?, n(2)?, n(3)?);
-                        paths.push(vec![
-                            pt(x, y),
-                            pt(x + w, y),
-                            pt(x + w, y + h),
-                            pt(x, y + h),
-                            pt(x, y),
-                        ]);
+                }
+                b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s" => {
+                    if op != b"S" && op != b"s" {
+                        bitmap.paint(&paths, fill, op.ends_with(b"*"), opt.antialias)?;
                     }
-                    b"m" => paths.push(vec![pt(n(0)?, n(1)?)]),
-                    b"l" => paths.last_mut()?.push(pt(n(0)?, n(1)?)),
-                    b"h" => {
-                        if let Some(path) = paths.last_mut() {
-                            path.push(*path.first()?);
-                        }
-                    }
-                    b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s" => {
-                        if op != b"S" && op != b"s" {
-                            bitmap.paint(&paths, fill, op.ends_with(b"*"), opt.antialias)?;
-                        }
-                        if !matches!(op, b"f" | b"F" | b"f*") {
-                            let half = width * sx * ctm[0].hypot(ctm[1]) / 2.;
-                            let mut outlines = vec![];
-                            for path in &paths {
-                                for seg in path.windows(2) {
-                                    let [a, b] = [seg[0], seg[1]];
-                                    let (x, y) = (b[0] - a[0], b[1] - a[1]);
-                                    let len = x.hypot(y);
-                                    if len == 0. {
-                                        continue;
-                                    }
-                                    let (nx, ny) = (-y / len * half, x / len * half);
-                                    outlines.push(vec![
-                                        [a[0] + nx, a[1] + ny],
-                                        [b[0] + nx, b[1] + ny],
-                                        [b[0] - nx, b[1] - ny],
-                                        [a[0] - nx, a[1] - ny],
-                                    ]);
+                    if !matches!(op, b"f" | b"F" | b"f*") {
+                        let half = width * sx * ctm[0].hypot(ctm[1]) / 2.;
+                        let mut outlines = vec![];
+                        for path in &paths {
+                            for seg in path.windows(2) {
+                                let [a, b] = [seg[0], seg[1]];
+                                let (x, y) = (b[0] - a[0], b[1] - a[1]);
+                                let len = x.hypot(y);
+                                if len == 0. {
+                                    continue;
                                 }
+                                let (nx, ny) = (-y / len * half, x / len * half);
+                                outlines.push(vec![
+                                    [a[0] + nx, a[1] + ny],
+                                    [b[0] + nx, b[1] + ny],
+                                    [b[0] - nx, b[1] - ny],
+                                    [a[0] - nx, a[1] - ny],
+                                ]);
                             }
-                            bitmap.paint(&outlines, stroke, false, opt.antialias)?;
                         }
-                        paths.clear();
+                        bitmap.paint(&outlines, stroke, false, opt.antialias)?;
                     }
-                    b"n" => paths.clear(),
-                    _ => {}
+                    paths.clear();
                 }
-                args.clear();
+                b"n" => paths.clear(),
+                _ => {}
             }
-        }
+            Some(())
+        })?;
         let [bx, by, bw, bh] = crop(
             w,
             target_h,
@@ -410,7 +428,11 @@ impl PageSource<'_> {
                     270 => (bw - 1 - y, x),
                     _ => (x, y),
                 };
-                let src_y = ((by + iy) as f64 / target_h as f64 * h as f64).floor() as usize;
+                let src_y = if resample {
+                    ((by + iy) as f64 / target_h as f64 * h as f64).floor() as usize
+                } else {
+                    by + iy
+                };
                 pixels.push(bitmap.pixels[src_y.min(h - 1) * w + bx + ix]);
             }
         }

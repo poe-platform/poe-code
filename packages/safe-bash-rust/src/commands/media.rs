@@ -9453,6 +9453,7 @@ fn cmd_media_doc(
             let mut cropbox = false;
             let mut transparent = false;
             let mut antialias = true;
+            let mut text_aa = true;
             let mut color_mode = "rgb";
             let mut crop_w: Option<f64> = None;
             let mut crop_h: Option<f64> = None;
@@ -9674,7 +9675,7 @@ fn cmd_media_doc(
                             };
                             return err_out(&msg, 99);
                         }
-                        if arg == "-aaVector" { antialias = v == "yes"; }
+                        if arg == "-aaVector" { antialias = v == "yes"; } else { text_aa = v == "yes"; }
                         i += 1;
                     }
                     "-thinlinemode" => {
@@ -9702,6 +9703,7 @@ fn cmd_media_doc(
                             );
                         }
                         antialias = v != "none";
+                        text_aa = antialias;
                         i += 1;
                     }
                     "-x" | "-y" => {
@@ -9909,7 +9911,7 @@ fn cmd_media_doc(
                 }
             }
             let options = pdf_reader::RasterOptions {
-                format: fmt, color: color_mode, transparent, antialias, dpi: [dpi_x,dpi_y],
+                format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
                 scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
                 crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
             };
@@ -13591,6 +13593,21 @@ mod media_unit_tests {
         let save = cmd_media_doc("pdfdetach", &media_args(&["-save", "1", "-o", "/dest", "book.pdf"]), "", "/", &fs);
         assert_eq!((save.exit_code,save.stderr.as_str()), (2,"I/O Error: Error saving embedded file as '/dest'\n"));
         assert_eq!(fs.read_file("/book.pdf").unwrap(), bytes);
+    }
+
+    #[test]
+    fn pdf_raster_paints_standard_font_glyphs() {
+        let stream = "BT /F1 6 Tf 2 3 Td (Hello) Tj ET";
+        let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [0 0 16 12] >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>", &contents,
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
+        let r = cmd_media_doc("pdftoppm", &media_args(&["-r","72","-png","-singlefile","page.pdf","out"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "8b0eda31ccc5ae21f9093d29cb5b8ee3462f729a273f8d1cef833abdeb2d6950");
     }
 
     #[test]

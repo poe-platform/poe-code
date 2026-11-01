@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, rc::Rc};
 #[path = "pdf_font_widths.rs"]
 mod widths;
 
-use super::{Matrix, ID, concat};
+use super::{ID, Matrix, concat};
 fn shift(m: &mut Matrix, x: f64, y: f64) {
     m[4] += m[0] * x + m[2] * y;
     m[5] += m[1] * x + m[3] * y;
@@ -47,6 +47,7 @@ impl Font {
 }
 #[derive(Clone)]
 struct State {
+    mode: i32,
     ctm: Matrix,
     font: usize,
     size: f64,
@@ -56,13 +57,25 @@ struct State {
     word: f64,
     hscale: f64,
 }
-impl PageSource<'_> {
-    pub(in crate::commands::archive) fn text_lines(&mut self, pno: usize) -> Option<Vec<TextLine>> {
-        let page = self
-            .objects
-            .object(*self.pages.get(pno.checked_sub(1)?)?)?
-            .0;
-        let mut node = &page;
+pub(super) enum Draw<'a, 'b> {
+    Operator(&'a [u8], &'a [Value<'b>], Matrix),
+    Glyph {
+        byte: u8,
+        family: &'a Rc<str>,
+        bounds: [f64; 4],
+        baseline: f64,
+        size: f64,
+        matrix: Matrix,
+        mode: i32,
+    },
+}
+impl<'a> PageSource<'a> {
+    pub(super) fn draw_page(
+        &mut self,
+        page: &Value<'a>,
+        mut emit: impl FnMut(Draw<'_, '_>) -> Option<()>,
+    ) -> Option<()> {
+        let mut node = page;
         let mut fonts = vec![Font {
             name: Rc::from("Helvetica"),
             start: 0,
@@ -112,12 +125,13 @@ impl PageSource<'_> {
             node = parent;
         }
         let streams = match page.get(b"Contents") {
-            None => return Some(vec![]),
+            None => return Some(()),
             Some(Value::Ref(r)) => vec![*r],
             Some(Value::Array(a)) => a.iter().map(Value::reference).collect::<Option<Vec<_>>>()?,
             _ => return None,
         };
         let mut st = State {
+            mode: 0,
             ctm: ID,
             font: 0,
             size: 12.,
@@ -129,8 +143,6 @@ impl PageSource<'_> {
         };
         let (mut tm, mut lm) = (ID, ID);
         let mut stack = Vec::new();
-        let mut runs: Vec<TextLine> = vec![];
-        let mut space = false;
         let mut in_text = false;
         for id in streams {
             let bytes = self.objects.decoded_stream(id)?;
@@ -153,6 +165,7 @@ impl PageSource<'_> {
                     }
                 };
                 let num = |i: usize| args.get(i)?.number();
+                emit(Draw::Operator(op, &args, st.ctm))?;
                 match op {
                     b"q" => {
                         if stack.len() >= 256 {
@@ -185,6 +198,7 @@ impl PageSource<'_> {
                         st.font = *names.get(key).unwrap_or(&0);
                         st.size = num(1)?;
                     }
+                    b"Tr" => st.mode = num(0)? as i32,
                     b"TL" => st.leading = num(0)?,
                     b"Ts" => st.rise = num(0)?,
                     b"Tz" => st.hscale = num(0)? / 100.,
@@ -233,34 +247,18 @@ impl PageSource<'_> {
                                     (advance + st.spacing + if b == 32 { st.word } else { 0. })
                                         * st.hscale;
                                 shift(&mut tm, dx, 0.);
-                                if matches!(b, b' ' | b'\t') {
-                                    space = true;
-                                    continue;
-                                }
                                 let right = x + scale * dx.abs().max(advance);
-                                if let Some(run) = runs.last_mut()
-                                    && (run.baseline - y).abs() < 1e-6
-                                    && x >= run.bounds[0]
-                                    && x - run.bounds[2] <= size * 0.22
-                                    && !space
-                                {
-                                    run.text.push_str(&text(&[b]));
-                                    run.bounds[2] = run.bounds[2].max(right);
-                                    run.bounds[1] = run.bounds[1].min(y - size * 0.2);
-                                    run.bounds[3] = run.bounds[3].max(y + size * 0.8);
-                                } else {
-                                    if runs.len() >= 100_000 {
-                                        return None;
-                                    }
-                                    runs.push(TextLine {
-                                        text: text(&[b]),
-                                        family: Rc::clone(&font.name),
-                                        size,
-                                        bounds: [x, y - size * 0.2, right, y + size * 0.8],
-                                        baseline: y,
-                                    });
-                                }
-                                space = false;
+                                let matrix =
+                                    concat([st.size * st.hscale, 0., 0., st.size, 0., st.rise], m);
+                                emit(Draw::Glyph {
+                                    byte: b,
+                                    family: &font.name,
+                                    size,
+                                    bounds: [x, y - size * 0.2, right, y + size * 0.8],
+                                    baseline: y,
+                                    matrix,
+                                    mode: st.mode,
+                                })?;
                             }
                         }
                     }
@@ -269,6 +267,56 @@ impl PageSource<'_> {
                 args.clear();
             }
         }
+        Some(())
+    }
+    pub(in crate::commands::archive) fn text_lines(&mut self, pno: usize) -> Option<Vec<TextLine>> {
+        let page = self
+            .objects
+            .object(*self.pages.get(pno.checked_sub(1)?)?)?
+            .0;
+        let mut runs: Vec<TextLine> = vec![];
+        let mut space = false;
+        self.draw_page(&page, |event| {
+            if let Draw::Glyph {
+                byte: b,
+                family,
+                size,
+                bounds,
+                baseline: y,
+                ..
+            } = event
+            {
+                if matches!(b, b' ' | b'\t') {
+                    space = true;
+                    return Some(());
+                }
+                let [x, bottom, right, top] = bounds;
+                if let Some(run) = runs.last_mut()
+                    && (run.baseline - y).abs() < 1e-6
+                    && x >= run.bounds[0]
+                    && x - run.bounds[2] <= size * 0.22
+                    && !space
+                {
+                    run.text.push_str(&text(&[b]));
+                    run.bounds[2] = run.bounds[2].max(right);
+                    run.bounds[1] = run.bounds[1].min(bottom);
+                    run.bounds[3] = run.bounds[3].max(top);
+                } else {
+                    if runs.len() >= 100_000 {
+                        return None;
+                    }
+                    runs.push(TextLine {
+                        text: text(&[b]),
+                        family: Rc::clone(family),
+                        size,
+                        bounds: [x, bottom, right, top],
+                        baseline: y,
+                    });
+                }
+                space = false;
+            }
+            Some(())
+        })?;
         runs.sort_by(|a, b| {
             b.baseline
                 .total_cmp(&a.baseline)

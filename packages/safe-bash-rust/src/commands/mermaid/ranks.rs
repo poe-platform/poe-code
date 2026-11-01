@@ -10,6 +10,7 @@ pub(super) fn place(
     groups: &[Group],
     horizontal: bool,
     reverse: bool,
+    rank_gap: f64,
     work: usize,
 ) -> Option<(i32, i32)> {
     if nodes.is_empty() {
@@ -191,6 +192,10 @@ pub(super) fn place(
     let mut cursor = f64::from(open[0] * 56);
     for (r, layer) in layers.iter().enumerate() {
         let longest = layer.iter().map(|&i| depth[i]).max().unwrap_or(0);
+        // Leave room for normalization, connectors and container bounds in i32 coordinates.
+        if cursor + f64::from(longest) > f64::from(i32::MAX / 2) {
+            return None;
+        }
         let mut offset = (full - spans[r] + 1) / 2;
         for &i in layer {
             along[i] = (cursor + f64::from(longest - depth[i]) / 2.).round() as i32;
@@ -198,14 +203,18 @@ pub(super) fn place(
             center[i] = offset + breadth[i] / 2;
             offset += breadth[i];
         }
-        let mut gap = if horizontal { 64 } else { 56 };
+        let mut gap = if horizontal {
+            rank_gap.max(64.)
+        } else {
+            rank_gap
+        };
         let d = degree[r].max(degree.get(r + 1).copied().unwrap_or(0));
         if d > 4 {
-            gap = gap.max(((d + 1) * 16 + 32) as i32);
+            gap = gap.max(((d + 1) * 16 + 32) as f64);
         }
-        cursor +=
-            f64::from(longest + gap + close[r] * 28 + open.get(r + 1).copied().unwrap_or(0) * 58)
-                + allowance[r];
+        cursor += gap
+            + f64::from(longest + close[r] * 28 + open.get(r + 1).copied().unwrap_or(0) * 58)
+            + allowance[r];
     }
     // Align each node to its neighbors, keeping declaration order and a clear gap.
     let mut desired = Vec::new();

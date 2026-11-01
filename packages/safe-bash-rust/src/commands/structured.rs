@@ -29193,6 +29193,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     }
 
     let mut wrapping_width = 200.;
+    let mut rank_gap = None;
+    let mut rank_spacing = 56.;
     let mut cfg_theme: Option<String> = None;
     let mut cfg_width: Option<u32> = None;
     let mut cfg_height: Option<u32> = None;
@@ -29323,7 +29325,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     }
                 },
                 "rankGap" | "nodeGap" | "padding" => match v {
-                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {}
+                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {
+                        if k == "rankGap" {rank_gap = Some(*n);}
+                    }
                     _ => {
                         return err_out(
                             &format!("mmdc: E_CONFIG: Configuration '{k}' must be a positive number\n"),
@@ -29341,7 +29345,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                 );
                             }
                             if let JVal::Number(n) = fv && n.is_finite() && *n > 0.0 {
-                                if fk == "wrappingWidth" { wrapping_width = *n; }
+                                match fk.as_str() {
+                                    "wrappingWidth" => wrapping_width = *n,
+                                    "rankSpacing" => rank_spacing = *n,
+                                    _ => {}
+                                }
                             } else {
                                 return err_out(
                                     &format!("mmdc: E_CONFIG: Configuration 'flowchart.{fk}' must be a positive number\n"),
@@ -29680,7 +29688,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         acc_title = pie.title.clone();
         Some(pie.layout(&resolved_theme))
     } else if let Some(graph) = flow {
-        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), limit) {
+        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), rank_gap.unwrap_or(rank_spacing), limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -38287,6 +38295,27 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         fs.chmod("/out.svg",0o600).unwrap();
         assert_eq!(run("out.svg").exit_code,0);
         assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o600);
+    }
+
+    #[test]
+    fn mmdc_spaces_ranks_using_the_configured_gap() {
+        let fs=MemoryVfs::new();
+        for (source,config,hash) in [
+            ("flowchart TD; A-->B-->C-->D",r#"{"rankGap":43.25}"#,"ba0ce444f678a96d362271d43c49df9ff1d6b784c803569d8ae96e32946453ef"),
+            ("flowchart BT; subgraph Ship; A-->B; end; B-->|next|C-->D",r#"{"flowchart":{"rankSpacing":129}}"#,"2e0d731932e6658202e3ae72efd3e477e54f088ffaf1cc97cc89a7857305f14a"),
+            ("flowchart LR; A-->B & C; B & C --> D",r#"{"rankGap":89,"flowchart":{"rankSpacing":20}}"#,"b93d83023d5f2cda512dcf18c35572b094491ecbf80af4615c2d29358efa4458"),
+        ] {
+            fs.write_file("/c.json",config.as_bytes()).unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-c","/c.json","-i","-","-o","/d.svg"]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(crate::commands::archive::sha256_bytes(&fs.read_file("/d.svg").unwrap()).iter().map(|b|format!("{b:02x}")).collect::<String>(),hash);
+        }
+        fs.write_file("/c.json",br#"{"rankGap":1}"#).unwrap();
+        fs.write_file("/d.svg",b"previous").unwrap();
+        let r=try_run_structured_command("mmdc",&args(&["-c","/c.json","-i","-","-o","/d.svg"]),"flowchart TD; A-->B-->C","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,1);
+        assert_eq!(r.stderr,"mmdc: E_LIMIT: Scene geometry verification failed: Invariant 1 (node clearance): nodes 'A' and 'B' have clearance 1.00px (< 24px)\n");
+        assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
     }
 
     #[test]

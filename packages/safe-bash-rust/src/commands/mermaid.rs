@@ -677,6 +677,7 @@ pub(super) fn layout(
     theme: &str,
     prefix: &str,
     title: Option<&str>,
+    rank_gap: f64,
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let Flowchart {
@@ -707,14 +708,20 @@ pub(super) fn layout(
             return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
         }
     }
-    let (mut width, mut height) =
-        match ranks::place(&mut nodes, &edges, &groups, horizontal, reversed, limit) {
-            Some(bounds) => bounds,
-            None => return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into())),
-        };
+    let (mut width, mut height) = match ranks::place(
+        &mut nodes, &edges, &groups, horizontal, reversed, rank_gap, limit,
+    ) {
+        Some(bounds) => bounds,
+        None => return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into())),
+    };
     let Some(group_order) = groups::place(&mut groups, &mut nodes, limit) else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
+    if (!groups.is_empty() || (!horizontal && rank_gap < 24.))
+        && let Err(error) = groups::verify_nodes(&nodes, horizontal, limit)
+    {
+        return Some(Err(error));
+    }
     let Some(route::Routes {
         paths: mut waypoints,
         intersection,
@@ -722,11 +729,6 @@ pub(super) fn layout(
     else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
-    if !groups.is_empty()
-        && let Err(error) = groups::verify_nodes(&nodes, horizontal, limit)
-    {
-        return Some(Err(error));
-    }
     let positions = match labels::place(&nodes, &groups, &edges, &waypoints, limit) {
         Ok(p) => p,
         Err(error) => return Some(Err(error)),

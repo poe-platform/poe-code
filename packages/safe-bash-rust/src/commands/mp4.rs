@@ -391,6 +391,7 @@ struct Track<'a> {
     tag: &'a [u8; 4],
     audio: Option<AudioConfig>,
     sequence: Option<h264::Sequence>,
+    other_video: Vec<(&'a [u8], Option<h264::Sequence>)>,
     sar: (u32, u32),
     entry: &'a [u8],
     width: u32,
@@ -458,7 +459,8 @@ impl<'a> Track<'a> {
         let n = u32_at(tables.sizes, 8);
         check_samples(n as usize)?;
         let stsd = child(stbl, b"stsd");
-        let (tag, entry) = atoms(stsd.get(8..).unwrap_or_default())
+        let mut descriptions = atoms(stsd.get(8..).unwrap_or_default());
+        let (tag, entry) = descriptions
             .next()
             .unwrap_or((if kind == "video" { b"avc1" } else { b"mp4a" }, &[]));
         // An unknown audio FourCC is opaque: the track still has a timescale,
@@ -487,9 +489,8 @@ impl<'a> Track<'a> {
         ) {
             for (k, body) in atoms(entry.get(78..).unwrap_or_default()) {
                 match k {
-                    b"avcC" if body.get(5).is_some_and(|v| v & 31 != 0) && body.len() >= 8 => {
-                        let sps = &body[8..(8 + usize::from(u16_at(body, 6))).min(body.len())];
-                        if let Some(s) = h264::Sequence::parse(sps) {
+                    b"avcC" => {
+                        if let Some(s) = h264::Sequence::from_config(body) {
                             sar = s.sar;
                             sequence = Some(s)
                         }
@@ -499,6 +500,20 @@ impl<'a> Track<'a> {
                     }
                     _ => {}
                 }
+            }
+        }
+        let mut other_video = Vec::new();
+        if kind == "video" {
+            for (tag, entry) in descriptions {
+                if other_video.len() >= input_size / size_of::<(&[u8], Option<h264::Sequence>)>() {
+                    return Err("video description index exceeds memory budget".into());
+                }
+                let config = if matches!(tag, b"avc1" | b"avc3") {
+                    child(entry.get(78..).unwrap_or_default(), b"avcC")
+                } else {
+                    &[]
+                };
+                other_video.push((config, h264::Sequence::from_config(config)));
             }
         }
         let audio = if kind == "audio" {
@@ -655,6 +670,7 @@ impl<'a> Track<'a> {
             tag,
             audio,
             sequence,
+            other_video,
             sar,
             entry,
             width,
@@ -1349,6 +1365,78 @@ pub(super) fn render_video(
     render_track(input, t, Some(duration), opts, full_size, emit)
 }
 
+struct VideoDecoder<'a> {
+    track: &'a Track<'a>,
+    state: Option<(u32, h264::Pcm<'a>)>,
+    next: usize,
+    remaining: usize,
+    limit: usize,
+}
+impl<'a> VideoDecoder<'a> {
+    fn new(track: &'a Track<'a>, limit: usize) -> Self {
+        Self {
+            track,
+            state: None,
+            next: 0,
+            remaining: limit.saturating_mul(32),
+            limit,
+        }
+    }
+    fn decode(&mut self, desc: u32, data: &[u8]) -> Result<&mut h264::Pcm<'a>, &'static str> {
+        self.remaining = self
+            .remaining
+            .checked_sub(data.len())
+            .ok_or("H.264 decode work limit exceeded")?;
+        if self.state.as_ref().is_none_or(|(id, _)| *id != desc) {
+            let secondary = desc
+                .checked_sub(2)
+                .and_then(|i| self.track.other_video.get(i as usize));
+            let (config, seq) = secondary.map_or_else(
+                || {
+                    (
+                        child(self.track.entry.get(78..).unwrap_or_default(), b"avcC"),
+                        self.track.sequence.as_ref(),
+                    )
+                },
+                |(config, s)| (*config, s.as_ref()),
+            );
+            let seq = seq.ok_or_else(|| {
+                if super::image_header::recognized_image(data) {
+                    "H.264 packet decode failed (-1094995529)"
+                } else {
+                    "unsupported MP4 video codec or missing H.264 sequence parameters"
+                }
+            })?;
+            self.state = Some((desc, h264::Pcm::new(seq, config, self.limit)?));
+        }
+        let d = &mut self.state.as_mut().unwrap().1;
+        d.decode(data)?;
+        self.next += 1;
+        Ok(d)
+    }
+    fn picture<'b>(
+        &mut self,
+        index: usize,
+        mut packet: impl FnMut(usize) -> (u32, &'b [u8]),
+        promote: Option<usize>,
+    ) -> Result<&h264::Pcm<'a>, &'static str> {
+        if self.next > index + 1 {
+            self.next = 0;
+            self.state = None;
+        }
+        while self.next <= index {
+            let i = self.next;
+            let (desc, data) = packet(i);
+            let (w, h, limit) = (self.track.width, self.track.height, self.limit);
+            let d = self.decode(desc, data)?;
+            if Some(i) == promote && data.get(4).is_some_and(|v| v & 31 == 1) {
+                d.promote(w as usize, h as usize, limit)?;
+            }
+        }
+        Ok(&self.state.as_ref().unwrap().1)
+    }
+}
+
 fn render_track(
     input: &[u8],
     t: &Track<'_>,
@@ -1402,8 +1490,7 @@ fn render_track(
         };
         (s.dts.saturating_sub(start) as f64 / scale, tick)
     });
-    let mut decoder = None;
-    let mut replay_bytes = 0usize;
+    let mut decoder = VideoDecoder::new(t, limit);
     super::y4m::render_frames(
         w,
         h,
@@ -1414,45 +1501,15 @@ fn render_track(
             ..opts
         },
         |i| {
-            let index = first + i;
-            if decoder.is_none() {
-                let s = t
-                    .sequence
-                    .as_ref()
-                    .ok_or_else(|| {
-                        let sample = &samples[index];
-                        let packet = &input[sample.offset..sample.offset + sample.size as usize];
-                        if super::image_header::recognized_image(packet) {
-                            "H.264 packet decode failed (-1094995529)"
-                        } else {
-                            "unsupported MP4 video codec or missing H.264 sequence parameters"
-                        }
-                    })?;
-                decoder = Some(h264::Pcm::new(
-                    s,
-                    child(t.entry.get(78..).unwrap_or_default(), b"avcC"),
-                    limit,
-                )?);
-            }
-            let d = decoder.as_mut().unwrap();
-            if d.next > index + 1 {
-                d.next = 0
-            }
-            while d.next <= index {
-                let sample = &samples[d.next];
-                replay_bytes = replay_bytes.saturating_add(sample.size as usize);
-                if replay_bytes > limit.saturating_mul(32) {
-                    return Err("H.264 decode work limit exceeded");
-                }
-                let data = &input[sample.offset..sample.offset + sample.size as usize];
-                let promote = d.next == first
-                    && (opts.start > 0. || opts.end.is_some())
-                    && data.get(4).is_some_and(|v| v & 31 == 1);
-                d.decode(data)?;
-                if promote {
-                    d.promote(w, h, limit)?;
-                }
-            }
+            let promote = (opts.start > 0. || opts.end.is_some()).then_some(first);
+            let d = decoder.picture(
+                first + i,
+                |n| {
+                    let s = &samples[n];
+                    (s.description, &input[s.offset..s.offset + s.size as usize])
+                },
+                promote,
+            )?;
             d.image((w, h), full_size || filtered, limit)
         },
         emit,

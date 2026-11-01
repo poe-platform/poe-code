@@ -56,6 +56,13 @@ pub(super) struct Sequence {
     crop_top: u32,
 }
 impl Sequence {
+    pub(super) fn from_config(config: &[u8]) -> Option<Self> {
+        if config.get(5)? & 31 == 0 {
+            return None;
+        }
+        Self::parse(config.get(8..8 + usize::from(super::u16_at(config, 6)))?)
+    }
+
     pub(super) fn parse(nal: &[u8]) -> Option<Self> {
         let rbsp = rbsp(nal);
         let mut b = Bits {
@@ -224,7 +231,7 @@ pub(super) struct Pcm<'a> {
     pps_id: u32,
     deblock: bool,
     blocks: Vec<[u8; 384]>,
-    pub next: usize,
+    next: usize,
 }
 impl<'a> Pcm<'a> {
     pub(super) fn new(
@@ -416,7 +423,7 @@ impl<'a> Pcm<'a> {
                 i / sw + self.seq.crop_top as usize * 2,
             );
             if i / sw >= sh {
-                pixels.push([0, 0, 0, 255]);
+                pixels.push([0; 4]);
                 continue;
             }
             let mb = &self.blocks[y / 16 * self.seq.mb_width as usize + x / 16];

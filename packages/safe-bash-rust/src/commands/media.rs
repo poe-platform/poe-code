@@ -13908,6 +13908,19 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_decodes_changes_in_the_avc_sample_description() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-f","lavfi","-i","color=c=blue:s=6x4:r=3:d=0.7","b.mp4"]);
+        run(&["-i","a.mp4","-i","b.mp4","-filter_complex","concat=n=2","movie.mp4"]);
+        run(&["-i","movie.mp4","o.y4m"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "ba374aad064bdc024ab006a52957ed152ca586f6e6abd2fbddb1b7a91a9f2b9e");
+        run(&["-i","movie.mp4","-ss","1.1","-t","0.4","o.png"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())), "758ee94ae4fcee4af9f38d987abfdf734910f344ae205701579917a6ca3c66d9");
+    }
+
+    #[test]
     fn ffmpeg_crossfades_frames_across_different_frame_rates() {
         let fs = MemoryVfs::new();
         let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);

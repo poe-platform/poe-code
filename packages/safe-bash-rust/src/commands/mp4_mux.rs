@@ -1822,7 +1822,10 @@ pub(in super::super) fn render_mapped(
         filters: opts.video_filters,
         limit: opts.limit,
     };
-    if let Some(seq) = opts.concat.as_deref().and_then(|c| c.video.as_ref()?.get(&i))
+    if let Some(seq) = opts
+        .concat
+        .as_deref()
+        .and_then(|c| c.video.as_ref()?.get(&i))
         && let Streams::Mp4(tracks) = streams
         && !seq.visible(options.start, options.end).is_empty()
     {
@@ -2527,14 +2530,7 @@ pub(in super::super) fn remux(
                 && let Some(sample) = samples.first_mut()
                 && sample.data.get(4).is_some_and(|v| v & 31 == 1)
             {
-                let config = child(t.entry.get(78..).unwrap_or_default(), b"avcC");
-                let mut decoder = super::h264::Pcm::new(
-                    t.sequence
-                        .as_ref()
-                        .ok_or("missing H.264 sequence parameters")?,
-                    config,
-                    opts.limit,
-                )?;
+                let mut decoder = super::VideoDecoder::new(t, opts.limit);
                 let key = t
                     .samples(input.len())
                     .take(first + 1)
@@ -2543,11 +2539,19 @@ pub(in super::super) fn remux(
                     .map(|(i, _)| i)
                     .last()
                     .unwrap_or(0);
-                for s in t.samples(input.len()).skip(key).take(first - key + 1) {
-                    decoder.decode(&input[s.offset..s.offset + s.size as usize])?;
+                for (i, s) in t
+                    .samples(input.len())
+                    .enumerate()
+                    .skip(key)
+                    .take(first - key + 1)
+                {
+                    let picture = decoder
+                        .decode(s.description, &input[s.offset..s.offset + s.size as usize])?;
+                    if i == first {
+                        picture.promote(t.width as usize, t.height as usize, opts.limit)?;
+                        sample.data = picture.idr(opts.limit)?.into();
+                    }
                 }
-                decoder.promote(t.width as usize, t.height as usize, opts.limit)?;
-                sample.data = decoder.idr(opts.limit)?.into();
                 sample.key = true;
             }
             edits.clear();
@@ -2683,14 +2687,7 @@ pub(in super::super) fn remux(
             index_bytes = index_bytes
                 .saturating_add(track.samples.iter().map(|s| s.data.len()).sum::<usize>());
         } else if video && !opts.video_filters.is_empty() && !track.samples.is_empty() {
-            let config = child(t.entry.get(78..).unwrap_or_default(), b"avcC");
-            let mut decoder = h264::Pcm::new(
-                t.sequence
-                    .as_ref()
-                    .ok_or("missing H.264 sequence parameters")?,
-                config,
-                opts.limit,
-            )?;
+            let mut decoder = super::VideoDecoder::new(t, opts.limit);
             let input_samples = std::mem::take(&mut track.samples);
             let times = input_samples.iter().scan(0u64, |dts, s| {
                 let at = *dts;
@@ -2701,7 +2698,6 @@ pub(in super::super) fn remux(
                 ))
             });
             let limit = opts.limit.saturating_sub(index_bytes);
-            let mut replay = 0usize;
             encode_video(
                 &mut track,
                 scale,
@@ -2717,18 +2713,15 @@ pub(in super::super) fn remux(
                 |_| false,
                 opts.fragmented,
                 |i| {
-                    if decoder.next > i + 1 {
-                        decoder.next = 0;
-                    }
-                    while decoder.next <= i {
-                        let data = &input_samples[decoder.next].data;
-                        replay = replay.saturating_add(data.len());
-                        if replay > opts.limit.saturating_mul(32) {
-                            return Err("H.264 decode work limit exceeded");
-                        }
-                        decoder.decode(data)?;
-                    }
-                    decoder.image((t.width as usize, t.height as usize), true, limit)
+                    let picture = decoder.picture(
+                        i,
+                        |n| {
+                            let s = &input_samples[n];
+                            (s.description, s.data.as_ref())
+                        },
+                        None,
+                    )?;
+                    picture.image((t.width as usize, t.height as usize), true, limit)
                 },
             )?;
             if track.samples.is_empty() && !track.edits.is_empty() {

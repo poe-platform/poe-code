@@ -285,13 +285,10 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             .map_or((s, None), |pos| {
                 (s[..pos].trim(), Some(&s[pos + 1..s.len() - 1]))
             });
-        if let Some((filter, scopes)) = vars.invocation(name, args, input)? {
-            for scope in scopes {
-                if visit_jq(&filter.body, input, &scope, emit)?.is_break() {
-                    return Ok(Break(()));
-                }
-            }
-            return Ok(Continue(()));
+        if let Some(flow) = invoke(name, args, input, vars, &mut |body, bound| {
+            visit_jq(body, input, bound, emit)
+        }) {
+            return flow;
         }
         if let ("getpath", Some(filter)) = (name, args) {
             return visit_jq(filter, input, vars, &mut |candidate| {
@@ -501,6 +498,59 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         }
     }
     Ok(Continue(()))
+}
+
+pub(super) fn invoke<'a>(
+    name: &str,
+    args: Option<&str>,
+    input: &JVal,
+    caller: &JqScope<'a>,
+    run: &mut dyn FnMut(&str, &JqScope<'a>) -> Flow,
+) -> Option<Flow> {
+    let overloads = caller.functions.get(name)?;
+    let args = args
+        .filter(|s| !s.trim().is_empty())
+        .map_or_else(Vec::new, |s| {
+            split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()])
+        });
+    let filter = overloads.get(&args.len())?;
+    let mut bound = filter.scope.clone();
+    if let Some(original) = &filter.recursive_name {
+        bound
+            .functions
+            .entry(original.clone())
+            .or_default()
+            .insert(args.len(), filter.clone());
+    }
+    let mut values = Vec::new();
+    for (param, arg) in filter.params.iter().zip(args) {
+        if let Some(variable) = param.strip_prefix('$') {
+            values.push((variable, arg));
+        } else {
+            bound.define(param, Vec::new(), &arg, caller.clone(), false);
+        }
+    }
+    if values.len() > 128 {
+        return Some(Err("__jq_limit:maxAstDepth".into()));
+    }
+    fn bind<'a>(
+        values: &[(&str, String)],
+        input: &JVal,
+        caller: &JqScope<'a>,
+        bound: &mut JqScope<'a>,
+        run: &mut dyn FnMut(&JqScope<'a>) -> Flow,
+    ) -> Flow {
+        let Some(((variable, arg), rest)) = values.split_first() else {
+            return run(bound);
+        };
+        visit_jq(arg, input, caller, &mut |v| {
+            bound.bindings.insert((*variable).into(), v);
+            bind(rest, input, caller, bound, run)
+        })
+    }
+    Some(bind(&values, input, caller, &mut bound, &mut |scope| {
+        run(&filter.body, scope)
+    }))
 }
 
 fn index_value<'a>(base: &'a JVal, index: &JVal) -> Result<&'a JVal, String> {

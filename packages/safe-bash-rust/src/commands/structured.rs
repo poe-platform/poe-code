@@ -65,33 +65,6 @@ impl<'a> JqScope<'a> {
         }));
     }
 
-    fn invocation(&self, name: &str, arguments: Option<&str>, input: &JVal)
-        -> Result<Option<(Rc<JqFilter<'a>>, Vec<Self>)>, String> {
-        let Some(overloads) = self.functions.get(name) else { return Ok(None) };
-        let args = arguments.filter(|s| !s.trim().is_empty()).map_or_else(Vec::new, |s| split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()]));
-        let Some(filter) = overloads.get(&args.len()) else { return Ok(None) };
-        let mut base = filter.scope.clone();
-        if let Some(original) = &filter.recursive_name {
-            base.functions.entry(original.clone()).or_default().insert(args.len(), filter.clone());
-        }
-        let mut scopes = vec![base];
-        for (param, argument) in filter.params.iter().zip(args) {
-            if let Some(variable) = param.strip_prefix('$') {
-                let values = eval_jq(&argument, input, self)?;
-                scopes = scopes.into_iter().flat_map(|scope| values.iter().map(move |value| {
-                    let mut bound = scope.clone();
-                    bound.bindings.insert(variable.into(), value.clone());
-                    bound
-                })).collect();
-            } else {
-                for scope in &mut scopes {
-                    scope.define(param, Vec::new(), &argument, self.clone(), false);
-                }
-            }
-        }
-        Ok(Some((filter.clone(), scopes)))
-    }
-
     fn environment(&self) -> JVal {
         JVal::Object(self.env.iter()
             .filter(|(k, _)| crate::shell::is_exported_scalar(self.env, k))
@@ -1399,9 +1372,12 @@ fn resolve_jq_lhs_paths(
     }
     let (name, args) = s.strip_suffix(')').and_then(|s| s.split_once('('))
         .map_or((s, None), |(name, args)| (name.trim(), Some(args)));
-    if let Some((filter, scopes)) = vars.invocation(name, args, input)? {
-        let mut paths = Vec::new();
-        for scope in scopes { paths.extend(resolve_jq_lhs_paths(&filter.body, input, &scope)?); }
+    let mut paths = Vec::new();
+    if let Some(result) = jq_generator::invoke(name, args, input, vars, &mut |body, bound| {
+        paths.extend(resolve_jq_lhs_paths(body, input, bound)?);
+        Ok(ControlFlow::Continue(()))
+    }) {
+        let _ = result?;
         return Ok(paths);
     }
     if s == ".." || s == "recurse" {

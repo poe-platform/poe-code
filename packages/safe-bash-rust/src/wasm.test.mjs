@@ -3,6 +3,23 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq binds function value parameters as nested streams in the caller's scope", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout, error] of [
+      ['def f($x): $x; f((1,error("stop")))', "1\n", "stop"],
+      ['def f($a;$b): [$a,$b]; f((1,2);inputs)', "[1,7]\n[1,8]\n"],
+      ['def f($a;$b): [$a,$b]; f(empty;error("stop"))', ""],
+      ['def f($a;$b): [$a,$b]; first(f((1,2);(3,error("late"))))', "[1,3]\n"],
+      ['def f($a;g): $a | g; 4 as $x | f((3,4);.+$x)', "7\n8\n"],
+      ['def f($x): .[$x]; {"a":1,"b":2} | (f(("a","b")))=3', '{"a":3,"b":3}\n'],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`, { stdin: "7\n8\n" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [error ? 5 : 0, stdout, error ? `jq: error (at <unknown>): ${error}\n` : ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq getpath and setpath visit each candidate and validate it against the input", async () => {
   const bash = new RustWasmBash();
   try {

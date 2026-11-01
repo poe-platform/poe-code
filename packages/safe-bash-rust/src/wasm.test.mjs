@@ -81,6 +81,23 @@ test("cat checks access before reading aliases and preserves each filesystem's p
   }
 });
 
+test("head and tail check every path component before emitting a file header", async () => {
+  for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
+    const bash = new RustWasmBash({ profile, files: { "/private/entry": "hidden", "/ok": "shown" } });
+    try {
+      for (const cmd of ["head", "tail"]) {
+        const r = await bash.exec(`chmod 600 /private; ${cmd} -vc1 /private/../ok /private/entry /ok`);
+        const op = profile === "strict-budgets-mount-dev" ? "capabilitiesFor" : "lstat";
+        const denied = profile === "overlay-cow-fs" ? ["overlay '/private'", "overlay '/private'"] :
+          [profile ? "capabilitiesFor '/private/../ok'" : "stat '/private/../ok'", op + " '/private/entry'"];
+        assert.equal(r.exitCode, 1);
+        assert.equal(r.stdout, "==> /ok <==\n" + (cmd === "head" ? "s" : "n"));
+        assert.equal(r.stderr, denied.map(at => cmd + ": EACCES: permission denied, " + at + "\n").join(""));
+      }
+    } finally { bash.dispose(); }
+  }
+});
+
 test("head reads device chunks until its byte or record count is satisfied", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

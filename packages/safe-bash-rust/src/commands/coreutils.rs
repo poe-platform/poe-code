@@ -304,6 +304,23 @@ fn take_stdin_bytes(stdin: &mut String) -> Vec<u8> {
     bytes
 }
 
+fn stream_file_error(error: String, op: &str, path: &str) -> String {
+    let (reason, location) = error.split_once(", ").unwrap_or((&error, ""));
+    if path.is_empty() {
+        "ENOENT: no such file or directory ''".to_owned()
+    } else if location.starts_with("capabilitiesFor '") || location.starts_with("overlay '")
+        || location.starts_with("realpath '") || reason.starts_with("EACCES:") && location.starts_with("lstat '") {
+        error
+    } else if reason.starts_with("ELOOP:") {
+        format!("ELOOP: too many symbolic links encountered '{path}'")
+    } else {
+        let reason = if reason.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+            else if reason.starts_with("EIO:") { "EIO: input/output error" }
+            else { reason };
+        format!("{reason}, {op} '{path}'")
+    }
+}
+
 fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut flag_n = false;
     let mut flag_b = false;
@@ -396,20 +413,7 @@ fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
             match result {
                 Ok(bytes) => raw_bytes.extend_from_slice(&bytes),
                 Err(error) => {
-                    let (reason, location) = error.split_once(", ").unwrap_or((&error, ""));
-                    let message = if p.is_empty() {
-                        "ENOENT: no such file or directory ''".to_owned()
-                    } else if location.starts_with("capabilitiesFor '") || location.starts_with("overlay '")
-                        || location.starts_with("realpath '") || reason.starts_with("EACCES:") && location.starts_with("lstat '") {
-                        error
-                    } else if reason.starts_with("ELOOP:") {
-                        format!("ELOOP: too many symbolic links encountered '{p}'")
-                    } else {
-                        let reason = if reason.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
-                            else if reason.starts_with("EIO:") { "EIO: input/output error" }
-                            else { reason };
-                        format!("{reason}, readStream '{p}'")
-                    };
+                    let message = stream_file_error(error, "readStream", &p);
                     stderr.push_str(&format!("cat: {message}\n"));
                     exit_code = 1;
                 }
@@ -785,21 +789,26 @@ fn run_head_or_tail(
     let mut consumed = 0;
     for file in &names {
         let path = if file == "-" { None } else {
-            let p = resolve_posix_path(cwd, file);
-            let error = match fs.stat(&p) {
-                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory =>
-                    Some(format!("{name}: EISDIR: illegal operation on a directory '{p}'\n")),
-                Ok(st) if st.mode & 0o400 == 0 =>
-                    Some(format!("{name}: EACCES: permission denied, access '{p}'\n")),
-                Ok(_) => None,
-                Err(_) => Some(format!("{name}: ENOENT: no such file or directory, stat '{p}'\n")),
-            };
-            if let Some(error) = error {
-                stderr.push_str(&error);
-                exit_code = 1;
-                continue;
+            let p = super::fs::absolute_operand(cwd, file);
+            let inspected = fs.inspect_command_entry(&p, true, "capabilitiesFor")
+                .map_err(|error| stream_file_error(error, "stat", &p))
+                .and_then(|(resolved, st)| {
+                    if st.kind == crate::vfs::VfsEntryKind::Directory {
+                        Err(format!("EISDIR: illegal operation on a directory '{p}'"))
+                    } else if st.mode & 0o400 == 0 {
+                        Err(format!("EACCES: permission denied, access '{p}'"))
+                    } else {
+                        Ok(resolved)
+                    }
+                });
+            match inspected {
+                Ok(resolved) => Some(resolved),
+                Err(error) => {
+                    stderr.push_str(&format!("{name}: {error}\n"));
+                    exit_code = 1;
+                    continue;
+                }
             }
-            Some(p)
         };
 
         if show_headers {
@@ -869,8 +878,9 @@ fn run_head_or_tail(
             copy(&bytes[consumed..], true).map(|(_, used)| { consumed += used; })
         };
         if let Err(err) = result {
-            if let Some(path) = path && err.starts_with("EIO:") {
-                stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{path}'\n"));
+            if path.is_some() && err.starts_with("EIO:") {
+                let operand = super::fs::absolute_operand(cwd, file);
+                stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{operand}'\n"));
             } else {
                 stderr.push_str(&format!("{name}: {err}\n"));
             }

@@ -12,6 +12,11 @@ struct DirectoryObservation {
     logical: EntryIdentity,
 }
 
+enum MetadataChange {
+    Mode(u32),
+    Times(Option<f64>, Option<f64>),
+}
+
 #[derive(Clone)]
 pub struct OverlayVfs {
     lower: Arc<dyn SafeBashFs>,
@@ -105,6 +110,55 @@ impl OverlayVfs {
             if let Some(d) = dirs.get_mut(path) && d.lower == lower { d.upper = upper; }
         }
         Ok(())
+    }
+
+    fn change_metadata(&self, path: &str, change: MetadataChange) -> Result<(), String> {
+        let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
+        let versions = (self.lower.generation(), self.upper.generation());
+        let norm = self.access_path(path, true)?;
+        if self.upper.lstat(&norm).is_ok() {
+            return match change {
+                MetadataChange::Mode(mode) => self.upper.chmod(&norm, mode),
+                MetadataChange::Times(atime, mtime) => self.upper.set_times(&norm, atime, mtime),
+            };
+        }
+        let mut st = self.stat(&norm)?;
+        let dir = st.kind == VfsEntryKind::Directory;
+        let parent = crate::vfs::dirname_posix_path(&norm);
+        let mut ancestor = parent.clone();
+        loop {
+            if self.stat(&ancestor)?.mode & 0o300 != 0o300 {
+                return Err(format!("EACCES: permission denied, overlay '{ancestor}'"));
+            }
+            if ancestor == "/" || self.upper.lstat(&ancestor).is_ok() { break; }
+            ancestor = crate::vfs::dirname_posix_path(&ancestor);
+        }
+        if !dir {
+            if st.nlink > 1 { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{norm}'")); }
+            if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
+        }
+        match change {
+            MetadataChange::Mode(mode) => st.mode = (st.mode & !0o7777) | (mode & 0o7777),
+            MetadataChange::Times(atime, mtime) => {
+                st.atime_ms = atime.unwrap_or(st.atime_ms);
+                st.mtime_ms = mtime.unwrap_or(st.mtime_ms);
+            }
+        }
+        if let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) {
+            let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
+            if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during metadata copy-up".into()); }
+            return self.copy_up_directories(if dir { &norm } else { &parent }, || {
+                upper.copy_up_metadata(lower, versions, &norm, &st)
+            });
+        }
+        if dir {
+            self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
+        } else {
+            let bytes = self.lower.read_file(&norm)?;
+            self.copy_up_directories(&parent, || self.upper.write_file(&norm, &bytes))?;
+        }
+        self.upper.chmod(&norm, st.mode)?;
+        self.upper.set_times(&norm, Some(st.atime_ms), Some(st.mtime_ms))
     }
 
     fn publish_file(&self, path: &str, data: &[u8], exclusive_mode: Option<u32>) -> Result<(), String> {
@@ -413,60 +467,14 @@ impl SafeBashFs for OverlayVfs {
     fn lstat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, false) }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        if !self.upper.lstat(&norm).is_ok() {
-            if self.is_deleted(&norm) || !self.lower.exists(&norm) {
-                return Err(format!("ENOENT: no such file or directory, chmod '{norm}'"));
-            }
-            if self.lower.is_dir(&norm) {
-                self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
-            } else {
-                let bytes = self.lower.read_file(&norm)?;
-                self.upper.write_file(&norm, &bytes)?;
-            }
-        }
-        self.upper.chmod(&norm, mode)
+        self.change_metadata(path, MetadataChange::Mode(mode))
     }
 
     fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
         if atime_ms.is_some_and(|t| !t.is_finite()) || mtime_ms.is_some_and(|t| !t.is_finite()) {
             return Err(format!("EINVAL: invalid argument, utimes '{path}'"));
         }
-        let versions = (self.lower.generation(), self.upper.generation());
-        let norm = self.access_path(path, true)?;
-        if self.upper.lstat(&norm).is_ok() { return self.upper.set_times(&norm, atime_ms, mtime_ms); }
-        let st = self.stat(&norm)?;
-        let dir = st.kind == VfsEntryKind::Directory;
-        let parent = crate::vfs::dirname_posix_path(&norm);
-        let mut ancestor = parent.clone();
-        loop {
-            if self.stat(&ancestor)?.mode & 0o300 != 0o300 {
-                return Err(format!("EACCES: permission denied, overlay '{ancestor}'"));
-            }
-            if ancestor == "/" || self.upper.lstat(&ancestor).is_ok() { break; }
-            ancestor = crate::vfs::dirname_posix_path(&ancestor);
-        }
-        if !dir {
-            if st.nlink > 1 { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{norm}'")); }
-            if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
-        }
-        let atime = atime_ms.unwrap_or(st.atime_ms);
-        let mtime = mtime_ms.unwrap_or(st.mtime_ms);
-        if let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) {
-            let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
-            if whiteouts.contains(&norm) { return Err(format!("ENOENT: no such file or directory, overlay '{norm}'")); }
-            return self.copy_up_directories(if dir { &norm } else { &parent }, || {
-                upper.copy_up_times(lower, versions, &norm, atime, mtime)
-            });
-        }
-        if dir {
-            self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
-        } else {
-            let bytes = self.lower.read_file(&norm)?;
-            self.copy_up_directories(&parent, || self.upper.write_file(&norm, &bytes))?;
-        }
-        self.upper.chmod(&norm, st.mode)?;
-        self.upper.set_times(&norm, Some(atime), Some(mtime))
+        self.change_metadata(path, MetadataChange::Times(atime_ms, mtime_ms))
     }
 
     fn generation(&self) -> u64 {
@@ -537,6 +545,25 @@ mod tests {
         assert_eq!((after.mode, after.identity, after.atime_ms), (dir.mode, dir.identity, 5.0));
         assert_eq!(fs.stat("/dir/file").unwrap().mtime_ms, 123.75);
         assert_ne!(lower.stat("/dir/file").unwrap().mtime_ms, 123.75);
+    }
+
+    #[test]
+    fn chmod_copies_lower_metadata_and_leaves_unreadable_files_untouched() {
+        let lower = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        lower.write_file("/private/f", b"x").unwrap();
+        lower.chmod("/private", 0o700).unwrap();
+        lower.set_times("/private/f", Some(123.0), Some(456.0)).unwrap();
+        lower.chmod("/private/f", 0o200).unwrap();
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        assert!(fs.chmod("/private/f", 0o600).unwrap_err().starts_with("EACCES:"));
+        assert!(!upper.exists("/private"));
+        lower.chmod("/private/f", 0o400).unwrap();
+        fs.chmod("/private/f", 0o600).unwrap();
+        let st = fs.stat("/private/f").unwrap();
+        assert_eq!((st.mode & 0o777, st.atime_ms, st.mtime_ms), (0o600, 123.0, 456.0));
+        assert_eq!(fs.stat("/private").unwrap().mode & 0o777, 0o700);
+        assert_eq!(lower.stat("/private/f").unwrap().mode & 0o777, 0o400);
     }
 
     #[test]

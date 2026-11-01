@@ -498,7 +498,7 @@ impl MemoryVfs {
         Ok(())
     }
 
-    pub(super) fn copy_up_times(&self, lower: &Self, versions: (u64, u64), path: &str, atime: f64, mtime: f64) -> Result<(), String> {
+    pub(super) fn copy_up_metadata(&self, lower: &Self, versions: (u64, u64), path: &str, st: &FileStat) -> Result<(), String> {
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
         let mut directories = Vec::new();
         let mut cursor = path;
@@ -519,11 +519,11 @@ impl MemoryVfs {
             return Err("ENOSPC: inode limit exceeded".into());
         }
         if let Some(file) = file {
-            Self::store_file(&mut upper, path.to_owned(), &file.data, file.mode, None)?;
+            Self::store_file(&mut upper, path.to_owned(), &file.data, st.mode, None)?;
             let ino = upper.nodes[path].ino();
             let copy = upper.files.get_mut(&ino).unwrap();
-            copy.atime_ms = atime;
-            copy.mtime_ms = mtime;
+            copy.atime_ms = st.atime_ms;
+            copy.mtime_ms = st.mtime_ms;
         }
         let now = super::now_ms();
         // Publishing a staged copy changes the upper root, even for a nested destination.
@@ -531,9 +531,9 @@ impl MemoryVfs {
         for (parent, mode, previous_atime) in directories {
             upper.parent_changed(parent, now);
             upper.insert_directory(parent.to_owned(), MemoryNode::Directory {
-                ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode,
-                atime_ms: if parent == path { atime } else { previous_atime },
-                mtime_ms: if parent == path { mtime } else { now },
+                ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode: if parent == path { st.mode } else { mode },
+                atime_ms: if parent == path { st.atime_ms } else { previous_atime },
+                mtime_ms: if parent == path { st.mtime_ms } else { now },
                 ctime_ms: now, birthtime_ms: now,
             });
         }

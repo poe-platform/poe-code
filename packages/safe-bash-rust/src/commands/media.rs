@@ -1600,63 +1600,16 @@ fn extract_html_headings(html: &str) -> Vec<(String, String)> {
     out
 }
 
-fn format_qpdf_split_name(template: &str, total: usize, group: usize, start: usize, end: usize) -> String {
+fn format_qpdf_split_name(template: &str, total: usize, group: usize, start: usize, end: usize) -> Option<String> {
     let pad_len = total.max(1).to_string().len();
-    let bytes = template.as_bytes();
-    let mut out = String::new();
-    let mut replaced = false;
-    let mut i = 0usize;
-    while i < bytes.len() {
-        if bytes[i] != b'%' {
-            out.push(bytes[i] as char);
-            i += 1;
-            continue;
-        }
-        if i + 1 < bytes.len() && bytes[i + 1] == b'%' {
-            out.push('%');
-            i += 2;
-            continue;
-        }
-        if !replaced {
-            let mut j = i + 1;
-            let mut zero_pad = false;
-            if j < bytes.len() && bytes[j] == b'0' {
-                zero_pad = true;
-                j += 1;
-            }
-            let mut digits = String::new();
-            while j < bytes.len() && bytes[j].is_ascii_digit() {
-                digits.push(bytes[j] as char);
-                j += 1;
-            }
-            if j < bytes.len() && bytes[j] == b'd' {
-                let width = if digits.is_empty() {
-                    pad_len
-                } else {
-                    digits.parse::<usize>().unwrap_or(pad_len)
-                };
-                let fmt_n = |n: usize| -> String {
-                    if zero_pad || digits.is_empty() {
-                        format!("{n:0>width$}")
-                    } else {
-                        format!("{n}")
-                    }
-                };
-                if group == 1 {
-                    out.push_str(&fmt_n(start));
-                } else {
-                    out.push_str(&format!("{}-{}", fmt_n(start), fmt_n(end)));
-                }
-                replaced = true;
-                i = j + 1;
-                continue;
-            }
-        }
-        out.push('%');
-        i += 1;
-    }
-    if replaced {
-        return out;
+    if let Some((prefix, spec, suffix)) = filename_number_spec(template) {
+        let digits = spec.strip_prefix('0').unwrap_or(spec);
+        let width = if digits.is_empty() { pad_len } else if spec.starts_with('0') { filename_width(digits)? } else { 0 };
+        let mut name = prefix.replace("%%", "%");
+        name.push_str(&format!("{start:0width$}"));
+        if group != 1 { name.push_str(&format!("-{end:0width$}")); }
+        name.push_str(&suffix.replace("%%", "%"));
+        return Some(name);
     }
     let stem = if template.to_ascii_lowercase().ends_with(".pdf") {
         &template[..template.len() - 4]
@@ -1665,11 +1618,11 @@ fn format_qpdf_split_name(template: &str, total: usize, group: usize, start: usi
     };
     let first = format!("{start:0>pad_len$}");
     let last = format!("{end:0>pad_len$}");
-    if group == 1 {
+    Some(if group == 1 {
         format!("{stem}-{first}.pdf")
     } else {
         format!("{stem}-{first}-{last}.pdf")
-    }
+    })
 }
 
 fn decode_pdftk_entities(raw: &str) -> String {
@@ -1806,73 +1759,43 @@ fn paper_size_label(w: f64, h: f64) -> &'static str {
     }
 }
 
-fn has_pdfseparate_spec(pattern: &str) -> bool {
-    let chars: Vec<char> = pattern.chars().collect();
-    let mut i = 0usize;
-    while i < chars.len() {
-        if chars[i] != '%' {
-            i += 1;
+// Only the first unescaped %d (with optional decimal width) is substituted.
+fn filename_number_spec(pattern: &str) -> Option<(&str, &str, &str)> {
+    let mut offset = 0;
+    while let Some(pos) = pattern[offset..].find('%') {
+        let i = offset + pos;
+        let tail = &pattern[i + 1..];
+        if tail.starts_with('%') {
+            offset = i + 2;
             continue;
         }
-        if chars.get(i + 1) == Some(&'%') {
-            i += 2;
-            continue;
+        let n = tail.bytes().take_while(u8::is_ascii_digit).count();
+        if tail.as_bytes().get(n) == Some(&b'd') {
+            return Some((&pattern[..i], &tail[..n], &tail[n + 1..]));
         }
-        let mut j = i + 1;
-        while j < chars.len() && chars[j].is_ascii_digit() {
-            j += 1;
-        }
-        if chars.get(j) == Some(&'d') {
-            return true;
-        }
-        i += 1;
+        offset = i + 1 + n;
     }
-    false
+    None
 }
 
-fn format_printf_num(pattern: &str, num: usize) -> String {
-    let chars: Vec<char> = pattern.chars().collect();
-    let mut out = String::new();
-    let mut replaced = false;
-    let mut i = 0usize;
-    while i < chars.len() {
-        if chars[i] != '%' {
-            out.push(chars[i]);
-            i += 1;
-            continue;
+fn filename_width(digits: &str) -> Option<usize> {
+    if digits.is_empty() { return Some(0); }
+    digits.parse().ok().filter(|&w| w <= 4096)
+}
+
+fn format_printf_num(pattern: &str, num: usize, pad: Option<char>) -> Option<String> {
+    let Some((prefix, digits, suffix)) = filename_number_spec(pattern) else {
+        return Some(pattern.replace("%%", "%"));
+    };
+    let pad = if digits.starts_with('0') { Some('0') } else { pad };
+    let number = match pad {
+        Some(c) => {
+            let width = filename_width(digits)?;
+            if c == '0' { format!("{num:0width$}") } else { format!("{num:>width$}") }
         }
-        if chars.get(i + 1) == Some(&'%') {
-            out.push('%');
-            i += 2;
-            continue;
-        }
-        if !replaced {
-            let mut j = i + 1;
-            let mut digits = String::new();
-            while j < chars.len() && chars[j].is_ascii_digit() {
-                digits.push(chars[j]);
-                j += 1;
-            }
-            if chars.get(j) == Some(&'d') {
-                let width: usize = digits.parse().unwrap_or(0);
-                if width > 0 {
-                    if digits.starts_with('0') {
-                        out.push_str(&format!("{num:0width$}", width = width));
-                    } else {
-                        out.push_str(&format!("{num:>width$}", width = width));
-                    }
-                } else {
-                    out.push_str(&num.to_string());
-                }
-                replaced = true;
-                i = j + 1;
-                continue;
-            }
-        }
-        out.push('%');
-        i += 1;
-    }
-    out
+        None => num.to_string(),
+    };
+    Some(format!("{}{number}{}", prefix.replace("%%", "%"), suffix.replace("%%", "%")))
 }
 
 #[derive(Clone, Debug)]
@@ -4789,7 +4712,8 @@ fn cmd_media_doc(
                     let mut count = 0u32;
                     let mut idx = 1usize;
                     while idx <= 100 {
-                        let candidate = resolve_posix_path(cwd, &format_printf_num(inp, idx));
+                        let Some(name) = format_printf_num(inp, idx, Some('0')) else { return err_out("ffmpeg: image sequence filename is too long\n", 1); };
+                        let candidate = resolve_posix_path(cwd, &name);
                         if let Ok(b) = fs.read_file(&candidate) {
                             if idx == 1 {
                                 let im = read_image_meta(&b, &candidate);
@@ -5024,7 +4948,8 @@ fn cmd_media_doc(
                 let bytes = write_image_bytes(&im);
                 if out_rel.contains('%') {
                     for idx in 1..=(doc.nb_frames as usize) {
-                        let p = resolve_posix_path(cwd, &format_printf_num(&out_rel, idx));
+                        let Some(name) = format_printf_num(&out_rel, idx, Some('0')) else { return err_out("ffmpeg: image sequence filename is too long\n", 1); };
+                        let p = resolve_posix_path(cwd, &name);
                         let _ = fs.write_file(&p, &bytes);
                     }
                 } else {
@@ -6115,8 +6040,7 @@ fn cmd_media_doc(
                 );
             }
             let count = end_p - first_p + 1;
-            let has_spec = has_pdfseparate_spec(pat);
-            if count > 1 && !has_spec {
+            if count > 1 && filename_number_spec(pat).is_none() {
                 return err_out(&format!("Error: '{pat}' must contain '%d' if more than one page should be extracted\n"), 99);
             }
             let mut outputs = Vec::new();
@@ -6144,7 +6068,7 @@ fn cmd_media_doc(
                     return err_out("pdfseparate: output byte limit exceeded\n", 99);
                 };
                 remaining = left;
-                let name = if has_spec { format_printf_num(pat, pno) } else { pat.replace("%%", "%") };
+                let Some(name) = format_printf_num(pat, pno, Some(' ')) else { return err_out("shell: line 1: internal error\n", 1); };
                 outputs.push((name, bytes));
             }
             for (name, bytes) in outputs {
@@ -6998,7 +6922,7 @@ fn cmd_media_doc(
                     sub.page_w = doc.page_w;
                     sub.page_h = doc.page_h;
                     sub.pages = doc.pages[(start - 1)..end].to_vec();
-                    let fname = format_qpdf_split_name(pat, total, group_sz, start, end);
+                    let Some(fname) = format_qpdf_split_name(pat, total, group_sz, start, end) else { return err_out("qpdf: filename width limit exceeded\n", 2); };
                     let out_p = resolve_posix_path(cwd, &fname);
                     let _ = fs.write_file(&out_p, &sub.serialize());
                     start = end + 1;
@@ -7735,7 +7659,8 @@ fn cmd_media_doc(
                         single.page_w = primary.page_w;
                         single.page_h = primary.page_h;
                         single.pages.push(pg.clone());
-                        let out_p = resolve_posix_path(cwd, &format_printf_num(&pat, idx + 1));
+                        let Some(name) = format_printf_num(&pat, idx + 1, None) else { return err_out("pdftk: filename width limit exceeded\n", 1); };
+                        let out_p = resolve_posix_path(cwd, &name);
                         let _ = fs.write_file(&out_p, &single.serialize());
                     }
                     let doc_data_p = format!("{}/doc_data.txt", burst_dir.trim_end_matches('/'));
@@ -13865,6 +13790,26 @@ mod media_unit_tests {
         let subst = cmd_media_doc("pdffonts", &media_args(&["-subst", "in.pdf"]), "", "/", &fs);
         assert_eq!(subst.stdout.lines().count(), 3);
         assert!(subst.stdout.ends_with("/NimbusMonoPS.t1\n"));
+    }
+
+    #[test]
+    fn pdf_page_names_preserve_text_and_bound_numeric_padding() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 20 20] >>",
+        ], "");
+        fs.write_file("/test.pdf", pdf.as_bytes()).unwrap();
+        let run = |cmd, args: &[&str]| cmd_media_doc(cmd, &media_args(args), "", "/", &fs);
+        for pattern in ["%04097d.pdf", "%099999999999999999999999d.pdf"] {
+            let r = run("pdfseparate", &["test.pdf", pattern]);
+            assert_eq!((r.exit_code, r.stderr.as_str()), (1, "shell: line 1: internal error\n"));
+        }
+        assert_eq!(run("pdftk", &["test.pdf", "burst", "output", "p%4d.pdf"]).exit_code, 0);
+        assert!(fs.exists("/p1.pdf"));
+        assert_eq!(run("qpdf", &["--split-pages", "test.pdf", "é%%-%04d.pdf"]).exit_code, 0);
+        assert!(fs.exists("/é%-0001.pdf"));
     }
 
     #[test]

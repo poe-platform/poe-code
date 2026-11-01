@@ -498,6 +498,10 @@ const SAFE_DETERMINISTIC_CMDS = new Set([
 
 export class RustWasmBash {
   #identityScope = Symbol("Wasm filesystem");
+  #directoryScopes = new Map();
+  #releasedScopes = new FinalizationRegistry(scope => {
+    if (!this.#directoryScopes.get(scope)?.deref()) this.#directoryScopes.delete(scope);
+  });
   constructor(options = {}) {
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
       throw new TypeError("deviceView must be default or provided");
@@ -745,9 +749,19 @@ export class RustWasmBash {
     const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
     const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
     const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
+    let identityScope = this.#identityScope;
+    if (len >= 48) {
+      const scope = view.getBigUint64(40, true);
+      identityScope = this.#directoryScopes.get(scope)?.deref();
+      if (!identityScope) {
+        identityScope = Symbol("overlay directory");
+        this.#directoryScopes.set(scope, new WeakRef(identityScope));
+        this.#releasedScopes.register(identityScope, scope);
+      }
+    }
     return {
       ...(len >= 40 ? { nlink: view.getUint32(36, true) } : {}),
-      ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope: this.#identityScope } : {}),
+      ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope } : {}),
       type,
       size,
       mode,
@@ -1218,6 +1232,7 @@ export class RustWasmBash {
   }
 
   dispose() {
+    this.#directoryScopes.clear();
     if (this._companion) {
       void this._companion.shell.dispose();
     }

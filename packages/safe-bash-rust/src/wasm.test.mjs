@@ -663,6 +663,28 @@ test("stat identifies aliases, renames and replacements within one filesystem", 
   } finally { a.dispose(); b.dispose(); }
 });
 
+test("memory overlay directory scopes distinguish siblings and keep symlink aliases together", async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/src/dir/file":"data"}, symlinks:{"/alias":"/src/dir"}});
+  try {
+    const parent = await bash.fs.stat("/src"), child = await bash.fs.stat("/src/dir");
+    assert.notEqual(parent.identityScope, child.identityScope);
+    assert.equal((await bash.fs.stat("/alias")).identityScope, child.identityScope);
+    assert.notEqual((await bash.fs.lstat("/alias")).identityScope, child.identityScope);
+    const r = await bash.exec("cp -Rx /src /copy");
+    assert.equal(r.exitCode, 0, r.stderr);
+    assert.deepEqual(await bash.fs.readdir("/copy/dir"), []);
+    await bash.fs.chmod("/src", 0o750);
+    await bash.fs.writeFile("/src/dir/new", "upper");
+    for (const [path, before] of [["/src", parent], ["/src/dir", child]]) {
+      const after = await bash.fs.stat(path);
+      assert.deepEqual([after.identityScope, after.dev, after.ino], [before.identityScope, before.dev, before.ino]);
+    }
+    await bash.fs.rename("/src", "/moved");
+    assert.notEqual((await bash.fs.stat("/moved")).identityScope, parent.identityScope);
+
+  } finally { bash.dispose(); }
+});
+
 test("stat and lstat resolve parents before '..' and report inaccessible entries", async () => {
   const bash = new RustWasmBash({files:{"/tree/sub/file":"data", "/tree/x":"nested", "/x":"root"}, symlinks:{"/alias":"tree/sub"}});
   try {

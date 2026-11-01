@@ -1,13 +1,23 @@
 use crate::vfs::path::normalize_posix_path;
-use crate::vfs::{FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
+use crate::vfs::{EntryIdentity, FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static NEXT_DIRECTORY_SCOPE: AtomicU64 = AtomicU64::new(1);
+
+struct DirectoryObservation {
+    upper: Option<EntryIdentity>,
+    lower: Option<EntryIdentity>,
+    logical: EntryIdentity,
+}
 
 #[derive(Clone)]
 pub struct OverlayVfs {
     lower: Arc<dyn SafeBashFs>,
     upper: Arc<dyn SafeBashFs>,
     whiteouts: Arc<RwLock<BTreeSet<String>>>,
+    directories: Arc<Mutex<BTreeMap<String, DirectoryObservation>>>,
 }
 
 impl OverlayVfs {
@@ -16,6 +26,7 @@ impl OverlayVfs {
             lower,
             upper,
             whiteouts: Arc::new(RwLock::new(BTreeSet::new())),
+            directories: Default::default(),
         }
     }
 
@@ -40,6 +51,67 @@ impl OverlayVfs {
             }
         }
         false
+    }
+
+    fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
+        let norm = self.access_path(path, follow)?;
+        let versions = (self.upper.generation(), self.lower.generation());
+        let upper = self.upper.lstat(&norm).ok();
+        let upper_id = upper.as_ref().and_then(|st| st.identity.clone());
+        let mut st = match upper {
+            Some(st) => st,
+            None if self.is_deleted(&norm) => return Err(format!("ENOENT: no such file or directory, lstat '{norm}'")),
+            None => self.lower.lstat(&norm)?,
+        };
+        if st.kind == VfsEntryKind::Directory && self.upper.memory_backend().is_some() && self.lower.memory_backend().is_some()
+            && let Some(EntryIdentity::Memory(dev, ino)) = st.identity {
+            let lower_id = if upper_id.is_none() { st.identity.clone() }
+                else if self.is_deleted(&norm) { None } else { self.lower.lstat(&norm).ok().and_then(|s| s.identity) };
+            let mut dirs = self.directories.lock().map_err(|_| "EIO: input/output error")?;
+            if versions != (self.upper.generation(), self.lower.generation()) { return Err("EAGAIN: directory changed during stat".into()); }
+            if let Some(d) = dirs.get(&norm) && d.upper == upper_id && d.lower == lower_id {
+                st.identity = Some(d.logical.clone());
+            } else {
+                let logical = EntryIdentity::OverlayDirectory { scope: NEXT_DIRECTORY_SCOPE.fetch_add(1, Ordering::Relaxed), dev, ino };
+                st.identity = Some(logical.clone());
+                dirs.insert(norm, DirectoryObservation { upper: upper_id, lower: lower_id, logical });
+            }
+        }
+        Ok(st)
+    }
+
+    // A successful write to stock memory advances its generation once. Carry an
+    // existing directory observation across the upper parents created by that write.
+    // Independent layer edits cannot certify a copy-up.
+    fn copy_up_directories(&self, dir: &str, write: impl FnOnce() -> Result<(), String>) -> Result<(), String> {
+        if self.upper.memory_backend().is_none() || self.lower.memory_backend().is_none() { return write(); }
+        let mut dirs = self.directories.lock().map_err(|_| "EIO: input/output error")?;
+        if dirs.is_empty() { drop(dirs); return write(); }
+        let versions = (self.upper.generation(), self.lower.generation());
+        let mut watched = Vec::new();
+        let mut path = dir;
+        while !path.is_empty() && path != "/" && self.upper.lstat(path).is_err() {
+            if let Some(d) = dirs.get(path) && d.upper.is_none() && d.lower.is_some() { watched.push(path); }
+            path = path.rsplit_once('/').map_or("", |(parent, _)| parent);
+        }
+        if watched.is_empty() { drop(dirs); return write(); }
+        write()?;
+        for path in watched {
+            let upper = self.upper.lstat(path).ok().filter(|s| s.kind == VfsEntryKind::Directory).and_then(|s| s.identity);
+            let lower = self.lower.lstat(path).ok().and_then(|s| s.identity);
+            if versions.0.checked_add(1) != Some(self.upper.generation()) || versions.1 != self.lower.generation() { break; }
+            if let Some(d) = dirs.get_mut(path) && d.lower == lower { d.upper = upper; }
+        }
+        Ok(())
+    }
+
+    fn forget_directory(&self, path: &str) {
+        let mut dirs = self.directories.lock().unwrap();
+        dirs.remove(path);
+        let prefix = format!("{path}/");
+        let descendants: Vec<_> = dirs.range(prefix.clone()..).map(|(p, _)| p)
+            .take_while(|p| p.starts_with(&prefix)).cloned().collect();
+        for p in descendants { dirs.remove(&p); }
     }
 
     fn remove_entry(&self, path: &str, directory: bool, recursive: bool) -> Result<(), String> {
@@ -73,6 +145,7 @@ impl OverlayVfs {
         let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during removal".into()); }
         upper.remove_overlay_entry(lower, versions, &entry, directory, recursive)?;
+        if is_dir { self.forget_directory(&entry); }
         whiteouts.insert(entry);
         Ok(())
     }
@@ -112,12 +185,12 @@ impl SafeBashFs for OverlayVfs {
         }
         let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during creation".into()); }
-        upper.create_overlay_file(lower, versions, path, data, mode, parents)
+        self.copy_up_directories(&crate::vfs::dirname_posix_path(path), || upper.create_overlay_file(lower, versions, path, data, mode, parents))
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        self.upper.write_file(&norm, data)
+        self.copy_up_directories(&crate::vfs::dirname_posix_path(&norm), || self.upper.write_file(&norm, data))
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
@@ -189,9 +262,11 @@ impl SafeBashFs for OverlayVfs {
                 }
             }
         }
-        self.upper.mkdir_all(&crate::vfs::dirname_posix_path(&to))?;
+        let parent = crate::vfs::dirname_posix_path(&to);
+        self.copy_up_directories(&parent, || self.upper.mkdir_all(&parent))?;
         let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
         self.upper.rename(&from, &to, no_replace)?;
+        if original.kind == VfsEntryKind::Directory { self.forget_directory(&from); self.forget_directory(&to); }
         whiteouts.insert(from);
         whiteouts.insert(to);
         Ok(())
@@ -221,13 +296,13 @@ impl SafeBashFs for OverlayVfs {
             missing.push((parent.clone(), mode));
             parent = crate::vfs::dirname_posix_path(&parent);
         }
-        for (dir, mode) in missing.into_iter().rev() { self.upper.mkdir_one(&dir, mode & 0o7777)?; }
+        for (dir, mode) in missing.into_iter().rev() { self.copy_up_directories(&dir, || self.upper.mkdir_one(&dir, mode & 0o7777))?; }
         self.upper.mkdir_one(&path, mode)
     }
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        self.upper.mkdir_all(&norm)
+        self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))
     }
 
     fn exists(&self, path: &str) -> bool {
@@ -293,7 +368,7 @@ impl SafeBashFs for OverlayVfs {
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        self.upper.symlink(target, &norm)
+        self.copy_up_directories(&crate::vfs::dirname_posix_path(&norm), || self.upper.symlink(target, &norm))
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
@@ -307,27 +382,16 @@ impl SafeBashFs for OverlayVfs {
         self.lower.readlink(&norm)
     }
 
-    fn stat(&self, path: &str) -> Result<FileStat, String> {
-        let norm = normalize_posix_path(path);
-        if self.upper.lstat(&norm).is_ok() {
-            return self.upper.stat(&norm);
-        }
-        if self.is_deleted(&norm) {
-            return Err(format!("ENOENT: no such file or directory, stat '{norm}'"));
-        }
-        self.lower.stat(&norm)
+    fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
+        super::path::walk_path(path, follow_final, super::path::WalkPurpose::Access, |p| {
+            let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) { &self.upper } else { &self.lower };
+            (None, layer.as_ref(), p.to_owned())
+        })
     }
 
-    fn lstat(&self, path: &str) -> Result<FileStat, String> {
-        let norm = normalize_posix_path(path);
-        if self.upper.lstat(&norm).is_ok() {
-            return self.upper.lstat(&norm);
-        }
-        if self.is_deleted(&norm) {
-            return Err(format!("ENOENT: no such file or directory, lstat '{norm}'"));
-        }
-        self.lower.lstat(&norm)
-    }
+    fn stat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, true) }
+
+    fn lstat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, false) }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
         let norm = normalize_posix_path(path);
@@ -336,7 +400,7 @@ impl SafeBashFs for OverlayVfs {
                 return Err(format!("ENOENT: no such file or directory, chmod '{norm}'"));
             }
             if self.lower.is_dir(&norm) {
-                self.upper.mkdir_all(&norm)?;
+                self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
             } else {
                 let bytes = self.lower.read_file(&norm)?;
                 self.upper.write_file(&norm, &bytes)?;
@@ -352,7 +416,7 @@ impl SafeBashFs for OverlayVfs {
                 return Err(format!("ENOENT: no such file or directory, utime '{norm}'"));
             }
             if self.lower.is_dir(&norm) {
-                self.upper.mkdir_all(&norm)?;
+                self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
             } else {
                 let bytes = self.lower.read_file(&norm)?;
                 self.upper.write_file(&norm, &bytes)?;
@@ -391,7 +455,9 @@ impl SafeBashFs for OverlayVfs {
                 guard.insert(lower_entry.path);
             }
         }
-        self.upper.replace_entries(entries)
+        self.upper.replace_entries(entries)?;
+        self.directories.lock().unwrap().clear();
+        Ok(())
     }
 }
 
@@ -399,6 +465,26 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn directory_scope_preserves_owned_copy_up_but_not_external_layer_replacements() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.mkdir_all("/a/b").unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        let a = fs.stat("/a").unwrap().identity;
+        let b = fs.stat("/a/b").unwrap().identity;
+        fs.create_file("/a/b/new", b"data", 0o600).unwrap();
+        assert_eq!(fs.stat("/a").unwrap().identity, a);
+        assert_eq!(fs.stat("/a/b").unwrap().identity, b);
+        upper.remove_path("/a").unwrap();
+        upper.mkdir_all("/a/b").unwrap();
+        let replacement = fs.stat("/a").unwrap().identity;
+        assert_ne!(replacement, a);
+        assert_ne!(fs.stat("/a/b").unwrap().identity, b);
+        lower.remove_path("/a").unwrap();
+        assert_ne!(fs.stat("/a").unwrap().identity, replacement);
+    }
 
     #[test]
     fn exclusive_copy_creation_keeps_lower_entries_and_copies_parent_modes() {

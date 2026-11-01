@@ -563,10 +563,12 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
     buf.extend_from_slice(&(st.size as u32).to_le_bytes());
     buf.extend_from_slice(&st.mode.to_le_bytes());
     buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
-    if let Some(crate::vfs::EntryIdentity::Memory(dev, ino)) = st.identity {
+    use crate::vfs::EntryIdentity;
+    if let Some(EntryIdentity::Memory(dev, ino) | EntryIdentity::OverlayDirectory { dev, ino, .. }) = st.identity {
         buf.extend_from_slice(&dev.to_le_bytes());
         buf.extend_from_slice(&ino.to_le_bytes());
         buf.extend_from_slice(&(st.nlink as u32).to_le_bytes());
+        if let Some(EntryIdentity::OverlayDirectory { scope, .. }) = st.identity { buf.extend_from_slice(&scope.to_le_bytes()); }
     }
     buf
 }

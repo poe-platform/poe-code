@@ -27,12 +27,14 @@ pub enum VfsEntryKind {
 pub enum EntryIdentity {
     Memory(u64, u64),
     Unix(u64, u64),
+    OverlayDirectory { scope: u64, dev: u64, ino: u64 },
 }
 
 impl EntryIdentity {
     pub(crate) fn same_filesystem(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Memory(a, _), Self::Memory(b, _)) | (Self::Unix(a, _), Self::Unix(b, _)) => a == b,
+            (Self::OverlayDirectory { scope: a, .. }, Self::OverlayDirectory { scope: b, .. }) => a == b,
             _ => false,
         }
     }

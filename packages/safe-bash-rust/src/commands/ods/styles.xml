@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<office:document-styles {namespaces} office:version="1.2"><office:font-face-decls/><office:styles/><office:automatic-styles><style:page-layout style:name="pl0"><style:page-layout-properties style:print="charts drawings objects"/></style:page-layout></office:automatic-styles><office:master-styles><style:master-page style:name="mp0" style:page-layout-name="pl0"/></office:master-styles></office:document-styles>

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<office:document-settings {namespaces} office:version="1.2"><office:settings><config:config-item-set config:name="gnm:settings"><config:config-item config:name="gnm:has_foreign" config:type="boolean">true</config:config-item><config:config-item config:name="gnm:active-sheet" config:type="string">{active}</config:config-item></config:config-item-set></office:settings></office:document-settings>

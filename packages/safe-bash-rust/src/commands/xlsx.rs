@@ -1,17 +1,17 @@
 // XLSX default workbook parts and cell serialization used by ssconvert.
 use super::{
-    WorkbookSheet, format_ss_number, recalc_workbook_sheet, xlsx_idx_to_col_ref, xml_escape_text,
+    WorkbookSheet, format_ss_number, xlsx_idx_to_col_ref, xml_escape_text,
 };
 use crate::commands::{archive::TarEntry, codecs::encode_zip_members};
 use std::{collections::BTreeMap, fmt::Write};
 
-enum Cell<'a> {
+pub(super) enum Cell<'a> {
     Text(&'a str),
     Number(f64),
     Bool(bool),
     Formula(&'a str),
 }
-fn value(s: &str, delimited: bool) -> Cell<'_> {
+pub(super) fn value(s: &str, delimited: bool) -> Cell<'_> {
     if delimited {
         if let Some(f) = s.strip_prefix('=')
             && !f.is_empty()
@@ -97,12 +97,7 @@ pub(super) fn write(sheets: &[WorkbookSheet], limit: usize) -> Option<Vec<u8>> {
     let mut nodes = String::new();
     let mut names = String::new();
     for (idx, sh) in sheets.iter().enumerate() {
-        let cached =
-            (sh.delimited && sh.rows.iter().flatten().any(|s| s.starts_with('='))).then(|| {
-                let mut sheet = sh.clone();
-                recalc_workbook_sheet(&mut sheet);
-                sheet
-            });
+        let cached = sh.cached_formulas();
         let mut first_row = usize::MAX;
         let mut first_col = usize::MAX;
         let (mut end_row, mut end_col) = (0, 0);

@@ -32165,113 +32165,6 @@ fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet>
     out
 }
 
-fn extract_ods_cell_text(cell_xml: &str) -> String {
-    let mut out = String::new();
-    let mut scan = cell_xml;
-    while let Some(pos) = scan.find("<text:p") {
-        let after = &scan[pos..];
-        let Some(gt) = after.find('>') else {
-            break;
-        };
-        if after[..=gt].ends_with("/>") {
-            scan = &after[gt + 1..];
-            continue;
-        }
-        let inner = &after[gt + 1..];
-        let Some(end_p) = inner.find("</text:p>") else {
-            break;
-        };
-        if !out.is_empty() {
-            out.push('\n');
-        }
-        out.push_str(&unescape_xml_basic(&inner[..end_p]));
-        scan = &inner[end_p + 9..];
-    }
-    out
-}
-
-fn read_ods_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> {
-    let entries = read_office_archive(bytes);
-    let content_xml = entries
-        .get("content.xml")
-        .map(|b| String::from_utf8_lossy(b).into_owned())
-        .unwrap_or_default();
-    let mut sheets = Vec::new();
-    let mut tscan = content_xml.as_str();
-    while let Some(tpos) = tscan.find("<table:table") {
-        let tafter = &tscan[tpos..];
-        let Some(first_ch) = tafter["<table:table".len()..].chars().next() else {
-            break;
-        };
-        if first_ch != '>' && !first_ch.is_ascii_whitespace() {
-            tscan = &tafter["<table:table".len()..];
-            continue;
-        }
-        let Some(tgt) = tafter.find('>') else {
-            break;
-        };
-        let t_open = &tafter[..=tgt];
-        let sname = extract_xml_attr(t_open, "table:name")
-            .or_else(|| extract_xml_attr(t_open, "name"))
-            .unwrap_or_else(|| fallback_name.to_string());
-        let Some(tend) = tafter.find("</table:table>") else {
-            break;
-        };
-        let t_body = &tafter[tgt + 1..tend];
-        let mut rows = Vec::new();
-        let mut rscan = t_body;
-        while let Some(rpos) = rscan.find("<table:table-row") {
-            let rafter = &rscan[rpos..];
-            let Some(rgt) = rafter.find('>') else {
-                break;
-            };
-            if rafter[..=rgt].ends_with("/>") {
-                rscan = &rafter[rgt + 1..];
-                continue;
-            }
-            let Some(rend) = rafter.find("</table:table-row>") else {
-                break;
-            };
-            let r_body = &rafter[rgt + 1..rend];
-            let mut row = Vec::new();
-            let mut cscan = r_body;
-            while let Some(cpos) = cscan.find("<table:table-cell") {
-                let cafter = &cscan[cpos..];
-                let Some(cgt) = cafter.find('>') else {
-                    break;
-                };
-                let c_open = &cafter[..=cgt];
-                let repeat = extract_xml_attr(c_open, "table:number-columns-repeated")
-                    .and_then(|v| v.parse::<usize>().ok())
-                    .unwrap_or(1)
-                    .min(64);
-                if c_open.ends_with("/>") {
-                    for _ in 0..repeat {
-                        row.push(String::new());
-                    }
-                    cscan = &cafter[cgt + 1..];
-                } else if let Some(cend) = cafter.find("</table:table-cell>") {
-                    let val = extract_ods_cell_text(&cafter[cgt + 1..cend]);
-                    for _ in 0..repeat {
-                        row.push(val.clone());
-                    }
-                    cscan = &cafter[cend + 19..];
-                } else {
-                    break;
-                }
-            }
-            while row.last().is_some_and(|s| s.is_empty()) {
-                row.pop();
-            }
-            rows.push(row);
-            rscan = &rafter[rend + 18..];
-        }
-        sheets.push(WorkbookSheet { delimited:false, name: sname, rows });
-        tscan = &tafter[tend + 14..];
-    }
-    sheets
-}
-
 fn xml_escape_text(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for ch in s.chars() {
@@ -32290,36 +32183,8 @@ fn xml_escape_text(s: &str) -> String {
 #[path="xlsx.rs"]
 mod xlsx;
 
-fn write_ods_workbook(sheets: &[WorkbookSheet]) -> Vec<u8> {
-    let mut content = String::from(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\"><office:body><office:spreadsheet>",
-    );
-    for sheet in sheets {
-        content.push_str(&format!(
-            "<table:table table:name=\"{}\">",
-            xml_escape_text(&sheet.name)
-        ));
-        for row in &sheet.rows {
-            content.push_str("<table:table-row>");
-            for cell in row {
-                content.push_str(&format!(
-                    "<table:table-cell><text:p>{}</text:p></table:table-cell>",
-                    xml_escape_text(cell)
-                ));
-            }
-            content.push_str("</table:table-row>");
-        }
-        content.push_str("</table:table>");
-    }
-    content.push_str("</office:spreadsheet></office:body></office:document-content>");
-    let manifest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:full-path=\"/\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>";
-    let entries: Vec<(&str, &[u8])> = vec![
-        ("mimetype", b"application/vnd.oasis.opendocument.spreadsheet"),
-        ("META-INF/manifest.xml", manifest.as_bytes()),
-        ("content.xml", content.as_bytes()),
-    ];
-    write_zip_stored(&entries)
-}
+#[path="ods.rs"]
+mod ods;
 
 fn parse_cell_coord(cell_ref: &str) -> Option<(usize, usize)> {
     let s = cell_ref.trim().replace('$', "");
@@ -32537,6 +32402,16 @@ fn eval_ss_formula_cell_str(expr: &str, rows: &[Vec<String>]) -> Option<String> 
     eval_ss_formula_expr(s, rows).map(format_ss_number)
 }
 
+impl WorkbookSheet {
+    fn cached_formulas(&self) -> Option<Self> {
+        (self.delimited && self.rows.iter().flatten().any(|s| s.starts_with('='))).then(|| {
+                let mut sheet = self.clone();
+                recalc_workbook_sheet(&mut sheet);
+                sheet
+            })
+    }
+}
+
 fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
     let mut formulas: Vec<(usize, usize, String)> = Vec::new();
     for (r_idx, row) in sheet.rows.iter_mut().enumerate() {
@@ -32635,7 +32510,7 @@ fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result
     if lower.ends_with(".xlsx") {
         Ok(read_xlsx_all_sheets(&bytes, fname))
     } else if lower.ends_with(".ods") {
-        Ok(read_ods_all_sheets(&bytes, fname))
+        ods::read(&bytes, fname, fs.max_input_bytes()).ok_or_else(|| "ssconvert: ODS workbook exceeds input limit\n".into())
     } else {
         Ok(vec![WorkbookSheet {
             delimited: true,
@@ -32659,7 +32534,7 @@ fn write_workbook_to_file(
         fs.write_file(&full, &bytes)
             .map_err(|e| format!("ssconvert: {path}: {e}\n"))
     } else if lower.ends_with(".ods") {
-        let bytes = write_ods_workbook(sheets);
+        let bytes = ods::write(sheets,fs.max_input_bytes()).ok_or("ssconvert: ODS output exceeds byte limit\n")?;
         fs.write_file(&full, &bytes)
             .map_err(|e| format!("ssconvert: {path}: {e}\n"))
     } else if lower.ends_with(".html") || lower.ends_with(".htm") {
@@ -32689,8 +32564,23 @@ fn write_workbook_to_file(
         };
         let mut out = String::new();
         if let Some(first) = sheets.first() {
-            for row in &first.rows {
-                out.push_str(&format_csv_row(row, actual_sep));
+            let width = first.rows.iter().filter_map(|r| r.iter().rposition(|v| !v.is_empty())).max().map_or(1, |j| j+1);
+            let height = first.rows.iter().rposition(|r| r.iter().any(|v| !v.is_empty())).map_or(1, |i| i+1);
+            let limit = fs.max_input_bytes();
+            if width.saturating_mul(height)>limit {return Err("ssconvert: text output exceeds byte limit\n".into());}
+            for i in 0..height {
+                let row=first.rows.get(i);
+                for j in 0..width {
+                    if j>0 {out.push(actual_sep);}
+                    if let Some(value)=row.and_then(|r|r.get(j)) {
+                        let whitespace=|c:char| c.is_whitespace() && c!='\u{b}';
+                        if value.contains([',',' ','\t','\n','"']) || value.starts_with(whitespace) || value.ends_with(whitespace) {
+                            out.push('"');out.push_str(&value.replace('"',"\"\""));out.push('"');
+                        } else {out.push_str(value);}
+                    }
+                }
+                out.push('\n');
+                if out.len()>limit {return Err("ssconvert: text output exceeds byte limit\n".into());}
             }
         }
         fs.write_file(&full, out.as_bytes())
@@ -32956,7 +32846,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         for infile in &positional {
             match load_workbook_from_file(infile, cwd, fs) {
                 Ok(mut s) => {
-                    if recalc && !target_out.to_ascii_lowercase().ends_with(".xlsx") {
+                    if recalc && !matches!(target_out.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods")) {
                         for sh in &mut s {
                             recalc_workbook_sheet(sh);
                         }
@@ -32990,7 +32880,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         Ok(s) => s,
         Err(e) => return err_out(&e, 1),
     };
-    if recalc && !outfile.to_ascii_lowercase().ends_with(".xlsx") {
+    if recalc && !matches!(outfile.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods")) {
         for sh in &mut sheets {
             recalc_workbook_sheet(sh);
         }
@@ -38360,6 +38250,29 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         let bytes=fs.read_file("/a.svg").unwrap();
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f");
+    }
+
+    #[test]
+    fn ods_repeated_rows_and_spaces_are_bounded_by_populated_cells() {
+        let xml = r#"<table:table table:name="S"><table:table-row table:number-rows-repeated="2"><table:table-cell table:number-columns-repeated="70"/><table:table-cell><text:p>x<text:s text:c="2"/>y<text:line-break/>z</text:p></table:table-cell></table:table-row><table:table-row table:number-rows-repeated="65534"><table:table-cell table:number-columns-repeated="256"/></table:table-row></table:table>"#;
+        let bytes=write_zip_stored(&[("content.xml",xml.as_bytes())]);
+        let sheets = ods::read(&bytes,"S",8192).unwrap();
+        assert_eq!(sheets[0].rows.len(),2);
+        assert_eq!(sheets[0].rows[1][70],"x  y\nz");
+        assert!(ods::read(&bytes,"S",512).is_none());
+    }
+
+    #[test]
+    fn ssconvert_writes_typed_cells_and_the_complete_ods_package() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/c.csv", b"id,name\n1,alpha\n2,beta\n").unwrap();
+        let r = try_run_structured_command("ssconvert",&args(&["c.csv","out.ods"]),"","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        let bytes=fs.read_file("/out.ods").unwrap();
+        let parts=read_office_archive(&bytes);
+        let sheet=std::str::from_utf8(&parts["content.xml"]).unwrap();
+        assert!(sheet.contains(r#"office:value-type="float" office:value="1""#),"{sheet}");
+        assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "78cb9596d0c2a7b3602ffbc0cb9a328c4d8bec2e75cc9aeea65d0323e1583436");
     }
 
     #[test]

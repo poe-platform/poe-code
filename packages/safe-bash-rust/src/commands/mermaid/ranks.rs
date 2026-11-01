@@ -59,6 +59,16 @@ pub(super) fn place(
             });
         }
     }
+    let degree: Vec<_> = layers
+        .iter()
+        .map(|layer| {
+            layer
+                .iter()
+                .map(|&i| nodes[i].incoming.max(nodes[i].outgoing))
+                .max()
+                .unwrap_or(0)
+        })
+        .collect();
     let mut cursor = 0_f64;
     for (r, layer) in layers.iter().enumerate() {
         let longest = layer.iter().map(|&i| depth[i]).max()?;
@@ -68,7 +78,12 @@ pub(super) fn place(
             center[i] = offset + breadth[i] / 2;
             offset += breadth[i] + 36;
         }
-        cursor += f64::from(longest + if horizontal { 64 } else { 56 }) + allowance[r];
+        let mut gap = if horizontal { 64 } else { 56 };
+        let d = degree[r].max(degree.get(r + 1).copied().unwrap_or(0));
+        if d > 4 {
+            gap = gap.max(((d + 1) * 16 + 32) as i32);
+        }
+        cursor += f64::from(longest + gap) + allowance[r];
     }
     // Align each node to its neighbors, keeping declaration order and a clear gap.
     let mut desired = Vec::new();
@@ -76,10 +91,16 @@ pub(super) fn place(
         for rr in 0..layers.len() {
             let layer = &layers[if sweep % 2 == 0 { rr } else { max_rank - rr }];
             desired.clear();
-            desired.extend(layer.iter().map(|&i| match (nodes[i].from, nodes[i].to) {
-                (Some(a), Some(b)) => (center[a] + center[b] + 1) / 2,
-                (Some(a), _) | (_, Some(a)) => center[a],
-                _ => center[i],
+            desired.extend(layer.iter().map(|&i| {
+                match (nodes[i].from, nodes[i].to) {
+                    (Some(a), Some(b)) => ((f64::from(center[a]) * nodes[i].incoming as f64
+                        + f64::from(center[b]) * nodes[i].outgoing as f64)
+                        / (nodes[i].incoming + nodes[i].outgoing) as f64
+                        + 0.5)
+                        .floor() as i32,
+                    (Some(a), _) | (_, Some(a)) => center[a],
+                    _ => center[i],
+                }
             }));
             let before: i64 = desired.iter().copied().map(i64::from).sum();
             for j in 1..desired.len() {

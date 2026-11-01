@@ -87,33 +87,79 @@ impl Route {
     }
 }
 
-pub(super) fn loop_points(node: &Node, horizontal: bool, index: usize, total: usize) -> [Point; 4] {
+// Return the attachment on a shape and the stub 18 pixels outside it.
+fn port(
+    node: &Node,
+    side_x: bool,
+    sign: f64,
+    index: usize,
+    count: usize,
+    max_spacing: f64,
+) -> (Point, Point) {
     let (w, h) = (f64::from(node.w), f64::from(node.h));
+    let (half, depth) = if side_x {
+        (h / 2., w / 2.)
+    } else {
+        (w / 2., h / 2.)
+    };
+    let allowance = (f64::from(node.radius) + 4.).min(w.min(h) * 0.3);
+    let spacing = if count < 2 {
+        0.
+    } else {
+        max_spacing.min((half - allowance) * 2. / (count - 1) as f64)
+    };
+    let mut off = (index as f64 - (count - 1) as f64 / 2.) * spacing;
+    let mut outer = depth;
+    let normal = match node.shape {
+        Shape::Circle => {
+            outer = depth.min(half);
+            off = off.clamp(-outer * 0.65, outer * 0.65);
+            (outer * outer - off * off).sqrt()
+        }
+        Shape::Diamond => {
+            off = off.clamp(-half * 0.65, half * 0.65);
+            depth * (1. - off.abs() / half)
+        }
+        _ => depth,
+    };
     let (cx, cy) = (f64::from(node.x) + w / 2., f64::from(node.y) + h / 2.);
-    let half = if horizontal { w / 2. } else { h / 2. };
-    let normal_half = if horizontal { h / 2. } else { w / 2. };
-    let allowance = (f64::from(node.radius()) + 4.).min(w.min(h) * 0.3);
-    let spacing = 44_f64.min((half - allowance) * 2. / (2 * total - 1) as f64);
-    let port = |n: usize| {
-        let mut off = (n as f64 - (2 * total - 1) as f64 / 2.) * spacing;
-        let normal = match node.shape {
-            Shape::Circle | Shape::Diamond => {
-                off = off.clamp(-half * 0.65, half * 0.65);
-                if node.shape == Shape::Circle {
-                    (half * half - off * off).sqrt()
-                } else {
-                    normal_half * (1. - off.abs() / half)
-                }
-            }
-            _ => normal_half,
-        };
-        if horizontal {
-            (hundredth(cx + off), hundredth(cy - normal))
+    let at = |d: f64| {
+        if side_x {
+            (hundredth(cx + sign * d), hundredth(cy + off))
         } else {
-            (hundredth(cx + normal), hundredth(cy + off))
+            (hundredth(cx + off), hundredth(cy + sign * d))
         }
     };
-    let (a, b) = (port(2 * index), port(2 * index + 1));
+    (at(normal), at(outer + 18.))
+}
+
+pub(super) fn forward(
+    a: &Node,
+    b: &Node,
+    horizontal: bool,
+    reversed: bool,
+    lane: usize,
+    count: usize,
+) -> Vec<Point> {
+    let sign = if reversed { -1. } else { 1. };
+    let (p, s) = port(a, horizontal, sign, lane, count, 42.);
+    let (q, t) = port(b, horizontal, -sign, lane, count, 42.);
+    if count == 1 {
+        return vec![p, q];
+    }
+    let f = (lane + 1) as f64 / (count + 1) as f64;
+    if horizontal {
+        let x = (s.0 + (t.0 - s.0) * f + 0.5).floor();
+        vec![p, (x, p.1), (x, q.1), q]
+    } else {
+        let y = (s.1 + (t.1 - s.1) * f + 0.5).floor();
+        vec![p, (p.0, y), (q.0, y), q]
+    }
+}
+pub(super) fn loop_points(node: &Node, horizontal: bool, index: usize, total: usize) -> [Point; 4] {
+    let sign = if horizontal { -1. } else { 1. };
+    let a = port(node, !horizontal, sign, index * 2, total * 2, 44.).0;
+    let b = port(node, !horizontal, sign, index * 2 + 1, total * 2, 44.).0;
     let out = 38. + 20. * index as f64;
     if horizontal {
         let y = f64::from(node.y) - out;

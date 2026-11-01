@@ -30,6 +30,9 @@ struct Node {
     from: Option<usize>,
     to: Option<usize>,
     loops: usize,
+    incoming: usize,
+    outgoing: usize,
+    radius: i32,
 }
 #[derive(Default, Clone, Copy, PartialEq)]
 enum Shape {
@@ -44,16 +47,6 @@ enum Shape {
     Subroutine,
 }
 
-impl Node {
-    fn radius(&self) -> i32 {
-        match self.shape {
-            Shape::Circle | Shape::Stadium => self.h / 2,
-            Shape::Diamond => 4,
-            Shape::Rounded => 12,
-            _ => 8,
-        }
-    }
-}
 const ADVANCES: &[[u8; 6]] = include_bytes!("mermaid/advances.bin").as_chunks::<6>().0;
 fn glyph_index(c: char) -> usize {
     let cp = c as u32;
@@ -82,7 +75,7 @@ fn measure(s: &str, size: f64, bold: bool) -> f64 {
 fn snap(v: f64) -> i32 {
     (v / 8.).ceil() as i32 * 8
 }
-fn dimensions(n: &mut Node) {
+fn dimensions(n: &mut Node, horizontal: bool) {
     let mut tallest = 0.;
     let label = n
         .label
@@ -133,6 +126,25 @@ fn dimensions(n: &mut Node) {
             (snap(tallest + 48.).max(88), snap(text_height + 22.).max(40))
         }
         _ => (snap(tallest + 36.).max(88), snap(text_height + 22.).max(40)),
+    };
+    n.radius = match n.shape {
+        Shape::Circle | Shape::Stadium => n.h / 2,
+        Shape::Diamond => 4,
+        Shape::Rounded => 12,
+        _ => 8,
+    };
+    let degree = n.incoming.max(n.outgoing);
+    if degree > 4 {
+        let min = snap(((degree - 1) * 12 + 36) as f64);
+        if horizontal {
+            n.h = n.h.max(min);
+        } else {
+            n.w = n.w.max(min);
+        }
+    }
+    if degree > 1 {
+        n.w = n.w.max(128);
+        n.h = n.h.max(64);
     }
 }
 const EDGE_OPS: &[&str] = &[
@@ -291,9 +303,13 @@ pub(super) fn layout(
                     return None;
                 }
                 nodes[a].loops += 1;
-            } else if nodes[a].to.is_some() || nodes[b].from.is_some() {
+            } else if nodes[a].to.is_some_and(|to| to != b)
+                || nodes[b].from.is_some_and(|from| from != a)
+            {
                 return None;
             } else {
+                nodes[a].outgoing += 1;
+                nodes[b].incoming += 1;
                 nodes[a].to = Some(b);
                 nodes[b].from = Some(a);
             }
@@ -309,7 +325,7 @@ pub(super) fn layout(
         return None;
     }
     for n in &mut nodes {
-        dimensions(n);
+        dimensions(n, horizontal);
     }
     let (mut width, mut height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
     let mut shift_y = 0;
@@ -341,6 +357,7 @@ pub(super) fn layout(
         }
     }
     let mut intersection = None;
+    let mut parallel_index = vec![0; nodes.len()];
     let mut loop_index = vec![0; nodes.len()];
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
@@ -363,14 +380,13 @@ pub(super) fn layout(
             loop_index[a] += 1;
             path.to_vec()
         } else {
-            let (a, b) = (&nodes[a], &nodes[b]);
-            let (x, y, ex, ey) = match dir {
-                "LR" => (a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2),
-                "RL" => (a.x, a.y + a.h / 2, b.x + b.w, b.y + b.h / 2),
-                "BT" => (a.x + a.w / 2, a.y, b.x + b.w / 2, b.y + b.h),
-                _ => (a.x + a.w / 2, a.y + a.h, b.x + b.w / 2, b.y),
-            };
-            vec![(x.into(), y.into()), (ex.into(), ey.into())]
+            let count = nodes[a].outgoing;
+            if count > 1 && !label.is_empty() {
+                return None;
+            }
+            let lane = parallel_index[a];
+            parallel_index[a] += 1;
+            route::forward(&nodes[a], &nodes[b], horizontal, reversed, lane, count)
         };
         points.dedup_by(|b, a| (a.0 - b.0).hypot(a.1 - b.1) <= 0.25);
         let (x, y) = points[0];
@@ -530,7 +546,7 @@ pub(super) fn layout(
             } else {
                 accent
             };
-        let radius = n.radius();
+        let radius = n.radius;
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
             shape: n.shape,
@@ -568,9 +584,12 @@ pub(super) fn layout(
                 let bottom = y + h;
                 write!(el,r#"<polygon points="{left},{y} {inset},{y} {right},{cy} {inset},{bottom} {left},{bottom} {x},{cy}" {style}/>"#).ok()?;
             }
-            Shape::Circle => {
-                write!(el, r#"<circle cx="{cx}" cy="{cy}" r="{}" {style}/>"#, w / 2).ok()?
-            }
+            Shape::Circle => write!(
+                el,
+                r#"<circle cx="{cx}" cy="{cy}" r="{}" {style}/>"#,
+                w.min(h) / 2
+            )
+            .ok()?,
             Shape::Diamond => {
                 let mut path = String::new();
                 let (wx, hy) = (w as f64 / 2., h as f64 / 2.);

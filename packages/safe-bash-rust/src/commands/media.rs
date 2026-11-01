@@ -2642,6 +2642,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
 
 #[path = "video_filter.rs"]
 mod video_filter;
+#[path = "ffmpeg_wave.rs"]
+mod ffmpeg_wave;
 #[path = "lavfi.rs"]
 mod lavfi;
 #[path = "y4m.rs"]
@@ -4092,6 +4094,7 @@ fn qr_render(
 
 #[derive(Clone, Copy, Default)]
 struct InputTime {
+    loops: usize,
     start: Option<f64>,
     to: Option<f64>,
     duration: Option<f64>,
@@ -4581,10 +4584,16 @@ fn cmd_media_doc(
                     "-movflags" if i+1<args.len()=>{let flags=&args[i+1];fragmented|=flags.contains("frag_keyframe")||flags.contains("empty_moov");i+=2;}
                     "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
                     | "-pix_fmt" | "-v" | "-loglevel" | "-preset"
-                    | "-crf" | "-threads" | "-stream_loop"
+                    | "-crf" | "-threads"
                         if i + 1 < args.len() =>
                     {
                         i += 2;
+                    }
+                    "-stream_loop" if i+1<args.len()=>{
+                        let n=args[i+1].trim_start().trim_start_matches('+');
+                        let digits=n.bytes().take_while(u8::is_ascii_digit).count();
+                        pending_time.loops=n[..digits].parse().unwrap_or(if digits>0{usize::MAX}else{0});
+                        i+=2;
                     }
                     "-start_number" => {
                         let Some(n)=args.get(i+1).and_then(|s|s.parse::<u64>().ok()).filter(|&n|n<=9007199254740991) else {
@@ -4639,7 +4648,7 @@ fn cmd_media_doc(
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-            if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || frame_output{
+            if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata")) || frame_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4683,7 +4692,11 @@ fn cmd_media_doc(
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                let output=if muxer==Some("ffmetadata") && remux_inputs {
+                let output=if muxer==Some("wav") && inputs.len()==1 && fc_flag.is_empty() {
+                    match ffmpeg_wave::Input::parse(format.unwrap_or(""),bytes).map_err(str::to_owned).and_then(|input|input.map(|a|a.render(input_times[0],&remux)).transpose()){
+                        Ok(data)=>data, Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+                    }
+                } else if muxer==Some("ffmetadata") && remux_inputs {
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,limit){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if frame_output && (inputs.len()==1 && (format==Some("y4m") || supported) || remux_inputs) {
                     let seek=input_times[0];
@@ -4730,7 +4743,7 @@ fn cmd_media_doc(
                     };
                 }
             }
-            let InputTime{start:input_ss,to:input_to,duration:input_duration}=input_times[0];
+            let InputTime{start:input_ss,to:input_to,duration:input_duration,..}=input_times[0];
             let ss_opt=ss_opt.or(input_ss);
             let to_opt=to_opt.or(input_to);
             let t_opt=t_opt.or(input_duration);
@@ -13674,6 +13687,14 @@ mod media_unit_tests {
         assert_eq!(run(&["-select_streams", "a", "-show_streams", "-of", "json=c=1", "clip"]).stdout, "{\"streams\":[]}\n");
         fs.write_file("/bad.y4m", b"no").unwrap();
         assert_eq!(run(&["bad.y4m"]).stderr, "ffprobe: Invalid YUV4MPEG2 stream: missing 'YUV4MPEG2 ' magic\n");
+    }
+
+    #[test]
+    fn ffmpeg_renders_sine_samples_and_filters_into_a_standard_wav() {
+        let fs=MemoryVfs::new();
+        let args=media_args(&["-f","lavfi","-i","sine=f=631:r=8000:d=0.25","-af","volume=0.3,atempo=2,areverse","out.wav"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.wav").unwrap())), "901bc772d9fcf2f3c29c9ad19986a7d11b42d29fad0a3a3df79b377770cd7265");
     }
 
     #[test]

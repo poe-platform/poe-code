@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq parses arguments, file variables and string conversions with its input grammar", async () => {
+  const bash = new RustWasmBash({ files: {"/workspace/bad": "[1,]", "/workspace/-": "1 2"} });
+  try {
+    for (const [args, code, stdout, stderr] of [
+      ["-nc --argjson x '[1,]' '$x'", 2, "", "jq: invalid JSON for --argjson x\n"],
+      ["-nc --jsonargs '$ARGS.positional' '[1,]'", 2, "", "jq: invalid JSON text passed to --jsonargs\n"],
+      ["-nc --argjson x '+.5' '$x'", 0, "0.5\n", ""],
+      ["-nc --slurpfile x bad '$x'", 2, "", "jq: Bad JSON in --slurpfile x bad: parse error: Expected another array element at line 1, column 4\n"],
+      ["-nc --slurpfile x - '$x' <<< 99", 0, "[1,2]\n", ""],
+      ["-Rsc fromjson bad", 5, "", "jq: error (at bad:0): Expected another array element at line 1, column 4 (while parsing '[1,]')\n"],
+      [`-nc '"1 2 ]" | fromjson'`, 5, "", "jq: error (at <unknown>): Unexpected extra JSON values (while parsing '1 2 ]')\n"],
+      [`-nc '"true" | tonumber'`, 5, "", 'jq: error (at <unknown>): string ("true") cannot be parsed as a number\n'],
+      ["-nc '42 | fromjson'", 5, "", "jq: error (at <unknown>): number (42) only strings can be parsed\n"],
+    ]) {
+      const r = await bash.exec(`jq ${args}`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq preserves numeric literals independently when their doubles are equal", async () => {
   const bash = new RustWasmBash();
   try {

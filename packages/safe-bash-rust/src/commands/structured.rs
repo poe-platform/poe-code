@@ -771,25 +771,19 @@ fn cmd_jq_core(
             i += 3;
             let value = match a.as_str() {
                 "--arg" => JVal::Str(text.clone()),
-                "--argjson" => match parse_single_json_strict(text) {
+                "--argjson" => match jq_json::Parser::one(text) {
                     Ok(parsed) => parsed,
                     Err(_) => return err_out(&format!("jq: invalid JSON for --argjson {name}\n"), 2),
                 },
                 _ => {
                     if vars.contains_key(name) { continue; }
                     let full = resolve_posix_path(cwd, text);
-                    let bytes = match fs.read_file(&full) {
-                        Ok(bytes) => bytes,
-                        Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
-                    };
-                    let content = String::from_utf8_lossy(&bytes);
-                    if a == "--rawfile" {
-                        JVal::Str(content.into_owned())
-                    } else {
-                        match parse_json_stream(&content) {
-                            Ok(values) => JVal::Array(values),
-                            Err(_) => return err_out("jq: bad JSON in --slurpfile\n", 2),
-                        }
+                    let mut source = jq_input::files(vec![full], "", cwd, fs, a == "--rawfile", true, false, false, false);
+                    match source.next() {
+                        Ok(Some(value)) => value,
+                        Ok(None) => unreachable!("slurp always yields one value"),
+                        Err((2,e)) => return err_out(&format!("jq: {e}\n"), 2),
+                        Err((_,e)) => return err_out(&format!("jq: Bad JSON in {a} {name} {text}: {e}\n"), 2),
                     }
                 }
             };
@@ -900,7 +894,7 @@ fn cmd_jq_core(
             filter = Some(a.clone());
         } else if let Some(is_json_args) = args_mode {
             if is_json_args {
-                match parse_single_json_strict(a) {
+                match jq_json::Parser::one(a) {
                     Ok(parsed) => positional_args.push(parsed),
                     Err(_) => return err_out("jq: invalid JSON text passed to --jsonargs\n", 2),
                 }
@@ -2106,15 +2100,22 @@ fn try_eval_jq_builtin(
                 Vec::new()
             }));
         }
-        "tonumber" => {
-            let value = match input {
-                JVal::Number(_, _) => input.clone(),
-                JVal::Str(st) => jq_number::literal(st.trim()).ok_or_else(|| format!(
-                    "Invalid numeric literal at EOF at line 1, column {} (while parsing '{st}')", st.len()
-                ))?,
-                _ => return Err("cannot be parsed as a number".into()),
-            };
-            return Ok(Some(vec![value]));
+        "tonumber" | "fromjson" => {
+            if s == "tonumber" && matches!(input, JVal::Number(_, _)) {
+                return Ok(Some(vec![input.clone()]));
+            }
+            if let JVal::Str(st) = input {
+                let value = jq_json::Parser::one(st).map_err(|e| format!(
+                    "{e} (while parsing '{}')", st.split('\0').next().unwrap_or("")
+                ))?;
+                if s == "fromjson" || matches!(value, JVal::Number(_, _)) {
+                    return Ok(Some(vec![value]));
+                }
+            }
+            let json = input.to_json_string(true,false,0);
+            let summary = if json.len() < 15 {json} else {format!("{}...",String::from_utf8_lossy(&json.as_bytes()[..11]))};
+            let reason = if s == "fromjson" {"only strings can be parsed"} else {"cannot be parsed as a number"};
+            return Err(format!("{} ({summary}) {reason}",input.type_name()));
         }
         "tostring" => {
             let st = match input {
@@ -2361,16 +2362,6 @@ fn try_eval_jq_builtin(
                 }
             }
             return Ok(Some(vec![JVal::Str(parts.join(sep))]));
-        }
-        "fromjson" => {
-            if let JVal::Str(st) = input {
-                let mut parsed = parse_json_stream(st)?;
-                if parsed.len() != 1 {
-                    return Err("invalid json".to_string());
-                }
-                return Ok(Some(vec![parsed.remove(0)]));
-            }
-            return Err("fromjson requires string".to_string());
         }
         "@json" | "tojson" => {
             return Ok(Some(vec![JVal::Str(input.to_json_string(true, false, 0))]));

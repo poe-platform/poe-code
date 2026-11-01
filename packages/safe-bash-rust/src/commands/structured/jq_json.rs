@@ -39,6 +39,30 @@ impl Parser {
             events: VecDeque::new(),
         }
     }
+    pub fn one(input: &str) -> Result<JVal, String> {
+        let mut parser = Self::new(false, 1, 0);
+        let mut result = None;
+        for byte in input.bytes().map(Some).chain(std::iter::once(None)) {
+            let step = match byte {
+                Some(b) => parser.feed(b),
+                None => parser.finish(false, true),
+            };
+            step.map_err(|e| {
+                if e == "Malformed BOM" {
+                    e.into()
+                } else {
+                    format!("{e} at line {}, column {}", parser.line, parser.column)
+                }
+            })?;
+            while let Some(value) = parser.events.pop_front() {
+                if result.replace(value).is_some() {
+                    return Err("Unexpected extra JSON values".into());
+                }
+            }
+        }
+        result.ok_or_else(|| "Expected JSON value".into())
+    }
+
     pub fn path(&self) -> Vec<JVal> {
         self.frames
             .iter()

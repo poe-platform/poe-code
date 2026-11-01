@@ -47,7 +47,7 @@ export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4Packe
   }
 }
 
-async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketScanOptions, mode: 'packets' | 'frames' | 'streams' | 'summary'): AsyncGenerator<ProbeSample | MediaProbeSourceStream, { duration: number; tracks: number }> {
+async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketScanOptions, mode: 'packets' | 'frames' | 'streams' | 'summary'): AsyncGenerator<ProbeSample | MediaProbeSourceStream, { duration: number; start: number; presentationDuration: number; tracks: number }> {
   options.signal?.throwIfAborted();
   const withCodec = mode === 'frames' || mode === 'streams';
   const budget = options.budget ?? new MediaBudgetTracker(options.limits), work = { budget, ...(options.signal ? { signal: options.signal } : {}), ...(options.checkpoint ? { checkpoint: options.checkpoint } : {}) };
@@ -67,7 +67,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     movieTimescale = movie.readU32BE() || 1000; movieDuration = version === 1 ? movie.readU64BE() : movie.readU32BE();
   }
   const mvex = await first(moov, 'mvex');
-  let trackIndex = 0, maxDuration = movieDuration / Math.max(1, movieTimescale);
+  let trackIndex = 0, maxDuration = movieDuration / Math.max(1, movieTimescale), formatStart = Infinity, formatEnd = -Infinity;
   for await (const trak of scanMp4Boxes(source, { ...moov.children, ...work })) {
     if (trak.type !== 'trak') continue;
     const index = trackIndex++; budget.checkStreams(trackIndex);
@@ -127,8 +127,9 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
         }
       }
     }
-    let duration = 0, mediaEnd = 0, allPacked = true, count = 0;
+    let duration = 0, mediaEnd = 0, allPacked = true, count = 0, firstPts = 0;
     for await (const sample of samples()) {
+      if (!count) firstPts = sample.pts;
       count++; duration += sample.duration; mediaEnd = Math.max(mediaEnd, sample.pts + sample.duration);
       if (type === 'subtitle' && allPacked) {
         if (sample.size < 2) allPacked = false;
@@ -157,12 +158,16 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     if (!result.done) throw new Error('Unexpected MP4 edit sample');
     const trackDuration = result.value?.duration ?? (duration || declaredDuration || Math.round(headerDuration / Math.max(1, movieTimescale) * timescale));
     maxDuration = Math.max(maxDuration, trackDuration / Math.max(1, timescale)); budget.checkDuration(maxDuration);
+    const startPts = result.value?.start ?? (type === 'subtitle' && count && !allPacked ? 0 : firstPts);
+    const probeDuration = Math.max(0, trackDuration - (result.value?.start ?? 0));
+    const start = startPts / Math.max(1, timescale);
+    formatStart = Math.min(formatStart, start);
+    formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
     let bytePos = 0, cursor = 0;
-    const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: result.value?.start ?? 0, hasCts: false };
+    const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasCts: false };
     const packet = (sample: ProbeSample['sample']): ProbeSample => {
       if (mode === 'streams') {
-        if (!stats.count) stats.firstPts = result.value?.start ?? sample.pts;
         stats.count++; stats.totalBytes += sample.size; stats.ticks += sample.duration; stats.hasCts ||= sample.pts !== sample.dts;
       }
       const record = { sample, track, bytePos }; bytePos += sample.size; return record;
@@ -174,10 +179,10 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       const duration = Math.max(1, Math.round(sample.duration));
       const row = packet({ pts: cursor, dts: cursor, duration, size: sample.size + 2, isKeyframe: true }); if (mode !== 'streams') yield row; cursor += duration;
     }
-    if (mode === 'streams') yield buildProbeStream({ ...track, duration: trackDuration }, codec, stats, index, 'mp4');
+    if (mode === 'streams') yield buildProbeStream({ ...track, duration: probeDuration }, codec, stats, index, 'mp4');
   }
   budget.checkDuration(maxDuration);
-  return { duration: maxDuration, tracks: trackIndex };
+  return { duration: maxDuration, start: trackIndex ? formatStart : 0, presentationDuration: trackIndex ? Math.max(0, formatEnd - formatStart) : maxDuration, tracks: trackIndex };
 }
 
 export interface Mp4SourceProbeOptions extends Mp4PacketScanOptions {
@@ -191,14 +196,14 @@ export async function probeMp4Source(source: MediaProbeSource, options: Mp4Sourc
   const work = { ...options, budget: options.budget ?? new MediaBudgetTracker(options.limits) };
   const scan = scanProbeRecords(source, work, 'summary'), summary = await scan.next();
   if (!summary.done) throw new Error('Unexpected MP4 summary row');
-  const { duration, tracks } = summary.value, metadata = await probeMp4MetadataSource(source, duration, work);
+  const { duration, start, presentationDuration, tracks } = summary.value, metadata = await probeMp4MetadataSource(source, duration, work);
   async function* streams(): AsyncGenerator<MediaProbeSourceStream> {
     for await (const row of scanProbeRecords(source, work, 'streams')) if (!('sample' in row)) yield row;
   }
   return { streams: { [Symbol.asyncIterator]: streams },
     format: { filename: options.filename ?? 'input.mp4', nb_streams: tracks, nb_programs: 0,
-      format_name: 'mov,mp4,m4a,3gp,3g2,mj2', format_long_name: 'QuickTime / MOV', start_time: '0.000000',
-      duration: duration.toFixed(6), size: String(source.size), bit_rate: duration > 0 ? String(Math.round(source.size * 8 / duration)) : '0', probe_score: 100, tags: metadata.tags },
+      format_name: 'mov,mp4,m4a,3gp,3g2,mj2', format_long_name: 'QuickTime / MOV', start_time: start.toFixed(6),
+      duration: presentationDuration.toFixed(6), size: String(source.size), bit_rate: presentationDuration > 0 ? String(Math.round(source.size * 8 / presentationDuration)) : '0', probe_score: 100, tags: metadata.tags },
     chapters: metadata.chapters,
     packets: options.showPackets ? scanMp4Packets(source, work) : undefined,
     frames: options.showFrames ? scanMp4Frames(source, work) : undefined };

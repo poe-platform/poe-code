@@ -1884,6 +1884,7 @@ export function buildProbeResultFromDoc(
   const streams: MediaProbeStream[] = [];
   const packets: MediaProbePacket[] = [];
   const frames: MediaProbeFrame[] = [];
+  let formatStart = Infinity, formatEnd = -Infinity;
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
     const track = doc.tracks[idx]!;
@@ -1899,7 +1900,13 @@ export function buildProbeResultFromDoc(
       }
       firstPts = Math.round(delay * track.timescale / Math.max(1, doc.timescale));
     }
-    const stream = buildProbeStream(track, desc, {
+    const duration = Math.max(0, track.duration - (track.editList?.length ? firstPts : 0));
+    if (doc.containerFormat === "mp4" || doc.containerFormat === "mov") {
+      const start = firstPts / Math.max(1, track.timescale);
+      formatStart = Math.min(formatStart, start);
+      formatEnd = Math.max(formatEnd, start + duration / Math.max(1, track.timescale));
+    }
+    const stream = buildProbeStream({ ...track, duration }, desc, {
       totalBytes: materialized.samples.reduce((total, sample) => total + sample.size, 0),
       count: materialized.samples.length,
       ticks: materialized.samples.reduce((total, sample) => total + sample.duration, 0),
@@ -1969,9 +1976,11 @@ export function buildProbeResultFromDoc(
     if (value) formatTags[key] = value;
   }
 
+  const startTime = Number.isFinite(formatStart) ? formatStart : 0;
+  const duration = Number.isFinite(formatEnd) ? Math.max(0, formatEnd - startTime) : doc.durationSeconds;
   const overallBitRate =
-    doc.durationSeconds > 0
-      ? String(Math.round((byteLength * 8) / doc.durationSeconds))
+    duration > 0
+      ? String(Math.round((byteLength * 8) / duration))
       : "0";
 
   return {
@@ -1982,8 +1991,8 @@ export function buildProbeResultFromDoc(
       nb_programs: 0,
       format_name: options.formatName ?? "mov,mp4,m4a,3gp,3g2,mj2",
       format_long_name: options.formatLongName ?? "QuickTime / MOV",
-      start_time: "0.000000",
-      duration: doc.durationSeconds.toFixed(6),
+      start_time: startTime.toFixed(6),
+      duration: duration.toFixed(6),
       size: String(byteLength),
       bit_rate: overallBitRate,
       probe_score: 100,

@@ -73,3 +73,41 @@ for (const reader of ['resident', 'source']) {
     });
   }
 }
+
+for (const reader of ['resident', 'source']) {
+  for (const fragmented of [false, true]) {
+    it(`${reader} excludes leading edits from media duration and reports the file interval: fragmented=${fragmented}`, async () => {
+      const base = api.parseMp4(api.createSyntheticMp4({ width: 16, height: 16, fps: 10, frameCount: 10, includeAudio: true }));
+      for (const delays of [[1, 0.75], [1, 0], [1, 1]]) {
+        const tracks = base.tracks.map((track, index) => ({ ...track, editList: [
+          { segmentDuration: delays[index]! * base.timescale, mediaTime: -1, mediaRateInteger: 1, mediaRateFraction: 0 },
+          { segmentDuration: base.timescale, mediaTime: 0, mediaRateInteger: 1, mediaRateFraction: 0 }
+        ] }));
+        const bytes = api.serializeMp4({ ...base, tracks }, { fragmented });
+        const probe = reader === 'resident' ? api.probeMp4(bytes) : await api.probeMp4Source({
+          size: bytes.length,
+          async read(offset, length) { assert.ok(length <= 16384); return bytes.slice(offset, offset + Math.min(length, 31)); }
+        }, { syncSamples });
+        let index = 0;
+        for await (const stream of probe.streams) {
+          assert.equal(stream.start_time, delays[index]!.toFixed(6));
+          assert.equal(stream.duration, '1.000000', `${stream.codec_type}, delays ${delays}`);
+          assert.equal(stream.duration_ts, tracks[index]!.timescale);
+          index++;
+        }
+        assert.equal(index, 2);
+        const start = Math.min(...delays), duration = Math.max(...delays) + 1 - start;
+        assert.equal(probe.format.start_time, start.toFixed(6));
+        assert.equal(probe.format.duration, duration.toFixed(6));
+        assert.equal(probe.format.bit_rate, String(Math.round(bytes.length * 8 / duration)));
+      }
+      const video = base.tracks[0]!;
+      const bytes = api.serializeMp4({ ...base, tracks: [{ ...video, samples: video.samples.map(sample => ({ ...sample, pts: sample.pts + 18000, cts: sample.cts + 18000 })) }] }, { fragmented });
+      const probe = reader === 'resident' ? api.probeMp4(bytes) : await api.probeMp4Source({
+        size: bytes.length, async read(offset, length) { return bytes.slice(offset, offset + length); }
+      }, { syncSamples });
+      assert.equal(probe.format.start_time, '0.200000');
+      assert.equal(probe.format.duration, '1.000000');
+    });
+  }
+}

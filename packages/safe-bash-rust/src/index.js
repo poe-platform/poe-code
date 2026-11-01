@@ -1044,10 +1044,6 @@ export class RustWasmBash extends WasmShell {
         });
       }
     }
-    let stdinData = options.stdin ?? "";
-    if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
-      stdinData = await collectAsyncStdin(stdinData, options.signal);
-    }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();
     let res;
@@ -1072,6 +1068,11 @@ export class RustWasmBash extends WasmShell {
         const html = limits.commandLimits?.htmlToMarkdown?.maxInputBytes;
         if (split !== undefined) shell._setBinding("\0limit_split_max_files", String(split));
         if (html !== undefined) shell._setBinding("\0limit_html_to_markdown_max_input_bytes", String(html));
+      }
+      let stdinData = options.stdin ?? "";
+      if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
+        stdinData = await collectAsyncStdin(stdinData, options.signal);
+        options.signal?.throwIfAborted();
       }
       res = shell.execSync(script, stdinData);
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);

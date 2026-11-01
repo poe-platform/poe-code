@@ -3,6 +3,16 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("a rejected beforeExec hook leaves stdin untouched", async () => {
+  const bash = new RustWasmBash(), reason = new Error("hook refused execution");
+  let opened = 0;
+  const stdin = { [Symbol.asyncIterator]() { opened++; return { async next() { return { done: true }; } }; } };
+  try {
+    await assert.rejects(bash.exec("cat", { stdin, hooks: { async beforeExec() { throw reason; } } }), e => e === reason);
+    assert.equal(opened, 0);
+  } finally { bash.dispose(); }
+});
+
 test("abort closes held async stdin once without waiting for the producer", async () => {
   const bash = new RustWasmBash(), controller = new AbortController();
   const entered = Promise.withResolvers(), release = Promise.withResolvers();

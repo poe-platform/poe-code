@@ -117,6 +117,7 @@ struct Sample<'a> {
     description: u32,
 }
 struct Track<'a> {
+    id: u32,
     samples: Vec<Sample<'a>>,
     scale: u32,
     media_ticks: u32,
@@ -163,7 +164,7 @@ fn audio_entry(scale: u32, channels: u32, object: u8) -> Vec<u8> {
     out
 }
 impl Track<'_> {
-    fn trak(&self, b: &mut Vec<u8>, id: u32, fragmented: bool, offsets: &mut usize) {
+    fn trak(&self, b: &mut Vec<u8>, fragmented: bool, offsets: &mut usize) {
         let samples = if fragmented { &[][..] } else { &self.samples };
         atom(b, b"trak", |b| {
             atom(b, b"tkhd", |b| {
@@ -173,7 +174,7 @@ impl Track<'_> {
                         if self.enabled { 3 } else { 0 },
                         0,
                         0,
-                        id,
+                        self.id,
                         0,
                         self.movie_ticks,
                         0,
@@ -424,6 +425,7 @@ fn video_track<'a>(
     movie_scale: u32,
 ) -> Result<Track<'a>, &'static str> {
     Ok(Track {
+        id: 1,
         samples: vec![],
         scale: timescale,
         media_ticks: ticks as u32,
@@ -750,6 +752,7 @@ impl GeneratedAudio {
             at += duration;
         }
         Ok(Track {
+            id: 1,
             samples,
             scale: rate,
             media_ticks: ticks as u32,
@@ -860,6 +863,7 @@ impl<'a> WaveStream<'a> {
             entry
         };
         Ok(Track {
+            id: 1,
             samples,
             scale: w.rate,
             media_ticks,
@@ -930,6 +934,7 @@ fn adts_track<'a>(
     let movie_ticks =
         (f64::from(movie_ticks) * f64::from(movie_scale) / f64::from(scale)).round() as u32;
     Ok(Track {
+        id: 1,
         samples,
         scale,
         media_ticks,
@@ -999,6 +1004,7 @@ fn subtitle_track(
         });
     });
     Ok(Track {
+        id: 1,
         samples,
         scale: 1000,
         media_ticks: ticks,
@@ -1142,11 +1148,11 @@ fn write(
             words(b, &[tracks.len() as u32 + 1]);
         });
         for (i, t) in tracks.iter().enumerate() {
-            t.trak(b, i as u32 + 1, fragmented, &mut offsets[i]);
+            t.trak(b, fragmented, &mut offsets[i]);
         }
         if fragmented {
             atom(b, b"mvex", |b| {
-                for (i, a) in tracks.iter().enumerate() {
+                for a in tracks {
                     atom(b, b"trex", |b| {
                         let (duration, size) = a
                             .samples
@@ -1156,7 +1162,7 @@ fn write(
                             b,
                             &[
                                 0,
-                                i as u32 + 1,
+                                a.id,
                                 1,
                                 duration,
                                 a.fragment_sample_size.unwrap_or(size),
@@ -1175,7 +1181,7 @@ fn write(
             atom(b, b"mfhd", |b| words(b, &[0, 1]));
             for (i, a) in tracks.iter().enumerate() {
                 atom(b, b"traf", |b| {
-                    atom(b, b"tfhd", |b| words(b, &[0x020002, i as u32 + 1, 1]));
+                    atom(b, b"tfhd", |b| words(b, &[0x020002, a.id, 1]));
                     atom(b, b"tfdt", |b| {
                         words(
                             b,
@@ -2593,6 +2599,7 @@ pub(in super::super) fn remux(
             edits.iter().map(|r| u64::from(r[0])).sum::<u64>() as u32
         };
         let mut track = Track {
+            id: t.id,
             samples,
             scale: t.scale,
             media_ticks: ticks as u32,
@@ -2744,7 +2751,10 @@ pub(in super::super) fn remux(
                 continue;
             }
             let (rate, channels) = match &sources[j].2 {
-                Streams::Mp4(v) => (v[i].0.audio_rate().unwrap_or(v[i].0.scale), u32::from(v[i].0.channels())),
+                Streams::Mp4(v) => (
+                    v[i].0.audio_rate().unwrap_or(v[i].0.scale),
+                    u32::from(v[i].0.channels()),
+                ),
                 Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
                 Streams::GeneratedAudio(a) => (a.rate, a.channels),
                 Streams::Wave(w) => (w.wav.rate, w.wav.channels as u32),
@@ -2834,6 +2844,11 @@ pub(in super::super) fn remux(
         && let Some(decoded) = opts.concat.as_deref_mut()
     {
         tracks = concat::join(tracks, sources, scale, opts.limit, decoded)?;
+    }
+    if opts.concat.is_none() {
+        for (i, t) in tracks.iter_mut().enumerate() {
+            t.id = i as u32 + 1;
+        }
     }
     if loops != 0 {
         repeat_tracks(&mut tracks, loops, scale, opts.limit)?;

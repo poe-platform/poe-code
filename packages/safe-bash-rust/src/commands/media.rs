@@ -13908,6 +13908,16 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_concat_preserves_the_id_of_a_retained_audio_track() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","-f","lavfi","-i","sine=r=8000:d=0.2","av.mp4"]);
+        run(&["-i","av.mp4","-i","av.mp4","-filter_complex","concat=n=2:v=0","audio.mp4"]);
+        let out=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=id","-of","csv=p=0","audio.mp4"]),"","/",&fs);
+        assert_eq!(out.stdout,"0x2\n");
+    }
+
+    #[test]
     fn ffmpeg_decodes_changes_in_the_avc_sample_description() {
         let fs = MemoryVfs::new();
         let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);

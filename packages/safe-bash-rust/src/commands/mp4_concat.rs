@@ -122,6 +122,7 @@ pub(super) fn join<'a>(
                     if clip.kind == "video" {
                         clip.scale = 90000;
                     }
+                    clip.id = slots.len() as u32 + 1;
                     clip.first_dts = 0;
                     clip.media_ticks = 0;
                     clip.edits.clear();

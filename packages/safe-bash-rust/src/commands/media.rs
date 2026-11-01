@@ -4579,6 +4579,8 @@ fn cmd_media_doc(
             }
             let output_kind = output_format.unwrap_or_else(||out_lower.rsplit_once('.').map_or("",|(_,ext)|ext));
             let y4m_output = output_kind.eq_ignore_ascii_case("y4m") || output_kind.eq_ignore_ascii_case("yuv4mpegpipe");
+            // Explicit mov resolves to the MP4 format alias; a .mov filename selects QuickTime.
+            let mov_output=output_format.is_none() && output_kind.eq_ignore_ascii_case("mov");
             let mp4_output=matches!(output_kind.to_ascii_lowercase().as_str(),"mp4"|"m4a"|"mov");
             if let [source] = inputs.as_slice()
                 && (output_kind.eq_ignore_ascii_case("aac") || y4m_output || mp4_output)
@@ -4603,13 +4605,13 @@ fn cmd_media_doc(
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if mp4_output && real_mp4 && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
-                    let opts=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,start:ss_opt,end,frames:vframes_opt,mov:output_kind.eq_ignore_ascii_case("mov"),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                    let opts=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,start:ss_opt,end,frames:vframes_opt,mov:mov_output,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                     match mp4::mux::remux(bytes.as_deref().unwrap_or_default(),opts){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if !y4m_output && (format==Some("aac") || !mp4_output && real_mp4) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || !audio_filters.is_empty());
                     let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
                     let bytes=bytes.as_deref().unwrap_or_default();
-                    let output=if mp4_output{mp4::mux::adts(bytes,opts,&meta_tags,output_kind.eq_ignore_ascii_case("mov"),fragmented,&audio_filters).map_err(str::to_owned)}
+                    let output=if mp4_output{mp4::mux::adts(bytes,opts,&meta_tags,mov_output,fragmented,&audio_filters).map_err(str::to_owned)}
                         else if format==Some("aac"){adts::remux(bytes,opts).map_err(str::to_owned)}else{mp4::extract_adts(bytes,opts)};
                     match output{Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
@@ -12938,6 +12940,16 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_explicit_mov_alias_and_filename_select_different_muxers() {
+        let fs=MemoryVfs::new();fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        for (args,brand) in [(vec!["-i","av.mp4","named.mov"],b"qt  "),(vec!["-i","av.mp4","-f","mov","explicit.mov"],b"isom")] {
+            let r=cmd_media_doc("ffmpeg",&media_args(&args),"","/",&fs);
+            assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+            assert_eq!(&fs.read_file(&format!("/{}",args.last().unwrap())).unwrap()[8..12],brand);
+        }
     }
 
     #[test]

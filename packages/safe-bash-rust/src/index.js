@@ -59,6 +59,46 @@ export class ShellLimitError extends Error {
   }
 }
 
+async function collectAsyncStdin(source, signal) {
+  const iterator = source[Symbol.asyncIterator]();
+  let bytes = new Uint8Array(0), length = 0;
+  async function read() {
+    for (;;) {
+      signal?.throwIfAborted();
+      const { done, value } = await iterator.next();
+      signal?.throwIfAborted();
+      if (done) return bytes.subarray(0, length);
+      const data = value instanceof Uint8Array ? value : encoder.encode(String(value));
+      const end = length + data.byteLength;
+      if (end > bytes.length) {
+        const grown = new Uint8Array(Math.max(end, bytes.length * 2));
+        grown.set(bytes.subarray(0, length));
+        bytes = grown;
+      }
+      // The producer may reuse its buffer as soon as next() is called.
+      bytes.set(data, length);
+      length = end;
+    }
+  }
+  let onAbort;
+  try {
+    if (!signal) return await read();
+    const interrupted = new Promise((_, reject) => {
+      onAbort = () => reject(signal.reason);
+      signal.addEventListener("abort", onAbort, { once: true });
+      if (signal.aborted) onAbort();
+    });
+    return await Promise.race([read(), interrupted]);
+  } catch (error) {
+    bytes = new Uint8Array(0);
+    const closed = Promise.resolve().then(() => iterator.return?.()).catch(() => {});
+    if (!signal?.aborted) await closed;
+    throw error;
+  } finally {
+    if (onAbort) signal.removeEventListener("abort", onAbort);
+  }
+}
+
 function wasmDescriptor(bash, path, fd, kind, access, append) {
   const device = kind !== 0, mounted = kind === 2;
   const capabilities = Object.freeze({
@@ -987,16 +1027,14 @@ export class RustWasmBash extends WasmShell {
       }
     }
     if (options && options.signal) {
-      if (options.signal.aborted) {
-        throw options.signal.reason ?? new Error("This operation was aborted");
-      }
+      options.signal.throwIfAborted();
       const sleepMatch = /\bsleep\s+([0-9.]+)/.exec(script);
       if (sleepMatch) {
         const waitMs = Math.min(Math.max(1, Number(sleepMatch[1]) * 1000), 2000);
         await new Promise((resolve, reject) => {
           const onAbort = () => {
             clearTimeout(t);
-            reject(options.signal.reason ?? new Error("This operation was aborted"));
+            reject(options.signal.reason);
           };
           const t = setTimeout(() => {
             options.signal.removeEventListener("abort", onAbort);
@@ -1008,21 +1046,7 @@ export class RustWasmBash extends WasmShell {
     }
     let stdinData = options.stdin ?? "";
     if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
-      let bytes = new Uint8Array(0), length = 0;
-      for await (const chunk of stdinData) {
-        options.signal?.throwIfAborted();
-        const data = chunk instanceof Uint8Array ? chunk : encoder.encode(String(chunk));
-        const end = length + data.byteLength;
-        if (end > bytes.length) {
-          const grown = new Uint8Array(Math.max(end, bytes.length * 2));
-          grown.set(bytes.subarray(0, length));
-          bytes = grown;
-        }
-        // The producer may reuse its buffer as soon as next() is called.
-        bytes.set(data, length);
-        length = end;
-      }
-      stdinData = bytes.subarray(0, length);
+      stdinData = await collectAsyncStdin(stdinData, options.signal);
     }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();

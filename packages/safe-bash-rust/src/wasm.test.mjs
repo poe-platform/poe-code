@@ -3,6 +3,29 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("abort closes held async stdin once without waiting for the producer", async () => {
+  const bash = new RustWasmBash(), controller = new AbortController();
+  const entered = Promise.withResolvers(), release = Promise.withResolvers();
+  let returns = 0, settled = false;
+  const source = { [Symbol.asyncIterator]() { return {
+    next() { entered.resolve(); return release.promise; },
+    async return() { returns++; throw new Error("late cleanup failure"); },
+  }; } };
+  const reason = { stop: true };
+  const result = assert.rejects(bash.exec("cat", { stdin: source, signal: controller.signal }), e => e === reason)
+    .then(() => { settled = true; });
+  try {
+    await entered.promise;
+    controller.abort(reason);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual([settled, returns], [true, 1]);
+  } finally {
+    release.resolve({ done: true });
+    await result;
+    bash.dispose();
+  }
+});
+
 test("async stdin preserves borrowed bytes and stops pulling after cancellation", async () => {
   const bash = new RustWasmBash();
   try {

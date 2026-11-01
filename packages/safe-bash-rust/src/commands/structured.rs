@@ -16818,107 +16818,117 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         return err_out("xmllint: unsupported XPath syntax at offset 0\n", 10);
     }
 
-    let text = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
-        stdin.to_string()
-    } else {
-        let mut combined = String::new();
-        for f in &files {
-            if f == "-" {
-                combined.push_str(stdin);
-            } else {
-                let full = resolve_posix_path(cwd, f);
-                if fs.is_dir(&full) {
-                    return err_out(&format!("xmllint: {}\n", read_stream_diag(&full, fs)), 1);
+    if files.is_empty() {
+        files.push("-".to_string());
+    }
+    let mut result = ok_out("");
+    for file in &files {
+        let text = if file == "-" {
+            stdin.to_string()
+        } else {
+            let full = resolve_posix_path(cwd, file);
+            if fs.is_dir(&full) {
+                result.stderr.push_str(&format!("xmllint: {}\n", read_stream_diag(&full, fs)));
+                result.exit_code = 1;
+                continue;
+            }
+            match fs.read_file(&full) {
+                Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
+                Err(_) => {
+                    result.stderr.push_str(&format!("xmllint: {}\n", read_stream_diag(&full, fs)));
+                    result.exit_code = 1;
+                    continue;
                 }
-                match fs.read_file(&full) {
-                    Ok(b) => combined.push_str(&String::from_utf8_lossy(&b)),
-                    Err(_) => {
-                        return err_out(&format!("xmllint: {}\n", read_stream_diag(&full, fs)), 1);
+            }
+        };
+
+        let mut dom = match parse_xml_strict_dom(&text) {
+            Ok(d) => d,
+            Err(e) => {
+                if recover {
+                    let recovered = parse_html_dom(&text);
+                    if recovered.iter().any(|n| matches!(n, HtmlNode::Element(_))) {
+                        recovered
+                    } else {
+                        result.stderr.push_str(&format!("xmllint: {e}\n"));
+                        result.exit_code = 1;
+                        continue;
                     }
-                }
-            }
-        }
-        combined
-    };
-
-    let mut dom = match parse_xml_strict_dom(&text) {
-        Ok(d) => d,
-        Err(e) => {
-            if recover {
-                let recovered = parse_html_dom(&text);
-                if recovered.iter().any(|n| matches!(n, HtmlNode::Element(_))) {
-                    recovered
                 } else {
-                    return err_out(&format!("xmllint: {e}\n"), 1);
+                    result.stderr.push_str(&format!("xmllint: {e}\n"));
+                    result.exit_code = 1;
+                    continue;
                 }
-            } else {
-                return err_out(&format!("xmllint: {e}\n"), 1);
             }
-        }
-    };
+        };
 
-    apply_xml_transforms(&mut dom, noblanks, nocdata, false);
+        apply_xml_transforms(&mut dom, noblanks, nocdata, false);
 
-    if noout && xpath.is_none() {
-        return ok_out("");
-    }
-    let rendered = if let Some(xp) = xpath {
-        let res = eval_xmllint_xpath(&dom, xp.trim());
-        if res.exit_code != 0 {
-            return res;
+        if noout && xpath.is_none() {
+            continue;
         }
-        res.stdout
-    } else if c14n {
-        let mut out = String::new();
-        let in_scope = BTreeMap::new();
-        let rendered_ns = BTreeMap::new();
-        for n in &dom {
-            if let HtmlNode::Element(el) = n {
-                out.push_str(&serialize_xml_c14n_with_scope(
-                    el,
-                    exc_c14n,
-                    &in_scope,
-                    &rendered_ns,
-                ));
+        let rendered = if let Some(ref xp) = xpath {
+            let res = eval_xmllint_xpath(&dom, xp.trim());
+            if res.exit_code != 0 {
+                result.stderr.push_str(&res.stderr);
+                result.exit_code = res.exit_code;
+                continue;
             }
-        }
-        out
-    } else {
-        let orig_version = extract_xml_decl_attr(&text, "version").unwrap_or_else(|| "1.0".to_string());
-        let orig_encoding = extract_xml_decl_attr(&text, "encoding");
-        let orig_standalone = extract_xml_decl_attr(&text, "standalone");
-        let eff_encoding = encoding.clone().or(orig_encoding);
-        let mut decl = format!("<?xml version=\"{orig_version}\"");
-        if let Some(ref enc) = eff_encoding {
-            decl.push_str(&format!(" encoding=\"{enc}\""));
-        }
-        if let Some(ref sa) = orig_standalone {
-            decl.push_str(&format!(" standalone=\"{sa}\""));
-        }
-        decl.push_str("?>\n");
-        let mut out = decl;
-        for n in &dom {
-            if let HtmlNode::Element(el) = n {
-                out.push_str(&serialize_xml_pretty(
-                    el,
-                    format_xml,
-                    0,
-                    false,
-                    eff_encoding.as_deref(),
-                ));
-                out.push('\n');
+            res.stdout
+        } else if c14n {
+            let mut out = String::new();
+            let in_scope = BTreeMap::new();
+            let rendered_ns = BTreeMap::new();
+            for n in &dom {
+                if let HtmlNode::Element(el) = n {
+                    out.push_str(&serialize_xml_c14n_with_scope(
+                        el,
+                        exc_c14n,
+                        &in_scope,
+                        &rendered_ns,
+                    ));
+                }
             }
+            out
+        } else {
+            let orig_version = extract_xml_decl_attr(&text, "version").unwrap_or_else(|| "1.0".to_string());
+            let orig_encoding = extract_xml_decl_attr(&text, "encoding");
+            let orig_standalone = extract_xml_decl_attr(&text, "standalone");
+            let eff_encoding = encoding.clone().or(orig_encoding);
+            let mut decl = format!("<?xml version=\"{orig_version}\"");
+            if let Some(ref enc) = eff_encoding {
+                decl.push_str(&format!(" encoding=\"{enc}\""));
+            }
+            if let Some(ref sa) = orig_standalone {
+                decl.push_str(&format!(" standalone=\"{sa}\""));
+            }
+            decl.push_str("?>\n");
+            let mut out = decl;
+            for n in &dom {
+                if let HtmlNode::Element(el) = n {
+                    out.push_str(&serialize_xml_pretty(
+                        el,
+                        format_xml,
+                        0,
+                        false,
+                        eff_encoding.as_deref(),
+                    ));
+                    out.push('\n');
+                }
+            }
+            out
+        };
+        if let Some(ref of) = out_file && of != "-" {
+            let full = resolve_posix_path(cwd, of);
+            if let Err(e) = fs.write_file(&full, rendered.as_bytes()) {
+                result.stderr.push_str(&format!("xmllint: {of}: {e}\n"));
+                result.exit_code = 1;
+            }
+        } else {
+            result.stdout.push_str(&rendered);
         }
-        out
-    };
-    if let Some(of) = out_file && of != "-" {
-        let full = resolve_posix_path(cwd, &of);
-        if let Err(e) = fs.write_file(&full, rendered.as_bytes()) {
-            return err_out(&format!("xmllint: {of}: {e}\n"), 1);
-        }
-        return ok_out("");
     }
-    ok_out(&rendered)
+    result
 }
 
 fn parse_xml_strict_dom(src: &str) -> Result<Vec<HtmlNode>, String> {
@@ -38296,6 +38306,65 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         .unwrap();
         assert_eq!(zero_threads.exit_code, 1);
         assert_eq!(zero_threads.stderr, "xan count: --threads must be positive\n");
+    }
+
+    #[test]
+    fn unit_xmllint_multiple_inputs_are_separate_documents() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/a.xml", b"<root><item>A</item></root>").unwrap();
+        vfs.write_file("/work/b.xml", b"<root><item>B</item></root>").unwrap();
+        for (options, expected) in [
+            (args(&["--noout", "a.xml", "b.xml"]), ""),
+            (args(&["--xpath", "//item/text()", "a.xml", "b.xml"]), "A\nB\n"),
+            (args(&["--noout", "--xpath", "//item/text()", "a.xml", "b.xml"]), "A\nB\n"),
+            (args(&["--format", "--xpath", "//item/text()", "a.xml", "b.xml"]), "A\nB\n"),
+            (args(&["--xpath", "//item/text()", "a.xml", "-", "b.xml"]), "A\nC\nB\n"),
+            (args(&["--format", "a.xml", "b.xml"]), "<?xml version=\"1.0\"?>\n<root>\n  <item>A</item>\n</root>\n<?xml version=\"1.0\"?>\n<root>\n  <item>B</item>\n</root>\n"),
+        ] {
+            let result = cmd_xmllint(&options, "<root><item>C</item></root>", "/work", &vfs);
+            assert_eq!(result.exit_code, 0, "{options:?}: {}", result.stderr);
+            assert_eq!(result.stdout, expected, "{options:?}");
+            assert!(result.stderr.is_empty());
+        }
+    }
+
+    #[test]
+    fn unit_xmllint_multiple_inputs_continue_after_errors() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/directory").unwrap();
+        vfs.write_file("/work/a.xml", b"<root><item>A</item></root>").unwrap();
+        vfs.write_file("/work/b.xml", b"<root><item>B</item></root>").unwrap();
+        vfs.write_file("/work/bad.xml", b"<root>").unwrap();
+        for bad in ["bad.xml", "missing.xml", "directory"] {
+            let result = cmd_xmllint(&args(&["--xpath", "//item/text()", "a.xml", bad, "b.xml"]), "", "/work", &vfs);
+            assert_eq!(result.exit_code, 1, "{bad}");
+            assert_eq!(result.stdout, "A\nB\n", "{bad}");
+            assert!(!result.stderr.is_empty(), "{bad}");
+        }
+        let result = cmd_xmllint(&args(&["--noout", "a.xml", "bad.xml"]), "", "/work", &vfs);
+        assert_eq!(result.exit_code, 1);
+        assert!(result.stdout.is_empty());
+        assert!(!result.stderr.is_empty());
+    }
+
+    #[test]
+    fn unit_xmllint_multiple_inputs_replace_output_per_document() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/a.xml", b"<root><item>A</item></root>").unwrap();
+        vfs.write_file("/work/b.xml", b"<root><item>B</item></root>").unwrap();
+        vfs.write_file("/work/bad.xml", b"<root>").unwrap();
+        for output_flag in ["-o", "--output"] {
+            let result = cmd_xmllint(&args(&["--c14n", output_flag, "out.xml", "a.xml", "b.xml"]), "", "/work", &vfs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert!(result.stdout.is_empty());
+            assert_eq!(vfs.read_file("/work/out.xml").unwrap(), b"<root><item>B</item></root>");
+        }
+        let result = cmd_xmllint(&args(&["--c14n", "-o", "out.xml", "a.xml", "bad.xml"]), "", "/work", &vfs);
+        assert_eq!(result.exit_code, 1);
+        assert!(result.stdout.is_empty());
+        assert_eq!(vfs.read_file("/work/out.xml").unwrap(), b"<root><item>A</item></root>");
     }
 
     #[test]

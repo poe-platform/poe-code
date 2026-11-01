@@ -1,4 +1,4 @@
-// Flowchart layout for unbranched paths and standalone declarations.
+// Flowchart layout for ungrouped graphs.
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
 
@@ -27,12 +27,20 @@ struct Node {
     h: i32,
     x: i32,
     y: i32,
-    from: Option<usize>,
-    to: Option<usize>,
+    from: Vec<usize>,
+    to: Vec<usize>,
     loops: usize,
-    incoming: usize,
-    outgoing: usize,
+    parallel: bool,
     radius: i32,
+}
+impl Node {
+    fn center(&self, x: bool) -> i32 {
+        if x {
+            self.x + self.w / 2
+        } else {
+            self.y + self.h / 2
+        }
+    }
 }
 #[derive(Default, Clone, Copy, PartialEq)]
 enum Shape {
@@ -133,7 +141,7 @@ fn dimensions(n: &mut Node, horizontal: bool) {
         Shape::Rounded => 12,
         _ => 8,
     };
-    let degree = n.incoming.max(n.outgoing);
+    let degree = n.from.len().max(n.to.len());
     if degree > 4 {
         let min = snap(((degree - 1) * 12 + 36) as f64);
         if horizontal {
@@ -142,7 +150,7 @@ fn dimensions(n: &mut Node, horizontal: bool) {
             n.w = n.w.max(min);
         }
     }
-    if degree > 1 {
+    if n.parallel {
         n.w = n.w.max(128);
         n.h = n.h.max(64);
     }
@@ -303,15 +311,9 @@ pub(super) fn layout(
                     return None;
                 }
                 nodes[a].loops += 1;
-            } else if nodes[a].to.is_some_and(|to| to != b)
-                || nodes[b].from.is_some_and(|from| from != a)
-            {
-                return None;
             } else {
-                nodes[a].outgoing += 1;
-                nodes[b].incoming += 1;
-                nodes[a].to = Some(b);
-                nodes[b].from = Some(a);
+                nodes[a].to.push(b);
+                nodes[b].from.push(a);
             }
             if edges.len() >= limit / 300 {
                 return None;
@@ -323,6 +325,17 @@ pub(super) fn layout(
     }
     if nodes.len() > limit / 300 {
         return None;
+    }
+    let mut pairs = BTreeMap::new();
+    for &(a, b, _, _) in &edges {
+        if a != b {
+            let total = pairs.entry((a.min(b), a.max(b))).or_insert(0);
+            *total += 1;
+            if *total > 1 {
+                nodes[a].parallel = true;
+                nodes[b].parallel = true;
+            }
+        }
     }
     for n in &mut nodes {
         dimensions(n, horizontal);
@@ -343,22 +356,12 @@ pub(super) fn layout(
             node.y += shift_y;
         }
     }
-    let primary_center = |n: &Node| {
-        if horizontal {
-            n.x + n.w / 2
-        } else {
-            n.y + n.h / 2
-        }
-    };
     let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
-    if nodes.iter().any(|n| n.loops > 0) {
-        for n in &nodes {
-            siblings.entry(primary_center(n)).or_default().push(n);
-        }
+    for n in &nodes {
+        siblings.entry(n.center(horizontal)).or_default().push(n);
     }
     let mut intersection = None;
-    let mut parallel_index = vec![0; nodes.len()];
-    let mut loop_index = vec![0; nodes.len()];
+    let waypoints = route::waypoints(&nodes, &edges, &pairs, &siblings, horizontal, reversed);
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];
@@ -374,20 +377,10 @@ pub(super) fn layout(
     } else {
         [15, 23, 42, 15]
     };
-    for (idx, (a, b, op, label)) in edges.into_iter().enumerate() {
-        let mut points = if a == b {
-            let path = route::loop_points(&nodes[a], horizontal, loop_index[a], nodes[a].loops);
-            loop_index[a] += 1;
-            path.to_vec()
-        } else {
-            let count = nodes[a].outgoing;
-            if count > 1 && !label.is_empty() {
-                return None;
-            }
-            let lane = parallel_index[a];
-            parallel_index[a] += 1;
-            route::forward(&nodes[a], &nodes[b], horizontal, reversed, lane, count)
-        };
+    for (idx, ((a, b, op, label), mut points)) in edges.into_iter().zip(waypoints).enumerate() {
+        if !label.is_empty() && points.len() != 2 {
+            return None;
+        }
         points.dedup_by(|b, a| (a.0 - b.0).hypot(a.1 - b.1) <= 0.25);
         let (x, y) = points[0];
         let (ex, ey) = *points.last()?;
@@ -406,11 +399,12 @@ pub(super) fn layout(
                 )));
             }
             if intersection.is_none()
-                && let Some((k, other)) = route::loop_intersection(
+                && let Some((k, other)) = route::intersection(
                     &points,
-                    &nodes[a],
-                    &siblings[&primary_center(&nodes[a])],
+                    (&nodes[a], &nodes[b]),
+                    &siblings[&nodes[a].center(horizontal)],
                     horizontal,
+                    -2.,
                 )
             {
                 let id = &nodes[a].id;

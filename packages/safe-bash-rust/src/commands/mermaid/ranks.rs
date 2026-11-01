@@ -11,20 +11,24 @@ pub(super) fn place(
         return Some((184, 144));
     }
     let mut rank = vec![0; nodes.len()];
+    let mut pending: Vec<_> = nodes.iter().map(|n| n.from.len()).collect();
+    let mut ready: Vec<_> = (0..nodes.len()).filter(|&i| pending[i] == 0).collect();
     let mut count = 0;
-    for (root, node) in nodes.iter().enumerate() {
-        if node.from.is_some() {
-            continue;
-        }
-        let mut p = root;
-        loop {
-            count += 1;
-            let Some(next) = nodes[p].to else { break };
-            rank[next] = rank[p] + 1;
-            p = next;
+    while let Some(i) = ready.pop() {
+        count += 1;
+        for &child in &nodes[i].to {
+            rank[child] = rank[child].max(rank[i] + 1);
+            pending[child] -= 1;
+            if pending[child] == 0 {
+                ready.push(child);
+            }
         }
     }
-    if count != nodes.len() {
+    if count != nodes.len()
+        || edges
+            .iter()
+            .any(|&(a, b, _, _)| a != b && rank[b] != rank[a] + 1)
+    {
         return None;
     }
     let max_rank = *rank.iter().max()?;
@@ -41,10 +45,22 @@ pub(super) fn place(
         .iter()
         .map(|n| if horizontal { (n.h, n.w) } else { (n.w, n.h) })
         .unzip();
-    let spans: Vec<_> = layers
-        .iter()
-        .map(|layer| layer.iter().map(|&i| breadth[i]).sum::<i32>() + 36 * (layer.len() as i32 - 1))
-        .collect();
+    let mut gaps = vec![0; nodes.len()];
+    let mut spans = Vec::new();
+    let mut previous_diamond = 0;
+    for layer in &layers {
+        for pair in layer.windows(2) {
+            gaps[pair[1]] =
+                36.max(previous_diamond + 64 - (breadth[pair[0]] + breadth[pair[1]]) / 2);
+        }
+        spans.push(layer.iter().map(|&i| breadth[i] + gaps[i]).sum::<i32>());
+        previous_diamond = layer
+            .iter()
+            .filter(|&&i| nodes[i].shape == super::Shape::Diamond)
+            .map(|&i| breadth[i])
+            .max()
+            .unwrap_or(0);
+    }
     let full = *spans.iter().max()?.max(&200);
     let mut center = vec![0; nodes.len()];
     let mut along = vec![0; nodes.len()];
@@ -64,7 +80,7 @@ pub(super) fn place(
         .map(|layer| {
             layer
                 .iter()
-                .map(|&i| nodes[i].incoming.max(nodes[i].outgoing))
+                .map(|&i| nodes[i].from.len().max(nodes[i].to.len()))
                 .max()
                 .unwrap_or(0)
         })
@@ -75,8 +91,9 @@ pub(super) fn place(
         let mut offset = (full - spans[r] + 1) / 2;
         for &i in layer {
             along[i] = (cursor + f64::from(longest - depth[i]) / 2.).round() as i32;
+            offset += gaps[i];
             center[i] = offset + breadth[i] / 2;
-            offset += breadth[i] + 36;
+            offset += breadth[i];
         }
         let mut gap = if horizontal { 64 } else { 56 };
         let d = degree[r].max(degree.get(r + 1).copied().unwrap_or(0));
@@ -92,14 +109,18 @@ pub(super) fn place(
             let layer = &layers[if sweep % 2 == 0 { rr } else { max_rank - rr }];
             desired.clear();
             desired.extend(layer.iter().map(|&i| {
-                match (nodes[i].from, nodes[i].to) {
-                    (Some(a), Some(b)) => ((f64::from(center[a]) * nodes[i].incoming as f64
-                        + f64::from(center[b]) * nodes[i].outgoing as f64)
-                        / (nodes[i].incoming + nodes[i].outgoing) as f64
-                        + 0.5)
-                        .floor() as i32,
-                    (Some(a), _) | (_, Some(a)) => center[a],
-                    _ => center[i],
+                let n = &nodes[i];
+                let count = n.from.len() + n.to.len();
+                if count == 0 {
+                    center[i]
+                } else {
+                    let sum: i64 = n
+                        .from
+                        .iter()
+                        .chain(&n.to)
+                        .map(|&j| i64::from(center[j]))
+                        .sum();
+                    (sum as f64 / count as f64 + 0.5).floor() as i32
                 }
             }));
             let before: i64 = desired.iter().copied().map(i64::from).sum();
@@ -115,17 +136,36 @@ pub(super) fn place(
         }
     }
     let spine = (full + 1) / 2;
+    for ranks in layers.windows(3) {
+        if let ([a], layer, [b]) = (ranks[0].as_slice(), &ranks[1], ranks[2].as_slice())
+            && layer.len() > 1
+        {
+            let mut anchors = layer.iter().filter(|&&i| {
+                let n = &nodes[i];
+                (n.from.contains(a) && n.to.contains(b)) || (n.to.contains(a) && n.from.contains(b))
+            });
+            if let Some(&i) = anchors.next()
+                && anchors.next().is_none()
+            {
+                let shift = spine - center[i];
+                for &k in layer {
+                    center[k] += shift;
+                }
+            }
+        }
+    }
     for (r, layer) in layers.iter().enumerate() {
         if let [i] = layer[..] {
-            match (nodes[i].from, nodes[i].to) {
-                (Some(a), None) | (None, Some(a)) => center[i] = center[a],
-                _ if (r > 0 && layers[r - 1].len() == 1)
-                    || (r < max_rank && layers[r + 1].len() == 1)
-                    || (center[i] - spine).abs() <= 48 =>
-                {
-                    center[i] = spine
-                }
-                _ => {}
+            let mut adj = nodes[i].from.iter().chain(&nodes[i].to);
+            if let Some(&a) = adj.next()
+                && adj.all(|&other| other == a)
+            {
+                center[i] = center[a];
+            } else if (r > 0 && layers[r - 1].len() == 1)
+                || (r < max_rank && layers[r + 1].len() == 1)
+                || (center[i] - spine).abs() <= 48
+            {
+                center[i] = spine;
             }
         }
     }
@@ -136,8 +176,7 @@ pub(super) fn place(
         max_cross = max_cross.max(center[i] + breadth[i] / 2);
     }
     for &(a, b, _, label) in edges {
-        // Non-aligned ports require orthogonal obstacle routing.
-        if center[a] != center[b] {
+        if !label.is_empty() && center[a] != center[b] {
             return None;
         }
         if !label.is_empty() {

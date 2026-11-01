@@ -1,5 +1,5 @@
 use super::{Node, Shape};
-use std::fmt::Write;
+use std::{collections::BTreeMap, fmt::Write};
 
 pub(super) type Point = (f64, f64);
 pub(super) enum Segment {
@@ -133,75 +133,201 @@ fn port(
     (at(normal), at(outer + 18.))
 }
 
-pub(super) fn forward(
-    a: &Node,
-    b: &Node,
-    horizontal: bool,
-    reversed: bool,
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct Face {
+    x: bool,
+    positive: bool,
+}
+#[derive(Clone, Copy)]
+struct Attachment {
+    face: Face,
     lane: usize,
     count: usize,
-) -> Vec<Point> {
-    let sign = if reversed { -1. } else { 1. };
-    let (p, s) = port(a, horizontal, sign, lane, count, 42.);
-    let (q, t) = port(b, horizontal, -sign, lane, count, 42.);
-    if count == 1 {
-        return vec![p, q];
-    }
-    let f = (lane + 1) as f64 / (count + 1) as f64;
-    if horizontal {
-        let x = (s.0 + (t.0 - s.0) * f + 0.5).floor();
-        vec![p, (x, p.1), (x, q.1), q]
-    } else {
-        let y = (s.1 + (t.1 - s.1) * f + 0.5).floor();
-        vec![p, (p.0, y), (q.0, y), q]
-    }
+    spacing: f64,
 }
-pub(super) fn loop_points(node: &Node, horizontal: bool, index: usize, total: usize) -> [Point; 4] {
-    let sign = if horizontal { -1. } else { 1. };
-    let a = port(node, !horizontal, sign, index * 2, total * 2, 44.).0;
-    let b = port(node, !horizontal, sign, index * 2 + 1, total * 2, 44.).0;
-    let out = 38. + 20. * index as f64;
-    if horizontal {
-        let y = f64::from(node.y) - out;
-        [a, (a.0, y), (b.0, y), b]
-    } else {
-        let x = f64::from(node.x + node.w) + out;
-        [a, (x, a.1), (x, b.1), b]
+impl Attachment {
+    fn point(self, n: &Node) -> (Point, Point) {
+        port(
+            n,
+            self.face.x,
+            if self.face.positive { 1. } else { -1. },
+            self.lane,
+            self.count,
+            self.spacing,
+        )
     }
 }
 
-pub(super) fn loop_intersection<'a>(
+pub(super) fn waypoints(
+    nodes: &[Node],
+    edges: &[(usize, usize, &str, &str)],
+    pairs: &BTreeMap<(usize, usize), usize>,
+    siblings: &BTreeMap<i32, Vec<&Node>>,
+    horizontal: bool,
+    reverse: bool,
+) -> Vec<Vec<Point>> {
+    let forward = Face {
+        x: horizontal,
+        positive: !reverse,
+    };
+    let towards = Face {
+        x: horizontal,
+        positive: reverse,
+    };
+    let loop_face = Face {
+        x: !horizontal,
+        positive: !horizontal,
+    };
+    let mut seen = BTreeMap::new();
+    let mut buckets = BTreeMap::<(usize, Face), Vec<(i64, usize, usize)>>::new();
+    let mut attachments = Vec::with_capacity(edges.len());
+    let mut offsets = Vec::with_capacity(edges.len());
+    for (i, &(a, b, _, _)) in edges.iter().enumerate() {
+        let pair = (a.min(b), a.max(b));
+        let index = seen.entry(pair).or_insert(0usize);
+        offsets.push(*index);
+        let (src, dst) = (&nodes[a], &nodes[b]);
+        let mut faces = [forward, towards];
+        if a == b {
+            faces = [loop_face; 2];
+        } else if src.shape == Shape::Diamond || src.to.len() == 2 {
+            let delta = dst.center(!horizontal) - src.center(!horizontal);
+            let across = if horizontal { src.h } else { src.w };
+            if delta.abs() >= across / 2 + if src.shape == Shape::Diamond { 22 } else { 16 } {
+                let side = Face {
+                    x: !horizontal,
+                    positive: delta > 0,
+                };
+                let p = port(src, side.x, if side.positive { 1. } else { -1. }, 0, 1, 0.).0;
+                let q = port(dst, towards.x, if reverse { 1. } else { -1. }, 0, 1, 0.).0;
+                let turn = if side.x { (q.0, p.1) } else { (p.0, q.1) };
+                if [src, dst].iter().all(|n| {
+                    intersection(
+                        &[p, turn, q],
+                        (src, dst),
+                        &siblings[&n.center(horizontal)],
+                        horizontal,
+                        8.,
+                    )
+                    .is_none()
+                }) {
+                    faces[0] = side;
+                }
+            }
+        }
+        attachments.push(faces.map(|face| Attachment {
+            face,
+            lane: 0,
+            count: 0,
+            spacing: 0.,
+        }));
+        for (end, (n, other)) in [(a, b), (b, a)].into_iter().enumerate() {
+            let face = faces[end];
+            let key = i64::from(nodes[other].center(!face.x)) + 36 * (*index as i64);
+            buckets.entry((n, face)).or_default().push((key, i, end));
+        }
+        *index += 1;
+    }
+    for bucket in buckets.values_mut() {
+        bucket.sort_by_key(|&(key, _, _)| key);
+        let spacing = if bucket.iter().any(|&(_, i, _)| {
+            let (a, b, _, _) = edges[i];
+            pairs.get(&(a.min(b), a.max(b))).copied().unwrap_or(0) > 1
+        }) {
+            42.
+        } else if bucket.iter().any(|&(_, i, _)| edges[i].0 == edges[i].1) {
+            44.
+        } else {
+            16.
+        };
+        for (lane, &(_, i, end)) in bucket.iter().enumerate() {
+            let at = &mut attachments[i][end];
+            at.lane = lane;
+            at.count = bucket.len();
+            at.spacing = spacing;
+        }
+    }
+    edges
+        .iter()
+        .enumerate()
+        .map(|(i, &(a, b, _, _))| {
+            let [src, dst] = attachments[i];
+            let (p, s) = src.point(&nodes[a]);
+            let (q, t) = dst.point(&nodes[b]);
+            if a == b {
+                let n = &nodes[a];
+                let out = 38. + 20. * offsets[i] as f64;
+                if horizontal {
+                    let y = f64::from(n.y) - out;
+                    return vec![p, (p.0, y), (q.0, y), q];
+                }
+                let x = f64::from(n.x + n.w) + out;
+                return vec![p, (x, p.1), (x, q.1), q];
+            }
+            if src.face.x != dst.face.x {
+                return vec![p, if src.face.x { (q.0, p.1) } else { (p.0, q.1) }, q];
+            }
+            let (u, v) = if horizontal { (p.1, q.1) } else { (p.0, q.0) };
+            if (u - v).abs() <= 4. && pairs[&(a.min(b), a.max(b))] == 1 {
+                let c = if nodes[b].shape == Shape::Diamond {
+                    v
+                } else if nodes[a].shape == Shape::Diamond {
+                    u
+                } else {
+                    ((u + v) * 0.5 + 0.5).floor()
+                };
+                return if horizontal {
+                    vec![(p.0, c), (q.0, c)]
+                } else {
+                    vec![(c, p.1), (c, q.1)]
+                };
+            }
+            let lane = if src.count >= dst.count { src } else { dst };
+            let f = (lane.lane + 1) as f64 / (lane.count + 1) as f64;
+            if horizontal {
+                let x = (s.0 + (t.0 - s.0) * f + 0.5).floor();
+                vec![p, (x, p.1), (x, q.1), q]
+            } else {
+                let y = (s.1 + (t.1 - s.1) * f + 0.5).floor();
+                vec![p, (p.0, y), (q.0, y), q]
+            }
+        })
+        .collect()
+}
+
+pub(super) fn intersection<'a>(
     points: &[Point],
-    node: &Node,
+    endpoints: (&Node, &Node),
     siblings: &[&'a Node],
     horizontal: bool,
+    margin: f64,
 ) -> Option<(usize, &'a str)> {
     for (k, seg) in points.windows(2).enumerate() {
         let (a, b) = (seg[0], seg[1]);
         let (x, y) = (a.0.min(b.0), a.1.min(b.1));
         let (right, bottom) = (x + (a.0 - b.0).abs().max(1.), y + (a.1 - b.1).abs().max(1.));
-        // A self-loop stays within its own rank along the flow axis. Siblings
-        // are ordered across the rank, so skip those entirely before the segment.
+        // Siblings are ordered across their rank.
         let begin = siblings.partition_point(|n| {
             if horizontal {
-                f64::from(n.y + n.h) <= y + 2.
+                f64::from(n.y + n.h) <= y - margin
             } else {
-                f64::from(n.x + n.w) <= x + 2.
+                f64::from(n.x + n.w) <= x - margin
             }
         });
         for n in &siblings[begin..] {
             if if horizontal {
-                f64::from(n.y) >= bottom - 2.
+                f64::from(n.y) >= bottom + margin
             } else {
-                f64::from(n.x) >= right - 2.
+                f64::from(n.x) >= right + margin
             } {
                 break;
             }
-            if n.id != node.id
-                && x + 2. < f64::from(n.x + n.w)
-                && right - 2. > f64::from(n.x)
-                && y + 2. < f64::from(n.y + n.h)
-                && bottom - 2. > f64::from(n.y)
+            if n.id != endpoints.0.id
+                && n.id != endpoints.1.id
+                && x - margin < f64::from(n.x + n.w)
+                && right + margin > f64::from(n.x)
+                && y - margin < f64::from(n.y + n.h)
+                && bottom + margin > f64::from(n.y)
             {
                 return Some((k, n.id.as_str()));
             }

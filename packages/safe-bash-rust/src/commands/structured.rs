@@ -37165,22 +37165,6 @@ fn ast_glob_matches_path(glob: &str, rel_path: &str) -> bool {
     }
 }
 
-fn relative_to_cwd(cwd: &str, abs_path: &str) -> String {
-    let c = cwd.trim_end_matches('/');
-    if c.is_empty() || c == "/" {
-        abs_path.trim_start_matches('/').to_string()
-    } else if let Some(rest) = abs_path.strip_prefix(c) {
-        let trimmed = rest.trim_start_matches('/');
-        if trimmed.is_empty() {
-            ".".to_string()
-        } else {
-            trimmed.to_string()
-        }
-    } else {
-        abs_path.to_string()
-    }
-}
-
 fn cmd_ast_grep(
     invoked: &str,
     args: &[String],
@@ -37279,7 +37263,7 @@ fn cmd_ast_grep(
                         continue;
                     }
                     crate::vfs::VfsEntryKind::File => {
-                        let rel = relative_to_cwd(cwd, path);
+                        let rel = super::fs::relative_posix_path(cwd, path);
                         if (!includes.is_empty() && !includes.iter().any(|g| ast_glob_matches_path(g, &rel)))
                             || excludes.iter().any(|g| ast_glob_matches_path(g, &rel))
                         {
@@ -37308,7 +37292,7 @@ fn cmd_ast_grep(
             let source = read(maybe_path.as_deref(), &mut remaining_input)?;
             let file_label = match maybe_path {
                 None => "STDIN".to_string(),
-                Some(ref p) => relative_to_cwd(cwd, p),
+                Some(ref p) => super::fs::relative_posix_path(cwd, p),
             };
             let lines: Vec<&str> = source.split('\n').collect();
             let mut edits: Vec<((usize, usize), String)> = Vec::new();
@@ -39359,6 +39343,20 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_excludes_sibling_paths_from_rewrites_relative_to_cwd() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work/lib").unwrap();
+        fs.mkdir_all("/work/lib2").unwrap();
+        fs.write_file("/work/lib2/a.js", b"f(a);").unwrap();
+        fs.write_file("/work/b.js", b"f(b);").unwrap();
+        let r = try_run_structured_command("sg", &args(&["-p", "f($X)", "-r", "g($X)", "-U", "--json=compact", "--globs", "!../lib2/*", "../lib2/a.js", "../b.js"]), "", "/work/lib", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+        assert_eq!(fs.read_file("/work/lib2/a.js").unwrap(), b"f(a);");
+        assert_eq!(fs.read_file("/work/b.js").unwrap(), b"g(b);");
+        assert!(r.stdout.contains(r#""file":"../b.js""#));
     }
 
     #[test]

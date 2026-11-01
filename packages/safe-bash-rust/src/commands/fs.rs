@@ -2720,7 +2720,7 @@ pub(super) fn canonicalize_posix_path(
     Ok(cur)
 }
 
-fn relative_posix_path(base: &str, target: &str) -> String {
+pub(super) fn relative_posix_path(base: &str, target: &str) -> String {
     let b_parts: Vec<&str> = base.split('/').filter(|s| !s.is_empty()).collect();
     let t_parts: Vec<&str> = target.split('/').filter(|s| !s.is_empty()).collect();
     let mut common = 0usize;

@@ -26,7 +26,8 @@ async function run(bytes: Uint8Array, writer: string, route: "retained" | "strea
   } });
   const args = ["-of", writer, ...extra, route === "stdin" ? "-" : "/input.flac"];
   const result = await createFfprobeCommand({ limits: { maxOutputBytes: 4000000 } }).execute({ command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs, signal: new AbortController().signal,
-    stdin: route === "stdin" ? chunks() : { async *[Symbol.asyncIterator]() {} }, stdout: { async write(chunk) { expect(closed).toBe(true); expect(opened).toBe(retired); output += decoder.decode(chunk, { stream: true }); } }, stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
+    // Output backing can remain open while publishing; source and tag backing must be closed.
+    stdin: route === "stdin" ? chunks() : { async *[Symbol.asyncIterator]() {} }, stdout: { async write(chunk) { expect(closed).toBe(true); expect(opened - retired).toBeLessThanOrEqual(1); output += decoder.decode(chunk, { stream: true }); } }, stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
   });
   output += decoder.decode(); expect(result.exitCode).toBe(0); expect(output).toBe(fallback ? evalSyncFfprobe(bytes, args, () => bytes) : probe(bytes, args)); expect(opened).toBe(retired);
   expect(await base.readdir("/")).toEqual([{ name: "input.flac", type: "file" }]);

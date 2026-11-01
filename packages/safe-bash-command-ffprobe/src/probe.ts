@@ -59,6 +59,10 @@ export function parseArguments(args: readonly string[]) {
       )
     )
       throw new Error(`Unsupported writer option ${key}`);
+  if (sections.size === 0) {
+    sections.set("stream", undefined);
+    sections.set("format", undefined);
+  }
   return { filename, format: format!, sections, settings, selector, quiet };
 }
 

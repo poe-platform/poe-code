@@ -2659,6 +2659,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+#[path = "lavfi.rs"]
+mod lavfi;
 #[path = "y4m.rs"]
 mod y4m;
 #[path = "adts.rs"]
@@ -4218,45 +4220,13 @@ fn format_ffmpeg_introspection(flag: &str, cmd: &str) -> Option<String> {
 }
 
 fn parse_lavfi_input_doc(inp: &str) -> Option<MediaDoc> {
-    if inp.starts_with("color=")
-        || inp.starts_with("testsrc=")
-        || inp.starts_with("smptebars=")
-        || inp == "color"
-        || inp == "testsrc"
-        || inp == "smptebars"
-    {
-        let mut w = 64u32;
-        let mut h = 48u32;
-        let mut r = 10f64;
-        let mut d = 1.0f64;
-        let params = inp
-            .split_once('=')
-            .map(|(_, rest)| if rest.contains('=') { rest } else { inp })
-            .unwrap_or(inp);
-        for part in params.split(':') {
-            if let Some((k, v)) = part.split_once('=') {
-                match k {
-                    "s" | "size" => {
-                        if let Some((ws, hs)) = v.split_once('x') {
-                            w = ws.parse().unwrap_or(64);
-                            h = hs.parse().unwrap_or(48);
-                        }
-                    }
-                    "r" | "rate" => r = v.parse().unwrap_or(10.0),
-                    "d" | "duration" => d = v.parse().unwrap_or(1.0),
-                    _ => {}
-                }
-            }
-        }
+    if let Some(video) = lavfi::Video::parse(inp) {
         let mut doc = MediaDoc::default_video();
-        doc.codec_type = "video".to_string();
-        doc.codec_name = "h264".to_string();
-        doc.format_name = "mp4".to_string();
-        doc.width = w;
-        doc.height = h;
-        doc.fps = r.round() as u32;
-        doc.duration = d;
-        doc.nb_frames = (r * d).round().max(1.0) as u32;
+        doc.width = video.width;
+        doc.height = video.height;
+        doc.fps = video.fps.round() as u32;
+        doc.duration = video.duration;
+        doc.nb_frames = (video.fps * video.duration).round().max(1.) as u32;
         return Some(doc);
     }
     if inp.starts_with("sine=")
@@ -4600,42 +4570,38 @@ fn cmd_media_doc(
             if let [source] = inputs.as_slice()
                 && (output_kind.eq_ignore_ascii_case("aac") || y4m_output)
             {
-                let bytes = if media_stdin(source) {
+                let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
+                let bytes = if generator.is_some() {None} else if media_stdin(source) {
                     Some(crate::vfs::stream_string_to_bytes(stdin))
                 } else { fs.read_file(&resolve_posix_path(cwd,source)).ok() };
-                if let Some(bytes) = bytes {
-                    let start = ss_opt.unwrap_or(0.).max(0.);
-                    let end=to_opt.or_else(||t_opt.map(|t|start+t));
-                    let output = match (media_format::detect(&bytes,source,input_format),y4m_output) {
-                        (Some("aac"),false)=>{
-                            let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
-                            Some(adts::remux(&bytes,start,end,ar_opt.filter(|_|transform),ac_opt.filter(|_|transform),transform,strip_audio))
-                        }
-                        (Some("y4m"),true)=>{
-                            if !video_copy {
-                                if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
-                                if let Some(fps)=framerate_opt {vf_flags.push(format!("fps={fps}"));}
-                            }
-                            let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
-                            match y4m::Stream::parse(&bytes).and_then(|stream|stream.encode(opts)) {
-                                Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1),
-                            }
-                        }
-                        _=>None,
-                    };
-                    if let Some(output)=output {
-                        if stdout {
-                            return ok_out(&crate::vfs::bytes_to_stream_string(&output));
-                        }
-                        let parent = crate::vfs::dirname_posix_path(&out_full);
-                        if !fs.is_dir(&parent) {
-                            let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
-                            return err_out(&format!("ffmpeg: {reason}, writeFile '{out_full}'\n"),1);
-                        }
-                        return match fs.write_file(&out_full,&output) {
-                            Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
-                        };
+                let start=ss_opt.unwrap_or(0.).max(0.);
+                let end=to_opt.or_else(||t_opt.map(|t|start+t));
+                let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
+                let output=if y4m_output && (generator.is_some() || format==Some("y4m")) {
+                    if !video_copy {
+                        if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
+                        if let Some(fps)=framerate_opt {vf_flags.push(format!("fps={fps}"));}
                     }
+                    let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
+                    let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some())}
+                        else {y4m::Stream::parse(bytes.as_deref().unwrap_or_default()).and_then(|s|s.encode(opts))};
+                    match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if !y4m_output && format==Some("aac") {
+                    let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
+                    Some(adts::remux(bytes.as_deref().unwrap_or_default(),start,end,ar_opt.filter(|_|transform),ac_opt.filter(|_|transform),transform,strip_audio))
+                } else {None};
+                if let Some(output)=output {
+                    if stdout {
+                        return ok_out(&crate::vfs::bytes_to_stream_string(&output));
+                    }
+                    let parent = crate::vfs::dirname_posix_path(&out_full);
+                    if !fs.is_dir(&parent) {
+                        let reason = if fs.exists(&parent) { "ENOTDIR: not a directory" } else { "ENOENT: no such file or directory" };
+                        return err_out(&format!("ffmpeg: {reason}, writeFile '{out_full}'\n"),1);
+                    }
+                    return match fs.write_file(&out_full,&output) {
+                        Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
+                    };
                 }
             }
             let mut doc = MediaDoc::default_video();
@@ -12884,6 +12850,25 @@ mod media_unit_tests {
         let args = media_args(&["-n","-y","-i","-","out.aac"]);
         assert_eq!(cmd_media_doc("ffmpeg",&args,&input,"/",&fs).exit_code,0);
         assert_eq!(fs.read_file("/out.aac").unwrap(),crate::vfs::stream_string_to_bytes(&input));
+    }
+
+    #[test]
+    fn ffmpeg_generates_y4m_pixels_from_lavfi_sources() {
+        let fs = MemoryVfs::new();
+        let run = |spec: &str, filters: &[&str]| {
+            let args = [&["-y","-f","lavfi","-i",spec][..],filters,&["-f","yuv4mpegpipe","pipe:1"]].concat();
+            let r=cmd_media_doc("ffmpeg",&media_args(&args),"","/",&fs);
+            assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+            crate::vfs::stream_string_to_bytes(&r.stdout)
+        };
+        let head=b"YUV4MPEG2 W3 H1 F10:1 Ip A1:1 C420jpeg\nFRAME\n".as_slice();
+        assert_eq!(run("color=c=red:s=3x1:r=10:d=0.2",&["-frames:v","1"]),[head,&[82,82,82,90,90,240,240]].concat());
+        assert_eq!(run("color=c=red:s=3x1:r=10:d=0.2",&["-t","0.1"]),[head,&[82,82,82,90,90,239,239]].concat());
+        let sliced = run("smptebars=s=7x5:r=10:d=0.3",&["-t","0.05"]);
+        assert_eq!(sliced.strip_prefix(b"YUV4MPEG2 W7 H5 F20:1 Ip A1:1 C420jpeg\nFRAME\n"), Some([180,161,131,115,84,71,35,35,180,161,131,115,84,71,35,35,180,161,131,115,84,71,35,35,180,161,131,115,84,71,35,35,40,40,229,118,108,134,175,193,118,108,128,140,212,152,132,130,73,167,158,137,130,73,130,203,115,111,133].as_slice()));
+        let head=b"YUV4MPEG2 W3 H3 F5:1 Ip A1:1 C420jpeg\nFRAME\n".as_slice();
+        assert_eq!(run("smptebars=s=3x3:r=5:d=0.2",&[]),[head,&[180,131,84,180,131,84,35,84,131,142,183,197,156,86,198,157,44]].concat());
+        assert_eq!(run("testsrc=s=3x3:r=5:d=0.2",&["-vf","hflip"]),[head,&[126,125,125,126,125,125,126,125,125,128,128,128,128,128,128,128,128]].concat());
     }
 
     #[test]

@@ -78,7 +78,7 @@ fn raster(width: usize, height: usize, pixels: Vec<[u8; 4]>) -> Raster {
     }
 }
 
-fn decode(frame: &[u8], w: usize, h: usize) -> Raster {
+fn decode(frame: &[u8], w: usize, h: usize, rgb: impl Fn(i32, i32, i32) -> [u8; 4]) -> Raster {
     let (y, uv) = frame.split_at(w * h);
     let cw = w.div_ceil(2);
     let (u, v) = uv.split_at(cw * h.div_ceil(2));
@@ -86,15 +86,11 @@ fn decode(frame: &[u8], w: usize, h: usize) -> Raster {
     for row in 0..h {
         for x in 0..w {
             let i = (row / 2) * cw + x / 2;
-            let c = (i32::from(y[row * w + x]) - 16).max(0) * 298;
-            let (u, v) = (i32::from(u[i]) - 128, i32::from(v[i]) - 128);
-            let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
-            pixels.push([
-                sat(c + 409 * v),
-                sat(c - 100 * u - 208 * v),
-                sat(c + 516 * u),
-                255,
-            ]);
+            pixels.push(rgb(
+                i32::from(y[row * w + x]) - 16,
+                i32::from(u[i]) - 128,
+                i32::from(v[i]) - 128,
+            ));
         }
     }
     raster(w, h, pixels)
@@ -105,10 +101,9 @@ fn append_planes(out: &mut Vec<u8>, im: &Raster, limit: usize) -> Result<(), &'s
     let cw = w.div_ceil(2);
     let chroma = cw * h.div_ceil(2);
     let size = w * h + 2 * chroma;
-    if size + 6 > limit.saturating_sub(out.len()) {
+    if size > limit.saturating_sub(out.len()) {
         return Err("output byte limit exceeded");
     }
-    out.extend_from_slice(b"FRAME\n");
     let start = out.len();
     out.resize(start + size, 0);
     let (y, uv) = out[start..].split_at_mut(w * h);
@@ -136,6 +131,42 @@ fn append_planes(out: &mut Vec<u8>, im: &Raster, limit: usize) -> Result<(), &'s
     Ok(())
 }
 
+// Slicing lavfi materializes H.264 I_PCM samples. Its 4:2:0 display dimensions
+// round up to even numbers, while the Y4M muxer writes the track dimensions.
+pub(super) fn materialized(
+    mut im: Raster,
+    filtered: bool,
+    limit: usize,
+) -> Result<Raster, &'static str> {
+    let (w, h) = (im.width, im.height);
+    let (dw, dh) = (w.next_multiple_of(2), h.next_multiple_of(2));
+    if dw.saturating_mul(dh) > limit / 4 {
+        return Err("image exceeds memory budget");
+    }
+    if dw != w || dh != h {
+        im.remap(dw, dh, |r, x, y| r.pixels[y.min(h - 1) * w + x.min(w - 1)]);
+    }
+    let mut frame = Vec::new();
+    append_planes(&mut frame, &im, limit)?;
+    // libswscale uses 13 fractional bits for its limited-range BT.601 coefficients.
+    let mut decoded = decode(&frame, dw, dh, |y, u, v| {
+        let c = y * 9539;
+        let sat = |n: i32| ((n + 4096) >> 13).clamp(0, 255) as u8;
+        [
+            sat(c + 13075 * v),
+            sat(c - 3209 * u - 6660 * v),
+            sat(c + 16525 * u),
+            255,
+        ]
+    });
+    if !filtered {
+        decoded.width = w;
+        decoded.height = h;
+        decoded.pixels.truncate(w * h);
+    }
+    Ok(decoded)
+}
+
 pub(super) struct Options<'a> {
     pub filters: &'a [String],
     pub frames: Option<u32>,
@@ -156,18 +187,27 @@ impl Stream<'_> {
             frames.push(f);
         }
         encode(w, h, self.fps, frames.len(), options, |i| {
-            decode(frames[i], w, h)
+            Ok(decode(frames[i], w, h, |y, u, v| {
+                let c = y.max(0) * 298;
+                let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
+                [
+                    sat(c + 409 * v),
+                    sat(c - 100 * u - 208 * v),
+                    sat(c + 516 * u),
+                    255,
+                ]
+            }))
         })
     }
 }
 
-fn encode(
+pub(super) fn encode(
     w: usize,
     h: usize,
     mut fps: f64,
     count: usize,
     opts: Options<'_>,
-    mut image: impl FnMut(usize) -> Raster,
+    mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
 ) -> Result<Vec<u8>, &'static str> {
     let header =
         |w, h, fps| format!("YUV4MPEG2 W{w} H{h} F{fps}:1 Ip A1:1 C420jpeg\n").into_bytes();
@@ -243,7 +283,7 @@ fn encode(
     }
     let mut out = Vec::new();
     for id in ids {
-        let mut im = image(id);
+        let mut im = image(id)?;
         for &(op, arg) in &ops {
             let (iw, ih) = (im.width, im.height);
             match op {
@@ -298,6 +338,7 @@ fn encode(
         if out.is_empty() {
             out = header(im.width, im.height, fps.round().max(1.) as u32);
         }
+        out.extend_from_slice(b"FRAME\n");
         append_planes(&mut out, &im, opts.limit)?;
     }
     Ok(out)

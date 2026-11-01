@@ -627,51 +627,57 @@ pub(super) fn parse<'a>(
     wrapping_width: f64,
     secondary_size: f64,
     limit: usize,
-) -> Option<Result<Graph<'a>, String>> {
+) -> Result<Graph<'a>, String> {
     let mut stmts = lines.iter();
-    let header_stmt = stmts.next()?;
+    let header_stmt = stmts
+        .next()
+        .ok_or("mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n")?;
     let header = header_stmt.text.trim_end();
-    let keyword = header.split_ascii_whitespace().next()?;
+    let keyword = header.split_ascii_whitespace().next().unwrap_or("");
     if keyword == "classDiagram" {
-        return Some(class::parse(lines, wrapping_width, secondary_size, limit));
+        return class::parse(lines, wrapping_width, secondary_size, limit);
     }
     if keyword == "erDiagram" {
-        return Some(er::parse(lines, wrapping_width, secondary_size, limit));
+        return er::parse(lines, wrapping_width, secondary_size, limit);
     }
     if matches!(keyword, "stateDiagram" | "stateDiagram-v2") {
-        return Some(state::parse(lines, wrapping_width, secondary_size, limit));
+        return state::parse(lines, wrapping_width, secondary_size, limit);
     }
     if keyword == "gitGraph" {
-        return Some(git_graph::parse(lines, wrapping_width, limit));
+        return git_graph::parse(lines, wrapping_width, limit);
     }
     if keyword == "mindmap" {
-        return Some(mindmap::parse(lines, wrapping_width, limit));
+        return mindmap::parse(lines, wrapping_width, limit);
     }
     if matches!(keyword, "timeline" | "journey") {
-        return Some(linear::parse(keyword, lines, title, wrapping_width, limit));
+        return linear::parse(keyword, lines, title, wrapping_width, limit);
     }
     if !matches!(keyword, "graph" | "flowchart") {
-        return None;
+        return Err(header_stmt.error(
+            "E_UNSUPPORTED",
+            header,
+            &format!("Unsupported or unrecognized Mermaid diagram family '{keyword}'"),
+        ));
     }
     let valid_direction = |value: &str| matches!(value, "TB" | "TD" | "BT" | "LR" | "RL");
     let rest = header[keyword.len()..].trim_start();
     let mut dir = "TB";
     if let Some(word) = rest.split_ascii_whitespace().next() {
         if !valid_direction(word) {
-            return Some(Err(header_stmt.error(
+            return Err(header_stmt.error(
                 "E_SYNTAX",
                 word,
                 &format!("Invalid flowchart direction '{word}'. Supported: TB, TD, BT, LR, RL"),
-            )));
+            ));
         }
         dir = word;
         let trailing = rest[word.len()..].trim_start();
         if !trailing.is_empty() {
-            return Some(Err(header_stmt.error(
+            return Err(header_stmt.error(
                 "E_SYNTAX",
                 trailing,
                 &format!("Unexpected tokens after flowchart header: '{trailing}'"),
-            )));
+            ));
         }
     }
     let mut groups = Vec::<Group>::new();
@@ -687,20 +693,14 @@ pub(super) fn parse<'a>(
     let mut remaining_lines = limit / 256;
     for stmt in stmts {
         let text = stmt.text.trim_end();
-        let keyword = text.split_ascii_whitespace().next()?;
-        match stmt.read_metadata(title, description) {
-            Ok(true) => continue,
-            Ok(false) => {}
-            Err(error) => return Some(Err(error)),
+        let keyword = text.split_ascii_whitespace().next().unwrap_or("");
+        if stmt.read_metadata(title, description)? {
+            continue;
         }
         if keyword == "direction" {
             let value = text["direction".len()..].trim();
             if !valid_direction(value) {
-                return Some(Err(stmt.error(
-                    "E_SYNTAX",
-                    text,
-                    &format!("Invalid direction '{value}'"),
-                )));
+                return Err(stmt.error("E_SYNTAX", text, &format!("Invalid direction '{value}'")));
             }
             if current.is_none() {
                 dir = value;
@@ -708,65 +708,53 @@ pub(super) fn parse<'a>(
             continue;
         }
         if matches!(keyword, "click" | "callback") {
-            if let Err(error) = scanner::check_label(text, stmt, text) {
-                return Some(Err(error));
-            }
+            scanner::check_label(text, stmt, text)?;
             if keyword == "click" {
                 let rest = text[keyword.len()..].trim();
                 if let Some(id) = rest.split_ascii_whitespace().next() {
-                    match interaction_href(&rest[id.len()..]) {
-                        Ok(Some(href)) => {
-                            hrefs.insert(id, href);
-                        }
-                        Ok(None) => {}
-                        Err(error) => return Some(Err(error)),
+                    if let Some(href) = interaction_href(&rest[id.len()..])? {
+                        hrefs.insert(id, href);
                     }
                 }
             }
             continue;
         }
         if matches!(keyword, "class" | "style" | "classDef" | "linkStyle") {
-            if let Err(error) = styles.declaration(keyword, text, stmt) {
-                return Some(Err(error));
-            }
+            styles.declaration(keyword, text, stmt)?;
             continue;
         }
         if keyword == "subgraph" {
             let index = groups.len();
             if index >= limit / 300 {
-                return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+                return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
             }
-            match Group::parse(text, stmt, index, &groups, current, &mut auto) {
-                Ok(group) => groups.push(group),
-                Err(error) => return Some(Err(error)),
-            }
+            groups.push(Group::parse(
+                text, stmt, index, &groups, current, &mut auto,
+            )?);
             current = Some(index);
             continue;
         }
         if keyword == "end" {
             let tail = text[3..].trim();
             if !tail.is_empty() {
-                return Some(Err(stmt.error(
+                return Err(stmt.error(
                     "E_SYNTAX",
                     text,
                     &format!("Unexpected tokens after 'end': '{tail}'"),
-                )));
+                ));
             }
             let Some(index) = current else {
-                return Some(Err(stmt.error(
+                return Err(stmt.error(
                     "E_SYNTAX",
                     text,
                     "Unexpected 'end' without matching 'subgraph'",
-                )));
+                ));
             };
             current = groups[index].parent;
             continue;
         }
         let (mut sources, mut rest) =
-            match parse_group(text, stmt, &mut styles, current, &mut nodes, &mut ids) {
-                Ok(node) => node,
-                Err(error) => return Some(Err(error)),
-            };
+            parse_group(text, stmt, &mut styles, current, &mut nodes, &mut ids)?;
         while !rest.is_empty() {
             let inline = || {
                 let (arrow, line, arrow_op) = match rest.as_bytes().get(..2)? {
@@ -795,37 +783,27 @@ pub(super) fn parse<'a>(
             else {
                 let near =
                     String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
-                return Some(Err(stmt.error(
+                return Err(stmt.error(
                     "E_SYNTAX",
                     rest,
                     &format!("Unexpected flowchart syntax near '{near}'"),
-                )));
+                ));
             };
             let (label, tail) = if let Some(piped) = tail.trim_start().strip_prefix('|') {
                 let Some(pair) = piped.split_once('|') else {
-                    return Some(Err(stmt.error(
-                        "E_SYNTAX",
-                        rest,
-                        "Unclosed edge label pipe '|'",
-                    )));
+                    return Err(stmt.error("E_SYNTAX", rest, "Unclosed edge label pipe '|'"));
                 };
                 pair
             } else {
                 (label, tail)
             };
-            let label = match scanner::label(label, stmt, rest) {
-                Ok(label) => label,
-                Err(error) => return Some(Err(error)),
-            };
+            let label = scanner::label(label, stmt, rest)?;
             let (targets, tail) =
-                match parse_group(tail, stmt, &mut styles, current, &mut nodes, &mut ids) {
-                    Ok(group) => group,
-                    Err(error) => return Some(Err(error)),
-                };
+                parse_group(tail, stmt, &mut styles, current, &mut nodes, &mut ids)?;
             let count = sources.len().saturating_mul(targets.len());
             label_bytes = label_bytes.saturating_add(label.len().saturating_mul(count));
             if edges.len().saturating_add(count) > limit / 300 || label_bytes > limit {
-                return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+                return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
             }
             let pill = if label.is_empty() {
                 None
@@ -836,7 +814,7 @@ pub(super) fn parse<'a>(
                     secondary_size,
                     remaining_lines / count,
                 ) else {
-                    return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+                    return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
                 };
                 remaining_lines -= pill.lines.len() * count;
                 Some(pill)
@@ -857,16 +835,16 @@ pub(super) fn parse<'a>(
         }
     }
     if let Some(index) = current {
-        return Some(Err(header_stmt.error(
+        return Err(header_stmt.error(
             "E_SYNTAX",
             header,
             &format!("Unclosed subgraph '{}' at end of diagram", groups[index].id),
-        )));
+        ));
     }
     if nodes.len() > limit / 300 {
-        return None;
+        return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
     }
-    Some(Ok(Graph {
+    Ok(Graph {
         notes: Vec::new(),
         endpoints: Default::default(),
         edge_id: |i| format!("edge_{}", i + 1),
@@ -878,7 +856,7 @@ pub(super) fn parse<'a>(
         dir,
         remaining_lines,
         wrapping_width,
-    }))
+    })
 }
 
 pub(super) fn layout(
@@ -889,7 +867,7 @@ pub(super) fn layout(
     gaps: (f64, f64),
     padding: f64,
     limit: usize,
-) -> Option<Result<Scene, String>> {
+) -> Result<Scene, String> {
     let Graph {
         mut notes,
         mut endpoints,
@@ -938,7 +916,7 @@ pub(super) fn layout(
         )
         .is_none()
         {
-            return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+            return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
         }
     }
     if ranks::place(
@@ -952,15 +930,15 @@ pub(super) fn layout(
     )
     .is_none()
     {
-        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+        return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
     }
     let Some(group_order) = groups::place(&mut groups, &mut nodes, limit) else {
-        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+        return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
     };
     if (!groups.is_empty() || (!horizontal && gaps.0 < 24.))
         && let Err(error) = groups::verify_nodes(&nodes, horizontal, limit)
     {
-        return Some(Err(error));
+        return Err(error);
     }
     let Some(route::Routes {
         paths: mut waypoints,
@@ -975,20 +953,13 @@ pub(super) fn layout(
         limit,
     )
     else {
-        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+        return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
     };
-    let positions = match labels::place(
+    let positions = labels::place(
         &nodes, &groups, &edges, &waypoints, &endpoints, edge_id, limit,
-    ) {
-        Ok(p) => p,
-        Err(error) => return Some(Err(error)),
-    };
-    if let Err(error) = groups::verify(&groups, &group_order, &nodes, &positions, edge_id, limit) {
-        return Some(Err(error));
-    }
-    if let Err(e) = state::place_notes(&mut notes, &nodes, &groups, &positions, &waypoints, limit) {
-        return Some(Err(e));
-    }
+    )?;
+    groups::verify(&groups, &group_order, &nodes, &positions, edge_id, limit)?;
+    state::place_notes(&mut notes, &nodes, &groups, &positions, &waypoints, limit)?;
     let (mut min_x, mut min_y, mut max_x, mut max_y) = (
         f64::INFINITY,
         f64::INFINITY,
@@ -1022,7 +993,7 @@ pub(super) fn layout(
         (min_x, min_y, max_x, max_y) = (0., 0., 120., 80.);
     }
     if padding > f64::from(i32::MAX / 4) {
-        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+        return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
     }
     let width = (max_x - min_x + 2. * padding).ceil();
     let height = (max_y - min_y + 2. * padding).ceil();
@@ -1044,10 +1015,10 @@ pub(super) fn layout(
         for n in &nodes {
             let clearance = height - f64::from(n.y + n.h);
             if clearance < 23.99 {
-                return Some(Err(format!(
+                return Err(format!(
                     "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 1 (node clearance): nodes '{}' and 'mmdc_title' have clearance {clearance:.2}px (< 24px)\n",
                     n.id
-                )));
+                ));
             }
         }
     }
@@ -1063,9 +1034,7 @@ pub(super) fn layout(
     ] {
         group_attrs.push((theme.color(k).0, groups.len() * count));
     }
-    if let Err(e) = config::charge_attributes(&mut styles.budget, &group_attrs) {
-        return Some(Err(e));
-    }
+    config::charge_attributes(&mut styles.budget, &group_attrs)?;
     let mut elements = vec![];
     let mut pills = Vec::new();
     use raster::{BoxStyle, Paint};
@@ -1078,7 +1047,7 @@ pub(super) fn layout(
             .saturating_mul(groups.len())
             > limit
     {
-        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+        return Err("mmdc: E_LIMIT: Render work budget exceeded\n".into());
     }
     for (idx, group) in group_order.into_iter().enumerate() {
         elements.push(groups[group].paint(idx, prefix, theme, (dx, dy), &waypoints, &mut paint));
@@ -1098,11 +1067,9 @@ pub(super) fn layout(
             + 2 * usize::from(start_arrow)
             + 2 * usize::from(arrow)
             + usize::from(open_arrow || op == "--x");
-        if let Err(e) = config::charge_attributes(&mut styles.budget, &[(edge, copies)]) {
-            return Some(Err(e));
-        }
+        config::charge_attributes(&mut styles.budget, &[(edge, copies)])?;
         let (x, y) = points[0];
-        let (ex, ey) = *points.last()?;
+        let (ex, ey) = *points.last().expect("edge route has endpoints");
         let next = points[1];
         let prev = points[points.len() - 2];
         let start_angle = (y - next.1).atan2(x - next.0);
@@ -1111,9 +1078,9 @@ pub(super) fn layout(
         if let Some(message) =
             route::attachment_error(&points, &nodes[a], &nodes[b], &id, &groups, (dx, dy))
         {
-            return Some(Err(format!(
+            return Err(format!(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 {message}\n"
-            )));
+            ));
         }
         let stroke = styled
             .width
@@ -1164,7 +1131,7 @@ pub(super) fn layout(
         }
         if let Some((left, right)) = er::cardinalities(op) {
             for (card, tip, rotation) in [(left, (x, y), start_angle), (right, (ex, ey), angle)] {
-                if let Err(e) = card.paint(
+                card.paint(
                     tip,
                     rotation,
                     (edge, edge_color),
@@ -1172,9 +1139,7 @@ pub(super) fn layout(
                     &mut styles.budget,
                     &mut el,
                     &mut edge_paint,
-                ) {
-                    return Some(Err(e));
-                }
+                )?;
             }
         }
         if let Some((start, shape)) = uml {
@@ -1183,7 +1148,7 @@ pub(super) fn layout(
             } else {
                 ((ex, ey), angle)
             };
-            if let Err(e) = shape.paint(
+            shape.paint(
                 tip,
                 angle,
                 (edge, edge_color),
@@ -1191,9 +1156,7 @@ pub(super) fn layout(
                 &mut styles.budget,
                 &mut el,
                 &mut edge_paint,
-            ) {
-                return Some(Err(e));
-            }
+            )?;
         }
         for (slot, label) in [
             (labels::Slot::Center, label),
@@ -1226,12 +1189,10 @@ pub(super) fn layout(
             let (border, border_rgba) = theme.color("edgeLabelBorder");
             let (color, text_rgba) = styled.color.unwrap_or_else(|| theme.color("text"));
             let count = lines.iter().filter(|s| !s.is_empty()).count();
-            if let Err(e) = config::charge_attributes(
+            config::charge_attributes(
                 &mut styles.budget,
                 &[(fill, 1), (border, 1), (color, count), (font, count)],
-            ) {
-                return Some(Err(e));
-            }
+            )?;
             pill_paint.push(Paint::Box {
                 bounds: [left, top, w, h],
                 shape: Shape::Rounded,
@@ -1251,7 +1212,7 @@ pub(super) fn layout(
             let cx = (left + w / 2.).round();
             for (i, text) in lines.into_iter().enumerate().filter(|(_, t)| !t.is_empty()) {
                 let baseline = top + if short { 14. } else { 15. } + i as f64 * 16.;
-                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(size),esc(&text)).ok()?;
+                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(size),esc(&text)).unwrap();
                 pill_paint.push(Paint::Text {
                     mono: false,
                     start: cx - measure(&text, size, short) / 2.,
@@ -1269,7 +1230,7 @@ pub(super) fn layout(
         elements.push(el);
     }
     if let Some(error) = intersection {
-        return Some(Err(error));
+        return Err(error);
     }
     for n in nodes {
         let (x, y, w, h) = (n.x, n.y, n.w, n.h);
@@ -1283,7 +1244,7 @@ pub(super) fn layout(
                 &mut styles.budget,
                 &[(fill, 1), (border, if start { 1 } else { 2 })],
             ) {
-                return Some(Err(e));
+                return Err(e);
             }
             let mut circle = |r: i32, fill, thickness| {
                 paint.push(Paint::Box {
@@ -1339,7 +1300,7 @@ pub(super) fn layout(
         } else {
             0
         };
-        if let Err(e) = config::charge_attributes(
+        config::charge_attributes(
             &mut styles.budget,
             &[
                 (fill, 1),
@@ -1348,9 +1309,7 @@ pub(super) fn layout(
                 (color, count),
                 (theme.color("accentBorder").0, divider),
             ],
-        ) {
-            return Some(Err(e));
-        }
+        )?;
         let thickness = styled.width.unwrap_or(stroke_width);
         let radius = n.radius;
         let header = (matches!(n.shape, Shape::Entity | Shape::Class)).then(|| {
@@ -1362,7 +1321,7 @@ pub(super) fn layout(
         if let Some((_, (color, _))) = header
             && let Err(e) = config::charge_attributes(&mut styles.budget, &[(color, 1)])
         {
-            return Some(Err(e));
+            return Err(e);
         }
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
@@ -1389,9 +1348,9 @@ pub(super) fn layout(
         let mut el = format!(r#"<g class="mmdc-node" data-id="{}">"#, esc(&n.id));
         match n.shape {
             Shape::Entity | Shape::Class => {
-                let (hh, (color, _)) = header?;
+                let (hh, (color, _)) = header.expect("class and entity cards have headers");
                 let clip = format!("{prefix}mmdc-node-clip-{}", n.order);
-                write!(el,r##"<defs><clipPath id="{clip}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8"/></clipPath></defs><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{fill}" filter="url(#{prefix}mmdc-shadow)"/><rect x="{x}" y="{y}" width="{w}" height="{hh}" fill="{color}" clip-path="url(#{clip})"/><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="none" stroke="{border}" stroke-width="{thickness}"/>"##).ok()?;
+                write!(el,r##"<defs><clipPath id="{clip}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8"/></clipPath></defs><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{fill}" filter="url(#{prefix}mmdc-shadow)"/><rect x="{x}" y="{y}" width="{w}" height="{hh}" fill="{color}" clip-path="url(#{clip})"/><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="none" stroke="{border}" stroke-width="{thickness}"/>"##).unwrap();
             }
             Shape::Cylinder => {
                 let rx = w / 2;
@@ -1404,24 +1363,24 @@ pub(super) fn layout(
                 } else {
                     "#dbeafe"
                 };
-                write!(el,r#"<path d="M {x} {top} A {rx} {ry} 0 0 1 {right} {top} L {right} {bottom} A {rx} {ry} 0 0 1 {x} {bottom} Z" {style}/><ellipse cx="{cx}" cy="{top}" rx="{rx}" ry="{ry}" fill="{lid}" stroke="{border}" stroke-width="{thickness}"/>"#).ok()?;
+                write!(el,r#"<path d="M {x} {top} A {rx} {ry} 0 0 1 {right} {top} L {right} {bottom} A {rx} {ry} 0 0 1 {x} {bottom} Z" {style}/><ellipse cx="{cx}" cy="{top}" rx="{rx}" ry="{ry}" fill="{lid}" stroke="{border}" stroke-width="{thickness}"/>"#).unwrap();
             }
             Shape::Hexagon => {
                 let left = x + 12;
                 let right = x + w;
                 let inset = right - 12;
                 let bottom = y + h;
-                write!(el,r#"<polygon points="{left},{y} {inset},{y} {right},{cy} {inset},{bottom} {left},{bottom} {x},{cy}" {style}/>"#).ok()?;
+                write!(el,r#"<polygon points="{left},{y} {inset},{y} {right},{cy} {inset},{bottom} {left},{bottom} {x},{cy}" {style}/>"#).unwrap();
             }
             Shape::Circle => write!(
                 el,
                 r#"<circle cx="{cx}" cy="{cy}" r="{}" {style}/>"#,
                 w.min(h) / 2
             )
-            .ok()?,
+            .unwrap(),
             Shape::Diamond => {
                 let path = diamond_path(x.into(), y.into(), w.into(), h.into());
-                write!(el, r#"<path d="{path}" {style}/>"#).ok()?;
+                write!(el, r#"<path d="{path}" {style}/>"#).unwrap();
             }
             _ => {
                 let rx = nonnegative_number(radius);
@@ -1429,7 +1388,7 @@ pub(super) fn layout(
                     el,
                     r#"<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" {style}/>"#
                 )
-                .ok()?;
+                .unwrap();
             }
         }
         if n.shape == Shape::Subroutine {
@@ -1442,7 +1401,7 @@ pub(super) fn layout(
                     width: 1.5,
                     dashed: false,
                 });
-                write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,divider).ok()?;
+                write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,divider).unwrap();
             }
         }
         let rows = if let Some((hh, _)) = header
@@ -1458,7 +1417,7 @@ pub(super) fn layout(
                 &mut styles.budget,
             ) {
                 Ok(rows) => Some(rows),
-                Err(e) => return Some(Err(e)),
+                Err(e) => return Err(e),
             }
         } else {
             None
@@ -1466,11 +1425,8 @@ pub(super) fn layout(
         if !n.stereotype.is_empty() {
             let (color, rgba) = theme.color("mutedText");
             let baseline = y + 15;
-            if let Err(e) = config::charge_attributes(&mut styles.budget, &[(font, 1), (color, 1)])
-            {
-                return Some(Err(e));
-            }
-            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(secondary),esc(&n.stereotype)).ok()?;
+            config::charge_attributes(&mut styles.budget, &[(font, 1), (color, 1)])?;
+            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(secondary),esc(&n.stereotype)).unwrap();
             paint.push(Paint::Text {
                 mono: false,
                 start: f64::from(cx) - measure(&n.stereotype, secondary, false) / 2.,
@@ -1510,7 +1466,7 @@ pub(super) fn layout(
                 color: text_rgba,
                 text: line.clone(),
             });
-            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(font_size),esc(line)).ok()?;
+            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(font_size),esc(line)).unwrap();
         }
         if let Some((text, ops)) = rows {
             el.push_str(&text);
@@ -1535,18 +1491,16 @@ pub(super) fn layout(
     scene.paint.extend(edge_paint);
     scene.paint.extend(pill_paint);
     for (i, n) in notes.into_iter().enumerate() {
-        if let Err(e) = n.paint(
+        n.paint(
             i + 1,
             (dx, dy),
             prefix,
             theme,
             &mut styles.budget,
             &mut scene,
-        ) {
-            return Some(Err(e));
-        }
+        )?;
     }
-    Some(Ok(scene))
+    Ok(scene)
 }
 
 fn diamond_path(x: f64, y: f64, w: f64, h: f64) -> String {

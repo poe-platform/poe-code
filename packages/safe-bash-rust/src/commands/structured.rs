@@ -29377,17 +29377,6 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n", 1);
     };
     let first_word = header.text.split([' ', '\t', '\r', '\n']).next().unwrap_or("");
-    let graph_family = matches!(first_word,
-        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2" | "erDiagram" | "classDiagram"
-    );
-    let sequence = if first_word=="sequenceDiagram" {
-        match mermaid::sequence::Sequence::parse(&scanned,fs.max_input_bytes()) {Ok(chart)=>Some(chart),Err(message)=>return err_out(&message,1)}
-    }else{None};
-    if !graph_family && sequence.is_none() && !matches!(first_word,"pie" | "gantt") {
-        let reason = format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
-        return err_out(&header.error("E_UNSUPPORTED", &header.text, &reason), 1);
-    }
-    let mut content_lines = Vec::new();
     let width = cli_width.map(f64::from).or(cfg.width).or(source_cfg.width);
     let height = cli_height.map(f64::from).or(cfg.height).or(source_cfg.height);
     let scale = cli_scale.or(cfg.scale).unwrap_or(1.0);
@@ -29405,13 +29394,6 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         cfg.node_gap.or(source_cfg.node_gap).or_else(|| num_token("nodeGap")).unwrap_or(32.),
     );
 
-    let (surface, border, text_col) = match resolved_theme {
-        "dark" => ("#1e293b", "#334155", "#f8fafc"),
-        "forest" => ("#dcfce7", "#4ade80", "#166534"),
-        "neutral" => ("#e2e8f0", "#94a3b8", "#334155"),
-        _ => ("#ffffff", "#cbd5e1", "#0f172a"),
-    };
-
     let (id_attr, id_prefix) = if let Some(ref sid) = svg_id {
         let hex_parts: Vec<String> = sid.chars().map(|c| format!("{:x}", c as u32)).collect();
         (
@@ -29423,34 +29405,19 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
 
     let limit = fs.max_input_bytes();
-    let pie = if first_word == "pie" {
-        match mermaid::pie::Pie::parse(&scanned, limit) {
-            Ok(pie) => Some(pie),
-            Err(message) => return err_out(&message, 1),
-        }
-    } else { None };
-    let gantt = if first_word == "gantt" {
-        match mermaid::gantt::Gantt::parse(&scanned, &mut acc_title, limit) {
-            Ok(chart) => Some(chart),
-            Err(message) => return err_out(&message, 1),
-        }
-    } else { None };
-    let graph = if graph_family {
-        match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, wrapping_width, num_token("secondaryFontSize").unwrap_or(11.5), limit) {
-            Some(Ok(graph)) => {content_lines.extend(scanned.iter().map(|stmt|stmt.text.trim_end()));Some(graph)},
-            Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
-            None => {
-                for stmt in &scanned {
-                    match stmt.read_metadata(&mut acc_title, &mut acc_descr) {
-                        Ok(false) => content_lines.push(stmt.text.trim_end()),
-                        Ok(true) => (),
-                        Err(error) => return err_out(&error, 1),
-                    }
-                }
-                None
-            }
-        }
-    } else { None };
+    enum Diagram<'a> {
+        Pie(mermaid::pie::Pie),
+        Gantt(mermaid::gantt::Gantt),
+        Sequence(mermaid::sequence::Sequence),
+        Graph(mermaid::Graph<'a>),
+    }
+    let diagram = match first_word {
+        "pie" => mermaid::pie::Pie::parse(&scanned,limit).map(Diagram::Pie),
+        "gantt" => mermaid::gantt::Gantt::parse(&scanned,&mut acc_title,limit).map(Diagram::Gantt),
+        "sequenceDiagram" => mermaid::sequence::Sequence::parse(&scanned,limit).map(Diagram::Sequence),
+        _ => mermaid::parse(&scanned,&mut acc_title,&mut acc_descr,wrapping_width,num_token("secondaryFontSize").unwrap_or(11.5),limit).map(Diagram::Graph),
+    };
+    let diagram=match diagram { Ok(d)=>d,Err(e)=>return err_out(&e,if e.starts_with("mmdc: E_CONFIG:"){2}else{1}) };
     if let Err(e)=&source_config {return err_out(&format!("mmdc: E_CONFIG: {e}\n"),2);}
     for (key, value) in [("width", width), ("height", height)] {
         if value.is_some_and(|v| v.fract() != 0. || v > 9_007_199_254_740_991.) {
@@ -29465,74 +29432,28 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Ok(color) => color,
         Err(error) => return err_out(&error, 2),
     };
-    let scene = if let Some(mut pie) = pie {
-        pie.title=pie.title.or(acc_title);
-        acc_title = pie.title.clone();
-        Some(match pie.layout(&theme,padding,limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
-    } else if let Some(chart)=sequence {
-        Some(match chart.layout(&theme,padding,&id_prefix,acc_title.as_deref(),limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
-    } else if let Some(chart) = gantt {
-        Some(match chart.layout(&theme,padding,acc_title.as_deref(),limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
-    } else if let Some(graph) = graph {
-        match mermaid::layout(graph, &theme, &id_prefix, acc_title.as_deref(), gaps, padding, limit) {
-            Some(Ok(scene)) => Some(scene),
-            Some(Err(message)) => return err_out(&message, 1),
-            None => None,
+    let scene = match diagram {
+        Diagram::Pie(mut pie) => {
+            pie.title=pie.title.or(acc_title);
+            acc_title=pie.title.clone();
+            pie.layout(&theme,padding,limit)
         }
-    } else { None };
-    let (vw, vh) = scene
-        .as_ref()
-        .map_or((width.unwrap_or(800.), height.unwrap_or(600.)), |s| {
-            (s.width, s.height)
-        });
-    let (width, height) = match (scene.is_some(), width, height) {
-        (true, Some(w), None) => (w, (w * vh / vw).round().max(1.)),
-        (true, None, Some(h)) => ((h * vw / vh).round().max(1.), h),
-        (true, None, None) => (vw, vh),
-        _ => (width.unwrap_or(800.), height.unwrap_or(600.)),
+        Diagram::Sequence(chart)=>chart.layout(&theme,padding,&id_prefix,acc_title.as_deref(),limit),
+        Diagram::Gantt(chart)=>chart.layout(&theme,padding,acc_title.as_deref(),limit),
+        Diagram::Graph(graph)=>mermaid::layout(graph,&theme,&id_prefix,acc_title.as_deref(),gaps,padding,limit),
     };
-    let raster = if output_format=="svg"{None}else{scene.as_ref().map(|s|s.raster(width,height,scale,bg_rgba,&output_format,fs.max_input_bytes()))};
-    let out_bytes: Vec<u8> = if let Some(result)=raster {
-        match result {Ok(bytes)=>bytes,Err(e)=>return err_out(&e,1)}
-    } else if output_format == "png" {
-        let png_w = ((width as f64) * scale).round().max(1.0) as u32;
-        let png_h = ((height as f64) * scale).round().max(1.0) as u32;
-        let mut buf = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR".to_vec();
-        buf.extend_from_slice(&png_w.to_be_bytes());
-        buf.extend_from_slice(&png_h.to_be_bytes());
-        buf.extend_from_slice(b"\x08\x02\x00\x00\x00");
-        buf.extend_from_slice(
-            format!("\n__IMG__:fmt=PNG;w={png_w};h={png_h};cs=sRGB").as_bytes(),
-        );
-        buf
-    } else if output_format == "pdf" {
-        let mut pdf_tokens: Vec<String> = Vec::new();
-        for line in content_lines.iter().skip(1) {
-            let norm_line = line.replace("-->", "\n").replace("---", "\n").replace("-->>", "\n").replace("->>", "\n").replace("->", "\n");
-            for part in norm_line.split('\n') {
-                let p = part.trim();
-                if p.is_empty() {
-                    continue;
-                }
-                let clean = if let Some(bi) = p.find(['[', '(', '{']) {
-                    p[bi + 1..].trim_end_matches([']', ')', '}']).trim()
-                } else {
-                    p
-                };
-                if !clean.is_empty() && !pdf_tokens.iter().any(|x| x == clean) {
-                    pdf_tokens.push(clean.to_string());
-                }
-            }
-        }
-        let body_txt = if pdf_tokens.is_empty() {
-            src_text.clone()
-        } else {
-            pdf_tokens.join(" ")
-        };
-        format!("%PDF-1.4\n%%PAGE%%\n{body_txt}\n").into_bytes()
+    let scene=match scene { Ok(s)=>s,Err(e)=>return err_out(&e,1) };
+    let (vw,vh)=(scene.width,scene.height);
+    let (width,height)=match (width,height) {
+        (Some(w),Some(h))=>(w,h),
+        (Some(w),None)=>(w,(w*vh/vw).round().max(1.)),
+        (None,Some(h))=>((h*vw/vh).round().max(1.),h),
+        (None,None)=>(vw,vh),
+    };
+    let out_bytes = if output_format!="svg" {
+        match scene.raster(width,height,scale,bg_rgba,&output_format,limit) {Ok(bytes)=>bytes,Err(e)=>return err_out(&e,1)}
     } else {
-        let class = if scene.is_some() { "" } else { r#" class="flowchart""# };
-        let mut parts = vec![format!(r#"<svg xmlns="http://www.w3.org/2000/svg"{id_attr}{class} width="{width}" height="{height}" viewBox="0 0 {vw} {vh}" role="img">"#)];
+        let mut parts = vec![format!(r#"<svg xmlns="http://www.w3.org/2000/svg"{id_attr} width="{width}" height="{height}" viewBox="0 0 {vw} {vh}" role="img">"#)];
         if let Some(ref t) = acc_title {
             parts.push(format!("<title>{}</title>", escape_mmdc_xml(t)));
         }
@@ -29550,24 +29471,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 escape_mmdc_xml(bg_color)
             ));
         }
-        let standard_svg = scene.is_some();
-        if let Some(scene) = scene {
-            parts.extend(scene.elements);
-        } else {
-            for (idx, line) in content_lines.iter().enumerate() {
-                let y_box = 24 + (idx as u32) * 40;
-                let y_txt = y_box + 22;
-                parts.push(format!(
-                    "<g class=\"mmdc-node\" data-id=\"node_{idx}\"><rect x=\"24\" y=\"{y_box}\" width=\"180\" height=\"32\" rx=\"8\" fill=\"{surface}\" stroke=\"{border}\" stroke-width=\"1.25\"/><text x=\"114\" y=\"{y_txt}\" fill=\"{text_col}\" text-anchor=\"middle\">{}</text></g>",
-                    escape_mmdc_xml(line)
-                ));
-            }
-        }
-        parts.push("</svg>".to_string());
-        let mut svg = parts.join("\n");
-        if !standard_svg { svg.push('\n'); }
-
-        svg.into_bytes()
+        parts.extend(scene.elements);
+        parts.push("</svg>".into());
+        parts.join("\n").into_bytes()
     };
 
     if output == "-" {
@@ -38832,6 +38738,20 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart TD\nA -. cool -.- B -. go .-> C", "svg", "d5d6f98449ac0e2c027231483b302ef8d2e42f84eb21cce8740d617ff463a6f7"),
             ("flowchart TD\nA ? ζζζζζζζζζζζζζζζζζζζζζζζζζζζζ", "svg", "mmdc: E_SYNTAX (line 2, column 3): Unexpected flowchart syntax near '? ζζζζζζζζζζζζζζζζζζζζζζ'\n"),
         ]);
+    }
+
+    #[test]
+    fn mmdc_keeps_existing_files_when_graph_rendering_exceeds_the_budget() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 1200, ..Default::default() });
+        fs.write_file("/chart.mmd", b"flowchart TD; A; B; C; D; E").unwrap();
+        for path in ["/output.svg","/output.png","/output.pdf"] {
+            fs.write_file(path,b"previous").unwrap();
+            let result=shell.exec(&format!("mmdc -i /chart.mmd -o {path}")).unwrap();
+            assert_eq!(result.exit_code,1,"{path}: {}",result.stderr);
+            assert_eq!(result.stderr,"mmdc: E_LIMIT: Render work budget exceeded\n");
+            assert_eq!(fs.read_file(path).unwrap(),b"previous");
+        }
     }
 
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {

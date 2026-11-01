@@ -19,7 +19,7 @@ pub(super) fn supported_still(bytes: &[u8]) -> bool {
 
 pub(super) fn destination(spec: &str) -> Option<(&'static str, &str)> {
     let format=|name:&str| match name.to_ascii_lowercase().as_str() {
-        "png"=>Some("png"),"jpg"|"jpeg"=>Some("jpeg"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
+        "png"=>Some("png"),"webp"=>Some("webp"),"jpg"|"jpeg"=>Some("jpeg"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
         "ppm"=>Some("ppm"),"pgm"=>Some("pgm"),"pbm"=>Some("pbm"),_=>None
     };
     if let Some((prefix,path))=spec.split_once(':') && let Some(fmt)=format(prefix) {return Some((fmt,path));}

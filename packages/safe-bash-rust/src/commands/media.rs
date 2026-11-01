@@ -110,6 +110,8 @@ mod sips_geometry;
 mod sips_properties;
 #[path = "image_header.rs"]
 mod image_header;
+#[path = "webp.rs"]
+mod webp;
 #[path = "png_pixels.rs"]
 mod png_pixels;
 #[path = "magick_coordinates.rs"]
@@ -204,6 +206,9 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
         if let Ok(header) = image_header::jpeg(bytes) {
             (meta.w, meta.h) = (header.width, header.height);
         }
+    } else if webp::signature(bytes) {
+        meta.fmt = "WEBP".into();
+        if let Ok(h) = webp::header(bytes) { (meta.w, meta.h) = (h.width, h.height); }
     } else if bytes.starts_with(b"GIF8") {
         meta.fmt = "GIF".to_string();
     }
@@ -263,6 +268,9 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         meta.fmt = std::str::from_utf8(im.codec()).unwrap().trim_end().to_ascii_uppercase();
         meta.cs = if gray { "Gray" } else { "sRGB" }.into();
         (im.bit_depth(), if gray { 1 } else { 3 }, 72)
+    } else if webp::signature(bytes) && !bytes[12..].starts_with(b"\n__IMG__:") {
+        let h = webp::header(bytes)?;
+        (8, if h.alpha { 4 } else { 3 }, h.density)
     } else if tiff::signature(bytes) {
         let im = tiff::Tiff::parse(bytes,limit)?;
         if im.width==0 || im.height==0 {return Err("Invalid TIFF dimensions");}
@@ -11386,7 +11394,7 @@ fn cmd_media_doc(
                         format!("{}/{name}", opath.trim_end_matches('/'))
                     } else { opath.clone() }
                 } else { f.clone() };
-                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM") && png_pixels::supported_still(&bytes) {
+                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP") && png_pixels::supported_still(&bytes) {
                     match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
                         Ok(encoded) => encoded,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
@@ -14144,6 +14152,21 @@ mod media_unit_tests {
             })).collect();
             let png=pixel_png(257,129,PngEncoding::SplitDensity(72,None),|x,y|pixels[y*257+x]);
             assert_eq!(hex_enc(&sha256_bytes(&png)),expected);
+        }
+    }
+
+    #[test]
+    fn magick_encodes_webp_pixels_and_reads_their_geometry_without_an_extension() {
+        let fs = MemoryVfs::new();
+        for (size, canvas, info, digest) in [
+            ("7x5", "xc:red", "WEBP 7 5 srgb", "6d45b06fdf7d4e1595e9bc9aa46e4b3bcf82d98a3b29cd67ee3732eeb5d3492b"),
+            ("4x3", "xc:transparent", "WEBP 4 3 srgba", "e0217f06f68d64558b20b47efea87689e9697ee430027d039c8a193190e36a1b"),
+        ] {
+            let cmd = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+            assert_eq!(cmd("convert", &["-size", size, canvas, "WEBP:frame"]).exit_code, 0);
+            let bytes = fs.read_file("/frame").unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(&bytes)), digest);
+            assert_eq!(cmd("identify", &["-format", "%m %w %h %[channels]", "frame"]).stdout, info);
         }
     }
 

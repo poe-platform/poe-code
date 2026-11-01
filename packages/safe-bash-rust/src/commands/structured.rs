@@ -5519,7 +5519,11 @@ fn cmd_yq(
             input_format.as_deref()
         };
         raw_sources.push(eff_in.clone());
-        for (jv, meta) in parse_yq_input_docs_with_meta(&eff_in, eff_fmt, None, 0, !xq_xml_mode) {
+        let parsed = match parse_yq_input_docs_with_meta(&eff_in, eff_fmt, None, 0, !xq_xml_mode) {
+            Ok(docs) => docs,
+            Err(e) => return err_out(&format!("Error: {e}\n"), 1),
+        };
+        for (jv, meta) in parsed {
             docs.push(jv.to_json_string(true, false, 0));
             doc_metas.push(meta);
         }
@@ -5545,14 +5549,17 @@ fn cmd_yq(
                 } else {
                     input_format.as_deref()
                 };
-                for (jv, meta) in parse_yq_input_docs_with_meta(
+                let parsed = match parse_yq_input_docs_with_meta(
                     &eff_in,
                     eff_fmt,
                     if f == "-" { None } else { Some(f) },
                     f_idx,
                     !xq_xml_mode,
-                )
-                {
+                ) {
+                    Ok(docs) => docs,
+                    Err(e) => return err_out(&format!("Error: {e}\n"), 1),
+                };
+                for (jv, meta) in parsed {
                     docs.push(jv.to_json_string(true, false, 0));
                     doc_metas.push(meta);
                 }
@@ -6243,33 +6250,51 @@ fn parse_yq_csv_to_jval(input: &str, delim: char) -> JVal {
 }
 
 
-fn parse_props_to_jval(input: &str) -> JVal {
+fn parse_props_to_jval(input: &str) -> Result<JVal, String> {
+    // JavaScript enumerates canonical integer property names before the other keys.
+    fn index(key: &str) -> Option<u32> {
+        let n = key.parse::<u32>().ok()?;
+        (n != u32::MAX && n.to_string() == key).then_some(n)
+    }
     let mut root = JVal::Object(Vec::new());
-    for line in input.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') || trimmed.starts_with('!') {
+    for line in input.lines().map(str::trim) {
+        if line.is_empty() || line.starts_with(['#', '!', ';']) {
             continue;
         }
-        if let Some((lhs, rhs)) = trimmed.split_once('=').or_else(|| trimmed.split_once(':')) {
-            let key = lhs.trim();
-            let val = rhs.trim();
-            if key.is_empty() {
-                continue;
+        let (key, value) = line
+            .split_once('=')
+            .or_else(|| line.split_once(':'))
+            .ok_or("invalid props entry")?;
+        let mut node = &mut root;
+        for (depth, key) in key.trim().split('.').enumerate() {
+            if depth >= 256 {
+                return Err("yq limit exceeded: maxDepth".into());
             }
-            let segs: Vec<JVal> = key
-                .split('.')
-                .map(|seg| {
-                    if let Ok(idx) = seg.parse::<usize>() {
-                        JVal::Number(idx as f64, None)
-                    } else {
-                        JVal::Str(seg.to_string())
-                    }
-                })
-                .collect();
-            set_jq_jval_path(&mut root, &segs, JVal::Str(val.to_string()));
+            if !matches!(node, JVal::Object(_)) {
+                *node = JVal::Object(Vec::new());
+            }
+            let JVal::Object(fields) = node else {
+                unreachable!()
+            };
+            let pos = fields
+                .iter()
+                .position(|(k, _)| k == key)
+                .unwrap_or_else(|| {
+                    let insert = index(key)
+                        .and_then(|n| {
+                            fields
+                                .iter()
+                                .position(|(k, _)| index(k).is_none_or(|i| i > n))
+                        })
+                        .unwrap_or(fields.len());
+                    fields.insert(insert, (key.into(), JVal::Null));
+                    insert
+                });
+            node = &mut fields[pos].1;
         }
+        *node = JVal::Str(value.trim().into());
     }
-    root
+    Ok(root)
 }
 
 fn parse_yq_input_docs_with_meta(
@@ -6278,7 +6303,7 @@ fn parse_yq_input_docs_with_meta(
     filename: Option<&str>,
     file_index: usize,
     use_plus_xml: bool,
-) -> Vec<(JVal, YqDocMeta)> {
+) -> Result<Vec<(JVal, YqDocMeta)>,String> {
     let fname = filename.unwrap_or("");
     let single_meta = || YqDocMeta {
         file_index,
@@ -6289,50 +6314,50 @@ fn parse_yq_input_docs_with_meta(
     if fmt == Some("base64") {
         let clean: String = input.chars().filter(|c| !matches!(c, '\r' | '\n')).collect();
         let bytes = decode_base64_str(&clean).unwrap_or_default();
-        return vec![(
+        return Ok(vec![(
             JVal::Str(String::from_utf8_lossy(&bytes).into_owned()),
             single_meta(),
-        )];
+        )]);
     }
     if fmt == Some("uri") {
-        return vec![(JVal::Str(yq_uri_decode(input)), single_meta())];
+        return Ok(vec![(JVal::Str(yq_uri_decode(input)), single_meta())]);
     }
     if matches!(fmt, Some("ini") | Some("i"))
         || filename.map(|f| f.ends_with(".ini")).unwrap_or(false)
     {
-        return vec![(parse_ini_to_jval(input), single_meta())];
+        return Ok(vec![(parse_ini_to_jval(input), single_meta())]);
     }
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return vec![(parse_xml_to_jval(input, use_plus_xml), single_meta())];
+        return Ok(vec![(parse_xml_to_jval(input, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
     if is_toml {
-        return vec![(parse_toml_to_jval(input), single_meta())];
+        return Ok(vec![(parse_toml_to_jval(input), single_meta())]);
     }
     let is_props = matches!(fmt, Some("props") | Some("p"))
         || filename.map(|f| f.ends_with(".properties")).unwrap_or(false);
     if is_props {
-        return vec![(parse_props_to_jval(input), single_meta())];
+        return Ok(vec![(parse_props_to_jval(input)?, single_meta())]);
     }
     let is_csv = matches!(fmt, Some("csv") | Some("c"))
         || (fmt.is_none() && filename.map(|f| f.ends_with(".csv")).unwrap_or(false));
     if is_csv {
-        return vec![(parse_yq_csv_to_jval(input, ','), single_meta())];
+        return Ok(vec![(parse_yq_csv_to_jval(input, ','), single_meta())]);
     }
     let is_tsv = matches!(fmt, Some("tsv") | Some("t"))
         || (fmt.is_none() && filename.map(|f| f.ends_with(".tsv")).unwrap_or(false));
     if is_tsv {
-        return vec![(parse_yq_csv_to_jval(input, '\t'), single_meta())];
+        return Ok(vec![(parse_yq_csv_to_jval(input, '\t'), single_meta())]);
     }
     let trimmed = input.trim_start();
     if (trimmed.starts_with('{') || trimmed.starts_with('['))
         && let Ok(vals) = parse_json_stream(trimmed)
         && !vals.is_empty()
     {
-        return vals
+        return Ok(vals
             .into_iter()
             .enumerate()
             .map(|(d_idx, v)| {
@@ -6346,7 +6371,7 @@ fn parse_yq_input_docs_with_meta(
                     },
                 )
             })
-            .collect();
+            .collect());
     }
     let mut docs = Vec::new();
     let mut current_doc = String::new();
@@ -6383,7 +6408,7 @@ fn parse_yq_input_docs_with_meta(
     if started || docs.is_empty() {
         finish(&mut current_doc, &mut docs);
     }
-    docs
+    Ok(docs)
 }
 
 fn jval_to_yaml(val: &JVal, indent: usize, quote_all: bool) -> String {

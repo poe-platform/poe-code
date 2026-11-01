@@ -3,6 +3,14 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("yq properties retain numeric path components as keys and replace scalar parents", async () => {
+  const bash = new RustWasmBash({ files: {"/workspace/app.properties": "a=1\na.1=b\na.0=x\n0=root\n"} });
+  try {
+    const r = await bash.exec("yq -p props -o json -I0 . app.properties");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, '{"0":"root","a":{"0":"x","1":"b"}}\n', ""]);
+  } finally { bash.dispose(); }
+});
+
 test("jq assignments use one right-hand value for every path and delete empty updates", async () => {
   const bash = new RustWasmBash();
   try {

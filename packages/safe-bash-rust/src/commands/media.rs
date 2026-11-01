@@ -277,6 +277,25 @@ fn magick_number(value: &str, empty: f64) -> f64 {
     s.parse().unwrap_or(f64::NAN)
 }
 
+// ImageMagick fuzz uses JavaScript parseFloat: trailing units are ignored.
+fn magick_fuzz(raw:&str)->f64{
+    let s=raw.trim_start();
+    let b=s.as_bytes();
+    let mut i=usize::from(matches!(b.first(),Some(b'+'|b'-')));
+    let value=if s[i..].starts_with("Infinity"){
+        if s.starts_with('-'){f64::NEG_INFINITY}else{f64::INFINITY}
+    }else{
+        while b.get(i).is_some_and(u8::is_ascii_digit){i+=1;}
+        if b.get(i)==Some(&b'.'){i+=1;while b.get(i).is_some_and(u8::is_ascii_digit){i+=1;}}
+        if matches!(b.get(i),Some(b'e'|b'E')){
+            let mut j=i+1+usize::from(matches!(b.get(i+1),Some(b'+'|b'-')));
+            if b.get(j).is_some_and(u8::is_ascii_digit){while b.get(j).is_some_and(u8::is_ascii_digit){j+=1;}i=j;}
+        }
+        s[..i].parse().unwrap_or(f64::NAN)
+    };
+    if raw.ends_with('%'){value/100.*255.}else{value}
+}
+
 fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, u8, u8, u32), &'static str> {
     if let Some(fmt)=heif::format(bytes){let h=heif::header(bytes);return Ok((h.image_meta(fmt),h.depth,h.channels,h.density));}
     if !image_header::recognized_image(bytes) { return Err("Input buffer contains unsupported image format"); }
@@ -10088,10 +10107,11 @@ fn cmd_media_doc(
             let mut gravity=Gravity::parse("northwest");
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
+            let mut fuzz=10.;
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10185,6 +10205,11 @@ fn cmd_media_doc(
                         i += 1;
                     }
                     "-filter" if i+1 < args.len() => {kernel=Kernel::parse(&args[i+1]);i+=2;}
+                    "-fuzz" => {
+                        let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;magick_fuzz(&args[i])}else{10.};
+                        fuzz=(value+0.5).floor();i+=1;
+                    }
+                    "-trim" => {ops.push(PixelOp::Trim(fuzz));i+=1;}
                     "-auto-orient" => {ops.push(PixelOp::AutoOrient);i+=1;}
                     "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
                     "-channel" if i+1<args.len() => { channels=magick_color::channel_mask(&args[i+1]);i+=2; }
@@ -10348,6 +10373,7 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Trim(fuzz)=>image.trim(*fuzz,fs.max_input_bytes())?,
                         PixelOp::Clear=>image.pixels.fill([0;4]),
                         PixelOp::Morph(method,radii)=>image.morphology(method,*radii,fs.max_input_bytes())?,
                         PixelOp::Convolve(weights,bias)=>image.convolve_rgb(weights,*bias,fs.max_input_bytes())?,
@@ -10866,8 +10892,7 @@ fn cmd_media_doc(
                     }
                     "-fuzz" if i + 1 < args.len() => {
                         let value = &args[i+1];
-                        options.fuzz = if let Some(pct) = value.strip_suffix('%') { pct.parse::<f64>().unwrap_or(f64::NAN)/100.0*255.0 }
-                            else { value.parse().unwrap_or(f64::NAN) };
+                        options.fuzz = magick_fuzz(value);
                         i+=2;
                     }
                     "-highlight-color" | "-lowlight-color" if i + 1 < args.len() => {
@@ -14584,6 +14609,20 @@ mod media_unit_tests {
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-00.png").unwrap())),"9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f");
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-02.png").unwrap())),"862e92446a2e54553c1ccd96f66a2d90c7b3ec002fc0c59b89d58f6a725c2960");
+    }
+
+    #[test]
+    fn convert_trims_using_filtered_pixels_and_fuzz() {
+        let fs=MemoryVfs::new();
+        let im=png_pixels::Raster{width:9,height:7,gray:false,alpha:true,density:72,orientation:None,
+            pixels:(0..63).map(|i|{let v=if (2..7).contains(&(i%9)) && (2..5).contains(&(i/9)){12}else{0};[v,v,v,255]}).collect()};
+        fs.write_file("/faint.png",&im.png()).unwrap();
+        for (fuzz,w,h) in [("10",5,3),("10units",5,3),("8%",9,7)]{
+            let r=cmd_media_doc("convert",&media_args(&["faint.png","-fuzz",fuzz,"-trim","o.png"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let out=png_pixels::Raster::decode(&fs.read_file("/o.png").unwrap(),4096).unwrap();
+            assert_eq!((out.width,out.height),(w,h));
+        }
     }
 
     #[test]

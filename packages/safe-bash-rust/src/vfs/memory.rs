@@ -314,6 +314,9 @@ impl MemoryVfs {
         let mut current = String::from("/");
 
         while let Some(part) = queue.pop_front() {
+            if part.len() > 255 {
+                return Err(FsError::new(FsErrorCode::InvalidInput, "ENAMETOOLONG: name too long"));
+            }
             if part == "." || part.is_empty() {
                 continue;
             }
@@ -690,6 +693,9 @@ impl MemoryVfs {
 
     fn ensure_parent_dirs_locked(state: &mut MemoryState, path: &str) -> Result<(), FsError> {
         let norm = normalize_posix_path(path);
+        if norm.len() > 255 && norm.split('/').any(|part| part.len() > 255) {
+            return Err(FsError::new(FsErrorCode::InvalidInput, "ENAMETOOLONG: name too long"));
+        }
         let mut ancestors = Vec::new();
         let mut cur = parent_posix_path(&norm);
         while let Some(p) = cur {
@@ -798,6 +804,9 @@ impl SafeBashFs for MemoryVfs {
         if path == "/" || !path.starts_with('/') || normalize_posix_path(path) != path
             || state.devices == Devices::Mounted || state.devices.entry(path).is_some() {
             return Err(format!("target is not a regular file: {path}"));
+        }
+        if path.len() > 255 && path.split('/').any(|part| part.len() > 255) {
+            return Err("ENAMETOOLONG: name too long".into());
         }
         let mut parent_mode = match state.nodes.get("/") {
             Some(MemoryNode::Directory { mode, .. }) => *mode,
@@ -1299,6 +1308,33 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn names_are_limited_to_255_bytes_before_publication() {
+        let fs = MemoryVfs::new();
+        let valid = format!("/{}a", "é".repeat(127));
+        let long = format!("/{}", "é".repeat(128));
+        fs.write_file(&valid, b"original").unwrap();
+        fs.symlink(&long, "/alias").unwrap();
+        let rev = fs.patch_revision(&long).unwrap();
+        for result in [
+            fs.write_file(&long, b"x"),
+            fs.write_file("/alias", b"x"),
+            fs.create_file(&long, b"x", 0o644),
+            fs.rename(&valid, &long, true),
+            fs.hard_link(&valid, &long),
+            fs.mkdir_all(&long),
+            fs.symlink(&valid, &long),
+            fs.patch_file(&format!("{long}/child"), Some(b"x"), rev).map(|_| ()),
+        ] {
+            assert!(result.unwrap_err().starts_with("ENAMETOOLONG:"));
+        }
+        let mut entries = fs.export_entries().unwrap();
+        entries[0].path = long;
+        assert!(fs.replace_entries(&entries).unwrap_err().starts_with("ENAMETOOLONG:"));
+        assert_eq!(fs.read_file(&valid).unwrap(), b"original");
+        assert_eq!(fs.patch_revision(&valid).unwrap(), rev);
+    }
 
     #[test]
     fn reads_refresh_access_times_only_after_admission() {

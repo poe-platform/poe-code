@@ -136,7 +136,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
         }
         let candidate = format!("{}/{part}", current.trim_end_matches('/'));
         let (prefix, backend, relative) = location(&candidate);
-        if access && part.len() > 255 {
+        if part.len() > 255 {
             return Err(if prefix.is_none() && purpose == WalkPurpose::Access { format!("ENAMETOOLONG: name too long, lstat '{candidate}'") } else { "ENAMETOOLONG: name too long".into() });
         }
         if boundary.is_some() && boundary != prefix {
@@ -230,6 +230,7 @@ pub(super) fn rename_entry(
             parts.extend(target.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned));
             continue;
         }
+        if part.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
         match part.as_str() {
             "." | ".." if parts.is_empty() => return Err("EINVAL: invalid argument".into()),
             "." => {}

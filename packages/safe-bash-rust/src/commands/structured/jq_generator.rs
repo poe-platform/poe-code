@@ -41,6 +41,13 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s == "." || s.is_empty() {
         return emit(input.clone());
     }
+    if s.as_bytes()[0].is_ascii_digit() && let Some(value) = super::jq_number::literal(s) {
+        return emit(value);
+    }
+    visit_filter(s, input, vars, emit)
+}
+
+fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) -> Flow {
     if let Some(def_rest) = s.strip_prefix("def ")
         && let Some((sig_and_body, after_semi)) = split_jq_def_semi(def_rest)
         && let Some((sig, body)) = sig_and_body.split_once(':')

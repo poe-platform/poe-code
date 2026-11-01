@@ -290,6 +290,15 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("jq handles two hundred nested user calls without losing the shell", () => {
+  const bash = new RustWasmBash();
+  try {
+    const result = bash.execSync("jq -n 'def countdown: if . > 0 then .-1 | countdown else . end; 200 | countdown'");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "0\n", ""]);
+    assert.equal(bash.execSync("echo still-running").stdout, "still-running\n");
+  } finally { bash.dispose(); }
+});
+
 test("jq accepts if as an unquoted object key beside conditional values", async () => {
   const bash = new RustWasmBash();
   try {

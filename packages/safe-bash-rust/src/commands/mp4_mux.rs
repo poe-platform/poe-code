@@ -1,4 +1,4 @@
-use super::adts::{Frames, Options, RATES};
+use super::super::adts::{Frames, Options, RATES};
 use std::collections::BTreeMap;
 
 // Boxes are nested directly in the output. Reserve a size word, then fill it
@@ -17,7 +17,7 @@ fn words(out: &mut Vec<u8>, values: &[u32]) {
     }
 }
 const MATRIX: [u32; 9] = [65536, 0, 0, 0, 65536, 0, 0, 0, 1 << 30];
-fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>) {
+fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>, chapters: &[u8]) {
     let keys = [
         (b"\xa9nam", "title"),
         (b"\xa9ART", "artist"),
@@ -43,10 +43,16 @@ fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>) {
                 .map(|v| (code, v))
         })
         .peekable();
-    if fields.peek().is_none() {
+    if fields.peek().is_none() && chapters.is_empty() {
         return;
     }
     atom(out, b"udta", |b| {
+        if !chapters.is_empty() {
+            atom(b, b"chpl", |b| b.extend_from_slice(chapters));
+        }
+        if fields.peek().is_none() {
+            return;
+        }
         atom(b, b"meta", |b| {
             words(b, &[0]);
             atom(b, b"hdlr", |b| {
@@ -61,7 +67,7 @@ fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>) {
                             words(b, &[1, 0]);
                             b.extend_from_slice(value.as_bytes());
                         })
-                    })
+                    });
                 }
             });
         })
@@ -70,78 +76,86 @@ fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>) {
 struct Sample<'a> {
     data: &'a [u8],
     duration: u32,
+    cts: i64,
+    key: bool,
+    description: u32,
 }
-struct Audio<'a> {
+struct Track<'a> {
     samples: Vec<Sample<'a>>,
     scale: u32,
-    channels: u32,
-    object: u8,
-    volume: f64,
     media_ticks: u32,
     movie_ticks: u32,
-    skip: u32,
+    first_dts: u64,
+    stsd: std::borrow::Cow<'a, [u8]>,
+    edits: Vec<[u32; 3]>,
+    kind: &'static str,
+    enabled: bool,
+    volume: u32,
+    matrix: [u32; 9],
+    width: u32,
+    height: u32,
+    language: u16,
+    handler: [u8; 4],
+    name: &'a [u8],
 }
-impl Audio<'_> {
-    fn entry(&self, out: &mut Vec<u8>) {
-        atom(out, b"mp4a", |b| {
-            words(
-                b,
-                &[
-                    0,
-                    1,
-                    0,
-                    0,
-                    (self.channels << 16) | 16,
-                    0,
-                    self.scale.min(65535) << 16,
-                ],
-            );
-            atom(b, b"esds", |b| {
-                words(b, &[0]);
-                b.extend_from_slice(&[3, 25, 0, 1, 0, 4, 17, 0x40, 0x15, 0, 0, 0]);
-                words(b, &[128000, 128000]);
-                b.extend_from_slice(&[5, 2]);
-                let frequency = RATES
-                    .iter()
-                    .enumerate()
-                    .min_by_key(|(_, r)| r.abs_diff(self.scale))
-                    .unwrap()
-                    .0 as u16;
-                let asc = (u16::from(self.object) << 11)
-                    | (frequency << 7)
-                    | (((self.channels & 15) as u16) << 3);
-                b.extend_from_slice(&asc.to_be_bytes());
-                b.extend_from_slice(&[6, 1, 2]);
-            });
+fn audio_entry(scale: u32, channels: u32, object: u8) -> Vec<u8> {
+    let mut out = Vec::new();
+    words(&mut out, &[0, 1]);
+    atom(&mut out, b"mp4a", |b| {
+        words(
+            b,
+            &[0, 1, 0, 0, (channels << 16) | 16, 0, scale.min(65535) << 16],
+        );
+        atom(b, b"esds", |b| {
+            words(b, &[0]);
+            b.extend_from_slice(&[3, 25, 0, 1, 0, 4, 17, 0x40, 0x15, 0, 0, 0]);
+            words(b, &[128000, 128000]);
+            b.extend_from_slice(&[5, 2]);
+            let frequency = RATES
+                .iter()
+                .enumerate()
+                .min_by_key(|(_, r)| r.abs_diff(scale))
+                .unwrap()
+                .0 as u16;
+            let asc =
+                (u16::from(object) << 11) | (frequency << 7) | (((channels & 15) as u16) << 3);
+            b.extend_from_slice(&asc.to_be_bytes());
+            b.extend_from_slice(&[6, 1, 2]);
         });
-    }
-    fn trak(&self, b: &mut Vec<u8>, fragmented: bool, offsets: &mut usize) {
+    });
+    out
+}
+impl Track<'_> {
+    fn trak(&self, b: &mut Vec<u8>, id: u32, fragmented: bool, offsets: &mut usize) {
         let samples = if fragmented { &[][..] } else { &self.samples };
         atom(b, b"trak", |b| {
             atom(b, b"tkhd", |b| {
                 words(
                     b,
                     &[
-                        3,
+                        if self.enabled { 3 } else { 0 },
                         0,
                         0,
-                        1,
+                        id,
                         0,
                         self.movie_ticks,
                         0,
                         0,
                         0,
-                        ((self.volume * 256.).round() as i32 as u32) << 16,
+                        self.volume << 16,
                     ],
                 );
-                words(b, &MATRIX);
-                words(b, &[0, 0]);
+                words(b, &self.matrix);
+                words(b, &[self.width << 16, self.height << 16]);
             });
-            if self.skip != 0 {
+            if !self.edits.is_empty() {
                 atom(b, b"edts", |b| {
                     atom(b, b"elst", |b| {
-                        words(b, &[0, 1, self.movie_ticks, self.skip, 65536])
-                    })
+                        words(b, &[0, self.edits.len() as u32]);
+                        for row in &self.edits {
+                            words(b, row)
+                        }
+                    });
                 })
             }
             atom(b, b"mdia", |b| {
@@ -154,18 +168,23 @@ impl Audio<'_> {
                             0,
                             self.scale,
                             if fragmented { 0 } else { self.media_ticks },
-                            0x55c40000,
+                            u32::from(self.language) << 16,
                         ],
                     )
                 });
                 atom(b, b"hdlr", |b| {
                     words(b, &[0, 0]);
-                    b.extend_from_slice(b"soun");
+                    b.extend_from_slice(&self.handler);
                     words(b, &[0; 3]);
-                    b.extend_from_slice(b"SoundHandler\0")
+                    b.extend_from_slice(self.name);
+                    b.push(0);
                 });
                 atom(b, b"minf", |b| {
-                    atom(b, b"smhd", |b| words(b, &[0, 0]));
+                    match self.kind {
+                        "video" => atom(b, b"vmhd", |b| words(b, &[1, 0, 0])),
+                        "audio" => atom(b, b"smhd", |b| words(b, &[0, 0])),
+                        _ => atom(b, b"nmhd", |b| words(b, &[0])),
+                    };
                     atom(b, b"dinf", |b| {
                         atom(b, b"dref", |b| {
                             words(b, &[0, 1]);
@@ -174,8 +193,7 @@ impl Audio<'_> {
                     });
                     atom(b, b"stbl", |b| {
                         atom(b, b"stsd", |b| {
-                            words(b, &[0, 1]);
-                            self.entry(b);
+                            b.extend_from_slice(&self.stsd);
                         });
                         atom(b, b"stts", |b| {
                             let at = b.len() + 4;
@@ -187,12 +205,31 @@ impl Audio<'_> {
                             }
                             b[at..at + 4].copy_from_slice(&runs.to_be_bytes());
                         });
+                        if samples.iter().any(|s| s.cts != 0) {
+                            atom(b, b"ctts", |b| {
+                                let at = b.len() + 4;
+                                let mut count = 0u32;
+                                let runs = samples.chunk_by(|a, b| a.cts == b.cts);
+                                words(b, &[u32::from(samples.iter().any(|s| s.cts < 0)) << 24, 0]);
+                                for g in runs {
+                                    count += 1;
+                                    words(b, &[g.len() as u32, g[0].cts as u32]);
+                                }
+                                b[at..at + 4].copy_from_slice(&count.to_be_bytes());
+                            });
+                        }
                         atom(b, b"stsc", |b| {
-                            if samples.is_empty() {
-                                words(b, &[0, 0])
-                            } else {
-                                words(b, &[0, 1, 1, 1, 1])
+                            let at = b.len() + 4;
+                            let mut count = 0u32;
+                            let runs = samples.chunk_by(|a, b| a.description == b.description);
+                            words(b, &[0, 0]);
+                            let mut chunk = 1;
+                            for g in runs {
+                                count += 1;
+                                words(b, &[chunk, 1, g[0].description]);
+                                chunk += g.len() as u32;
                             }
+                            b[at..at + 4].copy_from_slice(&count.to_be_bytes());
                         });
                         atom(b, b"stsz", |b| {
                             words(b, &[0, 0, samples.len() as u32]);
@@ -205,13 +242,21 @@ impl Audio<'_> {
                             *offsets = b.len();
                             b.resize(b.len() + samples.len() * 4, 0);
                         });
+                        if self.kind == "video" && !samples.is_empty() {
+                            atom(b, b"stss", |b| {
+                                words(b, &[0, samples.iter().filter(|s| s.key).count() as u32]);
+                                for (i, _) in samples.iter().enumerate().filter(|(_, s)| s.key) {
+                                    words(b, &[i as u32 + 1]);
+                                }
+                            });
+                        }
                     });
                 });
             });
         });
     }
 }
-pub(super) fn adts(
+pub(in super::super) fn adts(
     input: &[u8],
     opts: Options,
     metadata: &BTreeMap<String, String>,
@@ -228,6 +273,9 @@ pub(super) fn adts(
         samples.push(Sample {
             data,
             duration: 1024,
+            cts: 0,
+            key: true,
+            description: 1,
         });
     }
     let scale = frames.rate;
@@ -251,16 +299,12 @@ pub(super) fn adts(
         s.duration = base.min(end) - dts;
         true
     });
-    let mut a = Audio {
-        media_ticks: samples.iter().map(|s| s.duration).sum(),
-        movie_ticks: end.saturating_sub(start),
-        scale,
-        channels: frames.channels.into(),
-        object: frames.object,
-        volume: 1.,
-        skip,
-        samples,
-    };
+    let mut media_ticks = samples.iter().map(|s| s.duration).sum();
+    let mut movie_ticks = end.saturating_sub(start);
+    let mut rate = scale;
+    let mut channels = u32::from(frames.channels);
+    let mut object = frames.object;
+    let mut volume = 1.;
     if opts.clear_samples && !opts.strip_audio {
         let mut tempo = 1.;
         for f in filters.iter().flat_map(|f| f.split(',')).map(str::trim) {
@@ -268,55 +312,96 @@ pub(super) fn adts(
                 tempo *= s.parse::<f64>().unwrap_or(1.).clamp(0.25, 4.)
             }
             if let Some(s) = f.strip_prefix("volume=") {
-                a.volume *= if let Some(db) = s.strip_suffix("dB") {
+                volume *= if let Some(db) = s.strip_suffix("dB") {
                     10f64.powf(db.parse::<f64>().unwrap_or(0.) / 20.)
                 } else {
                     s.parse::<f64>().ok().filter(|v| *v != 0.).unwrap_or(1.)
                 }
             }
         }
-        let duration = if a.movie_ticks == 0 {
+        let duration = if movie_ticks == 0 {
             1.
         } else {
-            f64::from(a.movie_ticks) / f64::from(scale)
+            f64::from(movie_ticks) / f64::from(scale)
         };
-        a.scale = opts.rate.unwrap_or(scale);
-        a.channels = opts.channels.unwrap_or(a.channels);
-        a.object = 2;
-        let ticks = (duration.max(0.05) / tempo * f64::from(a.scale))
+        rate = opts.rate.unwrap_or(scale);
+        channels = opts.channels.unwrap_or(channels);
+        object = 2;
+        let ticks = (duration.max(0.05) / tempo * f64::from(rate))
             .round()
             .max(1.) as u64;
         let n = ticks.div_ceil(1024);
         if n > 200_000 || n > (opts.limit / size_of::<Sample>()) as u64 {
             return Err("sample index exceeds memory budget");
         }
-        let data = super::adts::silent(a.channels);
-        a.samples = (0..n)
+        let data = super::super::adts::silent(channels);
+        samples = (0..n)
             .map(|i| Sample {
                 data,
                 duration: (ticks - i * 1024).min(1024) as u32,
+                cts: 0,
+                key: true,
+                description: 1,
             })
             .collect();
-        a.media_ticks = ticks as u32;
-        if a.skip == 0 {
-            a.movie_ticks = (ticks as f64 * f64::from(scale) / f64::from(a.scale)).round() as u32;
+        media_ticks = ticks as u32;
+        if skip == 0 {
+            movie_ticks = (ticks as f64 * f64::from(scale) / f64::from(rate)).round() as u32;
         }
     }
-    if opts.strip_audio {
-        a.samples.clear();
-        a.movie_ticks = 0
-    }
-    let mut out = Vec::new();
-    let mut offsets = 0;
-    atom(&mut out, b"ftyp", |b| {
-        b.extend_from_slice(if mov { b"qt  " } else { b"isom" });
-        words(b, &[512]);
-        b.extend_from_slice(if mov {
-            b"qt  ".as_slice()
+    let tracks = if opts.strip_audio {
+        vec![]
+    } else {
+        vec![Track {
+            samples,
+            scale: rate,
+            media_ticks,
+            movie_ticks,
+            first_dts: 0,
+            stsd: audio_entry(rate, channels, object).into(),
+            edits: if skip != 0 {
+                vec![[movie_ticks, skip, 65536]]
+            } else {
+                vec![]
+            },
+            kind: "audio",
+            enabled: true,
+            volume: (volume * 256.).round() as i32 as u32,
+            matrix: MATRIX,
+            width: 0,
+            height: 0,
+            language: 0x55c4,
+            handler: *b"soun",
+            name: b"SoundHandler",
+        }]
+    };
+    write(
+        &tracks,
+        scale,
+        if mov {
+            b"qt  \0\0\x02\0qt  "
         } else {
-            b"isomiso2avc1mp41"
-        });
-    });
+            b"isom\0\0\x02\0isomiso2avc1mp41"
+        },
+        metadata,
+        &[],
+        fragmented,
+        opts.limit,
+    )
+}
+
+fn write(
+    tracks: &[Track<'_>],
+    scale: u32,
+    ftyp: &[u8],
+    metadata: &BTreeMap<String, String>,
+    chapters: &[u8],
+    fragmented: bool,
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
+    let mut out = Vec::new();
+    let mut offsets = vec![0; tracks.len()];
+    atom(&mut out, b"ftyp", |b| b.extend_from_slice(ftyp));
     atom(&mut out, b"moov", |b| {
         atom(b, b"mvhd", |b| {
             words(
@@ -326,7 +411,11 @@ pub(super) fn adts(
                     0,
                     0,
                     scale,
-                    if fragmented { 0 } else { a.movie_ticks },
+                    if fragmented {
+                        0
+                    } else {
+                        tracks.iter().map(|t| t.movie_ticks).max().unwrap_or(0)
+                    },
                     65536,
                     0x01000000,
                     0,
@@ -335,63 +424,389 @@ pub(super) fn adts(
             );
             words(b, &MATRIX);
             words(b, &[0; 6]);
-            words(b, &[if opts.strip_audio { 1 } else { 2 }]);
+            words(b, &[tracks.len() as u32 + 1]);
         });
-        if !opts.strip_audio {
-            a.trak(b, fragmented, &mut offsets);
+        for (i, t) in tracks.iter().enumerate() {
+            t.trak(b, i as u32 + 1, fragmented, &mut offsets[i]);
         }
         if fragmented {
             atom(b, b"mvex", |b| {
-                if !opts.strip_audio {
+                for (i, a) in tracks.iter().enumerate() {
                     atom(b, b"trex", |b| {
                         let (duration, size) = a
                             .samples
                             .first()
                             .map_or((1024, 0), |s| (s.duration, s.data.len() as u32));
-                        words(b, &[0, 1, 1, duration, size, 0]);
-                    })
+                        words(b, &[0, i as u32 + 1, 1, duration, size, 0]);
+                    });
                 }
             })
         }
-        tags(b, metadata);
+        tags(b, metadata, chapters);
     });
     if fragmented {
         let moof = out.len();
         atom(&mut out, b"moof", |b| {
             atom(b, b"mfhd", |b| words(b, &[0, 1]));
-            if !opts.strip_audio {
+            for (i, a) in tracks.iter().enumerate() {
                 atom(b, b"traf", |b| {
-                    atom(b, b"tfhd", |b| words(b, &[0x020002, 1, 1]));
-                    atom(b, b"tfdt", |b| words(b, &[0x01000000, 0, 0]));
+                    atom(b, b"tfhd", |b| words(b, &[0x020002, i as u32 + 1, 1]));
+                    atom(b, b"tfdt", |b| {
+                        words(
+                            b,
+                            &[0x01000000, (a.first_dts >> 32) as u32, a.first_dts as u32],
+                        )
+                    });
                     atom(b, b"trun", |b| {
                         words(b, &[0x01000f01, a.samples.len() as u32]);
-                        offsets = b.len();
+                        offsets[i] = b.len();
                         words(b, &[0]);
                         for s in &a.samples {
-                            words(b, &[s.duration, s.data.len() as u32, 0x02000000, 0]);
+                            words(
+                                b,
+                                &[
+                                    s.duration,
+                                    s.data.len() as u32,
+                                    if s.key { 0x02000000 } else { 0x01010000 },
+                                    s.cts as u32,
+                                ],
+                            );
                         }
                     });
                 })
             }
         });
-        if !opts.strip_audio {
-            let offset = (out.len() - moof + 8) as u32;
-            out[offsets..offsets + 4].copy_from_slice(&offset.to_be_bytes());
+        let mut offset = (out.len() - moof + 8) as u64;
+        for (a, &at) in tracks.iter().zip(&offsets) {
+            out[at..at + 4].copy_from_slice(&(offset as u32).to_be_bytes());
+            offset += a.samples.iter().map(|s| s.data.len() as u64).sum::<u64>();
         }
     }
-    let payload: usize = a.samples.iter().map(|s| s.data.len()).sum();
-    if payload.saturating_add(out.len()).saturating_add(8) > opts.limit {
+    let payload = tracks
+        .iter()
+        .flat_map(|t| &t.samples)
+        .map(|s| s.data.len() as u64)
+        .sum::<u64>();
+    if payload + out.len() as u64 + 8 > limit.min(u32::MAX as usize) as u64 {
         return Err("output byte limit exceeded");
     }
     atom(&mut out, b"mdat", |b| {
-        for s in &a.samples {
-            if !fragmented {
-                let pos = b.len() as u32;
-                b[offsets..offsets + 4].copy_from_slice(&pos.to_be_bytes());
-                offsets += 4;
+        for (a, mut at) in tracks.iter().zip(offsets) {
+            for s in &a.samples {
+                if !fragmented {
+                    let pos = b.len() as u32;
+                    b[at..at + 4].copy_from_slice(&pos.to_be_bytes());
+                    at += 4;
+                }
+                b.extend_from_slice(s.data);
             }
-            b.extend_from_slice(s.data);
         }
     });
     Ok(out)
+}
+
+pub(in super::super) struct Remux<'a> {
+    pub maps: &'a [&'a str],
+    pub strip_audio: bool,
+    pub strip_video: bool,
+    pub strip_subtitles: bool,
+    pub start: Option<f64>,
+    pub end: Option<f64>,
+    pub frames: Option<u32>,
+    pub mov: bool,
+    pub fragmented: bool,
+    pub metadata: &'a BTreeMap<String, String>,
+    pub rotation: Option<i32>,
+    pub limit: usize,
+}
+
+pub(in super::super) fn remux(input: &[u8], opts: Remux<'_>) -> Result<Vec<u8>, String> {
+    use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
+    let moov = super::movie(input)?;
+    let (scale, _) = header_time(child(moov, b"mvhd"), 1000);
+    let (source, _) = super::read_tracks(input, moov)?;
+    let boxes: Vec<_> = atoms(moov)
+        .filter_map(|(k, b)| (k == b"trak").then_some(b))
+        .collect();
+    let mut selected = Vec::new();
+    if opts.maps.is_empty() {
+        selected.extend(0..source.len())
+    }
+    for map in opts.maps {
+        let raw = map.trim_end_matches('?');
+        let mut fields = raw.trim_start_matches('-').split(':');
+        if fields.next().and_then(|s| s.parse::<u32>().ok()) != Some(0) {
+            continue;
+        }
+        let selector = fields.next();
+        let kind = match selector {
+            Some("v") => Some("video"),
+            Some("a") => Some("audio"),
+            Some("s") => Some("subtitle"),
+            _ => None,
+        };
+        let ordinal = if kind.is_some() {
+            fields.next()
+        } else {
+            selector
+        };
+        for (i, t) in source
+            .iter()
+            .filter(|t| kind.is_none_or(|k| t.kind == k))
+            .enumerate()
+        {
+            if ordinal.is_some_and(|s| s.parse::<usize>() != Ok(i)) {
+                continue;
+            }
+            if raw.starts_with('-') {
+                selected.retain(|&v| v != t.index)
+            } else {
+                selected.push(t.index)
+            }
+        }
+        if selected.len() > 32 {
+            return Err("output stream count exceeds limit".into());
+        }
+    }
+    let mut tracks = Vec::new();
+    let mut index_bytes = 0usize;
+    for index in selected {
+        let t = &source[index];
+        let trak = boxes[index];
+        let video = t.kind == "video";
+        let audio = t.kind == "audio";
+        if video && opts.strip_video
+            || audio && opts.strip_audio
+            || t.kind == "subtitle" && opts.strip_subtitles
+        {
+            continue;
+        }
+        let tk = child(trak, b"tkhd");
+        let long = tk.first() == Some(&1);
+        let mdia = child(trak, b"mdia");
+        let stbl = child(child(mdia, b"minf"), b"stbl");
+        let stsd = child(stbl, b"stsd");
+        let hdlr = child(mdia, b"hdlr");
+        let handler = hdlr
+            .get(8..12)
+            .and_then(|s| s.try_into().ok())
+            .unwrap_or(*b"vide");
+        let name: &[u8] = if !t.handler.is_empty() {
+            t.handler
+        } else if video {
+            b"VideoHandler"
+        } else if audio {
+            b"SoundHandler"
+        } else {
+            b"SubtitleHandler"
+        };
+        let language = t
+            .language
+            .bytes()
+            .fold(0u16, |a, b| (a << 5) | u16::from(b - 96));
+        let angle = opts.rotation.filter(|_| video).unwrap_or_else(|| {
+            let i = if long { 52 } else { 40 };
+            let a = u32_at(tk, i) as i32;
+            let b = u32_at(tk, i + 4) as i32;
+            (f64::from(b).atan2(f64::from(a)).to_degrees().round() as i32).rem_euclid(360)
+        });
+        let mut matrix = MATRIX;
+        let minus = (-65536i32) as u32;
+        match angle.rem_euclid(360) {
+            85..=95 => {
+                matrix[0] = 0;
+                matrix[1] = 65536;
+                matrix[3] = minus;
+                matrix[4] = 0
+            }
+            175..=185 => {
+                matrix[0] = minus;
+                matrix[4] = minus
+            }
+            265..=275 => {
+                matrix[0] = 0;
+                matrix[1] = minus;
+                matrix[3] = 65536;
+                matrix[4] = 0
+            }
+            _ => {}
+        }
+        let elst = child(child(trak, b"edts"), b"elst");
+        let v1 = elst.first() == Some(&1);
+        let mut edits: Vec<_> = rows(elst, if v1 { 20 } else { 12 })
+            .map(|r| {
+                let segment = wide(r, 0, v1);
+                let time = if v1 {
+                    wide(r, 8, true) as i64
+                } else {
+                    i64::from(u32_at(r, 4) as i32)
+                };
+                let segment = if segment == 0 && !t.runs.is_empty() && time >= 0 {
+                    ((t.stats.media_end - i128::from(time)).max(0) as f64 * f64::from(scale)
+                        / f64::from(t.scale))
+                    .round() as u64
+                } else {
+                    segment
+                };
+                [
+                    segment as u32,
+                    time as u32,
+                    u32_at(r, if v1 { 16 } else { 8 }),
+                ]
+            })
+            .collect();
+        index_bytes = index_bytes.saturating_add(t.stats.count.saturating_mul(size_of::<Sample>()));
+        if index_bytes > opts.limit {
+            return Err("sample index exceeds memory budget".into());
+        }
+        let mut samples = Vec::with_capacity(t.stats.count);
+        let mut first_dts = 0;
+        let mut begin = 0;
+        let sliced = opts.start.is_some() || opts.end.is_some();
+        let start = t
+            .origin
+            .saturating_add((opts.start.unwrap_or(0.) * f64::from(t.scale)).round() as u64);
+        let end = t.origin.saturating_add(opts.end.map_or(t.duration, |s| {
+            ((s * f64::from(t.scale)).round() as u64).min(t.duration)
+        }));
+        for s in t.samples(input.len()) {
+            if sliced {
+                if end <= start || s.dts >= end {
+                    break;
+                }
+                if s.dts + s.tick as u64 <= start {
+                    if !video {
+                        continue;
+                    }
+                    if s.key {
+                        samples.clear();
+                        begin = s.dts;
+                    }
+                } else if samples.is_empty() || (s.key && s.dts <= start) {
+                    samples.clear();
+                    begin = s.dts;
+                }
+            }
+            if samples.is_empty() {
+                first_dts = if sliced { 0 } else { s.dts };
+                begin = s.dts;
+            }
+            samples.push(Sample {
+                data: &input[s.offset..s.offset + s.size as usize],
+                duration: if sliced {
+                    s.tick
+                        .min(end.saturating_sub(s.dts).min(u64::from(u32::MAX)) as u32)
+                } else {
+                    s.tick
+                },
+                key: s.key,
+                cts: (s.pts - i128::from(s.dts)) as i64,
+                description: s.description,
+            });
+        }
+        if sliced {
+            if begin + samples.iter().map(|s| u64::from(s.duration)).sum::<u64>() <= start {
+                samples.clear()
+            }
+            edits.clear();
+            if !samples.is_empty() && begin < start {
+                edits.push([
+                    ((end - start) as f64 * f64::from(scale) / f64::from(t.scale)).round() as u32,
+                    (start - begin) as u32,
+                    65536,
+                ]);
+            }
+        }
+        if video && let Some(n) = opts.frames {
+            samples.truncate(n.max(1) as usize);
+        }
+        let mut ticks = samples.iter().map(|s| u64::from(s.duration)).sum::<u64>();
+        if !sliced && samples.is_empty() {
+            ticks = t.duration
+        }
+        let movie_ticks = if edits.is_empty() {
+            (ticks as f64 * f64::from(scale) / f64::from(t.scale)).round() as u32
+        } else {
+            edits.iter().map(|r| u64::from(r[0])).sum::<u64>() as u32
+        };
+        tracks.push(Track {
+            samples,
+            scale: t.scale,
+            media_ticks: ticks as u32,
+            movie_ticks,
+            first_dts,
+            stsd: if stsd.len() >= 8 { stsd } else { &[0; 8] }.into(),
+            edits,
+            kind: t.kind,
+            enabled: t.enabled,
+            volume: if audio {
+                if tk.len() < 24 {
+                    256
+                } else {
+                    u32::from(u16_at(tk, if long { 48 } else { 36 }))
+                }
+            } else {
+                0
+            },
+            matrix,
+            width: if video { t.width } else { 0 },
+            height: if video { t.height } else { 0 },
+            language,
+            handler,
+            name,
+        });
+    }
+    let mut metadata: BTreeMap<_, _> = super::tags(input, moov)
+        .into_iter()
+        .filter_map(|(k, v)| match v {
+            super::Str(s) => Some((k, s)),
+            _ => None,
+        })
+        .collect();
+    metadata.extend(opts.metadata.clone());
+    if !opts.metadata.contains_key("date")
+        && let Some(year) = opts.metadata.get("year")
+    {
+        metadata.insert("date".into(), year.clone());
+    }
+    let brands = atoms(input)
+        .find(|(k, _)| *k == b"ftyp")
+        .or_else(|| atoms(input).find(|(k, _)| *k == b"styp"))
+        .map_or(&[][..], |(_, b)| b);
+    let mov = opts.mov
+        || brands.get(..4) == Some(b"qt  ")
+        || brands
+            .get(8..)
+            .is_some_and(|b| b.chunks_exact(4).any(|v| v == b"qt  "));
+    let mut ftyp = Vec::new();
+    ftyp.extend_from_slice(if mov {
+        b"qt  "
+    } else {
+        brands.get(..4).unwrap_or(b"isom")
+    });
+    words(
+        &mut ftyp,
+        &[if brands.len() >= 8 {
+            u32_at(brands, 4)
+        } else {
+            512
+        }],
+    );
+    ftyp.extend_from_slice(if mov {
+        b"qt  "
+    } else if brands.len() >= 12 {
+        &brands[8..brands.len() / 4 * 4]
+    } else {
+        b"isomiso2avc1mp41"
+    });
+    write(
+        &tracks,
+        scale,
+        &ftyp,
+        &metadata,
+        child(child(moov, b"udta"), b"chpl"),
+        opts.fragmented,
+        opts.limit,
+    )
+    .map_err(str::to_owned)
 }

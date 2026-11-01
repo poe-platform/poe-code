@@ -1,5 +1,7 @@
 #[path = "h264.rs"]
 mod h264;
+#[path = "mp4_mux.rs"]
+pub(super) mod mux;
 
 // Atom lengths include their own header. A zero length occupies the remainder of
 // its parent; extended lengths include the extra eight bytes used for the size.
@@ -70,6 +72,7 @@ fn rows(b: &[u8], width: usize) -> impl Iterator<Item = &[u8]> + Clone {
 
 struct Sample {
     tick: u32,
+    description: u32,
     dts: u64,
     pts: i128,
     size: u64,
@@ -109,6 +112,7 @@ impl Tables<'_> {
         let mut chunks = rows(self.chunks, if self.long { 8 } else { 4 }).enumerate();
         let mut mappings = rows(self.mapping, 12).peekable();
         let mut per_chunk = mappings.peek().map_or(0, |r| u32_at(r, 4));
+        let mut description = mappings.peek().map_or(1, |r| u32_at(r, 8).max(1));
         let mut timing = rows(self.timing, 8);
         let mut composition = rows(self.composition, 8);
         let (mut left, mut delta, mut cleft, mut cts) = (0, 1024, 0, 0);
@@ -123,7 +127,9 @@ impl Tables<'_> {
                     .peek()
                     .is_some_and(|r| u32_at(r, 0) as usize <= i + 1)
                 {
-                    per_chunk = u32_at(mappings.next().unwrap(), 4);
+                    let row = mappings.next().unwrap();
+                    per_chunk = u32_at(row, 4);
+                    description = u32_at(row, 8).max(1);
                 }
                 chunk_left = per_chunk;
                 cursor = wide(offset, 0, self.long);
@@ -160,6 +166,7 @@ impl Tables<'_> {
             });
             let sample = Sample {
                 tick: delta,
+                description,
                 dts,
                 pts: i128::from(dts) + i128::from(cts),
                 size,
@@ -182,6 +189,7 @@ impl Tables<'_> {
 // A trun stores only fields enabled by its flags. The others come from tfhd or trex.
 #[derive(Clone, Copy)]
 struct Defaults {
+    description: u32,
     duration: u32,
     size: u32,
     flags: u32,
@@ -246,6 +254,7 @@ impl Run<'_> {
                 || (sample_flags & 0x10000 == 0 && (n == 0 || !video));
             let s = Sample {
                 tick,
+                description: self.defaults.description,
                 dts,
                 pts: i128::from(dts) + cts,
                 size,
@@ -503,6 +512,7 @@ impl<'a> Track<'a> {
             stats.add(&s)
         }
         let mut defaults = Defaults {
+            description: 1,
             duration: if kind == "video" { 3000 } else { 1024 },
             size: 0,
             flags: 0,
@@ -511,6 +521,7 @@ impl<'a> Track<'a> {
             atoms(mvex).filter(|(k, v)| *k == b"trex" && v.len() >= 24 && u32_at(v, 4) == id)
         {
             defaults = Defaults {
+                description: u32_at(trex, 8).max(1),
                 duration: match u32_at(trex, 12) {
                     0 => 1024,
                     x => x,
@@ -537,10 +548,10 @@ impl<'a> Track<'a> {
                 } else {
                     offset as u64
                 };
-                if flags & 2 != 0 {
-                    at += 4
-                }
                 let mut header = defaults;
+                if flags & 2 != 0 {
+                    header.description = next_word(h, &mut at).max(1);
+                }
                 if flags & 8 != 0 {
                     header.duration = next_word(h, &mut at)
                 }

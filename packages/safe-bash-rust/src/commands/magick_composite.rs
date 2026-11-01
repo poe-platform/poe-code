@@ -1,4 +1,6 @@
-use super::{BuiltinOutcome, SafeBashFs, err_out, png_pixels::Raster, resolve_posix_path};
+use super::{
+    BuiltinOutcome, SafeBashFs, err_out, magick_resize::Kernel, magick_stack, png_pixels::Raster,
+};
 
 pub(super) fn blend(s: [u8; 4], mut d: [u8; 4], mode: &str, ws: f64, wd: f64) -> [u8; 4] {
     let sa = f64::from(s[3]) / 255.;
@@ -174,7 +176,7 @@ pub(super) fn run(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    let mut quality=92.;
+    let mut quality = 92.;
     let mut mode = "over".to_owned();
     let mut gravity = "northwest".to_owned();
     let mut amounts = "";
@@ -211,7 +213,7 @@ pub(super) fn run(
                     amounts = v;
                 }
             }
-            "-quality" => quality=super::magick_number(iter.next()?,1.),
+            "-quality" => quality = super::magick_number(iter.next()?, 1.),
             "-background" => {
                 iter.next()?;
             }
@@ -223,104 +225,120 @@ pub(super) fn run(
     let &[first, second, dest] = operands.as_slice() else {
         return None;
     };
-    let dest=super::png_pixels::destination(dest)?;
+    let dest = super::png_pixels::destination(dest)?;
     let (base, overlay) = if cmd == "composite" {
         (second, first)
     } else {
         (first, second)
     };
-    let load = |name: &str| {
-        let path = name.strip_prefix("png:").unwrap_or(name);
-        let bytes = if super::Canvas::parse(name).is_some() {
-            Vec::new()
-        } else {
-            fs.read_file(&resolve_posix_path(cwd, path)).ok()?
-        };
-        Raster::input(name, &bytes, fs.max_input_bytes()).transpose()
+    let fail = |e: &str| Some(err_out(&format!("magick: {e}\n"), 1));
+    let kernel = Kernel::Lanczos3;
+    let steps = match [base, overlay].map(|s| magick_stack::Step::input(s, kernel)) {
+        [Ok(base), Ok(overlay)] => [(0, base), (0, overlay)],
+        [Err(e), _] | [_, Err(e)] => return fail(&e),
     };
-    let mut base = match load(base)? {
-        Ok(im) => im,
-        Err(e) => return Some(err_out(&format!("magick: {e}\n"), 1)),
-    };
-    let mut overlay = match load(overlay)? {
-        Ok(im) => im,
-        Err(e) => return Some(err_out(&format!("magick: {e}\n"), 1)),
-    };
-    if let Err(e) = overlay.resize(
-        geometry,
-        super::magick_resize::Kernel::Lanczos3,
-        fs.max_input_bytes(),
+    let mut images = match magick_stack::evaluate(
+        &steps,
+        0,
+        |_, _, gif| Ok((true, gif)),
+        cwd,
+        fs,
+        &mut Default::default(),
     ) {
-        return Some(err_out(&format!("magick: {e}\n"), 1));
+        Ok(images) => images?,
+        Err(e) => return fail(&e),
+    };
+    if images.frames.is_empty() {
+        return fail(&format!("no images defined '{}'", dest.1));
     }
-    let offsets = geometry
-        .find(['+', '-'])
-        .map(|i| &geometry[i..])
-        .unwrap_or("");
-    let mut xy = offsets.match_indices(['+', '-']).map(|(i, _)| i).peekable();
-    let mut number = || {
-        xy.next()
-            .and_then(|i| {
-                offsets[i..xy.peek().copied().unwrap_or(offsets.len())]
-                    .parse::<i32>()
-                    .ok()
-            })
-            .unwrap_or(0) as i64
-    };
-    let (gx, gy) = (number(), number());
-    let w = base.width as i64 - overlay.width as i64;
-    let h = base.height as i64 - overlay.height as i64;
-    let left = match gravity.as_str() {
-        "northwest" | "southwest" | "west" => gx,
-        "north" | "south" | "center" | "centre" => (w + 2 * gx) / 2,
-        "east" | "northeast" | "southeast" => w - gx,
-        _ => (w + 2 * gx) / 2,
-    };
-    let top = match gravity.as_str() {
-        "northwest" | "northeast" | "north" => gy,
-        "southwest" | "southeast" | "south" => h - gy,
-        _ => (h + 2 * gy) / 2,
-    };
-    let mut values = amounts.split(['x', 'X', ',']);
-    let pct = |s: &str| {
-        s.trim()
-            .trim_end_matches('%')
-            .parse::<f64>()
-            .unwrap_or(0.)
-            .max(0.)
-            / 100.
-    };
-    let ws = values
-        .next()
-        .filter(|s| !s.is_empty())
-        .map(pct)
-        .unwrap_or(if mode == "blend" { 0.5 } else { 1. });
-    let wd = values.next().map(pct).unwrap_or(if mode == "blend" {
-        (1. - ws).max(0.)
-    } else {
-        1.
-    });
-    for y in top.max(0)..(top + overlay.height as i64).min(base.height as i64) {
-        for x in left.max(0)..(left + overlay.width as i64).min(base.width as i64) {
-            let src = overlay.pixels[(y - top) as usize * overlay.width + (x - left) as usize];
-            let dst = &mut base.pixels[y as usize * base.width + x as usize];
-            *dst = blend(src, *dst, &mode, ws, wd);
+    if images.frames.len() >= 2 {
+        let mut overlay = images.frames.remove(1).image;
+        let base = &mut images.frames[0].image;
+        if let Err(e) = overlay.resize(
+            geometry,
+            super::magick_resize::Kernel::Lanczos3,
+            fs.max_input_bytes(),
+        ) {
+            return Some(err_out(&format!("magick: {e}\n"), 1));
         }
+        let offsets = geometry
+            .find(['+', '-'])
+            .map(|i| &geometry[i..])
+            .unwrap_or("");
+        let mut xy = offsets.match_indices(['+', '-']).map(|(i, _)| i).peekable();
+        let mut number = || {
+            xy.next()
+                .and_then(|i| {
+                    offsets[i..xy.peek().copied().unwrap_or(offsets.len())]
+                        .parse::<i32>()
+                        .ok()
+                })
+                .unwrap_or(0) as i64
+        };
+        let (gx, gy) = (number(), number());
+        let w = base.width as i64 - overlay.width as i64;
+        let h = base.height as i64 - overlay.height as i64;
+        let left = match gravity.as_str() {
+            "northwest" | "southwest" | "west" => gx,
+            "north" | "south" | "center" | "centre" => (w + 2 * gx) / 2,
+            "east" | "northeast" | "southeast" => w - gx,
+            _ => (w + 2 * gx) / 2,
+        };
+        let top = match gravity.as_str() {
+            "northwest" | "northeast" | "north" => gy,
+            "southwest" | "southeast" | "south" => h - gy,
+            _ => (h + 2 * gy) / 2,
+        };
+        let mut values = amounts.split(['x', 'X', ',']);
+        let pct = |s: &str| {
+            s.trim()
+                .trim_end_matches('%')
+                .parse::<f64>()
+                .unwrap_or(0.)
+                .max(0.)
+                / 100.
+        };
+        let ws = values
+            .next()
+            .filter(|s| !s.is_empty())
+            .map(pct)
+            .unwrap_or(if mode == "blend" { 0.5 } else { 1. });
+        let wd = values.next().map(pct).unwrap_or(if mode == "blend" {
+            (1. - ws).max(0.)
+        } else {
+            1.
+        });
+        for y in top.max(0)..(top + overlay.height as i64).min(base.height as i64) {
+            for x in left.max(0)..(left + overlay.width as i64).min(base.width as i64) {
+                let src = overlay.pixels[(y - top) as usize * overlay.width + (x - left) as usize];
+                let dst = &mut base.pixels[y as usize * base.width + x as usize];
+                *dst = blend(src, *dst, &mode, ws, wd);
+            }
+        }
+        base.alpha |= !matches!(
+            mode.as_str(),
+            "over"
+                | "srcover"
+                | "dstover"
+                | "destover"
+                | "plus"
+                | "add"
+                | "lineardodge"
+                | "colordodge"
+                | "colorburn"
+                | "hardlight"
+                | "softlight"
+                | "saturate"
+        ) || base.pixels.iter().any(|p| p[3] < 255);
     }
-    base.alpha |= !matches!(
-        mode.as_str(),
-        "over"
-            | "srcover"
-            | "dstover"
-            | "destover"
-            | "plus"
-            | "add"
-            | "lineardodge"
-            | "colordodge"
-            | "colorburn"
-            | "hardlight"
-            | "softlight"
-            | "saturate"
-    ) || base.pixels.iter().any(|p| p[3] < 255);
-    Some(base.publish(dest, quality, cwd, fs))
+    let limit = fs.max_input_bytes();
+    let encoded = if dest.0 == "gif" {
+        images.gif(Default::default(), kernel, limit)
+    } else {
+        images.frames.pop()?.encode(dest.0, quality, limit)
+    };
+    Some(match encoded {
+        Ok(bytes) => Raster::publish_bytes(&bytes, dest.1, cwd, fs),
+        Err(e) => return fail(e),
+    })
 }

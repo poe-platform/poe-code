@@ -66,6 +66,16 @@ pub(super) enum Step<'a> {
     Append(bool, Gravity, [u8; 4]),
 }
 
+impl<'a> Step<'a> {
+    pub fn input(token: &'a str, kernel: Kernel) -> Result<Self, String> {
+        let (base, modifier) = input_spec(token);
+        Ok(match Canvas::parse(base) {
+            Some(canvas) => Self::Canvas(canvas?, (1, 1), modifier, kernel),
+            None => Self::File(base, modifier, kernel),
+        })
+    }
+}
+
 struct SourceTiming {
     delays: Vec<u16>,
     repeat: Option<u16>,

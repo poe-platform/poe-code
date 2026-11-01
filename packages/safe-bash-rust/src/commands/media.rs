@@ -10707,13 +10707,10 @@ fn cmd_media_doc(
             let spec=format!("{}x{}",cell_w.map(|v|v.to_string()).unwrap_or_default(),cell_h.map(|v|v.to_string()).unwrap_or_default());
             let destination=png_pixels::destination(out_rel);
             for p in in_paths {
-                let (base,modifier)=magick_stack::input_spec(p);
                 let kernel=magick_resize::Kernel::Lanczos3;
                 if destination.is_some() {
-                    let step=match Canvas::parse(base) {
-                        Some(Ok(canvas))=>magick_stack::Step::Canvas(canvas,(1,1),modifier,kernel),
-                        Some(Err(e))=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
-                        None=>magick_stack::Step::File(base,modifier,kernel),
+                    let step=match magick_stack::Step::input(p,kernel) {
+                        Ok(step)=>step,Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
                     };
                     match magick_stack::evaluate(&[(0,step)],0,|im,_,_|{
                         im.resize(&spec,kernel,limit)?;
@@ -10734,6 +10731,7 @@ fn cmd_media_doc(
                         Ok(None)=>{}
                     }
                 }
+                let base=magick_stack::input_spec(p).0;
                 let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
                 let full=resolve_posix_path(cwd,path);
                 let bytes=if Canvas::parse(base).is_some(){Vec::new()}else{
@@ -14501,6 +14499,24 @@ mod media_unit_tests {
         assert_eq!(png_pixels::Raster::decode(&corrupt,4096).unwrap().pixels,vec![[0,0,0,255];20]);
         corrupt.extend(im.png());
         assert_eq!(png_pixels::Raster::decode(&corrupt,4096).unwrap().pixels,im.pixels);
+    }
+
+    #[test]
+    fn composite_preserves_remaining_gif_scenes() {
+        let fs=MemoryVfs::new();
+        let run=|cmd,argv:&str|cmd_media_doc(cmd,&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("convert","-size 4x2 xc:red gradient:blue-yellow xc:green -delay 9 -loop 5 a.gif").exit_code,0);
+        assert_eq!(run("convert","-size 3x2 gradient:red-blue p.png").exit_code,0);
+        for (args,hash) in [
+            ("p.png a.gif o.gif","02ba1727c618a1d8d6a12f25f0279519be059a6751f63c8f6c70374eaa18dbde"),
+            ("a.gif p.png o.png","febcfcf1c65dbbf0c59e4d219f5d411fd857192d0a8ac7f1b01b8884cab50243"),
+            ("a.gif[-1] p.png o.png","f6f8d3bbce8bc3be3c608ba3ae4588ab80afea1ac12be3a2e595a1b77e7613c8"),
+        ]{
+            let r=run("composite",args);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let name=args.split_whitespace().last().unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{name}")).unwrap())),hash,"{args}");
+        }
     }
 
     #[test]

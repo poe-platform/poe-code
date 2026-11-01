@@ -142,6 +142,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.rename(source, destination, no_replace)
     }
 
+    fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.remove_one(path, directory)
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.inner.remove_path(path)

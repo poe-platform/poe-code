@@ -361,6 +361,61 @@ impl MemoryVfs {
         }
     }
 
+    fn remove_one_locked(state: &mut MemoryState, path: &str, directory: bool) -> Result<(), String> {
+        let entry = Self::mutation_entry(state, path)?;
+        if entry == "/" || state.devices.entry(&entry).is_some() {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let node = state.nodes.get(&entry).ok_or("ENOENT: no such file or directory")?;
+        let is_dir = matches!(node, MemoryNode::Directory { .. });
+        if !is_dir && (directory || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
+        let parent = super::dirname_posix_path(&entry);
+        if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+            return Err("EACCES: permission denied".into());
+        }
+        if is_dir {
+            if !directory { return Err("EISDIR: illegal operation on a directory".into()); }
+            let prefix = format!("{entry}/");
+            if state.nodes.range(prefix.clone()..).next().is_some_and(|(key, _)| key.starts_with(&prefix)) {
+                return Err("ENOTEMPTY: directory not empty".into());
+            }
+        }
+        Self::unlink_locked(state, &entry);
+        Ok(())
+    }
+
+    // The overlay holds its whiteout lock. Bind its merged lookup to both namespaces
+    // before removing an upper entry or allowing it to hide a lower one.
+    pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool) -> Result<(), String> {
+        if self.id == lower.id { return Err("ENOTSUP: aliased overlay layers".into()); }
+        let (_base, mut upper) = if lower.id < self.id {
+            let base = lower.state.read().map_err(|_| "EIO: input/output error")?;
+            (base, self.state.write().map_err(|_| "EIO: input/output error")?)
+        } else {
+            let upper = self.state.write().map_err(|_| "EIO: input/output error")?;
+            (lower.state.read().map_err(|_| "EIO: input/output error")?, upper)
+        };
+        if versions != (lower.generation(), self.generation()) { return Err("EBUSY: overlay entries changed".into()); }
+        if upper.nodes.contains_key(path) {
+            Self::remove_one_locked(&mut upper, path, directory)?;
+            self.bump_generation();
+        }
+        Ok(())
+    }
+
+    fn mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {
+        super::path::rename_entry(path, state.limits.max_symlink_hops, |parent| {
+            match state.nodes.get(parent) {
+                Some(MemoryNode::Directory { mode, .. }) if mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
+                Some(MemoryNode::Directory { .. }) => Ok(None),
+                Some(MemoryNode::Symlink { target, .. }) if !target.starts_with("__hardlink__:") => Ok(Some(target.clone())),
+                Some(_) => Err("ENOTDIR: not a directory".into()),
+                None if state.devices.entry(parent).is_some_and(|n| !n.is_empty()) => Err("ENOTDIR: not a directory".into()),
+                None => Err("ENOENT: no such file or directory".into()),
+            }
+        })
+    }
+
     fn remove_entry(&self, path: &str, publication: Option<u64>) -> Result<bool, String> {
         let norm = normalize_posix_path(path);
         if norm == "/" {
@@ -645,17 +700,7 @@ impl SafeBashFs for MemoryVfs {
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
-        let entry = |path| super::path::rename_entry(path, state.limits.max_symlink_hops, |parent| {
-            match state.nodes.get(parent) {
-                Some(MemoryNode::Directory { mode, .. }) if mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
-                Some(MemoryNode::Directory { .. }) => Ok(None),
-                Some(MemoryNode::Symlink { target, .. }) if !target.starts_with("__hardlink__:") => Ok(Some(target.clone())),
-                Some(_) => Err("ENOTDIR: not a directory".into()),
-                None if state.devices.entry(parent).is_some_and(|n| !n.is_empty()) => Err("ENOTDIR: not a directory".into()),
-                None => Err("ENOENT: no such file or directory".into()),
-            }
-        });
-        let from = entry(source)?;
+        let from = Self::mutation_entry(&state, source)?;
         if state.devices == Devices::Mounted {
             return Err(if state.devices.entry(&from).is_some() { "ENOTSUP: operation not supported" }
                 else { "ENOENT: no such file or directory" }.into());
@@ -666,7 +711,7 @@ impl SafeBashFs for MemoryVfs {
         let node = state.nodes.get(&from).ok_or("ENOENT: no such file or directory")?;
         let is_dir = matches!(node, MemoryNode::Directory { .. });
         if source.ends_with('/') && !is_dir { return Err("ENOTDIR: not a directory".into()); }
-        let to = entry(destination)?;
+        let to = Self::mutation_entry(&state, destination)?;
         if from == "/" || to == "/" || state.devices.entry(&to).is_some() {
             return Err("EBUSY: resource busy or locked".into());
         }
@@ -717,6 +762,13 @@ impl SafeBashFs for MemoryVfs {
                 *target = format!("__hardlink__:{to}{}", &path[from.len()..]);
             }
         }
+        self.bump_generation();
+        Ok(())
+    }
+
+    fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        Self::remove_one_locked(&mut state, path, directory)?;
         self.bump_generation();
         Ok(())
     }

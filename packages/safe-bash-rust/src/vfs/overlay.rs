@@ -139,6 +139,33 @@ impl SafeBashFs for OverlayVfs {
         Ok(())
     }
 
+    fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
+        let versions = (self.lower.generation(), self.upper.generation());
+        if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+        let trimmed = path.trim_end_matches('/');
+        if matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
+        if trimmed.is_empty() { return Err("EBUSY: resource busy or locked".into()); }
+        let entry = self.access_path(trimmed, false)?;
+        let st = self.lstat(&entry)?;
+        if st.mode & 0o170000 == 0o020000 {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let is_dir = st.kind == VfsEntryKind::Directory;
+        if !is_dir && (directory || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
+        if self.stat(&crate::vfs::dirname_posix_path(&entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        if is_dir {
+            if !directory { return Err("EISDIR: illegal operation on a directory".into()); }
+            if !self.list_dir(&entry)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }
+        }
+        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
+            return Err("ENOTSUP: overlay layers do not support conditional removal".into());
+        };
+        let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
+        upper.remove_overlay_entry(lower, versions, &entry, directory)?;
+        whiteouts.insert(entry);
+        Ok(())
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         let existed = self.exists(&norm);
@@ -358,6 +385,23 @@ mod tests {
         assert_eq!(overlay.stat("/private/shared").unwrap().mode & 0o777, 0o750);
         assert_eq!(overlay.stat("/private/shared/new").unwrap().mode & 0o777, 0o711);
         assert!(!lower.exists("/private/shared/new"));
+    }
+
+    #[test]
+    fn removing_one_overlay_entry_respects_children_in_both_layers() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/dir/lower", b"keep").unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        upper.write_file("/dir/upper", b"keep").unwrap();
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        assert!(fs.remove_one("/dir", true).unwrap_err().starts_with("ENOTEMPTY"));
+        fs.remove_one("/dir/upper", false).unwrap();
+        assert!(fs.remove_one("/dir", true).unwrap_err().starts_with("ENOTEMPTY"));
+        fs.remove_one("/dir/lower", false).unwrap();
+        fs.remove_one("/dir", true).unwrap();
+        assert!(!fs.exists("/dir"));
+        assert!(!upper.exists("/dir"));
+        assert_eq!(lower.read_file("/dir/lower").unwrap(), b"keep");
     }
 
     #[test]

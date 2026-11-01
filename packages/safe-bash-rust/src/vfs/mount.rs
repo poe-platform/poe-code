@@ -156,6 +156,16 @@ impl SafeBashFs for MountVfs {
         fs.rename(&src, &dest, no_replace)
     }
 
+    fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
+        let entry = self.resolve(path, false, WalkPurpose::Rename)?;
+        if self.mounts.keys().any(|m| crate::vfs::is_path_within(&entry, m)) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let (_, fs, mut local) = self.location(&entry);
+        if path.ends_with('/') { local.push('/'); }
+        fs.remove_one(&local, directory)
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
         let resolved = self.resolve(path, false, WalkPurpose::AllowMissingParents)?;
         if self

@@ -880,3 +880,29 @@ test("ls reports the original directory operand when access through an alias fai
     } finally { bash.dispose(); }
   }
 });
+test("single-entry removal preserves unseen descendants", async () => {
+  for (const cmd of ["find /g -maxdepth 0 -delete", "rmdir /g", "rm -d /g"]) {
+    const bash = new RustWasmBash({files:{"/g/sub/data":"KEEP"}});
+    try {
+      await bash.fs.chmod("/g", 0);
+      const result = await bash.exec(cmd);
+      await bash.fs.chmod("/g", 0o700);
+      assert.equal(bash.readText("/g/sub/data"), "KEEP", cmd);
+      assert.deepEqual([result.exitCode, result.stderr], [1, cmd.split(" ")[0] + ": ENOTEMPTY: directory not empty, rmdir '/g'\n"]);
+    } finally { bash.dispose(); }
+  }
+});
+
+test("rmdir checks the parent and removes empty unreadable directories", async () => {
+  const bash = new RustWasmBash({files:{"/guard/keep":"data"},symlinks:{"/alias":"/guard"}});
+  try {
+    await bash.fs.mkdir("/guard/empty", {mode:0});
+    await bash.fs.chmod("/guard", 0o500);
+    await assert.rejects(bash.fs.rmdir("/guard/empty"), {code:"EACCES", syscall:"rmdir", path:"/guard/empty"});
+    await assert.rejects(bash.fs.unlink("/guard/keep"), {code:"EACCES", syscall:"rm", path:"/guard/keep"});
+    await assert.rejects(bash.fs.rmdir("/alias/"), {code:"ENOTDIR"});
+    await bash.fs.chmod("/guard", 0o700);
+    await bash.fs.rmdir("/guard/empty");
+    assert.equal(bash.readText("/guard/keep"), "data");
+  } finally { bash.dispose(); }
+});

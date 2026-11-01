@@ -14,6 +14,21 @@ enum Walk {
     RenameEntry,
 }
 
+fn mutation_error(e: std::io::Error) -> String {
+    use std::io::ErrorKind;
+    match e.kind() {
+        ErrorKind::NotFound => "ENOENT: no such file or directory".into(),
+        ErrorKind::AlreadyExists => "EEXIST: file already exists".into(),
+        ErrorKind::IsADirectory => "EISDIR: illegal operation on a directory".into(),
+        ErrorKind::NotADirectory => "ENOTDIR: not a directory".into(),
+        ErrorKind::DirectoryNotEmpty => "ENOTEMPTY: directory not empty".into(),
+        ErrorKind::PermissionDenied => "EACCES: permission denied".into(),
+        ErrorKind::CrossesDevices => "EXDEV: cross-device link not permitted".into(),
+        ErrorKind::InvalidInput => "EINVAL: invalid argument".into(),
+        _ => e.to_string(),
+    }
+}
+
 impl RealVfs {
     pub fn new(root: impl AsRef<Path>) -> Result<Self, String> {
         let canonical = std::fs::canonicalize(root.as_ref()).map_err(|e| e.to_string())?;
@@ -226,18 +241,21 @@ impl SafeBashFs for RealVfs {
         } else {
             std::fs::rename(from, to)
         };
-        use std::io::ErrorKind;
-        result.map_err(|e| match e.kind() {
-            ErrorKind::NotFound => "ENOENT: no such file or directory".into(),
-            ErrorKind::AlreadyExists => "EEXIST: file already exists".into(),
-            ErrorKind::IsADirectory => "EISDIR: illegal operation on a directory".into(),
-            ErrorKind::NotADirectory => "ENOTDIR: not a directory".into(),
-            ErrorKind::DirectoryNotEmpty => "ENOTEMPTY: directory not empty".into(),
-            ErrorKind::PermissionDenied => "EACCES: permission denied".into(),
-            ErrorKind::CrossesDevices => "EXDEV: cross-device link not permitted".into(),
-            ErrorKind::InvalidInput => "EINVAL: invalid argument".into(),
-            _ => e.to_string(),
-        })
+        result.map_err(mutation_error)
+    }
+
+    fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
+        let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
+        if matches!(path.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
+            return Err("EINVAL: invalid argument".into());
+        }
+        if host == self.root { return Err("EBUSY: resource busy or locked".into()); }
+        if path.ends_with('/') && !directory {
+            return Err(if std::fs::symlink_metadata(host).map_err(mutation_error)?.is_dir() {
+                "EISDIR: illegal operation on a directory"
+            } else { "ENOTDIR: not a directory" }.into());
+        }
+        if directory { std::fs::remove_dir(host) } else { std::fs::remove_file(host) }.map_err(mutation_error)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {

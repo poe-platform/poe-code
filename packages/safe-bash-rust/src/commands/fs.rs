@@ -792,7 +792,7 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 .unwrap_or(a.as_str());
             crate::vfs::dirname_posix_path(&resolve_posix_path(cwd, first_seg))
         };
-        let mut cur_p = resolve_posix_path(cwd, a);
+        let mut cur_p = if a.starts_with('/') || a.is_empty() { a.clone() } else { child_disp_path(cwd, a) };
         let mut cur_disp = a.clone();
         loop {
             if cur_p == "/" {
@@ -802,34 +802,11 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 code = 1;
                 break;
             }
-            if !fs.exists(&cur_p) && fs.lstat(&cur_p).is_err() {
-                stderr.push_str(&format!(
-                    "rmdir: ENOENT: no such file or directory, rmdir '{cur_p}'\n"
-                ));
-                code = 1;
-                break;
-            }
-            if !fs.is_dir(&cur_p) || fs.readlink(&cur_p).is_ok() {
-                stderr.push_str(&format!(
-                    "rmdir: ENOTDIR: not a directory, rmdir '{cur_p}'\n"
-                ));
-                code = 1;
-                break;
-            }
-            if let Ok(entries) = fs.list_dir(&cur_p)
-                && !entries.is_empty()
-            {
-                if !ignore_non_empty {
-                    stderr.push_str(&format!(
-                        "rmdir: ENOTEMPTY: directory not empty, rmdir '{cur_p}'\n"
-                    ));
+            if let Err(e) = fs.remove_one(&cur_p, true) {
+                if !ignore_non_empty || !e.starts_with("ENOTEMPTY:") {
+                    stderr.push_str(&format!("rmdir: {e}, rmdir '{cur_p}'\n"));
                     code = 1;
                 }
-                break;
-            }
-            if let Err(e) = fs.remove_path(&cur_p) {
-                stderr.push_str(&format!("rmdir: failed to remove '{cur_disp}': {e}\n"));
-                code = 1;
                 break;
             }
             if verbose {
@@ -1022,15 +999,6 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             *code = 1;
             return false;
         }
-        if is_real_dir && !recursive && dir_mode {
-            if fs.list_dir(&p).map(|e| !e.is_empty()).unwrap_or(false) {
-                stderr.push_str(&format!(
-                    "rm: ENOTEMPTY: directory not empty, rmdir '{p}'\n"
-                ));
-                *code = 1;
-                return false;
-            }
-        }
         if interactive == "always" {
             if is_real_dir && recursive {
                 let entries = fs.list_dir(&p).unwrap_or_default();
@@ -1082,7 +1050,10 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 return false;
             }
         }
-        match fs.remove_path(&p) {
+        let single = !recursive || interactive == "always";
+        let raw = if operand.starts_with('/') || operand.is_empty() { operand.to_owned() } else { child_disp_path(cwd, operand) };
+        let result = if single { fs.remove_one(&raw, is_real_dir) } else { fs.remove_path(&p) };
+        match result {
             Ok(()) => {
                 if verbose {
                     stdout.push_str(&format!("removed '{operand}'\n"));
@@ -1090,7 +1061,11 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 true
             }
             Err(e) => {
-                if !force {
+                if single && !(force && e.starts_with("ENOENT:")) {
+                    let op = if is_real_dir { "rmdir" } else { "rm" };
+                    stderr.push_str(&format!("rm: {e}, {op} '{raw}'\n"));
+                    *code = 1;
+                } else if !force {
                     stderr.push_str(&format!("rm: cannot remove '{operand}': {e}\n"));
                     *code = 1;
                 }

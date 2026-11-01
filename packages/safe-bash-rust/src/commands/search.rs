@@ -5544,25 +5544,13 @@ where
             if base == "." {
                 return true;
             }
-            let is_dir = st_opt
-                .map(|st| st.kind == VfsEntryKind::Directory)
-                .unwrap_or(false);
-            if is_dir {
-                if let Ok(entries) = state.fs.read_dir(full_path)
-                    && !entries.is_empty()
-                {
-                    state.err.push_str(&format!(
-                        "find: cannot delete '{disp_path}': Directory not empty\n"
-                    ));
-                    *state.exit_code = 1;
-                    return true;
-                }
-            }
-            if let Err(e) = state.fs.remove(full_path, false) {
-                state
-                    .err
-                    .push_str(&format!("find: cannot delete '{disp_path}': {e}\n"));
+            let directory = st_opt.is_some_and(|st| st.kind == VfsEntryKind::Directory)
+                && state.fs.lstat(full_path).is_ok_and(|st| st.kind == VfsEntryKind::Directory);
+            if let Err(e) = state.fs.remove_one(full_path, directory) {
+                let op = if directory { "rmdir" } else { "rm" };
+                state.err.push_str(&format!("find: {e}, {op} '{full_path}'\n"));
                 *state.exit_code = 1;
+                return false;
             }
             true
         }

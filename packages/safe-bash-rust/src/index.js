@@ -641,7 +641,7 @@ export class RustWasmBash {
       if (rc < 0) {
         const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
         const message = decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -rc));
-        throw fsErr(message.split(":", 1)[0], message);
+        throw fsOperationError(message, operation === 2 ? "rmdir" : "rm", filePath);
       }
     } finally {
       this._freeBytes(p);

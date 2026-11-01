@@ -117,6 +117,10 @@ pub trait SafeBashFs: Send + Sync {
         Err("ENOTSUP: operation not supported".into())
     }
     fn remove_path(&self, path: &str) -> Result<(), String>;
+    /// Unlink one file or remove one empty directory, without following the final entry.
+    fn remove_one(&self, _path: &str, _directory: bool) -> Result<(), String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
         mkdir::mkdir(path, recursive, mode, mkdir::Namespace::Direct, |p| (None, self, p.to_owned()))
     }
@@ -149,8 +153,8 @@ pub trait SafeBashFs: Send + Sync {
         self.list_dir(path)
     }
 
-    fn remove(&self, path: &str, _recursive: bool) -> Result<(), String> {
-        self.remove_path(path)
+    fn remove(&self, path: &str, recursive: bool) -> Result<(), String> {
+        if recursive { self.remove_path(path) } else { self.remove_one(path, false) }
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {

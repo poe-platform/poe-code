@@ -11080,39 +11080,25 @@ fn cmd_media_doc(
                     let bytes = fs.read_file(&full).unwrap_or_default();
                     let meta = read_image_meta(&bytes, &full);
                     let fmt_lower = meta.fmt.to_ascii_lowercase();
-                    if get_props.iter().any(|p| p == "allxml") {
-                        out.push_str(&format!(
-                            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plist version=\"1.0\"><dict><key>pixelWidth</key><integer>{}</integer><key>pixelHeight</key><integer>{}</integer><key>format</key><string>{fmt_lower}</string></dict></plist>\n",
-                            meta.w, meta.h
-                        ));
-                        continue;
-                    }
+                    let xml = get_props.iter().any(|p| p == "allxml");
                     let mut expanded_props = Vec::new();
                     for p in &get_props {
-                        if p == "all" {
-                            expanded_props.push("pixelWidth".to_string());
-                            expanded_props.push("pixelHeight".to_string());
-                            expanded_props.push("typeIdentifier".to_string());
-                            expanded_props.push("format".to_string());
-                            expanded_props.push("formatOptions".to_string());
-                            expanded_props.push("dpiWidth".to_string());
-                            expanded_props.push("dpiHeight".to_string());
-                            expanded_props.push("samplesPerPixel".to_string());
-                            expanded_props.push("bitsPerSample".to_string());
-                            expanded_props.push("hasAlpha".to_string());
-                            expanded_props.push("space".to_string());
-                            for k in meta.exif.keys() {
-                                if !k.starts_with("__") {
-                                    expanded_props.push(k.clone());
-                                }
+                        if xml || p == "all" {
+                            expanded_props.extend(["pixelWidth", "pixelHeight", "typeIdentifier", "format",
+                                "formatOptions", "dpiWidth", "dpiHeight", "samplesPerPixel", "bitsPerSample",
+                                "hasAlpha", "space"]);
+                            if xml {
+                                expanded_props.push("path");
+                                break;
                             }
+                            expanded_props.extend(meta.exif.keys().filter(|k| !k.starts_with("__")).map(String::as_str));
                         } else {
-                            expanded_props.push(p.clone());
+                            expanded_props.push(p.as_str());
                         }
                     }
                     let mut kvs = Vec::new();
-                    for p in &expanded_props {
-                        let val = match p.as_str() {
+                    for p in expanded_props {
+                        let val = match p {
                             "path" => f.to_string(),
                             "pixelWidth" => meta.w.to_string(),
                             "pixelHeight" => meta.h.to_string(),
@@ -11139,9 +11125,28 @@ fn cmd_media_doc(
                                 .cloned()
                                 .unwrap_or_else(|| "<nil>".to_string()),
                         };
-                        kvs.push((p.clone(), val));
+                        kvs.push((p, val));
                     }
-                    if one_line {
+                    if xml {
+                        out.push_str(concat!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
+                            "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n",
+                            "<plist version=\"1.0\">\n<dict>\n"));
+                        for (k, v) in kvs {
+                            out.push_str(&format!("  <key>{k}</key>\n  "));
+                            match k {
+                                "pixelWidth" | "pixelHeight" | "samplesPerPixel" | "bitsPerSample" =>
+                                    out.push_str(&format!("<integer>{v}</integer>\n")),
+                                "dpiWidth" | "dpiHeight" => {
+                                    let n = v.parse::<f64>().unwrap_or(f64::NAN);
+                                    let dpi = if n.fract() == 0. { n.to_string() } else { format!("{n:.3}") };
+                                    out.push_str(&format!("<real>{dpi}</real>\n"));
+                                }
+                                "hasAlpha" => out.push_str(if v == "yes" { "<true/>\n" } else { "<false/>\n" }),
+                                _ => out.push_str(&format!("<string>{}</string>\n", html_escape_str(&v).replace('\'', "&apos;"))),
+                            }
+                        }
+                        out.push_str("</dict>\n</plist>\n");
+                    } else if one_line {
                         out.push_str(f);
                         out.push('|');
                         for (k, v) in kvs {
@@ -13627,6 +13632,18 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn sips_allxml_emits_typed_properties_and_escapes_the_filename() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/a&b.png", &pixel_png(2, 1, PngEncoding::Density(72), |_, _| [1,2,3])).unwrap();
+        let r = cmd_media_doc("sips", &media_args(&["-g","allxml","a&b.png"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0);
+        assert!(r.stdout.contains("  <key>samplesPerPixel</key>\n  <integer>3</integer>"));
+        assert!(r.stdout.contains("  <key>dpiHeight</key>\n  <real>72</real>"));
+        assert!(r.stdout.contains("  <key>hasAlpha</key>\n  <false/>"));
+        assert!(r.stdout.ends_with("  <key>path</key>\n  <string>a&amp;b.png</string>\n</dict>\n</plist>\n"));
     }
 
     #[test]

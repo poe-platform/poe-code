@@ -1,4 +1,4 @@
-use super::JVal;
+use super::{JVal, JqFault};
 
 pub(super) fn index_value<'a>(base: &'a JVal, index: &JVal) -> Result<&'a JVal, String> {
     match (base, index) {
@@ -62,26 +62,28 @@ pub(super) fn path_slice(
     })
 }
 
-pub(super) fn indices(input: &JVal, sought: &JVal) -> Result<JVal, String> {
+pub(super) fn indices(input: &JVal, sought: &JVal) -> Result<JVal, JqFault> {
     match (input, sought) {
         (JVal::Str(s), JVal::Str(pattern)) => positions(s.as_bytes(), pattern.as_bytes()),
         (JVal::Null, JVal::Object(_)) => Ok(JVal::Null),
-        (JVal::Str(_) | JVal::Array(_), JVal::Object(bounds)) => path_slice(input, bounds, true),
+        (JVal::Str(_) | JVal::Array(_), JVal::Object(bounds)) => {
+            Ok(path_slice(input, bounds, true)?)
+        }
         (JVal::Array(items), JVal::Array(pattern)) => positions(items, pattern),
         (JVal::Array(items), scalar) => positions(items, std::slice::from_ref(scalar)),
-        _ => index_value(input, sought).cloned(),
+        _ => Ok(index_value(input, sought)?.clone()),
     }
 }
 
 // Keep the matched prefix after each hit so overlapping patterns take linear time.
-fn positions<T: PartialEq>(source: &[T], pattern: &[T]) -> Result<JVal, String> {
+fn positions<T: PartialEq>(source: &[T], pattern: &[T]) -> Result<JVal, JqFault> {
     let mut hits = Vec::new();
     if pattern.is_empty() || pattern.len() > source.len() {
         return Ok(JVal::Array(hits));
     }
     let memory = crate::ShellLimits::default().max_memory_bytes;
     if pattern.len() > memory / size_of::<usize>() {
-        return Err("__jq_limit:maxCollectionSize".into());
+        return Err(JqFault::Limit("maxCollectionSize"));
     }
     let mut prefixes = vec![0; pattern.len()];
     let mut matched = 0;
@@ -104,7 +106,7 @@ fn positions<T: PartialEq>(source: &[T], pattern: &[T]) -> Result<JVal, String> 
         }
         if matched == pattern.len() {
             if hits.len() >= (memory - size_of_val(prefixes.as_slice())) / size_of::<JVal>() {
-                return Err("__jq_limit:maxCollectionSize".into());
+                return Err(JqFault::Limit("maxCollectionSize"));
             }
             hits.push(JVal::Number((i + 1 - matched) as f64, None));
             matched = prefixes[matched - 1];

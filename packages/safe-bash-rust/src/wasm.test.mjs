@@ -3,6 +3,32 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq halt exits the program across catches and preserves prior output", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, status, stdout, stderr] of [
+      ["1,halt,2", 0, "1\n", ""],
+      ["halt()", 0, "", ""],
+      ["halt_error()", 5, "", ""],
+      ["try halt catch 9", 0, "", ""],
+      ["try halt_error(7) catch .", 7, "", ""],
+      ['"problem" | halt_error', 5, "", "problem"],
+      ["{a:2} | halt_error(259.9)", 3, "", '{"a":2}\n'],
+      ['"x" | halt_error(-2)', 0, "", "x"],
+      ["false | halt_error(empty), 1", 0, "1\n", ""],
+      ['"a" | try halt_error(false) catch .', 0, JSON.stringify('string ("a") halt_error/1: number required') + "\n", ""],
+      ['null | halt_error((6,error("never")))', 6, "", ""],
+      ["try error(nan) catch isnan", 0, "true\n", ""],
+      ['try error((1,error("later"))) catch .', 0, "1\n", ""],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [status, stdout, stderr], filter);
+    }
+    const stopped = await bash.exec("jq -c '.,halt' <<< $'1\\n2'");
+    assert.deepEqual([stopped.exitCode, stopped.stdout, stopped.stderr], [0, "1\n", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("jq searches byte offsets and overlapping subsequences for every pattern", async () => {
   const bash = new RustWasmBash();
   try {

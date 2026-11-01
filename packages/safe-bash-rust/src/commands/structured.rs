@@ -7,7 +7,7 @@ mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
 mod jq_generator;
-use jq_generator::{eval_jq, visit_jq};
+use jq_generator::{JqFault, eval_jq, visit_jq};
 use std::ops::ControlFlow;
 mod jq_index;
 mod jq_input;
@@ -1013,12 +1013,13 @@ fn cmd_jq_core(
                 last_truthy = invocation_last.or(last_truthy);
                 status = if !exit_status { 0 } else { match last_truthy { Some(true) => 0, Some(false) => 1, None => 4 } };
             }
-            Err(e) => {
-                if let Some(limit) = e.strip_prefix("__jq_limit:") {
-                    return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {limit} limit exceeded\n"), exit_code: 5 };
-                }
-                let error = e.strip_prefix("__jq_err:").and_then(|s| parse_single_json_strict(s).ok())
-                    .map(|value| value.to_raw_string(true, false)).unwrap_or(e);
+            Err(JqFault::Limit(limit)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {limit} limit exceeded\n"), exit_code: 5 },
+            Err(JqFault::Halt(exit_code, message)) => {
+                stderr.push_str(&message);
+                return BuiltinOutcome { stdout: out, stderr, exit_code };
+            }
+            Err(JqFault::Error(value)) => {
+                let error = value.to_raw_string(true, false);
                 let place = inputs.borrow_mut().location();
                 use std::fmt::Write;
                 writeln!(stderr, "jq: error (at {place}): {}", jq_input::diagnostic(&error, 1000)).unwrap();
@@ -1046,7 +1047,7 @@ fn eval_jq_atom(
     expr: &str,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
+) -> Result<Vec<JVal>, JqFault> {
     let s = expr.trim();
     if s.is_empty() || s == "." {
         return Ok(vec![input.clone()]);
@@ -1182,7 +1183,7 @@ fn eval_jq_atom(
         return eval_jq_path(s, input, vars);
     }
 
-    Err(format!("unsupported jq filter: {s}"))
+    Err(format!("unsupported jq filter: {s}").into())
 }
 
 fn is_jq_kw_at(chars: &[char], i: usize, kw: &[char]) -> bool {
@@ -1326,7 +1327,7 @@ fn resolve_jq_lhs_paths(
     lhs: &str,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Vec<Vec<JVal>>, String> {
+) -> Result<Vec<Vec<JVal>>, JqFault> {
     let mut s = lhs.trim();
     while s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
         s = s[1..s.len() - 1].trim();
@@ -1690,7 +1691,7 @@ fn try_eval_jq_builtin(
     s: &str,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Option<Vec<JVal>>, String> {
+) -> Result<Option<Vec<JVal>>, JqFault> {
     match s {
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),
@@ -1793,7 +1794,7 @@ fn try_eval_jq_builtin(
             let json = input.to_json_string(true,false,0);
             let summary = if json.len() < 15 {json} else {format!("{}...",String::from_utf8_lossy(&json.as_bytes()[..11]))};
             let reason = if s == "fromjson" {"only strings can be parsed"} else {"cannot be parsed as a number"};
-            return Err(format!("{} ({summary}) {reason}",input.type_name()));
+            return Err(format!("{} ({summary}) {reason}",input.type_name()).into());
         }
         "tostring" => {
             let st = match input {
@@ -1984,7 +1985,7 @@ fn try_eval_jq_builtin(
         "infinite" => return Ok(Some(vec![JVal::Number(f64::INFINITY, None)])),
         "trim" | "ltrim" | "rtrim" => {
             let JVal::Str(st) = input else {
-                return Err(format!("{s} requires a string"));
+                return Err(format!("{s} requires a string").into());
             };
             let res = match s {
                 "trim" => st.trim(),
@@ -1998,11 +1999,11 @@ fn try_eval_jq_builtin(
             if let Some(v) = vars.pop_input().map_err(|(_, e)| e)? {
                 return Ok(Some(vec![v]));
             }
-            return Err("break".to_string());
+            return Err("break".into());
         }
         "gmtime" => {
             let JVal::Number(n, _) = input else {
-                return Err("gmtime() requires numeric inputs".to_string());
+                return Err("gmtime() requires numeric inputs".into());
             };
             return Ok(Some(vec![JVal::Array(jq_gmtime(*n))]));
         }
@@ -2011,7 +2012,7 @@ fn try_eval_jq_builtin(
         }
         "@csv" | "@tsv" => {
             let JVal::Array(a) = input else {
-                return Err(format!("cannot be {s}-formatted, only array"));
+                return Err(format!("cannot be {s}-formatted, only array").into());
             };
             let sep = if s == "@csv" { "," } else { "\t" };
             let mut parts = Vec::with_capacity(a.len());
@@ -2035,7 +2036,7 @@ fn try_eval_jq_builtin(
                         parts.push(v.to_json_string(true, false, 0));
                     }
                     _ => {
-                        return Err(format!("cannot be {s}-formatted, only scalar"));
+                        return Err(format!("cannot be {s}-formatted, only scalar").into());
                     }
                 }
             }
@@ -2061,13 +2062,13 @@ fn try_eval_jq_builtin(
         "@sh" => {
             let vals = match input {
                 JVal::Array(a) => a.clone(),
-                JVal::Object(_) => return Err("cannot be sh-formatted".to_string()),
+                JVal::Object(_) => return Err("cannot be sh-formatted".into()),
                 other => vec![other.clone()],
             };
             let mut parts = Vec::with_capacity(vals.len());
             for v in &vals {
                 if matches!(v, JVal::Array(_) | JVal::Object(_)) {
-                    return Err("cannot be sh-formatted".to_string());
+                    return Err("cannot be sh-formatted".into());
                 }
                 let raw = v.to_raw_string(true, false);
                 parts.push(format!("'{}'", raw.replace('\'', "'\\''")));
@@ -2195,9 +2196,6 @@ fn try_eval_jq_builtin(
                 }
                 return Ok(Some(acc.into_iter().map(JVal::Array).collect()));
             }
-        }
-        "error" => {
-            return Err(format!("__jq_err:{}", input.to_json_string(true, false, 0)));
         }
         ".." | "recurse" => {
             let mut out = Vec::new();
@@ -2371,7 +2369,7 @@ fn try_eval_jq_builtin(
                         .map(|v| v.to_raw_string(true, false))
                         .unwrap_or_default();
                     let JVal::Str(st) = input else {
-                        return Err("strptime/1 requires string inputs".to_string());
+                        return Err("strptime/1 requires string inputs".into());
                     };
                     return Ok(Some(vec![JVal::Array(jq_strptime(st, &fmt)?)]));
                 }
@@ -2860,10 +2858,10 @@ fn try_eval_jq_builtin(
                             .next()
                             .unwrap_or(JVal::Null);
                         let JVal::Number(depth_f, _) = d_val else {
-                            return Err("flatten depth must be a number".to_string());
+                            return Err("flatten depth must be a number".into());
                         };
                         if depth_f.is_nan() || depth_f < 0.0 {
-                            return Err("flatten depth must not be negative".to_string());
+                            return Err("flatten depth must not be negative".into());
                         }
                         let eff_depth = if depth_f.is_infinite() || depth_f.fract() != 0.0 {
                             usize::MAX
@@ -2911,13 +2909,6 @@ fn try_eval_jq_builtin(
                         }
                         return Ok(Some(vec![JVal::Bool(res)]));
                     }
-                }
-                "error" => {
-                    let v = eval_jq(arg_expr, input, vars)?
-                        .into_iter()
-                        .next()
-                        .unwrap_or_else(|| input.clone());
-                    return Err(format!("__jq_err:{}", v.to_json_string(true, false, 0)));
                 }
                 "while" | "until" => {
                     if let Some((cond_e, step_e)) = split_jq_binary(arg_expr, ";") {
@@ -3019,7 +3010,7 @@ fn walk_jval(
     val: &JVal,
     f_expr: &str,
     vars: &JqScope<'_>,
-) -> Result<JVal, String> {
+) -> Result<JVal, JqFault> {
     let stepped = match val {
         JVal::Array(items) => {
             let mut new_items = Vec::with_capacity(items.len());
@@ -3167,7 +3158,7 @@ fn collect_jq_recurse_filter_cond(
     cond_expr: Option<&str>,
     vars: &JqScope<'_>,
     out: &mut Vec<JVal>,
-) -> Result<(), String> {
+) -> Result<(), JqFault> {
     if let Some(ce) = cond_expr {
         let ok = eval_jq(ce, val, vars)?
             .first()
@@ -3178,7 +3169,7 @@ fn collect_jq_recurse_filter_cond(
         }
     }
     out.push(val.clone());
-    let children = eval_jq(f_expr, val, vars).unwrap_or_default();
+    let children = eval_jq(f_expr, val, vars)?;
     for child in children {
         if !matches!(child, JVal::Null) {
             collect_jq_recurse_filter_cond(&child, f_expr, cond_expr, vars, out)?;
@@ -3362,13 +3353,13 @@ fn get_jq_jval_path(val: &JVal, segs: &[JVal]) -> JVal {
     }
 }
 
-fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) -> Result<(), String> {
+fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) -> Result<(), JqFault> {
     let Some((key, tail)) = segs.split_first() else {
         *val = new_val;
         return Ok(());
     };
     if segs.len() > 256 {
-        return Err("__jq_limit:maxDepth".into());
+        return Err(JqFault::Limit("maxDepth"));
     }
     if let Some((s, e)) = extract_jq_slice_seg(key) {
         if matches!(val, JVal::Null) {
@@ -3423,7 +3414,7 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) -> Result<(), 
             // Check before converting to a platform-sized index or allocating padding.
             if index >= (crate::ShellLimits::default().max_memory_bytes / size_of::<JVal>()) as f64
             {
-                return Err("__jq_limit:maxCollectionSize".into());
+                return Err(JqFault::Limit("maxCollectionSize"));
             }
             let index = index as usize;
             if matches!(val, JVal::Null) {
@@ -3434,7 +3425,7 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) -> Result<(), 
             };
             if index >= len {
                 arr.try_reserve_exact(index + 1 - len)
-                    .map_err(|_| "__jq_limit:maxCollectionSize")?;
+                    .map_err(|_| JqFault::Limit("maxCollectionSize"))?;
                 arr.resize(index + 1, JVal::Null);
             }
             set_jq_jval_path(&mut arr[index], tail, new_val)?;
@@ -3449,7 +3440,7 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) -> Result<(), 
                 "Cannot index {} with {}{detail}",
                 val.type_name(),
                 key.type_name()
-            ));
+            ).into());
         }
     }
     Ok(())
@@ -3608,7 +3599,7 @@ fn eval_jq_path(
     path: &str,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
+) -> Result<Vec<JVal>, JqFault> {
     eval_jq_path_with_root(path, input, input, vars)
 }
 
@@ -3617,7 +3608,7 @@ fn eval_jq_path_with_root(
     input: &JVal,
     dot_input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
+) -> Result<Vec<JVal>, JqFault> {
     let mut current = vec![input.clone()];
     let chars: Vec<char> = path.chars().collect();
     let mut i = 0usize;
@@ -3695,7 +3686,7 @@ fn eval_jq_path_with_root(
                         JVal::Object(o) => next.extend(o.iter().map(|(_, val)| val.clone())),
                         _ if optional => {}
                         other => {
-                            return Err(format!("cannot iterate over {}", other.type_name()));
+                            return Err(format!("cannot iterate over {}", other.type_name()).into());
                         }
                     }
                 }
@@ -3752,7 +3743,8 @@ fn eval_jq_path_with_root(
                     }
                 }
                 current = next;
-            } else if let Ok(idx_vals) = eval_jq(inside_trim, dot_input, vars) {
+            } else {
+                let idx_vals = eval_jq(inside_trim, dot_input, vars)?;
                 let mut next = Vec::new();
                 for idx_val in idx_vals {
                     match idx_val {
@@ -3864,7 +3856,7 @@ fn parse_jq_regex_args(
     arg: &str,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<(String, String), String> {
+) -> Result<(String, String), JqFault> {
     if let Some((pat_expr, flags_expr)) = split_jq_binary(arg, ";") {
         let pat = eval_jq(pat_expr.trim(), input, vars)?
             .first()
@@ -4019,7 +4011,7 @@ fn eval_jq_splits_regex(
     arg_expr: &str,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
+) -> Result<Vec<JVal>, JqFault> {
     let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
     let (clean_pat, _) = parse_jq_regex_groups(&pat);
     let case_i = flags.contains('i');
@@ -28464,7 +28456,7 @@ fn eval_jq_interpolated_strings_with_fmt(
     fmt_opt: Option<&str>,
     input: &JVal,
     vars: &JqScope<'_>,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, JqFault> {
     let chars: Vec<char> = inner.chars().collect();
     let mut i = 0usize;
     let mut acc: Vec<String> = vec![String::new()];

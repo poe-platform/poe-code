@@ -7,10 +7,27 @@ use super::{
 };
 use std::ops::ControlFlow::{self, Break, Continue};
 
-type Flow = Result<ControlFlow<()>, String>;
+#[derive(Debug)]
+pub(super) enum JqFault {
+    Error(JVal),
+    Limit(&'static str),
+    Halt(i32, String),
+}
+impl From<String> for JqFault {
+    fn from(s: String) -> Self {
+        Self::Error(JVal::Str(s))
+    }
+}
+impl From<&str> for JqFault {
+    fn from(s: &str) -> Self {
+        Self::Error(JVal::Str(s.into()))
+    }
+}
+
+type Flow = Result<ControlFlow<()>, JqFault>;
 type Emit<'a> = dyn FnMut(JVal) -> Flow + 'a;
 
-pub(super) fn eval_jq(expr: &str, input: &JVal, vars: &JqScope<'_>) -> Result<Vec<JVal>, String> {
+pub(super) fn eval_jq(expr: &str, input: &JVal, vars: &JqScope<'_>) -> Result<Vec<JVal>, JqFault> {
     let mut out = Vec::new();
     let _ = visit_jq(expr, input, vars, &mut |value| {
         out.push(value);
@@ -57,13 +74,11 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         let mut bound = vars.clone();
         bound.labels.insert(name.trim().into(), target);
         return protected(body, input, &bound, emit, |e, _| {
-            let matched = e
-                .strip_prefix("__jq_err:")
-                .and_then(|json| parse_single_json_strict(json).ok())
-                .is_some_and(|v| {
-                    v == JVal::Object(vec![("__jq".into(), JVal::Number(target as f64, None))])
-                });
-            if matched { Ok(Continue(())) } else { Err(e) }
+            if e == JVal::Object(vec![("__jq".into(), JVal::Number(target as f64, None))]) {
+                Ok(Continue(()))
+            } else {
+                Err(JqFault::Error(e))
+            }
         });
     }
     if s.contains('|')
@@ -77,7 +92,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             return emit(JVal::Str(vars.yq_path_meta(&pipes[1], &pipes[0])));
         }
         if pipes.len() > 128 {
-            return Err("maxAstDepth limit exceeded".into());
+            return Err(JqFault::Limit("maxAstDepth"));
         }
         return pipeline(&pipes, input, vars, emit);
     }
@@ -86,11 +101,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         let body = pair.as_ref().map_or(rest, |(body, _)| body);
         return protected(body, input, vars, emit, |e, emit| {
             if let Some((_, handler)) = &pair {
-                let value = e
-                    .strip_prefix("__jq_err:")
-                    .and_then(|s| parse_single_json_strict(s).ok())
-                    .unwrap_or(JVal::Str(e));
-                visit_jq(handler, &value, vars, emit)
+                visit_jq(handler, &e, vars, emit)
             } else {
                 Ok(Continue(()))
             }
@@ -125,7 +136,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s.starts_with("if") && super::is_jq_if_expr(s) {
         let (clauses, fallback) = super::jq_if_clauses(s);
         if clauses.len() > 128 {
-            return Err("maxAstDepth limit exceeded".into());
+            return Err(JqFault::Limit("maxAstDepth"));
         }
         let mut remaining = crate::ShellLimits::default().max_loop_iterations;
         return conditional(
@@ -207,7 +218,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         let mut remaining = crate::ShellLimits::default().max_loop_iterations;
         return visit_jq(right, input, vars, &mut |r| {
             visit_jq(left, input, vars, &mut |l| {
-                remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
                 let value = match op {
                     "==" | "!=" => {
                         let equal = match (&l, &r) {
@@ -267,7 +278,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         return visit_jq(&stages[0], input, vars, &mut |initial| {
             let mut acc = initial;
             let flow = visit_jq(source, source_input, vars, &mut |item| {
-                remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
                 let mut bound = vars.clone();
                 bound.bindings.insert(variable.to_owned(), item);
                 let previous = std::mem::replace(&mut acc, JVal::Null);
@@ -289,7 +300,10 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             emit(acc)
         });
     }
-    if !vars.functions.is_empty() || s.ends_with(')') {
+    if !vars.functions.is_empty()
+        || s.ends_with(')')
+        || matches!(s, "error" | "halt" | "halt_error")
+    {
         let (name, args) = s
             .find('(')
             .filter(|&pos| s.ends_with(')') && is_matching_outer_delim(&s[pos..], '(', ')'))
@@ -313,6 +327,18 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                     emit(index_value(&found, &JVal::Number(offset, None))?.clone())
                 }
             });
+        }
+        match (name, args.filter(|arg| !arg.trim().is_empty())) {
+            ("error", None) => return Err(JqFault::Error(input.clone())),
+            ("error", Some(filter)) => {
+                return visit_jq(filter, input, vars, &mut |v| Err(JqFault::Error(v)));
+            }
+            ("halt", None) => return Err(JqFault::Halt(0, String::new())),
+            ("halt_error", None) => return halt_error(input, JVal::Number(5.0, None)),
+            ("halt_error", Some(filter)) => {
+                return visit_jq(filter, input, vars, &mut |code| halt_error(input, code));
+            }
+            _ => {}
         }
         if let ("getpath", Some(filter)) = (name, args) {
             return visit_jq(filter, input, vars, &mut |candidate| {
@@ -448,7 +474,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                             let mut value = *start;
                             while (step > 0.0 && value < *stop) || (step < 0.0 && value > *stop) {
                                 remaining =
-                                    remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                                    remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
                                 if emit(if value == *start {
                                     a.clone()
                                 } else {
@@ -506,7 +532,10 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         .and_then(|s| s.trim_start().strip_prefix('$'))
         && let Some(id) = vars.labels.get(name.trim())
     {
-        return Err(format!("__jq_err:{{\"__jq\":{id}}}"));
+        return Err(JqFault::Error(JVal::Object(vec![(
+            "__jq".into(),
+            JVal::Number(*id as f64, None),
+        )])));
     }
     if s == "inputs" {
         while let Some(value) = vars.pop_input().map_err(|(_, e)| e)? {
@@ -540,32 +569,54 @@ fn iterate(value: &JVal, emit: &mut Emit<'_>) -> Flow {
                 }
             }
         }
-        scalar => {
-            let prefix;
-            let printable = if let JVal::Str(s) = scalar {
-                prefix = JVal::Str(s.chars().take(15).collect());
-                &prefix
-            } else {
-                scalar
-            };
-            let mut text = String::new();
+        scalar => return Err(format!("Cannot iterate over {}", describe(scalar)).into()),
+    }
+    Ok(Continue(()))
+}
+
+fn describe(scalar: &JVal) -> String {
+    let prefix;
+    let printable = if let JVal::Str(s) = scalar {
+        prefix = JVal::Str(s.chars().take(15).collect());
+        &prefix
+    } else {
+        scalar
+    };
+    let mut text = String::new();
+    super::JsonFormat {
+        indent: "",
+        strings: super::JsonStrings::Jq,
+        color: false,
+        sort_keys: false,
+    }
+    .write(printable, 0, &mut text);
+    if text.len() >= 15 {
+        text = format!("{}...", String::from_utf8_lossy(&text.as_bytes()[..11]));
+    }
+    format!("{} ({text})", scalar.type_name())
+}
+
+fn halt_error(input: &JVal, code: JVal) -> Flow {
+    let JVal::Number(n, _) = code else {
+        return Err(format!("{} halt_error/1: number required", describe(input)).into());
+    };
+    let message = match input {
+        JVal::Null => String::new(),
+        JVal::Str(s) => s.clone(),
+        v => {
+            let mut out = String::new();
             super::JsonFormat {
                 indent: "",
                 strings: super::JsonStrings::Jq,
                 color: false,
                 sort_keys: false,
             }
-            .write(printable, 0, &mut text);
-            if text.len() >= 15 {
-                text = format!("{}...", String::from_utf8_lossy(&text.as_bytes()[..11]));
-            }
-            return Err(format!(
-                "Cannot iterate over {} ({text})",
-                scalar.type_name()
-            ));
+            .write(v, 0, &mut out);
+            out.push('\n');
+            out
         }
-    }
-    Ok(Continue(()))
+    };
+    Err(JqFault::Halt((n.trunc().max(0.0) % 256.0) as i32, message))
 }
 
 pub(super) fn invoke<'a>(
@@ -599,7 +650,7 @@ pub(super) fn invoke<'a>(
         }
     }
     if values.len() > 128 {
-        return Some(Err("__jq_limit:maxAstDepth".into()));
+        return Some(Err(JqFault::Limit("maxAstDepth")));
     }
     fn bind<'a>(
         values: &[(&str, String)],
@@ -627,7 +678,7 @@ fn protected(
     input: &JVal,
     vars: &JqScope<'_>,
     emit: &mut Emit<'_>,
-    handle: impl FnOnce(String, &mut Emit<'_>) -> Flow,
+    handle: impl FnOnce(JVal, &mut Emit<'_>) -> Flow,
 ) -> Flow {
     let mut downstream = None;
     let result = visit_jq(body, input, vars, &mut |v| match emit(v) {
@@ -641,9 +692,7 @@ fn protected(
         return Err(e);
     }
     match result {
-        Err(e) if !e.starts_with("__jq_limit:") && vars.inputs.borrow().file_error.is_none() => {
-            handle(e, emit)
-        }
+        Err(JqFault::Error(e)) if vars.inputs.borrow().file_error.is_none() => handle(e, emit),
         other => other,
     }
 }
@@ -709,14 +758,14 @@ fn object(
             }
         }
         if depth >= 128 {
-            return Err("maxAstDepth limit exceeded".into());
+            return Err(JqFault::Limit("maxAstDepth"));
         }
         let mut field = |key| {
             let JVal::Str(name) = key else {
                 return Err("object keys must be strings".into());
             };
             let mut extend = |value| {
-                *remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                *remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
                 let mut next = entries.clone();
                 put(&mut next, name.clone(), value);
                 object(tail, next, input, vars, depth + 1, remaining, emit)
@@ -752,7 +801,7 @@ fn conditional(
         return visit_jq(fallback, input, vars, emit);
     };
     visit_jq(condition, input, vars, &mut |value| {
-        *remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+        *remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
         if value.is_truthy() {
             visit_jq(yes, input, vars, emit)
         } else {

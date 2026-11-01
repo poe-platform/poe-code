@@ -19,6 +19,16 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
 }
 
 #[test]
+fn recursive_jq_functions_return_a_diagnostic_and_leave_the_shell_usable() {
+    let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+    for filter in ["def f: f; f", "def f: f; path(f)", "def f: if . > 0 then .-1 | f else . end; 10000 | f"] {
+        let result = shell.exec(&format!("jq -n '{filter}'")).unwrap();
+        assert_eq!((result.exit_code, result.stderr.as_str()), (5, "jq: maxDepth limit exceeded\n"));
+    }
+    assert_eq!(shell.exec("echo ok").unwrap().stdout, "ok\n");
+}
+
+#[test]
 fn version_flags_follow_each_command_provider() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     for (command, version) in [

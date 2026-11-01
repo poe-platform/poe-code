@@ -290,6 +290,22 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("exhausted jq function and path recursion reports a limit and leaves the shell usable", () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const program of [
+      "def f: f; f",
+      "def f: . |= f; try f catch 0",
+      "def f: f; path(f)",
+      "def f: if . > 0 then .-1 | f else . end; 10000 | f",
+    ]) {
+      const r = bash.execSync("jq -n '" + program + "'");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", "jq: maxDepth limit exceeded\n"]);
+      assert.equal(bash.execSync("echo ok").stdout, "ok\n");
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq handles two hundred nested user calls without losing the shell", () => {
   const bash = new RustWasmBash();
   try {

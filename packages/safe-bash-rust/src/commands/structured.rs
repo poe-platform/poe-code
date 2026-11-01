@@ -27,6 +27,8 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 struct JqScope<'a> {
+    call_depth: usize,
+    stack_origin: usize,
     env: &'a BTreeMap<String, String>,
     functions: BTreeMap<String, BTreeMap<usize, Rc<JqFilter<'a>>>>,
     bindings: BTreeMap<String, JVal>,
@@ -904,7 +906,7 @@ fn cmd_jq_core(
         filter.unwrap_or_else(|| ".".to_string())
     };
     let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
-    let mut vars = JqScope { labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
+    let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
@@ -5172,7 +5174,7 @@ fn cmd_yq(
             other => other,
         };
         let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
-        let mut base_vars = JqScope { labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
+        let mut base_vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64, None));
             let name = eval_jq(s_exp, v, &base_vars)

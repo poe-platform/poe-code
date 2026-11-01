@@ -174,6 +174,9 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut reverse = false;
     let mut long = false;
     let mut inode = false;
+    let mut follow = false;
+    let mut human = false;
+    let mut time_key = "mtime";
     let mut indicator = "none";
     let mut quote_name = false;
     let mut ended = false;
@@ -188,6 +191,22 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         }
         if a == "--" {
             ended = true;
+            i += 1;
+            continue;
+        }
+        if a == "--time" || a.starts_with("--time=") {
+            let sel = if let Some(value) = a.strip_prefix("--time=") { value } else {
+                i += 1;
+                let Some(value) = args.get(i) else { return err_out("ls: option '--time' requires an argument\n", 2) };
+                value
+            };
+            let mut matches = ["mtime","modification","atime","access","use","ctime","status"].into_iter().filter(|s| s.starts_with(sel));
+            time_key = match (matches.next(), matches.next()) {
+                (Some("mtime" | "modification"), None) => "mtime",
+                (Some("atime" | "access" | "use"), None) => "atime",
+                (Some("ctime" | "status"), None) => "ctime",
+                _ => return err_out(&format!("ls: invalid argument '{sel}' for '--time'\n"), 2),
+            };
             i += 1;
             continue;
         }
@@ -261,7 +280,10 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             indicator = "file-type";
         } else if a == "--inode" {
             inode = true;
-        } else if matches!(a.as_str(), "--dereference" | "--human-readable") {
+        } else if a == "--dereference" {
+            follow = true;
+        } else if a == "--human-readable" {
+            human = true;
         } else if a.starts_with('-') && !a.starts_with("--") && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
@@ -292,7 +314,11 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'Q' => quote_name = true,
                     'l' => long = true,
                     'i' => inode = true,
-                    '1' | 'h' | 'u' | 'c' | 'L' => {}
+                    '1' => {}
+                    'h' => human = true,
+                    'L' => follow = true,
+                    'u' => time_key = "atime",
+                    'c' => time_key = "ctime",
                     other => return err_out(&format!("ls: invalid option -- '{other}'\n"), 2),
                 }
             }
@@ -307,260 +333,182 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         targets.push(".".to_string());
     }
 
+    if sort_mode == "name" && time_key != "mtime" && !long { sort_mode = "time"; }
+    struct Entry {
+        name: String,
+        path: String,
+        mode: u32,
+        stat: Option<FileStat>,
+        time: u64,
+    }
     let fmt_name = |name: &str| -> String {
-        if !quote_name {
-            return name.to_string();
-        }
-        let mut s = String::from("\"");
-        for ch in name.chars() {
-            match ch {
-                '"' => s.push_str("\\\""),
-                '\\' => s.push_str("\\\\"),
-                _ => s.push(ch),
+        let mut text = String::with_capacity(name.len() + 2);
+        if quote_name { text.push('"'); }
+        for b in name.bytes() {
+            match b {
+                b'"' if quote_name => text.push_str("\\\""),
+                7 if quote_name => text.push_str("\\a"),
+                8 => text.push_str("\\b"), 9 => text.push_str("\\t"),
+                10 => text.push_str("\\n"), 11 => text.push_str("\\v"),
+                12 => text.push_str("\\f"), 13 => text.push_str("\\r"),
+                b'\\' => text.push_str("\\\\"),
+                32..=126 => text.push(char::from(b)),
+                _ => text.push_str(&format!("\\{b:03o}")),
             }
         }
-        s.push('"');
-        s
+        if quote_name { text.push('"'); }
+        text
     };
-
-    let suffix_for = |full_path: &str| -> &'static str {
-        if indicator == "none" {
-            return "";
-        }
-        if fs
-            .readlink(full_path)
-            .is_ok()
-        {
-            if indicator == "file-type" || indicator == "classify" {
-                return "@";
+    let missing_target = |e: &str| e.starts_with("ENOENT:") || e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:") || e.ends_with("(os error 2)");
+    let inspect = |path: String, name: String, operand: bool| -> Result<Entry, String> {
+        let checked = |follow| fs.inspect_command_entry(&path, follow, "capabilitiesFor").map_err(|e| {
+            if e.contains(", capabilitiesFor '") || e.starts_with("EACCES:") && e.contains(", lstat '") { return e; }
+            let reason = if e.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+                else { e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason) };
+            format!("{reason}, {} '{path}'", if follow { "stat" } else { "lstat" })
+        });
+        let (mut physical, mut st) = checked(follow)?;
+        if operand && st.kind == VfsEntryKind::Symlink && !dir_only && !long && indicator != "classify" {
+            match checked(true) {
+                Ok((p, target)) if target.kind == VfsEntryKind::Directory => { physical = p; st = target; }
+                Err(e) if !missing_target(&e) => return Err(e),
+                _ => {}
             }
-            return "";
         }
-        if fs.is_dir(full_path) {
-            return "/";
-        }
-        if indicator == "classify" && fs.stat(full_path).map(|s| s.mode & 0o111 != 0).unwrap_or(false) {
-            return "*";
-        }
-        ""
+        let time = if time_key == "atime" {
+            atime_store().lock().ok().and_then(|m| m.get(&physical).copied()).unwrap_or(st.mtime_ms)
+        } else { st.mtime_ms };
+        Ok(Entry { name, path, mode: st.mode, stat: Some(st), time })
     };
-
-    let sort_items = |items: &mut Vec<(String, String)>| {
-        match sort_mode {
-            "time" => {
-                items.sort_by(|(da, pa), (db, pb)| {
-                    let ma = fs.lstat(pa).map(|s| s.mtime_ms).unwrap_or(0);
-                    let mb = fs.lstat(pb).map(|s| s.mtime_ms).unwrap_or(0);
-                    mb.cmp(&ma).then_with(|| da.cmp(db))
-                });
-            }
-            "size" => {
-                items.sort_by(|(da, pa), (db, pb)| {
-                    let sa = if fs.is_dir(pa) && fs.readlink(pa).is_err() {
-                        0
-                    } else {
-                        fs.lstat(pa).map(|s| s.size).unwrap_or(0)
-                    };
-                    let sb = if fs.is_dir(pb) && fs.readlink(pb).is_err() {
-                        0
-                    } else {
-                        fs.lstat(pb).map(|s| s.size).unwrap_or(0)
-                    };
-                    sb.cmp(&sa).then_with(|| da.cmp(db))
-                });
-            }
-            "version" => {
-                items.sort_by(|(da, _), (db, _)| natural_version_cmp(da, db));
-            }
-            "ext" => {
-                items.sort_by(|(da, _), (db, _)| {
-                    file_ext_key(da).cmp(file_ext_key(db)).then_with(|| da.cmp(db))
-                });
-            }
-            "none" => {}
-            _ => {
-                items.sort_by(|(da, _), (db, _)| da.cmp(db));
-            }
-        }
-        if reverse && sort_mode != "none" {
-            items.reverse();
-        }
+    let order = |entries: &mut [Entry], lexical: bool| {
+        if sort_mode == "none" { return; }
+        if sort_mode != "name" || !lexical { entries.sort_by(|a,b| {
+            (match sort_mode {
+                "time" => b.time.cmp(&a.time),
+                "size" => b.stat.as_ref().unwrap().size.cmp(&a.stat.as_ref().unwrap().size),
+                "version" => natural_version_cmp(&a.name, &b.name),
+                "ext" => file_ext_key(&a.name).encode_utf16().cmp(file_ext_key(&b.name).encode_utf16()),
+                _ => std::cmp::Ordering::Equal,
+            }).then_with(|| a.name.encode_utf16().cmp(b.name.encode_utf16()))
+        }); }
+        if reverse { entries.reverse(); }
     };
-
-    let mut file_targets: Vec<(String, String)> = Vec::new();
-    let mut dir_targets: Vec<(String, String)> = Vec::new();
+    let suffix = |mode: u32| match mode & 0o170000 {
+        0o040000 if indicator != "none" => "/",
+        0o120000 if matches!(indicator, "classify" | "file-type") => "@",
+        0o100000 if indicator == "classify" && mode & 0o111 != 0 => "*",
+        _ => "",
+    };
+    let render = |entry: &Entry, out: &mut String| -> Result<(), String> {
+        use std::fmt::Write;
+        let mut row = String::new();
+        if inode {
+            match entry.stat.as_ref().and_then(|s| s.identity.as_ref()) {
+                Some(EntryIdentity::Memory(_, ino) | EntryIdentity::Unix(_, ino) | EntryIdentity::OverlayDirectory { ino, .. }) => write!(row, "{ino} ").unwrap(),
+                None => row.push_str("? "),
+            }
+        }
+        if long {
+            let st = entry.stat.as_ref().unwrap();
+            let kind = match entry.mode & 0o170000 { 0o040000 => 'd', 0o120000 => 'l', 0o020000 => 'c', _ => '-' };
+            let size = if kind == 'c' { "?, ?".into() } else if human && st.size >= 1024 {
+                let bytes = st.size as u128;
+                let mut scale = 1024;
+                let mut units = "KMGTPEZY".chars();
+                let mut unit = units.next().unwrap();
+                while bytes > 1023 * scale { unit = units.next().unwrap(); scale *= 1024; }
+                let tenths = (bytes * 10).div_ceil(scale);
+                if tenths < 100 { format!("{}.{}{unit}", tenths / 10, tenths % 10) } else { format!("{}{unit}", bytes.div_ceil(scale)) }
+            } else { st.size.to_string() };
+            write!(row, "{kind}{} {} 0 0 {size} {} ", format_perm_9(st.mode), st.nlink, &format_iso_stat_timestamp(entry.time)[..16]).unwrap();
+        }
+        row.push_str(&fmt_name(&entry.name));
+        if long && entry.mode & 0o170000 == 0o120000 {
+            let target = fs.readlink(&entry.path)?;
+            row.push_str(" -> ");
+            row.push_str(&fmt_name(&target));
+            if matches!(indicator, "classify" | "file-type") {
+                match fs.inspect_command_entry(&entry.path, true, "stat") {
+                    Ok((_, st)) => row.push_str(suffix(st.mode)),
+                    Err(e) if missing_target(&e) => {}
+                    Err(e) => return Err(e),
+                }
+            }
+        } else { row.push_str(suffix(entry.mode)); }
+        out.push_str(&row);
+        out.push('\n');
+        Ok(())
+    };
+    let mut files = Vec::new();
+    let mut dirs = Vec::new();
     let mut stderr = String::new();
-    let mut code = 0;
-
-    fn lookup_error(error: &str, operand: &str) -> String {
-        if error.contains(", capabilitiesFor '") || (error.starts_with("EACCES:") && error.contains(", lstat '")) { return error.to_owned(); }
-        let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
-            else if error.starts_with("ENOTDIR:") { "ENOTDIR: not a directory" }
-            else if error.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
-            else { error.split_once(", ").map_or(error, |(reason, _)| reason) };
-        format!("{reason}, lstat '{operand}'")
-    }
-    for t in &targets {
-        let operand = if t.starts_with('/') || t.is_empty() { t.clone() } else { child_disp_path(cwd, t) };
-        let result = (|| {
-            let (entry, st) = fs.inspect_command_entry(&operand, false, "capabilitiesFor")?;
-            if st.kind == VfsEntryKind::Symlink {
-                match fs.inspect_command_entry(&operand, true, "capabilitiesFor") {
-                    Ok((_, target)) if target.kind == VfsEntryKind::Directory && !dir_only && indicator != "classify" && !long => return Ok((true,entry)),
-                    Err(e) if !e.starts_with("ENOENT:") && !e.starts_with("ENOTDIR:") && !e.starts_with("ELOOP:") && !e.ends_with("(os error 2)") => return Err(e),
-                    _ => {}
-                }
-            }
-            Ok((!dir_only && st.kind == VfsEntryKind::Directory,entry))
-        })();
-        match result {
-            Ok((true,_)) => dir_targets.push((t.clone(), operand)),
-            Ok((false,p)) => file_targets.push((t.clone(), p)),
-            Err(e) => {
-                stderr.push_str(&format!("ls: {}\n", lookup_error(&e, &operand)));
-                code = 1;
-            }
-        }
-    }
-
-    sort_items(&mut file_targets);
-    sort_items(&mut dir_targets);
-
     let mut out = String::new();
-    let mut output_written = false;
-
-    for (disp, p) in &file_targets {
-        out.push_str(&format!("{}{}\n", fmt_name(disp), suffix_for(p)));
-        output_written = true;
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    fn list_dir_tree(
-        disp: &str,
-        dir_p: &str,
-        show_header: bool,
-        show_all: bool,
-        show_dots: bool,
-        ignore_backups: bool,
-        recursive: bool,
-        need_stat: bool,
-        classify: bool,
-        fs: &dyn SafeBashFs,
-        sort_items: &dyn Fn(&mut Vec<(String, String)>),
-        suffix_for: &dyn Fn(&str) -> &'static str,
-        fmt_name: &dyn Fn(&str) -> String,
-        output_written: &mut bool,
-        out: &mut String,
-        stderr: &mut String,
-        code: &mut i32,
-    ) {
-        let physical = match fs.inspect_command_entry(dir_p, true, "capabilitiesFor") {
-            Ok((p, _)) => p,
-            Err(e) => {
-                stderr.push_str(&format!("ls: {}\n", lookup_error(&e, dir_p)));
-                *code = 1;
-                return;
-            }
-        };
-        if show_header {
-            if *output_written {
-                out.push('\n');
-            }
-            out.push_str(&format!("{}:\n", fmt_name(disp)));
-            *output_written = true;
+    let mut code = 0;
+    let mut error = |e: String| { stderr.push_str(&format!("ls: {e}\n")); code = 1; };
+    let header = targets.len() > 1 || recursive;
+    for name in targets {
+        match inspect(absolute_operand(cwd, &name), name, true) {
+            Ok(e) if !dir_only && e.mode & 0o170000 == 0o040000 => dirs.push(e),
+            Ok(e) => files.push(e),
+            Err(e) => error(e),
         }
-        match fs.list_dir(&physical) {
-            Ok(entries) => {
-                let mut children: Vec<(String, String)> = Vec::new();
+    }
+    order(&mut files, false);
+    order(&mut dirs, false);
+    for e in files { if let Err(e) = render(&e, &mut out) { error(e); } }
+    let needs_stat = long || inode || matches!(sort_mode, "size" | "time");
+    for root in dirs {
+        let mut pending = vec![(root, 0)];
+        let mut ancestors = Vec::new();
+        let result = (|| -> Result<(), String> {
+            while let Some((dir, depth)) = pending.pop() {
+                let physical = fs.access_path(&dir.path, true)?;
+                ancestors.truncate(depth);
+                if ancestors.contains(&physical) { return Err(format!("ELOOP: too many symbolic links encountered '{}'", dir.path)); }
+                if header {
+                    if !out.is_empty() { out.push('\n'); }
+                    out.push_str(&fmt_name(&dir.name));
+                    out.push_str(":\n");
+                }
+                let mut entries = fs.directory_entries(&physical, usize::MAX).map_err(|e| if e.starts_with("EACCES:") {
+                    format!("EACCES: permission denied, readdir '{}'", dir.path)
+                } else { e })?;
+                entries.sort_unstable_by(|(a,_), (b,_)| a.encode_utf16().cmp(b.encode_utf16()));
+                entries.retain(|(n,_)| (show_all || !n.starts_with('.')) && !(ignore_backups && n.ends_with('~')));
                 if show_dots {
-                    children.push((".".to_string(), physical.clone()));
-                    children.push(("..".to_string(), crate::vfs::dirname_posix_path(&physical)));
-                }
-                for e in entries {
-                    if !show_all && e.starts_with('.') {
-                        continue;
-                    }
-                    if ignore_backups && e.ends_with('~') {
-                        continue;
-                    }
-                    let pe = child_disp_path(&physical, &e);
-                    children.push((e, pe));
-                }
-                for (name, path) in &children {
-                    if (need_stat || classify && fs.lstat(path).is_ok_and(|s| s.kind == VfsEntryKind::File))
-                        && let Err(e) = fs.inspect_command_entry(&child_disp_path(dir_p, name), false, "capabilitiesFor") {
-                        stderr.push_str(&format!("ls: {}\n", lookup_error(&e, path)));
-                        *code = 1;
-                        return;
+                    for dot in [".", ".."] {
+                        let pos = entries.iter().position(|(n,_)| n.as_str() > dot).unwrap_or(entries.len());
+                        entries.insert(pos, (dot.into(), 0o040000));
                     }
                 }
-                sort_items(&mut children);
-                for (name, pe) in &children {
-                    out.push_str(&format!("{}{}\n", fmt_name(name), suffix_for(pe)));
-                    *output_written = true;
+                let mut children = Vec::with_capacity(entries.len());
+                let base = normalize_posix_path(&dir.path);
+                for (name, mode) in entries {
+                    let path = match name.as_str() {
+                        "." => base.clone(),
+                        ".." => crate::vfs::dirname_posix_path(&base),
+                        _ => child_disp_path(&base, &name),
+                    };
+                    children.push(if needs_stat || follow && mode == 0o120000 || indicator == "classify" && mode == 0o100000 {
+                        inspect(path, name, false)?
+                    } else { Entry { name, path, mode, stat: None, time: 0 } });
                 }
+                order(&mut children, true);
+                for child in &children { render(child, &mut out)?; }
                 if recursive {
-                    for (name, pe) in &children {
-                        if name == "." || name == ".." {
-                            continue;
-                        }
-                        if fs.is_dir(pe) && fs.readlink(pe).is_err() {
-                            let child_disp = child_disp_path(disp, name);
-                            list_dir_tree(
-                                &child_disp,
-                                &child_disp_path(dir_p, name),
-                                true,
-                                show_all,
-                                show_dots,
-                                ignore_backups,
-                                true,
-                                need_stat,
-                                classify,
-                                fs,
-                                sort_items,
-                                suffix_for,
-                                fmt_name,
-                                output_written,
-                                out,
-                                stderr,
-                                code,
-                            );
+                    ancestors.push(physical);
+                    for mut child in children.into_iter().rev() {
+                        if child.mode & 0o170000 == 0o040000 && child.name != "." && child.name != ".." {
+                            child.name = child_disp_path(&dir.name, &child.name);
+                            pending.push((child, depth + 1));
                         }
                     }
                 }
             }
-            Err(e) => {
-                if e.starts_with("EACCES:") {
-                    stderr.push_str(&format!("ls: EACCES: permission denied, readdir '{dir_p}'\n"));
-                } else { stderr.push_str(&format!("ls: {e}\n")); }
-                *code = 1;
-            }
-        }
+            Ok(())
+        })();
+        if let Err(e) = result { error(e); }
     }
-
-    let show_top_header = targets.len() > 1 || recursive;
-    for (disp, p) in &dir_targets {
-        list_dir_tree(
-            disp,
-            p,
-            show_top_header,
-            show_all,
-            show_dots,
-            ignore_backups,
-            recursive,
-            long || inode || matches!(sort_mode, "size" | "time"),
-            indicator == "classify",
-            fs,
-            &sort_items,
-            &suffix_for,
-            &fmt_name,
-            &mut output_written,
-            &mut out,
-            &mut stderr,
-            &mut code,
-        );
-    }
-
     BuiltinOutcome {
         stdout: out,
         stderr,
@@ -6900,6 +6848,36 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ls_directory_reads_are_lexical_even_without_a_sort_key() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/alpha", b"").unwrap();
+        fs.write_file("/\u{10000}", b"").unwrap();
+        fs.write_file("/\u{e000}", b"").unwrap();
+        assert_eq!(cmd_ls(&args(&["-U"]), "/", &fs).stdout, "alpha\ndev\n\\360\\220\\200\\200\n\\356\\200\\200\n");
+        fs.symlink(".", "/cycle").unwrap();
+        let result = cmd_ls(&args(&["-LR"]), "/", &fs);
+        assert_eq!(result.stderr, "ls: ELOOP: too many symbolic links encountered '/cycle'\n");
+        assert!(!result.stdout.contains("/cycle:"));
+    }
+
+    #[test]
+    fn ls_long_rows_follow_links_only_when_requested() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/d/prog", &vec![0; 1025]).unwrap();
+        fs.chmod("/d/prog", 0o4755).unwrap();
+        fs.hard_link("/d/prog", "/d/also").unwrap();
+        fs.symlink("prog", "/d/link").unwrap();
+        fs.set_mtime("/d/prog", 0).unwrap();
+        let ls = |flags, path| cmd_ls(&args(&[flags, path]), "/", &fs);
+        assert_eq!(ls("-lhFQ", "/d/prog").stdout, "-rwsr-xr-x 2 0 0 1.1K 1970-01-01 00:00 \"/d/prog\"*\n");
+        assert!(ls("-lF", "/d/link").stdout.ends_with(" /d/link -> prog*\n"));
+        assert_eq!(ls("-liL", "/d/link").stdout.split_once(' ').unwrap().0, ls("-i", "/d/also").stdout.split_once(' ').unwrap().0);
+        fs.symlink("absent", "/d/dangling").unwrap();
+        let failed = ls("-lL", "/d");
+        assert_eq!((failed.stdout.as_str(), failed.stderr.as_str()), ("", "ls: ENOENT: no such file or directory, stat '/d/dangling'\n"));
     }
 
     #[test]

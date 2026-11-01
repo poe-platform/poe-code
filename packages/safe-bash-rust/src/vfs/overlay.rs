@@ -60,8 +60,10 @@ impl OverlayVfs {
         let upper_id = upper.as_ref().and_then(|st| st.identity.clone());
         let mut st = match upper {
             Some(st) => st,
-            None if self.is_deleted(&norm) => return Err(format!("ENOENT: no such file or directory, lstat '{norm}'")),
-            None => self.lower.lstat(&norm)?,
+            None if self.is_deleted(&norm) => return Err(format!("ENOENT: no such file or directory, overlay '{norm}'")),
+            None => self.lower.lstat(&norm).map_err(|e| if e.starts_with("ENOENT:") {
+                format!("ENOENT: no such file or directory, overlay '{norm}'")
+            } else { e })?,
         };
         if st.kind == VfsEntryKind::Directory && self.upper.memory_backend().is_some() && self.lower.memory_backend().is_some()
             && let Some(EntryIdentity::Memory(dev, ino)) = st.identity {
@@ -122,11 +124,7 @@ impl OverlayVfs {
         let trimmed = path.trim_end_matches('/');
         if !recursive && matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
         if trimmed.is_empty() { return Err("EBUSY: resource busy or locked".into()); }
-        let entry = super::path::walk_path(if recursive { path } else { trimmed }, false, super::path::WalkPurpose::OverlayRemoval, |p| {
-            let backend: &dyn SafeBashFs = if self.upper.lstat(p).is_ok() { self.upper.as_ref() }
-                else if self.is_deleted(p) { self } else { self.lower.as_ref() };
-            (None, backend, p.to_owned())
-        })?;
+        let entry = self.access_path(if recursive { path } else { trimmed }, false)?;
         if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
         let st = self.lstat(&entry)?;
         if st.mode & 0o170000 == 0o020000 {
@@ -153,7 +151,7 @@ impl OverlayVfs {
 
 impl SafeBashFs for OverlayVfs {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        let norm = normalize_posix_path(path);
+        let norm = self.access_path(path, true)?;
         if self.upper.lstat(&norm).is_ok() {
             return self.upper.read_file(&norm);
         }
@@ -321,7 +319,7 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
-        let norm = normalize_posix_path(path);
+        let norm = self.access_path(path, true)?;
         if !self.is_dir(&norm) {
             return Err(format!("ENOENT: no such file or directory, scandir '{norm}'"));
         }
@@ -383,7 +381,7 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
-        super::path::walk_path(path, follow_final, super::path::WalkPurpose::Access, |p| {
+        super::path::walk_path(path, follow_final, super::path::WalkPurpose::OverlayAccess, |p| {
             let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) { &self.upper } else { &self.lower };
             (None, layer.as_ref(), p.to_owned())
         })
@@ -465,6 +463,18 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn direct_reads_through_a_confirmed_lower_link_use_the_visible_file_and_directory() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/dir/file", b"lower").unwrap();
+        lower.symlink("dir", "/alias").unwrap();
+        let fs = OverlayVfs::new(lower, Arc::new(MemoryVfs::new()));
+        fs.write_file("/dir/file", b"upper").unwrap();
+        fs.write_file("/dir/new", b"new").unwrap();
+        assert_eq!(fs.read_file("/alias/file").unwrap(), b"upper");
+        assert_eq!(fs.list_dir("/alias").unwrap(), ["file", "new"]);
+    }
 
     #[test]
     fn directory_scope_preserves_owned_copy_up_but_not_external_layer_replacements() {

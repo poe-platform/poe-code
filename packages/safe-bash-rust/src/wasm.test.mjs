@@ -511,6 +511,14 @@ test("copyFile preserves destinations on failed copies and applies the source mo
       await fs.symlink("new", "/dangling");
       await assert.rejects(fs.copyFile("/dir/source", "/alias", {exclusive:true}), {code:"EEXIST"});
       await assert.rejects(fs.copyFile("/dir/source", "/dangling", {exclusive:true}), {code:"EEXIST"});
+      if (profile === "overlay-cow-fs") {
+        // These links belong to the upper layer, while both targets still live only below.
+        await assert.rejects(fs.copyFile("/dir/source", "/same"), {code:"ENOENT"});
+        await assert.rejects(fs.copyFile("/same", "/alias"), {code:"ENOENT"});
+        assert.equal(bash.readText("/dest"), "keep");
+        await fs.writeFile("/dir/source", "bytes");
+        await fs.writeFile("/dest", "keep");
+      }
       await assert.rejects(fs.copyFile("/dir/source", "/same"), {code:"EINVAL"});
       await assert.rejects(fs.copyFile("/dir/source", "/missing/file"), {code:"ENOENT"});
       await assert.rejects(fs.copyFile("/dir/source", "/dest", {signal:AbortSignal.abort()}), {name:"AbortError"});
@@ -519,7 +527,7 @@ test("copyFile preserves destinations on failed copies and applies the source mo
       assert.equal(bash.readText("/dest"), "bytes");
       assert.equal((await fs.lstat("/dest")).mode & 0o777, 0o640);
       assert.equal(await fs.readlink("/alias"), "dest");
-      if (profile === "strict-budgets-mount-dev") {
+      if (profile) {
         await assert.rejects(fs.copyFile("/same", "/dangling"), {code:"ENOENT"});
         await fs.copyFile("/same", "/new");
       } else {
@@ -548,7 +556,7 @@ test("writeFile honors exclusive creation, append, permissions and cancellation"
       assert.equal((await fs.stat("/keep")).mode & 0o777, 0o640);
       await fs.symlink("new", "/link");
       await assert.rejects(fs.writeFile("/link", "no", {flag:"wx"}), {code:"EEXIST"});
-      if (profile === "strict-budgets-mount-dev") {
+      if (profile) {
         await assert.rejects(fs.writeFile("/link", "first", {flag:"a"}), {code:"ENOENT"});
         await fs.writeFile("/new", "first", {flag:"ax",mode:0o400});
       } else {
@@ -604,7 +612,7 @@ test("readFile enforces read and directory search permissions, byte caps, and ab
     const fs = bash.fs;
     try {
       for (const path of ["/secret", "/alias"]) {
-        await assert.rejects(fs.readFile(path), {name:"FsError",code:"EACCES",syscall:"readFile",path});
+        await assert.rejects(fs.readFile(path), {name:"FsError",code:"EACCES",syscall: profile === "overlay-cow-fs" ? "overlay" : "readFile",path: profile === "overlay-cow-fs" ? "/secret" : path});
       }
       await assert.rejects(fs.readFile("/dir"), {code:"EISDIR"});
       await assert.rejects(fs.readFile("/dir/file", {maxBytes:3}), {code:"EFBIG"});
@@ -661,6 +669,22 @@ test("stat identifies aliases, renames and replacements within one filesystem", 
     await a.fs.writeFile("/original", "replacement");
     assert.notDeepEqual(key(await a.fs.stat("/original")), key(original));
   } finally { a.dispose(); b.dispose(); }
+});
+
+test("overlay reads verify each followed link against the layer that owns it", async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/lower/file":"value"}});
+  const {fs} = bash;
+  try {
+    const alias = "/a:b'c";
+    await fs.symlink("lower", alias);
+    assert.equal((await fs.lstat(alias)).type, "symlink");
+    for (const op of ["stat", "readFile", "readdir", "realpath"]) {
+      await assert.rejects(fs[op](alias + "/file"), {code:"ENOENT", syscall:"realpath", path:alias + "/file"});
+    }
+    await assert.rejects(fs.lstat(alias + "/file"), {code:"ENOENT", syscall:"realpath", path:alias});
+    await fs.writeFile("/lower/file", "upper");
+    assert.equal(new TextDecoder().decode(await fs.readFile(alias + "/file")), "upper");
+  } finally { bash.dispose(); }
 });
 
 test("memory overlay directory scopes distinguish siblings and keep symlink aliases together", async () => {

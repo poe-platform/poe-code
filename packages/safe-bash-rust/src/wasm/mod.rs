@@ -20,6 +20,34 @@ struct WasmSession {
 }
 
 impl WasmSession {
+    // Fixed fields precede the operand, which can contain arbitrary punctuation.
+    fn read_error(&mut self, error: &str, operation: &str, path: &str, resolved: Option<&str>, limit_detail: Option<&str>) -> i32 {
+        let (code, reason) = error.split_once(':').unwrap_or(("EIO", error));
+        let mut op = operation;
+        let mut operand = path.to_owned();
+        let mut detail = limit_detail.unwrap_or("");
+        if self.profile == Profile::Overlay {
+            if limit_detail.is_some() { operand = resolved.unwrap_or(path).to_owned(); }
+            else {
+                op = "overlay";
+                operand = resolved.map(str::to_owned).unwrap_or_else(|| crate::vfs::normalize_posix_path(path));
+                if let Some((message, at)) = reason.split_once(", ")
+                    && let Some((syscall, arg)) = at.split_once(" '")
+                    && let Some(arg) = arg.strip_suffix('\'')
+                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat") {
+                    op = if syscall == "stat" { "overlay" } else { syscall };
+                    operand = arg.to_owned();
+                    if code == "ENOTSUP" { detail = message.trim_start(); }
+                }
+            }
+        } else if self.profile == Profile::Devices {
+            if !path.starts_with('/') { operand.insert(0, '/'); }
+            detail = "";
+        }
+        self.last_output_buf = format!("{code}:{op}:{detail}:{operand}").into_bytes();
+        -(self.last_output_buf.len() as i32)
+    }
+
     // The session lock covers validation and publication, including exclusive creates.
     fn write_target(&self, destination: &str, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
         let fs = &self.shell.fs;
@@ -306,9 +334,11 @@ pub unsafe extern "C" fn safe_bash_read_file(
     // their backend, and the overlay checks access before admitting the read.
     let invalid_limit = max_bytes < 0.0;
     let fs = &sess.shell.fs;
+    let mut resolved = None;
     let result = (|| {
         if sess.profile == Profile::Memory && invalid_limit { return Err("EINVAL: invalid argument".into()); }
         let p = fs.access_path(path, true)?;
+        resolved = Some(p.clone());
         let st = fs.lstat(&p)?;
         if sess.profile != Profile::Overlay && invalid_limit { return Err("EINVAL: invalid argument".into()); }
         let device = st.mode & 0o170000 == 0o020000;
@@ -326,10 +356,7 @@ pub unsafe extern "C" fn safe_bash_read_file(
             sess.last_output_buf = bytes;
             len
         }
-        Err(e) => {
-            sess.last_output_buf = e.into_bytes();
-            -(sess.last_output_buf.len() as i32)
-        }
+        Err(e) => sess.read_error(&e, "readFile", path, resolved.as_deref(), None),
     }
 }
 
@@ -344,10 +371,7 @@ pub unsafe extern "C" fn safe_bash_realpath(id: u32, ptr: *const u8, len: usize)
             sess.last_output_buf = p.into_bytes();
             sess.last_output_buf.len() as i32
         }
-        Err(e) => {
-            sess.last_output_buf = e.into_bytes();
-            -(sess.last_output_buf.len() as i32)
-        }
+        Err(e) => sess.read_error(&e, "realpath", path, None, None),
     }
 }
 
@@ -596,12 +620,7 @@ pub unsafe extern "C" fn safe_bash_stat(
             sess.last_output_buf = stat_bytes(st);
             sess.last_output_buf.len() as i32
         }
-        Err(e) => {
-            let code = e.split_once(':').map_or("EIO", |(code, _)| code);
-            let root = if sess.profile == Profile::Devices && !path.starts_with('/') { "/" } else { "" };
-            sess.last_output_buf = format!("{code}:{root}{path}").into_bytes();
-            -(sess.last_output_buf.len() as i32)
-        }
+        Err(e) => sess.read_error(&e, if follow != 0 { "stat" } else { "lstat" }, path, None, None),
     }
 }
 
@@ -656,24 +675,9 @@ pub unsafe extern "C" fn safe_bash_readdir(
             len
         }
         Err(e) => {
-            let code = e.split_once(':').map_or("EIO", |(c, _)| c);
-            let over = sess.profile == Profile::Overlay;
-            let bounded = code == "EFBIG" || typed && limit < 0.0;
-            let mut syscall = if over && !bounded { "overlay" } else { "readdir" };
-            let detail = if bounded && sess.profile != Profile::Devices {
-                if code == "EINVAL" { "directory entry limit must be a nonnegative safe integer or Infinity" }
-                else { "directory entry limit exceeded" }
-            } else { "" };
-            let mut operand = path.to_owned();
-            if over && !(typed && limit < 0.0) {
-                if code == "EACCES" && listing_path.is_some() && e.contains(", lstat '") { syscall = "lstat"; }
-                operand = e.split_once(", lstat '").or_else(|| e.split_once(", stat '"))
-                    .and_then(|(_, p)| p.strip_suffix('\'')).map(str::to_owned)
-                    .or(listing_path).unwrap_or_else(|| crate::vfs::normalize_posix_path(path));
-                if path.ends_with('/') && syscall == "overlay" { operand = crate::vfs::normalize_posix_path(&operand); }
-            } else if sess.profile == Profile::Devices && !path.starts_with('/') { operand.insert(0, '/'); }
-            sess.last_output_buf = format!("{code}:{syscall}:{detail}:{operand}").into_bytes();
-            -(sess.last_output_buf.len() as i32)
+            let limit_detail = if typed && limit < 0.0 { Some("directory entry limit must be a nonnegative safe integer or Infinity") }
+                else if e.starts_with("EFBIG:") { Some("directory entry limit exceeded") } else { None };
+            sess.read_error(&e, "readdir", path, listing_path.as_deref(), limit_detail)
         }
     }
 }

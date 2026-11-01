@@ -1142,6 +1142,9 @@ impl CopySettings {
 }
 
 fn copy_error(error: &str, op: &str, path: &str) -> String {
+    if error.split_once(", ").is_some_and(|(_, at)| at.starts_with("realpath '") || at.starts_with("overlay '")) {
+        return error.to_owned();
+    }
     let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
         else if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
         else { error.split_once(", ").map_or(error, |(reason, _)| reason) };
@@ -7198,6 +7201,20 @@ mod tests {
         let r = cmd_cp(&args(&["--preserve=links", "/first", "/second", "/dst"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "cp: ENOTSUP: operation not supported, cp '/dst/first'\n");
         assert!(!fs.exists("/dst/first"));
+    }
+
+    #[test]
+    fn copy_does_not_dereference_an_overlay_symlink_unconfirmed_by_its_layer() {
+        let lower = MemoryVfs::new();
+        lower.write_file("/src/below/data", b"lower").unwrap();
+        let upper = MemoryVfs::new();
+        upper.symlink("below", "/src/a").unwrap();
+        let fs = crate::vfs::OverlayVfs::new(std::sync::Arc::new(lower), std::sync::Arc::new(upper));
+        let r = cmd_cp(&args(&["-RL", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.stderr, "cp: ENOENT: no such file or directory, realpath '/src/a'\n");
+        assert_eq!(r.exit_code, 1);
+        assert!(!fs.exists("/dst/a"));
+        assert_eq!(fs.readlink("/src/a").unwrap(), "below");
     }
 
     #[test]

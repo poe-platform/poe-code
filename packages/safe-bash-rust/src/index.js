@@ -17,6 +17,10 @@ function fsOperationError(text, syscall, path, dest, detail) {
   if (dest !== undefined) error.dest = dest;
   return error;
 }
+function readOperationError(text) {
+  const codeEnd = text.indexOf(":"), opEnd = text.indexOf(":", codeEnd + 1), detailEnd = text.indexOf(":", opEnd + 1);
+  return fsOperationError(text, text.slice(codeEnd + 1, opEnd), text.slice(detailEnd + 1), undefined, text.slice(opEnd + 1, detailEnd) || undefined);
+}
 const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 
 let compiledWasmModule = null;
@@ -366,7 +370,7 @@ export class WasmFileSystem {
       if (len === -1) throw new Error("Wasm session unavailable");
       const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
       const text = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, Math.abs(len)));
-      if (len < 0) throw fsOperationError(text, "realpath", filePath);
+      if (len < 0) throw readOperationError(text);
       return text;
     } finally {
       bash._freeBytes(p);
@@ -646,7 +650,7 @@ export class RustWasmBash {
       if (len === -1) throw new Error("Wasm session unavailable");
       if (len < 0) {
         const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
-        throw fsOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -len)), "readFile", filePath);
+        throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -len)));
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       return new Uint8Array(this.exports.memory.buffer.slice(outPtr, outPtr + len));
@@ -732,7 +736,7 @@ export class RustWasmBash {
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       if (len < 0) {
         const error = decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, -len));
-        throw fsOperationError(error, follow ? "stat" : "lstat", error.slice(error.indexOf(":") + 1));
+        throw readOperationError(error);
       }
       return this._decodeStat(outPtr, len);
     } finally {
@@ -784,9 +788,7 @@ export class RustWasmBash {
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       if (len < 0) {
         const text = decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, -len));
-        const sep = text.indexOf(":"), end = text.indexOf(":", sep + 1);
-        const start = text.indexOf(":", end + 1);
-        throw fsOperationError(text, text.slice(sep + 1, end), text.slice(start + 1), undefined, text.slice(end + 1, start) || undefined);
+        throw readOperationError(text);
       }
       const view = new DataView(this.exports.memory.buffer, outPtr, len);
       const count = view.getUint32(0, true);

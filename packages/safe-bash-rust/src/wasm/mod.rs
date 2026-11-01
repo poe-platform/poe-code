@@ -27,15 +27,19 @@ impl WasmSession {
         let mut operand = path.to_owned();
         let mut detail = limit_detail.unwrap_or("");
         if self.profile == Profile::Overlay {
-            if limit_detail.is_some() { operand = resolved.unwrap_or(path).to_owned(); }
+            if matches!(operation, "symlink" | "readlink") && path.contains('\0') {
+                op = "resolve";
+                operand.clear();
+                detail = "paths must be strings without NUL bytes";
+            } else if limit_detail.is_some() { operand = resolved.unwrap_or(path).to_owned(); }
             else {
                 op = "overlay";
-                operand = resolved.map(str::to_owned).unwrap_or_else(|| crate::vfs::normalize_posix_path(path));
+                operand = resolved.map(str::to_owned).unwrap_or_else(|| if path.is_empty() { String::new() } else { crate::vfs::normalize_posix_path(path) });
                 if let Some((message, at)) = reason.split_once(", ")
                     && let Some((syscall, arg)) = at.split_once(" '")
                     && let Some(arg) = arg.strip_suffix('\'')
-                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat" | "writeFile") {
-                    op = if matches!(syscall, "stat" | "writeFile") { "overlay" } else { syscall };
+                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat" | "writeFile" | "symlink") {
+                    op = if matches!(syscall, "stat" | "writeFile" | "symlink") { "overlay" } else { syscall };
                     operand = arg.to_owned();
                     if code == "ENOTSUP" { detail = message.trim_start(); }
                 }
@@ -49,16 +53,19 @@ impl WasmSession {
     }
 
     // The session lock covers validation and publication, including exclusive creates.
-    fn write_target(&self, destination: &str, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
+    fn write_target(&self, operation: &str, destination: &str, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
         let fs = &self.shell.fs;
-        let operation = if source.is_some() { "copyFile" } else { "writeFile" };
         let to = fs.access_path(destination, !exclusive)?;
         let existing = match fs.lstat(&to) {
             Ok(st) => Some(st),
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
-        if source.is_none() && self.profile == Profile::Devices {
+        if self.profile == Profile::Devices && operation == "symlink" {
+            if to == "/" || to == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
+            if to.starts_with("/dev/") { return Err("ENOTSUP: operation not supported".into()); }
+        }
+        if operation == "writeFile" && self.profile == Profile::Devices {
             if to == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
             if to.starts_with("/dev/") && existing.is_none() { return Err("ENOENT: no such file or directory".into()); }
         }
@@ -85,7 +92,7 @@ impl WasmSession {
             return Err("EINVAL: invalid argument".into());
         }
         let fs = &self.shell.fs;
-        let (to, existing) = self.write_target(path, flag & 1 != 0, None)?;
+        let (to, existing) = self.write_target("writeFile", path, flag & 1 != 0, None)?;
         match existing {
             None => fs.create_file(&to, data, mode),
             Some(st) if flag & 2 != 0 && st.mode & 0o170000 != 0o020000 => fs.append_file(&to, data),
@@ -99,7 +106,7 @@ impl WasmSession {
         let origin = fs.lstat(&from)?;
         if origin.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
         if origin.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
-        let (to, existing) = self.write_target(destination, exclusive, Some((&from, &origin)))?;
+        let (to, existing) = self.write_target("copyFile", destination, exclusive, Some((&from, &origin)))?;
         let source_device = origin.mode & 0o170000 == 0o020000;
         let target_device = existing.is_some_and(|st| st.mode & 0o170000 == 0o020000);
         fs.write_file(&to, &fs.read_file(&from)?)?;
@@ -497,16 +504,18 @@ pub unsafe extern "C" fn safe_bash_symlink(
     let path = unsafe {
         str_from_raw(path_ptr, path_len)
     };
-    let Ok(map) = sessions().lock() else {
-        return -1;
-    };
-    let Some(sess) = map.get(&id) else {
-        return -1;
-    };
-    if sess.shell.fs.symlink(target, path).is_ok() {
-        0
-    } else {
-        -1
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    if target.is_empty() || target.contains('\0') {
+        if sess.profile == Profile::Overlay && target.contains('\0') {
+            return sess.read_error("EINVAL:", "resolve", "", None, Some("paths must be strings without NUL bytes"));
+        }
+        let operand = if sess.profile == Profile::Memory { target } else { path };
+        return sess.read_error(if target.is_empty() { "ENOENT:" } else { "EINVAL:" }, "symlink", operand, None, None);
+    }
+    match sess.write_target("symlink", path, true, None).and_then(|(to, _)| sess.shell.fs.symlink(target, &to)) {
+        Ok(()) => 0,
+        Err(e) => sess.read_error(&e, "symlink", path, None, None),
     }
 }
 
@@ -525,14 +534,19 @@ pub unsafe extern "C" fn safe_bash_readlink(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match sess.shell.fs.readlink(path) {
+    let fs = &sess.shell.fs;
+    let result = fs.access_path(path, false).and_then(|p| {
+        if fs.lstat(&p)?.kind != VfsEntryKind::Symlink { return Err("EINVAL: invalid argument".into()); }
+        fs.readlink(&p)
+    });
+    match result {
         Ok(target) => {
             let bytes = target.into_bytes();
             let len = bytes.len() as i32;
             sess.last_output_buf = bytes;
             len
         }
-        Err(_) => -1,
+        Err(e) => sess.read_error(&e, "readlink", path, None, None),
     }
 }
 

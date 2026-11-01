@@ -19,7 +19,8 @@ function fsOperationError(text, syscall, path, dest, detail) {
 }
 function readOperationError(text) {
   const codeEnd = text.indexOf(":"), opEnd = text.indexOf(":", codeEnd + 1), detailEnd = text.indexOf(":", opEnd + 1);
-  return fsOperationError(text, text.slice(codeEnd + 1, opEnd), text.slice(detailEnd + 1), undefined, text.slice(opEnd + 1, detailEnd) || undefined);
+  const op = text.slice(codeEnd + 1, opEnd);
+  return fsOperationError(text, op, op === "resolve" ? undefined : text.slice(detailEnd + 1), undefined, text.slice(opEnd + 1, detailEnd) || undefined);
 }
 const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 
@@ -245,27 +246,29 @@ export class WasmFileSystem {
     return this.bash.stat(filePath, false);
   }
 
-  async symlink(target, linkPath) {
+  async symlink(target, linkPath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.symlink) {
-        return this.bash._companion.fs.symlink(target, linkPath);
+        return this.bash._companion.fs.symlink(target, linkPath, options);
       }
     }
+    this.bash.symlink(target, linkPath);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
         run: (fs) => (fs.symlink ? fs.symlink(target, linkPath) : Promise.resolve()),
       });
     }
-    this.bash.symlink(target, linkPath);
   }
 
-  async readlink(linkPath) {
+  async readlink(linkPath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.readlink) {
-        return this.bash._companion.fs.readlink(linkPath);
+        return this.bash._companion.fs.readlink(linkPath, options);
       }
     }
     return this.bash.readlink(linkPath);
@@ -555,6 +558,7 @@ export class RustWasmBash {
     }
     if (options.symlinks) {
       for (const [linkPath, target] of Object.entries(options.symlinks)) {
+        this.mkdirAll(path.posix.dirname(linkPath));
         this.symlink(target, linkPath);
       }
     }
@@ -682,8 +686,10 @@ export class RustWasmBash {
     const p = this._allocBytes(encoder.encode(linkPath));
     try {
       const rc = this.exports.safe_bash_symlink(this.sessionId, t.ptr, t.len, p.ptr, p.len);
+      if (rc === -1) throw new Error("Wasm session unavailable");
       if (rc < 0) {
-        throw fsErr('EEXIST', `EEXIST: cannot create symlink '${linkPath}'`);
+        const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+        throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -rc)));
       }
     } finally {
       this._freeBytes(t);
@@ -695,10 +701,9 @@ export class RustWasmBash {
     const p = this._allocBytes(encoder.encode(linkPath));
     try {
       const len = this.exports.safe_bash_readlink(this.sessionId, p.ptr, p.len);
-      if (len < 0) {
-        throw fsErr('EINVAL', `EINVAL: cannot readlink '${linkPath}'`);
-      }
+      if (len === -1) throw new Error("Wasm session unavailable");
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
+      if (len < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, -len)));
       return decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, len));
     } finally {
       this._freeBytes(p);

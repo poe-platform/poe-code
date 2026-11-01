@@ -78,8 +78,8 @@ export class WasmFileSystem {
   readdir(dirPath: string, options?: { maxEntries?: number; signal?: AbortSignal }): Promise<{name: string; type: WasmFileStat["type"]}[]>;
   stat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;
   lstat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;
-  symlink(target: string, linkPath: string): Promise<void>;
-  readlink(linkPath: string): Promise<string>;
+  symlink(target: string, linkPath: string, options?: { signal?: AbortSignal }): Promise<void>;
+  readlink(linkPath: string, options?: { signal?: AbortSignal }): Promise<string>;
   chmod(filePath: string, mode: number): Promise<void>;
   unlink(filePath: string, options?: { signal?: AbortSignal }): Promise<void>;
   rm(filePath: string, options?: { recursive?: boolean; force?: boolean; signal?: AbortSignal }): Promise<void>;

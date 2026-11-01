@@ -3,6 +3,24 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("symbolic links validate the parent before mutation and report the failing operand", async () => {
+  const bash = new RustWasmBash({deviceView: "provided", files: {"/locked/file": "keep"}, symlinks: {"/seed/link": "absent"}});
+  try {
+    const fs = bash.fs;
+    await fs.chmod("/locked", 0o555);
+    await assert.rejects(fs.symlink("x", "/missing/link"), {code: "ENOENT", syscall: "symlink", path: "/missing/link"});
+    await assert.rejects(fs.stat("/missing"), {code: "ENOENT"});
+    await assert.rejects(fs.symlink("x", "/locked/link"), {code: "EACCES"});
+    await assert.rejects(fs.readlink("/missing/link"), {code: "ENOENT", syscall: "readlink"});
+    await assert.rejects(fs.readlink("/locked/file"), {code: "EINVAL"});
+    assert.equal(await fs.readlink("/seed/link"), "absent");
+    const signal = AbortSignal.abort(new Error("cancelled"));
+    await assert.rejects(fs.symlink("x", "/bad", {signal}), /cancelled/);
+    await assert.rejects(fs.readlink("/seed/link", {signal}), /cancelled/);
+    await assert.rejects(fs.lstat("/bad"), {code: "ENOENT"});
+  } finally { bash.dispose(); }
+});
+
 test("gzip compresses repeated bytes and interoperates with an independent decoder", () => {
   const payload = Buffer.from("a repeatable log message\n".repeat(4096));
   const bash = new RustWasmBash({ files: { "/input": payload } });

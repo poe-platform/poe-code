@@ -3,7 +3,6 @@
 use super::{Shape, advance};
 #[path = "raster_shapes.rs"]
 mod shapes;
-use crate::commands::archive::parse_color;
 pub(super) use shapes::BoxStyle;
 use std::ops::RangeInclusive;
 
@@ -52,25 +51,15 @@ impl Frame {
         width: usize,
         height: usize,
         scale: f64,
-        bg: &str,
+        bg: [u8; 4],
         limit: usize,
     ) -> Result<Self, String> {
         let n = width
             .checked_mul(height)
             .filter(|n| *n <= limit / 4)
             .ok_or("mmdc: E_LIMIT: Raster pixel limit exceeded\n")?;
-        let mut c =
-            if bg.trim().eq_ignore_ascii_case("gray") || bg.trim().eq_ignore_ascii_case("grey") {
-                [128, 128, 128, 255]
-            } else {
-                parse_color(bg)
-                    .map_err(|_| format!("mmdc: E_CONFIG: Unsupported color format '{bg}'\n"))?
-            };
-        if c[3] == 0 {
-            c = [0; 4];
-        }
         Ok(Self {
-            pixels: vec![c; n],
+            pixels: vec![if bg[3] == 0 { [0; 4] } else { bg }; n],
             width,
             height,
             scale,
@@ -333,7 +322,7 @@ impl super::Scene {
         width: f64,
         height: f64,
         scale: f64,
-        bg: &str,
+        bg: [u8; 4],
         format: &str,
         limit: usize,
     ) -> Result<Vec<u8>, String> {

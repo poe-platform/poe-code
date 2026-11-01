@@ -77,8 +77,8 @@ fn number(text: &str) -> f64 {
     text.parse().unwrap_or(f64::NAN)
 }
 
-fn css_color(raw: &str) -> Result<Color<'_>, String> {
-    let lower = raw.to_ascii_lowercase();
+pub(in super::super) fn css_color(raw: &str) -> Result<Color<'_>, String> {
+    let lower = raw.trim().to_ascii_lowercase();
     let rgba = if let Some(hex) = lower.strip_prefix('#') {
         if !matches!(hex.len(), 3 | 4 | 6 | 8) || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err(format!("mmdc: E_CONFIG: Invalid hex color '{raw}'\n"));
@@ -111,7 +111,7 @@ fn css_color(raw: &str) -> Result<Color<'_>, String> {
         css_named_color(&lower)
             .ok_or_else(|| format!("mmdc: E_CONFIG: Unsupported color format '{raw}'\n"))?
     };
-    Ok((raw, rgba))
+    Ok((raw.trim(), rgba))
 }
 
 #[derive(Default)]

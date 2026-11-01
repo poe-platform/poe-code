@@ -29645,33 +29645,44 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (String::new(), String::new())
     };
 
-    let scene = if first_word == "pie" {
-        match mermaid::pie::Pie::parse(first_stmt,&src_text,fs.max_input_bytes()) {
-            Ok(pie) => {
-                acc_title=pie.title.clone();
-                Some(pie.layout(&resolved_theme))
-            }
-            Err(message)=>return err_out(&message,1),
+    let limit = fs.max_input_bytes();
+    let pie = if first_word == "pie" {
+        match mermaid::pie::Pie::parse(first_stmt, &src_text, limit) {
+            Ok(pie) => Some(pie),
+            Err(message) => return err_out(&message, 1),
         }
-    } else {
-        match mermaid::layout(scanned.as_deref().unwrap_or_default(), &resolved_theme, &id_prefix, &mut acc_title, &mut acc_descr, fs.max_input_bytes()) {
-            Some(Ok(scene)) => Some(scene),
+    } else { None };
+    let flow = if let Some(stmts) = &scanned {
+        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, limit) {
+            Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
-                if let Some(stmts) = &scanned {
-                    content_lines.clear();
-                    for stmt in stmts {
-                        match stmt.read_metadata(&mut acc_title, &mut acc_descr) {
-                            Ok(false) => content_lines.push(stmt.text.trim_end()),
-                            Ok(true) => (),
-                            Err(error) => return err_out(&error, 1),
-                        }
+                content_lines.clear();
+                for stmt in stmts {
+                    match stmt.read_metadata(&mut acc_title, &mut acc_descr) {
+                        Ok(false) => content_lines.push(stmt.text.trim_end()),
+                        Ok(true) => (),
+                        Err(error) => return err_out(&error, 1),
                     }
                 }
                 None
             }
         }
+    } else { None };
+    let (bg_color, bg_rgba) = match mermaid::css_color(&bg_color) {
+        Ok(color) => color,
+        Err(error) => return err_out(&error, 2),
     };
+    let scene = if let Some(pie) = pie {
+        acc_title = pie.title.clone();
+        Some(pie.layout(&resolved_theme))
+    } else if let Some(graph) = flow {
+        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), limit) {
+            Some(Ok(scene)) => Some(scene),
+            Some(Err(message)) => return err_out(&message, 1),
+            None => None,
+        }
+    } else { None };
     let (vw, vh) = scene.as_ref().map_or((f64::from(width), f64::from(height)), |s| (s.width, s.height));
     let (width, height) = match (scene.is_some(), cli_width.or(cfg_width), cli_height.or(cfg_height)) {
         (true, Some(w), None) => (f64::from(w), (f64::from(w) * vh / vw).round().max(1.)),
@@ -29679,7 +29690,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (true, None, None) => (vw, vh),
         _ => (f64::from(width), f64::from(height)),
     };
-    let raster = if output_format=="svg"{None}else{scene.as_ref().map(|s|s.raster(width,height,scale,&bg_color,&output_format,fs.max_input_bytes()))};
+    let raster = if output_format=="svg"{None}else{scene.as_ref().map(|s|s.raster(width,height,scale,bg_rgba,&output_format,fs.max_input_bytes()))};
     let out_bytes: Vec<u8> = if let Some(result)=raster {
         match result {Ok(bytes)=>bytes,Err(e)=>return err_out(&e,1)}
     } else if output_format == "png" {
@@ -29730,10 +29741,10 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         parts.push(format!(
             "<defs><filter id=\"{id_prefix}mmdc-shadow\" x=\"-12%\" y=\"-12%\" width=\"124%\" height=\"132%\"><feDropShadow dx=\"0\" dy=\"1.5\" stdDeviation=\"2.5\" flood-color=\"{shadow_col}\"/></filter><marker id=\"{id_prefix}mmdc-dart\" viewBox=\"0 0 9 7\" refX=\"9\" refY=\"3.5\" markerWidth=\"9\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z\" fill=\"{edge_col}\" stroke-linejoin=\"round\"/></marker></defs>"
         ));
-        if bg_color.trim().to_ascii_lowercase() != "transparent" {
+        if !bg_color.eq_ignore_ascii_case("transparent") {
             parts.push(format!(
                 "<rect width=\"{vw}\" height=\"{vh}\" fill=\"{}\"/>",
-                escape_mmdc_xml(bg_color.trim())
+                escape_mmdc_xml(bg_color)
             ));
         }
         let standard_svg = scene.is_some();
@@ -38351,6 +38362,29 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(result.exit_code, 1);
         assert_eq!(result.stderr, "mmdc: E_LIMIT: Render work budget exceeded\n");
         assert_eq!(fs.read_file("/d.svg").unwrap(), b"previous");
+    }
+
+    #[test]
+    fn mmdc_validates_backgrounds_after_parsing_before_rendering() {
+        let fs=MemoryVfs::new();
+        for (source,color,status,message) in [
+            ("flowchart TD; A-->B","gray30",2,"E_CONFIG: Unsupported color format 'gray30'"),
+            ("pie\n \"One\":1"," #aaaaa ",2,"E_CONFIG: Invalid hex color ' #aaaaa '"),
+            ("flowchart TD; A-->","bogus",1,"E_SYNTAX (line 1, column 19): Expected node identifier at ''"),
+            ("flowchart TD; A-->A; A-->A; B","bogus",2,"E_CONFIG: Unsupported color format 'bogus'"),
+        ] {
+            for path in ["/d.svg","/d.png","/d.pdf"] {
+                fs.write_file(path,b"previous").unwrap();
+                let result=try_run_structured_command("mmdc",&args(&["-i","-","-o",path,"-b",color]),source,"/",&BTreeMap::new(),&fs).unwrap();
+                assert_eq!(result.exit_code,status);
+                assert_eq!(result.stderr,format!("mmdc: {message}\n"));
+                assert_eq!(fs.read_file(path).unwrap(),b"previous");
+            }
+        }
+        let result=try_run_structured_command("mmdc",&args(&["-i","-","-o","/d.png","-b","rgb(0xff, 0, 1)"]),"flowchart LR; A-->B","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(result.exit_code,0);
+        let pixels=crate::commands::archive::sha256_bytes(&fs.read_file("/d.png").unwrap());
+        assert_eq!(pixels.iter().map(|b|format!("{b:02x}")).collect::<String>(),"0349ed045c32daaef5e796406ad22280261dee587060401fbfa17c716d6b2889");
     }
 
     #[test]

@@ -19,6 +19,7 @@ use scanner::Statement;
 #[path = "mermaid/styles.rs"]
 mod styles;
 use styles::Styles;
+pub(super) use styles::css_color;
 
 pub(super) struct Scene {
     pub width: f64,
@@ -413,14 +414,20 @@ impl Pill {
     }
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
-pub(super) fn layout(
-    lines: &[Statement],
-    theme: &str,
-    prefix: &str,
+pub(super) struct Flowchart<'a> {
+    nodes: Vec<Node>,
+    edges: Vec<Edge<'static>>,
+    hrefs: BTreeMap<&'a str, &'a str>,
+    styles: Styles<'a>,
+    dir: &'a str,
+}
+
+pub(super) fn parse<'a>(
+    lines: &'a [Statement],
     title: &mut Option<String>,
     description: &mut Option<String>,
     limit: usize,
-) -> Option<Result<Scene, String>> {
+) -> Option<Result<Flowchart<'a>, String>> {
     let mut stmts = lines.iter();
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
@@ -574,6 +581,29 @@ pub(super) fn layout(
     if nodes.len() > limit / 300 {
         return None;
     }
+    Some(Ok(Flowchart {
+        nodes,
+        edges,
+        hrefs,
+        styles,
+        dir,
+    }))
+}
+
+pub(super) fn layout(
+    graph: Flowchart<'_>,
+    theme: &str,
+    prefix: &str,
+    title: Option<&str>,
+    limit: usize,
+) -> Option<Result<Scene, String>> {
+    let Flowchart {
+        mut nodes,
+        edges,
+        hrefs,
+        mut styles,
+        dir,
+    } = graph;
     let mut pairs = BTreeMap::new();
     for &(a, b, _, _) in &edges {
         if a != b {
@@ -955,7 +985,7 @@ pub(super) fn layout(
     }
     let mut width = f64::from(width);
     let mut height = f64::from(height);
-    if let Some(t) = title.as_deref() {
+    if let Some(t) = title {
         let text_width = measure(t, 16., true);
         width = width.max(text_width + 64.);
         let fill = if dark { "#1e293b" } else { "#ffffff" };

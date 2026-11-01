@@ -126,6 +126,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             current = dirname_posix_path(&current);
             continue;
         }
+        if access && part.len() > 255 { return Err("ENAMETOOLONG: name too long".into()); }
         let candidate = format!("{}/{part}", current.trim_end_matches('/'));
         let (prefix, backend, relative) = location(&candidate);
         if boundary.is_some() && boundary != prefix {

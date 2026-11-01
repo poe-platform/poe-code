@@ -83,6 +83,7 @@ export class WasmFileSystem {
     truncate?: boolean; append?: boolean; mode?: number; exactMode?: boolean; noFollow?: boolean;
     synchronization?: "data" | "all"; signal?: AbortSignal;
   }): Promise<WasmFileDescriptor>;
+  link(oldPath: string, newPath: string, options?: { signal?: AbortSignal }): Promise<void>;
   rename(oldPath: string, newPath: string, options?: { noReplace?: boolean; signal?: AbortSignal }): Promise<void>;
   copyFile(srcPath: string, destPath: string, options?: { exclusive?: boolean; signal?: AbortSignal }): Promise<void>;
   statfs(targetPath?: string): Promise<Record<string, number>>;

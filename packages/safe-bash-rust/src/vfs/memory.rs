@@ -114,6 +114,10 @@ pub(crate) enum Devices {
 }
 
 impl Devices {
+    fn protects_hard_link(self, path: &str) -> bool {
+        self != Self::None && (path == "/" || self.entry(path).is_some())
+    }
+
     fn entry(self, path: &str) -> Option<&str> {
         let name = match self {
             Self::None => return None,
@@ -914,16 +918,19 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn supports_hard_links(&self, path: &str) -> bool {
-        self.state.read().is_ok_and(|s| s.devices != Devices::Mounted && s.devices.entry(path).is_none())
+        self.state.read().is_ok_and(|s| s.devices != Devices::Mounted && !s.devices.protects_hard_link(path))
     }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
-        if state.devices.entry(source).is_some() { return Err("EBUSY: resource busy or locked".into()); }
+        if state.devices == Devices::Mounted { return Err("ENOTSUP: operation not supported".into()); }
         let src = Self::mutation_entry(&state, source)?;
-        let dst = Self::mutation_entry(&state, destination)?;
-        if state.devices == Devices::Mounted || state.devices.entry(&src).is_some() { return Err("ENOTSUP: operation not supported".into()); }
+        if state.devices.protects_hard_link(&src) { return Err("EBUSY: resource busy or locked".into()); }
         let node = state.nodes.get(&src).ok_or("ENOENT: no such file or directory")?.clone();
+        if matches!(node, MemoryNode::Directory { .. }) { return Err("EPERM: operation not permitted".into()); }
+        let dst = Self::mutation_entry(&state, destination)?;
+        if state.devices.protects_hard_link(&dst) { return Err("EBUSY: resource busy or locked".into()); }
+        if state.nodes.contains_key(&dst) { return Err("EEXIST: file already exists".into()); }
         if !matches!(state.nodes.get(&super::dirname_posix_path(&dst)), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
             return Err("EACCES: permission denied".into());
         }

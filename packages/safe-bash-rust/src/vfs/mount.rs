@@ -250,9 +250,14 @@ impl SafeBashFs for MountVfs {
     }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
-        let (mount, fs, from) = self.location(&self.resolve(source, false, WalkPurpose::Rename)?);
-        let (other, _, to) = self.location(&self.resolve(destination, false, WalkPurpose::Rename)?);
-        if fs.lstat(&from)?.mode & 0o170000 == 0o020000 { return Err("EBUSY: resource busy or locked".into()); }
+        let from_path = self.access_path(source, false)?;
+        let (mount, fs, from) = self.location(&from_path);
+        fs.lstat(&from)?;
+        let to_path = self.access_path(destination, false)?;
+        if [&from_path, &to_path].into_iter().any(|p| p == "/" || self.mounts.keys().any(|m| super::is_path_within(p, m))) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let (other, _, to) = self.location(&to_path);
         if mount != other { return Err("EXDEV: cross-device link not permitted".into()); }
         fs.hard_link(&from, &to)
     }

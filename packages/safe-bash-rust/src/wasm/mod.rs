@@ -369,6 +369,49 @@ pub unsafe extern "C" fn safe_bash_copy_file(
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_link(
+    id: u32, src_ptr: *const u8, src_len: usize, dst_ptr: *const u8, dst_len: usize,
+) -> i32 {
+    let source = unsafe { str_from_raw(src_ptr, src_len) };
+    let destination = unsafe { str_from_raw(dst_ptr, dst_len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let fs = &sess.shell.fs;
+    let mut operand = "source";
+    let result = (|| {
+        if sess.profile == Profile::Overlay { return Err("ENOTSUP".into()); }
+        let wrapped = sess.profile == Profile::Memory && !fs.supports_hard_links("/");
+        let resolve = |path: &str| fs.access_path(if wrapped && path.is_empty() { "/" } else { path }, false);
+        let from = resolve(source)?;
+        if wrapped && !fs.supports_hard_links(&from) { return Err("EBUSY".into()); }
+        let to = resolve(destination);
+        if wrapped && to.as_ref().is_ok_and(|p| !fs.supports_hard_links(p)) {
+            operand = "destination";
+            return Err("EBUSY".into());
+        }
+        let origin = fs.lstat(&from)?;
+        if sess.profile == Profile::Memory && origin.kind == VfsEntryKind::Directory { return Err("EPERM".into()); }
+        operand = "destination";
+        let to = to?;
+        fs.hard_link(&from, &to)
+    })();
+    match result {
+        Ok(()) => 0,
+        Err(e) => {
+            let code = e.split(':').next().unwrap();
+            let scope = match sess.profile {
+                Profile::Overlay => "overlay",
+                Profile::Devices => "mounted",
+                Profile::Memory if matches!(code, "EEXIST" | "EPERM") => "both",
+                _ => operand,
+            };
+            sess.last_output_buf = format!("{code}:{scope}").into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_rename(
     id: u32, src_ptr: *const u8, src_len: usize, dst_ptr: *const u8, dst_len: usize, no_replace: bool,
 ) -> i32 {

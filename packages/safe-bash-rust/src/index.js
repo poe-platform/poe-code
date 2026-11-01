@@ -12,7 +12,7 @@ function fsOperationError(text, syscall, path, dest, detail) {
   const code = text.split(":", 1)[0];
   systemErrors ??= new Map(Array.from(getSystemErrorMap(), ([errno, [name, description]]) => [name, [errno, description]]));
   const [errno, description] = systemErrors.get(code) ?? systemErrors.get("EIO");
-  const message = `${code}: ${detail ?? description}, ${syscall}` + (path === undefined ? "" : ` '${path}'`) + (dest === undefined ? "" : ` -> '${dest}'`);
+  const message = `${code}: ${detail ?? (code === "ENOTSUP" ? "operation not supported" : description)}${syscall === undefined ? "" : ", " + syscall}` + (path === undefined ? "" : ` '${path}'`) + (dest === undefined ? "" : ` -> '${dest}'`);
   const error = Object.assign(fsErr(code, message), { name: "FsError", errno, syscall, path });
   if (dest !== undefined) error.dest = dest;
   return error;
@@ -410,6 +410,18 @@ export class WasmFileSystem {
     } finally { bash._freeBytes(path); }
   }
 
+  async link(oldPath, newPath, options) {
+    options?.signal?.throwIfAborted();
+    if (this.bash._companion || (this.bash.companionFactory && !this.bash.forceNative)) {
+      await this.bash._ensureCompanionSynced();
+      options?.signal?.throwIfAborted();
+      const fs = this.bash._companion.fs;
+      if (!fs.link) throw fsOperationError("ENOTSUP", "link", oldPath, newPath);
+      return fs.link(oldPath, newPath, options);
+    }
+    this.#twoPathOperation("safe_bash_link", "link", oldPath, newPath);
+  }
+
   async rename(oldPath, newPath, options) {
     options?.signal?.throwIfAborted();
     if (this.bash._companion || (this.bash.companionFactory && !this.bash.forceNative)) {
@@ -432,6 +444,15 @@ export class WasmFileSystem {
         if (rc < 0) {
           const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
           const message = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc));
+          if (syscall === "link") {
+            const [code, scope] = message.split(":");
+            if (scope === "overlay") throw fsOperationError(code, "overlay", newPath, undefined, "overlay hardlinks are not supported");
+            if (scope === "source" || scope === "destination") throw fsOperationError(code, code === "EBUSY" ? undefined : syscall, scope === "source" ? oldPath : newPath);
+            if (scope === "mounted") {
+              if (!oldPath.startsWith("/")) oldPath = "/" + oldPath;
+              if (!newPath.startsWith("/")) newPath = "/" + newPath;
+            }
+          }
           throw fsOperationError(message, syscall, oldPath, newPath);
         }
       } finally {

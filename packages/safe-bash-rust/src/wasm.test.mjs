@@ -381,6 +381,41 @@ test("random devices use the host entropy source and fail if it is unavailable",
   } finally { bash.dispose(); }
 });
 
+test("Wasm fs.link retains inode identity and reports the failing operand", async () => {
+  const bash = new RustWasmBash({deviceView:"provided", files:{"/src/f":"first", "/keep":"original"}, symlinks:{"/sym":"absent"}});
+  const {fs} = bash;
+  try {
+    await fs.link("/src/f", "/alias");
+    await fs.writeFile("/alias", "second");
+    assert.equal(bash.readText("/src/f"), "second");
+    assert.equal((await fs.stat("/src/f")).nlink, 2);
+    await fs.link("/sym", "/alias-sym");
+    assert.equal((await fs.lstat("/alias-sym")).ino, (await fs.lstat("/sym")).ino);
+    assert.equal(await fs.readlink("/alias-sym"), "absent");
+    await assert.rejects(fs.link("/missing", "/new"), {code:"ENOENT", syscall:"link", path:"/missing"});
+    await assert.rejects(fs.link("/src/f", "/missing/new"), {code:"ENOENT", syscall:"link", path:"/missing/new"});
+    await assert.rejects(fs.link("/src/f", "/keep"), {code:"EEXIST", path:"/src/f", dest:"/keep"});
+    await assert.rejects(fs.link("/keep", "/new", {signal:AbortSignal.abort()}), {name:"AbortError"});
+    await assert.rejects(fs.link("/keep", "/" + "é".repeat(128)), {code:"ENAMETOOLONG"});
+    assert.equal(bash.readText("/keep"), "original");
+    await fs.unlink("/alias");
+    assert.equal((await fs.stat("/src/f")).nlink, 1);
+  } finally { bash.dispose(); }
+});
+
+test("fs.link protects the default device view, rejects overlays and respects mount boundaries", async () => {
+  const bash = new RustWasmBash({files:{"/file":"keep"}});
+  const overlay = new RustWasmBash({profile:"overlay-cow-fs"});
+  try {
+    await assert.rejects(bash.fs.link("/absent", "/dev/null"), {code:"EBUSY", path:"/dev/null"});
+    await assert.rejects(overlay.fs.link("/absent", "/new"), {code:"ENOTSUP", syscall:"overlay", path:"/new"});
+    bash.mountDevices();
+    await assert.rejects(bash.fs.link("/dev/null", "/new"), {code:"EXDEV", dest:"/new"});
+    await assert.rejects(bash.fs.link("/file", "/dev"), {code:"EBUSY", dest:"/dev"});
+    await assert.rejects(bash.fs.link("/dev/null", "/dev/new"), {code:"ENOTSUP", dest:"/dev/new"});
+  } finally { overlay.dispose(); bash.dispose(); }
+});
+
 test("Wasm rename moves entries and preserves both paths on failure", async () => {
   const bash = new RustWasmBash({ files: { "/src/file": "source", "/other": "keep" } });
   const fs = bash.fs;

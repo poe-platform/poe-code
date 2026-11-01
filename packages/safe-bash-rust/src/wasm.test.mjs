@@ -49,6 +49,21 @@ test("JavaScript and Rust can exchange cold session snapshots", async () => {
   } finally { await js.dispose(); rust.dispose(); }
 });
 
+test("session checkpoints retain associative key order and distinguish unassigned arrays", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const s = bash.createSession();
+    await s.exec("declare -A kv=([z]=first [a]=next); declare -a vacant scalar; declare -a empty=()");
+    assert.deepEqual(Object.keys(s.state.arrays.kv.elements), ["z", "a"]);
+    assert.equal(s.state.arrays.vacant.assigned, false);
+    assert.equal(s.state.arrays.empty.assigned, true);
+    s.state = JSON.parse(JSON.stringify(s.state));
+    assert.equal((await s.exec('echo "${!kv[@]}"; vacant=(); scalar=yes')).stdout, "z a\n");
+    assert.equal(s.state.arrays.vacant.assigned, true);
+    assert.deepEqual(s.state.arrays.scalar.elements, {0: "yes"});
+  } finally { bash.dispose(); }
+});
+
 test("session restore only parses function definitions and never runs legacy history", async () => {
   const bash = new RustWasmBash();
   try {

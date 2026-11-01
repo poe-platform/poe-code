@@ -2791,14 +2791,15 @@ impl<'a> EvalState<'a> {
         }
 
         let arr_prefix = format!("{resolved}[");
-        let is_existing_array = self.env.contains_key(&format!("__keys__{resolved}"))
-            || self.env.contains_key(&format!("__assoc__{resolved}"))
-            || self.env.keys().any(|k| k.starts_with(&arr_prefix));
         let attr = self
             .env
             .get(&format!("__attr__{resolved}"))
             .cloned()
             .unwrap_or_default();
+        let is_existing_array = attr.contains(['a', 'A'])
+            || self.env.contains_key(&format!("__keys__{resolved}"))
+            || self.env.contains_key(&format!("__assoc__{resolved}"))
+            || self.env.keys().any(|k| k.starts_with(&arr_prefix));
         let final_val = if attr.contains('i') {
             let map_int_err = |e: String| {
                 let msg = if let Some(nu) = e.strip_prefix("__nounset__") {
@@ -7616,7 +7617,10 @@ impl<'a> EvalState<'a> {
                     break;
                 }
             } else if is_indexed || is_assoc {
-                sync_array_metadata(&base_name, self.env);
+                // A bare declaration has no assigned key list until the first write.
+                if self.env.contains_key(&format!("__keys__{base_name}")) || self.env.contains_key(&base_name) {
+                    sync_array_metadata(&base_name, self.env);
+                }
             } else if is_local
                 && base_name == "PIPESTATUS"
                 && !inherit_prev

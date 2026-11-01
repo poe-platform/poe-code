@@ -74,7 +74,7 @@ impl HybridBackend {
         status: i32,
     ) -> String {
         let bindings = self.bindings.lock().unwrap();
-        let mut arrays = BTreeMap::<&str, Vec<(Vec<u16>, Value)>>::new();
+        let mut arrays = BTreeMap::<&str, BTreeMap<&str, &str>>::new();
         let mut exported = BTreeSet::new();
         let mut readonly = Vec::new();
         let mut attrs = Vec::new();
@@ -114,7 +114,7 @@ impl HybridBackend {
                 .and_then(|k| k.split_once('['))
                 .filter(|(n, _)| public_name(n))
             {
-                arrays.entry(name).or_default().push((jstr(key), string(v)));
+                arrays.entry(name).or_default().insert(key, v);
             } else if public_name(k) {
                 variables.insert(k.as_str(), string(v));
             }
@@ -122,12 +122,26 @@ impl HybridBackend {
         // DIRSTACK is a computed view of cwd and directoryStack.
         arrays.remove("DIRSTACK");
         variables.remove("DIRSTACK");
-        let arrays = object(arrays.into_iter().map(|(name, elements)| {
+        let arrays = object(arrays.into_iter().map(|(name, mut elements)| {
             variables.remove(name);
             let assoc = env.contains_key(&format!("__assoc__{name}"))
                 || env
                     .get(&format!("__attr__{name}"))
                     .is_some_and(|s| s.contains('A'));
+            let keys = env.get(&format!("__keys__{name}"));
+            let mut ordered = Vec::with_capacity(elements.len());
+            if assoc && let Some(keys) = keys {
+                for key in keys.split('\x1f') {
+                    if let Some(value) = elements.remove(key) {
+                        ordered.push((jstr(key), string(value)));
+                    }
+                }
+            }
+            ordered.extend(
+                elements
+                    .into_iter()
+                    .map(|(key, value)| (jstr(key), string(value))),
+            );
             (
                 name,
                 object([
@@ -137,9 +151,9 @@ impl HybridBackend {
                     ),
                     (
                         "assigned",
-                        Value::Bool(!env.contains_key(&format!("__declared__{name}"))),
+                        Value::Bool(keys.is_some() || !ordered.is_empty()),
                     ),
-                    ("elements", Value::Object(elements)),
+                    ("elements", Value::Object(ordered)),
                 ]),
             )
         }));
@@ -257,9 +271,8 @@ impl HybridBackend {
             if !assoc {
                 keys.sort_by_key(|k| k.parse::<u64>().unwrap());
             }
-            env.insert(format!("__keys__{name}"), keys.join("\x1f"));
-            if arr.get("assigned") == Some(&Value::Bool(false)) {
-                env.insert(format!("__declared__{name}"), "1".into());
+            if !keys.is_empty() || arr.get("assigned") != Some(&Value::Bool(false)) {
+                env.insert(format!("__keys__{name}"), keys.join("\x1f"));
             }
         }
         for (k, flags) in

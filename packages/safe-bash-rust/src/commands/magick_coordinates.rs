@@ -32,7 +32,9 @@ pub(super) fn split_offsets(spec: &str) -> (&str, &str) {
 }
 
 impl Geometry {
-    pub fn sigma(self) -> f64 { self.height.or(self.width).unwrap_or(1.).max(0.3) }
+    pub fn sigma(self) -> f64 {
+        self.height.or(self.width).unwrap_or(1.).max(0.3)
+    }
 
     pub fn parse(spec: &str) -> Self {
         let raw = spec.trim();
@@ -290,6 +292,30 @@ impl Raster {
         self.density = 72;
         Ok(())
     }
+    pub fn orient(&mut self, code: u8) {
+        match code {
+            2 | 4 => {
+                if code == 4 {
+                    self.pixels.reverse();
+                }
+                for row in self.pixels.chunks_exact_mut(self.width.max(1)) {
+                    row.reverse();
+                }
+            }
+            3 => self.pixels.reverse(),
+            5..=8 => self.remap(self.height, self.width, |im, x, y| {
+                let sx = if code >= 7 { im.width - 1 - y } else { y };
+                let sy = if matches!(code, 6 | 7) {
+                    im.height - 1 - x
+                } else {
+                    x
+                };
+                im.pixels[sy * im.width + sx]
+            }),
+            _ => {}
+        }
+    }
+
     pub fn rotate(&mut self, degrees: f64, bg: [u8; 4], limit: usize) -> Result<(), &'static str> {
         if !degrees.is_finite() {
             return Err("Invalid affine output dimensions");
@@ -297,16 +323,7 @@ impl Raster {
         let deg = ((degrees % 360.) + 360.) % 360.;
         for (i, angle) in [0., 90., 180., 270.].iter().enumerate() {
             if (deg - angle).abs() < 1e-6 {
-                match i {
-                    1 => self.remap(self.height, self.width, |im, x, y| {
-                        im.pixels[(im.height - 1 - x) * im.width + y]
-                    }),
-                    2 => self.pixels.reverse(),
-                    3 => self.remap(self.height, self.width, |im, x, y| {
-                        im.pixels[x * im.width + im.width - 1 - y]
-                    }),
-                    _ => {}
-                }
+                self.orient([1, 6, 3, 8][i]);
                 return Ok(());
             }
         }

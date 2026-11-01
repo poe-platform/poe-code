@@ -10231,6 +10231,13 @@ fn cmd_media_doc(
                     }
                 };
                 for op in &ops {
+                    if image.width==0 || image.height==0 {
+                        match op {
+                            PixelOp::Extent(..) | PixelOp::Negate => {}
+                            PixelOp::Crop(..) => return Some(err_out("shell: line 1: internal error\n",1)),
+                            _ => return Some(err_out("magick: Invalid stored image dimensions\n",1)),
+                        }
+                    }
                     match op {
                         PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
                         PixelOp::Extent(g,gravity,bg) => if let Err(e)=image.extent(*g,*gravity,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
@@ -10243,6 +10250,7 @@ fn cmd_media_doc(
                         PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
                     }
                 }
+                if image.width==0 || image.height==0 {return Some(err_out("shell: line 1: internal error\n",1));}
                 Some(image.publish(dest,quality,cwd,fs))
             };
             let apply_ops = |meta: &mut ImageMeta| {
@@ -14213,6 +14221,18 @@ mod media_unit_tests {
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),"d0093422a204d7de969a319aadb35c4b4ddd17a7cc6dba52a298e4161bd2f525");
     }
 
+    #[test]
+    fn zero_sized_gifs_can_be_padded_but_not_flipped_or_written_as_png() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/empty.gif",&hex_dec("474946383961000000000000003b")).unwrap();
+        let run=|cmd,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        assert_eq!(run("convert",&["empty.gif","-flop","out.png"]).stderr,"magick: Invalid stored image dimensions\n");
+        assert_eq!(run("convert",&["empty.gif","out.png"]).stderr,"shell: line 1: internal error\n");
+        assert_eq!(run("sips",&["-s","format","png","empty.gif","--out","out.png"]).stderr,"Error: empty.gif: Invalid PNG dimensions: 0x0\n");
+        assert_eq!(run("sips",&["-f","horizontal","empty.gif","--out","out.gif"]).stderr,"Error: empty.gif: Invalid stored image dimensions\n");
+        assert!(!fs.exists("/out.png"));
+        assert_eq!(run("convert",&["empty.gif","-extent","2x2","out.png"]).exit_code,0);
+    }
     #[test]
     fn gif_frame_cap_keeps_the_decoded_mp4_sample_delay() {
         let fs=MemoryVfs::new();

@@ -141,6 +141,18 @@ pub(super) fn edit(
             "sips property persistence is not supported for {format}; use PNG or JPEG output"
         ));
     }
+    if raster.width==0 || raster.height==0 {
+        let reason=match format {
+            "png"=>format!("Invalid PNG dimensions: {}x{}",raster.width,raster.height),
+            "tiff"=>"Invalid TIFF backing dimensions".into(),
+            "bmp"=>"Invalid BMP backing dimensions".into(),
+            "jpeg"=>"JPEG dimensions exceed 16-bit frame fields".into(),
+            "ppm"|"pgm"|"pbm"=>"Invalid Netpbm backing dimensions".into(),
+            "webp"=>"Invalid WebP backing allocation".into(),
+            _=>"GIF dimensions exceed 16-bit frame fields".into(),
+        };
+        return Err(reason);
+    }
     let mut encoded = if format == "png" {
         raster.png()
     } else {

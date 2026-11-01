@@ -72,6 +72,9 @@ pub(super) fn transform(
     let mut dims = (raster.width, raster.height);
     for (_, (op, a, b)) in actions {
         let number = |s: &str| s.parse::<f64>().unwrap().round();
+        if (dims.0==0 || dims.1==0) && (resize(op) || turn(op)) {
+            return Err("Invalid stored image dimensions".into());
+        }
         if resize(op) {
             let scale = match *op {
                 "Z" => number(a) / orig_w.max(orig_h),
@@ -109,7 +112,7 @@ pub(super) fn transform(
                         return (target, (src as f64 - target as f64) / 2.);
                     };
                     // Even an offset beyond the input extracts one edge pixel before padding.
-                    let start = pos.clamp(0., (src - 1) as f64);
+                    let start = pos.clamp(0., src.saturating_sub(1) as f64);
                     let end = (pos + target as f64).min(src as f64).max(start + 1.);
                     let pad = (start - pos).max(0.);
                     (target.max((pad + end - start) as usize), start - pad)

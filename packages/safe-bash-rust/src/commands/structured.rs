@@ -2491,35 +2491,6 @@ fn try_eval_jq_builtin(
                         return Ok(Some(vec![JVal::Number(-(lo as f64) - 1.0, None)]));
                     }
                 }
-                "getpath" => {
-                    if let Some(JVal::Array(segs)) =
-                        eval_jq(arg_expr, input, vars)?.into_iter().next()
-                    {
-                        return Ok(Some(vec![get_jq_jval_path(input, &segs)]));
-                    }
-                    return Ok(Some(vec![JVal::Null]));
-                }
-                "setpath" => {
-                    if let Some((p_expr, v_expr)) = split_jq_binary(arg_expr, ";") {
-                        let mut updated = input.clone();
-                        if let Some(JVal::Array(segs)) =
-                            eval_jq(p_expr.trim(), input, vars)?.into_iter().next()
-                        {
-                            let nv = eval_jq(v_expr.trim(), input, vars)?
-                                .into_iter()
-                                .next()
-                                .unwrap_or(JVal::Null);
-                            set_jq_jval_path(&mut updated, &segs, nv).map_err(|e| {
-                                if e == "array index out of bounds" {
-                                    "Out of bounds negative array index".into()
-                                } else {
-                                    e
-                                }
-                            })?;
-                        }
-                        return Ok(Some(vec![updated]));
-                    }
-                }
                 "explode" => {
                     let mut out = Vec::new();
                     for v in eval_jq(arg_expr, input, vars)? {

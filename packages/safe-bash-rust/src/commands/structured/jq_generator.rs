@@ -293,6 +293,58 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             }
             return Ok(Continue(()));
         }
+        if let ("getpath", Some(filter)) = (name, args) {
+            return visit_jq(filter, input, vars, &mut |candidate| {
+                let JVal::Array(path) = candidate else {
+                    return Err("Path must be specified as an array".into());
+                };
+                let mut value = input;
+                let mut slice;
+                for key in &path {
+                    if let JVal::Object(bounds) = key {
+                        if matches!(value, JVal::Null) {
+                            continue;
+                        }
+                        if matches!(value, JVal::Str(_) | JVal::Array(_)) {
+                            slice = path_slice(value, bounds)?;
+                            value = &slice;
+                            continue;
+                        }
+                    }
+                    value = index_value(value, key)?;
+                }
+                emit(value.clone())
+            });
+        }
+        if let ("setpath", Some(args)) = (name, args)
+            && let Some((path, replacement)) = split_jq_binary(args, ";")
+        {
+            return visit_jq(&replacement, input, vars, &mut |new| {
+                visit_jq(&path, input, vars, &mut |candidate| {
+                    let JVal::Array(path) = candidate else {
+                        return Err("Path must be specified as an array".into());
+                    };
+                    let mut base = input;
+                    for key in &path {
+                        let old = index_value(base, key)?;
+                        if let JVal::Number(n, _) = key {
+                            let len = if let JVal::Array(items) = base {
+                                items.len()
+                            } else {
+                                0
+                            };
+                            if n.trunc() < -(len as f64) {
+                                return Err("Out of bounds negative array index".into());
+                            }
+                        }
+                        base = old;
+                    }
+                    let mut result = input.clone();
+                    super::set_jq_jval_path(&mut result, &path, new.clone())?;
+                    emit(result)
+                })
+            });
+        }
         if let ("select", Some(predicate)) = (name, args) {
             return visit_jq(predicate, input, vars, &mut |v| {
                 if v.is_truthy() {
@@ -349,23 +401,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                         })?;
                         selected.map_or(Ok(Continue(())), &mut *emit)
                     } else {
-                        match (&index, input) {
-                            (JVal::Number(n, _), JVal::Array(_) | JVal::Null) if n.is_finite() => {}
-                            (JVal::Str(_), JVal::Object(_) | JVal::Null) => {}
-                            _ => {
-                                let detail = if matches!(&index,JVal::Str(k) if k.len()<30) {
-                                    format!(" {}", index.to_json_string(true, false, 0))
-                                } else {
-                                    String::new()
-                                };
-                                return Err(format!(
-                                    "Cannot index {} with {}{detail}",
-                                    input.type_name(),
-                                    index.type_name()
-                                ));
-                            }
-                        }
-                        emit(super::get_jq_jval_path(input, std::slice::from_ref(&index)))
+                        emit(index_value(input, &index)?.clone())
                     }
                 });
             }
@@ -465,6 +501,63 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         }
     }
     Ok(Continue(()))
+}
+
+fn index_value<'a>(base: &'a JVal, index: &JVal) -> Result<&'a JVal, String> {
+    match (base, index) {
+        (JVal::Object(fields), JVal::Str(key)) => Ok(fields
+            .iter()
+            .find(|(k, _)| k == key)
+            .map_or(&JVal::Null, |(_, v)| v)),
+        (JVal::Array(items), JVal::Number(n, _)) if n.is_finite() => {
+            let mut i = n.trunc();
+            if i < 0.0 {
+                i += items.len() as f64;
+            }
+            Ok(if i < 0.0 {
+                &JVal::Null
+            } else {
+                items.get(i as usize).unwrap_or(&JVal::Null)
+            })
+        }
+        (JVal::Null, JVal::Str(_)) => Ok(&JVal::Null),
+        (JVal::Null, JVal::Number(n, _)) if n.is_finite() => Ok(&JVal::Null),
+        _ => {
+            let detail = if matches!(index,JVal::Str(k) if k.len()<30) {
+                format!(" {}", index.to_json_string(true, false, 0))
+            } else {
+                String::new()
+            };
+            Err(format!(
+                "Cannot index {} with {}{detail}",
+                base.type_name(),
+                index.type_name()
+            ))
+        }
+    }
+}
+
+fn path_slice(value: &JVal, bounds: &[(String, JVal)]) -> Result<JVal, String> {
+    let len = match value {
+        JVal::Array(items) => items.len(),
+        JVal::Str(s) => s.chars().count(),
+        _ => unreachable!(),
+    };
+    let bound = |name, default| match bounds.iter().find(|(key, _)| key == name).map(|(_, v)| v) {
+        Some(JVal::Null) => Ok(default),
+        Some(JVal::Number(n, _)) if n.is_finite() => {
+            let i = if name == "start" { n.floor() } else { n.ceil() };
+            Ok((if i < 0.0 { len as f64 + i } else { i }).clamp(0.0, len as f64) as usize)
+        }
+        _ => Err("Array/string slice indices must be integers"),
+    };
+    let start = bound("start", 0)?;
+    let end = bound("end", len)?.max(start);
+    Ok(match value {
+        JVal::Array(items) => JVal::Array(items[start..end].to_vec()),
+        JVal::Str(s) => JVal::Str(s.chars().skip(start).take(end - start).collect()),
+        _ => unreachable!(),
+    })
 }
 
 // Catch failures in this filter. A failure raised by its consumer belongs outside the handler.

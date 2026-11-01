@@ -3,6 +3,30 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq getpath and setpath visit each candidate and validate it against the input", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout, error] of [
+      ['setpath((["x"],["y"]);(1,2))', '{"x":1}\n{"y":1}\n{"x":2}\n{"y":2}\n'],
+      ['setpath(error("path");empty)', ""],
+      ['setpath("x";0)', "", "Path must be specified as an array"],
+      ['try setpath([1e100,false];1) catch .', '"Cannot index null with boolean"\n'],
+      ['setpath([{"__slice":[0,1]}];[])', "", "Cannot index null with object"],
+      ['first(setpath((["x"],error("later"));1))', '{"x":1}\n'],
+      ['setpath((["x"],error("stop"));42)', '{"x":42}\n', "stop"],
+      ['{"a":3} | getpath((["a"],[],["x"]))', '3\n{"a":3}\nnull\n'],
+      ["getpath(4)", "", "Path must be specified as an array"],
+      ["[0] | getpath(([0],[false]))", "0\n", "Cannot index array with boolean"],
+      ['"𝄞ab" | getpath([{start:-2,end:null}])', '"ab"\n'],
+      ["[2,3,4] | getpath([{start:0.1,end:1.1}])", "[2,3]\n"],
+      ["[] | getpath([{}])", "", "Array/string slice indices must be integers"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [error ? 5 : 0, stdout, error ? `jq: error (at <unknown>): ${error}\n` : ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq select, negation and optional filters preserve intermediate results", async () => {
   const bash = new RustWasmBash();
   try {

@@ -4464,6 +4464,7 @@ impl MediaInput {
     fn remuxable(&self)->bool {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
+            Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
             Self::Bytes("image2",b)=>png_pixels::supported_still(b),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
             Self::Images(_) | Self::Bytes("aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
@@ -4775,7 +4776,7 @@ fn cmd_media_doc(
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                             return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                         }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -10221,7 +10222,7 @@ fn cmd_media_doc(
                     let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
                     png_pixels::Raster {width,height,density:72,orientation:None,gray:false,alpha:true,pixels}
                 } else if gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
-                    match gif::decode(bytes,true,fs.max_input_bytes()) {
+                    match gif::decode(bytes,true,fs.max_input_bytes(), |_| {}) {
                         Ok(im)=>im,Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
                     }
                 } else {
@@ -14204,6 +14205,9 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=7x5:r=8:d=0.5","anim.gif"]),"","/",&fs);
         assert_eq!(r.exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/anim.gif").unwrap())),"bd8d1a4587654c101657be4956df225a44963874fbe8f4f780581bec1b153156");
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","anim.gif","-vf","scale=6:4","o.mp4"]),"","/",&fs);
+        assert_eq!(r.exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),"d0093422a204d7de969a319aadb35c4b4ddd17a7cc6dba52a298e4161bd2f525");
     }
 
     #[test]

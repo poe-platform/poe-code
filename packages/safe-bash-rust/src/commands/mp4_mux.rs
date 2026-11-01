@@ -1,7 +1,7 @@
 use super::super::adts::{Frames, Options, RATES};
 use super::{
     super::{
-        InputTime, MediaInput,
+        InputTime, MediaInput, gif::Animation,
         ffmpeg_wave::{self, Wave},
         frame_output::{self, ImageSequence},
         png_pixels::Raster,
@@ -1376,6 +1376,7 @@ enum Streams<'a> {
     GeneratedAudio(GeneratedAudio),
     GeneratedVideo(super::super::lavfi::Video),
     Images(&'a ImageSequence),
+    Gif(Animation),
     Still(InputTime),
     Aac {
         rate: u32,
@@ -1389,6 +1390,7 @@ impl Streams<'_> {
             Self::Mp4(v) => v.len(),
             Self::Y4m(_)
             | Self::Wave(_)
+            | Self::Gif(_)
             | Self::Images(_)
             | Self::Still(_)
             | Self::GeneratedVideo(_)
@@ -1402,7 +1404,7 @@ impl Streams<'_> {
             Self::Mp4(v) => v[i].0.kind,
             Self::Captions(_) => "subtitle",
             Self::Wave(_) | Self::GeneratedAudio(_) | Self::Aac { .. } => "audio",
-            Self::Y4m(_) | Self::Still(_) | Self::Images(_) | Self::GeneratedVideo(_) => "video",
+            Self::Y4m(_) | Self::Gif(_) | Self::Still(_) | Self::Images(_) | Self::GeneratedVideo(_) => "video",
         }
     }
     fn seconds(&self, i: usize) -> f64 {
@@ -1412,6 +1414,7 @@ impl Streams<'_> {
             Self::Y4m(v) => v.seconds(),
             Self::Wave(w) => w.ticks as f64 / f64::from(w.wav.rate),
             Self::Images(seq) => seq.template_duration(),
+            Self::Gif(g) => g.ticks as f64/100.,
             Self::Still(seek) => {
                 if frame_output::still_sample(seek.start.unwrap_or(0.), seek.end().unwrap_or(0.04))
                 {
@@ -1603,6 +1606,7 @@ fn read_sources<'a>(
 ) -> Result<Vec<Source<'a>>, String> {
     use super::atoms;
     let mut sources = Vec::new();
+    let mut remaining=opts.limit;
     for (j, (source, data)) in inputs.iter().zip(materialized).enumerate() {
         let format = if matches!(data, Cow::Owned(_)) {
             "mp4"
@@ -1617,6 +1621,10 @@ fn read_sources<'a>(
         };
         let seek = opts.input_times.get(j).copied().unwrap_or_default();
         let input = data.as_ref();
+        if format=="gif" {
+            sources.push((input,&[][..],Streams::Gif(Animation::read(input,&mut remaining)?)));
+            continue;
+        }
         if format == "image2" {
             sources.push((input, &[][..], Streams::Still(seek)));
             continue;
@@ -1902,6 +1910,10 @@ fn render_source(
     match streams {
         Streams::Y4m(v) => v.render(options, emit),
         Streams::Images(seq) => seq.render(options, emit),
+        Streams::Gif(g) => {
+            y4m::render_frames(g.width,g.height,g.times(),options,|i| Ok(g.image(i)),emit)?;
+            Ok((g.width,g.height,30))
+        }
         Streams::Still(seek) => {
             frame_output::render_still(input, options, *seek, cut, emit)
         }
@@ -2147,6 +2159,7 @@ fn movie_scale(sources: &[Source<'_>]) -> u32 {
     match sources[0].2 {
         Streams::Wave(ref w) => w.wav.rate,
         Streams::Aac { rate, .. } => rate,
+        Streams::Gif(_) => 100,
         Streams::Still(_) => 25,
         _ => super::header_time(super::child(sources[0].1, b"mvhd"), 1000).0,
     }
@@ -2379,7 +2392,8 @@ pub(in super::super) fn remux(
         {
             let (w, h) = sequence.geometry;
             let ts = match source {
-                Streams::Still(_) => 25,
+                Streams::Gif(_) => 100,
+        Streams::Still(_) => 25,
                 _ => 90000,
             };
             let mut t = video_track(
@@ -2400,6 +2414,21 @@ pub(in super::super) fn remux(
             let mut track = match source {
                 Streams::Still(seek) => {
                     still_track(input, *seek, range, &opts, scale, repeated, limit)?
+                }
+                Streams::Gif(g) => {
+                    let mut t=video_track(g.width,g.height,VideoCodec::Still(b"gif "),100,g.ticks,scale)?;
+                    let (start,end)=range.unwrap_or((0.,None));
+                    if opts.video_filters.is_empty() && range.is_none() && opts.frames.is_none_or(|n|n as usize>=g.frames.len()) {
+                        let mut offset=0;
+                        for (i,f) in g.frames.iter().enumerate(){
+                            t.samples.push(Sample {data:input[offset..f.end].into(),duration:u32::from(f.delay),cts:0,key:i==0,description:1});
+                            offset=f.end;
+                        }
+                    }else{
+                        encode_video(&mut t,scale,g.times(),y4m::Options{filters:opts.video_filters,frames:opts.frames,start,end,no_video:false,limit},
+                            |_|repeated,opts.fragmented,|i| Ok(g.image(i)))?;
+                    }
+                    t
                 }
                 Streams::Y4m(clip) => raw_video_track(clip, &opts, range, scale, repeated, limit)?,
                 Streams::Images(seq) => sequence_track(
@@ -2783,6 +2812,7 @@ pub(in super::super) fn remux(
                         Streams::GeneratedAudio(a) => (a.rate, a.channels),
                         Streams::Wave(w) => (w.wav.rate, w.wav.channels as u32),
                         Streams::Y4m(_)
+                        | Streams::Gif(_)
                         | Streams::Still(_)
                         | Streams::Images(_)
                         | Streams::GeneratedVideo(_)

@@ -253,7 +253,12 @@ fn indices(
     Ok(())
 }
 
-pub(super) fn decode(bytes: &[u8], last: bool, limit: usize) -> Result<Raster, &'static str> {
+pub(super) fn decode(
+    bytes: &[u8],
+    last: bool,
+    limit: usize,
+    mut visit: impl FnMut(&[[u8; 4]]),
+) -> Result<Raster, &'static str> {
     let (w, h) = dimensions(bytes)?;
     let (w, h) = (w as usize, h as usize);
     let count = w
@@ -365,6 +370,7 @@ pub(super) fn decode(bytes: &[u8], last: bool, limit: usize) -> Result<Raster, &
                         }
                     }
                 })?;
+                visit(&pixels);
                 if !last {
                     break;
                 }
@@ -436,4 +442,72 @@ pub(super) fn packets(
         }
     }
     Ok(())
+}
+
+pub(super) struct Frame {
+    pub pts: u64,
+    pub delay: u16,
+    pub end: usize,
+    pixels: Vec<[u8; 4]>,
+}
+pub(super) struct Animation {
+    pub width: usize,
+    pub height: usize,
+    pub ticks: u64,
+    pub frames: Vec<Frame>,
+}
+
+impl Animation {
+    pub fn read(bytes: &[u8], remaining: &mut usize) -> Result<Self, &'static str> {
+        let (w, h) = dimensions(bytes)?;
+        let (width, height) = (w as usize, h as usize);
+        let size = width.saturating_mul(height).saturating_mul(4);
+        let mut ticks = 0;
+        let mut frames = Vec::new();
+        packets(bytes, |delay, end| {
+            *remaining = remaining
+                .checked_sub(size.saturating_add(size_of::<Frame>()))
+                .ok_or("image exceeds memory budget")?;
+            frames.push(Frame {
+                pts: ticks,
+                delay,
+                end,
+                pixels: Vec::new(),
+            });
+            ticks += u64::from(delay);
+            Ok(())
+        })?;
+        frames
+            .last_mut()
+            .ok_or("Cannot read properties of undefined (reading 'byteLength')")?
+            .end = bytes.len();
+        let mut slots = frames.iter_mut();
+        decode(bytes, true, *remaining, |pixels| {
+            if let Some(frame) = slots.next() {
+                frame.pixels = pixels.to_vec();
+            }
+        })?;
+        Ok(Self {
+            width,
+            height,
+            ticks,
+            frames,
+        })
+    }
+    pub fn times(&self) -> impl Iterator<Item = (f64, f64)> + '_ {
+        self.frames
+            .iter()
+            .map(|f| (f.pts as f64 / 100., f64::from(f.delay) / 100.))
+    }
+    pub fn image(&self, i: usize) -> Raster {
+        Raster {
+            width: self.width,
+            height: self.height,
+            alpha: true,
+            gray: false,
+            density: 72,
+            orientation: None,
+            pixels: self.frames[i].pixels.clone(),
+        }
+    }
 }

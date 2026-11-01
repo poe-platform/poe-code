@@ -381,6 +381,9 @@ pub(super) fn report<'a>(
         ("chapter", "chapters"),
         ("format", "format"),
     ] {
+        if section == "chapter" && !matches!(opts.writer, "default" | "json") {
+            continue;
+        }
         let fields = filters.get(section);
         let tags = match section {
             "stream" => filters.get("stream_tags"),
@@ -416,7 +419,7 @@ pub(super) fn report<'a>(
         let mut count = 0;
         for (i, mut row) in rows(section).enumerate() {
             count += 1;
-            if fields.is_some() || tags.is_some() {
+            if section != "chapter" && (fields.is_some() || tags.is_some()) {
                 row.retain_mut(|(key, value)| {
                     if *key == "tags"
                         && let Some(tags) = tags

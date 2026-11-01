@@ -634,6 +634,43 @@ fn tags(input: &[u8], moov: &[u8]) -> Vec<(String, super::super::structured::JVa
     tags
 }
 
+fn chapters(moov: &[u8], duration: f64) -> impl Iterator<Item = Row> + '_ {
+    let chpl = child(child(moov, b"udta"), b"chpl");
+    let count = chpl.get(8).copied().unwrap_or(0);
+    let (mut bytes, count) = if count == 0 {
+        (chpl.get(13..), u32_at(chpl, 9))
+    } else {
+        (chpl.get(9..), u32::from(count))
+    };
+    (0..count).map_while(move |id| {
+        let row = bytes?;
+        let len = usize::from(*row.get(8)?).min(row.len() - 9);
+        let start = wide(row, 0, true) as f64 / 10_000_000.;
+        bytes = Some(&row[9 + len..]);
+        let end = if id + 1 < count && row.len() - 9 - len >= 9 {
+            wide(row, 9 + len, true) as f64 / 10_000_000.
+        } else {
+            start.max(duration)
+        };
+        let title = String::from_utf8_lossy(&row[9..9 + len]);
+        Some(vec![
+            ("id", Number(f64::from(id))),
+            ("time_base", Str("1/1000".into())),
+            ("start", Number((start * 1000.).round())),
+            ("start_time", Str(format!("{start:.6}"))),
+            ("end", Number((end * 1000.).round())),
+            ("end_time", Str(format!("{end:.6}"))),
+            (
+                "tags",
+                Object(vec![(
+                    "title".into(),
+                    Str(title.trim_start_matches('\u{feff}').into()),
+                )]),
+            ),
+        ])
+    })
+}
+
 pub(super) fn report(
     input: &[u8],
     filename: &str,
@@ -656,6 +693,7 @@ pub(super) fn report(
     let counts = opts.counts;
     let select = opts.select;
     media_probe::report(opts, |section| match section {
+        "chapter" => Box::new(chapters(moov, duration)),
         "format" => Box::new(std::iter::once(media_probe::format_row(
             filename,
             input.len(),

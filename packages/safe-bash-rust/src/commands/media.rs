@@ -12819,6 +12819,21 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffprobe_mp4_chapters_use_the_next_start_or_the_movie_duration() {
+        // moov/udta/chpl, two titles with start times in 100-nanosecond ticks.
+        let mut clip=b"\0\0\0\0moov\0\0\0\0udta\0\0\0\0chpl".to_vec();
+        clip.extend_from_slice(&[0,0,0,0,0,0,0,0,2]);
+        for (start,title) in [(0u64,"Start"),(2_500_000,"Déjà")]{
+            clip.extend_from_slice(&start.to_be_bytes());
+            clip.push(title.len() as u8);clip.extend_from_slice(title.as_bytes());
+        }
+        let fs=MemoryVfs::new();fs.write_file("/chapters.mp4",&clip).unwrap();
+        let run=|writer|cmd_media_doc("ffprobe",&media_args(&["-show_entries","chapter=id","-of",writer,"chapters.mp4"]),"","/",&fs).stdout;
+        assert_eq!(run("default=nw=1"), "id=0\ntime_base=1/1000\nstart=0\nstart_time=0.000000\nend=250\nend_time=0.250000\nTAG:title=Start\nid=1\ntime_base=1/1000\nstart=250\nstart_time=0.250000\nend=250\nend_time=0.250000\nTAG:title=Déjà\n");
+        assert_eq!(run("csv"),"");
+    }
+
+    #[test]
     fn ffprobe_reads_mp4_tracks_and_samples() {
         // Three 6x4 AVC frames at 4 fps and a stereo AAC track, from createSyntheticMp4.
         let fs=MemoryVfs::new();

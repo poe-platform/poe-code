@@ -17,6 +17,11 @@ enum Track {
         height: u32,
         frame_size: u64,
     },
+    Subtitle {
+        webvtt: bool,
+        first_pts: i64,
+        records: Vec<(i64, i64, usize, usize)>,
+    },
     Aac {
         channels: u8,
         ends: Vec<usize>,
@@ -40,6 +45,47 @@ impl Clip {
             duration: count as f64 / fps,
             count,
             ticks: (90000. / fps).round().max(1.) as u64,
+        })
+    }
+    pub(super) fn subtitles(
+        input: &[u8],
+        webvtt: bool,
+        records_requested: bool,
+        limit: usize,
+    ) -> Result<Self, &'static str> {
+        let text = String::from_utf8_lossy(input);
+        let duration = super::subtitles::cues(&text)
+            .map(|c| c.start.saturating_add(c.duration))
+            .max()
+            .unwrap_or(0)
+            .max(0);
+        let mut records = Vec::new();
+        let (mut pos, mut count, mut first_pts) = (0, 0, 0);
+        for (cue, wrap) in super::subtitles::samples(&text) {
+            let size = cue.text.len() + 2 * usize::from(wrap);
+            if count == 0 {
+                first_pts = cue.start;
+            }
+            if records_requested {
+                if count >= limit / size_of::<(i64, i64, usize, usize)>() {
+                    return Err("sample index exceeds memory budget");
+                }
+                records.push((cue.start, cue.duration, size, pos));
+            }
+            pos += size;
+            count += 1;
+        }
+        Ok(Self {
+            track: Track::Subtitle {
+                webvtt,
+                first_pts,
+                records,
+            },
+            timescale: 1000,
+            payload_bytes: pos as u64,
+            ticks: duration as u64,
+            duration: duration as f64 / 1000.,
+            count,
         })
     }
     pub(super) fn adts(input: &[u8], records: bool) -> Self {
@@ -101,15 +147,34 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
 
 impl Clip {
     fn stream(&self, count_frames: bool, count_packets: bool) -> Row {
-        let ticks = self.count as f64 * self.ticks as f64;
+        let (start, ticks) = match self.track {
+            Track::Subtitle { first_pts, .. } => (first_pts as f64, self.ticks as f64),
+            _ => (0., self.count as f64 * self.ticks as f64),
+        };
         let duration = ticks / f64::from(self.timescale);
-        let rate = if self.count == 0 || matches!(self.track, Track::Aac { .. }) {
+        let rate = if self.count == 0 || !matches!(self.track, Track::Y4m { .. }) {
             "0/0".into()
         } else {
             ratio(self.timescale.into(), self.ticks, '/')
         };
         let mut row = vec![("index", Number(0.)), ("id", Str("0x1".into()))];
         match self.track {
+            Track::Subtitle { webvtt, .. } => {
+                let (name, long, tag, code) = if self.count != 0 {
+                    ("mov_text", "3GPP Timed Text subtitle", "tx3g", "0x74783367")
+                } else if webvtt {
+                    ("webvtt", "WebVTT subtitle", "wvtt", "0x77767474")
+                } else {
+                    ("subrip", "SubRip subtitle", "tx3g", "0x74783367")
+                };
+                row.extend([
+                    ("codec_name", Str(name.into())),
+                    ("codec_long_name", Str(long.into())),
+                    ("codec_type", Str("subtitle".into())),
+                    ("codec_tag_string", Str(tag.into())),
+                    ("codec_tag", Str(code.into())),
+                ]);
+            }
             Track::Y4m { width, height, .. } => row.extend([
                 ("codec_name", Str("rawvideo".into())),
                 ("codec_long_name", Str("raw video".into())),
@@ -151,8 +216,11 @@ impl Clip {
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
             ("time_base", Str(format!("1/{}", self.timescale))),
-            ("start_pts", Number(0.)),
-            ("start_time", Str("0.000000".into())),
+            ("start_pts", Number(start)),
+            (
+                "start_time",
+                Str(format!("{:.6}", start / f64::from(self.timescale))),
+            ),
             ("duration_ts", Number(ticks)),
             ("duration", Str(format!("{duration:.6}"))),
             (
@@ -181,6 +249,8 @@ impl Clip {
     fn format(&self, filename: &str, bytes: usize) -> Row {
         let duration = self.duration;
         let (name, long_name) = match self.track {
+            Track::Subtitle { webvtt: true, .. } => ("webvtt", "WebVTT subtitle"),
+            Track::Subtitle { .. } => ("srt", "SubRip subtitle"),
             Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
             Track::Y4m { .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
         };
@@ -188,19 +258,32 @@ impl Clip {
     }
 
     fn record(&self, i: usize, frame: bool) -> Row {
-        let (size, pos, kind) = match &self.track {
+        let default_pts = i as f64 * self.ticks as f64;
+        let (pts, ticks, size, pos, kind) = match &self.track {
+            Track::Subtitle { records, .. } => {
+                let (pts, dur, size, pos) = records[i];
+                (pts as f64, dur as f64, size as u64, pos as u64, "subtitle")
+            }
             Track::Aac { ends, .. } => {
                 let pos = if i == 0 { 0 } else { ends[i - 1] };
-                ((ends[i] - pos) as u64, pos as u64, "audio")
+                (
+                    default_pts,
+                    self.ticks as f64,
+                    (ends[i] - pos) as u64,
+                    pos as u64,
+                    "audio",
+                )
             }
-            Track::Y4m { frame_size, .. } => (*frame_size, i as u64 * frame_size, "video"),
+            Track::Y4m { frame_size, .. } => (
+                default_pts,
+                self.ticks as f64,
+                *frame_size,
+                i as u64 * frame_size,
+                "video",
+            ),
         };
-        let pts = i as f64 * self.ticks as f64;
         let time = || Str(format!("{:.6}", pts / f64::from(self.timescale)));
-        let duration = Str(format!(
-            "{:.6}",
-            self.ticks as f64 / f64::from(self.timescale)
-        ));
+        let duration = Str(format!("{:.6}", ticks / f64::from(self.timescale)));
         if frame {
             let mut row = vec![
                 ("media_type", Str(kind.into())),
@@ -212,11 +295,12 @@ impl Clip {
                 ("pkt_dts_time", time()),
                 ("best_effort_timestamp", Number(pts)),
                 ("best_effort_timestamp_time", time()),
-                ("pkt_duration", Number(self.ticks as f64)),
+                ("pkt_duration", Number(ticks)),
                 ("pkt_duration_time", duration),
                 ("pkt_size", Str(size.to_string())),
             ];
             match self.track {
+                Track::Subtitle { .. } => {}
                 Track::Aac { channels, .. } => row.extend([
                     ("sample_fmt", Str("fltp".into())),
                     ("nb_samples", Number(1024.)),
@@ -238,7 +322,7 @@ impl Clip {
                 ("pts_time", time()),
                 ("dts", Number(pts)),
                 ("dts_time", time()),
-                ("duration", Number(self.ticks as f64)),
+                ("duration", Number(ticks)),
                 ("duration_time", duration),
                 ("size", Str(size.to_string())),
                 ("pos", Str(pos.to_string())),
@@ -304,10 +388,10 @@ impl Clip {
             "stream"
                 if selected(
                     select,
-                    if matches!(self.track, Track::Aac { .. }) {
-                        "audio"
-                    } else {
-                        "video"
+                    match self.track {
+                        Track::Aac { .. } => "audio",
+                        Track::Y4m { .. } => "video",
+                        Track::Subtitle { .. } => "subtitle",
                     },
                     0,
                     0,

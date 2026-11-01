@@ -5146,7 +5146,7 @@ fn cmd_media_doc(
                     return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
                 }
             }
-            if real_mp4 || matches!(container, "aac" | "y4m") {
+            if real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
                 let records=requested.contains("packet") || requested.contains("frame");
                 let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
                     writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
@@ -5155,7 +5155,9 @@ fn cmd_media_doc(
                         Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
                     };
                 }
-                let clip = if container == "aac" {
+                let clip = if matches!(container,"srt" | "webvtt") {
+                    media_probe::Clip::subtitles(&raw_bytes,container=="webvtt",records,fs.max_input_bytes())
+                } else if container == "aac" {
                     Ok(media_probe::Clip::adts(&raw_bytes, records))
                 } else { media_probe::Clip::y4m(&raw_bytes) };
                 return match clip.and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
@@ -12960,6 +12962,14 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffprobe_reports_timed_text_packets_including_gaps() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/captions.srt",b"1\n00:00:01,250 --> 00:00:03,500\nHello\n").unwrap();
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_packets","-show_entries","packet=pts,duration,size,pos","-of","csv=p=0","captions.srt"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stdout),(0,"0,1250,2,0\n1250,2250,7,2\n".into()));
     }
 
     #[test]

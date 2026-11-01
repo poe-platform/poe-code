@@ -74,16 +74,20 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
     const strokeW = parseSvgCoord(attrs["stroke-width"], 1, vbW) * ((effScaleX + effScaleY) / 2);
 
     if (tag === "text" && effAlpha > 0 && textLength > 0) {
-      const tx = mapX(parseSvgCoord(attrs["x"], 0, vbW));
-      const ty = mapY(parseSvgCoord(attrs["y"], 0, vbH));
+      const [a,b,c,d] = activeCtm;
+      const determinant = a*d-b*c;
+      if (!Number.isFinite(determinant) || determinant === 0) return;
+      const transformed = b !== 0 || c !== 0 || a <= 0 || d <= 0 || a !== d;
+      const [tx,ty] = mapPt(parseSvgCoord(attrs["x"], 0, vbW),parseSvgCoord(attrs["y"], 0, vbH));
       const fontSize = Math.max(6, parseSvgCoord(attrs["font-size"], 12, vbH) * effScaleY);
       const glyphH = Math.max(7, Math.round(fontSize * 0.76));
       const glyphW = Math.max(5, Math.round(glyphH * (5 / 7)));
       const advanceX = Math.max(glyphW + 1, Math.round(glyphW * 1.2));
       const anchor = (attrs["text-anchor"] ?? "start").toLowerCase();
       const totalW = textLength * advanceX;
-      const startX = anchor === "middle" ? tx - totalW / 2 : anchor === "end" ? tx - totalW : tx;
-      const baseTopY = Math.round(ty - glyphH);
+      const originX = transformed ? 0 : tx;
+      const startX = anchor === "middle" ? originX - totalW / 2 : anchor === "end" ? originX - totalW : originX;
+      const baseTopY = Math.round((transformed ? 0 : ty) - glyphH);
       for (let ci = 0; ci < textLength; ci++) {
         const ch = ((yield {kind: "character", index: ci}) as number);
         if (ch <= 32) continue;
@@ -91,6 +95,25 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
         const isDescender = ch === 103 || ch === 106 || ch === 112 || ch === 113 || ch === 121 || ch === 44 || ch === 59;
         const charTopY = baseTopY + (isDescender ? Math.max(1, Math.round(glyphH / 7)) : 0);
         const charLeftX = Math.round(startX + ci * advanceX);
+        if (transformed) {
+          const corners = [[charLeftX,charTopY],[charLeftX+glyphW,charTopY],[charLeftX,charTopY+glyphH],[charLeftX+glyphW,charTopY+glyphH]]
+            .map(([x,y])=>[tx+(a*x!+c*y!)/effScaleY,ty+(b*x!+d*y!)/effScaleY]);
+          const minX = Math.max(0,Math.floor(Math.min(...corners.map(p=>p[0]!))));
+          const maxX = Math.min(width,Math.ceil(Math.max(...corners.map(p=>p[0]!))));
+          const minY = Math.max(0,Math.floor(Math.min(...corners.map(p=>p[1]!))));
+          const maxY = Math.min(height,Math.ceil(Math.max(...corners.map(p=>p[1]!))));
+          // Sample destination pixel centers so rotated or stretched glyphs have no holes.
+          for (let screenY=minY;screenY<maxY;screenY++) for (let screenX=minX;screenX<maxX;screenX++) {
+            if (++rasterWork % 16384 === 0) yield undefined;
+            const dx=screenX+0.5-tx,dy=screenY+0.5-ty;
+            const px=(d*dx-c*dy)/determinant*effScaleY-charLeftX;
+            const py=(a*dy-b*dx)/determinant*effScaleY-charTopY;
+            if (px<0 || py<0 || px>=glyphW || py>=glyphH) continue;
+            const gx=Math.floor(Math.floor(px)*5/glyphW),gy=Math.floor(Math.floor(py)*7/glyphH);
+            if ((FONT_5X7[glyphIdx*5+gx]! & (1<<gy)) !== 0) yield* blendPixel(screenX,screenY,fill.r,fill.g,fill.b,effAlpha);
+          }
+          continue;
+        }
         for (let py = 0; py < glyphH; py++) {
           const gy = Math.min(6, Math.floor((py * 7) / glyphH));
           const screenY = charTopY + py;

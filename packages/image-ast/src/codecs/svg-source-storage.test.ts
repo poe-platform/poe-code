@@ -9,6 +9,35 @@ function backing(){
  return {storage,async pixels(position:number,length:number){const out=new Uint8Array(length);for(let at=0;at<length;at+=4096)out.set(await storage.read(position+at,Math.min(4096,length-at)),at);return out;}};
 }
 
+for(const mode of ['buffered','storage','source'] as const){
+ for(const [name,transform] of [
+  ['clockwise','rotate(90 32 32)'],
+  ['counterclockwise','rotate(-90 32 32)'],
+  ['half turn','rotate(180 32 32)'],
+  ['reflection','translate(64 0) scale(-1 1)'],
+  ['horizontal stretch','scale(2 1)'],
+  ['collapsed','matrix(1 0 0 0 0 32)'],
+ ] as const)test(`${mode} transforms SVG text pixels: ${name}`,async()=>{
+  const text='<text x="20" y="34" font-size="14" text-anchor="middle" fill="blue">Ag</text>';
+  const plain=decodeSvgImage(new TextEncoder().encode(`<svg width="64" height="64">${text}</svg>`)).data;
+  const bytes=new TextEncoder().encode(`<svg width="64" height="64"><g transform="${transform}">${text}</g></svg>`);
+  let pixels:Uint8Array;
+  if(mode==='buffered')pixels=decodeSvgImage(bytes).data;
+  else{
+   const caller=backing(),signal=new AbortController().signal;
+   const image=mode==='storage'?await svg.decodeSvgToStorage(bytes,caller.storage,signal):await svg.decodeSvgSourceToStorage({size:bytes.length,async read(position,length){return bytes.subarray(position,position+length);}},caller.storage,signal);
+   pixels=await caller.pixels(image.position,64*64*4);
+  }
+  const expected=new Uint8Array(plain.length);
+  for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+   const rgba=plain.subarray((y*64+x)*4,(y*64+x)*4+4);
+   const destinations=name==='clockwise'?[[63-y,x]]:name==='counterclockwise'?[[y,63-x]]:name==='half turn'?[[63-x,63-y]]:name==='reflection'?[[63-x,y]]:name==='horizontal stretch'?[[2*x,y],[2*x+1,y]]:[];
+   for(const [dx,dy] of destinations)if(dx!<64)expected.set(rgba,(dy!*64+dx!)*4);
+  }
+  expect(pixels).toEqual(expected);
+ });
+}
+
 const picture=`<svg width="48" height="36" viewBox="-2 -3 48 36"><rect width="40" height="30" fill="blue" opacity="0.4" rx="3"/><g transform="translate(3 1) rotate(12 10 10)"><circle cx="12" cy="12" r="8" fill="red" stroke="green" stroke-width="2"/><ellipse cx="25" cy="9" rx="6" ry="3" fill="none" stroke="purple"/><path d="M2 20l5 -4h4v8C15 20 20 12 22 20Q28 28 32 19z" fill="yellow" opacity="0.6" stroke="black"/><polyline points="1,1 12,4 14,8" fill="none" stroke="cyan"/></g><polygon points="1 25,8 24,4 32" fill="white"/><text x="24" y="30" font-size="10" text-anchor="middle">A&amp;g</text></svg>`;
 
 test("renders retained SVG source ranges into caller storage with identical pixels",async()=>{

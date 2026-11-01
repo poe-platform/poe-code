@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Profile { Memory, Overlay, StrictMount, Devices }
+enum Profile { Memory, Overlay, Devices }
 
 struct WasmSession {
     shell: Shell,
@@ -155,13 +155,7 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
         }
         2 | 3 => {
             let dev_fs = Arc::new(MemoryVfs::new());
-            if profile == 3 {
-                dev_fs.set_devices(crate::vfs::memory::Devices::Mounted);
-            } else {
-                dev_fs.set_devices(crate::vfs::memory::Devices::None);
-                let _ = dev_fs.write_file("/null", b"");
-                let _ = dev_fs.write_file("/zero", &[0u8; 64]);
-            }
+            dev_fs.set_devices(crate::vfs::memory::Devices::Mounted);
             sess.shell.fs = Arc::new(MountVfs::new(sess.shell.fs.clone()).with_mount("/dev", dev_fs));
             sess.shell.use_provided_devices();
             if profile == 2 {
@@ -176,8 +170,8 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
                     max_expansion_bytes: 1024 * 1024,
                     ..ShellLimits::default()
                 });
-                Profile::StrictMount
-            } else { Profile::Devices }
+            }
+            Profile::Devices
         }
         _ => return 0,
     };

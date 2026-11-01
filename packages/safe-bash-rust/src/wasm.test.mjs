@@ -598,3 +598,13 @@ test("mounted streams without EOF cannot be read as whole files", async () => {
     await assert.rejects(bash.fs.readFile("/dev/null", {maxBytes:Infinity}), {code:"EINVAL"});
   } finally { bash.dispose(); }
 });
+
+test("the strict budget profile mounts the virtual devices used by production", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev"});
+  try {
+    assert.equal((await bash.exec("ls /dev; head -c 80 /dev/zero | wc -c")).stdout, "null\nrandom\nurandom\nzero\n80\n");
+    await bash.fs.writeFile("/dev/null", "discard");
+    assert.equal((await bash.fs.readFile("/dev/null")).length, 0);
+    await assert.rejects(bash.fs.writeFile("/dev/urandom", "denied"), {code:"EPERM"});
+  } finally { bash.dispose(); }
+});

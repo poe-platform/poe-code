@@ -185,6 +185,8 @@ pub(in crate::commands) fn image_pdf(
         b.extend_from_slice(b"\nendstream");
         b
     }
+    let page_w = super::super::svg_format_num(page_w, 6);
+    let page_h = super::super::svg_format_num(page_h, 6);
     let alpha = pixels.iter().any(|p| p[3] != 255);
     let image = if alpha { 7 } else { 6 };
     let mut bodies=vec![

@@ -29535,58 +29535,56 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 
     let mut acc_title: Option<String> = None;
     let mut acc_descr: Option<String> = None;
-    let mut in_descr_block = false;
-    let mut descr_lines: Vec<String> = Vec::new();
-    let mut content_lines: Vec<&str> = Vec::new();
-
-    let mut flow_lines = Vec::new();
-    let scanned_lines = scanned.iter().flatten().map(|stmt| (stmt.text.as_str(), Some(stmt)));
-    let legacy_lines = (scanned.is_none()).then(|| src_text.lines()).into_iter().flatten().map(|line| (line, None));
-    for (raw_line, stmt) in scanned_lines.chain(legacy_lines) {
-        let t = raw_line.trim();
-        if in_descr_block {
-            if let Some(before_close) = t.strip_suffix('}') {
-                if !before_close.trim().is_empty() {
-                    descr_lines.push(before_close.trim().to_string());
-                }
-                acc_descr = Some(descr_lines.join(" "));
-                descr_lines.clear();
-                in_descr_block = false;
-            } else if !t.is_empty() {
-                descr_lines.push(t.to_string());
-            }
-            continue;
-        }
-        if t.is_empty() || t.starts_with("%%") {
-            continue;
-        }
-        if let Some(rest) = t.strip_prefix("accTitle:") {
-            acc_title = Some(rest.trim().to_string());
-            continue;
-        }
-        if let Some(rest) = t.strip_prefix("accDescr:") {
-            acc_descr = Some(rest.trim().to_string());
-            continue;
-        }
-        if let Some(rest) = t.strip_prefix("accDescr") {
-            let r = rest.trim();
-            if let Some(inner) = r.strip_prefix('{') {
-                if let Some(closed) = inner.strip_suffix('}') {
-                    acc_descr = Some(closed.trim().to_string());
-                } else {
-                    in_descr_block = true;
-                    if !inner.trim().is_empty() {
-                        descr_lines.push(inner.trim().to_string());
+    let mut content_lines: Vec<&str> = if let Some(stmts) = &scanned {
+        stmts.iter().map(|stmt| stmt.text.trim_end()).collect()
+    } else {
+        let mut in_descr_block = false;
+        let mut descr_lines: Vec<String> = Vec::new();
+        let mut content_lines = Vec::new();
+        for raw_line in src_text.lines() {
+            let t = raw_line.trim();
+            if in_descr_block {
+                if let Some(before_close) = t.strip_suffix('}') {
+                    if !before_close.trim().is_empty() {
+                        descr_lines.push(before_close.trim().to_string());
                     }
+                    acc_descr = Some(descr_lines.join(" "));
+                    descr_lines.clear();
+                    in_descr_block = false;
+                } else if !t.is_empty() {
+                    descr_lines.push(t.to_string());
                 }
                 continue;
             }
+            if t.is_empty() || t.starts_with("%%") {
+                continue;
+            }
+            if let Some(rest) = t.strip_prefix("accTitle:") {
+                acc_title = Some(rest.trim().to_string());
+                continue;
+            }
+            if let Some(rest) = t.strip_prefix("accDescr:") {
+                acc_descr = Some(rest.trim().to_string());
+                continue;
+            }
+            if let Some(rest) = t.strip_prefix("accDescr") {
+                let r = rest.trim();
+                if let Some(inner) = r.strip_prefix('{') {
+                    if let Some(closed) = inner.strip_suffix('}') {
+                        acc_descr = Some(closed.trim().to_string());
+                    } else {
+                        in_descr_block = true;
+                        if !inner.trim().is_empty() {
+                            descr_lines.push(inner.trim().to_string());
+                        }
+                    }
+                    continue;
+                }
+            }
+            content_lines.push(t);
         }
-        if let Some(stmt) = stmt {
-            flow_lines.push(stmt);
-        }
-        content_lines.push(t);
-    }
+        content_lines
+    };
 
     if content_lines.is_empty() {
         return err_out("mmdc: E_SYNTAX: Diagram source is empty\n", 1);
@@ -29656,10 +29654,22 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             Err(message)=>return err_out(&message,1),
         }
     } else {
-        match mermaid::layout(&flow_lines, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes()) {
+        match mermaid::layout(scanned.as_deref().unwrap_or_default(), &resolved_theme, &id_prefix, &mut acc_title, &mut acc_descr, fs.max_input_bytes()) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
-            None => None,
+            None => {
+                if let Some(stmts) = &scanned {
+                    content_lines.clear();
+                    for stmt in stmts {
+                        match stmt.read_metadata(&mut acc_title, &mut acc_descr) {
+                            Ok(false) => content_lines.push(stmt.text.trim_end()),
+                            Ok(true) => (),
+                            Err(error) => return err_out(&error, 1),
+                        }
+                    }
+                }
+                None
+            }
         }
     };
     let (vw, vh) = scene.as_ref().map_or((f64::from(width), f64::from(height)), |s| (s.width, s.height));
@@ -38271,6 +38281,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         for (source,path,hash) in [
             ("flowchart TD; A-->A","/chart.png","d8f7f78bab5707651399686cf9f01a5c9bde3ac85e953115d10a66fa977b10ea"),
             ("flowchart TD; A-->B","/chart.png","06f9e52c0a4c42666b93e7125edba4f97f6ba1bdf6c32c307525a2bee73edd8f"),
+            (r#"flowchart TD; title "Shipping; now"; A-->B"#,"/chart.pdf","a17a5e236b49024c946df545d157417a91d470048026db398ef541bb587c4af1"),
             ("flowchart TD; A-->B","/chart.pdf","5c99fac4e63502721f76629f092522bbb2a558fbe134df1d3434c91638592fe3"),
             ("flowchart TD","/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),
             ("flowchart TD","/chart.pdf","17c6a60bf2022217300c2073eee4f8ecad15ee3f863bae2676991629a8c66b1b"),
@@ -38318,6 +38329,17 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
+    fn mmdc_preserves_accessibility_text_after_subgraphs() {
+        let fs = MemoryVfs::new();
+        let source = r#"flowchart TD; subgraph G; A-->B; end; title "G report"; accDescr: "group report""#;
+        let result = try_run_structured_command("mmdc", &args(&["-i", "-", "-o", "/d.svg"]), source, "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(result.exit_code, 0);
+        let svg = String::from_utf8(fs.read_file("/d.svg").unwrap()).unwrap();
+        assert!(svg.contains("<title>G report</title>"));
+        assert!(svg.contains("<desc>group report</desc>"));
+    }
+
+    #[test]
     fn mmdc_bounds_group_expansion_before_writing() {
         let fs = MemoryVfs::new();
         let group = vec!["A"; 256].join(" & ");
@@ -38339,6 +38361,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("%% head\n \tgraph W; A-->B","E_SYNTAX (line 2, column 9): Invalid flowchart direction 'W'. Supported: TB, TD, BT, LR, RL"),
             ("flowchart TD extra junk; A-->B","E_SYNTAX (line 1, column 14): Unexpected tokens after flowchart header: 'extra junk'"),
             ("flowchart; A-->B; direction NO","E_SYNTAX (line 1, column 19): Invalid direction 'NO'"),
+            ("flowchart TD; title \"OnLoAd=foo\"; A-->B","E_UNSUPPORTED (line 1, column 15): Unsupported HTML or active content 'onload=' in diagram label"),
+            ("flowchart TD; accDescr: <iframe; A-->B","E_UNSUPPORTED (line 1, column 15): Unsupported HTML or active content '<iframe' in diagram label"),
             ("flowchart TD; 🦊-->","E_SYNTAX (line 1, column 20): Expected node identifier at ''"),
             ("flowchart TD; A[\"a\nb\"]-->|<script>|B","E_UNSUPPORTED (line 1, column 23): Unsupported HTML or active content '<script' in diagram label"),
             ("flowchart TD; A[Start","E_SYNTAX (line 1, column 15): Unclosed node shape '[...]'"),
@@ -38396,6 +38420,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart TD; A & B -->|send| C & D --> E","4c7f144a915057a3792decc4776c9a4d04816bcf030ecd6dc8d4d1a05828d1e2"),
             ("flowchart TD; A & B --> B & A","a8a482eacec329695cbb0180f51df3d378ac6a644d892430f9f544f3b6cfeb32"),
             ("flowchart RL; direction TD; A-->B; direction LR","02edeffe65de0eda10a404f77261ee2f09fdaa906be32238bb0a81b5c6183fd4"),
+            (r#"flowchart TD; title "Shipping; now"; A-->B"#,"66c1f2c96d1a78d8f3b2d4875fd4964f8e5a42f2b2470ed09db5d348a6c705f4"),
+            (r#"flowchart TD; accTitle: First; accDescr: "quoted"; A-->B; title Second"#,"b6255478d03a8f84a913dfc2eccabbd31589f0e522ed3d7179d7680730dcceaa"),
             (r#"flowchart TD; A["literal %%{ dark"]-->B"#,"d3d8c899c81c8d95878c0e71b9c306feddf47e2ddcc279674ce79f87f3ea805b"),
             (r#"flowchart TD; A["verify; then act"]-->|one;two|B"#,"da35a643400be95f717e22f487ba4098cd5dea111822a0d7b57165523237dc5e"),
             ("flowchart TD; A[\"First\n second\"]-->B","3605f71682506867f5f474f8753ac2ebb5d71393fc688b03dfa631e8c5e8feae"),

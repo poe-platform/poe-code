@@ -5,6 +5,23 @@ pub(in super::super) struct Statement {
 }
 
 impl Statement {
+    pub(in super::super) fn read_metadata(
+        &self,
+        title: &mut Option<String>,
+        description: &mut Option<String>,
+    ) -> Result<bool, String> {
+        let text = self.text.trim_end();
+        let keyword = text.split_ascii_whitespace().next().unwrap_or("");
+        let slot = match keyword {
+            "title" | "accTitle:" => title,
+            "accDescr:" => description,
+            _ => return Ok(false),
+        };
+        let value = label(&text[keyword.len()..], self, text)?;
+        *slot = (!value.is_empty()).then_some(value);
+        Ok(true)
+    }
+
     pub(super) fn error(&self, code: &str, token: &str, message: &str) -> String {
         let offset = if token.is_empty() {
             self.text.trim_end().len()

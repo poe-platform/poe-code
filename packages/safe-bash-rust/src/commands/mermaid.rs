@@ -355,13 +355,14 @@ impl Pill {
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) fn layout(
-    lines: &[&Statement],
+    lines: &[Statement],
     theme: &str,
     prefix: &str,
-    title: Option<&str>,
+    title: &mut Option<String>,
+    description: &mut Option<String>,
     limit: usize,
 ) -> Option<Result<Scene, String>> {
-    let mut stmts = lines.iter().copied();
+    let mut stmts = lines.iter();
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
@@ -395,7 +396,13 @@ pub(super) fn layout(
     let mut label_bytes = 0usize;
     for stmt in stmts {
         let text = stmt.text.trim_end();
-        if text.split_ascii_whitespace().next() == Some("direction") {
+        let keyword = text.split_ascii_whitespace().next()?;
+        match stmt.read_metadata(title, description) {
+            Ok(true) => continue,
+            Ok(false) => {}
+            Err(error) => return Some(Err(error)),
+        }
+        if keyword == "direction" {
             let value = text["direction".len()..].trim();
             if !valid_direction(value) {
                 return Some(Err(stmt.error(
@@ -406,6 +413,12 @@ pub(super) fn layout(
             }
             dir = value;
             continue;
+        }
+        if matches!(
+            keyword,
+            "subgraph" | "class" | "style" | "classDef" | "linkStyle" | "click" | "callback"
+        ) {
+            return None;
         }
         let (mut sources, mut rest) = match parse_group(text, stmt, &mut nodes, &mut ids) {
             Ok(node) => node,
@@ -432,7 +445,10 @@ pub(super) fn layout(
                 let (label, tail) = t.split_once("-->")?;
                 ("-->", tail, label.trim())
             } else {
-                if nodes[*sources.last()?].id.ends_with("--") {
+                if nodes[*sources.last()?].id.ends_with("--")
+                    || rest.starts_with('{')
+                    || (rest.starts_with(':') && !rest.starts_with(":::"))
+                {
                     let text =
                         String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
                     return Some(Err(stmt.error(
@@ -816,7 +832,7 @@ pub(super) fn layout(
     }
     let mut width = f64::from(width);
     let mut height = f64::from(height);
-    if let Some(t) = title.filter(|t| !t.is_empty()) {
+    if let Some(t) = title.as_deref() {
         let text_width = measure(t, 16., true);
         width = width.max(text_width + 64.);
         let fill = if dark { "#1e293b" } else { "#ffffff" };

@@ -10112,12 +10112,13 @@ fn cmd_media_doc(
             use magick_coordinates::{Geometry,Gravity};
             let mut gravity=Gravity::parse("northwest");
             let mut background=[255;4];
+            let mut fill=[0,0,0,255];
             let mut border_color=[223,223,223,255];
             let mut fuzz=10.;
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10268,10 +10269,23 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-gravity" if i+1 < args.len() => {gravity=Gravity::parse(&args[i+1]);i+=2;}
-                    "-background" | "-bordercolor" if i+1 < args.len() => {
-                        let color=match parse_color(&args[i+1]) {Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)};
-                        if arg=="-background"{background=color;}else{border_color=color;}
-                        i+=2;
+                    "-fill" | "-background" | "-bordercolor" => {
+                        let color=if i+1<args.len()-usize::from(!is_mogrify){
+                            i+=1;match parse_color(&args[i]){Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)}
+                        }else{match arg.as_str(){"-fill"=>[0,0,0,255],"-bordercolor"=>[223,223,223,255],_=>[255;4]}};
+                        match arg.as_str(){"-fill"=>fill=color,"-background"=>background=color,_=>border_color=color};
+                        i+=1;
+                    }
+                    "-opaque" | "+opaque" | "-transparent" | "+transparent" => {
+                        let opaque=arg.ends_with("opaque");
+                        let color=if i+1<args.len()-usize::from(!is_mogrify){
+                            i+=1;match parse_color(&args[i]){Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)}
+                        }else if opaque{[0,0,0,255]}else{[255;4]};
+                        ops.push(PixelOp::Replace(color,opaque.then_some(fill),fuzz,arg.starts_with('+')));i+=1;
+                    }
+                    "-tint" | "-colorize" => {
+                        if i+1<args.len()-usize::from(!is_mogrify){i+=1;}
+                        ops.push(PixelOp::Tint(fill));i+=1;
                     }
                     "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
                     "-write" | "+write" => {
@@ -10382,7 +10396,7 @@ fn cmd_media_doc(
                         let sigma=Geometry::parse(g).sigma();
                         ops.push(if matches!(arg.as_str(),"-blur"|"-gaussian-blur"){PixelOp::Blur(sigma)}else{PixelOp::Sharpen(sigma)});i+=1;
                     }
-                    "-depth" | "-fill"
+                    "-depth"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
                     | "-draw" | "-annotate" | "-define"
                         if i + 1 < args.len() =>
@@ -10424,6 +10438,8 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Tint(fill)=>{image.tint(*fill);channels=if image.alpha{4}else{3};},
+                        PixelOp::Replace(target,fill,fuzz,invert)=>image.replace_color(*target,*fill,*fuzz,*invert),
                         PixelOp::Linear(slope,offset)=>image.linear(*slope,*offset,channels==2),
                         PixelOp::Sigmoid(spec)=>image.sigmoidal_contrast(spec),
                         PixelOp::Level(spec,inverse)=>image.level(spec,*inverse),
@@ -14720,6 +14736,25 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn convert_replaces_only_pixels_inside_the_color_tolerance() {
+        let fs=MemoryVfs::new();
+        let im=png_pixels::Raster{width:3,height:1,gray:false,alpha:true,density:72,orientation:None,
+            pixels:vec![[20,22,24,1],[21,22,25,111],[23,22,24,255]]};
+        fs.write_file("/colors.png",&im.png()).unwrap();
+        for (op,expected) in [
+            ("-opaque", vec![[0,0,255,255],[0,0,255,255],[23,22,24,255]]),
+            ("+opaque", vec![[20,22,24,1],[21,22,25,111],[0,0,255,255]]),
+            ("-transparent", vec![[20,22,24,0],[21,22,25,0],[23,22,24,255]]),
+            ("+transparent", vec![[20,22,24,1],[21,22,25,111],[23,22,24,0]]),
+        ] {
+            let r=cmd_media_doc("convert",&media_args(&["colors.png","-fill","blue","-fuzz","1",op,"#141618","out.png"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let output=png_pixels::Raster::decode(&fs.read_file("/out.png").unwrap(),fs.max_input_bytes()).unwrap();
+            assert_eq!(output.pixels,expected,"{op}");
+        }
+    }
+
+    #[test]
     fn convert_applies_tone_curves_to_translucent_pixels() {
         let fs=MemoryVfs::new();
         let im=png_pixels::Raster{width:9,height:7,gray:false,alpha:true,density:240,orientation:Some(6),
@@ -14748,6 +14783,9 @@ mod media_unit_tests {
             ("-level 80%,20%","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
             ("-level bad","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
             ("-level 0,255,bad","8cf3c95de2c53f35ddf36b2bd76af68df7481fc33be603f895aaa12789e95df3"),
+            ("-fill red -tint 50%","be38665ffa9ddbcb8b93fc392cc8a959fa7f6d86e2687b6a707ba8b66d90cd92"),
+            ("-fill orange -colorize 10","8f6acef886915c7c4d198adaa1d147605fd4981cf76e6d890948037aadb7f280"),
+            ("-tint 50","fd7962c819885a3b7c43f804220fe541c61a502aa0d4c583e9b12fa590e8eef0"),
         ] {
             let argv=format!("rgba.png {args} out.png");
             let r=cmd_media_doc("convert",&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);

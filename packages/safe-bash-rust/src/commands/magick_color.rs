@@ -463,7 +463,58 @@ pub(super) fn negate(pixel: &mut [u8; 4], channels: [bool; 4], only_gray: bool) 
     }
 }
 
+fn srgb_to_lab([r, g, b]: [u8; 3]) -> [f64; 3] {
+    let [r, g, b] = [r, g, b].map(linear);
+    let f = |v: f64| if v > 0.008856 { v.cbrt() } else { 7.787 * v + 16. / 116. };
+    let x = f((0.4124564*r + 0.3575761*g + 0.1804375*b) / 0.95047);
+    let y = f(0.2126729*r + 0.7151522*g + 0.0721750*b);
+    let z = f((0.0193339*r + 0.1191920*g + 0.9503041*b) / 1.08883);
+    [116.*y - 16., 500.*(x - y), 200.*(y - z)]
+}
+
+fn lab_to_srgb(l: f64, a: f64, b: f64) -> [u8; 3] {
+    let (y, fy) = if l < 8. {
+        let y = f64::from((l * 100. / 903.3) as f32);
+        (y, y / 100. * 7.787 + 16. / 116.)
+    } else {
+        let fy = (l + 16.) / 116.;
+        (f64::from((fy * fy * fy * 100.) as f32), fy)
+    };
+    let inv = |v: f64| if v > 0.206893 { v*v*v } else { (v - 16./116.) / 7.787 };
+    let x = f64::from((95.047 * inv(a / 500. + fy)) as f32) / 100.;
+    let z = f64::from((108.883 * inv(fy - b / 200.)) as f32) / 100.;
+    let y = y / 100.;
+    [3.2404542*x - 1.5371385*y - 0.4985314*z,
+     -0.9692660*x + 1.8760108*y + 0.0415560*z,
+     0.0556434*x - 0.2040259*y + 1.0572252*z].map(srgb_byte)
+}
+
 impl super::png_pixels::Raster {
+    pub fn tint(&mut self, [r, g, b, _]: [u8; 4]) {
+        let [_, a, b] = srgb_to_lab([r, g, b]);
+        let lut: [[u8; 3]; 256] = std::array::from_fn(|i| {
+            let [l, _, _] = srgb_to_lab([i as u8; 3]);
+            let d = l / 100. - 0.5;
+            let weight = 1. - 4. * d * d;
+            lab_to_srgb(l, a * weight, b * weight)
+        });
+        for pixel in &mut self.pixels {
+            let value = gray(pixel[0], pixel[1], pixel[2]);
+            pixel[..3].copy_from_slice(&lut[usize::from(value)]);
+        }
+        self.gray = false;
+    }
+
+    pub fn replace_color(&mut self, target: [u8; 4], fill: Option<[u8; 4]>, fuzz: f64, invert: bool) {
+        for pixel in &mut self.pixels {
+            let matched = (0..3).all(|c| f64::from(pixel[c].abs_diff(target[c])) <= fuzz);
+            if matched != invert {
+                if let Some(color) = fill { *pixel = color; } else { pixel[3] = 0; }
+            }
+        }
+        self.alpha = true;
+    }
+
     pub fn sepia(&mut self, strength: f64) {
         for pixel in &mut self.pixels {
             let [r, g, b, _] = pixel.map(f64::from);

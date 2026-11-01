@@ -4774,7 +4774,7 @@ fn cmd_media_doc(
                 } else if frame_output && (inputs.len()==1 && supported || remux_inputs) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
-                    let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
+                    let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
                         let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
                         if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                             return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
@@ -14205,6 +14205,9 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=7x5:r=8:d=0.5","anim.gif"]),"","/",&fs);
         assert_eq!(r.exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/anim.gif").unwrap())),"bd8d1a4587654c101657be4956df225a44963874fbe8f4f780581bec1b153156");
+        let cut=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=7x5:r=8:d=0.5","-ss","0.2","-t","0.2","cut.gif"]),"","/",&fs);
+        assert_eq!(cut.stderr,"ffmpeg: offset is out of bounds\n");
+        assert!(!fs.exists("/cut.gif"));
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","anim.gif","-vf","scale=6:4","o.mp4"]),"","/",&fs);
         assert_eq!(r.exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),"d0093422a204d7de969a319aadb35c4b4ddd17a7cc6dba52a298e4161bd2f525");

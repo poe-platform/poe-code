@@ -357,6 +357,7 @@ pub(super) fn render(
     image_format: Option<&str>,
     pattern: Option<(usize, usize, usize)>,
     mut index: u64,
+    unfiltered: bool,
     decode: impl FnOnce(
         bool,
         &mut dyn FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
@@ -372,7 +373,7 @@ pub(super) fn render(
     let mut delays=Vec::new();
     let mut elapsed=0.;
     let mut previous=0u64;
-    let dims = decode(pattern.is_some(), &mut |mut im, duration, _| {
+    let dims = decode(pattern.is_some() || animation, &mut |mut im, duration, _| {
         if animation {
             let (w,h)=*geometry.get_or_insert((im.width,im.height));
             let n=w.saturating_mul(h);
@@ -424,7 +425,21 @@ pub(super) fn render(
         return Ok(None);
     }
     if animation {
-        let (w,h)=geometry.unwrap_or((w,h));
+        // The GIF muxer reserves the track dimensions. Decoded AVC pixels
+        // may still include padding; JavaScript rejects an oversized copy.
+        let (fw,fh)=geometry.unwrap_or((w,h));
+        let (w,h)=if unfiltered {(w,h)} else {(fw,fh)};
+        if fw.saturating_mul(fh)>w.saturating_mul(h) {return Err("offset is out of bounds".into());}
+        if fw*fh<w*h && !delays.is_empty() {
+            let n=w.saturating_mul(h);
+            if n.saturating_mul(delays.len())>limit/4 {return Err("image exceeds memory budget".into());}
+            gif_pixels.resize(n*delays.len(),[0;4]);
+            let src=fw*fh;
+            for i in (0..delays.len()).rev() {
+                gif_pixels.copy_within(i*src..(i+1)*src,i*n);
+                gif_pixels[i*n+src..(i+1)*n].fill([0;4]);
+            }
+        }
         if delays.is_empty() {
             if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget".into());}
             gif_pixels.resize(w*h,[0;4]);

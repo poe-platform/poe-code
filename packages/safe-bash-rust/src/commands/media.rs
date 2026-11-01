@@ -3970,22 +3970,17 @@ pub(super) fn pixel_png<const N: usize>(width: usize, height: usize, encoding: P
     header[4..8].copy_from_slice(&(height as u32).to_be_bytes());
     header[8..10].copy_from_slice(&[8, match N { 1 => 0, 2 => 4, 3 => 2, 4 => 6, _ => unreachable!() }]);
     chunk(b"IHDR", &header);
-    let compressed=match encoding {
-        PngEncoding::Mermaid=>crate::commands::codecs::zlib_pixel_runs(&raw),
+    match encoding {
+        PngEncoding::Mermaid=>chunk(b"IDAT",&crate::commands::codecs::zlib_pixel_runs(&raw)),
         PngEncoding::Density(dpi)|PngEncoding::SplitDensity(dpi,_)=>{
             let ppm=((dpi as f64/0.0254).round() as u32).to_be_bytes();
             let mut phys=[1;9];phys[..4].copy_from_slice(&ppm);phys[4..8].copy_from_slice(&ppm);
             chunk(b"pHYs",&phys);
-            if let PngEncoding::SplitDensity(_,Some(o))=encoding{chunk(b"eXIf",&image_header::encode_exif(o,dpi));}
-            crate::commands::codecs::zlib_compress(&raw)
+            if let PngEncoding::SplitDensity(_,orientation)=encoding {
+                if let Some(o)=orientation {chunk(b"eXIf",&image_header::encode_exif(o,dpi));}
+                crate::commands::codecs::png_zlib_chunks(&raw,|part|chunk(b"IDAT",part));
+            }else{chunk(b"IDAT",&crate::commands::codecs::zlib_compress(&raw));}
         }
-    };
-    if matches!(encoding,PngEncoding::SplitDensity(..)) {
-        // Stored images start the encoder with the first row filter, emitting its zlib header.
-        chunk(b"IDAT", &compressed[..2]);
-        for part in compressed[2..].chunks(4084) { chunk(b"IDAT", part); }
-    } else {
-        chunk(b"IDAT", &compressed);
     }
     chunk(b"IEND", &[]);
     out
@@ -14090,6 +14085,19 @@ mod media_unit_tests {
         fs.write_file("/a.png", &hex_dec("89504e470d0a1a0a0000000d494844520000000d000000090806000000e97aa66a000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000003b4944415463945170facf40226034b3f2235d53404814e99ab2f25249d7d4da5148baa6f98b6a49d7b4734f27e99a2e5f9b42baa6b71f1690ac0900dff8166cd748a1f90000000049454e44ae426082")).unwrap();
         fs.write_file("/b.png", &hex_dec("89504e470d0a1a0a0000000d4948445200000007000000050806000000899af6d8000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000006149444154639c51a6f4ff2d37cbe34f9c4c2f7f33337d67fdfb8f93effb3f71e1af7f64197b6b54debde263b9fb9687e5e13736a68f5cbffef10b7ff9232ff6e98f326357bdea8b177cacb75ef0b3dc06d1129f7eab497cfca30aa2f1ebc4672700f4c246b0d78da95f0000000049454e44ae426082")).unwrap();
         fs
+    }
+
+    #[test]
+    fn png_records_the_blocks_emitted_by_the_streaming_encoder() {
+        for (shift,expected) in [(24,"90f18eff25a25feead75ae0293890be6f680b58ca03c97982f2f2d59e0ac233c"),(28,"fec26eeb37ad20e8c5156b33178abe95ead5ecc984ca3b3a1afbc625d2a71755")] {
+            let mut state=628u32;
+            let pixels:Vec<[u8;3]>=(0..257*129).map(|_|std::array::from_fn(|_|{
+                state=state.wrapping_mul(1664525).wrapping_add(1013904223);
+                (state >> shift) as u8
+            })).collect();
+            let png=pixel_png(257,129,PngEncoding::SplitDensity(72,None),|x,y|pixels[y*257+x]);
+            assert_eq!(hex_enc(&sha256_bytes(&png)),expected);
+        }
     }
 
     #[test]

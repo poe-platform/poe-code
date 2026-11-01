@@ -176,7 +176,7 @@ const CL_ORDER: [usize; 19] = [
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
 ];
 
-fn block(w: &mut DeflateWriter, tokens: &[Token], raw: Option<&[u8]>, last: bool) {
+fn block(w: &mut DeflateWriter, tokens: &[Token], raw: Option<&[u8]>, last: bool) -> bool {
     let mut lh = [0; 286];
     let mut dh = [0; 30];
     lh[256] = 1;
@@ -245,7 +245,7 @@ fn block(w: &mut DeflateWriter, tokens: &[Token], raw: Option<&[u8]>, last: bool
         w.bytes.extend(n.to_le_bytes());
         w.bytes.extend((!n).to_le_bytes());
         w.bytes.extend(raw);
-        return;
+        return true;
     }
     let dyn_tree = dynamic < fixed;
     w.bits(last as u16 + if dyn_tree { 4 } else { 2 }, 3);
@@ -282,9 +282,15 @@ fn block(w: &mut DeflateWriter, tokens: &[Token], raw: Option<&[u8]>, last: bool
             w.bits(t.dist_bits.0, t.dist_bits.1);
         }
     }
+    false
 }
 
-pub(super) fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
+pub(super) fn deflate(
+    data: &[u8],
+    level: u8,
+    header: Vec<u8>,
+    mut emit: impl FnMut(&[u8]),
+) -> Vec<u8> {
     let mut w = DeflateWriter {
         bytes: header,
         pending: 0,
@@ -319,6 +325,8 @@ pub(super) fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
         old
     };
     let mut tokens = Vec::with_capacity(data.len().min(16383));
+    let mut aligned = w.bytes.len();
+    let mut sent = aligned;
     let mut p = 0;
     let mut start = 0;
     let mut window = 0;
@@ -329,6 +337,7 @@ pub(super) fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
         if p > window + 65536 - 262 {
             window += 32768;
         }
+        let lookahead = data.len() - p;
         let mut candidate = insert(p, &mut heads, &mut prev);
         let old_len = len;
         let old_dist = distance;
@@ -400,12 +409,25 @@ pub(super) fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
             continue;
         };
         if tokens.len() == 16383 {
-            block(
+            let stored = block(
                 &mut w,
                 &tokens,
                 (start >= window).then(|| &data[start..end]),
                 false,
             );
+            // zlib keeps up to 16 pending bits between compressed blocks. A
+            // stored block aligns the stream and flushes all its bytes.
+            let flushed = if stored {
+                aligned = w.bytes.len();
+                aligned
+            } else {
+                let bits = (w.bytes.len() - aligned) as u64 * 8 + u64::from(w.bits);
+                aligned + (((bits - 1) / 16) * 2) as usize
+            };
+            if lookahead >= 262 {
+                emit(&w.bytes[sent..flushed]);
+                sent = flushed;
+            }
             start = end;
             tokens.clear();
         }

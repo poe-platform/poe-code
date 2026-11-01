@@ -417,7 +417,7 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
         9 => 2,
         _ => 0,
     };
-    let mut out = deflate(data, level, vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, flags, 255]);
+    let mut out = deflate(data, level, vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, flags, 255], |_| {});
     let crc = crc32_ieee(data);
     out.extend_from_slice(&crc.to_le_bytes());
     out.extend_from_slice(&(data.len() as u32).to_le_bytes());
@@ -429,9 +429,22 @@ mod deflate_encoder;
 use deflate_encoder::deflate;
 
 pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
-    let mut out = deflate(data, 6, vec![0x78, 0x9c]);
+    let mut out = deflate(data, 6, vec![0x78, 0x9c], |_| {});
     out.extend_from_slice(&adler32(data).to_be_bytes());
     out
+}
+
+// A row-wise PNG encoder drains each completed block before supplying more
+// input. The final push also includes the zlib checksum.
+pub(super) fn png_zlib_chunks(data: &[u8], mut emit: impl FnMut(&[u8])) {
+    emit(&[0x78, 0x9c]);
+    let mut sent=0;
+    let mut out=deflate(data, 6, Vec::new(), |block| {
+        sent+=block.len();
+        for chunk in block.chunks(4084) {emit(chunk);}
+    });
+    out.extend_from_slice(&adler32(data).to_be_bytes());
+    for chunk in out[sent..].chunks(4084) {emit(chunk);}
 }
 
 // Mermaid writes one fixed Huffman block, matching runs at distances 1 and 4.
@@ -3261,7 +3274,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         };
         let compress = level != 0 && !is_dir && !is_symlink && !payload.is_empty()
             && (level == 9 || !store_suffixes.iter().any(|suffix| clean_name.ends_with(suffix)));
-        let compressed = if compress { deflate(payload, level, Vec::new()) } else { Vec::new() };
+        let compressed = if compress { deflate(payload, level, Vec::new(), |_| {}) } else { Vec::new() };
         let (method, version, stored): (u16, u16, &[u8]) = if compress && compressed.len() < payload.len() {
             (8, 20, &compressed)
         } else { (0, 10, payload) };

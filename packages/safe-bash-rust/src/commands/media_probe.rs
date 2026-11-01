@@ -3,12 +3,24 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write;
 
 pub(super) struct Clip {
-    width: u32,
-    height: u32,
+    track: Track,
+    timescale: u32,
+    payload_bytes: u64,
     ticks: u64,
-    fps: f64,
+    duration: f64,
     count: usize,
-    frame_size: u64,
+}
+
+enum Track {
+    Y4m {
+        width: u32,
+        height: u32,
+        frame_size: u64,
+    },
+    Aac {
+        channels: u8,
+        ends: Vec<usize>,
+    },
 }
 
 fn integer(input: &str, fallback: u32) -> Result<u32, &'static str> {
@@ -27,7 +39,7 @@ fn integer(input: &str, fallback: u32) -> Result<u32, &'static str> {
 }
 
 impl Clip {
-    pub(super) fn parse(input: &[u8]) -> Result<Self, &'static str> {
+    pub(super) fn y4m(input: &[u8]) -> Result<Self, &'static str> {
         if !input.starts_with(b"YUV4MPEG2 ") {
             return Err("Invalid YUV4MPEG2 stream: missing 'YUV4MPEG2 ' magic");
         }
@@ -63,13 +75,58 @@ impl Clip {
             count += 1;
         }
         Ok(Self {
-            width,
-            height,
-            fps,
+            track: Track::Y4m {
+                width,
+                height,
+                frame_size,
+            },
+            timescale: 90000,
+            payload_bytes: count as u64 * frame_size,
+            duration: count as f64 / fps,
             count,
-            frame_size,
             ticks: (90000. / fps).round().max(1.) as u64,
         })
+    }
+    pub(super) fn adts(mut input: &[u8], records: bool) -> Self {
+        let rates = [
+            96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350,
+        ];
+        let (mut timescale, mut channels, mut count, mut payload) = (44100, 2, 0, 0);
+        let mut ends = Vec::new();
+        while input.len() >= 7 {
+            if input[0] != 255 || input[1] & 0xf0 != 0xf0 {
+                input = &input[1..];
+                continue;
+            }
+            if let Some(rate) = rates.get(usize::from(input[2] >> 2 & 15)) {
+                timescale = *rate;
+            }
+            channels = (input[2] & 1) << 2 | input[3] >> 6;
+            let header = if input[1] & 1 == 0 { 9 } else { 7 };
+            let length = usize::from(input[3] & 3) << 11
+                | usize::from(input[4]) << 3
+                | usize::from(input[5] >> 5);
+            if length <= header || length > input.len() {
+                break;
+            }
+            payload += length - header;
+            if records {
+                ends.push(payload);
+            }
+            count += 1;
+            input = &input[length..];
+        }
+        Self {
+            track: Track::Aac {
+                channels: if channels == 0 { 2 } else { channels },
+                ends,
+            },
+            timescale,
+            count,
+            payload_bytes: payload as u64,
+            duration: count as f64 * 1024. / f64::from(timescale),
+            ticks: 1024,
+        }
     }
 }
 
@@ -87,11 +144,11 @@ fn ratio(a: u64, b: u64, sep: char) -> String {
 impl Clip {
     fn stream(&self, count_frames: bool, count_packets: bool) -> Row {
         let ticks = self.count as f64 * self.ticks as f64;
-        let duration = ticks / 90000.;
-        let rate = if self.count == 0 {
+        let duration = ticks / f64::from(self.timescale);
+        let rate = if self.count == 0 || matches!(self.track, Track::Aac { .. }) {
             "0/0".into()
         } else {
-            ratio(90000, self.ticks, '/')
+            ratio(self.timescale.into(), self.ticks, '/')
         };
         let disposition = [
             "default",
@@ -110,36 +167,49 @@ impl Clip {
         .into_iter()
         .map(|k| (k.to_owned(), Number(f64::from(k == "default"))))
         .collect();
-        let mut row = vec![
-            ("index", Number(0.)),
-            ("id", Str("0x1".into())),
-            ("codec_name", Str("rawvideo".into())),
-            ("codec_long_name", Str("raw video".into())),
-            ("codec_type", Str("video".into())),
-            ("codec_tag_string", Str("raw ".into())),
-            ("codec_tag", Str("0x72617720".into())),
-            ("width", Number(self.width.into())),
-            ("height", Number(self.height.into())),
-            (
-                "coded_width",
-                Number(f64::from(self.width.div_ceil(16)) * 16.),
-            ),
-            (
-                "coded_height",
-                Number(f64::from(self.height.div_ceil(16)) * 16.),
-            ),
-            ("has_b_frames", Number(0.)),
-            ("sample_aspect_ratio", Str("1:1".into())),
-            (
-                "display_aspect_ratio",
-                Str(ratio(self.width.into(), self.height.into(), ':')),
-            ),
-            ("pix_fmt", Str("yuv420p".into())),
-            ("color_range", Str("tv".into())),
-            ("color_space", Str("bt709".into())),
+        let mut row = vec![("index", Number(0.)), ("id", Str("0x1".into()))];
+        match self.track {
+            Track::Y4m { width, height, .. } => row.extend([
+                ("codec_name", Str("rawvideo".into())),
+                ("codec_long_name", Str("raw video".into())),
+                ("codec_type", Str("video".into())),
+                ("codec_tag_string", Str("raw ".into())),
+                ("codec_tag", Str("0x72617720".into())),
+                ("width", Number(width.into())),
+                ("height", Number(height.into())),
+                ("coded_width", Number(f64::from(width.div_ceil(16)) * 16.)),
+                ("coded_height", Number(f64::from(height.div_ceil(16)) * 16.)),
+                ("has_b_frames", Number(0.)),
+                ("sample_aspect_ratio", Str("1:1".into())),
+                (
+                    "display_aspect_ratio",
+                    Str(ratio(width.into(), height.into(), ':')),
+                ),
+                ("pix_fmt", Str("yuv420p".into())),
+                ("color_range", Str("tv".into())),
+                ("color_space", Str("bt709".into())),
+            ]),
+            Track::Aac { channels, .. } => row.extend([
+                ("codec_name", Str("aac".into())),
+                ("codec_long_name", Str("AAC (Advanced Audio Coding)".into())),
+                ("profile", Str("LC".into())),
+                ("codec_type", Str("audio".into())),
+                ("codec_tag_string", Str("mp4a".into())),
+                ("codec_tag", Str("0x6d703461".into())),
+                ("sample_fmt", Str("fltp".into())),
+                ("sample_rate", Str(self.timescale.to_string())),
+                ("channels", Number(channels.into())),
+                (
+                    "channel_layout",
+                    Str(if channels == 1 { "mono" } else { "stereo" }.into()),
+                ),
+                ("bits_per_sample", Number(16.)),
+            ]),
+        }
+        row.extend([
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
-            ("time_base", Str("1/90000".into())),
+            ("time_base", Str(format!("1/{}", self.timescale))),
             ("start_pts", Number(0.)),
             ("start_time", Str("0.000000".into())),
             ("duration_ts", Number(ticks)),
@@ -149,7 +219,7 @@ impl Clip {
                 Str(if duration == 0. {
                     "0".into()
                 } else {
-                    ((self.count as f64 * self.frame_size as f64 * 8.) / duration)
+                    ((self.payload_bytes as f64 * 8.) / duration)
                         .round()
                         .to_string()
                 }),
@@ -157,7 +227,7 @@ impl Clip {
             ("nb_frames", Str(self.count.to_string())),
             ("disposition", Object(disposition)),
             ("tags", Object(vec![("language".into(), Str("und".into()))])),
-        ];
+        ]);
         if count_frames {
             row.push(("nb_read_frames", Str(self.count.to_string())));
         }
@@ -168,13 +238,17 @@ impl Clip {
     }
 
     fn format(&self, filename: &str, bytes: usize) -> Row {
-        let duration = self.count as f64 / self.fps;
+        let duration = self.duration;
+        let (name, long_name) = match self.track {
+            Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
+            Track::Y4m { .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
+        };
         vec![
             ("filename", Str(filename.into())),
             ("nb_streams", Number(1.)),
             ("nb_programs", Number(0.)),
-            ("format_name", Str("yuv4mpegpipe".into())),
-            ("format_long_name", Str("YUV4MPEG pipe".into())),
+            ("format_name", Str(name.into())),
+            ("format_long_name", Str(long_name.into())),
             ("start_time", Str("0.000000".into())),
             ("duration", Str(format!("{duration:.6}"))),
             ("size", Str(bytes.to_string())),
@@ -192,12 +266,22 @@ impl Clip {
     }
 
     fn record(&self, i: usize, frame: bool) -> Row {
+        let (size, pos, kind) = match &self.track {
+            Track::Aac { ends, .. } => {
+                let pos = if i == 0 { 0 } else { ends[i - 1] };
+                ((ends[i] - pos) as u64, pos as u64, "audio")
+            }
+            Track::Y4m { frame_size, .. } => (*frame_size, i as u64 * frame_size, "video"),
+        };
         let pts = i as f64 * self.ticks as f64;
-        let time = || Str(format!("{:.6}", pts / 90000.));
-        let duration = Str(format!("{:.6}", self.ticks as f64 / 90000.));
+        let time = || Str(format!("{:.6}", pts / f64::from(self.timescale)));
+        let duration = Str(format!(
+            "{:.6}",
+            self.ticks as f64 / f64::from(self.timescale)
+        ));
         if frame {
-            vec![
-                ("media_type", Str("video".into())),
+            let mut row = vec![
+                ("media_type", Str(kind.into())),
                 ("stream_index", Number(0.)),
                 ("key_frame", Number(1.)),
                 ("pts", Number(pts)),
@@ -208,15 +292,25 @@ impl Clip {
                 ("best_effort_timestamp_time", time()),
                 ("pkt_duration", Number(self.ticks as f64)),
                 ("pkt_duration_time", duration),
-                ("pkt_size", Str(self.frame_size.to_string())),
-                ("width", Number(self.width.into())),
-                ("height", Number(self.height.into())),
-                ("pix_fmt", Str("yuv420p".into())),
-                ("pict_type", Str("I".into())),
-            ]
+                ("pkt_size", Str(size.to_string())),
+            ];
+            match self.track {
+                Track::Aac { channels, .. } => row.extend([
+                    ("sample_fmt", Str("fltp".into())),
+                    ("nb_samples", Number(1024.)),
+                    ("channels", Number(channels.into())),
+                ]),
+                Track::Y4m { width, height, .. } => row.extend([
+                    ("width", Number(width.into())),
+                    ("height", Number(height.into())),
+                    ("pix_fmt", Str("yuv420p".into())),
+                    ("pict_type", Str("I".into())),
+                ]),
+            }
+            row
         } else {
             vec![
-                ("codec_type", Str("video".into())),
+                ("codec_type", Str(kind.into())),
                 ("stream_index", Number(0.)),
                 ("pts", Number(pts)),
                 ("pts_time", time()),
@@ -224,8 +318,8 @@ impl Clip {
                 ("dts_time", time()),
                 ("duration", Number(self.ticks as f64)),
                 ("duration_time", duration),
-                ("size", Str(self.frame_size.to_string())),
-                ("pos", Str((i as u64 * self.frame_size).to_string())),
+                ("size", Str(size.to_string())),
+                ("pos", Str(pos.to_string())),
                 ("flags", Str("K_".into())),
             ]
         }
@@ -298,9 +392,19 @@ impl Clip {
                 "packet" | "frame" => self.count,
                 "format" => 1,
                 "stream" => usize::from(match opts.select.unwrap_or("") {
-                    "a" | "s" => false,
-                    s if s.starts_with("a:") => false,
-                    s if s.starts_with("v:") => s[2..].parse::<i64>().unwrap_or(0) == 0,
+                    "s" => false,
+                    "a" => matches!(self.track, Track::Aac { .. }),
+                    "v" => matches!(self.track, Track::Y4m { .. }),
+                    s if s.starts_with("a:") || s.starts_with("v:") => {
+                        s.starts_with('a') == matches!(self.track, Track::Aac { .. }) && {
+                            let n = s[2..].trim_start();
+                            n.strip_prefix(['+', '-'])
+                                .unwrap_or(n)
+                                .bytes()
+                                .take_while(u8::is_ascii_digit)
+                                .all(|b| b == b'0')
+                        }
+                    }
                     s if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => {
                         s.parse::<usize>() == Ok(0)
                     }

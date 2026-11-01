@@ -2661,8 +2661,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
 
 #[path = "media_format.rs"]
 mod media_format;
-#[path = "y4m.rs"]
-mod y4m;
+#[path = "media_probe.rs"]
+mod media_probe;
 
 fn format_wave_probe(
     info: &WavStreamInfo,
@@ -5055,6 +5055,9 @@ fn cmd_media_doc(
                 }
             };
             let name = in_arg.as_deref().unwrap();
+            if raw_bytes.is_empty() && !matches!(name, "-" | "pipe:0") && explicit_format.is_none_or(str::is_empty) {
+                return ffprobe_err(&format!("EINVAL: invalid argument, read '{path_str}'"));
+            }
             let Some(container) = media_format::detect(&raw_bytes, name, explicit_format) else {
                 return ffprobe_err(&match explicit_format {
                     Some(f) => format!("Unknown input format: '{f}' (AST not registered)"),
@@ -5069,10 +5072,13 @@ fn cmd_media_doc(
                     return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
                 }
             }
-            if container == "y4m" {
-                let opts=y4m::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
+            if matches!(container, "aac" | "y4m") {
+                let clip = if container == "aac" {
+                    Ok(media_probe::Clip::adts(&raw_bytes, requested.contains("packet") || requested.contains("frame")))
+                } else { media_probe::Clip::y4m(&raw_bytes) };
+                let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
                     writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
-                return match y4m::Clip::parse(&raw_bytes).and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
+                return match clip.and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
                     Ok(output)=>ok_out(&output), Err(reason)=>ffprobe_err(reason),
                 };
             }
@@ -12760,6 +12766,28 @@ mod media_unit_tests {
         }
         let quiet=run(&["-v","quiet","input"]);
         assert_eq!((quiet.exit_code,quiet.stderr),(1,String::new()));
+    }
+
+    #[test]
+    fn ffprobe_empty_file_sniffing_differs_from_explicit_format_and_stdin() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/empty.aac", b"").unwrap();
+        let run = |args: &[&str]| cmd_media_doc("ffprobe", &media_args(args), "", "/", &fs);
+        assert_eq!(run(&["empty.aac"]).stderr, "ffprobe: EINVAL: invalid argument, read '/empty.aac'\n");
+        for name in ["empty.aac","-"] {
+            assert_eq!(run(&["-f","aac","-show_entries","stream=sample_rate,channels,nb_frames","-of","csv=p=0",name]).stdout, "44100,2,0\n");
+        }
+    }
+
+    #[test]
+    fn ffprobe_adts_uses_header_rate_and_raw_payload_offsets() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/clip", &[255,241,76,64,1,63,252,12,13,0,255,240,76,64,1,159,252,0,0,14,15,16]).unwrap();
+        let run = |args: &[&str]| cmd_media_doc("ffprobe", &media_args(args), "", "/", &fs).stdout;
+        assert_eq!(run(&["-show_packets","-show_entries","packet=pts,size,pos:stream=codec_name,sample_rate,channels,bit_rate:format=bit_rate","-of","csv=p=0","clip"]),
+            "0,2,0\n1024,3,2\naac,48000,1,938\n4125\n");
+        assert_eq!(run(&["-show_frames","-show_entries","frame=pkt_size,nb_samples,channels","-of","csv=p=0","clip"]), "2,1024,1\n3,1024,1\n");
+        assert_eq!(run(&["-show_streams","-select_streams","v","-of","json=c=1","clip"]), "{\"streams\":[]}\n");
     }
 
     #[test]

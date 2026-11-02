@@ -1932,6 +1932,7 @@ fn cmd_grep(
     let mut no_messages = false;
     let mut no_filename = false;
     let mut ignore_binary = false;
+    let mut text = false;
     let mut with_filename = false;
     let mut initial_tab = false;
     let mut stdin_label: Option<String> = None;
@@ -2016,6 +2017,7 @@ fn cmd_grep(
                 "--no-messages" => no_messages = true,
                 "--text" | "--binary" | "--line-buffered" => {
                     if a == "--text" {
+                        text = true;
                         ignore_binary = false;
                     }
                 }
@@ -2355,7 +2357,7 @@ fn cmd_grep(
                     }
                     'T' => initial_tab = true,
                     'I' => ignore_binary = true,
-                    'a' => ignore_binary = false,
+                    'a' => { text = true; ignore_binary = false; }
                     'U' => multiline = true,
                     'd' => {
                         let act = if ci + 1 < chars.len() {
@@ -2546,6 +2548,7 @@ fn cmd_grep(
             cwd,
             fs,
             GrepConfig {
+                validate_plain_literal: false,
                 is_rg: false,
                 ascii_record_rx: None,
                 invert,
@@ -2656,6 +2659,10 @@ fn cmd_grep(
         cwd,
         fs,
         GrepConfig {
+            // Production's single-pattern ASCII shortcut checks every input line.
+            validate_plain_literal: !text && invoked_as == "grep" && args.len() <= 2 && args.first().is_some_and(|p|
+                !p.is_empty() && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
+                    .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))),
             is_rg: false,
             ascii_record_rx: None,
             invert,
@@ -3585,6 +3592,7 @@ fn cmd_rg(
         cwd,
         fs,
         GrepConfig {
+            validate_plain_literal: false,
             is_rg: true,
             ascii_record_rx,
             invert,
@@ -3641,6 +3649,7 @@ fn cmd_rg(
 enum RgBinary { Auto, Binary, Text }
 
 struct GrepConfig {
+    validate_plain_literal: bool,
     ascii_record_rx: Option<ZeroRegex>,
     is_rg: bool,
     invert: bool,
@@ -4204,6 +4213,11 @@ fn run_grep_engine(
             let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
                 if idx >= print_end || limit == 0 { break; }
+                if cfg.validate_plain_literal && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
+                    had_error = true;
+                    if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
+                    break;
+                }
                 if binary_records && idx > 0 && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) { break; }
                 let spans = if multiline {
                     projected.next_if(|(i, _)| *i == idx).map(|(_, spans)| spans).unwrap_or_default()

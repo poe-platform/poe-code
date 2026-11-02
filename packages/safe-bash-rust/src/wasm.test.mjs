@@ -7116,3 +7116,25 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
     }
   } finally { rs.dispose(); }
 });
+
+test("grep validates plain ASCII searches record by record and preserves earlier output", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const invalid of [0,255]) {
+      const data=Uint8Array.of(97,195,169,10,97,invalid,10,97,10);
+      await fs.writeFile("/blob",data); rs.writeFile("/blob",data);
+      for (const [cmd,code,expected] of [
+        ["grep a /blob",2,data.slice(0,4)], ["cat /blob | grep '^a'",2,data.slice(0,4)],
+        ["grep -E a /blob",0,data], ["grep -a a /blob",0,data],
+        ["grep -- a /blob",0,data], ["cat /blob | grep a -ai",0,data],
+      ]) {
+        for (const sh of [js,rs]) {
+          const r=await sh.exec(cmd);
+          assert.deepEqual([r.exitCode,r.stderr,r.stdoutBytes],[code,code===2 ?
+            "grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n" : "",expected],cmd);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

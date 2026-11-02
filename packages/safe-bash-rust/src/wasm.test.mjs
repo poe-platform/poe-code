@@ -3417,7 +3417,8 @@ test("exiftool reads and edits standard PNG chunks without altering image data",
   for (const [source, flags] of [
     [input, "-s3 -Title -ColorType"], [input, "-Title=first -Title='café 雪' -Author=A"], [input, "-Title-=old"],
     [input, "-ModifyDate=2024-02-29T12:34:56.789+05:30"], [input, "-ModifyDate=bad"], [input, "-all="],
-    [input, "-Subject=x"], [input, "-Comment="], [input, "-tagsFromFile ref.png -Title"], [input, "-tagsFromFile ref.png -ImageWidth"],
+    [input, "-Title+=bad"], [input, "-Title+=NaN"], [input, "-Title+=2e+"], [input, "-Title+=+.25E2"], [input, "-Title+=1,5"], [input, "-Author=x -Title+=bad"],
+    [broken, "-Title+=bad"], [input, "-Subject=x"], [input, "-Comment="], [input, "-tagsFromFile ref.png -Title"], [input, "-tagsFromFile ref.png -ImageWidth"],
     [Buffer.concat([input, Buffer.from("junk")]), "-Title=updated"], [broken, "-Title=updated"],
     [Buffer.concat([input.subarray(0, 33), chunk("vpAg", "private"), input.subarray(33)]), "-all="],
   ]) {

@@ -459,6 +459,16 @@ mod office;
 mod pdf_reader;
 pub(super) use pdf_reader::image_pdf;
 
+fn exiftool_shift_error(key: &str, value: &str) -> Option<&'static str> {
+    if key != "Title+" {
+        return None;
+    }
+    let value = value.strip_suffix('\n').unwrap_or(value);
+    let numeric = value.bytes().all(|b| b.is_ascii_digit() || matches!(b, b'+' | b'-' | b'.' | b',' | b'E' | b'e'))
+        && value.replace(',', ".").parse::<f64>().is_ok();
+    (!numeric).then_some("Shift value for XMP-xmp:Title is not a number")
+}
+
 fn publish_magick_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
     use crate::vfs::{VfsEntryKind, dirname_posix_path};
     let version = fs.generation();
@@ -11880,6 +11890,11 @@ fn cmd_media_doc(
                 }
                 Some(prefix)
             } else { None };
+            if let [(key, value)] = updates.as_slice()
+                && let Some(error) = exiftool_shift_error(key, value)
+            {
+                return err_out(&format!("Warning: {error}\nNothing to do.\n"), 1);
+            }
             let acquire = |path: &str| {
                 let (entry, stat) = fs.inspect_command_entry(path, false, "lstat").map_err(|e| {
                     if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { "File not found".to_owned() } else { e }

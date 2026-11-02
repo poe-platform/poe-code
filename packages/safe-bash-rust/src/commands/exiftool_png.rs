@@ -270,8 +270,9 @@ pub(super) fn edit(
             break;
         }
         if key.ends_with('+') {
-            error = Some(format!(
-                "Scalar numeric shifts are not yet supported for {name}"
+            error = Some(super::exiftool_shift_error(key, value).map_or_else(
+                || format!("Scalar numeric shifts are not yet supported for {name}"),
+                str::to_owned,
             ));
             break;
         }

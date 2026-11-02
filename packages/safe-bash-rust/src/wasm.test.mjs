@@ -7567,3 +7567,30 @@ test("op item hides sensitive field values unless the parsed output flags allow 
     }
   } finally { rs.dispose(); }
 });
+
+test("op confines item and document operations to the selected vault", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const cmd of ["op vault create A >/dev/null; op vault create B >/dev/null",
+      "op item create --vault A --category login --title Shared password=first >/dev/null",
+      "op item create --vault B --category login --title Shared password=second >/dev/null",
+      "op document create --vault A --title Shared <<< first >/dev/null",
+      "op document create --vault B --title Shared <<< second >/dev/null",
+      "op item get Shared --vault Missing --fields password --reveal", "op item list --vault Missing",
+      "op item edit Shared --vault Missing password=changed", "op item delete Shared --vault Missing",
+      "op item delete Shared", "op document get Shared --vault Missing -o result", "test -e result",
+      "op document list --vault Missing", "op document edit Shared --vault Missing <<< changed",
+      "op document delete Shared --vault Missing", "op document delete Shared",
+      "op document create --vault Missing --title New <<< text", "op item create --title New",
+      "op document create --title New <<< text", "op item get Shared --vault a --fields password --reveal",
+      "op item get Shared --vault B --fields password --reveal", "op document get Shared --vault A",
+      "op document edit Shared --vault B <<< updated >/dev/null", "op document get Shared --vault B",
+      "op document delete Shared --vault B", "op document get Shared --vault A",
+      "op vault create A >/dev/null", "op item list --vault a", "op document list --vault A"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout],[a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

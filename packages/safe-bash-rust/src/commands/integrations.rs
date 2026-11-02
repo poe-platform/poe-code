@@ -592,7 +592,6 @@ struct GhHostAuthEntry {
 #[derive(Clone, Debug)]
 struct IntegrationState {
     op_seq: u64,
-    op_default_vault: Option<String>,
     op_vaults: Vec<OpVault>,
     op_groups: Vec<OpGroupRecord>,
     op_vault_groups: Vec<OpVaultGroupGrant>,
@@ -675,7 +674,6 @@ impl Default for IntegrationState {
         );
         Self {
             op_seq: 0,
-            op_default_vault: None,
             op_vaults: Vec::new(),
             op_groups: Vec::new(),
             op_vault_groups: Vec::new(),
@@ -748,39 +746,38 @@ fn next_op_id(st: &mut IntegrationState) -> String {
     format!("{:a>26}", s)
 }
 
-fn find_or_ensure_vault(st: &mut IntegrationState, selector: Option<&str>) -> Option<OpVault> {
-    if let Some(sel) = selector {
-        if let Some(v) = st.op_vaults.iter().find(|v| v.id == sel || v.name.eq_ignore_ascii_case(sel)) {
-            return Some(v.clone());
+fn op_object_index<'a>(
+    objects: impl Iterator<Item = (usize, &'a str, &'a str)>,
+    selector: &str,
+) -> Result<usize, &'static str> {
+    let folded = selector.to_lowercase();
+    let mut named = Err("Object not found");
+    for (i, id, name) in objects {
+        if id.eq_ignore_ascii_case(selector) { return Ok(i); }
+        if name.to_lowercase() == folded {
+            named = match named { Err("Object not found") => Ok(i), _ => Err("Ambiguous object selector") };
         }
-        let id = next_op_id(st);
-        let v = OpVault { id: id.clone(), name: sel.to_string(), description: None, icon: None };
-        if st.op_default_vault.is_none() {
-            st.op_default_vault = Some(id);
-        }
-        st.op_vaults.push(v.clone());
-        return Some(v);
     }
-    if let Some(def_id) = st.op_default_vault.clone()
-        && let Some(v) = st.op_vaults.iter().find(|v| v.id == def_id)
-    {
-        return Some(v.clone());
-    }
-    st.op_vaults.first().cloned()
+    named
 }
 
-fn find_vault<'a>(st: &'a IntegrationState, selector: Option<&str>) -> Option<&'a OpVault> {
-    if let Some(sel) = selector {
-        return st.op_vaults.iter().find(|v| v.id == sel || v.name.eq_ignore_ascii_case(sel));
-    }
-    if let Some(def_id) = st.op_default_vault.as_deref()
-        && let Some(v) = st.op_vaults.iter().find(|v| v.id == def_id)
-    {
-        return Some(v);
-    }
-    st.op_vaults.first()
+fn op_vault_index(st: &IntegrationState, selector: &str) -> Result<usize, &'static str> {
+    if selector.is_empty() { return Err("A vault is required"); }
+    op_object_index(st.op_vaults.iter().enumerate().map(|(i,v)| (i, v.id.as_str(), v.name.as_str())), selector)
 }
 
+fn op_item_index(st: &IntegrationState, vault: Option<usize>, selector: &str, include_archive: bool) -> Result<usize, &'static str> {
+    op_object_index(st.op_items.iter().enumerate()
+        .filter(|(_, it)| vault.is_none_or(|v| it.vault_id == st.op_vaults[v].id)
+            && it.state != "DELETED" && (it.state != "ARCHIVED" || include_archive || it.id.eq_ignore_ascii_case(selector)))
+        .map(|(i,it)| (i, it.id.as_str(), it.title.as_str())), selector)
+}
+
+fn op_document_index(st: &IntegrationState, vault: Option<usize>, selector: &str) -> Result<usize, &'static str> {
+    op_object_index(st.op_docs.iter().enumerate()
+        .filter(|(_, d)| vault.is_none_or(|v| d.vault_id == st.op_vaults[v].id))
+        .map(|(i,d)| (i, d.id.as_str(), d.title.as_str())), selector)
+}
 
 fn is_valid_vault_icon(icon: &str) -> bool {
     matches!(
@@ -1728,9 +1725,6 @@ where
                     }
                     let id = next_op_id(st);
                     let v = OpVault { id: id.clone(), name, description, icon };
-                    if st.op_default_vault.is_none() {
-                        st.op_default_vault = Some(id);
-                    }
                     let out = to_pretty_json(&vault_json(&v));
                     st.op_vaults.push(v);
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
@@ -1740,8 +1734,8 @@ where
                     let Some(sel_str) = sel else {
                         return op_err("One object selector is required");
                     };
-                    let Some(v) = find_vault(st, Some(sel_str)) else {
-                        return op_err("Object not found");
+                    let v = match op_vault_index(st, sel_str) {
+                        Ok(i) => &st.op_vaults[i], Err(error) => return op_err(error),
                     };
                     let out = to_pretty_json(&vault_json(v));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
@@ -1928,6 +1922,9 @@ where
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
+            let vault = match parsed.vault.as_deref().map(|v| op_vault_index(st, v)).transpose() {
+                Ok(v) => v, Err(error) => return op_err(error),
+            };
             match sub {
                 "template" => {
                     let tsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
@@ -1965,7 +1962,6 @@ where
                 "create" => {
                     let mut category = "LOGIN".to_string();
                     let mut title = "Untitled".to_string();
-                    let mut vault_sel: Option<String> = None;
                     let mut url: Option<String> = None;
                     let mut tags: Vec<String> = Vec::new();
                     let mut favorite = false;
@@ -1986,10 +1982,6 @@ where
                                 if let Some(v) = args.get(i + 1) {
                                     title = v.clone();
                                 }
-                                i += 2;
-                            }
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
                                 i += 2;
                             }
                             "--url" => {
@@ -2031,23 +2023,10 @@ where
                         }
                     }
 
-                    let vault = if let Some(ref vs) = vault_sel {
-                        let Some(v) = find_vault(st, Some(vs)).cloned() else {
-                            return op_err("Object not found");
-                        };
-                        v
-                    } else {
-                        find_or_ensure_vault(st, None).unwrap_or(OpVault {
-                            id: "v-default".into(),
-                            name: "Private".into(),
-                            description: None,
-                            icon: None,
-                        })
+                    let Some(vault) = vault.or_else(|| (st.op_vaults.len() == 1).then_some(0)) else {
+                        return op_err("Select a vault or configure defaultVault");
                     };
-                    if !st.op_vaults.iter().any(|v| v.id == vault.id) {
-                        st.op_vaults.push(vault.clone());
-                    }
-
+                    let vault = st.op_vaults[vault].clone();
                     let id = next_op_id(st);
                     let mut item = OpItem {
                         id,
@@ -2161,7 +2140,6 @@ where
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "list" | "ls" => {
-                    let mut vault_sel: Option<String> = None;
                     let mut categories: Vec<String> = Vec::new();
                     let mut tags_filter: Vec<String> = Vec::new();
                     let mut fav_only = false;
@@ -2169,10 +2147,6 @@ where
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
-                                i += 2;
-                            }
                             "--categories" => {
                                 if let Some(v) = args.get(i + 1) {
                                     categories = v.split(',').map(|s| s.trim().to_ascii_uppercase().replace(' ', "_")).collect();
@@ -2197,19 +2171,13 @@ where
                             _ => i += 1,
                         }
                     }
-                    let vault_id = vault_sel.as_deref().and_then(|sel| {
-                        st.op_vaults.iter().find(|v| v.id == sel || v.name.eq_ignore_ascii_case(sel)).map(|v| v.id.clone())
-                    });
-                    if vault_sel.is_some() && vault_id.is_none() {
-                        return BuiltinOutcome { stdout: if format_json { "[]\n".into() } else { String::new() }, stderr: String::new(), exit_code: 0 };
-                    }
                     let mut arr = Vec::new();
                     for it in &st.op_items {
                         if !include_archive && it.state == "ARCHIVED" {
                             continue;
                         }
-                        if let Some(vid) = &vault_id
-                            && &it.vault_id != vid
+                        if let Some(v) = vault
+                            && it.vault_id != st.op_vaults[v].id
                         {
                             continue;
                         }
@@ -2250,16 +2218,11 @@ where
                 "get" => {
                     let mut sel: Option<String> = None;
                     let mut pos_cnt = 0usize;
-                    let mut vault_sel: Option<String> = None;
                     let mut otp_mode = false;
                     let mut fields_spec: Vec<String> = Vec::new();
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
-                                i += 2;
-                            }
                             "--otp" => {
                                 otp_mode = true;
                                 i += 1;
@@ -2320,22 +2283,18 @@ where
                         };
                         for entry in inputs {
                             let id_or_title = entry.get("id").and_then(|v| v.as_str()).or_else(|| entry.get("title").and_then(|v| v.as_str())).unwrap_or("");
-                            if let Some(it) = st.op_items.iter().find(|it| it.id == id_or_title || it.title.eq_ignore_ascii_case(id_or_title)) {
-                                let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
-                                results.push(item_json(it, vname, show_values));
-                            }
+                            let idx = match op_item_index(st, vault, id_or_title, false) {
+                                Ok(i) => i, Err(error) => return op_err(error),
+                            };
+                            let it = &st.op_items[idx];
+                            let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
+                            results.push(item_json(it, vname, show_values));
                         }
                         let out = to_pretty_json(&JVal::Array(results));
                         return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
                     }
-                    let vault_id = vault_sel.as_deref().and_then(|vs| {
-                        st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
-                    });
-                    let Some(it) = st.op_items.iter().find(|it| {
-                        let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
-                        v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
-                    }) else {
-                        return op_err("Object not found");
+                    let it = match op_item_index(st, vault, &sel, args.iter().any(|a| a == "--include-archive")) {
+                        Ok(i) => &st.op_items[i], Err(error) => return op_err(error),
                     };
                     if otp_mode {
                         return BuiltinOutcome { stdout: "287082\n".to_string(), stderr: String::new(), exit_code: 0 };
@@ -2404,7 +2363,6 @@ where
                 }
                 "edit" => {
                     let mut sel: Option<String> = None;
-                    let mut vault_sel: Option<String> = None;
                     let mut new_title: Option<String> = None;
                     let mut gen_pw: Option<Option<String>> = None;
                     let mut assignments: Vec<String> = Vec::new();
@@ -2412,10 +2370,6 @@ where
                     while i < args.len() {
                         let a = args[i].as_str();
                         match a {
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
-                                i += 2;
-                            }
                             "--title" => {
                                 new_title = args.get(i + 1).cloned();
                                 i += 2;
@@ -2444,15 +2398,9 @@ where
                         return op_err("item edit requires an item selector");
                     };
                     if let Some(error) = selection { return op_err(error); }
-                    let vault_id = vault_sel.as_deref().and_then(|vs| {
-                        st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
-                    });
                     let mut seq = st.op_seq;
-                    let Some(idx) = st.op_items.iter().position(|it| {
-                        let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
-                        v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
-                    }) else {
-                        return op_err("Object not found");
+                    let idx = match op_item_index(st, vault, &sel, false) {
+                        Ok(i) => i, Err(error) => return op_err(error),
                     };
                     if let Some(t) = new_title {
                         st.op_items[idx].title = t;
@@ -2487,15 +2435,10 @@ where
                 }
                 "move" => {
                     let mut sel: Option<String> = None;
-                    let mut cur_vault: Option<String> = None;
                     let mut dst_vault: Option<String> = None;
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
-                            "--current-vault" => {
-                                cur_vault = args.get(i + 1).cloned();
-                                i += 2;
-                            }
                             "--destination-vault" => {
                                 dst_vault = args.get(i + 1).cloned();
                                 i += 2;
@@ -2513,22 +2456,14 @@ where
                     let (Some(sel), Some(dst_sel)) = (sel, dst_vault) else {
                         return op_err("item selector and --destination-vault are required");
                     };
-                    let Some(dst) = find_vault(st, Some(&dst_sel)).cloned() else {
-                        return op_err("Object not found");
+                    let idx = match op_item_index(st, vault, &sel, false) {
+                        Ok(i) => i, Err(error) => return op_err(error),
                     };
-                    let cur_id = cur_vault.as_deref().and_then(|vs| {
-                        st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
-                    });
-                    if cur_vault.is_some() && cur_id.is_none() {
-                        return op_err("Object not found");
-                    }
+                    let dst = match op_vault_index(st, &dst_sel) {
+                        Ok(i) => st.op_vaults[i].clone(), Err(error) => return op_err(error),
+                    };
                     let new_id = next_op_id(st);
-                    let Some(it) = st.op_items.iter_mut().find(|it| {
-                        let v_ok = cur_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
-                        it.state != "DELETED" && v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
-                    }) else {
-                        return op_err("Object not found");
-                    };
+                    let it = &mut st.op_items[idx];
                     it.id = new_id;
                     it.vault_id = dst.id.clone();
                     let out = to_pretty_json(&item_json(it, &dst.name, show_values));
@@ -2536,15 +2471,10 @@ where
                 }
                 "delete" | "remove" | "rm" => {
                     let mut sel: Option<String> = None;
-                    let mut vault_sel: Option<String> = None;
                     let mut archive = false;
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
-                                i += 2;
-                            }
                             "--archive" => {
                                 archive = true;
                                 i += 1;
@@ -2561,27 +2491,10 @@ where
                     let Some(sel) = sel else {
                         return op_err("One object selector is required");
                     };
-                    let vault_id = vault_sel.as_deref().and_then(|vs| {
-                        st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
-                    });
-                    if archive {
-                        let Some(it) = st.op_items.iter_mut().find(|it| {
-                            let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
-                            v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
-                        }) else {
-                            return op_err("Object not found");
-                        };
-                        it.state = "ARCHIVED".into();
-                    } else {
-                        let before = st.op_items.len();
-                        st.op_items.retain(|it| {
-                            let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
-                            !(v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel)))
-                        });
-                        if st.op_items.len() == before {
-                            return op_err("Object not found");
-                        }
-                    }
+                    let idx = match op_item_index(st, vault, &sel, false) {
+                        Ok(i) => i, Err(error) => return op_err(error),
+                    };
+                    if archive { st.op_items[idx].state = "ARCHIVED".into(); } else { st.op_items.remove(idx); }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
                 "share" => op_err("Admin command requires an injected hook"),
@@ -2592,12 +2505,14 @@ where
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
+            let vault = match parsed.vault.as_deref().map(|v| op_vault_index(st, v)).transpose() {
+                Ok(v) => v, Err(error) => return op_err(error),
+            };
             match sub {
                 "create" => {
                     let mut src_file: Option<String> = None;
                     let mut title: Option<String> = None;
                     let mut file_name: Option<String> = None;
-                    let mut vault_sel: Option<String> = None;
                     let mut tags: Vec<String> = Vec::new();
                     let mut i = 2usize;
                     while i < args.len() {
@@ -2608,10 +2523,6 @@ where
                             }
                             "--file-name" => {
                                 file_name = args.get(i + 1).cloned();
-                                i += 2;
-                            }
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
                                 i += 2;
                             }
                             "--tags" => {
@@ -2640,12 +2551,10 @@ where
                             b
                         }
                     };
-                    let vault = find_or_ensure_vault(st, vault_sel.as_deref()).unwrap_or(OpVault {
-                        id: "v-default".into(),
-                        name: "Private".into(),
-                        description: None,
-                        icon: None,
-                    });
+                    let Some(vault) = vault.or_else(|| (st.op_vaults.len() == 1).then_some(0)) else {
+                        return op_err("Select a vault or configure defaultVault");
+                    };
+                    let vault = st.op_vaults[vault].clone();
                     let id = next_op_id(st);
                     let doc_title = title.clone().unwrap_or_else(|| "Untitled".into());
                     let doc_fname = file_name.unwrap_or_else(|| doc_title.clone());
@@ -2667,23 +2576,10 @@ where
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "list" | "ls" => {
-                    let mut vault_sel: Option<String> = None;
-                    let mut i = 2usize;
-                    while i < args.len() {
-                        if args[i] == "--vault" {
-                            vault_sel = args.get(i + 1).cloned();
-                            i += 2;
-                        } else {
-                            i += 1;
-                        }
-                    }
-                    let vault_id = vault_sel.as_deref().and_then(|vs| {
-                        st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
-                    });
                     let arr: Vec<Value> = st
                         .op_docs
                         .iter()
-                        .filter(|d| vault_id.as_ref().map(|vid| &d.vault_id == vid).unwrap_or(true))
+                        .filter(|d| vault.is_none_or(|v| d.vault_id == st.op_vaults[v].id))
                         .map(|d| {
                             jval!({
                                 "id": d.id,
@@ -2700,17 +2596,12 @@ where
                 "get" => {
                     let mut sel: Option<String> = None;
                     let mut pos_cnt = 0usize;
-                    let mut vault_sel: Option<String> = None;
                     let mut out_file: Option<String> = None;
                     let mut file_mode: Option<u32> = None;
                     let mut force = false;
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
-                            "--vault" => {
-                                vault_sel = args.get(i + 1).cloned();
-                                i += 2;
-                            }
                             "--out-file" | "-o" => {
                                 out_file = args.get(i + 1).cloned();
                                 i += 2;
@@ -2749,14 +2640,8 @@ where
                     let Some(sel) = sel else {
                         return op_err("expected at least 1 arguments but got 0 instead");
                     };
-                    let vault_id = vault_sel.as_deref().and_then(|vs| {
-                        st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
-                    });
-                    let Some(doc) = st.op_docs.iter().find(|d| {
-                        let v_ok = vault_id.as_ref().map(|vid| &d.vault_id == vid).unwrap_or(true);
-                        v_ok && (d.id == sel || d.title.eq_ignore_ascii_case(&sel))
-                    }) else {
-                        return op_err("Object not found");
+                    let doc = match op_document_index(st, vault, &sel) {
+                        Ok(i) => &st.op_docs[i], Err(error) => return op_err(error),
                     };
                     if let Some(of) = out_file {
                         let resolved = resolve_posix_path(cwd, &of);
@@ -2807,8 +2692,8 @@ where
                         return op_err("invalid arguments for document edit");
                     };
                     if let Some(error) = selection { return op_err(error); }
-                    let Some(doc) = st.op_docs.iter_mut().find(|d| d.id == sel || d.title.eq_ignore_ascii_case(&sel)) else {
-                        return op_err("Object not found");
+                    let doc = match op_document_index(st, vault, &sel) {
+                        Ok(i) => &mut st.op_docs[i], Err(error) => return op_err(error),
                     };
                     if let Some(t) = new_title {
                         doc.title = t;
@@ -2831,7 +2716,10 @@ where
                     let Some(sel) = sel else {
                         return op_err("One object selector is required");
                     };
-                    st.op_docs.retain(|d| !(d.id == sel || d.title.eq_ignore_ascii_case(&sel)));
+                    match op_document_index(st, vault, &sel) {
+                        Ok(i) => { st.op_docs.remove(i); }
+                        Err(error) => return op_err(error),
+                    }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
                 _ => op_err(&format!("unknown command: document {sub}")),

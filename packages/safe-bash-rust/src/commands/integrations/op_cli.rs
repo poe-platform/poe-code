@@ -18,10 +18,12 @@ pub(super) struct Command {
     pub args: Vec<String>,
     pub format_json: bool,
     pub reveal: bool,
+    pub vault: Option<String>,
     pub selection: Option<&'static str>,
 }
 
 struct Scan {
+    vault: Option<String>,
     path: &'static str,
     group: bool,
     help: &'static str,
@@ -66,6 +68,7 @@ fn validate_value(name: &str, value: &str) -> Result<(), String> {
 // chooses the diagnostic before a handler can touch the object store.
 fn scan(args: &[String], resolved: Option<&str>) -> Result<Scan, String> {
     let mut scan = Scan {
+        vault: None,
         path: "",
         group: true,
         help: OP_ROOT_HELP,
@@ -158,6 +161,10 @@ fn scan(args: &[String], resolved: Option<&str>) -> Result<Scan, String> {
                     );
                 } else {
                     match kind {
+                        Kind::Value if matches!(name, "--vault" | "--current-vault") &&
+                            resolved.is_some_and(|p| p.starts_with("item ") || p.starts_with("document ")) => {
+                            scan.vault = value.map(str::to_owned);
+                        }
                         Kind::Value => {
                             local_flags.push(name.into());
                             local_flags.push(value.unwrap().into());
@@ -287,6 +294,7 @@ pub(super) fn parse(
         format_json: format == Some("json"),
         reveal: scan.switches.get("--reveal") == Some(&true),
         selection,
+        vault: scan.vault,
         args: path
             .split(' ')
             .map(str::to_owned)

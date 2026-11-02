@@ -2,7 +2,7 @@ use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
-    SafeBashFs, VfsEntryKind, basename_posix_path, normalize_posix_path, resolve_posix_path, stream_byte_len,
+    SafeBashFs, VfsEntryKind, basename_posix_path, bytes_to_stream_string, normalize_posix_path, resolve_posix_path, stream_byte_len,
 };
 use std::collections::BTreeMap;
 
@@ -486,6 +486,9 @@ pub fn is_known_command(name: &str) -> bool {
     )
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum RxSearch { Longest, Jq, Rg { empty_pattern: bool } }
+
 #[derive(Clone)]
 pub struct ZeroRegex {
     branches: Vec<RxProgram>,
@@ -493,7 +496,7 @@ pub struct ZeroRegex {
     ignore_case: bool,
     word_regexp: bool,
     anchored: bool,
-    first_match: bool,
+    search: RxSearch,
 }
 
 impl ZeroRegex {
@@ -525,7 +528,7 @@ impl ZeroRegex {
             format!("Regex failure: {message}")
         })?;
         let mut rx = Self::from_branches([branches], false, false, false);
-        rx.first_match = true;
+        rx.search = RxSearch::Jq;
         rx.branches[0].nonempty = flags.contains('n');
         Ok(rx)
     }
@@ -544,7 +547,7 @@ impl ZeroRegex {
             branches.push(program);
         }
         Self { branches, capture_names, ignore_case,
-            word_regexp, anchored, first_match: false }
+            word_regexp, anchored, search: RxSearch::Longest }
     }
 
     pub(super) fn replace_count(&self, text: &str, replacement: &str, global: bool, nth: Option<usize>) -> (String, usize) {
@@ -589,15 +592,18 @@ impl ZeroRegex {
         let mut found = false;
         let mut pos = 0;
         let last_start = if self.anchored { 0 } else { hay.len() };
+        let first = self.search != RxSearch::Longest;
+        let rg = matches!(self.search, RxSearch::Rg { .. });
+        let mut interior_empty = None;
         while pos <= last_start {
             let mut group_offset = 0;
             let mut matches = self.branches.iter().filter_map(|program| {
                 let base = group_offset;
                 group_offset += program.groups;
-                program.run(&hay, pos, self.ignore_case, self.first_match, capture, |end|
-                    !self.word_regexp || is_word_boundary(&hay, pos, end)).map(|m| (base, m))
+                program.run(&hay, pos, self.ignore_case, first, capture, |end|
+                    !self.word_regexp || (!rg || pos != end) && is_word_boundary(&hay, pos, end)).map(|m| (base, m))
             });
-            if let Some((base, mut m)) = if self.first_match { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
+            if let Some((base, mut m)) = if first { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
                 found = true;
                 if capture {
                     if base > 0 { m.caps.splice(0..0, std::iter::repeat_n(None, base)); }
@@ -605,6 +611,20 @@ impl ZeroRegex {
                 }
                 if !visit(byte_at(pos), byte_at(m.pos), &m.caps) { break; }
                 if m.pos > pos { pos = m.pos; continue; }
+            }
+            if rg && !self.word_regexp && let Some(&(start, ch)) = hay.get(pos) && ch.len_utf8() > 1 {
+                // Inside a scalar neither neighbor is a newline or ASCII word character.
+                // No consuming atom can start there. Evaluate that zero-width path once.
+                if *interior_empty.get_or_insert_with(|| {
+                    let neighbors = [(0, ch), (1, ch)];
+                    self.branches.iter().any(|p| p.run(&neighbors, 1, false, true, false, |end| end == 1).is_some())
+                }) {
+                    for byte in start + 1..start + ch.len_utf8() {
+                        found = true;
+                        // Every participating capture is empty at this byte.
+                        if !visit(byte, byte, &[]) { return true; }
+                    }
+                }
             }
             pos += 1;
         }
@@ -644,7 +664,7 @@ enum RxAtom {
     LineBegin,
     End,
     NewlineEnd { multiline: bool },
-    WordBoundary,
+    WordBoundary(bool),
     WordStart,
     WordEnd,
 }
@@ -664,7 +684,7 @@ fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Opti
         RxAtom::LineBegin => Some(pos == 0 || hay[pos - 1].1 == '\n'),
         RxAtom::End => Some(pos == hay.len()),
         RxAtom::NewlineEnd { multiline } => Some(pos == hay.len() || ((*multiline || pos + 1 == hay.len()) && hay[pos].1 == '\n')),
-        RxAtom::WordBoundary => Some(before_word != after_word),
+        RxAtom::WordBoundary(negate) => Some((before_word != after_word) ^ negate),
         RxAtom::WordStart => Some(!before_word && after_word),
         RxAtom::WordEnd => Some(before_word && !after_word),
         _ => None,
@@ -940,7 +960,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     's' => RxAtom::Space(false),
                     'S' => RxAtom::Space(true),
                     'b' if matches!(dialect, RxDialect::Awk) => RxAtom::Char('\x08'),
-                    'b' => RxAtom::WordBoundary,
+                    'b' => RxAtom::WordBoundary(false),
+                    'B' if rg => RxAtom::WordBoundary(true),
                     '<' => RxAtom::WordStart,
                     '>' => RxAtom::WordEnd,
                     'n' => RxAtom::Char('\n'),
@@ -1114,7 +1135,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         let mut lazy = false;
         if matches!(
             atom,
-            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
         ) {
             out.push(RxToken {
                 atom, case,
@@ -1208,7 +1229,7 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
         for tok in seq {
             let n = match &tok.atom {
                 RxAtom::Backref(_) => return None,
-                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
                 | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
                 RxAtom::Group { width, .. } => (*width)?,
                 _ => 1,
@@ -1260,7 +1281,7 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
         | RxAtom::LineBegin
         | RxAtom::NewlineEnd { .. }
         | RxAtom::End
-        | RxAtom::WordBoundary
+        | RxAtom::WordBoundary(_)
         | RxAtom::WordStart
         | RxAtom::WordEnd => false,
     }
@@ -1783,15 +1804,24 @@ pub fn replace_regex_count_in_text(
     ZeroRegex::new(vec![pat.to_string()], ignore_case, false, false, false).replace_count(text, replacement, global, nth)
 }
 
+// A zero-length rg match can fall between UTF-8 continuation bytes.
+fn rg_match_text(line: &str, s: usize, e: usize) -> &str {
+    if s == e { "" } else { &line[s..e] }
+}
+
 fn apply_rg_line_replace(line: &str, offset: usize, spans: &[(usize, usize)], replacements: &BTreeMap<usize, String>) -> String {
     let mut out = String::new();
     let mut last = 0;
+    let append = |out: &mut String, s, e| {
+        if let Some(text) = line.get(s..e) { out.push_str(text); }
+        else if s != e { out.push_str(&bytes_to_stream_string(&line.as_bytes()[s..e])); }
+    };
     for &(s, e) in spans {
-        out.push_str(&line[last..s]);
+        append(&mut out, last, s);
         if let Some(replacement) = replacements.get(&(offset + s)) { out.push_str(replacement); }
         last = e;
     }
-    out.push_str(&line[last..]);
+    append(&mut out, last, line.len());
     out
 }
 
@@ -3475,7 +3505,7 @@ fn cmd_rg(
         parsed.push(branches);
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, !line_regexp && word_regexp, false);
-    rx.first_match = true;
+    rx.search = RxSearch::Rg { empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };
 
     let recursive = targets.is_empty()
         || targets
@@ -4033,11 +4063,12 @@ fn run_grep_engine(
         let mut find_spans = |subject: &str, offset| {
             let mut spans = Vec::new();
             rx.scan(subject, capture, |s, e, caps| {
-                if cfg.is_rg && s == e && spans.last().is_some_and(|&(_, end)| end == s) { return true; }
+                if cfg.is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
+                    || rx.search == (RxSearch::Rg { empty_pattern: true }) && offset + s == content.len() && !content.ends_with(rec_term)) { return true; }
                 if let Some(parts) = &replacement {
                     let expanded: String = parts.iter().map(|part| match part {
                         RgReplacementPart::Literal(text) => *text,
-                        RgReplacementPart::Match => &subject[s..e],
+                        RgReplacementPart::Match => rg_match_text(subject, s, e),
                         RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or("", |(lo, hi)| &subject[lo..hi]),
                     }).collect();
                     replacements.insert(offset + s, expanded);
@@ -4160,7 +4191,7 @@ fn run_grep_engine(
                         if si > 0 {
                             subs_json.push(',');
                         }
-                        let mtxt = json_escape_str(&lines[idx][s..e]);
+                        let mtxt = json_escape_str(rg_match_text(lines[idx], s, e));
                         subs_json.push_str(&format!(
                             "{{\"match\":{{\"text\":\"{mtxt}\"}},\"start\":{s},\"end\":{e}}}"
                         ));
@@ -4305,7 +4336,7 @@ fn run_grep_engine(
                     let mut expanded_offset = 0;
                     let mut number = idx + 1;
                     for &(_, _, s, e) in spans {
-                        number += content[cursor..s].matches(rec_term).count();
+                        number += content.as_bytes()[cursor..s].iter().filter(|&&b| b == rec_term as u8).count();
                         expanded_offset += s - cursor;
                         let rendered = &replacements[&s];
                         for chunk in rendered.split_inclusive(rec_term) {
@@ -4336,7 +4367,7 @@ fn run_grep_engine(
 
         if multiline && cfg.only_matching && !cfg.invert {
             for &(fl, _ll, s, e) in &multiline_spans {
-                let matched_slice = &content[s..e];
+                let matched_slice = rg_match_text(content, s, e);
                 let rendered = replacements.get(&s).map_or(matched_slice, String::as_str);
                 for (chunk_idx, chunk) in rendered.split('\n').enumerate() {
                     if chunk.is_empty() {
@@ -4395,7 +4426,7 @@ fn run_grep_engine(
                 if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
                 let expanded;
                 let text = if let Some((s, e)) = piece {
-                    replacements.get(&(base + s)).map_or(&line[s..e], String::as_str)
+                    replacements.get(&(base + s)).map_or(rg_match_text(line, s, e), String::as_str)
                 } else if replacement.is_some() && matched.is_some() {
                     expanded = apply_rg_line_replace(line, base, spans, &replacements);
                     &expanded

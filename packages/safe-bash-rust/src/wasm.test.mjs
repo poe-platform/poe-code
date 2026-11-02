@@ -6952,3 +6952,27 @@ test("rg keeps selection, columns and replacement spans through the last context
     }
   } finally { rs.dispose(); }
 });
+
+test("rg visits UTF-8 byte offsets for empty matches and preserves split replacement bytes", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [cmd, bytes] of [
+      ["echo é | rg -ob '()'", "0:\n1:\n2:\n"],
+      ["printf 🦊a | rg -ob ''", "0:\n1:\n2:\n3:\n4:\n"],
+      ["echo 🦊a | rg -ob 'a*'", "0:\n1:\n2:\n3:\n4:a\n"],
+      [String.raw`echo 🦊a | rg -ob '\B'`, "0:\n1:\n2:\n3:\n"],
+      ["echo 🦊a | rg -ob '(.|)'", "0:🦊\n4:a\n"],
+      ["echo é | rg -o '()' -r '<$1>'", "<>\n<>\n<>\n"],
+      ["echo é | rg '()' -r X", Uint8Array.of(88,195,88,169,88,10)],
+      ["echo é | rg -U '(a\\n)?' -r X", Uint8Array.of(88,195,88,169,88,10)],
+    ]) {
+      for (const sh of [js,rs]) {
+        const r = await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr],[0,""],cmd);
+        assert.deepEqual(r.stdoutBytes, typeof bytes === "string" ? new TextEncoder().encode(bytes) : bytes,cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

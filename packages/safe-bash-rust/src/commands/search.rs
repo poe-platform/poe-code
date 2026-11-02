@@ -7523,7 +7523,8 @@ where
         i += 1;
     }
 
-    if cmd_words.is_empty() {
+    let implicit_echo = cmd_words.is_empty();
+    if implicit_echo {
         cmd_words.push("echo".to_string());
     }
 
@@ -7677,18 +7678,11 @@ where
         XargsBatchMode::Replace => {
             let repl = replace_str.as_deref().unwrap_or("{}");
             for (item, _) in parsed_items {
-                let mut invoke: Vec<String> = Vec::with_capacity(cmd_words.len());
-                let mut replaced = false;
-                for w in &cmd_words {
-                    if w.contains(repl) {
-                        replaced = true;
-                        invoke.push(w.replace(repl, &item));
-                    } else {
-                        invoke.push(w.clone());
-                    }
-                }
-                if !replaced {
+                let mut invoke = vec![cmd_words[0].clone()];
+                if implicit_echo {
                     invoke.push(item);
+                } else {
+                    invoke.extend(cmd_words[1..].iter().map(|word| word.replace(repl, &item)));
                 }
                 if let Some(mc) = max_chars {
                     let invoke_bytes: usize = invoke.iter().map(|w| w.len() + 1).sum();
@@ -8087,6 +8081,28 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn xargs_replaces_only_initial_arguments_of_an_explicit_command() {
+        let fs = MemoryVfs::new();
+        for (operands, expected) in [
+            (vec![], vec!["echo", "abc"]),
+            (vec!["show"], vec!["show"]),
+            (vec!["show", "literal"], vec!["show", "literal"]),
+            (vec!["show{}", "{}x{}"], vec!["show{}", "abcxabc"]),
+        ] {
+            let mut words = args(&["-I{}"]);
+            words.extend(args(&operands));
+            let mut invocations = Vec::new();
+            let result = try_run_search_command("xargs", &words, "abc\n", &mut "/".into(),
+                &mut BTreeMap::new(), &fs, |words, _, _, _| {
+                    invocations.push(words.to_vec());
+                    ok_out("")
+                }).unwrap();
+            assert_eq!(result.exit_code, 0);
+            assert_eq!(invocations, vec![expected]);
+        }
     }
 
     #[test]

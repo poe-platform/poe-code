@@ -6302,7 +6302,8 @@ fn cmd_media_doc(
             let mut filtered_stream_data = false;
             let mut json_version: Option<u32> = None;
             let mut json_keys: Vec<String> = Vec::new();
-            let mut json_objects: Vec<String> = Vec::new();
+            let mut json_objects: Vec<Option<(usize,usize)>> = Vec::new();
+            let mut json_stream_prefix = None;
             let mut json_stream_data = "none".to_string();
             let mut json_input = false;
             let mut update_from_json: Option<String> = None;
@@ -6449,28 +6450,45 @@ fn cmd_media_doc(
                     i += 1;
                     continue;
                 }
-                if a == "--json" || a == "--json=latest" || a == "--json=2" {
-                    json_version = Some(2);
-                    i += 1;
-                    continue;
-                }
-                if a == "--json=1" {
-                    json_version = Some(1);
+                if a == "--json" || a.starts_with("--json=") {
+                    json_version = Some(match a.strip_prefix("--json=").unwrap_or("latest") {
+                        "latest" | "2" => 2, "1" => 1,
+                        v => return err_out(&format!("qpdf: invalid json version {v}\n"),2),
+                    });
                     i += 1;
                     continue;
                 }
                 if let Some(k) = a.strip_prefix("--json-key=") {
+                    if !matches!(k,"qpdf"|"objects"|"objectinfo"|"pages"|"pagelabels"|"outlines"|"acroform"|"attachments"|"encrypt") {
+                        return err_out(&format!("qpdf: invalid json-key {k}\n"),2);
+                    }
                     json_keys.push(k.to_string());
                     i += 1;
                     continue;
                 }
                 if let Some(o) = a.strip_prefix("--json-object=") {
-                    json_objects.push(o.to_string());
+                    let selector = if o == "trailer" { None } else {
+                        let (n,g) = o.split_once(',').unwrap_or((o,"0"));
+                        let number = |s: &str| s.bytes().all(|b| b.is_ascii_digit()).then(|| s.parse::<usize>().ok()).flatten();
+                        match (number(n),number(g)) {
+                            (Some(n @ 1..=2147483647),Some(g @ 0..=65535)) => Some((n,g)),
+                            _ => return err_out("qpdf: invalid json-object selector\n",2),
+                        }
+                    };
+                    json_objects.push(selector);
                     i += 1;
                     continue;
                 }
                 if let Some(m) = a.strip_prefix("--json-stream-data=") {
+                    if !matches!(m,"none"|"inline"|"file") {
+                        return err_out(&format!("qpdf: invalid json-stream-data mode {m}\n"),2);
+                    }
                     json_stream_data = m.to_string();
+                    i += 1;
+                    continue;
+                }
+                if let Some(p) = a.strip_prefix("--json-stream-prefix=") {
+                    json_stream_prefix = Some(p.to_owned());
                     i += 1;
                     continue;
                 }
@@ -7032,10 +7050,16 @@ fn cmd_media_doc(
                 } else {
                     None
                 };
-                let stream_prefix = out_file
-                    .as_ref()
-                    .map(|of| format!("{of}-"))
-                    .unwrap_or_else(|| "qpdf-stream-".to_string());
+                for k in &json_keys {
+                    if jv == 1 && k == "qpdf" {return err_out("qpdf: json-key=qpdf is not valid for json=1\n",2);}
+                    if jv == 2 && matches!(k.as_str(),"objects"|"objectinfo") {
+                        return err_out(&format!("qpdf: json-key={k} is only valid for json=1\n"),2);
+                    }
+                }
+                let stream_prefix = json_stream_prefix.or_else(|| out_file.as_ref().filter(|of| *of != "-").map(|of| format!("{of}-"))).unwrap_or_default();
+                if json_stream_data == "file" && stream_prefix.is_empty() {
+                    return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
+                }
                 let esc_json = |s: &str| -> String {
                     let mut out = String::new();
                     for ch in s.chars() {
@@ -7054,11 +7078,7 @@ fn cmd_media_doc(
                     if json_objects.is_empty() {
                         return true;
                     }
-                    json_objects.iter().any(|s| {
-                        let clean = s.strip_prefix("obj:").unwrap_or(s);
-                        let num = clean.split([',', ' ', '/']).next().and_then(|x| x.parse::<usize>().ok());
-                        num == Some(id) || s == "trailer"
-                    })
+                    json_objects.contains(&Some((id,0)))
                 };
                 let keep_objs = json_keys.is_empty() || json_keys.iter().any(|k| k == "objects" || k == "qpdf");
                 let mut obj_entries: Vec<String> = Vec::new();

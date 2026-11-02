@@ -18,6 +18,7 @@ struct Stamp<'a> {
     next: usize,
     left: usize,
     mode: Option<bool>,
+    qpdf: bool,
 }
 impl Stamp<'_> {
     fn allocate(&mut self) -> Result<ObjectId, String> {
@@ -26,6 +27,9 @@ impl Stamp<'_> {
         Ok((id, 0))
     }
     fn store(&mut self, id: ObjectId, body: Vec<u8>) -> Result<(), String> {
+        if let Some(old) = self.bodies.get(&id) {
+            self.left += old.len();
+        }
         self.left = self.left.checked_sub(body.len()).ok_or(LARGE)?;
         self.bodies.insert(id, body);
         Ok(())
@@ -80,6 +84,10 @@ impl Stamp<'_> {
                     } else {
                         encode(&cloned, &mut body)?;
                     }
+                } else if self.qpdf {
+                    self.copies.remove(&n);
+                    self.next -= 1;
+                    return Ok(Value::Word(b"null".as_slice().into()));
                 } else {
                     body.extend_from_slice(b"<<\n>>");
                 }
@@ -169,36 +177,117 @@ fn names(data: &[u8], rename: &BTreeMap<String, String>, limit: usize) -> Result
     Ok(out)
 }
 
+// qpdf replaces one literal /name at a time and only before a PDF delimiter.
+fn qpdf_name(bytes: &[u8], old: &str, new: &str, limit: usize) -> Result<Vec<u8>, String> {
+    let mut key = vec![b'/'];
+    for unit in old.encode_utf16() {
+        let Ok(b) = u8::try_from(unit) else {
+            return Ok(bytes.to_vec());
+        };
+        key.push(b);
+    }
+    let replacement = new.encode_utf16().map(|n| n as u8).collect::<Vec<_>>();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i..].starts_with(&key)
+            && bytes
+                .get(i + key.len())
+                .is_none_or(|b| b" \t\n\r/<>[]()".contains(b))
+        {
+            if replacement.len() + 1 > limit.saturating_sub(out.len()) {
+                return Err(LARGE.into());
+            }
+            out.push(b'/');
+            out.extend_from_slice(&replacement);
+            i += key.len();
+        } else {
+            if out.len() >= limit {
+                return Err(LARGE.into());
+            }
+            out.push(bytes[i]);
+            i += 1;
+        }
+    }
+    Ok(out)
+}
+
+#[derive(Default)]
+pub(in super::super) struct LayerState<'d> {
+    names: usize,
+    owners: BTreeMap<ObjectId, Dict<'d>>,
+    pub(in super::super) counts: BTreeMap<ObjectId, i64>,
+    written: BTreeMap<ObjectId, usize>,
+}
+
+impl LayerState<'_> {
+    pub(super) fn content<'d>(
+        &self,
+        dst: &mut Objects<'d>,
+        content: Option<&Value<'d>>,
+        bodies: &BTreeMap<ObjectId, Vec<u8>>,
+        out: &mut Vec<u8>,
+    ) -> Option<()> {
+        if let Some((body, start)) = content
+            .and_then(Value::reference)
+            .and_then(|id| Some((bodies.get(&id)?, *self.written.get(&id)?)))
+        {
+            let data = super::super::pdf_filters::flate(
+                &body[start..body.len() - 10],
+                dst.remaining_bytes,
+            )?;
+            dst.remaining_bytes -= data.len();
+            out.extend_from_slice(&data);
+            Some(())
+        } else {
+            dst.append_page_contents(content, out)
+        }
+    }
+
+    pub(in super::super) fn finish(
+        self,
+        bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
+        mut remaining: usize,
+    ) -> Result<(), String> {
+        for (id, dict) in self.owners {
+            let mut body = Vec::new();
+            encode(&Value::Dict(dict), &mut body)?;
+            remaining = remaining.checked_sub(body.len()).ok_or(LARGE)?;
+            bodies.insert(id, body);
+        }
+        Ok(())
+    }
+}
+
 impl PageSource<'_> {
     pub(in super::super) fn stamp<'d>(
         &mut self,
         dst: &mut Objects<'d>,
         pages: &[ObjectId],
         tree: &mut PageTree<'d>,
-        multi: bool,
+        pairs: impl Iterator<Item = (usize, usize)>,
+        state: &mut LayerState<'d>,
+        qpdf: bool,
         overlay: bool,
         next: usize,
         bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
         mode: Option<bool>,
         limit: usize,
-    ) -> Result<(), String> {
+    ) -> Result<(usize, usize), String> {
         if self.pages.is_empty() {
-            return Ok(());
+            return Ok((next, limit));
         }
         let mut edit = Stamp {
             bodies,
             copies: BTreeMap::new(),
             next,
             left: limit,
+            qpdf,
             mode,
         };
-        let mut owners: BTreeMap<ObjectId, Dict> = BTreeMap::new();
-        for (i, &id) in pages.iter().enumerate() {
-            let sid = self.pages[if multi {
-                i.min(self.pages.len() - 1)
-            } else {
-                0
-            }];
+        for (i, source_index) in pairs {
+            let id = pages[i];
+            let sid = self.pages[source_index];
             let src = &mut self.objects;
             let other = src.page_dict(sid, &self.tree).ok_or(BAD)?;
             let page = dst.page_dict(id, tree).ok_or(BAD)?;
@@ -208,9 +297,10 @@ impl PageSource<'_> {
             );
             let existing = page.get(b"Resources").and_then(|v| dst.lookup_value(v));
             let (owner, mut res) = match existing {
-                Some((owner, Value::Dict(d))) => {
-                    (owner, owner.and_then(|id| owners.remove(&id)).unwrap_or(d))
-                }
+                Some((owner, Value::Dict(d))) => (
+                    owner,
+                    owner.and_then(|id| state.owners.remove(&id)).unwrap_or(d),
+                ),
                 _ => {
                     let mut d = match attribute(dst, tree, &page, b"Resources", |_, v| Some(v)) {
                         Some(Value::Dict(d)) => d,
@@ -229,6 +319,11 @@ impl PageSource<'_> {
                 _ => return Err(BAD.into()),
             };
             let mut renames = BTreeMap::new();
+            let mut paint = Vec::new();
+            if qpdf {
+                src.append_page_contents(other.get(b"Contents"), &mut paint)
+                    .ok_or(BAD)?;
+            }
             if let Some(source) = attribute(src, &self.tree, &other, b"Resources", |_, v| Some(v)) {
                 for key in [
                     b"Font".as_slice(),
@@ -250,7 +345,7 @@ impl PageSource<'_> {
                         .and_then(|(_, v)| dst.lookup_value(v));
                     let (oid, mut cat) = match found {
                         Some((oid, Value::Dict(d))) => {
-                            (oid, oid.and_then(|n| owners.remove(&n)).unwrap_or(d))
+                            (oid, oid.and_then(|n| state.owners.remove(&n)).unwrap_or(d))
                         }
                         _ => (None, vec![]),
                     };
@@ -260,33 +355,96 @@ impl PageSource<'_> {
                         let value = edit.copy(src, v, 0)?;
                         let original = pdf_string::name(&k);
                         let name = if used.contains(&original) {
-                            let mut name = format!("Ov_{i}_{original}");
-                            let mut suffix = 0;
-                            while used.contains(&name) {
-                                suffix += 1;
-                                name = format!("Ov_{i}_{suffix}_{original}");
+                            if qpdf {
+                                state.names += 1;
+                                let name = format!("QStp{}_{}", state.names, original);
+                                paint = qpdf_name(&paint, &original, &name, src.remaining_bytes)?;
+                                name
+                            } else {
+                                let mut name = format!("Ov_{i}_{original}");
+                                let mut suffix = 0;
+                                while used.contains(&name) {
+                                    suffix += 1;
+                                    name = format!("Ov_{i}_{suffix}_{original}");
+                                }
+                                renames.insert(original, name.clone());
+                                name
                             }
-                            renames.insert(original, name.clone());
-                            name
                         } else {
                             original
                         };
-                        cat.push((encode_name(&name).into(), value));
+                        if used.contains(&name)
+                            && let Some((_, old)) =
+                                cat.iter_mut().find(|(k, _)| pdf_string::name(k) == name)
+                        {
+                            *old = value;
+                        } else {
+                            cat.push((encode_name(&name).into(), value));
+                        }
                         used.insert(name);
                     }
                     if let Some(oid) = oid {
-                        owners.insert(oid, cat);
+                        state.owners.insert(oid, cat);
                     } else {
                         set(&mut res, key, Value::Dict(cat));
                     }
                 }
             }
             if let Some(owner) = owner {
-                owners.insert(owner, res);
+                state.owners.insert(owner, res);
             } else {
                 set(&mut fields, b"Resources", Value::Dict(res));
             }
-            if let Some(content) = other.get(b"Contents") {
+            if qpdf {
+                let content = fields
+                    .iter()
+                    .find(|(k, _)| k.as_ref() == b"Contents")
+                    .map(|(_, v)| v);
+                let old_id = content.and_then(Value::reference);
+                let mut target = Vec::new();
+                state
+                    .content(dst, content, edit.bodies, &mut target)
+                    .ok_or(BAD)?;
+                let place = placement(dst_size, src_size);
+                let mut bytes = Vec::new();
+                for draw_layer in [!overlay, overlay] {
+                    bytes.extend_from_slice(if draw_layer { place.as_bytes() } else { b"q\n" });
+                    bytes.extend_from_slice(if draw_layer { &paint } else { &target });
+                    bytes.extend_from_slice(b"\nQ\n");
+                }
+                let reuse = old_id.filter(|id| state.counts.get(id) == Some(&1));
+                let stream = if let Some(id) = reuse {
+                    if !state.written.contains_key(&id)
+                        && let Some((v, _)) = dst.object(id)
+                    {
+                        super::count(&v, &mut state.counts, -1);
+                    }
+                    id
+                } else {
+                    let id = edit.allocate()?;
+                    if let Some(old) = old_id {
+                        *state.counts.entry(old).or_default() -= 1;
+                    }
+                    *state.counts.entry(id).or_default() += 1;
+                    set(&mut fields, b"Contents", Value::Ref(id));
+                    id
+                };
+                let packed = crate::commands::codecs::zlib_compress(&bytes);
+                let mut body = Vec::new();
+                let dict = Value::Dict(vec![(
+                    b"Filter".into(),
+                    Value::Word(b"/FlateDecode".as_slice().into()),
+                )]);
+                write_stream(
+                    &mut body,
+                    dict,
+                    &packed,
+                    None,
+                    edit.left + edit.bodies.get(&stream).map_or(0, Vec::len),
+                )?;
+                state.written.insert(stream, body.len() - packed.len() - 10);
+                edit.store(stream, body)?;
+            } else if let Some(content) = other.get(b"Contents") {
                 let nodes = match src.lookup_value(content) {
                     Some((_, Value::Array(a))) => a,
                     _ => vec![content.clone()],
@@ -336,11 +494,6 @@ impl PageSource<'_> {
             }
             tree.insert(id, Some(Value::Dict(fields)));
         }
-        for (oid, d) in owners {
-            let mut body = Vec::new();
-            encode(&Value::Dict(d), &mut body)?;
-            edit.store(oid, body)?;
-        }
-        Ok(())
+        Ok((edit.next, edit.left))
     }
 }

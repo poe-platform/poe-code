@@ -5009,3 +5009,37 @@ test("qpdf flattens rotations into content and maps page boxes and annotation re
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf overlays and underlays preserve the PDF and compose selected pages in argument order",async()=>{
+  const {PdfDocument,cosDict,cosString,cosArray,dictSet,dictGet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const d=PdfDocument.create(),s=PdfDocument.create();d.setTitle("Original");
+  for(let i=0;i<4;i++){const p=d.addPage([220,180]);p.setRotation(i*90);p.drawText("Base "+i,{x:4,y:14});dictSet(p.pageDict,"Annots",cosArray([cosDict({Contents:cosString("keep")})]));}
+  dictSet(d.getPage(1).pageDict,"Contents",dictGet(d.getPage(0).pageDict,"Contents"));
+  for(let i=0;i<2;i++)s.addPage([110,115]).drawText("Layer "+i,{x:12,y:35});
+  const files={"/bad":Buffer.from("broken PDF"),"/in":d.save(),"/src":s.save(),"/secret":s.save({encrypt:{userPassword:"pass",ownerPassword:"owner"}})};
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
+    for(const flags of ["--overlay src --","--underlay=src --from=2 --repeat=1 --to=4,2,1 --","--overlay src --to=3,1,3 -- --underlay secret --password=pass --from=2-1 --","--rotate=+90:1 --overlay src -- --flatten-rotation","--pages . 3,1 -- --overlay=- -- --object-streams=generate"]){
+      const cmd="qpdf in "+flags+" out < src";
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      const expected=await fs.readFile("/out"),actual=await rs.fs.readFile("/out");
+      assert.ok(PdfDocument.load(actual).getPages().length>0);
+      assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
+    }
+    for(const cmd of [
+      "qpdf --password=pass --decrypt secret --overlay src -- out",
+      "qpdf --password=pass --decrypt secret --overlay src --to=1,2,1 -- --underlay src --to=2,1 -- --object-streams=generate out",
+      "qpdf in --overlay secret -- out",
+      "qpdf in --underlay bad -- out",
+      "qpdf in --overlay missing -- out",
+      "qpdf in --overlay src --repeat=99 -- out",
+    ]){
+      const expected=await js.exec(cmd),actual=await rs.exec(cmd);
+      assert.deepEqual([actual.exitCode,actual.stderr],[expected.exitCode,expected.stderr],cmd);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/out")),Buffer.from(await fs.readFile("/out")),cmd);
+    }
+  }finally{rs.dispose();}
+});

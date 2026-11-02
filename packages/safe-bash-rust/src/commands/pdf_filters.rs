@@ -171,7 +171,7 @@ impl<'a> Objects<'a> {
     }
 }
 
-fn flate(bytes: &[u8], limit: usize) -> Option<Vec<u8>> {
+pub(super) fn flate(bytes: &[u8], limit: usize) -> Option<Vec<u8>> {
     if bytes.starts_with(&[31, 139]) {
         return gzip_decompress_bounded(bytes, limit).ok();
     }

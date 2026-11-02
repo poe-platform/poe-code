@@ -9,7 +9,7 @@ mod pdf_rewrite;
 #[path = "pdf_rotation.rs"]
 mod pdf_rotation;
 pub(super) use pdf_rotation::{Rotation, pdftk_selection, rotations};
-pub(super) use pdf_rewrite::{PageEdits,rewrite,empty_pdf};
+pub(super) use pdf_rewrite::{Layer,PageEdits,rewrite,empty_pdf};
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
 pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};

@@ -6335,7 +6335,6 @@ fn cmd_media_doc(
             let mut normalize_content = None;
             let mut min_version: Option<String> = None;
             let mut force_version: Option<String> = None;
-            let mut overlay_specs: Vec<(bool, String, String, String, String)> = Vec::new();
             let mut collate_group: Option<usize> = None;
             let mut set_page_labels: Vec<String> = Vec::new();
             let mut edits = pdf_reader::PageEdits::default();
@@ -6345,10 +6344,10 @@ fn cmd_media_doc(
             while i < args.len() {
                 let a = args[i].as_str();
                 if a.starts_with("--")
-                    && !matches!(a, "--empty" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
+                    && !matches!(a, "--empty" | "--overlay" | "--underlay" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
                         | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
                         | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt" | "--linearize" | "--flatten-rotation")
-                    && !["--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
+                    && !["--overlay=", "--underlay=", "--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
                         "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
                         "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
                 {
@@ -6649,27 +6648,39 @@ fn cmd_media_doc(
                     i += 1;
                     continue;
                 }
-                if (a == "--overlay" || a == "--underlay") && i + 1 < args.len() {
-                    let is_over = a == "--overlay";
-                    let ov_file = args[i + 1].clone();
-                    let mut to_rng = "1-z".to_string();
-                    let mut from_rng = "1-z".to_string();
-                    let mut rep_rng = String::new();
-                    i += 2;
+                if matches!(a, "--overlay" | "--underlay") || a.starts_with("--overlay=") || a.starts_with("--underlay=")
+                {
+                    let path = if let Some((_, p)) = a.split_once('=') {
+                        p
+                    } else {
+                        i += 1;
+                        args.get(i).map_or("", String::as_str)
+                    };
+                    let mut spec = pdf_reader::Layer {
+                        overlay: a.starts_with("--overlay"),
+                        path,
+                        from: "1-z",
+                        to: "1-z",
+                        repeat: "",
+                        password: None,
+                    };
+                    i += 1;
                     while i < args.len() && args[i] != "--" {
-                        if let Some(t) = args[i].strip_prefix("--to=") {
-                            to_rng = t.to_string();
-                        } else if let Some(f) = args[i].strip_prefix("--from=") {
-                            from_rng = f.to_string();
-                        } else if let Some(r) = args[i].strip_prefix("--repeat=") {
-                            rep_rng = r.to_string();
+                        if let Some((key, v)) = args[i].split_once('=') {
+                            match key {
+                                "--from" => spec.from = v,
+                                "--to" => spec.to = v,
+                                "--repeat" => spec.repeat = v,
+                                "--password" => spec.password = Some(v),
+                                _ => (),
+                            }
                         }
                         i += 1;
                     }
-                    if i < args.len() && args[i] == "--" {
+                    if i < args.len() {
                         i += 1;
                     }
-                    overlay_specs.push((is_over, ov_file, to_rng, from_rng, rep_rng));
+                    edits.layers.push(spec);
                     continue;
                 }
                 if a == "--collate" {
@@ -7213,6 +7224,33 @@ fn cmd_media_doc(
                     else {primary_arg.as_deref().and_then(read)};
                 if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
                     let limit = fs.shell_limits().max_output_bytes;
+                    if !edits.layers.is_empty() {
+                        let mut remaining = fs.shell_limits().max_input_bytes;
+                        let mut seen = std::collections::BTreeSet::new();
+                        for name in primary_arg
+                            .iter()
+                            .map(String::as_str)
+                            .chain(edits.selections.iter().map(|s| s.0.as_str()))
+                            .chain(add_atts.iter().map(|a| a.path.as_str()))
+                            .chain(copy_atts.iter().map(|a| a.path.as_str()))
+                            .chain(edits.layers.iter().map(|l| l.path))
+                        {
+                            if name == "." || !seen.insert(name) {
+                                continue;
+                            }
+                            let size = if Some(name) == primary_arg.as_deref() {
+                                bytes.len()
+                            } else if name == "-" {
+                                crate::vfs::stream_byte_len(stdin)
+                            } else {
+                                fs.stat(&resolve_posix_path(cwd, name)).map_or(0, |st| st.size)
+                            };
+                            let Some(left) = remaining.checked_sub(size) else {
+                                return err_out("qpdf: input byte limit exceeded\n", 2);
+                            };
+                            remaining = left;
+                        }
+                    }
                     let selected = if edits.selections.is_empty() { Some(bytes) } else {
                         match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),&edits,collate_group,read,&fs.shell_limits()) {
                             Ok(bytes) => bytes,
@@ -7225,11 +7263,11 @@ fn cmd_media_doc(
                             return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                         }
                         let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
+                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
-                            let edited = edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            let edited = !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
                                 || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
                             let graph;
                             let data = if edited {
@@ -7442,21 +7480,21 @@ fn cmd_media_doc(
                 }
             }
 
-            for (is_over, ov_file, to_rng, from_rng, rep_rng) in &overlay_specs {
-                let odoc = if ov_file == "." {
+            for spec in &edits.layers {
+                let odoc = if spec.path == "." {
                     doc.clone()
                 } else {
-                    match load_input(ov_file) {
+                    match load_input(spec.path) {
                         Ok(d) => d,
                         Err(e) => return e,
                     }
                 };
-                let to_pages = parse_qpdf_page_spec(to_rng, doc.pages.len());
-                let from_pages = parse_qpdf_page_spec(from_rng, odoc.pages.len());
-                let rep_pages = if rep_rng.is_empty() {
+                let to_pages = parse_qpdf_page_spec(spec.to, doc.pages.len());
+                let from_pages = parse_qpdf_page_spec(spec.from, odoc.pages.len());
+                let rep_pages = if spec.repeat.is_empty() {
                     Vec::new()
                 } else {
-                    parse_qpdf_page_spec(rep_rng, from_pages.len())
+                    parse_qpdf_page_spec(spec.repeat, from_pages.len())
                 };
                 if !from_pages.is_empty() {
                     for (idx, dst_pno) in to_pages.into_iter().enumerate() {
@@ -7471,7 +7509,7 @@ fn cmd_media_doc(
                         if let Some(src_pg) = odoc.pages.get(src_pno - 1)
                             && let Some(dst_pg) = doc.pages.get_mut(dst_pno - 1)
                         {
-                            if *is_over {
+                            if spec.overlay {
                                 dst_pg.text = format!("{}\n{}", dst_pg.text, src_pg.text);
                             } else {
                                 dst_pg.text = format!("{}\n{}", src_pg.text, dst_pg.text);

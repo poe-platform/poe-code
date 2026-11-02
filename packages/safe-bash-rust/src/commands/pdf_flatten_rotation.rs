@@ -1,26 +1,10 @@
 // Bake the page rotation into the paint operations. A single-owner Contents
 // object can be replaced in place; a shared one must survive for the other page.
 use super::super::pdf_rewrite::{encode, set, write_stream};
-use super::{ObjectId, Objects, PageTree, Rotation, Value, geometry};
+use super::{ObjectId, Objects, PageTree, Rotation, Value, count, geometry};
 use std::collections::BTreeMap;
 const BAD: &str = "invalid rotated PDF page";
 const LARGE: &str = "PDF output byte limit exceeded";
-fn count(v: &Value, counts: &mut BTreeMap<ObjectId, i64>, delta: i64) {
-    match v {
-        Value::Ref(id) => *counts.entry(*id).or_default() += delta,
-        Value::Array(a) => {
-            for i in a {
-                count(i, counts, delta);
-            }
-        }
-        Value::Dict(d) => {
-            for (_, i) in d {
-                count(i, counts, delta);
-            }
-        }
-        _ => (),
-    }
-}
 fn rect(vals: [f64; 4]) -> Value<'static> {
     Value::Array(
         vals.map(|n| Value::Word(n.to_string().into_bytes().into()))
@@ -36,19 +20,9 @@ impl<'a> Objects<'a> {
         changed: &mut BTreeMap<ObjectId, Vec<u8>>,
         next: &mut usize,
         mut remaining: usize,
+        state: &mut super::pdf_stamp::LayerState<'a>,
     ) -> Result<(), String> {
-        let mut counts = BTreeMap::new();
-        for id in self.xref.keys().copied().collect::<Vec<_>>() {
-            if let Some((v, _)) = self.object(id) {
-                count(&v, &mut counts, 1);
-            }
-        }
-        // An inline page is materialized as an extra indirect object before editing.
-        for id in pages.iter().filter(|id| !self.xref.contains_key(id)) {
-            if let Some(Some(v)) = tree.get(id) {
-                count(v, &mut counts, 1);
-            }
-        }
+
         let mut modified: BTreeMap<ObjectId, Value> = BTreeMap::new();
         for (i, &id) in pages.iter().enumerate() {
             let old = self.page_dict(id, tree).ok_or(BAD)?;
@@ -149,31 +123,14 @@ impl<'a> Objects<'a> {
             }
             .into_bytes();
             let content = old.get(b"Contents");
-            if let Some((owner, root, stream)) = content.and_then(|v| self.lookup_object(v)) {
-                match (owner, root, stream) {
-                    (Some(id), mut dict, Some(c)) => {
-                        let raw = self.raw_stream(id, &mut dict, c).ok_or(BAD)?;
-                        bytes.extend_from_slice(&self.decode(&dict, raw).ok_or(BAD)?);
-                    }
-                    (_, Value::Array(a), None) => {
-                        for v in a {
-                            if let Some((Some(id), mut dict, Some(c))) = self.lookup_object(&v) {
-                                let raw = self.raw_stream(id, &mut dict, c).ok_or(BAD)?;
-                                bytes.extend_from_slice(&self.decode(&dict, raw).ok_or(BAD)?);
-                                bytes.push(b'\n');
-                            }
-                        }
-                    }
-                    _ => (),
-                }
-            }
+            state.content(self,content,changed,&mut bytes).ok_or(BAD)?;
             bytes.extend_from_slice(b"\nQ\n");
             let reuse = content
                 .and_then(Value::reference)
-                .filter(|id| counts.get(id) == Some(&1));
+                .filter(|id| state.counts.get(id) == Some(&1));
             let stream = if let Some(id) = reuse {
                 if let Some((v, _)) = self.object(id) {
-                    count(&v, &mut counts, -1);
+                    count(&v, &mut state.counts, -1);
                 }
                 id
             } else {
@@ -194,8 +151,8 @@ impl<'a> Objects<'a> {
             remaining = remaining.checked_sub(body.len()).ok_or(LARGE)?;
             changed.insert(stream, body);
             let page = Value::Dict(fields);
-            count(&old, &mut counts, -1);
-            count(&page, &mut counts, 1);
+            count(&old, &mut state.counts, -1);
+            count(&page, &mut state.counts, 1);
             tree.insert(id, Some(page));
         }
         for (id, v) in modified {

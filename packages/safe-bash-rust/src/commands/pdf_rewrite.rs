@@ -59,10 +59,19 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
     )
 }
 
+pub(in super::super) struct Layer<'a> {
+    pub path: &'a str,
+    pub overlay: bool,
+    pub from: &'a str,
+    pub to: &'a str,
+    pub repeat: &'a str,
+    pub password: Option<&'a str>,
+}
 #[derive(Default)]
 pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
+    pub layers:Vec<Layer<'a>>,
     pub stamp: Option<(&'a [u8], bool, bool)>,
     pub trailer_id: Option<&'a [u8]>,
     pub append_files: Option<&'a [String]>,
@@ -104,13 +113,101 @@ pub(in super::super) fn rewrite(
     let mut catalog = objects.object(root).ok_or(INVALID)?.0;
     let mut first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
     let mut changed=BTreeMap::new();
-    let flattened=if edits.flatten_rotation {
-        let (pages,mut tree)=objects.page_tree(root,&catalog,0).ok_or(INVALID)?;
-        first_new=first_new.max(tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?);
-        let rotations=super::rotations(&edits.rotations,pages.len()).ok_or("invalid page rotation")?;
-        objects.flatten_rotations(&pages,&mut tree,&rotations,&mut changed,&mut first_new,limit)?;
-        Some((pages,tree))
-    }else{None};
+    let edited_tree = if edits.flatten_rotation || !edits.layers.is_empty() {
+        let (pages, mut tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
+        first_new = first_new.max(
+            tree.keys()
+                .next_back()
+                .ok_or(INVALID)?
+                .0
+                .checked_add(1)
+                .ok_or(TOO_LARGE)?,
+        );
+        let mut state = super::pdf_copy::pdf_stamp::LayerState::default();
+        let mut edit_limit = limit;
+        state.counts = objects.reference_counts(&pages, &tree);
+        let rotations = super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
+        if !edits.layers.is_empty() {
+            for (i, r) in rotations.iter().copied().enumerate() {
+                if let Some(r) = r {
+                    let id = pages[i];
+                    let mut page = objects.page_dict(id, &tree).ok_or(INVALID)?;
+                    let (_, _, angle) = super::pdf_copy::geometry(&mut objects, &tree, &page);
+                    let Value::Dict(d) = &mut page else {
+                        return Err(INVALID.into());
+                    };
+                    set(d, b"Rotate", r.word(angle));
+                    tree.insert(id, Some(page));
+                }
+            }
+        }
+        for layer in &edits.layers {
+            let bytes = read(layer.path).ok_or_else(|| format!("cannot open {}", layer.path))?;
+            let mut source = super::PageSource::open(&bytes, layer.password.unwrap_or(edits.password))
+                .map_err(|_| "invalid layer source")?;
+            let mut available = limit / 8;
+            let mut list = |s: &str, count| -> Result<Vec<usize>, String> {
+                let mut indices = Vec::new();
+                super::pdf_rotation::visit_range(s, count, |i| {
+                    available = available.checked_sub(1)?;
+                    indices.push(i);
+                    Some(())
+                })
+                .ok_or("invalid layer page range")?;
+                Ok(indices)
+            };
+            let from = list(layer.from, source.len())?;
+            let to = list(layer.to, pages.len())?;
+            let repeats = if layer.repeat.is_empty() {
+                None
+            } else {
+                Some(list(layer.repeat, source.len())?)
+            };
+            if !from.is_empty() {
+                let pairs = to.into_iter().zip(
+                    from.iter()
+                        .chain(repeats.as_ref().unwrap_or(&from).iter().cycle())
+                        .copied(),
+                );
+                (first_new, edit_limit) = source
+                    .stamp(
+                        &mut objects,
+                        &pages,
+                        &mut tree,
+                        pairs,
+                        &mut state,
+                        true,
+                        layer.overlay,
+                        first_new,
+                        &mut changed,
+                        None,
+                        edit_limit,
+                    )
+                    .map_err(|e| {
+                        if e == TOO_LARGE {
+                            e
+                        } else {
+                            "invalid layer source".into()
+                        }
+                    })?;
+            }
+        }
+        if edits.flatten_rotation {
+            objects.flatten_rotations(
+                &pages,
+                &mut tree,
+                if edits.layers.is_empty() { &rotations } else { &[] },
+                &mut changed,
+                &mut first_new,
+                edit_limit,
+                &mut state,
+            )?;
+        }
+        state.finish(&mut changed, edit_limit)?;
+        Some((pages, tree))
+    } else {
+        None
+    };
     if !(remove.is_empty() && add.is_empty() && copies.is_empty()) {
         changed.extend(attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?);
     }
@@ -128,16 +225,39 @@ pub(in super::super) fn rewrite(
         .get(b"Pages")
         .and_then(Value::reference)
         .ok_or(INVALID)?;
-    let (pages, mut tree) = if let Some(graph)=flattened {graph} else {objects
+    let (pages, mut tree) = if let Some(graph)=edited_tree {graph} else {objects
         .page_tree(
             root,
             &catalog,
             changed.keys().next_back().map_or(0, |id| id.0),
         )
         .ok_or(INVALID)?};
-    if let Some((stamp,multi,overlay))=edits.stamp {
-        let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
-        super::PageSource::open(stamp,"")?.stamp(&mut objects,&pages,&mut tree,multi,overlay,next,&mut changed,edits.compress_streams,limit)?;
+    if let Some((stamp, multi, overlay)) = edits.stamp {
+        let next = tree
+            .keys()
+            .next_back()
+            .ok_or(INVALID)?
+            .0
+            .checked_add(1)
+            .ok_or(TOO_LARGE)?
+            .max(first_new);
+        let mut source = super::PageSource::open(stamp, "")?;
+        let last = source.len().saturating_sub(1);
+        let mut state = super::pdf_copy::pdf_stamp::LayerState::default();
+        let (_, remaining) = source.stamp(
+            &mut objects,
+            &pages,
+            &mut tree,
+            (0..pages.len()).map(|i| (i, if multi { i.min(last) } else { 0 })),
+            &mut state,
+            false,
+            overlay,
+            next,
+            &mut changed,
+            edits.compress_streams,
+            limit,
+        )?;
+        state.finish(&mut changed, remaining)?;
     }
     let pin_page=edits.attachment_page.and_then(|p| pages.get(p.min(pages.len().saturating_sub(1)))).copied();
     let mut pins=if let Some(paths)=edits.append_files {
@@ -149,7 +269,7 @@ pub(in super::super) fn rewrite(
     if edits.linearize {
         changed.insert((first_new,0), format!("<<\n/Linearized 1\n/N {}\n>>", pages.len()).into_bytes());
     }
-    let rotations=if edits.flatten_rotation {vec![]} else {super::rotations(&edits.rotations,pages.len()).ok_or("invalid page rotation")?};
+    let rotations=if edits.flatten_rotation || !edits.layers.is_empty() {vec![]} else {super::rotations(&edits.rotations,pages.len()).ok_or("invalid page rotation")?};
     let mut remaining = limit;
     let mut store = |id, value: &Value<'_>| -> Result<(), String> {
         let body = changed.entry(id).or_default();
@@ -181,7 +301,7 @@ pub(in super::super) fn rewrite(
     }
     for (i, &id) in pages.iter().enumerate() {
         let rotation = edits.page_rotations.get(i).or_else(||rotations.get(i)).copied().flatten();
-        if edits.split_pages.is_some() && rotation.is_none() && !edits.flatten_rotation {
+        if edits.split_pages.is_some() && rotation.is_none() && !edits.flatten_rotation && edits.layers.is_empty() {
             continue;
         }
         let page = objects.page_dict(id, &tree).ok_or(INVALID)?;

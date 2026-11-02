@@ -8,7 +8,7 @@ mod pdf_fonts;
 #[path = "pdf_json.rs"]
 mod pdf_json;
 #[path = "pdf_stamp.rs"]
-mod pdf_stamp;
+pub(super) mod pdf_stamp;
 #[path = "pdf_flatten_rotation.rs"]
 mod pdf_flatten_rotation;
 #[path = "pdf_annots.rs"]
@@ -76,7 +76,7 @@ fn attribute<'a, 'p, T>(
         page = tree.get(&parent)?.as_ref()?;
     }
 }
-fn geometry<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'a>) -> (f64, f64, f64) {
+pub(super) fn geometry<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'a>) -> (f64, f64, f64) {
     let b = attribute(o, tree, v, b"MediaBox", |o, v| {
         let Value::Array(a) = v else {
             return None;
@@ -102,7 +102,59 @@ fn geometry<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'a>) -> (f64
         },
     )
 }
+fn count(v: &Value, counts: &mut BTreeMap<ObjectId, i64>, delta: i64) {
+    match v {
+        Value::Ref(id) => *counts.entry(*id).or_default() += delta,
+        Value::Array(a) => {
+            for i in a {
+                count(i, counts, delta);
+            }
+        }
+        Value::Dict(d) => {
+            for (_, i) in d {
+                count(i, counts, delta);
+            }
+        }
+        _ => (),
+    }
+}
 impl<'a> Objects<'a> {
+    pub(super) fn reference_counts(&mut self,pages:&[ObjectId],tree:&PageTree<'a>)->BTreeMap<ObjectId,i64>{
+        let mut counts = BTreeMap::new();
+        for id in self.xref.keys().copied().collect::<Vec<_>>() {
+            if let Some((v, _)) = self.object(id) {
+                count(&v, &mut counts, 1);
+            }
+        }
+        // An inline page is materialized as an extra indirect object before editing.
+        for id in pages.iter().filter(|id| !self.xref.contains_key(id)) {
+            if let Some(Some(v)) = tree.get(id) {
+                count(v, &mut counts, 1);
+            }
+        }
+        counts
+    }
+    fn append_page_contents(&mut self,content:Option<&Value<'a>>,bytes:&mut Vec<u8>)->Option<()>{
+        if let Some((owner, root, stream)) = content.and_then(|v| self.lookup_object(v)) {
+            match (owner, root, stream) {
+                (Some(id), mut dict, Some(c)) => {
+                    let raw = self.raw_stream(id, &mut dict, c)?;
+                    bytes.extend_from_slice(&self.decode(&dict, raw)?);
+                }
+                (_, Value::Array(a), None) => {
+                    for v in a {
+                        if let Some((Some(id), mut dict, Some(c))) = self.lookup_object(&v) {
+                            let raw = self.raw_stream(id, &mut dict, c)?;
+                            bytes.extend_from_slice(&self.decode(&dict, raw)?);
+                            bytes.push(b'\n');
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+        Some(())
+    }
     pub(super) fn page_dict(&mut self, id: ObjectId, tree: &PageTree<'a>) -> Option<Value<'a>> {
         match tree.get(&id)? {
             Some(inline) => Some(inline.clone()),

@@ -2,7 +2,7 @@ use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
-    SafeBashFs, VfsEntryKind, basename_posix_path, normalize_posix_path, resolve_posix_path,
+    SafeBashFs, VfsEntryKind, basename_posix_path, normalize_posix_path, resolve_posix_path, stream_byte_len,
 };
 use std::collections::BTreeMap;
 
@@ -7239,7 +7239,7 @@ where
     let mut batch_mode = XargsBatchMode::Default;
     let mut max_args: Option<usize> = None;
     let mut max_lines: Option<usize> = None;
-    let mut max_chars: Option<usize> = None;
+    let mut max_bytes = usize::MAX;
     let mut eof_marker: Option<String> = None;
     let mut arg_file: Option<String> = None;
     let mut replace_str: Option<String> = None;
@@ -7263,6 +7263,8 @@ where
         let n = val.parse::<usize>().ok()?;
         if n == 0 { None } else { Some(n) }
     };
+
+    let parse_size = |val: &str| if val == "Infinity" { Some(usize::MAX) } else { parse_pos_int(val) };
 
     let is_valid_ident = |s: &str| -> bool {
         let mut chars = s.chars();
@@ -7357,10 +7359,10 @@ where
                     let Some(v) = take_val(inline_val, &mut i) else {
                         return usage_err("missing value for --max-chars");
                     };
-                    let Some(n) = parse_pos_int(&v) else {
+                    let Some(n) = parse_size(&v) else {
                         return usage_err(&format!("invalid number '{v}'"));
                     };
-                    max_chars = Some(n);
+                    max_bytes = n;
                 }
                 "--max-procs" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
@@ -7472,10 +7474,10 @@ where
                                 batch_mode = XargsBatchMode::MaxLines;
                             }
                             's' => {
-                                let Some(n) = parse_pos_int(&val) else {
+                                let Some(n) = parse_size(&val) else {
                                     return usage_err(&format!("invalid number '{val}'"));
                                 };
-                                max_chars = Some(n);
+                                max_bytes = n;
                             }
                             'P' => {
                                 if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
@@ -7528,6 +7530,10 @@ where
         cmd_words.push("echo".to_string());
     }
 
+    let base_bytes: usize = cmd_words.iter().map(|w| stream_byte_len(w) + 1).sum();
+    if base_bytes >= max_bytes {
+        return usage_err("initial arguments exceed command size limit");
+    }
     let mut out = String::new();
     let mut err = String::new();
     if delim_mode != XargsDelimMode::Whitespace
@@ -7566,18 +7572,6 @@ where
     ) && input_str.contains('\0')
     {
         err.push_str("xargs: NUL in non-NUL-delimited input\n");
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err,
-            exit_code: 2,
-        };
-    }
-
-    let base_bytes: usize = cmd_words.iter().map(|w| w.len() + 1).sum();
-    if let Some(mc) = max_chars
-        && base_bytes > mc
-    {
-        err.push_str("xargs: command size limit exceeded\n");
         return BuiltinOutcome {
             stdout: out,
             stderr: err,
@@ -7678,23 +7672,27 @@ where
         XargsBatchMode::Replace => {
             let repl = replace_str.as_deref().unwrap_or("{}");
             for (item, _) in parsed_items {
+                let item_len = stream_byte_len(&item);
+                if delim_mode != XargsDelimMode::Whitespace && item_len >= max_bytes {
+                    err.push_str("xargs: single argument exceeds command size limit\n");
+                    return BuiltinOutcome { stdout: out, stderr: err, exit_code: 2 };
+                }
                 let mut invoke = vec![cmd_words[0].clone()];
-                if implicit_echo {
-                    invoke.push(item);
+                let expanded_len = if implicit_echo {
+                    base_bytes.saturating_add(item_len + 1)
                 } else {
-                    invoke.extend(cmd_words[1..].iter().map(|word| word.replace(repl, &item)));
+                    cmd_words[1..].iter().fold(stream_byte_len(&cmd_words[0]) + 1, |size, word| {
+                        let matches = word.matches(repl).count();
+                        let literal = stream_byte_len(word) - matches * stream_byte_len(repl);
+                        size.saturating_add(literal + 1).saturating_add(matches.saturating_mul(item_len))
+                    })
+                };
+                if expanded_len > max_bytes {
+                    err.push_str("xargs: expanded arguments exceed command size limit\n");
+                    return BuiltinOutcome { stdout: out, stderr: err, exit_code: 2 };
                 }
-                if let Some(mc) = max_chars {
-                    let invoke_bytes: usize = invoke.iter().map(|w| w.len() + 1).sum();
-                    if invoke_bytes > mc {
-                        err.push_str("xargs: command size limit exceeded\n");
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: err,
-                            exit_code: 2,
-                        };
-                    }
-                }
+                if implicit_echo { invoke.push(item); }
+                else { invoke.extend(cmd_words[1..].iter().map(|word| word.replace(repl, &item))); }
                 if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
                     return BuiltinOutcome {
                         stdout: out,
@@ -7704,150 +7702,40 @@ where
                 }
             }
         }
-        XargsBatchMode::MaxLines => {
-            let limit = max_lines.unwrap_or(1).max(1);
-            let mut cur_batch: Vec<String> = Vec::new();
-            let mut cur_bytes = 0usize;
-            let mut lines_used = 0usize;
-            let mut cur_line: Option<usize> = None;
-            for (item, line_id) in parsed_items {
-                let item_bytes = item.len() + 1;
-                if let Some(mc) = max_chars && base_bytes + item_bytes > mc {
-                    err.push_str("xargs: command size limit exceeded\n");
-                    return BuiltinOutcome {
-                        stdout: out,
-                        stderr: err,
-                        exit_code: 2,
-                    };
+        _ => {
+            let max_args = if batch_mode == XargsBatchMode::MaxArgs { max_args } else { None };
+            let max_lines = if batch_mode == XargsBatchMode::MaxLines { max_lines } else { None };
+            let mut items = parsed_items.into_iter().peekable();
+            let mut batch = cmd_words.clone();
+            let mut bytes = base_bytes;
+            let mut lines = 0;
+            while let Some((item, line)) = items.next() {
+                let size = stream_byte_len(&item) + 1;
+                if size > max_bytes - base_bytes {
+                    err.push_str("xargs: single argument exceeds command size limit\n");
+                    return BuiltinOutcome { stdout: out, stderr: err, exit_code: 2 };
                 }
-                let is_new_line = cur_line != Some(line_id);
-                if is_new_line && lines_used >= limit && !cur_batch.is_empty() {
-                    let mut invoke = cmd_words.clone();
-                    invoke.extend(std::mem::take(&mut cur_batch));
-                    cur_bytes = 0;
-                    lines_used = 0;
-                    cur_line = None;
-                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code)
-                    {
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: err,
-                            exit_code: abort_code,
-                        };
-                    }
-                }
-                if let Some(mc) = max_chars
-                    && !cur_batch.is_empty()
-                    && base_bytes + cur_bytes + item_bytes > mc
-                {
-                    if exit_on_size {
+                if size > max_bytes - bytes {
+                    if exit_on_size || max_lines.is_some() {
                         err.push_str("xargs: command size limit exceeded\n");
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: err,
-                            exit_code: 2,
-                        };
+                        return BuiltinOutcome { stdout: out, stderr: err, exit_code: 2 };
                     }
-                    let mut invoke = cmd_words.clone();
-                    invoke.extend(std::mem::take(&mut cur_batch));
-                    cur_bytes = 0;
-                    lines_used = 0;
-                    cur_line = None;
-                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code)
-                    {
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: err,
-                            exit_code: abort_code,
-                        };
+                    if let Some(code) = run_batch(&batch, &mut out, &mut err, &mut exit_code) {
+                        return BuiltinOutcome { stdout: out, stderr: err, exit_code: code };
                     }
+                    bytes = base_bytes;
+                    batch.truncate(cmd_words.len());
                 }
-                if cur_line != Some(line_id) {
-                    cur_line = Some(line_id);
-                    lines_used += 1;
-                }
-                cur_bytes += item_bytes;
-                cur_batch.push(item);
-            }
-            if !cur_batch.is_empty() {
-                let mut invoke = cmd_words.clone();
-                invoke.extend(cur_batch);
-                if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
-                    return BuiltinOutcome {
-                        stdout: out,
-                        stderr: err,
-                        exit_code: abort_code,
-                    };
-                }
-            }
-        }
-        XargsBatchMode::Default | XargsBatchMode::MaxArgs => {
-            let max_n = if batch_mode == XargsBatchMode::MaxArgs {
-                max_args.unwrap_or(parsed_items.len()).max(1)
-            } else {
-                parsed_items.len().max(1)
-            };
-            let mut cur_batch: Vec<String> = Vec::new();
-            let mut cur_bytes = 0usize;
-            for (item, _) in parsed_items {
-                let item_bytes = item.len() + 1;
-                if let Some(mc) = max_chars {
-                    if base_bytes + item_bytes > mc {
-                        err.push_str("xargs: command size limit exceeded\n");
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: err,
-                            exit_code: 2,
-                        };
+                bytes += size;
+                batch.push(item);
+                if items.peek().is_none_or(|(_, next)| *next != line) { lines += 1; }
+                if Some(batch.len() - cmd_words.len()) == max_args || Some(lines) == max_lines || items.peek().is_none() {
+                    if let Some(code) = run_batch(&batch, &mut out, &mut err, &mut exit_code) {
+                        return BuiltinOutcome { stdout: out, stderr: err, exit_code: code };
                     }
-                    if !cur_batch.is_empty() && base_bytes + cur_bytes + item_bytes > mc {
-                        if exit_on_size && batch_mode == XargsBatchMode::MaxArgs {
-                            err.push_str("xargs: command size limit exceeded\n");
-                            return BuiltinOutcome {
-                                stdout: out,
-                                stderr: err,
-                                exit_code: 2,
-                            };
-                        }
-                        let mut invoke = cmd_words.clone();
-                        invoke.extend(std::mem::take(&mut cur_batch));
-                        cur_bytes = 0;
-                        if let Some(abort_code) =
-                            run_batch(&invoke, &mut out, &mut err, &mut exit_code)
-                        {
-                            return BuiltinOutcome {
-                                stdout: out,
-                                stderr: err,
-                                exit_code: abort_code,
-                            };
-                        }
-                    }
-                }
-                cur_bytes += item_bytes;
-                cur_batch.push(item);
-                if cur_batch.len() >= max_n {
-                    let mut invoke = cmd_words.clone();
-                    invoke.extend(std::mem::take(&mut cur_batch));
-                    cur_bytes = 0;
-                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code)
-                    {
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: err,
-                            exit_code: abort_code,
-                        };
-                    }
-                }
-            }
-            if !cur_batch.is_empty() {
-                let mut invoke = cmd_words.clone();
-                invoke.extend(cur_batch);
-                if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
-                    return BuiltinOutcome {
-                        stdout: out,
-                        stderr: err,
-                        exit_code: abort_code,
-                    };
+                    bytes = base_bytes;
+                    lines = 0;
+                    batch.truncate(cmd_words.len());
                 }
             }
         }
@@ -8081,6 +7969,31 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn xargs_size_limits_distinguish_initial_arguments_records_and_expanded_batches() {
+        let fs = MemoryVfs::new();
+        for (options, input, output, error) in [
+            ("-s Infinity echo", "abc", "abc\n", ""),
+            ("-s 5 echo", "abc", "", "initial arguments exceed command size limit"),
+            ("-s 8 echo", "abc", "", "single argument exceeds command size limit"),
+            ("-s 9 echo", "abc def", "abc\ndef\n", ""),
+            ("-s 9 -x echo", "abc def", "", "command size limit exceeded"),
+            ("-s 9 -L1 echo", "abc def", "", "command size limit exceeded"),
+            ("-s 9 -L1 echo", "abc\ntoolong", "abc\n", "single argument exceeds command size limit"),
+            ("-s 11 -I{} echo {}{}", "abc", "", "expanded arguments exceed command size limit"),
+            ("-s 12 -I{} echo {}{}", "abc", "abcabc\n", ""),
+            ("-s 8 -0 -I{} echo", "abc\ndef\n", "", "single argument exceeds command size limit"),
+            ("-s 7 -0 echo", "\u{e0ff}", "\u{e0ff}\n", ""),
+        ] {
+            let result = try_run_search_command("xargs", &args(&options.split_whitespace().collect::<Vec<_>>()),
+                input, &mut "/".into(), &mut BTreeMap::new(), &fs,
+                |words, _, _, _| ok_out(&format!("{}\n", words[1..].join(" "))),
+            ).unwrap();
+            let stderr = if error.is_empty() { String::new() } else { format!("xargs: {error}\n") };
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr), (if error.is_empty() { 0 } else { 2 }, output, stderr), "{options}");
+        }
     }
 
     #[test]

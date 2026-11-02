@@ -6474,3 +6474,22 @@ test("rg dotall matches digits as well as newlines", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("regex groups treat parentheses and alternatives inside brackets as characters", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(sedCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [line, pat] of [
+      ["a)b", "(a[)]b)"], ["a(b", "(a[(]b)"], ["a)b", "(a[[:alpha:])]b|q)"],
+      ["a|b", "(a[]|)]b|q)"], ["q", "(a[]|)]b|q)"], ["q!", "((a[)]b|q)+!)"],
+    ]) {
+      for (const f of [fs, rs.fs]) await f.writeFile("/in", Buffer.from(line + "\n"));
+      const cmd = "sed -E 's/" + pat + "/[\\1]/' in";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode,a.stderr,a.stdout], [0,"","[" + line + "]\n"],cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

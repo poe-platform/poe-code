@@ -122,13 +122,14 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.read_file(path)
     }
 
-    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+    fn open_chunks(&self, path: &str) -> Result<crate::vfs::ChunkReader<'_>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.read_chunks(path, &mut |chunk| {
+        let mut next = self.inner.open_chunks(path)?;
+        Ok(Box::new(move |chunk| {
             self.budget.check_cancelled()?;
-            consume(chunk)
-        })
+            next(chunk)
+        }))
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {

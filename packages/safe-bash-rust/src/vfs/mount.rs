@@ -83,9 +83,9 @@ impl SafeBashFs for MountVfs {
         fs.read_file(&rel)
     }
 
-    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
-        let (fs, rel) = self.route(path, true)?;
-        fs.read_chunks(&rel, consume)
+    fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
+        let (fs, path) = self.route(path, true)?;
+        fs.open_chunks(&path)
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {

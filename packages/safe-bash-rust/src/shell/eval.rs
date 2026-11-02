@@ -15968,6 +15968,21 @@ hash -l
     }
 
     #[test]
+    fn sort_merge_advances_only_the_winning_source_and_defers_named_output() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/a", b"a\nc\ne\n").unwrap();
+        fs.write_file("/b", b"b\nd\n").unwrap();
+        for (operands, stdout) in [
+            ("/a /b", "a\nb\n"), ("- /b </a", "a\nb\n"),
+            ("-o /a /a /b", ""), ("--batch-size=2 /a /b /b", ""),
+        ] {
+            let r = shell.exec(&format!("sort -m --max-records=3 {operands}")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, stdout, "sort: EFBIG: sort input record limit exceeded\n"), "{operands}");
+            assert_eq!(fs.read_file("/a").unwrap(), b"a\nc\ne\n");
+        }
+    }
+
+    #[test]
     fn sort_validates_memory_and_fan_in_before_reading_input() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (options, error) in [

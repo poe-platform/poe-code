@@ -129,6 +129,9 @@ impl PartialEq for dyn OpenRedirectFile {
 }
 impl Eq for dyn OpenRedirectFile {}
 
+/// Replace the buffer with the next file chunk, or clear it at EOF.
+pub type ChunkReader<'a> = Box<dyn FnMut(&mut Vec<u8>) -> Result<(), String> + 'a>;
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -151,12 +154,25 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
+    fn open_chunks(&self, path: &str) -> Result<ChunkReader<'_>, String> {
+        let data = self.read_file(path)?;
+        let mut offset = 0usize;
+        Ok(Box::new(move |chunk| {
+            let end = data.len().min(offset.saturating_add(65536usize));
+            chunk.clear();
+            chunk.extend_from_slice(&data[offset..end]);
+            offset = end;
+            Ok(())
+        }))
+    }
     /// Deliver successive file chunks until EOF or the consumer returns false.
     fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
-        for chunk in self.read_file(path)?.chunks(65536) {
-            if !consume(chunk)? { break; }
+        let mut next = self.open_chunks(path)?;
+        let mut chunk = Vec::new();
+        loop {
+            next(&mut chunk)?;
+            if chunk.is_empty() || !consume(&chunk)? { return Ok(()); }
         }
-        Ok(())
     }
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
     /// Create at the resolved entry with the requested mode. An occupied name is never followed or overwritten.

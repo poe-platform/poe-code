@@ -809,30 +809,31 @@ impl SafeBashFs for MemoryVfs {
         }
     }
 
-    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+    fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         let (resolved, devices) = {
             let state = self.state.read().map_err(|e| e.to_string())?;
             (Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?, state.devices)
         };
         match devices.entry(&resolved) {
-            Some("null") => Ok(()),
+            Some("null") => Ok(Box::new(|chunk| { chunk.clear(); Ok(()) })),
             Some(name @ ("zero" | "random" | "urandom")) => {
-                let mut chunk = vec![0; 65536];
-                loop {
-                    if name != "zero" { fill_random(&mut chunk)?; }
-                    if !consume(&chunk)? { return Ok(()); }
-                }
+                let random = name != "zero";
+                Ok(Box::new(move |chunk| {
+                    chunk.resize(65536, 0);
+                    if random { fill_random(chunk)?; } else { chunk.fill(0); }
+                    Ok(())
+                }))
             }
             Some("") => Err(format!("EISDIR: illegal operation on a directory, read '{path}'")),
             _ => {
                 let file = self.retain_file(&resolved)?;
                 if file.stat().mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
                 let mut offset = 0;
-                loop {
-                    let chunk = file.read(offset, 65536);
-                    if chunk.is_empty() || !consume(&chunk)? { return Ok(()); }
+                Ok(Box::new(move |chunk| {
+                    *chunk = file.read(offset, 65536);
                     offset += chunk.len() as u64;
-                }
+                    Ok(())
+                }))
             }
         }
     }

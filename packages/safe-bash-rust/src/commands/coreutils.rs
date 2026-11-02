@@ -344,6 +344,23 @@ fn resolve_record_output(fs: &dyn SafeBashFs, path: &str) -> Result<String, Stri
     }
 }
 
+fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs) -> Result<crate::vfs::ChunkReader<'a>, String> {
+    let path = absolute_operand(cwd, name);
+    let (entry, stat) = fs.inspect_command_entry(&path, true, "capabilitiesFor")
+        .map_err(|e| stream_file_error(e, "readStream", &path))?;
+    if stat.kind == crate::vfs::VfsEntryKind::Directory {
+        return Err(format!("EISDIR: illegal operation on a directory, readStream '{path}'"));
+    }
+    let limit = fs.max_input_bytes();
+    let mut available = limit;
+    let mut next = fs.open_chunks(&entry).map_err(|e| stream_file_error(e, "readStream", &path))?;
+    Ok(Box::new(move |chunk| {
+        next(chunk).map_err(|e| stream_file_error(e, "readStream", &path))?;
+        available = available.checked_sub(chunk.len()).ok_or_else(|| stream_file_error(fs.limit_error("maxInputBytes", limit), "readStream", &path))?;
+        Ok(())
+    }))
+}
+
 impl CommandInput<'_> {
     fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs,
         mut consume: impl FnMut(&[u8]) -> bool,
@@ -355,18 +372,12 @@ impl CommandInput<'_> {
             consume(&take_stdin_bytes(self.text));
             return Ok(());
         }
-        let path = absolute_operand(cwd, name);
-        let (entry, stat) = fs.inspect_command_entry(&path, true, "capabilitiesFor")
-            .map_err(|e| stream_file_error(e, "readStream", &path))?;
-        if stat.kind == crate::vfs::VfsEntryKind::Directory {
-            return Err(format!("EISDIR: illegal operation on a directory, readStream '{path}'"));
+        let mut next = open_record_input(name, cwd, fs)?;
+        let mut chunk = Vec::new();
+        loop {
+            next(&mut chunk)?;
+            if chunk.is_empty() || !consume(&chunk) { return Ok(()); }
         }
-        let limit = fs.max_input_bytes();
-        let mut available = limit;
-        fs.read_chunks(&entry, &mut |chunk| {
-            available = available.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
-            Ok(consume(chunk))
-        }).map_err(|e| stream_file_error(e, "readStream", &path))
     }
 
     fn read_records(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, delimiter: u8,
@@ -1968,6 +1979,46 @@ fn extract_sort_key_bytes<'a>(
     &line[s..e]
 }
 
+struct SortInput<'a> {
+    file: Option<crate::vfs::ChunkReader<'a>>,
+    chunk: Vec<u8>,
+    offset: usize,
+}
+
+impl SortInput<'_> {
+    fn next_record(&mut self, stdin: &mut CommandInput, delimiter: u8, bytes: &mut u64, records: &mut u64) -> Result<Option<Vec<u8>>, String> {
+        let mut record = Vec::new();
+        loop {
+            if self.offset == self.chunk.len() {
+                if let Some(next) = &mut self.file { next(&mut self.chunk)?; }
+                else if let Some(source) = stdin.file {
+                    self.chunk.clear();
+                    source.read(stdin.text, 65536, |chunk, _| {
+                        self.chunk.extend_from_slice(chunk);
+                        Ok((false, chunk.len()))
+                    })?;
+                } else { self.chunk = take_stdin_bytes(stdin.text); }
+                self.offset = 0;
+                *bytes = bytes.checked_sub(self.chunk.len() as u64).ok_or("EFBIG: sort input byte limit exceeded")?;
+                if self.chunk.is_empty() {
+                    if record.is_empty() { return Ok(None); }
+                    break;
+                }
+            }
+            let tail = &self.chunk[self.offset..];
+            if let Some(index) = tail.iter().position(|&byte| byte == delimiter) {
+                record.extend_from_slice(&tail[..index]);
+                self.offset += index + 1;
+                break;
+            }
+            record.extend_from_slice(tail);
+            self.offset = self.chunk.len();
+        }
+        *records = records.checked_sub(1).ok_or("EFBIG: sort input record limit exceeded")?;
+        Ok(Some(record))
+    }
+}
+
 fn cmd_sort(
     args: &[String],
     mut stdin: CommandInput,
@@ -2336,7 +2387,6 @@ fn cmd_sort(
     }
     if fan_in > 32 { return err_out("sort: sort merge fan-in must be between 2 and 32\n", 2); }
     let merge = flags.contains(&'m');
-    let single_merge = merge && names.len() == 1;
     let mut out_bytes = Vec::new();
     let mut prev_emitted = None::<Vec<u8>>;
     let mut output = |record: Vec<u8>| {
@@ -2345,61 +2395,40 @@ fn cmd_sort(
         out_bytes.push(delim_byte);
         if unique { prev_emitted = Some(record); }
     };
-    let mut per_file_records = Vec::with_capacity(names.len());
-    for name in &names {
-        let mut records = Vec::new();
-        let mut previous: Option<Vec<u8>> = None;
-        let mut ordinal = 0usize;
-        let mut emit = |record: Vec<u8>| -> Result<(), BuiltinOutcome> {
-            remaining_records = remaining_records.checked_sub(1)
-                .ok_or_else(|| err_out("sort: EFBIG: sort input record limit exceeded\n", 2))?;
-            if checking {
-                ordinal += 1;
-                if let Some(prev) = &previous
-                    && (full_compare(prev, &record).is_gt() || unique && key_compare(prev, &record).is_eq()) {
-                    return Err(if flags.contains(&'C') { err_out("", 1) }
-                        else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) });
+    let open = |name: &str| -> Result<SortInput, String> {
+        let file = if name == "-" { None } else { Some(open_record_input(name, cwd, fs)?) };
+        Ok(SortInput { file, chunk: Vec::new(), offset: 0 })
+    };
+    let mut next = |input: &mut SortInput| input.next_record(&mut stdin, delim_byte, &mut remaining_bytes, &mut remaining_records);
+    if merge && !checking {
+        let mut runs = Vec::new();
+        let direct = names.len() <= fan_in as usize;
+        for group in names.chunks(fan_in as usize) {
+            let mut run = Vec::new();
+            let result = (|| -> Result<(), String> {
+                let mut sources = Vec::with_capacity(group.len());
+                for name in group {
+                    let mut source = open(name)?;
+                    let head = next(&mut source)?;
+                    if let Some(head) = head { sources.push((head, source)); }
                 }
-                previous = Some(record);
-            } else if single_merge {
-                output(record);
-            } else {
-                records.push(record);
-            }
-            Ok(())
-        };
-        let mut pending = Vec::new();
-        let mut scan = |chunk: &[u8]| -> Result<(), BuiltinOutcome> {
-            remaining_bytes = remaining_bytes.checked_sub(chunk.len() as u64)
-                .ok_or_else(|| err_out("sort: EFBIG: sort input byte limit exceeded\n", 2))?;
-            for part in chunk.split_inclusive(|&b| b == delim_byte) {
-                if let Some(record) = part.strip_suffix(&[delim_byte]) {
-                    pending.extend_from_slice(record);
-                    emit(std::mem::take(&mut pending))?;
-                } else {
-                    pending.extend_from_slice(part);
+                while let Some(index) = (0..sources.len()).min_by(|&a, &b| full_compare(&sources[a].0, &sources[b].0)) {
+                    let (head, source) = &mut sources[index];
+                    if direct { output(std::mem::take(head)); } else { run.push(std::mem::take(head)); }
+                    if let Some(record) = next(source)? {
+                        *head = record;
+                    } else { sources.remove(index); }
                 }
+                Ok(())
+            })();
+            if let Err(e) = result {
+                let mut error = err_out(&format!("sort: {e}\n"), 2);
+                if direct && out_file.is_none() { error.stdout = crate::vfs::bytes_to_stream_string(&out_bytes); }
+                return error;
             }
-            Ok(())
-        };
-        let mut outcome = Ok(());
-        let result = stdin.read_operand(name, cwd, fs, |chunk| {
-            outcome = scan(chunk);
-            outcome.is_ok()
-        });
-        let result = result.map_err(|e| err_out(&format!("sort: {e}\n"), 2))
-            .and(outcome)
-            .and_then(|()| if pending.is_empty() { Ok(()) } else { emit(pending) });
-        if let Err(mut error) = result {
-            if single_merge && out_file.is_none() { error.stdout = crate::vfs::bytes_to_stream_string(&out_bytes); }
-            return error;
+            if !direct { runs.push(run); }
         }
-        if checking { return ok_out(""); }
-        if !single_merge { per_file_records.push(records); }
-    }
-
-    if merge && !single_merge {
-        let mut sources: Vec<_> = per_file_records.into_iter().map(|v| v.into_iter().peekable()).collect();
+        let mut sources: Vec<_> = runs.into_iter().map(|v| v.into_iter().peekable()).collect();
         loop {
             let mut best: Option<(usize, &[u8])> = None;
             for (index, source) in sources.iter_mut().enumerate() {
@@ -2411,8 +2440,27 @@ fn cmd_sort(
             let Some((index, _)) = best else { break };
             output(sources[index].next().unwrap());
         }
-    } else if !merge {
-        let mut all: Vec<Vec<u8>> = per_file_records.into_iter().flatten().collect();
+    } else {
+        let mut all = Vec::new();
+        for name in &names {
+            let mut source = match open(name) { Ok(source) => source, Err(e) => return err_out(&format!("sort: {e}\n"), 2) };
+            let mut previous = None::<Vec<u8>>;
+            let mut ordinal = 0;
+            loop {
+                let record = match next(&mut source) {
+                    Ok(Some(record)) => record, Ok(None) => break, Err(e) => return err_out(&format!("sort: {e}\n"), 2),
+                };
+                if checking {
+                    ordinal += 1;
+                    if let Some(prev) = &previous
+                        && (full_compare(prev, &record).is_gt() || unique && key_compare(prev, &record).is_eq()) {
+                        return if flags.contains(&'C') { err_out("", 1) } else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) };
+                    }
+                    previous = Some(record);
+                } else { all.push(record); }
+            }
+            if checking { return ok_out(""); }
+        }
         all.sort_by(|a, b| full_compare(a, b));
         for record in all { output(record); }
     }

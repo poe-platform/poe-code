@@ -329,9 +329,9 @@ impl SafeBashFs for OverlayVfs {
         fs.read_file(&path)
     }
 
-    fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
+    fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         let (fs, path) = self.read_source(path)?;
-        fs.read_chunks(&path, consume)
+        fs.open_chunks(&path)
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {

@@ -2335,6 +2335,16 @@ fn cmd_sort(
         return err_out("sort: sort memory budget must be at least 1048576 bytes\n", 2);
     }
     if fan_in > 32 { return err_out("sort: sort merge fan-in must be between 2 and 32\n", 2); }
+    let merge = flags.contains(&'m');
+    let single_merge = merge && names.len() == 1;
+    let mut out_bytes = Vec::new();
+    let mut prev_emitted = None::<Vec<u8>>;
+    let mut output = |record: Vec<u8>| {
+        if unique && prev_emitted.as_ref().is_some_and(|prev| key_compare(prev, &record).is_eq()) { return; }
+        out_bytes.extend_from_slice(&record);
+        out_bytes.push(delim_byte);
+        if unique { prev_emitted = Some(record); }
+    };
     let mut per_file_records = Vec::with_capacity(names.len());
     for name in &names {
         let mut records = Vec::new();
@@ -2351,6 +2361,8 @@ fn cmd_sort(
                         else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) });
                 }
                 previous = Some(record);
+            } else if single_merge {
+                output(record);
             } else {
                 records.push(record);
             }
@@ -2375,62 +2387,34 @@ fn cmd_sort(
             outcome = scan(chunk);
             outcome.is_ok()
         });
-        if let Err(e) = result { return err_out(&format!("sort: {e}\n"), 2); }
-        if let Err(e) = outcome { return e; }
-        if !pending.is_empty() && let Err(e) = emit(pending) { return e; }
+        let result = result.map_err(|e| err_out(&format!("sort: {e}\n"), 2))
+            .and(outcome)
+            .and_then(|()| if pending.is_empty() { Ok(()) } else { emit(pending) });
+        if let Err(mut error) = result {
+            if single_merge && out_file.is_none() { error.stdout = crate::vfs::bytes_to_stream_string(&out_bytes); }
+            return error;
+        }
         if checking { return ok_out(""); }
-        per_file_records.push(records);
+        if !single_merge { per_file_records.push(records); }
     }
 
-    let sorted_records: Vec<Vec<u8>> = if flags.contains(&'m') {
-        let mut cursors = vec![0usize; per_file_records.len()];
-        let total: usize = per_file_records.iter().map(|v| v.len()).sum();
-        let mut merged = Vec::with_capacity(total);
+    if merge && !single_merge {
+        let mut sources: Vec<_> = per_file_records.into_iter().map(|v| v.into_iter().peekable()).collect();
         loop {
-            let mut best_file: Option<usize> = None;
-            for f_idx in 0..per_file_records.len() {
-                let c = cursors[f_idx];
-                if c < per_file_records[f_idx].len() {
-                    match best_file {
-                        None => best_file = Some(f_idx),
-                        Some(bf) => {
-                            let cand = &per_file_records[f_idx][c];
-                            let best = &per_file_records[bf][cursors[bf]];
-                            if full_compare(cand, best) == std::cmp::Ordering::Less {
-                                best_file = Some(f_idx);
-                            }
-                        }
-                    }
+            let mut best: Option<(usize, &[u8])> = None;
+            for (index, source) in sources.iter_mut().enumerate() {
+                if let Some(head) = source.peek()
+                    && best.is_none_or(|(_, previous)| full_compare(head, previous).is_lt()) {
+                    best = Some((index, head));
                 }
             }
-            match best_file {
-                Some(bf) => {
-                    let c = cursors[bf];
-                    merged.push(per_file_records[bf][c].clone());
-                    cursors[bf] += 1;
-                }
-                None => break,
-            }
+            let Some((index, _)) = best else { break };
+            output(sources[index].next().unwrap());
         }
-        merged
-    } else {
+    } else if !merge {
         let mut all: Vec<Vec<u8>> = per_file_records.into_iter().flatten().collect();
         all.sort_by(|a, b| full_compare(a, b));
-        all
-    };
-
-    let mut out_bytes: Vec<u8> = Vec::new();
-    let mut prev_emitted: Option<&[u8]> = None;
-    for rec in &sorted_records {
-        if unique
-            && let Some(prev) = prev_emitted
-            && key_compare(prev, rec) == std::cmp::Ordering::Equal
-        {
-            continue;
-        }
-        out_bytes.extend_from_slice(rec);
-        out_bytes.push(delim_byte);
-        prev_emitted = Some(rec);
+        for record in all { output(record); }
     }
 
     if let Some(ref of) = out_file {

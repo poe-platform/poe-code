@@ -15957,6 +15957,17 @@ hash -l
     }
 
     #[test]
+    fn sort_merge_preserves_emitted_records_on_a_late_error() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/input", b"y 1\ny 2\nx 3\nz 4\n").unwrap();
+        for (options, stdout) in [("", "y 1\ny 2\nx 3\n"), ("-uk1,1", "y 1\nx 3\n"), ("-o /input", "")] {
+            let r = shell.exec(&format!("sort -m {options} --max-records=3 /input")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, stdout, "sort: EFBIG: sort input record limit exceeded\n"));
+            assert_eq!(fs.read_file("/input").unwrap(), b"y 1\ny 2\nx 3\nz 4\n");
+        }
+    }
+
+    #[test]
     fn sort_validates_memory_and_fan_in_before_reading_input() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (options, error) in [

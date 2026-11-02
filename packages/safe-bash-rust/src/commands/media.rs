@@ -11879,6 +11879,30 @@ fn cmd_media_doc(
                 }
             }
             if writing_mode {
+                let mut created = 0usize;
+                let mut serial = 0usize;
+                let mut create = |path: &str, bytes: &[u8]| -> Result<(), String> {
+                    if path == "/" { return Err("EISDIR: illegal operation on a directory, capabilitiesFor '/'".into()); }
+                    let parent = crate::vfs::dirname_posix_path(path);
+                    let not_found = |e: &str| e.starts_with("ENOENT:") || e.ends_with("(os error 2)");
+                    let (_, st) = fs.inspect_command_entry(&parent, true, "stat")
+                        .map_err(|e| if not_found(&e) { "File not found".into() } else { e })?;
+                    serial += 1;
+                    if st.kind != crate::vfs::VfsEntryKind::Directory || st.mode & 0o300 != 0o300 {
+                        let mut stage = format!("{}/.exiftool-{serial}", parent.trim_end_matches('/'));
+                        if st.kind != crate::vfs::VfsEntryKind::Directory { return Err(format!("ENOTDIR: not a directory '{stage}'")); }
+                        while fs.lstat(&stage).is_ok() {
+                            serial += 1;
+                            stage = format!("{}/.exiftool-{serial}", parent.trim_end_matches('/'));
+                        }
+                        return Err(format!("EACCES: permission denied, createStagedFile '{stage}'"));
+                    }
+                    let entry = fs.access_path(path, false)?;
+                    fs.create_file(&entry, bytes, 0o666).map_err(|e| {
+                        if e.starts_with("EEXIST:") { format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'") }
+                        else { e }
+                    })
+                };
                 let mut updated = 0usize;
                 let mut unchanged = 0usize;
                 let mut err_out = String::new();
@@ -11933,8 +11957,14 @@ fn cmd_media_doc(
                     }
                     if !overwrite_orig && out_path.is_none() {
                         let orig_path = format!("{full}_original");
-                        if !fs.exists(&orig_path) {
-                            let _ = fs.write_file(&orig_path, &data);
+                        match fs.lstat(&orig_path) {
+                            Ok(_) => {}
+                            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
+                                if let Err(e) = create(&orig_path, &data) {
+                                    err_out.push_str(&format!("Error: {e} - {f}\n")); continue;
+                                }
+                            }
+                            Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
                         }
                     }
                     if let Some(suffix) = revision {
@@ -11945,18 +11975,27 @@ fn cmd_media_doc(
                             data.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
                         }
                     }
-                    let dst = out_path
-                        .as_ref()
-                        .map(|p| resolve_posix_path(cwd, p))
-                        .unwrap_or(full);
-                    let _ = fs.write_file(&dst, &data);
-                    updated += 1;
+                    if let Some(path) = &out_path {
+                        if path == "-" || path.contains('\0') {
+                            err_out.push_str(&format!("Error: Invalid or unsupported ExifTool file path - {f}\n")); continue;
+                        }
+                        match create(&resolve_posix_path(cwd, path), &data) {
+                            Ok(()) => created += 1,
+                            Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
+                        }
+                    } else {
+                        match fs.write_file(&full, &data) {
+                            Ok(()) => updated += 1,
+                            Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
+                        }
+                    }
                 }
                 let mut stdout_str = if updated > 0 || unchanged > 0 {
                     format!("{updated:>5} image files updated\n")
                 } else {
                     String::new()
                 };
+                if created > 0 { stdout_str.push_str(&format!("{created:>5} image files created\n")); }
                 if unchanged > 0 { stdout_str.push_str(&format!("{unchanged:>5} image files unchanged\n")); }
                 return BuiltinOutcome {
                     stdout: stdout_str,

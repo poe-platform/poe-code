@@ -3265,3 +3265,45 @@ test("exiftool refuses link operands and unsupported writers without changing th
     } finally { wasm.dispose(); }
   }
 });
+
+test("exiftool creates named outputs and backups without overwriting occupied names", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  const bytes = doc.save();
+  for (const [setup, args] of [
+    ["", "-o dest"], ["echo keep >dest", "-o dest"], ["ln -s absent dest", "-o dest"],
+    ["ln f.pdf dest", "-o dest"], ["", "-o f.pdf"], ["mkdir dest", "-o dest"],
+    ["", "-o missing/out"], ["mkdir dir; chmod 555 dir", "-o dir/out"],
+    ["ln -s absent f.pdf_original", ""], ["ln -s other f.pdf_original", ""],
+    ["echo keep >f.pdf_original", ""], ["ln -s / dir", "-o dir/dest"],
+  ]) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/" });
+    try {
+      for (const backend of [fs, wasm.fs]) {
+        await backend.writeFile("/f.pdf", bytes);
+        await backend.writeFile("/other", Uint8Array.of(42));
+      }
+      for (const backend of [shell, wasm]) if (setup) assert.equal((await backend.exec(setup)).exitCode, 0);
+      const script = "exiftool -Title=x " + args + " f.pdf";
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      const label = setup + "; " + script;
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], label);
+      for (const path of ["/f.pdf", "/other", "/f.pdf_original", "/dest", "/absent", "/missing/out", "/dir/out"]) {
+        const snapshot = async backend => {
+          const st = await backend.lstat(path).catch(() => undefined);
+          if (!st) return undefined;
+          if (st.type !== "file") return [st.type, st.type === "symlink" && await backend.readlink(path)];
+          const contents = await backend.readFile(path);
+          return [st.mode, st.nlink, Buffer.from(contents).subarray(0,5).toString() === "%PDF-"
+            ? [PdfDocument.load(contents).getMetadata().title, Buffer.from(contents).equals(Buffer.from(bytes))] : [...contents]];
+        };
+        assert.deepEqual(await snapshot(wasm.fs), await snapshot(fs), label + " " + path);
+      }
+    } finally { wasm.dispose(); }
+  }
+});

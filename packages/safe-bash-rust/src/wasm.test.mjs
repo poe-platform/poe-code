@@ -3056,3 +3056,42 @@ test("install validates modes, accounts and host operations before changing file
     } finally { wasm.dispose(); }
   }
 });
+
+test("install replaces directory entries without writing through destination or backup links", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { installCommands } = await import("@poe-platform/safe-bash/commands/install");
+  for (const [setup, args] of [
+    ["ln -s other dst", "src dst"], ["ln other dst", "src dst"], ["ln -s nowhere dst", "src dst"],
+    ["ln -s src dst", "src dst"], ["ln src dst", "src dst"], ["", "src src"], ["ln -s src alias", "alias src"],
+    ["ln -s other dst", "-b src dst"], ["ln other dst", "-b src dst"], ["ln -s src dst~; cp other dst", "-b src dst"],
+    ["cp other dst; cp src dst~", "-b dst~ dst"], ["ln -s other dst", "--backup=t src dst"],
+    ["cp other dst; touch dst.~123456789012345678901~", "--backup=t src dst"],
+    ["install src dst", "-C src dst"], ["mkdir dir dst; cp other dir/src", "-t dst src dir/src"],
+    ["mkdir dir; ln -s dir dst", "-T src dst"], ["mkdir dir", "-T src dir"],
+  ]) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(installCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/" });
+    try {
+      for (const backend of [fs, wasm.fs]) {
+        await backend.writeFile("/src", Uint8Array.of(1));
+        await backend.writeFile("/other", Uint8Array.of(2), { mode: 0o640 });
+      }
+      for (const backend of [shell, wasm]) if (setup) assert.equal((await backend.exec(setup)).exitCode, 0, setup);
+      const script = "install -v " + args;
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      const label = setup + "; " + script;
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], label);
+      const snapshot = async backend => {
+        const entries = [];
+        for (const path of ["/src", "/other", "/dst", "/dst~", "/dst.~1~", "/dst.~123456789012345678902~", "/nowhere"]) {
+          const stat = await backend.lstat(path).catch(() => undefined);
+          entries.push(stat && [stat.type, stat.mode, stat.nlink, stat.type === "file"
+            ? [...await backend.readFile(path)] : stat.type === "symlink" ? await backend.readlink(path) : undefined]);
+        }
+        return entries;
+      };
+      assert.deepEqual(await snapshot(wasm.fs), await snapshot(fs), label);
+    } finally { wasm.dispose(); }
+  }
+});

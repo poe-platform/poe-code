@@ -137,7 +137,7 @@ pub(super) fn parse_backup_control(control: Option<&str>) -> Result<BackupMode, 
     matched.ok_or_else(|| format!("invalid argument '{s}' for 'backup type'"))
 }
 
-fn backup_path(target: &str, mode: BackupMode, suffix: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
+pub(super) fn backup_path(target: &str, mode: BackupMode, suffix: &str, fs: &dyn SafeBashFs) -> Result<(String, bool), String> {
     let mut largest = String::new();
     if mode != BackupMode::Simple {
         let parent = crate::vfs::dirname_posix_path(target);
@@ -156,10 +156,10 @@ fn backup_path(target: &str, mode: BackupMode, suffix: &str, fs: &dyn SafeBashFs
             Some(i) => { number[i] += 1; number[i + 1..].fill(b'0'); }
             None => { number.fill(b'0'); number.insert(0, b'1'); }
         }
-        Ok(format!("{target}.~{}~", String::from_utf8(number).unwrap()))
+        Ok((format!("{target}.~{}~", String::from_utf8(number).unwrap()), true))
     } else {
         let suffix = if suffix.is_empty() || suffix.contains('/') { "~" } else { suffix };
-        Ok(format!("{target}{suffix}"))
+        Ok((format!("{target}{suffix}"), false))
     }
 }
 
@@ -1152,7 +1152,7 @@ fn hard_link_error(error: &str, source: &str, destination: &str) -> String {
 }
 
 fn backup_copy_target(fs: &dyn SafeBashFs, src: &str, target: &str, mode: BackupMode, suffix: &str) -> Result<(), String> {
-    let backup = backup_path(target, mode, suffix, fs)?;
+    let (backup, _) = backup_path(target, mode, suffix, fs)?;
     let from = fs.access_path(src, false)?;
     let referent = |p: &str| match fs.inspect_command_entry(p, true, "realpath") {
         Ok((path, _)) => Ok(Some(path)),
@@ -1980,7 +1980,7 @@ fn cmd_mv(
                 }
             }
             if backup_mode != BackupMode::None {
-                let bak = match backup_path(&target, backup_mode, &backup_suffix, fs) { Ok(p) => p, Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; } };
+                let (bak, _) = match backup_path(&target, backup_mode, &backup_suffix, fs) { Ok(p) => p, Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; } };
                 if (source_stat.kind == VfsEntryKind::Directory) != (target_stat.kind == VfsEntryKind::Directory) {
                     let e = if source_stat.kind == VfsEntryKind::Directory { "ENOTDIR: not a directory" } else { "EISDIR: illegal operation on a directory" };
                     stderr.push_str(&format!("mv: {e} '{target}'\n")); code = 1; continue;
@@ -2618,7 +2618,7 @@ fn cmd_ln(
                 }
             }
             if backup_mode != BackupMode::None {
-                let backup = match backup_path(&link_path, backup_mode, &backup_suffix, fs) {
+                let (backup, _) = match backup_path(&link_path, backup_mode, &backup_suffix, fs) {
                     Ok(p) => p, Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
                 };
                 if backup == src_full || backup == link_path {

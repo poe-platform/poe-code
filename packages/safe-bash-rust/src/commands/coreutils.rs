@@ -18080,6 +18080,29 @@ fn ensure_install_dirs(
     }
 }
 
+fn install_reason(error: &str) -> &str {
+    if error.ends_with("(os error 2)") {
+        return "No such file or directory";
+    }
+    match error.split_once(':').map(|(code, _)| code) {
+        Some("ENOENT") => "No such file or directory",
+        Some("EACCES") => "Permission denied",
+        Some("EPERM") => "Operation not permitted",
+        Some("EEXIST") => "File exists",
+        Some("EISDIR") => "Is a directory",
+        Some("ENOTDIR") => "Not a directory",
+        Some("ELOOP") => "Too many levels of symbolic links",
+        Some("EROFS") => "Read-only file system",
+        Some("ENOTSUP" | "EOPNOTSUPP") => "Operation not supported",
+        Some("EIO") => "Input/output error",
+        Some("ENOSPC") => "No space left on device",
+        Some("EINVAL") => "Invalid argument",
+        Some("EFBIG") => "File too large",
+        Some("ENOTEMPTY") => "Directory not empty",
+        _ => error,
+    }
+}
+
 fn install_account(text: Option<&str>, kind: &str) -> Result<bool, String> {
     let Some(text) = text else { return Ok(false) };
     let digits = text.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
@@ -18440,110 +18463,169 @@ fn cmd_install(
         ensure_install_dirs(td, false, 0o755, verbose, cwd, fs, &mut out_buf);
     }
 
+    use crate::vfs::VfsEntryKind;
+    let mut installed = BTreeMap::new();
     for src_arg in &sources {
-        let src = resolve_posix_path(cwd, src_arg);
-        if !fs.exists(&src) {
-            err_buf.push_str(&format!(
-                "install: cannot stat '{src_arg}': No such file or directory\n"
-            ));
-            exit_code = 1;
-            continue;
-        }
-        if fs.is_dir(&src) {
-            err_buf.push_str(&format!("install: omitting directory '{src_arg}'\n"));
-            exit_code = 1;
-            continue;
-        }
-        let (dst_display, dst) = if let Some(ref td) = target_dir_opt {
-            let base = crate::vfs::basename_posix_path(&src);
-            let disp = if td.ends_with('/') {
-                format!("{td}{base}")
-            } else {
-                format!("{td}/{base}")
+        let result = (|| -> Result<(), String> {
+            let display = match &target_dir_opt {
+                Some(td) => format!(
+                    "{}/{}",
+                    td.trim_end_matches('/'),
+                    crate::vfs::basename_posix_path(src_arg)
+                ),
+                None => single_dest_opt.as_ref().unwrap().clone(),
             };
-            let resolved = resolve_posix_path(cwd, &disp);
-            (disp, resolved)
-        } else {
-            let disp = single_dest_opt.as_ref().unwrap().clone();
-            if create_dirs && let Some(slash) = disp.rfind('/') {
-                let parent_disp = if slash == 0 { "/" } else { &disp[..slash] };
-                ensure_install_dirs(parent_disp, false, 0o755, verbose, cwd, fs, &mut out_buf);
+            let src_label = fmt_quote::quote(src_arg, true, false);
+            let dst_label = fmt_quote::quote(&display, true, false);
+            if create_dirs {
+                ensure_install_dirs(
+                    &dirname_posix_path(&display),
+                    false,
+                    0o755,
+                    verbose,
+                    cwd,
+                    fs,
+                    &mut out_buf,
+                );
             }
-            let resolved = resolve_posix_path(cwd, &disp);
-            (disp, resolved)
-        };
-        if fs.is_dir(&dst) {
-            err_buf.push_str(&format!(
-                "install: cannot overwrite directory '{dst_display}' with non-directory '{src_arg}'\n"
-            ));
-            exit_code = 1;
-            continue;
-        }
-        let Ok(src_bytes) = fs.read_file(&src) else {
-            err_buf.push_str(&format!("install: cannot open '{src_arg}' for reading\n"));
-            exit_code = 1;
-            continue;
-        };
-        if compare_mode
-            && let (Ok(dst_bytes), Ok(dst_st)) = (fs.read_file(&dst), fs.stat(&dst))
-            && src_bytes == dst_bytes
-            && (dst_st.mode & 0o7777) == (target_mode & 0o7777)
-        {
-            continue;
-        }
-        let dst_existed = fs.exists(&dst);
-        let mut backup_display: Option<String> = None;
-        if dst_existed {
-            if backup_mode != BackupMode::None
-                && let Ok(old_bytes) = fs.read_file(&dst)
-            {
-                let mut highest_numbered = 0usize;
-                for k in 1..1000usize {
-                    if fs.exists(&format!("{dst}.~{k}~")) {
-                        highest_numbered = k;
+            let (src, source) = fs
+                .inspect_command_entry(&absolute_operand(cwd, src_arg), true, "stat")
+                .map_err(|e| format!("cannot stat {src_label}: {}", install_reason(&e)))?;
+            let directory_error =
+                || format!("cannot overwrite directory {dst_label} with non-directory {src_label}");
+            if source.kind == VfsEntryKind::Directory {
+                return Err(format!("omitting directory {src_label}"));
+            }
+            if display.is_empty() {
+                return Err(directory_error());
+            }
+            let create_error = |e: String| {
+                format!(
+                    "cannot create regular file {dst_label}: {}",
+                    install_reason(&e)
+                )
+            };
+            let operand = absolute_operand(cwd, &display);
+            let dst = match fs.access_path(&operand, false) {
+                Ok(path) => path,
+                Err(e) if install_reason(&e) == "No such file or directory" => {
+                    if verbose {
+                        out_buf.push_str(&format!("{src_label} -> {dst_label}\n"));
+                    }
+                    return Err(create_error(e));
+                }
+                Err(e) => return Err(create_error(e)),
+            };
+            let target = match fs.lstat(&dst) {
+                Ok(st) => Some(st),
+                Err(e) if install_reason(&e) == "No such file or directory" => None,
+                Err(e) => return Err(create_error(e)),
+            };
+            let mut backup = None;
+            if let Some(st) = &target {
+                if backup_mode != BackupMode::Numbered && installed.get(&dst) == Some(&st.identity)
+                {
+                    return Err(format!(
+                        "will not overwrite just-created {dst_label} with {src_label}"
+                    ));
+                }
+                if st.kind == VfsEntryKind::Directory {
+                    return Err(directory_error());
+                }
+                if st.kind == VfsEntryKind::File {
+                    if src == dst {
+                        return Err(format!("{src_label} and {dst_label} are the same file"));
+                    }
+                    if st.identity.is_none() || source.identity.is_none() {
+                        return Err(
+                            "cannot establish source/destination identity: Operation not supported"
+                                .into(),
+                        );
                     }
                 }
-                let use_numbered = backup_mode == BackupMode::Numbered
-                    || (backup_mode == BackupMode::Existing && highest_numbered > 0);
-                let b_suf = if use_numbered {
-                    format!(".~{}~", highest_numbered + 1)
-                } else {
-                    suffix.clone()
-                };
-                let _ = fs.write_file(&format!("{dst}{b_suf}"), &old_bytes);
-                let _ = fs.chmod(&format!("{dst}{b_suf}"), 0o100000 | target_mode);
-                backup_display = Some(format!("{dst_display}{b_suf}"));
-            } else if verbose {
-                out_buf.push_str(&format!("removed '{dst_display}'\n"));
-            }
-        }
-        let parent = dirname_posix_path(&dst);
-        if !fs.is_dir(&parent) {
-            err_buf.push_str(&format!(
-                "install: cannot create regular file '{dst_display}': No such file or directory\n"
-            ));
-            exit_code = 1;
-            continue;
-        }
-        if fs.write_file(&dst, &src_bytes).is_ok() {
-            let _ = fs.chmod(&dst, 0o100000 | target_mode);
-            if preserve_ts && let Ok(st) = fs.stat(&src) {
-                let _ = fs.set_times(&dst, None, Some(st.mtime_ms));
-            }
-            if verbose {
-                if let Some(bd) = backup_display {
-                    out_buf.push_str(&format!(
-                        "'{src_arg}' -> '{dst_display}' (backup: '{bd}')\n"
-                    ));
-                } else {
-                    out_buf.push_str(&format!("'{src_arg}' -> '{dst_display}'\n"));
+                if compare_mode
+                    && st.kind == VfsEntryKind::File
+                    && source.kind == VfsEntryKind::File
+                    && (st.mode | source.mode | target_mode) & 0o7000 == 0
+                    && source.size == st.size
+                    && st.mode & 0o7777 == target_mode
+                {
+                    return Err("cannot compare ownership: Operation not supported (caller or file identity unavailable)".into());
                 }
             }
-        } else {
-            err_buf.push_str(&format!(
-                "install: cannot create regular file '{dst_display}'\n"
-            ));
+            let bytes = fs.read_file(&src).map_err(create_error)?;
+            if let Some(st) = target {
+                if backup_mode == BackupMode::None {
+                    fs.remove_one(&dst, false).map_err(|e| {
+                        format!("cannot remove {dst_label}: {}", install_reason(&e))
+                    })?;
+                    if verbose {
+                        out_buf.push_str(&format!("removed {dst_label}\n"));
+                    }
+                } else {
+                    let backup_error =
+                        |e: String| format!("cannot backup {dst_label}: {}", install_reason(&e));
+                    let (path, numbered) = super::fs::backup_path(&dst, backup_mode, &suffix, fs)
+                        .map_err(backup_error)?;
+                    let label =
+                        fmt_quote::quote(&format!("{display}{}", &path[dst.len()..]), true, false);
+                    match fs.lstat(&path) {
+                        Ok(_) if src == path => {
+                            return Err(format!(
+                                "backing up {dst_label} might destroy source;  {src_label} not copied"
+                            ));
+                        }
+                        Ok(previous)
+                            if previous.identity.is_none() || source.identity.is_none() =>
+                        {
+                            return Err(format!(
+                                "cannot safely replace backup {label}: Operation not supported (unknown identity)"
+                            ));
+                        }
+                        Err(e) if install_reason(&e) != "No such file or directory" => {
+                            return Err(backup_error(e));
+                        }
+                        _ => {}
+                    }
+                    if numbered && st.kind != VfsEntryKind::File {
+                        return Err(format!(
+                            "cannot backup {dst_label}: Operation not supported"
+                        ));
+                    }
+                    fs.rename(&dst, &path, numbered).map_err(backup_error)?;
+                    backup = Some((path, label));
+                }
+            }
+            if verbose {
+                out_buf.push_str(&format!("{src_label} -> {dst_label}"));
+                if let Some((_, label)) = &backup {
+                    out_buf.push_str(&format!(" (backup: {label})"));
+                }
+                out_buf.push('\n');
+            }
+            if let Err(e) = fs.create_file(&dst, &bytes, target_mode) {
+                if let Some((path, label)) = backup
+                    && fs.rename(&path, &dst, true).is_ok()
+                    && verbose
+                {
+                    out_buf.push_str(&format!("{label} -> {dst_label} (unbackup)\n"));
+                }
+                return Err(create_error(e));
+            }
+            if preserve_ts {
+                fs.set_times(&dst, Some(source.atime_ms), Some(source.mtime_ms))
+                    .map_err(|e| {
+                        format!("preserving times for {dst_label}: {}", install_reason(&e))
+                    })?;
+            }
+            if sources.len() > 1 {
+                installed.insert(dst.clone(), fs.lstat(&dst).map_err(create_error)?.identity);
+            }
+            Ok(())
+        })();
+        if let Err(e) = result {
             exit_code = 1;
+            err_buf.push_str(&format!("install: {e}\n"));
         }
     }
     BuiltinOutcome {

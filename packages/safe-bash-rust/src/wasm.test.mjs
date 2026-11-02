@@ -6679,3 +6679,29 @@ test("jq regex generators consume patterns and flags only as requested", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("jq regex modifiers preserve literal characters and select multiline dot behavior", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [input, filter, expected, diagnostic = ""] of [
+      ["ab", 'test("a b";"x")', true],
+      ["ab", String.raw`capture("(?<first>a) # skip\n (b)";"x")`, {first:"a"}],
+      ["a #b", String.raw`test("a\\ [#] b";"x")`, true],
+      ["a+b", String.raw`test("a\\+b")`, true],
+      ["a\nb", 'test("a.b";"m")', true],
+      ["a\nb", 'match("a.b";"p")|.string', "a\nb"],
+      ["a\nb", 'test("a.b";"s")', false],
+      ["a\nb", 'gsub("a.b";"joined";"m")', "joined"],
+      ["ab", 'gsub("a b";"joined";"x")', null, "xg is not a valid modifier string"],
+    ]) {
+      const cmd = `printf '%s' '${JSON.stringify(input)}' | jq -c '${filter}'`;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode,result.stderr,result.stdout],
+          diagnostic ? [5, "jq: error (at <stdin>:0): " + diagnostic + "\n", ""] : [0,"",JSON.stringify(expected)+"\n"], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

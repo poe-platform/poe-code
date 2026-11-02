@@ -690,7 +690,7 @@ fn normalize_bre_escapes(pat: &str) -> String {
     out
 }
 
-fn preprocess_ere_pattern(pat: &str, dotall: bool) -> String {
+pub(super) fn preprocess_ere_pattern(pat: &str, dotall: bool, extended_whitespace: bool) -> String {
     let chs: Vec<char> = pat.chars().collect();
     let mut out = String::with_capacity(pat.len() + 8);
     let mut k = 0usize;
@@ -707,6 +707,10 @@ fn preprocess_ere_pattern(pat: &str, dotall: bool) -> String {
                 out.push(nc);
             }
             k += 2;
+        } else if !in_bracket && extended_whitespace && chs[k] == '#' {
+            while k < chs.len() && chs[k] != '\n' { k += 1; }
+        } else if !in_bracket && extended_whitespace && (chs[k].is_ascii_whitespace() || chs[k] == '\x0b') {
+            k += 1;
         } else if chs[k] == '[' && !in_bracket {
             in_bracket = true;
             out.push('[');
@@ -2248,7 +2252,7 @@ fn cmd_grep(
     if extended_regexp && !fixed_strings {
         patterns = patterns
             .into_iter()
-            .map(|pat| preprocess_ere_pattern(&pat, false))
+            .map(|pat| preprocess_ere_pattern(&pat, false, false))
             .collect();
     } else if !extended_regexp && !fixed_strings {
         patterns = patterns
@@ -3155,7 +3159,7 @@ fn cmd_rg(
     if !fixed_strings {
         patterns = patterns
             .into_iter()
-            .map(|pat| preprocess_ere_pattern(&pat, multiline_dotall))
+            .map(|pat| preprocess_ere_pattern(&pat, multiline_dotall, false))
             .collect();
     }
 

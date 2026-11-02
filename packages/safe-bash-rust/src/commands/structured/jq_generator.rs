@@ -684,7 +684,7 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
         }
         return Ok(Continue(()));
     }
-    let rx = super::jq_regex(pat.clone(), flags);
+    let rx = super::jq_regex(pat, flags);
     if name == "test" { return emit(JVal::Bool(rx.is_match(text))); }
     let mut flow = Ok(Continue(()));
     let (mut byte, mut offset) = (0, 0);

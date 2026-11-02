@@ -518,27 +518,40 @@ impl ZeroRegex {
     }
 
     pub fn is_match(&self, text: &str) -> bool {
-        !self.find_all(text).is_empty()
+        self.scan(text, false, |_, _, _| false)
     }
 
     pub fn find_all(&self, text: &str) -> Vec<(usize, usize)> {
+        let mut results = Vec::new();
+        self.scan(text, false, |start, end, _| {
+            results.push((start, end));
+            true
+        });
+        results
+    }
+
+    fn scan(&self, text: &str, capture: bool, mut visit: impl FnMut(usize, usize, &[Option<(usize, usize)>]) -> bool) -> bool {
         let hay: Vec<_> = text.char_indices().collect();
         let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
-        let mut results = Vec::new();
+        let mut found = false;
         let mut pos = 0;
         let last_start = if self.anchored { 0 } else { hay.len() };
         while pos <= last_start {
-            let mut ends = self.branches.iter().filter_map(|program| {
-                program.run(&hay, pos, self.ignore_case, self.first_match, false, |end|
-                    !self.word_regexp || is_word_boundary(&hay, pos, end)).map(|m| m.pos)
+            let mut matches = self.branches.iter().filter_map(|program| {
+                program.run(&hay, pos, self.ignore_case, self.first_match, capture, |end|
+                    !self.word_regexp || is_word_boundary(&hay, pos, end))
             });
-            if let Some(end) = if self.first_match { ends.next() } else { ends.max() } {
-                results.push((byte_at(pos), byte_at(end)));
-                if end > pos { pos = end; continue; }
+            if let Some(mut m) = if self.first_match { matches.next() } else { matches.max_by_key(|m| m.pos) } {
+                found = true;
+                if capture {
+                    for (lo, hi) in m.caps.iter_mut().flatten() { *lo = byte_at(*lo); *hi = byte_at(*hi); }
+                }
+                if !visit(byte_at(pos), byte_at(m.pos), &m.caps) { break; }
+                if m.pos > pos { pos = m.pos; continue; }
             }
             pos += 1;
         }
-        results
+        found
     }
 }
 
@@ -1319,7 +1332,7 @@ pub fn regex_capture_spans_in_hay(
         .map_or_else(|| vec![None; program.groups], |m| m.caps)
 }
 
-fn expand_regex_replacement(replacement: &str, matched_str: &str, caps: &[String]) -> String {
+fn expand_regex_replacement(replacement: &str, matched_str: &str, text: &str, caps: &[Option<(usize, usize)>]) -> String {
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum CaseMode {
         None,
@@ -1367,8 +1380,8 @@ fn expand_regex_replacement(replacement: &str, matched_str: &str, caps: &[String
                 }
                 Some(d @ '1'..='9') => {
                     let idx = (d as u8 - b'1') as usize;
-                    if let Some(cap) = caps.get(idx + 1) {
-                        push_converted(&mut out, cap, mode, &mut next_char_case);
+                    if let Some(Some((lo, hi))) = caps.get(idx) {
+                        push_converted(&mut out, &text[*lo..*hi], mode, &mut next_char_case);
                     }
                 }
                 Some('U') => mode = CaseMode::UpperAll,
@@ -1422,37 +1435,24 @@ pub fn replace_regex_count_in_text(
     nth: Option<usize>,
 ) -> (String, usize) {
     let rx = ZeroRegex::new(vec![pat.to_string()], ignore_case, false, false, false);
-    let matches = rx.find_all(text);
-    if matches.is_empty() {
-        return (text.to_string(), 0);
-    }
     let mut out = String::new();
-    let mut last_end = 0usize;
-    let mut replace_count = 0usize;
-    for (idx, (s, e)) in matches.into_iter().enumerate() {
-        if s < last_end {
-            continue;
-        }
-        let one_based = idx + 1;
-        let should_replace = if global {
-            nth.map(|n| one_based >= n).unwrap_or(true)
-        } else {
-            one_based == nth.unwrap_or(1)
-        };
+    let mut last_end = 0;
+    let mut occurrence = 0;
+    let mut replace_count = 0;
+    rx.scan(text, replacement.contains('\\'), |s, e, caps| {
+        if s == e && s == last_end && occurrence != 0 { return true; }
+        occurrence += 1;
+        let matched = &text[s..e];
         out.push_str(&text[last_end..s]);
-        if should_replace {
-            let matched_str = &text[s..e];
-            let caps = regex_captures(&format!("^(?:{pat})$"), matched_str, ignore_case)
-                .or_else(|| regex_captures(pat, matched_str, ignore_case))
-                .unwrap_or_else(|| vec![matched_str.to_string()]);
-            let expanded = expand_regex_replacement(replacement, matched_str, &caps);
-            out.push_str(&expanded);
-            replace_count += 1;
-        } else {
-            out.push_str(&text[s..e]);
-        }
         last_end = e;
-    }
+        if occurrence < nth.unwrap_or(1) {
+            out.push_str(matched);
+            return true;
+        }
+        out.push_str(&expand_regex_replacement(replacement, matched, text, caps));
+        replace_count += 1;
+        global
+    });
     out.push_str(&text[last_end..]);
     (out, replace_count)
 }

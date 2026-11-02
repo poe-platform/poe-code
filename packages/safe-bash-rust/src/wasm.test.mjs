@@ -6534,3 +6534,23 @@ test("grep handles overlapping repetitions when the required suffix is absent", 
     assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout]);
   } finally { rs.dispose(); }
 });
+
+test("substitutions use original capture boundaries and count eligible empty matches", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
+  const {awkCommands} = await import("@poe-platform/safe-bash/commands/awk");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands()).use(sedCommands({replace: true})).use(awkCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [cmd, expected] of [
+      [String.raw`echo aaa | sed -E 's/\b(a)|(a)/<\1,\2>/g'`, "<a,><,a><,a>\n"],
+      ["echo abc | sed 's/a*/X/g'", "XbXcX\n"], ["echo abc | sed 's/a*/X/2'", "abXc\n"],
+      ["echo aba | sed 's/a*/X/2g'", "abX\n"], ["echo éaé | sed 's/a*/_/g'", "_é_é_\n"],
+      ["echo abc | awk '{n=gsub(/a*/, \"X\"); print n,$0}'", "3 XbXcX\n"],
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode,a.stderr,a.stdout], [0,"",expected],cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

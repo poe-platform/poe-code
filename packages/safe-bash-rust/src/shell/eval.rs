@@ -16014,6 +16014,24 @@ hash -l
     }
 
     #[test]
+    fn sort_long_records_use_scratch_in_check_merge_and_sort_modes() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let prefix = "a".repeat(70000);
+        let input = format!("{prefix}b\n{prefix}a\n");
+        fs.write_file("/rows", input.as_bytes()).unwrap();
+        for options in ["-c", "-m", ""] {
+            let r = shell.exec(&format!("TMPDIR=/missing sort {options} /rows")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "", "sort: ENOENT: no such file or directory, stat '/missing'\n"), "{options}");
+        }
+        let r = shell.exec("TMPDIR=/ sort -c /rows").unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (1, "sort: disorder at record 2\n"));
+        let r = shell.exec("TMPDIR=/ sort -um /rows").unwrap();
+        assert_eq!((r.exit_code, r.stdout, r.stderr.as_str()), (0, input, ""));
+        let r = shell.exec("TMPDIR=/ sort -S1M /rows").unwrap();
+        assert_eq!((r.exit_code, r.stdout, r.stderr.as_str()), (0, format!("{prefix}a\n{prefix}b\n"), ""));
+    }
+
+    #[test]
     fn sort_validates_memory_and_fan_in_before_reading_input() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (options, error) in [

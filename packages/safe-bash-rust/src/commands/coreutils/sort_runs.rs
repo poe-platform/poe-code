@@ -1,5 +1,5 @@
-use super::{SafeBashFs, stream_file_error};
-use crate::vfs::{OpenRedirectFile, VfsEntryKind};
+use super::{SafeBashFs, sort_record::{PAGE, Record, scratch}};
+use crate::vfs::OpenRedirectFile;
 use std::cmp::Ordering;
 use std::rc::Rc;
 
@@ -13,7 +13,7 @@ pub(super) struct Run {
 
 pub(super) struct SortRuns<'a> {
     fs: &'a dyn SafeBashFs,
-    directory: String,
+    directory: &'a str,
     cache_limit: usize,
     cache: Vec<u8>,
     file: Option<Rc<dyn OpenRedirectFile>>,
@@ -22,18 +22,15 @@ pub(super) struct SortRuns<'a> {
 }
 
 impl<'a> SortRuns<'a> {
-    pub(super) fn new(fs: &'a dyn SafeBashFs, directory: String, cache_limit: usize) -> Self {
+    pub(super) fn new(fs: &'a dyn SafeBashFs, directory: &'a str, cache_limit: usize) -> Self {
         Self { fs, directory, cache_limit, cache: vec![0; 8], file: None, end: 8, bins: Vec::new() }
     }
 
     fn write(&mut self, offset: usize, bytes: &[u8]) -> Result<(), String> {
         let end = offset.checked_add(bytes.len()).ok_or("EFBIG: sort storage too large")?;
         if self.file.is_none() && end > self.cache_limit {
-            let path = &self.directory;
-            let (entry, stat) = self.fs.inspect_command_entry(path, true, "stat").map_err(|e| stream_file_error(e, "stat", path))?;
-            if stat.kind != VfsEntryKind::Directory { return Err(format!("ENOTDIR: not a directory '{path}'")); }
-            let file = self.fs.scratch_file(&entry)?;
-            file.write_at(Some(0), &self.cache)?;
+            let file = scratch(self.fs, self.directory)?;
+            for (index, chunk) in self.cache.chunks(PAGE).enumerate() { file.write_at(Some(index * PAGE), chunk)?; }
             self.cache = Vec::new();
             self.file = Some(file);
         }
@@ -56,12 +53,12 @@ impl<'a> SortRuns<'a> {
         } else { Ok(self.cache[offset..end].to_vec()) }
     }
 
-    pub(super) fn append(&mut self, run: &mut Run, record: &[u8]) -> Result<(), String> {
+    pub(super) fn append(&mut self, run: &mut Run, record: &Record) -> Result<(), String> {
         let node = self.end;
         let mut header = [0; 16];
         header[8..].copy_from_slice(&(record.len() as u64).to_le_bytes());
         self.write(node, &header)?;
-        self.write(self.end, record)?;
+        record.chunks(|chunk| self.write(self.end, chunk))?;
         self.link(run, node)
     }
 
@@ -72,20 +69,25 @@ impl<'a> SortRuns<'a> {
         Ok(())
     }
 
-    fn record(&self, node: usize) -> Result<(usize, Vec<u8>), String> {
+    fn record(&self, node: usize) -> Result<(usize, Record), String> {
         let header = self.read(node, 16)?;
         let field = |i| usize::try_from(u64::from_le_bytes(header[i..i+8].try_into().unwrap())).map_err(|_| "EIO: invalid sort run");
-        Ok((field(0)?, self.read(node + 16, field(8)?)?))
+        let length = field(8)?;
+        let offset = node + 16;
+        let record = if length > PAGE && let Some(file) = &self.file {
+            Record::Stored { file: file.clone(), offset, length }
+        } else { Record::Bytes(self.read(offset, length)?) };
+        Ok((field(0)?, record))
     }
 
-    fn merge(&mut self, mut a: Run, mut b: Run, compare: &impl Fn(&[u8], &[u8]) -> Ordering) -> Result<Run, String> {
+    fn merge(&mut self, mut a: Run, mut b: Run, compare: &impl Fn(&Record, &Record) -> Result<Ordering, String>) -> Result<Run, String> {
         if a.first == 0 { return Ok(b); }
         if b.first == 0 { return Ok(a); }
         let mut out = Run::default();
         let mut left = self.record(a.first)?;
         let mut right = self.record(b.first)?;
         loop {
-            let (run, head, other) = if compare(&left.1, &right.1).is_le() { (&mut a, &mut left, &b) } else { (&mut b, &mut right, &a) };
+            let (run, head, other) = if compare(&left.1, &right.1)?.is_le() { (&mut a, &mut left, &b) } else { (&mut b, &mut right, &a) };
             self.link(&mut out, run.first)?;
             run.first = head.0;
             if run.first == 0 {
@@ -97,7 +99,7 @@ impl<'a> SortRuns<'a> {
         }
     }
 
-    pub(super) fn add(&mut self, mut run: Run, compare: &impl Fn(&[u8], &[u8]) -> Ordering) -> Result<(), String> {
+    pub(super) fn add(&mut self, mut run: Run, compare: &impl Fn(&Record, &Record) -> Result<Ordering, String>) -> Result<(), String> {
         for level in 0..self.bins.len() {
             let Some(older) = self.bins[level].take() else { self.bins[level] = Some(run); return Ok(()) };
             run = self.merge(older, run, compare)?;
@@ -106,7 +108,7 @@ impl<'a> SortRuns<'a> {
         Ok(())
     }
 
-    pub(super) fn finish(mut self, compare: &impl Fn(&[u8], &[u8]) -> Ordering, mut output: impl FnMut(Vec<u8>)) -> Result<(), String> {
+    pub(super) fn finish(mut self, compare: &impl Fn(&Record, &Record) -> Result<Ordering, String>, mut output: impl FnMut(Record) -> Result<(), String>) -> Result<(), String> {
         let mut tail = Run::default();
         for older in std::mem::take(&mut self.bins).into_iter().flatten() {
             tail = self.merge(older, tail, compare)?;
@@ -114,7 +116,7 @@ impl<'a> SortRuns<'a> {
         let mut node = tail.first;
         while node != 0 {
             let (next, record) = self.record(node)?;
-            output(record);
+            output(record)?;
             node = next;
         }
         Ok(())

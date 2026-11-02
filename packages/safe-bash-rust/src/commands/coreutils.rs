@@ -1,4 +1,6 @@
+mod sort_record;
 mod sort_runs;
+use sort_record::Record as SortRecord;
 use super::CommandInput;
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
@@ -1982,13 +1984,16 @@ fn extract_sort_key_bytes<'a>(
 
 struct SortInput<'a> {
     file: Option<crate::vfs::ChunkReader<'a>>,
+    fs: &'a dyn SafeBashFs,
+    directory: &'a str,
+    inline_limit: usize,
     chunk: Vec<u8>,
     offset: usize,
 }
 
 impl SortInput<'_> {
-    fn next_record(&mut self, stdin: &mut CommandInput, delimiter: u8, bytes: &mut u64, records: &mut u64) -> Result<Option<Vec<u8>>, String> {
-        let mut record = Vec::new();
+    fn next_record(&mut self, stdin: &mut CommandInput, delimiter: u8, bytes: &mut u64, records: &mut u64) -> Result<Option<SortRecord>, String> {
+        let mut record = SortRecord::default();
         loop {
             if self.offset == self.chunk.len() {
                 if let Some(next) = &mut self.file { next(&mut self.chunk)?; }
@@ -2002,20 +2007,21 @@ impl SortInput<'_> {
                 self.offset = 0;
                 *bytes = bytes.checked_sub(self.chunk.len() as u64).ok_or("EFBIG: sort input byte limit exceeded")?;
                 if self.chunk.is_empty() {
-                    if record.is_empty() { return Ok(None); }
+                    if record.len() == 0 { return Ok(None); }
+                    *records = records.checked_sub(1).ok_or("EFBIG: sort input record limit exceeded")?;
                     break;
                 }
             }
             let tail = &self.chunk[self.offset..];
             if let Some(index) = tail.iter().position(|&byte| byte == delimiter) {
-                record.extend_from_slice(&tail[..index]);
+                *records = records.checked_sub(1).ok_or("EFBIG: sort input record limit exceeded")?;
+                record.append(&tail[..index], self.inline_limit, self.fs, self.directory)?;
                 self.offset += index + 1;
                 break;
             }
-            record.extend_from_slice(tail);
+            record.append(tail, self.inline_limit, self.fs, self.directory)?;
             self.offset = self.chunk.len();
         }
-        *records = records.checked_sub(1).ok_or("EFBIG: sort input record limit exceeded")?;
         Ok(Some(record))
     }
 }
@@ -2387,23 +2393,32 @@ fn cmd_sort(
         return err_out("sort: sort memory budget must be at least 1048576 bytes\n", 2);
     }
     if fan_in > 32 { return err_out("sort: sort merge fan-in must be between 2 and 32\n", 2); }
+    let compare = |a: &SortRecord, b: &SortRecord| -> Result<std::cmp::Ordering, String> {
+        if simple {
+            let ord = a.byte_order(b)?;
+            return Ok(if global_rev { ord.reverse() } else { ord });
+        }
+        Ok(full_compare(&a.read(0, a.len())?, &b.read(0, b.len())?))
+    };
     let merge = flags.contains(&'m');
     let mut out_bytes = Vec::new();
-    let mut prev_emitted = None::<Vec<u8>>;
-    let mut output = |record: Vec<u8>| {
-        if unique && prev_emitted.as_ref().is_some_and(|prev| key_compare(prev, &record).is_eq()) { return; }
-        out_bytes.extend_from_slice(&record);
+    let mut prev_emitted = None::<SortRecord>;
+    let mut output = |record: SortRecord| -> Result<(), String> {
+        if let Some(prev) = &prev_emitted && compare(prev, &record)?.is_eq() { return Ok(()); }
+        record.chunks(|chunk| { out_bytes.extend_from_slice(chunk); Ok(()) })?;
         out_bytes.push(delim_byte);
         if unique { prev_emitted = Some(record); }
+        Ok(())
     };
+    let directory = env.get("TMPDIR").filter(|s| !s.is_empty()).map_or_else(|| cwd.to_owned(), |v| absolute_operand(cwd, v));
+    let record_limit = (memory_bytes / (8 * (fan_in + 4))).min(sort_record::PAGE as u64) as usize;
     let open = |name: &str| -> Result<SortInput, String> {
         let file = if name == "-" { None } else { Some(open_record_input(name, cwd, fs)?) };
-        Ok(SortInput { file, chunk: Vec::new(), offset: 0 })
+        Ok(SortInput { file, fs, directory: &directory, inline_limit: record_limit.max(sort_record::PAGE - 8), chunk: Vec::new(), offset: 0 })
     };
     let mut next = |input: &mut SortInput| input.next_record(&mut stdin, delim_byte, &mut remaining_bytes, &mut remaining_records);
-    let directory = env.get("TMPDIR").filter(|s| !s.is_empty()).map_or_else(|| cwd.to_owned(), |v| absolute_operand(cwd, v));
     let batch_limit = usize::try_from(memory_bytes / 4).unwrap_or(usize::MAX);
-    let mut runs = sort_runs::SortRuns::new(fs, directory, batch_limit);
+    let mut runs = sort_runs::SortRuns::new(fs, &directory, batch_limit);
     let sort_error = |e| err_out(&format!("sort: {e}\n"), 2);
     if merge && !checking {
         let direct = names.len() <= fan_in as usize && out_file.is_none();
@@ -2416,9 +2431,13 @@ fn cmd_sort(
                     let head = next(&mut source)?;
                     if let Some(head) = head { sources.push((head, source)); }
                 }
-                while let Some(index) = (0..sources.len()).min_by(|&a, &b| full_compare(&sources[a].0, &sources[b].0)) {
+                while !sources.is_empty() {
+                    let mut index = 0;
+                    for i in 1..sources.len() {
+                        if compare(&sources[i].0, &sources[index].0)?.is_lt() { index = i; }
+                    }
                     let (head, source) = &mut sources[index];
-                    if direct { output(std::mem::take(head)); } else { runs.append(&mut run, head)?; }
+                    if direct { output(std::mem::take(head))?; } else { runs.append(&mut run, head)?; }
                     if let Some(record) = next(source)? {
                         *head = record;
                     } else { sources.remove(index); }
@@ -2430,21 +2449,21 @@ fn cmd_sort(
                 if direct && out_file.is_none() { error.stdout = crate::vfs::bytes_to_stream_string(&out_bytes); }
                 return error;
             }
-            if !direct && let Err(e) = runs.add(run, &full_compare) { return sort_error(e); }
+            if !direct && let Err(e) = runs.add(run, &compare) { return sort_error(e); }
         }
     } else {
         let mut batch = Vec::new();
         let mut bytes = 0usize;
         let mut spilled = false;
-        let flush = |batch: &mut Vec<Vec<u8>>, runs: &mut sort_runs::SortRuns| -> Result<(), String> {
-            batch.sort_by(|a, b| full_compare(a, b));
+        let flush = |batch: &mut Vec<SortRecord>, runs: &mut sort_runs::SortRuns| -> Result<(), String> {
+            sort_record::sort_batch(batch, &full_compare, &compare)?;
             let mut run = sort_runs::Run::default();
             for record in batch.drain(..) { runs.append(&mut run, &record)?; }
-            runs.add(run, &full_compare)
+            runs.add(run, &compare)
         };
         for name in &names {
             let mut source = match open(name) { Ok(source) => source, Err(e) => return err_out(&format!("sort: {e}\n"), 2) };
-            let mut previous = None::<Vec<u8>>;
+            let mut previous = None::<SortRecord>;
             let mut ordinal = 0;
             loop {
                 let record = match next(&mut source) {
@@ -2452,13 +2471,17 @@ fn cmd_sort(
                 };
                 if checking {
                     ordinal += 1;
-                    if let Some(prev) = &previous
-                        && (full_compare(prev, &record).is_gt() || unique && key_compare(prev, &record).is_eq()) {
-                        return if flags.contains(&'C') { err_out("", 1) } else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) };
+                    if let Some(prev) = &previous {
+                        match compare(prev, &record) {
+                            Ok(ord) if ord.is_gt() || unique && ord.is_eq() => return if flags.contains(&'C') { err_out("", 1) }
+                                else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) },
+                            Ok(_) => {}, Err(e) => return sort_error(e),
+                        }
                     }
                     previous = Some(record);
                 } else {
-                    bytes = bytes.saturating_add(record.len()).saturating_add(128);
+                    let charge = if record.len() <= record_limit { record.len() } else { sort_record::PAGE };
+                    bytes = bytes.saturating_add(charge + 128);
                     batch.push(record);
                     if bytes >= batch_limit {
                         if let Err(e) = flush(&mut batch, &mut runs) { return sort_error(e); }
@@ -2472,11 +2495,11 @@ fn cmd_sort(
         if spilled {
             if !batch.is_empty() && let Err(e) = flush(&mut batch, &mut runs) { return sort_error(e); }
         } else {
-            batch.sort_by(|a, b| full_compare(a, b));
-            for record in batch { output(record); }
+            if let Err(e) = sort_record::sort_batch(&mut batch, &full_compare, &compare) { return sort_error(e); }
+            for record in batch { if let Err(e) = output(record) { return sort_error(e); } }
         }
     }
-    if let Err(e) = runs.finish(&full_compare, output) { return sort_error(e); }
+    if let Err(e) = runs.finish(&compare, output) { return sort_error(e); }
 
     if let Some(ref of) = out_file {
         let path = absolute_operand(cwd, of);

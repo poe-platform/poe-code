@@ -23,10 +23,10 @@ use crate::shell::parser::{
 };
 use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_byte_len, stream_string_to_bytes};
 use std::borrow::Cow;
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub enum EvalError {
@@ -46,7 +46,12 @@ pub enum FdTarget {
     PipeStdout { peer_retired: bool },
     Stderr,
     File { path: String },
-    ReadWriteFile { path: String, owner_fd: u32 },
+    ReadWriteFile {
+        path: String,
+        owner_fd: u32,
+        // Offset in the file and bytes buffered at the last write.
+        position: Rc<Cell<(usize, usize)>>,
+    },
     Closed,
 }
 
@@ -75,8 +80,6 @@ pub struct EvalState<'a> {
     pub fd_table: BTreeMap<u32, FdTarget>,
     pub in_fds: BTreeMap<u32, InputCursor>,
     pub in_fd_aliases: BTreeMap<u32, u32>,
-    pub rw_offsets: BTreeMap<u32, usize>,
-    pub rw_last_rem: BTreeMap<u32, usize>,
     pub mapfile_callback_depth: usize,
     pub callback_line_offset: usize,
     pub traps: BTreeMap<String, String>,
@@ -182,8 +185,6 @@ impl<'a> EvalState<'a> {
             fd_table,
             in_fds: BTreeMap::new(),
             in_fd_aliases: BTreeMap::new(),
-            rw_offsets: BTreeMap::new(),
-            rw_last_rem: BTreeMap::new(),
             mapfile_callback_depth: 0,
             callback_line_offset: 0,
             traps,
@@ -333,8 +334,6 @@ impl<'a> EvalState<'a> {
             fd_table: self.fd_table.clone(),
             in_fds: self.in_fds.clone(),
             in_fd_aliases: self.in_fd_aliases.clone(),
-            rw_offsets: self.rw_offsets.clone(),
-            rw_last_rem: self.rw_last_rem.clone(),
             mapfile_callback_depth: 0,
             callback_line_offset: self.callback_line_offset,
             traps: child_traps,
@@ -489,12 +488,6 @@ impl<'a> EvalState<'a> {
             }
             if let Some(buf) = self.in_fds.remove(&fd) {
                 self.in_fds.insert(owner, buf);
-            }
-            if let Some(off) = self.rw_offsets.remove(&fd) {
-                self.rw_offsets.insert(owner, off);
-            }
-            if let Some(rem) = self.rw_last_rem.remove(&fd) {
-                self.rw_last_rem.insert(owner, rem);
             }
             for target in self.fd_table.values_mut() {
                 if let FdTarget::ReadWriteFile { owner_fd, .. } = target
@@ -1061,16 +1054,6 @@ impl<'a> EvalState<'a> {
                     },
                     Err(e) => return Err(e),
                 };
-                for (k, v) in &sub.rw_offsets {
-                    if self.rw_offsets.contains_key(k) {
-                        self.rw_offsets.insert(*k, *v);
-                    }
-                }
-                for (k, v) in &sub.rw_last_rem {
-                    if self.rw_last_rem.contains_key(k) {
-                        self.rw_last_rem.insert(*k, *v);
-                    }
-                }
                 let canon0 = self.resolve_in_fd(0);
                 if canon0 >= 3
                     && canon0 != STDIN_STREAM_FD
@@ -4817,8 +4800,6 @@ impl<'a> EvalState<'a> {
                     fd_table,
                     in_fds: BTreeMap::new(),
                     in_fd_aliases: BTreeMap::new(),
-                    rw_offsets: BTreeMap::new(),
-                    rw_last_rem: BTreeMap::new(),
                     mapfile_callback_depth: 0,
                     callback_line_offset: 0,
                     traps: BTreeMap::new(),
@@ -9478,13 +9459,11 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let content_len = stream_string_to_bytes(&content).len();
+                    let content_len = stream_byte_len(&content);
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.in_fd_aliases.remove(fd);
-                    self.rw_offsets.insert(*fd, 0);
-                    self.rw_last_rem.insert(*fd, content_len);
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
@@ -9501,6 +9480,7 @@ impl<'a> EvalState<'a> {
                         FdTarget::ReadWriteFile {
                             path: full,
                             owner_fd: *fd,
+                            position: Rc::new(Cell::new((0, content_len))),
                         },
                     );
                 }
@@ -9767,15 +9747,8 @@ impl<'a> EvalState<'a> {
                                 ));
                             }
                             if self.is_fd_readable(src_fd) {
-                                let rw_target = match self.fd_table.get(&src_fd) {
-                                    Some(FdTarget::ReadWriteFile { path, owner_fd }) => {
-                                        Some(FdTarget::ReadWriteFile {
-                                            path: path.clone(),
-                                            owner_fd: *owner_fd,
-                                        })
-                                    }
-                                    _ => None,
-                                };
+                                let rw_target = self.fd_table.get(&src_fd)
+                                    .filter(|target| matches!(target, FdTarget::ReadWriteFile { .. })).cloned();
                                 if move_fd && src_fd != *fd {
                                     self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
                                 }
@@ -10412,7 +10385,7 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
-            FdTarget::ReadWriteFile { path, owner_fd } => {
+            FdTarget::ReadWriteFile { path, owner_fd, position } => {
                 if !self.is_default_null(path) {
                     let cur_rem = if *owner_fd == 0 {
                         self.in_fds
@@ -10427,9 +10400,8 @@ impl<'a> EvalState<'a> {
                             .map(|s| stream_byte_len(&s.borrow()))
                             .unwrap_or(0)
                     };
-                    let last_rem = self.rw_last_rem.get(owner_fd).copied().unwrap_or(cur_rem);
+                    let (base_off, last_rem) = position.get();
                     let had_read = cur_rem < last_rem;
-                    let base_off = self.rw_offsets.get(owner_fd).copied().unwrap_or(0);
                     let cur_off = if had_read {
                         base_off + last_rem.min(65536)
                     } else {
@@ -10455,11 +10427,9 @@ impl<'a> EvalState<'a> {
                                     cursor.replace(new_rem_str);
                                 }
                             }
-                            self.rw_offsets.insert(*owner_fd, end_off);
-                            self.rw_last_rem.insert(*owner_fd, new_rem_bytes.len());
+                            position.set((end_off, new_rem_bytes.len()));
                         } else {
-                            self.rw_offsets.insert(*owner_fd, end_off);
-                            self.rw_last_rem.insert(*owner_fd, cur_rem);
+                            position.set((end_off, cur_rem));
                         }
                     }
                 }
@@ -16198,6 +16168,25 @@ hash -l
             let result = shell.exec(&format!("exec 3</letters; {child}; echo :; cat <&3")).unwrap();
             assert_eq!(result.stdout, format!("{read}:\nbcdef"), "{child}");
             assert_eq!((result.exit_code, result.stderr.as_str()), (0, ""));
+        }
+    }
+
+    #[test]
+    fn readwrite_descriptor_offsets_follow_the_open_file_across_children_and_reopens() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        for (child, letters, other) in [
+            ("(printf X >&3)", "XYcdef", "ghijkl"),
+            ("printf X >&3 | cat", "XYcdef", "ghijkl"),
+            ("(exec 4>&3; printf X >&4; exec 3>&-)", "XYcdef", "ghijkl"),
+            ("(printf X >&3; exec 3<>/g; printf Z >&3)", "XYcdef", "Zhijkl"),
+            ("printf X >&3; { printf Z >&3; } 3<>/g", "XYcdef", "Zhijkl"),
+        ] {
+            fs.write_file("/f", b"abcdef").unwrap();
+            fs.write_file("/g", b"ghijkl").unwrap();
+            let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3")).unwrap();
+            assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{child}");
+            assert_eq!(fs.read_file("/f").unwrap(), letters.as_bytes(), "{child}");
+            assert_eq!(fs.read_file("/g").unwrap(), other.as_bytes(), "{child}");
         }
     }
 

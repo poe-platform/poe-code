@@ -1,4 +1,4 @@
-// Static paragraph layout, matching the production wkhtmltopdf renderer.
+// Static HTML block layout, matching the production wkhtmltopdf renderer.
 use super::{
     CP1252, PdfDoc,
     pdf_copy::{literal, write_objects},
@@ -10,25 +10,54 @@ use crate::commands::{
 use std::{fmt::Write as _, io::Write};
 
 #[derive(Default)]
-struct Paragraph {
-    level: usize,
+enum BlockKind {
+    #[default]
+    Paragraph,
+    Heading(usize),
+    Code,
+    Quote,
+    Rule,
+}
+
+#[derive(Default)]
+struct Block {
+    kind: BlockKind,
     text: String,
     links: Vec<String>,
 }
 
-fn paragraphs(html: &str) -> Option<Vec<Paragraph>> {
-    fn flush(current: &mut Paragraph, blocks: &mut Vec<Paragraph>) {
+fn html_blocks(html: &str) -> Option<Vec<Block>> {
+    fn flush(current: &mut Block, blocks: &mut Vec<Block>) {
         if !current.text.trim().is_empty() {
             blocks.push(std::mem::take(current));
         } else {
-            *current = Paragraph::default();
+            *current = Block::default();
         }
     }
-    fn visit(
-        nodes: &[HtmlNode],
-        current: &mut Paragraph,
-        blocks: &mut Vec<Paragraph>,
-    ) -> Option<()> {
+    fn block_text(nodes: &[HtmlNode], text: &mut String) {
+        for node in nodes {
+            match node {
+                HtmlNode::Text(value) => text.push_str(value),
+                HtmlNode::Element(el) => match el.tag.as_str() {
+                    "head" | "script" | "style" | "template" => {}
+                    "br" => text.push('\n'),
+                    "td" | "th" => {
+                        block_text(&el.children, text);
+                        text.push('\t');
+                    }
+                    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "pre" | "ul" | "ol" | "dl"
+                    | "table" | "svg" | "hr" | "img" | "blockquote" | "div" | "section"
+                    | "article" | "li" | "dt" | "dd" | "tr" => {
+                        text.push('\n');
+                        block_text(&el.children, text);
+                        text.push('\n');
+                    }
+                    _ => block_text(&el.children, text),
+                },
+            }
+        }
+    }
+    fn visit(nodes: &[HtmlNode], current: &mut Block, blocks: &mut Vec<Block>) -> Option<()> {
         for node in nodes {
             let HtmlNode::Element(el) = node else {
                 if let HtmlNode::Text(text) = node {
@@ -39,16 +68,33 @@ fn paragraphs(html: &str) -> Option<Vec<Paragraph>> {
             match el.tag.as_str() {
                 "head" | "title" | "script" | "style" | "template" => {}
                 "br" => current.text.push('\n'),
-                "ul" | "ol" | "dl" | "pre" | "blockquote" | "hr" | "table" | "svg" | "img" => {
+                "hr" => {
+                    flush(current, blocks);
+                    blocks.push(Block {
+                        kind: BlockKind::Rule,
+                        ..Block::default()
+                    });
+                }
+                "pre" | "blockquote" => {
+                    flush(current, blocks);
+                    current.kind = if el.tag == "pre" {
+                        BlockKind::Code
+                    } else {
+                        BlockKind::Quote
+                    };
+                    block_text(&el.children, &mut current.text);
+                    flush(current, blocks);
+                }
+                "ul" | "ol" | "dl" | "table" | "svg" | "img" => {
                     return None;
                 }
                 "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
                     flush(current, blocks);
-                    current.level = el
+                    current.kind = el
                         .tag
                         .strip_prefix('h')
                         .and_then(|n| n.parse().ok())
-                        .unwrap_or(0);
+                        .map_or(BlockKind::Paragraph, BlockKind::Heading);
                     visit(&el.children, current, blocks)?;
                     flush(current, blocks);
                 }
@@ -75,14 +121,14 @@ fn paragraphs(html: &str) -> Option<Vec<Paragraph>> {
         Some(())
     }
     let mut blocks = Vec::new();
-    let mut current = Paragraph::default();
+    let mut current = Block::default();
     visit(&bounded_html_dom(html)?, &mut current, &mut blocks)?;
     flush(&mut current, &mut blocks);
     Some(blocks)
 }
 
 enum PageResource {
-    Font(bool),
+    Font(&'static str),
     Link(Vec<u8>),
 }
 
@@ -177,7 +223,7 @@ pub(in super::super) fn render_paragraphs(
         Ok(())
     };
     for (page_index, page) in doc.pages.iter().enumerate() {
-        let Some(blocks) = paragraphs(&page.html) else {
+        let Some(blocks) = html_blocks(&page.html) else {
             return Ok(None);
         };
         let mut stream = Vec::new();
@@ -186,76 +232,143 @@ pub(in super::super) fn render_paragraphs(
         let mut fonts = Vec::new();
         let (outline_depth, external_links) = settings(page_index);
         let mut headings = Vec::new();
-        for Paragraph {
-            level,
+        for Block {
+            kind,
             text: block,
             links,
         } in blocks
         {
-            let bold = level != 0;
-            let size = match level {
-                0 => 11,
-                1 => 20,
-                2 => 16,
-                3 => 14,
-                _ => 12,
+            let (size, pitch, family, offset, color, padding) = match kind {
+                BlockKind::Paragraph => (
+                    11.,
+                    15.,
+                    "Helvetica",
+                    0.,
+                    if links.is_empty() {
+                        "0.12 0.12 0.12"
+                    } else {
+                        "0.05 0.28 0.72"
+                    },
+                    6.,
+                ),
+                BlockKind::Heading(level) => {
+                    let size = match level {
+                        1 => 20.,
+                        2 => 16.,
+                        3 => 14.,
+                        _ => 12.,
+                    };
+                    (
+                        size,
+                        1.35 * size,
+                        "Helvetica-Bold",
+                        0.,
+                        "0.1 0.12 0.18",
+                        10.,
+                    )
+                }
+                BlockKind::Code => (9.5, 13., "Courier", 6., "0.15 0.15 0.2", 12.),
+                BlockKind::Quote => (10.5, 14.5, "Helvetica-Oblique", 14., "0.25 0.27 0.32", 6.),
+                BlockKind::Rule => (0., 0., "", 0., "", 12.),
             };
-            let pitch = if bold { 1.35 * size as f64 } else { 15. };
-            let max_chars = (content_width / (size as f64 * if bold { 0.55 } else { 0.52 }))
-                .floor()
-                .max(if bold { 15. } else { 20. }) as usize;
+            let max_chars = match kind {
+                BlockKind::Quote => ((content_width - 18.) / (size * 0.52)).floor().max(20.),
+                BlockKind::Heading(_) => (content_width / (size * 0.55)).floor().max(15.),
+                _ => (content_width / (11. * 0.52)).floor().max(20.),
+            } as usize;
             let mut lines: Vec<String> = vec![];
             let mut len = 0usize;
-            for word in block.split_whitespace() {
-                let n = word.encode_utf16().count();
-                if let Some(line) = lines.last_mut()
-                    && len + 1 + n <= max_chars
-                {
-                    line.push(' ');
-                    line.push_str(word);
-                    len += 1 + n;
-                } else {
-                    lines.push(word.into());
-                    len = n;
+            if matches!(kind, BlockKind::Code) {
+                lines.extend(block.trim().split('\n').map(str::to_owned));
+            } else {
+                for word in block.split_whitespace() {
+                    let n = word.encode_utf16().count();
+                    if let Some(line) = lines.last_mut()
+                        && len + 1 + n <= max_chars
+                    {
+                        line.push(' ');
+                        line.push_str(word);
+                        len += 1 + n;
+                    } else {
+                        lines.push(word.into());
+                        len = n;
+                    }
                 }
             }
-            if y - (pitch * lines.len() as f64 + if bold { 10. } else { 6. }) < bottom
-                && !stream.is_empty()
-            {
+            let needed = pitch * lines.len() as f64 + padding;
+            if y - needed < bottom && !stream.is_empty() {
                 finish_page(&mut stream, &mut objects, &mut headings)?;
                 fonts.clear();
                 y = height - top;
             }
-            if bold {
-                y -= 4.;
-                if level <= outline_depth {
-                    headings.push((
-                        level,
-                        block.split_whitespace().collect::<Vec<_>>().join(" "),
-                    ));
+            if matches!(kind, BlockKind::Code | BlockKind::Quote | BlockKind::Rule)
+                && !stream.is_empty()
+            {
+                stream.push(b'\n');
+            }
+            match kind {
+                BlockKind::Heading(level) => {
+                    y -= 4.;
+                    if level <= outline_depth {
+                        headings.push((
+                            level,
+                            block.split_whitespace().collect::<Vec<_>>().join(" "),
+                        ));
+                    }
                 }
+                BlockKind::Code => {
+                    let h = needed - 4.;
+                    write!(
+                        stream,
+                        "q\n0.95 0.96 0.97 rg\n0.82 0.84 0.87 RG\n0.5 w\n{x} {} {} {} re\nB\nQ",
+                        coordinate(y - h),
+                        coordinate(content_width),
+                        coordinate(h)
+                    )
+                    .unwrap();
+                    y -= 6.;
+                }
+                BlockKind::Quote => {
+                    let bar_x = coordinate(left + 4.);
+                    write!(
+                        stream,
+                        "q\n0.45 0.5 0.6 RG\n2.2 w\n{bar_x} {} m\n{bar_x} {} l\nS\nQ",
+                        coordinate(y - 2.),
+                        coordinate(y - needed + 4.)
+                    )
+                    .unwrap();
+                }
+                BlockKind::Rule => {
+                    let bar_y = coordinate(y - 6.);
+                    write!(
+                        stream,
+                        "q\n0.75 0.75 0.78 RG\n0.75 w\n{x} {bar_y} m\n{} {bar_y} l\nS\nQ",
+                        coordinate(left + content_width)
+                    )
+                    .unwrap();
+                    if stream.len() > limit {
+                        return Err(());
+                    }
+                    y -= 12.;
+                    continue;
+                }
+                BlockKind::Paragraph => {}
             }
             let block_top = y;
-            let font = fonts.iter().position(|&b| b == bold).unwrap_or_else(|| {
-                objects.push(PageResource::Font(bold));
-                fonts.push(bold);
+            let font = fonts.iter().position(|&f| f == family).unwrap_or_else(|| {
+                objects.push(PageResource::Font(family));
+                fonts.push(family);
                 fonts.len() - 1
             }) + 1;
-            let color = if bold {
-                "0.1 0.12 0.18"
-            } else if !links.is_empty() {
-                "0.05 0.28 0.72"
-            } else {
-                "0.12 0.12 0.12"
-            };
+            let text_x = coordinate(left + offset);
             for line in lines {
                 if !stream.is_empty() {
                     stream.push(b'\n');
                 }
-                let coord = coordinate(y - size as f64);
+                let coord = coordinate(y - size);
                 write!(
                     stream,
-                    "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 {x} {coord} Tm\n"
+                    "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 {text_x} {coord} Tm\n"
                 )
                 .unwrap();
                 literal(&win_ansi(&line), &mut stream);
@@ -276,7 +389,11 @@ pub(in super::super) fn render_paragraphs(
                     objects.push(PageResource::Link(body));
                 }
             }
-            y -= 6.;
+            y -= if matches!(kind, BlockKind::Code) {
+                8.
+            } else {
+                6.
+            };
         }
         finish_page(&mut stream, &mut objects, &mut headings)?;
     }
@@ -290,26 +407,20 @@ pub(in super::super) fn render_paragraphs(
         let content = bodies.len() + 1;
         let page = content + 1;
         bodies.push(body.clone());
-        let mut resources = String::from("<<");
+        let mut resources = String::from("<<\n/Font <<");
         let mut annots = String::new();
         let mut fonts = 0;
         for (i, obj) in objects.iter().enumerate() {
             let id = page + i + 1;
             match obj {
                 PageResource::Font(_) => {
-                    if fonts == 0 {
-                        resources.push_str("\n/Font <<");
-                    }
                     fonts += 1;
                     write!(resources, "\n/F{fonts} {id} 0 R").unwrap();
                 }
                 PageResource::Link(_) => write!(annots, "{id} 0 R ").unwrap(),
             }
         }
-        if fonts > 0 {
-            resources.push_str("\n>>");
-        }
-        resources.push_str("\n>>");
+        resources.push_str("\n>>\n>>");
         let annots = if annots.is_empty() {
             annots
         } else {
@@ -318,8 +429,7 @@ pub(in super::super) fn render_paragraphs(
         bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R{annots}\n>>").into_bytes());
         for obj in objects {
             bodies.push(match obj {
-                PageResource::Font(bold) => {
-                    let font = if *bold { "Helvetica-Bold" } else { "Helvetica" };
+                PageResource::Font(font) => {
                     format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes()
                 }
                 PageResource::Link(body) => body.clone(),

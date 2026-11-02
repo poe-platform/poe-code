@@ -5407,3 +5407,18 @@ test("pdftotext orders logical lines, preserves block boundaries and optionally 
     }
   }finally{rs.dispose();}
 });
+
+test("wkhtmltopdf draws code blocks, quote bars and horizontal rules on physical pages",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const files={"/code":Buffer.from('<pre>A &lt; B\n\n  x(1) <code>+ y</code><br>next</pre>'),"/quote":Buffer.from('<blockquote><p>Quoted <b>words</b> wrap on a narrow sheet.</p><p>Second line with a <a href="/quote">link</a>.</p></blockquote>'),"/rule":Buffer.from('<hr><hr>'),"/blank":Buffer.from('<div></div>'),"/intro":Buffer.from('<h1>Intro</h1><p><a href="/intro">Contents</a></p><hr><blockquote>Example</blockquote><pre>test</pre><p>End</p>')};
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [path,bytes] of Object.entries(files))await fs.writeFile(path,bytes);
+    for(const args of ["code","quote","rule","blank","intro","--page-width 120pt --page-height 100pt --copies 2 --no-collate intro code quote rule"]){
+      const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);
+      assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});

@@ -1,17 +1,17 @@
-use super::{magick_number, png_pixels::Raster};
+use super::{js_number, png_pixels::Raster};
 
 pub(super) fn radii(spec: &str) -> (usize, usize) {
     let size = spec.split_once(':').map_or(spec, |(_, v)| v);
     if size.contains('x') {
         let mut dims = size.split('x').map(|s| {
-            let n = magick_number(s, 0.);
+            let n = js_number(s, 0.);
             ((if n == 0. || n.is_nan() { 3. } else { n }) / 2.)
                 .floor()
                 .max(1.) as usize
         });
         return (dims.next().unwrap(), dims.next().unwrap());
     }
-    let r = magick_number(size, 1.).round().max(1.) as usize;
+    let r = js_number(size, 1.).round().max(1.) as usize;
     (r, r)
 }
 

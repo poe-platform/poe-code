@@ -3158,3 +3158,28 @@ test("pdfdetach consumes option values in order and extracts only the selected a
     } finally { wasm.dispose(); }
   }
 });
+
+test("pdftohtml selects stdin, page ranges and zoom like production", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { pdftotextCommands } = await import("@poe-platform/safe-bash/commands/pdftotext");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  for (const width of [10, 20, 30]) doc.addPage([width, 10]);
+  const bytes = doc.save(), fs = new MemoryFileSystem();
+  await fs.writeFile("/in.pdf", bytes);
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(pdftotextCommands({ replace: true }));
+  const wasm = new RustWasmBash({ cwd: "/", files: { "/in.pdf": bytes } });
+  try {
+    for (const args of ["", "--bogus", "''", "'' -", "-stdout -f 0x2 in.pdf", "-stdout -l 0b10 in.pdf",
+      "-stdout -f 1.5 -l 2.5 in.pdf", "-f 3.25 in.pdf", "-l .5 in.pdf", "-f Infinity in.pdf",
+      "-stdout -zoom 2.5pt in.pdf", "-stdout -zoom 1e+2xx in.pdf", "in.pdf ''", "- '' <in.pdf"]) {
+      const script = "pdftohtml " + args;
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdoutBytes, actual.stderrBytes],
+        [expected.exitCode, expected.stdoutBytes, expected.stderrBytes], script);
+      for (const path of ["/in.html", "/.html"]) {
+        assert.deepEqual(await wasm.fs.readFile(path).catch(() => undefined), await fs.readFile(path).catch(() => undefined), script + ": " + path);
+      }
+    }
+  } finally { wasm.dispose(); }
+});

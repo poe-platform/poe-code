@@ -556,7 +556,7 @@ pub(super) fn evaluate(
                     "+swap" | "-swap" => {
                         let mut parts = spec.split(',');
                         let index = |s: &str| {
-                            let v = super::magick_number(s, 0.);
+                            let v = super::js_number(s, 0.);
                             let v = if v < 0. { len as f64 + v } else { v };
                             (v.fract() == 0. && (0. ..len as f64).contains(&v))
                                 .then_some(v as usize)
@@ -569,7 +569,7 @@ pub(super) fn evaluate(
                         }
                     }
                     "+insert" | "-insert" => {
-                        let n = super::magick_number(spec, 0.);
+                        let n = super::js_number(spec, 0.);
                         if !n.is_nan() {
                             let at = (if n < 0. { len as f64 + n } else { n })
                                 .clamp(0., (len - 1) as f64)

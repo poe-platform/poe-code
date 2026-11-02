@@ -231,7 +231,7 @@ pub(super) fn kernel(spec: &str, limit: usize) -> Result<Vec<f64>, &'static str>
         .split(|c: char| c.is_whitespace() || c == ',')
         .filter(|s| !s.is_empty())
     {
-        let value = super::magick_number(word, f64::NAN);
+        let value = super::js_number(word, f64::NAN);
         if value.is_finite() {
             if weights.len() >= limit / size_of::<f64>() {
                 return Err("image exceeds memory budget");

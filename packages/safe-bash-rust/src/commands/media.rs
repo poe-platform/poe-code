@@ -268,7 +268,7 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     meta
 }
 
-fn magick_number(value: &str, empty: f64) -> f64 {
+fn js_number(value: &str, empty: f64) -> f64 {
     let s=value.trim();
     if s.is_empty() {return empty;}
     for (prefix,radix) in [("0x",16),("0o",8),("0b",2)] {
@@ -8985,8 +8985,8 @@ fn cmd_media_doc(
             let mut to_stdout = false;
             let mut ignore_images = false;
             let mut data_urls = false;
-            let mut first_p = 1usize;
-            let mut last_p = 0usize;
+            let mut first_p = 1.0;
+            let mut last_p = 0.0;
             let mut zoom = 1.0f64;
             let mut image_fmt = "png";
             let mut pos: Vec<String> = Vec::new();
@@ -9017,15 +9017,15 @@ fn cmd_media_doc(
                     "-dataurls" => data_urls = true,
                     "-f" => {
                         i += 1;
-                        first_p = args.get(i).and_then(|s| s.parse::<usize>().ok()).unwrap_or(1).max(1);
+                        first_p = args.get(i).map_or(1.0, |s| js_number(s, 0.0).max(1.0));
                     }
                     "-l" => {
                         i += 1;
-                        last_p = args.get(i).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+                        last_p = args.get(i).map_or(0.0, |s| js_number(s, 0.0).max(0.0));
                     }
                     "-zoom" => {
                         i += 1;
-                        if let Some(z) = args.get(i).and_then(|s| s.parse::<f64>().ok()) && z.is_finite() && z > 0.0 {
+                        if let Some(z) = args.get(i).map(|s| parse_float_prefix(s)) && z.is_finite() && z > 0.0 {
                             zoom = z;
                         }
                     }
@@ -9058,14 +9058,9 @@ fn cmd_media_doc(
                 }
                 i += 1;
             }
-            let input_path = if let Some(p0) = pos.first() {
-                p0.as_str()
-            } else if !stdin.is_empty() {
-                "-"
-            } else {
-                return err_out("Usage: pdftohtml [options] <PDF-file> [<html-file>]\n", 99);
-            };
-            let explicit_out = pos.get(1).map(|s| s.as_str());
+            let input_path = pos.first().map_or("-", String::as_str);
+            if input_path.is_empty() { return err_out("Usage: pdftohtml [options] <PDF-file> [<html-file>]\n", 99); }
+            let explicit_out = pos.get(1).map(String::as_str).filter(|s| !s.is_empty());
             let stdout_output = to_stdout || explicit_out == Some("-") || (input_path == "-" && explicit_out.is_none());
             let default_ext = if xml_mode { ".xml" } else { ".html" };
             let input_stem = if input_path.to_ascii_lowercase().ends_with(".pdf") {
@@ -9107,14 +9102,13 @@ fn cmd_media_doc(
                 return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
             let doc = PdfDoc::parse(&raw_bytes);
-            let total_pages = doc.pages.len().max(1);
-            let end_p = if last_p > 0 { total_pages.min(last_p) } else { total_pages };
-            if first_p > total_pages || (last_p > 0 && first_p > end_p) {
-                return err_out(
-                    &format!("Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"),
-                    99,
-                );
+            let total_pages = doc.pages.len().max(1) as f64;
+            let end_p = if last_p > 0.0 { total_pages.min(last_p) } else { total_pages };
+            if first_p > end_p {
+                return err_out(&format!("Command Line Error: Wrong page range given: the first page ({}) can not be after the last page ({}).\n",
+                    mcp_protocol_rust::numbers::format(first_p), mcp_protocol_rust::numbers::format(end_p)), 99);
             }
+            let (first_p, end_p) = (first_p.ceil() as usize, end_p.floor() as usize);
             let mut source = pdf_reader::PageSource::open(&raw_bytes);
             let dimensions = |pno| {
                 let (w, h, _) = doc.page_media.get(&pno).copied().unwrap_or((doc.page_w, doc.page_h, None));
@@ -10149,7 +10143,7 @@ fn cmd_media_doc(
                     }
                     "-trim" => {ops.push(PixelOp::Trim(fuzz));i+=1;}
                     "-gamma" => {
-                        let g=if i+1<args.len()-usize::from(!is_mogrify){i+=1;magick_number(&args[i],0.)}else{1.};
+                        let g=if i+1<args.len()-usize::from(!is_mogrify){i+=1;js_number(&args[i],0.)}else{1.};
                         ops.push(PixelOp::Gamma(g));i+=1;
                     }
                     "-auto-orient" => {ops.push(PixelOp::AutoOrient);i+=1;}
@@ -10219,13 +10213,13 @@ fn cmd_media_doc(
                     "-modulate" => {
                         let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{"100"};
                         let mut parts=spec.split(',');
-                        ops.push(PixelOp::Modulate(std::array::from_fn(|_|parts.next().map_or(100.,|s|magick_number(s,0.)))));i+=1;
+                        ops.push(PixelOp::Modulate(std::array::from_fn(|_|parts.next().map_or(100.,|s|js_number(s,0.)))));i+=1;
                     }
                     "-tint" | "-colorize" => {
                         if i+1<args.len()-usize::from(!is_mogrify){i+=1;}
                         ops.push(PixelOp::Tint(fill));i+=1;
                     }
-                    "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
+                    "-quality" if i+1<args.len()=>{quality=js_number(&args[i+1],1.);i+=2;}
                     "-write" | "+write" => {
                         if i+1<args.len()-usize::from(!is_mogrify) {
                             i+=1;
@@ -10235,7 +10229,7 @@ fn cmd_media_doc(
                     }
                     "-adjoin" | "+adjoin" => {adjoin=arg=="-adjoin";i+=1;}
                     "-delay" | "-loop" if i+1<args.len() => {
-                        let n=magick_number(&args[i+1],0.);
+                        let n=js_number(&args[i+1],0.);
                         if arg=="-delay" { delay=Some((n.round().max(0.) % 65536.) as u16); }
                         else { repeat=Some(((n-1.).trunc().max(0.) % 65536.) as u16); }
                         i+=2;
@@ -10251,7 +10245,7 @@ fn cmd_media_doc(
                     "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
                     "-median" => {
                         let size=if i+1<args.len()-usize::from(!is_mogrify){
-                            i+=1;magick_number(&args[i],0.)
+                            i+=1;js_number(&args[i],0.)
                         }else{3.};
                         let r=(size.round()/2.).floor().max(1.) as usize;
                         ops.push(if size.is_nan(){PixelOp::Clear}else{PixelOp::Morph("median".into(),(r,r))});i+=1;
@@ -10302,7 +10296,7 @@ fn cmd_media_doc(
                                 PixelOp::Sepia(if strength.is_nan() || strength==0.{0.8}else{strength.clamp(0.,1.)})
                             }
                             "-solarize"=>PixelOp::Solarize(magick_fuzz(value)),
-                            _=>PixelOp::Posterize(magick_number(value,0.).round().clamp(2.,256.)),
+                            _=>PixelOp::Posterize(js_number(value,0.).round().clamp(2.,256.)),
                         });i+=1;
                     }
                     "-raise" | "+raise" | "-vignette" | "-shadow" => {
@@ -10779,7 +10773,7 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-gravity" if i+1 < args.len() => {gravity=args[i+1].to_ascii_lowercase().replace(['-','_',' '],"");i+=2;}
-                    "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
+                    "-quality" if i+1<args.len()=>{quality=js_number(&args[i+1],1.);i+=2;}
                     "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-mode"
                         if i + 1 < args.len() => {i+=2;}
                     a if a.starts_with('-') => {
@@ -10920,7 +10914,7 @@ fn cmd_media_doc(
                     "-compose" | "-dissimilarity-threshold" | "-density" | "-quality" | "-format" | "-alpha" | "-channel" if i+1 < args.len() => {
                         let value=&args[i+1];
                         match args[i].as_str() {
-                            "-quality" => options.quality=magick_number(value,1.),
+                            "-quality" => options.quality=js_number(value,1.),
                             "-compose" => options.compose_src |= matches!(value.to_ascii_lowercase().as_str(),"src"|"source"|"copy"),
                             "-density" => options.density=value.split('x').next().and_then(|v|v.parse::<f64>().ok()).unwrap_or(72.).round().max(1.) as u32,
                             "-dissimilarity-threshold" => options.threshold=Some(value.parse().unwrap_or(f64::NAN)), _=>{}

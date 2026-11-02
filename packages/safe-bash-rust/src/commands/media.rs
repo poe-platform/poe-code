@@ -96,6 +96,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
+#[path = "exiftool_argfiles.rs"]
+mod exiftool_argfiles;
 #[path = "tiff.rs"]
 mod tiff;
 #[path = "bmp.rs"]
@@ -11686,34 +11688,10 @@ fn cmd_media_doc(
             if args.len() == 1 && matches!(args[0].as_str(), "--help" | "-help" | "-?") {
                 return ok_out(include_str!("help/exiftool.txt"));
             }
-            let mut expanded_args: Vec<String> = Vec::new();
-            let mut literal = false;
-            let mut takes_value = false;
-            let mut argv = args.iter();
-            while let Some(a) = argv.next() {
-                let option = a.to_ascii_lowercase();
-                if !literal && !takes_value && option == "-@" {
-                    let Some(input) = argv.next() else { return err_out("Error: Missing argument for -@\n", 1); };
-                    if input == "-" || input.contains('\0') { return err_out("Error: Argument-file stdin/invalid paths are not supported\n", 1); }
-                    let path = resolve_posix_path(cwd, input);
-                    match fs.lstat(&path) {
-                        Ok(st) if st.kind != crate::vfs::VfsEntryKind::File => return err_out("Error: Only regular VFS argument files are admitted\n", 1),
-                        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => return err_out(&format!("Error: ENOENT: no such file or directory, lstat '{path}'\n"), 1),
-                        Err(e) => return err_out(&format!("Error: {e}\n"), 1),
-                        Ok(_) => {}
-                    }
-                    let bytes = match fs.read_file(&path) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("Error: {e}\n"), 1) };
-                    let Ok(text) = std::str::from_utf8(&bytes) else { return err_out("Error: Only UTF-8 argument files are currently supported\n", 1); };
-                    for line in text.trim_start_matches('\u{feff}').lines() {
-                        let trimmed = line.trim();
-                        if !trimmed.is_empty() && !trimmed.starts_with('#') { expanded_args.push(trimmed.to_owned()); }
-                    }
-                } else {
-                    if !takes_value && a == "--" { literal = true; }
-                    takes_value = !literal && !takes_value && matches!(option.as_str(), "-config" | "-charset" | "-api" | "-o" | "-if" | "-p" | "-stay_open" | "-tagsfromfile");
-                    expanded_args.push(a.clone());
-                }
-            }
+            let expanded_args = match exiftool_argfiles::expand(args, cwd, fs) {
+                Ok(args) => args,
+                Err(e) => return err_out(&format!("Error: {e}\n"), 1),
+            };
             let tags = ["Artist","Title","Author","Description","ImageDescription","Software","Comment","Copyright","ModifyDate",
                 "ImageWidth","ImageHeight","BitDepth","ColorType","FileName","Directory","FileSize","FileTypeExtension","FileType",
                 "MIMEType","ImageSize","Subject","Keywords","Creator","Producer","CreateDate","PDFVersion","PageCount","Make",

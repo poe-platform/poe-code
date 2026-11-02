@@ -3336,3 +3336,30 @@ test("exiftool replaces the inode on normal edits and retains it for explicit in
     } finally { wasm.dispose(); }
   }
 });
+
+test("exiftool expands physical argument-file lines and carries option state through nested files", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  const bytes = doc.save();
+  const files = {
+    "/f.pdf": bytes, "/f.pdf  ": bytes, "/-@": bytes,
+    "/line": "\uFEFF# ignored\r\n  -p\n#[CSTR]  $FileName\\n\\t\\x41\r\nf.pdf  \n",
+    "/nested": "-@\nline\n", "/handoff": "-@\n", "/value": "-p\n", "/literal": "--\n",
+    "/cycle": "-@\ncycle\n", "/config": "-config\n", "/common": "-common_args\n",
+    "/hash": "  # filename\n", "/empty": "-p\n#[CSTR]\nf.pdf\n",
+    "/assign": "-Title  =  spaced  \r\nf.pdf\n",
+  };
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files });
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+  try {
+    for (const [path, body] of Object.entries(files)) await fs.writeFile(path, typeof body === "string" ? new TextEncoder().encode(body) : body);
+    for (const args of ["-@ line", "-@ nested", "-@ handoff line", "-@ value -@ f.pdf", "-FileName -@ literal -@", "-@ cycle", "-@ config", "-@ common", "-@ hash", "-@ empty", "-@ assign"]) {
+      const script = "exiftool " + args, expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+    }
+    for (const backend of [fs, wasm.fs]) assert.equal(PdfDocument.load(await backend.readFile("/f.pdf")).getMetadata().title, " spaced  ");
+  } finally { wasm.dispose(); }
+});

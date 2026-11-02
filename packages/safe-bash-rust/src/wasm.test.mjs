@@ -7948,3 +7948,27 @@ test("unxz decodes x86 and ARM64 branches at the block's declared start offset",
     }
   } finally { rs.dispose(); }
 });
+
+test("unxz reads PowerPC, ARM, Thumb, SPARC and IA-64 executable filters", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    // liblzma archives with a start offset of 0xfffffff0 and a partial final instruction.
+    for (const [name, pattern, archive] of [
+      ["powerpc", "480000054bfffffd4800000248000001", "fd377a585a000004e6d6b44603010504f0ffffff2101000041c1b12ce0004100275d0025bfedeb086ef319f20003490c4f2da1814fec876b382fb23aba6d90a015e7d6752eb90f7d20000000ed084abddae1a86f00014742554c6c071fb6f37d010000000004595a"],
+      ["arm", "010000ebfeffffeb000000ea", "fd377a585a000004e6d6b44603010704f0ffffff210100007c114428e00031001d5d007fe836dfb08600d9833382cccded6c2147cb2bb61ae16a27729578000000000000fc2b474447eed44700013d3215acb9821fb6f37d010000000004595a"],
+      ["armthumb", "00f001f8fff7feff000000f002f8", "fd377a585a000004e6d6b44603010804f0ffffff21010000f14a4fd9e0003900255d007fbddb622e300fcddf7093b5515214f9f583f0d63939ab95dfec6f9bb45922947ff6da6400000000009c1bd4a9236f0ad00001453ad9d7846b1fb6f37d010000000004595a"],
+      ["sparc", "400000017fffffff4000000081c7e008", "fd377a585a000004e6d6b44603010904f0ffffff21010000cf218d36e0004100295d003fbfedfb086fc2c48df1e1c8307bfa4dc01fdbbbd9967b94366cc635e08164ded2f3f572bf5c86000000000000a2a7a86ac16720c300014942db61ef991fb6f37d010000000004595a"],
+      ["ia64", "16000400001400100000280030000050", "fd377a585a000004e6d6b44603010604f0ffffff21010000427a86c7e0004100285d000b00338505c6c6cce182e35fdded9ee46bb9375f3458cb998604ac5febf1e4f506e4ce0c75ac00000063d9afb6cbf50fc7000148429a50f4801fb6f37d010000000004595a"],
+    ]) {
+      for (const [shell, vfs] of [[js, fs], [rs, rs.fs]]) {
+        await vfs.writeFile("/z", Buffer.from(archive, "hex"));
+        const result = await shell.exec("unxz -c /z");
+        assert.equal(result.exitCode, 0, name + ": " + result.stderr);
+        assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(pattern.repeat(4) + "aaff", "hex"), name);
+      }
+    }
+  } finally { rs.dispose(); }
+});

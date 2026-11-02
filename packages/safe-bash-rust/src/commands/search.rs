@@ -491,6 +491,7 @@ enum RxSearch { Longest, Jq, Rg { empty_pattern: bool, binary_text: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
+    literal: Option<String>,
     branches: Vec<RxProgram>,
     pub(super) capture_names: Vec<(String, usize)>,
     ignore_case: bool,
@@ -546,7 +547,15 @@ impl ZeroRegex {
             group_offset += program.groups;
             branches.push(program);
         }
-        Self { branches, capture_names, ignore_case,
+        let literal = match branches.as_slice() {
+            [program] if !ignore_case && !word_regexp && !anchored && !program.ops.is_empty() =>
+                program.ops.iter().map(|op| match op {
+                    RxOp::Atom(RxToken { atom: RxAtom::Char(c), case: RxCase::Sensitive, min: 1, max: Some(1), .. }) => Some(*c),
+                    _ => None,
+                }).collect(),
+            _ => None,
+        };
+        Self { literal, branches, capture_names, ignore_case,
             word_regexp, anchored, search: RxSearch::Longest }
     }
 
@@ -587,6 +596,14 @@ impl ZeroRegex {
     }
 
     pub(super) fn scan(&self, text: &[u8], capture: bool, mut visit: impl FnMut(usize, usize, &[Option<(usize, usize)>]) -> bool) -> bool {
+        if let Some(literal) = &self.literal && let Ok(subject) = std::str::from_utf8(text) {
+            let mut found = false;
+            for (start, value) in subject.match_indices(literal.as_str()) {
+                found = true;
+                if !visit(start, start + value.len(), &[]) { break; }
+            }
+            return found;
+        }
         let mut hay = Vec::with_capacity(text.len());
         let mut invalid = Vec::new();
         let mut offset = 0;

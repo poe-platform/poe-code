@@ -7152,3 +7152,22 @@ test("rg JSON end and summary records account for each input and emitted byte", 
     }
   } finally { rs.dispose(); }
 });
+
+test("rg rejects malformed regexes before searching and treats fixed patterns literally", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const sh of [js,rs]) await sh.exec("printf 'x\\n(\\n' >f");
+    for (const [opts,pat] of [
+      ...["(",")","(?=x)","(?<!x)","(x)\\1","(?z:x)","[","[z-a]","[[:oops:]]","x\\",
+        "*","^*","a{","a{foo}","a{2,1}","a{,3}","a{1001}","a{1, 2}","a{99999999999999999}",
+        "\\n","[\\n]","x\ny","(?m:x\\ny)","[[=x=]]","[a-\\w]","[\\s-x]","[[:digit:]-z]","[z-[:digit:]]",
+        "(?<1>x)","(?<>x)","(?<a>x)(?<a>x)","(?P<name","(?<x.y>a)"].map(p=>["",p]),
+      ["-F","x\ny"],["-F","("],["-U","x\\n"],["-U","[\\n]"],["","x{0,1000}"],["","\\("],
+    ]) {
+      const cmd="rg "+opts+" '"+pat+"' f";
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd);
+    }
+  } finally { rs.dispose(); }
+});

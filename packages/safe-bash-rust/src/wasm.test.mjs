@@ -6763,3 +6763,25 @@ test("jq regex filters reject malformed patterns and report parser errors throug
     }
   } finally { rs.dispose(); }
 });
+
+test("jq bracket ranges decode escaped endpoints before comparing them", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [input,pattern,expected] of [
+      ["\f", String.raw`[\n-\r]`, true], ["Q",String.raw`[A-\Z]`, true],
+      ["\u0007",String.raw`[\a-\t]`,true], ["^","[]-a]",true], ["-","[a-]",true],
+      ["x",String.raw`[\w-z]`,"Regex failure: character class cannot be a range endpoint"],
+      ["x",String.raw`[a-\d]`,"Regex failure: character class cannot be a range endpoint"],
+      ["x","[[=a=]]","Regex failure: collating and equivalence classes are not supported"],
+      ["x","[[:abc]","Regex failure: unsupported character class ''"],
+    ]) {
+      const cmd = `printf '%s\\n' '${JSON.stringify(input)}' | jq -c 'try test(${JSON.stringify(pattern)}) catch .'`;
+      for (const shell of [js,rs]) {
+        const r=await shell.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr,r.stdout],[0,"",JSON.stringify(expected)+"\n"],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

@@ -812,6 +812,19 @@ pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> 
     })
 }
 
+fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
+    let ['\\', c, ..] = chars else { return None };
+    Some(match c {
+        'd' => &[('0', '9')],
+        'D' => &[('\0', '/'), (':', char::MAX)],
+        'w' => &[('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')],
+        'W' => &[('\0', '/'), (':', '@'), ('[', '^'), ('`', '`'), ('{', char::MAX)],
+        's' => &[('\t', '\r'), (' ', ' ')],
+        'S' => &[('\0', '\x08'), ('\x0e', '\x1f'), ('!', char::MAX)],
+        _ => return None,
+    })
+}
+
 fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken>>, String> {
     if fixed {
         return Ok(vec![pat
@@ -876,44 +889,53 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
                     idx += 1;
                 }
                 let mut ranges = Vec::new();
-                if idx < chars.len() && chars[idx] == ']' {
-                    ranges.push((']', ']'));
-                    idx += 1;
-                }
-                while idx < chars.len() && chars[idx] != ']' {
-                    if chars[idx..].starts_with(&['[', ':'])
-                        && let Some(end) = chars[idx + 2..].windows(2).position(|w| w == [':', ']'])
-                    {
-                        let name: String = chars[idx + 2..idx + 2 + end].iter().collect();
-                        if let Some(class) = posix_class_ranges(&name) { ranges.extend_from_slice(class); }
-                        else if jq { return Err(format!("unsupported character class '{name}'")); }
-                        idx += end + 4;
+                let scalar = |idx: &mut usize| -> Result<char, String> {
+                    let c = chars[*idx];
+                    *idx += 1;
+                    if c != '\\' { return Ok(c); }
+                    let Some(&esc) = chars.get(*idx) else {
+                        return if jq { Err("trailing backslash in regular expression".into()) } else { Ok('\\') };
+                    };
+                    *idx += 1;
+                    Ok(match esc {
+                        'n' => '\n', 'r' => '\r', 't' => '\t',
+                        'f' if jq => '\x0c', 'v' if jq => '\x0b', 'a' if jq => '\x07',
+                        c => c,
+                    })
+                };
+                let mut first = true;
+                while idx < chars.len() && (first || chars[idx] != ']') {
+                    first = false;
+                    if chars[idx..].starts_with(&['[', ':']) {
+                        if let Some(end) = chars[idx + 2..].windows(2).position(|w| w == [':', ']']) {
+                            let name: String = chars[idx + 2..idx + 2 + end].iter().collect();
+                            if let Some(class) = posix_class_ranges(&name) { ranges.extend_from_slice(class); }
+                            else if jq { return Err(format!("unsupported character class '{name}'")); }
+                            idx += end + 4;
+                            continue;
+                        } else if jq { return Err("unsupported character class ''".into()); }
+                    }
+                    if jq && matches!(&chars[idx..], ['[', '.' | '=', ..]) {
+                        return Err("collating and equivalence classes are not supported".into());
+                    }
+                    if let Some(class) = bracket_shorthand(&chars[idx..]) {
+                        ranges.extend_from_slice(class);
+                        idx += 2;
+                        if jq && chars.get(idx) == Some(&'-') && chars.get(idx + 1) != Some(&']') {
+                            return Err("character class cannot be a range endpoint".into());
+                        }
                         continue;
                     }
-                    if idx + 2 < chars.len() && chars[idx + 1] == '-' && chars[idx + 2] != ']' {
-                        if jq && chars[idx] > chars[idx + 2] { return Err("reversed character range".into()); }
-                        ranges.push((chars[idx], chars[idx + 2]));
-                        idx += 3;
-                    } else if chars[idx] == '\\' && idx + 1 < chars.len() {
-                        let esc = chars[idx + 1];
-                        idx += 2;
-                        match esc {
-                            'd' => ranges.push(('0', '9')),
-                            'D' => ranges.extend([('\0', '/'), (':', char::MAX)]),
-                            'w' => ranges.extend([('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]),
-                            'W' => ranges.extend([('\0', '/'), (':', '@'), ('[', '^'), ('`', '`'), ('{', char::MAX)]),
-                            's' => ranges.extend([('\t', '\r'), (' ', ' ')]),
-                            'S' => ranges.extend([('\0', '\x08'), ('\x0e', '\x1f'), ('!', char::MAX)]),
-                            'n' => ranges.push(('\n', '\n')),
-                            't' => ranges.push(('\t', '\t')),
-                            'r' => ranges.push(('\r', '\r')),
-                            other => ranges.push((other, other)),
-                        }
-                    } else {
-                        if jq && chars[idx] == '\\' { return Err("trailing backslash in regular expression".into()); }
-                        ranges.push((chars[idx], chars[idx]));
+                    let lo = scalar(&mut idx)?;
+                    let hi = if chars.get(idx) == Some(&'-') && chars.get(idx + 1).is_some_and(|c| *c != ']') {
                         idx += 1;
-                    }
+                        if jq && bracket_shorthand(&chars[idx..]).is_some() {
+                            return Err("character class cannot be a range endpoint".into());
+                        }
+                        scalar(&mut idx)?
+                    } else { lo };
+                    if jq && lo > hi { return Err("reversed character range".into()); }
+                    ranges.push((lo, hi));
                 }
                 if idx < chars.len() && chars[idx] == ']' { idx += 1; }
                 else if jq { return Err("unterminated bracket expression".into()); }

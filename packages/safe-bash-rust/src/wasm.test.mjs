@@ -7225,3 +7225,20 @@ test("grep -o selects empty matches without printing them or inverted records", 
     }
   } finally { rs.dispose(); }
 });
+
+test("grep preserves bytes and precedence of pattern files and argument patterns", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for(const [file,bytes] of [["f",[195,169,10,195,131,194,169,10,97,13,10,97,97,10]],
+      ["p",[233,10]],["cr",[97,13,10]],["short",[97,10]],["empty",[]]]) {
+      const data=Uint8Array.from(bytes); await fs.writeFile("/"+file,data); rs.writeFile("/"+file,data);
+    }
+    for(const cmd of ["grep -aob é f","grep -aFob é f","grep -Fob é f","grep -Eob '(?i:é)' f",
+      "grep -aof p f","grep -ao --file=p f","cat p | grep -ao -f - f","grep -Fof cr f",
+      "grep f -a -f short -o -e aa","grep f -e a","grep -f empty -c f","grep -f missing --help | head -1"]) {
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdoutBytes,b.stderr],[a.exitCode,a.stdoutBytes,a.stderr],cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -2014,17 +2014,10 @@ fn cmd_grep(
     let mut multiline = false;
     let mut context_separator: Option<String> = Some("--".to_string());
     let mut globs: Vec<String> = Vec::new();
-    let mut patterns: Vec<String> = Vec::new();
-    let mut targets: Vec<String> = Vec::new();
-    let mut has_explicit_pattern = false;
-    let mut read_patterns_from_stdin = false;
+    let mut pattern_args = Vec::new();
+    let mut pattern_files = Vec::new();
+    let mut targets = Vec::new();
     let mut help_requested = false;
-
-    let push_grep_pattern = |patterns: &mut Vec<String>, pat: &str| {
-        for part in pat.split('\n') {
-            patterns.push(part.to_string());
-        }
-    };
 
     let mut i = 0usize;
     let mut end_of_opts = false;
@@ -2164,30 +2157,11 @@ fn cmd_grep(
                 }
                 "--file" if i + 1 < args.len() => {
                     i += 1;
-                    has_explicit_pattern = true;
-                    if args[i] == "-" {
-                        read_patterns_from_stdin = true;
-                        for line in stdin.lines() {
-                            patterns.push(line.to_string());
-                        }
-                    } else {
-                        let resolved = resolve_posix_path(cwd, &args[i]);
-                        let Ok(bytes) = fs.read_file(&resolved) else {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
-                                exit_code: 2,
-                            };
-                        };
-                        for line in String::from_utf8_lossy(&bytes).lines() {
-                            patterns.push(line.to_string());
-                        }
-                    }
+                    pattern_files.push(args[i].clone());
                 }
                 "--regexp" if i + 1 < args.len() => {
                     i += 1;
-                    has_explicit_pattern = true;
-                    push_grep_pattern(&mut patterns, &args[i]);
+                    pattern_args.push(args[i].clone());
                 }
                 "--max-count" if i + 1 < args.len() => {
                     i += 1;
@@ -2272,8 +2246,7 @@ fn cmd_grep(
                             before_ctx = n;
                         }
                     } else if let Some(val) = a.strip_prefix("--regexp=") {
-                        has_explicit_pattern = true;
-                        push_grep_pattern(&mut patterns, val);
+                        pattern_args.push(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--include=") {
                         globs.push(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--exclude=") {
@@ -2322,25 +2295,7 @@ fn cmd_grep(
                     } else if let Some(val) = a.strip_prefix("--group-separator=") {
                         context_separator = Some(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--file=") {
-                        has_explicit_pattern = true;
-                        if val == "-" {
-                            read_patterns_from_stdin = true;
-                            for line in stdin.lines() {
-                                patterns.push(line.to_string());
-                            }
-                        } else {
-                            let resolved = resolve_posix_path(cwd, val);
-                            let Ok(bytes) = fs.read_file(&resolved) else {
-                                return BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
-                                    exit_code: 2,
-                                };
-                            };
-                            for line in String::from_utf8_lossy(&bytes).lines() {
-                                patterns.push(line.to_string());
-                            }
-                        }
+                        pattern_files.push(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--binary-files=") {
                         match val {
                             "without-match" => ignore_binary = true,
@@ -2482,13 +2437,12 @@ fn cmd_grep(
                         break;
                     }
                     'e' => {
-                        has_explicit_pattern = true;
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
-                            push_grep_pattern(&mut patterns, &rest);
+                            pattern_args.push(rest);
                         } else if i + 1 < args.len() {
                             i += 1;
-                            push_grep_pattern(&mut patterns, &args[i]);
+                            pattern_args.push(args[i].clone());
                         } else {
                             return BuiltinOutcome {
                                 stdout: String::new(),
@@ -2499,7 +2453,6 @@ fn cmd_grep(
                         break;
                     }
                     'f' => {
-                        has_explicit_pattern = true;
                         let file_arg = if ci + 1 < chars.len() {
                             chars[ci + 1..].iter().collect::<String>()
                         } else if i + 1 < args.len() {
@@ -2512,24 +2465,7 @@ fn cmd_grep(
                                 exit_code: 2,
                             };
                         };
-                        if file_arg == "-" {
-                            read_patterns_from_stdin = true;
-                            for line in stdin.lines() {
-                                patterns.push(line.to_string());
-                            }
-                        } else {
-                            let resolved = resolve_posix_path(cwd, &file_arg);
-                            let Ok(bytes) = fs.read_file(&resolved) else {
-                                return BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
-                                    exit_code: 2,
-                                };
-                            };
-                            for line in String::from_utf8_lossy(&bytes).lines() {
-                                patterns.push(line.to_string());
-                            }
-                        }
+                        pattern_files.push(file_arg);
                         break;
                     }
                     'm' | 'A' | 'B' | 'C' => {
@@ -2592,87 +2528,47 @@ fn cmd_grep(
             i += 1;
             continue;
         }
-        if !has_explicit_pattern {
-            has_explicit_pattern = true;
-            push_grep_pattern(&mut patterns, a);
-        } else {
-            targets.push(a.clone());
-        }
+        targets.push(a.clone());
         i += 1;
     }
 
     if help_requested {
         return ok_out("Usage: grep [OPTION]... PATTERN [FILE]...\nPrint lines matching PATTERN. With no FILE, or FILE -, read standard input.\n\n  -G, --basic-regexp       Use basic regular expressions (default)\n  -E, --extended-regexp    Use extended regular expressions\n  -F, --fixed-strings      Use fixed strings\n  -e, --regexp=PATTERN     Add a pattern (repeatable)\n  -f, --file=FILE          Read patterns from FILE\n  -i, --ignore-case        Ignore case distinctions\n  -v, --invert-match       Select nonmatching lines\n  -w, --word-regexp        Match whole words\n  -x, --line-regexp        Match whole lines\n  -n, --line-number        Print line numbers\n  -H, --with-filename      Print filenames\n  -h, --no-filename        Suppress filenames\n  -o, --only-matching      Print only matching parts\n  -c, --count              Print matching line counts\n  -l, --files-with-matches Print filenames with matches\n  -L, --files-without-match Print filenames without matches\n  -q, --quiet, --silent    Suppress normal output\n  -m, --max-count=NUM      Stop after NUM selected lines per file\n  -A, --after-context=NUM  Print NUM lines after selected lines\n  -B, --before-context=NUM Print NUM lines before selected lines\n  -C, --context=NUM        Print NUM lines before and after selected lines\n  -s, --no-messages        Suppress file error messages\n  -a, --text               Process input as text\n  -z, --null-data          Use NUL-delimited records\n  -b, --byte-offset        Print byte offsets (match offsets with -o)\n  -Z, --null               Follow printed filenames with NUL\n  -r, --recursive          Search directories recursively\n  -R, --dereference-recursive Follow links during recursive search\n  -d, --directories=ACTION Read, skip or recurse into directories\n  -D, --devices=ACTION     Read or skip special files\n      --include=GLOB      Search matching basenames\n      --exclude=GLOB      Skip matching basenames\n      --exclude-dir=GLOB  Skip matching directories\n      --exclude-from=FILE Read exclusion globs from FILE\n      --no-group-separator Suppress separators between context groups\n      --no-ignore-case    Use case-sensitive matching\n      --line-buffered     Accepted; output writes are already awaited\n      --color=WHEN, --colour=WHEN Accept never or auto for non-terminal output\n      --binary-files=text Treat input as text within regex executor limits\n      --binary            Preserve bytes (no Windows text-mode translation)\n      --label=LABEL       Name standard input in filename prefixes\n      --initial-tab       Insert a tab after line prefixes\n      --group-separator=SEP Use SEP between context groups\n      --help              Display this help and exit\n      --                  End options\n\nExit status: 0 when a line is selected, 1 when none is selected, 2 on error.\nRegular expression support depends on the configured regex executor.\nThe default bounded matcher rejects BRE groups, intervals, backreferences and escape extensions.\nUse extended alternation: grep -E 'Remove upvote|Upvoted'\nFor literal alternatives: grep -F -e 'Remove upvote' -e 'Upvoted'\nIf an action succeeded but filtering failed, retry only the read-only verification;\ninspect the resulting state before repeating the action.\n");
     }
-    if !has_explicit_pattern {
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: format!("{invoked_as}: missing pattern\n"),
-            exit_code: 2,
+    if pattern_args.is_empty() && pattern_files.is_empty() {
+        if targets.is_empty() {
+            return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: missing pattern\n"), exit_code: 2 };
+        }
+        pattern_args.push(targets.remove(0));
+    }
+    let mut raw_patterns: Vec<_> = pattern_args.iter().flat_map(|arg| arg.split('\n').map(stream_string_to_bytes)).collect();
+    let mut read_patterns_from_stdin = false;
+    for file in pattern_files {
+        let bytes = if file == "-" {
+            read_patterns_from_stdin = true;
+            stream_string_to_bytes(stdin)
+        } else {
+            let resolved = resolve_posix_path(cwd, &file);
+            let Ok(bytes) = fs.read_file(&resolved) else {
+                return BuiltinOutcome { stdout: String::new(),
+                    stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"), exit_code: 2 };
+            };
+            bytes
         };
+        raw_patterns.extend(bytes.split_inclusive(|&b| b == b'\n').map(|row| row.strip_suffix(b"\n").unwrap_or(row).to_vec()));
     }
-    if patterns.is_empty() {
-        let effective_stdin = if read_patterns_from_stdin { "" } else { stdin };
-        return run_grep_engine(
-            ZeroRegex::new(patterns, ignore_case, fixed_strings, word_regexp, line_regexp),
-            targets,
-            effective_stdin,
-            cwd,
-            fs,
-            GrepConfig {
-                grep_input: GrepInput::Bytes,
-                is_rg: false,
-                ascii_record_rx: None,
-                invert,
-                count_only,
-                line_number,
-                files_with_matches,
-                files_without_match,
-                only_matching,
-                recursive,
-                quiet,
-                no_messages,
-                no_filename,
-                with_filename,
-                max_count,
-                before_ctx,
-                after_ctx,
-                globs,
-                types_include: Vec::new(),
-                types_exclude: Vec::new(),
-                show_hidden: true,
-                respect_ignore: false,
-                binary: RgBinary::Auto,
-                byte_offset,
-                null_delim,
-                null_data,
-                json_output: false,
-                replace: None,
-                multiline,
-                show_column: false,
-                ignore_binary,
-                max_depth: None,
-                max_filesize: None,
-                count_matches: false,
-                include_zero: true,
-                trim: false,
-                heading: false,
-                crlf: false,
-                context_separator,
-                initial_tab,
-                stdin_label,
-                dir_action,
-                dereference_recursive,
-                max_columns: None,
-                no_ignore_vcs: false,
-                no_ignore_dot: false,
-                custom_ignore_files: Vec::new(),
-                sort_by_path: false,
-                stats: false,
-            },
-        );
+    let mut patterns = Vec::with_capacity(raw_patterns.len());
+    for bytes in raw_patterns {
+        // The fixed-string provider admits UTF-8. The ergonomic regex parser receives
+        // a string with one character per pattern byte, including bytes read from -f.
+        let pat = if fixed_strings && !text {
+            let Some(pat) = String::from_utf8(bytes).ok().filter(|pat| !pat.contains('\0')) else {
+                return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"), exit_code: 2 };
+            };
+            pat
+        } else { bytes.into_iter().map(char::from).collect() };
+        patterns.push(pat);
     }
-
     if !fixed_strings && patterns.iter().any(|p| has_unsupported_regex_features(p)) {
         return BuiltinOutcome {
             stdout: String::new(),

@@ -6899,3 +6899,28 @@ test("rg multiline counts, inverts and limits the selected records", async () =>
     }
   } finally { rs.dispose(); }
 });
+
+test("rg multiline anchors and inline flags follow the scope of each group", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [args, expected, code = 0, stderr = ""] of [
+      [String.raw`-Un '^a\nb$'`, "2:a\n3:b\n"],
+      [String.raw`-Unx 'a\nb'`, "2:a\n3:b\n"],
+      [String.raw`-Un '(?-m:^a\nb$)'`, "", 1],
+      ["-Un '(?-m:^a)'", "", 1], ["-Un '(?-m:b$)'", "7:b\n"],
+      [String.raw`-Uni '(?-i:A)\n(?i:b)'`, "4:A\n5:B\n"],
+      ["-Un '(?s:^a.b$)'", "2:a\n3:b\n"],
+      ["-Un --multiline-dotall '(?-s:^a.b$)'", "", 1],
+      ["-Un '(?i:é)'", "", 1],
+      ["-Un '(?i-:x)'", "", 2, "rg: empty inline regular expression flags\n"],
+    ]) {
+      const cmd = "printf 'z\\na\\nb\\nA\\nB\\nÉ\\nb' | rg " + args;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [code, expected, stderr], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

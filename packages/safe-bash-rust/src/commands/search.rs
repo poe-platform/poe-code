@@ -2620,7 +2620,7 @@ fn cmd_grep(
             cwd,
             fs,
             GrepConfig {
-                validate_plain_literal: false,
+                grep_input: GrepInput::Bytes,
                 is_rg: false,
                 ascii_record_rx: None,
                 invert,
@@ -2724,17 +2724,56 @@ fn cmd_grep(
             .collect();
     }
 
+    let mut parsed = Vec::with_capacity(patterns.len());
+    let mut use_vm = text;
+    let mut bounded_ere = false;
+    for pat in &patterns {
+        let normalized;
+        let pat = if fixed_strings || extended_regexp { pat } else {
+            normalized = normalize_bre_escapes(pat);
+            &normalized
+        };
+        let flags = RxFlags { icase: ignore_case, multiline, dotall: false };
+        let branches = match parse_rx_branches(pat, fixed_strings, RxDialect::Rg { flags, dot_nul: text || null_data }) {
+            Ok(parsed) => parsed,
+            Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {message}\n"), exit_code: 2 },
+        };
+        use_vm |= branches.requires_vm;
+        // The delegated provider searches ASCII literals as bytes, including under -E.
+        // Escaped ordinary characters translate to literals too; shorthands translate to classes.
+        if !fixed_strings {
+            let mut chars = pat.chars();
+            while let Some(mut c) = chars.next() {
+                if c == '\\' && let Some(escaped) = chars.next() {
+                    c = escaped;
+                    if "dDsSwW".contains(c) { bounded_ere = true; break; }
+                }
+                if !c.is_ascii() || r"\.^$[]()|*+?{}".contains(c) { bounded_ere = true; break; }
+            }
+        }
+        parsed.push(branches);
+    }
+    let mut rx = ZeroRegex::from_branches(parsed, false, word_regexp && !line_regexp, line_regexp);
+    if use_vm {
+        rx.search = RxSearch::Rg { empty_pattern: false, binary_text: text, word_assertions: true };
+    } else if null_data {
+        // The bounded ERE dot includes LF within a NUL-delimited record.
+        for op in rx.branches.iter_mut().flat_map(|p| &mut p.ops) {
+            if let RxOp::Atom(RxToken { atom: RxAtom::Any { newline, .. }, .. }) = op { *newline = true; }
+        }
+    }
     run_grep_engine(
-        ZeroRegex::new(patterns, ignore_case, fixed_strings, word_regexp, line_regexp),
+        rx,
         targets,
         if read_patterns_from_stdin { "" } else { stdin },
         cwd,
         fs,
         GrepConfig {
             // Production's single-pattern ASCII shortcut checks every input line.
-            validate_plain_literal: !text && invoked_as == "grep" && args.len() <= 2 && args.first().is_some_and(|p|
+            grep_input: if !text && invoked_as == "grep" && args.len() <= 2 && args.first().is_some_and(|p|
                 !p.is_empty() && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
-                    .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))),
+                    .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))) { GrepInput::PlainLiteral }
+                else if bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
             is_rg: false,
             ascii_record_rx: None,
             invert,
@@ -3661,7 +3700,7 @@ fn cmd_rg(
         cwd,
         fs,
         GrepConfig {
-            validate_plain_literal: false,
+            grep_input: GrepInput::Bytes,
             is_rg: true,
             ascii_record_rx,
             invert,
@@ -3717,8 +3756,11 @@ fn cmd_rg(
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum RgBinary { Auto, Binary, Text }
 
-struct GrepConfig {
-    validate_plain_literal: bool,
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum GrepInput<'a> { Bytes, PlainLiteral, Bounded(&'a str) }
+
+struct GrepConfig<'a> {
+    grep_input: GrepInput<'a>,
     ascii_record_rx: Option<ZeroRegex>,
     is_rg: bool,
     invert: bool,
@@ -4068,7 +4110,7 @@ fn run_grep_engine(
     stdin: &str,
     cwd: &str,
     fs: &dyn SafeBashFs,
-    cfg: GrepConfig,
+    cfg: GrepConfig<'_>,
 ) -> BuiltinOutcome {
     let replacement = cfg.replace.as_deref()
         .filter(|_| !(cfg.count_only || cfg.quiet || cfg.json_output || cfg.files_with_matches || cfg.files_without_match || cfg.invert))
@@ -4167,7 +4209,9 @@ fn run_grep_engine(
     let mut searches = 0;
     let mut bytes_searched = 0;
     let mut json_bytes_printed = 0;
+    let mut failed_batch = false;
     for input in inputs {
+        if failed_batch { break; }
         let (fname, content, explicit) = match input {
             Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stream_string_to_bytes(stdin), true),
             Input::File(ref label, ref path, explicit) => {
@@ -4180,9 +4224,9 @@ fn run_grep_engine(
                 continue;
             }
         };
-        let nul_off = if cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
+        let nul_off = if !cfg.is_rg || cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
         searches += 1;
-        if nul_off.is_some() && (cfg.ignore_binary || cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit) {
+        if nul_off.is_some() && cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit {
             continue;
         }
         bytes_searched += content.len();
@@ -4230,6 +4274,7 @@ fn run_grep_engine(
             &lf_offsets
         } else { &line_offsets };
         let mut print_end = lines.len();
+        let mut skipped_binary = false;
         let mut context_matches = BTreeMap::new();
         if multiline {
             let mut block_end = None;
@@ -4283,7 +4328,7 @@ fn run_grep_engine(
             let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
                 if idx >= print_end || limit == 0 { break; }
-                if cfg.validate_plain_literal && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
+                if cfg.grep_input == GrepInput::PlainLiteral && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
                     had_error = true;
                     if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
                     break;
@@ -4293,7 +4338,7 @@ fn run_grep_engine(
                     projected.next_if(|(i, _)| *i == idx).map(|(_, spans)| spans).unwrap_or_default()
                 } else {
                     let subject = if cfg.crlf { line.strip_suffix(b"\r").unwrap_or(line) } else { line };
-                    if idx == batch_end && let Some(record_rx) = &cfg.ascii_record_rx {
+                    if idx == batch_end && (cfg.ascii_record_rx.is_some() || matches!(cfg.grep_input, GrepInput::Bounded(_)) || cfg.ignore_binary) {
                         // Production dispatches whole batches to the UTF-8 matcher if any record needs it.
                         let batch_size = if cfg.max_count.is_some() || cfg.quiet && !cfg.json_output || cfg.files_with_matches
                             || cfg.files_without_match || binary_records && trailing && !cfg.json_output { 1 } else { 128 };
@@ -4305,20 +4350,36 @@ fn run_grep_engine(
                             bytes += lines[batch_end].len();
                             batch_end += 1;
                         }
-                        batch_rx = if lines[idx..batch_end].iter().all(|row| row.is_ascii() && !row.contains(&0)) { record_rx } else { &rx };
+                        let batch = &lines[idx..batch_end];
+                        if cfg.ignore_binary && batch.iter().any(|row| row.contains(&0)) {
+                            skipped_binary = true;
+                            print_end = idx;
+                            break;
+                        }
+                        if let GrepInput::Bounded(name) = cfg.grep_input && batch.iter().any(|row| row.contains(&0) || std::str::from_utf8(row).is_err()) {
+                            err.push_str(&format!("{name}: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"));
+                            failed_batch = true;
+                            had_error = true;
+                            print_end = idx;
+                            break;
+                        }
+                        if let Some(record_rx) = &cfg.ascii_record_rx {
+                            batch_rx = if batch.iter().all(|row| row.is_ascii() && !row.contains(&0)) { record_rx } else { &rx };
+                        }
                     }
                     find_spans(batch_rx, subject, line_offsets[idx])
                 };
+                if !cfg.is_rg && matched_count >= limit { continue; }
                 let inverted_tail = trailing && cfg.invert && matched_count >= limit && idx + 1 == lines.len() && !content.ends_with(&[rec_term as u8]);
                 if (spans.is_empty() == cfg.invert) || inverted_tail {
                     if !multiline { file_submatch_count += spans.len(); }
                     match_indices.push((idx, spans));
                     matched_count += 1;
                     if matched_count == limit {
-                        if !trailing { break; }
+                        if !trailing && (cfg.is_rg || cfg.after_ctx == 0 || cfg.count_only || cfg.quiet || cfg.files_with_matches || cfg.files_without_match) { break; }
                         print_end = (idx + 1).saturating_add(cfg.after_ctx).min(lines.len());
                     }
-                    if cfg.quiet && !cfg.stats && !cfg.json_output { break; }
+                    if cfg.quiet && !cfg.stats && !cfg.json_output || !cfg.is_rg && (cfg.files_with_matches || cfg.files_without_match) { break; }
                 } else if cfg.invert && (cfg.show_column || cfg.json_output) && (cfg.before_ctx > 0 || cfg.after_ctx > 0) {
                     context_matches.insert(idx, spans);
                 }
@@ -4330,6 +4391,8 @@ fn run_grep_engine(
 
         let found = if cfg.is_rg && cfg.files_without_match { matched_count == 0 } else { matched_count > 0 };
         any_match |= found;
+        if failed_batch && (cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet) { break; }
+        if skipped_binary { matched_count = 0; }
         if cfg.quiet && !cfg.stats && !cfg.json_output {
             if found { return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 }; }
             continue;

@@ -7189,3 +7189,22 @@ test("rg whole-word matching follows the matcher selected for each record batch"
     }
   } finally { rs.dispose(); }
 });
+
+test("grep validates bounded regex batches before emitting matches, counts or filenames", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const [file,data] of [["good",[97,10]],["bad",[97,10,255,97,10]],["nul",[97,10,0,10]]]) {
+      const bytes=Uint8Array.from(data); await fs.writeFile("/"+file,bytes); rs.writeFile("/"+file,bytes);
+    }
+    for (const cmd of [
+      "grep -ob . bad","cat bad | grep -ob .","grep -n . good bad","grep -cs . bad good",
+      "grep -m2 -b . bad","grep -m1 -A1 . bad","grep -ql . bad","grep -L . bad","egrep -so . bad",
+      "grep -Eob 'a|z' bad","grep -Fo a bad","grep -Eo a bad","grep -o '\\ba' bad",
+      "grep -c . nul","grep -Ic . nul","grep -Iq . nul","grep -IL . nul","grep -zoc . nul",
+    ]) {
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdoutBytes,b.stderr],[a.exitCode,a.stdoutBytes,a.stderr],cmd);
+    }
+  } finally { rs.dispose(); }
+});

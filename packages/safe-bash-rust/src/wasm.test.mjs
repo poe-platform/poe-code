@@ -6148,3 +6148,34 @@ test("tar --exclude-caches skips contents only for directories bearing the cache
     }
   } finally { rs.dispose(); }
 });
+
+test("tar pads newly written archives to the requested record size before compression", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/f", Buffer.from("data"));
+      await f.utimes("/f", 0, 0);
+    }
+    for (const [args, length] of [
+      ["-cf out -b 16 f", 8192], ["-rf out --record-size +8K f", 8192],
+      ["--delete -f out -b3 --occurrence=1 f", 3072], ["-uf out --record-size=8K f", 3072],
+      ["-cf out --blocking-factor=10 --record-size=2K f", 2048],
+      ["-czf out --record-size=5K f", 5120], ["-cf out --record-size=9007199254745088 f", null],
+    ]) {
+      const cmd = "tar --format=ustar --mtime=@0 --totals " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, length === null ? 2 : 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      let expected = Buffer.from(await fs.readFile("/out")), actual = Buffer.from(await rs.fs.readFile("/out"));
+      if (args.includes("-czf") || length === null) { expected = gunzipSync(expected); actual = gunzipSync(actual); }
+      if (length !== null) assert.equal(expected.length, length);
+      assert.ok(actual.equals(expected), cmd);
+    }
+    const before = Buffer.from(await rs.fs.readFile("/out"));
+    await assert.rejects(rs.exec("tar --record-size=1G -cf out f", {limits: {maxMemoryBytes: 65536}}), /maxMemoryBytes/);
+    assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(before));
+  } finally { rs.dispose(); }
+});

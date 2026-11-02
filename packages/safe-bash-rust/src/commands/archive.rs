@@ -4555,7 +4555,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         };
 
-    let validate_record_size = |val: &str, is_record_size: bool| -> Result<(), &'static str> {
+    let mut record_size = 512u64;
+    let mut set_record_size = |val: &str, is_record_size: bool| -> Result<(), &'static str> {
         let mut digits = val;
         let mut mult: u64 = if is_record_size { 1 } else { 512 };
         if is_record_size
@@ -4587,9 +4588,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let Some(sz) = n.checked_mul(mult) else {
             return Err("record size must be a positive multiple of 512");
         };
-        if sz == 0 || sz % 512 != 0 {
+        if sz == 0 || sz >= 1 << 53 || sz % 512 != 0 {
             return Err("record size must be a positive multiple of 512");
         }
+        record_size = sz;
         Ok(())
     };
 
@@ -4813,14 +4815,14 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if let Some(rs) = a.strip_prefix("--record-size=") {
-                if let Err(e) = validate_record_size(rs, true) {
+                if let Err(e) = set_record_size(rs, true) {
                     return err_out(&format!("tar: {e}\n"), 2);
                 }
                 i += 1;
                 continue;
             }
             if let Some(bf) = a.strip_prefix("--blocking-factor=") {
-                if let Err(e) = validate_record_size(bf, false) {
+                if let Err(e) = set_record_size(bf, false) {
                     return err_out(&format!("tar: {e}\n"), 2);
                 }
                 i += 1;
@@ -4837,7 +4839,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 );
             }
             if (a == "-b" || a == "--blocking-factor" || a == "--record-size") && i + 1 < args.len() {
-                if let Err(e) = validate_record_size(&args[i + 1], a == "--record-size") {
+                if let Err(e) = set_record_size(&args[i + 1], a == "--record-size") {
                     return err_out(&format!("tar: {e}\n"), 2);
                 }
                 i += 2;
@@ -5254,13 +5256,13 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             matched_flag = true;
                             let rest: String = chars[ci + 1..].iter().collect();
                             if !old_style && !rest.is_empty() {
-                                if let Err(e) = validate_record_size(&rest, false) {
+                                if let Err(e) = set_record_size(&rest, false) {
                                     return err_out(&format!("tar: {e}\n"), 2);
                                 }
                                 break;
                             } else if i + 1 < args.len() {
                                 i += 1;
-                                if let Err(e) = validate_record_size(&args[i], false) {
+                                if let Err(e) = set_record_size(&args[i], false) {
                                     return err_out(&format!("tar: {e}\n"), 2);
                                 }
                             } else {
@@ -5432,6 +5434,17 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         tar_format::write_member(out, entry, pax)
     };
 
+    let finish_archive = |bytes: &mut Vec<u8>| -> Result<(), String> {
+        let maximum = fs.shell_limits().max_memory_bytes;
+        let size = (bytes.len() as u64).checked_add(1024)
+            .and_then(|size| size.checked_next_multiple_of(record_size))
+            .filter(|&size| size <= maximum as u64)
+            .ok_or_else(|| fs.limit_error("maxMemoryBytes", maximum))? as usize;
+        bytes.try_reserve_exact(size - bytes.len()).map_err(|_| fs.limit_error("maxMemoryBytes", maximum))?;
+        bytes.resize(size, 0);
+        Ok(())
+    };
+
     if create {
         let mut create_stderr = String::new();
         for op in &operands {
@@ -5447,7 +5460,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 verbose_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
             }
         }
-        raw_tar.resize(raw_tar.len() + 1024, 0);
+        if let Err(e) = finish_archive(&mut raw_tar) { return err_out(&format!("{create_stderr}tar: {e}\n"), 2); }
         if totals {
             create_stderr.push_str(&format!("Total bytes written: {}\n", raw_tar.len()));
         }
@@ -5620,7 +5633,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         }
         if changed {
-            out_bytes.resize(out_bytes.len() + 1024, 0);
+            if let Err(e) = finish_archive(&mut out_bytes) { return err_out(&format!("{stderr}tar: {e}\n"), 2); }
             if let Err(e) = fs.replace_file_entry_with_mode(full, &out_bytes, prior.mode & 0o7777, version) {
                 return err_out(&format!("{stderr}tar: {e}\n"), 2);
             }

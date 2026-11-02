@@ -3809,3 +3809,28 @@ test("qpdf selects repeated and collated pages with their streams, resources, an
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf counts, inspects and rewrites inline pages in traversal order", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosDict,cosRef,cosName,cosArray,cosNumber,cosStream,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const page=n=>cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(n)});
+  const nodes=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),
+    cosDict({Type:cosName("Pages"),Count:cosNumber(3),Kids:cosRef(6),MediaBox:cosArray([0,0,20,30].map(v=>cosNumber(v)))}),
+    page(4),cosStream(Uint8Array.of(42,10,0),{compress:false}),cosStream(Uint8Array.of(255,31),{compress:true}),
+    cosArray([page(5),cosRef(3),cosDict({Type:cosName("Pages"),Kids:cosArray([page(4)])})])];
+  const input=serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)});
+  const files={"/inline.pdf":input};
+  const fs=new MemoryFileSystem(), wasm=new RustWasmBash({cwd:"/",files});await fs.writeFile("/inline.pdf",input);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const flags of ["--show-npages","--show-pages --with-images","--show-xref","--show-object=7","--show-object=8","--check",
+      "--rotate=+90:1,3 -","--pages . 3,1,3 -- -","--empty --check"]) {
+      const script=flags==="--empty --check"?"qpdf "+flags:"qpdf inline.pdf "+flags;
+      const want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,0,want.stderr);
+      if(flags==="--show-npages")assert.equal(want.stdout,"3\n");
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+    }
+  } finally {wasm.dispose();}
+});

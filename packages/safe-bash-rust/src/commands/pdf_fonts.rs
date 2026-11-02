@@ -220,7 +220,7 @@ impl PageSource<'_> {
             substitute,
         };
         for id in self.pages.get(first.checked_sub(1)?..last)? {
-            let page = table.objects.object(*id)?.0;
+            let page = table.objects.page_dict(*id, &self.tree)?;
             let mut node = &page;
             for _ in 0..128 {
                 if let Some(res) = node.get(b"Resources") {

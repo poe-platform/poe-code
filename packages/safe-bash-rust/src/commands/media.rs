@@ -6799,24 +6799,13 @@ fn cmd_media_doc(
                 }
                 return ok_out(&format!("{f}: not linearized\n"));
             }
-            if show_npages {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
+            if show_npages || check_mode {
+                let f = primary_arg.as_deref().unwrap_or("empty");
+                let doc = if empty_input { PdfDoc {version:"1.7".into(), ..PdfDoc::new()} } else {
+                    if primary_arg.is_none() { return err_out("qpdf: an input file is required\n",2); }
+                    match load_input(f) { Ok(d) => d, Err(e) => return e }
                 };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                return ok_out(&format!("{}\n", doc.pages.len()));
-            }
-            if check_mode {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
+                if !check_mode { return ok_out(&format!("{}\n",doc.pages.len())); }
                 if let Some(ref enc_pw) = doc.encrypted {
                     let supplied = password.as_deref().unwrap_or("");
                     if !enc_pw.is_empty() && supplied != enc_pw {
@@ -6831,7 +6820,7 @@ fn cmd_media_doc(
                     } else {
                         "File is not encrypted".to_string()
                     },
-                    if doc.linearized {
+                    if doc.pages.is_empty() { "File is empty".to_string() } else if doc.linearized {
                         "File is linearized".to_string()
                     } else {
                         "File is not linearized".to_string()

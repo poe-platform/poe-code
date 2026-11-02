@@ -593,17 +593,18 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
         ));
     }
     let mut pending = vec![(
-        catalog.get(b"Pages")?.reference()?,
+        catalog.get(b"Pages")?.clone(),
         [0.0, 0.0, 612.0, 792.0],
         None,
         0,
     )];
     let mut seen = BTreeSet::new();
-    while let Some((id, mut media, mut crop, mut rotation)) = pending.pop() {
-        if !seen.insert(id) {
-            return None;
-        }
-        let node = objects.object(id)?.0;
+    while let Some((kid, mut media, mut crop, mut rotation)) = pending.pop() {
+        let node = match kid.reference() {
+            Some(id) if !seen.insert(id) => continue,
+            Some(id) => objects.object(id)?.0,
+            None => kid,
+        };
         for key in [b"MediaBox".as_slice(), b"CropBox", b"Rotate"] {
             let Some(mut value) = node.get(key) else {
                 continue;
@@ -627,11 +628,11 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
         }
         match node.get(b"Type")?.word()? {
             b"/Pages" => {
-                let Value::Array(kids) = node.get(b"Kids")? else {
+                let Value::Array(kids) = objects.resolve(node.get(b"Kids")?)? else {
                     return None;
                 };
-                for kid in kids.iter().rev() {
-                    pending.push((kid.reference()?, media, crop, rotation));
+                for kid in kids.into_iter().rev() {
+                    pending.push((kid, media, crop, rotation));
                 }
             }
             b"/Page" => {

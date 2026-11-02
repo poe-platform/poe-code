@@ -86,7 +86,13 @@ pub(in super::super) fn rewrite(
         .get(b"Pages")
         .and_then(Value::reference)
         .ok_or(INVALID)?;
-    let (pages, tree) = objects.page_tree(root, &catalog).ok_or(INVALID)?;
+    let (pages, tree) = objects
+        .page_tree(
+            root,
+            &catalog,
+            changed.keys().next_back().map_or(0, |id| id.0),
+        )
+        .ok_or(INVALID)?;
     let rotations =
         super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
     let mut remaining = limit;
@@ -115,7 +121,7 @@ pub(in super::super) fn rewrite(
         if edits.split_pages.is_some() && rotation.is_none() {
             continue;
         }
-        let page = objects.object(id).ok_or(INVALID)?.0;
+        let page = objects.page_dict(id, &tree).ok_or(INVALID)?;
         let inherited = |key: &[u8]| {
             let mut current = &page;
             let mut seen = BTreeSet::new();

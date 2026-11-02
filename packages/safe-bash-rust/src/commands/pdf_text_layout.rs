@@ -297,8 +297,7 @@ impl<'a> PageSource<'a> {
     pub(in crate::commands::archive) fn text_lines(&mut self, pno: usize) -> Option<Vec<TextLine>> {
         let page = self
             .objects
-            .object(*self.pages.get(pno.checked_sub(1)?)?)?
-            .0;
+            .page_dict(*self.pages.get(pno.checked_sub(1)?)?, &self.tree)?;
         let mut runs: Vec<TextLine> = vec![];
         let mut space = false;
         self.draw_page(&page, |event, _| {

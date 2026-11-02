@@ -79,6 +79,12 @@ impl PageSource<'_> {
             .range((number, 0)..=(number, usize::MAX))
             .next()
         else {
+            if let Some(Some(node)) = self.tree.get(&(number, 0)) {
+                let mut text = String::new();
+                display(node, &mut text);
+                text.push('\n');
+                return Some(text);
+            }
             return Some("null\n".into());
         };
         let (node, mut cursor) = self.objects.object(id)?;
@@ -121,6 +127,11 @@ impl PageSource<'_> {
             };
             writeln!(out, "{}/{}: uncompressed; type = {ty}", id.0, id.1).ok()?;
         }
+        for &id in &self.pages {
+            if !self.objects.xref.contains_key(&id) {
+                writeln!(out, "{}/0: uncompressed; type = dict", id.0).ok()?;
+            }
+        }
         Some(out)
     }
 
@@ -128,7 +139,7 @@ impl PageSource<'_> {
         let mut out = String::new();
         for (i, &id) in self.pages.iter().enumerate() {
             writeln!(out, "page {}: {} {} R", i + 1, id.0, id.1).ok()?;
-            let page = self.objects.object(id)?.0;
+            let page = self.objects.page_dict(id, &self.tree)?;
             if images {
                 out.push_str("  images:\n");
                 let mut owner = &page;

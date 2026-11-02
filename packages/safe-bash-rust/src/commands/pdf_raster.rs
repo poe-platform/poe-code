@@ -311,8 +311,7 @@ impl PageSource<'_> {
     ) -> Option<Vec<u8>> {
         let page = self
             .objects
-            .object(*self.pages.get(pno.checked_sub(1)?)?)?
-            .0;
+            .page_dict(*self.pages.get(pno.checked_sub(1)?)?, &self.tree)?;
         let mut media = None;
         let mut cropbox = None;
         let mut rot = None;

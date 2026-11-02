@@ -47,48 +47,81 @@ struct Attachment {
 type PageTree<'a> = BTreeMap<ObjectId, Option<Value<'a>>>;
 
 impl<'a> Objects<'a> {
+    pub(super) fn page_dict(&mut self, id: ObjectId, tree: &PageTree<'a>) -> Option<Value<'a>> {
+        match tree.get(&id)? {
+            Some(inline) => Some(inline.clone()),
+            None => Some(self.object(id)?.0),
+        }
+    }
+
     pub(super) fn page_tree(
         &mut self,
         root: ObjectId,
         catalog: &Value<'a>,
+        reserved: usize,
     ) -> Option<(Vec<ObjectId>, PageTree<'a>)> {
-        let mut pending = vec![catalog.get(b"Pages")?.reference()?];
+        let mut pending = vec![catalog.get(b"Pages")?.clone()];
         let mut tree = BTreeMap::from([(root, None)]);
         let mut pages = Vec::new();
-        while let Some(id) = pending.pop() {
-            if tree.insert(id, None).is_some() {
-                return None;
+        let mut highest = self.xref.keys().next_back()?.0.max(reserved);
+        while let Some(kid) = pending.pop() {
+            let reference = kid.reference();
+            if let Some(id) = reference {
+                let std::collections::btree_map::Entry::Vacant(entry) = tree.entry(id) else {
+                    continue;
+                };
+                entry.insert(None);
             }
-            let node = self.object(id)?.0;
-            match node.get(b"Type")?.word()? {
-                b"/Page" => pages.push(id),
-                b"/Pages" => {
-                    let Value::Array(kids) = node.get(b"Kids")? else {
-                        return None;
-                    };
-                    for kid in kids.iter().rev() {
-                        pending.push(kid.reference()?);
-                    }
-                    // Keep inheritable attributes, but never rescan a parent's Kids array per page.
-                    let Value::Dict(mut fields) = node else {
-                        return None;
-                    };
-                    fields.retain(|(key, _)| {
-                        matches!(
-                            *key,
-                            b"Parent"
-                                | b"MediaBox"
-                                | b"Resources"
-                                | b"Rotate"
-                                | b"CropBox"
-                                | b"BleedBox"
-                                | b"TrimBox"
-                                | b"ArtBox"
-                        )
-                    });
-                    tree.insert(id, Some(Value::Dict(fields)));
+            let node = match reference {
+                Some(id) => match self.object(id) {
+                    Some((v, _)) => v,
+                    None => continue,
+                },
+                None => kid,
+            };
+            let kind = node
+                .get(b"Type")
+                .and_then(|v| self.resolve(v))
+                .and_then(|v| v.word());
+            let kids = node.get(b"Kids").and_then(|v| self.resolve(v));
+            if kind == Some(b"/Pages") || matches!(kids, Some(Value::Array(_))) {
+                if let Some(Value::Array(kids)) = kids {
+                    pending.extend(kids.into_iter().rev());
                 }
-                _ => return None,
+                let Some(id) = reference else {
+                    continue;
+                };
+                // Keep inheritable attributes, but never rescan a parent's Kids array per page.
+                let Value::Dict(mut fields) = node else {
+                    return None;
+                };
+                fields.retain(|(key, _)| {
+                    matches!(
+                        *key,
+                        b"Parent"
+                            | b"MediaBox"
+                            | b"Resources"
+                            | b"Rotate"
+                            | b"CropBox"
+                            | b"BleedBox"
+                            | b"TrimBox"
+                            | b"ArtBox"
+                    )
+                });
+                tree.insert(id, Some(Value::Dict(fields)));
+            } else if kind == Some(b"/Page")
+                || node.get(b"MediaBox").is_some()
+                || node.get(b"Contents").is_some()
+            {
+                let id = match reference {
+                    Some(id) => id,
+                    None => {
+                        highest = highest.checked_add(1)?;
+                        tree.insert((highest, 0), Some(node));
+                        (highest, 0)
+                    }
+                };
+                pages.push(id);
             }
         }
         Some((pages, tree))
@@ -100,7 +133,7 @@ impl<'a> PageSource<'a> {
         let (mut objects, trailer) = index(bytes)?;
         let root = trailer.get(b"Root")?.reference()?;
         let catalog = objects.object(root)?.0;
-        let (pages, tree) = objects.page_tree(root, &catalog)?;
+        let (pages, tree) = objects.page_tree(root, &catalog, 0)?;
         let meta = match trailer.get(b"Info").and_then(Value::reference) {
             Some(r) => objects.object(r)?.0,
             None => Value::Dict(Vec::new()),
@@ -191,7 +224,7 @@ impl<'a> PageSource<'a> {
             &mut specs,
         );
         for (index, id) in self.pages.iter().enumerate() {
-            let page = self.objects.object(*id)?.0;
+            let page = self.objects.page_dict(*id, &self.tree)?;
             let prefix = format!("page{}", index + 1);
             if !qpdf {
                 associated(&mut self.objects, &page, prefix.clone(), &mut specs);
@@ -491,7 +524,10 @@ impl PageOutput {
         let mut ids = BTreeMap::new();
         for i in selection.clone() {
             let n = self.bodies.len() + 1;
-            ids.insert(*source.pages.get(i)?, n);
+            let id = *source.pages.get(i)?;
+            if source.objects.xref.contains_key(&id) {
+                ids.insert(id, n);
+            }
             self.pages.push(n);
             self.bodies.push(vec![]);
         }
@@ -776,7 +812,7 @@ impl<'a> Copy<'_, 'a> {
         rotation: Option<Rotation>,
         repeated: bool,
     ) -> Option<Value<'a>> {
-        let page = self.objects.object(id)?.0;
+        let page = self.objects.page_dict(id, self.tree)?;
         let mut parent = page.get(b"Parent").and_then(Value::reference);
         let Value::Dict(mut entries) = page else {
             return None;

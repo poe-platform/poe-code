@@ -3412,76 +3412,45 @@ fn cmd_chmod(
     let mut mode_options: Vec<String> = Vec::new();
     let mut positional: Vec<String> = Vec::new();
     let mut ended = false;
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if ended {
+    let mut argv = args.iter();
+    while let Some(a) = argv.next() {
+        if ended || a == "-" || !a.starts_with('-') {
             positional.push(a.clone());
-            i += 1;
-            continue;
-        }
-        if a == "--" {
+        } else if a == "--" {
             ended = true;
-            i += 1;
-            continue;
-        }
-        if a == "--preserve-root" || a == "--no-preserve-root" {
-            i += 1;
-            continue;
-        }
-        if a == "--recursive" {
-            recursive = true;
-            i += 1;
-            continue;
-        }
-        if a == "--verbose" {
-            verbose = true;
-            i += 1;
-            continue;
-        }
-        if a == "--changes" {
-            changes_only = true;
-            i += 1;
-            continue;
-        }
-        if a == "--silent" || a == "--quiet" {
-            silent = true;
-            i += 1;
-            continue;
-        }
-        if let Some(rf) = a.strip_prefix("--reference=") {
-            ref_file = Some(rf.to_string());
-            i += 1;
-            continue;
-        }
-        if a == "--reference" && i + 1 < args.len() {
-            ref_file = Some(args[i + 1].clone());
-            i += 2;
-            continue;
-        }
-        if a.starts_with('-')
-            && a.len() > 1
-            && "rwxXstugo01234567".contains(a.chars().nth(1).unwrap_or(' '))
-        {
+        } else if let Some(long) = a.strip_prefix("--") {
+            let (name, value) = long.split_once('=').map_or((long, None), |(k, v)| (k, Some(v)));
+            if name == "reference" {
+                let Some(file) = value.or_else(|| argv.next().map(String::as_str)) else {
+                    return err_out("chmod: option '--reference' requires an argument\n", 1);
+                };
+                ref_file = Some(file.to_owned());
+                continue;
+            }
+            match name {
+                "preserve-root" | "no-preserve-root" if value.is_none() => {}
+                "recursive" => recursive = true,
+                "verbose" => verbose = true,
+                "changes" => changes_only = true,
+                "silent" | "quiet" => silent = true,
+                _ => return err_out(&format!("chmod: unrecognized option '{a}'\n"), 1),
+            }
+            if value.is_some() {
+                return err_out(&format!("chmod: option '--{name}' does not take an argument\n"), 1);
+            }
+        } else if "rwxXstugo01234567".contains(a.chars().nth(1).unwrap()) {
             mode_options.push(a.clone());
-            i += 1;
-            continue;
-        }
-        if a.starts_with('-') && !a.starts_with("--") && a.len() > 1 {
+        } else {
             for ch in a[1..].chars() {
                 match ch {
                     'R' => recursive = true,
                     'v' => verbose = true,
                     'c' => changes_only = true,
                     'f' => silent = true,
-                    _ => {}
+                    _ => return err_out(&format!("chmod: invalid option -- '{ch}'\n"), 1),
                 }
             }
-            i += 1;
-            continue;
         }
-        positional.push(a.clone());
-        i += 1;
     }
 
     let umask_val = env
@@ -3491,23 +3460,16 @@ fn cmd_chmod(
 
     let (mode_str, ref_mode, targets_slice): (String, Option<u32>, &[String]) =
         if let Some(rf) = ref_file {
-            if !mode_options.is_empty() || positional.is_empty() {
-                return err_out("chmod: invalid operand combination\n", 1);
+            if !mode_options.is_empty() {
+                return err_out("chmod: cannot combine mode and --reference options\n", 1);
+            }
+            if positional.is_empty() {
+                return err_out("chmod: missing operand\n", 1);
             }
             let rp = resolve_posix_path(cwd, &rf);
             match fs.stat(&rp) {
                 Ok(s) => (String::new(), Some(s.mode & 0o7777), &positional[..]),
-                Err(e) => {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: if silent {
-                            String::new()
-                        } else {
-                            format!("chmod: failed to get attributes of '{rf}': {e}\n")
-                        },
-                        exit_code: 1,
-                    };
-                }
+                Err(e) => return err_out(&format!("chmod: {e}\n"), 1),
             }
         } else if !mode_options.is_empty() {
             if positional.is_empty() {
@@ -7567,6 +7529,26 @@ mod tests {
         assert!(file_out.stdout.contains("ASCII text"));
     }
 
+
+    #[test]
+    fn chmod_validates_all_options_before_mutating_operands() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/private", b"data").unwrap();
+        fs.chmod("/private", 0o600).unwrap();
+        for (argv, reason) in [
+            (vec!["-fZ", "777", "/private"], "invalid option -- 'Z'"),
+            (vec!["777", "/private", "--bad"], "unrecognized option '--bad'"),
+            (vec!["--recursive=no", "777", "/private"], "option '--recursive' does not take an argument"),
+            (vec!["--reference"], "option '--reference' requires an argument"),
+            (vec!["--reference=/private", "-x", "/private"], "cannot combine mode and --reference options"),
+            (vec!["--reference=/private"], "missing operand"),
+            (vec!["-f", "--reference=/absent", "/private"], "ENOENT: no such file or directory, stat '/absent'"),
+        ] {
+            let r = cmd_chmod(&args(&argv), "/", &BTreeMap::new(), &fs);
+            assert_eq!((r.exit_code, r.stderr), (1, format!("chmod: {reason}\n")), "{argv:?}");
+            assert_eq!(fs.stat("/private").unwrap().mode & 0o777, 0o600);
+        }
+    }
 
     #[test]
     fn unit_chmod_touch_rm_du_and_tree() {

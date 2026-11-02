@@ -5287,7 +5287,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     op.name
                 ));
             }
-            collect_tar_entries(
+            if let Err(e) = collect_tar_entries(
                 &op.name,
                 &op.cwd,
                 &excludes[..op.exclude_count.min(excludes.len())],
@@ -5297,7 +5297,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 op.recursion,
                 fs,
                 &mut entries,
-            );
+                &mut Vec::new(),
+            ) {
+                return err_out(&format!("tar: {e}\n"), 2);
+            }
         }
         for entry in &mut entries {
             if let Some(m) = override_mode {
@@ -5445,7 +5448,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if append_mode || update_mode {
             let mut new_entries = Vec::new();
             for op in &operands {
-                collect_tar_entries(
+                if let Err(e) = collect_tar_entries(
                     &op.name,
                     &op.cwd,
                     &excludes[..op.exclude_count.min(excludes.len())],
@@ -5455,7 +5458,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     op.recursion,
                     fs,
                     &mut new_entries,
-                );
+                    &mut Vec::new(),
+                ) {
+                    return err_out(&format!("tar: {e}\n"), 2);
+                }
             }
             for mut ne in new_entries {
                 if !transforms.is_empty() {
@@ -5841,7 +5847,8 @@ fn collect_tar_entries(
     recursion: bool,
     fs: &dyn SafeBashFs,
     out: &mut Vec<TarEntry>,
-) {
+    ancestors: &mut Vec<Option<crate::vfs::EntryIdentity>>,
+) -> Result<(), String> {
     let full = resolve_posix_path(base_dir, rel);
     let mut stripped_rel = rel;
     while let Some(rest) = stripped_rel.strip_prefix("../") {
@@ -5856,28 +5863,50 @@ fn collect_tar_entries(
         clean_rel
     };
     if !clean_rel.is_empty() && tar_matches_exclude(clean_rel, excludes) {
-        return;
+        return Ok(());
     }
-    let Ok(st) = (if dereference { fs.stat(&full) } else { fs.lstat(&full) }) else { return; };
+    let st = fs.lstat(&full)?;
+    let st = if dereference && st.kind == crate::vfs::VfsEntryKind::Symlink {
+        fs.stat(&full).map_err(|e| {
+            if e.starts_with("ENOENT:") {
+                format!("ENOENT: no such file or directory, realpath '{full}'")
+            } else {
+                e
+            }
+        })?
+    } else {
+        st
+    };
     let mode = st.mode & 0o7777;
     let mtime = st.mtime_ms / 1000.;
     let atime = Some(st.atime_ms / 1000.);
     let uid = st.uid.unwrap_or(0);
     let gid = st.gid.unwrap_or(0);
     if st.kind == crate::vfs::VfsEntryKind::Symlink {
-        if let Ok(target) = fs.readlink(&full) {
-            out.push(TarEntry {
-                name: stored_rel.to_string(),
-                typeflag: b'2',
-                mode, mtime, atime, uid, gid,
-                linkname: target,
-                content: Vec::new(),
-            });
-        }
-        return;
+        let target = fs.readlink(&full)?;
+        out.push(TarEntry {
+            name: stored_rel.to_string(),
+            typeflag: b'2',
+            mode,
+            mtime,
+            atime,
+            uid,
+            gid,
+            linkname: target,
+            content: Vec::new(),
+        });
+        return Ok(());
     }
     if st.kind == crate::vfs::VfsEntryKind::Directory {
-        if dereference && fs.readlink(&full).is_ok() { return; }
+        if st.identity.is_some() && ancestors.contains(&st.identity) {
+            return Err(format!(
+                "source directory cycle: {}",
+                tar_quote_name(stored_rel, "escape")
+            ));
+        }
+        if ancestors.len() > 256 {
+            return Err("source traversal depth limit exceeded".into());
+        }
         if (!clean_rel.is_empty() && clean_rel != ".") || (stored_rel == "." && sort_by_name) {
             out.push(TarEntry {
                 name: format!("{}/", stored_rel.trim_end_matches('/')),
@@ -5892,38 +5921,48 @@ fn collect_tar_entries(
             });
         }
         if !recursion {
-            return;
+            return Ok(());
         }
-        let has_cache_tag = exclude_caches && fs.exists(&format!("{}/CACHEDIR.TAG", full.trim_end_matches('/')));
-        if let Ok(mut children) = fs.read_dir(&full) {
-            if sort_by_name {
-                children.sort();
+        let has_cache_tag =
+            exclude_caches && fs.exists(&format!("{}/CACHEDIR.TAG", full.trim_end_matches('/')));
+        let mut children = fs.read_dir(&full)?;
+        ancestors.push(st.identity);
+        let mut first_error = None;
+        if sort_by_name {
+            children.sort();
+        }
+        for c in children {
+            if has_cache_tag && c != "CACHEDIR.TAG" {
+                continue;
             }
-            for c in children {
-                if has_cache_tag && c != "CACHEDIR.TAG" {
-                    continue;
-                }
-                let child_rel = if stored_rel == "." && sort_by_name {
-                    format!("./{c}")
-                } else if clean_rel.is_empty() || clean_rel == "." {
-                    c
-                } else {
-                    format!("{}/{c}", stored_rel.trim_end_matches('/'))
-                };
-                collect_tar_entries(
-                    &child_rel,
-                    base_dir,
-                    excludes,
-                    exclude_caches,
-                    dereference,
-                    sort_by_name,
-                    recursion,
-                    fs,
-                    out,
-                );
+            let child_rel = if stored_rel == "." && sort_by_name {
+                format!("./{c}")
+            } else if clean_rel.is_empty() || clean_rel == "." {
+                c
+            } else {
+                format!("{}/{c}", stored_rel.trim_end_matches('/'))
+            };
+            if let Err(error) = collect_tar_entries(
+                &child_rel,
+                base_dir,
+                excludes,
+                exclude_caches,
+                dereference,
+                sort_by_name,
+                recursion,
+                fs,
+                out,
+                ancestors,
+            ) {
+                first_error.get_or_insert(error);
             }
         }
-    } else if let Ok(bytes) = fs.read_file(&full) {
+        ancestors.pop();
+        if let Some(e) = first_error {
+            return Err(e);
+        }
+    } else {
+        let bytes = fs.read_file(&full)?;
         out.push(TarEntry {
             name: stored_rel.to_string(),
             typeflag: b'0',
@@ -5936,6 +5975,7 @@ fn collect_tar_entries(
             content: bytes,
         });
     }
+    Ok(())
 }
 
 fn format_tar_mode(typeflag: u8, mode: u32) -> String {
@@ -7509,7 +7549,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let _ = update_mode;
     for t in &effective_targets {
         let mut raw_entries = Vec::new();
-        collect_tar_entries(
+        let _ = collect_tar_entries(
             t,
             cwd,
             &excludes,
@@ -7519,6 +7559,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             true,
             fs,
             &mut raw_entries,
+            &mut Vec::new(),
         );
         for mut e in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();

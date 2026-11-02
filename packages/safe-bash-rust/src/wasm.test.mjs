@@ -5615,3 +5615,27 @@ test("tar writes interoperable PAX metadata and refuses unrepresentable USTAR en
     }
   } finally { rs.dispose(); }
 });
+
+test("tar leaves archives untouched when a source cannot be read", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.mkdir("/dir", {recursive: true});
+      await f.symlink("../missing", "/dir/link");
+      await f.mkdir("/cycle", {recursive: true});
+      await f.symlink(".", "/cycle/again");
+      await f.writeFile("/good", Buffer.from("ok"));
+    }
+    const seed = await js.exec("tar -cf - good");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const cmd of ["tar -cf out good missing", "tar -cf - missing", "tar -chf out dir", "tar -chf out cycle", "tar -rf out missing", "tar -uf out missing", "tar --exclude=missing -cf - missing"]) {
+      for (const f of [fs, rs.fs]) await f.writeFile("/out", seed.stdoutBytes);
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdoutBytes], [a.exitCode, a.stderr, a.stdoutBytes], cmd);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/out")), Buffer.from(seed.stdoutBytes), cmd);
+    }
+  } finally { rs.dispose(); }
+});

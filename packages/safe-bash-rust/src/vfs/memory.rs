@@ -1045,6 +1045,23 @@ impl SafeBashFs for MemoryVfs {
         Ok(self.generation())
     }
 
+    fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        let entry = Self::mutation_entry(&state, path)?;
+        if state.devices == Devices::Mounted || state.devices.entry(&entry).is_some()
+            || !matches!(state.nodes.get(&entry), None | Some(MemoryNode::File { .. })) {
+            return Err("ENOTSUP: destination must be a regular file or absent".into());
+        }
+        let parent = super::dirname_posix_path(&entry);
+        if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+            return Err("EACCES: permission denied".into());
+        }
+        Self::replace_inode(&mut state, entry, data, 0o100644)?;
+        self.bump_generation();
+        Ok(())
+    }
+
     fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         if version != self.generation() {
@@ -1625,6 +1642,21 @@ mod tests {
         fs.write_file("/outside/file", b"new").unwrap();
         assert!(fs.patch_file("/outside/file", None, rev).is_err());
         assert_eq!(fs.read_file("/outside/file").unwrap(), b"new");
+    }
+
+    #[test]
+    fn replacing_a_file_entry_keeps_old_readers_and_links_and_rejects_stale_writes() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/out", b"old").unwrap();
+        let reader = fs.open_read_file("/out", false).unwrap();
+        let revision = fs.generation();
+        fs.hard_link("/out", "/alias").unwrap();
+        assert!(fs.replace_file_entry("/out", b"stale", revision).unwrap_err().starts_with("EAGAIN:"));
+        fs.replace_file_entry("/out", b"new", fs.generation()).unwrap();
+        assert_eq!(fs.read_file("/alias").unwrap(), b"old");
+        fs.remove_one("/alias", false).unwrap();
+        assert_eq!(reader.read(0, 3).unwrap(), b"old");
+        assert_eq!(fs.read_file("/out").unwrap(), b"new");
     }
 
     #[test]

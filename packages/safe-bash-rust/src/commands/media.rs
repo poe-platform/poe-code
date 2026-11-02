@@ -6264,6 +6264,17 @@ fn cmd_media_doc(
             if args.iter().any(|a| a == "--help" || a == "-h" || a.starts_with("--help=")) {
                 return ok_out("Usage: qpdf [options] infile [outfile]\n");
             }
+            let publish = |operand: &str, bytes: &[u8]| {
+                let path = resolve_posix_path(cwd, operand);
+                fs.mkdir(&crate::vfs::dirname_posix_path(&path), true, 0o755)
+                    .map_err(|(code, _)| code)
+                    .and_then(|()| fs.replace_file_entry(&path, bytes, fs.generation()))
+                    .map_err(|error| {
+                        let code = error.split(':').next().unwrap_or(&error);
+                        let reason = if code == "ENOENT" { "No such file or directory" } else { code };
+                        err_out(&format!("qpdf: open {operand}: {reason}\n"), 2)
+                    })
+            };
             let mut password: Option<String> = None;
             let mut empty_input = false;
             let mut replace_input = false;
@@ -7068,8 +7079,7 @@ fn cmd_media_doc(
                                 stream_fields.push(format!("          \"data\": \"{b64}\""));
                             } else if json_stream_data == "file" {
                                 let sf_rel = format!("{stream_prefix}{content_obj}");
-                                let sf_full = resolve_posix_path(cwd, &sf_rel);
-                                let _ = fs.write_file(&sf_full, raw_str.as_bytes());
+                                if let Err(e) = publish(&sf_rel, raw_str.as_bytes()) { return e; }
                                 stream_fields.push(format!("          \"datafile\": \"{}\"", esc_json(&sf_rel)));
                             }
                             obj_entries.push(format!(
@@ -7102,8 +7112,7 @@ fn cmd_media_doc(
                 if let Some(of) = out_file
                     && of != "-"
                 {
-                    let dst = resolve_posix_path(cwd, &of);
-                    let _ = fs.write_file(&dst, rendered.as_bytes());
+                    if let Err(e) = publish(&of, rendered.as_bytes()) { return e; }
                     return ok_out("");
                 }
                 return ok_out(&rendered);
@@ -7133,8 +7142,7 @@ fn cmd_media_doc(
                     sub.page_h = doc.page_h;
                     sub.pages = doc.pages[(start - 1)..end].to_vec();
                     let Some(fname) = format_qpdf_split_name(pat, total, group_sz, start, end) else { return err_out("qpdf: filename width limit exceeded\n", 2); };
-                    let out_p = resolve_posix_path(cwd, &fname);
-                    let _ = fs.write_file(&out_p, &sub.serialize());
+                    if let Err(e) = publish(&fname, &sub.serialize()) { return e; }
                     start = end + 1;
                 }
                 return ok_out("");
@@ -7160,9 +7168,7 @@ fn cmd_media_doc(
                         Ok(bytes) => bytes, Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
                     };
                     if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
-                    return match fs.write_file(&resolve_posix_path(cwd,dst_arg),&output) {
-                        Ok(()) => ok_out(""), Err(e) => err_out(&format!("qpdf: {e}\n"),2)
-                    };
+                    return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
                 }
             }
 
@@ -7448,9 +7454,7 @@ fn cmd_media_doc(
             if dst_arg == "-" {
                 ok_out(&crate::vfs::bytes_to_stream_string(&serialized))
             } else {
-                let dst = resolve_posix_path(cwd, &dst_arg);
-                let _ = fs.write_file(&dst, &serialized);
-                ok_out("")
+                publish(&dst_arg, &serialized).map_or_else(|e| e, |()| ok_out(""))
             }
         }
         "pdftk" => {

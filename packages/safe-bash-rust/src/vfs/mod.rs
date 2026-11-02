@@ -208,6 +208,10 @@ pub trait SafeBashFs: Send + Sync {
     fn patch_file(&self, _path: &str, _bytes: Option<&[u8]>, _expected: (u64, u64)) -> Result<u64, String> {
         Err("filesystem does not support race-safe patch mutations".into())
     }
+    /// Atomically install a fresh regular file, leaving existing descriptors and hard links intact.
+    fn replace_file_entry(&self, _path: &str, _data: &[u8], _version: u64) -> Result<(), String> {
+        Err("ENOTSUP: retained file replacement is unsupported".into())
+    }
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.
     fn publish_file(&self, _path: &str, _data: &[u8], _inputs: &[String], _version: u64) -> Result<u64, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into())

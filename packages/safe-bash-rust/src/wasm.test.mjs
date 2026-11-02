@@ -3639,3 +3639,25 @@ test("qpdf copies the complete graph and materializes inherited page attributes"
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf replaces only the destination entry and respects directory permissions", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({cwd:"/"});
+  const shell = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const script of [
+      "qpdf --empty base.pdf",
+      "printf keep > old; ln old dest; chmod 444 old; qpdf base.pdf dest; cat old; stat -c '%a %h' old dest",
+      "ln -s old link; qpdf base.pdf link", "readlink link; cat old",
+      "ln -s absent dangling; qpdf base.pdf dangling", "readlink dangling; test ! -e absent",
+      "mkdir real; ln -s real parent; qpdf base.pdf parent/out; cmp dest real/out",
+      "qpdf base.pdf nested/path/out; cmp dest nested/path/out",
+      "qpdf base.pdf real", "qpdf base.pdf old/file",
+      "chmod 555 real; qpdf base.pdf real/out", "qpdf base.pdf real/new/out", "test ! -e real/new",
+    ]) {
+      const got=await wasm.exec(script), want=await shell.exec(script);
+      assert.deepEqual([got.exitCode,got.stdout,got.stderr],[want.exitCode,want.stdout,want.stderr],script);
+    }
+  } finally {wasm.dispose();}
+});

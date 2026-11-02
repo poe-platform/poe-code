@@ -198,13 +198,13 @@ impl Icu {
     }
 }
 
-pub(super) struct Collator {
+pub(crate) struct Collator {
     icu: &'static Icu,
     coll: NonNull<c_void>,
 }
 
 impl Collator {
-    pub fn open(tag: &str) -> Option<Self> {
+    pub fn open(tag: &str, lower_first: bool) -> Option<Self> {
         static ICU: OnceLock<Option<Icu>> = OnceLock::new();
         let icu = ICU.get_or_init(Icu::load).as_ref()?;
         // ICU accepts some grandfathered and extlang tags that ECMA-402
@@ -230,7 +230,7 @@ impl Collator {
         }
 
         // ICU parses and normalizes extensions, keeping the first occurrence
-        // of a key. Only co and kn affect sort; its caseFirst is always lower.
+        // of a key (as Intl.Collator does for co, kn and kf).
         let parsed = icu.locale_id(tag)?;
         let (base, keywords) = parsed.split_once('@').unwrap_or((&parsed, ""));
         let mut fields = base.split('_');
@@ -289,6 +289,7 @@ impl Collator {
             locale.push_str(field);
         }
         let mut numeric = false;
+        let mut case_first = -1; // UCOL_DEFAULT: preserve the locale’s case order.
         for option in keywords.split(';') {
             if let Some(value) = option.strip_prefix("collation=")
                 && !matches!(value, "search" | "standard")
@@ -297,6 +298,13 @@ impl Collator {
                 locale.push_str(option);
             } else if option == "colnumeric=yes" {
                 numeric = true;
+            } else if let Some(value) = option.strip_prefix("colcasefirst=") {
+                case_first = match value {
+                    "lower" => 24,
+                    "upper" => 25,
+                    "no" => 16,
+                    _ => -1,
+                };
             }
         }
         let locale = CString::new(locale).ok()?;
@@ -305,10 +313,10 @@ impl Collator {
             icu,
             coll: NonNull::new(unsafe { (icu.open)(locale.as_ptr(), &mut status) })?,
         };
-        // ucol.h: CASE_FIRST=LOWER_FIRST, CASE_LEVEL=OFF, NORMALIZATION=ON,
+        // ucol.h: CASE_FIRST from caller or locale, CASE_LEVEL=OFF, NORMALIZATION=ON,
         // STRENGTH=TERTIARY, NUMERIC_COLLATION from the kn extension.
         for (attribute, value) in [
-            (2, 24),
+            (2, if lower_first { 24 } else { case_first }),
             (3, 16),
             (4, 17),
             (5, 2),

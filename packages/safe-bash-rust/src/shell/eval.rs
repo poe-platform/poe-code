@@ -10658,12 +10658,31 @@ impl<'a> EvalState<'a> {
                 return Ok(if ok { 0 } else { 1 });
             }
             let right = self.expand_word_to_string(raw_right)?;
-            if matches!(op, "<" | ">") && !is_c_loc(&collation) && !is_utf8_loc(&collation) {
-                *diag_abort = Some((
-                    2,
-                    "[[ collation locale: unsupported conditional profile\n".to_string(),
-                ));
-                return Ok(2);
+            if matches!(op, "<" | ">") {
+                // Shell conditional expansion presents bytes as text, replacing
+                // invalid UTF-8 before both bytewise and localized comparisons.
+                let text = |value: String| {
+                    if crate::vfs::stream_byte_len(&value) == value.len() {
+                        value
+                    } else {
+                        String::from_utf8_lossy(&crate::vfs::stream_string_to_bytes(&value)).into_owned()
+                    }
+                };
+                let (left, right) = (text(left), text(right));
+                let order = if is_c_loc(&collation) {
+                    Some(left.cmp(&right))
+                } else if is_utf8_loc(&collation) {
+                    let tag = collation.split('.').next().unwrap().replace('_', "-");
+                    crate::collation::Collator::open(&tag, false)
+                        .and_then(|collator| collator.compare(&left, &right).ok())
+                } else {
+                    None
+                };
+                let Some(order) = order else {
+                    *diag_abort = Some((2, format!("{}[[ collation locale: unsupported conditional profile\n", self.diag_prefix())));
+                    return Ok(2);
+                };
+                return Ok(i32::from(!(if op == "<" { order.is_lt() } else { order.is_gt() })));
             }
             if matches!(op, "-eq" | "-ne" | "-lt" | "-le" | "-gt" | "-ge") {
                 let l_src = if left.trim().is_empty() {
@@ -10719,8 +10738,6 @@ impl<'a> EvalState<'a> {
                 }
             };
             let ok = match op {
-                "<" => left < right,
-                ">" => left > right,
                 "-nt" => match (stat_nonempty(&left), stat_nonempty(&right)) {
                     (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
                     (Ok(_), Err(_)) => true,
@@ -15408,6 +15425,28 @@ mod tests {
             out.stdout,
             "in:before-fn\n19344:26956:19344|third-arg||fn-arg|1:1|virtual-bash|/|13\n"
         );
+    }
+
+    #[test]
+    #[cfg(any(target_os = "linux", target_os = "macos", windows))]
+    fn conditional_orders_expanded_text_in_the_selected_locale() {
+        let (mut shell, _) = crate::Shell::with_memory_fs();
+        for (locale, expression, code) in [
+            ("de_DE.UTF-8@euro", "ä < z", 0),
+            ("sv_SE.utf8", "ä > z", 0),
+            ("da_DK.UTF-8", "A < a", 0),
+            ("da-u-kf-lower.UTF-8", "A < a", 1),
+            ("C", r"$'\x80' < �", 1),
+            ("de_DE.UTF-8", r"$'\xff' > $'\x80'", 1),
+            ("zz-ZZ.UTF-8", "a < b", 2),
+            ("en_US.ISO8859-1", "a < b", 2),
+        ] {
+            let result = shell.exec(&format!("LC_ALL={locale}\n[[ {expression} ]]")).unwrap();
+            assert_eq!(result.exit_code, code, "{locale}: {expression}");
+            assert_eq!(result.stderr, if code == 2 {
+                "shell: line 2: [[ collation locale: unsupported conditional profile\n"
+            } else { "" });
+        }
     }
 
     #[test]

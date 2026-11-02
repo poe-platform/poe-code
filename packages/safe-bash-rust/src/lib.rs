@@ -44,6 +44,7 @@
 pub mod agent;
 pub mod backend;
 pub mod budget;
+mod collation;
 pub mod commands;
 pub mod fs;
 pub mod shell;

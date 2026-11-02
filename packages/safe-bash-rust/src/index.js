@@ -39,27 +39,27 @@ function createWasmInstance() {
   const instance = new WebAssembly.Instance(compiledWasmModule, {
     safe_bash: {
       wall_clock_ms: () => Date.now(),
-      sort_collator_open(ptr, len) {
+      collator_open(ptr, len, lowerFirst) {
         const tag = decoder.decode(new Uint8Array(instance.exports.memory.buffer, ptr >>> 0, len >>> 0));
         try {
           if (!Intl.Collator.supportedLocalesOf([tag]).length) return 0;
           let id = collators.size + 1;
           while (collators.has(id)) id++;
-          collators.set(id, new Intl.Collator(tag, { usage: "sort", sensitivity: "variant", caseFirst: "lower" }));
+          collators.set(id, new Intl.Collator(tag, lowerFirst ? { caseFirst: "lower" } : undefined));
           return id;
         } catch (error) {
           if (error instanceof RangeError) return 0;
           throw error;
         }
       },
-      sort_collator_compare(id, a, alen, b, blen) {
+      collator_compare(id, a, alen, b, blen) {
         const memory = instance.exports.memory.buffer;
         return Math.sign(collators.get(id).compare(
           decoder.decode(new Uint8Array(memory, a >>> 0, alen >>> 0)),
           decoder.decode(new Uint8Array(memory, b >>> 0, blen >>> 0)),
         ));
       },
-      sort_collator_close(id) { collators.delete(id); },
+      collator_close(id) { collators.delete(id); },
       fill_random_bytes(ptr, len) {
         try {
           const bytes = new Uint8Array(len >>> 0);

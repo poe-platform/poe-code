@@ -2792,3 +2792,20 @@ test("sort applies locale ordering to records, selected keys and merge inputs", 
     assert.equal(bash.readText("/out"), "keep");
   } finally { bash.dispose(); }
 });
+
+test("conditional string ordering uses the locale's default case order", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [script, expected] of [
+      ["LC_ALL=de_DE.UTF-8; [[ ä < z ]]", 0],
+      ["LC_ALL=sv_SE.UTF-8; [[ ä > z ]]", 0],
+      ["LC_ALL=da_DK.UTF-8; [[ A < a ]]", 0],
+      ["LC_ALL=da-u-kf-lower.UTF-8; [[ A < a ]]", 1],
+      ["LC_ALL=zz_ZZ.UTF-8; [[ a < b ]]", 2],
+    ]) {
+      const result = await bash.exec(script);
+      assert.equal(result.exitCode, expected, script);
+      assert.equal(result.stderr, expected === 2 ? "shell: line 1: [[ collation locale: unsupported conditional profile\n" : "");
+    }
+  } finally { bash.dispose(); }
+});

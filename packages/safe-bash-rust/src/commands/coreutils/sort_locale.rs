@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::BTreeMap};
 
-pub(super) struct Collator(platform::Collator);
+pub(super) struct Collator(crate::collation::Collator);
 
 impl Collator {
     pub fn from_env(env: &BTreeMap<String, String>) -> Result<Option<Self>, String> {
@@ -13,7 +13,7 @@ impl Collator {
         }
         let language = locale.split('.').next().unwrap().replace('_', "-");
         if !locale.contains('@')
-            && let Some(collator) = platform::Collator::open(&language)
+            && let Some(collator) = crate::collation::Collator::open(&language, true)
         {
             return Ok(Some(Self(collator)));
         }
@@ -30,64 +30,6 @@ impl Collator {
             (Ok(_), Err(_)) => Ok(Ordering::Less),
             (Err(_), Ok(_)) => Ok(Ordering::Greater),
             (Err(_), Err(_)) => Ok(left.cmp(right)),
-        }
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-mod platform {
-    use super::Ordering;
-    #[link(wasm_import_module = "safe_bash")]
-    unsafe extern "C" {
-        fn sort_collator_open(tag: *const u8, len: usize) -> u32;
-        fn sort_collator_compare(
-            id: u32,
-            a: *const u8,
-            alen: usize,
-            b: *const u8,
-            blen: usize,
-        ) -> i32;
-        fn sort_collator_close(id: u32);
-    }
-    pub(super) struct Collator(u32);
-    impl Collator {
-        pub fn open(tag: &str) -> Option<Self> {
-            let id = unsafe { sort_collator_open(tag.as_ptr(), tag.len()) };
-            (id != 0).then(|| Self(id))
-        }
-        pub fn compare(&self, a: &str, b: &str) -> Result<Ordering, String> {
-            Ok(
-                unsafe { sort_collator_compare(self.0, a.as_ptr(), a.len(), b.as_ptr(), b.len()) }
-                    .cmp(&0),
-            )
-        }
-    }
-    impl Drop for Collator {
-        fn drop(&mut self) {
-            unsafe { sort_collator_close(self.0) }
-        }
-    }
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos", windows))]
-#[path = "sort_locale/native.rs"]
-mod platform;
-
-#[cfg(not(any(
-    target_arch = "wasm32",
-    target_os = "linux",
-    target_os = "macos",
-    windows
-)))]
-mod platform {
-    use super::Ordering;
-    pub(super) enum Collator {}
-    impl Collator {
-        pub fn open(_: &str) -> Option<Self> {
-            None
-        }
-        pub fn compare(&self, _: &str, _: &str) -> Result<Ordering, String> {
-            match *self {}
         }
     }
 }

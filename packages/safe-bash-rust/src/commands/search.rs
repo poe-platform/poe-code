@@ -4114,8 +4114,7 @@ fn run_grep_engine(
         let lines: Vec<_> = content.split_inclusive(delimiter).map(|record| {
             line_offsets.push(offset);
             offset += record.len();
-            let line = if record.last().is_some_and(delimiter) { &record[..record.len()-1] } else { record };
-            if !cfg.null_data && !cfg.crlf && record.ends_with(b"\n") { line.strip_suffix(b"\r").unwrap_or(line) } else { line }
+            if record.last().is_some_and(delimiter) { &record[..record.len()-1] } else { record }
         }).collect();
         let mut match_indices: Vec<(usize, Vec<(usize, usize)>)> = Vec::new();
         let mut multiline_spans: Vec<(usize, usize, usize, usize)> = Vec::new();
@@ -4386,6 +4385,23 @@ fn run_grep_engine(
         }
         let line_show_filename = show_filename && !use_heading;
 
+        let emit_text = |out: &mut String, chunk: &[u8], selected, count: usize, ending| {
+            let chunk = if cfg.trim {
+                let start = chunk.iter().position(|b| *b != b' ' && !(9..=13).contains(b)).unwrap_or(chunk.len());
+                &chunk[start..]
+            } else { chunk };
+            let piece = selected && cfg.only_matching && !cfg.invert;
+            let omitted = cfg.max_columns.is_some_and(|n| n > 0 && chunk.len() + if piece { 0 } else { ending } > n);
+            if omitted {
+                if replacement.is_some() && selected {
+                    out.push_str(&format!("[Omitted long line with {} matches]", if piece { 1 } else { count }));
+                } else if selected { out.push_str("[Omitted long matching line]"); }
+                else { out.push_str("[Omitted long context line]"); }
+            } else { out.push_str(&bytes_to_stream_string(chunk)); }
+            if cfg.crlf && !cfg.null_data && (piece || omitted) { out.push('\r'); }
+            out.push(rec_term);
+        };
+
         if multiline && replacement.is_some() {
             // Adjacent selected records share one replacement buffer. Context keeps
             // its original coordinates even if a replacement changes the line count.
@@ -4425,14 +4441,7 @@ fn run_grep_engine(
                     if cfg.show_column && selected { out.push_str(&format!("{column}{sep}")); }
                     if cfg.byte_offset { out.push_str(&format!("{byte}{sep}")); }
                     if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
-                    let chunk = if cfg.trim { chunk.trim_ascii_start() } else { chunk };
-                    if cfg.max_columns.is_some_and(|n| n > 0 && chunk.len() + ending > n) {
-                        if selected {
-                            let count = if cfg.only_matching { 1 } else { spans.len() };
-                            out.push_str(&format!("[Omitted long line with {count} matches]"));
-                        } else { out.push_str("[Omitted long context line]"); }
-                    } else { out.push_str(&bytes_to_stream_string(chunk)); }
-                    out.push(rec_term);
+                    emit_text(&mut out, chunk, selected, spans.len(), ending);
                 };
                 if !selected {
                     emit(lines[idx], idx + 1, 0, base, 1);
@@ -4497,8 +4506,7 @@ fn run_grep_engine(
                     if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) {
                         out.push('\t');
                     }
-                    out.push_str(&bytes_to_stream_string(chunk));
-                    out.push(rec_term);
+                    emit_text(&mut out, chunk, true, 1, 0);
                 }
             }
             continue;
@@ -4539,16 +4547,8 @@ fn run_grep_engine(
                     expanded = apply_rg_line_replace(line, base, spans, &replacements);
                     &expanded
                 } else { line };
-                let text = if cfg.trim { text.trim_ascii_start() } else { text };
-                let ending = if pieces { 0 } else { line_offsets.get(idx + 1).copied().unwrap_or(content.len()) - base - line.len() };
-                if cfg.max_columns.is_some_and(|n| n > 0 && text.len() + ending > n) {
-                    if replacement.is_some() && matched.is_some() {
-                        out.push_str(&format!("[Omitted long line with {} matches]", if pieces { 1 } else { spans.len() }));
-                    } else if matched.is_some() { out.push_str("[Omitted long matching line]"); }
-                    else { out.push_str("[Omitted long context line]"); }
-                } else { out.push_str(&bytes_to_stream_string(text)); }
-                if pieces && cfg.crlf && !cfg.null_data { out.push('\r'); }
-                out.push(rec_term);
+                let ending = line_offsets.get(idx + 1).copied().unwrap_or(content.len()) - base - line.len();
+                emit_text(&mut out, text, matched.is_some(), spans.len(), ending);
             }
         }
     }

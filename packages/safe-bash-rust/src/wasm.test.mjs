@@ -7097,3 +7097,22 @@ test("rg searches invalid UTF-8 at its original byte offsets and writes original
     }
   } finally { rs.dispose(); }
 });
+
+test("rg preserves carriage returns in records and applies CRLF to match and omission output", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const [cmd,expected] of [
+      ["rg -n x","1:ax\r\n"], ["grep -n x","1:ax\r\n"], ["rg '^ax$'",""],
+      ["rg --crlf -n '^ax$'","1:ax\r\n"], ["rg --crlf -C1 -n -M1 x","1:[Omitted long matching line]\r\n2-[Omitted long context line]\r\n"],
+      [String.raw`rg -Uno --crlf -M1 'ax\r\nby'`,"1:[Omitted long matching line]\r\n2:[Omitted long matching line]\r\n"],
+      [String.raw`rg -Unob --crlf 'ax\r\nby'`,"1:0:ax\r\r\n2:0:by\r\n"],
+      [String.raw`rg -Un --crlf -o --trim -r ' Z' 'ax\r\nby'`,"1:Z\r\n"],
+    ]) {
+      for (const sh of [js,rs]) {
+        const r=await sh.exec("printf 'ax\\r\\nby\\r\\n' | "+cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[expected ? 0 : 1,expected,""],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

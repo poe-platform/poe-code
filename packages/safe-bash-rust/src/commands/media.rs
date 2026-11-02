@@ -7632,8 +7632,10 @@ fn cmd_media_doc(
             let mut auto = 65;
             let mut passwords = BTreeMap::new();
             let mut default_password = "";
-            if let Some(pos) = args.iter().position(|x|x=="input_pw") {
-                for arg in args[pos+1..].iter().take_while(|x| !ops.contains(&x.as_str()) && *x!="output") {
+            let operation=|s:&str| ops.iter().copied().find(|name|s.eq_ignore_ascii_case(name));
+            let keyword=|s:&str| operation(s).is_some() || s.eq_ignore_ascii_case("input_pw") || s.eq_ignore_ascii_case("output");
+            for pos in args.iter().enumerate().filter_map(|(i,x)|x.eq_ignore_ascii_case("input_pw").then_some(i)) {
+                for arg in args[pos+1..].iter().take_while(|x| !keyword(x)) {
                     if let Some((handle,pw)) = arg.split_once('=') { passwords.insert(handle,pw); }
                     else {default_password = arg;}
                 }
@@ -7643,19 +7645,19 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if ops.contains(&a) {
-                    op = a.to_string();
+                if let Some(name)=operation(a) {
+                    op = name.to_owned();
                     op_idx = i;
                     break;
                 }
-                if a == "output" {
+                if a.eq_ignore_ascii_case("output") {
                     op = "passthrough".to_string();
                     op_idx = i;
                     break;
                 }
-                if a == "input_pw" {
+                if a.eq_ignore_ascii_case("input_pw") {
                     i += 1;
-                    while i < args.len() && !ops.contains(&args[i].as_str()) && args[i] != "output" {
+                    while i < args.len() && !keyword(&args[i]) {
                         i += 1;
                     }
                     continue;
@@ -7757,14 +7759,12 @@ fn cmd_media_doc(
             let mut grants = 0;
             let mut compress_streams=None;
             let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
-            let mut filtered = args[..op_idx].to_vec();
-            let mut tail = args[op_idx..].iter().peekable();
+            let mut operands=Vec::new();
+            let mut tail=args.get(op_idx+1..).unwrap_or_default().iter().peekable();
+            let mut output=if op=="passthrough" {tail.next().map(String::as_str)} else {None};
             while let Some(arg) = tail.next() {
                 match arg.to_ascii_lowercase().as_str() {
-                    "output" => {
-                        filtered.push(arg.clone());
-                        if let Some(name) = tail.next() {filtered.push(name.clone());}
-                    }
+                    "output" => output=tail.next().map(String::as_str),
                     "drop_xfa" => drop_xfa=true,
                     "drop_xmp" => drop_xmp=true,
                     "need_appearances" => need_appearances=true,
@@ -7783,16 +7783,14 @@ fn cmd_media_doc(
                         tail.next();
                     },
                     "encrypt_128bit" | "encrypt_40bit" | "dont_ask" | "do_ask" | "verbose" => (),
-                    _ => filtered.push(arg.clone()),
+                    _ => operands.push(arg.clone()),
                 }
             }
-            let args = &filtered;
+
             let limit = fs.shell_limits().max_output_bytes;
             let output_edits=pdf_reader::PageEdits {compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
-            let write_pdftk_output = |mut bytes: Vec<u8>, tail: &[String]| -> BuiltinOutcome {
-                let Some([_,of]) = tail.windows(2).find(|w| w[0]=="output") else {
-                    return err_out("Error: Output filename required.\n",1);
-                };
+            let write_pdftk_output = |mut bytes: Vec<u8>| -> BuiltinOutcome {
+                let of=output.filter(|s|!s.is_empty()).unwrap_or("-");
                 if user.is_some_and(|s|!s.is_empty()) || owner.is_some_and(|s|!s.is_empty()) {
                     if is_legacy_pdf(&bytes) {
                         return err_out("Error: Cannot encrypt a nonstandard PDF output\n",1);
@@ -7817,7 +7815,7 @@ fn cmd_media_doc(
                             Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
                     } else {primary.serialize()};
-                    write_pdftk_output(bytes,&args[op_idx..])
+                    write_pdftk_output(bytes)
                 }
                 "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" | "generate_fdf" | "dump_data_annots" | "dump_data_annots_utf8" => {
                     let utf8 = op.ends_with("_utf8");
@@ -7832,16 +7830,12 @@ fn cmd_media_doc(
                         if !is_legacy_pdf(bytes) && let Err(e)=pdf_reader::PageSource::open(bytes,password).and_then(|mut s|s.annotation_report(utf8,limit,&mut report)){return err_out(&format!("Error: {e}\n"),1);}
                         report
                     } else {format_dump(&primary,utf8)};
-                    if let Some([_,path])=args[op_idx+1..].windows(2).find(|w|w[0]=="output") && path!="-" {
+                    if let Some(path)=output.filter(|s|!s.is_empty() && *s!="-") {
                         write_copied_pdf(fs,cwd,path,report.as_bytes(),1)
                     }else{ok_out(&report)}
                 }
                 "update_info" | "update_info_utf8" => {
-                    let rest = &args[op_idx + 1..];
-                    if rest.is_empty() {
-                        return err_out("Error: update_info requires a data file.\n", 1);
-                    }
-                    let info_src = &rest[0];
+                    let info_src=operands.first().map_or("-",String::as_str);
                     let txt = if info_src == "-" {
                         stdin.to_string()
                     } else {
@@ -7867,18 +7861,11 @@ fn cmd_media_doc(
                             Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
                     };
-                    write_pdftk_output(out,&rest[1..])
+                    write_pdftk_output(out)
                 }
                 "burst" => {
-                    let rest = &args[op_idx + 1..];
-                    let pat = if let Some(pos) = rest.iter().position(|x| x == "output")
-                        && pos + 1 < rest.len()
-                    {
-                        rest[pos + 1].clone()
-                    } else {
-                        "pg_%04d.pdf".to_string()
-                    };
-                    let pat_full = resolve_posix_path(cwd, &pat);
+                    let pat=output.unwrap_or("pg_%04d.pdf");
+                    let pat_full=resolve_posix_path(cwd,pat);
                     let burst_dir = pat_full
                         .rsplit_once('/')
                         .map(|(d, _)| if d.is_empty() { "/" } else { d })
@@ -7892,9 +7879,9 @@ fn cmd_media_doc(
                         }
                     };
                     let count = primary.pages.len();
-                    let start = if filename_number_spec(&pat).is_none() {count.saturating_sub(1)} else {0};
+                    let start = if filename_number_spec(pat).is_none() {count.saturating_sub(1)} else {0};
                     for idx in start..count {
-                        let Some(name) = format_printf_num(&pat,idx+1,None) else { return err_out("pdftk: filename width limit exceeded\n",1); };
+                        let Some(name) = format_printf_num(pat,idx+1,None) else { return err_out("pdftk: filename width limit exceeded\n",1); };
                         if name == "-" || resolve_posix_path(cwd,&name)==doc_data_p {continue;}
                         let bytes = if let Some(source) = &mut source {
                             let mut page = pdf_reader::PageOutput::new(limit);
@@ -7918,9 +7905,7 @@ fn cmd_media_doc(
                     write_copied_pdf(fs,cwd,&doc_data_p,format_dump(&primary,false).as_bytes(),1)
                 }
                 "attach_files" => {
-                    let rest=&args[op_idx+1..];
-                    let output=rest.iter().position(|s|s=="output").unwrap_or(rest.len());
-                    let mut operands=rest[..output].iter();
+                    let mut operands=operands.iter();
                     let mut paths=Vec::new();
                     let mut page=None;
                     while let Some(arg)=operands.next() {
@@ -7950,11 +7935,10 @@ fn cmd_media_doc(
                             Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
                     };
-                    write_pdftk_output(out,&rest[output..])
+                    write_pdftk_output(out)
                 }
                 "unpack_files" => {
-                    let rest = &args[op_idx + 1..];
-                    let directory = rest.windows(2).find(|v|v[0]=="output").map_or(".",|v|v[1].as_str());
+                    let directory=output.unwrap_or(".");
                     let clean = directory.strip_suffix('/').unwrap_or(directory);
                     let local = clean=="." || clean.is_empty();
                     let out_dir = if local {cwd.to_owned()} else {resolve_posix_path(cwd,clean)};
@@ -7988,7 +7972,7 @@ fn cmd_media_doc(
                 "stamp" | "multistamp" | "background" | "multibackground" => {
                     let is_multi = op == "multistamp" || op == "multibackground";
                     let is_stamp = op == "stamp" || op == "multistamp";
-                    let rest = &args[op_idx + 1..];
+                    let rest=&operands;
                     let mut doc = primary;
                     if !rest.is_empty() {
                         let sdoc = if rest[0] == "-" {
@@ -8021,13 +8005,10 @@ fn cmd_media_doc(
                             }
                         }
                     }
-                    let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
-                    write_pdftk_output(doc.serialize(), &rest[out_pos..])
+                    write_pdftk_output(doc.serialize())
                 }
                 "cat" | "shuffle" | "rotate" => {
-                    let rest = args.get(op_idx + 1..).unwrap_or_default();
-                    let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
-                    let specs = &rest[..out_pos];
+                    let specs=&operands;
                     let mut handle_keys: Vec<String> = handles.keys().cloned().collect();
                     handle_keys.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
 
@@ -8048,7 +8029,7 @@ fn cmd_media_doc(
                                 Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                             }
                         };
-                        return write_pdftk_output(out,&rest[out_pos..]);
+                        return write_pdftk_output(out);
                     }
                     let mut out_doc = PdfDoc::new();
                     out_doc.version = primary.version.clone();
@@ -8084,8 +8065,7 @@ fn cmd_media_doc(
                             chosen.extend(eval_spec(s));
                         }
                     }
-                    if rest[out_pos..].len() == 2
-                        && inputs.values().all(|(b,_)| !is_legacy_pdf(b))
+                    if inputs.values().all(|(b,_)| !is_legacy_pdf(b))
                     {
                         let bytes = match pdf_reader::PageOutput::assemble_pdftk(&inputs,&input_order[0],&chosen,&handles,fs.shell_limits().max_output_bytes) {
                             Ok(bytes) => bytes,
@@ -8096,7 +8076,7 @@ fn cmd_media_doc(
                                 Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                             }
                         } else {bytes};
-                        return write_pdftk_output(bytes,&rest[out_pos..]);
+                        return write_pdftk_output(bytes);
                     }
                     for (new_idx0, (hk, old_pno, rotation)) in chosen.iter().enumerate() {
                         let new_pno = new_idx0 + 1;
@@ -8115,7 +8095,7 @@ fn cmd_media_doc(
                             }
                         }
                     }
-                    write_pdftk_output(out_doc.serialize(), &rest[out_pos..])
+                    write_pdftk_output(out_doc.serialize())
                 }
                 _ => ok_out(""),
             }

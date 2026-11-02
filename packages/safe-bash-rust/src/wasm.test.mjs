@@ -4902,3 +4902,22 @@ test("pdftk output flags edit the form owner and catalog without replacing the d
     }
   } finally {rust.dispose();}
 });
+
+test("pdftk separates output options from operands and defaults to binary stdout", async () => {
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const d=PdfDocument.create(); d.addPage().drawText("first",{x:20,y:30}); d.addPage();
+  const bytes=d.save(),secret=d.save({encrypt:{userPassword:"Key",ownerPassword:"owner"}});
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true})),rust=new RustWasmBash({cwd:"/"});
+  try {
+    for(const f of [fs,rust.fs]) {await f.writeFile("/In",bytes);await f.writeFile("/Secret",secret);await f.writeFile("/Note",Buffer.from("InfoBegin\nInfoKey: Title\nInfoValue: sample\n"));}
+    for(const [cmd,target] of [["pdftk In",null],["pdftk In CaT",null],["pdftk A=In SHUFFLE OUTPUT old A2 OUTPUT Result A1","Result"],["pdftk Secret InPuT_Pw Key ROTATE 2east",null],["pdftk In UPDATE_INFO < Note",null],["pdftk In attach_files output Result Note TO_PAGE 1","Result"],["pdftk In Dump_Data OUTPUT old OUTPUT Report","Report"]]) {
+      const expected=await js.exec(cmd),r=await rust.exec(cmd);
+      assert.equal(expected.exitCode,0,expected.stderr);assert.equal(r.exitCode,0,r.stderr);
+      const a=target?await rust.fs.readFile("/"+target):r.stdoutBytes,b=target?await fs.readFile("/"+target):expected.stdoutBytes;
+      assert.ok(b.length>0);assert.ok(Buffer.from(a).equals(b),cmd);
+    }
+    await assert.rejects(rust.fs.stat("/old"),{code:"ENOENT"});
+  } finally {rust.dispose();}
+});

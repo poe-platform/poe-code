@@ -7764,7 +7764,7 @@ fn cmd_media_doc(
                         filtered.push(arg.clone());
                         if let Some(name) = tail.next() {filtered.push(name.clone());}
                     }
-                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough")=>{
+                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate")=>{
                         compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
@@ -7807,7 +7807,7 @@ fn cmd_media_doc(
                 "passthrough" => {
                     let (bytes,password) = &inputs[&input_order[0]];
                     let bytes = if !is_legacy_pdf(bytes) {
-                        let edits = pdf_reader::PageEdits {password,decrypt:true,compress_streams,..Default::default()};
+                        let edits = pdf_reader::PageEdits {password,compress_streams,..Default::default()};
                         match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
                             Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
@@ -7854,7 +7854,7 @@ fn cmd_media_doc(
                         update.apply_legacy(&mut doc);
                         doc.serialize()
                     } else {
-                        let edits=pdf_reader::PageEdits {password,decrypt:true,compress_streams,update:Some(&update),..Default::default()};
+                        let edits=pdf_reader::PageEdits {password,compress_streams,update:Some(&update),..Default::default()};
                         match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
                             Ok(bytes)=>bytes,
                             Err(e)=>return err_out(&format!("Error: {e}\n"),1),
@@ -8010,107 +8010,32 @@ fn cmd_media_doc(
                     let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
                     write_pdftk_output(doc.serialize(), &rest[out_pos..])
                 }
-                "cat" | "shuffle" => {
+                "cat" | "shuffle" | "rotate" => {
                     let rest = args.get(op_idx + 1..).unwrap_or_default();
                     let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
                     let specs = &rest[..out_pos];
                     let mut handle_keys: Vec<String> = handles.keys().cloned().collect();
                     handle_keys.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
 
-                    let eval_spec = |sp: &str| -> Vec<(String, usize, Option<pdf_reader::Rotation>)> {
-                        if let Some(d) = handles.get(sp) {
-                            return d
-                                .pages
-                                .iter()
-                                .enumerate()
-                                .map(|(idx, _)| (sp.to_string(), idx + 1, None))
-                                .collect();
+                    let eval_spec = |sp:&str| pdf_reader::pdftk_selection(sp,&handle_keys,&handles,&input_order[0]);
+                    if op=="rotate" {
+                        let mut rotations=vec![None;primary.pages.len()];
+                        for (_,n,r) in specs.iter().flat_map(|s|eval_spec(s)) {
+                            if r.is_some() && let Some(slot)=rotations.get_mut(n-1){*slot=r;}
                         }
-                        let mut s = sp;
-                        let mut doc_key = input_order[0].clone();
-                        let mut doc_ref = &primary;
-                        for hk in &handle_keys {
-                            if let Some(after) = s.strip_prefix(hk.as_str())
-                                && after
-                                    .chars()
-                                    .next()
-                                    .map(|c| c.is_ascii_digit() || after.starts_with("end") || after.starts_with("even") || after.starts_with("odd"))
-                                    .unwrap_or(true)
-                            {
-                                doc_key = hk.clone();
-                                doc_ref = handles.get(hk).unwrap_or(&primary);
-                                s = after;
-                                break;
+                        let (bytes,password)=&inputs[&input_order[0]];
+                        let out=if is_legacy_pdf(bytes) {
+                            let mut doc=primary;
+                            for (p,r) in doc.pages.iter_mut().zip(rotations){if let Some(r)=r{p.rot=r.apply(f64::from(p.rot));}}
+                            doc.serialize()
+                        }else{
+                            let edits=pdf_reader::PageEdits {password,page_rotations:&rotations,compress_streams,..Default::default()};
+                            match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
+                                Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                             }
-                        }
-                        let mut rot_mode: Option<(bool, i32)> = None;
-                        let mut filter_odd_even: Option<bool> = None;
-                        loop {
-                            let mut matched = false;
-                            for (suf, is_rel, deg) in [
-                                ("north", false, 0),
-                                ("east", false, 90),
-                                ("south", false, 180),
-                                ("west", false, 270),
-                                ("right", true, 90),
-                                ("left", true, -90),
-                                ("down", true, 180),
-                            ] {
-                                if let Some(stripped) = s.strip_suffix(suf) {
-                                    s = stripped;
-                                    rot_mode = Some((is_rel, deg));
-                                    matched = true;
-                                    break;
-                                }
-                            }
-                            if matched {
-                                continue;
-                            }
-                            if let Some(stripped) = s.strip_suffix("even") {
-                                s = stripped;
-                                filter_odd_even = Some(true);
-                                continue;
-                            }
-                            if let Some(stripped) = s.strip_suffix("odd") {
-                                s = stripped;
-                                filter_odd_even = Some(false);
-                                continue;
-                            }
-                            for (suf, is_rel, deg) in [
-                                ("N", false, 0),
-                                ("E", false, 90),
-                                ("S", false, 180),
-                                ("W", false, 270),
-                                ("R", true, 90),
-                                ("L", true, -90),
-                                ("D", true, 180),
-                            ] {
-                                if let Some(stripped) = s.strip_suffix(suf)
-                                    && !stripped.is_empty()
-                                {
-                                    s = stripped;
-                                    rot_mode = Some((is_rel, deg));
-                                    matched = true;
-                                    break;
-                                }
-                            }
-                            if !matched {
-                                break;
-                            }
-                        }
-                        let mut pnos = if s.is_empty() {
-                            (1..=doc_ref.pages.len()).collect()
-                        } else {
-                            parse_qpdf_page_spec(s, doc_ref.pages.len())
                         };
-                        if let Some( want_even ) = filter_odd_even {
-                            pnos.retain(|p| (*p % 2 == 0) == want_even);
-                        }
-                        let rotation = rot_mode.map(|(relative,degrees)| pdf_reader::Rotation {relative,degrees});
-                        pnos.into_iter().filter(|p| (1..=doc_ref.pages.len()).contains(p))
-                            .map(|p| (doc_key.clone(),p,rotation)).collect()
-                    };
-
+                        return write_pdftk_output(out,&rest[out_pos..]);
+                    }
                     let mut out_doc = PdfDoc::new();
                     out_doc.version = primary.version.clone();
                     out_doc.title = primary.title.clone();

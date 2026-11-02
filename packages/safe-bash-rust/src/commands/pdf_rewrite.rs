@@ -47,6 +47,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub decrypt: bool,
     pub linearize: bool,
     pub rotations: Vec<&'a str>,
+    pub page_rotations: &'a [Option<super::Rotation>],
     pub split_pages: Option<usize>,
     pub info: bool,
     pub metadata: bool,
@@ -129,7 +130,7 @@ pub(in super::super) fn rewrite(
         }
     }
     for (i, &id) in pages.iter().enumerate() {
-        let rotation = rotations.get(i).copied().flatten();
+        let rotation = edits.page_rotations.get(i).or_else(||rotations.get(i)).copied().flatten();
         if edits.split_pages.is_some() && rotation.is_none() {
             continue;
         }
@@ -216,7 +217,7 @@ pub(in super::super) fn rewrite(
     let decrypt = edits.decrypt && objects.security.is_some();
     let generate = !decrypt && edits.generate_object_streams && edits.split_pages.is_none();
     let mut packed = (generate && !edits.normalize_content).then(Packed::default);
-    let mut out = if decrypt && edits.update.is_none() { b"%PDF-1.7".to_vec() } else { bytes.get(..8).ok_or(INVALID)?.to_vec() };
+    let mut out = if decrypt { b"%PDF-1.7".to_vec() } else { bytes.get(..8).ok_or(INVALID)?.to_vec() };
     if generate && out.as_slice() < b"%PDF-1.5" {
         out.copy_from_slice(b"%PDF-1.5");
     }
@@ -286,7 +287,7 @@ pub(in super::super) fn rewrite(
         }
     }
     let mut trailer_entries = format!("/Root {} {} R\n", root.0, root.1).into_bytes();
-    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID").filter(|_| !decrypt || edits.update.is_some()))] {
+    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID").filter(|_| !decrypt))] {
         if let Some(v) = value {
             trailer_entries.push(b'/');
             trailer_entries.extend_from_slice(key);

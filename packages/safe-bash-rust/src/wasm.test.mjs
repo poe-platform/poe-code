@@ -4767,3 +4767,23 @@ test("pdftk update_info edits existing PDF objects and preserves unrelated metad
     }
   }finally{rust.dispose();}
 });
+
+test("pdftk rotate applies only the final matching rotation and keeps every original page",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create();doc.setTitle("Source");
+  for(const [i,r] of [0,90,180,270].entries()){const p=doc.addPage();p.setRotation(r);p.drawText("page"+i,{x:10,y:15});}
+  const small=PdfDocument.create();small.addPage();small.addPage();
+  const files={"/in":doc.save(),"/two":small.save()},fs=new MemoryFileSystem(),rust=new RustWasmBash({cwd:"/",files});
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
+  try {
+    for(const [mode,ranges] of [["rotate","X1-ENDRIGHTeven X2left Yr1east X99L"],["rotate","Ywestodd Xendright Xend"],["rotate","XrEnd-E"],["cat","Xend-r2L X1-99eVeN Yrightodd"],["shuffle","Xr2-rEndL Y99S"]]){
+      const cmd="pdftk X=in Y=two "+mode+" "+ranges+" output result";
+      for(const shell of [js,rust]){const r=await shell.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      const a=await rust.fs.readFile("/result"),b=await fs.readFile("/result");
+      assert.ok(Buffer.from(a).equals(b),cmd+" byte "+b.findIndex((v,i)=>a[i]!==v));
+    }
+  }finally{rust.dispose();}
+});

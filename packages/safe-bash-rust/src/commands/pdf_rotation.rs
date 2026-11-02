@@ -30,6 +30,113 @@ impl Rotation {
     }
 }
 
+fn rotation_suffix(s: &str) -> (&str, Option<Rotation>) {
+    for (word, short, relative, degrees) in [
+        ("north", "n", false, 0),
+        ("east", "e", false, 90),
+        ("south", "s", false, 180),
+        ("west", "w", false, 270),
+        ("right", "r", true, 90),
+        ("left", "l", true, -90),
+        ("down", "d", true, 180),
+    ] {
+        let protected = matches!(s, "end" | "rend")
+            || ["-end", "-rend", "odd", "even"]
+                .iter()
+                .any(|suffix| s.ends_with(suffix));
+        if let Some(base) = s.strip_suffix(word).or_else(|| {
+            if protected {
+                None
+            } else {
+                s.strip_suffix(short)
+            }
+        }) {
+            return (base, Some(Rotation { relative, degrees }));
+        }
+    }
+    (s, None)
+}
+
+pub(in super::super) fn pdftk_selection(
+    token: &str,
+    handles: &[String],
+    docs: &std::collections::BTreeMap<String, super::super::PdfDoc>,
+    primary: &str,
+) -> Vec<(String, usize, Option<Rotation>)> {
+    fn qualifier(s: &str) -> (&str, Option<bool>) {
+        if let Some(base) = s.strip_suffix("even") {
+            (base, Some(true))
+        } else if let Some(base) = s.strip_suffix("odd") {
+            (base, Some(false))
+        } else {
+            (s, None)
+        }
+    }
+    let token = token.trim();
+    let (handle, range) = handles
+        .iter()
+        .find_map(|key| {
+            let tail = token.strip_prefix(key)?.to_ascii_lowercase();
+            let (base, rot) = rotation_suffix(qualifier(&tail).0);
+            (tail.is_empty()
+                || tail.as_bytes()[0].is_ascii_digit()
+                || ["r", "end", "odd", "even"]
+                    .iter()
+                    .any(|s| tail.starts_with(s))
+                || (base.is_empty() && rot.is_some()))
+            .then_some((key.as_str(), tail))
+        })
+        .unwrap_or_else(|| (primary, token.to_ascii_lowercase()));
+    let count = docs[handle].pages.len();
+    if count == 0 {
+        return Vec::new();
+    }
+    let (range, outer) = qualifier(&range);
+    let (range, rotation) = rotation_suffix(range);
+    let (range, inner) = qualifier(range);
+    let endpoint = |s: &str| {
+        let s = s.trim();
+        if s == "end" {
+            return count;
+        }
+        if s == "rend" {
+            return 1;
+        }
+        let reverse = s.starts_with('r');
+        let digits = s
+            .strip_prefix('r')
+            .unwrap_or(s)
+            .trim_start()
+            .trim_start_matches('+');
+        let n = digits
+            .bytes()
+            .take_while(u8::is_ascii_digit)
+            .fold(0usize, |n, c| {
+                n.saturating_mul(10).saturating_add((c - b'0') as usize)
+            });
+        if n == 0 {
+            1
+        } else if reverse {
+            count.saturating_sub(n) + 1
+        } else {
+            count.min(n)
+        }
+    };
+    let (a, b) = if range.is_empty() {
+        (1, count)
+    } else if let Some((a, b)) = range.split_once('-') {
+        (endpoint(a), endpoint(b))
+    } else {
+        let p = endpoint(range);
+        (p, p)
+    };
+    (0..=a.abs_diff(b))
+        .map(|i| if a > b { a - i } else { a + i })
+        .filter(|i| inner.or(outer).is_none_or(|even| (*i % 2 == 0) == even))
+        .map(|p| (handle.to_owned(), p, rotation))
+        .collect()
+}
+
 struct Range {
     first: i64,
     last: i64,

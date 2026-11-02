@@ -279,6 +279,7 @@ pub(in super::super) fn rewrite(
             )?;
         }
         if let Some(mode)=edits.flatten_annotations {state.flatten_annotations(&mut objects,pages,tree,&mut changed,&mut first_new,&mut edit_limit,mode)?;}
+        if edits.normalize_content {state.normalize(&mut objects,&mut changed,&mut edit_limit)?;}
         state.finish(&mut changed, edit_limit)?;
     }
     let mut next_edit = first_new

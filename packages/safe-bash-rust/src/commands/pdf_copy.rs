@@ -136,16 +136,18 @@ impl<'a> Objects<'a> {
         }
         counts
     }
-    fn append_page_contents(&mut self,content:Option<&Value<'a>>,bytes:&mut Vec<u8>)->Option<()>{
+    fn append_page_contents(&mut self,content:Option<&Value<'a>>,bytes:&mut Vec<u8>,mut decoded:impl FnMut(ObjectId))->Option<()>{
         if let Some((owner, root, stream)) = content.and_then(|v| self.lookup_object(v)) {
             match (owner, root, stream) {
                 (Some(id), mut dict, Some(c)) => {
+                    decoded(id);
                     let raw = self.raw_stream(id, &mut dict, c)?;
                     bytes.extend_from_slice(&self.decode(&dict, raw)?);
                 }
                 (_, Value::Array(a), None) => {
                     for v in a {
                         if let Some((Some(id), mut dict, Some(c))) = self.lookup_object(&v) {
+                            decoded(id);
                             let raw = self.raw_stream(id, &mut dict, c)?;
                             bytes.extend_from_slice(&self.decode(&dict, raw)?);
                             bytes.push(b'\n');

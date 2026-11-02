@@ -5178,7 +5178,7 @@ test("qpdf flattens annotations with shared content, appearance resources and vi
   const input=doc.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
   try{
     await fs.writeFile("/in",input);
-    for(const flags of ["--flatten-annotations","--flatten-annotations=print","--flatten-annotations=screen","--flatten-rotation --flatten-annotations","--overlay in -- --flatten-annotations=all --generate-appearances","--split-pages --flatten-annotations"]){
+    for(const flags of ["--flatten-annotations","--flatten-annotations=print","--flatten-annotations=screen","--flatten-rotation --flatten-annotations","--overlay in -- --flatten-annotations=all --generate-appearances","--split-pages --flatten-annotations","--qdf --flatten-annotations","--normalize-content=y --overlay in -- --flatten-annotations"]){
       const cmd="qpdf in "+flags+" out.pdf",path=flags.includes("--split-pages")?"/out-1.pdf":"/out.pdf";
       for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
       const e=await fs.readFile(path),r=await rs.fs.readFile(path);

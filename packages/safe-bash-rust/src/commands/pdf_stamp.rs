@@ -222,12 +222,13 @@ pub(in super::super) struct LayerState<'d> {
     names: usize,
     pub(super) owners: BTreeMap<ObjectId, Dict<'d>>,
     pub(in super::super) counts: BTreeMap<ObjectId, i64>,
+    pub(super) decoded: BTreeSet<ObjectId>,
     written: BTreeMap<ObjectId, usize>,
 }
 
 impl LayerState<'_> {
     pub(super) fn content<'d>(
-        &self,
+        &mut self,
         dst: &mut Objects<'d>,
         content: Option<&Value<'d>>,
         bodies: &BTreeMap<ObjectId, Vec<u8>>,
@@ -245,7 +246,9 @@ impl LayerState<'_> {
             out.extend_from_slice(&data);
             Some(())
         } else {
-            dst.append_page_contents(content, out)
+            dst.append_page_contents(content, out, |id| {
+                self.decoded.insert(id);
+            })
         }
     }
 
@@ -299,6 +302,47 @@ impl LayerState<'_> {
         bodies.insert(stream, body);
         Ok(())
     }
+    pub(in super::super) fn normalize(
+        &self,
+        dst: &mut Objects<'_>,
+        bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
+        remaining: &mut usize,
+    ) -> Result<(), String> {
+        // Normalization affects streams decoded by an edit, including the
+        // original stream of a shared page. Leave all other payloads encoded.
+        for id in self
+            .decoded
+            .iter()
+            .filter(|id| !self.written.contains_key(*id))
+            .chain(self.written.keys())
+        {
+            let (mut dict, data) = if let Some(&start) = self.written.get(id) {
+                let body = &bodies[id];
+                let data = super::super::pdf_filters::flate(
+                    &body[start..body.len() - 10],
+                    dst.remaining_bytes,
+                )
+                .ok_or(BAD)?;
+                dst.remaining_bytes -= data.len();
+                (Value::Dict(vec![]), std::borrow::Cow::Owned(data))
+            } else {
+                let (mut dict, cursor) = dst.object(*id).ok_or(BAD)?;
+                let raw = dst.raw_stream(*id, &mut dict, cursor).ok_or(BAD)?;
+                let data = dst.decode(&dict, raw).ok_or(BAD)?;
+                (dict, data)
+            };
+            if let Value::Dict(d) = &mut dict {
+                d.retain(|(k, _)| !matches!(k.as_ref(), b"Filter" | b"Length" | b"DecodeParms"));
+            }
+            let mut body = vec![];
+            let available = *remaining + bodies.get(id).map_or(0, Vec::len);
+            write_stream(&mut body, dict, &data, None, available)?;
+            *remaining = available.checked_sub(body.len()).ok_or(LARGE)?;
+            bodies.insert(*id, body);
+        }
+        Ok(())
+    }
+
     pub(in super::super) fn finish(
         self,
         bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
@@ -376,7 +420,7 @@ impl PageSource<'_> {
             let mut renames = BTreeMap::new();
             let mut paint = Vec::new();
             if qpdf {
-                src.append_page_contents(other.get(b"Contents"), &mut paint)
+                src.append_page_contents(other.get(b"Contents"), &mut paint, |_| {})
                     .ok_or(BAD)?;
             }
             if let Some(source) = attribute(src, &self.tree, &other, b"Resources", |_, v| Some(v)) {

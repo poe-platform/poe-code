@@ -175,6 +175,7 @@ impl<'a> LayerState<'a> {
                         .or_else(|| states.first().and_then(|(_, v)| o.lookup_object(v)));
                 }
                 if let Some((Some(n), mut dict, Some(c))) = normal {
+                    self.decoded.insert(n);
                     let raw = o.raw_stream(n, &mut dict, c).ok_or(BAD)?;
                     let mut paint = o.decode(&dict, raw).ok_or(BAD)?.into_owned();
                     if !paint.is_empty() {

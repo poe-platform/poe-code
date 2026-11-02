@@ -7715,3 +7715,27 @@ test("gzip and bzip2 only pass unrecognized input through in supported force mod
     }
   } finally { rs.dispose(); }
 });
+
+test("pr timestamps stdin and merged pages from the clock and files from their mtime", async (t) => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  t.mock.method(Date, "now", () => Date.UTC(2032, 0, 1));
+  try {
+    for (const vfs of [fs, rs.fs]) {
+      await vfs.writeFile("/a", Buffer.from("one\n"));
+      await vfs.utimes("/a", 1000, 1000);
+    }
+    for (const [cmd, stamp] of [
+      ["echo data | pr --date-format=%s", "1956528000"],
+      ["echo data | SOURCE_DATE_EPOCH=0 pr --date-format=%s", "1956528000"],
+      ["pr -m --date-format=%s /a /a", "1956528000"],
+      ["pr --date-format=%s /a", "1"],
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.stdout.trimStart().split(" ")[0], stamp);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

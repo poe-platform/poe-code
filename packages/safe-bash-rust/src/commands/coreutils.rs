@@ -14491,11 +14491,12 @@ fn cmd_pr(
         }
     }
 
-    let now_ms = env
-        .get("SOURCE_DATE_EPOCH")
-        .and_then(|s| s.trim().parse::<i64>().ok())
-        .map_or(1_700_000_000_000, |sec| sec * 1000);
-    let format_pr_date = |ms: i64| -> Result<String, String> {
+    let mut sampled_clock = None;
+    let format_pr_date = |ms: f64| -> Result<String, String> {
+        if !(-8_640_000_000_000_000.0..=8_640_000_000_000_000.0).contains(&ms) {
+            return Err("pr: invalid header timestamp\n".into());
+        }
+        let ms = ms as i64;
         let epoch_sec = ms.div_euclid(1000);
         let ns = (ms.rem_euclid(1000) * 1_000_000) as u32;
         if let Some(ref df) = opts.date_format {
@@ -14531,7 +14532,7 @@ fn cmd_pr(
         };
         let mut col_reader_indices: Vec<usize> = Vec::new();
         let mut first_name = String::new();
-        let mut first_mtime_ms: Option<i64> = None;
+        let mut first_mtime_ms = None;
         for name in &group {
             if name == "-" {
                 if first_name.is_empty() {
@@ -14556,7 +14557,7 @@ fn cmd_pr(
                     Ok(b) => {
                         if first_name.is_empty() {
                             first_name = name.clone();
-                            first_mtime_ms = fs.stat(&p).ok().map(|st| st.mtime_ms as i64);
+                            first_mtime_ms = fs.stat(&p).ok().map(|st| st.mtime_ms);
                         }
                         let r_idx = shared_readers.len();
                         shared_readers.push(PrReader::new(b));
@@ -14576,11 +14577,8 @@ fn cmd_pr(
         if col_reader_indices.is_empty() {
             continue;
         }
-        let date_ms = if opts.merge {
-            now_ms
-        } else {
-            first_mtime_ms.unwrap_or(now_ms)
-        };
+        let date_ms = first_mtime_ms.filter(|_| !opts.merge)
+            .unwrap_or_else(|| *sampled_clock.get_or_insert_with(crate::vfs::now_ms));
         let date_str = match format_pr_date(date_ms) {
             Ok(s) => s,
             Err(msg) => return err_out(&msg, 1),

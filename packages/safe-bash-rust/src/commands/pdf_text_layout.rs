@@ -164,7 +164,7 @@ impl<'a> PageSource<'a> {
                 if c.0.is_empty() {
                     break;
                 }
-                let v = c.value(0, &mut self.objects.tokens)?;
+                let v = c.value(0, &mut self.objects.tokens, false)?;
                 let op = match v.word() {
                     Some(op) if !op.starts_with(b"/") && v.number().is_none() => op,
                     _ => {

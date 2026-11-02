@@ -127,7 +127,7 @@ impl<'a> Cursor<'a> {
         Some(b)
     }
 
-    fn value(&mut self, depth: usize, tokens: &mut usize) -> Option<Value<'a>> {
+    fn value(&mut self, depth: usize, tokens: &mut usize, preserve_hex: bool) -> Option<Value<'a>> {
         *tokens = tokens.checked_sub(1)?;
         if depth > 64 {
             return None;
@@ -141,7 +141,7 @@ impl<'a> Cursor<'a> {
                     return Some(Value::Dict(dict));
                 }
                 let key = self.word()?.strip_prefix(b"/")?;
-                dict.push((key, self.value(depth + 1, tokens)?));
+                dict.push((key, self.value(depth + 1, tokens, preserve_hex)?));
             }
         }
         if self.eat(b"[") {
@@ -151,7 +151,7 @@ impl<'a> Cursor<'a> {
                 if self.eat(b"]") {
                     return Some(Value::Array(arr));
                 }
-                arr.push(self.value(depth + 1, tokens)?);
+                arr.push(self.value(depth + 1, tokens, preserve_hex)?);
             }
         }
         if self.eat(b"(") {
@@ -222,8 +222,8 @@ impl<'a> Cursor<'a> {
             if let Some(h) = high {
                 bytes.push(h)
             }
-            // pdf-ast stores parsed string bytes in literal form when it rewrites a PDF.
-            return Some(Value::String { bytes, hex: false });
+            // Parsed files normalize to literal strings; generated graph edits retain their format.
+            return Some(Value::String { bytes, hex: preserve_hex });
         }
         let word = self.word()?;
         if let Some(id) = uint(word) {
@@ -281,7 +281,7 @@ fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
         if c.0.is_empty() {
             return Some(out);
         }
-        let v = c.value(0, tokens)?;
+        let v = c.value(0, tokens, false)?;
         match v.word() {
             Some(b"BT") => {
                 in_text = true;
@@ -343,6 +343,7 @@ struct Objects<'a> {
     xref: BTreeMap<ObjectId, usize>,
     tokens: usize,
     remaining_bytes: usize,
+    preserve_hex: bool,
 }
 
 impl<'a> Objects<'a> {
@@ -351,7 +352,7 @@ impl<'a> Objects<'a> {
         if (uint(c.word()?)?, uint(c.word()?)?) != id || c.word()? != b"obj" {
             return None;
         }
-        let value = c.value(0, &mut self.tokens)?;
+        let value = c.value(0, &mut self.tokens, self.preserve_hex)?;
         Some((value, c))
     }
 
@@ -472,6 +473,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         bytes,
         xref: BTreeMap::new(),
         tokens: 1_000_000,
+        preserve_hex: false,
         remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
     };
     // Revisions are ordered newest first; free entries also hide older objects.
@@ -506,7 +508,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
                 }
             }
         }
-        let trailer = c.value(0, &mut objects.tokens)?;
+        let trailer = c.value(0, &mut objects.tokens, false)?;
         if trailer.get(b"Encrypt").is_some() || trailer.get(b"XRefStm").is_some() {
             return None;
         }

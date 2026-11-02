@@ -6320,7 +6320,6 @@ fn cmd_media_doc(
             let mut force_version: Option<String> = None;
             let mut flatten_rotation = false;
             let mut overlay_specs: Vec<(bool, String, String, String, String)> = Vec::new();
-            let mut page_specs: Vec<(String, String)> = Vec::new();
             let mut collate_group: Option<usize> = None;
             let mut set_page_labels: Vec<String> = Vec::new();
             let mut edits = pdf_reader::PageEdits::default();
@@ -6329,7 +6328,7 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") && a != "--split-pages" && !a.starts_with("--split-pages=") {
+                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--pages" | "--collate" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") && a != "--split-pages" && !a.starts_with("--split-pages=") && !a.starts_with("--collate=") {
                     standard_rewrite = false;
                 }
                 if a == "--empty" {
@@ -6597,7 +6596,7 @@ fn cmd_media_doc(
                     continue;
                 }
                 if let Some(cg) = a.strip_prefix("--collate=") {
-                    collate_group = Some(cg.parse::<usize>().unwrap_or(1).max(1));
+                    collate_group = Some((qpdf_decimal(cg).unwrap_or(1.) as usize).max(1));
                     i += 1;
                     continue;
                 }
@@ -6617,20 +6616,14 @@ fn cmd_media_doc(
                         let next_is_range = j < args.len()
                             && args[j] != "--"
                             && args[j] != "."
-                            && !args[j].starts_with('-')
-                            && !args[j].to_ascii_lowercase().ends_with(".pdf")
-                            && args[j]
-                                .chars()
-                                .next()
-                                .map(|c| c.is_ascii_digit() || matches!(c, 'z' | 'r' | 'x'))
-                                .unwrap_or(false);
+                            && !args[j].ends_with(".pdf");
                         if next_is_range {
                             rng = args[j].clone();
                             i = j + 1;
                         } else {
                             i = j;
                         }
-                        page_specs.push((src_f, rng));
+                        edits.selections.push((src_f, rng));
                     }
                     if i < args.len() && args[i] == "--" {
                         i += 1;
@@ -7115,47 +7108,56 @@ fn cmd_media_doc(
                 let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
                     else {primary_arg.as_deref().and_then(read)};
                 if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
-                    if !replace_input && dst_arg != "-" && primary_arg.as_deref() == Some(dst_arg) {
-                        return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
-                    }
                     let limit = fs.shell_limits().max_output_bytes;
-                    let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                        .map_err(|e| if e == "invalid page rotation" { err_out("shell: line 1: internal error\n",1) }
-                            else {err_out(&format!("qpdf: {e}\n"),2)});
-                    if let Some(group) = edits.split_pages {
-                        let edited = edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
-                            || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
-                        let graph;
-                        let data = if edited {
-                            graph = match rewrite() { Ok(v) => v, Err(e) => return e };
-                            &graph
-                        } else { &bytes };
-                        let Some(mut source) = pdf_reader::PageSource::open(data) else {
-                            return err_out("qpdf: invalid PDF object graph\n",2);
-                        };
-                        let count = source.len();
-                        let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
-                            return err_out("shell: line 1: internal error\n",1);
-                        };
-                        let mut outputs = vec![];
-                        let mut remaining = limit;
-                        for start in (0..count).step_by(group) {
-                            let end = start.saturating_add(group).min(count);
-                            let Some(name) = format_qpdf_split_name(dst_arg,count,group,start+1,end) else {
-                                return err_out("qpdf: filename width limit exceeded\n",2);
-                            };
-                            let Some(part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,remaining) else {
-                                return err_out("qpdf: could not copy pages within output limits\n",2);
-                            };
-                            remaining -= part.len();
-                            outputs.push((name,part));
+                    let selected = if edits.selections.is_empty() { Some(bytes) } else {
+                        match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),&edits.selections,collate_group,read,&fs.shell_limits()) {
+                            Ok(bytes) => bytes,
+                            Err(e) if e == "invalid page selection" => return err_out("shell: line 1: internal error\n",1),
+                            Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
                         }
-                        for (name,part) in outputs { if let Err(e) = publish(&name,&part) { return e; } }
-                        return ok_out("");
+                    };
+                    if let Some(bytes) = selected {
+                        if !replace_input && dst_arg != "-" && primary_arg.as_deref() == Some(dst_arg) {
+                            return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
+                        }
+                        let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
+                            .map_err(|e| if e == "invalid page rotation" { err_out("shell: line 1: internal error\n",1) }
+                                else {err_out(&format!("qpdf: {e}\n"),2)});
+                        if let Some(group) = edits.split_pages {
+                            let edited = edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                                || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
+                            let graph;
+                            let data = if edited {
+                                graph = match rewrite() { Ok(v) => v, Err(e) => return e };
+                                &graph
+                            } else { &bytes };
+                            let Some(mut source) = pdf_reader::PageSource::open(data) else {
+                                return err_out("qpdf: invalid PDF object graph\n",2);
+                            };
+                            let count = source.len();
+                            let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
+                                return err_out("shell: line 1: internal error\n",1);
+                            };
+                            let mut outputs = vec![];
+                            let mut remaining = limit;
+                            for start in (0..count).step_by(group) {
+                                let end = start.saturating_add(group).min(count);
+                                let Some(name) = format_qpdf_split_name(dst_arg,count,group,start+1,end) else {
+                                    return err_out("qpdf: filename width limit exceeded\n",2);
+                                };
+                                let Some(part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,remaining) else {
+                                    return err_out("qpdf: could not copy pages within output limits\n",2);
+                                };
+                                remaining -= part.len();
+                                outputs.push((name,part));
+                            }
+                            for (name,part) in outputs { if let Err(e) = publish(&name,&part) { return e; } }
+                            return ok_out("");
+                        }
+                        let output = match rewrite() { Ok(v) => v, Err(e) => return e };
+                        if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
+                        return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
                     }
-                    let output = match rewrite() { Ok(v) => v, Err(e) => return e };
-                    if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
-                    return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
                 }
             }
 
@@ -7259,9 +7261,9 @@ fn cmd_media_doc(
                 }
             }
 
-            if !page_specs.is_empty() {
+            if !edits.selections.is_empty() {
                 let mut groups: Vec<Vec<PdfPage>> = Vec::new();
-                for (sf, rng) in &page_specs {
+                for (sf, rng) in &edits.selections {
                     let sdoc = if sf == "." {
                         doc.clone()
                     } else {

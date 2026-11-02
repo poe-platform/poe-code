@@ -40,6 +40,7 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 
 #[derive(Default)]
 pub(in super::super) struct PageEdits<'a> {
+    pub selections: Vec<(String, String)>,
     pub rotations: Vec<&'a str>,
     pub split_pages: Option<usize>,
     pub info: bool,
@@ -59,6 +60,7 @@ pub(in super::super) fn rewrite(
     limit: usize,
 ) -> Result<Vec<u8>, String> {
     let (mut objects, trailer) = index(bytes).ok_or(INVALID)?;
+    objects.preserve_hex = !edits.selections.is_empty();
     let root = trailer
         .get(b"Root")
         .and_then(Value::reference)

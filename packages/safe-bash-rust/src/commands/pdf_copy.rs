@@ -333,7 +333,7 @@ impl PageOutput {
             Some(i) => i..i.checked_add(1)?,
             None => 0..source.len(),
         };
-        self.copy_pages(source, selection, single_page.is_none(), &[])
+        self.copy_pages(source, selection, single_page.is_none(), &[], None)
     }
 
     // Office's PageRange creates a new document, with fresh metadata.
@@ -344,8 +344,113 @@ impl PageOutput {
     ) -> Option<Vec<u8>> {
         let mut doc = Self::new(limit);
         doc.bodies[2] = b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec();
-        doc.copy_pages(source, pages, false, &[])?;
+        doc.copy_pages(source, pages, false, &[], None)?;
         doc.finish()
+    }
+
+    pub(in super::super) fn select(
+        base: &[u8],
+        primary: Option<&str>,
+        specs: &[(String, String)],
+        collate: Option<usize>,
+        mut read: impl FnMut(&str) -> Option<Vec<u8>>,
+        limits: &crate::budget::ShellLimits,
+    ) -> Result<Option<Vec<u8>>, String> {
+        use std::borrow::Cow;
+        let mut inputs = BTreeMap::new();
+        let mut remaining = limits.max_input_bytes;
+        if let Some(name) = primary {
+            remaining = remaining
+                .checked_sub(base.len())
+                .ok_or("input byte limit exceeded")?;
+            inputs.insert(name, Some(Cow::Borrowed(base)));
+        }
+        let filename = |name| if name == "." { primary } else { Some(name) };
+        for (name, _) in specs {
+            if let Some(key) = filename(name)
+                && let std::collections::btree_map::Entry::Vacant(entry) = inputs.entry(key)
+            {
+                let bytes = read(key);
+                if let Some(data) = &bytes {
+                    remaining = remaining
+                        .checked_sub(data.len())
+                        .ok_or("input byte limit exceeded")?;
+                    if super::super::is_legacy_pdf(data) {
+                        return Ok(None);
+                    }
+                }
+                entry.insert(bytes.map(Cow::Owned));
+            }
+        }
+        let mut output = Self::new(limits.max_output_bytes);
+        let base_source = PageSource::open(base).ok_or("invalid PDF object graph")?;
+        output
+            .set_info(&base_source, &[b"Title", b"Author"])
+            .ok_or("invalid PDF metadata")?;
+        let mut sources = BTreeMap::new();
+        if let Some(name) = primary {
+            sources.insert(name, base_source);
+        }
+        let mut groups = Vec::new();
+        let mut available = limits.max_output_bytes / 20;
+        let batch = collate.filter(|_| specs.len() > 1);
+        for (name, range) in specs {
+            let key = filename(name).ok_or_else(|| format!("cannot open {name}"))?;
+            let source = match sources.entry(key) {
+                std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                std::collections::btree_map::Entry::Vacant(entry) => {
+                    let bytes = inputs[key]
+                        .as_deref()
+                        .ok_or_else(|| format!("cannot open {key}"))?;
+                    entry.insert(PageSource::open(bytes).ok_or("invalid page selection")?)
+                }
+            };
+            let mut indices = Vec::new();
+            super::pdf_rotation::visit_range(range, source.len(), |i| {
+                available = available.checked_sub(1)?;
+                indices.push(i);
+                Some(())
+            })
+            .ok_or("invalid page selection")?;
+            let mut seen = BTreeSet::new();
+            if batch.is_none() {
+                output
+                    .copy_pages(source, indices.iter().copied(), false, &[], Some(&mut seen))
+                    .ok_or("could not copy selected PDF pages")?;
+            } else {
+                groups.push((key, indices.into_iter(), seen));
+            }
+        }
+        if let Some(batch) = batch {
+            loop {
+                let mut progress = false;
+                for (key, indices, seen) in &mut groups {
+                    let n = batch.min(indices.len());
+                    if n == 0 {
+                        continue;
+                    }
+                    let selected = indices.as_slice()[..n].iter().copied();
+                    output
+                        .copy_pages(
+                            sources.get_mut(key).unwrap(),
+                            selected,
+                            false,
+                            &[],
+                            Some(seen),
+                        )
+                        .ok_or("could not copy selected PDF pages")?;
+                    indices.nth(n - 1);
+                    progress = true;
+                }
+                if !progress {
+                    break;
+                }
+            }
+        }
+        output
+            .finish()
+            .map(Some)
+            .ok_or_else(|| "PDF output byte limit exceeded".into())
     }
 
     pub(in super::super) fn split(
@@ -355,26 +460,32 @@ impl PageOutput {
         limit: usize,
     ) -> Option<Vec<u8>> {
         let mut output = Self::new(limit);
+        output.set_info(source, &[b"Title", b"Author", b"Subject", b"Keywords"])?;
+        output.copy_pages(source, pages, false, rotations, None)?;
+        output.finish()
+    }
+
+    fn set_info(&mut self, source: &PageSource<'_>, keys: &[&'static [u8]]) -> Option<()> {
         let mut info = vec![(
             b"Producer".as_slice(),
             super::pdf_string::encode("@poe-code/pdf-ast"),
         )];
-        for key in [b"Title".as_slice(), b"Author", b"Subject", b"Keywords"] {
+        for &key in keys {
             if let Some(value) = source.info.get(key) {
                 info.push((key, value.clone()));
             }
         }
-        super::pdf_rewrite::encode(&Value::Dict(info), &mut output.bodies[2]).ok()?;
-        output.copy_pages(source, pages, false, rotations)?;
-        output.finish()
+        super::pdf_rewrite::encode(&Value::Dict(info), &mut self.bodies[2]).ok()?;
+        Some(())
     }
 
     fn copy_pages(
         &mut self,
         source: &mut PageSource<'_>,
-        selection: std::ops::Range<usize>,
+        selection: impl Iterator<Item = usize> + Clone,
         whole_document: bool,
         rotations: &[Option<Rotation>],
+        mut materialized: Option<&mut BTreeSet<usize>>,
     ) -> Option<()> {
         let page_offset = self.pages.len();
         let mut ids = BTreeMap::new();
@@ -425,13 +536,17 @@ impl PageOutput {
                 copy.output.labels.extend_from_slice(&pair);
             }
         }
-        for i in selection {
+        for (position, i) in selection.enumerate() {
             let id = source.pages[i];
-            let page = copy.page(id, rotations.get(i).copied().flatten())?;
+            let page = copy.page(
+                id,
+                rotations.get(i).copied().flatten(),
+                materialized.as_mut().is_some_and(|seen| !seen.insert(i)),
+            )?;
             let mut body = Vec::new();
             copy.value(&page, &mut body, 0)?;
             copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
-            copy.output.bodies[copy.ids[&id] - 1] = body;
+            copy.output.bodies[copy.output.pages[page_offset + position] - 1] = body;
         }
         copy.catalog_fields(&source.catalog)?;
         Some(())
@@ -655,7 +770,12 @@ impl<'a> Copy<'_, 'a> {
         Some(())
     }
 
-    fn page(&mut self, id: ObjectId, rotation: Option<Rotation>) -> Option<Value<'a>> {
+    fn page(
+        &mut self,
+        id: ObjectId,
+        rotation: Option<Rotation>,
+        repeated: bool,
+    ) -> Option<Value<'a>> {
         let page = self.objects.object(id)?.0;
         let mut parent = page.get(b"Parent").and_then(Value::reference);
         let Value::Dict(mut entries) = page else {
@@ -703,6 +823,7 @@ impl<'a> Copy<'_, 'a> {
             }
             Some(Value::Array(numbers))
         };
+        let direct_fields = entries.len();
         let media = rectangle(
             entries
                 .iter()
@@ -744,7 +865,12 @@ impl<'a> Copy<'_, 'a> {
                     *value = dict;
                 }
             }
-            entries.push((b"Resources", Value::Dict(fields)));
+            let position = if repeated {
+                direct_fields
+            } else {
+                entries.len()
+            };
+            entries.insert(position, (b"Resources", Value::Dict(fields)));
         }
         if !entries.iter().any(|(k, _)| *k == b"Rotate") {
             let angle = angle.rem_euclid(360.);

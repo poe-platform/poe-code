@@ -3768,3 +3768,44 @@ test("qpdf splits real page objects with their resources, rotations and document
     assert.deepEqual([got.exitCode,got.stderr],[want.exitCode,want.stderr]);
   } finally {wasm.dispose();}
 });
+
+test("qpdf selects repeated and collated pages with their streams, resources, and base metadata", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosDict,cosRef,cosName,cosArray,cosNumber,cosString,cosStream,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const document=(label,tag)=>{
+    const nodes=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2),OCProperties:cosDict({OCGs:cosArray([])})}),
+      cosDict({Type:cosName("Pages"),Kids:cosArray([3,4,5].map(n=>cosRef(n))),Count:cosNumber(3),
+        MediaBox:cosArray([0,0,100,80].map(n=>cosNumber(n))),Resources:cosDict({Font:cosRef(9)})}),
+      ...[3,4,5].map(n=>cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(n+3),Peer:cosRef(4)})),
+      ...[1,2,3].map(n=>cosStream(Uint8Array.of(255,tag,0,n),{compress:true})),
+      cosDict({F1:cosRef(10)}),cosDict({Type:cosName("Font"),BaseFont:cosName("Helvetica")}),
+      cosDict({Producer:cosString("Original"),Title:cosString(label),Author:cosString("Author"),Subject:cosString("Not copied")})];
+    return serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1),infoRef:cosRef(11)});
+  };
+  const files={"/a.pdf":document("雪",14),"/b.pdf":document("Second",27),"/bad.pdf":Buffer.from("broken")};
+  const fs=new MemoryFileSystem(), wasm=new RustWasmBash({cwd:"/",files});
+  for(const [path,data] of Object.entries(files))await fs.writeFile(path,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [script,code] of [
+      ["qpdf a.pdf --pages . 2,1,2 -- result.pdf",0],
+      ["qpdf --empty --pages a.pdf z-1,x2 b.pdf r2-z -- result.pdf",0],
+      ["qpdf a.pdf --collate --pages . 2,1,2 b.pdf z-1 -- --rotate=+90:2 result.pdf",0],
+      ["qpdf a.pdf --collate=2 --pages b.pdf z-1 . 2,1,2 -- result.pdf",0],
+      ["qpdf a.pdf --pages . 1,x1 -- result.pdf",0],
+      ["cat a.pdf | qpdf --empty --pages - 1 -- result.pdf",0],
+      ["cat a.pdf | qpdf - --pages . 1 -- result.pdf",0],
+      ["qpdf a.pdf --pages bad.pdf 1 -- result.pdf",1],
+      ["qpdf a.pdf --pages . 9 -- a.pdf",1],
+      ["qpdf a.pdf --pages . 9 missing.pdf 1 -- result.pdf",1],
+      ["qpdf a.pdf --pages . 9 -- result.pdf",1],
+      ["qpdf --empty --pages . 1 -- result.pdf",2],
+      ["qpdf a.pdf --pages missing.pdf 1 -- result.pdf",2],
+    ]) {
+      const want=await js.exec(script), got=await wasm.exec(script);assert.equal(want.exitCode,code,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],script);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/result.pdf")),Buffer.from(await fs.readFile("/result.pdf")),script);
+    }
+  } finally {wasm.dispose();}
+});

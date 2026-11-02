@@ -3891,3 +3891,42 @@ test("qpdf recovers a wrong stream length and writes the recovered bytes with a 
     }
   } finally{wasm.dispose();}
 });
+
+test("qpdf reads the last row of overlapping xref subsections and stops at a visited revision", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  let body="%PDF-1.7\n";
+  const offsets=[0];
+  for(const value of ["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 10 20] >>","(earlier object)"]) {
+    offsets.push(body.length);
+    body+=offsets.length-1+" 0 obj\n"+value+"\nendobj\n";
+  }
+  const row=n=>String(n).padStart(10,"0")+" 00000 n \n";
+  const old=body.length;
+  body+="xref\n0 5\n0000000000 65535 f \n"+offsets.slice(1).map(row).join("")+
+    "trailer << /Size 5 /Root 1 0 R >>\nstartxref\n"+old+"\n%%EOF\n";
+  const newest=body.length;
+  body+="4 0 obj\n(latest object)\nendobj\n";
+  const xref=body.length;
+  const revisions="xref\n3 2\n0000000000 00000 f \n"+row(offsets[4])+"3 2\n"+row(offsets[3])+row(newest);
+  const files={
+    "/overlap.pdf":Buffer.from(body+revisions+"trailer << /Size 5 /Prev "+old+" >>\nstartxref\n"+xref+"\n%%EOF"),
+    "/deleted.pdf":Buffer.from(body+revisions+"4 1\n0000000000 00001 f \ntrailer << /Size 5 /Prev "+old+" >>\nstartxref\n"+xref+"\n%%EOF"),
+    "/visited.pdf":Buffer.from(body+"xref\n1 4\n"+[...offsets.slice(1,4),newest].map(row).join("")+
+      "trailer << /Size 5 /Root 1 0 R /Prev "+xref+" >>\nstartxref\n"+xref+"\n%%EOF")
+  };
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [path,data] of Object.entries(files)) {
+      await fs.writeFile(path,data);
+      for(const flags of ["--show-object=4","--show-pages","--check","--pages . 1 -- -"]) {
+        const script="qpdf "+path+" "+flags,want=await js.exec(script),got=await wasm.exec(script);
+        assert.equal(want.exitCode,0,want.stderr);
+        if(flags==="--show-object=4")assert.equal(want.stdout,path==="/deleted.pdf"?"null\n":"(latest object)\n");
+        assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+      }
+    }
+  } finally {wasm.dispose();}
+});

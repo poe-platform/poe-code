@@ -518,10 +518,13 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         preserve_hex: false,
         remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
     };
-    // Revisions are ordered newest first; free entries also hide older objects.
-    let mut seen = BTreeSet::new();
+    // Keep the first traversal position for inspection, but the last row
+    // in that revision determines the object's generation, offset or deletion.
+    let mut rows = BTreeMap::new();
+    let mut revisions = BTreeSet::new();
     let mut latest = Vec::new();
-    loop {
+    while revisions.insert(offset) {
+        objects.tokens = objects.tokens.checked_sub(1)?;
         let mut c = Cursor(bytes.get(offset..)?);
         if c.word()? != b"xref" {
             return None;
@@ -537,16 +540,15 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             for id in first..first.checked_add(count)? {
                 let pos = uint(c.word()?)?;
                 let generation = uint(c.word()?)?;
-                match c.word()? {
-                    b"n" => {
-                        if seen.insert(id) {
-                            objects.xref.insert((id, generation), (pos, objects.xref.len()));
-                        }
-                    }
-                    b"f" => {
-                        seen.insert(id);
-                    }
+                let location = match c.word()? {
+                    b"n" => Some((generation, pos)),
+                    b"f" => None,
                     _ => return None,
+                };
+                let order = rows.len();
+                let row = rows.entry(id).or_insert((offset, order, location));
+                if row.0 == offset {
+                    row.2 = location;
                 }
             }
         }
@@ -567,11 +569,14 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             }
         }
         match prev {
-            Some(Some(p)) if p < offset => offset = p,
+            Some(Some(p)) => offset = p,
             None => break,
             _ => return None,
         }
     }
+    objects.xref = rows.into_iter().filter_map(|(id, (_, order, location))| {
+        location.map(|(generation, pos)| ((id, generation), (pos, order)))
+    }).collect();
     Some((objects, Value::Dict(latest)))
 }
 

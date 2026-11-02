@@ -20,7 +20,7 @@ function fsOperationError(text, syscall, path, dest, detail) {
 function readOperationError(text) {
   const codeEnd = text.indexOf(":"), opEnd = text.indexOf(":", codeEnd + 1), detailEnd = text.indexOf(":", opEnd + 1);
   const op = text.slice(codeEnd + 1, opEnd);
-  return fsOperationError(text, op, op === "resolve" ? undefined : text.slice(detailEnd + 1), undefined, text.slice(opEnd + 1, detailEnd) || undefined);
+  return fsOperationError(text, op || undefined, op === "resolve" ? undefined : text.slice(detailEnd + 1), undefined, text.slice(opEnd + 1, detailEnd) || undefined);
 }
 const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 
@@ -198,9 +198,38 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
   };
 }
 
+const wasmMetadataCapabilities = Object.freeze({
+  read: true, stat: true, readdir: true, realpath: true, access: true,
+  permissions: true, readlink: true, symlinks: true,
+});
+
 export class WasmFileSystem {
   constructor(bash) {
     this.bash = bash;
+  }
+
+  get capabilities() {
+    const backing = this.bash._companion?.fs;
+    if (!backing) return wasmMetadataCapabilities;
+    return Object.freeze(Object.fromEntries(Object.keys(wasmMetadataCapabilities)
+      .map(key => [key, backing.capabilities?.[key] === true])));
+  }
+
+  async access(filePath, mode = 0, options) {
+    options?.signal?.throwIfAborted();
+    const bash = this.bash;
+    if (bash._companion) {
+      await bash._ensureCompanionSynced();
+      return bash._companion.fs.access(filePath, mode, options);
+    }
+    if (typeof filePath !== "string") throw new TypeError("Filesystem paths must be strings");
+    const path = bash._allocBytes(encoder.encode(filePath));
+    try {
+      const result = bash.exports.safe_bash_access(bash.sessionId, path.ptr, path.len,
+        Number.isInteger(mode) && mode >= 0 && mode <= 7 ? mode : 8);
+      if (result === -1) throw new Error("Wasm session unavailable");
+      if (result < 0) throw readOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, bash.exports.safe_bash_output_ptr(bash.sessionId), -result)));
+    } finally { bash._freeBytes(path); }
   }
 
   async readFile(filePath, options) {

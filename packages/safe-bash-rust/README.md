@@ -68,6 +68,8 @@ Implement `open_chunks` if a custom filesystem can stream input. Each call to th
 
 The JavaScript entry point requires Node.js to load the packaged WebAssembly binary. Use `await bash.fs.open(path, { access: "readwrite" })` for positioned I/O on memory files. Use `await bash.fs.link(existingPath, newPath)` to give a file or symlink a second name. The descriptor stays attached to the opened file after renames and unlinks; call `await descriptor.close()` to release it. Use `await bash.fs.readdir(path, { maxEntries })` for sorted `{ name, type }` entries; exceeding the limit raises `EFBIG`. The synchronous `bash.readdir(path)` returns names.
 
+Use `await bash.fs.access(path, mode)` to check existence (0), read (4), write (2), or execute/search permission (1). Combine permission bits to require all of them.
+
 Use `await bash.fs.symlink(target, path)` to create a symbolic link in an existing directory. `await bash.fs.readlink(path)` returns the stored target even if it does not exist. Both methods accept `{ signal }` and report filesystem errors such as `ENOENT` for a missing parent.
 
 Use `await bash.fs.utimes(path, atimeMs, mtimeMs)` to set access and modification times, including fractional milliseconds and dates before 1970. Read both values with `await bash.fs.stat(path)`. Memory files also expose `birthtimeMs` (creation) and `ctimeMs` (last change to the inode). Appending changes modification and status times while preserving access time.

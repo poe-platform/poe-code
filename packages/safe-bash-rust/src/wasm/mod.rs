@@ -692,6 +692,55 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_access(id: u32, ptr: *const u8, len: usize, mode: u32) -> i32 {
+    let path = unsafe { str_from_raw(ptr, len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let wrapped = sess.profile == Profile::Memory && !sess.shell.backend.provided_devices;
+    let mut op = "access";
+    let mut resolved = None;
+    let mut operand = path;
+    let result = (|| {
+        if mode > 7 && !wrapped { return Err("EINVAL: invalid argument".to_string()); }
+        if path.contains('\0') && (wrapped || sess.profile == Profile::Overlay) {
+            op = "resolve";
+            return Err("EINVAL: invalid path".into());
+        }
+        let fs = &sess.shell.fs;
+        let p = match fs.access_path(path, true) {
+            Ok(p) => p,
+            Err(e) if wrapped && e.starts_with("EACCES:") && e.contains(", lstat '") => {
+                op = "lstat";
+                return Err(e);
+            }
+            Err(e) if wrapped && (e.starts_with("ELOOP:") || e.starts_with("ENOTDIR: not a directory '")) => {
+                op = "";
+                return Err(e);
+            }
+            Err(_) if wrapped && mode > 7 => return Err("EINVAL: invalid argument".into()),
+            Err(e) => return Err(e),
+        };
+        if wrapped && matches!(p.as_str(), "/dev" | "/dev/null") { op = ""; }
+        resolved = Some(p);
+        if mode > 7 { return Err("EINVAL: invalid argument".into()); }
+        let p = resolved.as_deref().unwrap();
+        let allowed = if wrapped && p == "/dev" { 5 } else { fs.lstat(p)?.mode >> 6 };
+        if allowed & mode != mode { return Err("EACCES: permission denied".into()); }
+        Ok(())
+    })();
+    if let Err(e) = result {
+        if op == "lstat" && let Some((_, arg)) = e.split_once(", lstat '") {
+            operand = arg.strip_suffix('\'').unwrap_or(path);
+        }
+        if sess.profile == Profile::Overlay && mode > 7 {
+            resolved = Some(path.to_owned());
+        }
+        sess.read_error(&e, op, operand, resolved.as_deref(),
+            (op == "resolve").then_some("paths must be strings without NUL bytes"))
+    } else { 0 }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_stat(
     id: u32,
     path_ptr: *const u8,

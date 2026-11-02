@@ -76,6 +76,8 @@ export interface WasmFileDescriptor {
 
 export class WasmFileSystem {
   constructor(bash: RustWasmBash);
+  readonly capabilities: Readonly<Record<string, boolean | undefined>>;
+  access(path: string, mode?: number, options?: { signal?: AbortSignal }): Promise<void>;
   readFile(filePath: string, options?: { maxBytes?: number; signal?: AbortSignal }): Promise<Uint8Array>;
   writeFile(filePath: string, data: string | Uint8Array, options?: { flag?: "w" | "wx" | "a" | "ax"; mode?: number; signal?: AbortSignal }): Promise<void>;
   mkdir(dirPath: string, options?: { recursive?: boolean; mode?: number; exactMode?: boolean; signal?: AbortSignal }): Promise<void>;

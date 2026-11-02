@@ -2809,3 +2809,20 @@ test("conditional string ordering uses the locale's default case order", async (
     }
   } finally { bash.dispose(); }
 });
+
+test("the production shell can list files and check permissions on a Wasm filesystem", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
+  const wasm = new RustWasmBash({ files: { "/dir/file": { content: "data", mode: 0o400 } }, symlinks: { "/link": "/dir/file" } });
+  try {
+    const r = await shell.exec("ls /dir; [[ -r /link && ! -w /link && ! -x /link ]]", { fs: wasm.fs });
+    assert.equal(r.stderr, "");
+    assert.equal(r.stdout, "file\n");
+    assert.equal(r.exitCode, 0);
+    await assert.rejects(wasm.fs.access("/absent", 8), {code:"EINVAL", syscall:"access"});
+    await assert.rejects(wasm.fs.access("/link", 2), {code:"EACCES", syscall:"access"});
+    await assert.rejects(wasm.fs.access("/dev/null/x", 8), {code:"ENOTDIR", path:"/dev/null/x", syscall:undefined});
+    const controller = new AbortController(); controller.abort();
+    await assert.rejects(wasm.fs.access("/dir", 0, {signal:controller.signal}), {name:"AbortError"});
+  } finally { await shell.dispose(); wasm.dispose(); }
+});

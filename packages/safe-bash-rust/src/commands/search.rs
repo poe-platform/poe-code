@@ -2121,10 +2121,8 @@ fn cmd_grep(
     let mut with_filename = false;
     let mut initial_tab = false;
     let mut stdin_label: Option<String> = None;
-    let mut max_count: Option<usize> = None;
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
-    let mut multiline = false;
     let mut context_separator: Option<String> = Some("--".to_string());
     let mut globs: Vec<String> = Vec::new();
     let mut pattern_args = Vec::new();
@@ -2132,521 +2130,134 @@ fn cmd_grep(
     let mut targets = Vec::new();
     let mut help_requested = false;
 
-    let mut i = 0usize;
-    let mut end_of_opts = false;
-    while i < args.len() {
-        let a = &args[i];
-        if !end_of_opts && a == "--" {
-            end_of_opts = true;
-            i += 1;
+    let error = |message: String| BuiltinOutcome {
+        stdout: String::new(), stderr: format!("{invoked_as}: {message}\n"), exit_code: 2,
+    };
+    let number = |value: &str| value.parse::<u64>().ok()
+        .filter(|&n| n <= (1 << 53) - 1).map(|n| usize::try_from(n).unwrap_or(usize::MAX));
+    let mut color = None;
+    let mut count_arg = None;
+    let mut devices = None;
+    let mut filters = Vec::new();
+    // Production expands -NUM before parsing, even when another option consumes it.
+    let mut normalized = std::borrow::Cow::Borrowed(args);
+    for (i, arg) in args.iter().take_while(|a| a.as_str() != "--").enumerate() {
+        if let Some(digits) = arg.strip_prefix('-') && !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()) {
+            normalized.to_mut()[i] = format!("-C{digits}");
+        }
+    }
+    let mut args_iter = normalized.iter().map(String::as_str);
+    while let Some(arg) = args_iter.next() {
+        if arg == "--" {
+            targets.extend(args_iter.map(str::to_owned));
+            break;
+        }
+        if !arg.starts_with('-') || arg == "-" {
+            targets.push(arg.to_owned());
             continue;
         }
-        if !end_of_opts && a.starts_with("--") {
-            match a.as_str() {
-                "--help" => {
-                    help_requested = true;
-                }
-                "--ignore-case" => ignore_case = true,
-                "--no-ignore-case" => ignore_case = false,
-                "--invert-match" => invert = true,
-                "--count" | "--count-matches" => count_only = true,
-                "--line-number" => line_number = true,
-                "--byte-offset" => byte_offset = true,
-                "--null" => null_delim = true,
-                "--null-data" => null_data = true,
-                "--files-with-matches" => {
-                    files_with_matches = true;
-                    files_without_match = false;
-                }
-                "--files-without-match" => {
-                    files_without_match = true;
-                    files_with_matches = false;
-                }
-                "--only-matching" => only_matching = true,
-                "--word-regexp" => word_regexp = true,
-                "--line-regexp" => line_regexp = true,
-                "--fixed-strings" | "--extended-regexp" | "--perl-regexp" | "--basic-regexp" => {
-                    let new_m = match a.as_str() {
-                        "--fixed-strings" => 'F',
-                        "--extended-regexp" => 'E',
-                        "--perl-regexp" => 'P',
-                        _ => 'G',
-                    };
-                    if matcher.is_some_and(|m| m != new_m) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: conflicting matchers specified\n"),
-                            exit_code: 2,
-                        };
+        let long = arg.starts_with("--");
+        let mut rest = &arg[1..];
+        while !rest.is_empty() {
+            let (key, attached) = if long {
+                let (name, value) = arg[2..].split_once('=').map_or((&arg[2..], None), |(n,v)| (n,Some(v)));
+                let key = match name {
+                    "ignore-case" => "i", "invert-match" => "v", "count" => "c",
+                    "line-number" => "n", "byte-offset" => "b", "null" => "Z", "null-data" => "z",
+                    "files-with-matches" => "l", "files-without-match" => "L", "only-matching" => "o",
+                    "word-regexp" => "w", "line-regexp" => "x", "fixed-strings" => "F",
+                    "extended-regexp" => "E", "perl-regexp" => "P", "basic-regexp" => "G",
+                    "recursive" => "r", "dereference-recursive" => "R", "quiet" | "silent" => "q",
+                    "no-messages" => "s", "text" => "a", "no-filename" => "h", "with-filename" => "H",
+                    "initial-tab" => "T", "directories" => "d", "devices" => "D", "file" => "f",
+                    "regexp" => "e", "max-count" => "m", "after-context" => "A",
+                    "before-context" => "B", "context" => "C", "colour" => "color",
+                    "help" | "binary" | "line-buffered" | "no-group-separator" | "no-ignore-case" |
+                    "group-separator" | "label" | "exclude-from" | "exclude-dir" | "include" |
+                    "exclude" | "binary-files" | "color" => name,
+                    _ => return error(format!("unrecognized option '{arg}'")),
+                };
+                rest = "";
+                (key, value)
+            } else {
+                let (key, tail) = rest.split_at(rest.chars().next().unwrap().len_utf8());
+                rest = tail;
+                (key, None)
+            };
+            if matches!(key, "e" | "f" | "m" | "A" | "B" | "C" | "d" | "D" | "label" | "color" |
+                "include" | "exclude" | "exclude-dir" | "exclude-from" | "binary-files" | "group-separator") {
+                let Some(value) = attached.or_else(|| (!rest.is_empty()).then_some(rest)).or_else(|| args_iter.next()) else {
+                    return error(if long { format!("option '{arg}' requires an argument") }
+                        else { format!("option requires an argument -- '{key}'") });
+                };
+                match key {
+                    "e" => pattern_args.push(value.to_owned()),
+                    "f" => pattern_files.push(value.to_owned()),
+                    "m" => count_arg = Some(value),
+                    "A" | "B" | "C" => {
+                        let Some(n) = number(value) else { return error(format!("{value}: invalid context length argument")); };
+                        if key != "B" { after_ctx = n; }
+                        if key != "A" { before_ctx = n; }
                     }
-                    matcher = Some(new_m);
-                    fixed_strings = new_m == 'F';
-                    extended_regexp = matches!(new_m, 'E' | 'P');
-                }
-                "--recursive" => {
-                    recursive = true;
-                    dereference_recursive = false;
-                }
-                "--dereference-recursive" => {
-                    recursive = true;
-                    dereference_recursive = true;
-                }
-                "--quiet" | "--silent" => quiet = true,
-                "--no-messages" => no_messages = true,
-                "--text" | "--binary" | "--line-buffered" => {
-                    if a == "--text" {
-                        text = true;
-                        ignore_binary = false;
-                    }
-                }
-                "--no-filename" => {
-                    no_filename = true;
-                    with_filename = false;
-                }
-                "--with-filename" => {
-                    with_filename = true;
-                    no_filename = false;
-                }
-                "--initial-tab" => initial_tab = true,
-                "--no-group-separator" => context_separator = None,
-                "--group-separator" if i + 1 < args.len() => {
-                    i += 1;
-                    context_separator = Some(args[i].clone());
-                }
-                "--label" if i + 1 < args.len() => {
-                    i += 1;
-                    stdin_label = Some(args[i].clone());
-                }
-                "--directories" if i + 1 < args.len() => {
-                    i += 1;
-                    if !matches!(args[i].as_str(), "read" | "skip" | "recurse") {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: invalid argument '{}' for 'directories'\n", args[i]),
-                            exit_code: 2,
-                        };
-                    }
-                    if args[i] == "recurse" {
-                        recursive = true;
-                        dereference_recursive = false;
-                    } else {
-                        dir_action = Some(args[i].clone());
-                    }
-                }
-                "--devices" if i + 1 < args.len() => {
-                    i += 1;
-                    if !matches!(args[i].as_str(), "read" | "skip") {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: invalid argument '{}' for 'devices'\n", args[i]),
-                            exit_code: 2,
-                        };
-                    }
-                }
-                "--exclude-from" if i + 1 < args.len() => {
-                    i += 1;
-                    let resolved = resolve_posix_path(cwd, &args[i]);
-                    let Ok(bytes) = fs.read_file(&resolved) else {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
-                            exit_code: 2,
-                        };
-                    };
-                    for line in String::from_utf8_lossy(&bytes).lines() {
-                        let trimmed = line.trim();
-                        if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                            globs.push(format!("!{trimmed}"));
-                        }
-                    }
-                }
-                "--include" if i + 1 < args.len() => {
-                    i += 1;
-                    globs.push(args[i].clone());
-                }
-                "--exclude" | "--exclude-dir" if i + 1 < args.len() => {
-                    i += 1;
-                    globs.push(format!("!{}", args[i]));
-                }
-                "--file" if i + 1 < args.len() => {
-                    i += 1;
-                    pattern_files.push(args[i].clone());
-                }
-                "--regexp" if i + 1 < args.len() => {
-                    i += 1;
-                    pattern_args.push(args[i].clone());
-                }
-                "--max-count" if i + 1 < args.len() => {
-                    i += 1;
-                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: invalid number '{}'\n", args[i]),
-                            exit_code: 2,
-                        };
-                    }
-                    max_count = args[i].parse().ok();
-                }
-                "--after-context" | "--before-context" | "--context" if i + 1 < args.len() => {
-                    let flag_name = a.clone();
-                    i += 1;
-                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: {}: invalid context length argument\n", args[i]),
-                            exit_code: 2,
-                        };
-                    }
-                    let n = args[i].parse::<usize>().unwrap_or(0);
-                    if flag_name == "--after-context" || flag_name == "--context" {
-                        after_ctx = n;
-                    }
-                    if flag_name == "--before-context" || flag_name == "--context" {
-                        before_ctx = n;
-                    }
-                }
-                "--color" | "--colour" if i + 1 < args.len() => {
-                    i += 1;
-                    if args[i] != "never" && args[i] != "auto" {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: unsupported color mode '{}'; use never or auto (non-terminal output)\n", args[i]),
-                            exit_code: 2,
-                        };
-                    }
-                }
-                "--binary-files" if i + 1 < args.len() => {
-                    i += 1;
-                    match args[i].as_str() {
+                    "d" => { recursive = value == "recurse"; dir_action = Some(value.to_owned()); }
+                    "D" => devices = Some(value),
+                    "label" => stdin_label = Some(value.to_owned()),
+                    "group-separator" => context_separator = Some(value.to_owned()),
+                    "color" => color = Some(value),
+                    "binary-files" => match value {
                         "without-match" => ignore_binary = true,
                         "text" | "binary" => ignore_binary = false,
-                        other => {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: unsupported binary-files mode '{other}'; use text\n"),
-                                exit_code: 2,
-                            };
-                        }
-                    }
+                        _ => return error(format!("unsupported binary-files mode '{value}'; use text")),
+                    },
+                    _ => filters.push((key, value)),
                 }
-                _ => {
-                    if let Some(val) = a.strip_prefix("--max-count=") {
-                        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: invalid number '{val}'\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        max_count = val.parse().ok();
-                    } else if let Some(val) = a
-                        .strip_prefix("--after-context=")
-                        .or_else(|| a.strip_prefix("--before-context="))
-                        .or_else(|| a.strip_prefix("--context="))
-                    {
-                        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: {val}: invalid context length argument\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        let n = val.parse::<usize>().unwrap_or(0);
-                        if a.starts_with("--after-context=") || a.starts_with("--context=") {
-                            after_ctx = n;
-                        }
-                        if a.starts_with("--before-context=") || a.starts_with("--context=") {
-                            before_ctx = n;
-                        }
-                    } else if let Some(val) = a.strip_prefix("--regexp=") {
-                        pattern_args.push(val.to_string());
-                    } else if let Some(val) = a.strip_prefix("--include=") {
-                        globs.push(val.to_string());
-                    } else if let Some(val) = a.strip_prefix("--exclude=") {
-                        globs.push(format!("!{val}"));
-                    } else if let Some(val) = a.strip_prefix("--exclude-dir=") {
-                        globs.push(format!("!{val}"));
-                    } else if let Some(val) = a.strip_prefix("--exclude-from=") {
-                        let resolved = resolve_posix_path(cwd, val);
-                        let Ok(bytes) = fs.read_file(&resolved) else {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
-                                exit_code: 2,
-                            };
-                        };
-                        for line in String::from_utf8_lossy(&bytes).lines() {
-                            let trimmed = line.trim();
-                            if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                                globs.push(format!("!{trimmed}"));
-                            }
-                        }
-                    } else if let Some(val) = a.strip_prefix("--label=") {
-                        stdin_label = Some(val.to_string());
-                    } else if let Some(val) = a.strip_prefix("--directories=") {
-                        if !matches!(val, "read" | "skip" | "recurse") {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: invalid argument '{val}' for 'directories'\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        if val == "recurse" {
-                            recursive = true;
-                            dereference_recursive = false;
-                        } else {
-                            dir_action = Some(val.to_string());
-                        }
-                    } else if let Some(val) = a.strip_prefix("--devices=") {
-                        if !matches!(val, "read" | "skip") {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: invalid argument '{val}' for 'devices'\n"),
-                                exit_code: 2,
-                            };
-                        }
-                    } else if let Some(val) = a.strip_prefix("--group-separator=") {
-                        context_separator = Some(val.to_string());
-                    } else if let Some(val) = a.strip_prefix("--file=") {
-                        pattern_files.push(val.to_string());
-                    } else if let Some(val) = a.strip_prefix("--binary-files=") {
-                        match val {
-                            "without-match" => ignore_binary = true,
-                            "text" | "binary" => ignore_binary = false,
-                            other => {
-                                return BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{invoked_as}: unsupported binary-files mode '{other}'; use text\n"),
-                                    exit_code: 2,
-                                };
-                            }
-                        }
-                    } else if let Some(val) = a.strip_prefix("--color=").or_else(|| a.strip_prefix("--colour=")) {
-                        if val != "never" && val != "auto" {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: unsupported color mode '{val}'; use never or auto (non-terminal output)\n"),
-                                exit_code: 2,
-                            };
-                        }
-                    } else {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: unrecognized option '{a}'\n"),
-                            exit_code: 2,
-                        };
-                    }
-                }
+                break;
             }
-            i += 1;
-            continue;
-        }
-        if !end_of_opts && a.starts_with('-') && a.len() > 1 {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut ci = 0usize;
-            while ci < chars.len() {
-                match chars[ci] {
-                    'i' => ignore_case = true,
-                    'v' => invert = true,
-                    'c' => count_only = true,
-                    'n' => line_number = true,
-                    'b' => byte_offset = true,
-                    'Z' => null_delim = true,
-                    'z' => null_data = true,
-                    'l' => {
-                        files_with_matches = true;
-                        files_without_match = false;
-                    }
-                    'L' => {
-                        files_without_match = true;
-                        files_with_matches = false;
-                    }
-                    'o' => only_matching = true,
-                    'w' => word_regexp = true,
-                    'x' => line_regexp = true,
-                    'F' | 'E' | 'P' | 'G' => {
-                        let new_m = chars[ci];
-                        if matcher.is_some_and(|m| m != new_m) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: conflicting matchers specified\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        matcher = Some(new_m);
-                        fixed_strings = new_m == 'F';
-                        extended_regexp = matches!(new_m, 'E' | 'P');
-                    }
-                    'r' => {
-                        recursive = true;
-                        dereference_recursive = false;
-                    }
-                    'R' => {
-                        recursive = true;
-                        dereference_recursive = true;
-                    }
-                    'q' => quiet = true,
-                    's' => no_messages = true,
-                    'h' => {
-                        no_filename = true;
-                        with_filename = false;
-                    }
-                    'H' => {
-                        with_filename = true;
-                        no_filename = false;
-                    }
-                    'T' => initial_tab = true,
-                    'I' => ignore_binary = true,
-                    'a' => { text = true; ignore_binary = false; }
-                    'U' => multiline = true,
-                    'd' => {
-                        let act = if ci + 1 < chars.len() {
-                            chars[ci + 1..].iter().collect::<String>()
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: option requires an argument -- 'd'\n"),
-                                exit_code: 2,
-                            };
-                        };
-                        if !matches!(act.as_str(), "read" | "skip" | "recurse") {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: invalid argument '{act}' for 'directories'\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        if act == "recurse" {
-                            recursive = true;
-                            dereference_recursive = false;
-                        } else {
-                            dir_action = Some(act);
-                        }
-                        break;
-                    }
-                    'D' => {
-                        let act = if ci + 1 < chars.len() {
-                            chars[ci + 1..].iter().collect::<String>()
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: option requires an argument -- 'D'\n"),
-                                exit_code: 2,
-                            };
-                        };
-                        if !matches!(act.as_str(), "read" | "skip") {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: invalid argument '{act}' for 'devices'\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        break;
-                    }
-                    'e' => {
-                        let rest: String = chars[ci + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            pattern_args.push(rest);
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            pattern_args.push(args[i].clone());
-                        } else {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: option requires an argument -- 'e'\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        break;
-                    }
-                    'f' => {
-                        let file_arg = if ci + 1 < chars.len() {
-                            chars[ci + 1..].iter().collect::<String>()
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{invoked_as}: option requires an argument -- 'f'\n"),
-                                exit_code: 2,
-                            };
-                        };
-                        pattern_files.push(file_arg);
-                        break;
-                    }
-                    'm' | 'A' | 'B' | 'C' => {
-                        let flag = chars[ci];
-                        let val_str = if ci + 1 < chars.len() {
-                            chars[ci + 1..].iter().collect::<String>()
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            String::new()
-                        };
-                        if val_str.is_empty() || !val_str.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: if flag == 'm' {
-                                    format!("{invoked_as}: invalid number '{val_str}'\n")
-                                } else {
-                                    format!("{invoked_as}: {val_str}: invalid context length argument\n")
-                                },
-                                exit_code: 2,
-                            };
-                        }
-                        if let Ok(n) = val_str.parse::<usize>() {
-                            match flag {
-                                'm' => max_count = Some(n),
-                                'A' => after_ctx = n,
-                                'B' => before_ctx = n,
-                                'C' => {
-                                    before_ctx = n;
-                                    after_ctx = n;
-                                }
-                                _ => {}
-                            }
-                        }
-                        break;
-                    }
-                    d if d.is_ascii_digit() => {
-                        let mut num_str = String::new();
-                        while ci < chars.len() && chars[ci].is_ascii_digit() {
-                            num_str.push(chars[ci]);
-                            ci += 1;
-                        }
-                        if let Ok(n) = num_str.parse::<usize>() {
-                            before_ctx = n;
-                            after_ctx = n;
-                        }
-                        continue;
-                    }
-                    other => {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{invoked_as}: invalid option -- '{other}'\n"),
-                            exit_code: 2,
-                        };
-                    }
-                }
-                ci += 1;
+            if attached.is_some() {
+                return error(format!("option '{}' does not take an argument", arg.split_once('=').unwrap().0));
             }
-            i += 1;
-            continue;
+            match key {
+                "help" => help_requested = true,
+                "i" => ignore_case = true,
+                "no-ignore-case" => ignore_case = false,
+                "v" => invert = true,
+                "c" => count_only = true,
+                "n" => line_number = true,
+                "b" => byte_offset = true,
+                "Z" => null_delim = true,
+                "z" => null_data = true,
+                "l" | "L" => { files_with_matches = key == "l"; files_without_match = key == "L"; }
+                "o" => only_matching = true,
+                "w" => word_regexp = true,
+                "x" => line_regexp = true,
+                "F" | "E" | "P" | "G" => {
+                    let next = key.as_bytes()[0] as char;
+                    if !help_requested && matcher.is_some_and(|m| m != next) {
+                        return error("conflicting matchers specified".into());
+                    }
+                    matcher = Some(next);
+                    fixed_strings = next == 'F';
+                    extended_regexp = matches!(next, 'E' | 'P');
+                }
+                "r" | "R" => { recursive = true; dereference_recursive |= key == "R"; dir_action = None; }
+                "q" => quiet = true,
+                "s" => no_messages = true,
+                "a" => { text = true; ignore_binary = false; }
+                "I" => ignore_binary = true,
+                "h" | "H" => { no_filename = key == "h"; with_filename = key == "H"; }
+                "T" => initial_tab = true,
+                "no-group-separator" => context_separator = None,
+                "binary" | "line-buffered" => {}
+                _ => return error(format!("invalid option -- '{key}'")),
+            }
         }
-        targets.push(a.clone());
-        i += 1;
     }
 
     if help_requested {
         return ok_out("Usage: grep [OPTION]... PATTERN [FILE]...\nPrint lines matching PATTERN. With no FILE, or FILE -, read standard input.\n\n  -G, --basic-regexp       Use basic regular expressions (default)\n  -E, --extended-regexp    Use extended regular expressions\n  -F, --fixed-strings      Use fixed strings\n  -e, --regexp=PATTERN     Add a pattern (repeatable)\n  -f, --file=FILE          Read patterns from FILE\n  -i, --ignore-case        Ignore case distinctions\n  -v, --invert-match       Select nonmatching lines\n  -w, --word-regexp        Match whole words\n  -x, --line-regexp        Match whole lines\n  -n, --line-number        Print line numbers\n  -H, --with-filename      Print filenames\n  -h, --no-filename        Suppress filenames\n  -o, --only-matching      Print only matching parts\n  -c, --count              Print matching line counts\n  -l, --files-with-matches Print filenames with matches\n  -L, --files-without-match Print filenames without matches\n  -q, --quiet, --silent    Suppress normal output\n  -m, --max-count=NUM      Stop after NUM selected lines per file\n  -A, --after-context=NUM  Print NUM lines after selected lines\n  -B, --before-context=NUM Print NUM lines before selected lines\n  -C, --context=NUM        Print NUM lines before and after selected lines\n  -s, --no-messages        Suppress file error messages\n  -a, --text               Process input as text\n  -z, --null-data          Use NUL-delimited records\n  -b, --byte-offset        Print byte offsets (match offsets with -o)\n  -Z, --null               Follow printed filenames with NUL\n  -r, --recursive          Search directories recursively\n  -R, --dereference-recursive Follow links during recursive search\n  -d, --directories=ACTION Read, skip or recurse into directories\n  -D, --devices=ACTION     Read or skip special files\n      --include=GLOB      Search matching basenames\n      --exclude=GLOB      Skip matching basenames\n      --exclude-dir=GLOB  Skip matching directories\n      --exclude-from=FILE Read exclusion globs from FILE\n      --no-group-separator Suppress separators between context groups\n      --no-ignore-case    Use case-sensitive matching\n      --line-buffered     Accepted; output writes are already awaited\n      --color=WHEN, --colour=WHEN Accept never or auto for non-terminal output\n      --binary-files=text Treat input as text within regex executor limits\n      --binary            Preserve bytes (no Windows text-mode translation)\n      --label=LABEL       Name standard input in filename prefixes\n      --initial-tab       Insert a tab after line prefixes\n      --group-separator=SEP Use SEP between context groups\n      --help              Display this help and exit\n      --                  End options\n\nExit status: 0 when a line is selected, 1 when none is selected, 2 on error.\nRegular expression support depends on the configured regex executor.\nThe default bounded matcher rejects BRE groups, intervals, backreferences and escape extensions.\nUse extended alternation: grep -E 'Remove upvote|Upvoted'\nFor literal alternatives: grep -F -e 'Remove upvote' -e 'Upvoted'\nIf an action succeeded but filtering failed, retry only the read-only verification;\ninspect the resulting state before repeating the action.\n");
+    }
+    if let Some(mode) = color && !matches!(mode, "never" | "auto") {
+        return error(format!("unsupported color mode '{mode}'; use never or auto (non-terminal output)"));
     }
     if pattern_args.is_empty() && pattern_files.is_empty() {
         if targets.is_empty() {
@@ -2696,7 +2307,7 @@ fn cmd_grep(
             normalized = expr;
             &normalized
         };
-        let flags = RxFlags { icase: ignore_case, multiline, dotall: false };
+        let flags = RxFlags { icase: ignore_case, multiline: false, dotall: false };
         let branches = match parse_rx_branches(pat, fixed_strings, RxDialect::Rg { flags, dot_nul: text || null_data }) {
             Ok(parsed) => parsed,
             Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {message}\n"), exit_code: 2 },
@@ -2732,6 +2343,34 @@ fn cmd_grep(
         // The bounded ERE dot includes LF within a NUL-delimited record.
         for op in rx.branches.iter_mut().flat_map(|p| &mut p.ops) {
             if let RxOp::Atom(RxToken { atom: RxAtom::Any { newline, .. }, .. }) = op { *newline = true; }
+        }
+    }
+    let max_count = match count_arg {
+        Some(value) => match number(value) {
+            Some(n) => Some(n),
+            None => return error(format!("invalid number '{value}'")),
+        },
+        None => None,
+    };
+    if let Some(action) = &dir_action && !matches!(action.as_str(), "read" | "skip" | "recurse") {
+        return error(format!("invalid argument '{action}' for 'directories'"));
+    }
+    if let Some(action) = devices && !matches!(action, "read" | "skip") {
+        return error(format!("invalid argument '{action}' for 'devices'"));
+    }
+    for (key, value) in filters {
+        match key {
+            "include" => globs.push(value.to_owned()),
+            "exclude-from" => {
+                let resolved = resolve_posix_path(cwd, value);
+                let Ok(bytes) = fs.read_file(&resolved) else {
+                    return error(format!("ENOENT: no such file or directory, readStream '{resolved}'"));
+                };
+                for line in bytes.split_inclusive(|&b| b == b'\n') {
+                    globs.push(format!("!{}", String::from_utf8_lossy(line.strip_suffix(b"\n").unwrap_or(line))));
+                }
+            }
+            _ => globs.push(format!("!{value}")),
         }
     }
     run_grep_engine(
@@ -2773,7 +2412,7 @@ fn cmd_grep(
             null_data,
             json_output: false,
             replace: None,
-            multiline,
+            multiline: false,
             show_column: false,
             ignore_binary,
             max_depth: None,
@@ -4182,8 +3821,7 @@ fn run_grep_engine(
     let mut searches_with_match = 0usize;
 
     let rec_term = if cfg.null_data { '\0' } else { '\n' };
-    let multiline = cfg.multiline && (cfg.is_rg || rx.branches.iter().any(|program|
-        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, rx.ignore_case)))));
+    let multiline = cfg.multiline;
     let mut searches = 0;
     let mut bytes_searched = 0;
     let mut json_bytes_printed = 0;

@@ -7287,3 +7287,23 @@ test("grep bounded whole-word regexes report byte-sized matches inside UTF-8", a
     }
   } finally { rs.dispose(); }
 });
+
+test("grep option spelling and arguments match production for short and long forms", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const sh of [js, rs]) await sh.exec("printf 'a\\nb\\na\\n' >f");
+    for (const args of [
+      "-U a f", "--count-matches a f", "--binary a f", "--binary=yes", "--count=", "--unknown=value",
+      "--file", "--regexp", "--before-context", "--colour", "--include", "-nA", "-m", "-B", "-C",
+      "-n1 a f", "-1n a f", "-1 a f", "-A -23 a f", "-e -1 <<< -C1", "-A+1 a f", "-m0 a f", "--context=+1 a f",
+      "--max-count 9007199254740992 a f", "--regexp=a --max-count=1 f", "--regexp a --max-count 1 f",
+      "--regexp= --label=x", "-e-- -", "--help -EF", "-- -U f",
+    ]) {
+      const cmd = "grep " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdoutBytes], [a.exitCode, a.stderr, a.stdoutBytes], cmd);
+    }
+  } finally { rs.dispose(); }
+});

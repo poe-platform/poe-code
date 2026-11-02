@@ -23,6 +23,8 @@ use crate::shell::parser::{
 };
 use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_byte_len, stream_string_to_bytes};
 use std::borrow::Cow;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
@@ -35,6 +37,7 @@ pub enum EvalError {
 
 const INDEX_OUT_OF_RANGE: &str = "indexed array: index outside 0..2147483647";
 const STDIN_STREAM_FD: u32 = u32::MAX;
+type InputCursor = Rc<RefCell<String>>;
 type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -70,7 +73,7 @@ pub struct EvalState<'a> {
     pub current_line: usize,
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
-    pub in_fds: BTreeMap<u32, String>,
+    pub in_fds: BTreeMap<u32, InputCursor>,
     pub in_fd_aliases: BTreeMap<u32, u32>,
     pub rw_offsets: BTreeMap<u32, usize>,
     pub rw_last_rem: BTreeMap<u32, usize>,
@@ -512,7 +515,7 @@ impl<'a> EvalState<'a> {
     fn materialize_stdin_aliases(
         &mut self,
         default_stdin: &str,
-        saved_in: &mut Vec<(u32, Option<String>)>,
+        saved_in: &mut Vec<(u32, Option<InputCursor>)>,
     ) {
         let new_owner = self.in_fd_aliases.iter().find_map(|(&k, &v)| {
             if k != 0 && (v == STDIN_STREAM_FD || v == 0) {
@@ -529,7 +532,7 @@ impl<'a> EvalState<'a> {
                 .in_fds
                 .get(&STDIN_STREAM_FD)
                 .cloned()
-                .unwrap_or_else(|| default_stdin.to_string());
+                .unwrap_or_else(|| Rc::new(default_stdin.to_string().into()));
             self.in_fds.insert(owner, buf);
             self.in_fd_aliases.remove(&owner);
             for v in self.in_fd_aliases.values_mut() {
@@ -1058,11 +1061,6 @@ impl<'a> EvalState<'a> {
                     },
                     Err(e) => return Err(e),
                 };
-                for (k, v) in &sub.in_fds {
-                    if *k != 0 && *k != STDIN_STREAM_FD && self.in_fds.contains_key(k) {
-                        self.in_fds.insert(*k, v.clone());
-                    }
-                }
                 for (k, v) in &sub.rw_offsets {
                     if self.rw_offsets.contains_key(k) {
                         self.rw_offsets.insert(*k, *v);
@@ -1078,7 +1076,7 @@ impl<'a> EvalState<'a> {
                     && canon0 != STDIN_STREAM_FD
                     && let Some(updated) = self.in_fds.get(&canon0)
                 {
-                    *stdin = updated.clone();
+                    *stdin = updated.borrow().clone();
                 }
                 stdout.push_str(&bg_out.stdout);
                 stderr.push_str(&bg_out.stderr);
@@ -1599,7 +1597,7 @@ impl<'a> EvalState<'a> {
                 }
                 sub.run_exit_trap_if_needed(&mut out);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 self.route_outcome(&mut out);
                 self.restore_redirects(saved_fds, saved_in);
@@ -1623,7 +1621,7 @@ impl<'a> EvalState<'a> {
                 let mut out = self.eval_script(body, eff_stdin)?;
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 self.route_outcome(&mut out);
                 self.restore_redirects(saved_fds, saved_in);
@@ -1681,7 +1679,7 @@ impl<'a> EvalState<'a> {
 
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 let mut out = BuiltinOutcome {
                     stdout,
@@ -1798,7 +1796,7 @@ impl<'a> EvalState<'a> {
 
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 let mut out = BuiltinOutcome {
                     stdout,
@@ -1864,7 +1862,7 @@ impl<'a> EvalState<'a> {
                 if expanded_items.is_empty() {
                     self.leave_body_stdio(body_stdio);
                     if let Some(dfd) = dup_fd {
-                        self.in_fds.insert(dfd, local_stdin);
+                        self.in_fds.entry(dfd).or_default().replace(local_stdin);
                     }
                     self.restore_redirects(saved_fds, saved_in);
                     return Ok(BuiltinOutcome {
@@ -1992,7 +1990,7 @@ impl<'a> EvalState<'a> {
 
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 let mut out = BuiltinOutcome {
                     stdout,
@@ -2114,7 +2112,7 @@ impl<'a> EvalState<'a> {
 
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 let mut out = BuiltinOutcome {
                     stdout,
@@ -2221,7 +2219,7 @@ impl<'a> EvalState<'a> {
 
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 let mut out = BuiltinOutcome {
                     stdout,
@@ -2305,7 +2303,7 @@ impl<'a> EvalState<'a> {
 
                 self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 let mut out = BuiltinOutcome {
                     stdout,
@@ -2335,7 +2333,7 @@ impl<'a> EvalState<'a> {
                 if skip_cmd {
                     let mut out = dbg_out;
                     if let Some(dfd) = dup_fd {
-                        self.in_fds.insert(dfd, local_stdin);
+                        self.in_fds.entry(dfd).or_default().replace(local_stdin);
                     }
                     self.route_outcome(&mut out);
                     self.restore_redirects(saved_fds, saved_in);
@@ -2354,7 +2352,7 @@ impl<'a> EvalState<'a> {
                     exit_code: 0,
                 };
                 if let Some(dfd) = dup_fd {
-                    self.in_fds.insert(dfd, local_stdin);
+                    self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
                 self.route_outcome(&mut out);
                 match eval_arith_formatted(&exp, self.env) {
@@ -2450,9 +2448,9 @@ impl<'a> EvalState<'a> {
         if input.is_empty() || self.in_fds.contains_key(&0) {
             return expand(self);
         }
-        self.in_fds.insert(0, std::mem::take(input));
+        self.in_fds.insert(0, Rc::new(std::mem::take(input).into()));
         let result = expand(self);
-        *input = self.in_fds.remove(&0).unwrap_or_default();
+        *input = self.in_fds.remove(&0).unwrap_or_default().take();
         result
     }
 
@@ -3002,7 +3000,7 @@ impl<'a> EvalState<'a> {
 
         let is_double_bracket = simple.words.first().map(|s| s.as_str()) == Some("[[");
         let synced_fd0 = if !stdin.is_empty() && !self.in_fds.contains_key(&0) {
-            self.in_fds.insert(0, std::mem::take(stdin));
+            self.in_fds.insert(0, Rc::new(std::mem::take(stdin).into()));
             true
         } else {
             false
@@ -3014,14 +3012,14 @@ impl<'a> EvalState<'a> {
                     Ok(r) => r,
                     Err(e) => {
                         if synced_fd0 {
-                            *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                            *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                         }
                         return Err(e);
                     }
                 };
             if let Some(err_out) = redir_err {
                 if synced_fd0 {
-                    *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                    *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                 }
                 self.restore_redirects(saved_fds, saved_in);
                 return Ok(err_out);
@@ -3032,7 +3030,7 @@ impl<'a> EvalState<'a> {
             self.fd_table.insert(1, cmd_fd1);
             self.fd_table.insert(2, cmd_fd2);
             if synced_fd0 {
-                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
             }
             let mut out = match db_res {
                 Ok((exit_code, db_stderr)) => {
@@ -3071,7 +3069,7 @@ impl<'a> EvalState<'a> {
                 }
             };
             if let Some(dfd) = dup_fd {
-                self.in_fds.insert(dfd, local_stdin);
+                self.in_fds.entry(dfd).or_default().replace(local_stdin);
             }
             self.route_outcome(&mut out);
             self.restore_redirects(saved_fds, saved_in);
@@ -3123,7 +3121,7 @@ impl<'a> EvalState<'a> {
                             Ok((bw, _)) => bw,
                             Err(e) => {
                                 if synced_fd0 {
-                                    *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                    *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                                 }
                                 return Err(e);
                             }
@@ -3143,7 +3141,7 @@ impl<'a> EvalState<'a> {
                                     Ok(v) => v,
                                     Err(e) => {
                                         if synced_fd0 {
-                                            *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                            *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                                         }
                                         return Err(e);
                                     }
@@ -3158,7 +3156,7 @@ impl<'a> EvalState<'a> {
                                 Ok(v) => v,
                                 Err(e) => {
                                     if synced_fd0 {
-                                        *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                        *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                                     }
                                     return Err(e);
                                 }
@@ -3167,7 +3165,7 @@ impl<'a> EvalState<'a> {
                         }
                         if expanded_words.len() > self.budget.limits.max_expansion_fields {
                             if synced_fd0 {
-                                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                             }
                             return Err(EvalError::Budget(format!(
                                 "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
@@ -3181,7 +3179,7 @@ impl<'a> EvalState<'a> {
                             expanded_words.extend(fields);
                             if expanded_words.len() > self.budget.limits.max_expansion_fields {
                                 if synced_fd0 {
-                                    *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                    *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                                 }
                                 return Err(EvalError::Budget(format!(
                                     "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
@@ -3194,7 +3192,7 @@ impl<'a> EvalState<'a> {
                                 || msg.starts_with("__param_ro__") =>
                         {
                             if synced_fd0 {
-                                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                             }
                             let clean_msg = msg.strip_prefix("__param_ro__").unwrap_or(&msg);
                             let mut out = BuiltinOutcome {
@@ -3210,7 +3208,7 @@ impl<'a> EvalState<'a> {
                         }
                         Err(e) => {
                             if synced_fd0 {
-                                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
                             }
                             return Err(e);
                         }
@@ -3219,7 +3217,7 @@ impl<'a> EvalState<'a> {
             }
         }
         if synced_fd0 {
-            *stdin = self.in_fds.remove(&0).unwrap_or_default();
+            *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
         }
 
         // Handle permanent FD changes via `exec` with no command words
@@ -3413,7 +3411,7 @@ impl<'a> EvalState<'a> {
                 local_stdin.clear();
             }
             if let Some(dfd) = dup_fd {
-                self.in_fds.insert(dfd, local_stdin);
+                self.in_fds.entry(dfd).or_default().replace(local_stdin);
             }
             let mut out = BuiltinOutcome {
                 stdout: shortcut_out,
@@ -3525,7 +3523,7 @@ impl<'a> EvalState<'a> {
                 .values()
                 .any(|&v| v == STDIN_STREAM_FD)
         {
-            self.in_fds.insert(STDIN_STREAM_FD, std::mem::take(stdin));
+            self.in_fds.insert(STDIN_STREAM_FD, Rc::new(std::mem::take(stdin).into()));
             true
         } else {
             false
@@ -3536,7 +3534,7 @@ impl<'a> EvalState<'a> {
         let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, false);
         self.leave_body_stdio(body_stdio);
         if stashed_outer_stdin {
-            *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default();
+            *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default().take();
         }
         let mut out = dispatch_res?;
         if !debug_out.stdout.is_empty() || !debug_out.stderr.is_empty() {
@@ -3590,7 +3588,7 @@ impl<'a> EvalState<'a> {
         }
 
         if let Some(dfd) = dup_fd {
-            self.in_fds.insert(dfd, local_stdin);
+            self.in_fds.entry(dfd).or_default().replace(local_stdin);
         }
         self.route_outcome(&mut out);
         self.restore_redirects(saved_fds, saved_in);
@@ -4252,7 +4250,7 @@ impl<'a> EvalState<'a> {
                         {
                             let canon = self.resolve_in_fd(fd);
                             if let Some(buf) = self.in_fds.get(&canon) {
-                                return Ok(stream_string_to_bytes(buf));
+                                return Ok(stream_string_to_bytes(&buf.borrow()));
                             }
                         }
                         Err(e)
@@ -7942,9 +7940,9 @@ impl<'a> EvalState<'a> {
     fn sync_shared_stdin(&mut self, canon: u32, stdin: &mut String, from_stdin: bool) {
         if canon >= 3 && canon != STDIN_STREAM_FD && self.resolve_in_fd(0) == canon {
             if from_stdin {
-                self.in_fds.insert(canon, stdin.clone());
+                self.in_fds.entry(canon).or_default().borrow_mut().clone_from(stdin);
             } else if let Some(buf) = self.in_fds.get(&canon) {
-                *stdin = buf.clone();
+                *stdin = buf.borrow().clone();
             }
         }
     }
@@ -8229,7 +8227,7 @@ impl<'a> EvalState<'a> {
                 let raw_in = self
                     .in_fds
                     .get(&canon)
-                    .map(|s| stream_string_to_bytes(s))
+                    .map(|s| stream_string_to_bytes(&s.borrow()))
                     .unwrap_or_default();
                 let (rec, esc, term, consumed) = scan_read_stream(
                     &raw_in,
@@ -8240,7 +8238,7 @@ impl<'a> EvalState<'a> {
                     self.budget,
                 )?;
                 let remaining = bytes_to_stream_string(&raw_in[consumed..]);
-                self.in_fds.insert(canon, remaining);
+                self.in_fds.entry(canon).or_default().replace(remaining);
                 self.sync_shared_stdin(canon, stdin, false);
                 (rec, esc, term)
             }
@@ -8655,7 +8653,7 @@ impl<'a> EvalState<'a> {
                 }
                 this.in_fds
                     .get(&canon)
-                    .map(|s| stream_string_to_bytes(s))
+                    .map(|s| stream_string_to_bytes(&s.borrow()))
                     .unwrap_or_default()
             };
             if raw_in.is_empty() {
@@ -8686,7 +8684,7 @@ impl<'a> EvalState<'a> {
             if use_direct_stdin {
                 *stdin_ref = rest;
             } else {
-                this.in_fds.insert(canon, rest);
+                this.in_fds.entry(canon).or_default().replace(rest);
                 this.sync_shared_stdin(canon, stdin_ref, false);
             }
             Ok(Some(rec))
@@ -9253,7 +9251,7 @@ impl<'a> EvalState<'a> {
     ) -> Result<
         (
             SavedFds,
-            Vec<(u32, Option<String>)>,
+            Vec<(u32, Option<InputCursor>)>,
             String,
             bool,
             Option<u32>,
@@ -9288,7 +9286,7 @@ impl<'a> EvalState<'a> {
         }
         let mut saved_fd_table: Vec<(u32, Option<FdTarget>)> = Vec::new();
         let mut saved_aliases: Vec<(u32, Option<u32>)> = Vec::new();
-        let mut saved_in: Vec<(u32, Option<String>)> = Vec::new();
+        let mut saved_in: Vec<(u32, Option<InputCursor>)> = Vec::new();
         let mut local_stdin = String::new();
         let mut use_local = false;
         let mut dup_fd: Option<u32> = None;
@@ -9410,7 +9408,7 @@ impl<'a> EvalState<'a> {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                         }
-                        self.in_fds.insert(*fd, content);
+                        self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
                 }
                 RedirectKind::ReadWrite(fd) => {
@@ -9496,7 +9494,7 @@ impl<'a> EvalState<'a> {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                         }
-                        self.in_fds.insert(*fd, content);
+                        self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
                     self.fd_table.insert(
                         *fd,
@@ -9574,7 +9572,7 @@ impl<'a> EvalState<'a> {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                         }
-                        self.in_fds.insert(*fd, content);
+                        self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
                 }
                 RedirectKind::HereDoc {
@@ -9674,7 +9672,7 @@ impl<'a> EvalState<'a> {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                         }
-                        self.in_fds.insert(*fd, content);
+                        self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
                 }
                 RedirectKind::DupIn { fd, raw_move } => {
@@ -9804,7 +9802,7 @@ impl<'a> EvalState<'a> {
                                         local_stdin = self
                                             .in_fds
                                             .get(&canon)
-                                            .cloned()
+                                            .map(|s| s.borrow().clone())
                                             .unwrap_or_default();
                                         use_local = true;
                                         if move_fd && canon == src_fd {
@@ -9829,7 +9827,7 @@ impl<'a> EvalState<'a> {
                                         self.fd_table.insert(*fd, rwt);
                                     }
                                     if src_fd == 0 && use_local && dup_fd.is_none() {
-                                        self.in_fds.insert(*fd, local_stdin.clone());
+                                        self.in_fds.insert(*fd, Rc::new(local_stdin.clone().into()));
                                         self.in_fd_aliases.remove(fd);
                                         self.in_fd_aliases.insert(0, *fd);
                                         dup_fd = Some(*fd);
@@ -10358,7 +10356,7 @@ impl<'a> EvalState<'a> {
     fn restore_redirects(
         &mut self,
         saved_fds: SavedFds,
-        saved_in: Vec<(u32, Option<String>)>,
+        saved_in: Vec<(u32, Option<InputCursor>)>,
     ) {
         for (fd, prev) in saved_fds.0.into_iter().rev() {
             match prev {
@@ -10420,13 +10418,13 @@ impl<'a> EvalState<'a> {
                         self.in_fds
                             .get(&0)
                             .or_else(|| self.in_fds.get(&STDIN_STREAM_FD))
-                            .map(|s| stream_string_to_bytes(s).len())
+                            .map(|s| stream_byte_len(&s.borrow()))
                             .unwrap_or(0)
                     } else {
                         let canon = self.resolve_in_fd(*owner_fd);
                         self.in_fds
                             .get(&canon)
-                            .map(|s| stream_string_to_bytes(s).len())
+                            .map(|s| stream_byte_len(&s.borrow()))
                             .unwrap_or(0)
                     };
                     let last_rem = self.rw_last_rem.get(owner_fd).copied().unwrap_or(cur_rem);
@@ -10453,8 +10451,8 @@ impl<'a> EvalState<'a> {
                             let new_rem_str = bytes_to_stream_string(new_rem_bytes);
                             if *owner_fd != 0 {
                                 let canon = self.resolve_in_fd(*owner_fd);
-                                if self.in_fds.contains_key(&canon) {
-                                    self.in_fds.insert(canon, new_rem_str);
+                                if let Some(cursor) = self.in_fds.get(&canon) {
+                                    cursor.replace(new_rem_str);
                                 }
                             }
                             self.rw_offsets.insert(*owner_fd, end_off);
@@ -12124,7 +12122,7 @@ impl<'a> EvalState<'a> {
             sub_env.insert(rk.clone(), rv.clone());
             sub_env.remove(&format!("\0unexported__{rk}"));
         }
-        let mut sub_in = self.in_fds.remove(&0).unwrap_or_default();
+        let mut sub_in = self.in_fds.remove(&0).unwrap_or_default().take();
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.callback_line_offset = self.current_line.saturating_sub(1);
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
@@ -12146,7 +12144,7 @@ impl<'a> EvalState<'a> {
         sub.fd_table.insert(1, FdTarget::Stdout);
         let res = sub.eval_script_units(cmd_str, &mut sub_in);
         if !sub_in.is_empty() {
-            self.in_fds.insert(0, sub_in);
+            self.in_fds.insert(0, Rc::new(sub_in.into()));
         }
         self.budget.leave_recursion();
         self.budget.leave_substitution();
@@ -16183,6 +16181,24 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn foreground_children_share_input_positions_but_can_replace_their_own_descriptor() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/letters", b"abcdef").unwrap();
+        fs.write_file("/other", b"XYZ").unwrap();
+        for (child, read) in [
+            ("(head -c1 <&3)", "a"), (r#"printf '%s' "$(head -c1 <&3)""#, "a"),
+            ("head -c1 <&3 | cat", "a"), ("bash -c 'head -c1 <&3'", "a"),
+            ("(head -c1 <&3; exec 3</other; head -c1 <&3)", "aX"),
+            ("(exec 4<&3; head -c1 <&4; exec 3<&-)", "a"),
+            (r#"(read -u3 -N1 x; printf '%s' "$x")"#, "a"),
+        ] {
+            let result = shell.exec(&format!("exec 3</letters; {child}; echo :; cat <&3")).unwrap();
+            assert_eq!(result.stdout, format!("{read}:\nbcdef"), "{child}");
+            assert_eq!((result.exit_code, result.stderr.as_str()), (0, ""));
+        }
     }
 
     #[test]

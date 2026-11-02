@@ -2885,7 +2885,7 @@ fn parse_tr_character_set(
                 let parsed_repeat = if count_str.is_empty() {
                     0usize
                 } else {
-                    usize::from_str_radix(count_str, if is_octal { 8 } else { 10 }).unwrap_or(0)
+                    usize::from_str_radix(count_str, if is_octal { 8 } else { 10 }).unwrap_or(usize::MAX)
                 };
                 if parsed_repeat == 0 && repeat_length.is_none() {
                     return Err((
@@ -3079,7 +3079,7 @@ fn cmd_tr(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
         first.truncate(second.len());
     }
     if translating && second.is_empty() && !truncate_set1 {
-        return err_out("tr: when not truncating set1, string2 must be non-empty\n", 2);
+        return err_out("tr: second character set must not be empty\n", 2);
     }
 
     let mut mapping = [0u8; 256];

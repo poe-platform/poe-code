@@ -16119,6 +16119,19 @@ hash -l
     }
 
     #[test]
+    fn tr_caps_large_repeat_counts_without_confusing_them_with_indefinite_repeats() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for (args, status, stdout, stderr) in [
+            ("-d '[a*999999999999999999999999999]'", 0, "b", ""),
+            ("-s '[a*0777777777777777777777777]'", 0, "ab", ""),
+            ("a ''", 2, "", "tr: second character set must not be empty\n"),
+        ] {
+            let r = shell.exec(&format!("printf aaab | tr {args}")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, stdout, stderr));
+        }
+    }
+
+    #[test]
     fn tr_validates_arguments_before_input_and_preserves_squeeze_state_across_reads() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let data = format!("{}aabb", "a".repeat(65536));

@@ -3443,10 +3443,11 @@ impl<'a> EvalState<'a> {
             } else {
                 Vec::new()
             };
+            let input = if use_local && !has_inline_input { &mut local_stdin } else { &mut *stdin };
             let val = if is_arr_lit {
                 format!("\x00__ARRAY_LITERAL__{v}")
             } else {
-                self.expand_assignment_rhs(v)?
+                self.with_expansion_input(input, |s| s.expand_assignment_rhs(v))?
             };
             if has_existing_arr && !is_arr_lit && !k.contains('[') {
                 self.env.remove(&format!("\0keys__{base_k}"));
@@ -3462,7 +3463,7 @@ impl<'a> EvalState<'a> {
                     self.env.remove(&rk);
                 }
             }
-            match self.assign_variable(k, &val, *append) {
+            match self.with_expansion_input(input, |s| s.assign_variable(k, &val, *append)) {
                 Ok(()) => {
                     temp_saved.push((base_k.to_string(), prev_val, was_unexp, extra_prev));
                 }
@@ -16112,6 +16113,21 @@ hash -l
             crate::shell::ExecOptions { stdin: Some("abcdef".into()), ..Default::default() },
         ).unwrap();
         assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "[a]bc\ndef", ""));
+    }
+
+    #[test]
+    fn prefix_substitutions_consume_the_commands_input_before_dispatch() {
+        for (script, expected) in [
+            ("x=$(head -c1) y=$(head -c2) bash -c 'echo $x:$y; cat'; cat", "a:bc\ndef"),
+            ("printf xyz >/f; x=$(head -c1) bash -c 'echo $x; cat' </f; cat", "x\nyzabcdef"),
+            ("printf xyz >/f; exec 3</f; x=$(head -c1) bash -c 'echo $x' <&3; cat <&3; cat", "x\nyzabcdef"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec_with_options(script, crate::shell::ExecOptions {
+                stdin: Some("abcdef".into()), ..Default::default()
+            }).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+        }
     }
 
     #[test]

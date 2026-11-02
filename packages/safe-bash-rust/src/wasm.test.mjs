@@ -6501,6 +6501,12 @@ test("grep, rg, and sed choose nonoverlapping alternatives in their dialect orde
   const rs = new RustWasmBash({cwd: "/"});
   try {
     for (const [cmd, expected] of [
+      ["echo ab | grep -Eo '(a|ab)'", "ab\n"], ["echo ab | rg -o '(a|ab)'", "a\n"],
+      [String.raw`echo ab | sed -E 's/((a|ab))/<\1,\2>/'`, "<ab,ab>\n"],
+      [String.raw`echo ababx | sed -E 's/(a|ab)+x/<\1>/'`, "<ab>\n"],
+      [String.raw`echo ab | sed -E 's/a|(ab)/[\1]/'`, "[ab]\n"],
+      [String.raw`echo bc | sed -E 's/((a)|(b))(c)/<\1,\2,\3,\4>/'`, "<b,,b,c>\n"],
+      ["echo ababx | rg -o '(a|ab)+x'", "ababx\n"],
       ["echo ab | rg -o 'a|ab'", "a\n"], ["echo ab | grep -Eo 'a|ab'", "ab\n"],
       ["echo ab | rg -o -e ab -e a", "ab\n"], ["echo ab | grep -o -e a -e ab", "ab\n"],
       ["echo xaaa | rg -o 'xa|aa'", "xa\naa\n"], ["echo ab | sed -E 's/a|ab/X/'", "X\n"],

@@ -488,7 +488,7 @@ pub fn is_known_command(name: &str) -> bool {
 
 #[derive(Clone)]
 pub struct ZeroRegex {
-    branches: Vec<(Vec<RxToken>, bool)>,
+    branches: Vec<RxProgram>,
     first_pattern: String,
     ignore_case: bool,
     word_regexp: bool,
@@ -507,14 +507,11 @@ impl ZeroRegex {
         let mut branches = Vec::new();
         let mut anchored = true;
         for pat in &patterns {
-            for mut tokens in parse_rx_branches(pat, fixed_strings) {
-                anchored &= line_regexp || matches!(tokens.first().map(|t| &t.atom), Some(RxAtom::Begin));
-                if line_regexp {
-                    tokens.push(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false });
-                }
-                let backrefs = !fixed_strings && has_backref_token(&tokens);
-                branches.push((tokens, backrefs));
-            }
+            let alternatives = parse_rx_branches(pat, fixed_strings);
+            anchored &= line_regexp || alternatives.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
+            let mut program = RxProgram::new(alternatives);
+            if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false })); }
+            branches.push(program);
         }
         Self { branches, first_pattern: patterns.into_iter().next().unwrap_or_default(), ignore_case,
             word_regexp, anchored, first_match: false }
@@ -531,13 +528,9 @@ impl ZeroRegex {
         let mut pos = 0;
         let last_start = if self.anchored { 0 } else { hay.len() };
         while pos <= last_start {
-            let mut ends = self.branches.iter().filter_map(|(tokens, backrefs)| {
-                let end = if *backrefs {
-                    match_tokens_with_caps(tokens, &hay, text, pos, self.ignore_case)?.0
-                } else {
-                    match_tokens(tokens, &hay, pos, self.ignore_case)?
-                };
-                (!self.word_regexp || is_word_boundary(&hay, pos, end)).then_some(end)
+            let mut ends = self.branches.iter().filter_map(|program| {
+                program.run(&hay, pos, self.ignore_case, self.first_match, false, |end|
+                    !self.word_regexp || is_word_boundary(&hay, pos, end)).map(|m| m.pos)
             });
             if let Some(end) = if self.first_match { ends.next() } else { ends.max() } {
                 results.push((byte_at(pos), byte_at(end)));
@@ -547,15 +540,6 @@ impl ZeroRegex {
         }
         results
     }
-}
-
-fn has_unescaped_trailing_dollar(pat: &str) -> bool {
-    if !pat.ends_with('$') {
-        return false;
-    }
-    let before = &pat[..pat.len() - 1];
-    let backslashes = before.chars().rev().take_while(|&c| c == '\\').count();
-    backslashes.is_multiple_of(2)
 }
 
 fn is_word_char(c: char) -> bool {
@@ -775,12 +759,6 @@ pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> 
     })
 }
 
-fn parse_rx(pat: &str) -> Vec<RxToken> {
-    let mut alts = parse_rx_branches(pat, false);
-    if alts.len() == 1 { return alts.pop().unwrap(); }
-    vec![RxToken { atom: RxAtom::Group { alts, capturing: false }, min: 1, max: Some(1), lazy: false }]
-}
-
 fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
     if fixed {
         return vec![pat
@@ -989,607 +967,364 @@ fn parse_quantifier(chars: &[char]) -> Option<(usize, Option<usize>, usize)> {
     }
 }
 
-fn has_backref_token(tokens: &[RxToken]) -> bool {
-    tokens.iter().any(|t| match &t.atom {
-        RxAtom::Backref(_) => true,
-        RxAtom::Group { alts, .. } => alts.iter().any(|a| has_backref_token(a)),
-        _ => false,
-    })
-}
-
-fn match_tokens(
-    tokens: &[RxToken],
-    hay: &[(usize, char)],
-    pos: usize,
-    ignore_case: bool,
-) -> Option<usize> {
-    if tokens.is_empty() {
-        return Some(pos);
-    }
-    let tok = &tokens[0];
-    let rest = &tokens[1..];
-
-    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
-        if ok {
-            return match_tokens(rest, hay, pos, ignore_case);
-        }
-        return None;
-    }
-    if let RxAtom::Group { alts, .. } = &tok.atom
-        && tok.min == 1
-        && tok.max == Some(1)
-    {
-        for sub_tokens in alts {
-            for end_pos in match_tokens_candidates(sub_tokens, hay, pos, ignore_case) {
-                if let Some(final_pos) = match_tokens(rest, hay, end_pos, ignore_case) {
-                    return Some(final_pos);
-                }
-            }
-        }
-        return None;
-    }
-
-    let mut positions = vec![pos];
-    let mut count = 0usize;
-    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
-
-    while count < max_limit {
-        let cur_pos = *positions.last().unwrap();
-        if let Some(next_pos) = match_single_atom(&tok.atom, hay, cur_pos, ignore_case) {
-            if next_pos == cur_pos && count >= tok.min {
-                break;
-            }
-            positions.push(next_pos);
-            count += 1;
-        } else {
-            break;
-        }
-    }
-
-    if positions.len() - 1 < tok.min {
-        return None;
-    }
-
-    if tok.lazy {
-        for &step_pos in &positions[tok.min..positions.len()] {
-            if let Some(final_pos) = match_tokens(rest, hay, step_pos, ignore_case) {
-                return Some(final_pos);
-            }
-        }
-    } else {
-        for idx in (tok.min..positions.len()).rev() {
-            if let Some(final_pos) = match_tokens(rest, hay, positions[idx], ignore_case) {
-                return Some(final_pos);
-            }
-        }
-    }
-    None
-}
-
-fn match_tokens_candidates(
-    tokens: &[RxToken],
-    hay: &[(usize, char)],
-    pos: usize,
-    ignore_case: bool,
-) -> Vec<usize> {
-    if tokens.is_empty() {
-        return vec![pos];
-    }
-    let tok = &tokens[0];
-    let rest = &tokens[1..];
-    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
-        if ok {
-            return match_tokens_candidates(rest, hay, pos, ignore_case);
-        }
-        return Vec::new();
-    }
-    if let RxAtom::Group { alts, .. } = &tok.atom
-        && tok.min == 1
-        && tok.max == Some(1)
-    {
-        let mut out = Vec::new();
-        for sub_tokens in alts {
-            for end_pos in match_tokens_candidates(sub_tokens, hay, pos, ignore_case) {
-                out.extend(match_tokens_candidates(rest, hay, end_pos, ignore_case));
-            }
-        }
-        return out;
-    }
-    let mut positions = vec![pos];
-    let mut count = 0usize;
-    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
-    while count < max_limit {
-        let cur_pos = *positions.last().unwrap();
-        if let Some(next_pos) = match_single_atom(&tok.atom, hay, cur_pos, ignore_case) {
-            if next_pos == cur_pos && count >= tok.min {
-                break;
-            }
-            positions.push(next_pos);
-            count += 1;
-        } else {
-            break;
-        }
-    }
-    if positions.len() - 1 < tok.min {
-        return Vec::new();
-    }
-    let mut out = Vec::new();
-    for idx in (tok.min..positions.len()).rev() {
-        out.extend(match_tokens_candidates(rest, hay, positions[idx], ignore_case));
-    }
-    out
-}
-
-fn match_single_atom(
-    atom: &RxAtom,
-    hay: &[(usize, char)],
-    pos: usize,
-    ignore_case: bool,
-) -> Option<usize> {
+fn matches_char(atom: &RxAtom, ch: char, ignore_case: bool) -> bool {
     match atom {
-        RxAtom::Group { alts, .. } => {
-            for sub_tokens in alts {
-                if let Some(end) = match_tokens(sub_tokens, hay, pos, ignore_case) {
-                    return Some(end);
+        RxAtom::Any => ch != '\n',
+        RxAtom::Char(expected) => {
+            if ignore_case {
+                ch.to_ascii_lowercase() == expected.to_ascii_lowercase()
+            } else {
+                ch == *expected
+            }
+        }
+        RxAtom::Digit(inv) => ch.is_ascii_digit() ^ inv,
+        RxAtom::Word(inv) => is_word_char(ch) ^ inv,
+        RxAtom::Space(inv) => ch.is_ascii_whitespace() ^ inv,
+        RxAtom::Class { negate, chars } => {
+            let inside = chars.iter().any(|&(s, e)| {
+                let range = s..=e;
+                range.contains(&ch)
+                    || ignore_case
+                        && (range.contains(&ch.to_ascii_lowercase())
+                            || range.contains(&ch.to_ascii_uppercase()))
+            });
+            inside ^ negate
+        }
+        RxAtom::Group { .. }
+        | RxAtom::Backref(_)
+        | RxAtom::Begin
+        | RxAtom::End
+        | RxAtom::WordBoundary
+        | RxAtom::WordStart
+        | RxAtom::WordEnd => false,
+    }
+}
+
+#[derive(Clone)]
+enum RxOp {
+    Atom(RxToken),
+    Split(usize),
+    Jump(usize),
+    Open {
+        slot: usize,
+        until: usize,
+    },
+    Close(usize),
+    Enter,
+    Repeat {
+        min: usize,
+        max: Option<usize>,
+        lazy: bool,
+        after: usize,
+    },
+    Again(usize),
+}
+
+#[derive(Clone)]
+struct RxProgram {
+    ops: Vec<RxOp>,
+    groups: usize,
+    backrefs: bool,
+}
+
+#[derive(Clone)]
+struct RxMatch {
+    pc: usize,
+    pos: usize,
+    caps: Vec<Option<(usize, usize)>>,
+    repeats: Vec<(usize, usize)>,
+}
+
+impl RxProgram {
+    fn new(alts: Vec<Vec<RxToken>>) -> Self {
+        let mut program = Self {
+            ops: Vec::new(),
+            groups: 0,
+            backrefs: false,
+        };
+        program.compile(alts);
+        program
+    }
+
+    fn compile(&mut self, alts: Vec<Vec<RxToken>>) {
+        let mut exits = Vec::new();
+        let n = alts.len();
+        for (index, seq) in alts.into_iter().enumerate() {
+            let split = self.ops.len();
+            if index + 1 < n {
+                self.ops.push(RxOp::Split(0));
+            }
+            for tok in seq {
+                let RxAtom::Group { alts, capturing } = tok.atom else {
+                    self.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
+                    self.ops.push(RxOp::Atom(tok));
+                    continue;
+                };
+                let repeated = tok.min != 1 || tok.max != Some(1);
+                let repeat = self.ops.len() + 1;
+                if repeated {
+                    self.ops.push(RxOp::Enter);
+                    self.ops.push(RxOp::Repeat {
+                        min: tok.min,
+                        max: tok.max,
+                        lazy: tok.lazy,
+                        after: 0,
+                    });
+                }
+                let slot = self.groups;
+                let open = self.ops.len();
+                if capturing {
+                    self.groups += 1;
+                    self.ops.push(RxOp::Open {
+                        slot,
+                        until: slot + 1,
+                    });
+                }
+                self.compile(alts);
+                if capturing {
+                    self.ops[open] = RxOp::Open {
+                        slot,
+                        until: self.groups,
+                    };
+                    self.ops.push(RxOp::Close(slot));
+                }
+                if repeated {
+                    self.ops.push(RxOp::Again(repeat));
+                    self.ops[repeat] = RxOp::Repeat {
+                        min: tok.min,
+                        max: tok.max,
+                        lazy: tok.lazy,
+                        after: self.ops.len(),
+                    };
                 }
             }
-            None
-        }
-        _ => {
-            if pos >= hay.len() {
-                return None;
+            if index + 1 < n {
+                exits.push(self.ops.len());
+                self.ops.push(RxOp::Jump(0));
+                self.ops[split] = RxOp::Split(self.ops.len());
             }
-            let ch = hay[pos].1;
-            let matched = match atom {
-                RxAtom::Any => ch != '\n',
-                RxAtom::Char(expected) => {
-                    if ignore_case {
-                        ch.to_ascii_lowercase() == expected.to_ascii_lowercase()
-                    } else {
-                        ch == *expected
+        }
+        for jump in exits {
+            self.ops[jump] = RxOp::Jump(self.ops.len());
+        }
+    }
+
+    fn run(
+        &self,
+        hay: &[(usize, char)],
+        start: usize,
+        icase: bool,
+        first: bool,
+        capture: bool,
+        accept: impl Fn(usize) -> bool,
+    ) -> Option<RxMatch> {
+        let mut state = RxMatch {
+            pc: 0,
+            pos: start,
+            caps: vec![
+                None;
+                if capture || self.backrefs {
+                    self.groups
+                } else {
+                    0
+                }
+            ],
+            repeats: Vec::new(),
+        };
+        let mut pending = Vec::new();
+        let mut seen = std::collections::HashSet::new();
+        let mut best: Option<RxMatch> = None;
+        loop {
+            loop {
+                let Some(op) = self.ops.get(state.pc) else {
+                    if accept(state.pos) && best.as_ref().is_none_or(|m| m.pos < state.pos) {
+                        if first || state.pos == hay.len() {
+                            return Some(state);
+                        }
+                        best = Some(state);
+                    }
+                    break;
+                };
+                state.pc += 1;
+                match op {
+                    RxOp::Jump(dest) => state.pc = *dest,
+                    RxOp::Open { slot, until } if !state.caps.is_empty() => {
+                        state.caps[*slot..*until].fill(None);
+                        state.caps[*slot] = Some((state.pos, state.pos));
+                    }
+                    RxOp::Close(slot) if !state.caps.is_empty() => {
+                        state.caps[*slot].as_mut().unwrap().1 = state.pos;
+                    }
+                    RxOp::Open { .. } | RxOp::Close(_) => {}
+                    RxOp::Enter => state.repeats.push((0, state.pos)),
+                    RxOp::Again(head) => {
+                        let RxOp::Repeat {
+                            min, max, after, ..
+                        } = self.ops[*head]
+                        else {
+                            unreachable!()
+                        };
+                        let (count, from) = state.repeats.last_mut().unwrap();
+                        if state.pos == *from {
+                            // An empty optional iteration must not replace the last capture.
+                            if *count >= min {
+                                break;
+                            }
+                            *count = min;
+                        } else if max.is_some() || *count < min {
+                            *count += 1;
+                        }
+                        if Some(*count) == max {
+                            state.repeats.pop();
+                            state.pc = after;
+                        } else {
+                            *from = state.pos;
+                            state.pc = *head;
+                        }
+                    }
+                    RxOp::Split(_) | RxOp::Repeat { .. } => {
+                        // At the same instruction only backreferences can distinguish paths
+                        // by their captures. Keep the first path for equal-length ties.
+                        if !seen.insert((
+                            state.pc,
+                            state.pos,
+                            state.repeats.clone(),
+                            if self.backrefs {
+                                state.caps.clone()
+                            } else {
+                                Vec::new()
+                            },
+                        )) {
+                            break;
+                        }
+                        match op {
+                            RxOp::Split(next) => pending.push(RxMatch {
+                                pc: *next,
+                                ..state.clone()
+                            }),
+                            RxOp::Repeat {
+                                min,
+                                max,
+                                lazy,
+                                after,
+                            } => {
+                                let count = state.repeats.last().unwrap().0;
+                                if Some(count) == *max {
+                                    state.repeats.pop();
+                                    state.pc = *after;
+                                } else if count >= *min {
+                                    let mut exit = state.clone();
+                                    exit.repeats.pop();
+                                    exit.pc = *after;
+                                    if *lazy {
+                                        std::mem::swap(&mut state, &mut exit);
+                                    }
+                                    pending.push(exit);
+                                }
+                            }
+                            _ => unreachable!(),
+                        }
+                    }
+                    RxOp::Atom(tok) => {
+                        if let Some(ok) = check_boundary_atom(&tok.atom, hay, state.pos) {
+                            if !ok {
+                                break;
+                            }
+                            continue;
+                        }
+                        let reference = if let RxAtom::Backref(i) = tok.atom {
+                            match state.caps.get(i).copied().flatten() {
+                                Some((lo, hi)) if lo == hi => continue,
+                                Some(range) => Some(range),
+                                None if tok.min == 0 => continue,
+                                None => break,
+                            }
+                        } else {
+                            None
+                        };
+                        let width = reference.map_or(1, |(lo, hi)| hi - lo);
+                        let mut end = state.pos;
+                        let limit = tok.max.unwrap_or(usize::MAX).min((hay.len() - end) / width);
+                        for _ in 0..limit {
+                            let ok = if let Some((lo, hi)) = reference {
+                                hay[lo..hi].iter().zip(&hay[end..end + width]).all(
+                                    |(&(_, a), &(_, b))| {
+                                        a == b || icase && a.eq_ignore_ascii_case(&b)
+                                    },
+                                )
+                            } else {
+                                matches_char(&tok.atom, hay[end].1, icase)
+                            };
+                            if !ok {
+                                break;
+                            }
+                            end += width;
+                        }
+                        if (end - state.pos) / width < tok.min {
+                            break;
+                        }
+                        let low = state.pos + tok.min * width;
+                        if tok.lazy && first {
+                            for n in (1..=(end - low) / width).rev() {
+                                let pos = low + n * width;
+                                pending.push(RxMatch {
+                                    pos,
+                                    ..state.clone()
+                                });
+                            }
+                            state.pos = low;
+                        } else {
+                            if state.pc != self.ops.len() || !accept(end) {
+                                for pos in (low..end).step_by(width) {
+                                    pending.push(RxMatch {
+                                        pos,
+                                        ..state.clone()
+                                    });
+                                }
+                            }
+                            state.pos = end;
+                        }
                     }
                 }
-                RxAtom::Digit(inv) => ch.is_ascii_digit() ^ inv,
-                RxAtom::Word(inv) => is_word_char(ch) ^ inv,
-                RxAtom::Space(inv) => ch.is_ascii_whitespace() ^ inv,
-                RxAtom::Class { negate, chars } => {
-                    let inside = chars.iter().any(|&(s, e)| {
-                        let range = s..=e;
-                        range.contains(&ch) || ignore_case &&
-                            (range.contains(&ch.to_ascii_lowercase()) || range.contains(&ch.to_ascii_uppercase()))
-                    });
-                    inside ^ negate
-                }
-                RxAtom::Group { .. }
-                | RxAtom::Backref(_)
-                | RxAtom::Begin
-                | RxAtom::End
-                | RxAtom::WordBoundary
-                | RxAtom::WordStart
-                | RxAtom::WordEnd => false,
-            };
-            if matched { Some(pos + 1) } else { None }
+            }
+            match pending.pop() {
+                Some(next) => state = next,
+                None => return best,
+            }
         }
     }
 }
 
 pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
-    let hay: Vec<(usize, char)> = text.char_indices().collect();
-    let anchored_start = pat.starts_with('^');
-    let tokens = parse_rx(pat);
-
-    let start_positions: Vec<usize> = if anchored_start {
-        vec![0]
-    } else {
-        (0..=hay.len()).collect()
-    };
-
-    for start_pos in start_positions {
-        if let Some((end_pos, caps)) =
-            match_tokens_with_caps(&tokens, &hay, text, start_pos, ignore_case)
-        {
-            let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
-            let mut res = Vec::with_capacity(caps.len() + 1);
-            res.push(text[byte_at(start_pos)..byte_at(end_pos)].to_string());
-            res.extend(caps);
-            return Some(res);
+    let program = RxProgram::new(parse_rx_branches(pat, false));
+    let hay: Vec<_> = text.char_indices().collect();
+    let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
+    for start in 0..=hay.len() {
+        if let Some(m) = program.run(&hay, start, ignore_case, true, true, |_| true) {
+            return Some(
+                std::iter::once(Some((start, m.pos)))
+                    .chain(m.caps)
+                    .map(|cap| {
+                        cap.map_or_else(String::new, |(lo, hi)| text[byte(lo)..byte(hi)].to_owned())
+                    })
+                    .collect(),
+            );
         }
     }
     None
-}
-
-fn count_atom_capturing_groups(atom: &RxAtom) -> usize {
-    match atom {
-        RxAtom::Group { alts, capturing } => {
-            let inner = alts
-                .first()
-                .map(|a| {
-                    a.iter()
-                        .map(|t| count_atom_capturing_groups(&t.atom))
-                        .sum::<usize>()
-                })
-                .unwrap_or(0);
-            (if *capturing { 1 } else { 0 }) + inner
-        }
-        _ => 0,
-    }
 }
 
 pub fn regex_capture_spans_in_hay(
     pat: &str,
     hay: &[(usize, char)],
-    start_pos: usize,
-    target_end_pos: usize,
+    start: usize,
+    end: usize,
     ignore_case: bool,
 ) -> Vec<Option<(usize, usize)>> {
-    let tokens = parse_rx(pat);
-    for (end_pos, spans) in match_tokens_span_candidates(&tokens, hay, start_pos, ignore_case) {
-        if end_pos == target_end_pos {
-            return spans;
-        }
-    }
-    let total_groups: usize = tokens
-        .iter()
-        .map(|t| count_atom_capturing_groups(&t.atom))
-        .sum();
-    vec![None; total_groups]
-}
-
-fn match_tokens_span_candidates(
-    tokens: &[RxToken],
-    hay: &[(usize, char)],
-    pos: usize,
-    ignore_case: bool,
-) -> Vec<(usize, Vec<Option<(usize, usize)>>)> {
-    if tokens.is_empty() {
-        return vec![(pos, Vec::new())];
-    }
-    let tok = &tokens[0];
-    let rest = &tokens[1..];
-    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
-        if ok {
-            return match_tokens_span_candidates(rest, hay, pos, ignore_case);
-        }
-        return Vec::new();
-    }
-    if let RxAtom::Group { alts, capturing } = &tok.atom
-        && tok.min == 1
-        && tok.max == Some(1)
-    {
-        let mut out = Vec::new();
-        for sub_tokens in alts {
-            for (end_pos, sub_spans) in
-                match_tokens_span_candidates(sub_tokens, hay, pos, ignore_case)
-            {
-                let mut grp_spans = if *capturing {
-                    vec![Some((pos, end_pos))]
-                } else {
-                    Vec::new()
-                };
-                grp_spans.extend(sub_spans);
-                for (final_pos, rest_spans) in
-                    match_tokens_span_candidates(rest, hay, end_pos, ignore_case)
-                {
-                    let mut combined = grp_spans.clone();
-                    combined.extend(rest_spans);
-                    out.push((final_pos, combined));
-                }
-            }
-        }
-        return out;
-    }
-    let unmatched_groups = count_atom_capturing_groups(&tok.atom);
-    let mut steps: Vec<(usize, Vec<Option<(usize, usize)>>)> =
-        vec![(pos, vec![None; unmatched_groups])];
-    let mut count = 0usize;
-    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
-    while count < max_limit {
-        let cur_pos = steps.last().unwrap().0;
-        if let Some((next_pos, step_spans)) =
-            match_single_atom_with_spans(&tok.atom, hay, cur_pos, ignore_case)
-        {
-            if next_pos == cur_pos && count >= tok.min {
-                break;
-            }
-            steps.push((next_pos, step_spans));
-            count += 1;
-        } else {
-            break;
-        }
-    }
-    if steps.len() - 1 < tok.min {
-        return Vec::new();
-    }
-    let mut out = Vec::new();
-    for idx in (tok.min..steps.len()).rev() {
-        let (step_pos, ref step_spans) = steps[idx];
-        for (final_pos, rest_spans) in
-            match_tokens_span_candidates(rest, hay, step_pos, ignore_case)
-        {
-            let mut combined = step_spans.clone();
-            combined.extend(rest_spans);
-            out.push((final_pos, combined));
-        }
-    }
-    out
-}
-
-fn match_single_atom_with_spans(
-    atom: &RxAtom,
-    hay: &[(usize, char)],
-    pos: usize,
-    ignore_case: bool,
-) -> Option<(usize, Vec<Option<(usize, usize)>>)> {
-    match atom {
-        RxAtom::Group { alts, capturing } => {
-            for sub_tokens in alts {
-                if let Some((end_pos, sub_spans)) =
-                    match_tokens_span_candidates(sub_tokens, hay, pos, ignore_case)
-                        .into_iter()
-                        .next()
-                {
-                    let mut spans = if *capturing {
-                        vec![Some((pos, end_pos))]
-                    } else {
-                        Vec::new()
-                    };
-                    spans.extend(sub_spans);
-                    return Some((end_pos, spans));
-                }
-            }
-            None
-        }
-        _ => match_single_atom(atom, hay, pos, ignore_case).map(|next| (next, Vec::new())),
-    }
-}
-
-fn match_tokens_with_caps(
-    tokens: &[RxToken],
-    hay: &[(usize, char)],
-    text: &str,
-    pos: usize,
-    ignore_case: bool,
-) -> Option<(usize, Vec<String>)> {
-    match_tokens_with_caps_ctx(tokens, hay, text, pos, ignore_case, &[])
-}
-
-fn match_tokens_with_caps_ctx(
-    tokens: &[RxToken],
-    hay: &[(usize, char)],
-    text: &str,
-    pos: usize,
-    ignore_case: bool,
-    prior_caps: &[String],
-) -> Option<(usize, Vec<String>)> {
-    if tokens.is_empty() {
-        return Some((pos, Vec::new()));
-    }
-    let tok = &tokens[0];
-    let rest = &tokens[1..];
-
-    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
-        if ok {
-            return match_tokens_with_caps_ctx(rest, hay, text, pos, ignore_case, prior_caps);
-        }
-        return None;
-    }
-    if let RxAtom::Backref(idx) = &tok.atom {
-        let expected = prior_caps.get(*idx)?;
-        let exp_chars: Vec<char> = expected.chars().collect();
-        let mut cur_pos = pos;
-        let mut positions = vec![cur_pos];
-        let mut count = 0usize;
-        let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
-        while count < max_limit {
-            if cur_pos + exp_chars.len() > hay.len() {
-                break;
-            }
-            let ok = exp_chars.iter().enumerate().all(|(k, &ec)| {
-                let hc = hay[cur_pos + k].1;
-                if ignore_case {
-                    hc.to_ascii_lowercase() == ec.to_ascii_lowercase()
-                } else {
-                    hc == ec
-                }
-            });
-            if !ok {
-                break;
-            }
-            let next_pos = cur_pos + exp_chars.len();
-            if next_pos == cur_pos && count >= tok.min {
-                break;
-            }
-            cur_pos = next_pos;
-            positions.push(cur_pos);
-            count += 1;
-        }
-        if positions.len() - 1 < tok.min {
-            return None;
-        }
-        for step_idx in (tok.min..positions.len()).rev() {
-            if let Some((final_pos, rest_caps)) =
-                match_tokens_with_caps_ctx(rest, hay, text, positions[step_idx], ignore_case, prior_caps)
-            {
-                return Some((final_pos, rest_caps));
-            }
-        }
-        return None;
-    }
-    if let RxAtom::Group { alts, capturing } = &tok.atom
-        && tok.min == 1
-        && tok.max == Some(1)
-    {
-        for sub_tokens in alts {
-            for (end_pos, sub_caps) in
-                match_tokens_candidates_with_caps(sub_tokens, hay, text, pos, ignore_case)
-            {
-                let captured_str: String = hay[pos..end_pos].iter().map(|&(_, c)| c).collect();
-                let mut next_prior = prior_caps.to_vec();
-                if *capturing {
-                    next_prior.push(captured_str.clone());
-                }
-                next_prior.extend(sub_caps.clone());
-                if let Some((final_pos, rest_caps)) =
-                    match_tokens_with_caps_ctx(rest, hay, text, end_pos, ignore_case, &next_prior)
-                {
-                    let mut combined = if *capturing {
-                        vec![captured_str]
-                    } else {
-                        Vec::new()
-                    };
-                    combined.extend(sub_caps);
-                    combined.extend(rest_caps);
-                    return Some((final_pos, combined));
-                }
-            }
-        }
-        return None;
-    }
-
-    let mut steps: Vec<(usize, Vec<String>)> = vec![(pos, Vec::new())];
-    let mut count = 0usize;
-    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
-
-    while count < max_limit {
-        let cur_pos = steps.last().unwrap().0;
-        if let Some((next_pos, step_caps)) =
-            match_single_atom_with_caps(&tok.atom, hay, text, cur_pos, ignore_case)
-        {
-            if next_pos == cur_pos && count >= tok.min {
-                break;
-            }
-            steps.push((next_pos, step_caps));
-            count += 1;
-        } else {
-            break;
-        }
-    }
-
-    if steps.len() - 1 < tok.min {
-        return None;
-    }
-
-    for idx in (tok.min..steps.len()).rev() {
-        let (step_pos, ref step_caps) = steps[idx];
-        let mut next_prior = prior_caps.to_vec();
-        next_prior.extend(step_caps.clone());
-        if let Some((final_pos, rest_caps)) =
-            match_tokens_with_caps_ctx(rest, hay, text, step_pos, ignore_case, &next_prior)
-        {
-            let mut combined = step_caps.clone();
-            combined.extend(rest_caps);
-            return Some((final_pos, combined));
-        }
-    }
-    None
-}
-
-fn match_tokens_candidates_with_caps(
-    tokens: &[RxToken],
-    hay: &[(usize, char)],
-    text: &str,
-    pos: usize,
-    ignore_case: bool,
-) -> Vec<(usize, Vec<String>)> {
-    if tokens.is_empty() {
-        return vec![(pos, Vec::new())];
-    }
-    let tok = &tokens[0];
-    let rest = &tokens[1..];
-    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
-        if ok {
-            return match_tokens_candidates_with_caps(rest, hay, text, pos, ignore_case);
-        }
-        return Vec::new();
-    }
-    if let RxAtom::Group { alts, capturing } = &tok.atom
-        && tok.min == 1
-        && tok.max == Some(1)
-    {
-        let mut out = Vec::new();
-        for sub_tokens in alts {
-            for (end_pos, sub_caps) in
-                match_tokens_candidates_with_caps(sub_tokens, hay, text, pos, ignore_case)
-            {
-                let grp_str: String = hay[pos..end_pos].iter().map(|&(_, c)| c).collect();
-                let mut grp_caps = if *capturing {
-                    vec![grp_str]
-                } else {
-                    Vec::new()
-                };
-                grp_caps.extend(sub_caps);
-                for (final_pos, rest_caps) in
-                    match_tokens_candidates_with_caps(rest, hay, text, end_pos, ignore_case)
-                {
-                    let mut combined = grp_caps.clone();
-                    combined.extend(rest_caps);
-                    out.push((final_pos, combined));
-                }
-            }
-        }
-        return out;
-    }
-    let mut steps: Vec<(usize, Vec<String>)> = vec![(pos, Vec::new())];
-    let mut count = 0usize;
-    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
-    while count < max_limit {
-        let cur_pos = steps.last().unwrap().0;
-        if let Some((next_pos, step_caps)) =
-            match_single_atom_with_caps(&tok.atom, hay, text, cur_pos, ignore_case)
-        {
-            if next_pos == cur_pos && count >= tok.min {
-                break;
-            }
-            steps.push((next_pos, step_caps));
-            count += 1;
-        } else {
-            break;
-        }
-    }
-    if steps.len() - 1 < tok.min {
-        return Vec::new();
-    }
-    let mut out = Vec::new();
-    for idx in (tok.min..steps.len()).rev() {
-        let (step_pos, ref step_caps) = steps[idx];
-        for (final_pos, rest_caps) in
-            match_tokens_candidates_with_caps(rest, hay, text, step_pos, ignore_case)
-        {
-            let mut combined = step_caps.clone();
-            combined.extend(rest_caps);
-            out.push((final_pos, combined));
-        }
-    }
-    out
-}
-
-fn match_single_atom_with_caps(
-    atom: &RxAtom,
-    hay: &[(usize, char)],
-    text: &str,
-    pos: usize,
-    ignore_case: bool,
-) -> Option<(usize, Vec<String>)> {
-    match atom {
-        RxAtom::Group { alts, capturing } => {
-            for sub_tokens in alts {
-                if let Some((end_pos, sub_caps)) =
-                    match_tokens_with_caps(sub_tokens, hay, text, pos, ignore_case)
-                {
-                    let grp_str: String = hay[pos..end_pos].iter().map(|&(_, c)| c).collect();
-                    let mut caps = if *capturing {
-                        vec![grp_str]
-                    } else {
-                        Vec::new()
-                    };
-                    caps.extend(sub_caps);
-                    return Some((end_pos, caps));
-                }
-            }
-            None
-        }
-        _ => match_single_atom(atom, hay, pos, ignore_case).map(|next| (next, Vec::new())),
-    }
+    let program = RxProgram::new(parse_rx_branches(pat, false));
+    program
+        .run(hay, start, ignore_case, true, true, |pos| pos == end)
+        .map_or_else(|| vec![None; program.groups], |m| m.caps)
 }
 
 fn expand_regex_replacement(replacement: &str, matched_str: &str, caps: &[String]) -> String {
@@ -1699,12 +1434,6 @@ pub fn replace_regex_count_in_text(
     if matches.is_empty() {
         return (text.to_string(), 0);
     }
-    let no_caret = pat.strip_prefix('^').unwrap_or(pat);
-    let core_pat = if has_unescaped_trailing_dollar(no_caret) {
-        &no_caret[..no_caret.len() - 1]
-    } else {
-        no_caret
-    };
     let mut out = String::new();
     let mut last_end = 0usize;
     let mut replace_count = 0usize;
@@ -1721,7 +1450,7 @@ pub fn replace_regex_count_in_text(
         out.push_str(&text[last_end..s]);
         if should_replace {
             let matched_str = &text[s..e];
-            let caps = regex_captures(&format!("^{core_pat}$"), matched_str, ignore_case)
+            let caps = regex_captures(&format!("^(?:{pat})$"), matched_str, ignore_case)
                 .or_else(|| regex_captures(pat, matched_str, ignore_case))
                 .unwrap_or_else(|| vec![matched_str.to_string()]);
             let expanded = expand_regex_replacement(replacement, matched_str, &caps);

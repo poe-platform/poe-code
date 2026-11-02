@@ -16078,6 +16078,20 @@ hash -l
     }
 
     #[test]
+    fn fmt_flushes_its_text_and_word_windows_before_reflowing_the_tail() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let word = "A".repeat(5001);
+        fs.write_file("/input", format!("> {word} end").as_bytes()).unwrap();
+        let r = shell.exec("fmt -p '> ' -w20 /input").unwrap();
+        assert_eq!(r.exit_code, 0); assert_eq!(r.stdout, format!("{}> A end\n", &word[..5000]));
+        let line = |n: usize| format!("{}a\n", "a ".repeat(n - 1));
+        fs.write_file("/input", line(999).as_bytes()).unwrap();
+        let r = shell.exec("fmt -w17 /input").unwrap();
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(r.stdout, [line(8), line(9).repeat(109), line(8), line(2)].concat());
+    }
+
+    #[test]
     fn fmt_validates_before_reading_and_keeps_published_output_on_input_overflow() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let data = "x\n\n".repeat(30000);

@@ -12155,6 +12155,34 @@ impl<'a> FmtFormatter<'a> {
         }
     }
 
+    fn make_room(&mut self, current: &mut FmtWord) {
+        self.secondary(true);
+        if self.words.is_empty() {
+            self.out.extend_from_slice(&self.text[..self.used]);
+            self.used = 0;
+            current.start = 0;
+            return;
+        }
+        self.optimize();
+        let mut cut = self.words.len();
+        let mut score = i64::MAX;
+        let mut line = self.breaks[0];
+        while line != self.words.len() {
+            let next = self.breaks[line];
+            let candidate = self.costs[line] - self.costs[next];
+            if candidate < score { cut = line; score = candidate; }
+            score = score.saturating_add(9);
+            line = next;
+        }
+        self.render(cut);
+        let offset = self.words.get(cut).map_or(current.start, |w| w.start);
+        self.text.copy_within(offset..self.used, 0);
+        self.used -= offset;
+        self.words.drain(..cut);
+        for word in &mut self.words { word.start -= offset; }
+        current.start -= offset;
+    }
+
     fn read_line(&mut self, mut byte: i32) -> Result<i32, String> {
         loop {
             let mut word = FmtWord {
@@ -12168,7 +12196,7 @@ impl<'a> FmtFormatter<'a> {
             };
             loop {
                 if self.used == self.text.len() {
-                    self.text.resize(self.text.len() * 2, 0);
+                    self.make_room(&mut word);
                 }
                 self.text[self.used] = byte as u8;
                 self.used += 1;
@@ -12203,6 +12231,7 @@ impl<'a> FmtFormatter<'a> {
             if byte == 10 || byte == -1 || self.uniform {
                 word.space = if word.final_word { 2 } else { 1 };
             }
+            if self.words.len() == 998 { self.make_room(&mut word); }
             self.words.push(word);
             if byte == -1 || byte == 10 {
                 break;

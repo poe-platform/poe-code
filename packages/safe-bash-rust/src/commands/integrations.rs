@@ -762,7 +762,6 @@ fn op_object_index<'a>(
 }
 
 fn op_vault_index(st: &IntegrationState, selector: &str) -> Result<usize, &'static str> {
-    if selector.is_empty() { return Err("A vault is required"); }
     op_object_index(st.op_vaults.iter().enumerate().map(|(i,v)| (i, v.id.as_str(), v.name.as_str())), selector)
 }
 
@@ -1021,22 +1020,11 @@ fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(S
             _ => Err("Secret attribute is unavailable".to_string()),
         }
     };
-    let vault_sel = parts[0];
-    let item_sel = parts[1];
-    let vault = st
-        .op_vaults
-        .iter()
-        .find(|v| v.id == vault_sel || v.name.eq_ignore_ascii_case(vault_sel))
-        .ok_or_else(|| "Object not found".to_string())?;
-    let item = st
-        .op_items
-        .iter()
-        .find(|it| {
-            it.vault_id == vault.id
-                && it.state != "ARCHIVED"
-                && (it.id == item_sel || it.title.eq_ignore_ascii_case(item_sel))
-        })
-        .ok_or_else(|| "Object not found".to_string())?;
+    let vault = &st.op_vaults[op_vault_index(st, parts[0])?];
+    let i = op_object_index(st.op_items.iter().enumerate()
+        .filter(|(_, it)| it.vault_id == vault.id && !matches!(it.state.as_str(), "ARCHIVED" | "DELETED"))
+        .map(|(i,it)| (i, it.id.as_str(), it.title.as_str())), parts[1])?;
+    let item = &st.op_items[i];
 
     if parts.len() == 3 {
         let field_sel = parts[2];
@@ -1602,6 +1590,7 @@ where
     if let Some(error) = selection && !matches!(parsed.path, "completion" | "run" | "inject" | "item get" | "item edit" | "document edit") {
         return op_err(error);
     }
+    if parsed.vault.as_deref() == Some("") { return op_err("A vault is required"); }
     let format_json = parsed.format_json;
     let fs_id = fs.fs_id();
     match first {
@@ -1773,9 +1762,12 @@ where
                     let Some(sel) = sel else {
                         return op_err("One object selector is required");
                     };
-                    let Some(v) = st.op_vaults.iter_mut().find(|v| v.id == sel || v.name.eq_ignore_ascii_case(&sel)) else {
-                        return op_err("Object not found");
+                    let v = match op_vault_index(st, &sel) {
+                        Ok(i) => &mut st.op_vaults[i], Err(error) => return op_err(error),
                     };
+                    if new_icon.as_deref().is_some_and(|ic| !ic.is_empty() && !is_valid_vault_icon(ic)) {
+                        return op_err("Invalid vault icon");
+                    }
                     if let Some(n) = new_name {
                         v.name = n;
                     }
@@ -1783,9 +1775,6 @@ where
                         v.description = if d.is_empty() { None } else { Some(d) };
                     }
                     if let Some(ic) = new_icon {
-                        if !ic.is_empty() && !is_valid_vault_icon(&ic) {
-                            return op_err("Invalid vault icon");
-                        }
                         v.icon = if ic.is_empty() { None } else { Some(ic) };
                     }
                     let out = to_pretty_json(&vault_json(v));
@@ -1796,11 +1785,16 @@ where
                     let Some(sel) = sel else {
                         return op_err("One object selector is required");
                     };
-                    let before = st.op_vaults.len();
-                    st.op_vaults.retain(|v| !(v.id == sel || v.name.eq_ignore_ascii_case(&sel)));
-                    if st.op_vaults.len() == before {
-                        return op_err("Object not found");
+                    let index = match op_vault_index(st, &sel) {
+                        Ok(i) => i, Err(error) => return op_err(error),
+                    };
+                    let id = &st.op_vaults[index].id;
+                    if st.op_items.iter().any(|item| item.vault_id == *id && item.state != "DELETED")
+                        || st.op_docs.iter().any(|doc| doc.vault_id == *id)
+                        || st.op_vault_groups.iter().any(|grant| grant.vault_id == *id) {
+                        return op_err("Vault is not empty");
                     }
+                    st.op_vaults.remove(index);
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
                 "group" => {
@@ -1837,8 +1831,9 @@ where
                         "grant" | "revoke" => {
                             let vs = vault_sel.unwrap_or_default();
                             let gs = group_sel.unwrap_or_default();
-                            let Some(v) = st.op_vaults.iter().find(|v| v.id.eq_ignore_ascii_case(&vs) || v.name.eq_ignore_ascii_case(&vs)) else {
-                                return op_err("Object not found");
+                            if vs.is_empty() { return op_err("Object selector is required"); }
+                            let v = match op_vault_index(st, &vs) {
+                                Ok(i) => &st.op_vaults[i], Err(error) => return op_err(error),
                             };
                             let vid = v.id.clone();
                             let Some(g) = st.op_groups.iter().find(|g| g.id.eq_ignore_ascii_case(&gs) || g.name.eq_ignore_ascii_case(&gs)) else {
@@ -1876,9 +1871,10 @@ where
                             BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                         }
                         "list" => {
-                            let vs = vault_sel.unwrap_or_default();
-                            let Some(v) = st.op_vaults.iter().find(|v| v.id.eq_ignore_ascii_case(&vs) || v.name.eq_ignore_ascii_case(&vs)) else {
-                                return op_err("Object not found");
+                            let Some(vs) = vault_sel else { return op_err("One object selector is required"); };
+                            if vs.is_empty() { return op_err("Object selector is required"); }
+                            let v = match op_vault_index(st, &vs) {
+                                Ok(i) => &st.op_vaults[i], Err(error) => return op_err(error),
                             };
                             let vid = v.id.clone();
                             let mut arr = Vec::new();
@@ -2459,6 +2455,7 @@ where
                     let idx = match op_item_index(st, vault, &sel, false) {
                         Ok(i) => i, Err(error) => return op_err(error),
                     };
+                    if dst_sel.is_empty() { return op_err("A vault is required"); }
                     let dst = match op_vault_index(st, &dst_sel) {
                         Ok(i) => st.op_vaults[i].clone(), Err(error) => return op_err(error),
                     };

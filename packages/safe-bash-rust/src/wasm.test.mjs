@@ -7594,3 +7594,20 @@ test("op confines item and document operations to the selected vault", async () 
     }
   } finally { rs.dispose(); }
 });
+
+test("op requires an unambiguous vault for reference reads and vault mutations", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const cmd of ["op vault create Demo >/dev/null", "op item create --vault Demo --category login --title Example password=fixture >/dev/null",
+      "op vault delete ''", "op item get Example --vault=''", "op vault group list ''",
+      "op vault delete Demo", "op vault edit Demo --name Renamed --icon invalid", "op read op://Demo/Example/password", "op vault create dEMO --format=json | jq -r .id >other-id",
+      "op read op://Demo/Example/password", "op vault edit DEMO --name Renamed", "op vault delete Demo",
+      "op vault list --format=json", 'op vault delete "$(cat other-id)"',
+      "op item delete Example --vault Demo", "op vault delete Demo", "op vault list --format=json"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout],[a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

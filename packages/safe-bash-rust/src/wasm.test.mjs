@@ -6278,3 +6278,25 @@ test("tar restores directory metadata at archive end or when leaving a subtree",
     }
   } finally { rs.dispose(); }
 });
+
+test("tar honors the last overwrite policy and finishes extracting after kept conflicts", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const path of ["/a", "/b"]) await fs.writeFile(path, Buffer.from("new"));
+    const seed = await js.exec("tar -cf - a b");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const f of [fs, rs.fs]) await f.writeFile("/in", seed.stdoutBytes);
+    for (const [index, flags] of ["-k", "-k --skip-old-files", "--skip-old-files --keep-old-files", "-k --overwrite"].entries()) {
+      const dest = "/d" + index;
+      for (const f of [fs, rs.fs]) { await f.mkdir(dest); await f.writeFile(dest + "/a", Buffer.from("old")); }
+      const cmd = "tar --totals -xvf in -C " + dest + " " + flags;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, index % 2 === 0 ? 2 : 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      for (const p of ["/a", "/b"]) assert.deepEqual(Buffer.from(await rs.fs.readFile(dest+p)), Buffer.from(await fs.readFile(dest+p)));
+    }
+  } finally { rs.dispose(); }
+});

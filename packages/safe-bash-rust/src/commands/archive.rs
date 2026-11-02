@@ -4442,8 +4442,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut to_stdout = false;
     let mut null_delim = false;
     let mut verbatim_files_from = false;
-    let mut skip_old_files = false;
-    let mut keep_old_files = false;
+    #[derive(PartialEq)]
+    enum Overwrite { Replace, Skip, Keep }
+    let mut overwrite = Overwrite::Replace;
     let mut touch = false;
     let mut permission_mask = 0o777;
     let mut delay_directories = true;
@@ -5008,12 +5009,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--no-verbatim-files-from" => verbatim_files_from = false,
                     "--no-recursion" => recursion = false,
                     "--recursion" => recursion = true,
-                    "--skip-old-files" => skip_old_files = true,
-                    "--keep-old-files" => keep_old_files = true,
-                    "--overwrite" => {
-                        skip_old_files = false;
-                        keep_old_files = false;
-                    }
+                    "--skip-old-files" => overwrite = Overwrite::Skip,
+                    "--keep-old-files" => overwrite = Overwrite::Keep,
+                    "--overwrite" => overwrite = Overwrite::Replace,
                     "--exclude-caches" => exclude_caches = true,
                     "--show-transformed-names" | "--show-stored-names" => show_transformed = true,
                     "--dereference" => dereference = true,
@@ -5158,7 +5156,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             matched_flag = true;
                         }
                         'k' => {
-                            keep_old_files = true;
+                            overwrite = Overwrite::Keep;
                             matched_flag = true;
                         }
                         'h' => {
@@ -5905,8 +5903,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return Err("entry would overwrite the input archive".into());
             }
             if let Some(st) = &existing && !(is_dir_entry && st.kind == Directory) {
-                if keep_old_files || skip_old_files {
-                    if keep_old_files {
+                if overwrite != Overwrite::Replace {
+                    if overwrite == Overwrite::Keep {
                         stderr.push_str(&format!("tar: {}: Cannot open: File exists\n", tar_format::display(entry.name)));
                         exit_code = 2;
                     }
@@ -5952,6 +5950,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if let Err(error) = result {
         stderr.push_str(&format!("tar: {error}\n"));
         exit_code = 2;
+    } else if exit_code == 2 {
+        stderr.push_str("tar: Exiting with failure status due to previous errors\n");
     } else if totals {
         stderr.push_str(&format!("Total bytes read: {}\n", data.len()));
     }

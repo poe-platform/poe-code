@@ -9298,7 +9298,7 @@ fn cmd_media_doc(
                 }
                 Ok((fonts, markup))
             };
-            let rendered = if xml_mode {
+            let mut lines = if xml_mode {
                 let mut lines = vec![
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".to_string(),
                     "<!DOCTYPE pdf2xml SYSTEM \"pdf2xml.dtd\">".to_string(),
@@ -9317,15 +9317,7 @@ fn cmd_media_doc(
                     lines.extend(markup);
                     lines.push("  </page>".to_string());
                 }
-                if !doc.bookmarks.is_empty() {
-                    lines.push("  <outline>".to_string());
-                    for (btitle, _blevel, bpage) in &doc.bookmarks {
-                        lines.push(format!("    <item page=\"{bpage}\">{}</item>", html_escape_str(btitle)));
-                    }
-                    lines.push("  </outline>".to_string());
-                }
-                lines.push("</pdf2xml>".to_string());
-                format!("{}\n", lines.join("\n"))
+                lines
             } else {
                 let title = if doc.title.is_empty() {
                     html_escape_str(input_path)
@@ -9348,19 +9340,40 @@ fn cmd_media_doc(
                     lines.extend(markup);
                     lines.push("</div>".to_string());
                 }
-                if !doc.bookmarks.is_empty() {
-                    lines.push("<hr/>".to_string());
-                    lines.push("<a name=\"outline\"></a><h1>Document Outline</h1>".to_string());
-                    lines.push("<ul>".to_string());
-                    for (btitle, _blevel, bpage) in &doc.bookmarks {
-                        lines.push(format!("<li><a href=\"#page{bpage}\">{}</a></li>", html_escape_str(btitle)));
-                    }
-                    lines.push("</ul>".to_string());
-                }
-                lines.push("</body>".to_string());
-                lines.push("</html>".to_string());
-                format!("{}\n", lines.join("\n"))
+                lines
             };
+            let mut depth = 0usize;
+            let mut outline_budget = limit;
+            let mut add_line = |indent: usize, text: &str| {
+                let indent = if xml_mode { 2 * indent } else { 0 };
+                outline_budget = outline_budget.checked_sub(indent + text.len() + 1)?;
+                lines.push(format!("{}{text}", " ".repeat(indent)));
+                Some(())
+            };
+            let outline = doc.bookmarks.iter().map(Some).chain(std::iter::once(None)).try_for_each(|item| {
+                let level = item.map_or(0, |(_, level, _)| level.parse::<usize>().unwrap_or(1).clamp(1, depth+1));
+                if depth == 0 {
+                    if item.is_none() { return Some(()); }
+                    add_line(1, if xml_mode { "<outline>" } else { "<hr/>\n<a name=\"outline\"></a><h1>Document Outline</h1>\n<ul>" })?;
+                } else if level > depth {
+                    add_line(level, if xml_mode { "<outline>" } else { "<ul>" })?;
+                } else {
+                    if !xml_mode { add_line(0, "</li>")?; }
+                    for at in (level+1..=depth).rev() {
+                        add_line(at, if xml_mode { "</outline>" } else if at > 1 { "</ul>\n</li>" } else { "</ul>" })?;
+                    }
+                }
+                depth = level;
+                if let Some((title, _, page)) = item {
+                    let title = html_escape_str(title);
+                    let line = if xml_mode { format!(r#"<item page="{page}">{title}</item>"#) } else { format!(r##"<li><a href="#page{page}">{title}</a>"##) };
+                    add_line(depth+1,&line)?;
+                }
+                Some(())
+            });
+            if outline.is_none() { return err_out("PDF outline limit exceeded\n",1); }
+            lines.push(if xml_mode { "</pdf2xml>" } else { "</body>\n</html>" }.into());
+            let rendered = format!("{}\n",lines.join("\n"));
             if stdout_output {
                 ok_out(&rendered)
             } else {

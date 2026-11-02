@@ -5521,3 +5521,16 @@ test("pdftohtml publishes painted PDF images and inlines the same pixels in HTML
     }
   }finally{rs.dispose();}
 });
+
+test("pdftohtml preserves nested outline destinations and sibling order in HTML and XML",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const {pdftotextCommands}=await import("@poe-platform/safe-bash/commands/pdftotext");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})).use(pdftotextCommands({replace:true}));
+  await fs.mkdir("/tmp",{recursive:true});await fs.writeFile("/a",Buffer.from("<h1>A &amp; B</h1><h2>Section</h2><h3>Nested</h3><h3>Sibling</h3>"));await fs.writeFile("/b",Buffer.from("<h2>Continued</h2><h1>End</h1>"));
+  const generated=await js.exec("wkhtmltopdf a b in");assert.equal(generated.exitCode,0,generated.stderr);
+  const rs=new RustWasmBash({cwd:"/",files:{"/in":await fs.readFile("/in")}});
+  try{for(const args of ["-stdout","-xml -stdout","-f 2 -stdout"]){
+    const cmd="pdftohtml "+args+" in",e=await js.exec(cmd),r=await rs.exec(cmd);assert.equal(e.exitCode,0,e.stderr);assert.deepEqual([r.stdout,r.stderr,r.exitCode],[e.stdout,e.stderr,e.exitCode],cmd);
+  }}finally{rs.dispose();}
+});

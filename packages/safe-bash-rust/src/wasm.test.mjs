@@ -2773,3 +2773,22 @@ test("delegating an external filesystem call preserves the active native filesys
     assert.equal(new TextDecoder().decode(await bash.fs.readFile("/file")), "original");
   } finally { bash.dispose(); }
 });
+
+test("sort applies locale ordering to records, selected keys and merge inputs", async () => {
+  const bash = new RustWasmBash({ files: {
+    "/x": Buffer.concat([Buffer.from("z\nä\nZ\na\nÅ\nA\n"), Buffer.of(255, 10, 128, 10)]),
+    "/a": "id:Ä\nid:z\n", "/b": "id:å\n", "/out": "keep",
+  } });
+  try {
+    const german = await bash.exec("LC_ALL=de_DE.UTF-8 sort /x");
+    assert.deepEqual(Buffer.from(german.stdoutBytes), Buffer.concat([Buffer.from("a\nA\nÅ\nä\nz\nZ\n"), Buffer.of(128, 10, 255, 10)]));
+    const swedish = await bash.exec("LC_ALL=sv_SE.UTF-8 sort -t: -k2,2 /a /b");
+    assert.equal(swedish.stdout, "id:z\nid:å\nid:Ä\n");
+    const merged = await bash.exec("LC_ALL=de_DE.UTF-8 sort -m -t: -k2,2 /a /b");
+    assert.equal(merged.stdout, "id:å\nid:Ä\nid:z\n");
+    const invalid = await bash.exec("LC_ALL=zz-ZZ sort -o /out /missing");
+    assert.equal(invalid.exitCode, 2);
+    assert.equal(invalid.stderr, "sort: unsupported collation locale 'zz-ZZ'\n");
+    assert.equal(bash.readText("/out"), "keep");
+  } finally { bash.dispose(); }
+});

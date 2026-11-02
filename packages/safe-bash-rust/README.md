@@ -19,6 +19,8 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 Pass a shell’s own `fs` to `exec` to use its Wasm filesystem. Selecting another filesystem for a call requires a `companionFactory`; without one, `exec` rejects the call before running the script.
 
+`sort` uses byte order in the C and POSIX locales. For other locales the Wasm loader uses `Intl.Collator`, and native Linux, macOS and Windows builds load the system ICU library on demand. An unavailable locale or collation service gives exit status 2 before any input or destination is opened. Language availability and ordering can differ between ICU versions. Custom Wasm hosts must provide the `safe_bash.sort_collator_open`, `sort_collator_compare` and `sort_collator_close` imports alongside the clock and entropy imports.
+
 In UTF-8 locales, `fold` measures display columns with fixed Unicode width tables. They use the same zero-width marks and wide-character ranges as the JavaScript command, independent of the host locale library. See [the Unicode data license](./LICENSE.UNICODE).
 
 Native `tac -r` searches byte patterns from the end of each input. It reports `EFBIG` when a pattern exceeds 64 KiB or 64 nested groups, or when compilation or matching exceeds its work or memory budgets. JavaScript can accept larger patterns.

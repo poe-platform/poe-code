@@ -253,6 +253,7 @@ fn version_parts(a: &mut View, b: &mut View) -> Result<Ordering> {
 }
 
 pub(super) struct KeyOrder<'a> {
+    pub collator: Option<&'a super::sort_locale::Collator>,
     pub keys: &'a [SortKey],
     pub flags: &'a BTreeSet<char>,
     pub separator: Option<u8>,
@@ -282,6 +283,7 @@ impl KeyOrder<'_> {
                 if cmp.is_eq() { cmp = version_parts(&mut a, &mut b)?; }
                 cmp
             } else if flags.contains(&'n') || flags.contains(&'h') { numeric_cmp(&mut a, &mut b, flags.contains(&'h'))? }
+            else if let Some(c) = self.collator { c.compare(&a.record.read_range(a.start, a.len)?, &b.record.read_range(b.start, b.len)?)? }
             else { a.cmp_bytes(&b)? };
             if !ord.is_eq() { return Ok(if flags.contains(&'r') { ord.reverse() } else { ord }); }
         }

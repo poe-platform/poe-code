@@ -1,5 +1,6 @@
 mod fold_widths;
 mod sort_keys;
+mod sort_locale;
 mod sort_record;
 mod sort_runs;
 mod tac_regex;
@@ -1880,15 +1881,21 @@ fn cmd_sort(
         return err_out("sort: sort memory budget must be at least 1048576 bytes\n", 2);
     }
     if fan_in > 32 { return err_out("sort: sort merge fan-in must be between 2 and 32\n", 2); }
+    let collator = match sort_locale::Collator::from_env(env) {
+        Ok(value) => value, Err(message) => return err_out(&message, 2),
+    };
+    let byte_fast_path = (simple && collator.is_none()).then_some(global_rev);
     let directory = env.get("TMPDIR").filter(|s| !s.is_empty()).map_or_else(|| cwd.to_owned(), |v| absolute_operand(cwd, v));
     let record_limit = (memory_bytes / (8 * (fan_in + 4))).min(sort_record::PAGE as u64) as usize;
-    let order = sort_keys::KeyOrder { keys: &keys, flags: &flags, separator, fs, directory: &directory, record_limit };
+    let order = sort_keys::KeyOrder { collator: collator.as_ref(), keys: &keys, flags: &flags, separator, fs, directory: &directory, record_limit };
     let compare = |a: &SortRecord, b: &SortRecord| -> Result<std::cmp::Ordering, String> {
         if !simple {
             let cmp = order.compare(a, b)?;
             if !cmp.is_eq() || stable || unique { return Ok(cmp); }
         }
-        let cmp = a.byte_order(b)?;
+        let cmp = if let Some(c) = &collator {
+            c.compare(&a.read_range(0, a.len())?, &b.read_range(0, b.len())?)?
+        } else { a.byte_order(b)? };
         Ok(if global_rev { cmp.reverse() } else { cmp })
     };
     let merge = flags.contains(&'m');
@@ -1945,7 +1952,7 @@ fn cmd_sort(
         let mut bytes = 0usize;
         let mut spilled = false;
         let flush = |batch: &mut Vec<SortRecord>, runs: &mut sort_runs::SortRuns| -> Result<(), String> {
-            sort_record::sort_batch(batch, simple.then_some(global_rev), &compare)?;
+            sort_record::sort_batch(batch, byte_fast_path, &compare)?;
             let mut run = sort_runs::Run::default();
             for record in batch.drain(..) { runs.append(&mut run, &record)?; }
             runs.add(run, &compare)
@@ -1984,7 +1991,7 @@ fn cmd_sort(
         if spilled {
             if !batch.is_empty() && let Err(e) = flush(&mut batch, &mut runs) { return sort_error(e); }
         } else {
-            if let Err(e) = sort_record::sort_batch(&mut batch, simple.then_some(global_rev), &compare) { return sort_error(e); }
+            if let Err(e) = sort_record::sort_batch(&mut batch, byte_fast_path, &compare) { return sort_error(e); }
             for record in batch { if let Err(e) = output(record) { return sort_error(e); } }
         }
     }
@@ -21429,6 +21436,47 @@ mod tests {
 
         let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
         assert_eq!(tr.stdout, "HELLO");
+    }
+
+    #[test]
+    #[cfg(any(target_os = "linux", target_os = "macos", windows))]
+    fn sort_honors_locale_precedence_case_order_and_invalid_utf8() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/x", b"z\n\xc3\xa4\nA\na\n\xff\n").unwrap();
+        let mut env = BTreeMap::from([
+            ("LANG".into(), "sv_SE.UTF-8".into()),
+            ("LC_COLLATE".into(), "de_DE".into()),
+        ]);
+        for (all, expected) in [
+            ("", "a\nA\nä\nz\n"),
+            ("sv-SE", "a\nA\nz\nä\n"),
+            ("POSIX", "A\na\nz\nä\n"),
+        ] {
+            env.insert("LC_ALL".into(), all.into());
+            let result = try_run_coreutil("sort", &args(&["/x"]), "", "/", &env, &fs).unwrap();
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(
+                crate::vfs::stream_string_to_bytes(&result.stdout),
+                [expected.as_bytes(), b"\xff\n"].concat()
+            );
+        }
+        fs.write_file("/numbers", b"a10\na2\n").unwrap();
+        for (locale, expected) in [("en-u-kn", "a2\na10\n"), ("en-u-kn-false-kn", "a10\na2\n")] {
+            env.insert("LC_ALL".into(), locale.into());
+            let result = try_run_coreutil("sort", &args(&["/numbers"]), "", "/", &env, &fs).unwrap();
+            assert_eq!(result.stdout, expected, "{locale}");
+        }
+        for locale in ["zz-ZZ", "en_US@modifier", "en%%", "en-GB-oed"] {
+            env.insert("LC_ALL".into(), locale.into());
+            let result = try_run_coreutil("sort", &args(&["/missing"]), "", "/", &env, &fs).unwrap();
+            assert_eq!(
+                (result.exit_code, result.stderr),
+                (
+                    2,
+                    format!("sort: unsupported collation locale '{locale}'\n")
+                )
+            );
+        }
     }
 
     #[test]

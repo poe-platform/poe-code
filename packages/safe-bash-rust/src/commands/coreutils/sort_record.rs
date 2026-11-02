@@ -51,6 +51,16 @@ impl Record {
         }
     }
 
+    pub(super) fn read_range(&self, start: usize, size: usize) -> Result<Cow<'_, [u8]>, String> {
+        if matches!(self, Self::Bytes(_)) || size <= PAGE { return self.read(start, size); }
+        let mut bytes = Vec::new();
+        bytes.try_reserve_exact(size).map_err(|_| "EFBIG: sort record too large")?;
+        for i in (0..size).step_by(PAGE) {
+            bytes.extend_from_slice(&self.read(start + i, PAGE.min(size - i))?);
+        }
+        Ok(Cow::Owned(bytes))
+    }
+
     pub(super) fn chunks(&self, mut use_chunk: impl FnMut(&[u8]) -> Result<(), String>) -> Result<(), String> {
         for offset in (0..self.len()).step_by(PAGE) {
             use_chunk(&self.read(offset, PAGE.min(self.len() - offset))?)?;

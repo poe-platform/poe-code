@@ -6235,7 +6235,7 @@ fn decompress_for_invoked(
             if xz_format == "lzma" {
                 crate::commands::codecs::lzma_decompress(data)
             } else if xz_format == "xz" {
-                if data.len() < 6 || &data[0..6] != &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
+                if !data.iter().zip(super::codecs::XZ_MAGIC).all(|(a, b)| a == b) {
                     Err("File format not recognized".into())
                 } else {
                     crate::commands::codecs::xz_decompress(data)
@@ -6923,6 +6923,10 @@ fn cmd_gzip(
             force && !data.starts_with(&[0x1f, 0x8b])
         } else if is_bzip2 {
             force && to_stdout && !test_mode && !super::codecs::bzip2_header_prefix(data)
+        } else if is_xz && force && to_stdout && !test_mode && xz_format != "raw" {
+            let xz = xz_format != "lzma" && data.starts_with(super::codecs::XZ_MAGIC);
+            let lzma = xz_format != "xz" && data.len() >= 13 && super::codecs::lzma_auto_header_prefix(data);
+            !xz && !lzma
         } else if is_zstd && !test_mode && passthrough.unwrap_or(force && to_stdout) {
             !data.is_empty() && !data.get(..4).is_some_and(|bytes| {
                 let magic = u32::from_le_bytes(bytes.try_into().unwrap());
@@ -6935,7 +6939,7 @@ fn cmd_gzip(
         if pass { return Ok(data.to_vec()); }
         decompress_for_invoked(invoked, data, &xz_format)
     };
-    let decode_error = |error: &str, file: &str| {
+    let decode_error = |error: &str| {
         if is_bzip2 {
             let msg = if error == "unexpected end of file" { error } else { "invalid compressed data or codec memory limit exceeded" };
             err_out(&format!("{invoked}: {msg}\n"), 2)
@@ -6948,12 +6952,12 @@ fn cmd_gzip(
                 _ => error,
             };
             err_out(&format!("{invoked}: {msg}\n"), 1)
-        } else if is_gzip || file == "-" {
-            err_out(&format!("{invoked}: {error}\n"), 1)
-        } else if test_mode {
-            err_out(&format!("{invoked}: {file}: {error}\n"), 1)
         } else {
-            err_out(&format!("{invoked}: {file}: not in {invoked} format\n"), 1)
+            let msg = if is_xz && error != "unexpected end of file"
+                && !(xz_format == "xz" && error == "File format not recognized") {
+                "invalid compressed data or codec memory limit exceeded"
+            } else { error };
+            err_out(&format!("{invoked}: {msg}\n"), 1)
         }
     };
     if files.is_empty() {
@@ -6970,7 +6974,7 @@ fn cmd_gzip(
                 bytes
             };
             if let Err(e) = decode(&data) {
-                return decode_error(&e, f);
+                return decode_error(&e);
             }
         }
         return ok_out("");
@@ -7019,10 +7023,7 @@ fn cmd_gzip(
             if decompress {
                 match decode(&data) {
                     Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
-                    Err(_) if is_xz && force && to_stdout => {
-                        stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&data));
-                    }
-                    Err(e) => return decode_error(&e, "-"),
+                    Err(e) => return decode_error(&e),
                 }
             } else {
                 let comp = compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check);
@@ -7046,8 +7047,7 @@ fn cmd_gzip(
         if decompress {
             let dec = match decode(&data) {
                 Ok(d) => d,
-                Err(_) if is_xz && force && to_stdout => data.clone(),
-                Err(e) => return decode_error(&e, f),
+                Err(e) => return decode_error(&e),
             };
             if to_stdout {
                 stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&dec));

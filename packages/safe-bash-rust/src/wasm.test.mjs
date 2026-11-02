@@ -7816,3 +7816,38 @@ test("zstd probes the frame header before passing through unknown input", async 
     }
   } finally { rs.dispose(); }
 });
+
+test("xz and lzma distinguish truncated headers, bad data and forced plaintext", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const hex of ["", "fd", "fd377a585a00", "fd377a585a000000ff12d941",
+      "fd377a585a000000000000000000", "706c61696e", "5d0000", "5d12345678",
+      "5d00001000ffffffffffffffff", "5d000010000000000000000000"]) {
+      for (const vfs of [fs, rs.fs]) await vfs.writeFile("/input", Buffer.from(hex, "hex"));
+      for (const cmd of ["xzcat < /input", "unlzma -c /input", "unxz -t /input",
+        "unxz --format=xz -c /input", "unlzma -fc /input", "unxz -fc /input"]) {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdoutBytes, b.stderr], [a.exitCode, a.stdoutBytes, a.stderr], cmd + ": " + hex);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("xz integrity checks distinguish incomplete production blocks, indexes and footers", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const packed = await js.exec("printf 'abcdefabcdefabcdefabcdefabcdefabcdef' | xz -c");
+    assert.equal(packed.exitCode, 0, packed.stderr);
+    for (let i = 0; i <= packed.stdoutBytes.length; i++) {
+      for (const vfs of [fs, rs.fs]) await vfs.writeFile("/xz", packed.stdoutBytes.slice(0, i));
+      const a = await js.exec("xz -t /xz"), b = await rs.exec("xz -t /xz");
+      assert.deepEqual([b.exitCode, b.stderr], [a.exitCode, a.stderr], "cut at byte " + i);
+    }
+  } finally { rs.dispose(); }
+});

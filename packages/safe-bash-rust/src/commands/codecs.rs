@@ -1401,7 +1401,7 @@ fn read_xz_vli(data: &[u8], pos: &mut usize) -> Result<u64, String> {
     let mut val = 0u64;
     for shift in (0..63).step_by(7) {
         if *pos >= data.len() {
-            return Err("Compressed data is corrupt".into());
+            return Err("unexpected end of file".into());
         }
         let b = data[*pos];
         *pos += 1;
@@ -1589,9 +1589,10 @@ struct LzmaRangeDecoder<'a> {
 
 impl<'a> LzmaRangeDecoder<'a> {
     fn new(data: &'a [u8]) -> Result<Self, String> {
-        if data.len() < 5 || data[0] != 0x00 {
+        if data.first().is_some_and(|&b| b != 0) {
             return Err("Compressed data is corrupt".into());
         }
+        if data.len() < 5 { return Err("unexpected end of file".into()); }
         let code = u32::from_be_bytes([data[1], data[2], data[3], data[4]]);
         Ok(Self {
             data,
@@ -1604,7 +1605,7 @@ impl<'a> LzmaRangeDecoder<'a> {
     fn normalize(&mut self) -> Result<(), String> {
         if (self.range & 0xff00_0000) == 0 {
             if self.pos >= self.data.len() {
-                return Err("Compressed data is corrupt".into());
+                return Err("unexpected end of file".into());
             }
             self.range <<= 8;
             self.code = (self.code << 8) | (self.data[self.pos] as u32);
@@ -1723,7 +1724,7 @@ struct LzmaState {
 
 impl LzmaState {
     fn new(prop: u8) -> Result<Self, String> {
-        if prop >= 225 {
+        if !valid_lzma_properties(prop) {
             return Err("Compressed data is corrupt".into());
         }
         let lc = (prop % 9) as u32;
@@ -1754,7 +1755,7 @@ impl LzmaState {
 
     fn reset_probs(&mut self, prop: Option<u8>) -> Result<(), String> {
         if let Some(p) = prop {
-            if p >= 225 {
+            if !valid_lzma_properties(p) {
                 return Err("Compressed data is corrupt".into());
             }
             self.lc = (p % 9) as u32;
@@ -1907,22 +1908,40 @@ impl LzmaState {
     }
 }
 
+pub(super) const XZ_MAGIC: &[u8; 6] = b"\xfd7zXZ\0";
+
+fn valid_lzma_properties(prop: u8) -> bool {
+    prop < 225 && prop % 9 + prop / 9 % 5 <= 4
+}
+
+pub(super) fn lzma_auto_header_prefix(data: &[u8]) -> bool {
+    if data.first().is_some_and(|&prop| !valid_lzma_properties(prop)) {
+        return false;
+    }
+    if let Some(dict) = data.get(1..5) {
+        let dict = u32::from_le_bytes(dict.try_into().unwrap());
+        let base = if dict % 3 == 0 { dict / 3 } else { dict };
+        if dict != u32::MAX && !base.is_power_of_two() { return false; }
+    }
+    data.get(5..13).is_none_or(|size| {
+        let size = u64::from_le_bytes(size.try_into().unwrap());
+        size == u64::MAX || size <= 0x40_0000_0000
+    })
+}
+
 pub fn lzma_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
+    if data.first().is_some_and(|&prop| !valid_lzma_properties(prop)) {
+        return Err("Compressed data is corrupt".into());
+    }
     if data.len() < 13 {
-        return Err("File format not recognized".into());
+        return Err("unexpected end of file".into());
     }
     let prop = data[0];
-    if prop >= 225 {
-        return Err("File format not recognized".into());
-    }
     let uncomp_size = u64::from_le_bytes(data[5..13].try_into().unwrap());
     let has_eopm = uncomp_size == u64::MAX;
     let expected = if has_eopm { None } else { Some(uncomp_size as usize) };
     let mut state = LzmaState::new(prop)?;
     let mut out = Vec::with_capacity(expected.unwrap_or(1024).min(1024 * 1024));
-    if expected == Some(0) {
-        return Ok(out);
-    }
     state.decode_chunk(&data[13..], &mut out, expected, true)?;
     if let Some(exp) = expected && out.len() != exp {
         return Err("Compressed data is corrupt".into());
@@ -1931,12 +1950,11 @@ pub fn lzma_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
 }
 
 pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
-    if data.len() >= 6 && &data[0..6] == &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
-        // .xz format
-    } else if data.len() >= 13 && data[0] < 225 {
-        return lzma_decompress(data);
-    } else {
-        return Err("File format not recognized".into());
+    if data.first() != XZ_MAGIC.first() {
+        if lzma_auto_header_prefix(data) {
+            return lzma_decompress(data);
+        }
+        return Err("Compressed data is corrupt".into());
     }
 
     let mut pos = 0usize;
@@ -1957,7 +1975,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 break;
             }
         }
-        if pos + 24 > data.len() || &data[pos..pos + 6] != &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
+        if data.len() - pos < 12 { return Err("unexpected end of file".into()); }
+        if !data[pos..].starts_with(XZ_MAGIC) {
             return Err(if streams == 0 {
                 "File format not recognized".into()
             } else {
@@ -1989,7 +2008,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             let block_start = pos;
             let bh_size = ((data[pos] as usize) + 1) * 4;
             if pos + bh_size > data.len() {
-                return Err("Compressed data is corrupt".into());
+                return Err("unexpected end of file".into());
             }
             let bh_crc = u32::from_le_bytes(data[pos + bh_size - 4..pos + bh_size].try_into().unwrap());
             if bh_crc != crc32_ieee(&data[pos..pos + bh_size - 4]) {
@@ -2001,15 +2020,17 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 return Err("Compressed data is corrupt".into());
             }
             let mut bh_pos = pos + 2;
+            let field = |offset: &mut usize| read_xz_vli(&data[..pos + bh_size - 4], offset)
+                .map_err(|_| "Compressed data is corrupt");
             if (bh_flags & 0x40) != 0 {
-                let _ = read_xz_vli(&data[..pos + bh_size - 4], &mut bh_pos)?;
+                let _ = field(&mut bh_pos)?;
             }
             if (bh_flags & 0x80) != 0 {
-                let _ = read_xz_vli(&data[..pos + bh_size - 4], &mut bh_pos)?;
+                let _ = field(&mut bh_pos)?;
             }
             for _ in 0..num_filters {
-                let fid = read_xz_vli(&data[..pos + bh_size - 4], &mut bh_pos)?;
-                let props_len = read_xz_vli(&data[..pos + bh_size - 4], &mut bh_pos)? as usize;
+                let fid = field(&mut bh_pos)?;
+                let props_len = field(&mut bh_pos)? as usize;
                 if bh_pos + props_len > pos + bh_size - 4 {
                     return Err("Compressed data is corrupt".into());
                 }
@@ -2030,7 +2051,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             let mut lzma_state: Option<LzmaState> = None;
             loop {
                 if pos >= data.len() {
-                    return Err("Compressed data is corrupt".into());
+                    return Err("unexpected end of file".into());
                 }
                 let ctrl = data[pos];
                 pos += 1;
@@ -2039,19 +2060,19 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 }
                 if ctrl == 0x01 || ctrl == 0x02 {
                     if pos + 2 > data.len() {
-                        return Err("Compressed data is corrupt".into());
+                        return Err("unexpected end of file".into());
                     }
                     let chunk_len = (u16::from_be_bytes([data[pos], data[pos + 1]]) as usize) + 1;
                     pos += 2;
                     if pos + chunk_len > data.len() {
-                        return Err("Compressed data is corrupt".into());
+                        return Err("unexpected end of file".into());
                     }
                     out.extend_from_slice(&data[pos..pos + chunk_len]);
                     pos += chunk_len;
                 } else if ctrl >= 0x80 {
                     let uncomp_hi = ((ctrl & 0x1f) as usize) << 16;
                     if pos + 4 > data.len() {
-                        return Err("Compressed data is corrupt".into());
+                        return Err("unexpected end of file".into());
                     }
                     let uncomp_lo = u16::from_be_bytes([data[pos], data[pos + 1]]) as usize;
                     let comp_len = (u16::from_be_bytes([data[pos + 2], data[pos + 3]]) as usize) + 1;
@@ -2061,7 +2082,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                     let reset_state = ctrl >= 0xa0;
                     let prop = if need_props {
                         if pos >= data.len() {
-                            return Err("Compressed data is corrupt".into());
+                            return Err("unexpected end of file".into());
                         }
                         let p = data[pos];
                         pos += 1;
@@ -2070,7 +2091,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                         None
                     };
                     if pos + comp_len > data.len() {
-                        return Err("Compressed data is corrupt".into());
+                        return Err("unexpected end of file".into());
                     }
                     if reset_state {
                         if let Some(ref mut st) = lzma_state {
@@ -2099,7 +2120,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 pos += 1;
             }
             if pos + check_size > data.len() {
-                return Err("Compressed data is corrupt".into());
+                return Err("unexpected end of file".into());
             }
             let stored_check = &data[pos..pos + check_size];
             pos += check_size;
@@ -2127,7 +2148,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
         }
 
         // Index
-        if pos >= data.len() || data[pos] != 0x00 {
+        if pos >= data.len() { return Err("unexpected end of file".into()); }
+        if data[pos] != 0x00 {
             return Err("Compressed data is corrupt".into());
         }
         let index_start = pos;
@@ -2144,13 +2166,13 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             }
         }
         while (pos - index_start) % 4 != 0 {
-            if pos >= data.len() || data[pos] != 0 {
+            if *data.get(pos).ok_or("unexpected end of file")? != 0 {
                 return Err("Compressed data is corrupt".into());
             }
             pos += 1;
         }
         if pos + 4 > data.len() {
-            return Err("Compressed data is corrupt".into());
+            return Err("unexpected end of file".into());
         }
         let idx_crc = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
         if idx_crc != crc32_ieee(&data[index_start..pos]) {
@@ -2161,7 +2183,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
 
         // Stream Footer
         if pos + 12 > data.len() {
-            return Err("Compressed data is corrupt".into());
+            return Err("unexpected end of file".into());
         }
         let footer = &data[pos..pos + 12];
         pos += 12;

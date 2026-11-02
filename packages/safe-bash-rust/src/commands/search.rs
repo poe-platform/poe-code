@@ -575,13 +575,6 @@ fn find_single_pattern(
     let hay: Vec<(usize, char)> = text.char_indices().collect();
     let mut matches = Vec::new();
 
-    if line_regexp {
-        if match_at_chars(pat, &hay, 0, ignore_case, fixed_strings) == Some(hay.len()) {
-            matches.push((0, text.len()));
-        }
-        return matches;
-    }
-
     let anchored_start = !fixed_strings && pat.starts_with('^');
     let anchored_end = !fixed_strings && has_unescaped_trailing_dollar(pat);
     let core_pat = if !fixed_strings {
@@ -595,8 +588,21 @@ fn find_single_pattern(
         pat
     };
 
+    let tokens = parse_rx(core_pat, fixed_strings);
+    let backrefs = !fixed_strings && has_backref_token(&tokens);
+    let match_at = |pos| {
+        if backrefs {
+            match_tokens_with_caps(&tokens, &hay, text, pos, ignore_case).map(|(end, _)| end)
+        } else {
+            match_tokens(&tokens, &hay, pos, ignore_case)
+        }
+    };
+    if line_regexp {
+        if match_at(0) == Some(hay.len()) { matches.push((0, text.len())); }
+        return matches;
+    }
     if anchored_start {
-        if let Some(end_idx) = match_at_chars(core_pat, &hay, 0, ignore_case, fixed_strings) {
+        if let Some(end_idx) = match_at(0) {
             if !anchored_end || end_idx == hay.len() {
                 let end_byte = if end_idx < hay.len() {
                     hay[end_idx].0
@@ -613,7 +619,7 @@ fn find_single_pattern(
 
     let mut pos = 0usize;
     while pos <= hay.len() {
-        if let Some(end_idx) = match_at_chars(core_pat, &hay, pos, ignore_case, fixed_strings) {
+        if let Some(end_idx) = match_at(pos) {
             if (!anchored_end || end_idx == hay.len())
                 && (!word_regexp || is_word_boundary(&hay, pos, end_idx))
             {
@@ -1137,20 +1143,6 @@ fn has_backref_token(tokens: &[RxToken]) -> bool {
         RxAtom::Group { alts, .. } => alts.iter().any(|a| has_backref_token(&parse_rx(a, false))),
         _ => false,
     })
-}
-
-fn match_at_chars(
-    pat: &str,
-    hay: &[(usize, char)],
-    pos: usize,
-    ignore_case: bool,
-    fixed: bool,
-) -> Option<usize> {
-    let tokens = parse_rx(pat, fixed);
-    if !fixed && has_backref_token(&tokens) {
-        return match_tokens_with_caps(&tokens, hay, "", pos, ignore_case).map(|(end, _)| end);
-    }
-    match_tokens(&tokens, hay, pos, ignore_case)
 }
 
 fn match_tokens(

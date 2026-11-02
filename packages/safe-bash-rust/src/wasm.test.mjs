@@ -6400,3 +6400,27 @@ test("tar rejects empty intermediate transformed member and link names", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("whole-line searches honor anchors and preserve them as text in fixed-string mode", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) await f.writeFile("/in", Buffer.from("abc\nxabc\nabcx\n^abc$\nabc$\n\nxy\n"));
+    for (const bin of ["grep -E", "rg"]) {
+      for (const [flags, pat, expected] of [
+        ["-x", "^abc$", "abc\n"], ["-x", "abc$", "abc\n"], ["-x", "^$", "\n"],
+        ["-x", "^abc$|xy$", "abc\nxy\n"], ["-x", "abc\\$", "abc$\n"],
+      ]) {
+        const cmd = bin + " " + flags + " '" + pat + "' in";
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([a.exitCode, a.stderr, a.stdout], [0, "", expected], cmd);
+        assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      }
+    }
+    for (const bin of ["grep", "rg"]) {
+      const cmd = bin + " -Fx '^abc$' in";
+      for (const sh of [js, rs]) assert.equal((await sh.exec(cmd)).stdout, "^abc$\n");
+    }
+  } finally { rs.dispose(); }
+});

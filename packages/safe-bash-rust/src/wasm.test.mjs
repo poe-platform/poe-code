@@ -5796,3 +5796,28 @@ test("tar update uses the newest archived mtime and preserves a no-op archive", 
     }
   } finally { rs.dispose(); }
 });
+
+test("tar append and update apply creation metadata to new entries and list only additions", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    const file = "/a b";
+    await fs.writeFile(file, Buffer.from("old"));
+    const seed = await js.exec("tar --format=ustar --mtime=@2 -cf - 'a b'");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const [op, mtime, added] of [["r", 2000, true], ["u", 1000, false], ["u", 3000, true]]) {
+      for (const f of [fs, rs.fs]) {
+        await f.writeFile(file, Buffer.from("new"));
+        await f.utimes(file, mtime, mtime);
+        await f.writeFile("/out", seed.stdoutBytes);
+      }
+      const cmd = "tar -" + op + "vf out --quoting-style=c --mtime=@" + (added ? "0" : "9") + " --mode=701 --owner=51 --group=63 'a b'";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode, a.stdout, a.stderr], [0, added ? '"a b"\n' : "", ""]);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/out")), Buffer.from(await fs.readFile("/out")), cmd);
+    }
+  } finally { rs.dispose(); }
+});

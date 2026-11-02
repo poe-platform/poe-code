@@ -5327,6 +5327,14 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         Ok(true)
     };
 
+    let prepare_entry = |entry: &mut TarEntry| {
+        if let Some(mode) = override_mode { entry.mode = mode; }
+        if let Some(mtime) = override_mtime { entry.mtime = mtime as f64; }
+        if let Some(uid) = override_uid { entry.uid = uid; }
+        if let Some(gid) = override_gid { entry.gid = gid; }
+        if !transforms.is_empty() { entry.name = apply_tar_transforms(&entry.name, &transforms); }
+    };
+
     if create {
         let mut entries: Vec<TarEntry> = Vec::new();
         let mut create_stderr = String::new();
@@ -5354,27 +5362,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         }
         create_stderr.push_str(&warnings);
-        for entry in &mut entries {
-            if let Some(m) = override_mode {
-                entry.mode = m;
-            }
-            if let Some(mt) = override_mtime {
-                entry.mtime = mt as f64;
-            }
-            if let Some(u) = override_uid {
-                entry.uid = u;
-            }
-            if let Some(g) = override_gid {
-                entry.gid = g;
-            }
-        }
-        if !transforms.is_empty() {
-            for entry in &mut entries {
-                entry.name = apply_tar_transforms(&entry.name, &transforms);
-            }
-        }
         let mut verbose_out = String::new();
-        for entry in &entries {
+        for entry in &mut entries {
+            prepare_entry(entry);
             if verbose {
                 verbose_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
             }
@@ -5510,6 +5500,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             true
         });
         if let Err(e) = scan { return err_out(&format!("tar: {e}\n"), 2); }
+        let mut stdout = String::new();
         let mut stderr = String::new();
         if delete_mode && let Some(idx) = matched_ops.iter().position(|&matched| !matched) {
             return err_out(&format!("tar: member not found: {}\n", tar_format::display(&operands[idx].name)), 2);
@@ -5537,12 +5528,14 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             stderr.push_str(&warnings);
             let mut added = Vec::new();
             for mut ne in new_entries {
-                if !transforms.is_empty() {
-                    ne.name = apply_tar_transforms(&ne.name, &transforms);
-                }
+                let source_mtime = ne.mtime;
+                prepare_entry(&mut ne);
                 if let Some(archived) = times.get(ne.name.trim_end_matches('/')) {
                     let Some(t) = archived else { return err_out(&format!("{stderr}tar: archive lacks mtime required for update\n"), 2); };
-                    if ne.mtime <= *t { continue; }
+                    if source_mtime <= *t { continue; }
+                }
+                if verbose {
+                    stdout.push_str(&format!("{}\n", tar_quote_name(&ne.name, &quoting_style)));
                 }
                 added.push(ne);
             }
@@ -5581,7 +5574,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if totals { stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len())); }
         }
         return BuiltinOutcome {
-            stdout: String::new(),
+            stdout,
             stderr,
             exit_code: 0,
         };

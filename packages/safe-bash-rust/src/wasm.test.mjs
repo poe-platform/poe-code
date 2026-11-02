@@ -2936,3 +2936,33 @@ test("ffmpeg and ffprobe list the production media registry and codecs", async (
     }
   } finally { wasm.dispose(); }
 });
+
+test("cancelled and guarded chmod calls cannot silently change Wasm permissions", async () => {
+  const bash = new RustWasmBash({ files: { "/private": { content: "data", mode: 0o600 } } });
+  try {
+    const reason = new Error("cancel chmod");
+    await assert.rejects(bash.fs.chmod("/private", 0o777, { signal: AbortSignal.abort(reason) }), e => e === reason);
+    const file = await bash.fs.stat("/private"), root = await bash.fs.stat("/");
+    await assert.rejects(bash.fs.chmod("/private", 0o777, { expected: file }), { code: "EINVAL", syscall: "chmod" });
+    await assert.rejects(bash.fs.chmod("/private", 0o777, {
+      parent: root, expected: file, ancestors: [{ path: "/", stat: root }],
+    }), { code: "ENOTSUP", syscall: "chmod" });
+    assert.equal((await bash.fs.stat("/private")).mode & 0o777, 0o600);
+  } finally { bash.dispose(); }
+});
+
+test("chmod forwards the original guard to the active companion", async () => {
+  const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const bash = new RustWasmBash({ forceNative: false, companionFactory: () => ({ fs, shell: new Shell({ fs }) }) });
+  try {
+    await bash.fs.writeFile("/private", "", { mode: 0o600 });
+    await bash.fs.realpath("/private");
+    const expected = await fs.lstat("/private"), parent = await fs.lstat("/");
+    const refused = new Error("guard refused");
+    await assert.rejects(bash.fs.chmod("/private", 0o777, {
+      expected, parent, ancestors: [{ path: "/", stat: parent }], commitGuard() { throw refused; },
+    }), e => e === refused);
+    assert.equal((await fs.stat("/private")).mode & 0o777, 0o600);
+  } finally { bash.dispose(); }
+});

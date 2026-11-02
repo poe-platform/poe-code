@@ -70,7 +70,7 @@ The JavaScript entry point requires Node.js to load the packaged WebAssembly bin
 
 Use `await bash.fs.openReadFile(path)` for positioned reads from regular Wasm files. The handle follows the opened file across renames and unlinks; close it when finished. Pass `{ allowDirectory: true }` to read directory metadata. Directory handles reject byte reads with `EISDIR`. Production JavaScript commands such as `cat` can read these files through this interface. Use `await bash.fs.appendFile(path, bytes)` to append bytes or create a file. Production shell redirections (`>` and `>>`) and `tee` can write to this filesystem.
 
-Use `await bash.fs.access(path, mode)` to check existence (0), read (4), write (2), or execute/search permission (1). Combine permission bits to require all of them.
+Use `await bash.fs.access(path, mode)` to check existence (0), read (4), write (2), or execute/search permission (1). Combine permission bits to require all of them. Pass an abort signal to `bash.fs.chmod(path, mode, { signal })` to cancel a mode change. The Wasm filesystem rejects conditional chmod receipts because it cannot yet verify file revisions.
 
 Use `await bash.fs.symlink(target, path)` to create a symbolic link in an existing directory. `await bash.fs.readlink(path)` returns the stored target even if it does not exist. Both methods accept `{ signal }` and report filesystem errors such as `ENOENT` for a missing parent.
 

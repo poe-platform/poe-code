@@ -391,19 +391,25 @@ export class WasmFileSystem {
     return this.bash.readlink(linkPath);
   }
 
-  async chmod(filePath, mode) {
-    if (this.bash._companion) {
-      await this.bash._ensureCompanionSynced();
-      if (this.bash._companion.fs.chmod) {
-        return this.bash._companion.fs.chmod(filePath, mode);
-      }
+  async chmod(filePath, mode, options) {
+    options?.signal?.throwIfAborted();
+    const bash = this.bash;
+    if (bash._companion) {
+      await bash._ensureCompanionSynced();
+      options?.signal?.throwIfAborted();
+      if (!bash._companion.fs.chmod) throw fsOperationError("ENOTSUP", "chmod", filePath);
+      return bash._companion.fs.chmod(filePath, mode, options);
     }
-    this.bash.chmod(filePath, mode);
-    if (this.bash.companionFactory && !this.bash.forceNative) {
-      this.bash._history.push({
-        type: "fs",
-        run: (fs) => (fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()),
-      });
+    const { parent, expected, ancestors, commitGuard } = options ?? {};
+    if (parent !== undefined || expected !== undefined || ancestors !== undefined || commitGuard !== undefined) {
+      if (parent === undefined || expected === undefined || ancestors === undefined) {
+        throw fsOperationError("EINVAL", "chmod", filePath, undefined, "complete conditional chmod receipt is required");
+      }
+      throw fsOperationError("ENOTSUP", "chmod", filePath);
+    }
+    bash.chmod(filePath, mode);
+    if (bash.companionFactory && !bash.forceNative) {
+      bash._history.push({ type: "fs", run: fs => fs.chmod(filePath, mode) });
     }
   }
 

@@ -45,11 +45,11 @@ pub enum FdTarget {
     Stdout,
     PipeStdout { peer_retired: bool },
     Stderr,
-    File { path: String },
+    File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>> },
     ReadWriteFile {
         path: String,
         owner_fd: u32,
-        file: Option<Rc<dyn crate::vfs::OpenReadWriteFile>>,
+        file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
         position: Rc<Cell<FileInputPosition>>,
     },
     Closed,
@@ -8099,7 +8099,7 @@ impl<'a> EvalState<'a> {
             }
             if !self.is_fd_readable(fd_num) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path }) if !self.is_default_null(path) => {
+                    Some(FdTarget::File { path, .. }) if !self.is_default_null(path) => {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
@@ -8160,7 +8160,7 @@ impl<'a> EvalState<'a> {
         if !self.is_fd_readable(fd_num) && nchars != Some(0) {
             if effective_timeout.is_some_and(|t| t > 0.0) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path }) if !self.is_default_null(path) => {}
+                    Some(FdTarget::File { path, .. }) if !self.is_default_null(path) => {}
                     Some(FdTarget::PipeStdout { peer_retired }) => {
                         timed_out = !*peer_retired;
                     }
@@ -9166,13 +9166,33 @@ impl<'a> EvalState<'a> {
         )
     }
 
-    fn apply_umask_to_new_file(&self, full_path: &str) {
-        if let Some(mask_s) = self.env.get("\0umask")
-            && let Ok(mask) = u32::from_str_radix(mask_s, 8)
-        {
-            let mode = 0o666 & !mask;
-            let _ = self.fs.chmod(full_path, mode);
-        }
+    fn redirect_create_mode(&self) -> u32 {
+        self.env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok())
+            .map_or(0o644, |mask| 0o666 & !mask)
+    }
+
+    fn open_output_target(&self, operand: &str, kind: &RedirectKind) -> Result<FdTarget, BuiltinOutcome> {
+        use crate::vfs::RedirectAccess;
+        let path = self.output_redirect_path(operand, kind)?;
+        let append = matches!(kind, RedirectKind::Append(_) | RedirectKind::BothAppend);
+        let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        let mode = self.redirect_create_mode();
+        let error = |e: String| self.redirect_error(operand, &e);
+        let file = if self.is_default_null(&path) { None } else {
+            let file = self.fs.open_redirect_file(&path, access, mode).map_err(error)?;
+            if file.is_none() {
+                let existed = self.fs.exists(&path);
+                if !append || !existed {
+                    self.fs.write_file(&path, b"").map_err(error)?;
+                    if !existed && self.env.contains_key("\0umask") {
+                        self.fs.chmod(&path, mode).map_err(error)?;
+                    }
+                }
+            }
+            file
+        };
+        let offset = (file.is_some() && !append).then(|| Rc::new(Cell::new(0)));
+        Ok(FdTarget::File { path, file, offset })
     }
 
     fn is_default_null(&self, path: &str) -> bool {
@@ -9421,10 +9441,8 @@ impl<'a> EvalState<'a> {
                             return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
                     };
-                    let create_mode = self.env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok())
-                        .map_or(0o644, |mask| 0o666 & !mask);
                     let opened = if self.is_default_null(&full) { Ok(None) } else {
-                        self.fs.open_read_write(&full, create_mode)
+                        self.fs.open_redirect_file(&full, crate::vfs::RedirectAccess::ReadWrite, self.redirect_create_mode())
                     };
                     let file = match opened {
                         Ok(file) => file,
@@ -9886,7 +9904,7 @@ impl<'a> EvalState<'a> {
                         }
                     }
                 }
-                RedirectKind::Out(fd) => {
+                RedirectKind::Out(fd) | RedirectKind::Clobber(fd) | RedirectKind::Append(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
                         Err(err_out) => {
@@ -9900,31 +9918,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = match self.output_redirect_path(&target, &r.kind) {
-                        Ok(path) => path,
+                    let opened = match self.open_output_target(&target, &r.kind) {
+                        Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
                             return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
                     };
-                    if !self.is_default_null(&full) {
-                        let existed = self.fs.exists(&full);
-                        if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        if !existed {
-                            self.apply_umask_to_new_file(&full);
-                        }
-                    }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
@@ -9940,116 +9940,7 @@ impl<'a> EvalState<'a> {
                         self.in_fds.remove(fd);
                     }
                     self.in_fd_aliases.remove(fd);
-                    self.fd_table.insert(*fd, FdTarget::File { path: full });
-                }
-                RedirectKind::Clobber(fd) => {
-                    let target = match expand_redir_target(self, &r.target)? {
-                        Ok(t) => t,
-                        Err(err_out) => {
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    let full = match self.output_redirect_path(&target, &r.kind) {
-                        Ok(path) => path,
-                        Err(mut err_out) => {
-                            self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                        }
-                    };
-                    if !self.is_default_null(&full) {
-                        let existed = self.fs.exists(&full);
-                        if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        if !existed {
-                            self.apply_umask_to_new_file(&full);
-                        }
-                    }
-                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                    if *fd == 0 {
-                        self.materialize_stdin_aliases(default_stdin, &mut saved_in);
-                        local_stdin.clear();
-                        use_local = true;
-                        dup_fd = None;
-                    } else {
-                        if !saved_in.iter().any(|(f, _)| f == fd) {
-                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                        }
-                        self.in_fds.remove(fd);
-                    }
-                    self.in_fd_aliases.remove(fd);
-                    self.fd_table.insert(*fd, FdTarget::File { path: full });
-                }
-                RedirectKind::Append(fd) => {
-                    let target = match expand_redir_target(self, &r.target)? {
-                        Ok(t) => t,
-                        Err(err_out) => {
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    let full = match self.output_redirect_path(&target, &r.kind) {
-                        Ok(path) => path,
-                        Err(mut err_out) => {
-                            self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                        }
-                    };
-                    if !self.is_default_null(&full) && !self.fs.exists(&full) {
-                        if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        self.apply_umask_to_new_file(&full);
-                    }
-                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                    if *fd == 0 {
-                        self.materialize_stdin_aliases(default_stdin, &mut saved_in);
-                        local_stdin.clear();
-                        use_local = true;
-                        dup_fd = None;
-                    } else {
-                        if !saved_in.iter().any(|(f, _)| f == fd) {
-                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                        }
-                        self.in_fds.remove(fd);
-                    }
-                    self.in_fd_aliases.remove(fd);
-                    self.fd_table.insert(*fd, FdTarget::File { path: full });
+                    self.fd_table.insert(*fd, opened);
                 }
                 RedirectKind::DupOut {
                     fd,
@@ -10093,36 +9984,18 @@ impl<'a> EvalState<'a> {
                         let is_digits = !src_str.is_empty()
                             && src_str.chars().all(|c| c.is_ascii_digit());
                         if !is_digits && *origin == DupOrigin::Default {
-                            let full = match self.output_redirect_path(&target, &r.kind) {
-                                Ok(path) => path,
+                            let opened = match self.open_output_target(&target, &r.kind) {
+                                Ok(opened) => opened,
                                 Err(mut err_out) => {
                                     self.route_outcome(&mut err_out);
                                     return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                                 }
                             };
-                            if !self.is_default_null(&full) {
-                                let existed = self.fs.exists(&full);
-                                if let Err(e) = self.fs.write_file(&full, b"") {
-                                    let mut err_out = self.redirect_error(&target, &e);
-                                    self.route_outcome(&mut err_out);
-                                    return Ok((
-                                        (saved_fd_table, saved_aliases),
-                                        saved_in,
-                                        local_stdin,
-                                        use_local,
-                                        dup_fd,
-                                        Some(err_out),
-                                    ));
-                                }
-                                if !existed {
-                                    self.apply_umask_to_new_file(&full);
-                                }
-                            }
                             record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
                             record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
                             self.fd_table
-                                .insert(1, FdTarget::File { path: full.clone() });
-                            self.fd_table.insert(2, FdTarget::File { path: full });
+                                .insert(1, opened.clone());
+                            self.fd_table.insert(2, opened);
                             continue;
                         }
                         if !is_digits {
@@ -10240,7 +10113,7 @@ impl<'a> EvalState<'a> {
                         }
                     }
                 }
-                RedirectKind::BothOut => {
+                RedirectKind::BothOut | RedirectKind::BothAppend => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
                         Err(err_out) => {
@@ -10254,78 +10127,18 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = match self.output_redirect_path(&target, &r.kind) {
-                        Ok(path) => path,
+                    let opened = match self.open_output_target(&target, &r.kind) {
+                        Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
                             return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
                     };
-                    if !self.is_default_null(&full) {
-                        let existed = self.fs.exists(&full);
-                        if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        if !existed {
-                            self.apply_umask_to_new_file(&full);
-                        }
-                    }
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
                     self.fd_table
-                        .insert(1, FdTarget::File { path: full.clone() });
-                    self.fd_table.insert(2, FdTarget::File { path: full });
-                }
-                RedirectKind::BothAppend => {
-                    let target = match expand_redir_target(self, &r.target)? {
-                        Ok(t) => t,
-                        Err(err_out) => {
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    let full = match self.output_redirect_path(&target, &r.kind) {
-                        Ok(path) => path,
-                        Err(mut err_out) => {
-                            self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                        }
-                    };
-                    if !self.is_default_null(&full) && !self.fs.exists(&full) {
-                        if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        self.apply_umask_to_new_file(&full);
-                    }
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
-                    self.fd_table
-                        .insert(1, FdTarget::File { path: full.clone() });
-                    self.fd_table.insert(2, FdTarget::File { path: full });
+                        .insert(1, opened.clone());
+                    self.fd_table.insert(2, opened);
                 }
             }
         }
@@ -10391,11 +10204,21 @@ impl<'a> EvalState<'a> {
         match target {
             FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
-            FdTarget::File { path } => {
+            FdTarget::File { path, file, offset } => {
                 if !self.is_default_null(path) {
-                    if let Err(e) = self.fs.append_file(path, &stream_string_to_bytes(data)) {
-                        out.stderr.push_str(&format!("{path}: {e}\n"));
-                        out.exit_code = 1;
+                    let bytes = stream_string_to_bytes(data);
+                    let result = match file {
+                        Some(file) => self.budget.tick_fs_op()
+                            .and_then(|_| self.budget.add_output_bytes(bytes.len()))
+                            .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
+                        None => self.fs.append_file(path, &bytes),
+                    };
+                    match result {
+                        Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
+                        Err(e) => {
+                            out.stderr.push_str(&format!("{path}: {e}\n"));
+                            out.exit_code = 1;
+                        }
                     }
                 }
             }
@@ -10429,7 +10252,7 @@ impl<'a> EvalState<'a> {
                     let limit = self.budget.limits.max_input_bytes;
                     let result = self.budget.tick_fs_op()
                         .and_then(|_| self.budget.add_output_bytes(write_bytes.len()))
-                        .and_then(|_| file.write_at(cur_off, &write_bytes))
+                        .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
                         .and_then(|_| self.budget.tick_fs_op())
                         .and_then(|_| file.read_at(end_off, limit.saturating_add(1)));
                     let tail = match result {
@@ -16215,6 +16038,25 @@ hash -l
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{child}");
             assert_eq!(fs.read_file("/f").unwrap(), letters.as_bytes(), "{child}");
             assert_eq!(fs.read_file("/g").unwrap(), other.as_bytes(), "{child}");
+        }
+    }
+
+    #[test]
+    fn output_redirects_retain_the_opened_file_and_their_own_write_position() {
+        for (command, expected) in [
+            ("exec 3>/f; printf ab >/f; printf X >&3", "Xb"),
+            ("exec 3>>/f; printf ab >/f; printf X >&3", "abX"),
+            ("exec 3>/f; printf ab >&3; printf Q >/f; printf Y >&3", "Q\0Y"),
+            ("exec 3>>/f; rm /f; printf other >/f; printf X >&3", "other"),
+            ("{ mv /f /old; printf Q >/f; echo yes; } >|/f; cat /old", "yes\nQ"),
+            ("{ mv /f /old; printf Q >/f; echo yes; echo no >&2; } &>/f; cat /old", "yes\nno\nQ"),
+            ("{ mv /f /old; printf Q >/f; echo yes; echo no >&2; } &>>/f; cat /old", "zzzyes\nno\nQ"),
+            ("exec 3>/f; printf X >&3; (printf Z >&3); printf Y >&3", "XZY"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"zzz").unwrap();
+            let r = shell.exec(&format!("{command}; cat /f")).unwrap();
+            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{command}");
         }
     }
 

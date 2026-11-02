@@ -69,9 +69,9 @@ impl SafeBashFs for MountVfs {
         fs.lstat(&local).map(|st| (entry, st))
     }
 
-    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenReadWriteFile>>, String> {
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         let (fs, local) = self.route(path, true)?;
-        fs.open_read_write(&local, create_mode)
+        fs.open_redirect_file(&local, access, create_mode)
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {

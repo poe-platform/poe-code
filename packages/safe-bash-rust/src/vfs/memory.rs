@@ -733,13 +733,14 @@ impl MemoryVfs {
 
 impl SafeBashFs for MemoryVfs {
     fn memory_backend(&self) -> Option<&MemoryVfs> { Some(self) }
-    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenReadWriteFile>>, String> {
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         let entry = Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?;
         if state.devices.entry(&entry).is_some() { return Ok(None); }
         let ino = match state.nodes.get(&entry) {
             Some(&MemoryNode::File { ino }) => {
-                if state.files[&ino].mode & 0o600 != 0o600 { return Err("EACCES: permission denied".into()); }
+                let required = if access == super::RedirectAccess::ReadWrite { 0o600 } else { 0o200 };
+                if state.files[&ino].mode & required != required { return Err("EACCES: permission denied".into()); }
                 ino
             }
             Some(_) => return Err("EISDIR: illegal operation on a directory".into()),
@@ -759,7 +760,10 @@ impl SafeBashFs for MemoryVfs {
             }
         };
         state.files.get_mut(&ino).unwrap().opens += 1;
-        Ok(Some(std::rc::Rc::new(RetainedFile { fs: self.clone(), ino })))
+        drop(state);
+        let file = RetainedFile { fs: self.clone(), ino, readable: access == super::RedirectAccess::ReadWrite };
+        if access == super::RedirectAccess::Truncate { file.truncate(0)?; }
+        Ok(Some(std::rc::Rc::new(file)))
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {

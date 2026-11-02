@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct RetainedFile {
     pub(super) fs: MemoryVfs,
     pub(super) ino: u64,
+    pub(super) readable: bool,
 }
 
 impl std::fmt::Debug for RetainedFile {
@@ -12,13 +13,14 @@ impl std::fmt::Debug for RetainedFile {
     }
 }
 
-impl crate::vfs::OpenReadWriteFile for RetainedFile {
+impl crate::vfs::OpenRedirectFile for RetainedFile {
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
+        if !self.readable { return Err("EBADF: bad file descriptor".into()); }
         Ok(self.read(offset as u64, limit))
     }
 
-    fn write_at(&self, offset: usize, bytes: &[u8]) -> Result<(), String> {
-        self.write(Some(offset as u64), bytes).map(|_| ())
+    fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
+        self.write(offset.map(|n| n as u64), bytes).map(|_| ())
     }
 }
 
@@ -30,7 +32,7 @@ impl MemoryVfs {
             return Err("ENOENT: missing regular file".into());
         };
         state.files.get_mut(&ino).unwrap().opens += 1;
-        Ok(RetainedFile { fs: self.clone(), ino })
+        Ok(RetainedFile { fs: self.clone(), ino, readable: true })
     }
 }
 

@@ -113,16 +113,19 @@ impl FsError {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RedirectAccess { Truncate, Append, ReadWrite }
+
 /// An opened regular file. Its operations use the same object even if its name is replaced.
-pub trait OpenReadWriteFile: std::fmt::Debug {
+pub trait OpenRedirectFile: std::fmt::Debug {
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;
-    fn write_at(&self, offset: usize, bytes: &[u8]) -> Result<(), String>;
+    fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String>;
 }
 
-impl PartialEq for dyn OpenReadWriteFile {
+impl PartialEq for dyn OpenRedirectFile {
     fn eq(&self, other: &Self) -> bool { std::ptr::eq(self, other) }
 }
-impl Eq for dyn OpenReadWriteFile {}
+impl Eq for dyn OpenRedirectFile {}
 
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
@@ -136,9 +139,10 @@ pub trait SafeBashFs: Send + Sync {
         self.lstat(&entry).map(|st| (entry, st))
     }
 
-    /// Return None for a device whose special read/write behavior is provided by this VFS.
-    fn open_read_write(&self, path: &str, _create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenReadWriteFile>>, String> {
-        Err(format!("ENOTSUP: operation not supported, open '{path}'"))
+    /// None uses the filesystem’s path-based output or special-device operations.
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, _create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
+        if access == RedirectAccess::ReadWrite { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }
+        else { Ok(None) }
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;

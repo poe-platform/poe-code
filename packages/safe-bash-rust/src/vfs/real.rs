@@ -183,7 +183,7 @@ impl RealVfs {
     }
 }
 
-impl super::OpenReadWriteFile for std::fs::File {
+impl super::OpenRedirectFile for std::fs::File {
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
         use std::io::{Read, Seek, SeekFrom};
         let mut file = self;
@@ -193,10 +193,10 @@ impl super::OpenReadWriteFile for std::fs::File {
         Ok(bytes)
     }
 
-    fn write_at(&self, offset: usize, bytes: &[u8]) -> Result<(), String> {
+    fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
         use std::io::{Seek, SeekFrom, Write};
         let mut file = self;
-        file.seek(SeekFrom::Start(offset as u64)).map_err(mutation_error)?;
+        file.seek(offset.map_or(SeekFrom::End(0), |n| SeekFrom::Start(n as u64))).map_err(mutation_error)?;
         file.write_all(bytes).map_err(mutation_error)
     }
 }
@@ -237,10 +237,11 @@ impl SafeBashFs for RealVfs {
         std::fs::File::open(host).and_then(|file| file.set_times(times)).map_err(|e| e.to_string())
     }
 
-    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenReadWriteFile>>, String> {
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
         let mut options = std::fs::OpenOptions::new();
-        options.read(true).write(true).create(true);
+        options.read(access == super::RedirectAccess::ReadWrite).write(true).create(true)
+            .append(access == super::RedirectAccess::Append).truncate(access == super::RedirectAccess::Truncate);
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode);
         options.open(host).map(|f| Some(std::rc::Rc::new(f) as _)).map_err(mutation_error)

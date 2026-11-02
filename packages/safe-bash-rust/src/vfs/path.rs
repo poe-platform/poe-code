@@ -16,6 +16,12 @@ pub fn normalize_posix_path(path: &str) -> String {
     }
 }
 
+/// Keep dot components and trailing slashes for filesystem traversal.
+pub(crate) fn absolute_operand(cwd: &str, operand: &str) -> String {
+    if operand.is_empty() || operand.starts_with('/') { operand.to_owned() }
+    else { format!("{}/{operand}", cwd.trim_end_matches('/')) }
+}
+
 pub fn resolve_posix_path(cwd: &str, target: &str) -> String {
     if target.starts_with('/') {
         normalize_posix_path(target)

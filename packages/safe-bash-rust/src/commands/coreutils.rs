@@ -1,3 +1,4 @@
+use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::decode_ansi_c_escapes;
 use crate::vfs::{
@@ -407,7 +408,7 @@ fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
         if f == "-" {
             raw_bytes.extend_from_slice(&take_stdin_bytes(stdin));
         } else {
-            let p = super::fs::absolute_operand(cwd, f);
+            let p = absolute_operand(cwd, f);
             let result = fs.inspect_command_entry(&p, true, "capabilitiesFor")
                 .and_then(|(resolved, st)| {
                     if st.mode & 0o170000 != 0o100000 {
@@ -799,7 +800,7 @@ fn run_head_or_tail(
     let mut consumed = 0;
     for file in &names {
         let path = if file == "-" { None } else {
-            let p = super::fs::absolute_operand(cwd, file);
+            let p = absolute_operand(cwd, file);
             let inspected = fs.inspect_command_entry(&p, true, "capabilitiesFor")
                 .map_err(|error| stream_file_error(error, "stat", &p))
                 .and_then(|(resolved, st)| {
@@ -889,7 +890,7 @@ fn run_head_or_tail(
         };
         if let Err(err) = result {
             if path.is_some() && err.starts_with("EIO:") {
-                let operand = super::fs::absolute_operand(cwd, file);
+                let operand = absolute_operand(cwd, file);
                 stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{operand}'\n"));
             } else {
                 stderr.push_str(&format!("{name}: {err}\n"));
@@ -9323,7 +9324,7 @@ fn cmd_date(
             Err(msg) => return err_out(&msg, 1),
         }
     } else if let Some((ref rval, allow_epoch)) = ref_spec {
-        let path = super::fs::absolute_operand(cwd, rval);
+        let path = absolute_operand(cwd, rval);
         match fs.access_path(&path, true).and_then(|p| fs.stat(&p)) {
             Ok(st) => match super::fs::calendar_instant(st.mtime_ms, false) {
                 Some(instant) => instant,

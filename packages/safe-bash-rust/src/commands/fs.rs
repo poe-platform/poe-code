@@ -1,3 +1,4 @@
+use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{
     EntryIdentity, FileStat, SafeBashFs, VfsEntryKind, basename_posix_path, normalize_posix_path, resolve_posix_path,
@@ -97,10 +98,6 @@ fn file_ext_key(name: &str) -> &str {
         }
         _ => "",
     }
-}
-
-pub(super) fn absolute_operand(cwd: &str, operand: &str) -> String {
-    if operand.is_empty() || operand.starts_with('/') { operand.to_owned() } else { child_disp_path(cwd, operand) }
 }
 
 fn child_disp_path(parent: &str, name: &str) -> String {

@@ -9351,29 +9351,17 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    let content = if self.fs.is_dir(&full) {
-                        if self.in_cmdsub_file_shortcut {
-                            String::new()
+                    let path = crate::vfs::path::absolute_operand(self.cwd, &target);
+                    let input = self.fs.inspect_command_entry(&path, true, "stat").and_then(|(resolved, st)| {
+                        if st.kind == crate::vfs::VfsEntryKind::Directory {
+                            if self.in_cmdsub_file_shortcut { Ok(Vec::new()) } else { Err("EISDIR".into()) }
+                        } else if st.mode & 0o400 == 0 {
+                            Err("EACCES".into())
                         } else {
-                            let prefix = self.diag_prefix();
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{prefix}{target}: Is a directory\n"),
-                                exit_code: 1,
-                            };
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                true,
-                                None,
-                                Some(err_out),
-                            ));
+                            self.fs.read_file(&resolved)
                         }
-                    } else {
-                        match self.fs.read_file(&full) {
+                    });
+                    let content = match input {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_input_bytes {
                                 return Ok((
@@ -9402,7 +9390,6 @@ impl<'a> EvalState<'a> {
                                 None,
                                 Some(err_out),
                             ));
-                        }
                         }
                     };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
@@ -15682,6 +15669,24 @@ mod tests {
         let (_, _, local_input, redirected, _, error) =
             state.setup_redirects(&[redirect], "still on descriptor zero").unwrap();
         assert!(error.is_none() && !redirected && local_input.is_empty());
+    }
+
+    #[test]
+    fn input_redirects_check_search_permissions_before_opening_the_operand() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/locked/f", b"hidden").unwrap();
+        fs.write_file("/public", b"visible").unwrap();
+        fs.chmod("/locked", 0o600).unwrap();
+        for (script, operand, reason) in [
+            ("cat </locked/f", "/locked/f", "Permission denied"),
+            ("cat 3</locked/../public <&3", "/locked/../public", "Permission denied"),
+            ("cat </public/", "/public/", "Not a directory"),
+            ("cat <''", "", "No such file or directory"),
+        ] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str()), (1, ""), "{script}");
+            assert_eq!(r.stderr, format!("shell: line 1: {operand}: {reason}\n"));
+        }
     }
 
     #[test]

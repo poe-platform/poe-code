@@ -4432,3 +4432,46 @@ test("qpdf opens AES-256 PDFs with user and owner passwords and preserves output
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf consumes explicit Crypt filters in order and retains the remaining filters", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { PdfDocument, cosStream } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), plain = Buffer.from("filtered payload");
+  doc.addPage();
+  const id = doc.cos.allocateObject(cosStream(plain, {compress:true})).objectNumber;
+  const original = Buffer.from(doc.save({encrypt:{userPassword:"reader",ownerPassword:"owner"}})).toString("latin1");
+  const prev = Number(original.split("startxref").at(-1).split("%%EOF")[0].trim());
+  const object = original.slice(original.indexOf(id+" 0 obj\n"));
+  const cipher = Buffer.from(object.split("\nstream\n")[1].split("\nendstream")[0], "latin1");
+  const files = {};
+  for (const [path, dict, data] of [
+    ["/direct", "/Filter /Crypt", plain],
+    ["/chain", "/F 50 0 R /DP [null << /Name /StdCF >> null]", Buffer.from(cipher.toString("hex")+">")],
+  ]) {
+    let source = original + "\n";
+    const offsets = [];
+    for (const [num, value] of [[id, "<< "+dict+" /Length "+data.length+" >>\nstream\n"+data.toString("latin1")+"\nendstream"],
+      [50, "[/ASCIIHexDecode /Crypt /FlateDecode]"]]) {
+      offsets.push([num,source.length]);
+      source += num+" 0 obj\n"+value+"\nendobj\n";
+    }
+    const at = source.length;
+    source += "xref\n"+offsets.map(([num,offset])=>num+" 1\n"+String(offset).padStart(10,"0")+" 00000 n \n").join("")+
+      "trailer << /Size 51 /Prev "+prev+" >>\nstartxref\n"+at+"\n%%EOF\n";
+    files[path] = Buffer.from(source, "latin1");
+  }
+  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd:"/",files});
+  for (const [path, bytes] of Object.entries(files)) await fs.writeFile(path, bytes);
+  const js = new Shell({cwd:"/",fs}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const path of Object.keys(files)) for (const args of ["--show-object="+id+" --filtered-stream-data",
+      "--show-object="+id+" --raw-stream-data","--show-object="+id,"--json --json-stream-data=inline","--decrypt out"]) {
+      const cmd = "qpdf "+path+" --password=reader "+args, want = await js.exec(cmd), got = await rust.exec(cmd);
+      assert.equal(want.exitCode, 0, want.stderr);
+      if (args.endsWith("--filtered-stream-data")) assert.equal(want.stdout, plain.toString());
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes], [want.exitCode,want.stderr,want.stdoutBytes], cmd);
+      if (args === "--decrypt out") assert.deepEqual(await rust.fs.readFile("/out"), await fs.readFile("/out"), cmd);
+    }
+  } finally { rust.dispose(); }
+});

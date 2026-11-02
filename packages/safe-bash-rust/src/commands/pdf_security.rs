@@ -331,34 +331,112 @@ impl<'a> Objects<'a> {
         dict: &mut Value<'a>,
         cursor: Cursor<'a>,
     ) -> Option<Cow<'a, [u8]>> {
-        let bytes = self.stream(dict, cursor)?;
-        if let Some(s) = &self.security
-            && !s.excluded(id, dict)
-        {
-            let method = if dict.get(b"Filter").and_then(Value::word) == Some(b"/Crypt") {
-                dict.get(b"DecodeParms")
-                    .and_then(|v| v.get(b"Name"))
-                    .and_then(Value::word)
-                    .and_then(|w| w.strip_prefix(b"/"))
-                    .and_then(|n| s.filters.get(n))
-                    .copied()
-                    .unwrap_or(Cipher::Identity)
-            } else if dict.get(b"Type").and_then(Value::word) == Some(b"/EmbeddedFile") {
-                s.embedded
-            } else {
-                s.streams
-            };
-            if method != Cipher::Identity {
-                self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
-                let mut data = bytes.to_vec();
-                method.decrypt(&s.object_key(id, method), &mut data);
-                if dict.get(b"Length").is_some() {
-                    dict.set_stream_length(data.len())?;
-                }
-                return Some(Cow::Owned(data));
-            }
+        let mut bytes = Cow::Borrowed(self.stream(dict, cursor)?);
+        let Some(security) = &self.security else {
+            return Some(bytes);
+        };
+        if security.plaintext.contains(&id) {
+            return Some(bytes);
         }
-        Some(Cow::Borrowed(bytes))
+        let ty = match dict.get(b"Type") {
+            Some(v) => Some(self.filter_value(v.clone())?),
+            None => None,
+        };
+        let security = self.security.as_ref()?;
+        let ty = ty.as_ref().and_then(Value::word);
+        if ty == Some(b"/XRef") || ty == Some(b"/Metadata") && !security.metadata {
+            return Some(bytes);
+        }
+        let default = if ty == Some(b"/EmbeddedFile") {
+            security.embedded
+        } else {
+            security.streams
+        };
+        let decrypt = |method: Cipher, data: &mut Cow<'a, [u8]>, objects: &mut Self| -> Option<()> {
+            if method != Cipher::Identity {
+                objects.remaining_bytes = objects.remaining_bytes.checked_sub(data.len())?;
+                method.decrypt(
+                    &objects.security.as_ref()?.object_key(id, method),
+                    data.to_mut(),
+                );
+            }
+            Some(())
+        };
+        let mut filters = match dict.get(b"Filter").or_else(|| dict.get(b"F")) {
+            Some(v) => match self.filter_value(v.clone())? {
+                Value::Array(a) => a
+                    .into_iter()
+                    .map(|v| self.filter_value(v))
+                    .collect::<Option<Vec<_>>>()?,
+                v => vec![v],
+            },
+            None => Vec::new(),
+        };
+        if let Some(last) = filters.iter().rposition(|v| v.word() == Some(b"/Crypt")) {
+            let params = match dict.get(b"DecodeParms").or_else(|| dict.get(b"DP")) {
+                Some(v) => Some(self.filter_value(v.clone())?),
+                None => None,
+            };
+            for (index, filter) in filters.drain(..=last).enumerate() {
+                let name = filter.word()?.strip_prefix(b"/")?;
+                let param = match &params {
+                    Some(Value::Array(a)) => a.get(index),
+                    other => other.as_ref(),
+                };
+                if name == b"Crypt" {
+                    let param = match param {
+                        Some(v) => Some(self.filter_value(v.clone())?),
+                        None => None,
+                    };
+                    let key = match param.as_ref().and_then(|v| v.get(b"Name")) {
+                        Some(v) => Some(self.filter_value(v.clone())?),
+                        None => None,
+                    };
+                    let method = key
+                        .as_ref()
+                        .and_then(Value::word)
+                        .and_then(|w| w.strip_prefix(b"/"))
+                        .and_then(|n| self.security.as_ref()?.filters.get(n))
+                        .copied()
+                        .unwrap_or(Cipher::Identity);
+                    decrypt(method, &mut bytes, self)?;
+                } else {
+                    let mut single = vec![(b"Filter".as_slice().into(), filter)];
+                    if let Some(v) = param {
+                        single.push((b"DecodeParms".into(), v.clone()));
+                    }
+                    bytes = self.decode(&Value::Dict(single), bytes)?;
+                }
+            }
+            let Value::Dict(entries) = dict else {
+                return None;
+            };
+            entries
+                .retain(|(k, _)| !matches!(k.as_ref(), b"F" | b"Filter" | b"DP" | b"DecodeParms"));
+            if !filters.is_empty() {
+                if !filters
+                    .iter()
+                    .all(|v| v.word().is_some_and(|w| w.starts_with(b"/")))
+                {
+                    return None;
+                }
+                entries.push((b"Filter".into(), Value::Array(filters)));
+                match params {
+                    Some(Value::Array(a)) => entries.push((
+                        b"DecodeParms".into(),
+                        Value::Array(a.into_iter().skip(last + 1).collect()),
+                    )),
+                    Some(v @ Value::Dict(_)) => entries.push((b"DecodeParms".into(), v)),
+                    _ => (),
+                }
+            }
+        } else {
+            decrypt(default, &mut bytes, self)?;
+        }
+        if dict.get(b"Length").is_some() {
+            dict.set_stream_length(bytes.len())?;
+        }
+        Some(bytes)
     }
 }
 pub(in crate::commands::archive) fn accepts_password(bytes: &[u8], pw: &str) -> Option<()> {

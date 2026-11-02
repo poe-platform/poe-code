@@ -4,7 +4,7 @@ use crate::commands::codecs::{adler32, decode_lzw, gzip_decompress_bounded, infl
 use std::borrow::Cow;
 
 impl<'a> Objects<'a> {
-    fn filter_value(&mut self, mut value: Value<'a>) -> Option<Value<'a>> {
+    pub(super) fn filter_value(&mut self, mut value: Value<'a>) -> Option<Value<'a>> {
         for _ in 0..100 {
             let Value::Ref(id) = value else {
                 return Some(value);

@@ -13,6 +13,7 @@ pub(super) fn wkhtmltopdf(
     let mut page_size = "A4".to_string();
     let mut orientation = "Portrait".to_string();
     let mut outline = true;
+    let mut outline_depth = 4;
     let mut copies: usize = 1;
     let mut collate = true;
     let mut page_offset: i64 = 0;
@@ -34,7 +35,9 @@ pub(super) fn wkhtmltopdf(
                 i += 1;
             }
             "-V" | "--version" => {
-                information = Some("wkhtmltopdf safe static adapter (source 024b2b2bb459dd904d15b911d04c6df4ff2c9031; Qt compatibility unqualified)\n");
+                information = Some(
+                    "wkhtmltopdf safe static adapter (source 024b2b2bb459dd904d15b911d04c6df4ff2c9031; Qt compatibility unqualified)\n",
+                );
                 i += 1;
             }
             "-h" | "-help" | "--help" => {
@@ -53,6 +56,10 @@ pub(super) fn wkhtmltopdf(
             }
             "-O" | "--orientation" if i + 1 < args.len() => {
                 orientation = args[i + 1].clone();
+                i += 2;
+            }
+            "--outline-depth" if i + 1 < args.len() => {
+                outline_depth = args[i + 1].parse().unwrap_or(4);
                 i += 2;
             }
             "--outline" => {
@@ -155,7 +162,6 @@ pub(super) fn wkhtmltopdf(
             | "--zoom"
             | "--page-width"
             | "--page-height"
-            | "--outline-depth"
             | "--log-level"
             | "--image-quality"
             | "--image-dpi"
@@ -422,7 +428,18 @@ pub(super) fn wkhtmltopdf(
         &ftr_right,
     ];
     let serialized = if furniture.iter().all(|s| s.is_empty()) {
-        match pdf_reader::render_paragraphs(&doc) {
+        match pdf_reader::render_paragraphs(&doc, |i| {
+            let (original, copy) = if collate {
+                (i % page_meta.len(), i / page_meta.len())
+            } else {
+                (i / copies, i % copies)
+            };
+            if outline && copy == 0 && !page_meta[original].2 {
+                outline_depth
+            } else {
+                0
+            }
+        }) {
             Ok(Some(pdf)) => pdf,
             Ok(None) => doc.serialize(),
             Err(()) => return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1),

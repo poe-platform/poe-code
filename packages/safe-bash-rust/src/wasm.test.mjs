@@ -4585,3 +4585,22 @@ test("qpdf writes interoperable AES-256 files with separate passwords and permis
     assert.deepEqual(await rust.fs.readFile("/out"),prior);
   } finally {rust.dispose();}
 });
+
+test("wkhtmltopdf writes heading fonts, nested outlines and page destinations as PDF objects",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const fs=new MemoryFileSystem(), files={"/a.html":Buffer.from("<h1>Private</h1><p>First paragraph</p><h2>Nested</h2><h2>Sibling</h2>"),
+    "/b.html":Buffer.from("<p>Another page</p><h1>Second</h1>")}, rust=new RustWasmBash({cwd:"/",files});
+  for(const [name,data] of Object.entries(files)) await fs.writeFile(name,data);
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true}));
+  try {
+    for(const opts of ["","--no-outline","--copies 2"]){
+      const cmd="wkhtmltopdf "+opts+" a.html b.html out";
+      const want=await js.exec(cmd), got=await rust.exec(cmd);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.equal(got.exitCode,0,got.stderr);
+      const a=Buffer.from(await rust.fs.readFile("/out")), b=Buffer.from(await fs.readFile("/out"));
+      assert.ok(a.equals(b),cmd+" byte "+b.findIndex((v,i)=>v!==a[i]));
+    }
+  } finally {rust.dispose();}
+});

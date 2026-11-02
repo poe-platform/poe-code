@@ -4,10 +4,11 @@ use super::{
     pdf_copy::{literal, write_objects},
 };
 use crate::commands::{codecs::zlib_compress, structured::unescape_xml_entities};
-use std::io::Write;
+use std::{fmt::Write as _, io::Write};
 
 // Other block types need their own draw operations (images, links, outlines, etc.).
-fn paragraphs(mut html: &str) -> Option<Vec<String>> {
+fn paragraphs(mut html: &str) -> Option<Vec<(usize, String)>> {
+    let mut level = 0;
     let mut result = Vec::new();
     let mut current = String::new();
     let mut hidden = 0usize;
@@ -24,11 +25,16 @@ fn paragraphs(mut html: &str) -> Option<Vec<String>> {
         match tag.trim().to_ascii_lowercase().as_str() {
             "head" | "title" => hidden += 1,
             "/head" | "/title" => hidden = hidden.saturating_sub(1),
-            "p" | "/p" | "div" | "/div" => {
+            name @ ("p" | "/p" | "div" | "/div" | "h1" | "/h1" | "h2" | "/h2" | "h3" | "/h3"
+            | "h4" | "/h4" | "h5" | "/h5" | "h6" | "/h6") => {
                 if !current.trim().is_empty() {
-                    result.push(unescape_xml_entities(&current));
+                    result.push((level, unescape_xml_entities(&current)));
                 }
                 current.clear();
+                level = name
+                    .strip_prefix('h')
+                    .and_then(|n| n.parse().ok())
+                    .unwrap_or(0);
             }
             "html" | "/html" | "body" | "/body" | "!doctype html" | "b" | "/b" | "i" | "/i"
             | "strong" | "/strong" | "em" | "/em" | "span" | "/span" => {}
@@ -36,7 +42,7 @@ fn paragraphs(mut html: &str) -> Option<Vec<String>> {
         }
     }
     if !current.trim().is_empty() {
-        result.push(unescape_xml_entities(&current));
+        result.push((level, unescape_xml_entities(&current)));
     }
     Some(result)
 }
@@ -54,7 +60,10 @@ pub(super) fn win_ansi(s: &str) -> Vec<u8> {
         .collect()
 }
 
-pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>>, ()> {
+pub(in super::super) fn render_paragraphs(
+    doc: &PdfDoc,
+    outline_depth: impl Fn(usize) -> usize,
+) -> Result<Option<Vec<u8>>, ()> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
     let mut bodies = vec![
         b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
@@ -74,12 +83,15 @@ pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>
     info.extend_from_slice(b"\n/Creator (wkhtmltopdf \\(pdf-ast-static\\))\n>>");
     bodies[2] = info;
     let mut pages = Vec::new();
-    let mut font = 0;
+    let mut outlines = Vec::new();
     let mut remaining = limit;
     let width = doc.page_w;
     let height = doc.page_h;
-    let max_chars = ((width - 2. * 72. / 2.54) / (11. * 0.52)).floor().max(20.) as usize;
-    let mut finish_page = |stream: &mut Vec<u8>| -> Result<(), ()> {
+    let content_width = (width - 2. * 72. / 2.54).max(72.);
+    let mut finish_page = |stream: &mut Vec<u8>,
+                           fonts: &mut Vec<bool>,
+                           headings: &mut Vec<(usize, String)>|
+     -> Result<(), ()> {
         let content = bodies.len() + 1;
         let page = content + 1;
         let compressed = zlib_compress(stream);
@@ -92,30 +104,50 @@ pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>
         body.extend_from_slice(b"\nendstream");
         remaining = remaining.checked_sub(body.len() + 160).ok_or(())?;
         bodies.push(body);
-        let new_font = font == 0 && !stream.is_empty();
-        if new_font {
-            font = page + 1;
+        let mut resources = String::from("<<");
+        if !fonts.is_empty() {
+            resources.push_str("\n/Font <<");
+            for i in 0..fonts.len() {
+                write!(resources, "\n/F{} {} 0 R", i + 1, page + i + 1).unwrap();
+            }
+            resources.push_str("\n>>");
         }
-        let resources = if stream.is_empty() {
-            "<<\n>>".into()
-        } else {
-            format!("<<\n/Font <<\n/F1 {font} 0 R\n>>\n>>")
-        };
+        resources.push_str("\n>>");
         bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {width} {height} ]\n/Resources {resources}\n/Contents {content} 0 R\n>>").into_bytes());
-        if new_font {
-            bodies.push(b"<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica\n/Encoding /WinAnsiEncoding\n>>".to_vec());
+        for bold in fonts.drain(..) {
+            let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
+            bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
         }
+        outlines.extend(
+            headings
+                .drain(..)
+                .map(|(level, title)| (level, title, page)),
+        );
         pages.push(format!("{page} 0 R"));
         stream.clear();
         Ok(())
     };
-    for page in &doc.pages {
+    for (page_index, page) in doc.pages.iter().enumerate() {
         let Some(blocks) = paragraphs(&page.html) else {
             return Ok(None);
         };
         let mut stream = Vec::new();
         let mut y = height - 36.;
-        for block in blocks {
+        let mut fonts = Vec::new();
+        let mut headings = Vec::new();
+        for (level, block) in blocks {
+            let bold = level != 0;
+            let size = match level {
+                0 => 11,
+                1 => 20,
+                2 => 16,
+                3 => 14,
+                _ => 12,
+            };
+            let pitch = if bold { 1.35 * size as f64 } else { 15. };
+            let max_chars = (content_width / (size as f64 * if bold { 0.55 } else { 0.52 }))
+                .floor()
+                .max(if bold { 15. } else { 20. }) as usize;
             let mut lines: Vec<String> = vec![];
             let mut len = 0usize;
             for word in block.split_whitespace() {
@@ -131,18 +163,38 @@ pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>
                     len = n;
                 }
             }
-            if y - ((15 * lines.len() + 6) as f64) < 36. && !stream.is_empty() {
-                finish_page(&mut stream)?;
+            if y - (pitch * lines.len() as f64 + if bold { 10. } else { 6. }) < 36.
+                && !stream.is_empty()
+            {
+                finish_page(&mut stream, &mut fonts, &mut headings)?;
                 y = height - 36.;
             }
+            if bold {
+                y -= 4.;
+                if level <= outline_depth(page_index) {
+                    headings.push((
+                        level,
+                        block.split_whitespace().collect::<Vec<_>>().join(" "),
+                    ));
+                }
+            }
+            let font = fonts.iter().position(|b| *b == bold).unwrap_or_else(|| {
+                fonts.push(bold);
+                fonts.len() - 1
+            }) + 1;
+            let color = if bold {
+                "0.1 0.12 0.18"
+            } else {
+                "0.12 0.12 0.12"
+            };
             for line in lines {
                 if !stream.is_empty() {
                     stream.push(b'\n');
                 }
-                let coord = format!("{:.6}", y - 11.);
+                let coord = format!("{:.6}", y - size as f64);
                 write!(
                     stream,
-                    "q\n0.12 0.12 0.12 rg\nBT\n/F1 11 Tf\n1 0 0 1 28.346457 {} Tm\n",
+                    "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 28.346457 {} Tm\n",
                     coord.trim_end_matches('0').trim_end_matches('.')
                 )
                 .unwrap();
@@ -151,11 +203,11 @@ pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>
                 if stream.len() > limit {
                     return Err(());
                 }
-                y -= 15.;
+                y -= pitch;
             }
             y -= 6.;
         }
-        finish_page(&mut stream)?;
+        finish_page(&mut stream, &mut fonts, &mut headings)?;
     }
     bodies[1] = format!(
         "<<\n/Type /Pages\n/Count {}\n/Kids [ {} ]\n>>",
@@ -163,6 +215,69 @@ pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>
         pages.join(" ")
     )
     .into_bytes();
+    if !outlines.is_empty() {
+        use super::{
+            Value,
+            pdf_rewrite::{encode, set},
+            pdf_string,
+        };
+        let root = bodies.len() + 1;
+        bodies[0] =
+            format!("<<\n/Type /Catalog\n/Pages 2 0 R\n/Outlines {root} 0 R\n>>").into_bytes();
+        let mut dicts = vec![vec![(
+            b"Type".as_slice().into(),
+            Value::Word(b"/Outlines".as_slice().into()),
+        )]];
+        let mut stack = vec![(0, 0, 0)];
+        for (level, title, page) in outlines {
+            stack.truncate(level);
+            while stack.len() < level {
+                let last = stack.last().ok_or(())?.1;
+                if last == 0 {
+                    break;
+                }
+                stack.push((last, 0, 0));
+            }
+            let (parent, last, count) = stack.last_mut().ok_or(())?;
+            let index = dicts.len();
+            let reference = Value::Ref((root + index, 0));
+            let null = Value::Word(b"null".as_slice().into());
+            let mut dict = vec![
+                (b"Title".as_slice().into(), pdf_string::encode(&title)),
+                (b"Parent".into(), Value::Ref((root + *parent, 0))),
+                (
+                    b"Dest".into(),
+                    Value::Array(vec![
+                        Value::Ref((page, 0)),
+                        Value::Word(b"/XYZ".as_slice().into()),
+                        null.clone(),
+                        null.clone(),
+                        null,
+                    ]),
+                ),
+            ];
+            if *last != 0 {
+                set(&mut dicts[*last], b"Next", reference.clone());
+                dict.push((b"Prev".into(), Value::Ref((root + *last, 0))));
+            } else {
+                set(&mut dicts[*parent], b"First", reference.clone());
+            }
+            set(&mut dicts[*parent], b"Last", reference);
+            *count += 1;
+            set(
+                &mut dicts[*parent],
+                b"Count",
+                Value::Word(count.to_string().into_bytes().into()),
+            );
+            *last = index;
+            dicts.push(dict);
+        }
+        for dict in dicts {
+            let mut body = vec![];
+            encode(&Value::Dict(dict), &mut body).map_err(|_| ())?;
+            bodies.push(body);
+        }
+    }
     write_objects(&bodies, limit).map(Some).ok_or(())
 }
 

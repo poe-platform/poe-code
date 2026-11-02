@@ -667,7 +667,7 @@ fn is_word_boundary(hay: &[(usize, char)], start: usize, end: usize) -> bool {
 
 #[derive(Debug, Clone)]
 enum RxAtom {
-    Any { newline: bool },
+    Any { newline: bool, nul: bool },
     Char(char),
     Digit(bool),
     Word(bool),
@@ -918,13 +918,13 @@ struct RxFlags {
     dotall: bool,
 }
 
-enum RxDialect<'a> { Auto, Awk, Rg(RxFlags), Jq(&'a str) }
+enum RxDialect<'a> { Auto, Awk, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
 
 fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, String> {
     let jq = matches!(dialect, RxDialect::Jq(_));
-    let rg = matches!(dialect, RxDialect::Rg(_));
+    let rg = matches!(dialect, RxDialect::Rg { .. });
     let mut mode = match dialect {
-        RxDialect::Rg(flags) => flags,
+        RxDialect::Rg { flags, .. } => flags,
         RxDialect::Jq(f) => RxFlags { icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']) },
         _ => RxFlags::default(),
     };
@@ -963,7 +963,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             '$' if matches!(chars.get(idx + 1), None | Some('|') | Some(')')) => { idx += 1; RxAtom::End }
             '.' => {
                 idx += 1;
-                RxAtom::Any { newline: mode.dotall }
+                RxAtom::Any { newline: mode.dotall, nul: !matches!(dialect, RxDialect::Rg { dot_nul: false, .. }) }
             }
             '\\' if idx + 1 < chars.len() => {
                 let nc = chars[idx + 1];
@@ -1148,7 +1148,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         };
 
         parsed.requires_vm |= matches!(atom, RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
-        parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true } | RxAtom::Space(_) | RxAtom::Word(true)
+        parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true, .. } | RxAtom::Space(_) | RxAtom::Word(true)
             | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
         let case = if !mode.icase { RxCase::Sensitive } else if rg { RxCase::Ascii } else { RxCase::Unicode };
         let mut min = 1usize;
@@ -1273,7 +1273,7 @@ fn folded_in_range(mut folded: impl Iterator<Item = char>, lo: char, hi: char) -
 fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
     let ignore_case = ignore_case || token.case == RxCase::Ascii;
     match &token.atom {
-        RxAtom::Any { newline } => *newline || ch != '\n',
+        RxAtom::Any { newline, nul } => (*newline || ch != '\n') && (*nul || ch != '\0'),
         RxAtom::Char(expected) => {
             if token.case == RxCase::Unicode {
                 ch == *expected || ch.to_lowercase().eq(expected.to_lowercase())
@@ -3529,7 +3529,7 @@ fn cmd_rg(
     let mut requires_vm = binary == RgBinary::Text || replace.as_deref().is_some_and(|rep| rep.contains('$'));
     let multiline_whole = multiline && (!fixed_strings || patterns.iter().any(|pat| pat.contains('\n')));
     for pattern in &patterns {
-        let mut branches = match parse_rx_branches(pattern, fixed_strings, RxDialect::Rg(flags)) {
+        let mut branches = match parse_rx_branches(pattern, fixed_strings, RxDialect::Rg { flags, dot_nul: null_data || binary == RgBinary::Text }) {
             Ok(branches) => branches,
             Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("rg: {error}\n"), exit_code: 2 },
         };

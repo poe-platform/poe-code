@@ -7054,6 +7054,7 @@ test("rg distinguishes text, explicit binary inputs and discovered binary files"
     for (const [cmd,code,stdout] of [
       ["rg -a -n x d",0,"d/blob:1:x\0y\nd/blob:2:x\n"],
       ["rg -n x d",1,""], ["rg -n '^y$' d/blob",0,notice], ["cat d/blob | rg x",0,notice],
+      ["rg -Uc '(?s:.*x)' d/blob",0,"2\n"], ["rg -Uac '(?s:.*x)' d/blob",0,"1\n"],
       ["rg --binary -c '^x$' d",0,"d/blob:2\n"], ["rg --files-without-match z d",1,""],
       ["rg -uuu -a -ob . d/blob",0,"0:x\n1:\0\n2:y\n4:x\n"],
       ["rg -a -uuu x d",0,"d/blob: "+notice], ["rg --binary --no-binary x d",1,""],

@@ -3435,6 +3435,7 @@ impl<'a> EvalState<'a> {
             self.env.insert("\0last_arg".to_string(), String::new());
             let mut shortcut_out = debug_out.stdout;
             if self.in_cmdsub_file_shortcut && use_local {
+                self.refresh_file_input(0, &mut local_stdin)?;
                 shortcut_out.push_str(&local_stdin);
                 local_stdin.clear();
             }
@@ -4672,6 +4673,7 @@ impl<'a> EvalState<'a> {
         }
 
         if let Some(custom) = self.custom_commands.get(effective_cmd) {
+            self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
                 args,
                 stdin,
@@ -9191,20 +9193,15 @@ impl<'a> EvalState<'a> {
                 } else { error(e) }
             })?
         };
-        let revision = file.as_ref().and_then(|f| f.revision());
-        let limit = self.budget.limits.max_input_bytes;
-        let bytes = match &file {
-            Some(file) => self.budget.tick_fs_op().and_then(|_| file.read_at(0, limit.saturating_add(1))),
-            None if null => Ok(Vec::new()),
-            None => self.fs.read_file(&path),
-        }.map_err(error)?;
-        if bytes.len() > limit {
-            return Err(BuiltinOutcome { stdout: String::new(), stderr: format!("{target}: EFBIG: File too large\n"), exit_code: 1 });
-        }
-        let unread: InputCursor = Rc::new(bytes_to_stream_string(&bytes).into());
+        let unread = if file.is_none() && !null {
+            let bytes = self.fs.read_file(&path).map_err(error)?;
+            if bytes.len() > self.budget.limits.max_input_bytes {
+                return Err(BuiltinOutcome { stdout: String::new(), stderr: format!("{target}: EFBIG: File too large\n"), exit_code: 1 });
+            }
+            Rc::new(bytes_to_stream_string(&bytes).into())
+        } else { InputCursor::default() };
         let description = (writable || file.is_some()).then(|| FdTarget::InputFile {
-            writable, path, unread: unread.clone(), file,
-            position: Rc::new(Cell::new(FileInputPosition { remaining: bytes.len(), revision, ..Default::default() })),
+            writable, path, unread: unread.clone(), file, position: Rc::default(),
         });
         Ok((unread, description))
     }
@@ -10006,26 +10003,15 @@ impl<'a> EvalState<'a> {
                         return;
                     };
                     let end_off = cur_off + write_bytes.len();
-                    let limit = self.budget.limits.max_input_bytes;
-                    let result = self.budget.tick_fs_op()
+                    if let Err(e) = self.budget.tick_fs_op()
                         .and_then(|_| self.budget.add_output_bytes(write_bytes.len()))
                         .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
-                        .and_then(|_| self.budget.tick_fs_op())
-                        .and_then(|_| file.read_at(end_off, limit.saturating_add(1)));
-                    let tail = match result {
-                        Ok(tail) if tail.len() <= limit => tail,
-                        Ok(_) => {
-                            out.stderr.push_str(&format!("{path}: EFBIG: File too large\n"));
-                            out.exit_code = 1;
-                            return;
-                        }
-                        Err(e) => {
-                            out.stderr.push_str(&format!("{path}: {e}\n"));
-                            out.exit_code = 1;
-                            return;
-                        }
-                    };
-                    pos.replace_tail(&mut unread.borrow_mut(), &tail);
+                    {
+                        out.stderr.push_str(&format!("{path}: {e}\n"));
+                        out.exit_code = 1;
+                        return;
+                    }
+                    pos.replace_tail(&mut unread.borrow_mut(), &[]);
                     pos.offset = end_off;
                     pos.revision = None;
                     position.set(pos);
@@ -15900,6 +15886,16 @@ hash -l
             let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
             assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{script}");
         }
+    }
+
+    #[test]
+    fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        fs.write_file("/big", b"0123456789abcdef").unwrap();
+        let r = shell.exec("exec 3<>/big; printf XY >&3; : </big; true <&3; exec 3<&-; echo ok").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "ok\n", ""));
+        assert_eq!(fs.read_file("/big").unwrap(), b"XY23456789abcdef");
     }
 
     #[test]

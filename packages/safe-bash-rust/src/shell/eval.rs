@@ -1,6 +1,6 @@
 use crate::backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
 use crate::budget::ExecutionBudget;
-use crate::commands::{CommandInput, FileInputPosition, try_run_command_with_input};
+use crate::commands::{CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
     path_targets, resolve_physical_path, try_run_builtin,
@@ -94,6 +94,16 @@ pub enum FdTarget {
         position: Rc<Cell<FileInputPosition>>,
     },
     Closed,
+}
+
+impl FdTarget {
+    fn file_input<'a>(&'a self, budget: &'a ExecutionBudget) -> Option<FileCommandInput<'a>> {
+        match self {
+            Self::InputFile { position, unread, path, file: Some(handle), .. } =>
+                Some(FileCommandInput { position, unread, path, handle: handle.as_ref(), budget }),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -4716,7 +4726,7 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
-        self.refresh_file_input(0, stdin)?;
+
         // Native ls currently implements names only. Long-listing flags must not
         // silently discard metadata; use the existing implementation in hybrid mode.
         let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
@@ -4763,10 +4773,7 @@ impl<'a> EvalState<'a> {
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
-            CommandInput { text: stdin, file: match self.fd_table.get(&0) {
-                Some(FdTarget::InputFile { position, unread, .. }) => Some((position, unread)),
-                _ => None,
-            } },
+            CommandInput { text: stdin, file: self.fd_table.get(&0).and_then(|fd| fd.file_input(self.budget)) },
             self.cwd,
             self.env,
             fs_ref,
@@ -7928,20 +7935,9 @@ impl<'a> EvalState<'a> {
     }
 
     fn refresh_file_input(&self, fd: u32, unread: &mut String) -> Result<(), EvalError> {
-        let Some(FdTarget::InputFile { file: Some(file), position, .. }) = self.fd_table.get(&fd) else { return Ok(()) };
-        let revision = file.revision();
-        let mut pos = position.get();
-        if revision.is_some() && revision == pos.revision { return Ok(()); }
-        pos.consume(stream_byte_len(unread), false);
-        let limit = self.budget.limits.max_input_bytes;
-        self.budget.tick_fs_op().map_err(EvalError::Budget)?;
-        let tail = file.read_at(pos.offset, limit.saturating_add(1)).map_err(EvalError::Syntax)?;
-        if tail.len().saturating_add(pos.buffered) > limit {
-            return Err(EvalError::Syntax("EFBIG: File too large".into()));
+        if let Some(source) = self.fd_table.get(&fd).and_then(|fd| fd.file_input(self.budget)) {
+            source.materialize(unread).map_err(EvalError::Syntax)?;
         }
-        pos.replace_tail(unread, &tail);
-        pos.revision = revision;
-        position.set(pos);
         Ok(())
     }
 
@@ -9992,7 +9988,7 @@ impl<'a> EvalState<'a> {
             FdTarget::InputFile { path, unread, file, position, writable: true } => {
                 if !self.is_default_null(path) {
                     let mut pos = position.get();
-                    pos.consume(stream_byte_len(&unread.borrow()), false);
+                    pos.consume(stream_byte_len(&unread.borrow()));
                     let cur_off = pos.offset;
                     let write_bytes = stream_string_to_bytes(data);
                     let Some(file) = file else {
@@ -15885,6 +15881,27 @@ hash -l
             fs.write_file("/f", b"abc").unwrap();
             let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
             assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{script}");
+        }
+    }
+
+    #[test]
+    fn redirected_file_reads_charge_bytes_pulled_and_keep_partial_output_on_error() {
+        for (script, expected, error, status) in [
+            ("head -c1 </f", "a", "", 0),
+            ("head -c0 </f; env true </f; cat /small </f", "xyz", "", 0),
+            ("head -c9 </f", "abcdefgh", "head: EFBIG: file too large, read '/f'\n", 1),
+            ("wc -c /small </f", "3 /small\n", "", 0),
+            ("wc -c </f", "", "wc: EFBIG: file too large, read '/f'\n", 1),
+            ("cat </f", "abcdefgh", "cat: EFBIG: file too large, read '/f'\n", 1),
+            ("exec 3</f; head -c4 <&3; head -c4 <&3", "abcdefgh", "", 0),
+            ("exec 3</f; head -c4 <&3; head -c5 <&3; cat <&3", "abcd", "head: EFBIG: file too large, read '/f'\n", 0),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abcdefghijklmnop").unwrap();
+            fs.write_file("/small", b"xyz").unwrap();
+            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, expected, error), "{script}");
         }
     }
 

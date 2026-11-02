@@ -16,6 +16,8 @@ use std::collections::BTreeMap;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct FileInputPosition {
     pub(crate) offset: usize,
+    pulled: usize,
+    stopped: bool,
     pub(crate) remaining: usize,
     pub(crate) buffered: usize,
     pub(crate) revision: Option<u64>,
@@ -35,21 +37,94 @@ impl FileInputPosition {
         self.remaining = self.buffered + tail.len();
     }
 
-    pub(crate) fn consume(&mut self, remaining: usize, bounded: bool) {
+    pub(crate) fn consume(&mut self, remaining: usize) {
         let used = self.remaining.saturating_sub(remaining);
         let needed = used.saturating_sub(self.buffered);
-        let pulled = if bounded { needed } else {
-            needed.next_multiple_of(65536).min(self.remaining.saturating_sub(self.buffered))
-        };
+        let pulled = needed.next_multiple_of(65536).min(self.remaining.saturating_sub(self.buffered));
         self.offset += pulled;
+        self.pulled += pulled;
         self.buffered = (self.buffered + pulled).saturating_sub(used);
         self.remaining = remaining;
     }
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct FileCommandInput<'a> {
+    pub(crate) position: &'a Cell<FileInputPosition>,
+    pub(crate) unread: &'a RefCell<String>,
+    pub(crate) handle: &'a dyn crate::vfs::OpenRedirectFile,
+    pub(crate) path: &'a str,
+    pub(crate) budget: &'a crate::budget::ExecutionBudget,
+}
+
+impl FileCommandInput<'_> {
+    pub(crate) fn materialize(&self, text: &mut String) -> Result<(), String> {
+        let mut pos = self.position.get();
+        if pos.stopped { text.clear(); return Ok(()); }
+        let revision = self.handle.revision();
+        if revision.is_some() && revision == pos.revision { return Ok(()); }
+        pos.consume(crate::vfs::stream_byte_len(text));
+        let available = self.budget.limits.max_input_bytes.saturating_sub(pos.pulled);
+        self.budget.tick_fs_op()?;
+        let tail = self.handle.read_at(pos.offset, available.saturating_add(1))?;
+        if tail.len() > available {
+            return Err(format!("EFBIG: file too large, read '{}'", self.path));
+        }
+        pos.replace_tail(text, &tail);
+        pos.revision = revision;
+        self.position.set(pos);
+        Ok(())
+    }
+
+    fn read(&self, text: &mut String, mut maximum: usize,
+        mut consume: impl FnMut(&[u8], bool) -> Result<(bool, usize), String>,
+    ) -> Result<(), String> {
+        use crate::vfs::{bytes_to_stream_string, stream_byte_len, stream_string_to_bytes};
+        let mut pos = self.position.get();
+        pos.consume(stream_byte_len(text));
+        // Keep bytes already fetched by another reader. Its speculative tail can be reread from the handle.
+        let mut bytes = if pos.buffered == 0 { Vec::new() } else { stream_string_to_bytes(text) };
+        bytes.truncate(pos.buffered);
+        let mut start = 0;
+        let limit = self.budget.limits.max_input_bytes;
+        let result = (|| {
+            while maximum != 0 {
+                if start == bytes.len() {
+                    if pos.stopped { consume(&[], true)?; break; }
+                    let available = limit.saturating_sub(pos.pulled);
+                    let size = maximum.min(65536).min(limit.max(1)).min(available.saturating_add(1));
+                    self.budget.tick_fs_op()?;
+                    bytes = self.handle.read_at(pos.offset, size)?;
+                    start = 0;
+                    pos.offset += bytes.len();
+                    if bytes.len() > available {
+                        pos.stopped = true;
+                        bytes.clear();
+                        return Err(format!("EFBIG: file too large, read '{}'", self.path));
+                    }
+                    pos.pulled += bytes.len();
+                    if bytes.is_empty() { consume(&[], true)?; break; }
+                }
+                let end = bytes.len().min(start.saturating_add(maximum));
+                let (more, used) = consume(&bytes[start..end], false)?;
+                start += used;
+                maximum -= used;
+                if !more { break; }
+            }
+            Ok(())
+        })();
+        *text = bytes_to_stream_string(&bytes[start..]);
+        pos.buffered = bytes.len() - start;
+        pos.remaining = pos.buffered;
+        pos.revision = None;
+        self.position.set(pos);
+        result
+    }
+}
+
 pub(crate) struct CommandInput<'a> {
     pub(crate) text: &'a mut String,
-    pub(crate) file: Option<(&'a Cell<FileInputPosition>, &'a RefCell<String>)>,
+    pub(crate) file: Option<FileCommandInput<'a>>,
 }
 
 #[derive(Clone, Debug)]
@@ -715,13 +790,19 @@ where
         return Some(run_timeout_command(args, stdin, cwd, env, exec_sub));
     }
 
+    if let Some(out) = coreutils::try_run_stream_reader(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
+        return Some(out);
+    }
+    if let Some(source) = file && let Err(error) = source.materialize(stdin) {
+        return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 });
+    }
     let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
         exec_sub(words, &mut input.to_owned(), cwd, env)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
-    if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
+    if let Some(res) = coreutils::try_run_other_coreutil(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {

@@ -7556,11 +7556,11 @@ where
             }
         }
     } else {
-        if let Some((position, unread)) = file {
-            let mut pos = position.get();
-            pos.consume(0, false);
-            position.set(pos);
-            unread.borrow_mut().clear();
+        if let Some(source) = file {
+            let mut pos = source.position.get();
+            pos.consume(0);
+            source.position.set(pos);
+            source.unread.borrow_mut().clear();
         }
         std::mem::take(stdin)
     };
@@ -7601,7 +7601,7 @@ where
                 exec_sub(invoke, stdin, cwd, env)
             } else {
                 let res = exec_sub(invoke, &mut String::new(), cwd, env);
-                if let Some((_, unread)) = file { stdin.clone_from(&unread.borrow()); }
+                if let Some(source) = file { stdin.clone_from(&source.unread.borrow()); }
                 res
             };
             if let Some((sv, old)) = prev_slot {

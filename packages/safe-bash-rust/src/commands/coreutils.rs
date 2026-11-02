@@ -15,26 +15,32 @@ pub fn try_run_coreutil(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)
+    let mut text = stdin.to_owned();
+    try_run_stream_reader(cmd, args, CommandInput { text: &mut text, file: None }, cwd, env, fs)
+        .or_else(|| try_run_other_coreutil(cmd, args, &mut text, cwd, env, fs))
 }
 
-pub(super) fn try_run_coreutil_with_input(
+pub(super) fn try_run_stream_reader(
+    cmd: &str, args: &[String], input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
+) -> Option<BuiltinOutcome> {
+    if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Some(info); }
+    match cmd {
+        "cat" => Some(cmd_cat(args, input, cwd, fs)),
+        "wc" => Some(cmd_wc(args, input, cwd, env, fs)),
+        "head" | "tail" => Some(run_head_or_tail(cmd, args, input, cwd, fs)),
+        _ => None,
+    }
+}
+
+pub(super) fn try_run_other_coreutil(
     cmd: &str,
     args: &[String],
-    input: CommandInput,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) {
-        return Some(info);
-    }
-    let stdin = &mut *input.text;
     match cmd {
-        "cat" => Some(cmd_cat(args, stdin, cwd, fs)),
-        "head" => Some(run_head_or_tail("head", args, input, cwd, fs)),
-        "tail" => Some(run_head_or_tail("tail", args, input, cwd, fs)),
-        "wc" => Some(cmd_wc(args, stdin, cwd, env, fs)),
         "sort" => Some(cmd_sort(args, stdin, cwd, env, fs)),
         "uniq" => Some(cmd_uniq(args, stdin, cwd, env, fs)),
         "cut" => Some(cmd_cut(args, stdin, cwd, env, fs)),
@@ -324,7 +330,21 @@ fn stream_file_error(error: String, op: &str, path: &str) -> String {
     }
 }
 
-fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+impl CommandInput<'_> {
+    fn append_bytes(&mut self, output: &mut Vec<u8>) -> Result<(), String> {
+        if let Some(source) = self.file {
+            source.read(self.text, usize::MAX, |chunk, _| {
+                output.extend_from_slice(chunk);
+                Ok((true, chunk.len()))
+            })
+        } else {
+            output.extend(take_stdin_bytes(self.text));
+            Ok(())
+        }
+    }
+}
+
+fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut flag_n = false;
     let mut flag_b = false;
     let mut flag_s = false;
@@ -408,7 +428,10 @@ fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
     };
     for f in &targets {
         if f == "-" {
-            raw_bytes.extend_from_slice(&take_stdin_bytes(stdin));
+            if let Err(error) = stdin.append_bytes(&mut raw_bytes) {
+                stderr.push_str(&format!("cat: {error}\n"));
+                exit_code = 1;
+            }
         } else {
             let p = absolute_operand(cwd, f);
             let result = fs.inspect_command_entry(&p, true, "capabilitiesFor")
@@ -845,6 +868,7 @@ fn run_head_or_tail(
         };
         let mut window = std::collections::VecDeque::<u8>::new();
         let mut records = 0usize;
+        let maximum = if prefix && bytes_mode && !skip { remaining } else { usize::MAX };
         let mut copy = |chunk: &[u8], eof: bool| {
             if prefix {
                 let offset = prefix_len(chunk, &mut remaining, bytes_mode, delimiter);
@@ -886,15 +910,11 @@ fn run_head_or_tail(
                     .ok_or_else(|| fs.limit_error("maxInputBytes", limits.max_input_bytes))?;
                 copy(chunk, false).map(|(more, _)| more)
             }).and_then(|()| copy(&[], true).map(|_| ()))
+        } else if let Some(source) = stdin.file {
+            source.read(stdin.text, maximum, &mut copy)
         } else {
             let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin.text));
             copy(&bytes[consumed..], true).map(|(_, used)| {
-                if let Some((position, _)) = stdin.file {
-                    let mut pos = position.get();
-                    pos.consume(bytes.len() - consumed, false);
-                    pos.consume(bytes.len() - consumed - used, prefix && bytes_mode && !skip);
-                    position.set(pos);
-                }
                 consumed += used;
             })
         };
@@ -968,7 +988,7 @@ fn wc_space(point: u32, posix: bool) -> bool {
 
 fn cmd_wc(
     args: &[String],
-    stdin: &mut String,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -1057,7 +1077,9 @@ fn cmd_wc(
 
     if let Some(ref f0) = files0_from {
         let f_bytes = if f0 == "-" {
-            take_stdin_bytes(stdin)
+            let mut bytes = Vec::new();
+            if let Err(error) = stdin.append_bytes(&mut bytes) { return err_out(&format!("wc: {error}\n"), 1); }
+            bytes
         } else {
             let p = resolve_posix_path(cwd, f0);
             if fs.is_dir(&p) {
@@ -1309,7 +1331,8 @@ fn cmd_wc(
     for name in &names {
         let label = if has_operands { Some(name.as_str()) } else { None };
         let raw_res: Result<Vec<u8>, String> = if name == "-" {
-            Ok(take_stdin_bytes(stdin))
+            let mut bytes = Vec::new();
+            stdin.append_bytes(&mut bytes).map(|()| bytes)
         } else {
             let p = resolve_posix_path(cwd, name);
             match fs.stat(&p) {
@@ -1325,7 +1348,7 @@ fn cmd_wc(
                 }
                 _ => {}
             }
-            fs.read_file(&p).map_err(|_| p)
+            fs.read_file(&p).map_err(|_| format!("ENOENT: no such file or directory, readStream '{p}'"))
         };
         match raw_res {
             Ok(bytes) => {
@@ -1339,10 +1362,8 @@ fn cmd_wc(
                     out.push_str(&format_counts(l, w, m, c, max_l, label));
                 }
             }
-            Err(p) => {
-                stderr.push_str(&format!(
-                    "wc: ENOENT: no such file or directory, readStream '{p}'\n"
-                ));
+            Err(error) => {
+                stderr.push_str(&format!("wc: {error}\n"));
                 exit_code = 1;
             }
         }

@@ -5338,7 +5338,7 @@ test("wkhtmltopdf applies page dimensions, margins and DPI to PDF layout",async(
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true}));
   const rs=new RustWasmBash({cwd:"/",files});await fs.writeFile("/in",files["/in"]);
   try{
-    for(const args of ["--page-width 3in --page-height 100pt -T 1cm -B 0 --margin-left 2mm -R 0.01m","-s B4 -O landscape","-s executive","-s Ledger","--page-width 288px -d 144 --page-height 12pc","--page-width 0 --page-height 13didot -s A8","-T 1pt -B 2pt -L 3pt -R 4pt","-s wrong","-O sideways","-T 4pt","--page-width 1e2cm","--page-height -1","--dpi 0","in -L 10 out","--page-width"]){
+    for(const args of ["--page-width 3in --page-height 100pt -T 1cm -B 0 --margin-left 2mm -R 0.01m","-s B4 -O landscape","-s executive","-s Ledger","--page-width 288px -d 144 --page-height 12pc","--page-width 0 --page-height 13didot -s A8","-T 1pt -B 2pt -L 3pt -R 4pt","-s wrong","-O sideways","-T 4pt","--page-width 1e2cm","--page-height -1","--dpi 0","--copies 0","--copies 2147483648","--copies 1.5","in -L 10 out","--page-width"]){
       const cmd="wkhtmltopdf "+args+((args.startsWith("in ")||args==="--page-width")?"":" in out");
       for(const f of [fs,rs.fs])await f.writeFile("/out",Buffer.from("prior"));
       const e=await js.exec(cmd),r=await rs.exec(cmd);
@@ -5355,10 +5355,16 @@ test("wkhtmltopdf writes URI annotations for visible links in headings and parag
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
   try{
     for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
-    for(const args of ["a b","--disable-external-links a b","a --disable-external-links b","--disable-external-links a b --enable-external-links","--page-width 100pt --copies 2 a b"]){
+    for(const args of ["a b","--disable-external-links a b","a --disable-external-links b","--disable-external-links a b --enable-external-links","--page-width 100pt --copies 2 a b","--page-height 100pt --copies 2 a b","--page-height 100pt --copies 2 --no-collate a b"]){
       const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
       assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);
       assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+    for(const args of ["","--footer-left Footer"]){
+      await rs.fs.writeFile("/out",Buffer.from("prior"));
+      const r=await rs.exec("wkhtmltopdf --copies 2147483647 "+args+" a out");
+      assert.equal(r.exitCode,1);assert.match(r.stderr,/output exceeds resource limits/);
+      assert.equal(Buffer.from(await rs.fs.readFile("/out")).toString(),"prior");
     }
   }finally{rs.dispose();}
 });

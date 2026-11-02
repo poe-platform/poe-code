@@ -747,6 +747,25 @@ impl PdfDoc {
     }
 
     fn serialize(&self) -> Vec<u8> {
+        self.serialize_with_copies(1, true, usize::MAX).unwrap()
+    }
+
+    fn serialize_with_copies(&self, copies: usize, collate: bool, limit: usize) -> Option<Vec<u8>> {
+        let repeat = |out: &mut String, start: usize| -> Option<()> {
+            let end = out.len();
+            let count = copies - 1;
+            let extra = (end - start).checked_mul(count)?;
+            if end.checked_add(extra)? > limit {
+                return None;
+            }
+            if extra > 0 {
+                out.reserve(extra);
+                for _ in 0..count {
+                    out.extend_from_within(start..end);
+                }
+            }
+            Some(())
+        };
         let mut out = format!("%PDF-{}\n%%SAFE_PDF_V2%%\n", self.version);
         out.push_str(&format!("VER:{}\n", self.version));
         out.push_str(&format!("TITLE:{}\n", hex_enc(self.title.as_bytes())));
@@ -801,7 +820,9 @@ impl PdfDoc {
                 hex_enc(b)
             ));
         }
+        let pages_start = out.len();
         for p in &self.pages {
+            let page_start = out.len();
             let imgs: Vec<String> = p
                 .images
                 .iter()
@@ -816,12 +837,18 @@ impl PdfDoc {
                 imgs.join(";"),
                 urls.join(";")
             ));
+            if !collate {
+                repeat(&mut out, page_start)?;
+            }
+        }
+        if collate {
+            repeat(&mut out, pages_start)?;
         }
         for (k, v) in &self.exif {
             out.push_str(&format!("__EXIF__:{k}={v}\n"));
         }
         out.push_str("%%EOF\n");
-        out.into_bytes()
+        (out.len() <= limit).then(|| out.into_bytes())
     }
 }
 

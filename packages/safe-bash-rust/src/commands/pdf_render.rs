@@ -115,6 +115,8 @@ fn coordinate(value: f64) -> String {
 pub(in super::super) fn render_paragraphs(
     doc: &PdfDoc,
     [top, right, bottom, left]: [f64; 4],
+    copies: usize,
+    collate: bool,
     settings: impl Fn(usize) -> (usize, bool),
 ) -> Result<Option<Vec<u8>>, ()> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
@@ -145,12 +147,11 @@ pub(in super::super) fn render_paragraphs(
     let media_height = coordinate(height);
     let x = coordinate(left);
     let mut remaining_links_budget = limit;
+    let mut sheets = Vec::new();
     let mut finish_page = |stream: &mut Vec<u8>,
                            objects: &mut Vec<PageResource>,
                            headings: &mut Vec<(usize, String)>|
      -> Result<(), ()> {
-        let content = bodies.len() + 1;
-        let page = content + 1;
         let compressed = zlib_compress(stream);
         let mut body = format!(
             "<<\n/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
@@ -159,49 +160,19 @@ pub(in super::super) fn render_paragraphs(
         .into_bytes();
         body.extend(compressed);
         body.extend_from_slice(b"\nendstream");
-        remaining = remaining.checked_sub(body.len() + 160).ok_or(())?;
-        bodies.push(body);
-        let mut resources = String::from("<<");
-        let mut annots = String::new();
-        let mut fonts = 0;
-        for (i, obj) in objects.iter().enumerate() {
-            let id = page + i + 1;
-            match obj {
-                PageResource::Font(_) => {
-                    if fonts == 0 {
-                        resources.push_str("\n/Font <<");
-                    }
-                    fonts += 1;
-                    write!(resources, "\n/F{fonts} {id} 0 R").unwrap();
-                }
-                PageResource::Link(_) => write!(annots, "{id} 0 R ").unwrap(),
-            }
-        }
-        if fonts > 0 {
-            resources.push_str("\n>>");
-        }
-        resources.push_str("\n>>");
-        let annots = if annots.is_empty() {
-            annots
-        } else {
-            format!("\n/Annots [ {annots}]")
-        };
-        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R{annots}\n>>").into_bytes());
-        for obj in objects.drain(..) {
-            bodies.push(match obj {
-                PageResource::Font(bold) => {
-                    let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
-                    format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes()
-                }
-                PageResource::Link(body) => body,
-            });
-        }
-        outlines.extend(
-            headings
-                .drain(..)
-                .map(|(level, title)| (level, title, (page, 0))),
-        );
-        pages.push(format!("{page} 0 R"));
+        let sheet_bytes = objects
+            .iter()
+            .try_fold(body.len() + 160, |size, resource| {
+                size.checked_add(match resource {
+                    PageResource::Font(_) => 80,
+                    PageResource::Link(bytes) => bytes.len(),
+                })
+            })
+            .ok_or(())?;
+        remaining = remaining
+            .checked_sub(sheet_bytes.checked_mul(copies).ok_or(())?)
+            .ok_or(())?;
+        sheets.push((body, std::mem::take(objects), std::mem::take(headings)));
         stream.clear();
         Ok(())
     };
@@ -308,6 +279,60 @@ pub(in super::super) fn render_paragraphs(
             y -= 6.;
         }
         finish_page(&mut stream, &mut objects, &mut headings)?;
+    }
+    for i in 0..sheets.len().checked_mul(copies).ok_or(())? {
+        let (sheet, first_copy) = if collate {
+            (i % sheets.len(), i < sheets.len())
+        } else {
+            (i / copies, i % copies == 0)
+        };
+        let (body, objects, headings) = &sheets[sheet];
+        let content = bodies.len() + 1;
+        let page = content + 1;
+        bodies.push(body.clone());
+        let mut resources = String::from("<<");
+        let mut annots = String::new();
+        let mut fonts = 0;
+        for (i, obj) in objects.iter().enumerate() {
+            let id = page + i + 1;
+            match obj {
+                PageResource::Font(_) => {
+                    if fonts == 0 {
+                        resources.push_str("\n/Font <<");
+                    }
+                    fonts += 1;
+                    write!(resources, "\n/F{fonts} {id} 0 R").unwrap();
+                }
+                PageResource::Link(_) => write!(annots, "{id} 0 R ").unwrap(),
+            }
+        }
+        if fonts > 0 {
+            resources.push_str("\n>>");
+        }
+        resources.push_str("\n>>");
+        let annots = if annots.is_empty() {
+            annots
+        } else {
+            format!("\n/Annots [ {annots}]")
+        };
+        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R{annots}\n>>").into_bytes());
+        for obj in objects {
+            bodies.push(match obj {
+                PageResource::Font(bold) => {
+                    let font = if *bold { "Helvetica-Bold" } else { "Helvetica" };
+                    format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes()
+                }
+                PageResource::Link(body) => body.clone(),
+            });
+        }
+        if first_copy {
+            outlines.extend(
+                headings
+                    .iter()
+                    .map(|(level, title)| (*level, title.clone(), (page, 0))),
+            );
+        }
+        pages.push(format!("{page} 0 R"));
     }
     bodies[1] = format!(
         "<<\n/Type /Pages\n/Count {}\n/Kids [ {} ]\n>>",

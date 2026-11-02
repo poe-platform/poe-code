@@ -133,7 +133,7 @@ pub(super) fn wkhtmltopdf(
             }
             opt @ ("-s" | "--page-size" | "-O" | "--orientation" | "-T" | "--margin-top" | "-R"
             | "--margin-right" | "-B" | "--margin-bottom" | "-L" | "--margin-left"
-            | "--page-width" | "--page-height" | "-d" | "--dpi") => {
+            | "--page-width" | "--page-height" | "-d" | "--dpi" | "--copies") => {
                 let name = match opt {
                     "-s" => "--page-size",
                     "-O" => "--orientation",
@@ -190,6 +190,12 @@ pub(super) fn wkhtmltopdf(
                             _ => return invalid("Unknown enumerated value"),
                         }
                     }
+                    "--copies" => {
+                        copies = match integer(value, 1) {
+                            Ok(n) => n as usize,
+                            Err(e) => return invalid(e),
+                        }
+                    }
                     "--dpi" => {
                         dpi = match integer(value, 1) {
                             Ok(n) => n,
@@ -224,10 +230,6 @@ pub(super) fn wkhtmltopdf(
             "--no-outline" => {
                 outline = false;
                 i += 1;
-            }
-            "--copies" if i + 1 < args.len() => {
-                copies = args[i + 1].parse().unwrap_or(1).max(1);
-                i += 2;
             }
             "--collate" => {
                 collate = true;
@@ -543,21 +545,6 @@ pub(super) fn wkhtmltopdf(
                 .push((ht.clone(), hl.clone(), pno.to_string()));
         }
     }
-    if copies > 1 && !doc.pages.is_empty() {
-        let orig = doc.pages.clone();
-        doc.pages.clear();
-        if collate {
-            for _ in 0..copies {
-                doc.pages.extend(orig.clone());
-            }
-        } else {
-            for pg in &orig {
-                for _ in 0..copies {
-                    doc.pages.push(pg.clone());
-                }
-            }
-        }
-    }
     if !doc
         .info
         .iter()
@@ -585,26 +572,29 @@ pub(super) fn wkhtmltopdf(
         &ftr_center,
         &ftr_right,
     ];
-    let serialized = if furniture.iter().all(|s| s.is_empty()) {
-        match pdf_reader::render_paragraphs(&doc, margins, |i| {
-            let (original, copy) = if collate {
-                (i % page_meta.len(), i / page_meta.len())
-            } else {
-                (i / copies, i % copies)
-            };
-            let depth = if outline && copy == 0 && !page_meta[original].cover {
+    let rendered = if furniture.iter().all(|s| s.is_empty()) {
+        pdf_reader::render_paragraphs(&doc, margins, copies, collate, |i| {
+            let depth = if outline && !page_meta[i].cover {
                 outline_depth
             } else {
                 0
             };
-            (depth, page_meta[original].links)
-        }) {
-            Ok(Some(pdf)) => pdf,
-            Ok(None) => doc.serialize(),
-            Err(()) => return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1),
-        }
+            (depth, page_meta[i].links)
+        })
     } else {
-        doc.serialize()
+        Ok(None)
+    };
+    let serialized = match rendered {
+        Ok(Some(pdf)) => Some(pdf),
+        Ok(None) => doc.serialize_with_copies(
+            copies,
+            collate,
+            crate::budget::ShellLimits::default().max_output_bytes,
+        ),
+        Err(()) => None,
+    };
+    let Some(serialized) = serialized else {
+        return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1);
     };
     if out_arg == "-" {
         return ok_out(&crate::vfs::bytes_to_stream_string(&serialized));

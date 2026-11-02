@@ -5162,3 +5162,27 @@ test("qpdf generates missing form appearances and respects existing or forced ap
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf flattens annotations with shared content, appearance resources and visibility flags",async()=>{
+  const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,cosStream,dictGet,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const doc=PdfDocument.create(),page=doc.addPage(),other=doc.addPage(),alloc=v=>doc.cos.allocateObject(v),nums=a=>cosArray(a.map(n=>cosNumber(n)));
+  page.drawText("Base",{x:12,y:50});page.setRotation(90);dictSet(other.dict,"Contents",dictGet(page.dict,"Contents"));
+  const font=alloc(cosDict({BaseFont:cosName("Courier")}));
+  const ap=alloc(cosStream(Buffer.from("BT /F1 10 Tf (paint) Tj ET"),{compress:true,dict:cosDict({BBox:nums([0,0,20,10]),Matrix:nums([0,1,-1,0,10,0]),Resources:cosDict({Font:cosDict({F1:font})})})}));
+  const items=[alloc(cosDict({AP:cosDict({N:cosDict({Yes:ap})}),AS:cosName("Yes"),Rect:nums([20,30,40,60])}))];
+  for(const flag of [0,2,4,32,36])items.push(alloc(cosDict({Contents:cosString("flag "+flag),F:cosNumber(flag)})));
+  for(const subtype of ["Link","Popup"])items.push(alloc(cosDict({Subtype:cosName(subtype),F:cosNumber(2)})));
+  dictSet(page.dict,"Annots",alloc(cosArray(items)));
+  const input=doc.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
+  try{
+    await fs.writeFile("/in",input);
+    for(const flags of ["--flatten-annotations","--flatten-annotations=print","--flatten-annotations=screen","--flatten-rotation --flatten-annotations","--overlay in -- --flatten-annotations=all --generate-appearances","--split-pages --flatten-annotations"]){
+      const cmd="qpdf in "+flags+" out.pdf",path=flags.includes("--split-pages")?"/out-1.pdf":"/out.pdf";
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
+      const e=await fs.readFile(path),r=await rs.fs.readFile(path);
+      assert.ok(Buffer.from(r).equals(e),cmd+" first different byte "+e.findIndex((v,i)=>v!==r[i]));
+    }
+  }finally{rs.dispose();}
+});

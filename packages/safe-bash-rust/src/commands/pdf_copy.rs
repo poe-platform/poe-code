@@ -9,6 +9,8 @@ mod pdf_fonts;
 mod pdf_json;
 #[path = "pdf_stamp.rs"]
 pub(super) mod pdf_stamp;
+#[path = "pdf_flatten_annotations.rs"]
+mod pdf_flatten_annotations;
 #[path = "pdf_flatten_rotation.rs"]
 mod pdf_flatten_rotation;
 #[path = "pdf_annots.rs"]

@@ -178,7 +178,12 @@ fn names(data: &[u8], rename: &BTreeMap<String, String>, limit: usize) -> Result
 }
 
 // qpdf replaces one literal /name at a time and only before a PDF delimiter.
-fn qpdf_name(bytes: &[u8], old: &str, new: &str, limit: usize) -> Result<Vec<u8>, String> {
+pub(super) fn qpdf_name(
+    bytes: &[u8],
+    old: &str,
+    new: &str,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
     let mut key = vec![b'/'];
     for unit in old.encode_utf16() {
         let Ok(b) = u8::try_from(unit) else {
@@ -215,7 +220,7 @@ fn qpdf_name(bytes: &[u8], old: &str, new: &str, limit: usize) -> Result<Vec<u8>
 #[derive(Default)]
 pub(in super::super) struct LayerState<'d> {
     names: usize,
-    owners: BTreeMap<ObjectId, Dict<'d>>,
+    pub(super) owners: BTreeMap<ObjectId, Dict<'d>>,
     pub(in super::super) counts: BTreeMap<ObjectId, i64>,
     written: BTreeMap<ObjectId, usize>,
 }
@@ -244,6 +249,56 @@ impl LayerState<'_> {
         }
     }
 
+    pub(super) fn replace(
+        &mut self,
+        dst: &mut Objects<'_>,
+        fields: &mut Dict<'_>,
+        bytes: &[u8],
+        bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
+        next: &mut usize,
+        left: &mut usize,
+    ) -> Result<(), String> {
+        let old_id = fields
+            .iter()
+            .find(|(k, _)| k.as_ref() == b"Contents")
+            .and_then(|(_, v)| v.reference());
+        let reuse = old_id.filter(|id| self.counts.get(id) == Some(&1));
+        let stream = if let Some(id) = reuse {
+            if !self.written.contains_key(&id)
+                && let Some((v, _)) = dst.object(id)
+            {
+                super::count(&v, &mut self.counts, -1);
+            }
+            id
+        } else {
+            let id = (*next, 0);
+            *next = next.checked_add(1).ok_or(LARGE)?;
+            if let Some(old) = old_id {
+                *self.counts.entry(old).or_default() -= 1;
+            }
+            *self.counts.entry(id).or_default() += 1;
+            set(fields, b"Contents", Value::Ref(id));
+            id
+        };
+        let packed = crate::commands::codecs::zlib_compress(bytes);
+        let mut body = Vec::new();
+        let dict = Value::Dict(vec![(
+            b"Filter".into(),
+            Value::Word(b"/FlateDecode".as_slice().into()),
+        )]);
+        write_stream(
+            &mut body,
+            dict,
+            &packed,
+            None,
+            *left + bodies.get(&stream).map_or(0, Vec::len),
+        )?;
+        self.written.insert(stream, body.len() - packed.len() - 10);
+        let available = *left + bodies.get(&stream).map_or(0, Vec::len);
+        *left = available.checked_sub(body.len()).ok_or(LARGE)?;
+        bodies.insert(stream, body);
+        Ok(())
+    }
     pub(in super::super) fn finish(
         self,
         bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
@@ -400,7 +455,6 @@ impl PageSource<'_> {
                     .iter()
                     .find(|(k, _)| k.as_ref() == b"Contents")
                     .map(|(_, v)| v);
-                let old_id = content.and_then(Value::reference);
                 let mut target = Vec::new();
                 state
                     .content(dst, content, edit.bodies, &mut target)
@@ -412,38 +466,14 @@ impl PageSource<'_> {
                     bytes.extend_from_slice(if draw_layer { &paint } else { &target });
                     bytes.extend_from_slice(b"\nQ\n");
                 }
-                let reuse = old_id.filter(|id| state.counts.get(id) == Some(&1));
-                let stream = if let Some(id) = reuse {
-                    if !state.written.contains_key(&id)
-                        && let Some((v, _)) = dst.object(id)
-                    {
-                        super::count(&v, &mut state.counts, -1);
-                    }
-                    id
-                } else {
-                    let id = edit.allocate()?;
-                    if let Some(old) = old_id {
-                        *state.counts.entry(old).or_default() -= 1;
-                    }
-                    *state.counts.entry(id).or_default() += 1;
-                    set(&mut fields, b"Contents", Value::Ref(id));
-                    id
-                };
-                let packed = crate::commands::codecs::zlib_compress(&bytes);
-                let mut body = Vec::new();
-                let dict = Value::Dict(vec![(
-                    b"Filter".into(),
-                    Value::Word(b"/FlateDecode".as_slice().into()),
-                )]);
-                write_stream(
-                    &mut body,
-                    dict,
-                    &packed,
-                    None,
-                    edit.left + edit.bodies.get(&stream).map_or(0, Vec::len),
+                state.replace(
+                    dst,
+                    &mut fields,
+                    &bytes,
+                    edit.bodies,
+                    &mut edit.next,
+                    &mut edit.left,
                 )?;
-                state.written.insert(stream, body.len() - packed.len() - 10);
-                edit.store(stream, body)?;
             } else if let Some(content) = other.get(b"Contents") {
                 let nodes = match src.lookup_value(content) {
                     Some((_, Value::Array(a))) => a,

@@ -1,7 +1,7 @@
 // Bake the page rotation into the paint operations. A single-owner Contents
 // object can be replaced in place; a shared one must survive for the other page.
-use super::super::pdf_rewrite::{encode, set, write_stream};
-use super::{ObjectId, Objects, PageTree, Rotation, Value, count, geometry};
+use super::super::pdf_rewrite::{encode, set};
+use super::{ObjectId, Objects, PageTree, Rotation, Value, geometry};
 use std::collections::BTreeMap;
 const BAD: &str = "invalid rotated PDF page";
 const LARGE: &str = "PDF output byte limit exceeded";
@@ -19,10 +19,9 @@ impl<'a> Objects<'a> {
         rotations: &[Option<Rotation>],
         changed: &mut BTreeMap<ObjectId, Vec<u8>>,
         next: &mut usize,
-        mut remaining: usize,
+        remaining: &mut usize,
         state: &mut super::pdf_stamp::LayerState<'a>,
     ) -> Result<(), String> {
-
         let mut modified: BTreeMap<ObjectId, Value> = BTreeMap::new();
         for (i, &id) in pages.iter().enumerate() {
             let old = self.page_dict(id, tree).ok_or(BAD)?;
@@ -123,42 +122,19 @@ impl<'a> Objects<'a> {
             }
             .into_bytes();
             let content = old.get(b"Contents");
-            state.content(self,content,changed,&mut bytes).ok_or(BAD)?;
+            state
+                .content(self, content, changed, &mut bytes)
+                .ok_or(BAD)?;
             bytes.extend_from_slice(b"\nQ\n");
-            let reuse = content
-                .and_then(Value::reference)
-                .filter(|id| state.counts.get(id) == Some(&1));
-            let stream = if let Some(id) = reuse {
-                if let Some((v, _)) = self.object(id) {
-                    count(&v, &mut state.counts, -1);
-                }
-                id
-            } else {
-                let id = (*next, 0);
-                *next = next.checked_add(1).ok_or(LARGE)?;
-                set(&mut fields, b"Contents", Value::Ref(id));
-                id
-            };
+            state.replace(self, &mut fields, &bytes, changed, next, remaining)?;
             set(&mut fields, b"Rotate", Value::Word(b"0".as_slice().into()));
-            let mut body = Vec::new();
-            write_stream(
-                &mut body,
-                Value::Dict(vec![]),
-                &bytes,
-                Some(true),
-                remaining,
-            )?;
-            remaining = remaining.checked_sub(body.len()).ok_or(LARGE)?;
-            changed.insert(stream, body);
             let page = Value::Dict(fields);
-            count(&old, &mut state.counts, -1);
-            count(&page, &mut state.counts, 1);
             tree.insert(id, Some(page));
         }
         for (id, v) in modified {
             let mut body = Vec::new();
             encode(&v, &mut body)?;
-            remaining = remaining.checked_sub(body.len()).ok_or(LARGE)?;
+            *remaining = remaining.checked_sub(body.len()).ok_or(LARGE)?;
             changed.insert(id, body);
         }
         Ok(())

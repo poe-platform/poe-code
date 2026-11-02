@@ -6617,6 +6617,9 @@ fn cmd_media_doc(
                 if a == "--generate-appearances" {
                     edits.generate_appearances=true;i+=1;continue;
                 }
+                if a == "--flatten-annotations" || a.starts_with("--flatten-annotations=") {
+                    edits.flatten_annotations=Some(a.split_once('=').map_or("all",|(_,m)|m));i+=1;continue;
+                }
                 if a == "--flatten-rotation" {
                     edits.flatten_rotation = true;
                     i += 1;
@@ -7241,7 +7244,7 @@ fn cmd_media_doc(
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
-                            let edited = edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            let edited = edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
                                 || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
                             let graph;
                             let data = if edited {

@@ -126,7 +126,7 @@ impl<'a> Objects<'a> {
                 .content(self, content, changed, &mut bytes)
                 .ok_or(BAD)?;
             bytes.extend_from_slice(b"\nQ\n");
-            state.replace(self, &mut fields, &bytes, changed, next, remaining)?;
+            state.replace(self, &mut fields, &bytes, changed, next, remaining, true)?;
             set(&mut fields, b"Rotate", Value::Word(b"0".as_slice().into()));
             let page = Value::Dict(fields);
             tree.insert(id, Some(page));

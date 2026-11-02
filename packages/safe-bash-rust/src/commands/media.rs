@@ -6332,6 +6332,8 @@ fn cmd_media_doc(
             let mut qdf_mode = false;
             let mut uncompress = false;
             let mut normalize_content = None;
+            let mut externalize_inline=false;
+            let mut ii_min_bytes=1024;
             let mut collate_group: Option<usize> = None;
             let mut edits = pdf_reader::PageEdits::default();
             let mut pos_files: Vec<String> = Vec::new();
@@ -6617,6 +6619,13 @@ fn cmd_media_doc(
                 if a == "--generate-appearances" {
                     edits.generate_appearances=true;i+=1;continue;
                 }
+                if a=="--externalize-inline-images" {externalize_inline=true;i+=1;continue;}
+                if let Some(s)=a.strip_prefix("--ii-min-bytes="){
+                    let s=s.trim_start();let s=s.strip_prefix('+').unwrap_or(s);
+                    let end=s.find(|c:char|!c.is_ascii_digit()).unwrap_or(s.len());
+                    if end>0 {ii_min_bytes=s[..end].parse().unwrap_or(usize::MAX);}
+                    i+=1;continue;
+                }
                 if a == "--remove-unreferenced-resources" || a.starts_with("--remove-unreferenced-resources=") {
                     edits.prune_resources = match a.split_once('=').map_or("yes", |(_,m)|m) {
                         "yes"|"auto"=>true,"no"=>false,
@@ -6733,6 +6742,7 @@ fn cmd_media_doc(
                 i += 1;
             }
 
+            edits.inline_images=externalize_inline.then_some((ii_min_bytes,!uncompress));
             edits.normalize_content = normalize_content.unwrap_or(qdf_mode || uncompress);
 
             let parse_qpdf_json_doc = |s: &str| -> PdfDoc {
@@ -7251,7 +7261,7 @@ fn cmd_media_doc(
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
-                            let edited = edits.prune_resources || edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            let edited = edits.inline_images.is_some() || edits.prune_resources || edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
                                 || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
                             let graph;
                             let data = if edited {

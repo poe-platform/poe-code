@@ -5208,3 +5208,24 @@ test("qpdf prunes unused resources and follows names in patterns, forms and anno
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf externalizes inline images above the size threshold without splitting binary data",async()=>{
+  const {PdfDocument,cosDict,dictGet,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const d=PdfDocument.create(),a=d.addPage(),b=d.addPage();
+  a.setRawContentStream(Buffer.concat([Buffer.from("q BI /W 8 /H 1 /BPC 8 /CS /G ID "),Buffer.from([0,32,69,73,32,1,2,3]),Buffer.from(" EI Q\nBI /F /AHx /W 1 /H 1 ID 00> EI")]));
+  dictSet(b.dict,"Contents",dictGet(a.dict,"Contents"));dictSet(a.getResourcesDict(),"XObject",cosDict({ImExt1:cosDict({})}));
+  const input=d.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
+  try{
+    await fs.writeFile("/in",input);
+    for(const flags of ["--ii-min-bytes=3","--ii-min-bytes=8 --remove-unreferenced-resources","--ii-min-bytes=1 --stream-data=uncompress --normalize-content=n","--ii-min-bytes=2 --qdf --split-pages",""]){
+      const cmd="qpdf in --externalize-inline-images "+flags+" out.pdf";
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
+      for(const path of flags.includes("--split-pages")?["/out-1.pdf","/out-2.pdf"]:["/out.pdf"]){
+        const e=await fs.readFile(path),r=await rs.fs.readFile(path);
+        assert.ok(Buffer.from(r).equals(e),cmd+" first different byte "+e.findIndex((v,i)=>v!==r[i]));
+      }
+    }
+  }finally{rs.dispose();}
+});

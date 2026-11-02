@@ -223,7 +223,7 @@ pub(in super::super) struct LayerState<'d> {
     pub(super) owners: BTreeMap<ObjectId, Dict<'d>>,
     pub(in super::super) counts: BTreeMap<ObjectId, i64>,
     pub(super) decoded: BTreeSet<ObjectId>,
-    written: BTreeMap<ObjectId, usize>,
+    written: BTreeSet<ObjectId>,
 }
 
 // A resource copied by an overlay may exist only in the pending output graph.
@@ -254,15 +254,12 @@ impl LayerState<'_> {
         bodies: &BTreeMap<ObjectId, Vec<u8>>,
         out: &mut Vec<u8>,
     ) -> Option<()> {
-        if let Some((body, start)) = content
+        if let Some(body) = content
             .and_then(Value::reference)
-            .and_then(|id| Some((bodies.get(&id)?, *self.written.get(&id)?)))
+            .filter(|id| self.written.contains(id))
+            .and_then(|id| bodies.get(&id))
         {
-            let data = super::super::pdf_filters::flate(
-                &body[start..body.len() - 10],
-                dst.remaining_bytes,
-            )?;
-            dst.remaining_bytes -= data.len();
+            let (_, data) = edited_stream(dst, body).ok()??;
             out.extend_from_slice(&data);
             Some(())
         } else {
@@ -280,6 +277,7 @@ impl LayerState<'_> {
         bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
         next: &mut usize,
         left: &mut usize,
+        compress: bool,
     ) -> Result<(), String> {
         let old_id = fields
             .iter()
@@ -287,7 +285,7 @@ impl LayerState<'_> {
             .and_then(|(_, v)| v.reference());
         let reuse = old_id.filter(|id| self.counts.get(id) == Some(&1));
         let stream = if let Some(id) = reuse {
-            if !self.written.contains_key(&id)
+            if !self.written.contains(&id)
                 && let Some((v, _)) = dst.object(id)
             {
                 super::count(&v, &mut self.counts, -1);
@@ -303,20 +301,15 @@ impl LayerState<'_> {
             set(fields, b"Contents", Value::Ref(id));
             id
         };
-        let packed = crate::commands::codecs::zlib_compress(bytes);
-        let mut body = Vec::new();
-        let dict = Value::Dict(vec![(
-            b"Filter".into(),
-            Value::Word(b"/FlateDecode".as_slice().into()),
-        )]);
+        let mut body = vec![];
         write_stream(
             &mut body,
-            dict,
-            &packed,
-            None,
+            Value::Dict(vec![]),
+            bytes,
+            Some(compress),
             *left + bodies.get(&stream).map_or(0, Vec::len),
         )?;
-        self.written.insert(stream, body.len() - packed.len() - 10);
+        self.written.insert(stream);
         let available = *left + bodies.get(&stream).map_or(0, Vec::len);
         *left = available.checked_sub(body.len()).ok_or(LARGE)?;
         bodies.insert(stream, body);
@@ -333,8 +326,8 @@ impl LayerState<'_> {
         for id in self
             .decoded
             .iter()
-            .filter(|id| !self.written.contains_key(*id))
-            .chain(self.written.keys())
+            .filter(|id| !self.written.contains(*id))
+            .chain(self.written.iter())
         {
             let (mut dict, data) = if let Some(body) = bodies.get(id) {
                 edited_stream(dst, body)?.ok_or(BAD)?
@@ -530,6 +523,7 @@ impl PageSource<'_> {
                     edit.bodies,
                     &mut edit.next,
                     &mut edit.left,
+                    true,
                 )?;
             } else if let Some(content) = other.get(b"Contents") {
                 let nodes = match src.lookup_value(content) {

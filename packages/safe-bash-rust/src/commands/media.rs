@@ -8620,12 +8620,14 @@ fn cmd_media_doc(
             let mut bbox_layout = false;
             let mut tsv_mode = false;
             let mut htmlmeta = false;
+            let mut rejoin = true;
             let mut urls_mode = false;
             let mut layout = false;
             let mut raw = false;
             let mut page_break = true;
             let mut eol_mode = "unix";
             let mut invalid_eol_warn = false;
+            let mut colspacing = 0.7;
             let mut invalid_colspacing = false;
             let mut quiet = false;
             let mut listenc = false;
@@ -8688,7 +8690,9 @@ fn cmd_media_doc(
                     }
                     "-colspacing" => {
                         let v = args.get(i + 1).and_then(|s| s.parse::<f64>().ok());
-                        if v.map(|x| x <= 0.0 || x > 10.0).unwrap_or(true) {
+                        if let Some(value) = v.filter(|x| *x > 0.0 && *x <= 10.) {
+                            colspacing = value;
+                        } else {
                             invalid_colspacing = true;
                         }
                         i += 2;
@@ -8712,12 +8716,13 @@ fn cmd_media_doc(
                     }
                     "-remove-hyphens" => {
                         if let Some(nxt) = args.get(i + 1) && !nxt.starts_with('-') {
+                            rejoin = nxt != "no";
                             if !matches!(nxt.as_str(), "yes" | "no" | "auto") {
                                 return err_out("Bad '-remove-hyphens' value on command line\n", 99);
                             }
                             i += 2;
                         } else {
-                            i += 1;
+                            rejoin = true; i += 1;
                         }
                     }
                     "-bbox" => {
@@ -8939,11 +8944,13 @@ fn cmd_media_doc(
                 }
             } else {
                 let mut plain = String::new();
-                for (_, pg) in &selected_pages {
+                let mut source = (raw || !layout).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
+                for (pno, pg) in &selected_pages {
                     let mut t = if layout && !raw {
                         pg.text.replace("\n\n", "\n")
                     } else {
-                        pg.text.clone()
+                        let width = doc.page_media.get(pno).map_or(doc.page_w, |m|m.0).abs();
+                        source.as_mut().and_then(|s| s.plain_text(*pno,(!raw).then_some(colspacing),width,!raw && rejoin)).unwrap_or_else(|| pg.text.clone())
                     };
                     if urls_mode {
                         let mut extra = Vec::new();
@@ -9168,7 +9175,7 @@ fn cmd_media_doc(
             let mut page_text = |pno: usize| {
                 let mut fonts = vec![("Helvetica".to_string(), (12.0 * zoom).round() as i64)];
                 let mut markup = Vec::new();
-                if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno)) {
+                if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7))) {
                     let height = dimensions(pno).1;
                     let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
                     for run in layout {

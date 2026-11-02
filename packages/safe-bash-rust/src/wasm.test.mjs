@@ -5362,3 +5362,19 @@ test("wkhtmltopdf writes URI annotations for visible links in headings and parag
     }
   }finally{rs.dispose();}
 });
+
+test("pdftotext orders logical lines, preserves block boundaries and optionally rejoins hyphens",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftotextCommands}=await import("@poe-platform/safe-bash/commands/pdftotext");
+  const d=PdfDocument.create(),p=d.addPage();
+  for(const [text,x,y,size] of [["column two",400,140,12],["column two end",400,110,12],["paragraph",10,36,12],["word",10,124,12],["multi-",10,140,12],["Heading",10,155,18],["other column",110,110,12],["separate",10,48,12]])p.drawText(text,{x,y,size});
+  const bytes=d.save(),fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftotextCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":bytes}});
+  try{
+    await fs.writeFile("/in",bytes);
+    for(const flags of ["","-colspacing 10","-remove-hyphens no","-remove-hyphens no -remove-hyphens -nopgbrk","-raw"]){
+      const cmd="pdftotext "+flags+" in -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],cmd);
+    }
+  }finally{rs.dispose();}
+});

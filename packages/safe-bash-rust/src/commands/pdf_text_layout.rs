@@ -295,7 +295,78 @@ impl<'a> PageSource<'a> {
         }
         Some(())
     }
-    pub(in crate::commands::archive) fn text_lines(&mut self, pno: usize) -> Option<Vec<TextLine>> {
+    pub(in crate::commands::archive) fn plain_text(
+        &mut self,
+        pno: usize,
+        spacing: Option<f64>,
+        page_width: f64,
+        rejoin: bool,
+    ) -> Option<String> {
+        let mut lines = self.text_lines(pno, spacing)?;
+        let midpoint = page_width * 0.5;
+        let column = |line: &TextLine| {
+            if line.bounds[2] <= midpoint + 18. {
+                0
+            } else if line.bounds[0] >= midpoint - 18. {
+                1
+            } else {
+                2
+            }
+        };
+        if spacing.is_some() && lines.len() > 2 {
+            let mut present = [false; 3];
+            for line in &lines {
+                present[column(line)] = true;
+            }
+            if present == [true, true, false] {
+                lines.sort_by(|a, b| {
+                    column(a)
+                        .cmp(&column(b))
+                        .then(b.baseline.total_cmp(&a.baseline))
+                });
+            }
+        }
+        let mut out = String::new();
+        let paragraph = |l: &TextLine| {
+            l.size < 15.
+                && !l.text.starts_with('•')
+                && !["- ", "* ", "-\t", "*\t"]
+                    .iter()
+                    .any(|s| l.text.starts_with(s))
+        };
+        for (i, line) in lines.iter().enumerate() {
+            if let Some(prev) = i.checked_sub(1).map(|j| &lines[j]) {
+                let gap = prev.baseline - line.baseline;
+                if !(paragraph(prev)
+                    && paragraph(line)
+                    && gap > 0.
+                    && gap <= prev.size * 1.9
+                    && (line.bounds[0] - prev.bounds[0]).abs() < prev.size * 5.)
+                {
+                    out.push_str("\n\n");
+                } else if rejoin
+                    && out.ends_with('-')
+                    && line
+                        .text
+                        .as_bytes()
+                        .first()
+                        .is_some_and(u8::is_ascii_lowercase)
+                {
+                    out.pop();
+                } else {
+                    out.push('\n');
+                }
+            }
+            out.push_str(&line.text);
+        }
+        Some(out)
+    }
+
+    pub(in crate::commands::archive) fn text_lines(
+        &mut self,
+        pno: usize,
+        spacing: Option<f64>,
+    ) -> Option<Vec<TextLine>> {
         let page = self
             .objects
             .page_dict(*self.pages.get(pno.checked_sub(1)?)?, &self.tree)?;
@@ -342,15 +413,20 @@ impl<'a> PageSource<'a> {
             }
             Some(())
         })?;
-        runs.sort_by(|a, b| {
-            b.baseline
-                .total_cmp(&a.baseline)
-                .then(a.bounds[0].total_cmp(&b.bounds[0]))
-        });
+        if spacing.is_some() {
+            runs.sort_by(|a, b| {
+                b.baseline
+                    .total_cmp(&a.baseline)
+                    .then(a.bounds[0].total_cmp(&b.bounds[0]))
+            });
+        }
         let mut lines: Vec<TextLine> = vec![];
         for run in runs {
             if let Some(last) = lines.last_mut()
                 && (run.baseline - last.baseline).abs() <= run.size.max(last.size) * 0.45
+                && spacing.is_none_or(|s| {
+                    run.bounds[0] - last.bounds[2] <= run.size.max(last.size) * 4. * (s / 0.7)
+                })
             {
                 last.text.push(' ');
                 last.text.push_str(&run.text);

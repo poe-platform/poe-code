@@ -6812,3 +6812,22 @@ test("jq inline regex flags apply to the enclosing group and restore outer modes
     }
   } finally { rs.dispose(); }
 });
+
+test("deep jq regex groups compile and discard invalid patterns without exhausting the stack", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  const nested = "(?:".repeat(6000)+"a"+")".repeat(6000);
+  try {
+    for (const [pattern,expected] of [
+      [nested,true], ["(?<="+nested+")b",true],
+      [nested+"[","Regex failure: premature end of char-class"], ["a",true],
+    ]) {
+      const cmd = `echo '"ab"' | jq -c 'try test(${JSON.stringify(pattern)}) catch .'`;
+      for (const sh of [js,rs]) {
+        const r=await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,JSON.stringify(expected)+"\n",""]);
+      }
+    }
+  } finally { rs.dispose(); }
+});

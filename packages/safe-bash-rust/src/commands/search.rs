@@ -525,13 +525,13 @@ impl ZeroRegex {
         Ok(rx)
     }
 
-    fn from_branches(patterns: impl IntoIterator<Item = Vec<Vec<RxToken>>>, ignore_case: bool, word_regexp: bool, line_regexp: bool) -> Self {
+    fn from_branches(patterns: impl IntoIterator<Item = ParsedRegex>, ignore_case: bool, word_regexp: bool, line_regexp: bool) -> Self {
         let mut branches = Vec::new();
         let mut anchored = true;
         let mut capture_names = Vec::new();
         let mut group_offset = 0;
         for alternatives in patterns {
-            anchored &= line_regexp || alternatives.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
+            anchored &= line_regexp || alternatives.root.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
             let mut program = RxProgram::new(alternatives);
             if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, unicode_icase: false, min: 1, max: Some(1), lazy: false })); }
             for (name, slot) in std::mem::take(&mut program.names) { capture_names.push((name, group_offset + slot)); }
@@ -610,7 +610,7 @@ enum RxAtom {
     Word(bool),
     Space(bool),
     Class { negate: bool, chars: Vec<(char, char)> },
-    Group { alts: Vec<Vec<RxToken>>, kind: RxGroup },
+    Group { index: usize, width: Option<usize>, kind: RxGroup },
     Backref(usize),
     Begin,
     LineBegin,
@@ -830,6 +830,22 @@ fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
     })
 }
 
+type RxBranches = Vec<Vec<RxToken>>;
+
+struct ParsedRegex {
+    root: RxBranches,
+    groups: Vec<RxBranches>,
+}
+
+impl ParsedRegex {
+    fn close_group(&mut self, branches: RxBranches, kind: RxGroup) -> RxAtom {
+        let index = self.groups.len();
+        let width = rx_fixed_width(&branches);
+        self.groups.push(branches);
+        RxAtom::Group { index, width, kind }
+    }
+}
+
 #[derive(Clone, Copy, Default)]
 struct JqPatternFlags {
     icase: bool,
@@ -837,13 +853,13 @@ struct JqPatternFlags {
     dotall: bool,
 }
 
-fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<Vec<Vec<RxToken>>, String> {
+fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<ParsedRegex, String> {
     let jq = jq_flags.is_some();
     let mut mode = jq_flags.map_or_else(JqPatternFlags::default, |f| JqPatternFlags {
         icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']),
     });
     if fixed {
-        return Ok(vec![pat
+        return Ok(ParsedRegex { root: vec![pat
             .chars()
             .map(|c| RxToken {
                 atom: RxAtom::Char(c),
@@ -852,8 +868,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<V
                 max: Some(1),
                 lazy: false,
             })
-            .collect()]);
+            .collect()], groups: Vec::new() });
     }
+    let mut parsed = ParsedRegex { root: Vec::new(), groups: Vec::new() };
     let norm = normalize_bre_escapes(pat);
     let chars: Vec<char> = norm.chars().collect();
     let mut idx = 0usize;
@@ -1026,7 +1043,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<V
                 mode = outer_mode;
                 if let Some(entry) = slot.and_then(|i| closed.get_mut(i)) { *entry = true; }
                 alts.push(std::mem::replace(&mut out, outer));
-                RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind }
+                parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind)
             }
             c => {
                 idx += 1;
@@ -1100,11 +1117,12 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<V
     if jq && !groups.is_empty() { return Err("unmatched '(' in regular expression".into()); }
     while let Some((outer, outer_alts, kind, _, _)) = groups.pop() {
         alts.push(std::mem::replace(&mut out, outer));
-        let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind };
+        let atom = parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind);
         out.push(RxToken { atom, unicode_icase: false, min: 1, max: Some(1), lazy: false });
     }
     alts.push(out);
-    Ok(alts)
+    parsed.root = alts;
+    Ok(parsed)
 }
 
 fn parse_quantifier(chars: &[char]) -> Option<(usize, Option<usize>, usize)> {
@@ -1134,7 +1152,7 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
                 RxAtom::Backref(_) => return None,
                 RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::JqEnd { .. } | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
                 | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
-                RxAtom::Group { alts, .. } => rx_fixed_width(alts)?,
+                RxAtom::Group { width, .. } => (*width)?,
                 _ => 1,
             };
             if n != 0 && Some(tok.min) != tok.max { return None; }
@@ -1239,81 +1257,96 @@ struct AssertionFrame {
     seen: std::collections::HashSet<(usize, usize, Vec<(usize, usize)>, Vec<Option<(usize, usize)>>)>,
 }
 
-impl RxProgram {
-    fn new(alts: Vec<Vec<RxToken>>) -> Self {
-        let mut program = Self {
-            ops: Vec::new(),
-            groups: 0,
-            names: Vec::new(),
-            backrefs: false,
-            nonempty: false,
-        };
-        program.compile(alts, true);
-        program
-    }
+// Parsing, compilation and teardown all use flat storage. Each open group
+// has one frame; finishing a child patches its parent's pending instructions.
+#[derive(Default)]
+struct CompileFrame {
+    branches: std::vec::IntoIter<Vec<RxToken>>,
+    tokens: std::vec::IntoIter<RxToken>,
+    split: Option<usize>,
+    jumps: Vec<usize>,
+    close: Option<usize>,
+    repeat: Option<usize>,
+}
 
-    fn compile(&mut self, alts: Vec<Vec<RxToken>>, terminal: bool) {
-        let mut exits = Vec::new();
-        let n = alts.len();
-        for (index, seq) in alts.into_iter().enumerate() {
-            let split = self.ops.len();
-            if index + 1 < n {
-                self.ops.push(RxOp::Split(0));
-            }
-            let len = seq.len();
-            for (i, mut tok) in seq.into_iter().enumerate() {
+impl RxProgram {
+    fn new(mut parsed: ParsedRegex) -> Self {
+        let mut program = Self { ops: Vec::new(), groups: 0, names: Vec::new(), backrefs: false, nonempty: false };
+        let ops = &mut program.ops;
+        let mut frames = vec![CompileFrame { branches: parsed.root.into_iter(), ..Default::default() }];
+        while !frames.is_empty() {
+            let root = frames.len() == 1;
+            let frame = frames.last_mut().unwrap();
+            let repeat = if let Some(mut tok) = frame.tokens.next() {
                 let grouped = matches!(tok.atom, RxAtom::Group { .. });
                 let variable = tok.max != Some(tok.min);
                 // A terminal scalar run can be scanned directly. Before another atom,
                 // put variable counts on the worklist so converging paths share states.
                 let repeat = ((grouped && (tok.min != 1 || tok.max != Some(1)))
-                    || (variable && !(terminal && i + 1 == len))).then(|| {
-                    self.ops.push(RxOp::Enter);
-                    let head = self.ops.len();
-                    self.ops.push(RxOp::Repeat { min: tok.min, max: tok.max, lazy: tok.lazy, after: 0 });
+                    || (variable && !(root && frame.tokens.len() == 0))).then(|| {
+                    ops.push(RxOp::Enter);
+                    let head = ops.len();
+                    ops.push(RxOp::Repeat { min: tok.min, max: tok.max, lazy: tok.lazy, after: 0 });
                     head
                 });
-                if let RxAtom::Group { alts, kind } = tok.atom {
-                    let open = self.ops.len();
+                if let RxAtom::Group { index, width, kind } = tok.atom {
+                    let open = ops.len();
                     match kind {
-                        RxGroup::Assertion { behind, positive } => {
-                            let width = if behind { rx_fixed_width(&alts) } else { Some(0) };
-                            self.ops.push(RxOp::AssertEnd);
-                            self.compile(alts, false);
-                            self.ops.push(RxOp::AssertEnd);
-                            self.ops[open] = RxOp::Assert { behind, positive, width, after: self.ops.len() };
-                        }
+                        RxGroup::Assertion { behind, positive } => ops.push(RxOp::Assert {
+                            behind, positive, width: if behind { width } else { Some(0) }, after: 0,
+                        }),
                         RxGroup::Capture(name) => {
-                            let slot = self.groups;
-                            if let Some(name) = name { self.names.push((name, slot)); }
-                            self.groups += 1;
-                            self.ops.push(RxOp::Open { slot, until: slot + 1 });
-                            self.compile(alts, false);
-                            self.ops[open] = RxOp::Open { slot, until: self.groups };
-                            self.ops.push(RxOp::Close(slot));
+                            let slot = program.groups;
+                            if let Some(name) = name { program.names.push((name, slot)); }
+                            program.groups += 1;
+                            ops.push(RxOp::Open { slot, until: slot + 1 });
                         }
-                        RxGroup::Plain => self.compile(alts, false),
+                        RxGroup::Plain => {}
                     }
-                } else {
-                    self.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
-                    if repeat.is_some() { tok.min = 1; tok.max = Some(1); }
-                    self.ops.push(RxOp::Atom(tok));
+                    frames.push(CompileFrame {
+                        branches: std::mem::take(&mut parsed.groups[index]).into_iter(),
+                        close: (ops.len() > open).then_some(open), repeat, ..Default::default()
+                    });
+                    continue;
                 }
-                if let Some(head) = repeat {
-                    self.ops.push(RxOp::Again(head));
-                    let end = self.ops.len();
-                    if let RxOp::Repeat { after, .. } = &mut self.ops[head] { *after = end; }
+                program.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
+                if repeat.is_some() { tok.min = 1; tok.max = Some(1); }
+                ops.push(RxOp::Atom(tok));
+                repeat
+            } else {
+                if let Some(split) = frame.split.take() {
+                    frame.jumps.push(ops.len());
+                    ops.push(RxOp::Jump(0));
+                    ops[split] = RxOp::Split(ops.len());
                 }
-            }
-            if index + 1 < n {
-                exits.push(self.ops.len());
-                self.ops.push(RxOp::Jump(0));
-                self.ops[split] = RxOp::Split(self.ops.len());
+                if let Some(seq) = frame.branches.next() {
+                    if frame.branches.len() != 0 {
+                        frame.split = Some(ops.len());
+                        ops.push(RxOp::Split(0));
+                    }
+                    frame.tokens = seq.into_iter();
+                    continue;
+                }
+                let frame = frames.pop().unwrap();
+                for jump in frame.jumps { ops[jump] = RxOp::Jump(ops.len()); }
+                if let Some(open) = frame.close {
+                    let end = ops.len();
+                    let close = match &mut ops[open] {
+                        RxOp::Open { slot, until } => { *until = program.groups; RxOp::Close(*slot) }
+                        RxOp::Assert { after, .. } => { *after = end + 1; RxOp::AssertEnd }
+                        _ => unreachable!(),
+                    };
+                    ops.push(close);
+                }
+                frame.repeat
+            };
+            if let Some(head) = repeat {
+                ops.push(RxOp::Again(head));
+                let end = ops.len();
+                if let RxOp::Repeat { after, .. } = &mut ops[head] { *after = end; }
             }
         }
-        for jump in exits {
-            self.ops[jump] = RxOp::Jump(self.ops.len());
-        }
+        program
     }
 
     fn run(

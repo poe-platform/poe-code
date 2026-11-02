@@ -6730,3 +6730,36 @@ test("jq lookaround preserves assertion captures without consuming input", async
     }
   } finally { rs.dispose(); }
 });
+
+test("jq regex filters reject malformed patterns and report parser errors through try", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [filter, diagnostic] of [
+      ['test("[")', "premature end of char-class"],
+      ['match("(a")', "end pattern with unmatched parenthesis"],
+      ['capture("a)")', "unmatched ')' in regular expression"],
+      ['scan("[z-a]")', "empty range in char class"],
+      ['capture("[z-a]")', "reversed character range"],
+      ['sub("*a";".")', "target of repeat operator is not specified"],
+      ['capture("*a")', "quantifier without an expression"],
+      ['splits("a++")', "nested quantifier is not supported"],
+      ['test("a{ 1}")', "invalid repetition interval"],
+      ['gsub("a{3,1}";"-")', "invalid or excessive repetition interval"],
+      [String.raw`test("(a\\1)")`, "pattern references an undefined or open capture group"],
+      [String.raw`scan("\\")`, "trailing backslash in regular expression"],
+      ['test("[[:bogus:]]")', "unsupported character class 'bogus'"],
+      ['test("(?<missing")', "invalid named capture"],
+    ]) {
+      for (const caught of [false,true]) {
+        const cmd = `echo '"aaa"' | jq -c '${caught ? "try "+filter+" catch ." : filter}'`;
+        for (const shell of [js,rs]) {
+          const r=await shell.exec(cmd), message="Regex failure: "+diagnostic;
+          assert.deepEqual([r.exitCode,r.stdout,r.stderr], caught ? [0,JSON.stringify(message)+"\n",""] :
+            [5,"","jq: error (at <stdin>:1): "+message+"\n"],cmd);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

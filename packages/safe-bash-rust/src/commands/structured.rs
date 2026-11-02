@@ -2597,7 +2597,7 @@ fn try_eval_jq_builtin(
                             if !flags.chars().all(|c| "gimns".contains(c)) {
                                 return Err(format!("{flags}g is not a valid modifier string").into());
                             }
-                            let rx = ZeroRegex::jq(&pat, &flags);
+                            let rx = ZeroRegex::jq(&pat, &flags, fname)?;
                             let global = fname == "gsub" || flags.contains('g');
                             let mut results = vec![String::new()];
                             let mut copied = 0;
@@ -3510,7 +3510,7 @@ fn eval_jq_splits_regex(
     vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, JqFault> {
     let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-    let rx = ZeroRegex::jq(&pat, &flags);
+    let rx = ZeroRegex::jq(&pat, &flags, "splits")?;
     let mut parts = Vec::new();
     let mut last = 0usize;
     for (ms, me) in rx.find_all(s) {

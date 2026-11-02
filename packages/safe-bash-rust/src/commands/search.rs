@@ -504,15 +504,25 @@ impl ZeroRegex {
         word_regexp: bool,
         line_regexp: bool,
     ) -> Self {
-        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, false)), ignore_case, word_regexp, line_regexp)
+        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, false).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
     }
 
-    pub(super) fn jq(pattern: &str, flags: &str) -> Self {
+    pub(super) fn jq(pattern: &str, flags: &str, filter: &str) -> Result<Self, String> {
         let pattern = preprocess_ere_pattern(pattern, flags.contains(['m', 'p']), flags.contains('x'));
-        let mut rx = Self::from_branches([parse_rx_branches(&pattern, false, true)], flags.contains('i'), false, false);
+        let branches = parse_rx_branches(&pattern, false, true).map_err(|err| {
+            let message = match err.as_str() {
+                "unterminated bracket expression" => "premature end of char-class",
+                "unmatched '(' in regular expression" => "end pattern with unmatched parenthesis",
+                "quantifier without an expression" if filter != "capture" => "target of repeat operator is not specified",
+                "reversed character range" if filter != "capture" => "empty range in char class",
+                other => other,
+            };
+            format!("Regex failure: {message}")
+        })?;
+        let mut rx = Self::from_branches([branches], flags.contains('i'), false, false);
         rx.first_match = true;
         rx.branches[0].nonempty = flags.contains('n');
-        rx
+        Ok(rx)
     }
 
     fn from_branches(patterns: impl IntoIterator<Item = Vec<Vec<RxToken>>>, ignore_case: bool, word_regexp: bool, line_regexp: bool) -> Self {
@@ -802,9 +812,9 @@ pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> 
     })
 }
 
-fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
+fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken>>, String> {
     if fixed {
-        return vec![pat
+        return Ok(vec![pat
             .chars()
             .map(|c| RxToken {
                 atom: RxAtom::Char(c),
@@ -812,7 +822,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
                 max: Some(1),
                 lazy: false,
             })
-            .collect()];
+            .collect()]);
     }
     let norm = normalize_bre_escapes(pat);
     let chars: Vec<char> = norm.chars().collect();
@@ -820,6 +830,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
     let mut out = Vec::new();
     let mut alts = Vec::new();
     let mut groups = Vec::new();
+    let mut group_count = 0;
+    let mut closed = [false; 9];
 
     while idx < chars.len() {
         let atom = match chars[idx] {
@@ -845,10 +857,17 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
                     'n' => RxAtom::Char('\n'),
                     't' => RxAtom::Char('\t'),
                     'r' => RxAtom::Char('\r'),
-                    d @ '1'..='9' => RxAtom::Backref((d as u8 - b'1') as usize),
+                    d @ '1'..='9' => {
+                        let slot = (d as u8 - b'1') as usize;
+                        if jq && !closed[slot] { return Err("pattern references an undefined or open capture group".into()); }
+                        RxAtom::Backref(slot)
+                    }
                     other => RxAtom::Char(other),
                 }
             }
+            '\\' if jq => return Err("trailing backslash in regular expression".into()),
+            '*' | '+' | '?' | '{' | '}' if jq => return Err("quantifier without an expression".into()),
+            ')' if jq && groups.is_empty() => return Err("unmatched ')' in regular expression".into()),
             '[' => {
                 idx += 1;
                 let mut negate = false;
@@ -867,10 +886,12 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
                     {
                         let name: String = chars[idx + 2..idx + 2 + end].iter().collect();
                         if let Some(class) = posix_class_ranges(&name) { ranges.extend_from_slice(class); }
+                        else if jq { return Err(format!("unsupported character class '{name}'")); }
                         idx += end + 4;
                         continue;
                     }
                     if idx + 2 < chars.len() && chars[idx + 1] == '-' && chars[idx + 2] != ']' {
+                        if jq && chars[idx] > chars[idx + 2] { return Err("reversed character range".into()); }
                         ranges.push((chars[idx], chars[idx + 2]));
                         idx += 3;
                     } else if chars[idx] == '\\' && idx + 1 < chars.len() {
@@ -889,13 +910,13 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
                             other => ranges.push((other, other)),
                         }
                     } else {
+                        if jq && chars[idx] == '\\' { return Err("trailing backslash in regular expression".into()); }
                         ranges.push((chars[idx], chars[idx]));
                         idx += 1;
                     }
                 }
-                if idx < chars.len() && chars[idx] == ']' {
-                    idx += 1;
-                }
+                if idx < chars.len() && chars[idx] == ']' { idx += 1; }
+                else if jq { return Err("unterminated bracket expression".into()); }
                 RxAtom::Class {
                     negate,
                     chars: ranges,
@@ -917,9 +938,14 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
                         idx += end + 1;
                         RxGroup::Capture(Some(tail[start..end].iter().collect()))
                     }
+                    ['?', '<', ..] if jq => return Err("invalid named capture".into()),
                     _ => RxGroup::Capture(None),
                 };
-                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), kind));
+                let slot = if jq && matches!(kind, RxGroup::Capture(_)) {
+                    group_count += 1;
+                    Some(group_count - 1)
+                } else { None };
+                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), kind, slot));
                 continue;
             }
             '|' => {
@@ -929,7 +955,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
             }
             ')' if !groups.is_empty() => {
                 idx += 1;
-                let (outer, outer_alts, kind) = groups.pop().unwrap();
+                let (outer, outer_alts, kind, slot) = groups.pop().unwrap();
+                if let Some(entry) = slot.and_then(|i| closed.get_mut(i)) { *entry = true; }
                 alts.push(std::mem::replace(&mut out, outer));
                 RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind }
             }
@@ -955,6 +982,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
             continue;
         }
         if idx < chars.len() {
+            let before_quantifier = idx;
             match chars[idx] {
                 '*' => {
                     min = 0;
@@ -973,17 +1001,26 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
                 }
                 '{' => {
                     if let Some((m_min, m_max, consumed)) = parse_quantifier(&chars[idx..]) {
+                        if jq {
+                            if !chars[idx+1..idx+consumed-1].iter().all(|c| c.is_ascii_digit() || *c == ',') {
+                                return Err("invalid repetition interval".into());
+                            }
+                            if m_min > m_max.unwrap_or(usize::MAX) || (m_max.unwrap_or(m_min) as u64) > (1_u64 << 53) - 1 {
+                                return Err("invalid or excessive repetition interval".into());
+                            }
+                        }
                         min = m_min;
                         max = m_max;
                         idx += consumed;
-                    }
+                    } else if jq { return Err("invalid repetition interval".into()); }
                 }
                 _ => {}
             }
-            if idx < chars.len() && chars[idx] == '?' && (min != 1 || max != Some(1)) {
+            if idx < chars.len() && chars[idx] == '?' && idx != before_quantifier {
                 lazy = true;
                 idx += 1;
             }
+            if jq && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) { return Err("nested quantifier is not supported".into()); }
         }
         out.push(RxToken {
             atom,
@@ -992,13 +1029,14 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
             lazy,
         });
     }
-    while let Some((outer, outer_alts, kind)) = groups.pop() {
+    if jq && !groups.is_empty() { return Err("unmatched '(' in regular expression".into()); }
+    while let Some((outer, outer_alts, kind, _)) = groups.pop() {
         alts.push(std::mem::replace(&mut out, outer));
         let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind };
         out.push(RxToken { atom, min: 1, max: Some(1), lazy: false });
     }
     alts.push(out);
-    alts
+    Ok(alts)
 }
 
 fn parse_quantifier(chars: &[char]) -> Option<(usize, Option<usize>, usize)> {
@@ -1435,7 +1473,7 @@ impl RxProgram {
 }
 
 pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false, false));
+    let program = RxProgram::new(parse_rx_branches(pat, false, false).expect("permissive regex parser"));
     let hay: Vec<_> = text.char_indices().collect();
     let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
     for start in 0..=hay.len() {
@@ -1460,7 +1498,7 @@ pub fn regex_capture_spans_in_hay(
     end: usize,
     ignore_case: bool,
 ) -> Vec<Option<(usize, usize)>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false, false));
+    let program = RxProgram::new(parse_rx_branches(pat, false, false).expect("permissive regex parser"));
     program
         .run(hay, start, ignore_case, true, true, |pos| pos == end)
         .map_or_else(|| vec![None; program.groups], |m| m.caps)

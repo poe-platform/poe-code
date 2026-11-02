@@ -7371,3 +7371,21 @@ test("rg statistics count searched records and printed matches in each output mo
     }
   } finally { rs.dispose(); }
 });
+
+test("rg groups output records across operands and only prints each heading once", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const sh of [js, rs]) await sh.exec("printf 'a\\nx\\ny\\nz\\na\\nb\\n' >f; cp f g; echo x >empty");
+    for (const args of ["-A1 a f empty g", "-C1 --context-separator=SEP a f g f",
+      "-A1 --heading a f g f", "--heading -0 a f g", "--heading a f f",
+      "--stats -C1 a f g", "-UoA1 'a\\nb' f g", "-UC1 -r X 'a\\nb' f g",
+      "-UC1 --heading -r X 'a\\nb' f g f", "-C1 --no-context-separator a f g",
+      "-U --heading -o 'a\\nb' f g f"]) {
+      const cmd = "rg " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdoutBytes], [a.exitCode, a.stderr, a.stdoutBytes], cmd);
+    }
+  } finally { rs.dispose(); }
+});

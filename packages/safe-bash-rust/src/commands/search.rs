@@ -3690,7 +3690,9 @@ fn run_grep_engine(
     let mut bytes_searched = 0;
     let mut json_bytes_printed = 0;
     let mut failed_batch = false;
-    let mut grep_group = false;
+    let mut last_label = None::<String>;
+    let mut last_line = 0;
+    let mut headings = std::collections::BTreeSet::new();
     for input in inputs {
         if failed_batch { break; }
         let (fname, content, explicit) = match input {
@@ -4045,13 +4047,27 @@ fn run_grep_engine(
             continue;
         }
 
-        let use_heading = cfg.heading && show_filename && matched_count > 0;
-        if use_heading {
-            if let Some(f) = fname {
-                out.push_str(f);
-                out.push('\n');
+        let use_heading = cfg.heading && show_filename;
+        let context = cfg.before_ctx > 0 || cfg.after_ctx > 0;
+        let label = fname.unwrap_or(stdin_label);
+        let mut first_record = true;
+        let mut start_record = |out: &mut String, first: usize, last: usize| {
+            if !context && !use_heading { return; }
+            if first_record && use_heading && !headings.contains(label) {
+                if !headings.is_empty() { out.push('\n'); }
+                out.push_str(label);
+                out.push(if cfg.null_delim { '\0' } else { '\n' });
+                headings.insert(label.to_owned());
+            } else if context && last_label.as_deref().is_some_and(|previous|
+                previous != label || (!is_rg && first_record) || first > last_line + 1)
+                && let Some(sep) = &cfg.context_separator {
+                out.push_str(sep);
+                out.push(if is_rg { '\n' } else { rec_term });
             }
-        }
+            if first_record && last_label.as_deref() != Some(label) { last_label = Some(label.to_owned()); }
+            first_record = false;
+            last_line = last;
+        };
         let line_show_filename = show_filename && !use_heading;
 
         let emit_text = |out: &mut String, chunk: &[u8], selected, count: usize, ending| {
@@ -4076,7 +4092,6 @@ fn run_grep_engine(
             // its original coordinates even if a replacement changes the line count.
             let mut at = 0;
             let mut previous_end: Option<usize> = None;
-            let mut previous_printed: Option<usize> = None;
             let mut idx = 0;
             let mut blocks = 0;
             while idx < lines.len().min(print_end) {
@@ -4095,11 +4110,7 @@ fn run_grep_engine(
                     idx += 1;
                     continue;
                 }
-                if (cfg.before_ctx > 0 || cfg.after_ctx > 0) && previous_printed.is_some_and(|p| idx > p + 1)
-                    && let Some(sep) = &cfg.context_separator {
-                    out.push_str(sep); out.push(if is_rg { '\n' } else { rec_term });
-                }
-                previous_printed = Some(last);
+                start_record(&mut out, idx, last);
                 let base = line_offsets[idx];
                 let sep = if selected { ':' } else { '-' };
                 let mut emit = |chunk: &[u8], line, column, byte, ending: usize| {
@@ -4149,12 +4160,13 @@ fn run_grep_engine(
         }
 
         if multiline && cfg.only_matching && !cfg.invert {
-            for &(fl, _ll, s, e) in &multiline_spans {
+            for &(fl, ll, s, e) in &multiline_spans {
                 let rendered = &content[s..e];
                 let line_start = source_lines.get(fl).copied().unwrap_or(0);
                 let number = fl + 1 + if is_rg && cfg.null_data {
                     line_offsets.partition_point(|&off| off <= s) - line_offsets.partition_point(|&off| off <= line_start)
                 } else { 0 };
+                start_record(&mut out, number - 1, number - 1 + ll - fl);
                 for (chunk_idx, chunk) in rendered.split(|&b| b == rec_term as u8).enumerate() {
                     if chunk.is_empty() {
                         continue;
@@ -4182,20 +4194,14 @@ fn run_grep_engine(
         }
 
         if !is_rg && cfg.only_matching && cfg.invert { continue; }
-        let context = cfg.before_ctx > 0 || cfg.after_ctx > 0;
         let mut selected = match_indices.iter().peekable();
         let mut previous_match = None;
-        let mut previous_printed = None;
         for (idx, &line) in lines.iter().take(print_end).enumerate() {
             let matched = selected.next_if(|(i, _)| *i == idx);
             if matched.is_some() { previous_match = Some(idx); }
             else if !context || !(previous_match.is_some_and(|i| idx - i <= cfg.after_ctx)
                 || selected.peek().is_some_and(|(i, _)| i - idx <= cfg.before_ctx)) { continue; }
-            if context && previous_printed.map_or(grep_group, |p| idx > p + 1) && let Some(sep) = &cfg.context_separator {
-                out.push_str(sep); out.push(if is_rg { '\n' } else { rec_term });
-            }
-            if context && !is_rg { grep_group = true; }
-            previous_printed = Some(idx);
+            start_record(&mut out, idx, idx);
             if !is_rg && cfg.only_matching && matched.is_none() { continue; }
             let spans = matched.map(|(_, spans)| spans).or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
             let sep = if matched.is_some() { ':' } else { '-' };

@@ -704,6 +704,7 @@ class WasmShell {
 
 export class RustWasmBash extends WasmShell {
   #sessions = new Set();
+  #externalCompanion;
 
   #identityScopes = new Map();
   #releasedScopes = new FinalizationRegistry(scope => {
@@ -1018,8 +1019,18 @@ export class RustWasmBash extends WasmShell {
   }
 
   async exec(script, options = {}) {
-    if (this.companionFactory && (!this.forceNative || this._companion || options?.fs)) {
-      if (this._companion || options?.fs || !this.canRunNative(script, options)) {
+    if (!this.sessionId) throw new Error("Shell is disposed");
+    const filesystem = options?.fs;
+    const externalFs = filesystem != null && filesystem !== this.fs;
+    if (externalFs && !this._companion) {
+      if (!this.companionFactory) throw new TypeError("Executing with an external filesystem requires a companion");
+      // The call has its own filesystem. It neither needs the default
+      // filesystem's history nor transfers ownership of subsequent calls.
+      this.#externalCompanion ??= this.companionFactory();
+      return this.#externalCompanion.shell.exec(script, options);
+    }
+    if (this.companionFactory && (!this.forceNative || this._companion)) {
+      if (this._companion || !this.canRunNative(script, options)) {
         this._getOrCreateCompanionSync();
         await this._ensureCompanionSynced();
         const hasOpts = options && Object.keys(options).length > 0;
@@ -1140,7 +1151,7 @@ export class RustWasmBash extends WasmShell {
 
   _getOrCreateCompanionSync() {
     if (!this._companion && this.companionFactory) {
-      this._companion = this.companionFactory();
+      this._companion = this.#externalCompanion ?? this.companionFactory();
     }
     return this._companion;
   }
@@ -1253,9 +1264,8 @@ export class RustWasmBash extends WasmShell {
 
   dispose() {
     this.#identityScopes.clear();
-    if (this._companion) {
-      void this._companion.shell.dispose();
-    }
+    const companion = this._companion ?? this.#externalCompanion;
+    if (companion && this.sessionId) void companion.shell.dispose();
     for (const controller of this.#sessions) controller.abort(new Error("Shell session is disposed"));
     this.#sessions.clear();
     super.dispose();

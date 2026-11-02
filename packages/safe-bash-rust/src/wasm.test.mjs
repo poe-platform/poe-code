@@ -2706,3 +2706,37 @@ test("stat distinguishes absent fields, a zero allocation, and a real inode", as
     assert.equal(bash.execSync("stat -c %u /dev/null").stderr, "stat: ENOTSUP: filesystem does not expose u, stat\n");
   } finally { bash.dispose(); }
 });
+
+test("per-call filesystems never redirect writes into the default Wasm filesystem", async () => {
+  const main = new RustWasmBash({ files: { "/file": "original" } });
+  const other = new RustWasmBash({ files: { "/file": "other" } });
+  try {
+    await assert.rejects(main.exec("echo wrong > /file", { fs: other.fs }), /filesystem.*companion/i);
+    assert.equal(main.readText("/file"), "original");
+    assert.equal(other.readText("/file"), "other");
+  } finally { main.dispose(); other.dispose(); }
+});
+
+test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
+  const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
+  try {
+    const result = await bash.exec("cat /file", { fs: bash.fs });
+    assert.equal(result.stdout, "original");
+  } finally { bash.dispose(); }
+});
+
+test("delegating an external filesystem call preserves the active native filesystem", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const external = new MemoryFileSystem();
+  const bash = new RustWasmBash({ cwd: "/", files: { "/file": "original" }, companionFactory() {
+    const fs = new MemoryFileSystem();
+    return { fs, shell: new Shell({ fs, cwd: "/" }).use(agentCommands()) };
+  } });
+  try {
+    const result = await bash.exec("echo external > /file", { fs: external });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await external.readFile("/file")), "external\n");
+    assert.equal((await bash.exec("cat /file")).stdout, "original");
+    assert.equal(new TextDecoder().decode(await bash.fs.readFile("/file")), "original");
+  } finally { bash.dispose(); }
+});

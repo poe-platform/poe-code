@@ -6459,3 +6459,18 @@ test("regex character classes select punctuation, controls, and complements insi
     }
   } finally { rs.dispose(); }
 });
+
+test("rg dotall matches digits as well as newlines", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) await f.writeFile("/in", Buffer.from("a1b\na\nb\na.b\n"));
+    for (const [pat, expected] of [["a.b", "a1b\na\nb\na.b\n"], [String.raw`a\.b`, "a.b\n"]]) {
+      const cmd = "rg -U --multiline-dotall -o '" + pat + "' in";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode,a.stderr,a.stdout], [0,"",expected],cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

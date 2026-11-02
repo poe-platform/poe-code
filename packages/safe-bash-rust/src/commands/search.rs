@@ -806,7 +806,7 @@ fn preprocess_ere_pattern(pat: &str, dotall: bool) -> String {
             out.push(']');
             k += 1;
         } else if !in_bracket && dotall && chs[k] == '.' {
-            out.push_str("[\\D]");
+            out.push_str("[\\s\\S]");
             k += 1;
         } else {
             out.push(chs[k]);

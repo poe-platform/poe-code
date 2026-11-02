@@ -2980,3 +2980,33 @@ test("yes selects GNU long options and diagnoses the first invalid option byte",
     }
   } finally { wasm.dispose(); }
 });
+
+test("chmod follows only operand symlinks, protects root, and defers restrictive directory changes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  for (const script of [
+    "chmod -Rv 100 /tree", "chmod -v +x /link", "chmod -R 700 /", "chmod -R 700 /rootlink",
+    "chmod -R --no-preserve-root 755 /", "chmod 777 /absent/../outside", "chmod 777 /outside/",
+    "chmod 700 ''", "chmod --reference= /outside", "chmod -v 700 /dangling",
+  ]) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/", deviceView: "provided" }).use(agentCommands());
+    const wasm = new RustWasmBash({ cwd: "/", deviceView: "provided" });
+    try {
+      for (const backend of [fs, wasm.fs]) {
+        await backend.mkdir("/tree");
+        await backend.writeFile("/tree/file", Uint8Array.of(1));
+        await backend.writeFile("/outside", Uint8Array.of(2), { mode: 0o640 });
+        await backend.symlink("/outside", "/tree/escape");
+        await backend.symlink("/tree", "/tree/cycle");
+        await backend.symlink("/outside", "/link");
+        await backend.symlink("/", "/rootlink");
+        await backend.symlink("/absent", "/dangling");
+      }
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      for (const path of ["/", "/tree", "/tree/file", "/outside"]) {
+        assert.equal((await wasm.fs.stat(path)).mode, (await fs.stat(path)).mode, script + ": " + path);
+      }
+    } finally { wasm.dispose(); }
+  }
+});

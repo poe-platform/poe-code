@@ -3343,61 +3343,6 @@ fn format_perm_9(perm: u32) -> String {
     )
 }
 
-#[allow(clippy::too_many_arguments)]
-fn apply_chmod_recursive(
-    path: &str,
-    disp: &str,
-    mode_spec: &str,
-    ref_mode: Option<u32>,
-    umask: u32,
-    recursive: bool,
-    verbose: bool,
-    changes_only: bool,
-    fs: &dyn SafeBashFs,
-    stdout: &mut String,
-) -> Result<(), String> {
-    let st = fs.lstat(path)?;
-    let old_mode = st.mode & 0o7777;
-    let is_dir = fs.is_dir(path);
-    let new_mode = match ref_mode {
-        Some(rm) => rm & 0o7777,
-        None => eval_chmod_mode_checked(mode_spec, old_mode, is_dir, umask)? & 0o7777,
-    };
-    fs.chmod(path, new_mode)?;
-    if verbose || (changes_only && new_mode != old_mode) {
-        let new_str = format_perm_9(new_mode);
-        if new_mode == old_mode {
-            stdout.push_str(&format!(
-                "mode of '{disp}' retained as {new_mode:04o} ({new_str})\n"
-            ));
-        } else {
-            let old_str = format_perm_9(old_mode);
-            stdout.push_str(&format!(
-                "mode of '{disp}' changed from {old_mode:04o} ({old_str}) to {new_mode:04o} ({new_str})\n"
-            ));
-        }
-    }
-    if recursive && is_dir {
-        for name in fs.list_dir(path)? {
-            let child = child_disp_path(path, &name);
-            let child_disp = child_disp_path(disp, &name);
-            apply_chmod_recursive(
-                &child,
-                &child_disp,
-                mode_spec,
-                ref_mode,
-                umask,
-                true,
-                verbose,
-                changes_only,
-                fs,
-                stdout,
-            )?;
-        }
-    }
-    Ok(())
-}
-
 fn cmd_chmod(
     args: &[String],
     cwd: &str,
@@ -3405,6 +3350,7 @@ fn cmd_chmod(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut recursive = false;
+    let mut preserve_root = true;
     let mut verbose = false;
     let mut changes_only = false;
     let mut silent = false;
@@ -3428,7 +3374,7 @@ fn cmd_chmod(
                 continue;
             }
             match name {
-                "preserve-root" | "no-preserve-root" if value.is_none() => {}
+                "preserve-root" | "no-preserve-root" if value.is_none() => preserve_root = name == "preserve-root",
                 "recursive" => recursive = true,
                 "verbose" => verbose = true,
                 "changes" => changes_only = true,
@@ -3466,9 +3412,10 @@ fn cmd_chmod(
             if positional.is_empty() {
                 return err_out("chmod: missing operand\n", 1);
             }
-            let rp = resolve_posix_path(cwd, &rf);
-            match fs.stat(&rp) {
-                Ok(s) => (String::new(), Some(s.mode & 0o7777), &positional[..]),
+            if rf.is_empty() { return err_out("chmod: ENOENT: no such file or directory ''\n", 1); }
+            let rp = absolute_operand(cwd, &rf);
+            match fs.inspect_command_entry(&rp, true, "stat").map_err(|e| copy_error(&e, "stat", &rp)) {
+                Ok((_, s)) => (String::new(), Some(s.mode & 0o7777), &positional[..]),
                 Err(e) => return err_out(&format!("chmod: {e}\n"), 1),
             }
         } else if !mode_options.is_empty() {
@@ -3488,34 +3435,72 @@ fn cmd_chmod(
         return err_out(&format!("chmod: {msg}\n"), 1);
     }
 
-    let mut stdout = String::new();
-    let mut stderr = String::new();
-    let mut code = 0;
-    for t in targets_slice {
-        let p = resolve_posix_path(cwd, t);
-        if let Err(e) = apply_chmod_recursive(
-            &p,
-            t,
-            &mode_str,
-            ref_mode,
-            umask_val,
-            recursive,
-            verbose,
-            changes_only,
-            fs,
-            &mut stdout,
-        ) {
-            if !silent {
-                stderr.push_str(&format!("chmod: {e}\n"));
+    enum Step {
+        Visit { operand: bool },
+        FinishDirectory { old: u32, new: u32, identity: Option<EntryIdentity> },
+    }
+    let mut result = ok_out("");
+    let mut change = |path: &str, display: &str, old: u32, new: u32| -> Result<(), String> {
+        fs.chmod(path, new)?;
+        if verbose || (changes_only && old != new) {
+            let permissions = format_perm_9(new);
+            if old == new {
+                result.stdout.push_str(&format!("mode of '{display}' retained as {new:04o} ({permissions})\n"));
+            } else {
+                result.stdout.push_str(&format!("mode of '{display}' changed from {old:04o} ({}) to {new:04o} ({permissions})\n", format_perm_9(old)));
             }
-            code = 1;
+        }
+        Ok(())
+    };
+    for operand in targets_slice {
+        let mut pending = vec![(absolute_operand(cwd, operand), operand.clone(), Step::Visit { operand: true })];
+        while let Some((path, display, step)) = pending.pop() {
+            let visit = (|| {
+                if path.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+                let (target, st) = fs.inspect_command_entry(&path, false, "lstat")
+                    .map_err(|e| copy_error(&e, "lstat", &path))?;
+                if let Step::FinishDirectory { old, new, identity } = step {
+                    if target != path || st.kind != VfsEntryKind::Directory || identity != st.identity {
+                        return Err(format!("EIO: path changed during permission update, chmod '{path}'"));
+                    }
+                    return change(&target, &display, old, new);
+                }
+                let (target, st) = if st.kind == VfsEntryKind::Symlink {
+                    if matches!(step, Step::Visit { operand: false }) { return Ok(()); }
+                    fs.inspect_command_entry(&path, true, "realpath").map_err(|e| copy_error(&e, "realpath", &path))?
+                } else { (target, st) };
+                let dir = st.kind == VfsEntryKind::Directory;
+                if recursive && preserve_root && target == "/" && dir {
+                    return Err(format!("EBUSY: refusing recursive mode changes at virtual root, chmod '{path}'"));
+                }
+                let old = st.mode & 0o7777;
+                let new = match ref_mode {
+                    Some(mode) => mode,
+                    None => eval_chmod_mode_checked(&mode_str, old, dir, umask_val)?,
+                };
+                let defer = recursive && dir && old & 0o777 & !new != 0;
+                if !defer { change(&target, &display, old, new)?; }
+                if recursive && dir {
+                    let names = fs.list_dir(&target)?;
+                    if names.iter().any(|n| n.is_empty() || matches!(n.as_str(), "." | "..") || n.contains(['/', '\0'])) {
+                        return Err("EIO: invalid directory entry".into());
+                    }
+                    if defer {
+                        pending.push((target.clone(), display.clone(), Step::FinishDirectory { old, new, identity: st.identity }));
+                    }
+                    for name in names.into_iter().rev() {
+                        pending.push((child_disp_path(&target, &name), child_disp_path(&display, &name), Step::Visit { operand: false }));
+                    }
+                }
+                Ok(())
+            })();
+            if let Err(error) = visit {
+                if !silent { result.stderr.push_str(&format!("chmod: {error}\n")); }
+                result.exit_code = 1;
+            }
         }
     }
-    BuiltinOutcome {
-        stdout,
-        stderr,
-        exit_code: code,
-    }
+    result
 }
 
 fn epoch_days_to_civil(z: i64) -> (i64, i64, i64) {

@@ -10,6 +10,9 @@ mod pdf_rewrite;
 mod pdf_rotation;
 pub(super) use pdf_rotation::{Rotation, pdftk_selection, rotations};
 pub(super) use pdf_rewrite::{Layer,PageEdits,rewrite,empty_pdf};
+#[path = "pdf_json_input.rs"]
+mod pdf_json_input;
+pub(super) use pdf_json_input::JsonDocument;
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
 pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};

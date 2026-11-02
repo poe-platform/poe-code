@@ -512,6 +512,7 @@ impl PageOutput {
     pub(in super::super) fn select(
         base: &[u8],
         primary: Option<&str>,
+        base_is_input: bool,
         edits: &super::PageEdits<'_>,
         collate: Option<usize>,
         mut read: impl FnMut(&str) -> Option<Vec<u8>>,
@@ -520,7 +521,7 @@ impl PageOutput {
         use std::borrow::Cow;
         let mut inputs = BTreeMap::new();
         let mut remaining = limits.max_input_bytes;
-        if let Some(name) = primary {
+        if let Some(name) = primary.filter(|_|base_is_input) {
             remaining = remaining
                 .checked_sub(base.len())
                 .ok_or("input byte limit exceeded")?;
@@ -550,7 +551,7 @@ impl PageOutput {
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
         let mut sources = BTreeMap::new();
-        if let Some(name) = primary {
+        if let Some(name) = primary.filter(|_|base_is_input) {
             sources.insert((name,edits.password), base_source);
         }
         let mut groups = Vec::new();

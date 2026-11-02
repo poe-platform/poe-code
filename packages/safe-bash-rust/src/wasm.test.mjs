@@ -5235,3 +5235,25 @@ test("qpdf externalizes inline images above the size threshold without splitting
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf imports and updates JSON object graphs without losing streams or unreferenced objects",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const d=PdfDocument.create();d.addPage([200,400]).drawText("Round trip",{x:10,y:12});
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  await fs.writeFile("/in",d.save());
+  const exported=await js.exec("qpdf in --json=2 --json-stream-data=inline");assert.equal(exported.exitCode,0);
+  const json=objects=>Buffer.from(JSON.stringify({objects}));
+  const files={"/in":await fs.readFile("/in"),"/json":Buffer.from(exported.stdout),"/data":Buffer.from([0,13,255]),"/update":json({"obj:9 2 R":{value:{"/Title":"u:更新😀",N:"n:Token",Binary:"b:00ff",Array:[true,null,1.25]}},"obj:10 0 R":{stream:{dict:{Filter:"/FlateDecode"},datafile:"data"}},trailer:{value:{"/Info":"9 2 R"}}}),"/more":json({"obj:11 0 R":{value:"u:keep"},"obj:10 0 R":{stream:{dict:{Type:"/Example"}}}}),"/bad":Buffer.from('{"objects":'),"/noroot":json({})};
+  const rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [k,v] of Object.entries(files))await fs.writeFile(k,v);
+    for(const args of ["--json-input json out","--json-input json --show-xref","--json-input - --json --json-stream-data=inline < json","in --update-from-json=update --update-from-json=more out","--empty --update-from-json=update out","--json-input json --update-from-json=more --rotate=90:1 out","--json-input json --pages . 1,1 -- out","--json-input bad out","--json-input noroot out","in --update-from-json=missing out"]){
+      const cmd="qpdf "+args,e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],cmd);
+      const expected=await fs.readFile("/out"),actual=await rs.fs.readFile("/out");
+      assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
+    }
+  }finally{rs.dispose();}
+});

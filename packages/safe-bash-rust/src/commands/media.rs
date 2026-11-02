@@ -6322,7 +6322,7 @@ fn cmd_media_doc(
             let mut json_stream_prefix = None;
             let mut json_stream_data = "none".to_string();
             let mut json_input = false;
-            let mut update_from_json: Option<String> = None;
+            let mut update_from_json = Vec::new();
             let mut list_att = false;
             let mut show_att: Option<String> = None;
             let mut remove_atts: Vec<String> = Vec::new();
@@ -6498,7 +6498,7 @@ fn cmd_media_doc(
                     continue;
                 }
                 if let Some(uf) = a.strip_prefix("--update-from-json=") {
-                    update_from_json = Some(uf.to_string());
+                    update_from_json.push(uf);
                     i += 1;
                     continue;
                 }
@@ -6745,74 +6745,17 @@ fn cmd_media_doc(
             edits.inline_images=externalize_inline.then_some((ii_min_bytes,!uncompress));
             edits.normalize_content = normalize_content.unwrap_or(qdf_mode || uncompress);
 
-            let parse_qpdf_json_doc = |s: &str| -> PdfDoc {
-                let mut d = PdfDoc::new();
-                let mut rem = s;
-                while let Some(pos) = rem.find("\"data\":") {
-                    rem = &rem[pos + 7..];
-                    if let Some(q1) = rem.find('"') {
-                        let after_q1 = &rem[q1 + 1..];
-                        let mut val = String::new();
-                        let mut chars = after_q1.chars();
-                        let mut consumed = 0usize;
-                        while let Some(ch) = chars.next() {
-                            consumed += ch.len_utf8();
-                            if ch == '\\' {
-                                if let Some(esc) = chars.next() {
-                                    consumed += esc.len_utf8();
-                                    match esc {
-                                        'n' => val.push('\n'),
-                                        'r' => val.push('\r'),
-                                        't' => val.push('\t'),
-                                        other => val.push(other),
-                                    }
-                                }
-                            } else if ch == '"' {
-                                break;
-                            } else {
-                                val.push(ch);
-                            }
-                        }
-                        let decoded_txt = if let Ok(dec_bytes) = base64_decode(&val)
-                            && !dec_bytes.is_empty()
-                            && dec_bytes.iter().all(|b| b.is_ascii_graphic() || b.is_ascii_whitespace())
-                        {
-                            String::from_utf8_lossy(&dec_bytes).to_string()
-                        } else {
-                            val
-                        };
-                        d.pages.push(PdfPage {
-                            rot: 0,
-                            text: decoded_txt,
-                            html: String::new(),
-                            images: Vec::new(),
-                            urls: Vec::new(),
-                        });
-                        rem = &after_q1[consumed..];
-                    } else {
-                        break;
-                    }
-                }
-                if d.pages.is_empty() {
-                    d.pages.push(PdfPage::default());
-                }
-                d
-            };
+            let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
+                else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
             let load_input = |path_arg: &str| -> Result<PdfDoc, BuiltinOutcome> {
                 if path_arg == "-" {
                     let b = crate::vfs::stream_string_to_bytes(stdin);
-                    if json_input {
-                        return Ok(parse_qpdf_json_doc(&String::from_utf8_lossy(&b)));
-                    }
                     return Ok(PdfDoc::parse(&b));
                 }
                 let full = resolve_posix_path(cwd, path_arg);
                 let Ok(b) = fs.read_file(&full) else {
                     return Err(err_out(&format!("qpdf: cannot open {path_arg}\n"), 2));
                 };
-                if json_input {
-                    return Ok(parse_qpdf_json_doc(&String::from_utf8_lossy(&b)));
-                }
                 if !b.starts_with(b"%PDF-") {
                     return Err(err_out(
                         &format!("qpdf: {path_arg}: Invalid PDF header: missing %PDF- signature\n"),
@@ -6846,15 +6789,48 @@ fn cmd_media_doc(
                 if !is_enc && let Some(pw) = password.as_deref() && pdf_reader::accepts_password(&bytes,pw).is_some() { return err_out("",3); }
                 return ok_out("");
             }
+            let original = || if empty_input {pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes)}else{primary_arg.as_deref().and_then(read)};
+            let mut rebuilt=if json_input && !empty_input || !update_from_json.is_empty(){
+                let name=primary_arg.as_deref().unwrap_or("empty");
+                let Some(mut bytes)=original()else{return if primary_arg.is_none(){err_out("qpdf: an input file is required\n",2)}else{err_out(&format!("qpdf: cannot open {name}\n"),2)}};
+                let limits=fs.shell_limits();
+                let mut seen=std::collections::BTreeSet::new();seen.insert(name.to_string());
+                let mut left=limits.max_input_bytes;
+                if !empty_input{let Some(n)=left.checked_sub(bytes.len())else{return err_out("qpdf: input byte limit exceeded\n",2)};left=n;}
+                let mut acquire=|path:&str|->Result<Option<Vec<u8>>,String>{
+                    let b=read(path);if let Some(b)=&b && seen.insert(path.to_string()){left=left.checked_sub(b.len()).ok_or("input byte limit exceeded")?;}
+                    Ok(b)
+                };
+                if json_input && !empty_input{
+                    let mut graph=pdf_reader::JsonDocument::default();
+                    bytes=match graph.apply(&bytes,&mut acquire,limits.max_output_bytes).and_then(|()|graph.save(limits.max_output_bytes)){
+                        Ok(b)=>b,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
+                    };
+                }
+                if !update_from_json.is_empty(){
+                    if pdf_reader::header_version(&bytes).is_none(){return err_out(&format!("qpdf: {name}: Invalid PDF header: missing %PDF- signature\n"),2)}
+                    let mut graph=match pdf_reader::JsonDocument::from_pdf(&bytes,password.as_deref().unwrap_or("")){
+                        Ok(g)=>g,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
+                    };
+                    for path in update_from_json{
+                        let source=match acquire(path){
+                            Ok(Some(b))=>b,Ok(None)=>return err_out(&format!("qpdf: cannot open {path}\n"),2),
+                            Err(e)=>return err_out(&format!("qpdf: {e}\n"),2)
+                        };
+                        if let Err(e)=graph.apply(&source,&mut acquire,limits.max_output_bytes){return err_out(&format!("qpdf: {path}: {e}\n"),2)}
+                    }
+                    bytes=match graph.save(limits.max_output_bytes){Ok(b)=>b,Err(_)=>return err_out("shell: line 1: internal error\n",1)};
+                }
+                Some(bytes)
+            }else{None};
+            let base_is_input=rebuilt.is_none();
+            let mut primary=||rebuilt.take().or_else(original);
             if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
                 let input = primary_arg.as_deref().unwrap_or("empty");
-                let bytes = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
-                    else if primary_arg.is_none() { None }
-                    else if input == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
-                    else { fs.read_file(&resolve_posix_path(cwd,input)).ok() };
+                let bytes=primary();
                 if let Some(bytes) = bytes {
                     let source = pdf_reader::PageSource::open(&bytes,password.as_deref().unwrap_or(""));
-                    if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) && !json_input {
+                    if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) {
                         return err_out(&format!("qpdf: {input}: {e}\n"),2);
                     }
                     if let Ok(mut source) = source {
@@ -7061,23 +7037,12 @@ fn cmd_media_doc(
                 } else {
                     None
                 };
-                let input = match primary_arg.as_deref() {
-                    _ if empty_input => match pdf_reader::empty_pdf(fs.shell_limits().max_input_bytes) {
-                        Some(bytes) => bytes,
-                        None => return err_out("shell: line 1: internal error\n",1),
-                    },
-                    Some("-") => crate::vfs::stream_string_to_bytes(stdin),
-                    Some(name) => match fs.read_file(&resolve_posix_path(cwd,name)) {
-                        Ok(bytes) => bytes,
-                        Err(_) => return err_out(&format!("qpdf: cannot open {name}\n"),2),
-                    },
-                    None => return err_out("qpdf: an input file is required\n",2),
-                };
-                if !json_input && pdf_reader::header_version(&input).is_none() {
+                let input=match primary(){Some(bytes)=>bytes,None=>return if let Some(name)=&primary_arg{err_out(&format!("qpdf: cannot open {name}\n"),2)}else{err_out("qpdf: an input file is required\n",2)}};
+                if pdf_reader::header_version(&input).is_none() {
                     return err_out(&format!("qpdf: {}: Invalid PDF header: missing %PDF- signature\n",primary_arg.as_deref().unwrap_or("empty")),2);
                 }
                 let source = pdf_reader::PageSource::open(&input,password.as_deref().unwrap_or(""));
-                if let Err(e) = source && !json_input && !is_legacy_pdf(&input) {
+                if let Err(e) = source && !is_legacy_pdf(&input) {
                     return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2);
                 }
                 for k in &json_keys {
@@ -7111,9 +7076,7 @@ fn cmd_media_doc(
                     }
                     return ok_out(&json);
                 }
-                let doc = if json_input && !empty_input {
-                    parse_qpdf_json_doc(&String::from_utf8_lossy(&input))
-                } else { PdfDoc::parse(&input) };
+                let doc = PdfDoc::parse(&input);
                 let esc_json = |s: &str| -> String {
                     let mut out = String::new();
                     for ch in s.chars() {
@@ -7211,11 +7174,8 @@ fn cmd_media_doc(
 
             let out_arg = pos_files.get(usize::from(!replace_input && !empty_input)).cloned();
             edits.password=password.as_deref().unwrap_or("");
-            if !json_input && update_from_json.is_none() && let Some(dst_arg) = out_arg.as_deref() {
-                let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
-                    else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
-                let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
-                    else {primary_arg.as_deref().and_then(read)};
+            if let Some(dst_arg) = out_arg.as_deref() {
+                let input = primary();
                 if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
                     let limit = fs.shell_limits().max_output_bytes;
                     if !edits.layers.is_empty() {
@@ -7246,7 +7206,7 @@ fn cmd_media_doc(
                         }
                     }
                     let selected = if edits.selections.is_empty() { Some(bytes) } else {
-                        match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),&edits,collate_group,read,&fs.shell_limits()) {
+                        match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),base_is_input,&edits,collate_group,read,&fs.shell_limits()) {
                             Ok(bytes) => bytes,
                             Err(e) if e == "invalid page selection" => return err_out("shell: line 1: internal error\n",1),
                             Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
@@ -7363,44 +7323,6 @@ fn cmd_media_doc(
                 if !enc_pw.is_empty() && supplied != enc_pw {
                     let f = primary_arg.as_deref().unwrap_or("input");
                     return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
-                }
-            }
-
-            if let Some(ref ujson) = update_from_json {
-                let ufull = resolve_posix_path(cwd, ujson);
-                if let Ok(ub) = fs.read_file(&ufull) {
-                    let us = String::from_utf8_lossy(&ub);
-                    let mut rem = us.as_ref();
-                    while let Some(pos) = rem.find("\"obj:") {
-                        rem = &rem[pos + 5..];
-                        let num = rem
-                            .split(|c: char| !c.is_ascii_digit())
-                            .next()
-                            .and_then(|s| s.parse::<usize>().ok())
-                            .unwrap_or(0);
-                        let next_obj = rem.find("\"obj:").unwrap_or(rem.len());
-                        let chunk = &rem[..next_obj];
-                        if num >= 3 {
-                            let page_idx = if num >= 5 && (num - 5) % 4 == 0 {
-                                (num - 5) / 4
-                            } else {
-                                (num - 3) / 2
-                            };
-                            if let Some(rpos) = chunk.find("\"/Rotate\":") {
-                                let after_r = chunk[rpos + 10..].trim_start();
-                                let rot_s: String = after_r
-                                    .chars()
-                                    .take_while(|c| c.is_ascii_digit() || *c == '-' || *c == '+')
-                                    .collect();
-                                if let Ok(rot) = rot_s.parse::<i32>()
-                                    && let Some(pg) = doc.pages.get_mut(page_idx)
-                                {
-                                    pg.rot = rot.rem_euclid(360);
-                                }
-                            }
-                        }
-                        rem = &rem[next_obj..];
-                    }
                 }
             }
 

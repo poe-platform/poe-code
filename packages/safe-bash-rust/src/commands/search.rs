@@ -2520,6 +2520,37 @@ fn cmd_rg(
     let mut help_requested = false;
     let mut version_mode: Option<&'static str> = None;
 
+    let mut numeric_option = |flag: &str, inline: Option<&str>, index: &mut usize, long: bool| -> Result<bool, BuiltinOutcome> {
+        let mut count = || {
+            let error = |msg: String| BuiltinOutcome { stdout: String::new(), stderr: format!("rg: {msg}\n"), exit_code: 2 };
+            let value = inline.or_else(|| { *index += 1; args.get(*index).map(String::as_str) })
+                .ok_or_else(|| error(format!("{}{flag} requires a value", if long { "--" } else { "-" })))?;
+            let (digits, scale) = if flag == "max-filesize" {
+                match value.as_bytes().last() {
+                    Some(b'K') => (&value[..value.len()-1], 1024),
+                    Some(b'M') => (&value[..value.len()-1], 1024 * 1024),
+                    Some(b'G') => (&value[..value.len()-1], 1024 * 1024 * 1024),
+                    _ => (value, 1),
+                }
+            } else { (value, 1) };
+            let n = digits.parse::<u64>().ok().filter(|&n| n < 1 << 53 && !digits.starts_with('+'))
+                .ok_or_else(|| error(format!("{flag} requires a nonnegative integer")))?;
+            let n = n.checked_mul(scale).filter(|&n| n < 1 << 53).ok_or_else(|| error("max-filesize is too large".into()))?;
+            Ok(usize::try_from(n).unwrap_or(usize::MAX))
+        };
+        match flag {
+            "m" | "max-count" => max_count = Some(count()?),
+            "M" | "max-columns" => max_columns = Some(count()?),
+            "d" | "max-depth" | "maxdepth" => max_depth = Some(count()?),
+            "C" | "context" => { before_ctx = count()?; after_ctx = before_ctx; }
+            "A" | "after-context" => after_ctx = count()?,
+            "B" | "before-context" => before_ctx = count()?,
+            "j" | "threads" => { count()?; }
+            "max-filesize" => max_filesize = Some(count()?),
+            _ => return Ok(false),
+        }
+        Ok(true)
+    };
     let mut i = 0usize;
     let mut end_of_opts = false;
     while i < args.len() {
@@ -2530,6 +2561,12 @@ fn cmd_rg(
             continue;
         }
         if !end_of_opts && a.starts_with("--") {
+            let (name, value) = a[2..].split_once('=').map_or((&a[2..], None), |(name, v)| (name, Some(v)));
+            match numeric_option(name, value, &mut i, true) {
+                Ok(true) => { i += 1; continue; }
+                Err(e) => return e,
+                Ok(false) => {}
+            }
             match a.as_str() {
                 "--help" => help_requested = true,
                 "--version" => version_mode = Some("long"),
@@ -2635,17 +2672,6 @@ fn cmd_rg(
                     i += 1;
                     custom_ignore_files.push(args[i].clone());
                 }
-                "--max-columns" if i + 1 < args.len() => {
-                    i += 1;
-                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "rg: max-columns requires a nonnegative integer\n".to_string(),
-                            exit_code: 2,
-                        };
-                    }
-                    max_columns = args[i].parse().ok();
-                }
                 "--sort" if i + 1 < args.len() => {
                     i += 1;
                     if args[i] != "path" {
@@ -2747,39 +2773,6 @@ fn cmd_rg(
                     has_explicit_pattern = true;
                     patterns.push(args[i].clone());
                 }
-                "--max-count" if i + 1 < args.len() => {
-                    i += 1;
-                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "rg: max-count requires a nonnegative integer\n".to_string(),
-                            exit_code: 2,
-                        };
-                    }
-                    max_count = args[i].parse().ok();
-                }
-                "--max-depth" | "--maxdepth" if i + 1 < args.len() => {
-                    i += 1;
-                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "rg: max-depth requires a nonnegative integer\n".to_string(),
-                            exit_code: 2,
-                        };
-                    }
-                    max_depth = args[i].parse().ok();
-                }
-                "--max-filesize" if i + 1 < args.len() => {
-                    i += 1;
-                    max_filesize = parse_rg_filesize(&args[i]);
-                    if max_filesize.is_none() {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "rg: max-filesize requires a valid size\n".to_string(),
-                            exit_code: 2,
-                        };
-                    }
-                }
                 _ => {
                     if let Some(g) = a.strip_prefix("--glob=") {
                         globs.push(g.to_string());
@@ -2787,33 +2780,6 @@ fn cmd_rg(
                         globs.push(format!("i:{ig}"));
                     } else if let Some(cs) = a.strip_prefix("--context-separator=") {
                         context_separator = Some(cs.to_string());
-                    } else if let Some(m) = a.strip_prefix("--max-count=") {
-                        if m.is_empty() || !m.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: "rg: max-count requires a nonnegative integer\n".to_string(),
-                                exit_code: 2,
-                            };
-                        }
-                        max_count = m.parse().ok();
-                    } else if let Some(d) = a.strip_prefix("--max-depth=").or_else(|| a.strip_prefix("--maxdepth=")) {
-                        if d.is_empty() || !d.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: "rg: max-depth requires a nonnegative integer\n".to_string(),
-                                exit_code: 2,
-                            };
-                        }
-                        max_depth = d.parse().ok();
-                    } else if let Some(mc) = a.strip_prefix("--max-columns=") {
-                        if mc.is_empty() || !mc.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: "rg: max-columns requires a nonnegative integer\n".to_string(),
-                                exit_code: 2,
-                            };
-                        }
-                        max_columns = mc.parse().ok();
                     } else if let Some(igf) = a.strip_prefix("--ignore-file=") {
                         custom_ignore_files.push(igf.to_string());
                     } else if let Some(srt) = a.strip_prefix("--sort=") {
@@ -2829,15 +2795,6 @@ fn cmd_rg(
                             return BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: "rg: only --color=never is supported\n".to_string(),
-                                exit_code: 2,
-                            };
-                        }
-                    } else if let Some(fsz) = a.strip_prefix("--max-filesize=") {
-                        max_filesize = parse_rg_filesize(fsz);
-                        if max_filesize.is_none() {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: "rg: max-filesize requires a valid size\n".to_string(),
                                 exit_code: 2,
                             };
                         }
@@ -3045,36 +3002,10 @@ fn cmd_rg(
                         }
                         break;
                     }
-                    'm' | 'M' | 'A' | 'B' | 'C' | 'd' | 'j' => {
-                        let flag = chars[ci];
-                        let val_str = if ci + 1 < chars.len() {
-                            chars[ci + 1..].iter().collect::<String>()
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            String::new()
-                        };
-                        if val_str.is_empty() || !val_str.chars().all(|c| c.is_ascii_digit()) {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("rg: -{flag} requires a nonnegative integer\n"),
-                                exit_code: 2,
-                            };
-                        }
-                        if let Ok(n) = val_str.parse::<usize>() {
-                            match flag {
-                                'm' => max_count = Some(n),
-                                'M' => max_columns = Some(n),
-                                'd' => max_depth = Some(n),
-                                'A' => after_ctx = n,
-                                'B' => before_ctx = n,
-                                'C' => {
-                                    before_ctx = n;
-                                    after_ctx = n;
-                                }
-                                _ => {}
-                            }
+                    flag @ ('m' | 'M' | 'A' | 'B' | 'C' | 'd' | 'j') => {
+                        let tail = (ci + 1 < chars.len()).then(|| chars[ci + 1..].iter().collect::<String>());
+                        if let Err(e) = numeric_option(flag.encode_utf8(&mut [0; 4]), tail.as_deref(), &mut i, false) {
+                            return e;
                         }
                         break;
                     }
@@ -3347,19 +3278,6 @@ struct GrepConfig<'a> {
     files: SearchFiles<'a>,
     max_columns: Option<usize>,
     stats: bool,
-}
-
-fn parse_rg_filesize(s: &str) -> Option<usize> {
-    let trimmed = s.trim();
-    if let Some(num) = trimmed.strip_suffix(['K', 'k']) {
-        num.trim().parse::<usize>().ok().map(|n| n * 1024)
-    } else if let Some(num) = trimmed.strip_suffix(['M', 'm']) {
-        num.trim().parse::<usize>().ok().map(|n| n * 1024 * 1024)
-    } else if let Some(num) = trimmed.strip_suffix(['G', 'g']) {
-        num.trim().parse::<usize>().ok().map(|n| n * 1024 * 1024 * 1024)
-    } else {
-        trimmed.parse::<usize>().ok()
-    }
 }
 
 fn is_valid_rg_type(t: &str) -> bool {
@@ -3940,7 +3858,7 @@ fn run_grep_engine(
             let mut printed = vec![false; lines.len()];
             for (idx, _) in &match_indices {
                 let start = idx.saturating_sub(cfg.before_ctx);
-                let end = (*idx + cfg.after_ctx + 1).min(lines.len());
+                let end = (idx + 1).saturating_add(cfg.after_ctx).min(lines.len());
                 for p in start..end {
                     printed[p] = true;
                 }

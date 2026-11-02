@@ -7390,3 +7390,21 @@ test("rg groups output records across operands and only prints each heading once
     }
   } finally { rs.dispose(); }
 });
+
+test("rg numeric options keep their spelling, size units and safe integer bounds", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const sh of [js, rs]) await sh.exec("mkdir d; printf 'a\\nx\\na\\n' >d/file");
+    for (const args of ["--threads=1 a d", "--maxdepth bad a d", "--max-count=", "-nA", "-A+1 a d",
+      "--context=1 a d", "--after-context 1 a d", "--A=2 a d", "--max-depth 0 --files d",
+      "--max-filesize=1k --files d", "--max-filesize=4194304K --files d", "--max-filesize=8589934592M --files d",
+      "--max-filesize=9007199254740992G a d", "--max-filesize ' 4' --files d", "--max-filesize=0 --files d",
+      "--json -A4294967295 a d/file", "-M9007199254740992 a d", "-j9007199254740991 a d", "-m"]) {
+      const cmd = "rg " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

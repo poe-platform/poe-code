@@ -446,6 +446,7 @@ pub(in super::super) struct PageOutput {
     form: Option<Form>,
     optional_content: bool,
     pages: Vec<usize>,
+    outlines: Vec<(String, usize)>,
     labels: Vec<u8>,
     attachments: Vec<(Vec<u8>, Vec<u8>)>,
     attachment_names: BTreeSet<String>,
@@ -460,6 +461,7 @@ impl PageOutput {
             form: None,
             optional_content: false,
             pages: vec![],
+            outlines: Vec::new(),
             labels: Vec::new(),
             attachments: Vec::new(),
             attachment_names: BTreeSet::new(),
@@ -742,6 +744,10 @@ impl PageOutput {
             self.bodies.push(vec![]);
         }
         if whole_document {
+            for (title, _, page) in source.objects.outlines(&source.catalog, &source.pages)? {
+                self.remaining = self.remaining.checked_sub(title.len())?;
+                self.outlines.push((title,page_offset.checked_add(page)?));
+            }
             for Attachment {
                 filename: name,
                 stream: id,
@@ -847,6 +853,23 @@ impl PageOutput {
     }
 
     pub(in super::super) fn finish(mut self) -> Option<Vec<u8>> {
+        if !self.outlines.is_empty() && !self.pages.is_empty() {
+            let count = self.outlines.len();
+            let root = self.bodies.len() + 1;
+            writeln!(self.bodies[0], "/Outlines {root} 0 R").ok()?;
+            self.bodies.push(format!("<<\n/First {} 0 R\n/Last {} 0 R\n/Count {count}\n>>",root+1,root+count).into_bytes());
+            for (i,(title,index)) in std::mem::take(&mut self.outlines).into_iter().enumerate() {
+                let page = self.pages[index.min(self.pages.len()-1)];
+                let mut body = b"<<\n/Title ".to_vec();
+                super::pdf_rewrite::encode(&super::pdf_string::encode(&title), &mut body).ok()?;
+                write!(body,"\n/Parent {root} 0 R\n/Dest [ {page} 0 R /Fit ]\n").ok()?;
+                if i > 0 {writeln!(body,"/Prev {} 0 R",root+i).ok()?;}
+                if i+1 < count {writeln!(body,"/Next {} 0 R",root+i+2).ok()?;}
+                body.extend_from_slice(b">>");
+                self.remaining = self.remaining.checked_sub(body.len().saturating_sub(title.len()))?;
+                self.bodies.push(body);
+            }
+        }
         self.write_attachments(false)?;
         let mut catalog = std::mem::take(&mut self.bodies[0]);
         if let Some(form) = self.form {

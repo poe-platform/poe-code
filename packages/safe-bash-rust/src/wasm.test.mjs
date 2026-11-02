@@ -5043,3 +5043,21 @@ test("qpdf overlays and underlays preserve the PDF and compose selected pages in
     }
   }finally{rs.dispose();}
 });
+
+test("pdfunite flattens nested bookmarks and remaps destinations in repeated input files",async()=>{
+  const {PdfDocument,cosDict,cosName,cosNumber,cosString,cosArray,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdfuniteCommands}=await import("@poe-platform/safe-bash/commands/pdfunite");
+  const d=PdfDocument.create(),a=d.addPage(),b=d.addPage(),root=d.cos.resolveDict(d.cos.rootRef);
+  const child=d.cos.allocateObject(cosDict({Title:cosString("Résumé 日本"),A:cosDict({D:cosName("last")})}));
+  dictSet(root,"Outlines",cosDict({First:cosDict({Title:cosString("First"),Dest:cosArray([a.ref,cosName("Fit")]),First:child})}));
+  dictSet(root,"Dests",cosDict({last:cosArray([b.ref,cosName("Fit")])}));
+  dictSet(root,"PageLabels",cosDict({Nums:cosArray([cosNumber(0),cosDict({S:cosName("r")})])}));
+  const input=d.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(pdfuniteCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
+  try {
+    await fs.writeFile("/in",input);
+    for(const sh of [js,rs]){const r=await sh.exec("pdfunite in in merged");assert.equal(r.exitCode,0,r.stderr);}
+    const expected=await fs.readFile("/merged"),actual=await rs.fs.readFile("/merged");
+    assert.ok(Buffer.from(actual).equals(expected),"first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
+  } finally {rs.dispose();}
+});

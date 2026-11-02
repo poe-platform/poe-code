@@ -4343,3 +4343,22 @@ test("qpdf refuses to replace output when a damaged PDF has no recoverable catal
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf encryption predicates inspect the input bytes before parsing the document",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.addPage();
+  const files={"/locked.pdf":doc.save({encrypt:{revision:3,userPassword:"reader",ownerPassword:"owner"}}),
+    "/plain.pdf":doc.save(),"/boundary":Buffer.concat([Buffer.alloc(65533,32),Buffer.from("/Encrypt")]),"/noise":Buffer.from("not a pdf")};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,data] of Object.entries(files))await fs.writeFile(name,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const flag of ["--is-encrypted","--requires-password"])for(const input of ["locked.pdf","plain.pdf","boundary","noise","missing","-"]) {
+      const cmd=(input==="-"?"cat boundary | ":"")+"qpdf "+input+" "+flag;
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],cmd);
+    }
+  } finally {wasm.dispose();}
+});

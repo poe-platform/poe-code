@@ -6802,36 +6802,21 @@ fn cmd_media_doc(
                 pos_files.first().cloned()
             };
 
-            if is_enc {
+            if is_enc || req_pw {
                 let Some(f) = primary_arg.as_deref() else {
                     return err_out("qpdf: an input file is required\n", 2);
                 };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                return if doc.encrypted.is_some() {
-                    ok_out("")
-                } else {
-                    err_out("", 2)
-                };
-            }
-            if req_pw {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                let Some(ref enc_pw) = doc.encrypted else {
-                    return err_out("", 2);
-                };
-                let supplied = password.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
-                    return ok_out("");
+                let bytes = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) }
+                    else { match fs.read_file(&resolve_posix_path(cwd,f)) {
+                        Ok(data) => data, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
+                    }};
+                if is_legacy_pdf(&bytes) {
+                    let Some(key) = PdfDoc::parse(&bytes).encrypted else {return err_out("",2)};
+                    return if !is_enc && password.as_ref().is_some_and(|p| key.is_empty() || p == &key) {err_out("",3)} else {ok_out("")};
                 }
-                return err_out("", 3);
+                // The compatibility predicates deliberately recognize a literal
+                // marker, including in malformed files, before opening a PDF.
+                return if bytes.windows(8).any(|s| s == b"/Encrypt") { ok_out("") } else { err_out("",2) };
             }
             if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
                 let input = primary_arg.as_deref().unwrap_or("empty");

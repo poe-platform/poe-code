@@ -544,7 +544,7 @@ impl PdfDoc {
     }
 
     fn parse(bytes: &[u8]) -> Self {
-        if let Some(doc) = pdf_reader::read(bytes) {
+        if let Ok((doc,_)) = pdf_reader::read(bytes,"") {
             return doc;
         }
         let raw = String::from_utf8_lossy(bytes);
@@ -6097,7 +6097,14 @@ fn cmd_media_doc(
             let mut out_doc = PdfDoc::new();
             for (idx, src) in sources.iter().enumerate() {
                 let b = &inputs[src];
-                let sub = PdfDoc::parse(b);
+                let mut sub = PdfDoc::parse(b);
+                if !is_legacy_pdf(b) {
+                    let source = pdf_reader::attachments::CopyAttachments {path:src.to_string(),prefix:String::new(),password:String::new()};
+                    if source.visit(b,|key,name,data|{
+                        sub.attachments.push((key,name,String::new(),data.to_vec()));
+                        Ok(())
+                    }).is_err(){return err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"),255);}
+                }
                 if sub.encrypted.is_some() {
                     return err_out(
                         &format!("Unimplemented Feature: Could not merge encrypted files ('{src}')\n"),
@@ -8322,11 +8329,14 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
-            let attachments = if let Ok(mut source) = pdf_reader::PageSource::open(&b,"") {
+            let source = pdf_reader::PageSource::open(&b,password);
+            let attachments = if let Ok(mut source) = source {
                 let Some(files) = source.read_attachments() else {
                     return err_out("PDF Error: Invalid embedded file stream\n", 1);
                 };
                 files
+            } else if let Err(e @ (pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED)) = source {
+                return err_out(&format!("PDF Error: {e}\n"), 1);
             } else {
                 let doc = PdfDoc::parse(&b);
                 if let Some(ref required) = doc.encrypted
@@ -8466,13 +8476,19 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out("Syntax Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
-            let doc = PdfDoc::parse(&b);
-            if let Some(ref enc_pw) = doc.encrypted {
-                let supplied = pw_opt.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("Command Line Error: Incorrect password\n", 1);
+            let supplied = pw_opt.as_deref().unwrap_or("");
+            let (doc, encryption) = match pdf_reader::read(&b,supplied) {
+                Ok((doc,security)) => (doc,security.map(|s| s.poppler_description())),
+                Err(pdf_reader::PASSWORD) => return err_out("Command Line Error: Incorrect password\n",1),
+                Err(_) => {
+                    let doc = PdfDoc::parse(&b);
+                    if doc.encrypted.as_deref().is_some_and(|p| !p.is_empty() && p != supplied) {
+                        return err_out("Command Line Error: Incorrect password\n",1);
+                    }
+                    let info = doc.encrypted.as_ref().map(|_| "yes (print:yes copy:yes change:yes addNotes:yes algorithm:AES-256)".to_owned());
+                    (doc,info)
                 }
-            }
+            };
             let page_count = doc.pages.len().max(1);
             let fp = first_p.unwrap_or(1).max(1);
             let lp = last_p.map(|v| if v == 0 { page_count } else { page_count.min(v) }).unwrap_or(1);
@@ -8584,11 +8600,7 @@ fn cmd_media_doc(
             out.push_str(&format!(
                 "{:<17}{}\n",
                 "Encrypted:",
-                if doc.encrypted.is_some() {
-                    "yes (print:yes copy:yes change:yes addNotes:yes algorithm:AES-256)"
-                } else {
-                    "no"
-                }
+                encryption.as_deref().unwrap_or("no")
             ));
             let fmt_pt = |n: f64| -> String {
                 let r = (n * 100.0).round() / 100.0;
@@ -8770,6 +8782,7 @@ fn cmd_media_doc(
             ok_out(&out)
         }
         "pdftotext" => {
+            let mut password = "";
             let mut first_p = 1usize;
             let mut last_p = 0usize;
             let mut last_p_explicit = false;
@@ -8839,7 +8852,8 @@ fn cmd_media_doc(
                         }
                         i += 2;
                     }
-                    "-fixed" | "-linespacing" | "-upw" | "-opw" if i + 1 < args.len() => {
+                    "-upw" | "-opw" if i + 1 < args.len() => { password = &args[i+1]; i += 2; }
+                    "-fixed" | "-linespacing" if i + 1 < args.len() => {
                         i += 2;
                     }
                     "-colspacing" => {
@@ -9001,7 +9015,11 @@ fn cmd_media_doc(
                 };
                 return err_out(&msg, 1);
             }
-            let doc = PdfDoc::parse(&raw_bytes);
+            let doc = match pdf_reader::read(&raw_bytes,password) {
+                Ok((doc,_)) => doc,
+                Err(pdf_reader::PASSWORD) => return err_out(if quiet {""} else {"Command Line Error: Incorrect password\n"},1),
+                Err(_) => PdfDoc::parse(&raw_bytes),
+            };
             let page_count = doc.pages.len().max(1);
             let end_p = if !last_p_explicit || last_p == 0 || last_p > page_count {
                 page_count
@@ -15877,7 +15895,7 @@ mod media_unit_tests {
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             let updated = fs.read_file("/doc.pdf").unwrap();
             assert!(updated.starts_with(pdf.as_bytes()));
-            let parsed = pdf_reader::read(&updated).unwrap();
+            let parsed = pdf_reader::read(&updated,"").unwrap().0;
             assert_eq!(parsed.title, title);
             assert_eq!(parsed.author, "Ada");
             assert_eq!(parsed.pages.len(), 1);
@@ -15943,7 +15961,7 @@ mod media_unit_tests {
         let res = cmd_media_doc("pdfseparate", &media_args(&["-l", "1", "/in.pdf", "/page.pdf"]), "", "/", &fs);
         assert_eq!(res.exit_code, 0, "{}", res.stderr);
         let output = fs.read_file("/page.pdf").unwrap();
-        let doc = pdf_reader::read(&output).expect("a standalone PDF with a working xref");
+        let doc = pdf_reader::read(&output,"").expect("a standalone PDF with a working xref").0;
         assert_eq!(doc.pages.len(), 1);
         assert_eq!(doc.pages[0].text, "selected");
         assert_eq!(doc.pages[0].rot, 90);
@@ -15970,7 +15988,7 @@ mod media_unit_tests {
         let result = cmd_media_doc("pdfunite", &media_args(&["a.pdf", "b.pdf", "merged.pdf"]), "", "/", &fs);
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         let bytes = fs.read_file("/merged.pdf").unwrap();
-        let doc = pdf_reader::read(&bytes).expect("merged PDF has a valid xref and page tree");
+        let doc = pdf_reader::read(&bytes,"").expect("merged PDF has a valid xref and page tree").0;
         assert_eq!(doc.pages.iter().map(|p| p.text.as_str()).collect::<Vec<_>>(), ["first", "first", "other", "other"]);
         assert_eq!(String::from_utf8_lossy(&bytes).matches("\nstream\n").count(), 2);
     }
@@ -16005,7 +16023,7 @@ mod media_unit_tests {
         let mut dest = pdf_reader::PageOutput::new(1024*1024);
         dest.append(&mut source, None).expect("copy every page");
         let bytes = dest.finish().unwrap();
-        let merged = pdf_reader::read(&bytes).unwrap();
+        let merged = pdf_reader::read(&bytes,"").unwrap().0;
         assert_eq!(merged.pages.len(), count);
         assert_eq!(merged.page_media[&count], (300., 410., Some([4., 6., 304., 416.])));
     }
@@ -16206,7 +16224,7 @@ mod media_unit_tests {
         assert_eq!(result.exit_code, 1);
         assert!(result.stderr.contains("realpath '/missing'"));
         let first = fs.read_file("/first.pdf").unwrap();
-        assert_eq!(pdf_reader::read(&first).unwrap().title, "Batch");
+        assert_eq!(pdf_reader::read(&first,"").unwrap().0.title, "Batch");
         assert!(!fs.exists("/later.pdf"));
         let stream = run("'/my doc' -\n- /bad.pdf");
         assert_eq!(stream.stdout, crate::vfs::bytes_to_stream_string(&first));
@@ -16273,7 +16291,7 @@ mod media_unit_tests {
             "<title>Budget</title><p>alpha (one)</p><p>bêta</p>", "/", &fs);
         assert_eq!(result.exit_code, 0);
         let bytes = fs.read_file("/doc.pdf").unwrap();
-        let doc = pdf_reader::read(&bytes).expect("standard PDF page tree and xref");
+        let doc = pdf_reader::read(&bytes,"").expect("standard PDF page tree and xref").0;
         assert_eq!(doc.title, "Budget");
         assert_eq!((doc.page_w, doc.page_h), (612., 792.));
         assert_eq!(doc.pages[0].text, "alpha (one)\n\nbêta");

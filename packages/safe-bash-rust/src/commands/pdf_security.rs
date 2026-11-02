@@ -23,7 +23,7 @@ const PAD: [u8; 32] = [
 pub(in crate::commands::archive) const PASSWORD: &str = "Invalid PDF password";
 pub(in crate::commands::archive) const UNSUPPORTED: &str = "unsupported PDF encryption";
 
-pub(super) struct Security {
+pub(in super::super) struct Security {
     key: Vec<u8>,
     revision: usize,
     version: usize,
@@ -62,6 +62,11 @@ impl Cipher {
     }
 }
 impl Security {
+    pub(in super::super) fn poppler_description(&self) -> String {
+        let flag = |bit| if self.permissions & bit != 0 {"yes"} else {"no"};
+        let alg = match self.revision { 2|3=>"RC4",4=>"AES",_=>"AES-256" };
+        format!("yes (print:{} copy:{} change:{} addNotes:{} algorithm:{alg})",flag(4),flag(16),flag(8),flag(32))
+    }
     pub(super) fn description(&self) -> String {
         let allowed = |bit| {
             if self.permissions & bit != 0 {

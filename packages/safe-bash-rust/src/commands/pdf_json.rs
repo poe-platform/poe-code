@@ -373,61 +373,67 @@ impl<'a> PageSource<'a> {
     }
 
     fn json_outlines(&mut self) -> Option<J> {
-        let root = self
-            .catalog
+        let outlines=self.objects.outlines(&self.catalog,&self.pages)?;
+        Some(J::Array(outlines.into_iter().map(|(title,_,index)|{
+            let (n,g)=self.pages.get(index).copied().unwrap_or_default();
+            record([("title",string(&title)),("destpagepos",J::Number((index+1) as f64)),
+                ("destpageobject",string(&format!("obj:{n} {g} R")))])
+        }).collect()))
+    }
+}
+impl<'a> Objects<'a> {
+    pub(in super::super) fn outlines(&mut self, catalog:&Value<'a>, pages:&[ObjectId]) -> Option<Vec<(String,usize,usize)>> {
+        let root = catalog
             .get(b"Outlines")
-            .and_then(|v| self.objects.resolve(v));
+            .and_then(|v| self.resolve(v));
         let mut stack: Vec<_> = root
             .as_ref()
             .and_then(|v| v.get(b"First"))
-            .cloned()
+            .cloned().map(|v|(v,1usize))
             .into_iter()
             .collect();
         let mut rows = Vec::new();
         if stack.is_empty() {
-            return Some(J::Array(rows));
+            return Some(rows);
         }
-        let indices: BTreeMap<_, _> = self
-            .pages
+        let indices: BTreeMap<_, _> = pages
             .iter()
             .enumerate()
             .rev()
             .map(|(i, id)| (id.0, i))
             .collect();
         let mut named = BTreeMap::new();
-        if let Some(names) = self
-            .catalog
+        if let Some(names) = catalog
             .get(b"Names")
-            .and_then(|v| self.objects.resolve(v))
+            .and_then(|v| self.resolve(v))
         {
-            for (k, v) in self.objects.tree_pairs(names.get(b"Dests"), b"Names")? {
-                if let Some(k) = self.objects.resolve(&k).and_then(|v| text(&v)) {
+            for (k, v) in self.tree_pairs(names.get(b"Dests"), b"Names")? {
+                if let Some(k) = self.resolve(&k).and_then(|v| text(&v)) {
                     named.entry(k).or_insert(v);
                 }
             }
         }
-        if let Some(Value::Dict(dests)) = self
-            .catalog
+        if let Some(Value::Dict(dests)) = catalog
             .get(b"Dests")
-            .and_then(|v| self.objects.resolve(v))
+            .and_then(|v| self.resolve(v))
         {
             for (k, v) in dests {
                 named.insert(name(&k), v);
             }
         }
         let mut seen = BTreeSet::new();
-        while let Some(v) = stack.pop() {
-            self.objects.tokens = self.objects.tokens.checked_sub(1)?;
+        while let Some((v,level)) = stack.pop() {
+            self.tokens = self.tokens.checked_sub(1)?;
             if v.reference().is_some_and(|r| !seen.insert(r)) {
                 continue;
             }
-            let Some(dict @ Value::Dict(_)) = self.objects.resolve(&v) else {
+            let Some(dict @ Value::Dict(_)) = self.resolve(&v) else {
                 continue;
             };
-            stack.extend(dict.get(b"Next").cloned());
-            stack.extend(dict.get(b"First").cloned());
+            stack.extend(dict.get(b"Next").cloned().map(|x|(x,level)));
+            stack.extend(dict.get(b"First").cloned().map(|x|(x,level+1)));
             let Some(Value::String { bytes, .. }) =
-                dict.get(b"Title").and_then(|v| self.objects.resolve(v))
+                dict.get(b"Title").and_then(|v| self.resolve(v))
             else {
                 continue;
             };
@@ -438,20 +444,20 @@ impl<'a> PageSource<'a> {
             let mut dest = dict
                 .get(b"Dest")
                 .or_else(|| dict.get(b"A"))
-                .and_then(|v| self.objects.resolve(v));
+                .and_then(|v| self.resolve(v));
             if let Some(Value::Dict(_)) = &dest {
                 dest = dest
                     .as_ref()
                     .and_then(|v| v.get(b"D").or_else(|| v.get(b"Dest")))
-                    .and_then(|v| self.objects.resolve(v));
+                    .and_then(|v| self.resolve(v));
             }
             if let Some(k) = dest.as_ref().and_then(text) {
-                dest = named.get(&k).and_then(|v| self.objects.resolve(v));
+                dest = named.get(&k).and_then(|v| self.resolve(v));
                 if let Some(Value::Dict(_)) = &dest {
                     dest = dest
                         .as_ref()
                         .and_then(|v| v.get(b"D"))
-                        .and_then(|v| self.objects.resolve(v));
+                        .and_then(|v| self.resolve(v));
                 }
             }
             let index = match dest {
@@ -462,29 +468,17 @@ impl<'a> PageSource<'a> {
                             indices.get(&id.0).copied()
                         } else {
                             v.number()
-                                .filter(|n| *n >= 0. && *n < self.pages.len() as f64)
+                                .filter(|n| *n >= 0. && *n < pages.len() as f64)
                                 .map(|n| n.round() as usize)
                         }
                     })
                     .unwrap_or(0),
                 _ => 0,
             };
-            let (n, g) = if self.pages.is_empty() {
-                (0, 0)
-            } else {
-                *self.pages.get(index)?
-            };
-            rows.push(record([
-                ("title", string(&title)),
-                ("destpagepos", J::Number((index + 1) as f64)),
-                ("destpageobject", string(&format!("obj:{n} {g} R"))),
-            ]));
+            rows.push((title,level,index));
         }
-        Some(J::Array(rows))
+        Some(rows)
     }
-}
-
-impl<'a> Objects<'a> {
     fn json_field(
         &mut self,
         node: &Value<'a>,

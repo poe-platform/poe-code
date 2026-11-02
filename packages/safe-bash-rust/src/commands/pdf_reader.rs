@@ -839,8 +839,13 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
 mod pdf_metadata;
 pub(super) use pdf_metadata::{INFO_TAGS, edit_info};
 
-pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
-    let (mut objects, trailer) = index(bytes,"").ok()?;
+pub(super) fn read(bytes: &[u8], password: &str) -> Result<(PdfDoc, Option<pdf_security::Security>), &'static str> {
+    let (mut objects, trailer) = index(bytes,password)?;
+    let doc = read_pages(bytes, &mut objects, trailer).ok_or("Invalid PDF object graph")?;
+    Ok((doc,objects.security))
+}
+
+fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -> Option<PdfDoc> {
     let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
     let mut doc = PdfDoc::new();
     doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)
@@ -894,6 +899,7 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
             style.into(),
         ));
     }
+    let mut page_ids=Vec::new();
     let mut pending = vec![(
         catalog.get(b"Pages")?.clone(),
         [0.0, 0.0, 612.0, 792.0],
@@ -902,7 +908,8 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
     )];
     let mut seen = BTreeSet::new();
     while let Some((kid, mut media, mut crop, mut rotation)) = pending.pop() {
-        let node = match kid.reference() {
+        let id=kid.reference();
+        let node = match id {
             Some(id) if !seen.insert(id) => continue,
             Some(id) => objects.object(id)?.0,
             None => kid,
@@ -938,6 +945,7 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
                 }
             }
             b"/Page" => {
+                page_ids.push(id.unwrap_or_default());
                 let mut page = PdfPage {
                     rot: rotation,
                     ..Default::default()
@@ -966,6 +974,7 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
             _ => return None,
         }
     }
+    doc.bookmarks = objects.outlines(&catalog,&page_ids)?.into_iter().map(|(title,level,index)|(title,level.to_string(),(index+1).to_string())).collect();
     Some(doc)
 }
 

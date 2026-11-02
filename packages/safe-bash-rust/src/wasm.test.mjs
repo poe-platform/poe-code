@@ -4578,6 +4578,15 @@ test("qpdf writes interoperable AES-256 files with separate passwords and permis
       if (previous) assert.notDeepEqual(previous,key);
       previous = key;
     }
+    for (const cmd of ["pdfinfo out","pdftotext -upw wrong out -","pdfdetach -list out"]) {
+      const failure=await rust.exec(cmd);
+      assert.equal(failure.exitCode,1,cmd);
+      assert.equal(failure.stdout,"");
+      assert.match(failure.stderr,/password/i);
+    }
+    assert.match((await rust.exec("pdftotext -opw owner out -")).stdout,/private text/);
+    assert.match((await rust.exec("pdfinfo -upw réader out")).stdout,/yes \(print:no copy:no change:yes addNotes:yes algorithm:AES-256\)/);
+    assert.match((await rust.exec("pdfdetach -upw réader -list out")).stdout,/payload/);
     const prior = await rust.fs.readFile("/out");
     t.mock.method(globalThis.crypto,"getRandomValues",()=>{throw new Error("no entropy");});
     const failed = await rust.exec("qpdf in --encrypt user owner 256 -- out");

@@ -3834,3 +3834,26 @@ test("qpdf counts, inspects and rewrites inline pages in traversal order", async
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf inspection validates encoded streams and reports linearization without extracting text", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosDict,cosRef,cosName,cosArray,cosNumber,cosStream,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const pg=()=>cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(5)});
+  const nodes=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),
+    cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(3),cosRef(4)]),Count:cosNumber(2)}),pg(),pg(),
+    cosStream(Uint8Array.of(254,0,17),{dict:cosDict({Filter:cosName("DCTDecode")}),compress:false}),
+    cosDict({Linearized:cosNumber(1),L:cosRef(7),H:cosArray([cosNumber(22),cosRef(7)]),E:cosNumber(30)}),cosNumber(47)];
+  const input=serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)});
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/lin.pdf":input}});await fs.writeFile("/lin.pdf",input);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const script of ["qpdf lin.pdf --show-npages","qpdf lin.pdf --check --show-npages","qpdf lin.pdf --show-linearization",
+      "qpdf lin.pdf --show-pages --show-npages","qpdf lin.pdf --show-npages --show-encryption",
+      "qpdf lin.pdf --show-linearization --check","qpdf --empty --show-xref","qpdf --empty --show-pages",
+      "qpdf --empty --show-object=2","qpdf --empty --show-encryption","qpdf --empty --show-linearization"]) {
+      const want=await js.exec(script),got=await wasm.exec(script);assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],script);
+    }
+  } finally {wasm.dispose();}
+});

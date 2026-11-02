@@ -66,7 +66,106 @@ fn display(value: &Value<'_>, out: &mut String) {
     }
 }
 
-impl PageSource<'_> {
+impl<'a> PageSource<'a> {
+    // Inspect encoded bytes, including streams unrelated to the selected pages.
+    // The first linearization dictionary follows revision order, not object number.
+    pub(super) fn validate_objects(&mut self) -> Option<Option<Value<'a>>> {
+        let mut first = None;
+        for (id, order) in self
+            .objects
+            .xref
+            .iter()
+            .map(|(id, (_, order))| (*id, *order))
+            .collect::<Vec<_>>()
+        {
+            let (node, mut cursor) = self.objects.object(id)?;
+            cursor.skip();
+            if cursor.0.starts_with(b"stream") {
+                self.objects.stream(&node, cursor)?;
+            } else if !cursor.0.starts_with(b"endobj") {
+                return None;
+            } else if node.get(b"Linearized").is_some()
+                && first.as_ref().is_none_or(|(pos, _)| order < *pos)
+            {
+                first = Some((order, node));
+            }
+        }
+        Some(first.map(|(_, node)| node))
+    }
+
+    pub(in crate::commands::archive) fn qpdf_summary(
+        &mut self,
+        input: &str,
+        check: bool,
+        linearization: bool,
+    ) -> Option<String> {
+        let dict = self.validate_objects()?;
+        let count = self.len();
+        if linearization {
+            let Some(values) = dict.or_else(|| {
+                self.pages
+                    .iter()
+                    .filter(|id| !self.objects.xref.contains_key(id))
+                    .find_map(|id| {
+                        self.tree
+                            .get(id)?
+                            .as_ref()
+                            .filter(|p| p.get(b"Linearized").is_some())
+                            .cloned()
+                    })
+            }) else {
+                return Some(format!("{input}: not linearized\n"));
+            };
+            let mut number = |k: &[u8], default: f64| {
+                values
+                    .get(k)
+                    .and_then(|v| self.objects.resolve(v))
+                    .and_then(|v| v.number())
+                    .unwrap_or(default)
+            };
+            let (l, o, e, n, t) = (
+                number(b"L", 0.),
+                number(b"O", 0.),
+                number(b"E", 0.),
+                number(b"N", count as f64),
+                number(b"T", 0.),
+            );
+            let hints = values.get(b"H").and_then(|v| self.objects.resolve(v));
+            let mut hint = |i: usize| {
+                let Some(Value::Array(h)) = &hints else {
+                    return "0".to_owned();
+                };
+                match h.get(i).and_then(|v| self.objects.resolve(v)) {
+                    Some(Value::Word(w)) if w == b"true" || w == b"false" => {
+                        String::from_utf8_lossy(w).into_owned()
+                    }
+                    Some(v) => v.number().unwrap_or(0.).to_string(),
+                    None => "0".into(),
+                }
+            };
+            return Some(format!(
+                "{input}: linearized\nLinearization dictionary: L={l} H=[{} {}] O={o} E={e} N={n} T={t}\nno linearization errors\n",
+                hint(0),
+                hint(1)
+            ));
+        }
+        if check {
+            let version =
+                std::str::from_utf8(self.objects.bytes.strip_prefix(b"%PDF-")?.get(..3)?).ok()?;
+            let state = if count == 0 {
+                "empty"
+            } else if dict.is_some() {
+                "linearized"
+            } else {
+                "not linearized"
+            };
+            return Some(format!(
+                "checking {input}\nPDF Version: {version}\nFile is not encrypted\nFile is {state}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"
+            ));
+        }
+        Some(format!("{count}\n"))
+    }
+
     pub(in crate::commands::archive) fn qpdf_object(
         &mut self,
         number: usize,

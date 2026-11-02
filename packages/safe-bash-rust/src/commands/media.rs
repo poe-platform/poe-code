@@ -6769,6 +6769,30 @@ fn cmd_media_doc(
                 }
                 return err_out("", 3);
             }
+            if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
+                let input = primary_arg.as_deref().unwrap_or("empty");
+                let bytes = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
+                    else if primary_arg.is_none() { None }
+                    else if input == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
+                    else { fs.read_file(&resolve_posix_path(cwd,input)).ok() };
+                if let Some(bytes) = bytes && let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
+                    let out = if show_lin || check_mode { source.qpdf_summary(input,check_mode,show_lin) }
+                        else if show_pages {source.qpdf_pages(with_images)}
+                        else if show_npages {source.qpdf_summary(input,false,false)}
+                        else if show_enc { Some("File is not encrypted\n".into()) }
+                        else if show_xref {source.qpdf_xref()}
+                        else if let Some(spec) = &show_object {
+                            let number = qpdf_decimal(spec).unwrap_or(0.) as usize;
+                            source.qpdf_object(number,raw_stream_data,filtered_stream_data)
+                        } else {
+                            match source.qpdf_attachments(show_att.as_deref()) {
+                                Some(None) => return err_out(&format!("qpdf: attachment {} not found\n",show_att.as_deref().unwrap_or("")),2),
+                                result => result.flatten(),
+                            }
+                        };
+                    return match out { Some(out)=>ok_out(&out), None=>err_out(&format!("qpdf: {input}: invalid PDF object or stream\n"),2) };
+                }
+            }
             if show_enc {
                 let Some(f) = primary_arg.as_deref() else {
                     return err_out("qpdf: an input file is required\n", 2);
@@ -6829,23 +6853,6 @@ fn cmd_media_doc(
                     "errors that qpdf cannot detect".to_string(),
                 ];
                 return ok_out(&format!("{}\n", lines.join("\n")));
-            }
-            if (show_pages || show_xref || show_object.is_some())
-                && let Some(input) = primary_arg.as_deref() {
-                let bytes = if input == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
-                    else {fs.read_file(&resolve_posix_path(cwd,input)).ok()};
-                if let Some(bytes) = bytes && let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
-                    let displayed = if show_pages {source.qpdf_pages(with_images)}
-                        else if show_xref {source.qpdf_xref()}
-                        else {
-                            let digits=show_object.as_deref().unwrap().trim_start().trim_start_matches('+');
-                            let n=digits.bytes().take_while(u8::is_ascii_digit).count();
-                            source.qpdf_object(digits[..n].parse().unwrap_or(0),raw_stream_data,filtered_stream_data)
-                        };
-                    return match displayed {
-                        Some(out)=>ok_out(&out), None=>err_out(&format!("qpdf: {input}: invalid PDF object or stream\n"),2)
-                    };
-                }
             }
             if show_xref {
                 let Some(f) = primary_arg.as_deref() else {
@@ -6952,23 +6959,15 @@ fn cmd_media_doc(
                         Ok(b) => b, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
                     }};
                 let show = show_att.as_deref();
-                if let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
-                    match source.qpdf_attachments(show) {
-                        Some(Some(out)) => return ok_out(&out),
-                        None => return err_out(&format!("qpdf: {f}: invalid PDF attachment\n"), 2),
-                        Some(None) => {}
-                    }
-                } else {
-                    if !bytes.starts_with(b"%PDF-") { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
-                    let doc = PdfDoc::parse(&bytes);
-                    let mut out = String::new();
-                    for (k, fname, _, data) in doc.attachments {
-                        if let Some(key) = show {
-                            if k == key || fname == key { return ok_out(&crate::vfs::bytes_to_stream_string(&data)); }
-                        } else { out.push_str(&format!("{k} -> {fname}\n")); }
-                    }
-                    if show.is_none() { return ok_out(&out); }
+                if !bytes.starts_with(b"%PDF-") { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
+                let doc = PdfDoc::parse(&bytes);
+                let mut out = String::new();
+                for (k, fname, _, data) in doc.attachments {
+                    if let Some(key) = show {
+                        if k == key || fname == key { return ok_out(&crate::vfs::bytes_to_stream_string(&data)); }
+                    } else { out.push_str(&format!("{k} -> {fname}\n")); }
                 }
+                if show.is_none() { return ok_out(&out); }
                 return err_out(&format!("qpdf: attachment {} not found\n", show.unwrap()), 2);
             }
             if let Some(jv) = json_version {

@@ -340,7 +340,7 @@ fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
 
 struct Objects<'a> {
     bytes: &'a [u8],
-    xref: BTreeMap<ObjectId, usize>,
+    xref: BTreeMap<ObjectId, (usize, usize)>, // byte offset and newest-revision traversal order
     tokens: usize,
     remaining_bytes: usize,
     preserve_hex: bool,
@@ -348,7 +348,7 @@ struct Objects<'a> {
 
 impl<'a> Objects<'a> {
     fn object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
-        let mut c = Cursor(self.bytes.get(*self.xref.get(&id)?..)?);
+        let mut c = Cursor(self.bytes.get(self.xref.get(&id)?.0..)?);
         if (uint(c.word()?)?, uint(c.word()?)?) != id || c.word()? != b"obj" {
             return None;
         }
@@ -498,7 +498,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
                 match c.word()? {
                     b"n" => {
                         if seen.insert(id) {
-                            objects.xref.insert((id, generation), pos);
+                            objects.xref.insert((id, generation), (pos, objects.xref.len()));
                         }
                     }
                     b"f" => {

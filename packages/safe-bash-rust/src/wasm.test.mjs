@@ -5534,3 +5534,52 @@ test("pdftohtml preserves nested outline destinations and sibling order in HTML 
     const cmd="pdftohtml "+args+" in",e=await js.exec(cmd),r=await rs.exec(cmd);assert.equal(e.exitCode,0,e.stderr);assert.deepEqual([r.stdout,r.stderr,r.exitCode],[e.stdout,e.stderr,e.exitCode],cmd);
   }}finally{rs.dispose();}
 });
+
+test("wkhtmltopdf paginates at block page breaks and preserves intentional blank sheets",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const files={
+    "/classes":'<h1>Start</h1><section class="note page-break"><h2>Next</h2><p>Tail</p></section>',
+    "/avoid":'<p>Start</p><div style="page-break-before: always; PAGE-BREAK-BEFORE : avoid">Kept together</div>',
+    "/blank":'<div class="page-break"></div><article class="page-break" style="page-break-after: ALWAYS">Body</article>',
+    "/styles":'<section style="page-break-after:always"><p>One <span class="page-break">line</span></p></section><div>Two</div><script>page-break-before: always</script>',
+    "/literal":'<p>Examples: page-break-before, page-break-after</p><p>Tail</p>',
+    "/empty":'<hr class="page-break" style="page-break-after:always"/>'
+  };
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/"});
+  try{
+    for(const [path,html] of Object.entries(files))for(const f of [fs,rs.fs])await f.writeFile(path,Buffer.from(html));
+    for(const args of [...Object.keys(files),"--copies 2 --no-collate blank styles classes"]){
+      const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});
+
+test("wkhtmltopdf numbers headers and footers after laying out physical sheets", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands} = await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({cwd: "/", fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/blank", Buffer.from('<section class="page-break"></section><h2 class="page-break">Body</h2>'));
+      await f.writeFile("/flow", Buffer.from("<title>Flow</title>" + "<p>Next paragraph</p>".repeat(9)));
+    }
+    for (const args of [
+      "--footer-right '[page]/[topage]' blank",
+      "--header-center '[webpage]' --footer-left '[title]' --page-height 150pt flow",
+      "--page-offset 3 --header-left '[page]/[toPage]' --footer-line --copies 2 --no-collate cover blank flow",
+      "--default-header blank --footer-font-size 7 --footer-center 'Sheet [page]' flow",
+      "--header-line --footer-line blank",
+      "--grayscale --replace tag Report blank --header-right '[tag] [date] [isodate]' flow --footer-center '[section] [page]'",
+    ]) {
+      const cmd = "wkhtmltopdf " + args + " -";
+      const expected = await js.exec(cmd), actual = await rs.exec(cmd);
+      assert.equal(expected.exitCode, 0, expected.stderr);
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.ok(Buffer.from(expected.stdoutBytes).equals(actual.stdoutBytes), cmd);
+    }
+  } finally { rs.dispose(); }
+});

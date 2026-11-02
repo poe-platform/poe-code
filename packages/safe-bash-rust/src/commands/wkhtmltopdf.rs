@@ -1,4 +1,5 @@
 use super::*;
+use std::rc::Rc;
 
 struct Length(f64, &'static str);
 
@@ -65,6 +66,56 @@ fn integer(text: &str, min: i32) -> Result<i32, &'static str> {
         .ok_or("Integer is outside the admitted range")
 }
 
+#[derive(Clone, Default)]
+pub(super) struct Furniture<'a> {
+    pub(super) text: [&'a str; 3],
+    pub(super) line: bool,
+    pub(super) size: Option<i32>,
+}
+
+impl Furniture<'_> {
+    pub(super) fn has_text(&self) -> bool {
+        self.text.iter().any(|text| !text.is_empty())
+    }
+}
+
+#[derive(Clone, Default)]
+pub(super) struct Source<'a> {
+    pub(super) path: &'a str,
+    pub(super) title: String,
+    pub(super) uncounted: bool,
+    cover: bool,
+    pub(super) links: bool,
+    pub(super) outline_depth: usize,
+    pub(super) furniture: [Furniture<'a>; 2],
+    replacements: Rc<Vec<(&'a str, &'a str)>>,
+}
+
+impl Source<'_> {
+    pub(super) fn substitute(&self, template: &str, page: i64, total: i64) -> String {
+        let mut text = template
+            .replace("[page]", &page.to_string())
+            .replace("[topage]", &total.to_string())
+            .replace("[toPage]", &total.to_string())
+            .replace("[webpage]", self.path)
+            .replace("[title]", &self.title)
+            .replace("[section]", &self.title)
+            .replace("[subsection]", "");
+        if text.contains("[date]") || text.contains("[isodate]") {
+            let days = (crate::vfs::now_ms() / 86_400_000.).floor() as i64;
+            let (year, month, day) = crate::commands::coreutils::civil_from_days(days);
+            let date = format!("{year:04}-{month:02}-{day:02}");
+            text = text.replace("[isodate]", &date).replace("[date]", &date);
+        }
+        for &(key, value) in self.replacements.iter() {
+            if !key.is_empty() {
+                text = text.replace(&format!("[{key}]"), value);
+            }
+        }
+        text
+    }
+}
+
 pub(super) fn wkhtmltopdf(
     args: &[String],
     stdin: &str,
@@ -91,24 +142,14 @@ pub(super) fn wkhtmltopdf(
     let mut copies: usize = 1;
     let mut collate = true;
     let mut grayscale = false;
-    let mut page_offset: i64 = 0;
-    let mut hdr_left = String::new();
-    let mut hdr_center = String::new();
-    let mut hdr_right = String::new();
-    let mut ftr_left = String::new();
-    let mut ftr_center = String::new();
-    let mut ftr_right = String::new();
-    let mut replacements: Vec<(String, String)> = Vec::new();
-    struct Source {
-        path: String,
-        uncounted: bool,
-        cover: bool,
-        links: bool,
-    }
-    let mut links = true;
+    let mut page_offset = 0i32;
+    let mut defaults = Source {
+        links: true,
+        ..Source::default()
+    };
     let mut pos_args: Vec<Source> = Vec::new();
-    let mut next_is_cover = false;
     let mut next_is_cover_obj = false;
+    let mut next_uncounted = false;
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
@@ -241,44 +282,68 @@ pub(super) fn wkhtmltopdf(
                 i += 1;
             }
             "--page-offset" if i + 1 < args.len() => {
-                page_offset = args[i + 1].parse().unwrap_or(0);
+                page_offset = match integer(&args[i + 1], i32::MIN) {
+                    Ok(n) => n,
+                    Err(e) => {
+                        return err_out(
+                            &format!("wkhtmltopdf: INVALID_VALUE (--page-offset): {e}\n"),
+                            1,
+                        );
+                    }
+                };
                 i += 2;
             }
-            "--header-left" if i + 1 < args.len() => {
-                hdr_left = args[i + 1].clone();
+            opt @ ("--header-left" | "--header-center" | "--header-right" | "--footer-left"
+            | "--footer-center" | "--footer-right" | "--header-font-size"
+            | "--footer-font-size")
+                if i + 1 < args.len() =>
+            {
+                let source = pos_args.last_mut().unwrap_or(&mut defaults);
+                let item = &mut source.furniture[usize::from(opt.starts_with("--footer"))];
+                if opt.ends_with("-size") {
+                    item.size = match integer(&args[i + 1], 1) {
+                        Ok(n) => Some(n),
+                        Err(e) => {
+                            return err_out(
+                                &format!("wkhtmltopdf: INVALID_VALUE ({opt}): {e}\n"),
+                                1,
+                            );
+                        }
+                    };
+                } else {
+                    let slot = if opt.ends_with("-left") {
+                        0
+                    } else if opt.ends_with("-center") {
+                        1
+                    } else {
+                        2
+                    };
+                    item.text[slot] = &args[i + 1];
+                }
                 i += 2;
             }
-            "--header-center" if i + 1 < args.len() => {
-                hdr_center = args[i + 1].clone();
-                i += 2;
+            opt @ ("--header-line" | "--no-header-line" | "--footer-line" | "--no-footer-line") => {
+                pos_args.last_mut().unwrap_or(&mut defaults).furniture
+                    [usize::from(opt.contains("footer"))]
+                .line = !opt.starts_with("--no-");
+                i += 1;
             }
-            "--header-right" if i + 1 < args.len() => {
-                hdr_right = args[i + 1].clone();
-                i += 2;
-            }
-            "--footer-left" if i + 1 < args.len() => {
-                ftr_left = args[i + 1].clone();
-                i += 2;
-            }
-            "--footer-center" if i + 1 < args.len() => {
-                ftr_center = args[i + 1].clone();
-                i += 2;
-            }
-            "--footer-right" if i + 1 < args.len() => {
-                ftr_right = args[i + 1].clone();
-                i += 2;
+            "--default-header" => {
+                let header = &mut pos_args.last_mut().unwrap_or(&mut defaults).furniture[0];
+                header.text[0] = "[webpage]";
+                header.text[2] = "[page]/[topage]";
+                header.line = true;
+                margins[0] = Length(20., "mm");
+                i += 1;
             }
             "--replace" if i + 2 < args.len() => {
-                replacements.push((args[i + 1].clone(), args[i + 2].clone()));
+                Rc::make_mut(&mut pos_args.last_mut().unwrap_or(&mut defaults).replacements)
+                    .push((&args[i + 1], &args[i + 2]));
                 i += 3;
             }
             "--disable-external-links" | "--enable-external-links" => {
-                let enabled = args[i] == "--enable-external-links";
-                if let Some(source) = pos_args.last_mut() {
-                    source.links = enabled;
-                } else {
-                    links = enabled;
-                }
+                pos_args.last_mut().unwrap_or(&mut defaults).links =
+                    args[i] == "--enable-external-links";
                 i += 1;
             }
             "-g" | "--grayscale" => {
@@ -313,12 +378,7 @@ pub(super) fn wkhtmltopdf(
             | "--disable-toc-back-links"
             | "--disable-local-file-access"
             | "--no-pdf-compression"
-            | "--disable-plugins"
-            | "--header-line"
-            | "--no-header-line"
-            | "--footer-line"
-            | "--no-footer-line"
-            | "--default-header" => {
+            | "--disable-plugins" => {
                 i += 1;
             }
             "--encoding"
@@ -336,8 +396,6 @@ pub(super) fn wkhtmltopdf(
             | "--footer-spacing"
             | "--header-font-name"
             | "--footer-font-name"
-            | "--header-font-size"
-            | "--footer-font-size"
             | "--minimum-font-size"
             | "--javascript-delay"
             | "--window-status"
@@ -354,7 +412,7 @@ pub(super) fn wkhtmltopdf(
                 );
             }
             "--no-pages-count" => {
-                next_is_cover = true;
+                next_uncounted = true;
                 i += 1;
             }
             "cover" => {
@@ -362,18 +420,17 @@ pub(super) fn wkhtmltopdf(
                 i += 1;
             }
             "page" => {
-                next_is_cover = false;
+                next_uncounted = false;
                 next_is_cover_obj = false;
                 i += 1;
             }
             a if a == "-" || !a.starts_with('-') => {
                 pos_args.push(Source {
-                    path: a.to_string(),
-                    uncounted: next_is_cover,
+                    path: a,
+                    uncounted: std::mem::take(&mut next_uncounted),
                     cover: next_is_cover_obj,
-                    links,
+                    ..defaults.clone()
                 });
-                next_is_cover = false;
                 next_is_cover_obj = false;
                 i += 1;
             }
@@ -429,26 +486,19 @@ pub(super) fn wkhtmltopdf(
     let mut doc = PdfDoc::new();
     doc.page_w = pw;
     doc.page_h = ph;
-    let mut all_headings: Vec<(String, String, usize)> = Vec::new();
-    let mut page_meta = Vec::new();
+    doc.title = title_opt.clone().unwrap_or_default();
     let output_version = fs.generation();
-    let out_arg = &pos_args.last().unwrap().path;
-    for source in &pos_args[..pos_args.len() - 1] {
-        let src = &source.path;
-        let raw_and_dir = if src == "-" {
-            Some((stdin.to_string(), cwd.to_string()))
+    let out_arg = pos_args.pop().unwrap().path;
+    for source in &mut pos_args {
+        let src = source.path;
+        let raw_html = if src == "-" {
+            Some(stdin.to_owned())
         } else {
-            let full = resolve_posix_path(cwd, src);
-            fs.read_file(&full).ok().map(|b| {
-                let bd = full
-                    .rsplit_once('/')
-                    .map(|(d, _)| if d.is_empty() { "/" } else { d })
-                    .unwrap_or(cwd)
-                    .to_string();
-                (String::from_utf8_lossy(&b).to_string(), bd)
-            })
+            fs.read_file(&resolve_posix_path(cwd, src))
+                .ok()
+                .map(|b| String::from_utf8_lossy(&b).into_owned())
         };
-        let Some((mut raw_html, base_dir_str)) = raw_and_dir else {
+        let Some(mut raw_html) = raw_html else {
             let full = resolve_posix_path(cwd, src);
             if out_arg == "-" {
                 return err_out(
@@ -468,151 +518,115 @@ pub(super) fn wkhtmltopdf(
         if src.ends_with(".txt") {
             return err_out("wkhtmltopdf: unsupported .txt input\n", 1);
         }
-        for (rk, rv) in &replacements {
+        for &(rk, rv) in source.replacements.iter() {
             if !rk.is_empty() {
                 raw_html = raw_html.replace(rk, rv);
             }
         }
-        let base_dir = base_dir_str.as_str();
-        if doc.title.is_empty()
-            && let Some(t) = extract_html_title(&raw_html)
-        {
-            doc.title = t;
+        let title = extract_html_title(&raw_html).unwrap_or_default();
+        if doc.title.is_empty() {
+            doc.title = title.clone();
         }
-        for page_html in split_html_pages(&raw_html) {
-            let page_num = doc.pages.len() + 1;
-            if !source.cover {
-                for (ht, hl) in extract_html_headings(&page_html) {
-                    all_headings.push((ht, hl, page_num));
-                }
-            }
-            let text = strip_html_tags(&page_html);
-            let images = extract_html_images(&page_html, base_dir, fs);
-            let urls = extract_html_urls(&page_html);
-            doc.pages.push(PdfPage {
-                rot: 0,
-                text,
-                html: page_html,
-                images,
-                urls,
-            });
-            page_meta.push(source);
+        source.title = [title_opt.as_deref().unwrap_or(""), &title, &doc.title]
+            .into_iter()
+            .find(|s| !s.is_empty())
+            .unwrap_or("Document")
+            .into();
+        if source.cover {
+            source.furniture = Default::default();
         }
-    }
-    if let Some(t) = title_opt {
-        doc.title = t;
+        if outline && !source.cover {
+            source.outline_depth = outline_depth;
+        }
+        doc.pages.push(PdfPage {
+            html: raw_html,
+            ..PdfPage::default()
+        });
     }
     if doc.title.is_empty() {
-        doc.title = "Document".to_string();
+        doc.title = "Document".into();
     }
-    let counted_total = page_meta.iter().filter(|s| !s.uncounted).count() as i64;
-    let topage_val = counted_total + page_offset;
-    let mut logical_page = 1 + page_offset;
-    let sub_tokens = |tmpl: &str, pno: i64, webpage: &str, title: &str| -> String {
-        let mut out = tmpl
-            .replace("[page]", &pno.to_string())
-            .replace("[topage]", &topage_val.to_string())
-            .replace("[toPage]", &topage_val.to_string())
-            .replace("[webpage]", webpage)
-            .replace("[title]", title);
-        for (rk, rv) in &replacements {
-            out = out.replace(&format!("[{rk}]"), rv);
-        }
-        out
-    };
-    for (idx, pg) in doc.pages.iter_mut().enumerate() {
-        let source = page_meta[idx];
-        let wp = &source.path;
-        let cur_pno = logical_page;
-        if !source.uncounted {
-            logical_page += 1;
-        }
-        if !source.cover {
-            let mut hdr_parts = Vec::new();
-            for t in [&hdr_left, &hdr_center, &hdr_right] {
-                if !t.is_empty() {
-                    hdr_parts.push(sub_tokens(t, cur_pno, wp, &doc.title));
-                }
-            }
-            let mut ftr_parts = Vec::new();
-            for t in [&ftr_left, &ftr_center, &ftr_right] {
-                if !t.is_empty() {
-                    ftr_parts.push(sub_tokens(t, cur_pno, wp, &doc.title));
-                }
-            }
-            if !hdr_parts.is_empty() {
-                pg.text = format!("{}\n{}", hdr_parts.join(" "), pg.text);
-            }
-            if !ftr_parts.is_empty() {
-                pg.text = format!("{}\n{}", pg.text, ftr_parts.join(" "));
-            }
-        }
-    }
-    if outline {
-        for (ht, hl, pno) in &all_headings {
-            doc.bookmarks
-                .push((ht.clone(), hl.clone(), pno.to_string()));
-        }
-    }
-    if !doc
-        .info
-        .iter()
-        .any(|(k, _)| k.eq_ignore_ascii_case("Creator"))
-    {
-        doc.info.push((
-            "Creator".to_string(),
-            "wkhtmltopdf (pdf-ast-static)".to_string(),
-        ));
-    }
-    if !doc
-        .info
-        .iter()
-        .any(|(k, _)| k.eq_ignore_ascii_case("Producer"))
-    {
-        doc.info
-            .push(("Producer".to_string(), "@poe-code/pdf-ast".to_string()));
-    }
-    let out_arg = &pos_args.last().unwrap().path;
-    let furniture = [
-        &hdr_left,
-        &hdr_center,
-        &hdr_right,
-        &ftr_left,
-        &ftr_center,
-        &ftr_right,
-    ];
-    let rendered = if furniture.iter().all(|s| s.is_empty()) {
-        pdf_reader::render_html(&doc, margins, copies, collate, grayscale, |i| {
-            let depth = if outline && !page_meta[i].cover {
-                outline_depth
-            } else {
-                0
-            };
-            (depth, page_meta[i].links)
-        })
-    } else {
-        Ok(None)
-    };
-    let serialized = match rendered {
-        Ok(Some(pdf)) => Some(pdf),
-        Ok(None) => doc.serialize_with_copies(
-            copies,
-            collate,
-            crate::budget::ShellLimits::default().max_output_bytes,
-        ),
+    let serialized = match pdf_reader::render_html(
+        &doc,
+        margins,
+        copies,
+        collate,
+        grayscale,
+        &pos_args,
+        page_offset,
+    ) {
+        Ok(Some(pdf)) => pdf,
         Err(message) => return err_out(message, 1),
-    };
-    let Some(serialized) = serialized else {
-        return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1);
+        Ok(None) => {
+            // Preserve the text fallback for documents beyond the DOM nesting limit.
+            let mut meta = Vec::new();
+            for (page, source) in std::mem::take(&mut doc.pages).into_iter().zip(&pos_args) {
+                let dir = if source.path == "-" {
+                    cwd.to_owned()
+                } else {
+                    crate::vfs::dirname_posix_path(&resolve_posix_path(cwd, source.path))
+                };
+                for html in split_html_pages(&page.html) {
+                    if outline && !source.cover {
+                        for (title, level) in extract_html_headings(&html) {
+                            doc.bookmarks
+                                .push((title, level, (doc.pages.len() + 1).to_string()));
+                        }
+                    }
+                    doc.pages.push(PdfPage {
+                        rot: 0,
+                        text: strip_html_tags(&html),
+                        images: extract_html_images(&html, &dir, fs),
+                        urls: extract_html_urls(&html),
+                        html,
+                    });
+                    meta.push(source);
+                }
+            }
+            let total =
+                meta.iter().filter(|s| !s.uncounted).count() as i64 + i64::from(page_offset);
+            let mut number = 1 + i64::from(page_offset);
+            for (page, source) in doc.pages.iter_mut().zip(meta) {
+                let parts = source.furniture.each_ref().map(|f| {
+                    f.text
+                        .iter()
+                        .filter(|t| !t.is_empty())
+                        .map(|t| source.substitute(t, number, total))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                });
+                if !parts[0].is_empty() {
+                    page.text = format!("{}\n{}", parts[0], page.text);
+                }
+                if !parts[1].is_empty() {
+                    page.text = format!("{}\n{}", page.text, parts[1]);
+                }
+                if !source.uncounted {
+                    number += 1;
+                }
+            }
+            doc.info
+                .push(("Creator".into(), "wkhtmltopdf (pdf-ast-static)".into()));
+            doc.info
+                .push(("Producer".into(), "@poe-code/pdf-ast".into()));
+            let Some(pdf) = doc.serialize_with_copies(
+                copies,
+                collate,
+                crate::budget::ShellLimits::default().max_output_bytes,
+            ) else {
+                return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1);
+            };
+            pdf
+        }
     };
     if out_arg == "-" {
         return ok_out(&crate::vfs::bytes_to_stream_string(&serialized));
     }
     let dst = resolve_posix_path(cwd, out_arg);
-    let inputs = pos_args[..pos_args.len() - 1]
+    let inputs = pos_args
         .iter()
         .filter(|s| s.path != "-")
-        .map(|s| resolve_posix_path(cwd, &s.path))
+        .map(|s| resolve_posix_path(cwd, s.path))
         .collect::<Vec<_>>();
     if let Err(message) = fs.publish_file(&dst, &serialized, &inputs, output_version) {
         return err_out(&format!("wkhtmltopdf: {message}\n"), 1);

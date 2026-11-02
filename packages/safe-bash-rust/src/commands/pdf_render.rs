@@ -13,6 +13,7 @@ use std::{fmt::Write as _, io::Write};
 enum BlockKind {
     #[default]
     Paragraph,
+    PageBreak,
     Heading(usize),
     ListItem {
         depth: usize,
@@ -54,6 +55,33 @@ struct Block {
 }
 
 fn html_blocks(html: &str) -> Option<Vec<Block>> {
+    fn block_tag(tag: &str) -> bool {
+        matches!(
+            tag,
+            "h1" | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "p"
+                | "pre"
+                | "ul"
+                | "ol"
+                | "dl"
+                | "table"
+                | "svg"
+                | "hr"
+                | "img"
+                | "blockquote"
+                | "div"
+                | "section"
+                | "article"
+                | "li"
+                | "dt"
+                | "dd"
+                | "tr"
+        )
+    }
     fn flush(current: &mut Block, blocks: &mut Vec<Block>) {
         if !current.text.trim().is_empty() {
             blocks.push(std::mem::take(current));
@@ -72,9 +100,7 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                         block_text(&el.children, text);
                         text.push('\t');
                     }
-                    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "pre" | "ul" | "ol" | "dl"
-                    | "table" | "svg" | "hr" | "img" | "blockquote" | "div" | "section"
-                    | "article" | "li" | "dt" | "dd" | "tr" => {
+                    tag if block_tag(tag) => {
                         text.push('\n');
                         block_text(&el.children, text);
                         text.push('\n');
@@ -103,18 +129,47 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                 }
                 continue;
             };
+            let mut after = false;
+            if block_tag(&el.tag) {
+                flush(current, blocks);
+                let mut before = false;
+                let mut class_break = false;
+                for (name, value) in &el.attrs {
+                    if name == "class" {
+                        class_break = value.split_whitespace().any(|c| c == "page-break");
+                    }
+                    if name != "style" {
+                        continue;
+                    }
+                    for decl in value.split(';') {
+                        let Some((k, v)) = decl.split_once(':') else {
+                            continue;
+                        };
+                        if k.trim().eq_ignore_ascii_case("page-break-before") {
+                            before = v.trim().eq_ignore_ascii_case("always");
+                        }
+                        if k.trim().eq_ignore_ascii_case("page-break-after") {
+                            after = v.trim().eq_ignore_ascii_case("always");
+                        }
+                    }
+                }
+                if before || class_break {
+                    blocks.push(Block {
+                        kind: BlockKind::PageBreak,
+                        ..Block::default()
+                    });
+                }
+            }
             match el.tag.as_str() {
                 "head" | "title" | "script" | "style" | "template" => {}
                 "br" => current.text.push('\n'),
                 "hr" => {
-                    flush(current, blocks);
                     blocks.push(Block {
                         kind: BlockKind::Rule,
                         ..Block::default()
                     });
                 }
                 "pre" | "blockquote" => {
-                    flush(current, blocks);
                     current.kind = if el.tag == "pre" {
                         BlockKind::Code
                     } else {
@@ -124,7 +179,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     flush(current, blocks);
                 }
                 "ul" | "ol" => {
-                    flush(current, blocks);
                     let mut ordinal = 0;
                     for item in &el.children {
                         let HtmlNode::Element(li) = item else {
@@ -169,7 +223,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     }
                 }
                 "dl" => {
-                    flush(current, blocks);
                     let mut term = String::new();
                     let start = blocks.len();
                     for item in &el.children {
@@ -203,7 +256,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     }
                 }
                 "table" => {
-                    flush(current, blocks);
                     let mut rows = Vec::new();
                     let mut pending: Vec<_> = el.children.iter().rev().collect();
                     while let Some(node) = pending.pop() {
@@ -255,7 +307,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     }
                 }
                 "svg" => {
-                    flush(current, blocks);
                     let height = default(attr(el, "height"), 100.);
                     let mut shapes = Vec::new();
                     let mut pending: Vec<_> = el.children.iter().rev().collect();
@@ -293,7 +344,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     });
                 }
                 "img" => {
-                    flush(current, blocks);
                     if let Some(src) = el
                         .attrs
                         .iter()
@@ -312,7 +362,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     }
                 }
                 "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
-                    flush(current, blocks);
                     current.kind = el
                         .tag
                         .strip_prefix('h')
@@ -338,7 +387,18 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                         current.links.push(href.to_owned());
                     }
                 }
-                _ => visit(&el.children, depth, current, blocks)?,
+                _ => {
+                    visit(&el.children, depth, current, blocks)?;
+                    if block_tag(&el.tag) {
+                        flush(current, blocks);
+                    }
+                }
+            }
+            if after {
+                blocks.push(Block {
+                    kind: BlockKind::PageBreak,
+                    ..Block::default()
+                });
             }
         }
         Some(())
@@ -457,7 +517,8 @@ pub(in super::super) fn render_html(
     copies: usize,
     collate: bool,
     grayscale: bool,
-    settings: impl Fn(usize) -> (usize, bool),
+    sources: &[super::super::wkhtmltopdf::Source],
+    page_offset: i32,
 ) -> Result<Option<Vec<u8>>, &'static str> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
     let rgb = |[r, g, b]: [f64; 3]| {
@@ -496,40 +557,68 @@ pub(in super::super) fn render_html(
     let x = coordinate(left);
     let mut remaining_resources = limit;
     let mut sheets = Vec::new();
-    let mut finish_page = |stream: &mut Vec<u8>,
-                           objects: &mut Vec<PageResource>,
-                           headings: &mut Vec<(usize, String)>|
-     -> Result<(), &'static str> {
-        let compressed = zlib_compress(stream);
-        let body = flate_stream("<<\n", &compressed);
-        let sheet_bytes = objects
-            .iter()
-            .try_fold(body.len() + 160, |size, resource| {
-                size.checked_add(match resource {
-                    PageResource::Font(_) => 80,
-                    PageResource::Link(bytes) => bytes.len(),
-                    PageResource::Image(image) => image.rgb.len() + image.mask.len() + 128,
-                })
-            })
-            .ok_or(OUTPUT_LIMIT)?;
-        remaining = remaining
-            .checked_sub(sheet_bytes.checked_mul(copies).ok_or(OUTPUT_LIMIT)?)
-            .ok_or(OUTPUT_LIMIT)?;
-        sheets.push((body, std::mem::take(objects), std::mem::take(headings)));
-        stream.clear();
-        Ok(())
-    };
-    for (page_index, page) in doc.pages.iter().enumerate() {
+    let mut logical_page = 1 + i64::from(page_offset);
+    for (page, source) in doc.pages.iter().zip(sources) {
         let Some(blocks) = html_blocks(&page.html) else {
             return Ok(None);
         };
+        let [header, footer] = &source.furniture;
+        let header_font = usize::from(header.has_text());
+        let page_top = height - top - if header.has_text() { 24. } else { 0. };
+        let page_bottom = bottom + if footer.has_text() { 24. } else { 0. };
         let mut stream = Vec::new();
-        let mut y = height - top;
-        let mut occupied = false;
+        let mut y = page_top;
         let mut objects = Vec::new();
         let mut fonts = Vec::new();
+        if header.has_text() {
+            page_font("Helvetica", &mut fonts, &mut objects);
+        }
+        let mut occupied = false;
+        let mut flushed = false;
         let mut image_count = 0;
-        let (outline_depth, external_links) = settings(page_index);
+        let outline_depth = source.outline_depth;
+        let external_links = source.links;
+        let mut finish_page = |stream: &mut Vec<u8>,
+                               objects: &mut Vec<PageResource>,
+                               headings: &mut Vec<(usize, String)>|
+         -> Result<(), &'static str> {
+            let compressed = zlib_compress(stream);
+            if footer.has_text()
+                && !objects
+                    .iter()
+                    .any(|r| matches!(r, PageResource::Font("Helvetica")))
+            {
+                objects.push(PageResource::Font("Helvetica"));
+            }
+            let sheet_bytes = objects
+                .iter()
+                .try_fold(compressed.len() + 208, |size, resource| {
+                    size.checked_add(match resource {
+                        PageResource::Font(_) => 80,
+                        PageResource::Link(bytes) => bytes.len(),
+                        PageResource::Image(image) => image.rgb.len() + image.mask.len() + 128,
+                    })
+                })
+                .ok_or(OUTPUT_LIMIT)?;
+            remaining = remaining
+                .checked_sub(sheet_bytes.checked_mul(copies).ok_or(OUTPUT_LIMIT)?)
+                .ok_or(OUTPUT_LIMIT)?;
+            sheets.push((
+                compressed,
+                std::mem::take(objects),
+                std::mem::take(headings),
+                source,
+                logical_page,
+            ));
+            if !source.uncounted {
+                logical_page += 1;
+            }
+            if header.has_text() {
+                objects.push(PageResource::Font("Helvetica"));
+            }
+            stream.clear();
+            Ok(())
+        };
         let mut headings = Vec::new();
         for Block {
             kind,
@@ -538,6 +627,15 @@ pub(in super::super) fn render_html(
         } in blocks
         {
             let (size, pitch, family, offset, color, padding) = match kind {
+                BlockKind::PageBreak => {
+                    flushed = true;
+                    finish_page(&mut stream, &mut objects, &mut headings)?;
+                    fonts.truncate(header_font);
+                    image_count = 0;
+                    y = page_top;
+                    occupied = false;
+                    continue;
+                }
                 BlockKind::Image {
                     png,
                     dimensions: [w, h],
@@ -549,11 +647,11 @@ pub(in super::super) fn render_html(
                     };
                     let w = default(w, raster.width.min(240) as f64);
                     let h = default(h, raster.height.min(180) as f64);
-                    if y - (h + 8.) < bottom && occupied {
+                    if y - (h + 8.) < page_bottom && occupied {
                         finish_page(&mut stream, &mut objects, &mut headings)?;
-                        fonts.clear();
+                        fonts.truncate(header_font);
                         image_count = 0;
-                        y = height - top;
+                        y = page_top;
                     }
                     if !w.is_finite() || !h.is_finite() || !(y - h).is_finite() {
                         return Err("shell: line 1: internal error\n");
@@ -583,11 +681,11 @@ pub(in super::super) fn render_html(
                     continue;
                 }
                 BlockKind::Svg { height: h, shapes } => {
-                    if y - (h + 8.) < bottom && occupied {
+                    if y - (h + 8.) < page_bottom && occupied {
                         finish_page(&mut stream, &mut objects, &mut headings)?;
-                        fonts.clear();
+                        fonts.truncate(header_font);
                         image_count = 0;
-                        y = height - top;
+                        y = page_top;
                     }
                     occupied = true;
                     let fill = rgb([0.92, 0.94, 0.98]);
@@ -637,12 +735,12 @@ pub(in super::super) fn render_html(
                             .max()
                             .unwrap_or(0)
                             .max(20) as f64;
-                        if y - row_height < bottom && occupied {
+                        if y - row_height < page_bottom && occupied {
                             finish_page(&mut stream, &mut objects, &mut headings)?;
-                            fonts.clear();
+                            fonts.truncate(header_font);
                             image_count = 0;
                             occupied = false;
-                            y = height - top;
+                            y = page_top;
                         }
                         let row_bottom = y - row_height;
                         let mut column = 0.;
@@ -757,11 +855,11 @@ pub(in super::super) fn render_html(
                 }
             }
             let needed = pitch * lines.len() as f64 + padding;
-            if y - needed < bottom && occupied {
+            if y - needed < page_bottom && occupied {
                 finish_page(&mut stream, &mut objects, &mut headings)?;
-                fonts.clear();
+                fonts.truncate(header_font);
                 image_count = 0;
-                y = height - top;
+                y = page_top;
             }
             occupied = true;
             if matches!(kind, BlockKind::Quote | BlockKind::Rule) && !stream.is_empty() {
@@ -855,15 +953,105 @@ pub(in super::super) fn render_html(
                 _ => 6.,
             };
         }
-        finish_page(&mut stream, &mut objects, &mut headings)?;
+        if occupied || !flushed {
+            finish_page(&mut stream, &mut objects, &mut headings)?;
+        }
     }
-    for i in 0..sheets.len().checked_mul(copies).ok_or(OUTPUT_LIMIT)? {
+    let total = logical_page - 1;
+    let mut finished = Vec::with_capacity(sheets.len());
+    for (compressed, objects, headings, source, number) in sheets {
+        let [header, footer] = &source.furniture;
+        let compressed = if header.has_text() || footer.has_text() || header.line || footer.line {
+            // Page totals are known only after all inputs have been laid out. Keep
+            // completed sheets compressed and decorate each once, before copies.
+            let (content, _) =
+                crate::commands::codecs::inflate_raw_bounded(&compressed[2..], limit)
+                    .map_err(|_| OUTPUT_LIMIT)?;
+            let font = objects
+                .iter()
+                .filter_map(|r| {
+                    if let PageResource::Font(f) = r {
+                        Some(*f)
+                    } else {
+                        None
+                    }
+                })
+                .position(|f| f == "Helvetica")
+                .map_or(0, |i| i + 1);
+            let mut stream = Vec::new();
+            for (i, item) in source.furniture.iter().enumerate() {
+                if i == 1 && !content.is_empty() {
+                    if !stream.is_empty() {
+                        stream.push(b'\n');
+                    }
+                    stream.extend_from_slice(&content);
+                }
+                let y = if i == 0 {
+                    height - (top * 0.6).max(18.)
+                } else {
+                    (bottom * 0.5).max(12.)
+                };
+                for (slot, template) in item.text.iter().enumerate() {
+                    if template.is_empty() {
+                        continue;
+                    }
+                    let text = source.substitute(template, number, total);
+                    let n = text.encode_utf16().count() as f64;
+                    let x = match slot {
+                        1 => left.max((width - n * 4.5) / 2.),
+                        2 => left.max(width - right - n * 4.8),
+                        _ => left,
+                    };
+                    draw_text(
+                        &mut stream,
+                        &text,
+                        [x, y],
+                        font,
+                        f64::from(item.size.unwrap_or(10).min(10)),
+                        &rgb([0.35, 0.35, 0.38]),
+                        limit,
+                    )?;
+                }
+                if item.line {
+                    if !stream.is_empty() {
+                        stream.push(b'\n');
+                    }
+                    let line_y = coordinate(y + if i == 0 { -4. } else { 11. });
+                    write!(
+                        stream,
+                        "q\n{} RG\n0.5 w\n{x} {line_y} m\n{} {line_y} l\nS\nQ",
+                        rgb([0.7, 0.7, 0.74]),
+                        coordinate(width - right)
+                    )
+                    .unwrap();
+                }
+            }
+            if stream.len() > limit {
+                return Err(OUTPUT_LIMIT);
+            }
+            let decorated = zlib_compress(&stream);
+            remaining = remaining
+                .checked_sub(
+                    decorated
+                        .len()
+                        .saturating_sub(compressed.len())
+                        .checked_mul(copies)
+                        .ok_or(OUTPUT_LIMIT)?,
+                )
+                .ok_or(OUTPUT_LIMIT)?;
+            decorated
+        } else {
+            compressed
+        };
+        finished.push((flate_stream("<<\n", &compressed), objects, headings));
+    }
+    for i in 0..finished.len().checked_mul(copies).ok_or(OUTPUT_LIMIT)? {
         let (sheet, first_copy) = if collate {
-            (i % sheets.len(), i < sheets.len())
+            (i % finished.len(), i < finished.len())
         } else {
             (i / copies, i % copies == 0)
         };
-        let (body, objects, headings) = &sheets[sheet];
+        let (body, objects, headings) = &finished[sheet];
         let content = bodies.len() + 1;
         let page = content + 1;
         bodies.push(body.clone());

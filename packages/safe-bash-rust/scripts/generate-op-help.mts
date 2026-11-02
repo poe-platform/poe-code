@@ -1,6 +1,6 @@
 // Run with node --import tsx packages/safe-bash-rust/scripts/generate-op-help.mts.
 import { writeFileSync } from "node:fs";
-import { getOpCommandFlags, opCatalogNodes, opCommandCatalog } from "../../safe-bash-command-op/src/catalog.js";
+import { getOpCommandFlags, opCatalogNodes, opCommandCatalog, opGlobalFlags } from "../../safe-bash-command-op/src/catalog.js";
 import { renderOpHelp } from "../../safe-bash-command-op/src/help-renderer.js";
 
 let source = "// Generated from the stable op catalog by scripts/generate-op-help.mts.\n";
@@ -14,20 +14,32 @@ for (const node of opCatalogNodes) {
   source += `        (${JSON.stringify(parent)}, ${spellings}) => (${JSON.stringify(node.path.join(" "))}, ${group}, ${JSON.stringify(renderOpHelp(node.path))}),\n`;
 }
 source += "        _ => return None,\n    })\n}\n";
-const valueFlags = new Set<string>();
-for (const node of opCommandCatalog.filter(node => node.availability !== "beta")) {
+const spells = new Map<string, { name: string; kind: string; global: boolean }>();
+const paths = new Map<string, Set<string>>();
+for (const node of opCatalogNodes.filter(node => node.availability !== "beta")) {
   for (const [name, flag] of Object.entries(getOpCommandFlags(node.path))) {
-    if (flag.kind === "boolean" || flag.kind === "optional") continue;
-    valueFlags.add("--" + name);
-    if (flag.alias) valueFlags.add("-" + flag.alias);
-    for (const alias of flag.longAliases ?? []) valueFlags.add("--" + alias);
+    const kind = flag.kind === "boolean" ? "Bool" : flag.kind === "optional" ? "Optional" : "Value";
+    const global = name in opGlobalFlags || name === "version";
+    for (const spelling of ["--" + name, ...(flag.alias ? ["-" + flag.alias] : []), ...(flag.longAliases ?? []).map(a => "--" + a)]) {
+      spells.set(spelling, { name: "--" + name, kind, global });
+    }
+    if (!global) {
+      if (!paths.has(name)) paths.set(name, new Set());
+      paths.get(name)!.add(node.path.join(" "));
+    }
   }
 }
-source += `
-pub(super) fn takes_value(flag: &str) -> bool {
-    matches!(flag, ${[...valueFlags].sort().map(s => JSON.stringify(s)).join(" | ")})
+source += "\nuse super::op_cli::Kind;\n";
+source += "pub(super) fn flag(spelling: &str) -> Option<(&'static str, Kind, bool)> {\n    Some(match spelling {\n";
+for (const [spelling, { name, kind, global }] of spells) {
+  source += `        ${JSON.stringify(spelling)} => (${JSON.stringify(name)}, Kind::${kind}, ${global}),\n`;
 }
-`;
+source += "        _ => return None,\n    })\n}\n";
+source += "\npub(super) fn local_paths(name: &str) -> &'static [&'static str] {\n    match name {\n";
+for (const [name, commands] of paths) {
+  source += `        ${JSON.stringify("--" + name)} => &[${[...commands].map(s => JSON.stringify(s)).join(", ")}],\n`;
+}
+source += "        _ => &[],\n    }\n}\n";
 source += "\npub(super) fn operand_bounds(path: &str) -> (usize, Option<usize>) {\n    match path {\n";
 for (const { path, args } of opCommandCatalog) {
   if (args) source += `        ${JSON.stringify(path.join(" "))} => (${args.min}, ${args.max === undefined ? "None" : "Some(" + args.max + ")"}),

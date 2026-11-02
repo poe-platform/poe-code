@@ -7523,3 +7523,25 @@ test("op rejects explicit account and session selectors before accessing the def
     }
   } finally { rs.dispose(); }
 });
+
+test("op resolves global and command flags against the selected catalog command", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const cmd of ["op --debug account list", "op account --format json ls", "op --cache bogus --version",
+      "op -vv whoami", "op -hv whoami", "op --version=false whoami", "op --format account list",
+      "op --no-color --config test account --session=x ls", "op vault create Demo >/dev/null",
+      "op vault delete --shell --session=x Demo", "op vault list --bogus", "op --format=json vault ls",
+      "op --format=bad --format=json account ls", "OP_DEBUG=bad op --debug=false account list",
+      "op --help=false whoami", "op read -hn", "op -n read", "op read -n --", "op vault list --help=false --format json",
+      "A=text op environment snapshot create selection --vars A >/dev/null",
+      "op environment snapshot restore selection --no-masking --no-masking=false -- echo text",
+      "op run echo hi --no-masking=true", "op run echo -- --cache",
+      "op --format=json run -- echo --format=bad", "op run -- echo -vv",
+      "op account list --help=false --encoding=x", "op read --help --encoding=x"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

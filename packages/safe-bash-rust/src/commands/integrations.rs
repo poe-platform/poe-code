@@ -1197,6 +1197,7 @@ fn render_op_inject_template(
     Ok(out)
 }
 
+mod op_cli;
 #[path = "help/op_topics.rs"]
 mod op_topics;
 
@@ -1548,185 +1549,6 @@ fn is_valid_op_vault_permission(val: &str) -> bool {
     true
 }
 
-fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Result<(), String> {
-    let is_help = args.iter().take_while(|a| *a != "--").any(|a| a == "--help" || a == "-h" || a == "help");
-    let mut has_path = false;
-    let mut seen_version: Option<&str> = None;
-    let mut seen_format = false;
-    let mut i = 0usize;
-    let pre_dd_len = args.iter().position(|a| a == "--").unwrap_or(args.len());
-    while i < pre_dd_len {
-        let tok = args[i].as_str();
-        if tok == "--version" || tok == "-v" {
-            seen_version = Some(tok);
-            i += 1;
-            continue;
-        }
-        if let Some((flag, val)) = tok.split_once('=')
-            && flag.starts_with('-')
-        {
-            match flag {
-                "--format" => {
-                    seen_format = true;
-                    if val != "json" && val != "human-readable" {
-                        return Err("format must be json or human-readable".into());
-                    }
-                }
-                "--encoding" if !is_help => {
-                    if !supported_op_encoding(val) {
-                        return Err("unsupported character-encoding".into());
-                    }
-                }
-                "--cache" | "--debug" | "--iso-timestamps" => {
-                    if op_bool(val).is_none() {
-                        return Err(format!("invalid boolean value for {flag}"));
-                    }
-                }
-                "--file-mode" => {
-                    if parse_op_file_mode_str(val).is_none() {
-                        return Err("invalid value for --file-mode".into());
-                    }
-                }
-                "--allow-admins-to-manage" => {
-                    if op_bool(val).is_none() {
-                        return Err("invalid value for --allow-admins-to-manage".into());
-                    }
-                }
-                "--travel-mode" => {
-                    if val != "on" && val != "off" {
-                        return Err("invalid value for --travel-mode".into());
-                    }
-                }
-                "--ssh-generate-key" => {
-                    if !matches!(
-                        val.to_ascii_lowercase().as_str(),
-                        "ed25519" | "rsa" | "rsa2048" | "rsa3072" | "rsa4096" | "rsa-2048" | "rsa-3072" | "rsa-4096"
-                    ) {
-                        return Err("invalid value for --ssh-generate-key".into());
-                    }
-                }
-                "--deauthorize-devices-after" => {
-                    if !is_op_go_duration(val) {
-                        return Err("invalid value for --deauthorize-devices-after".into());
-                    }
-                }
-                "--generate-password" => {
-                    if !is_op_password_recipe(val) {
-                        return Err("invalid value for --generate-password".into());
-                    }
-                }
-                "--role" => {
-                    if !matches!(val.to_ascii_lowercase().as_str(), "manager" | "member") {
-                        return Err("invalid value for --role".into());
-                    }
-                }
-                "--permission" | "--permissions" => {
-                    if !is_valid_op_vault_permission(val) {
-                        return Err(format!("invalid value for {flag}"));
-                    }
-                }
-                _ => {}
-            }
-            i += 1;
-            continue;
-        }
-        if op_topics::takes_value(tok) {
-            let flag_name = match tok {
-                "-i" => "--in-file",
-                "-o" => "--out-file",
-                other => other,
-            };
-            let Some(val) = args.get(i + 1).filter(|_| i + 1 < pre_dd_len) else {
-                return Err(format!("flag needs a value: {flag_name}"));
-            };
-            match flag_name {
-                "--format" => {
-                    seen_format = true;
-                    if val != "json" && val != "human-readable" {
-                        return Err("format must be json or human-readable".into());
-                    }
-                }
-                "--encoding" if !is_help => {
-                    if !supported_op_encoding(val) {
-                        return Err("unsupported character-encoding".into());
-                    }
-                }
-                "--file-mode" => {
-                    if parse_op_file_mode_str(val).is_none() {
-                        return Err("invalid value for --file-mode".into());
-                    }
-                }
-                "--allow-admins-to-manage" => {
-                    if op_bool(val).is_none() {
-                        return Err("invalid value for --allow-admins-to-manage".into());
-                    }
-                }
-                "--travel-mode" => {
-                    if val != "on" && val != "off" {
-                        return Err("invalid value for --travel-mode".into());
-                    }
-                }
-                "--ssh-generate-key" => {
-                    if !matches!(
-                        val.to_ascii_lowercase().as_str(),
-                        "ed25519" | "rsa" | "rsa2048" | "rsa3072" | "rsa4096" | "rsa-2048" | "rsa-3072" | "rsa-4096"
-                    ) {
-                        return Err("invalid value for --ssh-generate-key".into());
-                    }
-                }
-                "--deauthorize-devices-after" => {
-                    if !is_op_go_duration(val) {
-                        return Err("invalid value for --deauthorize-devices-after".into());
-                    }
-                }
-                "--role" => {
-                    if !matches!(val.to_ascii_lowercase().as_str(), "manager" | "member") {
-                        return Err("invalid value for --role".into());
-                    }
-                }
-                "--permission" | "--permissions" => {
-                    if !is_valid_op_vault_permission(val) {
-                        return Err(format!("invalid value for {flag_name}"));
-                    }
-                }
-                _ => {}
-            }
-            i += 2;
-            continue;
-        }
-        if !tok.starts_with('-') {
-            has_path = true;
-        }
-        i += 1;
-    }
-    if has_path
-        && let Some(vf) = seen_version
-    {
-        return Err(format!("unknown flag: {vf}"));
-    }
-    if let Some(c) = env.get("OP_CACHE")
-        && !c.is_empty()
-        && op_bool(c).is_none()
-    {
-        return Err("invalid boolean value for --cache".into());
-    }
-    if let Some(d) = env.get("OP_DEBUG")
-        && !d.is_empty()
-        && op_bool(d).is_none()
-    {
-        return Err("invalid boolean value for --debug".into());
-    }
-    if !seen_format
-        && let Some(fmt) = env.get("OP_FORMAT")
-        && !fmt.is_empty()
-        && fmt != "json"
-        && fmt != "human-readable"
-    {
-        return Err("format must be json or human-readable".into());
-    }
-    Ok(())
-}
-
 fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
     let mut out = Vec::new();
     let mut i = skip;
@@ -1738,7 +1560,7 @@ fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
             }
             break;
         }
-        if op_topics::takes_value(tok) {
+        if matches!(op_topics::flag(tok), Some((_, op_cli::Kind::Value, _))) {
             i += 2;
             continue;
         }
@@ -1750,225 +1572,6 @@ fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
         i += 1;
     }
     out
-}
-
-// A positional word belongs to the subcommand dispatcher. Root flags alone
-// select help or version without opening an account.
-fn op_root_flags(args: &[String], env: &BTreeMap<String, String>) -> Option<BuiltinOutcome> {
-    let mut flags = BTreeMap::new();
-    let mut args = args.iter();
-    while let Some(token) = args.next() {
-        if token == "--" {
-            break;
-        }
-        if !token.starts_with('-') || token == "-" {
-            return None;
-        }
-        let (name, value) = token
-            .split_once('=')
-            .map_or((token.as_str(), None), |(k, v)| (k, Some(v)));
-        match name {
-            "--account" | "--config" | "--encoding" | "--format" | "--session" => {
-                let Some(value) = value.or_else(|| args.next().map(String::as_str)) else {
-                    return Some(op_err(&format!("flag needs a value: {name}")));
-                };
-                flags.insert(name, value);
-            }
-            _ => {
-                let mut short = name.strip_prefix('-')?.chars().peekable();
-                loop {
-                    let flag = if name.starts_with("--") {
-                        name
-                    } else {
-                        match short.next()? {
-                            'h' => "--help",
-                            'v' => "--version",
-                            c if short.peek().is_some() => {
-                                return Some(op_err(&format!("unknown shorthand flag: {c}")));
-                            }
-                            c => return Some(op_err(&format!("unknown flag: -{c}"))),
-                        }
-                    };
-                    if !matches!(
-                        flag,
-                        "--cache"
-                            | "--debug"
-                            | "--help"
-                            | "--iso-timestamps"
-                            | "--no-color"
-                            | "--version"
-                    ) {
-                        return Some(op_err(&format!("unknown flag: {flag}")));
-                    }
-                    let last = name.starts_with("--") || short.peek().is_none();
-                    let val = if last {
-                        value.unwrap_or("true")
-                    } else {
-                        "true"
-                    };
-                    if op_bool(val).is_none() {
-                        return Some(op_err(&format!("invalid boolean value for {flag}")));
-                    }
-                    flags.insert(flag, val);
-                    if last {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    for (flag, var) in [("--cache", "OP_CACHE"), ("--debug", "OP_DEBUG")] {
-        if !flags.contains_key(flag)
-            && env
-                .get(var)
-                .is_some_and(|v| !v.is_empty() && op_bool(v).is_none())
-        {
-            return Some(op_err(&format!("invalid boolean value for {flag}")));
-        }
-    }
-    if flags
-        .get("--format")
-        .copied()
-        .or_else(|| {
-            env.get("OP_FORMAT")
-                .map(String::as_str)
-                .filter(|v| !v.is_empty())
-        })
-        .is_some_and(|v| !matches!(v, "json" | "human-readable"))
-    {
-        return Some(op_err("format must be json or human-readable"));
-    }
-    let enabled = |name| flags.get(name).and_then(|v| op_bool(v)) == Some(true);
-    let version = enabled("--version");
-    if !version
-        && !enabled("--help")
-        && flags
-            .get("--encoding")
-            .is_some_and(|v| !supported_op_encoding(v))
-    {
-        return Some(op_err("unsupported character-encoding"));
-    }
-    Some(BuiltinOutcome {
-        stdout: if version { "0.0.1\n" } else { OP_ROOT_HELP }.to_string(),
-        stderr: String::new(),
-        exit_code: 0,
-    })
-}
-
-fn op_command_path(args: &[String]) -> Result<&'static str, BuiltinOutcome> {
-    let mut path = "";
-    let mut group = true;
-    let mut operands = 0;
-    let mut help = OP_ROOT_HELP;
-    let mut keyword = false;
-    let mut flag = false;
-    let mut words = args.iter();
-    while let Some(word) = words.next() {
-        if word == "--" {
-            if group && words.len() != 0 && !keyword && !flag {
-                return Err(op_err("a command is required"));
-            }
-            operands += words.len();
-            break;
-        }
-        if word == "help" && path.is_empty() {
-            keyword = true;
-        } else if op_topics::takes_value(word) {
-            words.next();
-        } else if word == "-h" || word == "--help" {
-            flag = true;
-        } else if let Some(value) = word
-            .strip_prefix("--help=")
-            .or_else(|| word.strip_prefix("-h="))
-        {
-            let Some(enabled) = op_bool(value) else {
-                return Err(op_err("invalid boolean value for --help"));
-            };
-            flag = enabled;
-        } else if (!word.starts_with('-') || word == "-") && group {
-            if let Some(topic) = op_topics::child(path, word) {
-                (path, group, help) = topic;
-            } else {
-                let unknown = if path.is_empty() {
-                    word.to_string()
-                } else {
-                    format!("{path} {word}")
-                };
-                return Err(op_err(&format!("unknown command: {unknown}")));
-            }
-        } else if !word.starts_with('-') || word == "-" {
-            operands += 1;
-        }
-    }
-    if keyword || flag || group {
-        return Err(BuiltinOutcome {
-            stdout: help.to_string(),
-            stderr: String::new(),
-            exit_code: 0,
-        });
-    }
-    let (min, max) = op_topics::operand_bounds(path);
-    if operands < min {
-        return Err(op_err(&format!(
-            "expected at least {min} arguments but got {operands} instead"
-        )));
-    }
-    if let Some(max) = max
-        && operands > max
-    {
-        return Err(op_err(&format!(
-            "expected at most {max} arguments but got {operands} instead"
-        )));
-    }
-    Ok(path)
-}
-
-// The built-in object store has no configured accounts or issued sessions.
-// Only the companion backend can supply them. Consume selectors before the
-// literal boundary so neither their values nor child flags become op operands.
-fn op_selectors<'a>(
-    args: &'a [String],
-    env: &BTreeMap<String, String>,
-) -> (std::borrow::Cow<'a, [String]>, Option<&'static str>) {
-    let mut account = env.get("OP_ACCOUNT").is_some_and(|v| !v.is_empty());
-    let mut session = env.get("OP_SESSION").is_some_and(|v| !v.is_empty());
-    let mut filtered = Vec::new();
-    let mut start = 0;
-    let mut i = 0;
-    while let Some(token) = args.get(i) {
-        if token == "--" {
-            break;
-        }
-        let name = token.split_once('=').map_or(token.as_str(), |(k, _)| k);
-        let next = (i + if op_topics::takes_value(token) { 2 } else { 1 }).min(args.len());
-        match name {
-            "--account" => account = true,
-            "--session" => session = true,
-            _ => {
-                i = next;
-                continue;
-            }
-        }
-        filtered.extend_from_slice(&args[start..i]);
-        start = next;
-        i = next;
-    }
-    let args = if start == 0 {
-        std::borrow::Cow::Borrowed(args)
-    } else {
-        filtered.extend_from_slice(&args[start..]);
-        std::borrow::Cow::Owned(filtered)
-    };
-    (
-        args,
-        if account {
-            Some("Account selection is required")
-        } else if session {
-            Some("Invalid session")
-        } else {
-            None
-        },
-    )
 }
 
 fn cmd_op<F>(
@@ -1989,31 +1592,18 @@ where
         return op_err("OP_BIOMETRIC_UNLOCK_ENABLED must be true or false.");
     }
 
-    if let Some(result) = op_root_flags(args, env) {
-        return result;
-    }
-    if let Err(msg) = validate_op_cli_flags(args, env) {
-        return op_err(&msg);
-    }
-
-    let path = match op_command_path(args) {
-        Ok(path) => path,
+    let parsed = match op_cli::parse(args, env) {
+        Ok(parsed) => parsed,
         Err(outcome) => return outcome,
     };
-    let (filtered, selection) = op_selectors(args, env);
-    let args = filtered.as_ref();
+    let args = parsed.args.as_slice();
     let first = args[0].as_str();
-    if let Some(error) = selection && !matches!(path, "completion" | "run" | "inject" | "item get" | "item edit" | "document edit") {
+    let selection = parsed.selection;
+    if let Some(error) = selection && !matches!(parsed.path, "completion" | "run" | "inject" | "item get" | "item edit" | "document edit") {
         return op_err(error);
     }
-
+    let format_json = parsed.format_json;
     let fs_id = fs.fs_id();
-    let format_json = args.iter().any(|a| a == "--format=json")
-        || args
-            .windows(2)
-            .any(|w| w[0] == "--format" && w[1] == "json")
-        || env.get("OP_FORMAT").map(|v| v == "json").unwrap_or(false);
-
     match first {
         "whoami" => {
             let pos_cnt = op_positional_args(args, 1).len();

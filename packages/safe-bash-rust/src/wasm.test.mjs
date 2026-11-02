@@ -4370,12 +4370,13 @@ test("qpdf authenticates standard PDF passwords and decrypts strings and streams
   const doc=PdfDocument.create();doc.setTitle("Titel 雪");doc.addPage().drawText("private",{x:2,y:3});
   const locked=doc.save({encrypt:{revision:3,userPassword:"réader",ownerPassword:"öwner"}});
   const empty=doc.save({encrypt:{revision:3,userPassword:"",ownerPassword:"writer"}});
-  const files={"/locked":locked,"/empty":empty,"/out":Buffer.from("prior")};
+  const files={"/damaged":locked.subarray(0,Buffer.from(locked).lastIndexOf("startxref")),"/locked":locked,"/empty":empty,"/out":Buffer.from("prior")};
   const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
   for(const [name,data] of Object.entries(files))await fs.writeFile(name,data);
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
   try {
-    for(const cmd of ["qpdf locked --password=réader --requires-password","qpdf locked --password=öwner --requires-password",
+    for(const cmd of ["qpdf damaged --json out","qpdf damaged --password=öwner --json --json-stream-data=inline",
+      "qpdf damaged --password=réader --requires-password","qpdf locked --password=réader --requires-password","qpdf locked --password=öwner --requires-password",
       "qpdf locked --password=wrong --requires-password","qpdf empty --password= --requires-password",
       "qpdf locked --json out","qpdf locked --password=wrong --show-encryption","qpdf locked --password=réader --show-encryption",
       "qpdf locked --password=öwner --check","qpdf locked --password=réader --json --json-stream-data=inline",

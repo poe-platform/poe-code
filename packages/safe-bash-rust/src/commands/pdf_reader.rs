@@ -763,7 +763,7 @@ fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>)
             return Ok((objects, trailer));
         }
     }
-    let (objects, trailer) = pdf_repair::recover(bytes).ok_or("invalid PDF object graph")?;
+    let (objects, trailer) = pdf_repair::recover(bytes,password)?;
     trailer.get(b"Root").and_then(Value::reference).ok_or(NO_CATALOG)?;
     Ok((objects, trailer))
 }

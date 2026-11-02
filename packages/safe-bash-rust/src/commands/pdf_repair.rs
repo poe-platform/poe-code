@@ -66,19 +66,20 @@ pub(super) fn scan<'a>(
     Some(trailers)
 }
 
-pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
-    header_version(bytes)?;
+pub(super) fn recover<'a>(
+    bytes: &'a [u8],
+    password: &str,
+) -> Result<(Objects<'a>, Value<'a>), &'static str> {
+    const INVALID: &str = "invalid PDF object graph";
+    header_version(bytes).ok_or(INVALID)?;
     let mut objects = Objects::new(bytes);
     let mut rows = BTreeMap::new();
     let trailers = scan(&mut objects, |(number, generation), offset| {
         let order = rows.len();
         let row = rows.entry(number).or_insert((generation, offset, order));
         (row.0, row.1) = (generation, offset);
-    })?;
-    // Never inspect encrypted streams as plaintext, even during recovery.
-    if trailers.iter().any(|t| t.get(b"Encrypt").is_some()) {
-        return None;
-    }
+    })
+    .ok_or(INVALID)?;
     let mut direct = vec![(0, 0); rows.len()];
     for (number, (generation, offset, order)) in rows {
         direct[order] = (number, generation);
@@ -102,13 +103,49 @@ pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             }
         };
     for id in direct {
-        let (v, mut c) = objects.object(id)?;
+        let (v, mut c) = objects.object(id).ok_or(INVALID)?;
         observe(id, &v, &mut root, &mut info);
         c.skip();
         if v.get(b"Type").and_then(Value::word) == Some(b"/ObjStm") && c.0.starts_with(b"stream") {
             packed.push(id.0);
         }
     }
+    // Trailer security parameters must be selected before opening compressed members.
+    let protected = trailers.iter().any(|t| t.get(b"Encrypt").is_some());
+    let mut selected = None;
+    let mut score = None;
+    for t in trailers {
+        let Some(id) = t.get(b"Root").and_then(Value::reference) else {
+            continue;
+        };
+        match objects.object(id) {
+            Some((catalog, _)) => match catalog.get(b"Pages") {
+                Some(Value::Dict(_)) => (),
+                Some(Value::Ref(page_tree)) => match objects.object(*page_tree) {
+                    Some((Value::Dict(_), _)) => (),
+                    None if !packed.is_empty() => (),
+                    _ => continue,
+                },
+                _ => continue,
+            },
+            None if !packed.is_empty() => (),
+            _ => continue,
+        }
+        let rank = (
+            t.get(b"Encrypt").is_some(),
+            matches!(t.get(b"ID"), Some(Value::Array(_))),
+        );
+        if score.is_none_or(|s| rank >= s) {
+            selected = Some(t);
+            score = Some(rank);
+        }
+    }
+    if protected && !score.is_some_and(|rank| rank.0) {
+        return Err(INVALID);
+    }
+    let trailer = selected.unwrap_or_else(|| Value::Dict(Vec::new()));
+    objects.authenticate(&trailer, password)?;
+    let Value::Dict(mut trailer) = trailer else { return Err(INVALID); };
     for container in packed {
         let Some(stream) = objects.object_stream(container) else {
             continue;
@@ -128,29 +165,6 @@ pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         }
         objects.streams.insert(container, stream);
     }
-    // Prefer the latest valid trailer; an ID-bearing trailer takes precedence.
-    let mut selected = None;
-    let mut score = None;
-    for t in trailers {
-        let Some(catalog) = t.get(b"Root").and_then(|r| objects.resolve(r)) else {
-            continue;
-        };
-        if !matches!(
-            catalog.get(b"Pages").and_then(|v| objects.resolve(v)),
-            Some(Value::Dict(_))
-        ) {
-            continue;
-        }
-        let rank = matches!(t.get(b"ID"), Some(Value::Array(_)));
-        if score.is_none_or(|s| rank >= s) {
-            selected = Some(t);
-            score = Some(rank);
-        }
-    }
-    let mut trailer = match selected {
-        Some(Value::Dict(entries)) => entries,
-        _ => Vec::new(),
-    };
     if root.is_none() || info.is_none() {
         let mut member_root = None;
         let mut member_info = None;
@@ -175,5 +189,5 @@ pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         }
     }
     let trailer = Value::Dict(trailer);
-    Some((objects, trailer))
+    Ok((objects, trailer))
 }

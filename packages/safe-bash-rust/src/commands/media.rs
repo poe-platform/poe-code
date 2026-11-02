@@ -7051,7 +7051,7 @@ fn cmd_media_doc(
                     return err_out(&format!("qpdf: {}: Invalid PDF header: missing %PDF- signature\n",primary_arg.as_deref().unwrap_or("empty")),2);
                 }
                 let source = pdf_reader::PageSource::open(&input,password.as_deref().unwrap_or(""));
-                if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !json_input && !is_legacy_pdf(&input) {
+                if let Err(e) = source && !json_input && !is_legacy_pdf(&input) {
                     return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2);
                 }
                 for k in &json_keys {

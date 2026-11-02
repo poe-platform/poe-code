@@ -4297,6 +4297,10 @@ test("qpdf recovers missing cross-references from object bodies, including packe
   const plain=Buffer.from(doc.save()),packed=Buffer.from(doc.save({objectStreams:"generate"}));
   const missing=plain.subarray(0,plain.lastIndexOf("\nxref\n"));
   const files={
+    "/wrong-root.pdf":Buffer.from(plain.toString("latin1").replace("/Root 1 0 R","/Root 2 0 R"),"latin1"),
+    "/missing-root.pdf":Buffer.from(plain.toString("latin1").replace("/Root 1 0 R","/FooX 1 0 R"),"latin1"),
+    "/bad-row.pdf":Buffer.from(plain.toString("latin1").replace(
+      String(plain.indexOf(doc.getPage(1).ref.objectNumber+" 0 obj")).padStart(10,"0")+" 00000 n","0000000001 00000 n"),"latin1"),
     "/missing.pdf":missing,
     "/revised.pdf":Buffer.concat([missing,Buffer.from("\n% 90 0 obj true endobj\n36 1 obj (first) endobj\n37 0 obj (second) endobj\n36 2 obj (latest) endobj\n")]),
     "/bad-pointer.pdf":Buffer.concat([plain.subarray(0,plain.lastIndexOf("startxref")),Buffer.from("startxref\n99999999\n%%EOF")]),

@@ -168,6 +168,11 @@ impl<'a> Cursor<'a> {
         Some(word)
     }
 
+    fn object_header(&mut self) -> Option<ObjectId> {
+        let id = (uint(self.word()?)?, uint(self.word()?)?);
+        (self.word()? == b"obj").then_some(id)
+    }
+
     fn byte(&mut self) -> Option<u8> {
         let (&b, rest) = self.0.split_first()?;
         self.0 = rest;
@@ -488,7 +493,7 @@ impl<'a> Objects<'a> {
             }
         };
         let mut c = Cursor(self.bytes.get(offset..)?);
-        if (uint(c.word()?)?, uint(c.word()?)?) != id || c.word()? != b"obj" {
+        if c.object_header()? != id {
             return None;
         }
         let value = c.value(0, &mut self.tokens, self.preserve_hex)?;
@@ -703,11 +708,21 @@ fn last_xref(bytes: &[u8]) -> Option<usize> {
 mod pdf_repair;
 
 fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
-    match strict_index(bytes) {
-        Some((_, trailer)) if trailer.get(b"Encrypt").is_some() => None,
-        Some(index) => Some(index),
-        None => pdf_repair::recover(bytes),
+    if let Some((mut objects, trailer)) = strict_index(bytes) {
+        if trailer.get(b"Encrypt").is_some() { return None; }
+        let offsets_valid = objects.xref.iter().all(|(id, (location, _))| match location {
+            Location::File(at) => bytes.get(*at..).and_then(|s| Cursor(s).object_header()) == Some(*id),
+            Location::Member { .. } => true,
+        });
+        if offsets_valid
+            && let Some(catalog) = trailer.get(b"Root").and_then(Value::reference)
+                .and_then(|id| objects.object(id)).map(|(value, _)| value)
+            && matches!(catalog.get(b"Pages"), Some(Value::Ref(_) | Value::Dict(_)))
+        {
+            return Some((objects, trailer));
+        }
     }
+    pdf_repair::recover(bytes)
 }
 
 fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {

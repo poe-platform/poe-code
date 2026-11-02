@@ -4244,7 +4244,7 @@ fn run_grep_engine(
         ));
     }
 
-    let exit_code = if had_error {
+    let exit_code = if had_error && !(is_rg && cfg.quiet && any_match) {
         2
     } else if any_match {
         0

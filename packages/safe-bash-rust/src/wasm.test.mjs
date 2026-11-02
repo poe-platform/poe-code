@@ -7363,7 +7363,8 @@ test("rg statistics count searched records and printed matches in each output mo
     const setup = "printf 'aa\\nx\\nb\\na\\nc' >t; printf 'aa\\nx\\0b\\na\\nc' >n; printf 'x\\0a\\n' >b";
     for (const sh of [js, rs]) await sh.exec(setup);
     for (const args of ["-c a t", "-l a t", "--files-without-match z n", "-o a n", "-B1 a b",
-      "-m1 a t", "-m1 -q a t", "-m1 --count-matches a t", "-m1 -A1 a t", "-m1 -A1 -v a t",
+      "-q a missing t", "-q a t missing", "-q z t missing", "--json -q a t missing",
+      "-q --files-without-match z t missing", "-m1 a t", "-m1 -q a t", "-m1 --count-matches a t", "-m1 -A1 a t", "-m1 -A1 -v a t",
       "-m1 -C4 a t", "-v a n", "--json -m1 -C4 a t", "-Uom1 'a\\nx' t"]) {
       const cmd = "rg --stats " + args;
       const a = await js.exec(cmd), b = await rs.exec(cmd);

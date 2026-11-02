@@ -15905,6 +15905,36 @@ hash -l
     }
 
     #[test]
+    fn interactive_filesystem_commands_pull_input_chunks_only_when_prompting() {
+        for (cmd, prompt, declined) in [
+            ("cp -i /s /d", "cp: overwrite '/d'? ", 1),
+            ("mv -i /s /d", "mv: overwrite '/d'? ", 1),
+            ("ln -si /s /d", "ln: replace '/d'? ", 1),
+            ("rm -i /d", "rm: remove regular file '/d'? ", 0),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/s", b"s").unwrap();
+            fs.write_file("/d", b"d").unwrap();
+            let answers = format!("n\n{}TAIL", "x".repeat(65534));
+            fs.write_file("/answers", answers.as_bytes()).unwrap();
+            let r = shell.exec(&format!("{{ {cmd}; echo $?; head -c4; }} </answers")).unwrap();
+            assert_eq!((r.stdout, r.stderr.as_str()), (format!("{declined}\nTAIL"), prompt), "{cmd}");
+            assert_eq!(fs.read_file("/d").unwrap(), b"d");
+
+            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+            fs.write_file("/answers", b"y\nn\nTAIL").unwrap();
+            let r = shell.exec(&format!("{{ {cmd}; echo $?; head -c4; }} </answers")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, "0\n", format!("{prompt}head: EFBIG: file too large, read '/answers'\n")), "{cmd}");
+        }
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/f", b"0123456789").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        let r = shell.exec("{ cp -i /f /copy; mv -i /copy /moved; ln -si /moved /link; rm -f /link; head -c1; } </f").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "0", ""));
+        assert_eq!(fs.read_file("/moved").unwrap(), b"0123456789");
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

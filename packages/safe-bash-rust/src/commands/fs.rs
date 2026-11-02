@@ -26,27 +26,26 @@ pub(super) fn try_run_fs_with_input(
     cmd: &str, args: &[String], stdin: CommandInput,
     cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    let result = match cmd {
-        "ls" => return Some(cmd_ls(args, cwd, fs)),
-        "mkdir" => return Some(cmd_mkdir(args, cwd, env, fs)),
-        "rmdir" => return Some(cmd_rmdir(args, cwd, fs)),
-        "rm" => stdin.buffered().map(|stdin| cmd_rm(args, stdin, cwd, fs)),
-        "cp" => stdin.buffered().map(|stdin| cmd_cp(args, stdin, cwd, env, fs)),
-        "mv" => stdin.buffered().map(|stdin| cmd_mv(args, stdin, cwd, env, fs)),
-        "touch" => return Some(cmd_touch(args, cwd, env, fs)),
-        "ln" => stdin.buffered().map(|stdin| cmd_ln(args, stdin, cwd, env, fs)),
-        "readlink" => return Some(cmd_readlink(args, cwd, fs)),
-        "realpath" => return Some(cmd_realpath(args, cwd, fs)),
-        "chmod" => return Some(cmd_chmod(args, cwd, env, fs)),
-        "stat" => return Some(cmd_stat(args, cwd, env, fs)),
-        "du" => return Some(cmd_du(args, cwd, env, fs)),
-        "df" => return Some(cmd_df(args, cwd, env, fs)),
-        "mktemp" => return Some(cmd_mktemp(args, cwd, env, fs)),
-        "tree" => return Some(cmd_tree(args, cwd, env, fs)),
-        "file" => return Some(cmd_file(args, stdin, cwd, fs)),
+    Some(match cmd {
+        "ls" => cmd_ls(args, cwd, fs),
+        "mkdir" => cmd_mkdir(args, cwd, env, fs),
+        "rmdir" => cmd_rmdir(args, cwd, fs),
+        "rm" => cmd_rm(args, stdin, cwd, fs),
+        "cp" => cmd_cp(args, stdin, cwd, env, fs),
+        "mv" => cmd_mv(args, stdin, cwd, env, fs),
+        "touch" => cmd_touch(args, cwd, env, fs),
+        "ln" => cmd_ln(args, stdin, cwd, env, fs),
+        "readlink" => cmd_readlink(args, cwd, fs),
+        "realpath" => cmd_realpath(args, cwd, fs),
+        "chmod" => cmd_chmod(args, cwd, env, fs),
+        "stat" => cmd_stat(args, cwd, env, fs),
+        "du" => cmd_du(args, cwd, env, fs),
+        "df" => cmd_df(args, cwd, env, fs),
+        "mktemp" => cmd_mktemp(args, cwd, env, fs),
+        "tree" => cmd_tree(args, cwd, env, fs),
+        "file" => cmd_file(args, stdin, cwd, fs),
         _ => return None,
-    };
-    Some(result.unwrap_or_else(|e| err_out(&format!("{cmd}: {e}\n"), 1)))
+    })
 }
 
 fn ok_out(s: &str) -> BuiltinOutcome {
@@ -786,7 +785,52 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     }
 }
 
-fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+// A prompt owns each chunk it pulls. Further prompts share the remaining lines
+// in that chunk; a command following this one starts at the next chunk.
+struct PromptAnswers<'a> {
+    input: Option<CommandInput<'a>>,
+    chunk: Vec<u8>,
+    pos: usize,
+}
+
+impl<'a> PromptAnswers<'a> {
+    fn new(input: CommandInput<'a>) -> Self {
+        Self { input: Some(input), chunk: Vec::new(), pos: 0 }
+    }
+
+    fn yes(&mut self, trim: bool) -> Result<bool, String> {
+        let mut line = Vec::new();
+        loop {
+            let rest = &self.chunk[self.pos..];
+            if let Some(end) = rest.iter().position(|&b| b == b'\n') {
+                line.extend_from_slice(&rest[..end]);
+                self.pos += end + 1;
+                break;
+            }
+            line.extend_from_slice(rest);
+            self.chunk.clear();
+            self.pos = 0;
+            let Some(input) = self.input.take() else { break };
+            if let Some(source) = input.file {
+                source.read(input.text, usize::MAX, |chunk, _| {
+                    self.chunk.extend_from_slice(chunk);
+                    Ok((false, chunk.len()))
+                })?;
+                if !self.chunk.is_empty() { self.input = Some(input); }
+            } else {
+                self.chunk = crate::vfs::stream_string_to_bytes(input.text);
+                input.text.clear();
+            }
+        }
+        if trim {
+            Ok(String::from_utf8_lossy(&line).trim_start_matches(|c: char| c == '\u{feff}' || c.is_whitespace() && c != '\u{85}').starts_with(['y', 'Y']))
+        } else {
+            Ok(matches!(line.first(), Some(b'y' | b'Y')))
+        }
+    }
+}
+
+fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut force = false;
     let mut interactive = "never";
     let mut recursive = false;
@@ -877,7 +921,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut code = 0;
-    let mut stdin_lines = stdin.lines();
+    let mut answers = PromptAnswers::new(stdin);
     if interactive == "once" && (recursive || targets.len() > 3) {
         stderr.push_str(&format!(
             "rm: remove {} argument{}{}?",
@@ -886,9 +930,11 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             if recursive { " recursively" } else { "" }
         ));
         stderr.push(' ');
-        let ans = stdin_lines.next().unwrap_or("");
-        let first = ans.trim_start().chars().next().unwrap_or('n');
-        if first != 'y' && first != 'Y' {
+        let accepted = match answers.yes(true) {
+            Ok(v) => v,
+            Err(e) => { stderr.push_str(&format!("rm: {e}\n")); return BuiltinOutcome { stdout, stderr, exit_code: 1 }; }
+        };
+        if !accepted {
             return BuiltinOutcome {
                 stdout,
                 stderr,
@@ -907,7 +953,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         dir_mode: bool,
         verbose: bool,
         fs: &dyn SafeBashFs,
-        stdin_lines: &mut std::str::Lines<'_>,
+        answers: &mut PromptAnswers,
         stdout: &mut String,
         stderr: &mut String,
         code: &mut i32,
@@ -956,9 +1002,10 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 })?;
                 if !entries.is_empty() {
                     stderr.push_str(&format!("rm: descend into directory '{operand}'? "));
-                    let ans = stdin_lines.next().unwrap_or("");
-                    let first = ans.trim_start().chars().next().unwrap_or('n');
-                    if first != 'y' && first != 'Y' {
+                    if !answers.yes(true).map_err(|e| {
+                        stderr.push_str(&format!("rm: {e}\n"));
+                        *code = 1;
+                    })? {
                         return Ok(false);
                     }
                     let mut all_removed = true;
@@ -973,7 +1020,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                             dir_mode,
                             verbose,
                             fs,
-                            stdin_lines,
+                            answers,
                             stdout,
                             stderr,
                             code,
@@ -996,9 +1043,10 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "regular file"
             };
             stderr.push_str(&format!("rm: remove {type_label} '{operand}'? "));
-            let ans = stdin_lines.next().unwrap_or("");
-            let first = ans.trim_start().chars().next().unwrap_or('n');
-            if first != 'y' && first != 'Y' {
+            if !answers.yes(true).map_err(|e| {
+                stderr.push_str(&format!("rm: {e}\n"));
+                *code = 1;
+            })? {
                 return Ok(false);
             }
         }
@@ -1032,7 +1080,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             dir_mode,
             verbose,
             fs,
-            &mut stdin_lines,
+            &mut answers,
             &mut stdout,
             &mut stderr,
             &mut code,
@@ -1119,7 +1167,7 @@ fn backup_copy_target(fs: &dyn SafeBashFs, src: &str, target: &str, mode: Backup
 }
 
 struct CopyReport<'a> {
-    answers: Option<std::str::Lines<'a>>,
+    answers: Option<PromptAnswers<'a>>,
     verbose: bool,
     stdout: String,
     stderr: String,
@@ -1159,12 +1207,12 @@ fn copy_operand_text(path: &str, prompt: bool) -> String {
 }
 
 impl CopyReport<'_> {
-    fn confirm(&mut self, dst: &str) -> bool {
-        let Some(lines) = self.answers.as_mut() else { return true };
+    fn confirm(&mut self, dst: &str) -> Result<bool, String> {
+        let Some(lines) = self.answers.as_mut() else { return Ok(true) };
         self.stderr.push_str(&format!("cp: overwrite {}? ", copy_operand_text(dst, true)));
-        let yes = matches!(lines.next().and_then(|s| s.as_bytes().first()), Some(b'y' | b'Y'));
+        let yes = lines.yes(false)?;
         self.declined |= !yes;
-        yes
+        Ok(yes)
     }
 
     fn copied(&mut self, (src, dst): (&str, &str)) {
@@ -1208,7 +1256,7 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
     }
     if target_stat.as_ref().is_some_and(|t| settings.skip_existing(&st, t)) { return Ok(()); }
     if !directory && target_stat.as_ref().is_some_and(|t| t.kind != VfsEntryKind::Directory)
-        && let CopyPass::Publish(report) = &mut pass && !report.confirm(display.1) {
+        && let CopyPass::Publish(report) = &mut pass && !report.confirm(display.1)? {
         return Ok(());
     }
     if preserve_link && settings.timestamps && !settings.archive {
@@ -1365,7 +1413,7 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
 
 fn cmd_cp(
     args: &[String],
-    stdin: &str,
+    stdin: CommandInput,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -1611,7 +1659,7 @@ fn cmd_cp(
     if (target_dir.is_some() || eff_operands.len() > 2) && !dst_is_dir {
         return err_out(&format!("cp: target '{dst_raw}' is not a directory\n"), 1);
     }
-    let mut report = CopyReport { answers: interactive.then(|| stdin.lines()), verbose, stdout: String::new(), stderr: String::new(), declined: false };
+    let mut report = CopyReport { answers: interactive.then(|| PromptAnswers::new(stdin)), verbose, stdout: String::new(), stderr: String::new(), declined: false };
     let mut code = 0;
     settings.links = preserve_links.then(CopyLinks::default);
 
@@ -1702,7 +1750,7 @@ fn cmd_cp(
 
 fn cmd_mv(
     args: &[String],
-    stdin: &str,
+    stdin: CommandInput,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -1889,7 +1937,7 @@ fn cmd_mv(
     let mut stderr = String::new();
     let mut code = 0;
     let mut declined = false;
-    let mut stdin_lines = stdin.lines();
+    let mut answers = PromptAnswers::new(stdin);
 
     for src_raw in &eff_operands[..eff_operands.len() - 1] {
         let src = absolute(src_raw);
@@ -1922,9 +1970,11 @@ fn cmd_mv(
                 && source_stat.mtime_ms <= target_stat.mtime_ms { continue; }
             if interactive {
                 stderr.push_str(&format!("mv: overwrite '{disp_target}'? "));
-                let ans = stdin_lines.next().unwrap_or("");
-                let first = ans.bytes().next().unwrap_or(b'n');
-                if first != b'y' && first != b'Y' {
+                let accepted = match answers.yes(false) {
+                    Ok(v) => v,
+                    Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; }
+                };
+                if !accepted {
                     declined = true;
                     continue;
                 }
@@ -2296,7 +2346,7 @@ fn parse_touch_date_checked(s: &str) -> Option<u64> {
 
 fn cmd_ln(
     args: &[String],
-    stdin: &str,
+    stdin: CommandInput,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -2487,7 +2537,7 @@ fn cmd_ln(
     let mut stderr = String::new();
     let mut code = 0;
     let mut declined = false;
-    let mut stdin_lines = stdin.lines();
+    let mut answers = PromptAnswers::new(stdin);
 
     for src_op in &eff_operands[..eff_operands.len() - 1] {
         let base_name = basename_posix_path(src_op);
@@ -2558,9 +2608,11 @@ fn cmd_ln(
             }
             if interactive {
                 stderr.push_str(&format!("ln: replace '{disp_target}'? "));
-                let ans = stdin_lines.next().unwrap_or("");
-                let first = ans.trim_start().chars().next().unwrap_or('n');
-                if first != 'y' && first != 'Y' {
+                let accepted = match answers.yes(true) {
+                    Ok(v) => v,
+                    Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
+                };
+                if !accepted {
                     declined = true;
                     continue;
                 }
@@ -6939,14 +6991,14 @@ mod tests {
         fs.write_file("/from", b"one").unwrap();
         fs.hard_link("/from", "/alias").unwrap();
         fs.write_file("/to", b"two").unwrap();
-        let result = cmd_mv(&args(&["from", "to"]), "", "/", &BTreeMap::new(), &fs);
+        let result = try_run_fs_command("mv", &args(&["from", "to"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(result.exit_code, 0);
         fs.write_file("/to", b"moved").unwrap();
         assert_eq!(fs.read_file("/alias").unwrap(), b"moved");
 
         fs.write_file("/tree/file", b"source").unwrap();
         fs.write_file("/dir/tree/file", b"keep").unwrap();
-        let result = cmd_mv(&args(&["tree", "dir"]), "", "/", &BTreeMap::new(), &fs);
+        let result = try_run_fs_command("mv", &args(&["tree", "dir"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(result.exit_code, 1);
         assert_eq!(result.stderr, "mv: ENOTEMPTY: directory not empty, rename '/tree' -> '/dir/tree'\n");
         assert_eq!(fs.read_file("/tree/file").unwrap(), b"source");
@@ -6962,7 +7014,7 @@ mod tests {
             ("tree/missing/..", "mv: ENOENT: no such file or directory, rename '/src' -> '/tree/missing/..'\n"),
             ("tree/file/.", "mv: ENOTDIR: not a directory, lstat '/tree/file/.'\n"),
         ] {
-            let result = cmd_mv(&args(&["src", path]), "", "/", &BTreeMap::new(), &fs);
+            let result = try_run_fs_command("mv", &args(&["src", path]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(result.stderr, error);
             assert_eq!(result.exit_code, 1);
             assert_eq!(fs.read_file("/src").unwrap(), b"keep");
@@ -6975,15 +7027,15 @@ mod tests {
         fs.write_file("/src", b"keep").unwrap();
         fs.mkdir_all("/tree").unwrap();
         let args = args(&["src", "tree/."]);
-        let plain = cmd_mv(&args, "", "/", &BTreeMap::new(), &fs);
+        let plain = try_run_fs_command("mv", &args, "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(plain.stderr, "mv: EINVAL: invalid argument, rename '/src' -> '/tree/.'\n");
         assert_eq!(fs.read_file("/src").unwrap(), b"keep");
 
-        let repeated = cmd_mv(&["src".into(), "tree//.".into()], "", "/", &BTreeMap::new(), &fs);
+        let repeated = try_run_fs_command("mv", &["src".into(), "tree//.".into()], "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(repeated.exit_code, 0, "{}", repeated.stderr);
         fs.rename("/tree/src", "/src", false).unwrap();
         fs.symlink("tree", "/link").unwrap();
-        let linked = cmd_mv(&args, "", "/", &BTreeMap::new(), &fs);
+        let linked = try_run_fs_command("mv", &args, "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(linked.exit_code, 0, "{}", linked.stderr);
         assert_eq!(fs.read_file("/tree/src").unwrap(), b"keep");
     }
@@ -7001,7 +7053,7 @@ mod tests {
         root.symlink("file", "/tree/link").unwrap();
         dest.write_file("/dest", b"old").unwrap();
         dest.hard_link("/dest", "/old-link").unwrap();
-        let mv = |args_in: &[&str]| cmd_mv(&args(args_in), "", "/", &BTreeMap::new(), &fs);
+        let mv = |args_in: &[&str]| try_run_fs_command("mv", &args(args_in), "", "/", &BTreeMap::new(), &fs).unwrap();
         dest.chmod("/dest", 0o400).unwrap();
         root.chmod("/peer", 0o200).unwrap();
         let denied = mv(&["-b", "/peer", "/mnt/dest"]);
@@ -7035,14 +7087,14 @@ mod tests {
         fs.write_file("/from", b"new").unwrap();
         fs.write_file("/to", b"old").unwrap();
         fs.hard_link("/to", "/old-alias").unwrap();
-        let result = cmd_mv(&args(&["-b", "from", "to"]), "", "/", &BTreeMap::new(), &fs);
+        let result = try_run_fs_command("mv", &args(&["-b", "from", "to"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(result.exit_code, 0);
         fs.write_file("/to~", b"saved").unwrap();
         assert_eq!(fs.read_file("/old-alias").unwrap(), b"saved");
 
         fs.write_file("/locked/file", b"keep").unwrap();
         fs.chmod("/locked", 0o555).unwrap();
-        let failed = cmd_mv(&args(&["-b", "locked/file", "to"]), "", "/", &BTreeMap::new(), &fs);
+        let failed = try_run_fs_command("mv", &args(&["-b", "locked/file", "to"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(failed.exit_code, 1);
         assert_eq!(fs.read_file("/to").unwrap(), b"new");
         assert_eq!(fs.read_file("/locked/file").unwrap(), b"keep");
@@ -7060,7 +7112,7 @@ mod tests {
             assert_eq!(r.exit_code, 2);
             assert_eq!(fs.read_file("/dst").unwrap(), b"OLD");
         }
-        let r = cmd_cp(&args(&["--backup=nu", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["--backup=nu", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.exit_code, 0);
         assert_eq!(fs.read_file(&format!("/dst.~1{}~", "0".repeat(30))).unwrap(), b"OLD");
     }
@@ -7070,7 +7122,7 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/src", b"NEW").unwrap();
         fs.write_file("/dst", b"OLD").unwrap();
-        assert_eq!(cmd_ln(&args(&["/dst", "/dst~"]), "", "/", &BTreeMap::new(), &fs).exit_code, 0);
+        assert_eq!(try_run_fs_command("ln", &args(&["/dst", "/dst~"]), "", "/", &BTreeMap::new(), &fs).unwrap().exit_code, 0);
         for cmd in ["cp", "ln"] {
             let r = try_run_fs_command(cmd, &args(&["-b", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.exit_code, 1);
@@ -7092,7 +7144,7 @@ mod tests {
         }
         fs.symlink("file", "/alias").unwrap();
         let before = fs.lstat("/alias").unwrap().identity;
-        let result = cmd_cp(&args(&["-b", "/file~", "/alias"]), "", "/", &BTreeMap::new(), &fs);
+        let result = try_run_fs_command("cp", &args(&["-b", "/file~", "/alias"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         assert_eq!(fs.lstat("/alias~").unwrap().identity, before);
         assert_eq!(fs.readlink("/alias~").unwrap(), "file");
@@ -7105,7 +7157,7 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/src/a", b"NEW").unwrap();
         fs.write_file("/dst/a", b"OLD").unwrap();
-        let result = cmd_cp(&args(&["-RbT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        let result = try_run_fs_command("cp", &args(&["-RbT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(result.exit_code, 0);
         assert_eq!(fs.read_file("/dst/a~").unwrap(), b"OLD");
         assert!(!fs.exists("/dst~"));
@@ -7121,7 +7173,7 @@ mod tests {
         fs.chmod("/dst/a", 0o400).unwrap();
         fs.set_mtime("/src/a", 1234).unwrap();
         fs.set_mtime("/dst/a", 5678).unwrap();
-        let copy = |argv: &[&str]| cmd_cp(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        let copy = |argv: &[&str]| try_run_fs_command("cp", &args(argv), "", "/", &BTreeMap::new(), &fs).unwrap();
         for argv in [["--attributes-only", "-f", "/src/a", "/dst/a"], ["--attributes-only", "-RT", "/src", "/dst"]] {
             let result = copy(&argv);
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
@@ -7142,7 +7194,7 @@ mod tests {
         fs.write_file("/src/a", b"NEW").unwrap();
         fs.write_file("/dst/a", b"KEEP").unwrap();
         fs.symlink("a", "/src/z").unwrap();
-        let copy = |argv: &[&str]| cmd_cp(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        let copy = |argv: &[&str]| try_run_fs_command("cp", &args(argv), "", "/", &BTreeMap::new(), &fs).unwrap();
         for argv in [vec!["-Rpv", "/src", "/dst"], vec!["-HpbR", "/src", "/dst"], vec!["-Rpv", "/absent", "/src/a", "/src/z", "/dst"]] {
             let r = copy(&argv);
             let target = if argv.len() == 3 { "/dst/src/z" } else { "/dst/z" };
@@ -7168,7 +7220,7 @@ mod tests {
         fs.write_file("/w/dst", b"KEEP").unwrap();
         fs.mkdir_all("/w/private").unwrap();
         fs.chmod("/w/private", 0o400).unwrap();
-        let run = |argv: &[&str]| cmd_ln(&args(argv), "", "/w", &BTreeMap::new(), &fs);
+        let run = |argv: &[&str]| try_run_fs_command("ln", &args(argv), "", "/w", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(run(&["-Pf", "private/../file", "dst"]).stderr, "ln: EACCES: permission denied, lstat '/w/private/../file'\n");
         assert_eq!(run(&["-sf", "file", "missing/../dst"]).stderr, "ln: ENOENT: no such file or directory, symlink '/w/missing/../dst'\n");
         assert_eq!(fs.read_file("/w/dst").unwrap(), b"KEEP");
@@ -7187,7 +7239,7 @@ mod tests {
         fs.symlink("__hardlink__:/file", "/literal").unwrap();
         assert_eq!(fs.readlink("/literal").unwrap(), "__hardlink__:/file");
         fs.symlink("file", "/src").unwrap();
-        let result = cmd_ln(&args(&["-P", "/src", "/alias"]), "", "/", &BTreeMap::new(), &fs);
+        let result = try_run_fs_command("ln", &args(&["-P", "/src", "/alias"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         assert_eq!(fs.lstat("/src").unwrap().identity, fs.lstat("/alias").unwrap().identity);
         fs.rename("/src", "/alias", false).unwrap();
@@ -7209,7 +7261,7 @@ mod tests {
         fs.write_file("/dst/a", b"OLD").unwrap();
         fs.mkdir_all("/dst/keep").unwrap();
         fs.symlink("keep", "/dst/b").unwrap();
-        let r = cmd_cp(&args(&["-abT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["-abT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.exit_code, 0, "{}", r.stderr);
         for (a, b) in [("a", "b"), ("s", "t")] {
             let stat = |dir: &str, name: &str| fs.lstat(&format!("/{dir}/{name}")).unwrap();
@@ -7228,7 +7280,7 @@ mod tests {
         lower.hard_link("/first", "/second").unwrap();
         lower.mkdir_all("/dst").unwrap();
         let fs = crate::vfs::OverlayVfs::new(std::sync::Arc::new(lower), std::sync::Arc::new(MemoryVfs::new()));
-        let r = cmd_cp(&args(&["--preserve=links", "/first", "/second", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["--preserve=links", "/first", "/second", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.stderr, "cp: ENOTSUP: operation not supported, cp '/dst/first'\n");
         assert!(!fs.exists("/dst/first"));
     }
@@ -7240,7 +7292,7 @@ mod tests {
         let upper = MemoryVfs::new();
         upper.symlink("below", "/src/a").unwrap();
         let fs = crate::vfs::OverlayVfs::new(std::sync::Arc::new(lower), std::sync::Arc::new(upper));
-        let r = cmd_cp(&args(&["-RL", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["-RL", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.stderr, "cp: ENOENT: no such file or directory, realpath '/src/a'\n");
         assert_eq!(r.exit_code, 1);
         assert!(!fs.exists("/dst/a"));
@@ -7257,7 +7309,7 @@ mod tests {
         let fs = crate::vfs::MountVfs::new(std::sync::Arc::new(root))
             .with_mount("/src/volume", std::sync::Arc::new(other));
         for flag in ["-Rx", "--one-file-system"] {
-            let r = cmd_cp(&args(&[flag, "-av", "/src", "/src/volume", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            let r = try_run_fs_command("cp", &args(&[flag, "-av", "/src", "/src/volume", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             assert_eq!(fs.read_file("/dst/src/plain").unwrap(), b"root");
             assert_eq!(fs.read_file("/dst/volume/nested/data").unwrap(), b"mounted");
@@ -7272,7 +7324,7 @@ mod tests {
             let fs = MemoryVfs::new();
             fs.write_file("/src/a", b"DATA").unwrap();
             fs.symlink("a", "/src/l").unwrap();
-            let r = cmd_cp(&args(&[flags, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            let r = try_run_fs_command("cp", &args(&[flags, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             assert_eq!(fs.lstat("/dst/a").unwrap().identity, fs.lstat("/src/a").unwrap().identity);
             assert_eq!(fs.lstat("/dst/l").unwrap().identity, fs.lstat(if physical { "/src/l" } else { "/src/a" }).unwrap().identity);
@@ -7285,7 +7337,7 @@ mod tests {
         fs.write_file("/file", b"KEEP").unwrap();
         fs.symlink("file", "/alias").unwrap();
         fs.symlink("absent", "/dang").unwrap();
-        let run = |argv: &[&str]| cmd_ln(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        let run = |argv: &[&str]| try_run_fs_command("ln", &args(argv), "", "/", &BTreeMap::new(), &fs).unwrap();
         for opt in ["-Lf", "-Lb"] {
             assert_eq!(run(&[opt, "/alias", "/file"]).stderr, "ln: EEXIST: file already exists '/file'\n");
             assert_eq!(run(&[opt, "/dang", "/file"]).stderr, "ln: ENOENT: no such file or directory, realpath '/dang'\n");
@@ -7305,7 +7357,7 @@ mod tests {
         fs.write_file("/src/sub/a", b"NEW").unwrap();
         fs.symlink("sub/a", "/src/ref").unwrap();
         fs.write_file("/dst/sub/a", b"KEEP").unwrap();
-        let run = |argv: &[&str]| cmd_cp(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        let run = |argv: &[&str]| try_run_fs_command("cp", &args(argv), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(run(&["-sT", "/src", "/new"]).stderr, "cp: EISDIR: omitting directory (use -R) '/src'\n");
         assert!(!fs.exists("/new"));
         assert_eq!(run(&["-RsbT", "src", "dst"]).stderr, "cp: can make relative symbolic links only in current directory\n");
@@ -7323,7 +7375,7 @@ mod tests {
         fs.write_file("/file", b"DATA").unwrap();
         fs.symlink("file", "/alias").unwrap();
         for opt in ["-sb", "-lb"] {
-            let r = cmd_cp(&args(&[opt, "/alias", "/alias"]), "", "/", &BTreeMap::new(), &fs);
+            let r = try_run_fs_command("cp", &args(&[opt, "/alias", "/alias"]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.stderr, "cp: ENOTSUP: link copy unlink lacks authoritative distinctness '/alias'\n");
             assert_eq!(fs.readlink("/alias").unwrap(), "file");
             assert!(fs.lstat("/alias~").is_err());
@@ -7337,7 +7389,7 @@ mod tests {
             fs.write_file(&format!("/src/{name}"), b"NEW").unwrap();
             fs.write_file(&format!("/dst/{name}"), b"OLD").unwrap();
         }
-        let r = cmd_cp(&args(&["-RTi", "/src", "/dst"]), "n\ny\n", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["-RTi", "/src", "/dst"]), "n\ny\n", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.exit_code, 1);
         assert_eq!(fs.read_file("/dst/𐀀").unwrap(), b"OLD");
         assert_eq!(fs.read_file("/dst/\u{e000}").unwrap(), b"NEW");
@@ -7348,7 +7400,7 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/src", b"new").unwrap();
         fs.write_file("/é\na", b"old").unwrap();
-        let r = cmd_cp(&args(&["-iv", "src", "é\na"]), "y", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["-iv", "src", "é\na"]), "y", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.exit_code, 0);
         assert_eq!(r.stderr, r"cp: overwrite ''$'\303\251\n''a'? ");
         assert_eq!(r.stdout, "'src' -> '\\303\\251\\na'\n");
@@ -7361,7 +7413,7 @@ mod tests {
         fs.write_file("/src/sub/b", b"B").unwrap();
         fs.write_file("/dst/a", b"KEEP").unwrap();
         fs.write_file("/dst/sub/b", b"OLD").unwrap();
-        let r = cmd_cp(&args(&["-RTibv", "src", "dst"]), "n\ny\n", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["-RTibv", "src", "dst"]), "n\ny\n", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.exit_code, 1);
         assert_eq!(r.stderr, "cp: overwrite 'dst/a'? cp: overwrite 'dst/sub/b'? ");
         assert_eq!(r.stdout, "'src/sub/b' -> 'dst/sub/b'\n'src/sub' -> 'dst/sub'\n'src' -> 'dst'\n");
@@ -7380,7 +7432,7 @@ mod tests {
         for opt in ["-n", "-u"] {
             for (src, dst, error) in [("/alias", "/file", "EINVAL: source and destination are the same file '/alias' -> '/file'"),
                 ("/file", "/dang", "ENOENT: no such file or directory, realpath '/dang'")] {
-                let r = cmd_cp(&args(&[opt, src, dst]), "", "/", &BTreeMap::new(), &fs);
+                let r = try_run_fs_command("cp", &args(&[opt, src, dst]), "", "/", &BTreeMap::new(), &fs).unwrap();
                 assert_eq!(r.stderr, format!("cp: {error}\n"));
                 assert_eq!(r.exit_code, 1);
             }
@@ -7395,7 +7447,7 @@ mod tests {
         fs.write_file("/dst/a", b"KEEP").unwrap();
         fs.write_file("/dst/z", b"KEEP").unwrap();
         for path in ["/dst/a", "/dst/z"] { fs.set_mtime(path, u64::MAX).unwrap(); }
-        let r = cmd_cp(&args(&["-RpuT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+        let r = try_run_fs_command("cp", &args(&["-RpuT", "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(r.exit_code, 0, "{}", r.stderr);
         assert_eq!(fs.read_file("/dst/a").unwrap(), b"KEEP");
         assert_eq!(fs.read_file("/dst/z").unwrap(), b"KEEP");
@@ -7406,7 +7458,7 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/file", b"KEEP").unwrap();
         fs.symlink("file", "/src").unwrap();
-        let copy = |argv: &[&str]| cmd_cp(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        let copy = |argv: &[&str]| try_run_fs_command("cp", &args(argv), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(copy(&["--attributes-only", "-P", "/src", "/file"]).stderr, "cp: EEXIST: file already exists, symlink '/file'\n");
         assert_eq!(copy(&["--attributes-only", "-Ppb", "/src", "/file"]).stderr, "cp: ENOTSUP: operation not supported, utimes '/file'\n");
         assert!(!fs.exists("/file~"));
@@ -7424,7 +7476,7 @@ mod tests {
         fs.write_file("/dst", b"old").unwrap();
         fs.symlink("dst", "/link").unwrap();
         fs.symlink("missing", "/dang").unwrap();
-        let copy = |flags: &[&str]| cmd_cp(&args(flags), "", "/", &BTreeMap::new(), &fs);
+        let copy = |flags: &[&str]| try_run_fs_command("cp", &args(flags), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!(copy(&["/src", "/link"]).exit_code, 0);
         assert_eq!(fs.readlink("/link").unwrap(), "dst");
         assert_eq!(fs.read_file("/dst").unwrap(), b"new");
@@ -7445,7 +7497,7 @@ mod tests {
         fs.mkdir_all("/dst").unwrap();
         fs.chmod("/dst", 0o500).unwrap();
         for flag in ["-RT", "-aT"] {
-            let r = cmd_cp(&args(&[flag, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            let r = try_run_fs_command("cp", &args(&[flag, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.exit_code, 1);
             assert!(!fs.exists("/dst/file"));
             assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, 0o500);
@@ -7453,7 +7505,7 @@ mod tests {
         fs.chmod("/dst", 0o750).unwrap();
         fs.chmod("/src", 0o500).unwrap();
         for (flag, mode) in [("-RT", 0o750), ("-aT", 0o500)] {
-            let r = cmd_cp(&args(&[flag, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            let r = try_run_fs_command("cp", &args(&[flag, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.exit_code, 0, "{}", r.stderr);
             assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, mode);
         }
@@ -7465,7 +7517,7 @@ mod tests {
             let fs = MemoryVfs::new();
             fs.write_file("/dst/item/child", b"KEEP").unwrap();
             fs.symlink("target", "/src/item").unwrap();
-            let result = cmd_cp(&args(&argv), "", "/", &BTreeMap::new(), &fs);
+            let result = try_run_fs_command("cp", &args(&argv), "", "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(fs.read_file("/dst/item/child").unwrap(), b"KEEP");
             assert_eq!(result.exit_code, 1);
             assert_eq!(result.stderr, "cp: EISDIR: illegal operation on a directory '/dst/item'\n");

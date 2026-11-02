@@ -7426,3 +7426,27 @@ test("op validates root flags before selecting help or version", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("op resolves help for catalog commands, groups and aliases without executing them", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { opCatalogNodes } = await import("../../safe-bash-command-op/dist/catalog.js");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const cases = ["--help account list", "--format json --help account", "help vault missing", "help unknown",
+      "vault create Example --help=true", "vault list --format=json", "help vault get Example", "vault -- help"];
+    for (const { path, aliases, availability } of opCatalogNodes) {
+      if (!path.length || availability === "beta") continue;
+      cases.push("help " + path.join(" "), path.join(" ") + " --help");
+      for (const alias of aliases) cases.push([...path.slice(0, -1), alias, "-h"].join(" "));
+      if (opCatalogNodes.some(node => node.path.length > path.length && path.every((part, i) => node.path[i] === part))) {
+        cases.push(path.join(" "));
+      }
+    }
+    for (const args of cases) {
+      const cmd = "op " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

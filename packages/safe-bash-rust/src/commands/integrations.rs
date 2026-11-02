@@ -1172,6 +1172,9 @@ fn render_op_inject_template(
     Ok(out)
 }
 
+#[path = "help/op_topics.rs"]
+mod op_topics;
+
 const OP_ROOT_HELP: &str = include_str!("help/op.txt");
 
 const GH_ROOT_HELP: &str = "\
@@ -1596,47 +1599,7 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
             i += 1;
             continue;
         }
-        if matches!(
-            tok,
-            "--format"
-                | "--encoding"
-                | "--account"
-                | "--config"
-                | "--session"
-                | "--file-mode"
-                | "--allow-admins-to-manage"
-                | "--travel-mode"
-                | "--ssh-generate-key"
-                | "--deauthorize-devices-after"
-                | "--role"
-                | "--permission"
-                | "--permissions"
-                | "--vault"
-                | "--title"
-                | "--category"
-                | "--url"
-                | "--tags"
-                | "--template"
-                | "--fields"
-                | "--field"
-                | "--categories"
-                | "--current-vault"
-                | "--destination-vault"
-                | "--description"
-                | "--name"
-                | "--icon"
-                | "--group"
-                | "--user"
-                | "--server"
-                | "--shell"
-                | "--vars"
-                | "--in-file"
-                | "-i"
-                | "--out-file"
-                | "-o"
-                | "--env-file"
-                | "--file-name"
-        ) {
+        if op_flag_takes_value(tok) {
             let flag_name = match tok {
                 "-i" => "--in-file",
                 "-o" => "--out-file",
@@ -1733,6 +1696,50 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
     Ok(())
 }
 
+fn op_flag_takes_value(tok: &str) -> bool {
+    matches!(
+        tok,
+        "--format"
+            | "--encoding"
+            | "--account"
+            | "--config"
+            | "--session"
+            | "--file-mode"
+            | "--allow-admins-to-manage"
+            | "--travel-mode"
+            | "--ssh-generate-key"
+            | "--deauthorize-devices-after"
+            | "--role"
+            | "--permission"
+            | "--permissions"
+            | "--vault"
+            | "--title"
+            | "--category"
+            | "--url"
+            | "--tags"
+            | "--template"
+            | "--fields"
+            | "--field"
+            | "--categories"
+            | "--current-vault"
+            | "--destination-vault"
+            | "--description"
+            | "--name"
+            | "--icon"
+            | "--group"
+            | "--user"
+            | "--server"
+            | "--shell"
+            | "--vars"
+            | "--in-file"
+            | "-i"
+            | "--out-file"
+            | "-o"
+            | "--env-file"
+            | "--file-name"
+    )
+}
+
 fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
     let mut out = Vec::new();
     let mut i = skip;
@@ -1744,47 +1751,7 @@ fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
             }
             break;
         }
-        if matches!(
-            tok,
-            "--format"
-                | "--account"
-                | "--session"
-                | "--config"
-                | "--encoding"
-                | "--file-mode"
-                | "--allow-admins-to-manage"
-                | "--travel-mode"
-                | "--ssh-generate-key"
-                | "--deauthorize-devices-after"
-                | "--role"
-                | "--permission"
-                | "--permissions"
-                | "--vault"
-                | "--title"
-                | "--category"
-                | "--url"
-                | "--tags"
-                | "--template"
-                | "--fields"
-                | "--field"
-                | "--categories"
-                | "--current-vault"
-                | "--destination-vault"
-                | "--description"
-                | "--name"
-                | "--icon"
-                | "--group"
-                | "--user"
-                | "--server"
-                | "--shell"
-                | "--vars"
-                | "--in-file"
-                | "-i"
-                | "--out-file"
-                | "-o"
-                | "--env-file"
-                | "--file-name"
-        ) {
+        if op_flag_takes_value(tok) {
             i += 2;
             continue;
         }
@@ -1901,6 +1868,58 @@ fn op_root_flags(args: &[String], env: &BTreeMap<String, String>) -> Option<Buil
     })
 }
 
+fn op_topic_help(args: &[String]) -> Option<BuiltinOutcome> {
+    let mut path = "";
+    let mut group = true;
+    let mut help = OP_ROOT_HELP;
+    let mut keyword = false;
+    let mut flag = false;
+    let mut words = args.iter();
+    while let Some(word) = words.next() {
+        if word == "--" {
+            if group && words.len() != 0 && !keyword && !flag {
+                return Some(op_err("a command is required"));
+            }
+            break;
+        }
+        if word == "help" && path.is_empty() {
+            keyword = true;
+        } else if op_flag_takes_value(word) {
+            words.next();
+        } else if word == "-h" || word == "--help" {
+            flag = true;
+        } else if let Some(value) = word
+            .strip_prefix("--help=")
+            .or_else(|| word.strip_prefix("-h="))
+        {
+            let Some(enabled) = op_bool(value) else {
+                return Some(op_err("invalid boolean value for --help"));
+            };
+            flag = enabled;
+        } else if (!word.starts_with('-') || word == "-") && group {
+            if let Some(topic) = op_topics::child(path, word) {
+                (path, group, help) = topic;
+            } else {
+                // Internal completion callbacks use command names outside the public catalog.
+                if path.is_empty() && matches!(word.as_str(), "__complete" | "__completeNoDesc") {
+                    return None;
+                }
+                let unknown = if path.is_empty() {
+                    word.to_string()
+                } else {
+                    format!("{path} {word}")
+                };
+                return Some(op_err(&format!("unknown command: {unknown}")));
+            }
+        }
+    }
+    (keyword || flag || group).then(|| BuiltinOutcome {
+        stdout: help.to_string(),
+        stderr: String::new(),
+        exit_code: 0,
+    })
+}
+
 fn cmd_op<F>(
     args: &[String],
     stdin: &str,
@@ -1927,50 +1946,8 @@ where
     }
 
     let first = args[0].as_str();
-    if first == "--help" || first == "-h" || first == "help" {
-        let topic: Vec<&str> = args[1..]
-            .iter()
-            .map(|s| s.as_str())
-            .filter(|s| !s.starts_with('-'))
-            .collect();
-        if topic.is_empty() {
-            return BuiltinOutcome {
-                stdout: OP_ROOT_HELP.to_string(),
-                stderr: String::new(),
-                exit_code: 0,
-            };
-        }
-        if topic == ["vault", "user"] {
-            return BuiltinOutcome {
-                stdout: "Manage user vault access\n\nUsage:  op vault user [command] [flags]\n\nCommands:\n  grant   Grant a user access to a vault\n  revoke  Revoke a portion or the entire access of a user to a vault\n  list    List all users with access to the vault and their permissions\n\nFlags:\n  -h, --help   help for user\n\nTo list the global flags available on every command, run  'op --help'.\n\nRun 'op vault user [command] --help' for more information on the command.\n".to_string(),
-                stderr: String::new(),
-                exit_code: 0,
-            };
-        }
-        let joined = topic.join(" ");
-        return BuiltinOutcome {
-            stdout: format!(
-                "1Password CLI - op {joined}\n\nUsage:  op {joined} [command] [flags]\n\nCommands:\n  create  Create {joined}\n  get     Get {joined}\n  list    List {joined}\n  edit    Edit {joined}\n  delete  Delete {joined}\n  grant   Grant access\n  revoke  Revoke access\n\nFlags:\n  -h, --help   help for {joined}\n"
-            ),
-            stderr: String::new(),
-            exit_code: 0,
-        };
-    }
-
-    if args.iter().any(|a| a == "--help" || a == "-h") && first != "run" {
-        let topic: Vec<&str> = args
-            .iter()
-            .map(|s| s.as_str())
-            .filter(|s| !s.starts_with('-'))
-            .collect();
-        let joined = topic.join(" ");
-        return BuiltinOutcome {
-            stdout: format!(
-                "1Password CLI - op {joined}\n\nUsage:  op {joined} [flags]\n\nFlags:\n  -h, --help   help for {joined}\n"
-            ),
-            stderr: String::new(),
-            exit_code: 0,
-        };
+    if let Some(outcome) = op_topic_help(args) {
+        return outcome;
     }
 
     let fs_id = fs.fs_id();

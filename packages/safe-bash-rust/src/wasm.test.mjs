@@ -4943,3 +4943,38 @@ test("pdftk keeps the selected input trailer ID across assembly and metadata edi
     }
   }finally{rs.dispose();}
 });
+
+test("pdftk composites stamp and background streams, resources and page transforms",async()=>{
+  const {PdfDocument,cosDict,cosName,cosArray,cosString,cosNumber,dictSet,dictGet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true})),rs=new RustWasmBash({cwd:"/"});
+  const dst=PdfDocument.create(),src=PdfDocument.create();
+  dst.setTitle("Keep the title");
+  for(const [i,r] of [0,90,180,270].entries()){
+    const page=dst.addPage();page.setRotation(r);page.drawText("Target "+i,{x:20,y:40});
+    dictSet(page.pageDict,"Annots",cosArray([cosDict({Subtype:cosName("Text"),Contents:cosString("keep")})]));
+  }
+  for(let i=0;i<2;i++){const p=src.addPage();p.drawText("Stamp "+i,{x:30,y:150});p.setRotation(90*i);}
+  const shared=dst.cos.allocateObject(dst.getPage(0).getResourcesDict());
+  for(const p of dst.getPages())dictSet(p.pageDict,"Resources",shared);
+  dictSet(dst.getPage(0).pageDict,"MediaBox",cosArray([dst.cos.allocateObject(cosNumber(0)),cosNumber(0),cosNumber(580),cosNumber(770)]));
+  for(const p of src.getPages())dictSet(p.pageDict,"Contents",src.cos.allocateObject(dictGet(p.pageDict,"Contents")));
+  const files={"/in":dst.save(),"/src":src.save(),"/protected":dst.save({encrypt:{userPassword:"reader",ownerPassword:"owner"}})};
+  try{
+    for(const f of [fs,rs.fs])for(const [p,b] of Object.entries(files))await f.writeFile(p,b);
+    for(const cmd of ["pdftk in stamp src output out","pdftk in background src output out uncompress","pdftk in multistamp - output out compress < src","pdftk protected input_pw reader multibackground output out < src"]){
+      for(const shell of [js,rs]){const r=await shell.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      const got=await rs.fs.readFile("/out"),want=await fs.readFile("/out");
+      const parsed=PdfDocument.load(got);
+      assert.match(parsed.extractText(),/Stamp/); assert.equal(dictGet(parsed.getPage(0).pageDict,"Annots").items.length,1);
+      assert.ok(Buffer.from(got).equals(want),cmd+" first different byte "+want.findIndex((b,i)=>b!==got[i]));
+    }
+    for(const f of [fs,rs.fs]) {await f.writeFile("/bad",Buffer.from("broken"));await f.writeFile("/out",Buffer.from("prior output"));}
+    for(const cmd of ["pdftk in stamp absent output out","pdftk in stamp bad output out","pdftk in stamp protected output out"]){
+      const expected=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.notEqual(expected.exitCode,0);assert.deepEqual([r.exitCode,r.stderr],[expected.exitCode,expected.stderr]);
+      assert.equal(Buffer.from(await rs.fs.readFile("/out")).toString(),"prior output");
+    }
+  }finally{rs.dispose();}
+});

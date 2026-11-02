@@ -559,6 +559,11 @@ impl<'a> Objects<'a> {
     // Return the terminal (non-stream) value and its owner while preserving
     // any intermediate indirect references in the parent dictionary.
     fn lookup_value(&mut self, node: &Value<'a>) -> Option<(Option<ObjectId>, Value<'a>)> {
+        let (owner,value,stream)=self.lookup_object(node)?;
+        stream.is_none().then_some((owner,value))
+    }
+
+    fn lookup_object(&mut self,node:&Value<'a>)->Option<(Option<ObjectId>, Value<'a>, Option<Cursor<'a>>)>{
         let mut value = node.clone();
         let mut owner = None;
         let mut seen = std::collections::BTreeSet::new();
@@ -566,11 +571,11 @@ impl<'a> Objects<'a> {
             if !seen.insert(id) {return None;}
             let (v, mut cursor) = self.object(id)?;
             cursor.skip();
-            if cursor.0.starts_with(b"stream") {return None;}
+            if cursor.0.starts_with(b"stream") {return Some((Some(id),v,Some(cursor)));}
             owner = Some(id);
             value = v;
         }
-        Some((owner, value))
+        Some((owner, value, None))
     }
 
     fn resolve(&mut self, value: &Value<'a>) -> Option<Value<'a>> {

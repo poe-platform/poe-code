@@ -7773,7 +7773,7 @@ fn cmd_media_doc(
                     "drop_xfa" => drop_xfa=true,
                     "drop_xmp" => drop_xmp=true,
                     "need_appearances" => need_appearances=true,
-                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle")=>{
+                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
                         compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
@@ -7984,36 +7984,34 @@ fn cmd_media_doc(
                 "stamp" | "multistamp" | "background" | "multibackground" => {
                     let is_multi = op == "multistamp" || op == "multibackground";
                     let is_stamp = op == "stamp" || op == "multistamp";
-                    let rest=&operands;
-                    let mut doc = primary;
-                    if !rest.is_empty() {
-                        let sdoc = if rest[0] == "-" {
-                            PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
-                        } else {
-                            let sfull = resolve_posix_path(cwd, &rest[0]);
-                            if fs.is_dir(&sfull) {
-                                return err_out(&format!("Error: Unable to open '{}'\n", rest[0]), 1);
-                            }
-                            let Ok(sb) = fs.read_file(&sfull) else {
-                                return err_out(&format!("Error: Unable to open '{}'\n", rest[0]), 1);
-                            };
-                            if !sb.starts_with(b"%PDF-") {
-                                return err_out(&format!("Error: Failed to open PDF '{}': Invalid PDF header: missing %PDF- signature\n", rest[0]), 1);
-                            }
-                            PdfDoc::parse(&sb)
+                    let path=operands.first().map_or("-",String::as_str);
+                    let stamp=if path=="-" {crate::vfs::stream_string_to_bytes(stdin)} else {
+                        let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) else {return err_out(&format!("Error: Unable to open '{path}'\n"),1);};
+                        bytes
+                    };
+                    if !stamp.windows(5).take(1024).any(|w|w==b"%PDF-") {return err_out("shell: line 1: internal error\n",1);}
+                    let (bytes,password)=&inputs[primary_handle];
+                    if !is_legacy_pdf(bytes) && !is_legacy_pdf(&stamp) {
+                        let edits=pdf_reader::PageEdits{password,stamp:Some((&stamp,is_multi,is_stamp)),..output_edits};
+                        return match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
+                            Ok(bytes)=>write_pdftk_output(bytes),
+                            Err(e) if e=="PDF output byte limit exceeded"=>err_out(&format!("Error: {e}\n"),1),
+                            Err(_)=>err_out("shell: line 1: internal error\n",1),
                         };
-                        if !sdoc.pages.is_empty() {
-                            for (p_idx, pg) in doc.pages.iter_mut().enumerate() {
-                                let spg = if is_multi {
-                                    sdoc.pages.get(p_idx).unwrap_or_else(|| sdoc.pages.last().unwrap())
-                                } else {
-                                    &sdoc.pages[0]
-                                };
-                                if is_stamp {
-                                    pg.text = format!("{}\n{}", pg.text, spg.text);
-                                } else {
-                                    pg.text = format!("{}\n{}", spg.text, pg.text);
-                                }
+                    }
+                    let mut doc=primary;
+                    let sdoc=PdfDoc::parse(&stamp);
+                    if !sdoc.pages.is_empty() {
+                        for (p_idx, pg) in doc.pages.iter_mut().enumerate() {
+                            let spg = if is_multi {
+                                sdoc.pages.get(p_idx).unwrap_or_else(|| sdoc.pages.last().unwrap())
+                            } else {
+                                &sdoc.pages[0]
+                            };
+                            if is_stamp {
+                                pg.text = format!("{}\n{}", pg.text, spg.text);
+                            } else {
+                                pg.text = format!("{}\n{}", spg.text, pg.text);
                             }
                         }
                     }

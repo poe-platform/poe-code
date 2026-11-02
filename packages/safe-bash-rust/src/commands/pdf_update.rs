@@ -397,7 +397,7 @@ impl Updates {
         Ok(())
     }
 }
-fn encode_name(key: &str) -> Vec<u8> {
+pub(super) fn encode_name(key: &str) -> Vec<u8> {
     let mut raw = Vec::new();
     for b in key.bytes() {
         if !(33..=126).contains(&b) || b"()<>[]{}/%#".contains(&b) {

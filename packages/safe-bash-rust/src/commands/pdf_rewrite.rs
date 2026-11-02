@@ -27,6 +27,27 @@ pub(super) fn encode(v: &Value<'_>, out: &mut Vec<u8>) -> Result<(), String> {
     .ok_or_else(|| INVALID.into())
 }
 
+pub(super) fn write_stream(out:&mut Vec<u8>,mut dict:Value,bytes:&[u8],mode:Option<bool>,limit:usize)->Result<(),String>{
+    let compressed;
+    let mut data=bytes;
+    if let Some(compress)=mode {
+        let Value::Dict(ref mut fields)=dict else{return Err(INVALID.into())};
+        fields.retain(|(k,_)|!matches!(k.as_ref(),b"Filter"|b"DecodeParms"));
+        if compress {
+            compressed=crate::commands::codecs::zlib_compress(bytes);
+            data=&compressed;
+            set(fields,b"Filter",Value::Word(b"/FlateDecode".as_slice().into()));
+        }
+    }
+    dict.set_stream_length(data.len()).ok_or(INVALID)?;
+    encode(&dict,out)?;
+    if data.len().saturating_add(18)>limit.saturating_sub(out.len()){return Err(TOO_LARGE.into());}
+    out.extend_from_slice(b"\nstream\n");
+    out.extend_from_slice(data);
+    out.extend_from_slice(b"\nendstream");
+    Ok(())
+}
+
 pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
     write_objects(
         &[
@@ -42,6 +63,7 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
+    pub stamp: Option<(&'a [u8], bool, bool)>,
     pub trailer_id: Option<&'a [u8]>,
     pub append_files: Option<&'a [String]>,
     pub attachment_page: Option<usize>,
@@ -99,13 +121,17 @@ pub(in super::super) fn rewrite(
         .get(b"Pages")
         .and_then(Value::reference)
         .ok_or(INVALID)?;
-    let (pages, tree) = objects
+    let (pages, mut tree) = objects
         .page_tree(
             root,
             &catalog,
             changed.keys().next_back().map_or(0, |id| id.0),
         )
         .ok_or(INVALID)?;
+    if let Some((stamp,multi,overlay))=edits.stamp {
+        let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
+        super::PageSource::open(stamp,"")?.stamp(&mut objects,&pages,&mut tree,multi,overlay,next,&mut changed,edits.compress_streams,limit)?;
+    }
     let pin_page=edits.attachment_page.and_then(|p| pages.get(p.min(pages.len().saturating_sub(1)))).copied();
     let mut pins=if let Some(paths)=edits.append_files {
         let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
@@ -277,24 +303,9 @@ pub(in super::super) fn rewrite(
             let (mut dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
             cursor.skip();
             if cursor.0.starts_with(b"stream") {
-                let mut data = objects.raw_stream(id, &mut dict, cursor).ok_or(INVALID)?;
-                if let Some(compress)=edits.compress_streams {
-                    data=objects.decode(&dict,data).ok_or(INVALID)?;
-                    let Value::Dict(ref mut fields)=dict else{return Err(INVALID.into())};
-                    fields.retain(|(key,_)|!matches!(key.as_ref(),b"Filter"|b"DecodeParms"));
-                    if compress {
-                        data=crate::commands::codecs::zlib_compress(&data).into();
-                        set(fields,b"Filter",Value::Word(b"/FlateDecode".as_slice().into()));
-                    }
-                }
-                dict.set_stream_length(data.len()).ok_or(INVALID)?;
-                encode(&dict, &mut out)?;
-                if data.len() > limit.saturating_sub(out.len()) {
-                    return Err(TOO_LARGE.into());
-                }
-                out.extend_from_slice(b"\nstream\n");
-                out.extend_from_slice(&data);
-                out.extend_from_slice(b"\nendstream");
+                let mut data=objects.raw_stream(id,&mut dict,cursor).ok_or(INVALID)?;
+                if edits.compress_streams.is_some() {data=objects.decode(&dict,data).ok_or(INVALID)?;}
+                write_stream(&mut out,dict,&data,edits.compress_streams,limit)?;
             } else if cursor.0.starts_with(b"endobj") {
                 encode(&dict, &mut out)?;
             } else {

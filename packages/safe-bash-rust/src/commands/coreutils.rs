@@ -1,3 +1,5 @@
+mod fmt_printable;
+mod fmt_quote;
 mod fold_widths;
 mod sort_keys;
 mod sort_locale;
@@ -11822,11 +11824,11 @@ fn cmd_fold(
     }
 }
 
-fn parse_fmt_width_val(text: &str, max_val: usize, is_goal: bool) -> Result<usize, String> {
+fn parse_fmt_width_val(text: &str, max_val: usize, is_goal: bool, unicode: bool) -> Result<usize, String> {
     let trimmed = text.trim_start_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']);
     let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
     if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return Err(format!("fmt: invalid width: '{text}'\n"));
+        return Err(format!("fmt: invalid width: {}\n", fmt_quote::quote(text, false, unicode)));
     }
     match digits.parse::<usize>() {
         Ok(n) if n <= max_val => Ok(n),
@@ -11836,7 +11838,7 @@ fn parse_fmt_width_val(text: &str, max_val: usize, is_goal: bool) -> Result<usiz
             } else {
                 ": Numerical result out of range"
             };
-            Err(format!("fmt: invalid width: '{text}'{reason}\n"))
+            Err(format!("fmt: invalid width: {}{reason}\n", fmt_quote::quote(text, false, unicode)))
         }
     }
 }
@@ -12248,6 +12250,13 @@ fn cmd_fmt(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    let locale = ["LC_ALL", "LC_CTYPE", "LANG"].iter()
+        .find_map(|key| env.get(*key).filter(|v| !v.is_empty())).map_or("C", String::as_str);
+    let unicode = match locale.to_ascii_lowercase().as_str() {
+        "c" | "posix" => false,
+        "c.utf8" | "c.utf-8" | "en_us.utf8" | "en_us.utf-8" => true,
+        _ => return err_out("fmt: Unavailable fmt byte/locale profile\n", 1),
+    };
     let mut width_opt: Option<String> = None;
     let mut goal_opt: Option<String> = None;
     let mut crown = false;
@@ -12403,6 +12412,8 @@ fn cmd_fmt(
                     );
                 }
                 if !"cstuwpg".contains(ch) {
+                    let byte = stream_string_to_bytes(ch.encode_utf8(&mut [0; 4]))[0];
+                    let ch = crate::vfs::bytes_to_stream_string(&[byte]);
                     return err_out(
                         &format!("fmt: invalid option -- '{ch}'\nTry 'fmt --help' for more information.\n"),
                         1,
@@ -12441,13 +12452,13 @@ fn cmd_fmt(
 
     let mut width = 75usize;
     if let Some(ref w_str) = width_opt {
-        width = match parse_fmt_width_val(w_str, 2500, false) {
+        width = match parse_fmt_width_val(w_str, 2500, false, unicode) {
             Ok(w) => w,
             Err(msg) => return err_out(&msg, 1),
         };
     }
     let goal = if let Some(ref g_str) = goal_opt {
-        let g = match parse_fmt_width_val(g_str, width, true) {
+        let g = match parse_fmt_width_val(g_str, width, true, unicode) {
             Ok(v) => v,
             Err(msg) => return err_out(&msg, 1),
         };
@@ -12478,9 +12489,9 @@ fn cmd_fmt(
                 "EBADF" => "Bad file descriptor", _ => return format!("fmt: {error}\n"),
             };
             if matches!(code, "ENOENT" | "ENOTDIR" | "EACCES" | "ELOOP") {
-                format!("fmt: cannot open '{f}' for reading: {message}\n")
+                format!("fmt: cannot open {} for reading: {message}\n", fmt_quote::quote(f, true, unicode))
             } else if f == "-" { format!("fmt: read error: {message}\n") }
-            else { format!("fmt: error reading '{f}': {message}\n") }
+            else { format!("fmt: error reading {}: {message}\n", fmt_quote::quote(f, true, unicode)) }
         };
         let mut reader = if f == "-" { None } else {
             match open_record_input(f, cwd, fs, false) {
@@ -21790,6 +21801,24 @@ mod tests {
             bad_d2u.stderr,
             "dos2unix: wrong flag 'Z' for option -i or --info\n"
         );
+    }
+
+    #[test]
+    fn fmt_selects_the_diagnostic_profile_before_options_and_quotes_original_bytes() {
+        let fs = MemoryVfs::new();
+        let mut env = BTreeMap::from([("LANG".into(), "de_DE.UTF-8".into())]);
+        let run = |argv: &[&str], env: &BTreeMap<String, String>| {
+            let r = try_run_coreutil("fmt", &args(argv), "", "/", env, &fs).unwrap();
+            assert_eq!(r.exit_code, 1);
+            crate::vfs::stream_string_to_bytes(&r.stderr)
+        };
+        assert_eq!(run(&["--version"], &env), b"fmt: Unavailable fmt byte/locale profile\n");
+        env.insert("LC_CTYPE".into(), "EN_US.utf8".into());
+        assert_eq!(run(&["-w", "é\t’"], &env), "fmt: invalid width: ‘é\\t\\’’\n".as_bytes());
+        env.insert("LC_ALL".into(), "POSIX".into());
+        assert_eq!(run(&["-g", "é\t'"], &env), b"fmt: invalid width: '\\303\\251\\t\\''\n");
+        assert_eq!(run(&["a'b"], &env), b"fmt: cannot open \"a'b\" for reading: No such file or directory\n");
+        assert_eq!(run(&["-cé"], &env), b"fmt: invalid option -- '\xc3'\nTry 'fmt --help' for more information.\n");
     }
 
     #[test]

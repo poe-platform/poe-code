@@ -11722,7 +11722,7 @@ fn cmd_media_doc(
             let known = |name: &str| tags.iter().copied().find(|t| t.eq_ignore_ascii_case(name));
             let (mut json_mode, mut bin_mode, mut tab_mode, mut csv_mode, mut xml_mode) = (false, false, false, false, false);
             let (mut group, mut short) = (0, 0usize);
-            let (mut value_conv, mut overwrite_orig) = (false, false);
+            let (mut value_conv, mut overwrite_orig, mut in_place) = (false, false, false);
             let mut print_fmt = None;
             let mut updates = Vec::new();
             let mut requested_tags = Vec::new();
@@ -11757,7 +11757,7 @@ fn cmd_media_doc(
                         short = if a == "-S" || option == "-s2" {2} else if option == "-s1" {1}
                             else if option == "-s3" {3} else {(short + a.len() - 1).min(3)};
                     }
-                    "-overwrite_original" | "-overwrite_original_in_place" => overwrite_orig = true,
+                    "-overwrite_original" | "-overwrite_original_in_place" => { overwrite_orig = true; in_place = option.ends_with("_in_place"); }
                     "-a" | "-f" | "-n" => {}
                     "-if" | "-stay_open" | "-@" | "-common_args" => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
                     _ if option.starts_with("-execute") => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
@@ -11824,17 +11824,24 @@ fn cmd_media_doc(
                 }
                 Some(prefix)
             } else { None };
-            let mut tags_from_file_err: Option<&'static str> = None;
+            let acquire = |path: &str| {
+                let (entry, stat) = fs.inspect_command_entry(path, false, "lstat").map_err(|e| {
+                    if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { "File not found".to_owned() } else { e }
+                })?;
+                if stat.kind != crate::vfs::VfsEntryKind::File || stat.mode & 0o170000 != 0o100000 {
+                    return Err("Only regular VFS files are admitted".into());
+                }
+                if stat.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, readStream '{path}'")); }
+                let bytes = fs.read_file(&entry)?;
+                Ok((stat, bytes))
+            };
+            let mut tags_from_file_err = None;
             if let Some(ref src_tag_file) = tags_from_file {
-                let src_full = resolve_posix_path(cwd, &src_tag_file);
-                if !fs.exists(&src_full) {
-                    tags_from_file_err = Some("File not found");
-                } else if fs.is_dir(&src_full) {
-                    tags_from_file_err = Some("Only regular VFS files are admitted");
-                } else if let Ok(src_bytes) = fs.read_file(&src_full) {
-                    if src_bytes.is_empty() {
-                        tags_from_file_err = Some("Not a PNG file");
-                    } else {
+                let src_full = resolve_posix_path(cwd, src_tag_file);
+                match acquire(&src_full) {
+                    Err(e) => tags_from_file_err = Some(e),
+                    Ok((_, src_bytes)) if src_bytes.is_empty() => tags_from_file_err = Some("Not a PNG file".into()),
+                    Ok((_, src_bytes)) => {
                     let mut src_tags: BTreeMap<String, String> = BTreeMap::new();
                     if src_full.to_ascii_lowercase().ends_with(".pdf")
                         || src_bytes.starts_with(b"%PDF-")
@@ -11877,30 +11884,31 @@ fn cmd_media_doc(
                 let mut err_out = String::new();
                 for f in &files {
                     let full = resolve_posix_path(cwd, f);
-                    if !fs.exists(&full) {
-                        err_out.push_str(&format!("Error: File not found - {f}\n"));
-                        continue;
-                    }
-                    if fs.is_dir(&full) {
-                        err_out.push_str(&format!("Error: Only regular VFS files are admitted - {f}\n"));
-                        continue;
-                    }
-                    let mut data = fs.read_file(&full).unwrap_or_default();
+                    let (original, mut data) = match acquire(&full) {
+                        Ok(file) => file,
+                        Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
+                    };
                     if data.is_empty() {
                         err_out.push_str(&format!("Error: File is empty - {f}\n"));
                         continue;
                     }
-                    if let Some(src_err) = tags_from_file_err {
-                        err_out.push_str(&format!("Error: {src_err} - {f}\n"));
+                    let extension = f.rsplit('.').next().unwrap_or("").to_ascii_uppercase();
+                    if matches!(extension.as_str(), "DOCX" | "PPTX" | "XLSX") {
+                        err_out.push_str(&format!("Error: Writing of {extension} files is not yet supported - {f}\n"));
                         continue;
                     }
-                    let is_pdf = full.to_ascii_lowercase().ends_with(".pdf")
-                        || data.starts_with(b"%PDF-");
+                    let is_pdf = extension == "PDF" || data.starts_with(b"%PDF-");
                     if is_pdf && updates.iter().any(|(k, _)| k.eq_ignore_ascii_case("all")) {
                         err_out.push_str(&format!(
                             "Error: PDF parser/writer not yet supported; metadata deletion retains historical revisions and never guarantees redaction - {f}\n"
                         ));
                         continue;
+                    }
+                    if !is_pdf && !data.starts_with(b"\xff\xd8") && !(data.len() >= 8 && data.starts_with(b"\x89PNG")) {
+                        err_out.push_str(&format!("Error: Format writer not yet supported - {f}\n")); continue;
+                    }
+                    if let Some(src_err) = &tags_from_file_err {
+                        err_out.push_str(&format!("Error: {src_err} - {f}\n")); continue;
                     }
                     let revision = if is_pdf && data.split(|&b| b == b'\n').nth(1) != Some(b"%%SAFE_PDF_V2%%") {
                         match pdf_reader::edit_info(&data, &updates, tags_from_file.is_some()) {
@@ -11915,6 +11923,14 @@ fn cmd_media_doc(
                             }
                         }
                     } else { None };
+                    if out_path.is_none() {
+                        if original.mode & 0o200 == 0 {
+                            err_out.push_str(&format!("Error: EACCES: permission denied, access '{full}' - {f}\n")); continue;
+                        }
+                        if !in_place && original.nlink != Some(1) {
+                            err_out.push_str(&format!("Error: VFS hardlink replacement is not yet supported - {f}\n")); continue;
+                        }
+                    }
                     if !overwrite_orig && out_path.is_none() {
                         let orig_path = format!("{full}_original");
                         if !fs.exists(&orig_path) {
@@ -11948,42 +11964,8 @@ fn cmd_media_doc(
                     exit_code: if err_out.is_empty() { 0 } else { 1 },
                 };
             }
-            let mut valid_files: Vec<String> = Vec::new();
-            let mut read_err_buf = String::new();
-            for f in &files {
-                if f == "-" {
-                    if stdin.is_empty() {
-                        read_err_buf.push_str("Error: File is empty - -\n");
-                    } else {
-                        valid_files.push(f.clone());
-                    }
-                } else {
-                    let full = resolve_posix_path(cwd, f);
-                    if !fs.exists(&full) {
-                        read_err_buf.push_str(&format!("Error: File not found - {f}\n"));
-                    } else if fs.is_dir(&full) {
-                        read_err_buf.push_str(&format!("Error: Only regular VFS files are admitted - {f}\n"));
-                    } else {
-                        let data = fs.read_file(&full).unwrap_or_default();
-                        if data.is_empty() {
-                            read_err_buf.push_str(&format!("Error: File is empty - {f}\n"));
-                        } else {
-                            valid_files.push(f.clone());
-                        }
-                    }
-                }
-            }
-            let files = valid_files;
-            let finalize_exif_out = |stdout_s: String| -> BuiltinOutcome {
-                BuiltinOutcome {
-                    stdout: stdout_s,
-                    stderr: read_err_buf.clone(),
-                    exit_code: if read_err_buf.is_empty() { 0 } else { 1 },
-                }
-            };
-            let read_all_tags = |f: &str| -> BTreeMap<String, String> {
+            let read_all_tags = |f: &str, data: &[u8]| -> BTreeMap<String, String> {
                 let full = resolve_posix_path(cwd, f);
-                let data = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) } else { fs.read_file(&full).unwrap_or_default() };
                 let mut map = BTreeMap::new();
                 map.insert("SourceFile".to_string(), f.to_string());
                 if f != "-" {
@@ -11993,7 +11975,7 @@ fn cmd_media_doc(
                 }
                 map.insert("FileSize".to_string(), format!("{} bytes", data.len()));
                 if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
-                    let pdf = PdfDoc::parse(&data);
+                    let pdf = PdfDoc::parse(data);
                     map.insert("FileType".to_string(), "PDF".to_string());
                     map.insert("FileTypeExtension".to_string(), "pdf".to_string());
                     map.insert("MIMEType".to_string(), "application/pdf".to_string());
@@ -12012,7 +11994,7 @@ fn cmd_media_doc(
                         map.insert(k, v);
                     }
                 } else {
-                    let im = read_image_meta(&data, &full);
+                    let im = read_image_meta(data, &full);
                     map.insert(
                         "MIMEType".to_string(),
                         format!("image/{}", im.fmt.to_ascii_lowercase()),
@@ -12037,10 +12019,23 @@ fn cmd_media_doc(
                 }
                 map
             };
+            let mut records = Vec::new();
+            let mut read_err_buf = String::new();
+            for f in files {
+                let data = if f == "-" { Ok(crate::vfs::stream_string_to_bytes(stdin)) }
+                    else { acquire(&resolve_posix_path(cwd, &f)).map(|(_, bytes)| bytes) };
+                match data {
+                    Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
+                    Ok(bytes) if bytes.is_empty() => read_err_buf.push_str(&format!("Error: File is empty - {f}\n")),
+                    Ok(bytes) => { let tags = read_all_tags(&f, &bytes); records.push((f, tags)); }
+                }
+            }
+            let finalize_exif_out = |stdout: String| BuiltinOutcome {
+                stdout, stderr: read_err_buf.clone(), exit_code: i32::from(!read_err_buf.is_empty()),
+            };
             if let Some(prefix) = template_prefix {
                 let mut out = String::new();
-                for f in &files {
-                    let map = read_all_tags(f);
+                for (_, map) in &records {
                     out.push_str(prefix);
                     for &(tag, literal) in &substitutions {
                         let value = map.get(tag).map(String::as_str).unwrap_or("-").trim_end_matches([' ', '\0']);
@@ -12053,10 +12048,9 @@ fn cmd_media_doc(
             }
             if json_mode {
                 let mut items = Vec::new();
-                for f in &files {
-                    let map = read_all_tags(f);
+                for (_, map) in &records {
                     let mut fields = Vec::new();
-                    for (k, v) in &map {
+                    for (k, v) in map {
                         if k == "ImageWidth" || k == "ImageHeight" || k == "PageCount" {
                             fields.push(format!("\"{k}\": {v}"));
                         } else {
@@ -12076,21 +12070,19 @@ fn cmd_media_doc(
                     hdr.push(t.clone());
                 }
                 let mut out = format!("{}\n", hdr.join(","));
-                for f in &files {
-                    let map = read_all_tags(f);
+                for (f, map) in &records {
                     let mut row = vec![f.clone()];
                     for t in &requested_tags {
                         row.push(map.get(t).cloned().unwrap_or_else(|| "-".to_string()));
                     }
                     out.push_str(&format!("{}\n", row.join(",")));
                 }
-                return finalize_exif_out(if files.is_empty() && !read_err_buf.is_empty() { String::new() } else { out });
+                return finalize_exif_out(if records.is_empty() && !read_err_buf.is_empty() { String::new() } else { out });
             }
             if xml_mode {
                 let mut out = String::from("<?xml version='1.0' encoding='UTF-8'?>\n<rdf:RDF>\n");
-                for f in &files {
-                    let map = read_all_tags(f);
-                    for (k, v) in &map {
+                for (_, map) in &records {
+                    for (k, v) in map {
                         out.push_str(&format!("  <PNG:{k}>{}</PNG:{k}>\n", html_escape_str(v)));
                     }
                 }
@@ -12099,8 +12091,7 @@ fn cmd_media_doc(
             }
             if tab_mode {
                 let mut lines = Vec::new();
-                for f in &files {
-                    let map = read_all_tags(f);
+                for (_, map) in &records {
                     let mut vals = Vec::new();
                     for rt in &requested_tags {
                         vals.push(map.get(rt).cloned().unwrap_or_else(|| "-".to_string()));
@@ -12111,8 +12102,7 @@ fn cmd_media_doc(
             }
             if s3_mode {
                 let mut lines = Vec::new();
-                for f in &files {
-                    let map = read_all_tags(f);
+                for (_, map) in &records {
                     for rt in &requested_tags {
                         if let Some(v) = map.get(rt) {
                             lines.push(v.clone());
@@ -12125,8 +12115,7 @@ fn cmd_media_doc(
                 return finalize_exif_out(format!("{}\n", lines.join("\n")));
             }
             let mut out = String::new();
-            for f in &files {
-                let map = read_all_tags(f);
+            for (_, map) in &records {
                 let file_grp = map.get("FileType").cloned().unwrap_or_else(|| "File".to_string());
                 let keys: Vec<String> = if requested_tags.is_empty() {
                     map.keys().cloned().collect()

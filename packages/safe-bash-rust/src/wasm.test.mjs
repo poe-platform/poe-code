@@ -3231,3 +3231,37 @@ test("exiftool templates substitute each original tag once for both files and st
     }
   } finally { wasm.dispose(); }
 });
+
+test("exiftool refuses link operands and unsupported writers without changing the source or its backup", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  const bytes = doc.save();
+  for (const [setup, args] of [
+    ["ln -s f.pdf link", "-Title=x link"], ["ln -s absent link", "-PageCount link"],
+    ["ln -s f.pdf link", "-tagsFromFile link f.pdf"], ["ln f.pdf other", "-Title=x f.pdf"],
+    ["chmod 400 f.pdf", "-Title=x f.pdf"], ["", "-Title=x text"], ["", "-Title=x data.docx"],
+    ["chmod 000 f.pdf", "-Title=x f.pdf"], ["chmod 000 f.pdf", "-PageCount f.pdf"],
+  ]) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/" });
+    try {
+      for (const backend of [fs, wasm.fs]) {
+        await backend.writeFile("/f.pdf", bytes);
+        await backend.writeFile("/text", Uint8Array.of(1));
+        await backend.writeFile("/data.docx", Uint8Array.of(2));
+      }
+      for (const backend of [shell, wasm]) if (setup) assert.equal((await backend.exec(setup)).exitCode, 0);
+      const script = "exiftool " + args;
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.equal(expected.exitCode, 1, script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      for (const backend of [fs, wasm.fs]) await backend.chmod("/f.pdf", 0o644);
+      for (const path of ["/f.pdf", "/text", "/data.docx", "/f.pdf_original", "/link_original", "/text_original", "/data.docx_original"])
+        assert.deepEqual(await wasm.fs.readFile(path).catch(() => undefined), await fs.readFile(path).catch(() => undefined), path);
+    } finally { wasm.dispose(); }
+  }
+});

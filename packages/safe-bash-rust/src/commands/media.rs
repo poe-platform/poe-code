@@ -6929,34 +6929,33 @@ fn cmd_media_doc(
                 }
                 return ok_out("null\n");
             }
-            if list_att {
+            if list_att || show_att.is_some() {
                 let Some(f) = primary_arg.as_deref() else {
                     return err_out("qpdf: an input file is required\n", 2);
                 };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                let mut out = String::new();
-                for (k, fname, _, _) in &doc.attachments {
-                    out.push_str(&format!("{k} -> {fname}\n"));
-                }
-                return ok_out(&out);
-            }
-            if let Some(ref key) = show_att {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                for (k, fname, _, data) in &doc.attachments {
-                    if k == key || fname == key {
-                        return ok_out(&crate::vfs::bytes_to_stream_string(data));
+                let bytes = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) }
+                    else { match fs.read_file(&resolve_posix_path(cwd,f)) {
+                        Ok(b) => b, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
+                    }};
+                let show = show_att.as_deref();
+                if let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
+                    match source.qpdf_attachments(show) {
+                        Some(Some(out)) => return ok_out(&out),
+                        None => return err_out(&format!("qpdf: {f}: invalid PDF attachment\n"), 2),
+                        Some(None) => {}
                     }
+                } else {
+                    if !bytes.starts_with(b"%PDF-") { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
+                    let doc = PdfDoc::parse(&bytes);
+                    let mut out = String::new();
+                    for (k, fname, _, data) in doc.attachments {
+                        if let Some(key) = show {
+                            if k == key || fname == key { return ok_out(&crate::vfs::bytes_to_stream_string(&data)); }
+                        } else { out.push_str(&format!("{k} -> {fname}\n")); }
+                    }
+                    if show.is_none() { return ok_out(&out); }
                 }
-                return err_out(&format!("qpdf: attachment {key} not found\n"), 2);
+                return err_out(&format!("qpdf: attachment {} not found\n", show.unwrap()), 2);
             }
             if let Some(jv) = json_version {
                 let doc = if let Some(f) = primary_arg.as_deref() {

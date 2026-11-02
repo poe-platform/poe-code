@@ -36,6 +36,12 @@ pub(in super::super) struct PageSource<'a> {
     catalog: Value<'a>,
 }
 
+struct Attachment {
+    key: String,
+    filename: Vec<u8>,
+    stream: ObjectId,
+}
+
 impl<'a> PageSource<'a> {
     pub(in super::super) fn open(bytes: &'a [u8]) -> Option<Self> {
         let (mut objects, trailer) = index(bytes)?;
@@ -108,7 +114,7 @@ impl<'a> PageSource<'a> {
         })
     }
 
-    fn attachments(&mut self) -> Option<Vec<(Vec<u8>, ObjectId)>> {
+    fn attachments(&mut self, qpdf: bool) -> Option<Vec<Attachment>> {
         let names = self
             .catalog
             .get(b"Names")
@@ -121,6 +127,7 @@ impl<'a> PageSource<'a> {
         for (key, spec) in pairs {
             let name = match self.objects.resolve(&key) {
                 Some(Value::String(bytes)) => bytes,
+                _ if qpdf => format!("att_{}", specs.len() * 2).into_bytes(),
                 _ => format!("attachment_{}", specs.len() + 1).into_bytes(),
             };
             specs.push((name, spec));
@@ -132,11 +139,11 @@ impl<'a> PageSource<'a> {
             match dict.get(b"AF").and_then(|v| objects.resolve(v)) {
                 Some(Value::Array(items)) => {
                     for (i, spec) in items.into_iter().enumerate() {
-                        specs.push((format!("{prefix}_af_{}", i + 1).into_bytes(), spec));
+                        specs.push((if qpdf {vec![]} else {format!("{prefix}_af_{}", i + 1).into_bytes()}, spec));
                     }
                 }
-                Some(spec) => specs.push((format!("{prefix}_af").into_bytes(), spec)),
-                None => {}
+                Some(spec) if !qpdf => specs.push((format!("{prefix}_af").into_bytes(), spec)),
+                _ => {}
             }
         };
         associated(
@@ -148,7 +155,7 @@ impl<'a> PageSource<'a> {
         for (index, id) in self.pages.iter().enumerate() {
             let page = self.objects.object(*id)?.0;
             let prefix = format!("page{}", index + 1);
-            associated(&mut self.objects, &page, prefix.clone(), &mut specs);
+            if !qpdf { associated(&mut self.objects, &page, prefix.clone(), &mut specs); }
             if let Some(Value::Array(items)) =
                 page.get(b"Annots").and_then(|v| self.objects.resolve(v))
             {
@@ -157,7 +164,7 @@ impl<'a> PageSource<'a> {
                     if annot.get(b"Subtype").and_then(Value::word) == Some(b"/FileAttachment")
                         && let Some(spec) = annot.get(b"FS")
                     {
-                        specs.push((format!("{prefix}_attachment").into_bytes(), spec.clone()));
+                        specs.push((if qpdf {vec![]} else {format!("{prefix}_attachment").into_bytes()}, spec.clone()));
                     }
                 }
             }
@@ -181,18 +188,37 @@ impl<'a> PageSource<'a> {
                 .and_then(|v| self.objects.resolve(v))
             {
                 Some(Value::String(bytes)) => bytes,
-                _ => fallback,
+                _ => fallback.clone(),
             };
             self.objects.remaining_bytes = self.objects.remaining_bytes.checked_sub(name.len())?;
-            files.push((name, stream));
+            let key = if qpdf { super::text(if fallback.is_empty() { &name } else { &fallback }) } else { String::new() };
+            files.push(Attachment {key, filename:name, stream});
         }
         Some(files)
+    }
+
+    pub(in super::super) fn qpdf_attachments(&mut self, show: Option<&str>) -> Option<Option<String>> {
+        let mut seen = BTreeSet::new();
+        let mut listing = String::new();
+        for file in self.attachments(true)? {
+            if !seen.insert(file.key.clone()) { continue; }
+            let filename = super::text(&file.filename);
+            if let Some(key) = show {
+                if key == file.key || key == filename {
+                    return Some(Some(crate::vfs::bytes_to_stream_string(&self.objects.decoded_stream(file.stream)?)));
+                }
+            } else {
+                use std::fmt::Write;
+                writeln!(listing, "{} -> {filename}", file.key).ok()?;
+            }
+        }
+        Some(show.is_none().then_some(listing))
     }
 
     pub(in super::super) fn read_attachments(&mut self) -> Option<Vec<(String, Vec<u8>)>> {
         let mut seen = BTreeSet::new();
         let mut result = Vec::new();
-        for (name, id) in self.attachments()? {
+        for Attachment { filename: name, stream: id, .. } in self.attachments(false)? {
             let name = super::text(&name);
             if seen.insert(name.clone()) {
                 result.push((name, self.objects.decoded_stream(id)?.into_owned()));
@@ -259,7 +285,7 @@ impl PageOutput {
             self.bodies.push(vec![]);
         }
         if whole_document {
-            for (name, id) in source.attachments()? {
+            for Attachment {filename: name, stream: id, ..} in source.attachments(false)? {
                 if !self.attachment_names.insert(super::text(&name)) {
                     continue;
                 }

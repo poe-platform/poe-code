@@ -3512,3 +3512,31 @@ test("pdfimages lists and extracts the painted image from a real PDF, retaining 
       assert.deepEqual(Buffer.from(await wasm.fs.readFile(path)), Buffer.from(await fs.readFile(path)), path);
   } finally { wasm.dispose(); }
 });
+
+test("qpdf inspects embedded name trees, associated files and attachment annotations", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { PdfDocument, cosStream, cosArray, cosDict, cosName, cosString, dictSet } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([30, 40]), root = doc.cos.resolveDict(doc.cos.rootRef);
+  const spec = (filename, byte) => {
+    const data = doc.cos.allocateObject(cosStream(Uint8Array.of(0, byte, 255)));
+    return doc.cos.allocateObject(cosDict({ UF: cosString(filename), EF: cosDict({ UF: data }) }));
+  };
+  const a = spec("payload.bin", 1), b = spec("payload.bin", 2), c = spec("af.bin", 3);
+  dictSet(root, "Names", cosDict({EmbeddedFiles: cosDict({Kids: cosArray([doc.cos.allocateObject(cosDict({
+    Names: cosArray([cosString("first"), a, cosString("second"), b, cosString("first"), b]),
+  }))])})}));
+  dictSet(root, "AF", cosArray([c]));
+  dictSet(page.dict, "AF", cosArray([spec("page-only", 4)]));
+  dictSet(page.dict, "Annots", cosArray([cosDict({Subtype: cosName("FileAttachment"), FS: spec("annot.bin", 5)})]));
+  const bytes = doc.save(), fs = new MemoryFileSystem(), wasm = new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes}});
+  await fs.writeFile("/in.pdf", bytes);
+  const shell = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const opts of ["--list-attachments", ...["first","second","payload.bin","af.bin","annot.bin","page-only","none"].map(k => "--show-attachment="+k),
+      "--list-attachments --show-attachment=second"]) {
+      const script = "qpdf in.pdf "+opts, a = await shell.exec(script), b = await wasm.exec(script);
+      assert.deepEqual([b.exitCode,b.stdoutBytes,b.stderr],[a.exitCode,a.stdoutBytes,a.stderr], script);
+    }
+  } finally { wasm.dispose(); }
+});

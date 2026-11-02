@@ -1042,11 +1042,11 @@ impl RxProgram {
             groups: 0,
             backrefs: false,
         };
-        program.compile(alts);
+        program.compile(alts, true);
         program
     }
 
-    fn compile(&mut self, alts: Vec<Vec<RxToken>>) {
+    fn compile(&mut self, alts: Vec<Vec<RxToken>>, terminal: bool) {
         let mut exits = Vec::new();
         let n = alts.len();
         for (index, seq) in alts.into_iter().enumerate() {
@@ -1054,48 +1054,40 @@ impl RxProgram {
             if index + 1 < n {
                 self.ops.push(RxOp::Split(0));
             }
-            for tok in seq {
-                let RxAtom::Group { alts, capturing } = tok.atom else {
-                    self.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
-                    self.ops.push(RxOp::Atom(tok));
-                    continue;
-                };
-                let repeated = tok.min != 1 || tok.max != Some(1);
-                let repeat = self.ops.len() + 1;
-                if repeated {
+            let len = seq.len();
+            for (i, mut tok) in seq.into_iter().enumerate() {
+                let grouped = matches!(tok.atom, RxAtom::Group { .. });
+                let variable = tok.max != Some(tok.min);
+                // A terminal scalar run can be scanned directly. Before another atom,
+                // put variable counts on the worklist so converging paths share states.
+                let repeat = ((grouped && (tok.min != 1 || tok.max != Some(1)))
+                    || (variable && !(terminal && i + 1 == len))).then(|| {
                     self.ops.push(RxOp::Enter);
-                    self.ops.push(RxOp::Repeat {
-                        min: tok.min,
-                        max: tok.max,
-                        lazy: tok.lazy,
-                        after: 0,
-                    });
+                    let head = self.ops.len();
+                    self.ops.push(RxOp::Repeat { min: tok.min, max: tok.max, lazy: tok.lazy, after: 0 });
+                    head
+                });
+                if let RxAtom::Group { alts, capturing } = tok.atom {
+                    let slot = self.groups;
+                    let open = self.ops.len();
+                    if capturing {
+                        self.groups += 1;
+                        self.ops.push(RxOp::Open { slot, until: slot + 1 });
+                    }
+                    self.compile(alts, false);
+                    if capturing {
+                        self.ops[open] = RxOp::Open { slot, until: self.groups };
+                        self.ops.push(RxOp::Close(slot));
+                    }
+                } else {
+                    self.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
+                    if repeat.is_some() { tok.min = 1; tok.max = Some(1); }
+                    self.ops.push(RxOp::Atom(tok));
                 }
-                let slot = self.groups;
-                let open = self.ops.len();
-                if capturing {
-                    self.groups += 1;
-                    self.ops.push(RxOp::Open {
-                        slot,
-                        until: slot + 1,
-                    });
-                }
-                self.compile(alts);
-                if capturing {
-                    self.ops[open] = RxOp::Open {
-                        slot,
-                        until: self.groups,
-                    };
-                    self.ops.push(RxOp::Close(slot));
-                }
-                if repeated {
-                    self.ops.push(RxOp::Again(repeat));
-                    self.ops[repeat] = RxOp::Repeat {
-                        min: tok.min,
-                        max: tok.max,
-                        lazy: tok.lazy,
-                        after: self.ops.len(),
-                    };
+                if let Some(head) = repeat {
+                    self.ops.push(RxOp::Again(head));
+                    let end = self.ops.len();
+                    if let RxOp::Repeat { after, .. } = &mut self.ops[head] { *after = end; }
                 }
             }
             if index + 1 < n {

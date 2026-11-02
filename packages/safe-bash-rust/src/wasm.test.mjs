@@ -6519,3 +6519,18 @@ test("grep, rg, and sed choose nonoverlapping alternatives in their dialect orde
     }
   } finally { rs.dispose(); }
 });
+
+test("grep handles overlapping repetitions when the required suffix is absent", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    const line = "a".repeat(96);
+    for (const f of [fs, rs.fs]) await f.writeFile("/lines", Buffer.from(line + "\n" + line + "z\n"));
+    const cmd = "grep -Ex 'a*a*a*a*a*a*a*z' lines";
+    const a = await js.exec(cmd);
+    assert.equal(a.stdout, line + "z\n");
+    const b = await rs.exec(cmd);
+    assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout]);
+  } finally { rs.dispose(); }
+});

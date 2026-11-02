@@ -18,26 +18,34 @@ pub fn try_run_fs_command(
     {
         return Some(info);
     }
-    match cmd {
-        "ls" => Some(cmd_ls(args, cwd, fs)),
-        "mkdir" => Some(cmd_mkdir(args, cwd, env, fs)),
-        "rmdir" => Some(cmd_rmdir(args, cwd, fs)),
-        "rm" => Some(cmd_rm(args, stdin, cwd, fs)),
-        "cp" => Some(cmd_cp(args, stdin, cwd, env, fs)),
-        "mv" => Some(cmd_mv(args, stdin, cwd, env, fs)),
-        "touch" => Some(cmd_touch(args, cwd, env, fs)),
-        "ln" => Some(cmd_ln(args, stdin, cwd, env, fs)),
-        "readlink" => Some(cmd_readlink(args, cwd, fs)),
-        "realpath" => Some(cmd_realpath(args, cwd, fs)),
-        "chmod" => Some(cmd_chmod(args, cwd, env, fs)),
-        "stat" => Some(cmd_stat(args, cwd, env, fs)),
-        "du" => Some(cmd_du(args, cwd, env, fs)),
-        "df" => Some(cmd_df(args, cwd, env, fs)),
-        "mktemp" => Some(cmd_mktemp(args, cwd, env, fs)),
-        "tree" => Some(cmd_tree(args, cwd, env, fs)),
-        "file" => Some(cmd_file(args, stdin, cwd, fs)),
-        _ => None,
-    }
+    try_run_fs_with_input(cmd, args, || Ok(stdin), cwd, env, fs)
+}
+
+pub(super) fn try_run_fs_with_input<'a>(
+    cmd: &str, args: &[String], stdin: impl FnOnce() -> Result<&'a str, String>,
+    cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
+) -> Option<BuiltinOutcome> {
+    let result = match cmd {
+        "ls" => return Some(cmd_ls(args, cwd, fs)),
+        "mkdir" => return Some(cmd_mkdir(args, cwd, env, fs)),
+        "rmdir" => return Some(cmd_rmdir(args, cwd, fs)),
+        "rm" => stdin().map(|stdin| cmd_rm(args, stdin, cwd, fs)),
+        "cp" => stdin().map(|stdin| cmd_cp(args, stdin, cwd, env, fs)),
+        "mv" => stdin().map(|stdin| cmd_mv(args, stdin, cwd, env, fs)),
+        "touch" => return Some(cmd_touch(args, cwd, env, fs)),
+        "ln" => stdin().map(|stdin| cmd_ln(args, stdin, cwd, env, fs)),
+        "readlink" => return Some(cmd_readlink(args, cwd, fs)),
+        "realpath" => return Some(cmd_realpath(args, cwd, fs)),
+        "chmod" => return Some(cmd_chmod(args, cwd, env, fs)),
+        "stat" => return Some(cmd_stat(args, cwd, env, fs)),
+        "du" => return Some(cmd_du(args, cwd, env, fs)),
+        "df" => return Some(cmd_df(args, cwd, env, fs)),
+        "mktemp" => return Some(cmd_mktemp(args, cwd, env, fs)),
+        "tree" => return Some(cmd_tree(args, cwd, env, fs)),
+        "file" => stdin().map(|stdin| cmd_file(args, stdin, cwd, fs)),
+        _ => return None,
+    };
+    Some(result.unwrap_or_else(|e| err_out(&format!("{cmd}: {e}\n"), 1)))
 }
 
 fn ok_out(s: &str) -> BuiltinOutcome {

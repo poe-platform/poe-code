@@ -800,6 +800,11 @@ where
     if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
         return Some(out);
     }
+    if let Some(out) = fs::try_run_fs_with_input(cmd, args, || {
+        CommandInput { text: stdin, file }.buffered().map(|text| text.as_str())
+    }, cwd, env, fs) {
+        return Some(out);
+    }
     if let Some(source) = file && let Err(error) = source.materialize(stdin) {
         return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 });
     }
@@ -807,9 +812,6 @@ where
         exec_sub(words, &mut input.to_owned(), cwd, env)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
-        return Some(res);
-    }
-    if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, exec_sub) {

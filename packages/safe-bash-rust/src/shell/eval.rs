@@ -15878,6 +15878,15 @@ hash -l
     }
 
     #[test]
+    fn filesystem_metadata_commands_leave_redirected_input_unread() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/f", b"0123456789abcdef").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        let r = shell.exec("{ mkdir /d; touch /d/x; chmod 600 /d/x; ls /d; stat -c %s /f; head -c1; } </f").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "x\n16\n0", ""));
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

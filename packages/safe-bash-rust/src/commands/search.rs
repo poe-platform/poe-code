@@ -504,12 +504,17 @@ impl ZeroRegex {
         word_regexp: bool,
         line_regexp: bool,
     ) -> Self {
-        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, None).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
+        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, RxDialect::Auto).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
+    }
+
+    pub(super) fn awk(pattern: &str) -> Self {
+        let branches = parse_rx_branches(pattern, false, RxDialect::Awk).expect("permissive awk regex parser");
+        Self::from_branches([branches], false, false, false)
     }
 
     pub(super) fn jq(pattern: &str, flags: &str, filter: &str) -> Result<Self, String> {
         let pattern = preprocess_ere_pattern(pattern, false, flags.contains('x'));
-        let branches = parse_rx_branches(&pattern, false, Some(flags)).map_err(|err| {
+        let branches = parse_rx_branches(&pattern, false, RxDialect::Jq(flags)).map_err(|err| {
             let message = match err.as_str() {
                 "unterminated bracket expression" => "premature end of char-class",
                 "unmatched '(' in regular expression" => "end pattern with unmatched parenthesis",
@@ -540,6 +545,29 @@ impl ZeroRegex {
         }
         Self { branches, capture_names, ignore_case,
             word_regexp, anchored, first_match: false }
+    }
+
+    pub(super) fn replace_count(&self, text: &str, replacement: &str, global: bool, nth: Option<usize>) -> (String, usize) {
+        let mut out = String::new();
+        let mut last_end = 0;
+        let mut occurrence = 0;
+        let mut replace_count = 0;
+        self.scan(text, replacement.contains('\\'), |s, e, caps| {
+            if s == e && s == last_end && occurrence != 0 { return true; }
+            occurrence += 1;
+            let matched = &text[s..e];
+            out.push_str(&text[last_end..s]);
+            last_end = e;
+            if occurrence < nth.unwrap_or(1) {
+                out.push_str(matched);
+                return true;
+            }
+            out.push_str(&expand_regex_replacement(replacement, matched, text, caps));
+            replace_count += 1;
+            global
+        });
+        out.push_str(&text[last_end..]);
+        (out, replace_count)
     }
 
     pub fn is_match(&self, text: &str) -> bool {
@@ -853,11 +881,14 @@ struct JqPatternFlags {
     dotall: bool,
 }
 
-fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<ParsedRegex, String> {
-    let jq = jq_flags.is_some();
-    let mut mode = jq_flags.map_or_else(JqPatternFlags::default, |f| JqPatternFlags {
-        icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']),
-    });
+enum RxDialect<'a> { Auto, Awk, Jq(&'a str) }
+
+fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, String> {
+    let jq = matches!(dialect, RxDialect::Jq(_));
+    let mut mode = match dialect {
+        RxDialect::Jq(f) => JqPatternFlags { icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']) },
+        _ => JqPatternFlags::default(),
+    };
     if fixed {
         return Ok(ParsedRegex { root: vec![pat
             .chars()
@@ -871,8 +902,12 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<P
             .collect()], groups: Vec::new() });
     }
     let mut parsed = ParsedRegex { root: Vec::new(), groups: Vec::new() };
-    let norm = normalize_bre_escapes(pat);
-    let chars: Vec<char> = norm.chars().collect();
+    let normalized;
+    let source = if matches!(dialect, RxDialect::Auto) {
+        normalized = normalize_bre_escapes(pat);
+        &normalized
+    } else { pat };
+    let chars: Vec<char> = source.chars().collect();
     let mut idx = 0usize;
     let mut out = Vec::new();
     let mut alts = Vec::new();
@@ -900,6 +935,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<P
                     'W' => RxAtom::Word(true),
                     's' => RxAtom::Space(false),
                     'S' => RxAtom::Space(true),
+                    'b' if matches!(dialect, RxDialect::Awk) => RxAtom::Char('\x08'),
                     'b' => RxAtom::WordBoundary,
                     '<' => RxAtom::WordStart,
                     '>' => RxAtom::WordEnd,
@@ -1599,7 +1635,7 @@ impl RxProgram {
 }
 
 pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false, None).expect("permissive regex parser"));
+    let program = RxProgram::new(parse_rx_branches(pat, false, RxDialect::Auto).expect("permissive regex parser"));
     let hay: Vec<_> = text.char_indices().collect();
     let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
     for start in 0..=hay.len() {
@@ -1624,7 +1660,7 @@ pub fn regex_capture_spans_in_hay(
     end: usize,
     ignore_case: bool,
 ) -> Vec<Option<(usize, usize)>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false, None).expect("permissive regex parser"));
+    let program = RxProgram::new(parse_rx_branches(pat, false, RxDialect::Auto).expect("permissive regex parser"));
     program
         .run(hay, start, ignore_case, true, true, |pos| pos == end)
         .map_or_else(|| vec![None; program.groups], |m| m.caps)
@@ -1732,27 +1768,7 @@ pub fn replace_regex_count_in_text(
     global: bool,
     nth: Option<usize>,
 ) -> (String, usize) {
-    let rx = ZeroRegex::new(vec![pat.to_string()], ignore_case, false, false, false);
-    let mut out = String::new();
-    let mut last_end = 0;
-    let mut occurrence = 0;
-    let mut replace_count = 0;
-    rx.scan(text, replacement.contains('\\'), |s, e, caps| {
-        if s == e && s == last_end && occurrence != 0 { return true; }
-        occurrence += 1;
-        let matched = &text[s..e];
-        out.push_str(&text[last_end..s]);
-        last_end = e;
-        if occurrence < nth.unwrap_or(1) {
-            out.push_str(matched);
-            return true;
-        }
-        out.push_str(&expand_regex_replacement(replacement, matched, text, caps));
-        replace_count += 1;
-        global
-    });
-    out.push_str(&text[last_end..]);
-    (out, replace_count)
+    ZeroRegex::new(vec![pat.to_string()], ignore_case, false, false, false).replace_count(text, replacement, global, nth)
 }
 
 fn apply_rg_line_replace(line: &str, offset: usize, spans: &[(usize, usize)], replacements: &BTreeMap<usize, String>) -> String {

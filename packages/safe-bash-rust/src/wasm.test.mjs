@@ -6849,3 +6849,29 @@ test("jq character classes use UTF-16 range order across the surrogate interval"
     }
   } finally { rs.dispose(); }
 });
+
+test("awk uses extended regex escapes consistently in rules, fields and functions", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const {awkCommands} = await import("@poe-platform/safe-bash/commands/awk");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()).use(awkCommands({replace:true}));
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [cmd,expected] of [
+      [String.raw`printf 'a\n|||\nc\n' | awk '/^\|\|\|/{print}'`, "|||\n"],
+      [String.raw`echo 'x|y' | awk '{n=gsub(/\|/,"#");print n,$0}'`, "1 x#y\n"],
+      [String.raw`echo 'x|y' | awk '{print gensub(/\|/,"-",1)}'`, "x-y\n"],
+      [String.raw`echo 'x|y' | awk '{print split($0,a,/\|/),a[2]}'`, "2 y\n"],
+      [String.raw`echo 'x|y' | awk -F '\|' '{print NF,$2}'`, "2 y\n"],
+      [String.raw`echo abc | awk '{p="\\|"; print ($0 !~ p),($0 ~ /\|/)}'`, "1 0\n"],
+      [String.raw`echo 'x|y' | awk '{print match($0,/\|/,a),a[0]}'`, "2 |\n"],
+      [String.raw`echo '🦊ax' | awk '{print match($0,/a(x)?(b)?/,m),RLENGTH,(2 in m),m[0]}'`, "5 2 0 ax\n"],
+      [String.raw`echo aa | awk '{print match($0,/(a|aa)/,a),RLENGTH,a[0],a[1]}'`, "1 2 aa aa\n"],
+      [String.raw`echo a | awk '{print ($0 ~ /\b(a)/)}'`, "0\n"],
+    ]) {
+      for (const sh of [js,rs]) {
+        const r=await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

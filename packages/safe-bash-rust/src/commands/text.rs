@@ -1,5 +1,5 @@
 type StagedPatchWrites = Vec<(String, Option<Vec<u8>>)>;
-use crate::commands::search::{ZeroRegex, replace_regex_count_in_text, replace_regex_in_text};
+use crate::commands::search::{ZeroRegex, replace_regex_in_text};
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
@@ -1878,7 +1878,7 @@ impl<'a> AwkState<'a> {
         } else if self.fs.len() == 1 {
             line.split(&self.fs).map(|s| s.to_string()).collect()
         } else {
-            let rx = ZeroRegex::new(vec![self.fs.clone()], false, false, false, false);
+            let rx = ZeroRegex::awk(&self.fs);
             let spans = rx.find_all(line);
             if spans.is_empty() {
                 vec![line.to_string()]
@@ -2511,7 +2511,7 @@ fn eval_awk_cond(expr: &str, state: &mut AwkState) -> bool {
     }
     if is_single_awk_regex_literal(e) {
         let pat = e[1..e.len() - 1].replace("\\/", "/");
-        return ZeroRegex::new(vec![pat], false, false, false, false)
+        return ZeroRegex::awk(&pat)
             .is_match(&state.line);
     }
     let val = eval_awk_expr(e, state);
@@ -3318,7 +3318,7 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     }
     if is_single_awk_regex_literal(s) {
         let pat = s[1..s.len() - 1].replace("\\/", "/");
-        let matched = ZeroRegex::new(vec![pat], false, false, false, false).is_match(&state.line);
+        let matched = ZeroRegex::awk(&pat).is_match(&state.line);
         return if matched { "1".to_string() } else { "0".to_string() };
     }
 
@@ -3455,11 +3455,9 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
                 let pat_owned = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
                     raw_pat[1..raw_pat.len() - 1].replace("\\/", "/")
                 } else {
-                    raw_pat.trim_matches('"').to_string()
+                    eval_awk_expr(raw_pat, state)
                 };
-                let pat = pat_owned.as_str();
-                let matched =
-                    ZeroRegex::new(vec![pat.to_string()], false, false, false, false).is_match(&lv);
+                let matched = ZeroRegex::awk(&pat_owned).is_match(&lv);
                 let ok = if cmp_op == "~" { matched } else { !matched };
                 return if ok { "1".to_string() } else { "0".to_string() };
             }
@@ -3696,27 +3694,26 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             if let Some(arr_arg) = args.get(2) {
                 state.arrays.entry(arr_arg.trim().to_string()).or_default().clear();
             }
-            let rx = ZeroRegex::new(vec![pat.clone()], false, false, false, false);
-            if let Some((st, en)) = rx.find_all(&hay).into_iter().next() {
-                let rstart = st + 1;
-                let rlen = en - st;
-                state.set_var("RSTART", rstart.to_string());
-                state.set_var("RLENGTH", rlen.to_string());
-                if let Some(arr_arg) = args.get(2) {
-                    let arr_name = arr_arg.trim().to_string();
-                    let caps = crate::commands::search::regex_captures(&pat, &hay, false)
-                        .unwrap_or_else(|| vec![hay[st..en].to_string()]);
-                    let map = state.arrays.entry(arr_name).or_default();
-                    for (idx, cap) in caps.into_iter().enumerate() {
-                        map.insert(idx.to_string(), cap);
+            let mut position = 0;
+            let mut length = -1;
+            let array = args.get(2).map(|name| name.trim());
+            ZeroRegex::awk(&pat).scan(&hay, array.is_some(), |start, end, caps| {
+                position = start + 1;
+                length = (end - start) as isize;
+                if let Some(name) = array {
+                    let map = state.arrays.entry(name.to_owned()).or_default();
+                    map.insert("0".into(), hay[start..end].to_owned());
+                    for (i, cap) in caps.iter().enumerate() {
+                        if let Some((lo, hi)) = cap {
+                            map.insert((i + 1).to_string(), hay[*lo..*hi].to_owned());
+                        }
                     }
                 }
-                Some(rstart.to_string())
-            } else {
-                state.set_var("RSTART", "0".to_string());
-                state.set_var("RLENGTH", "-1".to_string());
-                Some("0".to_string())
-            }
+                false
+            });
+            state.set_var("RSTART", position.to_string());
+            state.set_var("RLENGTH", length.to_string());
+            Some(position.to_string())
         }
         "split" => {
             if args.len() < 2 {
@@ -3767,7 +3764,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 }
                 (p_vec, s_vec)
             } else if is_rx {
-                let rx = ZeroRegex::new(vec![sep], false, false, false, false);
+                let rx = ZeroRegex::awk(&sep);
                 let spans = rx.find_all(&text);
                 let mut res = Vec::new();
                 let mut sep_res = Vec::new();
@@ -3827,7 +3824,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             } else {
                 Some((parse_awk_f64(&how) as isize).max(1) as usize)
             };
-            let (updated, _) = replace_regex_count_in_text(&target, &pat, &repl, false, global, nth);
+            let (updated, _) = ZeroRegex::awk(&pat).replace_count(&target, &repl, global, nth);
             Some(updated)
         }
         "strtonum" => {
@@ -3942,7 +3939,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let target_lval = args.get(2).map(|s| s.as_str()).unwrap_or("$0");
             let current = eval_awk_expr(target_lval, state);
             let (updated, count) =
-                replace_regex_count_in_text(&current, &pat, &repl, false, fn_name == "gsub", None);
+                ZeroRegex::awk(&pat).replace_count(&current, &repl, fn_name == "gsub", None);
             assign_awk_lvalue(target_lval, updated, state);
             Some(count.to_string())
         }

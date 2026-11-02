@@ -4787,3 +4787,28 @@ test("pdftk rotate applies only the final matching rotation and keeps every orig
     }
   }finally{rust.dispose();}
 });
+
+test("pdftk reads inherited form values, widget states and choice options from encrypted PDFs",async()=>{
+  const {PdfDocument,cosArray,cosString:s,cosNumber:n,cosName:k,cosDict:d,dictSet,cosBool}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create();doc.addPage();const cos=doc.cos;
+  const group=d({T:s("Réview"),FT:k("Tx"),TU:s("Résumé"),Q:n(1),Ff:n(1),MaxLen:n(32),DV:s("old")});
+  const parent=cos.allocateObject(group),kid=cos.allocateObject(d({T:s("name"),Parent:parent,V:s("Léa")}));
+  dictSet(group,"Kids",cosArray([kid]));
+  const choice=d({T:s("colors"),FT:k("Ch"),V:cosArray([s("rouge"),k("Blue")]),Opt:cosArray([cosArray([s("1"),s("rouge")]),k("Blue"),k("Blue")])});
+  const button=d({T:s("ok"),FT:k("Btn"),V:cosBool(true),Kids:cosArray([d({AP:d({N:d({Off:d({}),Approved:d({})})})})])});
+  dictSet(cos.resolveDict(cos.rootRef),"AcroForm",d({Fields:cosArray([parent,choice,button])}));
+  const file=doc.save({encrypt:{userPassword:"reader",ownerPassword:"owner"}});
+  const fs=new MemoryFileSystem(),rust=new RustWasmBash({cwd:"/",files:{"/in":file}});
+  await fs.writeFile("/in",file);const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try{
+    for(const op of ["dump_data_fields","dump_data_fields_utf8"]){
+      const cmd="pdftk in input_pw reader "+op;
+      const expected=await js.exec(cmd);assert.equal(expected.exitCode,0,expected.stderr);assert.match(expected.stdout,/FieldValue: Approved/);
+      assert.equal((await rust.exec(cmd)).stdout,expected.stdout);
+      assert.equal((await rust.exec(cmd+" output report")).exitCode,0);
+      assert.equal(Buffer.from(await rust.fs.readFile("/report")).toString(),expected.stdout);
+    }
+  } finally{rust.dispose();}
+});

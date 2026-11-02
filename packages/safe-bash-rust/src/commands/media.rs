@@ -7814,21 +7814,19 @@ fn cmd_media_doc(
                     } else {primary.serialize()};
                     write_pdftk_output(bytes,&args[op_idx..])
                 }
-                "dump_data" | "dump_data_utf8" => {
-                    let utf8 = op == "dump_data_utf8";
-                    let dump_txt = format_dump(&primary, utf8);
-                    let rest = &args[op_idx + 1..];
-                    if let Some(pos) = rest.iter().position(|x| x == "output")
-                        && pos + 1 < rest.len()
-                        && rest[pos + 1] != "-"
-                    {
-                        let dst = resolve_posix_path(cwd, &rest[pos + 1]);
-                        let _ = fs.write_file(&dst, dump_txt.as_bytes());
-                        return ok_out("");
-                    }
-                    ok_out(&dump_txt)
+                "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" => {
+                    let utf8 = op.ends_with("_utf8");
+                    let report = if op.starts_with("dump_data_fields") {
+                        let (bytes,password)=&inputs[&input_order[0]];
+                        if is_legacy_pdf(bytes){String::new()}else{match pdf_reader::field_report(bytes,password,utf8,limit){
+                            Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                        }}
+                    } else {format_dump(&primary,utf8)};
+                    if let Some([_,path])=args[op_idx+1..].windows(2).find(|w|w[0]=="output") && path!="-" {
+                        write_copied_pdf(fs,cwd,path,report.as_bytes(),1)
+                    }else{ok_out(&report)}
                 }
-                "dump_data_fields" | "dump_data_fields_utf8" | "dump_data_annots" => ok_out(""),
+                "dump_data_annots" => ok_out(""),
                 "update_info" | "update_info_utf8" => {
                     let rest = &args[op_idx + 1..];
                     if rest.is_empty() {

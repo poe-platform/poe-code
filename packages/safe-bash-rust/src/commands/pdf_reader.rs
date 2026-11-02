@@ -22,6 +22,10 @@ pub(super) use pdf_office::render_office;
 mod pdf_svg;
 pub(super) use pdf_svg::render_svg;
 
+#[path = "pdf_fields.rs"]
+mod pdf_fields;
+pub(super) use pdf_fields::report as field_report;
+
 #[path = "pdf_update.rs"]
 mod pdf_update;
 pub(super) use pdf_update::Updates;

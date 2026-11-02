@@ -4287,3 +4287,30 @@ test("qpdf JSON validates the input before report options, including stdin and p
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf recovers missing cross-references from object bodies, including packed objects", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument,cosStream}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("repaired 雪");doc.addPage().drawText("first",{x:1,y:2});doc.addPage();
+  doc.cos.allocateObject(cosStream(Buffer.from("99 0 obj << /Type /Catalog >> endobj\ntrailer << /Encrypt 123 0 R >>"),{compress:false}));
+  const plain=Buffer.from(doc.save()),packed=Buffer.from(doc.save({objectStreams:"generate"}));
+  const missing=plain.subarray(0,plain.lastIndexOf("\nxref\n"));
+  const files={
+    "/missing.pdf":missing,
+    "/revised.pdf":Buffer.concat([missing,Buffer.from("\n% 90 0 obj true endobj\n36 1 obj (first) endobj\n37 0 obj (second) endobj\n36 2 obj (latest) endobj\n")]),
+    "/bad-pointer.pdf":Buffer.concat([plain.subarray(0,plain.lastIndexOf("startxref")),Buffer.from("startxref\n99999999\n%%EOF")]),
+    "/packed.pdf":packed.subarray(0,packed.lastIndexOf("startxref"))
+  };
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,bytes] of Object.entries(files))await fs.writeFile(name,bytes);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const name of Object.keys(files))for(const args of ["--json --json-key=pages","--show-xref","--show-pages","--pages . 2,1 -- -","-"]) {
+      const cmd="qpdf "+name+" "+args;
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],[want.exitCode,want.stderr,Buffer.from(want.stdoutBytes)],cmd);
+    }
+  } finally {wasm.dispose();}
+});

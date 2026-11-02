@@ -1,4 +1,4 @@
-use super::{Value, index, last_xref, pdf_copy::literal, pdf_string::decode, uint};
+use super::{Value, strict_index, last_xref, pdf_copy::literal, pdf_string::decode, uint};
 use std::io::Write;
 
 pub(in super::super) const INFO_TAGS: &[&str] = &[
@@ -24,7 +24,7 @@ pub(in super::super) fn edit_info(
     if !bytes.starts_with(b"%PDF-") {
         return Err("Invalid PDF header".into());
     }
-    let (mut objects, trailer) = index(bytes).ok_or(invalid)?;
+    let (mut objects, trailer) = strict_index(bytes).filter(|(_, trailer)| trailer.get(b"Encrypt").is_none()).ok_or(invalid)?;
     let root = trailer
         .get(b"Root")
         .and_then(Value::reference)

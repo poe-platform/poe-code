@@ -699,7 +699,18 @@ fn last_xref(bytes: &[u8]) -> Option<usize> {
     uint(Cursor(&tail[offset_pos..]).word()?)
 }
 
+#[path = "pdf_repair.rs"]
+mod pdf_repair;
+
 fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
+    match strict_index(bytes) {
+        Some((_, trailer)) if trailer.get(b"Encrypt").is_some() => None,
+        Some(index) => Some(index),
+        None => pdf_repair::recover(bytes),
+    }
+}
+
+fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
     let mut offset = last_xref(bytes)?;
     let mut objects = Objects::new(bytes);
     let mut latest_members = BTreeMap::new();
@@ -736,7 +747,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         let prev = trailer.get(b"Prev").map(|v| uint(v.word()?));
         for trailer in std::iter::once(trailer).chain(supplement) {
             if trailer.get(b"Encrypt").is_some() {
-                return None;
+                return Some((objects, trailer));
             }
             let Value::Dict(entries) = trailer else {
                 return None;

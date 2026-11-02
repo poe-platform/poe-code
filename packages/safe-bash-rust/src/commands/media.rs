@@ -4478,6 +4478,10 @@ impl MediaInput {
     }
 }
 
+fn exif_printable(output: &mut String, value: &str) {
+    output.extend(value.trim_end_matches([' ', '\0']).chars().filter(|&c| c != '\0').map(|c| if c.is_ascii_control() { '.' } else { c }));
+}
+
 fn cmd_media_doc(
     cmd: &str,
     args: &[String],
@@ -11701,6 +11705,7 @@ fn cmd_media_doc(
             let (mut json_mode, mut bin_mode, mut tab_mode, mut csv_mode, mut xml_mode) = (false, false, false, false, false);
             let (mut group, mut short) = (0, 0usize);
             let (mut value_conv, mut overwrite_orig, mut in_place) = (false, false, false);
+            let (mut numeric_size, mut missing) = (false, false);
             let mut print_fmt = None;
             let mut updates = Vec::new();
             let mut requested_tags = Vec::new();
@@ -11736,7 +11741,7 @@ fn cmd_media_doc(
                             else if option == "-s3" {3} else {(short + a.len() - 1).min(3)};
                     }
                     "-overwrite_original" | "-overwrite_original_in_place" => { overwrite_orig = true; in_place = option.ends_with("_in_place"); }
-                    "-a" | "-f" | "-n" => {}
+                    "-f" => missing = true, "-n" => numeric_size = true, "-a" => {}
                     "-if" | "-stay_open" | "-@" | "-common_args" => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
                     _ if option.starts_with("-execute") => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
                     _ => {
@@ -11748,6 +11753,7 @@ fn cmd_media_doc(
                             updates.push((format!("{}{operation}", known(selector).unwrap_or(selector)), v.to_owned()));
                         } else if let Some(tag) = known(selector).or_else(|| (selector == "MissingTag").then_some(selector)) {
                             value_conv |= selector != name;
+                            numeric_size |= selector != name && tag == "FileSize";
                             requested_tags.push(tag.to_owned());
                         } else { return err_out(&format!("Error: ExifTool option/tag not yet supported: {a}\n"), 1); }
                     }
@@ -11982,60 +11988,62 @@ fn cmd_media_doc(
                     exit_code: if err_out.is_empty() { 0 } else { 1 },
                 };
             }
-            let read_all_tags = |f: &str, data: &[u8]| -> BTreeMap<String, String> {
+            let read_all_tags = |f: &str, data: &[u8]| {
                 let full = resolve_posix_path(cwd, f);
                 let mut map = BTreeMap::new();
-                map.insert("SourceFile".to_string(), f.to_string());
+                map.insert("SourceFile".to_owned(), f.to_owned());
+                let mut order = Vec::new();
+                let mut insert = |name: &str, value: String| {
+                    if map.insert(name.to_owned(), value).is_none() { order.push(name.to_owned()); }
+                };
                 if f != "-" {
                     let (dir, name) = f.rsplit_once('/').unwrap_or((".", f));
-                    map.insert("FileName".to_string(), name.to_string());
-                    map.insert("Directory".to_string(), if dir.is_empty() { "/" } else { dir }.to_string());
+                    insert("FileName", name.to_owned());
+                    insert("Directory", if dir.is_empty() { "/" } else { dir }.to_owned());
                 }
-                map.insert("FileSize".to_string(), format!("{} bytes", data.len()));
+                let size = data.len();
+                insert("FileSize", if bin_mode || numeric_size { size.to_string() }
+                    else if size < 1000 { format!("{size} bytes") }
+                    else {
+                        let exp = (size.ilog10() as usize / 3).min(5);
+                        let scaled = size as f64 / 1000f64.powi(exp as i32);
+                        let places = 2usize.saturating_sub(scaled.log10().floor() as usize);
+                        // toPrecision rounds exact decimal ties upward; Rust formatting uses ties-to-even.
+                        let halfway = (scaled * (1 << places) as f64).fract() == 0.5;
+                        let display = if halfway { scaled.next_up() } else { scaled };
+                        let rounded = format!("{display:.places$}");
+                        let number = if places == 0 { &rounded } else { rounded.trim_end_matches('0').trim_end_matches('.') };
+                        format!("{number} {}", ["kB", "MB", "GB", "TB", "PB"][exp - 1])
+                    });
                 if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
                     let pdf = PdfDoc::parse(data);
-                    map.insert("FileType".to_string(), "PDF".to_string());
-                    map.insert("FileTypeExtension".to_string(), "pdf".to_string());
-                    map.insert("MIMEType".to_string(), "application/pdf".to_string());
-                    map.insert("PDFVersion".to_string(), pdf.version);
-                    map.insert("PageCount".to_string(), pdf.pages.len().to_string());
-                    if !pdf.title.is_empty() {
-                        map.insert("Title".to_string(), pdf.title);
-                    }
-                    if !pdf.author.is_empty() {
-                        map.insert("Author".to_string(), pdf.author);
-                    }
-                    for (k, v) in pdf.info {
-                        map.insert(k, v);
-                    }
-                    for (k, v) in pdf.exif {
-                        map.insert(k, v);
+                    insert("FileTypeExtension", "pdf".into());
+                    insert("PDFVersion", pdf.version);
+                    insert("PageCount", pdf.pages.len().to_string());
+                    let mut info: BTreeMap<_,_> = pdf.info.into_iter().collect();
+                    if !pdf.title.is_empty() { info.insert("Title".into(), pdf.title); }
+                    if !pdf.author.is_empty() { info.insert("Author".into(), pdf.author); }
+                    info.extend(pdf.exif);
+                    for &name in pdf_reader::INFO_TAGS {
+                        if let Some(value) = info.remove(name) && !value.is_empty() { insert(name, value); }
                     }
                 } else {
                     let im = read_image_meta(data, &full);
-                    map.insert(
-                        "MIMEType".to_string(),
-                        format!("image/{}", im.fmt.to_ascii_lowercase()),
-                    );
-                    let ext = if im.fmt == "JPEG" {
-                        "jpg".to_string()
-                    } else {
-                        im.fmt.to_ascii_lowercase()
-                    };
-                    map.insert("FileTypeExtension".to_string(), ext);
-                    map.insert("FileType".to_string(), im.fmt);
-                    map.insert("ImageWidth".to_string(), im.w.to_string());
-                    map.insert("ImageHeight".to_string(), im.h.to_string());
-                    map.insert("ImageSize".to_string(), format!("{}x{}", im.w, im.h));
-                    map.insert("BitDepth".to_string(), "8".to_string());
-                    map.insert("ColorType".to_string(), "RGB".to_string());
+                    let ext = if im.fmt == "JPEG" { "jpg".into() } else { im.fmt.to_ascii_lowercase() };
+                    insert("FileTypeExtension", ext);
+                    insert("ImageWidth", im.w.to_string());
+                    insert("ImageHeight", im.h.to_string());
+                    insert("BitDepth", "8".into());
+                    insert("ColorType", "RGB".into());
+                    let mime = format!("image/{}", im.fmt.to_ascii_lowercase());
+                    insert("FileType", im.fmt);
+                    insert("MIMEType", mime);
+                    insert("ImageSize", format!("{}x{}", im.w, im.h));
                     for (k, v) in im.exif {
-                        if !k.starts_with("__") {
-                            map.insert(k, v);
-                        }
+                        if !k.starts_with("__") { insert(&k, v); }
                     }
                 }
-                map
+                (map, order)
             };
             let mut records = Vec::new();
             let mut read_err_buf = String::new();
@@ -12045,7 +12053,7 @@ fn cmd_media_doc(
                 match data {
                     Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
                     Ok(bytes) if bytes.is_empty() => read_err_buf.push_str(&format!("Error: File is empty - {f}\n")),
-                    Ok(bytes) => { let tags = read_all_tags(&f, &bytes); records.push((f, tags)); }
+                    Ok(bytes) => { let (tags, order) = read_all_tags(&f, &bytes); records.push((f, tags, order)); }
                 }
             }
             let finalize_exif_out = |stdout: String| BuiltinOutcome {
@@ -12053,11 +12061,10 @@ fn cmd_media_doc(
             };
             if let Some(prefix) = template_prefix {
                 let mut out = String::new();
-                for (_, map) in &records {
+                for (_, map, _) in &records {
                     out.push_str(prefix);
                     for &(tag, literal) in &substitutions {
-                        let value = map.get(tag).map(String::as_str).unwrap_or("-").trim_end_matches([' ', '\0']);
-                        out.extend(value.chars().filter(|&c| c != '\0').map(|c| if c.is_ascii_control() { '.' } else { c }));
+                        exif_printable(&mut out, map.get(tag).map(String::as_str).unwrap_or("-"));
                         out.push_str(literal);
                     }
                     out.push('\n');
@@ -12066,7 +12073,7 @@ fn cmd_media_doc(
             }
             if json_mode {
                 let mut items = Vec::new();
-                for (_, map) in &records {
+                for (_, map, _) in &records {
                     let mut fields = Vec::new();
                     for (k, v) in map {
                         if k == "ImageWidth" || k == "ImageHeight" || k == "PageCount" {
@@ -12088,7 +12095,7 @@ fn cmd_media_doc(
                     hdr.push(t.clone());
                 }
                 let mut out = format!("{}\n", hdr.join(","));
-                for (f, map) in &records {
+                for (f, map, _) in &records {
                     let mut row = vec![f.clone()];
                     for t in &requested_tags {
                         row.push(map.get(t).cloned().unwrap_or_else(|| "-".to_string()));
@@ -12099,7 +12106,7 @@ fn cmd_media_doc(
             }
             if xml_mode {
                 let mut out = String::from("<?xml version='1.0' encoding='UTF-8'?>\n<rdf:RDF>\n");
-                for (_, map) in &records {
+                for (_, map, _) in &records {
                     for (k, v) in map {
                         out.push_str(&format!("  <PNG:{k}>{}</PNG:{k}>\n", html_escape_str(v)));
                     }
@@ -12109,7 +12116,7 @@ fn cmd_media_doc(
             }
             if tab_mode {
                 let mut lines = Vec::new();
-                for (_, map) in &records {
+                for (_, map, _) in &records {
                     let mut vals = Vec::new();
                     for rt in &requested_tags {
                         vals.push(map.get(rt).cloned().unwrap_or_else(|| "-".to_string()));
@@ -12118,38 +12125,28 @@ fn cmd_media_doc(
                 }
                 return finalize_exif_out(if lines.is_empty() { String::new() } else { format!("{}\n", lines.join("\n")) });
             }
-            if s3_mode {
-                let mut lines = Vec::new();
-                for (_, map) in &records {
-                    for rt in &requested_tags {
-                        if let Some(v) = map.get(rt) {
-                            lines.push(v.clone());
-                        }
-                    }
-                }
-                if lines.is_empty() {
-                    return finalize_exif_out(String::new());
-                }
-                return finalize_exif_out(format!("{}\n", lines.join("\n")));
-            }
             let mut out = String::new();
-            for (_, map) in &records {
-                let file_grp = map.get("FileType").cloned().unwrap_or_else(|| "File".to_string());
-                let keys: Vec<String> = if requested_tags.is_empty() {
-                    map.keys().cloned().collect()
-                } else {
-                    requested_tags.clone()
-                };
-                for k in &keys {
-                    if let Some(v) = map.get(k) {
-                        if s2_mode {
-                            out.push_str(&format!("{k}: {v}\n"));
-                        } else if group_mode {
-                            let grp_hdr = format!("[{file_grp}]");
-                            out.push_str(&format!("{grp_hdr:<16}{k:<32}: {v}\n"));
-                        } else {
-                            out.push_str(&format!("{k:<32}: {v}\n"));
+            for (_, map, order) in &records {
+                let keys = if requested_tags.is_empty() { order } else { &requested_tags };
+                for absent in [false, true] {
+                    if absent && (!missing || bin_mode) { break; }
+                    for k in keys {
+                        let value = map.get(k);
+                        if value.is_none() != absent { continue; }
+                        let value = value.map_or("-", String::as_str);
+                        if bin_mode { out.push_str(&crate::vfs::bytes_to_stream_string(value.as_bytes())); continue; }
+                        if group_mode && !absent {
+                            let group = match k.as_str() {
+                                "FileName" | "Directory" | "FileSize" => "System",
+                                "FileTypeExtension" => "File",
+                                _ => map.get("FileType").map_or("PDF", String::as_str),
+                            };
+                            out.push_str(&format!("{:<16}", format!("[{group}]")));
                         }
+                        if s2_mode { out.push_str(&format!("{k}: ")); }
+                        else if !s3_mode { out.push_str(&format!("{k:<32}: ")); }
+                        exif_printable(&mut out, value);
+                        out.push('\n');
                     }
                 }
             }

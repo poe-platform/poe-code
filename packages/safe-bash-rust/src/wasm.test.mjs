@@ -3363,3 +3363,41 @@ test("exiftool expands physical argument-file lines and carries option state thr
     for (const backend of [fs, wasm.fs]) assert.equal(PdfDocument.load(await backend.readFile("/f.pdf")).getMetadata().title, " spaced  ");
   } finally { wasm.dispose(); }
 });
+
+test("exiftool binary and text rendering preserve selected PDF tag order and value semantics", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  doc.setTitle("title\nwith space  ");
+  doc.setAuthor("café");
+  const bytes = doc.save(), fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
+  await fs.writeFile("/f.pdf", bytes);
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+  try {
+    for (const flags of ["-b -Title", "-b -Author -MissingTag -Title -Author", "-b -FileSize", "-b", "-s3", "-s3 -Title", "-S -Author -Title", "-f -G1 -Title -Subject -FileSize -FileTypeExtension", "-G1 -s3 -Title -FileName", "-f -s3 -MissingTag", "-s3 -FileSize# -FileSize", "-n -FileSize"]) {
+      for (const operand of ["f.pdf", "- < f.pdf"]) {
+        const script = "exiftool " + flags + " " + operand;
+        const expected = await shell.exec(script), actual = await wasm.exec(script);
+        assert.deepEqual([actual.exitCode, actual.stdoutBytes, actual.stderr], [expected.exitCode, expected.stdoutBytes, expected.stderr], script);
+      }
+    }
+  } finally { wasm.dispose(); }
+});
+
+test("exiftool prints decimal file sizes with three significant digits", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/" });
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+  try {
+    for (const size of [999, 1000, 1125, 1245, 10250, 100500, 999999, 1000000]) {
+      for (const backend of [fs, wasm.fs]) await backend.writeFile("/f", new Uint8Array(size));
+      const script = "exiftool -s3 -FileSize f";
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.equal(actual.stdout, expected.stdout, String(size));
+      assert.equal(actual.exitCode, 0);
+    }
+  } finally { wasm.dispose(); }
+});

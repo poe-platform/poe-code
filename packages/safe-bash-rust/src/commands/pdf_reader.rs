@@ -521,7 +521,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
 
 #[path = "pdf_metadata.rs"]
 mod pdf_metadata;
-pub(super) use pdf_metadata::edit_info;
+pub(super) use pdf_metadata::{INFO_TAGS, edit_info};
 
 pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
     let (mut objects, trailer) = index(bytes)?;

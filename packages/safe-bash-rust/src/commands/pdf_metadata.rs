@@ -1,7 +1,7 @@
 use super::{Value, index, last_xref, pdf_copy::literal, text, uint};
 use std::io::Write;
 
-const TAGS: &[&str] = &[
+pub(in super::super) const INFO_TAGS: &[&str] = &[
     "Title",
     "Author",
     "Subject",
@@ -41,7 +41,7 @@ pub(in super::super) fn edit_info(
                 _ => std::str::from_utf8(k).unwrap_or(""),
             };
             if let Value::String(value) = v
-                && TAGS.contains(&key)
+                && INFO_TAGS.contains(&key)
                 && !info.iter().any(|(k, _)| *k == key)
             {
                 info.push((key, text(&value)));
@@ -54,7 +54,7 @@ pub(in super::super) fn edit_info(
     let mut modified = false;
     for (name, value) in updates {
         let key = name.trim_end_matches(['+', '-']);
-        let Some(&key) = TAGS.iter().find(|k| k.eq_ignore_ascii_case(key)) else {
+        let Some(&key) = INFO_TAGS.iter().find(|k| k.eq_ignore_ascii_case(key)) else {
             if copied {
                 continue;
             }

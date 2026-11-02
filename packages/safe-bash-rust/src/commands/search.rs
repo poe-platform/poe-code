@@ -3737,7 +3737,7 @@ fn run_grep_engine(
         if nul_off.is_some() && is_rg && cfg.binary == RgBinary::Auto && !explicit {
             continue;
         }
-        bytes_searched += content.len();
+        let mut file_searched = content.len();
         let mut line_offsets = Vec::new();
         let mut offset = 0;
         let binary_records = is_rg && nul_off.is_some();
@@ -3841,7 +3841,10 @@ fn run_grep_engine(
                     if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
                     break;
                 }
-                if binary_records && idx > 0 && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) { break; }
+                if binary_records && idx > 0 && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) {
+                    file_searched = line_offsets[idx];
+                    break;
+                }
                 let spans = if multiline {
                     projected.next_if(|(i, _)| *i == idx).map(|(_, spans)| spans).unwrap_or_default()
                 } else {
@@ -3911,19 +3914,20 @@ fn run_grep_engine(
             total_matches += file_submatch_count;
         }
 
-        if cfg.json_output {
-            let mut file_searched = content.len();
+        if (cfg.stats || cfg.json_output) && !whole_matches {
+            let selected_output = !cfg.quiet && !cfg.count_only && !cfg.files_with_matches && !cfg.files_without_match;
             if let Some((limited, _)) = match_indices.get(limit - 1) {
-                let stop = limited.saturating_add(if cfg.quiet { 0 } else { cfg.after_ctx });
+                let stop = limited.saturating_add(if selected_output { cfg.after_ctx } else { 0 });
                 if stop < lines.len() {
                     let last = match_indices.last().unwrap().0;
-                    file_searched = line_offsets.get(last + 1).copied().unwrap_or(content.len());
-                    if cfg.invert || line_offsets[stop] + lines[stop].len() == content.len() {
-                        file_searched = file_searched.max(line_offsets[stop]);
-                    }
-                    bytes_searched -= content.len() - file_searched;
+                    let last_selected_end = line_offsets.get(last + 1).copied().unwrap_or(content.len());
+                    let stop_offset = if cfg.invert || line_offsets[stop] + lines[stop].len() == content.len() { line_offsets[stop] } else { 0 };
+                    file_searched = file_searched.min(last_selected_end.max(stop_offset));
                 }
             }
+        }
+        bytes_searched += file_searched;
+        if cfg.json_output {
             if matched_count == 0 || cfg.quiet { continue; }
             let output_start = out.len();
             let path_text = fname.unwrap_or("<stdin>");
@@ -4227,7 +4231,8 @@ fn run_grep_engine(
             "{{\"data\":{{\"elapsed_total\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"stats\":{{\"bytes_printed\":{json_bytes_printed},\"bytes_searched\":{bytes_searched},\"elapsed\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"matched_lines\":{total_matched_lines},\"matches\":{total_matches},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}},\"type\":\"summary\"}}\n"
         ));
     } else if cfg.stats {
-        let bytes_printed = stream_byte_len(&out);
+        let bytes_printed = if cfg.count_only || cfg.files_with_matches || cfg.files_without_match { 0 }
+            else { stream_byte_len(&out) };
         out.push_str(&format!(
             "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
         ));

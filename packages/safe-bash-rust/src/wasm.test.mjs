@@ -7354,3 +7354,20 @@ test("rg file listing and searching use the same traversal and symlink rules", a
     }
   } finally { rs.dispose(); }
 });
+
+test("rg statistics count searched records and printed matches in each output mode", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const setup = "printf 'aa\\nx\\nb\\na\\nc' >t; printf 'aa\\nx\\0b\\na\\nc' >n; printf 'x\\0a\\n' >b";
+    for (const sh of [js, rs]) await sh.exec(setup);
+    for (const args of ["-c a t", "-l a t", "--files-without-match z n", "-o a n", "-B1 a b",
+      "-m1 a t", "-m1 -q a t", "-m1 --count-matches a t", "-m1 -A1 a t", "-m1 -A1 -v a t",
+      "-m1 -C4 a t", "-v a n", "--json -m1 -C4 a t", "-Uom1 'a\\nx' t"]) {
+      const cmd = "rg --stats " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -1417,6 +1417,10 @@ fn read_xz_vli(data: &[u8], pos: &mut usize) -> Result<u64, String> {
 }
 
 pub fn xz_compress(data: &[u8], check_id: u8) -> Vec<u8> {
+    xz_compress_level(data, check_id, 1)
+}
+
+pub(super) fn xz_compress_level(data: &[u8], check_id: u8, level: u8) -> Vec<u8> {
     let mut out = Vec::new();
     // 12-byte Stream Header
     out.extend_from_slice(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]);
@@ -1427,16 +1431,30 @@ pub fn xz_compress(data: &[u8], check_id: u8) -> Vec<u8> {
     let mut records: Vec<(u64, u64)> = Vec::new();
     if !data.is_empty() {
         let block_start = out.len();
-        // Block Header: 12 bytes total ((2 + 1) * 4 = 12), 1 filter: LZMA2 (0x21), props_len=1, dict_prop=0x18 (4 MiB)
-        let bh_body = [0x02u8, 0x00, 0x21, 0x01, 0x18, 0x00, 0x00, 0x00];
+        let dict_log = LZMA_DICT_LOG[level as usize];
+        let bh_body = [0x02, 0x00, 0x21, 0x01, 2 * (dict_log - 12), 0x00, 0x00, 0x00];
         out.extend_from_slice(&bh_body);
         out.extend_from_slice(&crc32_ieee(&bh_body).to_le_bytes());
 
-        for (idx, chunk) in data.chunks(65536).enumerate() {
-            out.push(if idx == 0 { 0x01 } else { 0x02 });
-            let sz_minus_1 = (chunk.len() - 1) as u16;
-            out.extend_from_slice(&sz_minus_1.to_be_bytes());
-            out.extend_from_slice(chunk);
+        let mut pos = 0;
+        while pos < data.len() {
+            let remaining = &data[pos..];
+            let (packed, used) = encode_lzma_chunk(&remaining[..remaining.len().min(1 << 21)], 1 << dict_log, false);
+            if packed.len() + 3 < used && packed.len() <= 65536 {
+                let size = used - 1;
+                out.push(0xe0 | (size >> 16) as u8); // Reset dictionary, state and properties.
+                out.extend_from_slice(&(size as u16).to_be_bytes());
+                out.extend_from_slice(&((packed.len() - 1) as u16).to_be_bytes());
+                out.push(0x5d);
+                out.extend_from_slice(&packed);
+            } else {
+                for (i, raw) in remaining[..used].chunks(65536).enumerate() {
+                    out.push(if pos == 0 && i == 0 { 1 } else { 2 });
+                    out.extend_from_slice(&((raw.len() - 1) as u16).to_be_bytes());
+                    out.extend_from_slice(raw);
+                }
+            }
+            pos += used;
         }
         out.push(0x00); // End of LZMA2 payload
 
@@ -1577,15 +1595,22 @@ impl LzmaRangeEncoder {
     }
 }
 
+const LZMA_DICT_LOG: [u8; 10] = [18, 20, 21, 22, 22, 23, 23, 24, 25, 26];
+
 pub fn lzma_compress(data: &[u8]) -> Vec<u8> {
     lzma_compress_level(data, 1)
 }
 
 pub(super) fn lzma_compress_level(data: &[u8], level: u8) -> Vec<u8> {
-    let dictionary = 1u32 << [18, 20, 21, 22, 22, 23, 23, 24, 25, 26][level as usize];
+    let dictionary = 1u32 << LZMA_DICT_LOG[level as usize];
     let mut out = vec![0x5d];
     out.extend_from_slice(&dictionary.to_le_bytes());
     out.extend_from_slice(&u64::MAX.to_le_bytes());
+    out.extend_from_slice(&encode_lzma_chunk(data, dictionary as usize, true).0);
+    out
+}
+
+fn encode_lzma_chunk(data: &[u8], dictionary: usize, standalone: bool) -> (Vec<u8>, usize) {
     let mut rc = LzmaRangeEncoder::new();
     let mut m = LzmaState::new(0x5d).unwrap();
     let mut recent = std::collections::HashMap::new();
@@ -1593,6 +1618,8 @@ pub(super) fn lzma_compress_level(data: &[u8], level: u8) -> Vec<u8> {
     loop {
         let pos_state = pos & 3;
         let remaining = data.len() - pos;
+        // LZMA2 stores the packed length in 16 bits. Leave room for the last symbol and range flush.
+        if !standalone && (remaining == 0 || rc.out.len() + rc.cache_size as usize >= 65536 - 32) { break; }
         if remaining == 0 {
             rc.encode_bit(&mut m.is_match[m.state][pos_state], 1);
             rc.encode_bit(&mut m.is_rep[m.state], 0);
@@ -1620,7 +1647,7 @@ pub(super) fn lzma_compress_level(data: &[u8], level: u8) -> Vec<u8> {
         }
         if remaining >= 2 && len < remaining.min(273)
             && let Some(&prev) = recent.get(&[data[pos], data[pos + 1]])
-            && pos - prev <= dictionary as usize {
+            && pos - prev <= dictionary {
             let dist = pos - prev - 1;
             let n = match_len(dist);
             if n > len {
@@ -1672,8 +1699,7 @@ pub(super) fn lzma_compress_level(data: &[u8], level: u8) -> Vec<u8> {
         }
         pos += len;
     }
-    out.extend_from_slice(&rc.finish());
-    out
+    (rc.finish(), pos)
 }
 
 struct LzmaRangeDecoder<'a> {
@@ -1893,6 +1919,7 @@ impl LzmaState {
         &mut self,
         payload: &[u8],
         out: &mut Vec<u8>,
+        dictionary_start: usize,
         expected_len: Option<usize>,
         allow_eopm: bool,
     ) -> Result<(), String> {
@@ -1904,16 +1931,17 @@ impl LzmaState {
             if let Some(exp) = expected_len && out.len() - start_out_len >= exp {
                 break;
             }
-            let pos_state = out.len() & pb_mask;
+            let history = &out[dictionary_start..];
+            let pos_state = history.len() & pb_mask;
             if rc.decode_bit(&mut self.is_match[self.state][pos_state])? == 0 {
-                let prev_byte = out.last().copied().unwrap_or(0) as usize;
+                let prev_byte = history.last().copied().unwrap_or(0) as usize;
                 let lit_state =
-                    ((out.len() & lp_mask) << self.lc) | (prev_byte >> (8 - self.lc));
+                    ((history.len() & lp_mask) << self.lc) | (prev_byte >> (8 - self.lc));
                 let probs = &mut self.lit_probs[lit_state];
                 let mut symbol = 1usize;
                 if self.state >= 7 {
                     let match_dist = self.reps[0] + 1;
-                    if match_dist > out.len() {
+                    if match_dist > history.len() {
                         return Err("Compressed data is corrupt".into());
                     }
                     let mut match_byte = out[out.len() - match_dist] as usize;
@@ -1944,7 +1972,7 @@ impl LzmaState {
                         if rc.decode_bit(&mut self.is_rep0_long[self.state][pos_state])? == 0 {
                             self.state = if self.state < 7 { 9 } else { 11 };
                             let dist = self.reps[0] + 1;
-                            if dist > out.len() {
+                            if dist > history.len() {
                                 return Err("Compressed data is corrupt".into());
                             }
                             let b = out[out.len() - dist];
@@ -2002,7 +2030,7 @@ impl LzmaState {
                     }
                 }
                 let dist = self.reps[0] + 1;
-                if dist > out.len() {
+                if dist > history.len() {
                     return Err("Compressed data is corrupt".into());
                 }
                 for _ in 0..len {
@@ -2050,7 +2078,7 @@ pub fn lzma_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
     let expected = if has_eopm { None } else { Some(uncomp_size as usize) };
     let mut state = LzmaState::new(prop)?;
     let mut out = Vec::with_capacity(expected.unwrap_or(1024).min(1024 * 1024));
-    state.decode_chunk(&data[13..], &mut out, expected, true)?;
+    state.decode_chunk(&data[13..], &mut out, 0, expected, true)?;
     if let Some(exp) = expected && out.len() != exp {
         return Err("Compressed data is corrupt".into());
     }
@@ -2157,6 +2185,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
 
             let block_out_start = out.len();
             let mut lzma_state: Option<LzmaState> = None;
+            let mut dictionary_start = out.len();
             loop {
                 if pos >= data.len() {
                     return Err("unexpected end of file".into());
@@ -2166,6 +2195,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 if ctrl == 0x00 {
                     break;
                 }
+                if ctrl == 1 || ctrl >= 0xe0 { dictionary_start = out.len(); }
                 if ctrl == 0x01 || ctrl == 0x02 {
                     if pos + 2 > data.len() {
                         return Err("unexpected end of file".into());
@@ -2213,7 +2243,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                     let Some(ref mut st) = lzma_state else {
                         return Err("Compressed data is corrupt".into());
                     };
-                    st.decode_chunk(&data[pos..pos + comp_len], &mut out, Some(uncomp_len), false)?;
+                    st.decode_chunk(&data[pos..pos + comp_len], &mut out, dictionary_start, Some(uncomp_len), false)?;
                     pos += comp_len;
                 } else {
                     return Err("Compressed data is corrupt".into());

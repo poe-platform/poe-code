@@ -7874,3 +7874,33 @@ test("lzma encodes preset dictionaries, repeated matches and a streaming end mar
     }
   } finally { rs.dispose(); }
 });
+
+test("xz emits compressed LZMA2 blocks and stores incompressible chunks", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const mixed = Buffer.alloc(2097152 + 8192);
+    let seed = 5;
+    for (let i = 0; i < 66000; i++) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      mixed[i] = seed >>> 24;
+    }
+    mixed.fill("xyz", 66000);
+    for (const [level, bytes] of [[0, Buffer.from("abc")], [1, Buffer.from("key=value\n".repeat(6554))], [3, mixed]]) {
+      for (const vfs of [fs, rs.fs]) await vfs.writeFile("/in", bytes);
+      const cmd = "xz -" + level + "c /in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(b.exitCode, 0, b.stderr);
+      assert.equal(a.exitCode, 0, a.stderr);
+      if (bytes === mixed) assert.ok(b.stdoutBytes.length < 68000, "compressed length: " + b.stdoutBytes.length);
+      else assert.deepEqual(b.stdoutBytes, a.stdoutBytes);
+      for (const [sh, vfs, packed] of [[js, fs, b], [rs, rs.fs, b], [rs, rs.fs, a]]) {
+        await vfs.writeFile("/archive", packed.stdoutBytes);
+        const decoded = await sh.exec("unxz -c /archive");
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.equal(Buffer.from(decoded.stdoutBytes).equals(bytes), true);
+      }
+    }
+  } finally { rs.dispose(); }
+});

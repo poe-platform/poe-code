@@ -6216,7 +6216,7 @@ fn compress_for_invoked(
             if xz_format == "lzma" || (xz_format == "auto" && matches!(invoked, "lzma" | "unlzma" | "lzcat")) {
                 crate::commands::codecs::lzma_compress_level(data, level)
             } else {
-                crate::commands::codecs::xz_compress(data, xz_check)
+                crate::commands::codecs::xz_compress_level(data, xz_check, level)
             }
         }
         "zstd" | "unzstd" | "zstdcat" => crate::commands::codecs::zstd_compress(data, zstd_check),

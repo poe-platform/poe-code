@@ -11813,12 +11813,17 @@ fn cmd_media_doc(
             if (xml_mode || tab_mode || print_fmt.is_some()) && writing_mode {
                 return err_out("Error: Presentation modes require extraction\n", 1);
             }
-            if let Some(template) = &print_fmt {
-                for suffix in template.split('$').skip(1) {
-                    let tag = &suffix[..suffix.bytes().take_while(u8::is_ascii_alphabetic).count()];
-                    if known(tag).is_none() { return err_out("Error: Only literal $Tag template substitutions are supported\n", 1); }
+            let mut substitutions = Vec::new();
+            let template_prefix = if let Some(template) = &print_fmt {
+                let mut parts = template.split('$');
+                let prefix = parts.next().unwrap_or("");
+                for suffix in parts {
+                    let (name, literal) = suffix.split_at(suffix.bytes().take_while(u8::is_ascii_alphabetic).count());
+                    let Some(tag) = known(name) else { return err_out("Error: Only literal $Tag template substitutions are supported\n", 1); };
+                    substitutions.push((tag, literal));
                 }
-            }
+                Some(prefix)
+            } else { None };
             let mut tags_from_file_err: Option<&'static str> = None;
             if let Some(ref src_tag_file) = tags_from_file {
                 let src_full = resolve_posix_path(cwd, &src_tag_file);
@@ -11978,17 +11983,14 @@ fn cmd_media_doc(
             };
             let read_all_tags = |f: &str| -> BTreeMap<String, String> {
                 let full = resolve_posix_path(cwd, f);
-                let data = fs.read_file(&full).unwrap_or_default();
+                let data = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) } else { fs.read_file(&full).unwrap_or_default() };
                 let mut map = BTreeMap::new();
                 map.insert("SourceFile".to_string(), f.to_string());
-                let file_name = f.rsplit('/').next().unwrap_or(f).to_string();
-                let dir_name = match f.rfind('/') {
-                    Some(0) => "/".to_string(),
-                    Some(idx) => f[..idx].to_string(),
-                    None => ".".to_string(),
-                };
-                map.insert("FileName".to_string(), file_name);
-                map.insert("Directory".to_string(), dir_name);
+                if f != "-" {
+                    let (dir, name) = f.rsplit_once('/').unwrap_or((".", f));
+                    map.insert("FileName".to_string(), name.to_string());
+                    map.insert("Directory".to_string(), if dir.is_empty() { "/" } else { dir }.to_string());
+                }
                 map.insert("FileSize".to_string(), format!("{} bytes", data.len()));
                 if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
                     let pdf = PdfDoc::parse(&data);
@@ -12035,17 +12037,16 @@ fn cmd_media_doc(
                 }
                 map
             };
-            if let Some(ref tpl) = print_fmt {
+            if let Some(prefix) = template_prefix {
                 let mut out = String::new();
                 for f in &files {
                     let map = read_all_tags(f);
-                    let mut line = tpl.clone();
-                    for (k, v) in &map {
-                        line = line
-                            .replace(&format!("${{{k}}}"), v)
-                            .replace(&format!("${k}"), v);
+                    out.push_str(prefix);
+                    for &(tag, literal) in &substitutions {
+                        let value = map.get(tag).map(String::as_str).unwrap_or("-").trim_end_matches([' ', '\0']);
+                        out.extend(value.chars().filter(|&c| c != '\0').map(|c| if c.is_ascii_control() { '.' } else { c }));
+                        out.push_str(literal);
                     }
-                    out.push_str(&line);
                     out.push('\n');
                 }
                 return finalize_exif_out(out);

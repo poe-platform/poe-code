@@ -3208,3 +3208,26 @@ test("exiftool rejects invalid metadata options before creating a backup or chan
     } finally { wasm.dispose(); }
   }
 });
+
+test("exiftool templates substitute each original tag once for both files and stdin", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  doc.setTitle("one\ntwo  ");
+  doc.setAuthor("$Title");
+  const bytes = doc.save(), fs = new MemoryFileSystem();
+  await fs.writeFile("/f.pdf", bytes);
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+  const wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
+  try {
+    for (const operands of ["f.pdf", "- <f.pdf", "f.pdf f.pdf"]) {
+      for (const template of ["", "literal", "$pagecount:$Author-$Title:$Subject", "$filename/$DIRECTORY/$FileSize", "$Title$Title!"]) {
+        const script = "exiftool -p '" + template + "' " + operands;
+        const expected = await shell.exec(script), actual = await wasm.exec(script);
+        assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      }
+    }
+  } finally { wasm.dispose(); }
+});

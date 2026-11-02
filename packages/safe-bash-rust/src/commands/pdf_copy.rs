@@ -53,7 +53,7 @@ struct Attachment {
     stream: ObjectId,
 }
 
-type PageTree<'a> = BTreeMap<ObjectId, Option<Value<'a>>>;
+pub(super) type PageTree<'a> = BTreeMap<ObjectId, Option<Value<'a>>>;
 
 fn attribute<'a, 'p, T>(
     o: &mut Objects<'a>,

@@ -5113,3 +5113,28 @@ test("pdftk fill_form updates field values, widget appearances and new fields ac
     }
   }finally{rs.dispose();}
 });
+
+test("pdftk flattens existing and filled widgets while preserving links and remapping appearance geometry",async()=>{
+  const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,cosStream,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const d=PdfDocument.create(),p=d.addPage(),p2=d.addPage(),alloc=v=>d.cos.allocateObject(v),nums=a=>cosArray(a.map(v=>cosNumber(v)));
+  p.drawText("keep",{x:5,y:50});p2.drawText("page two",{x:10,y:45});
+  const ap=alloc(cosStream(Buffer.from("q 0 1 0 rg 0 0 10 20 re f Q"),{dict:cosDict({BBox:nums([0,0,10,20]),Matrix:nums([0,1,-1,0,2,3])}),compress:true}));
+  const box=alloc(cosDict({Subtype:cosName("Widget"),T:cosString("box"),FT:cosName("Btn"),AS:cosName("Yes"),AP:cosDict({N:cosDict({Yes:ap})}),Rect:nums([20,30,100,50])}));
+  const field=alloc(cosDict({T:cosString("name"),FT:cosName("Tx"),V:cosString("Fallback"),Rect:nums([6,8,150,30])}));
+  dictSet(p2.pageDict,"Annots",cosArray([field]));
+  dictSet(p.pageDict,"Annots",alloc(cosArray([box,cosDict({Subtype:cosName("Link")})])));
+  dictSet(d.cos.resolveDict(d.cos.rootRef),"AcroForm",alloc(cosDict({Fields:cosArray([box,field])})));
+  const files={"/in":d.save(),"/data":Buffer.from("name=Filled (value)\nextra=Added")};
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(pdftkCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [path,b] of Object.entries(files))await fs.writeFile(path,b);
+    for(const [args,target] of [["flatten output out","out"],["output out flatten uncompress","out"],["fill_form data output out flatten compress","out"],["cat 2 1 output out flatten","out"],["stamp in output out flatten","out"],["burst output page-%d.pdf flatten","page-1.pdf"]]){
+      const cmd="pdftk in "+args;
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
+      const expected=await fs.readFile("/"+target),actual=await rs.fs.readFile("/"+target);
+      assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((v,i)=>v!==actual[i]));
+    }
+  }finally{rs.dispose();}
+});

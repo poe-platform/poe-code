@@ -1,3 +1,5 @@
+#[path = "pdf_flatten_forms.rs"]
+mod pdf_flatten_forms;
 use super::{
     Dict, ObjectId, Objects, Value,
     pdf_fields::text,
@@ -53,6 +55,14 @@ impl<'a> Fill<'_, 'a> {
             }
             node = if let Some(x) = self.values.get(&r) {
                 x.clone()
+            } else if let Some(body) = self.bodies.get(&r) {
+                let mut c = super::Cursor(body);
+                let value = c.value(0, &mut self.objects.tokens, true)?;
+                c.skip();
+                if c.0.starts_with(b"stream") {
+                    return None;
+                }
+                value.into_owned()
             } else {
                 let (v, mut c) = self.objects.object(r)?;
                 c.skip();
@@ -359,111 +369,56 @@ impl<'a> Fill<'_, 'a> {
 pub(super) fn apply<'a>(
     objects: &mut Objects<'a>,
     catalog: &mut Value<'a>,
-    bytes: &[u8],
+    pages: &[ObjectId],
+    tree: &mut super::pdf_copy::PageTree<'a>,
     edits: &PageEdits,
     next: usize,
     bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
     limit: usize,
 ) -> Result<(), String> {
-    let updates = pdf_form_data::parse(bytes, limit)?;
     let Value::Dict(cat) = catalog else {
         return Err(BAD.into());
     };
     let mut fill = Fill {
         objects,
         values: BTreeMap::new(),
-        bodies,
         next,
-        remaining: limit,
+        remaining: bodies
+            .values()
+            .try_fold(limit, |n, b| n.checked_sub(b.len()))
+            .ok_or(LIMIT)?,
+        bodies,
         mode: edits.compress_streams,
         font: edits.replacement_font,
         default_da: String::new(),
     };
-    let existing = get(cat, b"AcroForm").and_then(|v| fill.resolve(v));
-    let (id, mut form) = match existing {
-        Some((id, Value::Dict(d))) => (id, d),
-        _ if updates.is_empty() => return Ok(()),
-        _ => {
-            let id = fill.allocate()?;
-            set(cat, b"AcroForm", Value::Ref(id));
-            (
-                Some(id),
-                vec![
-                    (b"Fields".into(), Value::Array(vec![])),
-                    (b"NeedAppearances".into(), word(b"true")),
-                ],
-            )
-        }
-    };
-    fill.default_da = fill
-        .attr(&form, b"DA")
-        .as_ref()
-        .and_then(text)
-        .unwrap_or_default();
-    if !updates.is_empty() {
-        let (fid, mut fields) = match get(&form, b"Fields").and_then(|v| fill.resolve(v)) {
-            Some((r, Value::Array(a))) => (r, a),
-            _ => (None, vec![]),
-        };
-        for (key, input) in updates {
-            let mut matched = false;
-            for field in &mut fields {
-                matched |= fill.field(
-                    field,
-                    &Attributes::default(),
-                    &key,
-                    &input,
-                    &mut BTreeSet::new(),
-                    0,
-                )?;
-            }
-            if !matched {
-                let mut d = vec![];
-                set(
-                    &mut d,
-                    b"FT",
-                    word(if matches!(input, Input::Check(_)) {
-                        b"/Btn"
-                    } else {
-                        b"/Tx"
-                    }),
-                );
-                set(&mut d, b"T", pdf_string::encode(&key));
-                match input {
-                    Input::Text(s) => set(&mut d, b"V", pdf_string::encode(&s)),
-                    Input::Check(c) => {
-                        let v = word(if c { b"/Yes" } else { b"/Off" });
-                        set(&mut d, b"V", v.clone());
-                        set(&mut d, b"AS", v);
-                    }
-                }
-                let id = fill.allocate()?;
-                fill.values.insert(id, Value::Dict(d));
-                fields.push(Value::Ref(id));
-            }
-        }
-        if let Some(r) = fid {
-            fill.values.insert(r, Value::Array(fields));
-        } else {
-            set(&mut form, b"Fields", Value::Array(fields));
-        }
+    if let Some(bytes) = edits.form_data {
+        fill.fill(cat, pdf_form_data::parse(bytes, limit)?)?;
     }
-    if edits.drop_xfa {
-        form.retain(|(k, _)| k.as_ref() != b"XFA");
+    if edits.flatten_forms {
+        fill.flatten(cat, pages, tree)?;
     }
-    set(
-        &mut form,
-        b"NeedAppearances",
-        word(if edits.need_appearances {
-            b"true"
-        } else {
-            b"false"
-        }),
-    );
-    if let Some(id) = id {
-        fill.values.insert(id, Value::Dict(form));
-    } else {
-        set(cat, b"AcroForm", Value::Dict(form));
+    if (edits.drop_xfa
+        || edits.need_appearances
+        || edits.form_data.is_some() && !edits.flatten_forms)
+        && let Some(slot) = cat.iter_mut().find(|(k, _)| k.as_ref() == b"AcroForm")
+        && let Some((r, Value::Dict(mut form))) = fill.resolve(&slot.1)
+    {
+        if edits.drop_xfa {
+            form.retain(|(k, _)| k.as_ref() != b"XFA");
+        }
+        if edits.need_appearances || !edits.flatten_forms {
+            set(
+                &mut form,
+                b"NeedAppearances",
+                word(if edits.need_appearances {
+                    b"true"
+                } else {
+                    b"false"
+                }),
+            );
+        }
+        fill.put(r, Value::Dict(form), &mut slot.1);
     }
     for (id, v) in fill.values {
         let mut body = vec![];
@@ -472,4 +427,85 @@ pub(super) fn apply<'a>(
         fill.bodies.insert(id, body);
     }
     Ok(())
+}
+
+impl<'a> Fill<'_, 'a> {
+    fn fill(&mut self, cat: &mut Dict<'a>, updates: Vec<(String, Input)>) -> Result<(), String> {
+        let existing = get(cat, b"AcroForm").and_then(|v| self.resolve(v));
+        let (id, mut form) = match existing {
+            Some((id, Value::Dict(d))) => (id, d),
+            _ if updates.is_empty() => return Ok(()),
+            _ => {
+                let id = self.allocate()?;
+                set(cat, b"AcroForm", Value::Ref(id));
+                (
+                    Some(id),
+                    vec![
+                        (b"Fields".into(), Value::Array(vec![])),
+                        (b"NeedAppearances".into(), word(b"true")),
+                    ],
+                )
+            }
+        };
+        self.default_da = self
+            .attr(&form, b"DA")
+            .as_ref()
+            .and_then(text)
+            .unwrap_or_default();
+        if !updates.is_empty() {
+            set(&mut form, b"NeedAppearances", word(b"true"));
+            let (fid, mut fields) = match get(&form, b"Fields").and_then(|v| self.resolve(v)) {
+                Some((r, Value::Array(a))) => (r, a),
+                _ => (None, vec![]),
+            };
+            for (key, input) in updates {
+                let mut matched = false;
+                for field in &mut fields {
+                    matched |= self.field(
+                        field,
+                        &Attributes::default(),
+                        &key,
+                        &input,
+                        &mut BTreeSet::new(),
+                        0,
+                    )?;
+                }
+                if !matched {
+                    let mut d = vec![];
+                    set(
+                        &mut d,
+                        b"FT",
+                        word(if matches!(input, Input::Check(_)) {
+                            b"/Btn"
+                        } else {
+                            b"/Tx"
+                        }),
+                    );
+                    set(&mut d, b"T", pdf_string::encode(&key));
+                    match input {
+                        Input::Text(s) => set(&mut d, b"V", pdf_string::encode(&s)),
+                        Input::Check(c) => {
+                            let v = word(if c { b"/Yes" } else { b"/Off" });
+                            set(&mut d, b"V", v.clone());
+                            set(&mut d, b"AS", v);
+                        }
+                    }
+                    let id = self.allocate()?;
+                    self.values.insert(id, Value::Dict(d));
+                    fields.push(Value::Ref(id));
+                }
+            }
+            if let Some(r) = fid {
+                self.values.insert(r, Value::Array(fields));
+            } else {
+                set(&mut form, b"Fields", Value::Array(fields));
+            }
+        }
+        if let Some(id) = id {
+            self.values.insert(id, Value::Dict(form));
+        } else {
+            set(cat, b"AcroForm", Value::Dict(form));
+        }
+        Ok(())
+    }
 }

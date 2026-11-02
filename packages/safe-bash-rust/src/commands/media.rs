@@ -7799,6 +7799,7 @@ fn cmd_media_doc(
             let mut grants = 0;
             let mut keep_final_id=false;
             let mut replacement_font=None;
+            let mut flatten=false;
             let mut compress_streams=None;
             let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
             let mut operands=Vec::new();
@@ -7809,11 +7810,12 @@ fn cmd_media_doc(
                     "output" => output=tail.next().map(String::as_str),
                     "keep_first_id" => (),
                     "keep_final_id" => keep_final_id=true,
+                    "flatten" => flatten=true,
                     "replacement_font" => replacement_font=tail.next().map(String::as_str).filter(|s|!s.is_empty()),
                     "drop_xfa" => drop_xfa=true,
                     "drop_xmp" => drop_xmp=true,
                     "need_appearances" => need_appearances=true,
-                    "compress"|"uncompress" if matches!(op.as_str(),"fill_form"|"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
+                    "compress"|"uncompress" if matches!(op.as_str(),"burst"|"flatten"|"fill_form"|"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
                         compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
@@ -7840,7 +7842,9 @@ fn cmd_media_doc(
             let trailer_id=if id_handle!=primary_handle || matches!(op.as_str(),"cat"|"shuffle") {
                 handles[id_handle].trailer_id.as_deref()
             } else {None};
-            let output_edits=pdf_reader::PageEdits {trailer_id,compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
+            let flatten_forms=op=="flatten" || flatten && matches!(op.as_str(),"burst"|"passthrough"|"fill_form"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground");
+            let need_appearances=need_appearances && !flatten;
+            let output_edits=pdf_reader::PageEdits {flatten_forms,trailer_id,compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
             let write_pdftk_output = |mut bytes: Vec<u8>| -> BuiltinOutcome {
                 let of=output.filter(|s|!s.is_empty()).unwrap_or("-");
                 if user.is_some_and(|s|!s.is_empty()) || owner.is_some_and(|s|!s.is_empty()) {
@@ -7875,7 +7879,7 @@ fn cmd_media_doc(
                         Ok(bytes)=>write_pdftk_output(bytes),Err(e)=>err_out(&format!("Error: {e}\n"),1)
                     }
                 }
-                "passthrough" => {
+                "passthrough" | "flatten" => {
                     let (bytes,password) = &inputs[&input_order[0]];
                     let bytes = if !is_legacy_pdf(bytes) {
                         let edits = pdf_reader::PageEdits {password,..output_edits};
@@ -7956,7 +7960,12 @@ fn cmd_media_doc(
                             let Some(bytes) = page.append(source,Some(idx)).and_then(|()|page.finish()) else {
                                 return err_out("Error: Could not copy PDF page\n",1);
                             };
-                            bytes
+                            if flatten_forms || compress_streams.is_some(){
+                                let edits=pdf_reader::PageEdits{flatten_forms,compress_streams,..Default::default()};
+                                match pdf_reader::rewrite(&bytes,&edits,&[],&[],&[],|_|None,limit){
+                                    Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1)
+                                }
+                            }else{bytes}
                         } else {
                             let mut single = PdfDoc::new();
                             single.version = primary.version.clone();
@@ -8137,7 +8146,7 @@ fn cmd_media_doc(
                             Ok(bytes) => bytes,
                             Err(e) => return err_out(&format!("Error: {e}\n"),1),
                         };
-                        let bytes=if trailer_id.is_some() || drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
+                        let bytes=if flatten_forms || trailer_id.is_some() || drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
                             match pdf_reader::rewrite(&bytes,&output_edits,&[],&[],&[],|_|None,limit) {
                                 Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                             }

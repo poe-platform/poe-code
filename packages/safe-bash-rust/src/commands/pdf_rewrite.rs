@@ -72,6 +72,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
     pub layers:Vec<Layer<'a>>,
+    pub flatten_forms: bool,
     pub form_data: Option<&'a [u8]>,
     pub replacement_font: Option<&'a str>,
     pub stamp: Option<(&'a [u8], bool, bool)>,
@@ -339,9 +340,10 @@ pub(in super::super) fn rewrite(
         )?;
         state.finish(&mut changed, remaining)?;
     }
-    if let Some(data)=edits.form_data{
+    if edits.form_data.is_some() || edits.flatten_forms{
         let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
-        super::pdf_fill::apply(&mut objects,&mut catalog,data,edits,next,&mut changed,limit)?;
+        let next=changed.keys().next_back().map_or(Some(next),|r|r.0.checked_add(1).map(|id|id.max(next))).ok_or(TOO_LARGE)?;
+        super::pdf_fill::apply(&mut objects,&mut catalog,&pages,&mut tree,edits,next,&mut changed,limit)?;
     }
     let pin_page=edits.attachment_page.and_then(|p| pages.get(p.min(pages.len().saturating_sub(1)))).copied();
     let mut pins=if let Some(paths)=edits.append_files {
@@ -375,7 +377,7 @@ pub(in super::super) fn rewrite(
             store(id, &Value::Dict(entries))?;
         }
     }
-    if edits.form_data.is_none() && (edits.drop_xfa || edits.need_appearances)
+    if edits.form_data.is_none() && !edits.flatten_forms && (edits.drop_xfa || edits.need_appearances)
         && let Some((owner,Value::Dict(mut form)))=catalog.get(b"AcroForm").and_then(|v|objects.lookup_value(v))
     {
         if edits.drop_xfa { form.retain(|(k,_)|k.as_ref()!=b"XFA"); }

@@ -21,14 +21,32 @@ impl<'a> Objects<'a> {
                 Value::Array(v) => v,
                 item => vec![item],
             };
+            let params = match dict.get(b"DecodeParms").or_else(|| dict.get(b"DP")) {
+                Some(v) => Some(self.filter_value(v.clone())?),
+                None => None,
+            };
+            let mut index = 0;
             for filter in filters {
                 let filter = self.filter_value(filter)?;
                 let Some(name) = filter.word().and_then(|s| s.strip_prefix(b"/")) else {
                     continue;
                 };
+                let parms = match &params {
+                    Some(Value::Array(items)) => items.get(index),
+                    other => other.as_ref(),
+                };
+                index += 1;
                 let limit = self.remaining_bytes;
                 let decoded = match name {
-                    b"FlateDecode" | b"Fl" => flate(&bytes, limit)?,
+                    b"FlateDecode" | b"Fl" => {
+                        let mut data = flate(&bytes, limit)?;
+                        if let Some(parms) = parms {
+                            let inflated = data.len();
+                            self.predict(&mut data, parms, limit)?;
+                            self.remaining_bytes -= inflated - data.len();
+                        }
+                        data
+                    }
                     b"ASCIIHexDecode" | b"AHx" => ascii_hex(&bytes, limit)?,
                     b"ASCII85Decode" | b"A85" => ascii85(&bytes, limit)?,
                     b"RunLengthDecode" | b"RL" => run_length(&bytes, limit)?,
@@ -36,7 +54,7 @@ impl<'a> Objects<'a> {
                     | b"Crypt" => continue,
                     _ => return None,
                 };
-                self.remaining_bytes = limit.checked_sub(decoded.len())?;
+                self.remaining_bytes = self.remaining_bytes.checked_sub(decoded.len())?;
                 bytes = Cow::Owned(decoded);
             }
         }
@@ -44,6 +62,100 @@ impl<'a> Objects<'a> {
             self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
         }
         Some(bytes)
+    }
+    fn predict(&mut self, data: &mut Vec<u8>, parms: &Value<'a>, limit: usize) -> Option<()> {
+        let parms = self.filter_value(parms.clone())?;
+        let mut num = |key: &[u8], default| {
+            let mut entry = parms.get(key);
+            if key == b"BitsPerComponent" {
+                entry = entry.or_else(|| parms.get(b"BPC"));
+            }
+            match entry {
+                Some(v) => Some(self.filter_value(v.clone())?.number().unwrap_or(default)),
+                None => Some(default),
+            }
+        };
+        let predictor = num(b"Predictor", 1.)?;
+        if predictor <= 1. {
+            return Some(());
+        }
+        let integer =
+            |n: f64| (n >= 1. && n.fract() == 0. && n <= u32::MAX as f64).then_some(n as usize);
+        let predictor = integer(predictor)?;
+        let colors = integer(num(b"Colors", 1.)?)?;
+        let bits = integer(num(b"BitsPerComponent", 8.)?)?;
+        let columns = integer(num(b"Columns", 1.)?)?;
+        if !matches!(bits, 1 | 2 | 4 | 8 | 16) {
+            return None;
+        }
+        let samples = colors.checked_mul(columns)?;
+        let row_bits = samples.checked_mul(bits)?;
+        let width = row_bits.div_ceil(8);
+        let stride = (colors * bits).div_ceil(8);
+        if width > limit {
+            return None;
+        }
+        if predictor == 2 {
+            data.truncate(data.len() / width * width);
+            for row in data.chunks_exact_mut(width) {
+                match bits {
+                    8 => {
+                        for i in colors..width {
+                            row[i] = row[i].wrapping_add(row[i - colors]);
+                        }
+                    }
+                    16 => {
+                        for i in (stride..width).step_by(2) {
+                            let word = |i: usize| u16::from_be_bytes([row[i], row[i + 1]]);
+                            let sample = word(i).wrapping_add(word(i - stride));
+                            row[i..i + 2].copy_from_slice(&sample.to_be_bytes());
+                        }
+                    }
+                    _ => {
+                        let mask = (1u8 << bits) - 1;
+                        for sample in colors..samples {
+                            let bit = sample * bits;
+                            let shift = 8 - bits - bit % 8;
+                            let prior = bit - colors * bits;
+                            let delta = row[bit / 8] >> shift;
+                            let left = row[prior / 8] >> (8 - bits - prior % 8);
+                            row[bit / 8] = (row[bit / 8] & !(mask << shift))
+                                | ((delta.wrapping_add(left) & mask) << shift);
+                        }
+                        if row_bits % 8 != 0 {
+                            row[width - 1] &= 255 << (8 - row_bits % 8);
+                        }
+                    }
+                }
+            }
+        } else if (10..=15).contains(&predictor) {
+            // Decode directly in the inflated buffer, then strip the row markers.
+            let pitch = width.checked_add(1)?;
+            let rows = data.len() / pitch;
+            for i in 0..rows {
+                let (before, rest) = data.split_at_mut(i * pitch);
+                let previous = if i == 0 {
+                    &[]
+                } else {
+                    &before[before.len() - width..]
+                };
+                let filter = rest[0];
+                super::super::png_pixels::unfilter_row(
+                    &mut rest[1..pitch],
+                    previous,
+                    stride,
+                    filter,
+                )
+                .ok()?;
+            }
+            for i in 0..rows {
+                data.copy_within(i * pitch + 1..(i + 1) * pitch, i * width);
+            }
+            data.truncate(rows * width);
+        } else {
+            return None;
+        }
+        Some(())
     }
 }
 

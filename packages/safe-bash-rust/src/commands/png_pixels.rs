@@ -223,34 +223,13 @@ impl Raster {
             for y in 0..rows {
                 let filter = raw[pos];
                 pos += 1;
-                for i in 0..bytes {
-                    let left = if i >= stride {
-                        raw[pos + i - stride]
-                    } else {
-                        0
-                    };
-                    let up = if y > 0 { raw[pos + i - bytes - 1] } else { 0 };
-                    let pred = match filter {
-                        0 => 0,
-                        1 => left,
-                        2 => up,
-                        3 => ((u16::from(left) + u16::from(up)) / 2) as u8,
-                        4 => {
-                            let ul = if y > 0 && i >= stride {
-                                raw[pos + i - bytes - 1 - stride]
-                            } else {
-                                0
-                            };
-                            let p = i32::from(left) + i32::from(up) - i32::from(ul);
-                            [left, up, ul]
-                                .into_iter()
-                                .min_by_key(|c| (p - i32::from(*c)).abs())
-                                .unwrap()
-                        }
-                        _ => return Err("Invalid PNG filter"),
-                    };
-                    raw[pos + i] = raw[pos + i].wrapping_add(pred);
-                }
+                let (prior, current) = raw.split_at_mut(pos);
+                let previous = if y == 0 {
+                    &[]
+                } else {
+                    &prior[pos - bytes - 1..pos - 1]
+                };
+                unfilter_row(&mut current[..bytes], previous, stride, filter)?;
                 let row = &raw[pos..pos + bytes];
                 for x in 0..cols {
                     let sample = |c| -> u16 {
@@ -314,6 +293,39 @@ impl Raster {
             pixels,
         })
     }
+}
+
+pub(super) fn unfilter_row(
+    row: &mut [u8],
+    previous: &[u8],
+    stride: usize,
+    filter: u8,
+) -> Result<(), &'static str> {
+    for i in 0..row.len() {
+        let left = i.checked_sub(stride).map_or(0, |j| row[j]);
+        let up = previous.get(i).copied().unwrap_or(0);
+        let pred = match filter {
+            0 => return Ok(()),
+            1 => left,
+            2 => up,
+            3 => ((u16::from(left) + u16::from(up)) / 2) as u8,
+            4 => {
+                let ul = i
+                    .checked_sub(stride)
+                    .and_then(|j| previous.get(j))
+                    .copied()
+                    .unwrap_or(0);
+                let p = i32::from(left) + i32::from(up) - i32::from(ul);
+                [left, up, ul]
+                    .into_iter()
+                    .min_by_key(|c| (p - i32::from(*c)).abs())
+                    .unwrap()
+            }
+            _ => return Err("Invalid PNG filter"),
+        };
+        row[i] = row[i].wrapping_add(pred);
+    }
+    Ok(())
 }
 
 #[cfg(test)]

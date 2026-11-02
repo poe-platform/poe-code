@@ -3935,7 +3935,8 @@ test("qpdf inspects and copies pages indexed by binary cross-reference streams",
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
   const files={};
-  for(const compressed of [false,true]) {
+  for(const encoding of ["sparse","compressed","predicted"]) {
+    const compressed=encoding!=="sparse";
     let body="%PDF-1.7\n";
     const offsets=[];
     for(const v of ["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -3946,16 +3947,18 @@ test("qpdf inspects and copies pages indexed by binary cross-reference streams",
     const at=body.length;
     offsets.push(at);
     const rows=compressed?[0,0,0,255,...offsets.flatMap(n=>[1,n>>8,n&255,0])]:offsets.flatMap(n=>[n>>8,n&255]);
-    const bytes=compressed?deflateSync(Buffer.from(rows)):Buffer.from(rows);
+    const predicted=encoding==="predicted";
+    const encoded=predicted?rows.flatMap((n,i)=>[...(i%4===0?[2]:[]),(n-(rows[i-4]??0))&255]):rows;
+    const bytes=compressed?deflateSync(Buffer.from(encoded)):Buffer.from(encoded);
     body+="4 0 obj\n<< /Type /XRef /Size 5 /Root 1 0 R /W "+
       (compressed?"[1 2 1] /Filter /FlateDecode":"[0 2 0] /Index [1 2 3 2]")+
-      " /Length "+bytes.length+" >>\nstream\n"+bytes.toString("latin1")+"\nendstream\nendobj\n";
-    if(compressed) {
+      (predicted?" /DecodeParms << /Predictor 12 /Columns 4 >>":"")+" /Length "+bytes.length+" >>\nstream\n"+bytes.toString("latin1")+"\nendstream\nendobj\n";
+    if(encoding==="compressed") {
       const table=body.length;
       files["/hybrid.pdf"]=Buffer.from(body+"xref\n1 4\n"+"0000000000 00001 f \n".repeat(4)+
         "trailer << /Size 5 /Root 1 0 R /XRefStm "+at+" >>\nstartxref\n"+table+"\n%%EOF","latin1");
     }
-    files[compressed?"/compressed.pdf":"/sparse.pdf"]=Buffer.from(body+"startxref\n"+at+"\n%%EOF","latin1");
+    files["/"+encoding+".pdf"]=Buffer.from(body+"startxref\n"+at+"\n%%EOF","latin1");
   }
   const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
@@ -4003,6 +4006,39 @@ test("qpdf decodes chained PDF byte filters, abbreviations and indirect filter a
       const want=await js.exec(script),got=await wasm.exec(script);
       assert.equal(want.exitCode,0,want.stderr);
       assert.deepEqual(Buffer.from(want.stdoutBytes),expected,script);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+    }
+  } finally {wasm.dispose();}
+});
+
+test("qpdf reverses PNG and TIFF row predictors in filtered streams", async () => {
+  const {deflateSync}=await import("node:zlib");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosArray,cosDict,cosName,cosNumber,cosRef,cosStream,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const cases=[
+    [{Predictor:15,Columns:3,Colors:2},[0,1,2,3,4,5,6,1,1,2,3,4,5,6,2,9,8,7,6,5,4,3,1,2,3,4,5,6,4,1,2,3,4,5,6,2,7],30],
+    [{Predictor:10,Columns:9,BitsPerComponent:1},[2,0x91,0x80,2,0x70,0],4],
+    [{Predictor:2,Columns:3,Colors:2},[1,2,3,4,5,6,7,8,9,0,1,2],12],
+    [{Predictor:2,Columns:3,Colors:2,BitsPerComponent:16},[0,255,0,2,0,1,255,255,0,1,0,4],12],
+    ...[1,2,4].map(bits=>[{Predictor:2,Columns:3,BitsPerComponent:bits},[0xff,0x77,0x55],bits===4?2:3])
+  ];
+  const values=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),cosDict({Type:cosName("Pages"),Kids:cosArray([]),Count:cosNumber(0)})];
+  for(const [i,[params,raw]] of cases.entries()) {
+    const p=cosDict(Object.fromEntries(Object.entries(params).map(([k,n])=>[k,cosNumber(n)])));
+    const dict=i===0?cosDict({Filter:cosArray([cosName("Fl")]),DP:cosArray([cosRef(4)])}):cosDict({Filter:cosName("FlateDecode"),DecodeParms:p});
+    values.push(cosStream(deflateSync(Buffer.from(raw)),{compress:false,dict}),p);
+  }
+  const bytes=serializeCosDocument({objects:values.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)});
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/predict.pdf":bytes}});
+  await fs.writeFile("/predict.pdf",bytes);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [i,[,,length]] of cases.entries()) {
+      const script="qpdf /predict.pdf --show-object="+(3+i*2)+" --filtered-stream-data";
+      const want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.equal(want.stdoutBytes.length,length);
       assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
     }
   } finally {wasm.dispose();}

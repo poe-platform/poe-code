@@ -2917,3 +2917,22 @@ test("the production shell redirects and appends bytes on a Wasm filesystem", as
     await assert.rejects(wasm.fs.appendFile("/dev", "", { mode: -1 }), { code: "EISDIR", syscall: undefined });
   } finally { wasm.dispose(); }
 });
+
+test("ffmpeg and ffprobe list the production media registry and codecs", async () => {
+  const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const { ffmpegCommands } = await import("@poe-platform/safe-bash/commands/ffmpeg");
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(ffmpegCommands());
+  const wasm = new RustWasmBash();
+  try {
+    for (const name of ["ffmpeg", "ffprobe"]) {
+      for (const flag of ["-version", "-formats", "-muxers", "-demuxers", "-encoders", "-decoders", "-codecs"]) {
+        const script = name + " " + flag;
+        const expected = await shell.exec(script);
+        assert.equal(expected.exitCode, 0, expected.stderr);
+        const actual = await wasm.exec(script);
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        assert.equal(actual.stdout, expected.stdout, script);
+      }
+    }
+  } finally { wasm.dispose(); }
+});

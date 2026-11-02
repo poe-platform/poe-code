@@ -1,42 +1,44 @@
 // The production registry tries a named demuxer, a matching filename and
 // signature, signatures alone, then a known extension for malformed input.
-const FORMATS: &[(&str, &str, &[&str])] = &[
+pub(super) const FORMATS: &[(&str, &str, &str, &[&str])] = &[
     (
         "mp4",
         "mov,mp4,m4a,3gp,3g2,mj2",
+        "MP4 / ISOBMFF (MPEG-4 Part 14)",
         &["mp4", "m4a", "m4v", "3gp", "3g2", "f4v"],
     ),
-    ("mov", "mov", &["mov", "qt"]),
-    ("mkv", "matroska,webm", &["mkv", "mka", "mks"]),
-    ("webm", "webm", &["webm"]),
-    ("mpegts", "mpegts", &["ts", "m2ts", "mts"]),
-    ("avi", "avi", &["avi"]),
-    ("flv", "flv", &["flv"]),
-    ("y4m", "yuv4mpegpipe", &["y4m"]),
-    ("aac", "aac", &["aac"]),
-    ("wav", "wav", &["wav", "wave"]),
-    ("mp3", "mp3", &["mp3"]),
-    ("flac", "flac", &["flac"]),
-    ("ogg", "ogg", &["ogg", "oga", "ogv", "opus"]),
-    ("gif", "gif", &["gif"]),
+    ("mov", "mov,mp4,m4a,3gp,3g2,mj2", "QuickTime / MOV", &["mov", "qt"]),
+    ("mkv", "matroska,webm", "Matroska / WebM", &["mkv", "mka", "mks"]),
+    ("webm", "matroska,webm", "WebM", &["webm"]),
+    ("mpegts", "mpegts", "MPEG-TS (MPEG-2 Transport Stream)", &["ts", "m2ts", "mts"]),
+    ("avi", "avi", "AVI (Audio Video Interleaved)", &["avi"]),
+    ("flv", "flv", "FLV (Flash Video)", &["flv"]),
+    ("y4m", "yuv4mpegpipe", "YUV4MPEG pipe", &["y4m"]),
+    ("aac", "aac", "raw ADTS AAC (Advanced Audio Coding)", &["aac"]),
+    ("wav", "wav", "WAV / WAVE (Waveform Audio)", &["wav", "wave"]),
+    ("mp3", "mp3", "MP2/3 (MPEG audio layer 2/3)", &["mp3"]),
+    ("flac", "flac", "raw FLAC", &["flac"]),
+    ("ogg", "ogg", "Ogg", &["ogg", "oga", "ogv", "opus"]),
+    ("gif", "gif", "CompuServe Graphics Interchange Format (GIF)", &["gif"]),
     (
         "image2",
         "image2",
+        "image2 sequence",
         &[
             "png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "tga", "tiff", "tif",
         ],
     ),
-    ("srt", "srt", &["srt"]),
-    ("webvtt", "webvtt", &["vtt", "webvtt"]),
-    ("ffmetadata", "ffmetadata", &["ffmeta", "ffmetadata"]),
-    ("hls", "hls", &["m3u8", "m3u"]),
-    ("dash", "dash", &["mpd"]),
+    ("srt", "srt", "SubRip subtitle", &["srt"]),
+    ("webvtt", "webvtt", "WebVTT subtitle", &["vtt", "webvtt"]),
+    ("ffmetadata", "ffmetadata", "FFmpeg metadata in text", &["ffmeta", "ffmetadata"]),
+    ("hls", "hls", "Apple HTTP Live Streaming", &["m3u8", "m3u"]),
+    ("dash", "dash", "Dynamic Adaptive Streaming over HTTP", &["mpd"]),
 ];
 
 pub(super) fn by_name(format: &str) -> Option<&'static str> {
     FORMATS
         .iter()
-        .find(|(id, name, exts)| {
+        .find(|(id, name, _, exts)| {
             id.eq_ignore_ascii_case(format)
                 || name.eq_ignore_ascii_case(format)
                 || name
@@ -52,7 +54,7 @@ pub(super) fn by_filename(filename: &str) -> Option<&'static str> {
     let extension = file.rsplit('.').next()?;
     FORMATS
         .iter()
-        .find(|(_, _, exts)| exts.iter().any(|s| s.eq_ignore_ascii_case(extension)))
+        .find(|(_, _, _, exts)| exts.iter().any(|s| s.eq_ignore_ascii_case(extension)))
         .map(|f| f.0)
 }
 

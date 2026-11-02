@@ -4216,54 +4216,29 @@ fn parse_ffmpeg_timestamp(spec: &str) -> Option<f64> {
 }
 
 fn format_ffmpeg_introspection(flag: &str, cmd: &str) -> Option<String> {
+    use std::fmt::Write;
     match flag {
         "-version" | "--version" => Some(format!(
-            "{cmd} version 7.1-safe-bash Copyright (c) 2000-2025 the FFmpeg developers\n  built with @poe-code/mp4-ast (registered ASTs: mp4, wav, gif, srt, webvtt, ffmetadata, hls, dash)\n  libavutil      59. 39.100 / 59. 39.100\n  libavcodec     61. 19.100 / 61. 19.100\n  libavformat    61.  7.100 / 61.  7.100\n  libavfilter    10.  4.100 / 10.  4.100\n"
+            "{cmd} version 7.1-safe-bash Copyright (c) 2000-2025 the FFmpeg developers\n  built with @poe-code/mp4-ast (registered ASTs: {})\n  libavutil      59. 39.100 / 59. 39.100\n  libavcodec     61. 19.100 / 61. 19.100\n  libavformat    61.  7.100 / 61.  7.100\n  libavfilter    10.  4.100 / 10.  4.100\n",
+            media_format::FORMATS.iter().map(|f| f.0).collect::<Vec<_>>().join(", ")
         )),
-        "-formats" | "-demuxers" | "-muxers" => Some(
-            [
-                "File formats:",
-                " D. = Demuxing supported",
-                " .E = Muxing supported",
-                " --",
-                " DE mov,mp4,m4a,3gp,3g2,mj2 QuickTime / MOV / MP4",
-                " DE matroska,webm        Matroska / WebM",
-                " DE wav                  WAV / WAVE (Waveform Audio)",
-                " DE gif                  CompuServe Graphics Interchange Format (GIF)",
-                " DE srt                  SubRip subtitle",
-                " DE webvtt               WebVTT subtitle",
-                " DE ffmetadata           FFmpeg metadata in text",
-                " DE hls                  Apple HTTP Live Streaming",
-                " DE dash                 Dynamic Adaptive Streaming over HTTP",
-                "",
-            ]
-            .join("\n"),
-        ),
-        "-codecs" | "-decoders" | "-encoders" => Some(
-            [
-                "Codecs:",
-                " D..... = Decoding supported",
-                " .E.... = Encoding supported",
-                " ..V... = Video codec",
-                " ..A... = Audio codec",
-                " ------",
-                " DEV.LS h264               h264 video",
-                " DEV.LS libx264            H.264 / AVC / MPEG-4 AVC",
-                " DEV.LS gif                gif video",
-                " DEV.LS png                png video",
-                " DEV.LS mjpeg              mjpeg video",
-                " DEA.L. aac                aac audio",
-                " DEA.L. pcm_s16le          pcm_s16le audio",
-                " DEA.L. pcm_f32le          pcm_f32le audio",
-                " DEA.L. pcm_u8             pcm_u8 audio",
-                " DEA.L. mp3                mp3 audio",
-                " DEA.L. flac               flac audio",
-                " DEA.L. opus               opus audio",
-                " DEA.L. vorbis             vorbis audio",
-                "",
-            ]
-            .join("\n"),
-        ),
+        "-formats" | "-demuxers" | "-muxers" => {
+            let mut out = String::from("File formats:\n D. = Demuxing supported\n .E = Muxing supported\n --\n");
+            for (_, name, description, _) in media_format::FORMATS {
+                writeln!(out, " DE {name:20} {description}").unwrap();
+            }
+            Some(out)
+        }
+        "-codecs" | "-decoders" | "-encoders" => {
+            let mut out = String::from("Codecs:\n D..... = Decoding supported\n .E.... = Encoding supported\n ..V... = Video codec\n ..A... = Audio codec\n ------\n");
+            for codec in ["h264", "hevc", "av1", "vp8", "vp9", "mpeg4", "mjpeg", "png", "prores", "mpeg2video", "rawvideo", "flv1", "theora", "gif", "webp", "bmp", "ppm"] {
+                writeln!(out, " DEV.LS {codec:18} {codec} video").unwrap();
+            }
+            for codec in ["aac", "mp3", "opus", "flac", "alac", "ac3", "eac3", "pcm_s16le", "pcm_s16be", "vorbis", "pcm_u8"] {
+                writeln!(out, " DEA.L. {codec:18} {codec} audio").unwrap();
+            }
+            Some(out)
+        }
         "-protocols" => Some(
             [
                 "Supported file protocols:",

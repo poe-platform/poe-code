@@ -6086,7 +6086,7 @@ fn cmd_media_doc(
                 let mut output = pdf_reader::PageOutput::new(crate::budget::ShellLimits::default().max_output_bytes);
                 for src in sources {
                     let damaged = || err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"), 255);
-                    let Ok(mut source) = pdf_reader::PageSource::open(&inputs[src]) else { return damaged() };
+                    let Ok(mut source) = pdf_reader::PageSource::open(&inputs[src],"") else { return damaged() };
                     if output.append(&mut source, None).is_none() { return damaged(); }
                 }
                 return match output.finish() {
@@ -6212,7 +6212,7 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
             }
-            let mut source = pdf_reader::PageSource::open(&b).ok();
+            let mut source = pdf_reader::PageSource::open(&b,"").ok();
             let legacy = if source.is_none() && is_legacy_pdf(&b) { Some(PdfDoc::parse(&b)) } else { None };
             let damaged = || err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
             let total = match (&source, &legacy) {
@@ -6816,7 +6816,9 @@ fn cmd_media_doc(
                 }
                 // The compatibility predicates deliberately recognize a literal
                 // marker, including in malformed files, before opening a PDF.
-                return if bytes.windows(8).any(|s| s == b"/Encrypt") { ok_out("") } else { err_out("",2) };
+                if !bytes.windows(8).any(|s| s == b"/Encrypt") { return err_out("",2); }
+                if !is_enc && let Some(pw) = password.as_deref() && pdf_reader::accepts_password(&bytes,pw).is_some() { return err_out("",3); }
+                return ok_out("");
             }
             if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
                 let input = primary_arg.as_deref().unwrap_or("empty");
@@ -6825,15 +6827,15 @@ fn cmd_media_doc(
                     else if input == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
                     else { fs.read_file(&resolve_posix_path(cwd,input)).ok() };
                 if let Some(bytes) = bytes {
-                    let source = pdf_reader::PageSource::open(&bytes);
-                    if matches!(source, Err(pdf_reader::NO_CATALOG)) && !is_legacy_pdf(&bytes) && !json_input {
-                        return err_out(&format!("qpdf: {input}: {}\n",pdf_reader::NO_CATALOG),2);
+                    let source = pdf_reader::PageSource::open(&bytes,password.as_deref().unwrap_or(""));
+                    if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) && !json_input {
+                        return err_out(&format!("qpdf: {input}: {e}\n"),2);
                     }
                     if let Ok(mut source) = source {
                     let out = if show_lin || check_mode { source.qpdf_summary(input,check_mode,show_lin) }
                         else if show_pages {source.qpdf_pages(with_images)}
                         else if show_npages {source.qpdf_summary(input,false,false)}
-                        else if show_enc { Some("File is not encrypted\n".into()) }
+                        else if show_enc { Some(source.encryption_description()) }
                         else if show_xref {source.qpdf_xref()}
                         else if let Some(spec) = &show_object {
                             let number = qpdf_decimal(spec).unwrap_or(0.) as usize;
@@ -7048,9 +7050,9 @@ fn cmd_media_doc(
                 if !json_input && pdf_reader::header_version(&input).is_none() {
                     return err_out(&format!("qpdf: {}: Invalid PDF header: missing %PDF- signature\n",primary_arg.as_deref().unwrap_or("empty")),2);
                 }
-                let source = pdf_reader::PageSource::open(&input);
-                if matches!(source, Err(pdf_reader::NO_CATALOG)) && !json_input && !is_legacy_pdf(&input) {
-                    return err_out(&format!("qpdf: {}: {}\n",primary_arg.as_deref().unwrap_or("empty"),pdf_reader::NO_CATALOG),2);
+                let source = pdf_reader::PageSource::open(&input,password.as_deref().unwrap_or(""));
+                if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !json_input && !is_legacy_pdf(&input) {
+                    return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2);
                 }
                 for k in &json_keys {
                     if jv == 1 && k == "qpdf" {return err_out("qpdf: json-key=qpdf is not valid for json=1\n",2);}
@@ -7212,7 +7214,7 @@ fn cmd_media_doc(
                                 graph = match rewrite() { Ok(v) => v, Err(e) => return e };
                                 &graph
                             } else { &bytes };
-                            let Ok(mut source) = pdf_reader::PageSource::open(data) else {
+                            let Ok(mut source) = pdf_reader::PageSource::open(data,password.as_deref().unwrap_or("")) else {
                                 return err_out("qpdf: invalid PDF object graph\n",2);
                             };
                             let count = source.len();
@@ -8290,7 +8292,7 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
-            let attachments = if let Ok(mut source) = pdf_reader::PageSource::open(&b) {
+            let attachments = if let Ok(mut source) = pdf_reader::PageSource::open(&b,"") {
                 let Some(files) = source.read_attachments() else {
                     return err_out("PDF Error: Invalid embedded file stream\n", 1);
                 };
@@ -8690,7 +8692,7 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
-            let source = pdf_reader::PageSource::open(&b).ok();
+            let source = pdf_reader::PageSource::open(&b,"").ok();
             let mut has_text = false;
             let page_count = if let Some(src) = &source {
                 src.len()
@@ -9280,7 +9282,7 @@ fn cmd_media_doc(
                     mcp_protocol_rust::numbers::format(first_p), mcp_protocol_rust::numbers::format(end_p)), 99);
             }
             let (first_p, end_p) = (first_p.ceil() as usize, end_p.floor() as usize);
-            let mut source = pdf_reader::PageSource::open(&raw_bytes).ok();
+            let mut source = pdf_reader::PageSource::open(&raw_bytes,"").ok();
             let dimensions = |pno| {
                 let (w, h, _) = doc.page_media.get(&pno).copied().unwrap_or((doc.page_w, doc.page_h, None));
                 (w.abs(), h.abs())
@@ -9939,7 +9941,7 @@ fn cmd_media_doc(
                 scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
                 crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
             };
-            let mut source = if matches!(fmt, "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b).ok() } else { None };
+            let mut source = if matches!(fmt, "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,"").ok() } else { None };
             let mut render = |pno| {
                 if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
                 let (w, h) = compute_dims(pno);
@@ -10113,7 +10115,7 @@ fn cmd_media_doc(
                     99,
                 );
             }
-            if let Ok(mut source) = pdf_reader::PageSource::open(&b) {
+            if let Ok(mut source) = pdf_reader::PageSource::open(&b,"") {
                 let mut idx = 0;
                 let mut seen = std::collections::BTreeSet::new();
                 let mut out = if list_mode {
@@ -15969,7 +15971,7 @@ mod media_unit_tests {
         let mut objects = vec!["<< /Type /Catalog /Pages 2 0 R >>", &tree];
         objects.resize(count + 2, "<< /Type /Page /Parent 2 0 R >>");
         let pdf = classic_pdf(&objects, "");
-        let mut source = pdf_reader::PageSource::open(pdf.as_bytes()).unwrap();
+        let mut source = pdf_reader::PageSource::open(pdf.as_bytes(),"").unwrap();
         let mut dest = pdf_reader::PageOutput::new(1024*1024);
         dest.append(&mut source, None).expect("copy every page");
         let bytes = dest.finish().unwrap();

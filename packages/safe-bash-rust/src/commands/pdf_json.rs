@@ -160,7 +160,7 @@ impl<'a> PageSource<'a> {
                 let (v, mut c) = self.objects.object(id).ok_or(INVALID)?;
                 c.skip();
                 let stream = if c.0.starts_with(b"stream") {
-                    Some(self.objects.stream(&v, c).ok_or(INVALID)?)
+                    Some(self.objects.raw_stream(id,&v, c).ok_or(INVALID)?)
                 } else {
                     None
                 };
@@ -315,7 +315,7 @@ impl<'a> PageSource<'a> {
             ("pagelabels", J::Array(labels)),
             ("outlines", outlines),
             ("acroform", form),
-            ("encrypt", record([("encrypted", J::Bool(false))])),
+            ("encrypt", record([("encrypted", J::Bool(self.objects.security.is_some()))])),
             ("attachments", attachments),
         ] {
             meta.push((key.encode_utf16().collect(), value));

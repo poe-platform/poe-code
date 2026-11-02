@@ -61,7 +61,7 @@ pub(in super::super) fn rewrite(
     read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let (mut objects, trailer) = index(bytes)?;
+    let (mut objects, trailer) = index(bytes,"")?;
     objects.preserve_hex = !edits.selections.is_empty();
     let root = trailer
         .get(b"Root")
@@ -236,7 +236,7 @@ pub(in super::super) fn rewrite(
             let (mut dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
             cursor.skip();
             if cursor.0.starts_with(b"stream") {
-                let data = objects.stream(&dict, cursor).ok_or(INVALID)?;
+                let data = objects.raw_stream(id,&dict, cursor).ok_or(INVALID)?;
                 let length = data.len().to_string();
                 dict.set_stream_length(length.as_bytes()).ok_or(INVALID)?;
                 encode(&dict, &mut out)?;
@@ -244,7 +244,7 @@ pub(in super::super) fn rewrite(
                     return Err(TOO_LARGE.into());
                 }
                 out.extend_from_slice(b"\nstream\n");
-                out.extend_from_slice(data);
+                out.extend_from_slice(&data);
                 out.extend_from_slice(b"\nendstream");
             } else if cursor.0.starts_with(b"endobj") {
                 encode(&dict, &mut out)?;

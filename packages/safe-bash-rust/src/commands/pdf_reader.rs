@@ -33,6 +33,9 @@ mod pdf_filters;
 #[path = "pdf_string.rs"]
 mod pdf_string;
 
+#[path = "pdf_security.rs"]
+mod pdf_security;
+pub(super) use pdf_security::{PASSWORD, UNSUPPORTED, accepts_password};
 use std::borrow::Cow;
 type Dict<'a> = Vec<(Cow<'a, [u8]>, Value<'a>)>;
 
@@ -409,6 +412,7 @@ enum OffsetRepair {
 
 struct Objects<'a> {
     bytes: &'a [u8],
+    security: Option<pdf_security::Security>,
     offset_repair: OffsetRepair,
     xref: BTreeMap<ObjectId, (Location, usize)>, // location and newest-revision traversal order
     latest_members: BTreeMap<usize, usize>,
@@ -423,6 +427,7 @@ impl<'a> Objects<'a> {
     fn new(bytes: &'a [u8]) -> Self {
         Self {
             bytes,
+            security: None,
             offset_repair: OffsetRepair::Strict,
             xref: BTreeMap::new(),
             latest_members: BTreeMap::new(),
@@ -449,7 +454,7 @@ impl<'a> Objects<'a> {
         self.remaining_bytes = self
             .remaining_bytes
             .checked_sub(count.checked_mul(std::mem::size_of::<(usize, usize)>())?)?;
-        let encoded = self.stream(&dict, c)?;
+        let encoded = self.raw_stream(id,&dict, c)?;
         let bytes = self.decode(&dict, encoded)?;
         let mut header = Cursor(bytes.get(..first)?);
         let mut members = Vec::with_capacity(count);
@@ -472,6 +477,15 @@ impl<'a> Objects<'a> {
     }
 
     fn object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
+        let (mut v,c)=self.stored_object(id)?;
+        // Compressed members have already been decrypted with their container's key.
+        if let Some(security) = &self.security && matches!(self.xref.get(&id)?.0, Location::File(_)) {
+            security.strings(id,&mut v);
+        }
+        Some((v,c))
+    }
+
+    fn stored_object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
         let offset = match self.xref.get(&id)?.0 {
             Location::File(pos) => pos,
             Location::Member { container, ordinal } => {
@@ -624,7 +638,7 @@ impl<'a> Objects<'a> {
 
     fn decoded_stream(&mut self, id: ObjectId) -> Option<std::borrow::Cow<'a, [u8]>> {
         let (dict, c) = self.object(id)?;
-        let stream = self.stream(&dict, c)?;
+        let stream = self.raw_stream(id,&dict, c)?;
         self.decode(&dict, stream)
     }
 
@@ -683,7 +697,7 @@ impl<'a> Objects<'a> {
             _ => return None,
         };
         let stream = self.stream(&dict, c)?;
-        let data = self.decode(&dict, stream)?;
+        let data = self.decode(&dict, Cow::Borrowed(stream))?;
         let mut bytes = data.as_ref();
         let mut field = |n| {
             let (head, tail) = bytes.split_at_checked(n)?;
@@ -738,9 +752,9 @@ fn last_xref(bytes: &[u8]) -> Option<usize> {
 mod pdf_repair;
 
 pub(super) const NO_CATALOG: &str = "Unable to repair PDF: no /Type /Catalog object found";
-fn index(bytes: &[u8]) -> Result<(Objects<'_>, Value<'_>), &'static str> {
+fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>), &'static str> {
     if let Some((mut objects, trailer)) = strict_index(bytes) {
-        if trailer.get(b"Encrypt").is_some() { return Err("encrypted PDF"); }
+        objects.authenticate(&trailer,password)?;
         objects.offset_repair = OffsetRepair::OnError;
         if let Some(catalog) = trailer.get(b"Root").and_then(Value::reference)
                 .and_then(|id| objects.object(id)).map(|(value, _)| value)
@@ -790,14 +804,11 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         };
         let prev = trailer.get(b"Prev").map(|v| uint(v.word()?));
         for trailer in std::iter::once(trailer).chain(supplement) {
-            if trailer.get(b"Encrypt").is_some() {
-                return Some((objects, trailer));
-            }
             let Value::Dict(entries) = trailer else {
                 return None;
             };
             for (key, value) in entries {
-                if matches!(key.as_ref(), b"Root" | b"Info" | b"ID" | b"Size")
+                if matches!(key.as_ref(), b"Root" | b"Info" | b"ID" | b"Size" | b"Encrypt")
                     && !latest.iter().any(|(k, _)| *k == key)
                 {
                     latest.push((key, value));
@@ -825,7 +836,7 @@ mod pdf_metadata;
 pub(super) use pdf_metadata::{INFO_TAGS, edit_info};
 
 pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
-    let (mut objects, trailer) = index(bytes).ok()?;
+    let (mut objects, trailer) = index(bytes,"").ok()?;
     let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
     let mut doc = PdfDoc::new();
     doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)

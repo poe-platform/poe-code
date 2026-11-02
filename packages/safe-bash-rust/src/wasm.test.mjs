@@ -4362,3 +4362,27 @@ test("qpdf encryption predicates inspect the input bytes before parsing the docu
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf authenticates standard PDF passwords and decrypts strings and streams",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("Titel 雪");doc.addPage().drawText("private",{x:2,y:3});
+  const locked=doc.save({encrypt:{revision:3,userPassword:"réader",ownerPassword:"öwner"}});
+  const empty=doc.save({encrypt:{revision:3,userPassword:"",ownerPassword:"writer"}});
+  const files={"/locked":locked,"/empty":empty,"/out":Buffer.from("prior")};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,data] of Object.entries(files))await fs.writeFile(name,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const cmd of ["qpdf locked --password=réader --requires-password","qpdf locked --password=öwner --requires-password",
+      "qpdf locked --password=wrong --requires-password","qpdf empty --password= --requires-password",
+      "qpdf locked --json out","qpdf locked --password=wrong --show-encryption","qpdf locked --password=réader --show-encryption",
+      "qpdf locked --password=öwner --check","qpdf locked --password=réader --json --json-stream-data=inline",
+      "qpdf empty --json=1","qpdf locked --password=öwner --show-object=4 --filtered-stream-data"]) {
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],cmd);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out")),Buffer.from(await fs.readFile("/out")));
+    }
+  } finally {wasm.dispose();}
+});

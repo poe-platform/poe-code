@@ -67,6 +67,9 @@ fn display(value: &Value<'_>, out: &mut String) {
 }
 
 impl<'a> PageSource<'a> {
+    pub(in crate::commands::archive) fn encryption_description(&self) -> String {
+        self.objects.security.as_ref().map_or_else(|| "File is not encrypted\n".into(), |s| s.description())
+    }
     // Inspect encoded bytes, including streams unrelated to the selected pages.
     // The first linearization dictionary follows revision order, not object number.
     pub(super) fn validate_objects(&mut self) -> Option<Option<Value<'a>>> {
@@ -165,7 +168,7 @@ impl<'a> PageSource<'a> {
                 "not linearized"
             };
             return Some(format!(
-                "checking {input}\nPDF Version: {version}\nFile is not encrypted\nFile is {state}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n"
+                "checking {input}\nPDF Version: {version}\nFile is {}\nFile is {state}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n", if self.objects.security.is_some() {"encrypted"} else {"not encrypted"}
             ));
         }
         Some(format!("{count}\n"))
@@ -195,14 +198,14 @@ impl<'a> PageSource<'a> {
         cursor.skip();
         let mut out = String::new();
         if cursor.0.starts_with(b"stream") {
-            let bytes = self.objects.stream(&node, cursor)?;
+            let bytes = self.objects.raw_stream(id,&node, cursor)?;
             if filtered {
                 return Some(crate::vfs::bytes_to_stream_string(
                     &self.objects.decoded_stream(id)?,
                 ));
             }
             if raw {
-                return Some(crate::vfs::bytes_to_stream_string(bytes));
+                return Some(crate::vfs::bytes_to_stream_string(&bytes));
             }
             display(&node, &mut out);
             write!(out, "\nstream\n...({} bytes)...\nendstream", bytes.len()).ok()?;

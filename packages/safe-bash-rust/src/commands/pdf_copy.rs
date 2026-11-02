@@ -130,9 +130,9 @@ impl<'a> Objects<'a> {
 }
 
 impl<'a> PageSource<'a> {
-    pub(in super::super) fn open(bytes: &'a [u8]) -> Result<Self, &'static str> {
+    pub(in super::super) fn open(bytes: &'a [u8], password: &str) -> Result<Self, &'static str> {
         const INVALID: &str = "invalid PDF object graph";
-        let (mut objects, trailer) = index(bytes)?;
+        let (mut objects, trailer) = index(bytes,password)?;
         let root = trailer.get(b"Root").and_then(Value::reference).ok_or(INVALID)?;
         let catalog = objects.object(root).ok_or(INVALID)?.0;
         let (pages, tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
@@ -419,7 +419,7 @@ impl PageOutput {
             }
         }
         let mut output = Self::new(limits.max_output_bytes);
-        let base_source = PageSource::open(base)?;
+        let base_source = PageSource::open(base,"")?;
         output
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
@@ -438,7 +438,7 @@ impl PageOutput {
                     let bytes = inputs[key]
                         .as_deref()
                         .ok_or_else(|| format!("cannot open {key}"))?;
-                    entry.insert(PageSource::open(bytes).map_err(|_| "invalid page selection")?)
+                    entry.insert(PageSource::open(bytes,"").map_err(|_| "invalid page selection")?)
                 }
             };
             let mut indices = Vec::new();
@@ -948,7 +948,7 @@ impl<'a> Copy<'_, 'a> {
                 let mut body = Vec::new();
                 cursor.skip();
                 if cursor.0.starts_with(b"stream") {
-                    let stream = self.objects.stream(&v, cursor)?;
+                    let stream = self.objects.raw_stream(*id,&v, cursor)?;
                     let length = stream.len().to_string();
                     // Clone references in source order, including an indirect /Length.
                     if matches!(&v, Value::Dict(entries) if entries.iter().any(|(k, v)| k.as_ref() == b"Length" && matches!(v, Value::Ref(_) | Value::Dict(_) | Value::Array(_))))
@@ -962,7 +962,7 @@ impl<'a> Copy<'_, 'a> {
                         return None;
                     }
                     body.extend_from_slice(b"\nstream\n");
-                    body.extend_from_slice(stream);
+                    body.extend_from_slice(&stream);
                     body.extend_from_slice(b"\nendstream");
                 } else if cursor.0.starts_with(b"endobj") {
                     self.value(&v, &mut body, depth + 1)?;

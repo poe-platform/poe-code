@@ -3540,3 +3540,43 @@ test("qpdf inspects embedded name trees, associated files and attachment annotat
     }
   } finally { wasm.dispose(); }
 });
+
+test("qpdf adds, replaces and removes attachments without losing the PDF object graph", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { PdfDocument, encodePng, cosString, dictSet } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([30,40]);
+  doc.setTitle("attachment fixture");
+  page.drawImage(doc.embedPng(encodePng({width:1,height:1,data:Uint8Array.of(24,39,88,127)})), {x:3,y:8,width:20,height:10});
+  dictSet(doc.cos.resolveDict(doc.cos.rootRef), "Unrelated", cosString("preserve me"));
+  const files = {"/base.pdf":doc.save(), "/a":Uint8Array.of(0,255,10), "/b":Uint8Array.of(9,8,7)};
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({cwd:"/",files});
+  for (const [p,b] of Object.entries(files)) await fs.writeFile(p,b);
+  const shell = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const [args, path] of [
+      ["base.pdf --add-attachment a --key=one --filename=thing.bin --description='first file' -- first.pdf","/first.pdf"],
+      ["first.pdf --add-attachment=b --key=two --filename=thing.bin -- second.pdf","/second.pdf"],
+      ["second.pdf --add-attachment a --key=two -- bad.pdf",null],
+      ["second.pdf --add-attachment a --key=two --replace -- replacement.pdf","/replacement.pdf"],
+      ["replacement.pdf --remove-attachment=thing.bin kept.pdf","/kept.pdf"],
+      ["kept.pdf --remove-attachment=one --replace-input","/kept.pdf"],
+      ["base.pdf --copy-attachments-from=second.pdf --prefix=imported_ -- copied.pdf","/copied.pdf"],
+      ["copied.pdf --show-attachment=imported_two",null],
+      ["copied.pdf --copy-attachments-from second.pdf --prefix=imported_ -- bad.pdf",null],
+      ["base.pdf --copy-attachments-from second.pdf -- --remove-attachment=one --add-attachment b --key=two --replace -- mixed.pdf","/mixed.pdf"],
+      ["kept.pdf --list-attachments",null],
+      ["first.pdf --show-attachment=thing.bin",null],
+      ["base.pdf --add-attachment missing -- bad.pdf",null],
+    ]) {
+      const script = "qpdf "+args, a = await shell.exec(script), b = await wasm.exec(script);
+      assert.deepEqual([b.exitCode,b.stdoutBytes,b.stderr],[a.exitCode,a.stdoutBytes,a.stderr],script);
+      if (path) {
+        assert.equal(a.exitCode,0,a.stderr);
+        const got = Buffer.from(await wasm.fs.readFile(path)), want = Buffer.from(await fs.readFile(path));
+        assert.equal(got.equals(want),true,script + ": first differing byte " + want.findIndex((v,i)=>v!==got[i]));
+      }
+    }
+    for (const backend of [fs,wasm.fs]) await assert.rejects(backend.readFile("/bad.pdf"));
+  } finally {wasm.dispose();}
+});

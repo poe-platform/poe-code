@@ -6288,7 +6288,8 @@ fn cmd_media_doc(
             let mut list_att = false;
             let mut show_att: Option<String> = None;
             let mut remove_atts: Vec<String> = Vec::new();
-            let mut add_atts: Vec<(String, String, String, bool)> = Vec::new();
+            let mut add_atts = Vec::new();
+            let mut only_attachments = true;
             let mut copy_atts: Vec<(String, String)> = Vec::new();
             let mut split_pages_group: Option<usize> = None;
             let mut encrypt_pw: Option<String> = None;
@@ -6311,6 +6312,9 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
+                if a.starts_with("--") && a != "--replace-input" && a != "--copy-attachments-from" && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") {
+                    only_attachments = false;
+                }
                 if a == "--empty" {
                     empty_input = true;
                     i += 1;
@@ -6436,15 +6440,22 @@ fn cmd_media_doc(
                     i += 1;
                     continue;
                 }
-                if a == "--add-attachment" && i + 1 < args.len() {
-                    let att_file = args[i + 1].clone();
+                if a == "--add-attachment" || a.starts_with("--add-attachment=") {
+                    let att_file = if let Some(path) = a.strip_prefix("--add-attachment=") { path.to_owned() } else {
+                        i += 1;
+                        args.get(i).cloned().unwrap_or_default()
+                    };
                     let mut key = att_file.rsplit('/').next().unwrap_or(&att_file).to_string();
+                    if key.is_empty() {key = "attachment".into();}
                     let mut fname = key.clone();
+                    let mut description = String::new();
                     let mut replace = false;
-                    i += 2;
+                    i += 1;
                     while i < args.len() && args[i] != "--" {
                         if let Some(k) = args[i].strip_prefix("--key=") {
-                            key = k.to_string();
+                            if !k.is_empty() {key = k.to_owned();}
+                        } else if let Some(d) = args[i].strip_prefix("--description=") {
+                            description = d.to_owned();
                         } else if let Some(f) = args[i].strip_prefix("--filename=") {
                             fname = f.to_string();
                         } else if args[i] == "--replace" {
@@ -6455,13 +6466,16 @@ fn cmd_media_doc(
                     if i < args.len() && args[i] == "--" {
                         i += 1;
                     }
-                    add_atts.push((att_file, key, fname, replace));
+                    add_atts.push(pdf_reader::attachments::AddAttachment {path:att_file, key, filename:fname, description, replace});
                     continue;
                 }
-                if a == "--copy-attachments-from" && i + 1 < args.len() {
-                    let src_pdf = args[i + 1].clone();
+                if a == "--copy-attachments-from" || a.starts_with("--copy-attachments-from=") {
+                    let src_pdf = if let Some(path) = a.strip_prefix("--copy-attachments-from=") {path.to_owned()} else {
+                        i += 1;
+                        args.get(i).cloned().unwrap_or_default()
+                    };
                     let mut pfx = String::new();
-                    i += 2;
+                    i += 1;
                     while i < args.len() && args[i] != "--" {
                         if let Some(p) = args[i].strip_prefix("--prefix=") {
                             pfx = p.to_string();
@@ -7118,6 +7132,22 @@ fn cmd_media_doc(
             } else {
                 None
             };
+            if only_attachments && (!add_atts.is_empty() || !remove_atts.is_empty() || !copy_atts.is_empty())
+                && let (Some(input), Some(dst_arg)) = (primary_arg.as_deref(),out_arg.as_deref())
+                && (replace_input || dst_arg != input || dst_arg == "-") {
+                let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
+                    else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
+                if let Some(bytes) = read(input) && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
+                    let output = match pdf_reader::attachments::edit(&bytes,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
+                        Ok(bytes) => bytes, Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
+                    };
+                    if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
+                    return match fs.write_file(&resolve_posix_path(cwd,dst_arg),&output) {
+                        Ok(()) => ok_out(""), Err(e) => err_out(&format!("qpdf: {e}\n"),2)
+                    };
+                }
+            }
+
             let mut doc = if empty_input {
                 PdfDoc::new()
             } else if let Some(f) = primary_arg.as_deref() {
@@ -7305,7 +7335,7 @@ fn cmd_media_doc(
             for key in &remove_atts {
                 doc.attachments.retain(|(k, fname, _, _)| k != key && fname != key);
             }
-            for (att_p, key, fname, replace) in add_atts {
+            for pdf_reader::attachments::AddAttachment {path:att_p,key,filename:fname,replace,..} in add_atts {
                 let afull = resolve_posix_path(cwd, &att_p);
                 let Ok(ab) = fs.read_file(&afull) else {
                     return err_out(&format!("qpdf: {att_p}: No such file or directory\n"), 2);

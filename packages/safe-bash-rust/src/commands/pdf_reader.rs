@@ -4,6 +4,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
+#[path = "pdf_attachments.rs"]
+pub(super) mod attachments;
 pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};
 
 #[path = "pdf_office.rs"]

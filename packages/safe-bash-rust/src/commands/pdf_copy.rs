@@ -139,7 +139,14 @@ impl<'a> PageSource<'a> {
             match dict.get(b"AF").and_then(|v| objects.resolve(v)) {
                 Some(Value::Array(items)) => {
                     for (i, spec) in items.into_iter().enumerate() {
-                        specs.push((if qpdf {vec![]} else {format!("{prefix}_af_{}", i + 1).into_bytes()}, spec));
+                        specs.push((
+                            if qpdf {
+                                vec![]
+                            } else {
+                                format!("{prefix}_af_{}", i + 1).into_bytes()
+                            },
+                            spec,
+                        ));
                     }
                 }
                 Some(spec) if !qpdf => specs.push((format!("{prefix}_af").into_bytes(), spec)),
@@ -155,7 +162,9 @@ impl<'a> PageSource<'a> {
         for (index, id) in self.pages.iter().enumerate() {
             let page = self.objects.object(*id)?.0;
             let prefix = format!("page{}", index + 1);
-            if !qpdf { associated(&mut self.objects, &page, prefix.clone(), &mut specs); }
+            if !qpdf {
+                associated(&mut self.objects, &page, prefix.clone(), &mut specs);
+            }
             if let Some(Value::Array(items)) =
                 page.get(b"Annots").and_then(|v| self.objects.resolve(v))
             {
@@ -164,48 +173,56 @@ impl<'a> PageSource<'a> {
                     if annot.get(b"Subtype").and_then(Value::word) == Some(b"/FileAttachment")
                         && let Some(spec) = annot.get(b"FS")
                     {
-                        specs.push((if qpdf {vec![]} else {format!("{prefix}_attachment").into_bytes()}, spec.clone()));
+                        specs.push((
+                            if qpdf {
+                                vec![]
+                            } else {
+                                format!("{prefix}_attachment").into_bytes()
+                            },
+                            spec.clone(),
+                        ));
                     }
                 }
             }
         }
         let mut files = Vec::new();
         for (fallback, spec) in specs {
-            let spec = self.objects.resolve(&spec)?;
-            let Some(ef) = spec.get(b"EF").and_then(|v| self.objects.resolve(v)) else {
-                continue;
-            };
-            let Some(stream) = [b"UF".as_slice(), b"F", b"DOS", b"Mac", b"Unix"]
-                .iter()
-                .find_map(|k| ef.get(k))
-                .and_then(Value::reference)
-            else {
-                continue;
-            };
-            let name = match spec
-                .get(b"UF")
-                .or_else(|| spec.get(b"F"))
-                .and_then(|v| self.objects.resolve(v))
-            {
-                Some(Value::String(bytes)) => bytes,
-                _ => fallback.clone(),
-            };
+            let Some((name,stream)) = self.objects.filespec(&spec,&fallback) else {continue;};
             self.objects.remaining_bytes = self.objects.remaining_bytes.checked_sub(name.len())?;
-            let key = if qpdf { super::text(if fallback.is_empty() { &name } else { &fallback }) } else { String::new() };
-            files.push(Attachment {key, filename:name, stream});
+            let key = if qpdf {
+                super::text(if fallback.is_empty() {
+                    &name
+                } else {
+                    &fallback
+                })
+            } else {
+                String::new()
+            };
+            files.push(Attachment {
+                key,
+                filename: name,
+                stream,
+            });
         }
         Some(files)
     }
 
-    pub(in super::super) fn qpdf_attachments(&mut self, show: Option<&str>) -> Option<Option<String>> {
+    pub(in super::super) fn qpdf_attachments(
+        &mut self,
+        show: Option<&str>,
+    ) -> Option<Option<String>> {
         let mut seen = BTreeSet::new();
         let mut listing = String::new();
         for file in self.attachments(true)? {
-            if !seen.insert(file.key.clone()) { continue; }
+            if !seen.insert(file.key.clone()) {
+                continue;
+            }
             let filename = super::text(&file.filename);
             if let Some(key) = show {
                 if key == file.key || key == filename {
-                    return Some(Some(crate::vfs::bytes_to_stream_string(&self.objects.decoded_stream(file.stream)?)));
+                    return Some(Some(crate::vfs::bytes_to_stream_string(
+                        &self.objects.decoded_stream(file.stream)?,
+                    )));
                 }
             } else {
                 use std::fmt::Write;
@@ -218,7 +235,12 @@ impl<'a> PageSource<'a> {
     pub(in super::super) fn read_attachments(&mut self) -> Option<Vec<(String, Vec<u8>)>> {
         let mut seen = BTreeSet::new();
         let mut result = Vec::new();
-        for Attachment { filename: name, stream: id, .. } in self.attachments(false)? {
+        for Attachment {
+            filename: name,
+            stream: id,
+            ..
+        } in self.attachments(false)?
+        {
             let name = super::text(&name);
             if seen.insert(name.clone()) {
                 result.push((name, self.objects.decoded_stream(id)?.into_owned()));
@@ -268,14 +290,23 @@ impl PageOutput {
     }
 
     // Office's PageRange creates a new document, with fresh metadata.
-    pub(super) fn selected(source: &mut PageSource<'_>, pages: std::ops::Range<usize>, limit: usize) -> Option<Vec<u8>> {
+    pub(super) fn selected(
+        source: &mut PageSource<'_>,
+        pages: std::ops::Range<usize>,
+        limit: usize,
+    ) -> Option<Vec<u8>> {
         let mut doc = Self::new(limit);
         doc.bodies[2] = b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec();
         doc.copy_pages(source, pages, false)?;
         doc.finish()
     }
 
-    fn copy_pages(&mut self, source: &mut PageSource<'_>, selection: std::ops::Range<usize>, whole_document: bool) -> Option<()> {
+    fn copy_pages(
+        &mut self,
+        source: &mut PageSource<'_>,
+        selection: std::ops::Range<usize>,
+        whole_document: bool,
+    ) -> Option<()> {
         let page_offset = self.pages.len();
         let mut ids = BTreeMap::new();
         for i in selection.clone() {
@@ -285,7 +316,12 @@ impl PageOutput {
             self.bodies.push(vec![]);
         }
         if whole_document {
-            for Attachment {filename: name, stream: id, ..} in source.attachments(false)? {
+            for Attachment {
+                filename: name,
+                stream: id,
+                ..
+            } in source.attachments(false)?
+            {
                 if !self.attachment_names.insert(super::text(&name)) {
                     continue;
                 }
@@ -452,63 +488,73 @@ impl<'a> Copy<'_, 'a> {
     }
 
     fn value(&mut self, value: &Value<'_>, out: &mut Vec<u8>, depth: usize) -> Option<()> {
-        if depth > 128 {
-            return None;
-        }
-        match value {
-            Value::Word(w) => out.extend_from_slice(w),
-            Value::String(s) => literal(s, out),
-            Value::Array(items) => {
-                out.extend_from_slice(b"[ ");
-                for item in items {
-                    self.value(item, out, depth + 1)?;
-                    out.push(b' ');
-                }
-                out.push(b']');
-            }
-            Value::Dict(entries) => {
-                out.extend_from_slice(b"<<\n");
-                for (k, v) in entries {
-                    out.push(b'/');
-                    out.extend_from_slice(k);
-                    out.push(b' ');
-                    self.value(v, out, depth + 1)?;
-                    out.push(b'\n');
-                }
-                out.extend_from_slice(b">>");
-            }
-            Value::Ref(id) => {
-                if let Some(n) = self.ids.get(id) {
-                    write!(out, "{n} 0 R").ok()?;
-                } else if self.tree.contains_key(id) {
-                    out.extend_from_slice(b"null");
-                } else {
-                    let n = self.output.bodies.len() + 1;
-                    self.ids.insert(*id, n);
-                    self.output.bodies.push(vec![]);
-                    let (v, mut cursor) = self.objects.object(*id)?;
-                    let mut body = Vec::new();
-                    self.value(&v, &mut body, depth + 1)?;
-                    cursor.skip();
-                    if cursor.0.starts_with(b"stream") {
-                        let stream = self.objects.stream(&v, cursor)?;
-                        if stream.len() > self.output.remaining.checked_sub(body.len())? {
-                            return None;
-                        }
-                        body.extend_from_slice(b"\nstream\n");
-                        body.extend_from_slice(stream);
-                        body.extend_from_slice(b"\nendstream");
-                    } else if !cursor.0.starts_with(b"endobj") {
+        encode_value(value, out, depth, &mut |id, out, depth| {
+            if let Some(n) = self.ids.get(id) {
+                write!(out, "{n} 0 R").ok()?;
+            } else if self.tree.contains_key(id) {
+                out.extend_from_slice(b"null");
+            } else {
+                let n = self.output.bodies.len() + 1;
+                self.ids.insert(*id, n);
+                self.output.bodies.push(vec![]);
+                let (v, mut cursor) = self.objects.object(*id)?;
+                let mut body = Vec::new();
+                self.value(&v, &mut body, depth + 1)?;
+                cursor.skip();
+                if cursor.0.starts_with(b"stream") {
+                    let stream = self.objects.stream(&v, cursor)?;
+                    if stream.len() > self.output.remaining.checked_sub(body.len())? {
                         return None;
                     }
-                    self.output.remaining = self.output.remaining.checked_sub(body.len())?;
-                    self.output.bodies[n - 1] = body;
-                    write!(out, "{n} 0 R").ok()?;
+                    body.extend_from_slice(b"\nstream\n");
+                    body.extend_from_slice(stream);
+                    body.extend_from_slice(b"\nendstream");
+                } else if !cursor.0.starts_with(b"endobj") {
+                    return None;
                 }
+                self.output.remaining = self.output.remaining.checked_sub(body.len())?;
+                self.output.bodies[n - 1] = body;
+                write!(out, "{n} 0 R").ok()?;
             }
-        }
-        Some(())
+            Some(())
+        })
     }
+}
+
+pub(super) fn encode_value(
+    value: &Value<'_>,
+    out: &mut Vec<u8>,
+    depth: usize,
+    reference: &mut impl FnMut(&ObjectId, &mut Vec<u8>, usize) -> Option<()>,
+) -> Option<()> {
+    if depth > 128 {
+        return None;
+    }
+    match value {
+        Value::Word(w) => out.extend_from_slice(w),
+        Value::String(s) => literal(s, out),
+        Value::Array(items) => {
+            out.extend_from_slice(b"[ ");
+            for item in items {
+                encode_value(item, out, depth + 1, reference)?;
+                out.push(b' ');
+            }
+            out.push(b']');
+        }
+        Value::Dict(entries) => {
+            out.extend_from_slice(b"<<\n");
+            for (k, v) in entries {
+                out.push(b'/');
+                out.extend_from_slice(k);
+                out.push(b' ');
+                encode_value(v, out, depth + 1, reference)?;
+                out.push(b'\n');
+            }
+            out.extend_from_slice(b">>");
+        }
+        Value::Ref(id) => reference(id, out, depth)?,
+    }
+    Some(())
 }
 
 pub(super) fn literal(s: &[u8], out: &mut Vec<u8>) {

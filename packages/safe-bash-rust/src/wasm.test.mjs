@@ -5363,6 +5363,29 @@ test("wkhtmltopdf writes URI annotations for visible links in headings and parag
   }finally{rs.dispose();}
 });
 
+test("PDF URL inspection follows actions; text and HTML use the annotation rectangle",async()=>{
+  const {PdfDocument,cosStream,cosDict,cosArray,cosNumber,cosName,cosString,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdfinfoCommands}=await import("@poe-platform/safe-bash/commands/pdfinfo");
+  const {pdftotextCommands}=await import("@poe-platform/safe-bash/commands/pdftotext");
+  const d=PdfDocument.create(),p=d.addPage(),q=d.addPage();
+  p.drawText("First",{x:10,y:35,size:12});p.drawText("Second",{x:10,y:135,size:12});
+  const action=cosDict({URI:cosString("https://e/雪?a&b")}), ref=d.cos.allocateObject(action);
+  const invalid=cosStream(Buffer.from("bytes"));dictSet(invalid.dict,"URI",cosString("not an action"));
+  dictSet(action,"Next",cosArray([cosDict({URI:cosString("nested")}),d.cos.allocateObject(invalid),ref]));
+  const annot=(rect,fields)=>cosDict({Subtype:cosName("Link"),Rect:cosArray(rect.map(n=>cosNumber(n))),...fields});
+  dictSet(p.dict,"Annots",cosArray([annot([90,65,0,30],{A:ref}),annot([0,130,90,165],{Dest:cosArray([q.ref,cosName("Fit")])}),cosDict({A:cosDict({URI:cosString("no rectangle")})})]));
+  q.addLinkAnnotation({uri:"next page",rect:[0,0,10,10]});
+  const bytes=d.save(),fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdfinfoCommands({replace:true})).use(pdftotextCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":bytes}});
+  try{
+    await fs.writeFile("/in",bytes);
+    for(const cmd of ["pdfinfo -url in","pdfinfo -url -f 2 in","pdftotext -urls -f 1 -l 1 in -","pdftohtml -xml -stdout in","pdftohtml -stdout in"]){
+      const e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],cmd);
+    }
+  }finally{rs.dispose();}
+});
+
 test("pdftotext orders logical lines, preserves block boundaries and optionally rejoins hyphens",async()=>{
   const {PdfDocument}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");

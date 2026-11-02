@@ -4,6 +4,138 @@ use crate::commands::archive::encode_pdftk_text;
 use std::collections::{BTreeMap, BTreeSet};
 
 impl<'a> PageSource<'a> {
+    pub(in crate::commands::archive) fn page_links(
+        &mut self,
+        page: usize,
+        limit: usize,
+    ) -> Option<Vec<([f64; 4], String)>> {
+        let obj = &mut self.objects;
+        let dict = obj.page_dict(*self.pages.get(page.checked_sub(1)?)?, &self.tree)?;
+        let mut links = Vec::new();
+        let Some(Value::Array(items)) = dict.get(b"Annots").and_then(|v| obj.resolve(v)) else {
+            return Some(links);
+        };
+        let mut targets = None;
+        let mut left = limit;
+        for item in items {
+            let Some((_, d)) = obj.lookup_value(&item) else {
+                continue;
+            };
+            let Some(Value::Array(coords)) = d.get(b"Rect").and_then(|v| obj.resolve(v)) else {
+                continue;
+            };
+            if coords.len() < 4 {
+                continue;
+            }
+            let rect = std::array::from_fn(|i| {
+                obj.resolve(&coords[i])
+                    .and_then(|v| v.number())
+                    .unwrap_or(0.)
+            });
+            let action = d
+                .get(b"A")
+                .and_then(|v| obj.lookup_value(v))
+                .map(|(_, v)| v);
+            let mut uri = action
+                .as_ref()
+                .and_then(|a| a.get(b"URI"))
+                .and_then(|v| obj.resolve(v))
+                .and_then(|v| match v {
+                    Value::String { bytes, .. } => Some(pdf_string::decode(&bytes)),
+                    _ => None,
+                })
+                .unwrap_or_default();
+            if uri.is_empty() {
+                let action_dest = action
+                    .as_ref()
+                    .filter(|a| {
+                        a.get(b"S")
+                            .and_then(|v| obj.resolve(v))
+                            .is_none_or(|s| s.word() == Some(b"/GoTo"))
+                    })
+                    .and_then(|a| a.get(b"D"));
+                let direct = d.get(b"Dest");
+                if action_dest.is_none() && direct.is_none() {
+                    continue;
+                }
+                if targets.is_none() {
+                    targets = Some((
+                        obj.named_destinations(&self.catalog)?,
+                        self.pages
+                            .iter()
+                            .enumerate()
+                            .rev()
+                            .map(|(i, id)| (id.0, i))
+                            .collect(),
+                    ));
+                }
+                let (named, indices) = targets.as_ref()?;
+                let Some(target) = [action_dest, direct]
+                    .into_iter()
+                    .find_map(|v| obj.destination_index(v, named, indices, self.pages.len()))
+                else {
+                    continue;
+                };
+                uri = format!("#page{}", target + 1);
+            }
+            left = left.checked_sub(uri.len() + std::mem::size_of::<([f64; 4], String)>())?;
+            links.push((rect, uri));
+        }
+        Some(links)
+    }
+
+    pub(in crate::commands::archive) fn write_urls(
+        &mut self,
+        first: usize,
+        last: usize,
+        out: &mut String,
+        limit: usize,
+    ) -> Option<()> {
+        use std::fmt::Write;
+        let obj = &mut self.objects;
+        for page in first..=last {
+            let dict = obj.page_dict(*self.pages.get(page - 1)?, &self.tree)?;
+            let Some(Value::Array(items)) = dict.get(b"Annots").and_then(|v| obj.resolve(v)) else {
+                continue;
+            };
+            for item in items {
+                let mut stack = Vec::new();
+                if let Some((_, d)) = obj.lookup_value(&item) {
+                    stack.extend(d.get(b"A").cloned());
+                }
+                let mut seen = BTreeSet::new();
+                while let Some(node) = stack.pop() {
+                    let Some((owner, action)) = obj.lookup_value(&node) else {
+                        continue;
+                    };
+                    if owner.is_some_and(|id| !seen.insert(id)) {
+                        continue;
+                    };
+                    if let Some(Value::String { bytes, .. }) =
+                        action.get(b"URI").and_then(|v| obj.resolve(v))
+                    {
+                        let uri = pdf_string::decode(&bytes);
+                        if uri.len() > limit.saturating_sub(out.len()) {
+                            return None;
+                        }
+                        writeln!(out, "{page:4}  Annotation    {uri}").ok()?;
+                        if out.len() > limit {
+                            return None;
+                        }
+                    }
+                    if let Some(next) = action.get(b"Next") {
+                        if let Some(Value::Array(items)) = obj.resolve(next) {
+                            stack.extend(items.into_iter().rev());
+                        } else {
+                            stack.push(next.clone());
+                        }
+                    }
+                }
+            }
+        }
+        Some(())
+    }
+
     pub(in crate::commands::archive) fn annotation_report(
         &mut self,
         utf8: bool,

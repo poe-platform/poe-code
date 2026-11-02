@@ -8332,7 +8332,13 @@ fn cmd_media_doc(
             }
             if show_url {
                 let mut u_out = String::from("Page  Type          URL\n");
-                for (p_idx, pg) in doc.pages.iter().enumerate() {
+                let last = if last_p.is_none() { page_count } else { lp };
+                if let Ok(mut source) = pdf_reader::PageSource::open(&b,supplied) {
+                    return if source.write_urls(fp,last.min(source.len()),&mut u_out,fs.shell_limits().max_output_bytes).is_some() {
+                        ok_out(&u_out)
+                    } else { err_out("PDF URL output limit exceeded\n",1) };
+                }
+                for (p_idx, pg) in doc.pages.iter().enumerate().take(last).skip(fp-1) {
                     for u in &pg.urls {
                         u_out.push_str(&format!("{:4}  {:<13} {u}\n", p_idx + 1, "Annotation"));
                     }
@@ -8944,7 +8950,7 @@ fn cmd_media_doc(
                 }
             } else {
                 let mut plain = String::new();
-                let mut source = (raw || !layout).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
+                let mut source = (urls_mode || raw || !layout).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
                 for (pno, pg) in &selected_pages {
                     let mut t = if layout && !raw {
                         pg.text.replace("\n\n", "\n")
@@ -8954,7 +8960,13 @@ fn cmd_media_doc(
                     };
                     if urls_mode {
                         let mut extra = Vec::new();
-                        for u in &pg.urls {
+                        let links;
+                        let urls = if let Some(source) = &mut source {
+                            let Some(found) = source.page_links(*pno, fs.shell_limits().max_input_bytes) else {return err_out("PDF link limit exceeded\n",1)};
+                            links = found.into_iter().map(|(_,uri)|uri).collect::<Vec<_>>();
+                            &links
+                        } else {&pg.urls};
+                        for u in urls {
                             if !t.contains(u) && !extra.contains(u) {
                                 extra.push(u.clone());
                             }
@@ -9176,6 +9188,7 @@ fn cmd_media_doc(
                 let mut fonts = vec![("Helvetica".to_string(), (12.0 * zoom).round() as i64)];
                 let mut markup = Vec::new();
                 if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7))) {
+                    let links = source.as_mut()?.page_links(pno, fs.shell_limits().max_input_bytes)?;
                     let height = dimensions(pno).1;
                     let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
                     for run in layout {
@@ -9188,6 +9201,10 @@ fn cmd_media_doc(
                         let mut inner = html_escape_str(&run.text);
                         if style.contains("italic") || style.contains("oblique") { inner = format!("<i>{inner}</i>"); }
                         if style.contains("bold") { inner = format!("<b>{inner}</b>"); }
+                        if let Some((_,uri)) = links.iter().find(|([a,b,c,d],_)|
+                            x1.min(a.max(*c)) > x0.max(a.min(*c)) && y1.min(b.max(*d)) > y0.max(b.min(*d))) {
+                            inner = format!(r#"<a href="{}">{inner}</a>"#,html_escape_str(uri));
+                        }
                         markup.push(if xml_mode {
                             let key = (run.family.to_string(), (run.size * zoom).round().max(1.) as i64);
                             let id = font_ids.entry(key.clone()).or_insert_with(|| { fonts.push(key); fonts.len()-1 });
@@ -9210,7 +9227,7 @@ fn cmd_media_doc(
                         });
                     }
                 }
-                (fonts, markup)
+                Some((fonts, markup))
             };
             let rendered = if xml_mode {
                 let mut lines = vec![
@@ -9221,7 +9238,7 @@ fn cmd_media_doc(
                 for pno in first_p..=end_p {
                     let (pw, ph) = dimensions(pno);
                     let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
-                    let (fonts, markup) = page_text(pno);
+                    let Some((fonts, markup)) = page_text(pno) else {return err_out("PDF link limit exceeded\n",1)};
                     lines.push(format!(
                         "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
                     ));
@@ -9283,7 +9300,7 @@ fn cmd_media_doc(
                 for pno in first_p..=end_p {
                     let (pw, ph) = dimensions(pno);
                     let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
-                    let (_, markup) = page_text(pno);
+                    let Some((_, markup)) = page_text(pno) else {return err_out("PDF link limit exceeded\n",1)};
                     lines.push(format!(
                         "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
                     ));

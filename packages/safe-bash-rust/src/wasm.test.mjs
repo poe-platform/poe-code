@@ -6424,3 +6424,27 @@ test("whole-line searches honor anchors and preserve them as text in fixed-strin
     }
   } finally { rs.dispose(); }
 });
+
+test("regex character classes select punctuation, controls, and complements inside unions", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(sedCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) await f.writeFile("/in", Buffer.from("A1_z !\t\v=é\n"));
+    for (const c of ["blank", "cntrl", "graph", "print", "punct", "space"]) {
+      for (const cmd of ["sed 's/[[:CLASS:]]/X/g' in", "grep -Eo '[[:CLASS:]]' in", "rg -o '[[:CLASS:]]' in"]) {
+        const script = cmd.replace("CLASS", c);
+        const a = await js.exec(script), b = await rs.exec(script);
+        assert.equal(a.exitCode, 0, script + ": " + a.stderr);
+        assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], script);
+      }
+    }
+    for (const pat of [String.raw`[\D]`, String.raw`[^\D]`, String.raw`[\S]`, String.raw`[\W_]`, "[!a]", "[A-z]"]) {
+      const cmd = "sed 's/" + pat + "/X/gi' in";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, 0, a.stderr);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

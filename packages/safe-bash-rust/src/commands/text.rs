@@ -641,8 +641,7 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
                 first = false;
                 if let Some(class) = rest.strip_prefix("[:") {
                     let (name, tail) = class.split_once(":]").unwrap_or(("", ""));
-                    if !matches!(name, "alpha" | "alnum" | "digit" | "lower" | "upper" | "xdigit" |
-                        "space" | "blank" | "cntrl" | "graph" | "print" | "punct") {
+                    if super::search::posix_class_ranges(name).is_none() {
                         return Err(format!("unsupported character class '{name}'"));
                     }
                     chars = tail.chars();

@@ -888,6 +888,24 @@ fn has_unsupported_regex_features(pat: &str) -> bool {
     false
 }
 
+pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> {
+    Some(match name {
+        "digit" => &[('0', '9')],
+        "lower" => &[('a', 'z')],
+        "upper" => &[('A', 'Z')],
+        "alpha" => &[('A', 'Z'), ('a', 'z')],
+        "alnum" => &[('0', '9'), ('A', 'Z'), ('a', 'z')],
+        "xdigit" => &[('0', '9'), ('A', 'F'), ('a', 'f')],
+        "space" => &[('\t', '\r'), (' ', ' ')],
+        "blank" => &[('\t', '\t'), (' ', ' ')],
+        "cntrl" => &[('\0', '\x1f'), ('\x7f', '\x7f')],
+        "graph" => &[('!', '~')],
+        "print" => &[(' ', '~')],
+        "punct" => &[('!', '/'), (':', '@'), ('[', '`'), ('{', '~')],
+        _ => return None,
+    })
+}
+
 fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
     if fixed {
         return pat
@@ -934,7 +952,7 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
             '[' => {
                 idx += 1;
                 let mut negate = false;
-                if idx < chars.len() && (chars[idx] == '^' || chars[idx] == '!') {
+                if idx < chars.len() && chars[idx] == '^' {
                     negate = true;
                     idx += 1;
                 }
@@ -944,37 +962,13 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                     idx += 1;
                 }
                 while idx < chars.len() && chars[idx] != ']' {
-                    if chars[idx] == '[' && idx + 1 < chars.len() && chars[idx + 1] == ':' {
-                        if let Some(end_pos) = chars[idx..].iter().position(|&c| c == ']') {
-                            let class_str: String = chars[idx..=idx + end_pos].iter().collect();
-                            match class_str.as_str() {
-                                "[:digit:]" => ranges.push(('0', '9')),
-                                "[:lower:]" => ranges.push(('a', 'z')),
-                                "[:upper:]" => ranges.push(('A', 'Z')),
-                                "[:alpha:]" => {
-                                    ranges.push(('a', 'z'));
-                                    ranges.push(('A', 'Z'));
-                                }
-                                "[:alnum:]" => {
-                                    ranges.push(('0', '9'));
-                                    ranges.push(('a', 'z'));
-                                    ranges.push(('A', 'Z'));
-                                }
-                                "[:xdigit:]" => {
-                                    ranges.push(('0', '9'));
-                                    ranges.push(('a', 'f'));
-                                    ranges.push(('A', 'F'));
-                                }
-                                "[:space:]" => {
-                                    for ws in [' ', '\t', '\n', '\r'] {
-                                        ranges.push((ws, ws));
-                                    }
-                                }
-                                _ => {}
-                            }
-                            idx += end_pos + 1;
-                            continue;
-                        }
+                    if chars[idx..].starts_with(&['[', ':'])
+                        && let Some(end) = chars[idx + 2..].windows(2).position(|w| w == [':', ']'])
+                    {
+                        let name: String = chars[idx + 2..idx + 2 + end].iter().collect();
+                        if let Some(class) = posix_class_ranges(&name) { ranges.extend_from_slice(class); }
+                        idx += end + 4;
+                        continue;
                     }
                     if idx + 2 < chars.len() && chars[idx + 1] == '-' && chars[idx + 2] != ']' {
                         ranges.push((chars[idx], chars[idx + 2]));
@@ -984,20 +978,11 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                         idx += 2;
                         match esc {
                             'd' => ranges.push(('0', '9')),
-                            'w' => {
-                                ranges.push(('0', '9'));
-                                ranges.push(('a', 'z'));
-                                ranges.push(('A', 'Z'));
-                                ranges.push(('_', '_'));
-                            }
-                            's' => {
-                                for ws in [' ', '\t', '\n', '\r'] {
-                                    ranges.push((ws, ws));
-                                }
-                            }
-                            'S' | 'D' | 'W' => {
-                                ranges.push(('\0', '\u{10ffff}'));
-                            }
+                            'D' => ranges.extend([('\0', '/'), (':', char::MAX)]),
+                            'w' => ranges.extend([('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]),
+                            'W' => ranges.extend([('\0', '/'), (':', '@'), ('[', '^'), ('`', '`'), ('{', char::MAX)]),
+                            's' => ranges.extend([('\t', '\r'), (' ', ' ')]),
+                            'S' => ranges.extend([('\0', '\x08'), ('\x0e', '\x1f'), ('!', char::MAX)]),
                             'n' => ranges.push(('\n', '\n')),
                             't' => ranges.push(('\t', '\t')),
                             'r' => ranges.push(('\r', '\r')),
@@ -1304,20 +1289,11 @@ fn match_single_atom(
                 RxAtom::Word(inv) => is_word_char(ch) ^ inv,
                 RxAtom::Space(inv) => ch.is_ascii_whitespace() ^ inv,
                 RxAtom::Class { negate, chars } => {
-                    let c_cmp = if ignore_case {
-                        ch.to_ascii_lowercase()
-                    } else {
-                        ch
-                    };
-                    let mut inside = false;
-                    for &(s, e) in chars {
-                        let s_cmp = if ignore_case { s.to_ascii_lowercase() } else { s };
-                        let e_cmp = if ignore_case { e.to_ascii_lowercase() } else { e };
-                        if c_cmp >= s_cmp && c_cmp <= e_cmp {
-                            inside = true;
-                            break;
-                        }
-                    }
+                    let inside = chars.iter().any(|&(s, e)| {
+                        let range = s..=e;
+                        range.contains(&ch) || ignore_case &&
+                            (range.contains(&ch.to_ascii_lowercase()) || range.contains(&ch.to_ascii_uppercase()))
+                    });
                     inside ^ negate
                 }
                 RxAtom::Group { .. }

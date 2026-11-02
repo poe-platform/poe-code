@@ -7307,3 +7307,27 @@ test("grep option spelling and arguments match production for short and long for
     }
   } finally { rs.dispose(); }
 });
+
+test("grep walks directories, applies basename filters in order and reports filesystem errors", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const setup = "mkdir -p d/.git d/sub; cd d; echo yes >a; cp a sub/a; cp a .git/a; cp a b; ln -s a alink; ln -s sub sublink; echo a >patterns; cp a denied; chmod 000 denied";
+    for (const sh of [js, rs]) await sh.exec(setup);
+    for (const cmd of [
+      "cd d; grep -r yes", "grep -r --exclude-dir=sub yes d", "grep -r --exclude-dir=a yes d",
+      "grep -r --exclude=sub yes d", "grep -r --exclude=a --include=a yes d",
+      "grep -r --include='sub/a' yes d", "grep --exclude=a yes d/a", "grep --exclude-dir=a yes d/a",
+      "grep -R --exclude-dir=sub yes d/sublink", "grep -r yes d/alink",
+      "grep --exclude=missing yes missing", "grep -r --exclude=missing yes missing",
+      "grep -E yes ./missing", "grep ^ missing", "grep -l yes <<< yes", "egrep yes d", "grep yes d/denied", "grep --label=test yes d/denied",
+      "grep -f d/denied d/a", "grep --file= d/a", "grep -f d d/a", "grep --exclude-from=d/a/no yes d",
+      "grep -m0 -c yes missing", "grep -m0 -L yes missing", "grep -Dskip -m0 yes missing",
+      "cd d; ln -s . sub/loop; grep -R yes sub",
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdoutBytes], [a.exitCode, a.stderr, a.stdoutBytes], cmd);
+    }
+  } finally { rs.dispose(); }
+});

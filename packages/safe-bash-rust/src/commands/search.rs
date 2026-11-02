@@ -2111,6 +2111,7 @@ fn cmd_grep(
         _ => None,
     };
     let mut recursive = invoked_as == "rgrep";
+    let mut saw_recursive = recursive;
     let mut dereference_recursive = false;
     let mut dir_action: Option<String> = None;
     let mut quiet = false;
@@ -2124,7 +2125,8 @@ fn cmd_grep(
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
     let mut context_separator: Option<String> = Some("--".to_string());
-    let mut globs: Vec<String> = Vec::new();
+    let mut rules = Vec::new();
+    let mut excluded_dirs = Vec::new();
     let mut pattern_args = Vec::new();
     let mut pattern_files = Vec::new();
     let mut targets = Vec::new();
@@ -2239,7 +2241,7 @@ fn cmd_grep(
                     fixed_strings = next == 'F';
                     extended_regexp = matches!(next, 'E' | 'P');
                 }
-                "r" | "R" => { recursive = true; dereference_recursive |= key == "R"; dir_action = None; }
+                "r" | "R" => { recursive = true; saw_recursive = true; dereference_recursive |= key == "R"; dir_action = None; }
                 "q" => quiet = true,
                 "s" => no_messages = true,
                 "a" => { text = true; ignore_binary = false; }
@@ -2272,12 +2274,10 @@ fn cmd_grep(
             read_patterns_from_stdin = true;
             stream_string_to_bytes(stdin)
         } else {
-            let resolved = resolve_posix_path(cwd, &file);
-            let Ok(bytes) = fs.read_file(&resolved) else {
-                return BuiltinOutcome { stdout: String::new(),
-                    stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"), exit_code: 2 };
-            };
-            bytes
+            match read_grep_file(fs, &grep_path(cwd, &file), "readStream") {
+                Ok(bytes) => bytes,
+                Err(e) => return error(e),
+            }
         };
         raw_patterns.extend(bytes.split_inclusive(|&b| b == b'\n').map(|row| row.strip_suffix(b"\n").unwrap_or(row).to_vec()));
     }
@@ -2360,17 +2360,17 @@ fn cmd_grep(
     }
     for (key, value) in filters {
         match key {
-            "include" => globs.push(value.to_owned()),
+            "exclude-dir" => excluded_dirs.push(value),
             "exclude-from" => {
-                let resolved = resolve_posix_path(cwd, value);
-                let Ok(bytes) = fs.read_file(&resolved) else {
-                    return error(format!("ENOENT: no such file or directory, readStream '{resolved}'"));
+                let bytes = match read_grep_file(fs, &grep_path(cwd, value), "readStream") {
+                    Ok(bytes) => bytes,
+                    Err(e) => return error(e),
                 };
                 for line in bytes.split_inclusive(|&b| b == b'\n') {
-                    globs.push(format!("!{}", String::from_utf8_lossy(line.strip_suffix(b"\n").unwrap_or(line))));
+                    rules.push((String::from_utf8_lossy(line.strip_suffix(b"\n").unwrap_or(line)).into_owned(), false));
                 }
             }
-            _ => globs.push(format!("!{value}")),
+            _ => rules.push((value.to_owned(), key == "include")),
         }
     }
     run_grep_engine(
@@ -2383,7 +2383,7 @@ fn cmd_grep(
             // Production's single-pattern ASCII shortcut checks every input line.
             grep_input: if !text && invoked_as == "grep" && args.len() <= 2 && args.first().is_some_and(|p|
                 !p.is_empty() && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
-                    .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))) { GrepInput::PlainLiteral }
+                    .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))) { GrepInput::PlainLiteral { fast_file: args[0] != "^" } }
                 else if bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
             is_rg: false,
             ascii_record_rx: None,
@@ -2401,7 +2401,7 @@ fn cmd_grep(
             max_count,
             before_ctx,
             after_ctx,
-            globs,
+            globs: Vec::new(),
             types_include: Vec::new(),
             types_exclude: Vec::new(),
             show_hidden: true,
@@ -2425,8 +2425,9 @@ fn cmd_grep(
             context_separator,
             initial_tab,
             stdin_label,
-            dir_action,
-            dereference_recursive,
+            grep_files: Some(GrepFiles { name: invoked_as, rules, excluded_dirs,
+                inspect: saw_recursive || recursive || dir_action.as_deref() == Some("skip") || devices == Some("skip"),
+                skip_dirs: dir_action.as_deref() == Some("skip"), skip_devices: devices == Some("skip"), follow: dereference_recursive }),
             max_columns: None,
             no_ignore_vcs: false,
             no_ignore_dot: false,
@@ -3203,11 +3204,10 @@ fn cmd_rg(
         }
         let mut files = Vec::new();
         for r in &search_roots {
-            collect_search_files(
+            collect_rg_files(
                 r,
                 cwd,
                 fs,
-                true,
                 true,
                 &globs,
                 &types_include,
@@ -3216,7 +3216,6 @@ fn cmd_rg(
                 respect_ignore,
                 no_ignore_vcs,
                 no_ignore_dot,
-                false,
                 &init_rules,
                 0,
                 max_depth,
@@ -3358,8 +3357,7 @@ fn cmd_rg(
             context_separator,
             initial_tab: false,
             stdin_label: None,
-            dir_action: None,
-            dereference_recursive: false,
+            grep_files: None,
             max_columns,
             no_ignore_vcs,
             no_ignore_dot,
@@ -3374,7 +3372,7 @@ fn cmd_rg(
 enum RgBinary { Auto, Binary, Text }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum GrepInput<'a> { Bytes, PlainLiteral, Bounded(&'a str) }
+enum GrepInput<'a> { Bytes, PlainLiteral { fast_file: bool }, Bounded(&'a str) }
 
 struct GrepConfig<'a> {
     grep_input: GrepInput<'a>,
@@ -3418,8 +3416,7 @@ struct GrepConfig<'a> {
     context_separator: Option<String>,
     initial_tab: bool,
     stdin_label: Option<String>,
-    dir_action: Option<String>,
-    dereference_recursive: bool,
+    grep_files: Option<GrepFiles<'a>>,
     max_columns: Option<usize>,
     no_ignore_vcs: bool,
     no_ignore_dot: bool,
@@ -3556,11 +3553,10 @@ fn eval_cli_globs(globs: &[String], base: &str, target: &str) -> Option<bool> {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn collect_search_files(
+fn collect_rg_files(
     target: &str,
     cwd: &str,
     fs: &dyn SafeBashFs,
-    is_rg: bool,
     recursive: bool,
     globs: &[String],
     types_include: &[String],
@@ -3569,7 +3565,6 @@ fn collect_search_files(
     respect_ignore_files: bool,
     no_ignore_vcs: bool,
     no_ignore_dot: bool,
-    dereference_recursive: bool,
     parent_ignore_rules: &[String],
     cur_depth: usize,
     max_depth: Option<usize>,
@@ -3612,22 +3607,15 @@ fn collect_search_files(
                     continue;
                 }
                 let child_resolved = normalize_posix_path(&format!("{resolved}/{e}"));
-                let child_is_symlink = fs
-                    .lstat(&child_resolved)
-                    .map(|st| st.kind == VfsEntryKind::Symlink)
-                    .unwrap_or(false);
                 let child_is_dir = fs.is_dir(&child_resolved);
                 let disp = if target == "." {
                     e.clone()
                 } else {
                     format!("{}/{}", target.trim_end_matches('/'), e)
                 };
-                if child_is_dir && child_is_symlink && !is_rg && !dereference_recursive {
-                    continue;
-                }
                 if respect_ignore_files && is_ignored_by_rules(&e, child_is_dir, &local_rules) {
                     let glob_override =
-                        is_rg && !child_is_dir && eval_cli_globs(globs, &e, &disp) == Some(true);
+                        !child_is_dir && eval_cli_globs(globs, &e, &disp) == Some(true);
                     if !glob_override {
                         continue;
                     }
@@ -3643,11 +3631,10 @@ fn collect_search_files(
                         continue;
                     }
                 }
-                collect_search_files(
+                collect_rg_files(
                     &disp,
                     cwd,
                     fs,
-                    is_rg,
                     true,
                     globs,
                     types_include,
@@ -3656,7 +3643,6 @@ fn collect_search_files(
                     respect_ignore_files,
                     no_ignore_vcs,
                     no_ignore_dot,
-                    dereference_recursive,
                     &local_rules,
                     cur_depth + 1,
                     max_depth,
@@ -3721,6 +3707,87 @@ fn collect_search_files(
     }
 }
 
+enum SearchInput { Stdin, File(String, String, bool), Error(String) }
+
+struct GrepFiles<'a> {
+    name: &'a str,
+    rules: Vec<(String, bool)>,
+    excluded_dirs: Vec<&'a str>,
+    inspect: bool,
+    skip_dirs: bool,
+    skip_devices: bool,
+    follow: bool,
+}
+
+fn grep_path(cwd: &str, name: &str) -> String {
+    if name.is_empty() || name.starts_with('/') { name.to_owned() }
+    else { format!("{}/{name}", cwd.trim_end_matches('/')) }
+}
+
+fn grep_fs_error(error: &str, op: &str, path: &str) -> String {
+    if path.is_empty() { return "ENOENT: no such file or directory ''".into(); }
+    if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
+    let reason = error.split_once(", ").map_or(error, |(why, _)| why);
+    format!("{reason}, {op} '{path}'")
+}
+
+fn read_grep_file(fs: &dyn SafeBashFs, path: &str, op: &str) -> Result<Vec<u8>, String> {
+    fs.access_path(path, true).and_then(|resolved| fs.read_file(&resolved))
+        .map_err(|e| grep_fs_error(&e, op, path))
+}
+
+impl GrepFiles<'_> {
+    fn inputs<'a>(&'a self, targets: &'a [String], cwd: &'a str, fs: &'a dyn SafeBashFs, recursive: bool)
+        -> impl Iterator<Item = SearchInput> + 'a {
+        enum Visit { Entry(String, bool), Leave(String) }
+        let mut pending = targets.iter().rev().map(|t| Visit::Entry(t.clone(), true)).collect::<Vec<_>>();
+        if pending.is_empty() { pending.push(Visit::Entry(if recursive { "." } else { "-" }.into(), true)); }
+        let mut ancestors = std::collections::BTreeSet::new();
+        let default_include = !self.rules.iter().any(|(_, include)| *include);
+        std::iter::from_fn(move || loop {
+            let (label, explicit) = match pending.pop()? {
+                Visit::Leave(path) => { ancestors.remove(&path); continue; }
+                Visit::Entry(label, explicit) => (label, explicit),
+            };
+            if label == "-" { return Some(SearchInput::Stdin); }
+            let base = label.rsplit('/').next().unwrap_or("");
+            let path = grep_path(cwd, &label);
+            if self.inspect {
+                let follow = explicit || self.follow;
+                let op = if follow { "stat" } else { "lstat" };
+                let (resolved, st) = match fs.inspect_command_entry(&path, follow, op) {
+                    Ok(entry) => entry,
+                    Err(e) => return Some(SearchInput::Error(format!("{}: {}\n", self.name, grep_fs_error(&e, op, &path)))),
+                };
+                if st.kind == VfsEntryKind::Symlink && !follow { continue; }
+                if st.kind == VfsEntryKind::Directory {
+                    if self.skip_dirs { continue; }
+                    if recursive {
+                        if self.excluded_dirs.iter().any(|p| glob_match(p, base)) { continue; }
+                        if ancestors.contains(&resolved) {
+                            return Some(SearchInput::Error(format!("{}: {label}: recursive directory loop\n", self.name)));
+                        }
+                        let children = match fs.read_dir(&resolved) {
+                            Ok(children) => children,
+                            Err(e) => return Some(SearchInput::Error(format!("{}: {}\n", self.name, grep_fs_error(&e, "readdir", &path)))),
+                        };
+                        ancestors.insert(resolved.clone());
+                        pending.push(Visit::Leave(resolved));
+                        let prefix = label.strip_suffix('/').unwrap_or(&label);
+                        pending.extend(children.into_iter().rev().map(|c| Visit::Entry(format!("{prefix}/{c}"), false)));
+                        continue;
+                    }
+                    return Some(SearchInput::File(label, path, explicit));
+                }
+                if self.skip_devices && st.kind != VfsEntryKind::File { continue; }
+            }
+            if self.rules.iter().rev().find(|(pat, _)| glob_match(pat, base)).map_or(default_include, |(_, v)| *v) {
+                return Some(SearchInput::File(label, path, explicit));
+            }
+        })
+    }
+}
+
 fn run_grep_engine(
     rx: ZeroRegex,
     targets: Vec<String>,
@@ -3737,15 +3804,14 @@ fn run_grep_engine(
     if cfg.is_rg && cfg.max_count == Some(0) {
         return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 1 };
     }
-    enum Input { Stdin, File(String, String, bool), Error(String) }
     let mut inputs = Vec::new();
     let mut err = String::new();
     let mut had_error = false;
     let stdin_label = cfg.stdin_label.as_deref().unwrap_or(if cfg.is_rg { "<stdin>" } else { "(standard input)" });
     let mut searched_directory = false;
-    if targets.is_empty() {
-        inputs.push(Input::Stdin);
-    } else {
+    if cfg.grep_files.is_none() && targets.is_empty() {
+        inputs.push(SearchInput::Stdin);
+    } else if cfg.grep_files.is_none() {
         let mut init_rules = Vec::new();
         if cfg.is_rg && cfg.respect_ignore {
             for igf in &cfg.custom_ignore_files {
@@ -3762,39 +3828,29 @@ fn run_grep_engine(
         }
         for t in &targets {
             if t == "-" {
-                inputs.push(Input::Stdin);
+                inputs.push(SearchInput::Stdin);
                 continue;
             }
             let resolved = resolve_posix_path(cwd, t);
             if !fs.exists(&resolved) {
-                let (prefix, op) = if cfg.is_rg { ("rg", "stat") } else { ("grep", "readFile") };
-                inputs.push(Input::Error(format!("{prefix}: ENOENT: no such file or directory, {op} '{resolved}'\n")));
+                inputs.push(SearchInput::Error(format!("rg: ENOENT: no such file or directory, stat '{resolved}'\n")));
                 continue;
             }
             let is_dir = fs.is_dir(&resolved);
             searched_directory |= is_dir;
-            if is_dir && !cfg.is_rg && !cfg.recursive {
-                if cfg.dir_action.as_deref() == Some("skip") {
-                    continue;
-                }
-                inputs.push(Input::Error(format!("grep: EISDIR: illegal operation on a directory, readFile '{resolved}'\n")));
-                continue;
-            }
             let mut file_list = Vec::new();
-            collect_search_files(
+            collect_rg_files(
                 t,
                 cwd,
                 fs,
-                cfg.is_rg,
                 cfg.recursive,
                 &cfg.globs,
                 &cfg.types_include,
                 &cfg.types_exclude,
                 cfg.show_hidden,
-                cfg.is_rg && cfg.respect_ignore,
+                cfg.respect_ignore,
                 cfg.no_ignore_vcs,
                 cfg.no_ignore_dot,
-                cfg.dereference_recursive,
                 &init_rules,
                 0,
                 cfg.max_depth,
@@ -3802,16 +3858,14 @@ fn run_grep_engine(
                 &mut file_list,
             );
             if cfg.sort_by_path { file_list.sort_by(|a, b| a.0.cmp(&b.0)); }
-            inputs.extend(file_list.into_iter().map(|(label, path)| Input::File(label, path, !is_dir)));
+            inputs.extend(file_list.into_iter().map(|(label, path)| SearchInput::File(label, path, !is_dir)));
         }
     }
 
-    let show_filename = if cfg.no_filename {
-        false
-    } else if cfg.with_filename {
-        true
-    } else {
-        inputs.len() > 1 || targets.len() > 1 || searched_directory
+    let multiple_files = targets.len() > 1 || inputs.len() > 1 || searched_directory;
+    let inputs: Box<dyn Iterator<Item = SearchInput> + '_> = match &cfg.grep_files {
+        Some(files) => Box::new(files.inputs(&targets, cwd, fs, cfg.recursive)),
+        None => Box::new(inputs.into_iter()),
     };
 
     let mut out = String::new();
@@ -3830,17 +3884,36 @@ fn run_grep_engine(
     for input in inputs {
         if failed_batch { break; }
         let (fname, content, explicit) = match input {
-            Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stream_string_to_bytes(stdin), true),
-            Input::File(ref label, ref path, explicit) => {
-                let Ok(bytes) = fs.read_file(path) else { continue; };
+            SearchInput::Stdin => (Some(stdin_label), stream_string_to_bytes(stdin), true),
+            SearchInput::File(ref label, ref path, explicit) => {
+                let bytes = if let Some(files) = &cfg.grep_files {
+                    let fast = matches!(cfg.grep_input, GrepInput::PlainLiteral { fast_file: true });
+                    let op = if fast && path != "/dev" && !path.starts_with("/dev/") { "readFile" } else { "readStream" };
+                    if cfg.max_count == Some(0) && !label.is_empty() {
+                        Vec::new()
+                    } else {
+                        match read_grep_file(fs, path, op) {
+                            Ok(bytes) => bytes,
+                            Err(e) => {
+                                had_error = true;
+                                if !cfg.no_messages { err.push_str(&format!("{}: {e}\n", files.name)); }
+                                continue;
+                            }
+                        }
+                    }
+                } else {
+                    let Ok(bytes) = fs.read_file(path) else { continue; };
+                    bytes
+                };
                 (Some(label.as_str()), bytes, explicit)
             }
-            Input::Error(message) => {
+            SearchInput::Error(message) => {
                 had_error = true;
                 if !cfg.no_messages { err.push_str(&message); }
                 continue;
             }
         };
+        let show_filename = !cfg.no_filename && (cfg.with_filename || multiple_files || !explicit);
         let nul_off = if !cfg.is_rg || cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
         searches += 1;
         if nul_off.is_some() && cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit {
@@ -3945,7 +4018,7 @@ fn run_grep_engine(
             let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
                 if idx >= print_end || limit == 0 { break; }
-                if cfg.grep_input == GrepInput::PlainLiteral && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
+                if matches!(cfg.grep_input, GrepInput::PlainLiteral { .. }) && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
                     had_error = true;
                     if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
                     break;

@@ -632,6 +632,66 @@ impl<'a> MsbBitReader<'a> {
     }
 }
 
+// TIFF and PDF pack LZW codes most significant bit first. Dictionary phrases
+// are spans of the decoded output, with at most 4096 codes in use.
+pub(super) fn decode_lzw(
+    input: &[u8],
+    early_change: f64,
+    limit: usize,
+    out: &mut Vec<u8>,
+) -> Result<(), &'static str> {
+    let mut bits = MsbBitReader::new(input, 0);
+    let mut phrases: Vec<(usize, usize)> = Vec::new();
+    let mut previous: Option<(usize, usize)> = None;
+    let mut width = 9;
+    while let Ok(code) = bits.read_bits(width) {
+        let code = code as usize;
+        match code {
+            256 => {
+                phrases.clear();
+                previous = None;
+                width = 9;
+                continue;
+            }
+            257 => break,
+            _ => {}
+        }
+        let at = out.len();
+        if at >= limit {
+            return Err("LZW output exceeds byte limit");
+        }
+        if code < 256 {
+            out.push(code as u8);
+        } else {
+            let special = code == 258 + phrases.len();
+            let (from, count) = if special {
+                previous
+            } else {
+                phrases.get(code - 258).copied()
+            }
+            .ok_or("Invalid LZW code")?;
+            let take = count.min(limit - at);
+            out.extend_from_within(from..from + take);
+            if take != count || (special && out.len() == limit) {
+                return Err("LZW output exceeds byte limit");
+            }
+            if special {
+                out.push(out[from]);
+            }
+        }
+        if let Some((from, n)) = previous
+            && phrases.len() < 4096 - 258
+        {
+            phrases.push((from, n + 1));
+            if width < 12 && (phrases.len() + 258) as f64 == f64::from(1 << width) - early_change {
+                width += 1;
+            }
+        }
+        previous = Some((at, out.len() - at));
+    }
+    Ok(())
+}
+
 pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
     let lvl = level.clamp(1, 9);
     let mut bw = MsbBitWriter::new();
@@ -1097,6 +1157,27 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
 mod tests {
     use super::*;
     use crate::commands::archive::TarEntry;
+
+    #[test]
+    fn lzw_preserves_only_the_bounded_prefix_on_a_bad_or_oversized_phrase() {
+        for (codes, limit, expected, valid) in [
+            (vec![256, 65, 258, 257], 3, b"AAA".as_slice(), true),
+            (vec![256, 65, 258, 257], 2, b"AA", false),
+            (vec![256, 65, 258, 257], 1, b"A", false),
+            (vec![65, 256, 258], 6, b"A", false),
+        ] {
+            let mut encoded = MsbBitWriter::new();
+            for code in codes {
+                encoded.write_bits(code, 9);
+            }
+            let mut decoded = Vec::new();
+            assert_eq!(
+                decode_lzw(&encoded.finish(), 1., limit, &mut decoded).is_ok(),
+                valid
+            );
+            assert_eq!(decoded, expected);
+        }
+    }
 
     #[test]
     fn zlib_streams_match_production_fixed_dynamic_and_stored_blocks() {

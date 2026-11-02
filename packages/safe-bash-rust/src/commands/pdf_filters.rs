@@ -1,6 +1,6 @@
 // Filters apply in dictionary order. Raw inspection and page copying retain the encoded bytes.
 use super::{Objects, Value};
-use crate::commands::codecs::{adler32, gzip_decompress_bounded, inflate_raw_bounded};
+use crate::commands::codecs::{adler32, decode_lzw, gzip_decompress_bounded, inflate_raw_bounded};
 use std::borrow::Cow;
 
 impl<'a> Objects<'a> {
@@ -38,9 +38,23 @@ impl<'a> Objects<'a> {
                 index += 1;
                 let limit = self.remaining_bytes;
                 let decoded = match name {
-                    b"FlateDecode" | b"Fl" => {
-                        let mut data = flate(&bytes, limit)?;
-                        if let Some(parms) = parms {
+                    b"FlateDecode" | b"Fl" | b"LZWDecode" | b"LZW" => {
+                        let parms = match parms {
+                            Some(p) => Some(self.filter_value(p.clone())?),
+                            None => None,
+                        };
+                        let mut data = if matches!(name, b"LZWDecode" | b"LZW") {
+                            let early = match parms.as_ref().and_then(|p| p.get(b"EarlyChange")) {
+                                Some(v) => self.filter_value(v.clone())?.number().unwrap_or(1.),
+                                None => 1.,
+                            };
+                            let mut out = Vec::new();
+                            decode_lzw(&bytes, early, limit, &mut out).ok()?;
+                            out
+                        } else {
+                            flate(&bytes, limit)?
+                        };
+                        if let Some(parms) = &parms {
                             let inflated = data.len();
                             self.predict(&mut data, parms, limit)?;
                             self.remaining_bytes -= inflated - data.len();
@@ -64,7 +78,6 @@ impl<'a> Objects<'a> {
         Some(bytes)
     }
     fn predict(&mut self, data: &mut Vec<u8>, parms: &Value<'a>, limit: usize) -> Option<()> {
-        let parms = self.filter_value(parms.clone())?;
         let mut num = |key: &[u8], default| {
             let mut entry = parms.get(key);
             if key == b"BitsPerComponent" {

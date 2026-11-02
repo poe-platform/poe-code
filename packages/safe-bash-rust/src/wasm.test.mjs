@@ -4043,3 +4043,37 @@ test("qpdf reverses PNG and TIFF row predictors in filtered streams", async () =
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf decodes LZW phrase references, width changes and row predictors", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosArray,cosDict,cosName,cosNumber,cosRef,cosStream,serializeCosDocument,encodeLzw}=await import("@poe-code/pdf-ast");
+  const sample=Buffer.from("ABABABA".repeat(60));
+  const literals=Buffer.from(Array.from({length:2200},(_,i)=>i&255));
+  // A clear code and a sequence of literals cross all three dictionary widths.
+  function literalCodes(early) {
+    const parts=["100000000"];
+    const width=n=>n<255-early?9:n<767-early?10:n<1791-early?11:12;
+    for(const [n,c] of literals.entries()) parts.push(c.toString(2).padStart(width(n),"0"));
+    parts.push((257).toString(2).padStart(width(literals.length),"0"));
+    const bits=parts.join("");return Buffer.from(bits.padEnd(Math.ceil(bits.length/8)*8,"0").match(/.{8}/g).map(s=>parseInt(s,2)));
+  }
+  const cases=[
+    [encodeLzw(sample),{},sample],
+    ...[0,1].map(n=>[literalCodes(n),{EarlyChange:cosNumber(n)},literals]),
+    [encodeLzw(Uint8Array.of(4,3,2)),{Predictor:cosNumber(2),Columns:cosNumber(3)},Buffer.from([4,7,9])]
+  ];
+  const values=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),cosDict({Type:cosName("Pages"),Kids:cosArray([]),Count:cosNumber(0)}),
+    ...cases.map(([raw,params],i)=>cosStream(raw,{compress:false,dict:cosDict({Filter:cosName(i%2?"LZW":"LZWDecode"),DecodeParms:cosDict(params)})}))];
+  const bytes=serializeCosDocument({objects:values.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)});
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/lzw.pdf":bytes}});await fs.writeFile("/lzw.pdf",bytes);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [i,[,,expected]] of cases.entries()) {
+      const script="qpdf /lzw.pdf --show-object="+(i+3)+" --filtered-stream-data";
+      const want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,0,want.stderr);assert.deepEqual(Buffer.from(want.stdoutBytes),expected);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+    }
+  } finally {wasm.dispose();}
+});

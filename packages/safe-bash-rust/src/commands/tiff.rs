@@ -14,57 +14,6 @@ fn word(bytes: &[u8], little: bool) -> u32 {
     }
 }
 
-// TIFF LZW reads its codes most-significant bit first. Every dictionary
-// phrase is a previous output span followed by the first byte of the next span.
-fn lzw(input: &[u8], expected: usize) -> Vec<u8> {
-    let mut out = Vec::with_capacity(expected);
-    let mut phrases: Vec<(usize, usize)> = Vec::new();
-    let mut previous: Option<(usize, usize)> = None;
-    let (mut bit, mut width) = (0u64, 9usize);
-    while out.len() < expected && bit + width as u64 <= input.len() as u64 * 8 {
-        let mut code = 0usize;
-        for _ in 0..width {
-            code = code * 2 + usize::from(input[(bit / 8) as usize] >> (7 - bit % 8) & 1);
-            bit += 1;
-        }
-        if code == 256 {
-            phrases.clear();
-            previous = None;
-            width = 9;
-            continue;
-        }
-        if code == 257 {
-            break;
-        }
-        let at = out.len();
-        if code < 256 {
-            out.push(code as u8);
-        } else if let Some(&(from, n)) = phrases.get(code - 258) {
-            out.extend_from_within(from..from + n.min(expected - at));
-        } else if code == 258 + phrases.len()
-            && let Some((from, n)) = previous
-        {
-            out.extend_from_within(from..from + n.min(expected - at));
-            if out.len() < expected {
-                out.push(out[from]);
-            }
-        } else {
-            break;
-        }
-        if let Some((from, n)) = previous
-            && phrases.len() < 4096 - 258
-        {
-            phrases.push((from, n + 1));
-            if phrases.len() + 258 == (1 << width) - 1 && width < 12 {
-                width += 1;
-            }
-        }
-        previous = Some((at, out.len() - at));
-    }
-    out.resize(expected, 0);
-    out
-}
-
 fn strip(
     input: &[u8],
     compression: usize,
@@ -79,7 +28,13 @@ fn strip(
         return Err("image exceeds memory budget");
     }
     match compression {
-        5 => Ok(Cow::Owned(lzw(input, expected))),
+        5 => {
+            let mut decoded = Vec::with_capacity(expected);
+            // TIFF readers keep a partial strip and zero-fill missing pixels.
+            let _ = crate::commands::codecs::decode_lzw(input, 1., expected, &mut decoded);
+            decoded.resize(expected, 0);
+            Ok(Cow::Owned(decoded))
+        }
         32773 => {
             let mut out = Vec::with_capacity(expected);
             let mut data = input;

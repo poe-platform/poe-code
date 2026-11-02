@@ -3970,3 +3970,40 @@ test("qpdf inspects and copies pages indexed by binary cross-reference streams",
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf decodes chained PDF byte filters, abbreviations and indirect filter arrays", async () => {
+  const {deflateSync,deflateRawSync,gzipSync}=await import("node:zlib");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosArray,cosDict,cosName,cosNumber,cosRef,cosStream,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const plain=Buffer.from([255,0,1,10,127,255,65]);
+  const values=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),
+    cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(3)]),Count:cosNumber(1)}),
+    cosDict({Type:cosName("Page"),Parent:cosRef(2)})];
+  const cases=[
+    [cosDict({Filter:cosRef(13)}),Buffer.from(deflateSync(plain).toString("hex")+">ignored"),plain],
+    [cosDict({F:cosName("AHx")}),Buffer.from("0f 0\x00B F>"),Buffer.from([15,11,240])],
+    [cosDict({Filter:cosName("ASCII85Decode")}),Buffer.from("z 87cUR DZ~>"),Buffer.from([0,0,0,0,...Buffer.from("Hello")])],
+    [cosDict({Filter:cosName("RunLengthDecode")}),Buffer.from([1,8,9,253,7,128,0]),Buffer.from([8,9,7,7,7,7])],
+    [cosDict({Filter:cosName("RL")}),Buffer.from([254]),Buffer.alloc(3)],
+    [cosDict({Filter:cosArray([cosName("DCTDecode"),cosName("Identity")])}),plain,plain],
+    [cosDict({Filter:cosName("ASCIIHexDecode")}),Buffer.from("7a"),Buffer.from("z")],
+    [cosDict({F:cosName("Fl")}),deflateRawSync(plain),plain],
+    [cosDict({Filter:cosName("FlateDecode")}),gzipSync(plain),plain]
+  ];
+  values.push(...cases.map(([dict,buf])=>cosStream(buf,{dict,compress:false})),
+    cosArray([cosRef(14),cosName("Fl")]),cosName("AHx"));
+  const bytes=serializeCosDocument({objects:values.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)});
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/filters.pdf":bytes}});
+  await fs.writeFile("/filters.pdf",bytes);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [i,[,encoded,decoded]] of cases.entries()) for(const [flag,expected] of [["raw",encoded],["filtered",decoded]]) {
+      const script="qpdf /filters.pdf --show-object="+(i+4)+" --"+flag+"-stream-data";
+      const want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual(Buffer.from(want.stdoutBytes),expected,script);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+    }
+  } finally {wasm.dispose();}
+});

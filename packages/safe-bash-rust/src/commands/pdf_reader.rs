@@ -27,6 +27,9 @@ mod pdf_render;
 pub(in crate::commands) use pdf_render::image_pdf;
 pub(super) use pdf_render::render_paragraphs;
 
+#[path = "pdf_filters.rs"]
+mod pdf_filters;
+
 #[path = "pdf_string.rs"]
 mod pdf_string;
 
@@ -479,31 +482,6 @@ impl<'a> Objects<'a> {
         let (dict, c) = self.object(id)?;
         let stream = self.stream(&dict, c)?;
         self.decode(&dict, stream)
-    }
-
-    fn decode(&mut self, dict: &Value<'_>, stream: &'a [u8]) -> Option<std::borrow::Cow<'a, [u8]>> {
-        let bytes = match dict.get(b"Filter") {
-            None => std::borrow::Cow::Borrowed(stream),
-            Some(f) if f.word() == Some(b"/FlateDecode") => {
-                let (&cmf, rest) = stream.split_first()?;
-                let (&flags, payload) = rest.split_first()?;
-                if cmf & 15 != 8 || flags & 32 != 0 || u16::from_be_bytes([cmf, flags]) % 31 != 0 {
-                    return None;
-                }
-                let (decoded, consumed) =
-                    crate::commands::codecs::inflate_raw_bounded(payload, self.remaining_bytes)
-                        .ok()?;
-                if payload.get(consumed..consumed + 4)?
-                    != crate::commands::codecs::adler32(&decoded).to_be_bytes()
-                {
-                    return None;
-                }
-                std::borrow::Cow::Owned(decoded)
-            }
-            _ => return None,
-        };
-        self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
-        Some(bytes)
     }
 
     fn xref_revision(

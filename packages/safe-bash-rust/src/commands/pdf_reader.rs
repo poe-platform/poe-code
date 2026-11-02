@@ -401,8 +401,15 @@ struct ObjectStream<'a> {
     members: Vec<(usize, usize)>, // object number and decoded byte offset
 }
 
+enum OffsetRepair {
+    Strict,
+    OnError,
+    Scanned(BTreeMap<ObjectId, usize>),
+}
+
 struct Objects<'a> {
     bytes: &'a [u8],
+    offset_repair: OffsetRepair,
     xref: BTreeMap<ObjectId, (Location, usize)>, // location and newest-revision traversal order
     latest_members: BTreeMap<usize, usize>,
     streams: BTreeMap<usize, ObjectStream<'a>>,
@@ -416,6 +423,7 @@ impl<'a> Objects<'a> {
     fn new(bytes: &'a [u8]) -> Self {
         Self {
             bytes,
+            offset_repair: OffsetRepair::Strict,
             xref: BTreeMap::new(),
             latest_members: BTreeMap::new(),
             streams: BTreeMap::new(),
@@ -492,12 +500,34 @@ impl<'a> Objects<'a> {
                 return Some((value, Cursor(b"endobj")));
             }
         };
-        let mut c = Cursor(self.bytes.get(offset..)?);
-        if c.object_header()? != id {
-            return None;
+        let bytes = self.bytes;
+        let preserve_hex = self.preserve_hex;
+        let parse = |offset, tokens: &mut usize| {
+            let mut c = Cursor(bytes.get(offset..)?);
+            if c.object_header()? != id { return None; }
+            Some((c.value(0, tokens, preserve_hex)?, c))
+        };
+        if let Some(object) = parse(offset, &mut self.tokens) { return Some(object); }
+        if matches!(self.offset_repair, OffsetRepair::OnError) {
+            // The xref is authoritative for membership and order. Repair only
+            // the bad location, matching both object number and generation.
+            let mut offsets = BTreeMap::new();
+            let mut scanner = Objects::new(bytes);
+            scanner.tokens = self.tokens;
+            scanner.remaining_bytes = self.remaining_bytes;
+            let scanned = pdf_repair::scan(&mut scanner, |key, at| {
+                if self.xref.contains_key(&key) { offsets.insert(key, at); }
+            });
+            self.tokens = scanner.tokens;
+            self.remaining_bytes = scanner.remaining_bytes;
+            self.offset_repair = OffsetRepair::Strict;
+            scanned?;
+            self.offset_repair = OffsetRepair::Scanned(offsets);
         }
-        let value = c.value(0, &mut self.tokens, self.preserve_hex)?;
-        Some((value, c))
+        let OffsetRepair::Scanned(offsets) = &self.offset_repair else { return None; };
+        let fixed = *offsets.get(&id)?;
+        self.xref.get_mut(&id)?.0 = Location::File(fixed);
+        parse(fixed, &mut self.tokens)
     }
 
     fn resolve(&mut self, value: &Value<'a>) -> Option<Value<'a>> {
@@ -711,12 +741,8 @@ pub(super) const NO_CATALOG: &str = "Unable to repair PDF: no /Type /Catalog obj
 fn index(bytes: &[u8]) -> Result<(Objects<'_>, Value<'_>), &'static str> {
     if let Some((mut objects, trailer)) = strict_index(bytes) {
         if trailer.get(b"Encrypt").is_some() { return Err("encrypted PDF"); }
-        let offsets_valid = objects.xref.iter().all(|(id, (location, _))| match location {
-            Location::File(at) => bytes.get(*at..).and_then(|s| Cursor(s).object_header()) == Some(*id),
-            Location::Member { .. } => true,
-        });
-        if offsets_valid
-            && let Some(catalog) = trailer.get(b"Root").and_then(Value::reference)
+        objects.offset_repair = OffsetRepair::OnError;
+        if let Some(catalog) = trailer.get(b"Root").and_then(Value::reference)
                 .and_then(|id| objects.object(id)).map(|(value, _)| value)
             && matches!(catalog.get(b"Pages"), Some(Value::Ref(_) | Value::Dict(_)))
         {

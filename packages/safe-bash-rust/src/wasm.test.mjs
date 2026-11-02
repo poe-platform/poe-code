@@ -4293,10 +4293,15 @@ test("qpdf recovers missing cross-references from object bodies, including packe
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
   const {PdfDocument,cosStream}=await import("@poe-code/pdf-ast");
   const doc=PdfDocument.create();doc.setTitle("repaired 雪");doc.addPage().drawText("first",{x:1,y:2});doc.addPage();
-  doc.cos.allocateObject(cosStream(Buffer.from("99 0 obj << /Type /Catalog >> endobj\ntrailer << /Encrypt 123 0 R >>"),{compress:false}));
+  const unreferenced=doc.cos.allocateObject(cosStream(Buffer.from("99 0 obj << /Type /Catalog >> endobj\ntrailer << /Encrypt 123 0 R >>"),{compress:false}));
   const plain=Buffer.from(doc.save()),packed=Buffer.from(doc.save({objectStreams:"generate"}));
   const missing=plain.subarray(0,plain.lastIndexOf("\nxref\n"));
+  const previous=Number(plain.toString("latin1").split("startxref").at(-1).split("%%EOF")[0].trim());
+  const stray="\n88 0 obj (unindexed) endobj\n";
+  const damagedRow="xref\n"+doc.getPage(1).ref.objectNumber+" 1\n0000000001 00000 n \n"+
+    unreferenced.objectNumber+" 1\n0000000000 00001 f \ntrailer << /Prev "+previous+" /Size 89 >>\nstartxref\n"+(plain.length+stray.length)+"\n%%EOF";
   const files={
+    "/partial.pdf":Buffer.concat([plain,Buffer.from(stray+damagedRow)]),
     "/wrong-root.pdf":Buffer.from(plain.toString("latin1").replace("/Root 1 0 R","/Root 2 0 R"),"latin1"),
     "/missing-root.pdf":Buffer.from(plain.toString("latin1").replace("/Root 1 0 R","/FooX 1 0 R"),"latin1"),
     "/bad-row.pdf":Buffer.from(plain.toString("latin1").replace(

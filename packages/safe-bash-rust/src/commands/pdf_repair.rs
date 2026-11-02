@@ -2,10 +2,11 @@
 use super::{Cursor, Location, ObjectId, Objects, Value, header_version, uint};
 use std::collections::BTreeMap;
 
-pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
-    header_version(bytes)?;
-    let mut objects = Objects::new(bytes);
-    let mut rows = BTreeMap::new();
+pub(super) fn scan<'a>(
+    objects: &mut Objects<'a>,
+    mut found: impl FnMut(ObjectId, usize),
+) -> Option<Vec<Value<'a>>> {
+    let bytes = objects.bytes;
     let mut trailers = Vec::new();
     let mut cursor = Cursor(bytes);
     // A malformed candidate can consume bytes without yielding an object. Bound
@@ -56,14 +57,24 @@ pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             if !candidate.keyword(b"endobj", &mut objects.remaining_bytes)? {
                 continue;
             }
-            let order = rows.len();
-            let row = rows.entry(number).or_insert((generation, offset, order));
-            (row.0, row.1) = (generation, offset);
+            found((number, generation), offset);
         } else if matches!(value, Value::Dict(_)) {
             trailers.push(value);
         }
         cursor = candidate;
     }
+    Some(trailers)
+}
+
+pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
+    header_version(bytes)?;
+    let mut objects = Objects::new(bytes);
+    let mut rows = BTreeMap::new();
+    let trailers = scan(&mut objects, |(number, generation), offset| {
+        let order = rows.len();
+        let row = rows.entry(number).or_insert((generation, offset, order));
+        (row.0, row.1) = (generation, offset);
+    })?;
     // Never inspect encrypted streams as plaintext, even during recovery.
     if trailers.iter().any(|t| t.get(b"Encrypt").is_some()) {
         return None;

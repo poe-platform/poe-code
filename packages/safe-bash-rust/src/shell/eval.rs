@@ -16078,6 +16078,20 @@ hash -l
     }
 
     #[test]
+    fn fold_emits_wrapped_lines_before_errors_and_keeps_split_utf8_units_together() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let prefix = "x".repeat(65535);
+        fs.write_file("/utf8", format!("{prefix}界y").as_bytes()).unwrap();
+        let r = shell.exec("LC_ALL=C.UTF-8 fold -cw65536 /utf8").unwrap();
+        assert_eq!((r.exit_code, r.stdout, r.stderr.as_str()), (0, format!("{prefix}界\ny"), ""));
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        fs.write_file("/input", b"abcdefghi").unwrap();
+        fs.write_file("/end", b"z").unwrap();
+        let r = shell.exec("fold -w3 /missing - /end </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "abc\nz", "fold: ENOENT: no such file or directory, stat '/missing'\nfold: EFBIG: file too large, read '/input'\n"));
+    }
+
+    #[test]
     fn expand_and_unexpand_carry_columns_through_read_errors_and_later_files() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"x   ERROR").unwrap();

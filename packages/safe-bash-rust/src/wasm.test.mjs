@@ -4475,3 +4475,27 @@ test("qpdf consumes explicit Crypt filters in order and retains the remaining fi
     }
   } finally { rust.dispose(); }
 });
+
+test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd:"/"});
+  const js = new Shell({cwd:"/",fs}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  const doc = PdfDocument.create();
+  doc.addPage();
+  const password = "Ｆ\u00ad\u200b\u1100\u1161\u11a8A\u0315\u030a\u0301", canonical = "F 각Ǻ\u0315";
+  try {
+    for (const [file, pw] of [["pdfjs-saslprep-r6", "SªSL\u00adprep"], ["pypdf-r5-saslprep", "SªSL\u00adprep"],
+      ["pdfjs-issue19484_1", ""], ["pdfjs-issue6010_2", "æøå"], [null, password]]) {
+      const bytes = file ? await readFile(new URL("../../pdf-ast/src/fixtures/"+file+".pdf", import.meta.url))
+        : doc.save({encrypt:{revision:6,userPassword:canonical,ownerPassword:"owner"}});
+      await fs.writeFile("/in", bytes);
+      await rust.fs.writeFile("/in", bytes);
+      const cmd = "qpdf in --password='"+pw+"' --show-npages", expected = await js.exec(cmd), got = await rust.exec(cmd);
+      assert.equal(expected.exitCode, 0, expected.stderr);
+      assert.deepEqual([got.exitCode, got.stderr, got.stdout], [0, expected.stderr, expected.stdout], file ?? "combining characters");
+    }
+  } finally { rust.dispose(); }
+});

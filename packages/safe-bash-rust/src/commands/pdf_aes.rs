@@ -1,5 +1,7 @@
 // ISO 32000-2 algorithms 2.A/2.B: validate the password, then unwrap the file key.
 use super::Value;
+#[path = "pdf_password.rs"]
+mod pdf_password;
 use crate::commands::archive::{
     aes_decrypt_block, aes_encrypt_block, aes_expand_key, sha256_bytes, sha384_bytes, sha512_bytes,
 };
@@ -66,19 +68,35 @@ pub(super) fn file_key(dict: &Value<'_>, password: &str, r: usize) -> Option<Vec
         Value::String { bytes, .. } => Some(bytes.as_slice()),
         _ => None,
     };
-    let pw = &password.as_bytes()[..password.len().min(127)];
+    let raw = &password.as_bytes()[..password.len().min(127)];
     let u = string(b"U")?.get(..48)?;
     let o = string(b"O")?.get(..48)?;
-    for (stored, user, wrapped) in [(u, &[][..], b"UE"), (o, u, b"OE")] {
-        if !user.is_empty() && pw.is_empty() {
-            continue;
+    let authenticate = |pw: &[u8]| {
+        for (stored, user, wrapped) in [(u, &[][..], b"UE"), (o, u, b"OE")] {
+            if !user.is_empty() && pw.is_empty() {
+                continue;
+            }
+            if hash(pw, &stored[32..40], user, r) != stored[..32] {
+                continue;
+            }
+            let mut file = string(wrapped)?.get(..32)?.to_vec();
+            decrypt_blocks(&hash(pw, &stored[40..48], user, r), [0; 16], &mut file);
+            return Some(file);
         }
-        if hash(pw, &stored[32..40], user, r) != stored[..32] {
-            continue;
-        }
-        let mut file = string(wrapped)?.get(..32)?.to_vec();
-        decrypt_blocks(&hash(pw, &stored[40..48], user, r), [0; 16], &mut file);
-        return Some(file);
+        None
+    };
+    if password.is_ascii() {
+        return authenticate(raw);
     }
-    None
+    if r == 5
+        && let Some(key) = authenticate(raw)
+    {
+        return Some(key);
+    }
+    let prepared = pdf_password::prepared(password);
+    if r == 5 {
+        (prepared != raw).then(|| authenticate(&prepared)).flatten()
+    } else {
+        authenticate(&prepared).or_else(|| (prepared != raw).then(|| authenticate(raw)).flatten())
+    }
 }

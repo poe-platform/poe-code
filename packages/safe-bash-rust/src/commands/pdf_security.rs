@@ -230,7 +230,8 @@ impl<'a> Objects<'a> {
             v < 4 || dict.get(b"EncryptMetadata").and_then(Value::word) != Some(b"false");
         let p = std::str::from_utf8(dict.get(b"P").and_then(Value::word).ok_or(UNSUPPORTED)?)
             .ok()
-            .and_then(|s| s.parse::<i32>().ok())
+            .and_then(|s| s.parse::<i64>().ok())
+            .map(|bits| bits as i32)
             .ok_or(UNSUPPORTED)?;
         let key = if v == 5 {
             pdf_aes::file_key(&dict, pw, r).ok_or(PASSWORD)?

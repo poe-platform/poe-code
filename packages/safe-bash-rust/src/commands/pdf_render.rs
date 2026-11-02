@@ -18,9 +18,15 @@ enum BlockKind {
         depth: usize,
         last: bool,
     },
+    Table(Vec<TableRow>),
     Code,
     Quote,
     Rule,
+}
+
+struct TableRow {
+    header: bool,
+    cells: Vec<(f64, Vec<String>)>,
 }
 
 #[derive(Default)]
@@ -173,7 +179,59 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                         item.kind = BlockKind::ListItem { depth, last: true };
                     }
                 }
-                "table" | "svg" | "img" => {
+                "table" => {
+                    flush(current, blocks);
+                    let mut rows = Vec::new();
+                    let mut pending: Vec<_> = el.children.iter().rev().collect();
+                    while let Some(node) = pending.pop() {
+                        let HtmlNode::Element(row) = node else {
+                            continue;
+                        };
+                        if row.tag != "tr" {
+                            if row.tag != "table" {
+                                pending.extend(row.children.iter().rev());
+                            }
+                            continue;
+                        }
+                        let mut header = false;
+                        let mut cells = Vec::new();
+                        for node in &row.children {
+                            let HtmlNode::Element(cell) = node else {
+                                continue;
+                            };
+                            if !matches!(cell.tag.as_str(), "th" | "td") {
+                                continue;
+                            }
+                            header |= cell.tag == "th";
+                            let span = cell
+                                .attrs
+                                .iter()
+                                .find(|(k, _)| k == "colspan")
+                                .map_or(1., |(_, v)| super::super::js_number(v, 0.))
+                                .max(1.);
+                            let mut text = String::new();
+                            block_text(&cell.children, &mut text);
+                            let mut lines: Vec<_> = text
+                                .split('\n')
+                                .map(str::trim)
+                                .filter(|l| !l.is_empty())
+                                .map(|l| l.replace('\t', "   "))
+                                .collect();
+                            if lines.is_empty() {
+                                lines.push(String::new());
+                            }
+                            cells.push((span, lines));
+                        }
+                        rows.push(TableRow { header, cells });
+                    }
+                    if !rows.is_empty() {
+                        blocks.push(Block {
+                            kind: BlockKind::Table(rows),
+                            ..Block::default()
+                        });
+                    }
+                }
+                "svg" | "img" => {
                     return None;
                 }
                 "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
@@ -234,6 +292,9 @@ pub(super) fn win_ansi(s: &str) -> Vec<u8> {
 }
 
 fn coordinate(value: f64) -> String {
+    if !value.is_finite() {
+        return "0".into();
+    }
     if value.fract() == 0. {
         return value.to_string();
     }
@@ -244,6 +305,42 @@ fn coordinate(value: f64) -> String {
     } else {
         trimmed.into()
     }
+}
+
+fn page_font(
+    family: &'static str,
+    fonts: &mut Vec<&'static str>,
+    objects: &mut Vec<PageResource>,
+) -> usize {
+    fonts.iter().position(|&f| f == family).unwrap_or_else(|| {
+        objects.push(PageResource::Font(family));
+        fonts.push(family);
+        fonts.len() - 1
+    }) + 1
+}
+
+fn draw_text(
+    stream: &mut Vec<u8>,
+    text: &str,
+    [x, y]: [f64; 2],
+    font: usize,
+    size: f64,
+    color: &str,
+    limit: usize,
+) -> Result<(), ()> {
+    if !stream.is_empty() {
+        stream.push(b'\n');
+    }
+    write!(
+        stream,
+        "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 {} {} Tm\n",
+        coordinate(x),
+        coordinate(y)
+    )
+    .unwrap();
+    literal(&win_ansi(text), stream);
+    stream.extend_from_slice(b" Tj\nET\nQ");
+    (stream.len() <= limit).then_some(()).ok_or(())
 }
 
 pub(in super::super) fn render_html(
@@ -336,6 +433,80 @@ pub(in super::super) fn render_html(
         } in blocks
         {
             let (size, pitch, family, offset, color, padding) = match kind {
+                BlockKind::Table(rows) => {
+                    let columns = rows
+                        .iter()
+                        .map(|r| r.cells.iter().map(|(span, _)| span).sum::<f64>())
+                        .fold(1., f64::max);
+                    let col_width = content_width / columns;
+                    let border = rgb([0.7, 0.73, 0.78]);
+                    let fill = rgb([0.91, 0.93, 0.96]);
+                    let ink = rgb([0.1, 0.1, 0.12]);
+                    for row in rows {
+                        let row_height = row
+                            .cells
+                            .iter()
+                            .map(|(_, lines)| lines.len() * 13 + 7)
+                            .max()
+                            .unwrap_or(0)
+                            .max(20) as f64;
+                        if y - row_height < bottom && !stream.is_empty() {
+                            finish_page(&mut stream, &mut objects, &mut headings)?;
+                            fonts.clear();
+                            y = height - top;
+                        }
+                        let row_bottom = y - row_height;
+                        let mut column = 0.;
+                        for (span, lines) in row.cells {
+                            if column >= columns {
+                                break;
+                            }
+                            let span = span.min(columns - column);
+                            let cell_x = left + column * col_width;
+                            if !stream.is_empty() {
+                                stream.push(b'\n');
+                            }
+                            stream.extend_from_slice(b"q\n");
+                            if row.header {
+                                writeln!(stream, "{fill} rg").unwrap();
+                            }
+                            let paint = if row.header { "B" } else { "S" };
+                            write!(
+                                stream,
+                                "{border} RG\n0.6 w\n{} {} {} {} re\n{paint}\nQ",
+                                coordinate(cell_x),
+                                coordinate(row_bottom),
+                                coordinate(span * col_width),
+                                coordinate(row_height)
+                            )
+                            .unwrap();
+                            let font = page_font(
+                                if row.header {
+                                    "Helvetica-Bold"
+                                } else {
+                                    "Helvetica"
+                                },
+                                &mut fonts,
+                                &mut objects,
+                            );
+                            for (i, line) in lines.iter().enumerate() {
+                                draw_text(
+                                    &mut stream,
+                                    line,
+                                    [cell_x + 5., row_bottom + row_height - 14. - i as f64 * 13.],
+                                    font,
+                                    9.5,
+                                    &ink,
+                                    limit,
+                                )?;
+                            }
+                            column += span;
+                        }
+                        y = row_bottom;
+                    }
+                    y -= 8.;
+                    continue;
+                }
                 BlockKind::Paragraph => (
                     11.,
                     15.,
@@ -465,34 +636,25 @@ pub(in super::super) fn render_html(
                     y -= 12.;
                     continue;
                 }
-                BlockKind::Paragraph | BlockKind::ListItem { .. } => {}
+                _ => {}
             }
             let block_top = y;
-            let font = fonts.iter().position(|&f| f == family).unwrap_or_else(|| {
-                objects.push(PageResource::Font(family));
-                fonts.push(family);
-                fonts.len() - 1
-            }) + 1;
-            let mut text_x = coordinate(left + offset);
+            let font = page_font(family, &mut fonts, &mut objects);
+            let mut text_x = left + offset;
             let color = rgb(color);
             for (i, line) in lines.into_iter().enumerate() {
                 if i == 1 && matches!(kind, BlockKind::ListItem { .. }) {
-                    text_x = coordinate(left + offset + 12.);
+                    text_x += 12.;
                 }
-                if !stream.is_empty() {
-                    stream.push(b'\n');
-                }
-                let coord = coordinate(y - size);
-                write!(
-                    stream,
-                    "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 {text_x} {coord} Tm\n"
-                )
-                .unwrap();
-                literal(&win_ansi(&line), &mut stream);
-                stream.extend_from_slice(b" Tj\nET\nQ");
-                if stream.len() > limit {
-                    return Err(());
-                }
+                draw_text(
+                    &mut stream,
+                    &line,
+                    [text_x, y - size],
+                    font,
+                    size,
+                    &color,
+                    limit,
+                )?;
                 y -= pitch;
             }
             if external_links {

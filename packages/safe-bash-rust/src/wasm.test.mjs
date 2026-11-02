@@ -5437,3 +5437,20 @@ test("wkhtmltopdf preserves nested list order, continuation indentation and defi
     }
   }finally{rs.dispose();}
 });
+
+test("wkhtmltopdf draws table rows, column spans and multiline cells across pages",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const table='<table><thead><tr><th colspan="2">Parts</th><td>Qty</td></tr></thead><tbody><tr><td>A<br>  B</td><td colspan="2"><b>€</b>\t(C)</td></tr><tr><td></td><td colspan="0">Second</td></tr><tr></tr></tbody></table>';
+  const files={"/table":Buffer.from('<h2>Inventory</h2>'+table+'<p>End</p>'),"/nested":Buffer.from('<ol><li>Before'+table+'After</li></ol><table><tr><td>A<table><tr><td>inner</td></tr></table>B</td></tr></table>')};
+  files["/spans"]=Buffer.from(["0x2","2.5","Inf","Infinity","1e999"].map(n=>'<table><tr><td colspan="'+n+'">Wide</td><td>End</td></tr><tr><td>A</td></tr></table>').join(""));
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [path,bytes] of Object.entries(files))await fs.writeFile(path,bytes);
+    for(const args of ["table","nested","spans","-g --page-height 115pt --copies 2 --no-collate table nested"]){
+      const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);
+      assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});

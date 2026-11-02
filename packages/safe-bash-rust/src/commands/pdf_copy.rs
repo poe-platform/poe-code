@@ -565,12 +565,13 @@ impl PageOutput {
             let id = *output.pages.last().ok_or(INVALID)?;
             for (title, level, destination) in &doc.bookmarks {
                 if destination.parse::<usize>() == Ok(*number) {
-                    outlines.push((level.parse().unwrap_or(1), title.clone(), id));
+                    outlines.push((level.parse().unwrap_or(1), title.clone(), (id,0)));
                 }
             }
         }
         if !outlines.is_empty() {
-            let root = super::pdf_render::write_outlines(&mut output.bodies, outlines)
+            let root = output.bodies.len()+1;
+            super::pdf_render::write_outlines(root,&mut output.bodies, outlines)
                 .map_err(|_| INVALID)?;
             writeln!(output.bodies[0], "/Outlines {root} 0 R").map_err(|_| INVALID)?;
         }

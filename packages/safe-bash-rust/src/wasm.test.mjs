@@ -4688,7 +4688,7 @@ test("pdftk protects copied PDFs with distinct credentials and honors allow perm
       assert.deepEqual(a.cos.encryption.permissions,b.cos.encryption.permissions);
     }
     const prior=await rust.fs.readFile("/out");
-    const refused=await rust.exec("pdftk in update_info - output out user_pw secret");
+    const refused=await rust.exec("pdftk in update_info missing output out user_pw secret");
     assert.notEqual(refused.exitCode,0);
     assert.deepEqual(await rust.fs.readFile("/out"),prior);
   } finally {rust.dispose();}
@@ -4737,5 +4737,33 @@ test("pdftk unpacks authenticated attachments using only the last payload for ea
     const rejected=await rust.exec("pdftk invalid unpack_files output out");
     assert.notEqual(rejected.exitCode,0);
     assert.equal((await rust.exec("test -f /out/first.bin")).exitCode,1);
+  }finally{rust.dispose();}
+});
+
+test("pdftk update_info edits existing PDF objects and preserves unrelated metadata and streams",async()=>{
+  const {PdfDocument,dictGet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create();doc.setAuthor("Keep author");
+  for(const s of ["first","second"])doc.addPage().drawText(s,{x:20,y:30});
+  const data=Buffer.from("InfoBegin\nInfoKey: Title\nInfoValue: &#321;ab\nInfoBegin\nInfoKey: Project Code\nInfoValue: preserved\nPageMediaBegin\nPageMediaNumber: 2\nPageMediaRotation: -80\nPageMediaDimensions: 111 222\nPageMediaRect: 10 20 310 420\nPageMediaCropBox: 4 6 100 120\nPageLabelBegin\nPageLabelPrefix: Appendix\nPageLabelNumStyle: UppercaseRomanNumerals\nBookmarkBegin\nBookmarkTitle: Last\nBookmarkPageNumber: 2\nPdfID0: 112233\n");
+  const fs=new MemoryFileSystem(),rust=new RustWasmBash({cwd:"/",files:{"/base":doc.save(),"/info":data,"/note":Buffer.from("attachment bytes")}});
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try{
+    const q=await rust.exec("qpdf base --add-attachment note -- in");assert.equal(q.exitCode,0,q.stderr);
+    await fs.writeFile("/in",await rust.fs.readFile("/in"));await fs.writeFile("/info",data);
+    for(const flags of ["","compress","uncompress","user_pw reader owner_pw owner"]){
+      const cmd="pdftk in update_info_utf8 info output out "+flags;
+      for(const shell of [js,rust]){const r=await shell.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      const a=await rust.fs.readFile("/out"),b=await fs.readFile("/out");
+      const password=flags.startsWith("user_pw")?"reader":"", parsed=PdfDocument.load(a,{password});
+      assert.match(parsed.extractText(),/second/);
+      assert.equal((await rust.exec("qpdf out --password="+password+" --show-attachment=note")).stdout,"attachment bytes");
+      const dump="pdftk out "+(password?"input_pw reader ":"")+"dump_data_utf8";
+      const report=async shell=>(await shell.exec(dump)).stdout.split("\n").filter(line=>!password||!line.startsWith("PdfID"));
+      assert.deepEqual(await report(rust),await report(js));
+      assert.equal(dictGet(parsed.getPage(1).pageDict,"MediaBox").items[0].value,10);
+      if(!password)assert.ok(Buffer.from(a).equals(b),"first different byte "+b.findIndex((v,i)=>v!==a[i]));
+    }
   }finally{rust.dispose();}
 });

@@ -442,6 +442,7 @@ struct PdfDoc {
     linearized: bool,
     page_w: f64,
     page_h: f64,
+    direct_media: BTreeMap<usize,[f64;4]>,
     page_media: BTreeMap<usize, (f64, f64, Option<[f64; 4]>)>,
     info: Vec<(String, String)>,
     bookmarks: Vec<(String, String, String)>,
@@ -538,6 +539,7 @@ impl PdfDoc {
             linearized: false,
             page_w: 612.0,
             page_h: 792.0,
+            direct_media: BTreeMap::new(),
             page_media: BTreeMap::new(),
             info: Vec::new(),
             bookmarks: Vec::new(),
@@ -7730,9 +7732,10 @@ fn cmd_media_doc(
                         .get(&pno)
                         .copied()
                         .unwrap_or((doc.page_w, doc.page_h, None));
+                    let [x0,y0,x1,y1]=doc.direct_media.get(&pno).copied().unwrap_or([0.,0.,pw.abs(),ph.abs()]);
                     out.push_str(&format!(
-                        "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: 0 0 {pw} {ph}\nPageMediaDimensions: {pw} {ph}\n",
-                        pg.rot
+                        "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: {x0} {y0} {x1} {y1}\nPageMediaDimensions: {aw} {ah}\n",
+                        pg.rot, aw=pw.abs(),ah=ph.abs()
                     ));
                     if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
                         out.push_str(&format!(
@@ -7752,6 +7755,7 @@ fn cmd_media_doc(
 
             let (mut user,mut owner) = (None,None);
             let mut grants = 0;
+            let mut compress_streams=None;
             let mut filtered = args[..op_idx].to_vec();
             let mut tail = args[op_idx..].iter().peekable();
             while let Some(arg) = tail.next() {
@@ -7759,6 +7763,9 @@ fn cmd_media_doc(
                     "output" => {
                         filtered.push(arg.clone());
                         if let Some(name) = tail.next() {filtered.push(name.clone());}
+                    }
+                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough")=>{
+                        compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
                     "owner_pw" => owner = tail.next().map(String::as_str),
@@ -7800,7 +7807,7 @@ fn cmd_media_doc(
                 "passthrough" => {
                     let (bytes,password) = &inputs[&input_order[0]];
                     let bytes = if !is_legacy_pdf(bytes) {
-                        let edits = pdf_reader::PageEdits {password,decrypt:true,..Default::default()};
+                        let edits = pdf_reader::PageEdits {password,decrypt:true,compress_streams,..Default::default()};
                         match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
                             Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
@@ -7840,178 +7847,20 @@ fn cmd_media_doc(
                         };
                         String::from_utf8_lossy(&ib).to_string()
                     };
-                    let mut doc = primary;
-                    let has_info_blocks = txt.lines().any(|l| l.trim() == "InfoBegin");
-                    let has_bm_blocks = txt.lines().any(|l| l.trim() == "BookmarkBegin");
-                    let has_pl_blocks = txt.lines().any(|l| l.trim() == "PageLabelBegin");
-                    if has_info_blocks {
-                        doc.info.clear();
-                    }
-                    if has_bm_blocks {
-                        doc.bookmarks.clear();
-                    }
-                    if has_pl_blocks {
-                        doc.page_labels.clear();
-                    }
-                    let mut cur_kind = "";
-                    let mut k = String::new();
-                    let mut v = String::new();
-                    let mut bt = String::new();
-                    let mut bl = String::new();
-                    let mut bp = String::new();
-                    let mut pni = String::new();
-                    let mut pst = String::new();
-                    let mut ppf = String::new();
-                    let mut psy = String::new();
-                    let mut pm_num: usize = 0;
-                    let mut pm_rot: Option<i32> = None;
-                    let mut pm_dim: Option<(f64, f64)> = None;
-                    let mut pm_crop: Option<[f64; 4]> = None;
-
-                    let flush = |kind: &str,
-                                 doc: &mut PdfDoc,
-                                 k: &mut String,
-                                 v: &mut String,
-                                 bt: &mut String,
-                                 bl: &mut String,
-                                 bp: &mut String,
-                                 pni: &mut String,
-                                 pst: &mut String,
-                                 ppf: &mut String,
-                                 psy: &mut String,
-                                 pm_num: &mut usize,
-                                 pm_rot: &mut Option<i32>,
-                                 pm_dim: &mut Option<(f64, f64)>,
-                                 pm_crop: &mut Option<[f64; 4]>| {
-                        match kind {
-                            "info" if !k.is_empty() => {
-                                let dec_v = decode_pdftk_entities(v);
-                                if k == "Title" {
-                                    doc.title = dec_v;
-                                } else if k == "Author" {
-                                    doc.author = dec_v;
-                                } else {
-                                    doc.info.push((k.clone(), dec_v));
-                                }
-                                k.clear();
-                                v.clear();
-                            }
-                            "bm" if !bt.is_empty() => {
-                                doc.bookmarks.push((
-                                    decode_pdftk_entities(bt),
-                                    bl.clone(),
-                                    bp.clone(),
-                                ));
-                                bt.clear();
-                                bl.clear();
-                                bp.clear();
-                            }
-                            "pl" if !pni.is_empty() => {
-                                doc.page_labels.push((
-                                    pni.clone(),
-                                    if pst.is_empty() { "1".to_string() } else { pst.clone() },
-                                    decode_pdftk_entities(ppf),
-                                    if psy.is_empty() { "DecimalArabicNumerals".to_string() } else { psy.clone() },
-                                ));
-                                pni.clear();
-                                pst.clear();
-                                ppf.clear();
-                                psy.clear();
-                            }
-                            "pm" if *pm_num >= 1 => {
-                                if let Some(rot) = *pm_rot
-                                    && let Some(pg) = doc.pages.get_mut(*pm_num - 1)
-                                {
-                                    pg.rot = rot.rem_euclid(360);
-                                }
-                                let (mut w, mut h, mut crop) = doc
-                                    .page_media
-                                    .get(pm_num)
-                                    .copied()
-                                    .unwrap_or((doc.page_w, doc.page_h, None));
-                                if let Some((dw, dh)) = *pm_dim {
-                                    w = dw;
-                                    h = dh;
-                                    if *pm_num == 1 {
-                                        doc.page_w = dw;
-                                        doc.page_h = dh;
-                                    }
-                                }
-                                if pm_crop.is_some() {
-                                    crop = *pm_crop;
-                                }
-                                doc.page_media.insert(*pm_num, (w, h, crop));
-                                *pm_num = 0;
-                                *pm_rot = None;
-                                *pm_dim = None;
-                                *pm_crop = None;
-                            }
-                            _ => {}
+                    let update=pdf_reader::Updates::parse(&txt);
+                    let (bytes,password)=&inputs[&input_order[0]];
+                    let out=if is_legacy_pdf(bytes) {
+                        let mut doc=primary;
+                        update.apply_legacy(&mut doc);
+                        doc.serialize()
+                    } else {
+                        let edits=pdf_reader::PageEdits {password,decrypt:true,compress_streams,update:Some(&update),..Default::default()};
+                        match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
+                            Ok(bytes)=>bytes,
+                            Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
                     };
-                    for line in txt.lines() {
-                        let l = line.trim();
-                        if matches!(l, "InfoBegin" | "BookmarkBegin" | "PageLabelBegin" | "PageMediaBegin") {
-                            flush(
-                                cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl, &mut bp,
-                                &mut pni, &mut pst, &mut ppf, &mut psy, &mut pm_num, &mut pm_rot,
-                                &mut pm_dim, &mut pm_crop,
-                            );
-                            cur_kind = match l {
-                                "InfoBegin" => "info",
-                                "BookmarkBegin" => "bm",
-                                "PageLabelBegin" => "pl",
-                                _ => "pm",
-                            };
-                        } else if let Some(r) = l.strip_prefix("PdfID0:") {
-                            doc.pdf_id0 = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("PdfID1:") {
-                            doc.pdf_id1 = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("InfoKey:") {
-                            k = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("InfoValue:") {
-                            v = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("BookmarkTitle:") {
-                            bt = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("BookmarkLevel:") {
-                            bl = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("BookmarkPageNumber:") {
-                            bp = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("PageLabelNewIndex:") {
-                            pni = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("PageLabelStart:") {
-                            pst = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("PageLabelPrefix:") {
-                            ppf = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("PageLabelNumStyle:") {
-                            psy = r.trim().to_string();
-                        } else if let Some(r) = l.strip_prefix("PageMediaNumber:") {
-                            pm_num = r.trim().parse().unwrap_or(0);
-                        } else if let Some(r) = l.strip_prefix("PageMediaRotation:") {
-                            pm_rot = r.trim().parse().ok();
-                        } else if let Some(r) = l.strip_prefix("PageMediaDimensions:") {
-                            let nums: Vec<f64> = r.split_whitespace().filter_map(|x| x.parse().ok()).collect();
-                            if nums.len() >= 2 {
-                                pm_dim = Some((nums[0], nums[1]));
-                            }
-                        } else if let Some(r) = l.strip_prefix("PageMediaRect:") {
-                            let nums: Vec<f64> = r.split_whitespace().filter_map(|x| x.parse().ok()).collect();
-                            if nums.len() >= 4 && pm_dim.is_none() {
-                                pm_dim = Some((nums[2] - nums[0], nums[3] - nums[1]));
-                            }
-                        } else if let Some(r) = l.strip_prefix("PageMediaCropRect:") {
-                            let nums: Vec<f64> = r.split_whitespace().filter_map(|x| x.parse().ok()).collect();
-                            if nums.len() >= 4 {
-                                pm_crop = Some([nums[0], nums[1], nums[2], nums[3]]);
-                            }
-                        }
-                    }
-                    flush(
-                        cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl, &mut bp,
-                        &mut pni, &mut pst, &mut ppf, &mut psy, &mut pm_num, &mut pm_rot,
-                        &mut pm_dim, &mut pm_crop,
-                    );
-                    write_pdftk_output(doc.serialize(), &rest[1..])
+                    write_pdftk_output(out,&rest[1..])
                 }
                 "burst" => {
                     let rest = &args[op_idx + 1..];

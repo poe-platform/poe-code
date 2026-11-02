@@ -62,3 +62,21 @@ pub(super) fn encode(value: &str) -> Value<'static> {
         }
     }
 }
+
+pub(super) fn name(raw: &[u8]) -> String {
+    let mut bytes = Vec::with_capacity(raw.len());
+    let mut i = 0;
+    while i < raw.len() {
+        if raw[i] == b'#'
+            && let Some(pair) = raw.get(i + 1..i + 3)
+            && pair.iter().all(u8::is_ascii_hexdigit)
+        {
+            bytes.push(u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap());
+            i += 3;
+        } else {
+            bytes.push(raw[i]);
+            i += 1;
+        }
+    }
+    String::from_utf8_lossy(&bytes).into_owned()
+}

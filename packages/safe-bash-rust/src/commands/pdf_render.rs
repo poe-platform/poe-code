@@ -121,7 +121,7 @@ pub(in super::super) fn render_paragraphs(
         outlines.extend(
             headings
                 .drain(..)
-                .map(|(level, title)| (level, title, page)),
+                .map(|(level, title)| (level, title, (page,0))),
         );
         pages.push(format!("{page} 0 R"));
         stream.clear();
@@ -216,7 +216,8 @@ pub(in super::super) fn render_paragraphs(
     )
     .into_bytes();
     if !outlines.is_empty() {
-        let root = write_outlines(&mut bodies, outlines)?;
+        let root = bodies.len()+1;
+        write_outlines(root,&mut bodies,outlines)?;
         bodies[0] =
             format!("<<\n/Type /Catalog\n/Pages 2 0 R\n/Outlines {root} 0 R\n>>").into_bytes();
     }
@@ -224,15 +225,15 @@ pub(in super::super) fn render_paragraphs(
 }
 
 pub(super) fn write_outlines(
+    root:usize,
     bodies: &mut Vec<Vec<u8>>,
-    outlines: Vec<(usize, String, usize)>,
-) -> Result<usize, ()> {
+    outlines: Vec<(usize, String, super::ObjectId)>,
+) -> Result<(), ()> {
     use super::{
         Value,
         pdf_rewrite::{encode, set},
         pdf_string,
     };
-    let root = bodies.len() + 1;
     let mut dicts = vec![vec![(
         b"Type".as_slice().into(),
         Value::Word(b"/Outlines".as_slice().into()),
@@ -257,7 +258,7 @@ pub(super) fn write_outlines(
             (
                 b"Dest".into(),
                 Value::Array(vec![
-                    Value::Ref((page, 0)),
+                    Value::Ref(page),
                     Value::Word(b"/XYZ".as_slice().into()),
                     null.clone(),
                     null.clone(),
@@ -286,7 +287,7 @@ pub(super) fn write_outlines(
         encode(&Value::Dict(dict), &mut body).map_err(|_| ())?;
         bodies.push(body);
     }
-    Ok(root)
+    Ok(())
 }
 
 pub(in crate::commands) fn image_pdf(

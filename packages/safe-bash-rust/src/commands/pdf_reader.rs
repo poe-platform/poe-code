@@ -22,6 +22,10 @@ pub(super) use pdf_office::render_office;
 mod pdf_svg;
 pub(super) use pdf_svg::render_svg;
 
+#[path = "pdf_update.rs"]
+mod pdf_update;
+pub(super) use pdf_update::Updates;
+
 #[path = "pdf_render.rs"]
 mod pdf_render;
 pub(in crate::commands) use pdf_render::image_pdf;
@@ -870,7 +874,7 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                     _ => {}
                 }
                 doc.info
-                    .push((std::str::from_utf8(&k).ok()?.to_string(), value));
+                    .push((pdf_string::name(&k), value));
             }
         }
     }
@@ -969,6 +973,7 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                     doc.page_h = h;
                 }
                 doc.pages.push(page);
+                if node.get(b"MediaBox").is_some() && media != [0.,0.,w.abs(),h.abs()] {doc.direct_media.insert(doc.pages.len(),media);}
                 doc.page_media.insert(doc.pages.len(), (w, h, crop));
             }
             _ => return None,

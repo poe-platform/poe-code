@@ -42,6 +42,8 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
+    pub update: Option<&'a super::Updates>,
+    pub compress_streams: Option<bool>,
     pub decrypt: bool,
     pub linearize: bool,
     pub rotations: Vec<&'a str>,
@@ -64,7 +66,7 @@ pub(in super::super) fn rewrite(
     read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let (mut objects, trailer) = index(bytes,edits.password)?;
+    let (mut objects, mut trailer) = index(bytes,edits.password)?;
     objects.preserve_hex = !edits.selections.is_empty();
     let root = trailer
         .get(b"Root")
@@ -87,7 +89,6 @@ pub(in super::super) fn rewrite(
         b"PageLabels" => edits.page_labels,
         _ => false,
     });
-    let mut info = trailer.get(b"Info");
     let page_root = catalog
         .get(b"Pages")
         .and_then(Value::reference)
@@ -99,6 +100,8 @@ pub(in super::super) fn rewrite(
             changed.keys().next_back().map_or(0, |id| id.0),
         )
         .ok_or(INVALID)?;
+    if let Some(update)=edits.update {update.apply(&mut objects,&mut trailer,&mut catalog,&pages,&mut changed,limit)?;}
+    let mut info=trailer.get(b"Info");
     if edits.linearize {
         changed.insert((first_new,0), format!("<<\n/Linearized 1\n/N {}\n>>", pages.len()).into_bytes());
     }
@@ -148,6 +151,7 @@ pub(in super::super) fn rewrite(
         let Value::Dict(mut fields) = page.clone() else {
             return Err(INVALID.into());
         };
+        if let Some(update)=edits.update {update.edit_page(i+1,&mut fields);}
         if let Some(rotation) = rotation {
             let original = inherited(b"Rotate")
                 .and_then(|v| objects.resolve(v))
@@ -212,7 +216,7 @@ pub(in super::super) fn rewrite(
     let decrypt = edits.decrypt && objects.security.is_some();
     let generate = !decrypt && edits.generate_object_streams && edits.split_pages.is_none();
     let mut packed = (generate && !edits.normalize_content).then(Packed::default);
-    let mut out = if decrypt { b"%PDF-1.7".to_vec() } else { bytes.get(..8).ok_or(INVALID)?.to_vec() };
+    let mut out = if decrypt && edits.update.is_none() { b"%PDF-1.7".to_vec() } else { bytes.get(..8).ok_or(INVALID)?.to_vec() };
     if generate && out.as_slice() < b"%PDF-1.5" {
         out.copy_from_slice(b"%PDF-1.5");
     }
@@ -244,7 +248,16 @@ pub(in super::super) fn rewrite(
             let (mut dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
             cursor.skip();
             if cursor.0.starts_with(b"stream") {
-                let data = objects.raw_stream(id, &mut dict, cursor).ok_or(INVALID)?;
+                let mut data = objects.raw_stream(id, &mut dict, cursor).ok_or(INVALID)?;
+                if let Some(compress)=edits.compress_streams {
+                    data=objects.decode(&dict,data).ok_or(INVALID)?;
+                    let Value::Dict(ref mut fields)=dict else{return Err(INVALID.into())};
+                    fields.retain(|(key,_)|!matches!(key.as_ref(),b"Filter"|b"DecodeParms"));
+                    if compress {
+                        data=crate::commands::codecs::zlib_compress(&data).into();
+                        set(fields,b"Filter",Value::Word(b"/FlateDecode".as_slice().into()));
+                    }
+                }
                 dict.set_stream_length(data.len()).ok_or(INVALID)?;
                 encode(&dict, &mut out)?;
                 if data.len() > limit.saturating_sub(out.len()) {
@@ -273,7 +286,7 @@ pub(in super::super) fn rewrite(
         }
     }
     let mut trailer_entries = format!("/Root {} {} R\n", root.0, root.1).into_bytes();
-    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID").filter(|_| !decrypt))] {
+    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID").filter(|_| !decrypt || edits.update.is_some()))] {
         if let Some(v) = value {
             trailer_entries.push(b'/');
             trailer_entries.extend_from_slice(key);

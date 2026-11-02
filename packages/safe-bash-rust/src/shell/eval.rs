@@ -16078,6 +16078,19 @@ hash -l
     }
 
     #[test]
+    fn tac_reverses_only_successfully_read_operands_and_leaves_unused_stdin_alone() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/input", b"q\nw\nERROR").unwrap();
+        fs.write_file("/small", b"a\nb\n").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        let r = shell.exec("tac /small - /missing /small </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "b\na\nb\na\n",
+            "tac: EFBIG: file too large, read '/input'\ntac: ENOENT: no such file or directory, stat '/missing'\n"));
+        let r = shell.exec("{ tac /small; head -c1; } </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "b\na\nq", ""));
+    }
+
+    #[test]
     fn fold_emits_wrapped_lines_before_errors_and_keeps_split_utf8_units_together() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let prefix = "x".repeat(65535);

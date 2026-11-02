@@ -44,7 +44,7 @@ fn coreutil(
         "cut" => cmd_cut(args, input, cwd, env, fs),
         "tr" => cmd_tr(args, input),
         "nl" => cmd_nl(args, input, cwd, fs),
-        "tac" => cmd_tac(args, input.buffered()?, cwd, fs),
+        "tac" => cmd_tac(args, input, cwd, fs),
         "rev" => cmd_rev(args, input.buffered()?, cwd, env, fs),
         "paste" => cmd_paste(args, input.buffered()?, cwd, fs),
         "join" => cmd_join(args, input.buffered()?, cwd, fs),
@@ -3466,7 +3466,7 @@ fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
     }
 }
 
-fn cmd_tac(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_tac(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut sep: Option<String> = None;
     let mut before = false;
     let mut regex_mode = false;
@@ -3545,28 +3545,12 @@ fn cmd_tac(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
     let mut stderr = String::new();
     let mut exit_code = 0;
     for f in &targets {
-        let bytes = if f == "-" {
-            take_stdin_bytes(stdin)
-        } else {
-            let full = resolve_posix_path(cwd, f);
-            if fs.is_dir(&full) {
-                stderr.push_str(&format!(
-                    "tac: EISDIR: illegal operation on a directory '{full}'\n"
-                ));
-                exit_code = 1;
-                continue;
-            }
-            match fs.read_file(&full) {
-                Ok(b) => b,
-                Err(_) => {
-                    stderr.push_str(&format!(
-                        "tac: ENOENT: no such file or directory, stat '{full}'\n"
-                    ));
-                    exit_code = 1;
-                    continue;
-                }
-            }
-        };
+        let mut bytes = Vec::new();
+        if let Err(e) = stdin.read_operand(f, cwd, fs, true, |chunk| { bytes.extend_from_slice(chunk); true }) {
+            stderr.push_str(&format!("tac: {e}\n"));
+            exit_code = 1;
+            continue;
+        }
         if regex_mode {
             let pat_str = String::from_utf8_lossy(&sep_bytes).to_string();
             let anchored = if pat_str.starts_with("^") {

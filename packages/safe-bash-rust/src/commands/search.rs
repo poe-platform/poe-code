@@ -4029,15 +4029,17 @@ fn run_grep_engine(
 
         let mut replacements = BTreeMap::new();
         let mut find_spans = |subject: &str, offset| {
-            let Some(parts) = &replacement else { return rx.find_all(subject); };
             let mut spans = Vec::new();
             rx.scan(subject, capture, |s, e, caps| {
-                let expanded: String = parts.iter().map(|part| match part {
-                    RgReplacementPart::Literal(text) => *text,
-                    RgReplacementPart::Match => &subject[s..e],
-                    RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or("", |(lo, hi)| &subject[lo..hi]),
-                }).collect();
-                replacements.insert(offset + s, expanded);
+                if cfg.is_rg && s == e && spans.last().is_some_and(|&(_, end)| end == s) { return true; }
+                if let Some(parts) = &replacement {
+                    let expanded: String = parts.iter().map(|part| match part {
+                        RgReplacementPart::Literal(text) => *text,
+                        RgReplacementPart::Match => &subject[s..e],
+                        RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or("", |(lo, hi)| &subject[lo..hi]),
+                    }).collect();
+                    replacements.insert(offset + s, expanded);
+                }
                 spans.push((s, e));
                 true
             });

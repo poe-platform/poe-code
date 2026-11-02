@@ -9487,17 +9487,8 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
     if after_months > 0 || before_months > 0 {
         span_months = before_months + 1 + after_months;
     }
-    let (default_year, default_month) = if let Some(sde) = env.get("SOURCE_DATE_EPOCH")
-        && let Ok(sec) = sde.trim().parse::<i64>()
-    {
-        let (y, m, _) = civil_from_days(sec.div_euclid(86400));
-        (y.max(1) as u32, m.clamp(1, 12))
-    } else {
-        (2024u32, 2u32)
-    };
-
-    let mut year = explicit_year.unwrap_or(default_year);
-    let mut month = explicit_month.unwrap_or(default_month);
+    let mut year = explicit_year;
+    let mut month = explicit_month;
 
     match operands.len() {
         0 => {}
@@ -9511,7 +9502,7 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
             if !(1..=9999).contains(&y) {
                 return err_out(&format!("cal: not a valid year {}\n", operands[0]), 1);
             }
-            year = y;
+            year = Some(y);
             if explicit_month.is_none() {
                 whole_year = true;
             }
@@ -9535,8 +9526,8 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
             if !(1..=9999).contains(&y) {
                 return err_out(&format!("cal: not a valid year {}\n", operands[1]), 1);
             }
-            month = m;
-            year = y;
+            month = Some(m);
+            year = Some(y);
         }
         3 => {
             let Some(m) = parse_cal_month_name(&operands[1]) else {
@@ -9558,15 +9549,24 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
             {
                 return err_out("cal: invalid date arguments\n", 1);
             }
-            month = m;
-            year = y;
+            month = Some(m);
+            year = Some(y);
         }
         _ => return err_out("cal: too many arguments\n", 1),
     }
 
     let count = if whole_year { 12usize } else { span_months };
+    let ms = env.get("SOURCE_DATE_EPOCH").map_or_else(crate::vfs::now_ms, |s| {
+        super::js_number(s, 0.0) * 1000.0
+    });
+    let date = (ms.abs() <= 8_640_000_000_000_000.0)
+        .then(|| civil_from_days((ms as i64).div_euclid(86_400_000)));
+    let Some(year) = year.map(i64::from).or_else(|| date.map(|(y, _, _)| y)) else {
+        return err_out("cal: calendar span exceeds year range 1..9999\n", 1);
+    };
+    let month = month.or_else(|| date.map(|(_, m, _)| m)).unwrap_or(1);
     let first_total = if whole_year {
-        (year as i64) * 12
+        year * 12
     } else {
         let offset = if before_months > 0 {
             before_months as i64
@@ -9575,7 +9575,7 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
         } else {
             0
         };
-        (year as i64) * 12 + (month as i64 - 1) - offset
+        year * 12 + (month as i64 - 1) - offset
     };
     if first_total < 12 || first_total + (count as i64) - 1 >= 10000 * 12 {
         return err_out("cal: calendar span exceeds year range 1..9999\n", 1);
@@ -9654,7 +9654,7 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
             for k in 0..(per_row as u32) {
                 if start_m + k <= 12 {
                     row_grids.push(render_cal_month_grid(
-                        year,
+                        year as u32,
                         start_m + k,
                         monday_first,
                         julian,

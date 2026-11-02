@@ -12,6 +12,19 @@ use crate::vfs::SafeBashFs;
 use std::cell::{Cell, RefCell};
 use std::collections::BTreeMap;
 
+fn js_number(value: &str, empty: f64) -> f64 {
+    let s=value.trim();
+    if s.is_empty() {return empty;}
+    for (prefix,radix) in [("0x",16),("0o",8),("0b",2)] {
+        if s.get(..2).is_some_and(|p|p.eq_ignore_ascii_case(prefix)) {
+            return u64::from_str_radix(&s[2..],radix).map_or(f64::NAN,|v|v as f64);
+        }
+    }
+    let unsigned = s.strip_prefix(['+', '-']).unwrap_or(s);
+    if unsigned.starts_with(['i', 'I']) && unsigned != "Infinity" { return f64::NAN; }
+    s.parse().unwrap_or(f64::NAN)
+}
+
 /// The open file offset can be ahead of the consumer when a chunk has been prefetched.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct FileInputPosition {

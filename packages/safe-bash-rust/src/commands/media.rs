@@ -282,18 +282,7 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     meta
 }
 
-fn js_number(value: &str, empty: f64) -> f64 {
-    let s=value.trim();
-    if s.is_empty() {return empty;}
-    for (prefix,radix) in [("0x",16),("0o",8),("0b",2)] {
-        if s.get(..2).is_some_and(|p|p.eq_ignore_ascii_case(prefix)) {
-            return u64::from_str_radix(&s[2..],radix).map_or(f64::NAN,|v|v as f64);
-        }
-    }
-    let unsigned = s.strip_prefix(['+', '-']).unwrap_or(s);
-    if unsigned.starts_with(['i', 'I']) && unsigned != "Infinity" { return f64::NAN; }
-    s.parse().unwrap_or(f64::NAN)
-}
+use crate::commands::js_number;
 
 // JavaScript parseFloat accepts a numeric prefix followed by units.
 fn parse_float_prefix(raw:&str)->f64{

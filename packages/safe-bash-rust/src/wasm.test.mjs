@@ -7655,3 +7655,21 @@ test("op computes OTPs for the stored field and clock using RFC 6238", async (t)
     }
   } finally { rs.dispose(); }
 });
+
+test("cal and ncal select the current UTC month or the supplied epoch", async (t) => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  t.mock.timers.enable({ apis: ["Date"], now: Date.UTC(2032, 0, 1) });
+  try {
+    for (const name of ["cal", "ncal"]) {
+      for (const source of [name, name + " -3", name + " -m March",
+        "SOURCE_DATE_EPOCH=-0.1 " + name, "SOURCE_DATE_EPOCH='' " + name,
+        "SOURCE_DATE_EPOCH=0x10000000 " + name, "SOURCE_DATE_EPOCH=invalid " + name,
+        "SOURCE_DATE_EPOCH=invalid " + name + " 2 2024"]) {
+        const a = await js.exec(source), b = await rs.exec(source);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], source);
+      }
+    }
+  } finally { rs.dispose(); }
+});

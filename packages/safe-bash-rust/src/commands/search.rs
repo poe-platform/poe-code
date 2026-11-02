@@ -494,6 +494,7 @@ pub struct ZeroRegex {
     word_regexp: bool,
     anchored: bool,
     pub(super) first_match: bool,
+    pub(super) nonempty: bool,
 }
 
 impl ZeroRegex {
@@ -518,7 +519,7 @@ impl ZeroRegex {
             branches.push(program);
         }
         Self { branches, capture_names, ignore_case,
-            word_regexp, anchored, first_match: false }
+            word_regexp, anchored, first_match: false, nonempty: false }
     }
 
     pub fn is_match(&self, text: &str) -> bool {
@@ -546,7 +547,7 @@ impl ZeroRegex {
                 let base = group_offset;
                 group_offset += program.groups;
                 program.run(&hay, pos, self.ignore_case, self.first_match, capture, |end|
-                    !self.word_regexp || is_word_boundary(&hay, pos, end)).map(|m| (base, m))
+                    (!self.nonempty || end > pos) && (!self.word_regexp || is_word_boundary(&hay, pos, end))).map(|m| (base, m))
             });
             if let Some((base, mut m)) = if self.first_match { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
                 found = true;

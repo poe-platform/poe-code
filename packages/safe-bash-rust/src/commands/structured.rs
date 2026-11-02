@@ -2587,10 +2587,12 @@ fn try_eval_jq_builtin(
                 "capture" | "scan" => {
                     if let JVal::Str(st) = input {
                         let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
+                        if fname == "scan" && pat.is_empty() && !flags.contains('n') {
+                            return Ok(Some(vec![JVal::Str(String::new()); st.len() + 1]));
+                        }
                         let rx = jq_regex(pat, &flags);
                         let mut out = Vec::new();
                         rx.scan(st, true, |s, e, caps| {
-                            if s == e && flags.contains('n') { return true; }
                             if fname == "capture" {
                                 out.push(jq_capture_object(st, &rx, caps));
                                 flags.contains('g')
@@ -2633,7 +2635,6 @@ fn try_eval_jq_builtin(
                             let mut copied = 0;
                             let mut fault = None;
                             rx.scan(st, !rx.capture_names.is_empty(), |s, e, caps| {
-                                if s == e && flags.contains('n') { return true; }
                                 let captures = jq_capture_object(st, &rx, caps);
                                 let replacements = match eval_jq(repl_e, &captures, vars) {
                                     Ok(values) => values,
@@ -3003,6 +3004,7 @@ fn jval_contains(haystack: &JVal, needle: &JVal) -> bool {
 fn jq_regex(pattern: String, flags: &str) -> ZeroRegex {
     let mut rx = ZeroRegex::new(vec![pattern], flags.contains('i'), false, false, false);
     rx.first_match = true;
+    rx.nonempty = flags.contains('n');
     rx
 }
 
@@ -3541,11 +3543,11 @@ fn parse_jq_regex_groups(pat: &str) -> (String, Vec<Option<String>>) {
 }
 
 fn eval_jq_match_regex(text: &str, pattern: String, flags: &str) -> Vec<JVal> {
+    let byte_boundaries = pattern.is_empty() && flags.contains('g');
     let rx = jq_regex(pattern, flags);
     let mut out = Vec::new();
     let (mut byte, mut offset) = (0, 0);
     rx.scan(text, true, |s, e, caps| {
-        if flags.contains('n') && s == e { return true; }
         offset += text[byte..s].chars().count();
         let length = text[s..e].chars().count();
         let mut names = rx.capture_names.iter().peekable();
@@ -3562,12 +3564,16 @@ fn eval_jq_match_regex(text: &str, pattern: String, flags: &str) -> Vec<JVal> {
                 ("name".into(), name),
             ])
         }).collect();
-        out.push(JVal::Object(vec![
+        let result = JVal::Object(vec![
             ("offset".into(), JVal::Number(offset as f64, None)),
             ("length".into(), JVal::Number(length as f64, None)),
             ("string".into(), JVal::Str(text[s..e].to_owned())),
             ("captures".into(), JVal::Array(captures)),
-        ]));
+        ]);
+        // For an empty global pattern jq rounds every interior UTF-8 byte up
+        // to the next code point. Nonempty patterns keep code-point offsets.
+        let copies = if byte_boundaries { text[..s].chars().next_back().map_or(1, char::len_utf8) } else { 1 };
+        out.extend(std::iter::repeat_n(result, copies));
         byte = e;
         offset += length;
         flags.contains('g')
@@ -3582,14 +3588,10 @@ fn eval_jq_splits_regex(
     vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, JqFault> {
     let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-    let ignore_empty = flags.contains('n');
     let rx = jq_regex(pat, &flags);
     let mut parts = Vec::new();
     let mut last = 0usize;
     for (ms, me) in rx.find_all(s) {
-        if ignore_empty && ms == me {
-            continue;
-        }
         parts.push(JVal::Str(s[last..ms].to_string()));
         last = me;
     }

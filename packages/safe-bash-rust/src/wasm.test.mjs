@@ -6632,3 +6632,24 @@ test("jq regex filters use original capture slots and preserve missing values", 
     }
   } finally { rs.dispose(); }
 });
+
+test("jq nonempty matching retries alternatives and empty patterns count UTF-8 boundaries", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [filter, values] of [
+      ['scan("")', Array(6).fill("")], ['match("";"g")|.offset', [0,1,1,1,1,2]],
+      ['capture("";"g")', [{},{},{}]], ['scan("(|a)";"n")', [["a"]]],
+      ['capture("(?<x>|a)";"n")', [{x:"a"}]], ['match("|a";"gn")|.offset', [1]],
+      ['test("x*";"n")', [false]], ['gsub("|a";"X";"n")', ["🦊X"]],
+      ['splits("|a";"n")', ["🦊",""]],
+    ]) {
+      const cmd = `echo '"🦊a"' | jq -c '[${filter}]'`;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0,"",JSON.stringify(values) + "\n"], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

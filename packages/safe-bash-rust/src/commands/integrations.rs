@@ -1254,7 +1254,13 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     match cmd {
-        "op" => Some(cmd_op(args, stdin, cwd, env, fs, &mut exec_sub)),
+        "op" => {
+            let exported = env.iter()
+                .filter(|(key, _)| crate::shell::is_exported_scalar(env, key))
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+            Some(cmd_op(args, stdin, cwd, &exported, fs, &mut exec_sub))
+        }
         "gh" => Some(cmd_gh(args, stdin, cwd, env, fs)),
         _ => None,
     }
@@ -1947,7 +1953,7 @@ fn cmd_op<F>(
     args: &[String],
     stdin: &str,
     cwd: &mut String,
-    env: &mut BTreeMap<String, String>,
+    env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
     exec_sub: &mut F,
 ) -> BuiltinOutcome
@@ -3501,13 +3507,13 @@ where
                         let mut vars_obj = Map::new();
                         if has_vars_flag {
                             for vn in &var_names {
-                                match env.get(vn).filter(|_| crate::shell::is_exported_scalar(env, vn)) {
+                                match env.get(vn) {
                                     Some(val) => vars_obj.insert(vn.clone(), JVal::Str(val.clone())),
                                     None => vars_obj.insert(vn.clone(), JVal::Null),
                                 }
                             }
                         } else {
-                            for (k, v) in env.iter().filter(|(k, _)| crate::shell::is_exported_scalar(env, k)) {
+                            for (k, v) in env {
                                 vars_obj.insert(k.clone(), JVal::Str(v.clone()));
                             }
                         }
@@ -3668,7 +3674,7 @@ where
                             }
                             let mut names: Vec<String> = Vec::new();
                             if scope == "complete" {
-                                for k in env.keys().filter(|k| crate::shell::is_exported_scalar(env, k)) {
+                                for k in env.keys() {
                                     if !names.contains(k) {
                                         names.push(k.clone());
                                     }

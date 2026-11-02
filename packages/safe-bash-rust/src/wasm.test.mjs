@@ -7486,3 +7486,18 @@ test("op masks the longest original byte match in run and snapshot child output"
     }
   } finally { rs.dispose(); }
 });
+
+test("op only sees exported variables and command assignments", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const cmd of ["TOKEN=op://missing/item/field; op run -- echo ok",
+      "export TOKEN; op run -- echo ok", "unset TOKEN; TOKEN=local; op run -- printenv TOKEN",
+      "TOKEN=override op run -- printenv TOKEN", "OP_FORMAT=broken; op --version",
+      "export OP_FORMAT; op --version", "unset OP_FORMAT; op --version"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

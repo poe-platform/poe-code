@@ -2164,16 +2164,17 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             if (bh_flags & 0x80) != 0 {
                 let _ = field(&mut bh_pos)?;
             }
-            for _ in 0..num_filters {
-                let fid = field(&mut bh_pos)?;
-                let props_len = field(&mut bh_pos)? as usize;
-                if bh_pos + props_len > pos + bh_size - 4 {
-                    return Err("Compressed data is corrupt".into());
+            let mut deltas = Vec::new();
+            for i in 0..num_filters {
+                let id = field(&mut bh_pos)?;
+                let len = usize::try_from(field(&mut bh_pos)?).map_err(|_| "Compressed data is corrupt")?;
+                let props = data[bh_pos..pos + bh_size - 4].get(..len).ok_or("Compressed data is corrupt")?;
+                match (id, props, i + 1 == num_filters) {
+                    (0x03, [distance], false) => deltas.push(usize::from(*distance) + 1),
+                    (0x21, [0..=40], true) => {}
+                    _ => return Err("Unsupported options in headers".into()),
                 }
-                if fid == 0x21 && props_len != 1 {
-                    return Err("Compressed data is corrupt".into());
-                }
-                bh_pos += props_len;
+                bh_pos += len;
             }
             while bh_pos < pos + bh_size - 4 {
                 if data[bh_pos] != 0 {
@@ -2262,7 +2263,12 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             }
             let stored_check = &data[pos..pos + check_size];
             pos += check_size;
-            let block_slice = &out[block_out_start..];
+            let block_slice = &mut out[block_out_start..];
+            for distance in deltas.into_iter().rev() {
+                for i in distance..block_slice.len() {
+                    block_slice[i] = block_slice[i].wrapping_add(block_slice[i - distance]);
+                }
+            }
             match check_id {
                 0 => {}
                 1 => {

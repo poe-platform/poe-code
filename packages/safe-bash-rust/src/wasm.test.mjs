@@ -7904,3 +7904,22 @@ test("xz emits compressed LZMA2 blocks and stores incompressible chunks", async 
     }
   } finally { rs.dispose(); }
 });
+
+test("unxz reverses delta filters in block order before checking the output", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const bytes = Uint8Array.from({ length: 5000 }, (_, i) => (i * 17) ^ (i >> 3));
+  try {
+    await fs.writeFile("/in", bytes);
+    for (const flags of ["--check=none --delta", "--check=crc64 --delta=dist=256", "--delta=dist=3 --delta=dist=7"]) {
+      const packed = await js.exec("xz -c --block-size=1KiB " + flags + " --lzma2 /in");
+      assert.equal(packed.exitCode, 0, packed.stderr);
+      await rs.fs.writeFile("/z", packed.stdoutBytes);
+      const read = await rs.exec("unxz -c /z");
+      assert.equal(read.exitCode, 0, read.stderr);
+      assert.ok(Buffer.from(read.stdoutBytes).equals(bytes), flags);
+    }
+  } finally { rs.dispose(); }
+});

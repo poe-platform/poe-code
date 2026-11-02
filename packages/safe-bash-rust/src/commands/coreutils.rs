@@ -11615,18 +11615,6 @@ fn decode_fold_unit(bytes: &[u8], utf8: bool, eof: bool) -> Option<(u32, usize, 
     }
 }
 
-fn parse_fold_width(val: &str) -> Result<usize, String> {
-    let trimmed = val.trim_start_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']);
-    let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return Err(format!("fold: invalid number '{val}'\n"));
-    }
-    match digits.parse::<usize>() {
-        Ok(n) if n >= 1 => Ok(n),
-        _ => Err(format!("fold: invalid number '{val}'\n")),
-    }
-}
-
 fn cmd_fold(
     args: &[String],
     mut stdin: CommandInput,
@@ -11641,110 +11629,88 @@ fn cmd_fold(
             "fold (safe-bash) 0.0.1\n"
         });
     }
-    let mut width = 80usize;
+    let mut widths = Vec::new();
     let mut break_spaces = false;
     let mut mode = "columns";
     let mut files = Vec::new();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
+    let mut iter = args.iter();
+    while let Some(a) = iter.next() {
         if a == "--" {
-            files.extend(args[i + 1..].iter().cloned());
+            files.extend(iter.cloned());
             break;
         } else if a == "-" || !a.starts_with('-') {
             files.push(a.clone());
-            i += 1;
         } else if let Some(rest) = a.strip_prefix("--") {
-            let (name, eq_val) = match rest.split_once('=') {
-                Some((n, v)) => (n, Some(v)),
-                None => (rest, None),
-            };
-            let matches: Vec<&str> = ["bytes", "characters", "spaces", "width"]
-                .into_iter()
-                .filter(|cand| !name.is_empty() && cand.starts_with(name))
-                .collect();
-            if matches.len() != 1 {
-                return err_out(&format!("fold: unrecognized option '{a}'\n"), 1);
-            }
-            match matches[0] {
+            let (name, value) = rest
+                .split_once('=')
+                .map_or((rest, None), |(name, v)| (name, Some(v)));
+            match name {
                 "width" => {
-                    let val = if let Some(v) = eq_val {
-                        v
-                    } else if i + 1 < args.len() {
-                        i += 1;
-                        &args[i]
-                    } else {
+                    let Some(v) = value.or_else(|| iter.next().map(String::as_str)) else {
                         return err_out("fold: option '--width' requires an argument\n", 1);
                     };
-                    width = match parse_fold_width(val) {
-                        Ok(w) => w,
-                        Err(msg) => return err_out(&msg, 1),
-                    };
+                    widths.push(v);
                 }
-                other => {
-                    if eq_val.is_some() {
+                "bytes" | "spaces" => {
+                    if value.is_some() {
                         return err_out(
-                            &format!("fold: option '--{other}' doesn't allow an argument\n"),
+                            &format!("fold: option '--{name}' does not take an argument\n"),
                             1,
                         );
                     }
-                    match other {
-                        "spaces" => break_spaces = true,
-                        "bytes" => mode = "bytes",
-                        "characters" => mode = "characters",
-                        _ => {}
+                    if name == "spaces" {
+                        break_spaces = true;
+                    } else {
+                        mode = "bytes";
                     }
                 }
+                n if !n.is_empty() && "characters".starts_with(n) => {
+                    if value.is_some() {
+                        return err_out(
+                            &format!("fold: option '--{name}' does not take an argument\n"),
+                            1,
+                        );
+                    }
+                    mode = "characters";
+                }
+                _ => return err_out(&format!("fold: unrecognized option '{a}'\n"), 1),
             }
-            i += 1;
         } else {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut ci = 0usize;
-            while ci < chars.len() {
-                match chars[ci] {
-                    'b' => {
-                        mode = "bytes";
-                        ci += 1;
-                    }
-                    'c' => {
-                        mode = "characters";
-                        ci += 1;
-                    }
-                    's' => {
-                        break_spaces = true;
-                        ci += 1;
-                    }
+            for (i, ch) in a[1..].char_indices() {
+                match ch {
+                    'b' => mode = "bytes",
+                    'c' => mode = "characters",
+                    's' => break_spaces = true,
                     'w' => {
-                        let inline: String = chars[ci + 1..].iter().collect();
-                        let val = if !inline.is_empty() {
-                            inline
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
+                        if let Some(v) = a
+                            .get(i + 2..)
+                            .filter(|s| !s.is_empty())
+                            .or_else(|| iter.next().map(String::as_str))
+                        {
+                            widths.push(v);
                         } else {
                             return err_out("fold: option requires an argument -- 'w'\n", 1);
-                        };
-                        width = match parse_fold_width(&val) {
-                            Ok(w) => w,
-                            Err(msg) => return err_out(&msg, 1),
-                        };
+                        }
                         break;
                     }
-                    ch if ch.is_ascii_digit() => {
-                        let inline: String = chars[ci..].iter().collect();
-                        width = match parse_fold_width(&inline) {
-                            Ok(w) => w,
-                            Err(msg) => return err_out(&msg, 1),
-                        };
+                    '0'..='9' => {
+                        widths.push(&a[i + 1..]);
                         break;
                     }
-                    ch => {
-                        return err_out(&format!("fold: invalid option -- '{ch}'\n"), 1);
-                    }
+                    _ => return err_out(&format!("fold: invalid option -- '{ch}'\n"), 1),
                 }
             }
-            i += 1;
         }
+    }
+    let mut width = 80u64;
+    for value in widths {
+        let digits = value.strip_prefix('+').unwrap_or(value);
+        let Some(n) = digits.parse::<u64>().ok().filter(|n| {
+            (1..=9_007_199_254_740_991).contains(n) && digits.bytes().all(|b| b.is_ascii_digit())
+        }) else {
+            return err_out(&format!("fold: invalid number '{value}'\n"), 1);
+        };
+        width = n;
     }
 
     let locale = env
@@ -11758,9 +11724,9 @@ fn cmd_fold(
     let loc_base = loc_upper.split('@').next().unwrap_or("");
     let utf8 = loc_base.ends_with("UTF-8") || loc_base.ends_with("UTF8");
 
-    let adjust_col = |col: usize, cp: u32, unit_len: usize, valid: bool| -> usize {
+    let adjust_col = |col: u64, cp: u32, unit_len: usize, valid: bool| -> u64 {
         if mode == "bytes" {
-            col + unit_len
+            col + unit_len as u64
         } else if cp == 8 {
             col.saturating_sub(1)
         } else if cp == 13 {
@@ -11770,7 +11736,7 @@ fn cmd_fold(
         } else if mode == "characters" {
             col + 1
         } else if utf8 && valid {
-            col + fold_char_width(cp)
+            col + fold_char_width(cp) as u64
         } else {
             col + 1
         }
@@ -11787,7 +11753,7 @@ fn cmd_fold(
 
     for f in &inputs {
         let mut line_buf: Vec<u8> = Vec::new();
-        let mut col = 0usize;
+        let mut col = 0u64;
         let mut last_blank: Option<usize> = None;
         let mut consume = |raw_in: &[u8], eof: bool| {
             let mut off = 0usize;
@@ -21482,6 +21448,24 @@ mod tests {
 
         let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
         assert_eq!(tr.stdout, "HELLO");
+    }
+
+    #[test]
+    fn fold_checks_widths_after_parsing_options_and_accepts_safe_integers() {
+        let fs = MemoryVfs::new();
+        for (options, expected) in [
+            (vec!["--wi=2"], "fold: unrecognized option '--wi=2'\n"),
+            (vec!["--ch=2"], "fold: option '--ch' does not take an argument\n"),
+            (vec!["-w0", "--bad"], "fold: unrecognized option '--bad'\n"),
+            (vec!["-w0", "-w2"], "fold: invalid number '0'\n"),
+            (vec!["-w", " 2"], "fold: invalid number ' 2'\n"),
+            (vec!["-9007199254740992"], "fold: invalid number '9007199254740992'\n"),
+        ] {
+            let result = try_run_coreutil("fold", &args(&options), "abc", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((result.exit_code, result.stderr.as_str()), (1, expected));
+        }
+        let result = try_run_coreutil("fold", &args(&["--ch", "--width=+9007199254740991"]), "abc", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str()), (0, "abc"));
     }
 
     #[test]

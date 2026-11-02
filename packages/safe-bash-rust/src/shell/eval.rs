@@ -40,6 +40,46 @@ const STDIN_STREAM_FD: u32 = u32::MAX;
 type InputCursor = Rc<RefCell<String>>;
 type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 
+struct PrefixBinding {
+    name: String,
+    values: BTreeMap<String, Option<String>>,
+    array: bool,
+}
+
+impl PrefixBinding {
+    fn save(env: &BTreeMap<String, String>, name: String, array: bool) -> Self {
+        let mut values = BTreeMap::new();
+        for key in [name.clone(), format!("\0unexported__{name}")] {
+            values.insert(key.clone(), env.get(&key).cloned());
+        }
+        if array {
+            for key in [format!("\0keys__{name}"), format!("\0assoc__{name}")] {
+                values.insert(key.clone(), env.get(&key).cloned());
+            }
+            let prefix = format!("{name}[");
+            for (key, value) in env.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)) {
+                values.insert(key.clone(), Some(value.clone()));
+            }
+        }
+        Self { name, values, array }
+    }
+
+    fn exchange(&mut self, env: &mut BTreeMap<String, String>) {
+        if self.array {
+            let prefix = format!("{}[", self.name);
+            for (key, _) in env.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)) {
+                self.values.entry(key.clone()).or_default();
+            }
+        }
+        for (key, value) in &mut self.values {
+            *value = match value.take() {
+                Some(saved) => env.insert(key.clone(), saved),
+                None => env.remove(key),
+            };
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
@@ -3305,29 +3345,20 @@ impl<'a> EvalState<'a> {
             }
         }
 
-        if !expanded_words.is_empty()
-            && !simple.assignments.is_empty()
-            && has_inline_input
-        {
-            self.redirect_assignments.clear();
-            for (k, v, append) in &simple.assignments {
-                if !v.starts_with('(') && !k.contains('[') {
-                    let rhs = self.expand_assignment_rhs(v)?;
-                    let combined = if *append {
-                        let cur = self
-                            .redirect_assignments
-                            .iter()
-                            .rev()
-                            .find_map(|(rk, rv)| if rk == k { Some(rv.clone()) } else { None })
-                            .or_else(|| self.env.get(k).cloned())
-                            .unwrap_or_default();
-                        format!("{cur}{rhs}")
-                    } else {
-                        rhs
-                    };
-                    self.redirect_assignments.push((k.clone(), combined));
-                }
+        let mut temp_saved = Vec::new();
+        let inline_prefix = has_inline_input && !expanded_words.is_empty() && !simple.assignments.is_empty();
+        let readonly_exit = is_posix.then_some(if is_special_head { 127 } else { 1 });
+        if inline_prefix {
+            if !self.bind_command_prefix(simple, stdin, &mut temp_saved, &mut debug_out, readonly_exit)? {
+                self.route_outcome(&mut debug_out);
+                return Ok(debug_out);
             }
+            // Direct redirect words see the outer bindings. Substitutions inside
+            // those words inherit the values actually assigned to the command.
+            self.redirect_assignments = temp_saved.iter().filter_map(|binding|
+                self.env.get(&binding.name).map(|v| (binding.name.clone(), v.clone()))
+            ).collect();
+            for binding in temp_saved.iter_mut().rev() { binding.exchange(self.env); }
         }
 
         let is_external_inline = has_inline_input
@@ -3411,87 +3442,16 @@ impl<'a> EvalState<'a> {
             return Ok(out);
         }
 
-        let mut temp_saved: Vec<(String, Option<String>, bool, Vec<(String, Option<String>)>)> =
-            Vec::new();
-        self.in_prefix_assignment = true;
-        for (k, v, append) in &simple.assignments {
-            let base_k = k.split('[').next().unwrap_or(k);
-            let prev_val = self.env.get(base_k).cloned();
-            let was_unexp = self.env.contains_key(&format!("\0unexported__{base_k}"));
-            let is_arr_lit = v.starts_with('(') && v.ends_with(')');
-            let has_existing_arr = self.env.contains_key(&format!("\0keys__{base_k}"))
-                || self.env.contains_key(&format!("\0assoc__{base_k}"));
-            let extra_prev: Vec<(String, Option<String>)> =
-                if is_arr_lit || k.contains('[') || has_existing_arr {
-                let mut extras = vec![
-                    (
-                        format!("\0keys__{base_k}"),
-                        self.env.get(&format!("\0keys__{base_k}")).cloned(),
-                    ),
-                    (
-                        format!("\0assoc__{base_k}"),
-                        self.env.get(&format!("\0assoc__{base_k}")).cloned(),
-                    ),
-                ];
-                let prefix = format!("{base_k}[");
-                for (ek, ev) in self.env.iter() {
-                    if ek.starts_with(&prefix) {
-                        extras.push((ek.clone(), Some(ev.clone())));
-                    }
-                }
-                extras
-            } else {
-                Vec::new()
-            };
-            let input = if use_local && !has_inline_input { &mut local_stdin } else { &mut *stdin };
-            let val = if is_arr_lit {
-                format!("\x00__ARRAY_LITERAL__{v}")
-            } else {
-                self.with_expansion_input(input, |s| s.expand_assignment_rhs(v))?
-            };
-            if has_existing_arr && !is_arr_lit && !k.contains('[') {
-                self.env.remove(&format!("\0keys__{base_k}"));
-                self.env.remove(&format!("\0assoc__{base_k}"));
-                let prefix = format!("{base_k}[");
-                let to_remove: Vec<String> = self
-                    .env
-                    .keys()
-                    .filter(|ek| ek.starts_with(&prefix))
-                    .cloned()
-                    .collect();
-                for rk in to_remove {
-                    self.env.remove(&rk);
-                }
-            }
-            match self.with_expansion_input(input, |s| s.assign_variable(k, &val, *append)) {
-                Ok(()) => {
-                    temp_saved.push((base_k.to_string(), prev_val, was_unexp, extra_prev));
-                }
-                Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
-                    let prefix = self.diag_prefix();
-                    if is_posix {
-                        let code = if is_special_head { 127 } else { 1 };
-                        self.in_prefix_assignment = false;
-                        let mut err_out = BuiltinOutcome {
-                            stdout: debug_out.stdout,
-                            stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
-                            exit_code: code,
-                        };
-                        self.last_exit = code;
-                        self.exit_requested = Some(code);
-                        self.route_outcome(&mut err_out);
-                        self.restore_redirects(saved_fds, saved_in);
-                        return Ok(err_out);
-                    }
-                    debug_out.stderr.push_str(&format!("{prefix}{msg}\n"));
-                }
-                Err(e) => {
-                    self.in_prefix_assignment = false;
-                    return Err(e);
-                }
+        if inline_prefix {
+            for binding in &mut temp_saved { binding.exchange(self.env); }
+        } else {
+            let input = if use_local { &mut local_stdin } else { &mut *stdin };
+            if !self.bind_command_prefix(simple, input, &mut temp_saved, &mut debug_out, readonly_exit)? {
+                self.route_outcome(&mut debug_out);
+                self.restore_redirects(saved_fds, saved_in);
+                return Ok(debug_out);
             }
         }
-        self.in_prefix_assignment = false;
 
         if !simple.assignments.iter().any(|(k, _, _)| k == "_") {
             self.env.remove("_");
@@ -3531,48 +3491,9 @@ impl<'a> EvalState<'a> {
             out.stderr = format!("{}{}", debug_out.stderr, out.stderr);
         }
 
-        let keep_prefix_assigns = is_special_head;
-        if !keep_prefix_assigns {
-            for (k, prev, was_unexp, extra_prev) in temp_saved.into_iter().rev() {
-                if self.retained_prefix_vars.iter().any(|rv| rv == &k) {
-                    continue;
-                }
-                if !extra_prev.is_empty() {
-                    let prefix = format!("{k}[");
-                    let to_remove: Vec<String> = self
-                        .env
-                        .keys()
-                        .filter(|ek| ek.starts_with(&prefix))
-                        .cloned()
-                        .collect();
-                    for rk in to_remove {
-                        self.env.remove(&rk);
-                    }
-                    for (ek, ev) in extra_prev {
-                        match ev {
-                            Some(v) => {
-                                self.env.insert(ek, v);
-                            }
-                            None => {
-                                self.env.remove(&ek);
-                            }
-                        }
-                    }
-                }
-                if was_unexp {
-                    self.env
-                        .insert(format!("\0unexported__{k}"), "1".to_string());
-                } else {
-                    self.env.remove(&format!("\0unexported__{k}"));
-                }
-                match prev {
-                    Some(v) => {
-                        self.env.insert(k, v);
-                    }
-                    None => {
-                        self.env.remove(&k);
-                    }
-                }
+        if !is_special_head {
+            for mut binding in temp_saved.into_iter().rev() {
+                if !self.retained_prefix_vars.contains(&binding.name) { binding.exchange(self.env); }
             }
         }
 
@@ -3599,6 +3520,47 @@ impl<'a> EvalState<'a> {
             }
         }
         Ok(out)
+    }
+
+    fn bind_command_prefix(
+        &mut self, simple: &SimpleCommand, input: &mut String,
+        saved: &mut Vec<PrefixBinding>, out: &mut BuiltinOutcome, readonly_exit: Option<i32>,
+    ) -> Result<bool, EvalError> {
+        if simple.assignments.is_empty() { return Ok(true); }
+        let prev = std::mem::replace(&mut self.in_prefix_assignment, true);
+        let result = self.with_expansion_input(input, |this| {
+            for (k, word, append) in &simple.assignments {
+                let name = resolve_nameref_base(k.split('[').next().unwrap_or(k), this.env).to_string();
+                let literal = word.starts_with('(') && word.ends_with(')');
+                let keys = format!("\0keys__{name}");
+                let assoc = format!("\0assoc__{name}");
+                let array = this.env.contains_key(&keys) || this.env.contains_key(&assoc);
+                let value = if literal { format!("\x00__ARRAY_LITERAL__{word}") } else { this.expand_assignment_rhs(word)? };
+                let binding = PrefixBinding::save(this.env, name.clone(), literal || array || k.contains('['));
+                if array && !literal && !k.contains('[') {
+                    this.env.remove(&keys);
+                    this.env.remove(&assoc);
+                    let prefix = format!("{name}[");
+                    this.env.retain(|key, _| !key.starts_with(&prefix));
+                }
+                match this.assign_variable(k, &value, *append) {
+                    Ok(()) => saved.push(binding),
+                    Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
+                        out.stderr.push_str(&format!("{}{msg}\n", this.diag_prefix()));
+                        if let Some(code) = readonly_exit {
+                            out.exit_code = code;
+                            this.last_exit = code;
+                            this.exit_requested = Some(code);
+                            return Ok(false);
+                        }
+                    }
+                    Err(e) => return Err(e),
+                }
+            }
+            Ok(true)
+        });
+        self.in_prefix_assignment = prev;
+        result
     }
 
     fn dispatch_words(
@@ -16113,6 +16075,22 @@ hash -l
             crate::shell::ExecOptions { stdin: Some("abcdef".into()), ..Default::default() },
         ).unwrap();
         assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "[a]bc\ndef", ""));
+    }
+
+    #[test]
+    fn inline_input_uses_prefix_values_without_repeating_the_assignment() {
+        for (script, expected) in [
+            ("x=$(echo once >>/log; head -c1) bash -c 'echo $x; cat' <<<xyz; cat /log; cat", "a\nxyz\nonce\nbcdef"),
+            (r#"A=outer; A=one A+=two B=$A bash -c 'echo $A:$B; cat' <<<"$A:$(echo $A):$B:$(echo $B)"; echo $A:$B"#, "onetwo:onetwo\nouter:onetwo::onetwo\nouter:\n"),
+            (r#"declare -i n=2; n+=3 m=$n bash -c 'echo $n:$m; cat' <<<"$n:$(echo $n)"; echo $n"#, "5:5\n2:5\n2\n"),
+            (r#"declare -n ref=x; x=old; ref=new bash -c 'echo $x; cat' <<<"$x:$(echo $x)"; echo $x"#, "new\nold:new\nold\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec_with_options(script, crate::shell::ExecOptions {
+                stdin: Some("abcdef".into()), ..Default::default()
+            }).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+        }
     }
 
     #[test]

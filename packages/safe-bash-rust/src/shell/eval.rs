@@ -15887,6 +15887,24 @@ hash -l
     }
 
     #[test]
+    fn file_command_reads_stdin_only_for_the_first_dash_operand_or_filename_list() {
+        for (script, code, stdout, stderr) in [
+            ("{ file -b /small; head -c1; } </big", 0, "ASCII text\na", ""),
+            ("{ file -b - -; head -c1; } </small", 0, "ASCII text\nempty\n", ""),
+            ("{ file -bf -; head -c1; } </names", 0, "ASCII text\n", ""),
+            ("file -b - /small - </big", 1, "ASCII text\nempty\n", "file: -: EFBIG: file too large, read '/big'\n"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            for (name, data) in [("/big", "abcdefghijklmnop"), ("/small", "x"), ("/names", "/small\n")] {
+                fs.write_file(name, data.as_bytes()).unwrap();
+            }
+            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+        }
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

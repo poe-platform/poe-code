@@ -1,3 +1,4 @@
+use super::CommandInput;
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{
@@ -18,22 +19,22 @@ pub fn try_run_fs_command(
     {
         return Some(info);
     }
-    try_run_fs_with_input(cmd, args, || Ok(stdin), cwd, env, fs)
+    try_run_fs_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)
 }
 
-pub(super) fn try_run_fs_with_input<'a>(
-    cmd: &str, args: &[String], stdin: impl FnOnce() -> Result<&'a str, String>,
+pub(super) fn try_run_fs_with_input(
+    cmd: &str, args: &[String], stdin: CommandInput,
     cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
     let result = match cmd {
         "ls" => return Some(cmd_ls(args, cwd, fs)),
         "mkdir" => return Some(cmd_mkdir(args, cwd, env, fs)),
         "rmdir" => return Some(cmd_rmdir(args, cwd, fs)),
-        "rm" => stdin().map(|stdin| cmd_rm(args, stdin, cwd, fs)),
-        "cp" => stdin().map(|stdin| cmd_cp(args, stdin, cwd, env, fs)),
-        "mv" => stdin().map(|stdin| cmd_mv(args, stdin, cwd, env, fs)),
+        "rm" => stdin.buffered().map(|stdin| cmd_rm(args, stdin, cwd, fs)),
+        "cp" => stdin.buffered().map(|stdin| cmd_cp(args, stdin, cwd, env, fs)),
+        "mv" => stdin.buffered().map(|stdin| cmd_mv(args, stdin, cwd, env, fs)),
         "touch" => return Some(cmd_touch(args, cwd, env, fs)),
-        "ln" => stdin().map(|stdin| cmd_ln(args, stdin, cwd, env, fs)),
+        "ln" => stdin.buffered().map(|stdin| cmd_ln(args, stdin, cwd, env, fs)),
         "readlink" => return Some(cmd_readlink(args, cwd, fs)),
         "realpath" => return Some(cmd_realpath(args, cwd, fs)),
         "chmod" => return Some(cmd_chmod(args, cwd, env, fs)),
@@ -42,7 +43,7 @@ pub(super) fn try_run_fs_with_input<'a>(
         "df" => return Some(cmd_df(args, cwd, env, fs)),
         "mktemp" => return Some(cmd_mktemp(args, cwd, env, fs)),
         "tree" => return Some(cmd_tree(args, cwd, env, fs)),
-        "file" => stdin().map(|stdin| cmd_file(args, stdin, cwd, fs)),
+        "file" => return Some(cmd_file(args, stdin, cwd, fs)),
         _ => return None,
     };
     Some(result.unwrap_or_else(|e| err_out(&format!("{cmd}: {e}\n"), 1)))
@@ -6656,7 +6657,7 @@ struct FileFormatOpts {
     print0: usize,
 }
 
-fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_file(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut fmt = FileFormatOpts {
         brief: false,
         follow: false,
@@ -6667,7 +6668,12 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let mut listed: Vec<(String, FileFormatOpts)> = Vec::new();
     let mut names: Vec<String> = Vec::new();
-    let mut stdin_used = false;
+    let mut input = Some(stdin);
+    let mut read_stdin = || {
+        let mut bytes = Vec::new();
+        if let Some(mut stdin) = input.take() { stdin.append_bytes(&mut bytes)?; }
+        Ok::<_, String>(bytes)
+    };
     let mut has_list = false;
     let mut action: Option<&'static str> = None;
     let mut options = true;
@@ -6715,22 +6721,23 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     fmt.separator = val;
                 } else {
                     has_list = true;
-                    let list_text = if val == "-" {
-                        if stdin_used {
-                            String::new()
-                        } else {
-                            stdin_used = true;
-                            stdin.to_string()
+                    let bytes = if val == "-" {
+                        match read_stdin() {
+                            Ok(bytes) => bytes,
+                            Err(e) => return err_out(&format!("file: {e}\n"), 1),
                         }
                     } else {
                         let p = resolve_posix_path(cwd, &val);
                         match fs.read_file(&p) {
-                            Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                            Ok(bytes) => bytes,
                             Err(e) => return err_out(&format!("file: {val}: {e}\n"), 1),
                         }
                     };
+                    let Ok(list_text) = std::str::from_utf8(&bytes) else {
+                        return err_out("file: filename list must contain UTF-8 names\n", 2);
+                    };
                     let snap = fmt.clone();
-                    for line in list_text.lines() {
+                    for line in list_text.split_terminator('\n') {
                         listed.push((line.to_string(), snap.clone()));
                     }
                 }
@@ -6774,15 +6781,16 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     }
 
     let mut out = String::new();
+    let mut stderr = String::new();
     for (name, fopts) in all_items {
         let describe = !fopts.mime_type && !fopts.mime_encoding;
         let content: String = if name == "-" {
-            let (desc, mime, enc) = if stdin_used {
-                classify_file_bytes(&[])
-            } else {
-                stdin_used = true;
-                let raw = crate::vfs::stream_string_to_bytes(stdin);
-                classify_file_bytes(&raw)
+            let (desc, mime, enc) = match read_stdin() {
+                Ok(bytes) => classify_file_bytes(&bytes),
+                Err(e) => {
+                    stderr.push_str(&format!("file: -: {e}\n"));
+                    continue;
+                }
             };
             if fopts.mime_type && fopts.mime_encoding {
                 format!("{mime}; charset={enc}")
@@ -6854,7 +6862,7 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         let term = if fopts.print0 >= 2 { "\0" } else { "\n" };
         out.push_str(&format!("{label}{content}{term}"));
     }
-    ok_out(&out)
+    BuiltinOutcome { stdout: out, exit_code: i32::from(!stderr.is_empty()), stderr }
 }
 
 #[cfg(test)]

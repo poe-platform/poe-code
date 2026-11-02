@@ -325,7 +325,7 @@ fn stream_file_error(error: String, op: &str, path: &str) -> String {
 }
 
 impl CommandInput<'_> {
-    fn append_bytes(&mut self, output: &mut Vec<u8>) -> Result<(), String> {
+    pub(super) fn append_bytes(&mut self, output: &mut Vec<u8>) -> Result<(), String> {
         if let Some(source) = self.file {
             source.read(self.text, usize::MAX, |chunk, _| {
                 output.extend_from_slice(chunk);

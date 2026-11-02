@@ -37,7 +37,7 @@ fn coreutil(
         "head" | "tail" => run_head_or_tail(cmd, args, input, cwd, fs),
         "sort" => cmd_sort(args, input, cwd, env, fs),
         "uniq" => cmd_uniq(args, input.buffered()?, cwd, env, fs),
-        "cut" => cmd_cut(args, input.buffered()?, cwd, env, fs),
+        "cut" => cmd_cut(args, input, cwd, env, fs),
         "tr" => cmd_tr(args, input.buffered()?),
         "nl" => cmd_nl(args, input.buffered()?, cwd, fs),
         "tac" => cmd_tac(args, input.buffered()?, cwd, fs),
@@ -325,6 +325,28 @@ fn stream_file_error(error: String, op: &str, path: &str) -> String {
 }
 
 impl CommandInput<'_> {
+    fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs,
+        mut consume: impl FnMut(&[u8]) -> bool,
+    ) -> Result<(), String> {
+        if name == "-" {
+            if let Some(source) = self.file {
+                return source.read(self.text, usize::MAX, |chunk, _| Ok((consume(chunk), chunk.len())));
+            }
+            consume(&take_stdin_bytes(self.text));
+            return Ok(());
+        }
+        let path = absolute_operand(cwd, name);
+        if fs.is_dir(&path) {
+            return Err(format!("EISDIR: illegal operation on a directory, readStream '{path}'"));
+        }
+        let limit = fs.max_input_bytes();
+        let mut available = limit;
+        fs.read_chunks(&path, &mut |chunk| {
+            available = available.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+            Ok(consume(chunk))
+        }).map_err(|e| stream_file_error(e, "readStream", &path))
+    }
+
     pub(super) fn append_bytes(&mut self, output: &mut Vec<u8>) -> Result<(), String> {
         if let Some(source) = self.file {
             source.read(self.text, usize::MAX, |chunk, _| {
@@ -1900,7 +1922,7 @@ fn extract_sort_key_bytes<'a>(
 
 fn cmd_sort(
     args: &[String],
-    stdin: CommandInput,
+    mut stdin: CommandInput,
     cwd: &str,
     _env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -2281,29 +2303,10 @@ fn cmd_sort(
             Ok(())
         };
         let mut outcome = Ok(());
-        let result = if name == "-" {
-            if let Some(source) = stdin.file {
-                source.read(stdin.text, usize::MAX, |chunk, _| {
-                    outcome = scan(chunk);
-                    Ok((outcome.is_ok(), chunk.len()))
-                })
-            } else {
-                outcome = scan(&take_stdin_bytes(stdin.text));
-                Ok(())
-            }
-        } else {
-            let path = absolute_operand(cwd, name);
-            if fs.is_dir(&path) {
-                return err_out(&format!("sort: EISDIR: illegal operation on a directory, readStream '{path}'\n"), 2);
-            }
-            let limit = fs.max_input_bytes();
-            let mut available = limit;
-            fs.read_chunks(&path, &mut |chunk| {
-                available = available.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
-                outcome = scan(chunk);
-                Ok(outcome.is_ok())
-            }).map_err(|e| stream_file_error(e, "readStream", &path))
-        };
+        let result = stdin.read_operand(name, cwd, fs, |chunk| {
+            outcome = scan(chunk);
+            outcome.is_ok()
+        });
         if let Err(e) = result { return err_out(&format!("sort: {e}\n"), 2); }
         if let Err(e) = outcome { return e; }
         if !pending.is_empty() && let Err(e) = emit(pending) { return e; }
@@ -2822,7 +2825,7 @@ fn parse_cut_ranges(list: &str) -> Result<Vec<CutRange>, (String, i32)> {
 
 fn cmd_cut(
     args: &[String],
-    stdin: &mut String,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -3012,118 +3015,110 @@ fn cmd_cut(
         }
     };
 
-    for name in &names {
-        let raw = if name == "-" {
-            take_stdin_bytes(stdin)
-        } else {
-            let path = resolve_posix_path(cwd, name);
-            if fs.is_dir(&path) {
-                stderr.push_str(&format!("cut: {name}: Is a directory\n"));
-                exit_code = 1;
-                continue;
+    let mut emit = |line_bytes: &[u8]| {
+        let mut cursor = 0usize;
+        let selected = |position: usize, cursor: &mut usize| -> isize {
+            while *cursor < ranges.len() && position > ranges[*cursor].end {
+                *cursor += 1;
             }
-            match fs.read_file(&path) {
-                Ok(b) => b,
-                Err(e) => {
-                    stderr.push_str(&format!("cut: {name}: {e}\n"));
-                    exit_code = 1;
-                    continue;
-                }
+            let included = *cursor < ranges.len() && position >= ranges[*cursor].start;
+            if included != complement {
+                *cursor as isize
+            } else {
+                -1
             }
         };
-        if raw.is_empty() {
-            continue;
-        }
-        let mut records: Vec<&[u8]> = Vec::new();
-        let mut r_start = 0usize;
-        for (idx, &b) in raw.iter().enumerate() {
-            if b == record_delim {
-                records.push(&raw[r_start..idx]);
-                r_start = idx + 1;
-            }
-        }
-        if r_start < raw.len() {
-            records.push(&raw[r_start..]);
-        }
 
-        for line_bytes in records {
-            let mut cursor = 0usize;
-            let selected = |position: usize, cursor: &mut usize| -> isize {
-                while *cursor < ranges.len() && position > ranges[*cursor].end {
-                    *cursor += 1;
+        if active_mode == 'f' {
+            let mut boundary = find_sep(line_bytes, 0);
+            if boundary.is_none() {
+                if only_delimited {
+                    return;
                 }
-                let included = *cursor < ranges.len() && position >= ranges[*cursor].start;
-                if included != complement {
-                    *cursor as isize
-                } else {
-                    -1
-                }
-            };
-
-            if active_mode == 'f' {
-                let mut boundary = find_sep(line_bytes, 0);
-                if boundary.is_none() {
-                    if only_delimited {
-                        continue;
-                    }
-                    out_bytes.extend_from_slice(line_bytes);
-                } else {
-                    let mut field = 1usize;
-                    let mut start = 0usize;
-                    let mut emitted = false;
-                    loop {
-                        if selected(field, &mut cursor) >= 0 {
-                            if emitted {
-                                out_bytes.extend_from_slice(&output_delim_bytes);
-                            }
-                            let end = boundary.unwrap_or(line_bytes.len());
-                            out_bytes.extend_from_slice(&line_bytes[start..end]);
-                            emitted = true;
-                        }
-                        field += 1;
-                        if boundary.is_none() || (!complement && cursor >= ranges.len()) {
-                            break;
-                        }
-                        start = boundary.unwrap() + separator.len();
-                        boundary = if start <= line_bytes.len() {
-                            find_sep(line_bytes, start)
-                        } else {
-                            None
-                        };
-                    }
-                }
-            } else if byte_selection {
-                let mut emitted = false;
-                let mut previous_range: isize = -1;
-                for (index, &b) in line_bytes.iter().enumerate() {
-                    let range = selected(index + 1, &mut cursor);
-                    if range >= 0 {
-                        if range != previous_range && emitted && out_delim.is_some() {
-                            out_bytes.extend_from_slice(&output_delim_bytes);
-                        }
-                        out_bytes.push(b);
-                        emitted = true;
-                    }
-                    previous_range = range;
-                }
+                out_bytes.extend_from_slice(line_bytes);
             } else {
-                let text = String::from_utf8_lossy(line_bytes);
+                let mut field = 1usize;
+                let mut start = 0usize;
                 let mut emitted = false;
-                let mut previous_range: isize = -1;
-                for (index, ch) in text.chars().enumerate() {
-                    let range = selected(index + 1, &mut cursor);
-                    if range >= 0 {
-                        if range != previous_range && emitted && out_delim.is_some() {
+                loop {
+                    if selected(field, &mut cursor) >= 0 {
+                        if emitted {
                             out_bytes.extend_from_slice(&output_delim_bytes);
                         }
-                        let mut buf = [0u8; 4];
-                        out_bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
+                        let end = boundary.unwrap_or(line_bytes.len());
+                        out_bytes.extend_from_slice(&line_bytes[start..end]);
                         emitted = true;
                     }
-                    previous_range = range;
+                    field += 1;
+                    if boundary.is_none() || (!complement && cursor >= ranges.len()) {
+                        break;
+                    }
+                    start = boundary.unwrap() + separator.len();
+                    boundary = if start <= line_bytes.len() {
+                        find_sep(line_bytes, start)
+                    } else {
+                        None
+                    };
                 }
             }
-            out_bytes.push(record_delim);
+        } else if byte_selection {
+            let mut emitted = false;
+            let mut previous_range: isize = -1;
+            for (index, &b) in line_bytes.iter().enumerate() {
+                let range = selected(index + 1, &mut cursor);
+                if range >= 0 {
+                    if range != previous_range && emitted && out_delim.is_some() {
+                        out_bytes.extend_from_slice(&output_delim_bytes);
+                    }
+                    out_bytes.push(b);
+                    emitted = true;
+                }
+                previous_range = range;
+            }
+        } else {
+            let text = String::from_utf8_lossy(line_bytes);
+            let mut emitted = false;
+            let mut previous_range: isize = -1;
+            for (index, ch) in text.chars().enumerate() {
+                let range = selected(index + 1, &mut cursor);
+                if range >= 0 {
+                    if range != previous_range && emitted && out_delim.is_some() {
+                        out_bytes.extend_from_slice(&output_delim_bytes);
+                    }
+                    let mut buf = [0u8; 4];
+                    out_bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
+                    emitted = true;
+                }
+                previous_range = range;
+            }
+        }
+        out_bytes.push(record_delim);
+    };
+    for name in &names {
+        let mut pending = Vec::new();
+        let result = stdin.read_operand(name, cwd, fs, |chunk| {
+            for part in chunk.split_inclusive(|&b| b == record_delim) {
+                if let Some(record) = part.strip_suffix(&[record_delim]) {
+                    if pending.is_empty() {
+                        emit(record);
+                    } else {
+                        pending.extend_from_slice(record);
+                        emit(&pending);
+                        pending.clear();
+                    }
+                } else {
+                    pending.extend_from_slice(part);
+                }
+            }
+            true
+        });
+        match result {
+            Err(e) => {
+                stderr.push_str(&format!("cut: {e}\n"));
+                exit_code = 1;
+            }
+            Ok(()) if !pending.is_empty() => emit(&pending),
+            _ => {}
         }
     }
 

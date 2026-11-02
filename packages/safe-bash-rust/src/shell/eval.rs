@@ -15957,6 +15957,19 @@ hash -l
     }
 
     #[test]
+    fn cut_emits_complete_records_before_read_errors_and_continues_with_later_files() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/big", b"ab\ncd\nefghij").unwrap();
+        fs.write_file("/small", b"hi").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        let r = shell.exec("cut -b1 /missing - - /small </big").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "a\nc\nh\n",
+            "cut: ENOENT: no such file or directory, readStream '/missing'\ncut: EFBIG: file too large, read '/big'\n"));
+        let r = shell.exec("{ cut -b1 /small; head -c1; } </big").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "h\na", ""));
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

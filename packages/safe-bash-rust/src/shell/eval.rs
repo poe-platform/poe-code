@@ -16078,6 +16078,19 @@ hash -l
     }
 
     #[test]
+    fn nl_preserves_complete_lines_and_numbering_after_read_errors() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/input", b"a\nb\nfragment").unwrap();
+        fs.write_file("/last", b"c").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 5, ..Default::default() });
+        let r = shell.exec("nl -w1 /missing - /last </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "1\ta\n2\tb\n3\tc\n",
+            "nl: ENOENT: no such file or directory, stat '/missing'\nnl: EFBIG: file too large, read '/input'\n"));
+        let r = shell.exec("{ nl -w1 /last; head -c1; } </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "1\tc\na", ""));
+    }
+
+    #[test]
     fn tr_validates_arguments_before_input_and_preserves_squeeze_state_across_reads() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         let data = format!("{}aabb", "a".repeat(65536));

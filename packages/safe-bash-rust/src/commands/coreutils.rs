@@ -43,7 +43,7 @@ fn coreutil(
         "uniq" => cmd_uniq(args, input, cwd, env, fs),
         "cut" => cmd_cut(args, input, cwd, env, fs),
         "tr" => cmd_tr(args, input),
-        "nl" => cmd_nl(args, input.buffered()?, cwd, fs),
+        "nl" => cmd_nl(args, input, cwd, fs),
         "tac" => cmd_tac(args, input.buffered()?, cwd, fs),
         "rev" => cmd_rev(args, input.buffered()?, cwd, env, fs),
         "paste" => cmd_paste(args, input.buffered()?, cwd, fs),
@@ -348,12 +348,14 @@ fn resolve_record_output(fs: &dyn SafeBashFs, path: &str) -> Result<String, Stri
     }
 }
 
-fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs) -> Result<crate::vfs::ChunkReader<'a>, String> {
+fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_first: bool) -> Result<crate::vfs::ChunkReader<'a>, String> {
     let path = absolute_operand(cwd, name);
-    let (entry, stat) = fs.inspect_command_entry(&path, true, "capabilitiesFor")
-        .map_err(|e| stream_file_error(e, "readStream", &path))?;
+    let (lookup, diagnostic) = if stat_first { ("stat", "stat") } else { ("capabilitiesFor", "readStream") };
+    let (entry, stat) = fs.inspect_command_entry(&path, true, lookup)
+        .map_err(|e| stream_file_error(e, diagnostic, &path))?;
     if stat.kind == crate::vfs::VfsEntryKind::Directory {
-        return Err(format!("EISDIR: illegal operation on a directory, readStream '{path}'"));
+        let operation = if stat_first { "" } else { ", readStream" };
+        return Err(format!("EISDIR: illegal operation on a directory{operation} '{path}'"));
     }
     let limit = fs.max_input_bytes();
     let mut available = limit;
@@ -375,11 +377,11 @@ impl CommandInput<'_> {
         }
     }
 
-    fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs,
+    fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: bool,
         mut consume: impl FnMut(&[u8]) -> bool,
     ) -> Result<(), String> {
         if name == "-" { return self.read_stdin(consume); }
-        let mut next = open_record_input(name, cwd, fs)?;
+        let mut next = open_record_input(name, cwd, fs, stat_first)?;
         let mut chunk = Vec::new();
         loop {
             next(&mut chunk)?;
@@ -387,12 +389,12 @@ impl CommandInput<'_> {
         }
     }
 
-    fn read_records(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, delimiter: u8,
+    fn read_records(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: bool, delimiter: u8,
         mut emit: impl FnMut(&[u8]) -> Result<(), String>,
     ) -> Result<(), String> {
         let mut pending = Vec::new();
         let mut result = Ok(());
-        self.read_operand(name, cwd, fs, |chunk| {
+        self.read_operand(name, cwd, fs, stat_first, |chunk| {
             for part in chunk.split_inclusive(|&b| b == delimiter) {
                 if let Some(record) = part.strip_suffix(&[delimiter]) {
                     result = if pending.is_empty() { emit(record) } else {
@@ -1897,7 +1899,7 @@ fn cmd_sort(
         Ok(())
     };
     let open = |name: &str| -> Result<SortInput, String> {
-        let file = if name == "-" { None } else { Some(open_record_input(name, cwd, fs)?) };
+        let file = if name == "-" { None } else { Some(open_record_input(name, cwd, fs, false)?) };
         Ok(SortInput { file, fs, directory: &directory, inline_limit: record_limit.max(sort_record::PAGE - 8), chunk: Vec::new(), offset: 0 })
     };
     let mut next = |input: &mut SortInput| input.next_record(&mut stdin, delim_byte, &mut remaining_bytes, &mut remaining_records);
@@ -2267,7 +2269,7 @@ fn cmd_uniq(
         }
         Ok(())
     };
-    let result = stdin.read_records(in_name, cwd, fs, delimiter, |line| {
+    let result = stdin.read_records(in_name, cwd, fs, false, delimiter, |line| {
         let cur_key = (!identity_key).then(|| compute_key(line));
         if let Some(prev) = previous.as_deref()
             && previous_key.as_deref().unwrap_or(prev) == cur_key.as_deref().unwrap_or(line)
@@ -2682,7 +2684,7 @@ fn cmd_cut(
         Ok(())
     };
     for name in &names {
-        if let Err(e) = stdin.read_records(name, cwd, fs, record_delim, &mut emit) {
+        if let Err(e) = stdin.read_records(name, cwd, fs, false, record_delim, &mut emit) {
             stderr.push_str(&format!("cut: {e}\n"));
             exit_code = 1;
         }
@@ -3144,7 +3146,7 @@ fn parse_nl_positive_usize(s: &str) -> Result<usize, String> {
     }
 }
 
-fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut header_style = "n".to_string();
     let mut body_style = "t".to_string();
     let mut footer_style = "n".to_string();
@@ -3375,25 +3377,7 @@ fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -
     let mut code = 0;
 
     for f in &targets {
-        let raw = if f == "-" {
-            std::mem::take(stdin)
-        } else {
-            let p = resolve_posix_path(cwd, f);
-            match fs.read_file(&p) {
-                Ok(b) => crate::vfs::bytes_to_stream_string(&b),
-                Err(e) => {
-                    stderr.push_str(&format!("nl: {f}: {e}\n"));
-                    code = 1;
-                    continue;
-                }
-            }
-        };
-        if raw.is_empty() {
-            continue;
-        }
-        let body_slice = raw.strip_suffix('\n').unwrap_or(&raw);
-        for line in body_slice.split('\n') {
-            let line_bytes = crate::vfs::stream_string_to_bytes(line);
+        let result = stdin.read_records(f, cwd, fs, true, b'\n', |line_bytes| {
             if !d1.is_empty() {
                 if line_bytes == d3 {
                     current_style = header_style.clone();
@@ -3402,7 +3386,7 @@ fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -
                     }
                     blanks = 0;
                     out.push('\n');
-                    continue;
+                    return Ok(());
                 } else if line_bytes == d2 {
                     current_style = body_style.clone();
                     if !no_renumber {
@@ -3410,7 +3394,7 @@ fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -
                     }
                     blanks = 0;
                     out.push('\n');
-                    continue;
+                    return Ok(());
                 } else if line_bytes == d1 {
                     current_style = footer_style.clone();
                     if !no_renumber {
@@ -3418,10 +3402,11 @@ fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -
                     }
                     blanks = 0;
                     out.push('\n');
-                    continue;
+                    return Ok(());
                 }
             }
 
+            let line = crate::vfs::bytes_to_stream_string(line_bytes);
             let should_num = match current_style.as_str() {
                 "a" => {
                     if !line.is_empty() {
@@ -3442,14 +3427,14 @@ fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -
                 s if s.starts_with('p') => {
                     let pat = &s[1..];
                     crate::commands::search::ZeroRegex::new(vec![pat.to_string()], false, false, false, false)
-                        .is_match(line)
+                        .is_match(&line)
                 }
                 _ => !line.is_empty(),
             };
 
             if !should_num {
                 out.push_str(&pad_unnumbered);
-                out.push_str(line);
+                out.push_str(&line);
                 out.push('\n');
             } else {
                 let label = n.to_string();
@@ -3462,10 +3447,15 @@ fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -
                 };
                 out.push_str(&formatted_num);
                 out.push_str(&sep);
-                out.push_str(line);
+                out.push_str(&line);
                 out.push('\n');
                 n = n.wrapping_add(incr);
             }
+            Ok(())
+        });
+        if let Err(e) = result {
+            code = 1;
+            stderr.push_str(&format!("nl: {e}\n"));
         }
     }
 

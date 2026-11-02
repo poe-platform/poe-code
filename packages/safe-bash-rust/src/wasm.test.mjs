@@ -6887,7 +6887,7 @@ test("rg multiline counts, inverts and limits the selected records", async () =>
     for (const [args, expected, code = 0] of [
       [String.raw`-Uc '\S'`, "6\n"], [String.raw`-Uc '[^\n]'`, "6\n"],
       [String.raw`-Uc '[a\S]'`, "6\n"], ["-Uc --multiline-dotall a", "3\n"],
-      ["-UFc --multiline-dotall a", "2\n"], ["-Uc '(?s:a)'", "2\n"],
+      ["-UFc --multiline-dotall a", "2\n"], ["--multiline-dotall -c a", "2\n"], ["-Uc '(?s:a)'", "2\n"],
       ["-Uc a", "2\n"], ["-Uoc a", "3\n"], ["-Um0 a", "", 1],
       [String.raw`-Uvc 'a\nb'`, "1\n"], [String.raw`-Uoc 'a\nb'`, "2\n"],
       [String.raw`-Unvm1 -r X 'a\nb'`, "5:z\n"], [String.raw`-Unm1 'a\nb'`, "1:aa\n"],
@@ -6972,6 +6972,27 @@ test("rg visits UTF-8 byte offsets for empty matches and preserves split replace
         const r = await sh.exec(cmd);
         assert.deepEqual([r.exitCode,r.stderr],[0,""],cmd);
         assert.deepEqual(r.stdoutBytes, typeof bytes === "string" ? new TextEncoder().encode(bytes) : bytes,cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("rg null-data keeps record delimiters independent of count and filename output", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [args,expected] of [
+      ["-n a","1:aa\0"+"3:a\0"], ["-nv a","2:b\nc\0"], ["-0Hc a","f\0"+"2\n"],
+      ["-nob .","1:0:a\0"+"1:1:a\0"+"2:3:b\0"+"2:5:c\0"+"3:7:a\0"],
+      [String.raw`-Unbo --column 'b\nc'`,"2:4:3:b\nc\0"], [String.raw`-Unom1 '\S'`,"1:a\0"+"1:a\0"+"2:b\0"],
+      ["-Unob --multiline-dotall 'a.b'","1:1:a\0"+"2:1:b\0"],
+      ["--crlf -o a","a\0a\0a\0"], ["-l a","f\n"], ["-nr X a","1:XX\0"+"3:X\0"],
+    ]) {
+      const cmd = "printf 'aa\\0b\\nc\\0a\\0' >f; rg --null-data " + args + " f";
+      for (const sh of [js,rs]) {
+        const r=await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""],cmd);
       }
     }
   } finally { rs.dispose(); }

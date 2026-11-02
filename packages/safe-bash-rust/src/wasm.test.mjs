@@ -7851,3 +7851,26 @@ test("xz integrity checks distinguish incomplete production blocks, indexes and 
     }
   } finally { rs.dispose(); }
 });
+
+test("lzma encodes preset dictionaries, repeated matches and a streaming end marker", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [level, bytes] of [
+      [0, Buffer.alloc(0)], [1, Buffer.from("a")], [2, Buffer.from("aaa")], [4, Buffer.from("abc")],
+      [6, Buffer.from("a".repeat(65536))], [1, Buffer.from("key=value\n".repeat(6554))],
+    ]) {
+      for (const vfs of [fs, rs.fs]) await vfs.writeFile("/in", bytes);
+      const cmd = "lzma -" + level + "c /in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(b.exitCode, 0, b.stderr);
+      assert.equal(a.exitCode, 0, a.stderr);
+      assert.deepEqual(b.stdoutBytes, a.stdoutBytes, cmd + ": " + bytes.length + " bytes");
+      await fs.writeFile("/archive", b.stdoutBytes);
+      const decoded = await js.exec("unlzma -c /archive");
+      assert.equal(decoded.exitCode, 0, decoded.stderr);
+      assert.deepEqual(Buffer.from(decoded.stdoutBytes), bytes);
+    }
+  } finally { rs.dispose(); }
+});

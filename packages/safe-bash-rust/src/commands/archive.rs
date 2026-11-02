@@ -6214,7 +6214,7 @@ fn compress_for_invoked(
         "bzip2" | "bunzip2" | "bzcat" => crate::commands::codecs::bzip2_compress(data, level),
         "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => {
             if xz_format == "lzma" || (xz_format == "auto" && matches!(invoked, "lzma" | "unlzma" | "lzcat")) {
-                crate::commands::codecs::lzma_compress(data)
+                crate::commands::codecs::lzma_compress_level(data, level)
             } else {
                 crate::commands::codecs::xz_compress(data, xz_check)
             }

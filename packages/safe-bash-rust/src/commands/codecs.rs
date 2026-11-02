@@ -1538,6 +1538,37 @@ impl LzmaRangeEncoder {
         }
     }
 
+    fn tree(&mut self, probs: &mut [u16], bits: u32, value: u32, reverse: bool) {
+        let mut node = 1;
+        for i in 0..bits {
+            let bit = (value >> if reverse { i } else { bits - 1 - i }) & 1;
+            self.encode_bit(&mut probs[node], bit);
+            node = (node << 1) | bit as usize;
+        }
+    }
+
+    fn distance(&mut self, model: &mut LzmaState, len: usize, dist: u32) {
+        let slot = if dist < 4 { dist } else {
+            let high = dist.ilog2();
+            2 * high + ((dist >> (high - 1)) & 1)
+        };
+        self.tree(&mut model.pos_slot[(len - 2).min(3)], 6, slot, false);
+        if slot < 4 { return; }
+        let bits = (slot >> 1) - 1;
+        let base = (2 | (slot & 1)) << bits;
+        let extra = dist - base;
+        if slot < 14 {
+            self.tree(&mut model.pos_special[(base - slot) as usize..], bits, extra, true);
+        } else {
+            for i in (4..bits).rev() {
+                self.range >>= 1;
+                if extra >> i & 1 != 0 { self.low += u64::from(self.range); }
+                if self.range < 1 << 24 { self.range <<= 8; self.shift_low(); }
+            }
+            self.tree(&mut model.pos_align, 4, extra, true);
+        }
+    }
+
     fn finish(mut self) -> Vec<u8> {
         for _ in 0..5 {
             self.shift_low();
@@ -1547,34 +1578,99 @@ impl LzmaRangeEncoder {
 }
 
 pub fn lzma_compress(data: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(13 + data.len() * 2 + 16);
-    out.extend_from_slice(&[0x5d, 0x00, 0x00, 0x80, 0x00]);
-    out.extend_from_slice(&(data.len() as u64).to_le_bytes());
+    lzma_compress_level(data, 1)
+}
 
+pub(super) fn lzma_compress_level(data: &[u8], level: u8) -> Vec<u8> {
+    let dictionary = 1u32 << [18, 20, 21, 22, 22, 23, 23, 24, 25, 26][level as usize];
+    let mut out = vec![0x5d];
+    out.extend_from_slice(&dictionary.to_le_bytes());
+    out.extend_from_slice(&u64::MAX.to_le_bytes());
     let mut rc = LzmaRangeEncoder::new();
-    let mut is_match = [[1024u16; 16]; 12];
-    let mut lit_probs = vec![[1024u16; 0x300]; 8];
-    let mut state = 0usize;
-    let mut prev_byte = 0u8;
-
-    for (pos, &b) in data.iter().enumerate() {
+    let mut m = LzmaState::new(0x5d).unwrap();
+    let mut recent = std::collections::HashMap::new();
+    let mut pos = 0;
+    loop {
         let pos_state = pos & 3;
-        rc.encode_bit(&mut is_match[state][pos_state], 0);
-        let lit_state = (prev_byte as usize) >> 5;
-        let probs = &mut lit_probs[lit_state];
-        let mut symbol = (b as usize) | 0x100;
-        while symbol < 0x10000 {
-            let bit = ((symbol >> 7) & 1) as u32;
-            let idx = symbol >> 8;
-            rc.encode_bit(&mut probs[idx], bit);
-            symbol <<= 1;
+        let remaining = data.len() - pos;
+        if remaining == 0 {
+            rc.encode_bit(&mut m.is_match[m.state][pos_state], 1);
+            rc.encode_bit(&mut m.is_rep[m.state], 0);
+            m.len_dec.encode(&mut rc, pos_state, 2);
+            rc.distance(&mut m, 2, u32::MAX);
+            break;
         }
-        state = match state {
-            0..=3 => 0,
-            4..=9 => state - 3,
-            _ => state - 6,
+        let match_len = |dist: usize| {
+            if dist >= pos { return 0; }
+            let at = pos - dist - 1;
+            let max = remaining.min(273);
+            data[pos..pos + max].iter().zip(&data[at..at + max])
+                .position(|(a, b)| a != b).unwrap_or(max)
         };
-        prev_byte = b;
+        let mut rep = None;
+        let mut len = 0;
+        let mut distance = 0;
+        for (i, &dist) in m.reps.iter().enumerate() {
+            let n = match_len(dist);
+            if n > len && (i == 0 || n >= 2) {
+                len = n;
+                rep = Some(i);
+                if n == remaining.min(273) { break; }
+            }
+        }
+        if remaining >= 2 && len < remaining.min(273)
+            && let Some(&prev) = recent.get(&[data[pos], data[pos + 1]])
+            && pos - prev <= dictionary as usize {
+            let dist = pos - prev - 1;
+            let n = match_len(dist);
+            if n > len {
+                distance = dist;
+                len = n;
+                rep = None;
+            }
+        }
+        rc.encode_bit(&mut m.is_match[m.state][pos_state], u32::from(len != 0));
+        if len == 0 {
+            let prev = if pos == 0 { 0 } else { data[pos - 1] };
+            let probs = &mut m.lit_probs[(prev >> 5) as usize];
+            let mut node = 1usize;
+            let mut matched = m.state >= 7;
+            let prediction = if matched { data[pos - m.reps[0] - 1] } else { 0 };
+            for shift in (0..8).rev() {
+                let bit = (data[pos] >> shift) & 1;
+                let expect = (prediction >> shift) & 1;
+                let index = if matched { ((1 + usize::from(expect)) << 8) + node } else { node };
+                rc.encode_bit(&mut probs[index], u32::from(bit));
+                matched &= expect == bit;
+                node = (node << 1) | usize::from(bit);
+            }
+            m.state = match m.state { 0..=3 => 0, 4..=9 => m.state - 3, _ => m.state - 6 };
+            len = 1;
+        } else {
+            rc.encode_bit(&mut m.is_rep[m.state], u32::from(rep.is_some()));
+            if let Some(i) = rep {
+                rc.encode_bit(&mut m.is_rep_g0[m.state], u32::from(i != 0));
+                if i == 0 {
+                    rc.encode_bit(&mut m.is_rep0_long[m.state][pos_state], u32::from(len != 1));
+                } else {
+                    rc.encode_bit(&mut m.is_rep_g1[m.state], u32::from(i != 1));
+                    if i >= 2 { rc.encode_bit(&mut m.is_rep_g2[m.state], u32::from(i == 3)); }
+                    m.reps[..=i].rotate_right(1);
+                }
+                if len > 1 { m.rep_len_dec.encode(&mut rc, pos_state, len); }
+                m.state = if m.state >= 7 { 11 } else if len == 1 { 9 } else { 8 };
+            } else {
+                m.len_dec.encode(&mut rc, pos_state, len);
+                rc.distance(&mut m, len, distance as u32);
+                m.reps.rotate_right(1);
+                m.reps[0] = distance;
+                m.state = if m.state < 7 { 7 } else { 10 };
+            }
+        }
+        for at in pos..(pos + len).min(data.len() - 1) {
+            recent.insert([data[at], data[at + 1]], at);
+        }
+        pos += len;
     }
     out.extend_from_slice(&rc.finish());
     out
@@ -1689,6 +1785,18 @@ impl LzmaLenDecoder {
         self.low = [[1024; 8]; 16];
         self.mid = [[1024; 8]; 16];
         self.high = [1024; 256];
+    }
+
+    fn encode(&mut self, rc: &mut LzmaRangeEncoder, pos_state: usize, len: usize) {
+        let value = (len - 2) as u32;
+        rc.encode_bit(&mut self.choice, u32::from(value >= 8));
+        if value < 8 {
+            rc.tree(&mut self.low[pos_state], 3, value, false);
+        } else {
+            rc.encode_bit(&mut self.choice2, u32::from(value >= 16));
+            if value < 16 { rc.tree(&mut self.mid[pos_state], 3, value - 8, false); }
+            else { rc.tree(&mut self.high, 8, value - 16, false); }
+        }
     }
 
     fn decode(&mut self, rc: &mut LzmaRangeDecoder<'_>, pos_state: usize) -> Result<usize, String> {

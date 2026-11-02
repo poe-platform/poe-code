@@ -5935,3 +5935,34 @@ test("tar confines member paths to real extraction directories", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("tar verifies symlink targets against the extraction root before changing the destination", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  for (const [target, allowed] of [["../ok", true], ["dangling", true], ["local/f", true], ["../../escape", false], ["/absolute", false], ["inner/../file", false], ["alias/f", false], ["loop", false]]) {
+    const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+    const rs = new RustWasmBash({cwd: "/"});
+    try {
+      await fs.mkdir("/src/sub", {recursive: true});
+      await fs.symlink(target, "/src/sub/link");
+      const seed = await js.exec("tar --format=ustar -cf - -C src sub/link");
+      assert.equal(seed.exitCode, 0, seed.stderr);
+      for (const f of [fs, rs.fs]) {
+        await f.mkdir("/dest/sub", {recursive: true});
+        await f.symlink("/dest/ok", "/dest/sub/local");
+        await f.symlink("/outside", "/dest/sub/alias");
+        await f.symlink("loop", "/dest/sub/loop");
+        await f.writeFile("/dest/sub/link", Buffer.from("original"));
+        await f.writeFile("/in", seed.stdoutBytes);
+      }
+      const cmd = "tar -xvf in -C dest";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, allowed ? 0 : 2, target + ": " + a.stderr);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], target);
+      for (const f of [fs, rs.fs]) {
+        if (allowed) assert.equal(await f.readlink("/dest/sub/link"), target);
+        else assert.equal(Buffer.from(await f.readFile("/dest/sub/link")).toString(), "original");
+      }
+    } finally { rs.dispose(); }
+  }
+});

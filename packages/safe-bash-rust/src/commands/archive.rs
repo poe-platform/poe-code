@@ -4377,6 +4377,55 @@ fn tar_strip_components(name: &str, strip: usize, is_dir: bool) -> Option<String
     }
 }
 
+fn check_tar_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str) -> Result<(), String> {
+    use std::collections::VecDeque;
+    let escape = || format!("symlink target escapes extraction root: {}", tar_format::display(path));
+    if target.starts_with('/') { return Err(escape()); }
+
+    let mut pending = VecDeque::<String>::new();
+    let prepend = |pending: &mut VecDeque<String>, value: &str| -> Result<(), String> {
+        let mut parent_seen = false;
+        for part in value.split('/').rev() {
+            match part {
+                "" | "." => continue,
+                ".." => parent_seen = true,
+                _ if parent_seen => return Err("symlink targets with non-leading '..' components are unsafe under later link replacement".into()),
+                _ => {}
+            }
+            pending.push_front(part.to_owned());
+        }
+        Ok(())
+    };
+    prepend(&mut pending, target)?;
+    let mut current = crate::vfs::dirname_posix_path(path);
+    let mut hops = 0;
+    while let Some(part) = pending.pop_front() {
+        if part == ".." {
+            if current == root { return Err(escape()); }
+            current = crate::vfs::dirname_posix_path(&current);
+            continue;
+        }
+        let next = resolve_posix_path(&current, &part);
+        match fs.lstat(&next) {
+            Ok(st) if st.kind == crate::vfs::VfsEntryKind::Symlink => {
+                hops += 1;
+                if hops > 40 { return Err("symlink target chain cannot be safely resolved".into()); }
+                let link = fs.readlink(&next)?;
+                if let Some(absolute) = link.strip_prefix('/') {
+                    let relative = if root == "/" { absolute } else if link == root { "" }
+                        else { link.strip_prefix(root).and_then(|s| s.strip_prefix('/')).ok_or("symlink target chain escapes extraction root")? };
+                    current = root.to_owned();
+                    prepend(&mut pending, relative)?;
+                } else { prepend(&mut pending, &link)?; }
+            }
+            Ok(_) => current = next,
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => current = next,
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(())
+}
+
 fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const TAR_HELP_TEXT: &str = "Usage: tar [OPTION]... [FILE]...\nCreate, read or modify USTAR/PAX archives in the virtual filesystem.\n\n  -c, --create             Create an archive\n  -t, --list               List archive members\n  -x, --extract, --get      Extract archive members\n  -O, --to-stdout          Extract file contents to standard output\n  -r, --append             Append files to an uncompressed archive\n  -u, --update             Append files newer than archived members\n  -d, --compare, --diff    Compare archive members with filesystem entries\n      --delete            Delete selected archive members\n  -A, --catenate, --concatenate Append archives to an uncompressed archive\n  -f, --file=ARCHIVE        Use ARCHIVE (default - for standard input/output)\n  -z, --gzip               Use gzip compression\n  -j, --bzip2              Use bzip2 compression\n  -J, --xz                 Use xz compression\n  -a, --auto-compress      Select output compression by archive suffix\n  -b, --blocking-factor=N  Use N 512-byte blocks per output record\n      --record-size=SIZE  Set output record bytes (multiple of 512; K/M/G suffixes)\n  -B, --read-full-records  Join short reads (always enabled for VFS streams)\n  -i, --ignore-zeros       Read past zero blocks, including concatenated archives\n  -n, --seek               Accept seekable input; VFS reads remain sequential\n      --no-seek           Read sequentially\n      --force-local       Treat archive names as local VFS paths (always enabled)\n      --utc               Show UTC timestamps; implies verbose listing\n      --quoting-style=STYLE Display literal, escape (default), or c filenames\n      --totals            Report archive bytes read or written to stderr\n  -v, --verbose            List processed members\n  -C, --directory=DIR      Change directory for subsequent operands\n  -T, --files-from=FILE    Read filenames from FILE (- for standard input)\n      --null              Read NUL-delimited filenames; implies verbatim names\n      --no-null           Read newline-delimited filenames\n      --verbatim-files-from Treat file-list entries as literal filenames\n      --no-verbatim-files-from Enable supported file-list directory options\n      --exclude=PATTERN   Exclude paths from subsequent sources\n      --exclude-caches    Keep cache directories and tags, omit other contents\n      --no-recursion      Archive subsequent directories without their contents\n      --recursion         Recurse into subsequent directories (default)\n      --sort=ORDER        Order directory children by name or none (default)\n  -h, --dereference       Archive symbolic-link targets during creation\n  -X, --exclude-from=FILE Read newline-delimited exclusion patterns\n      --wildcards         Select archive members with anchored glob patterns\n      --no-wildcards      Select literal member names (default)\n      --occurrence[=NUM]  Select only occurrence NUM of each operand (default 1)\n      --strip-components=NUM Remove leading components when reading archives\n      --transform=EXPR    Substitute member names (s/old/new/[gix])\n      --show-transformed-names Display transformed names in archive listings\n      --format=FORMAT     Create pax (default), posix or ustar archives\n      --mtime=DATE        Override creation mtime (@seconds or ISO/RFC date)\n      --owner=ID          Override numeric creation owner\n      --group=ID          Override numeric creation group\n      --mode=OCTAL        Override creation permission bits\n      --numeric-owner     Use numeric ownership IDs\n      --full-time         Show full UTC timestamps in verbose listings\n  -m, --touch              Retain current extraction timestamps\n  -p, --same-permissions   Restore ordinary archive permission bits\n      --no-same-permissions Apply virtual 022 mask to ordinary permissions\n      --no-same-owner     Retain filesystem-assigned ownership\n      --atime-preserve[=replace] Restore source access times after creation\n      --delay-directory-restore Restore directory metadata at archive end\n      --no-delay-directory-restore Restore after leaving each directory subtree\n  -k, --keep-old-files     Keep existing files and report conflicts as errors\n      --skip-old-files    Skip existing files without reporting errors\n      --overwrite         Replace existing entries using safe extraction checks\n      --help              Display this help and exit\n      --                  End options; remaining arguments are filenames\n\nExactly one of -c, -t, -x, -r, -u, -d, --delete or -A is required.\nWhen reading, gzip, bzip2 and xz compression is detected from archive bytes.\nExamples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory\n";
     let mut create = false;
@@ -5772,17 +5821,23 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let dest = resolve_posix_path(&entry_root, &rel_name);
             if dest == entry_root && !is_dir_entry { return Err("non-directory entry would replace extraction root".into()); }
             check_root(&entry_root)?;
-            let mut parent = entry_root.clone();
-            let parents = rel_name.trim_end_matches('/').rsplit_once('/').map_or("", |(dir, _)| dir);
-            for part in parents.split('/').filter(|s| !s.is_empty()) {
-                parent = resolve_posix_path(&parent, part);
-                match fs.lstat(&parent) {
-                    Ok(st) if st.kind == Directory => {}
-                    Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}", tar_format::display(&parent))),
-                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => fs.mkdir_one(&parent, 0o700)?,
+            let mut parents = dest.match_indices('/').map(|(i, _)| &dest[..i])
+                .filter(|p| p.len() > entry_root.len()).peekable();
+            while let Some(&parent) = parents.peek() {
+                match fs.lstat(parent) {
+                    Ok(st) if st.kind == Directory => { parents.next(); }
+                    Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}", tar_format::display(parent))),
+                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => break,
                     Err(e) => return Err(e),
                 }
             }
+            let link = (entry.typeflag == b'2' && !transforms.is_empty()).then(|| apply_tar_transforms(entry.linkname, &transforms));
+            let link = link.as_deref().unwrap_or(entry.linkname);
+            if entry.typeflag == b'2' {
+                if link.is_empty() || link.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
+                check_tar_symlink(fs, &entry_root, &dest, link)?;
+            }
+            for parent in parents { fs.mkdir_one(parent, 0o700)?; }
             let mut revision = fs.generation();
             let existing = match fs.lstat(&dest) {
                 Ok(st) => Some(st),
@@ -5809,7 +5864,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 if !existing.is_some_and(|s| s.kind == Directory) { fs.mkdir_one(&dest, 0o700)?; }
                 fs.chmod(&dest, entry.mode & 0o777)?;
             } else if entry.typeflag == b'2' {
-                fs.symlink(entry.linkname, &dest)?;
+                fs.symlink(link, &dest)?;
             } else {
                 if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
                 fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & 0o777, revision)?;

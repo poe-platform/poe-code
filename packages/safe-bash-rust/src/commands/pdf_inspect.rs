@@ -194,14 +194,14 @@ impl<'a> PageSource<'a> {
             }
             return Some("null\n".into());
         };
-        let (node, mut cursor) = self.objects.object(id)?;
+        let (mut node, mut cursor) = self.objects.object(id)?;
         cursor.skip();
         let mut out = String::new();
         if cursor.0.starts_with(b"stream") {
-            let bytes = self.objects.raw_stream(id,&node, cursor)?;
+            let bytes = self.objects.raw_stream(id, &mut node, cursor)?;
             if filtered {
                 return Some(crate::vfs::bytes_to_stream_string(
-                    &self.objects.decoded_stream(id)?,
+                    &self.objects.decode(&node, bytes)?,
                 ));
             }
             if raw {

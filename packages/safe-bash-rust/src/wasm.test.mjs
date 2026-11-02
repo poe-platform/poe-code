@@ -4412,3 +4412,23 @@ test("qpdf rewrites, decrypts and selects pages with each input's password",asyn
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf opens AES-256 PDFs with user and owner passwords and preserves output on failure",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("AES 雪");doc.addPage().drawText("confidential",{x:4,y:6});
+  const input=doc.save({encrypt:{revision:6,userPassword:"réader",ownerPassword:"öwner"}});
+  const files={"/aes.pdf":input,"/out":Buffer.from("prior")},fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [k,v] of Object.entries(files))await fs.writeFile(k,v);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const args of ["--password=réader --requires-password","--password=bad --decrypt out","--json out",
+      "--password=öwner --show-encryption","--password=réader --json --json-stream-data=inline",
+      "--password=öwner --decrypt out","--password=réader --show-object=4 --raw-stream-data"]) {
+      const cmd="qpdf aes.pdf "+args,want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],cmd);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out")).toString("latin1"),Buffer.from(await fs.readFile("/out")).toString("latin1"),cmd);
+    }
+  } finally {wasm.dispose();}
+});

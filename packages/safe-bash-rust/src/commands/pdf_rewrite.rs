@@ -239,9 +239,8 @@ pub(in super::super) fn rewrite(
             let (mut dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
             cursor.skip();
             if cursor.0.starts_with(b"stream") {
-                let data = objects.raw_stream(id,&dict, cursor).ok_or(INVALID)?;
-                let length = data.len().to_string();
-                dict.set_stream_length(length.as_bytes()).ok_or(INVALID)?;
+                let data = objects.raw_stream(id, &mut dict, cursor).ok_or(INVALID)?;
+                dict.set_stream_length(data.len()).ok_or(INVALID)?;
                 encode(&dict, &mut out)?;
                 if data.len() > limit.saturating_sub(out.len()) {
                     return Err(TOO_LARGE.into());

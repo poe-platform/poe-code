@@ -157,10 +157,10 @@ impl<'a> PageSource<'a> {
                 continue;
             }
             let (v, stream) = if self.objects.xref.contains_key(&id) {
-                let (v, mut c) = self.objects.object(id).ok_or(INVALID)?;
+                let (mut v, mut c) = self.objects.object(id).ok_or(INVALID)?;
                 c.skip();
                 let stream = if c.0.starts_with(b"stream") {
-                    Some(self.objects.raw_stream(id,&v, c).ok_or(INVALID)?)
+                    Some(self.objects.raw_stream(id, &mut v, c).ok_or(INVALID)?)
                 } else {
                     None
                 };

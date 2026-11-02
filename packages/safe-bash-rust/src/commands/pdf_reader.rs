@@ -71,15 +71,15 @@ impl<'a> Value<'a> {
             _ => None,
         }
     }
-    fn set_stream_length(&mut self, length: &'a [u8]) -> Option<()> {
+    fn set_stream_length(&mut self, length: usize) -> Option<()> {
         let Self::Dict(entries) = self else { return None };
         let mut found = false;
         for (_, value) in entries.iter_mut().filter(|(k, _)| k.as_ref() == b"Length") {
-            *value = Self::Word(length.into());
+            *value = Self::Word(length.to_string().into_bytes().into());
             found = true;
         }
         if !found {
-            entries.push((b"Length".into(), Self::Word(length.into())));
+            entries.push((b"Length".into(), Self::Word(length.to_string().into_bytes().into())));
         }
         Some(())
     }
@@ -444,7 +444,7 @@ impl<'a> Objects<'a> {
         let Location::File(_) = self.xref[&id].0 else {
             return None;
         };
-        let (dict, c) = self.object(id)?;
+        let (mut dict, c) = self.object(id)?;
         if dict.get(b"Type")?.word()? != b"/ObjStm" {
             return None;
         }
@@ -454,7 +454,7 @@ impl<'a> Objects<'a> {
         self.remaining_bytes = self
             .remaining_bytes
             .checked_sub(count.checked_mul(std::mem::size_of::<(usize, usize)>())?)?;
-        let encoded = self.raw_stream(id,&dict, c)?;
+        let encoded = self.raw_stream(id, &mut dict, c)?;
         let bytes = self.decode(&dict, encoded)?;
         let mut header = Cursor(bytes.get(..first)?);
         let mut members = Vec::with_capacity(count);
@@ -480,7 +480,7 @@ impl<'a> Objects<'a> {
         let (mut v,c)=self.stored_object(id)?;
         // Compressed members have already been decrypted with their container's key.
         if let Some(security) = &self.security && matches!(self.xref.get(&id)?.0, Location::File(_)) {
-            security.strings(id,&mut v);
+            security.strings(id, &mut v);
         }
         Some((v,c))
     }
@@ -637,8 +637,8 @@ impl<'a> Objects<'a> {
     }
 
     fn decoded_stream(&mut self, id: ObjectId) -> Option<std::borrow::Cow<'a, [u8]>> {
-        let (dict, c) = self.object(id)?;
-        let stream = self.raw_stream(id,&dict, c)?;
+        let (mut dict, c) = self.object(id)?;
+        let stream = self.raw_stream(id, &mut dict, c)?;
         self.decode(&dict, stream)
     }
 

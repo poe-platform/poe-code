@@ -950,15 +950,14 @@ impl<'a> Copy<'_, 'a> {
                 let mut body = Vec::new();
                 cursor.skip();
                 if cursor.0.starts_with(b"stream") {
-                    let stream = self.objects.raw_stream(*id,&v, cursor)?;
-                    let length = stream.len().to_string();
+                    let stream = self.objects.raw_stream(*id, &mut v, cursor)?;
                     // Clone references in source order, including an indirect /Length.
                     if matches!(&v, Value::Dict(entries) if entries.iter().any(|(k, v)| k.as_ref() == b"Length" && matches!(v, Value::Ref(_) | Value::Dict(_) | Value::Array(_))))
                     {
                         self.value(&v, &mut body, depth + 1)?;
                         body.clear();
                     }
-                    v.set_stream_length(length.as_bytes())?;
+                    v.set_stream_length(stream.len())?;
                     self.value(&v, &mut body, depth + 1)?;
                     if stream.len() > self.output.remaining.checked_sub(body.len())? {
                         return None;

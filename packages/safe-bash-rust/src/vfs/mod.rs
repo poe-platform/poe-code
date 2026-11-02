@@ -118,6 +118,8 @@ pub enum RedirectAccess { Truncate, Append, Exclusive, ReadWrite }
 
 /// An opened regular file. Its operations use the same object even if its name is replaced.
 pub trait OpenRedirectFile: std::fmt::Debug {
+    /// None means changes outside this shell cannot be tracked.
+    fn revision(&self) -> Option<u64> { None }
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;
     fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String>;
 }

@@ -14,6 +14,8 @@ impl std::fmt::Debug for RetainedFile {
 }
 
 impl crate::vfs::OpenRedirectFile for RetainedFile {
+    fn revision(&self) -> Option<u64> { Some(self.fs.generation()) }
+
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
         if !self.readable { return Err("EBADF: bad file descriptor".into()); }
         Ok(self.read(offset as u64, limit))

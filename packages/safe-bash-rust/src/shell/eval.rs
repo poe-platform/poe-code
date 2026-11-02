@@ -4711,6 +4711,7 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
+        self.refresh_file_input(0, stdin)?;
         // Native ls currently implements names only. Long-listing flags must not
         // silently discard metadata; use the existing implementation in hybrid mode.
         let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
@@ -7899,6 +7900,36 @@ impl<'a> EvalState<'a> {
         format!("{name}: line {line}: ")
     }
 
+    fn refresh_file_input(&self, fd: u32, unread: &mut String) -> Result<(), EvalError> {
+        let Some(FdTarget::ReadWriteFile { file: Some(file), position, .. }) = self.fd_table.get(&fd) else { return Ok(()) };
+        let revision = file.revision();
+        let mut pos = position.get();
+        if revision.is_some() && revision == pos.revision { return Ok(()); }
+        pos.consume(stream_byte_len(unread), false);
+        let limit = self.budget.limits.max_input_bytes;
+        self.budget.tick_fs_op().map_err(EvalError::Budget)?;
+        let tail = file.read_at(pos.offset, limit.saturating_add(1)).map_err(EvalError::Syntax)?;
+        if tail.len().saturating_add(pos.buffered) > limit {
+            return Err(EvalError::Syntax("EFBIG: File too large".into()));
+        }
+        pos.replace_tail(unread, &tail);
+        pos.revision = revision;
+        position.set(pos);
+        Ok(())
+    }
+
+    fn record_input_bytes(&mut self, fd: u32, canon: u32, direct: bool, stdin: &mut String) -> Result<Vec<u8>, EvalError> {
+        if direct {
+            self.refresh_file_input(fd, stdin)?;
+            return Ok(stream_string_to_bytes(stdin));
+        }
+        if fd == 0 && canon != STDIN_STREAM_FD { self.sync_shared_stdin(canon, stdin, true); }
+        let Some(cursor) = self.in_fds.get(&canon) else { return Ok(Vec::new()) };
+        let mut unread = cursor.borrow_mut();
+        self.refresh_file_input(fd, &mut unread)?;
+        Ok(stream_string_to_bytes(&unread))
+    }
+
     fn sync_shared_stdin(&mut self, canon: u32, stdin: &mut String, from_stdin: bool) {
         if canon >= 3 && canon != STDIN_STREAM_FD && self.resolve_in_fd(0) == canon {
             if from_stdin {
@@ -8170,40 +8201,16 @@ impl<'a> EvalState<'a> {
             let canon = self.resolve_in_fd(fd_num);
             let use_direct_stdin = (fd_num == 0 && !self.in_fd_aliases.contains_key(&0))
                 || (canon == STDIN_STREAM_FD && !self.in_fds.contains_key(&STDIN_STREAM_FD));
-            if use_direct_stdin {
-                let raw_in = stream_string_to_bytes(stdin);
-                let (rec, esc, term, consumed) = scan_read_stream(
-                    &raw_in,
-                    raw_mode,
-                    effective_delim,
-                    nchars,
-                    byte_locale,
-                    self.budget,
-                )?;
-                *stdin = bytes_to_stream_string(&raw_in[consumed..]);
-                (rec, esc, term)
-            } else {
-                if fd_num == 0 && canon != STDIN_STREAM_FD {
-                    self.sync_shared_stdin(canon, stdin, true);
-                }
-                let raw_in = self
-                    .in_fds
-                    .get(&canon)
-                    .map(|s| stream_string_to_bytes(&s.borrow()))
-                    .unwrap_or_default();
-                let (rec, esc, term, consumed) = scan_read_stream(
-                    &raw_in,
-                    raw_mode,
-                    effective_delim,
-                    nchars,
-                    byte_locale,
-                    self.budget,
-                )?;
-                let remaining = bytes_to_stream_string(&raw_in[consumed..]);
+            let raw_in = self.record_input_bytes(fd_num, canon, use_direct_stdin, stdin)?;
+            let (rec, esc, term, consumed) = scan_read_stream(
+                &raw_in, raw_mode, effective_delim, nchars, byte_locale, self.budget,
+            )?;
+            let remaining = bytes_to_stream_string(&raw_in[consumed..]);
+            if use_direct_stdin { *stdin = remaining; } else {
                 self.in_fds.entry(canon).or_default().replace(remaining);
                 self.sync_shared_stdin(canon, stdin, false);
-                (rec, esc, term)
             }
+            (rec, esc, term)
         };
 
         let ifs_bytes: Vec<u8> = if exact_chars {
@@ -8607,17 +8614,7 @@ impl<'a> EvalState<'a> {
             let canon = this.resolve_in_fd(fd_num);
             let use_direct_stdin = (fd_num == 0 && !this.in_fd_aliases.contains_key(&0))
                 || (canon == STDIN_STREAM_FD && !this.in_fds.contains_key(&STDIN_STREAM_FD));
-            let raw_in = if use_direct_stdin {
-                stream_string_to_bytes(stdin_ref)
-            } else {
-                if fd_num == 0 && canon != STDIN_STREAM_FD {
-                    this.sync_shared_stdin(canon, stdin_ref, true);
-                }
-                this.in_fds
-                    .get(&canon)
-                    .map(|s| stream_string_to_bytes(&s.borrow()))
-                    .unwrap_or_default()
-            };
+            let raw_in = this.record_input_bytes(fd_num, canon, use_direct_stdin, stdin_ref)?;
             if raw_in.is_empty() {
                 return Ok(None);
             }
@@ -9437,6 +9434,7 @@ impl<'a> EvalState<'a> {
                             return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
                     };
+                    let revision = file.as_ref().and_then(|f| f.revision());
                     let read = match &file {
                         Some(file) => self.budget.tick_fs_op().and_then(|_| file.read_at(0, self.budget.limits.max_input_bytes.saturating_add(1))),
                         None if self.is_default_null(&full) => Ok(Vec::new()),
@@ -9495,7 +9493,7 @@ impl<'a> EvalState<'a> {
                             path: full,
                             owner_fd: *fd,
                             file,
-                            position: Rc::new(Cell::new(FileInputPosition { remaining: content_len, ..Default::default() })),
+                            position: Rc::new(Cell::new(FileInputPosition { remaining: content_len, revision, ..Default::default() })),
                         },
                     );
                 }
@@ -10253,18 +10251,12 @@ impl<'a> EvalState<'a> {
                     };
                     let canon = self.resolve_in_fd(*owner_fd);
                     if let Some(cursor) = self.in_fds.get(&canon) {
-                        let mut unread = cursor.borrow_mut();
-                        if pos.buffered == 0 {
-                            *unread = bytes_to_stream_string(&tail);
-                        } else {
-                            let mut retained = stream_string_to_bytes(&unread);
-                            retained.truncate(pos.buffered);
-                            retained.extend_from_slice(&tail);
-                            *unread = bytes_to_stream_string(&retained);
-                        }
+                        pos.replace_tail(&mut cursor.borrow_mut(), &tail);
+                    } else {
+                        pos.remaining = pos.buffered + tail.len();
                     }
                     pos.offset = end_off;
-                    pos.remaining = pos.buffered + tail.len();
+                    pos.revision = None;
                     position.set(pos);
                 }
             }
@@ -16055,6 +16047,24 @@ hash -l
             fs.write_file("/f", b"abc").unwrap();
             let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
             assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{script}");
+        }
+    }
+
+    #[test]
+    fn readwrite_input_reads_new_file_bytes_after_preserving_prefetched_data() {
+        for (script, expected) in [
+            ("printf ABCDE >/f; cat <&3", "ABCDE"),
+            ("head -c1 <&3; printf XYZ >/f; cat <&3", "aYZ"),
+            ("read -N1 -u3 x; printf XYZABCDEF >/f; cat <&3", "bcABCDEF"),
+            ("printf XY >/f; read -N1 -u3 x; echo $x; cat <&3", "X\nY"),
+            (r#"printf 'X\nY\n' >/f; mapfile -u3 xs; printf '<%s>' "${xs[@]}""#, "<X\n><Y\n>"),
+            ("mv /f /old; printf WORLD >/f; printf QQQ >>/old; cat <&3", "abcQQQ"),
+            ("cat <&3; printf X >>/f; cat <&3", "abcX"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abc").unwrap();
+            let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
         }
     }
 

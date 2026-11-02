@@ -18,9 +18,23 @@ pub struct FileInputPosition {
     pub(crate) offset: usize,
     pub(crate) remaining: usize,
     pub(crate) buffered: usize,
+    pub(crate) revision: Option<u64>,
 }
 
 impl FileInputPosition {
+    pub(crate) fn replace_tail(&mut self, unread: &mut String, tail: &[u8]) {
+        if self.buffered == 0 {
+            *unread = crate::vfs::bytes_to_stream_string(tail);
+        } else {
+            let mut bytes = crate::vfs::stream_string_to_bytes(unread);
+            bytes.truncate(self.buffered);
+            self.buffered = bytes.len();
+            bytes.extend_from_slice(tail);
+            *unread = crate::vfs::bytes_to_stream_string(&bytes);
+        }
+        self.remaining = self.buffered + tail.len();
+    }
+
     pub(crate) fn consume(&mut self, remaining: usize, bounded: bool) {
         let used = self.remaining.saturating_sub(remaining);
         let needed = used.saturating_sub(self.buffered);

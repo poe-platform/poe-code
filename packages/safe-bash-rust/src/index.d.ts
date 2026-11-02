@@ -80,6 +80,7 @@ export class WasmFileSystem {
   access(path: string, mode?: number, options?: { signal?: AbortSignal }): Promise<void>;
   readFile(filePath: string, options?: { maxBytes?: number; signal?: AbortSignal }): Promise<Uint8Array>;
   writeFile(filePath: string, data: string | Uint8Array, options?: { flag?: "w" | "wx" | "a" | "ax"; mode?: number; signal?: AbortSignal }): Promise<void>;
+  appendFile(filePath: string, data: string | Uint8Array, options?: { mode?: number; signal?: AbortSignal }): Promise<void>;
   mkdir(dirPath: string, options?: { recursive?: boolean; mode?: number; exactMode?: boolean; signal?: AbortSignal }): Promise<void>;
   readdir(dirPath: string, options?: { maxEntries?: number; signal?: AbortSignal }): Promise<{name: string; type: WasmFileStat["type"]}[]>;
   stat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;

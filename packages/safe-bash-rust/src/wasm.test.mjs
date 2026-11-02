@@ -2091,12 +2091,17 @@ test("companion replay retains only completed writes and their original bytes an
     const options = {flag:"wx", mode:0o600, signal:controller.signal};
     const bytes = Buffer.from("original");
     await bash.fs.writeFile("/created", bytes, options);
+    const appended = Uint8Array.of(33);
+    await bash.fs.appendFile("/created", appended, { signal: controller.signal });
+    appended.fill(0);
     bytes.fill(0);
     options.mode = 0o400;
     controller.abort();
     await assert.rejects(bash.fs.writeFile("/created", "bad", {flag:"ax"}), {code:"EEXIST"});
     await bash.fs.realpath("/created");
-    assert.equal(companion.readText("/created"), "original");
+    assert.equal(companion.readText("/created"), "original!");
+    await bash.fs.appendFile("/created", "?");
+    assert.equal(companion.readText("/created"), "original!?");
     assert.equal((await companion.fs.stat("/created")).mode & 0o777, 0o600);
   } finally { bash.dispose(); companion.dispose(); }
 });
@@ -2890,4 +2895,25 @@ test("retained directory metadata survives moves, unlink and overlay copy-up", a
       } finally { await h.close(); }
     } finally { b.dispose(); }
   }
+});
+
+test("the production shell redirects and appends bytes on a Wasm filesystem", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
+  const wasm = new RustWasmBash({ files: { "/dest": "old bytes" } });
+  try {
+    const result = await shell.exec("echo first > /dest && echo second >> /dest && tee /out < /dest", { fs: wasm.fs });
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "first\nsecond\n");
+    assert.equal(wasm.readText("/dest"), result.stdout);
+    assert.equal(wasm.readText("/out"), result.stdout);
+    await wasm.fs.appendFile("/binary", Uint8Array.of(0, 255), { mode: 0o400 });
+    assert.equal((await wasm.fs.stat("/binary")).mode & 0o777, 0o400);
+    await assert.rejects(wasm.fs.appendFile("/binary", "!"), { code: "EACCES", syscall: "appendFile" });
+    await assert.rejects(wasm.fs.appendFile("/binary", "!", { signal: AbortSignal.abort() }), { name: "AbortError" });
+    assert.deepEqual(await wasm.fs.readFile("/binary"), Uint8Array.of(0, 255));
+    await wasm.fs.appendFile("/dev/null", "discard", { mode: -1 });
+    await assert.rejects(wasm.fs.appendFile("/dev", "", { mode: -1 }), { code: "EISDIR", syscall: undefined });
+  } finally { wasm.dispose(); }
 });

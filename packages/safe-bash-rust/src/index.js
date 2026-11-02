@@ -214,8 +214,8 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
   };
 }
 
-const wasmMetadataCapabilities = Object.freeze({
-  read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
+const wasmCapabilities = Object.freeze({
+  write: true, append: true, read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
   permissions: true, readlink: true, symlinks: true,
 });
 
@@ -226,8 +226,8 @@ export class WasmFileSystem {
 
   get capabilities() {
     const backing = this.bash._companion?.fs;
-    if (!backing) return wasmMetadataCapabilities;
-    return Object.freeze(Object.fromEntries(Object.keys(wasmMetadataCapabilities)
+    if (!backing) return wasmCapabilities;
+    return Object.freeze(Object.fromEntries(Object.keys(wasmCapabilities)
       .map(key => [key, backing.capabilities?.[key] === true])));
   }
 
@@ -257,16 +257,24 @@ export class WasmFileSystem {
     return this.bash.readFile(filePath, options);
   }
 
-  async writeFile(filePath, data, options) {
+  writeFile(filePath, data, options) {
+    return this.#writeData("writeFile", filePath, data, options);
+  }
+
+  appendFile(filePath, data, options) {
+    return this.#writeData("appendFile", filePath, data, options);
+  }
+
+  async #writeData(operation, filePath, data, options) {
     options?.signal?.throwIfAborted();
     const bytes = typeof data === "string" ? encoder.encode(data) : data;
     if (!(bytes instanceof Uint8Array)) throw new TypeError("Files require Uint8Array data");
     const bash = this.bash;
     if (bash._companion) {
       await bash._ensureCompanionSynced();
-      return bash._companion.fs.writeFile(filePath, bytes, options);
+      return bash._companion.fs[operation](filePath, bytes, options);
     }
-    const flag = options?.flag ?? "w";
+    const flag = operation === "appendFile" ? "a" : options?.flag ?? "w";
     const mode = options?.mode === undefined ? 0o666 : options.mode;
     const validMode = Number.isInteger(mode) && mode >= 0 && mode <= 0o7777;
     const flags = ["w", "wx", "a", "ax"].indexOf(flag);
@@ -274,7 +282,7 @@ export class WasmFileSystem {
     try {
       const data = bash._allocBytes(validMode && flags >= 0 ? bytes : new Uint8Array());
       try {
-        const rc = bash.exports.safe_bash_fs_write_file(bash.sessionId, path.ptr, path.len, data.ptr, data.len, validMode ? mode : 0x1000, flags);
+        const rc = bash.exports.safe_bash_fs_write_file(bash.sessionId, path.ptr, path.len, data.ptr, data.len, validMode ? mode : 0x1000, flags, operation === "appendFile");
         if (rc === -1) throw new Error("Wasm session unavailable");
         if (rc < 0) {
           const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
@@ -284,7 +292,7 @@ export class WasmFileSystem {
     } finally { bash._freeBytes(path); }
     if (bash.companionFactory && !bash.forceNative) {
       const copy = new Uint8Array(bytes);
-      bash._history.push({ type: "fs", run: (fs) => fs.writeFile(filePath, copy, { flag, mode }) });
+      bash._history.push({ type: "fs", run: (fs) => fs[operation](filePath, copy, operation === "appendFile" ? { mode } : { flag, mode }) });
     }
   }
 

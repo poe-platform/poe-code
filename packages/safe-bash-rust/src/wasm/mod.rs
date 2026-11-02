@@ -38,8 +38,8 @@ impl WasmSession {
                 if let Some((message, at)) = reason.split_once(", ")
                     && let Some((syscall, arg)) = at.split_once(" '")
                     && let Some(arg) = arg.strip_suffix('\'')
-                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat" | "writeFile" | "symlink") {
-                    op = if matches!(syscall, "stat" | "writeFile" | "symlink") { "overlay" } else { syscall };
+                    && matches!(syscall, "overlay" | "realpath" | "lstat" | "stat" | "writeFile" | "appendFile" | "symlink") {
+                    op = if matches!(syscall, "stat" | "writeFile" | "appendFile" | "symlink") { "overlay" } else { syscall };
                     operand = arg.to_owned();
                     if code == "ENOTSUP" { detail = message.trim_start(); }
                 }
@@ -53,9 +53,8 @@ impl WasmSession {
     }
 
     // The session lock covers validation and publication, including exclusive creates.
-    fn write_target(&self, operation: &str, destination: &str, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
+    fn write_target(&self, operation: &str, destination: &str, to: String, exclusive: bool, source: Option<(&str, &FileStat)>) -> Result<(String, Option<FileStat>), String> {
         let fs = &self.shell.fs;
-        let to = fs.access_path(destination, !exclusive)?;
         let existing = match fs.lstat(&to) {
             Ok(st) => Some(st),
             Err(e) if e.starts_with("ENOENT:") => None,
@@ -65,7 +64,7 @@ impl WasmSession {
             if to == "/" || to == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
             if to.starts_with("/dev/") { return Err("ENOTSUP: operation not supported".into()); }
         }
-        if operation == "writeFile" && self.profile == Profile::Devices {
+        if matches!(operation, "writeFile" | "appendFile") && self.profile == Profile::Devices {
             if to == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
             if to.starts_with("/dev/") && existing.is_none() { return Err("ENOENT: no such file or directory".into()); }
         }
@@ -84,29 +83,13 @@ impl WasmSession {
         Ok((to, existing))
     }
 
-    fn write_file(&self, path: &str, data: &[u8], mode: u32, flag: u32) -> Result<(), String> {
-        if mode > 0o7777 || flag > 3 {
-            if self.profile == Profile::Devices && self.shell.fs.access_path(path, flag & 1 == 0)? == "/dev" {
-                return Err("EBUSY: resource busy or locked".into());
-            }
-            return Err("EINVAL: invalid argument".into());
-        }
-        let fs = &self.shell.fs;
-        let (to, existing) = self.write_target("writeFile", path, flag & 1 != 0, None)?;
-        match existing {
-            None => fs.create_file(&to, data, mode),
-            Some(st) if flag & 2 != 0 && st.mode & 0o170000 != 0o020000 => fs.append_file(&to, data),
-            Some(_) => fs.write_file(&to, data),
-        }
-    }
-
     fn copy_file(&self, source: &str, destination: &str, exclusive: bool) -> Result<(), String> {
         let fs = &self.shell.fs;
         let from = fs.access_path(source, true)?;
         let origin = fs.lstat(&from)?;
         if origin.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
         if origin.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
-        let (to, existing) = self.write_target("copyFile", destination, exclusive, Some((&from, &origin)))?;
+        let (to, existing) = self.write_target("copyFile", destination, fs.access_path(destination, !exclusive)?, exclusive, Some((&from, &origin)))?;
         let source_device = origin.mode & 0o170000 == 0o020000;
         let target_device = existing.is_some_and(|st| st.mode & 0o170000 == 0o020000);
         fs.write_file(&to, &fs.read_file(&from)?)?;
@@ -362,15 +345,59 @@ pub unsafe extern "C" fn safe_bash_write_file(
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_fs_write_file(
-    id: u32, ptr: *const u8, len: usize, data: *const u8, size: usize, mode: u32, flag: u32,
+    id: u32, ptr: *const u8, len: usize, data: *const u8, size: usize, mode: u32, flag: u32, append: bool,
 ) -> i32 {
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
     let path = unsafe { str_from_raw(ptr, len) };
-    match sess.write_file(path, unsafe { slice_from_raw(data, size) }, mode, flag) {
+    let operation = if append { "appendFile" } else { "writeFile" };
+    let wrapped = sess.profile == Profile::Memory && !sess.shell.backend.provided_devices;
+    let invalid = mode > 0o7777 || flag > 3;
+    if path.contains('\0') && (wrapped || (sess.profile == Profile::Overlay && !invalid)) {
+        return sess.read_error("EINVAL:", "resolve", path, None, Some("paths must be strings without NUL bytes"));
+    }
+    let mut op = operation;
+    let result = (|| {
+        let fs = &sess.shell.fs;
+        let exclusive = matches!(flag, 1 | 3);
+        if invalid && !wrapped && sess.profile != Profile::Devices { return Err("EINVAL: invalid argument".into()); }
+        let target = fs.access_path(path, !exclusive);
+        if wrapped {
+            // The default device wrapper intercepts root and /dev/null before the backing write.
+            let followed = exclusive.then(|| fs.access_path(path, true));
+            match followed.as_ref().unwrap_or(&target).as_deref() {
+                Ok("/" | "/dev") => { op = ""; return Err("EISDIR: illegal operation on a directory".into()); }
+                Ok("/dev/null") => {
+                    op = "";
+                    return if exclusive { Err("EEXIST: file already exists".into()) }
+                        else if flag > 3 { Err("EINVAL: invalid argument".into()) } else { Ok(()) };
+                }
+                Err(_) if path.is_empty() => { op = ""; return Err("EISDIR: illegal operation on a directory".into()); }
+                Err(e) if e.starts_with("EACCES:") && e.contains(", lstat '") => { op = "lstat"; return Err(e.clone()); }
+                Err(e) if (!exclusive && e.starts_with("ELOOP:")) || e.starts_with("ENOTDIR: not a directory '") => {
+                    op = ""; return Err(e.clone());
+                }
+                _ => {}
+            }
+        }
+        if invalid {
+            if sess.profile == Profile::Devices && target? == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
+            return Err("EINVAL: invalid argument".into());
+        }
+        let (to, existing) = sess.write_target(operation, path, target?, exclusive, None)?;
+        let bytes = unsafe { slice_from_raw(data, size) };
+        match existing {
+            None => fs.create_file(&to, bytes, mode),
+            Some(st) if flag & 2 != 0 && st.mode & 0o170000 != 0o020000 => fs.append_file(&to, bytes),
+            Some(_) => fs.write_file(&to, bytes),
+        }
+    })();
+    match result {
         Ok(()) => 0,
-        Err(e) => sess.read_error(&e, "writeFile", path,
-            (sess.profile == Profile::Overlay && (mode > 0o7777 || flag > 3 || path.is_empty())).then_some(path), None),
+        Err(e) => {
+            let operand = if op == "lstat" { e.split_once(", lstat '").and_then(|(_, p)| p.strip_suffix('\'')).unwrap_or(path) } else { path };
+            sess.read_error(&e, op, operand, (sess.profile == Profile::Overlay && (invalid || path.is_empty())).then_some(path), None)
+        }
     }
 }
 
@@ -562,7 +589,7 @@ pub unsafe extern "C" fn safe_bash_symlink(
         let operand = if sess.profile == Profile::Memory { target } else { path };
         return sess.read_error(if target.is_empty() { "ENOENT:" } else { "EINVAL:" }, "symlink", operand, None, None);
     }
-    match sess.write_target("symlink", path, true, None).and_then(|(to, _)| sess.shell.fs.symlink(target, &to)) {
+    match sess.shell.fs.access_path(path, false).and_then(|to| sess.write_target("symlink", path, to, true, None)).and_then(|(to, _)| sess.shell.fs.symlink(target, &to)) {
         Ok(()) => 0,
         Err(e) => sess.read_error(&e, "symlink", path, None, None),
     }

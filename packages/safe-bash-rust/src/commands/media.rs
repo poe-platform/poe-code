@@ -6327,14 +6327,11 @@ fn cmd_media_doc(
             let mut show_att: Option<String> = None;
             let mut remove_atts: Vec<String> = Vec::new();
             let mut add_atts = Vec::new();
-            let mut standard_rewrite = true;
             let mut copy_atts = Vec::new();
             let mut encryption = None;
             let mut qdf_mode = false;
             let mut uncompress = false;
             let mut normalize_content = None;
-            let mut min_version: Option<String> = None;
-            let mut force_version: Option<String> = None;
             let mut collate_group: Option<usize> = None;
             let mut edits = pdf_reader::PageEdits::default();
             let mut pos_files: Vec<String> = Vec::new();
@@ -6342,16 +6339,6 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--")
-                    && !matches!(a, "--empty" | "--overlay" | "--underlay" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
-                        | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--set-page-labels"
-                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt" | "--linearize" | "--flatten-rotation" | "--generate-appearances")
-                    && !["--overlay=", "--underlay=", "--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
-                        "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
-                        "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
-                {
-                    standard_rewrite = false;
-                }
                 if let Some(mode) = a.strip_prefix("--normalize-content=") {
                     normalize_content = Some(match mode {
                         "y" => true, "n" => false,
@@ -6616,24 +6603,9 @@ fn cmd_media_doc(
                     i += 1;
                     continue;
                 }
-                if a == "--no-linearize" {
-                    edits.linearize = false;
-                    i += 1;
-                    continue;
-                }
                 if a == "--qdf" {
                     qdf_mode = true;
                     uncompress = true;
-                    i += 1;
-                    continue;
-                }
-                if let Some(mv) = a.strip_prefix("--min-version=") {
-                    min_version = Some(mv.to_string());
-                    i += 1;
-                    continue;
-                }
-                if let Some(fv) = a.strip_prefix("--force-version=") {
-                    force_version = Some(fv.to_string());
                     i += 1;
                     continue;
                 }
@@ -7219,7 +7191,7 @@ fn cmd_media_doc(
 
             let out_arg = pos_files.get(usize::from(!replace_input && !empty_input)).cloned();
             edits.password=password.as_deref().unwrap_or("");
-            if standard_rewrite && let Some(dst_arg) = out_arg.as_deref() {
+            if !json_input && update_from_json.is_none() && let Some(dst_arg) = out_arg.as_deref() {
                 let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
                     else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
                 let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
@@ -7613,13 +7585,6 @@ fn cmd_media_doc(
             }
             if edits.metadata {
                 doc.exif.clear();
-            }
-            if let Some(fv) = force_version {
-                doc.version = fv;
-            } else if let Some(mv) = min_version
-                && doc.version < mv
-            {
-                doc.version = mv;
             }
             if encryption.is_some() && !edits.decrypt {
                 return err_out("qpdf: cannot encrypt a nonstandard PDF output\n",2);

@@ -5154,7 +5154,7 @@ test("qpdf generates missing form appearances and respects existing or forced ap
   const files={"/in":form(false),"/force":form(true),"/note":Buffer.from("file")},fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
   try{
     for(const [path,b] of Object.entries(files))await fs.writeFile(path,b);
-    for(const args of ["in out","force out","in --remove-acroform out","force --object-streams=generate out","force --linearize --set-page-labels 1:r -- --add-attachment note -- out","in --overlay force -- --split-pages p-%d.pdf"]){
+    for(const args of ["in out","force out","in --warning-exit-0 --unused-option out","force --set-page-labels=1:D --force-version=1.0 out","force --linearize --no-linearize --min-version=9.0 out","in --remove-acroform out","force --object-streams=generate out","force --linearize --set-page-labels 1:r -- --add-attachment note -- out","in --overlay force -- --split-pages p-%d.pdf"]){
       const cmd="qpdf --generate-appearances "+args,path=args.includes("--split-pages")?"/p-1.pdf":"/out";
       for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
       const expected=await fs.readFile(path),actual=await rs.fs.readFile(path);

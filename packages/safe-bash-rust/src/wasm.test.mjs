@@ -7501,3 +7501,25 @@ test("op only sees exported variables and command assignments", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("op rejects explicit account and session selectors before accessing the default object store", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const cmd of ["op vault create Demo >/dev/null", "op item create --vault Demo --category login --title Fixture password=sample >/dev/null",
+      "op account list --session=test", "op --session test account list", "op account --account=test list",
+      "op --account='' whoami", "op whoami --session test --account test", "OP_SESSION=test op vault list",
+      "OP_ACCOUNT=test op vault delete Demo", "op --session=test read op://Demo/Fixture/password",
+      "op read op://Demo/Fixture/password --session test -o result", "test -e result",
+      "op --session=test inject <<< '{{ op://Demo/Fixture/password }}'", "op --session=test inject <<< literal",
+      "TOKEN=op://Demo/Fixture/password op run --session=test -- touch ran", "test -e ran",
+      "op run --session=test -- echo literal", "op run -- echo --session=test", "op --account=test vault list --help",
+      "op item get --session=test", "op item edit --account=test", "op document edit --session=test",
+      "op item get Fixture --session=test", "op item edit Fixture --account=test", "op document edit Fixture --session=test",
+      "op vault list extra --session=test", "op document get --session=test", "op read op://Demo/Fixture/password"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

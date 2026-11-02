@@ -107,3 +107,26 @@ pub(super) fn child(parent: &str, word: &str) -> Option<(&'static str, bool, &'s
         _ => return None,
     })
 }
+
+pub(super) fn takes_value(flag: &str) -> bool {
+    matches!(flag, "--account" | "--address" | "--allow-admins-to-manage" | "--categories" | "--category" | "--channel" | "--config" | "--current-vault" | "--deauthorize-devices-after" | "--description" | "--destination-vault" | "--directory" | "--email" | "--emails" | "--encoding" | "--env-file" | "--expires-in" | "--expiry" | "--features" | "--field" | "--fields" | "--file-mode" | "--file-name" | "--format" | "--group" | "--icon" | "--in-file" | "--language" | "--name" | "--out-file" | "--permission" | "--permissions" | "--role" | "--server" | "--session" | "--shell" | "--shorthand" | "--ssh-generate-key" | "--tags" | "--template" | "--title" | "--travel-mode" | "--url" | "--user" | "--vars" | "--vault" | "--vaults" | "-i" | "-o")
+}
+
+pub(super) fn operand_bounds(path: &str) -> (usize, Option<usize>) {
+    match path {
+        "read" => (1, Some(1)),
+        "run" => (1, None),
+        "whoami" => (0, Some(0)),
+        "document get" => (1, Some(1)),
+        "item get" => (0, Some(1)),
+        "vault list" => (0, Some(0)),
+        "item template list" => (0, Some(0)),
+        "environment read" => (1, Some(1)),
+        "environment snapshot create" => (1, Some(1)),
+        "environment snapshot get" => (1, Some(1)),
+        "environment snapshot list" => (0, Some(0)),
+        "environment snapshot delete" => (1, Some(1)),
+        "environment snapshot restore" => (1, None),
+        _ => (0, None),
+    }
+}

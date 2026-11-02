@@ -1167,6 +1167,7 @@ fn render_op_inject_template(
     st: &IntegrationState,
     env: &BTreeMap<String, String>,
     secret_values: &mut Vec<String>,
+    selection: Option<&str>,
 ) -> Result<String, String> {
     let mut out = String::new();
     let mut rest = tpl;
@@ -1183,6 +1184,7 @@ fn render_op_inject_template(
             out.push_str(&expr[1..expr.len() - 1]);
         } else {
             let expanded = expand_env_vars_in_ref(expr, env);
+            if let Some(error) = selection { return Err(error.to_string()); }
             let val = resolve_op_reference(st, expanded.trim())?;
             if !val.is_empty() && !secret_values.contains(&val) {
                 secret_values.push(val.clone());
@@ -1628,7 +1630,7 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
             i += 1;
             continue;
         }
-        if op_flag_takes_value(tok) {
+        if op_topics::takes_value(tok) {
             let flag_name = match tok {
                 "-i" => "--in-file",
                 "-o" => "--out-file",
@@ -1725,50 +1727,6 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
     Ok(())
 }
 
-fn op_flag_takes_value(tok: &str) -> bool {
-    matches!(
-        tok,
-        "--format"
-            | "--encoding"
-            | "--account"
-            | "--config"
-            | "--session"
-            | "--file-mode"
-            | "--allow-admins-to-manage"
-            | "--travel-mode"
-            | "--ssh-generate-key"
-            | "--deauthorize-devices-after"
-            | "--role"
-            | "--permission"
-            | "--permissions"
-            | "--vault"
-            | "--title"
-            | "--category"
-            | "--url"
-            | "--tags"
-            | "--template"
-            | "--fields"
-            | "--field"
-            | "--categories"
-            | "--current-vault"
-            | "--destination-vault"
-            | "--description"
-            | "--name"
-            | "--icon"
-            | "--group"
-            | "--user"
-            | "--server"
-            | "--shell"
-            | "--vars"
-            | "--in-file"
-            | "-i"
-            | "--out-file"
-            | "-o"
-            | "--env-file"
-            | "--file-name"
-    )
-}
-
 fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
     let mut out = Vec::new();
     let mut i = skip;
@@ -1780,7 +1738,7 @@ fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
             }
             break;
         }
-        if op_flag_takes_value(tok) {
+        if op_topics::takes_value(tok) {
             i += 2;
             continue;
         }
@@ -1897,9 +1855,10 @@ fn op_root_flags(args: &[String], env: &BTreeMap<String, String>) -> Option<Buil
     })
 }
 
-fn op_topic_help(args: &[String]) -> Option<BuiltinOutcome> {
+fn op_command_path(args: &[String]) -> Result<&'static str, BuiltinOutcome> {
     let mut path = "";
     let mut group = true;
+    let mut operands = 0;
     let mut help = OP_ROOT_HELP;
     let mut keyword = false;
     let mut flag = false;
@@ -1907,13 +1866,14 @@ fn op_topic_help(args: &[String]) -> Option<BuiltinOutcome> {
     while let Some(word) = words.next() {
         if word == "--" {
             if group && words.len() != 0 && !keyword && !flag {
-                return Some(op_err("a command is required"));
+                return Err(op_err("a command is required"));
             }
+            operands += words.len();
             break;
         }
         if word == "help" && path.is_empty() {
             keyword = true;
-        } else if op_flag_takes_value(word) {
+        } else if op_topics::takes_value(word) {
             words.next();
         } else if word == "-h" || word == "--help" {
             flag = true;
@@ -1922,31 +1882,93 @@ fn op_topic_help(args: &[String]) -> Option<BuiltinOutcome> {
             .or_else(|| word.strip_prefix("-h="))
         {
             let Some(enabled) = op_bool(value) else {
-                return Some(op_err("invalid boolean value for --help"));
+                return Err(op_err("invalid boolean value for --help"));
             };
             flag = enabled;
         } else if (!word.starts_with('-') || word == "-") && group {
             if let Some(topic) = op_topics::child(path, word) {
                 (path, group, help) = topic;
             } else {
-                // Internal completion callbacks use command names outside the public catalog.
-                if path.is_empty() && matches!(word.as_str(), "__complete" | "__completeNoDesc") {
-                    return None;
-                }
                 let unknown = if path.is_empty() {
                     word.to_string()
                 } else {
                     format!("{path} {word}")
                 };
-                return Some(op_err(&format!("unknown command: {unknown}")));
+                return Err(op_err(&format!("unknown command: {unknown}")));
             }
+        } else if !word.starts_with('-') || word == "-" {
+            operands += 1;
         }
     }
-    (keyword || flag || group).then(|| BuiltinOutcome {
-        stdout: help.to_string(),
-        stderr: String::new(),
-        exit_code: 0,
-    })
+    if keyword || flag || group {
+        return Err(BuiltinOutcome {
+            stdout: help.to_string(),
+            stderr: String::new(),
+            exit_code: 0,
+        });
+    }
+    let (min, max) = op_topics::operand_bounds(path);
+    if operands < min {
+        return Err(op_err(&format!(
+            "expected at least {min} arguments but got {operands} instead"
+        )));
+    }
+    if let Some(max) = max
+        && operands > max
+    {
+        return Err(op_err(&format!(
+            "expected at most {max} arguments but got {operands} instead"
+        )));
+    }
+    Ok(path)
+}
+
+// The built-in object store has no configured accounts or issued sessions.
+// Only the companion backend can supply them. Consume selectors before the
+// literal boundary so neither their values nor child flags become op operands.
+fn op_selectors<'a>(
+    args: &'a [String],
+    env: &BTreeMap<String, String>,
+) -> (std::borrow::Cow<'a, [String]>, Option<&'static str>) {
+    let mut account = env.get("OP_ACCOUNT").is_some_and(|v| !v.is_empty());
+    let mut session = env.get("OP_SESSION").is_some_and(|v| !v.is_empty());
+    let mut filtered = Vec::new();
+    let mut start = 0;
+    let mut i = 0;
+    while let Some(token) = args.get(i) {
+        if token == "--" {
+            break;
+        }
+        let name = token.split_once('=').map_or(token.as_str(), |(k, _)| k);
+        let next = (i + if op_topics::takes_value(token) { 2 } else { 1 }).min(args.len());
+        match name {
+            "--account" => account = true,
+            "--session" => session = true,
+            _ => {
+                i = next;
+                continue;
+            }
+        }
+        filtered.extend_from_slice(&args[start..i]);
+        start = next;
+        i = next;
+    }
+    let args = if start == 0 {
+        std::borrow::Cow::Borrowed(args)
+    } else {
+        filtered.extend_from_slice(&args[start..]);
+        std::borrow::Cow::Owned(filtered)
+    };
+    (
+        args,
+        if account {
+            Some("Account selection is required")
+        } else if session {
+            Some("Invalid session")
+        } else {
+            None
+        },
+    )
 }
 
 fn cmd_op<F>(
@@ -1974,9 +1996,15 @@ where
         return op_err(&msg);
     }
 
+    let path = match op_command_path(args) {
+        Ok(path) => path,
+        Err(outcome) => return outcome,
+    };
+    let (filtered, selection) = op_selectors(args, env);
+    let args = filtered.as_ref();
     let first = args[0].as_str();
-    if let Some(outcome) = op_topic_help(args) {
-        return outcome;
+    if let Some(error) = selection && !matches!(path, "completion" | "run" | "inject" | "item get" | "item edit" | "document edit") {
+        return op_err(error);
     }
 
     let fs_id = fs.fs_id();
@@ -2685,6 +2713,7 @@ where
                     let Some(sel) = sel else {
                         return op_err("An object selector or piped input is required");
                     };
+                    if let Some(error) = selection { return op_err(error); }
                     if sel == "-" {
                         let Ok(parsed) = from_json_str(stdin) else {
                             return op_err("invalid JSON on stdin");
@@ -2820,6 +2849,7 @@ where
                     let Some(sel) = sel else {
                         return op_err("item edit requires an item selector");
                     };
+                    if let Some(error) = selection { return op_err(error); }
                     let vault_id = vault_sel.as_deref().and_then(|vs| {
                         st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
                     });
@@ -3182,6 +3212,7 @@ where
                     let Some(sel) = sel else {
                         return op_err("invalid arguments for document edit");
                     };
+                    if let Some(error) = selection { return op_err(error); }
                     let Some(doc) = st.op_docs.iter_mut().find(|d| d.id == sel || d.title.eq_ignore_ascii_case(&sel)) else {
                         return op_err("Object not found");
                     };
@@ -3331,7 +3362,7 @@ where
             let st = map.get(&fs_id).cloned().unwrap_or_default();
             drop(map);
             let mut secrets = Vec::new();
-            let rendered = match render_op_inject_template(&tpl, &st, env, &mut secrets) {
+            let rendered = match render_op_inject_template(&tpl, &st, env, &mut secrets, selection) {
                 Ok(s) => s,
                 Err(e) => return op_err(&e),
             };
@@ -3424,11 +3455,12 @@ where
             let snapshot_env = child_env.clone();
             for (_k, val) in child_env.iter_mut() {
                 if val.contains("{{") {
-                    *val = match render_op_inject_template(val, &st, &snapshot_env, &mut secrets) {
+                    *val = match render_op_inject_template(val, &st, &snapshot_env, &mut secrets, selection) {
                         Ok(rendered) => rendered,
                         Err(err) => return op_err(&err),
                     };
                 } else if val.starts_with("op://") {
+                    if let Some(error) = selection { return op_err(error); }
                     let expanded = expand_env_vars_in_ref(val, &snapshot_env);
                     let resolved = match resolve_op_reference(&st, &expanded) {
                         Ok(resolved) => resolved,

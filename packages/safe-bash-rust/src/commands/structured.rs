@@ -2602,7 +2602,7 @@ fn try_eval_jq_builtin(
                             let mut results = vec![String::new()];
                             let mut copied = 0;
                             let mut fault = None;
-                            rx.scan(st, !rx.capture_names.is_empty(), |s, e, caps| {
+                            rx.scan(st.as_bytes(), !rx.capture_names.is_empty(), |s, e, caps| {
                                 let captures = jq_capture_object(st, &rx, caps);
                                 let replacements = match eval_jq(repl_e, &captures, vars) {
                                     Ok(values) => values,

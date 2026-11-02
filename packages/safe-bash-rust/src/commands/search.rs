@@ -2,7 +2,7 @@ use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
-    SafeBashFs, VfsEntryKind, basename_posix_path, bytes_to_stream_string, normalize_posix_path, resolve_posix_path, stream_byte_len,
+    SafeBashFs, VfsEntryKind, basename_posix_path, bytes_to_stream_string, normalize_posix_path, resolve_posix_path, stream_byte_len, stream_string_to_bytes,
 };
 use std::collections::BTreeMap;
 
@@ -487,7 +487,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, Jq, Rg { empty_pattern: bool } }
+enum RxSearch { Longest, Jq, Rg { empty_pattern: bool, binary_text: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -555,7 +555,7 @@ impl ZeroRegex {
         let mut last_end = 0;
         let mut occurrence = 0;
         let mut replace_count = 0;
-        self.scan(text, replacement.contains('\\'), |s, e, caps| {
+        self.scan(text.as_bytes(), replacement.contains('\\'), |s, e, caps| {
             if s == e && s == last_end && occurrence != 0 { return true; }
             occurrence += 1;
             let matched = &text[s..e];
@@ -574,20 +574,32 @@ impl ZeroRegex {
     }
 
     pub fn is_match(&self, text: &str) -> bool {
-        self.scan(text, false, |_, _, _| false)
+        self.scan(text.as_bytes(), false, |_, _, _| false)
     }
 
     pub fn find_all(&self, text: &str) -> Vec<(usize, usize)> {
         let mut results = Vec::new();
-        self.scan(text, false, |start, end, _| {
+        self.scan(text.as_bytes(), false, |start, end, _| {
             results.push((start, end));
             true
         });
         results
     }
 
-    pub(super) fn scan(&self, text: &str, capture: bool, mut visit: impl FnMut(usize, usize, &[Option<(usize, usize)>]) -> bool) -> bool {
-        let hay: Vec<_> = text.char_indices().collect();
+    pub(super) fn scan(&self, text: &[u8], capture: bool, mut visit: impl FnMut(usize, usize, &[Option<(usize, usize)>]) -> bool) -> bool {
+        let mut hay = Vec::with_capacity(text.len());
+        let mut invalid = Vec::new();
+        let mut offset = 0;
+        for chunk in text.utf8_chunks() {
+            hay.extend(chunk.valid().char_indices().map(|(i, c)| (offset + i, c)));
+            offset += chunk.valid().len();
+            for _ in chunk.invalid() {
+                if !matches!(self.search, RxSearch::Rg { binary_text: true, .. }) { invalid.push(hay.len()); }
+                hay.push((offset, char::REPLACEMENT_CHARACTER));
+                offset += 1;
+            }
+        }
+        let mut invalid = invalid.into_iter().peekable();
         let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
         let mut found = false;
         let mut pos = 0;
@@ -596,11 +608,14 @@ impl ZeroRegex {
         let rg = matches!(self.search, RxSearch::Rg { .. });
         let mut interior_empty = None;
         while pos <= last_start {
+            // Keep anchors relative to the original subject, but do not consume across an invalid byte.
+            while invalid.next_if(|i| *i < pos).is_some() {}
+            let bound = invalid.peek().copied().unwrap_or(hay.len());
             let mut group_offset = 0;
             let mut matches = self.branches.iter().filter_map(|program| {
                 let base = group_offset;
                 group_offset += program.groups;
-                program.run(&hay, pos, self.ignore_case, first, capture, |end|
+                program.run(&hay, pos..=bound, self.ignore_case, first, capture, |end|
                     !self.word_regexp || (!rg || pos != end) && is_word_boundary(&hay, pos, end)).map(|m| (base, m))
             });
             if let Some((base, mut m)) = if first { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
@@ -612,14 +627,14 @@ impl ZeroRegex {
                 if !visit(byte_at(pos), byte_at(m.pos), &m.caps) { break; }
                 if m.pos > pos { pos = m.pos; continue; }
             }
-            if rg && !self.word_regexp && let Some(&(start, ch)) = hay.get(pos) && ch.len_utf8() > 1 {
+            if rg && !self.word_regexp && let Some(&(start, ch)) = hay.get(pos) && byte_at(pos + 1) > start + 1 {
                 // Inside a scalar neither neighbor is a newline or ASCII word character.
                 // No consuming atom can start there. Evaluate that zero-width path once.
                 if *interior_empty.get_or_insert_with(|| {
                     let neighbors = [(0, ch), (1, ch)];
-                    self.branches.iter().any(|p| p.run(&neighbors, 1, false, true, false, |end| end == 1).is_some())
+                    self.branches.iter().any(|p| p.run(&neighbors, 1..=1, false, true, false, |end| end == 1).is_some())
                 }) {
-                    for byte in start + 1..start + ch.len_utf8() {
+                    for byte in start + 1..byte_at(pos + 1) {
                         found = true;
                         // Every participating capture is empty at this byte.
                         if !visit(byte, byte, &[]) { return true; }
@@ -1440,12 +1455,13 @@ impl RxProgram {
     fn run(
         &self,
         hay: &[(usize, char)],
-        start: usize,
+        range: std::ops::RangeInclusive<usize>,
         icase: bool,
         first: bool,
         capture: bool,
         accept: impl Fn(usize) -> bool,
     ) -> Option<RxMatch> {
+        let (start, stop) = range.into_inner();
         let mut state = RxMatch {
             pc: 0,
             pos: start,
@@ -1602,7 +1618,7 @@ impl RxProgram {
                         };
                         let width = reference.map_or(1, |(lo, hi)| hi - lo);
                         let mut end = state.pos;
-                        let bound = assertions.last().and_then(|frame| frame.end).unwrap_or(hay.len());
+                        let bound = assertions.last().and_then(|frame| frame.end).unwrap_or(stop);
                         let limit = tok.max.unwrap_or(usize::MAX).min((bound - end) / width);
                         for _ in 0..limit {
                             let ok = if let Some((lo, hi)) = reference {
@@ -1680,7 +1696,7 @@ pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<St
     let hay: Vec<_> = text.char_indices().collect();
     let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
     for start in 0..=hay.len() {
-        if let Some(m) = program.run(&hay, start, ignore_case, true, true, |_| true) {
+        if let Some(m) = program.run(&hay, start..=hay.len(), ignore_case, true, true, |_| true) {
             return Some(
                 std::iter::once(Some((start, m.pos)))
                     .chain(m.caps)
@@ -1703,7 +1719,7 @@ pub fn regex_capture_spans_in_hay(
 ) -> Vec<Option<(usize, usize)>> {
     let program = RxProgram::new(parse_rx_branches(pat, false, RxDialect::Auto).expect("permissive regex parser"));
     program
-        .run(hay, start, ignore_case, true, true, |pos| pos == end)
+        .run(hay, start..=hay.len(), ignore_case, true, true, |pos| pos == end)
         .map_or_else(|| vec![None; program.groups], |m| m.caps)
 }
 
@@ -1812,25 +1828,23 @@ pub fn replace_regex_count_in_text(
     ZeroRegex::new(vec![pat.to_string()], ignore_case, false, false, false).replace_count(text, replacement, global, nth)
 }
 
-// A zero-length rg match can fall between UTF-8 continuation bytes.
-fn rg_match_text(line: &str, s: usize, e: usize) -> &str {
-    if s == e { "" } else { &line[s..e] }
-}
-
-fn apply_rg_line_replace(line: &str, offset: usize, spans: &[(usize, usize)], replacements: &BTreeMap<usize, String>) -> String {
-    let mut out = String::new();
+fn apply_rg_line_replace(line: &[u8], offset: usize, spans: &[(usize, usize)], replacements: &BTreeMap<usize, Vec<u8>>) -> Vec<u8> {
+    let mut out = Vec::new();
     let mut last = 0;
-    let append = |out: &mut String, s, e| {
-        if let Some(text) = line.get(s..e) { out.push_str(text); }
-        else if s != e { out.push_str(&bytes_to_stream_string(&line.as_bytes()[s..e])); }
-    };
     for &(s, e) in spans {
-        append(&mut out, last, s);
-        if let Some(replacement) = replacements.get(&(offset + s)) { out.push_str(replacement); }
+        out.extend_from_slice(&line[last..s]);
+        out.extend_from_slice(&replacements[&(offset + s)]);
         last = e;
     }
-    append(&mut out, last, line.len());
+    out.extend_from_slice(&line[last..]);
     out
+}
+
+fn rg_json_data(bytes: &[u8]) -> String {
+    match std::str::from_utf8(bytes) {
+        Ok(text) => format!("{{\"text\":\"{}\"}}", json_escape_str(text)),
+        Err(_) => format!("{{\"bytes\":\"{}\"}}", super::archive::base64_encode(bytes)),
+    }
 }
 
 enum RgReplacementPart<'a> {
@@ -3532,7 +3546,7 @@ fn cmd_rg(
         parsed.push(branches);
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, !line_regexp && word_regexp, false);
-    rx.search = RxSearch::Rg { empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };
+    rx.search = RxSearch::Rg { binary_text: binary == RgBinary::Text, empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };
 
     // The delegated ASCII matcher treats the full NUL-delimited record as one line.
     let ascii_record_rx = if null_data && multiline && !requires_vm && !cross_line && rx.branches.iter().any(|p|
@@ -4075,13 +4089,11 @@ fn run_grep_engine(
     let mut searches = 0;
     let mut bytes_searched = 0;
     for input in inputs {
-        let file_content;
         let (fname, content, explicit) = match input {
-            Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stdin, true),
+            Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stream_string_to_bytes(stdin), true),
             Input::File(ref label, ref path, explicit) => {
                 let Ok(bytes) = fs.read_file(path) else { continue; };
-                file_content = String::from_utf8_lossy(&bytes).into_owned();
-                (Some(label.as_str()), file_content.as_str(), explicit)
+                (Some(label.as_str()), bytes, explicit)
             }
             Input::Error(message) => {
                 had_error = true;
@@ -4089,7 +4101,7 @@ fn run_grep_engine(
                 continue;
             }
         };
-        let nul_off = if cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.as_bytes().iter().position(|&b| b == 0) };
+        let nul_off = if cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
         searches += 1;
         bytes_searched += content.len();
         if nul_off.is_some() && (cfg.ignore_binary || cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit) {
@@ -4098,12 +4110,12 @@ fn run_grep_engine(
         let mut line_offsets = Vec::new();
         let mut offset = 0;
         let binary_records = cfg.is_rg && nul_off.is_some();
-        let delimiter = |c| c == rec_term || binary_records && c == '\0';
+        let delimiter = |c: &u8| *c == rec_term as u8 || binary_records && *c == 0;
         let lines: Vec<_> = content.split_inclusive(delimiter).map(|record| {
             line_offsets.push(offset);
             offset += record.len();
-            let line = record.strip_suffix(delimiter).unwrap_or(record);
-            if !cfg.null_data && !cfg.crlf && record.ends_with('\n') { line.strip_suffix('\r').unwrap_or(line) } else { line }
+            let line = if record.last().is_some_and(delimiter) { &record[..record.len()-1] } else { record };
+            if !cfg.null_data && !cfg.crlf && record.ends_with(b"\n") { line.strip_suffix(b"\r").unwrap_or(line) } else { line }
         }).collect();
         let mut match_indices: Vec<(usize, Vec<(usize, usize)>)> = Vec::new();
         let mut multiline_spans: Vec<(usize, usize, usize, usize)> = Vec::new();
@@ -4111,17 +4123,20 @@ fn run_grep_engine(
         let mut file_submatch_count = 0usize;
 
         let mut replacements = BTreeMap::new();
-        let mut find_spans = |rx: &ZeroRegex, subject: &str, offset| {
+        let mut find_spans = |rx: &ZeroRegex, subject: &[u8], offset| {
             let mut spans = Vec::new();
             rx.scan(subject, capture, |s, e, caps| {
                 if cfg.is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
-                    || rx.search == (RxSearch::Rg { empty_pattern: true }) && offset + s == content.len() && !content.ends_with(rec_term)) { return true; }
+                    || matches!(rx.search, RxSearch::Rg { empty_pattern: true, .. }) && offset + s == content.len() && !content.ends_with(&[rec_term as u8])) { return true; }
                 if let Some(parts) = &replacement {
-                    let expanded: String = parts.iter().map(|part| match part {
-                        RgReplacementPart::Literal(text) => *text,
-                        RgReplacementPart::Match => rg_match_text(subject, s, e),
-                        RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or("", |(lo, hi)| &subject[lo..hi]),
-                    }).collect();
+                    let mut expanded = Vec::new();
+                    for part in parts {
+                        expanded.extend_from_slice(match part {
+                            RgReplacementPart::Literal(text) => text.as_bytes(),
+                            RgReplacementPart::Match => &subject[s..e],
+                            RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or(&[][..], |(lo, hi)| &subject[lo..hi]),
+                        });
+                    }
                     replacements.insert(offset + s, expanded);
                 }
                 spans.push((s, e));
@@ -4133,7 +4148,7 @@ fn run_grep_engine(
         let whole_matches = !binary_records && multiline && replacement.is_none() && !cfg.invert && cfg.only_matching && !cfg.count_only && !cfg.json_output;
         let lf_offsets;
         let source_lines = if whole_matches && cfg.is_rg && cfg.null_data {
-            lf_offsets = std::iter::once(0).chain(content.match_indices('\n').map(|(i, _)| i + 1)).collect::<Vec<_>>();
+            lf_offsets = std::iter::once(0).chain(content.iter().enumerate().filter_map(|(i, &b)| (b == b'\n').then_some(i + 1))).collect::<Vec<_>>();
             &lf_offsets
         } else { &line_offsets };
         let mut print_end = lines.len();
@@ -4141,7 +4156,7 @@ fn run_grep_engine(
         if multiline {
             let mut block_end = None;
             let mut blocks = 0;
-            for (s, e) in find_spans(&rx, content, 0) {
+            for (s, e) in find_spans(&rx, &content, 0) {
                 if whole_matches && cfg.is_rg {
                     let first = source_lines.partition_point(|&off| off <= s).saturating_sub(1);
                     let last = source_lines.partition_point(|&off| off <= s.max(e.saturating_sub(1))).saturating_sub(1);
@@ -4151,7 +4166,7 @@ fn run_grep_engine(
                     multiline_spans.push((first, last, s, e));
                     continue;
                 }
-                if lines.is_empty() || (s == content.len() && content.ends_with(rec_term)) { continue; }
+                if lines.is_empty() || (s == content.len() && content.ends_with(&[rec_term as u8])) { continue; }
                 let first = line_offsets.partition_point(|&off| off <= s) - 1;
                 let last = line_offsets.partition_point(|&off| off <= s.max(e.saturating_sub(1))) - 1;
                 if block_end.is_none_or(|end| first > end) {
@@ -4194,7 +4209,7 @@ fn run_grep_engine(
                 let spans = if multiline {
                     projected.next_if(|(i, _)| *i == idx).map(|(_, spans)| spans).unwrap_or_default()
                 } else {
-                    let subject = if cfg.crlf { line.strip_suffix('\r').unwrap_or(line) } else { line };
+                    let subject = if cfg.crlf { line.strip_suffix(b"\r").unwrap_or(line) } else { line };
                     if idx == batch_end && let Some(record_rx) = &cfg.ascii_record_rx {
                         // Production dispatches whole batches to the UTF-8 matcher if any record needs it.
                         let batch_size = if cfg.max_count.is_some() || cfg.quiet || cfg.files_with_matches || cfg.files_without_match { 1 } else { 128 };
@@ -4202,7 +4217,7 @@ fn run_grep_engine(
                         let mut bytes = line.len();
                         while batch_end < lines.len() && batch_end - idx < batch_size
                             && bytes < 65536 && bytes + lines[batch_end].len() <= 65536
-                            && (batch_end + 1 < lines.len() || content.ends_with(rec_term)) {
+                            && (batch_end + 1 < lines.len() || content.ends_with(&[rec_term as u8])) {
                             bytes += lines[batch_end].len();
                             batch_end += 1;
                         }
@@ -4210,7 +4225,7 @@ fn run_grep_engine(
                     }
                     find_spans(batch_rx, subject, line_offsets[idx])
                 };
-                let inverted_tail = trailing && cfg.invert && matched_count >= limit && idx + 1 == lines.len() && !content.ends_with(rec_term);
+                let inverted_tail = trailing && cfg.invert && matched_count >= limit && idx + 1 == lines.len() && !content.ends_with(&[rec_term as u8]);
                 if (spans.is_empty() == cfg.invert) || inverted_tail {
                     if !multiline { file_submatch_count += spans.len(); }
                     match_indices.push((idx, spans));
@@ -4265,7 +4280,12 @@ fn run_grep_engine(
                     continue;
                 }
                 let end = line_offsets.get(idx + 1).copied().unwrap_or(content.len());
-                let escaped_line = json_escape_str(&content[line_offsets[idx]..end]);
+                let raw_line = &content[line_offsets[idx]..end];
+                let line_data = if binary_records && raw_line.ends_with(&[0]) {
+                    let mut raw_line = raw_line.to_vec();
+                    *raw_line.last_mut().unwrap() = b'\n';
+                    rg_json_data(&raw_line)
+                } else { rg_json_data(raw_line) };
                 let line_no = idx + 1;
                 let abs_off = line_offsets.get(idx).copied().unwrap_or(0);
                 if let Some(spans) = match_map.get(&idx) {
@@ -4274,17 +4294,17 @@ fn run_grep_engine(
                         if si > 0 {
                             subs_json.push(',');
                         }
-                        let mtxt = json_escape_str(rg_match_text(lines[idx], s, e));
+                        let mtxt = rg_json_data(&lines[idx][s..e]);
                         subs_json.push_str(&format!(
-                            "{{\"match\":{{\"text\":\"{mtxt}\"}},\"start\":{s},\"end\":{e}}}"
+                            "{{\"match\":{mtxt},\"start\":{s},\"end\":{e}}}"
                         ));
                     }
                     out.push_str(&format!(
-                        "{{\"type\":\"match\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{{\"text\":\"{escaped_line}\"}},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
+                        "{{\"type\":\"match\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
                     ));
                 } else {
                     out.push_str(&format!(
-                        "{{\"type\":\"context\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{{\"text\":\"{escaped_line}\"}},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[]}}}}\n"
+                        "{{\"type\":\"context\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[]}}}}\n"
                     ));
                 }
             }
@@ -4397,7 +4417,7 @@ fn run_grep_engine(
                 previous_printed = Some(last);
                 let base = line_offsets[idx];
                 let sep = if selected { ':' } else { '-' };
-                let mut emit = |chunk: &str, line, column, byte, ending: usize| {
+                let mut emit = |chunk: &[u8], line, column, byte, ending: usize| {
                     if line_show_filename && let Some(f) = fname {
                         out.push_str(f); out.push(if cfg.null_delim { '\0' } else { sep });
                     }
@@ -4405,13 +4425,13 @@ fn run_grep_engine(
                     if cfg.show_column && selected { out.push_str(&format!("{column}{sep}")); }
                     if cfg.byte_offset { out.push_str(&format!("{byte}{sep}")); }
                     if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
-                    let chunk = if cfg.trim { chunk.trim_start_matches([' ', '\t']) } else { chunk };
+                    let chunk = if cfg.trim { chunk.trim_ascii_start() } else { chunk };
                     if cfg.max_columns.is_some_and(|n| n > 0 && chunk.len() + ending > n) {
                         if selected {
                             let count = if cfg.only_matching { 1 } else { spans.len() };
                             out.push_str(&format!("[Omitted long line with {count} matches]"));
                         } else { out.push_str("[Omitted long context line]"); }
-                    } else { out.push_str(chunk); }
+                    } else { out.push_str(&bytes_to_stream_string(chunk)); }
                     out.push(rec_term);
                 };
                 if !selected {
@@ -4421,13 +4441,13 @@ fn run_grep_engine(
                     let mut expanded_offset = 0;
                     let mut number = idx + 1;
                     for &(_, _, s, e) in spans {
-                        number += content.as_bytes()[cursor..s].iter().filter(|&&b| b == rec_term as u8).count();
+                        number += content[cursor..s].iter().filter(|&&b| b == rec_term as u8).count();
                         expanded_offset += s - cursor;
                         let rendered = &replacements[&s];
-                        for chunk in rendered.split_inclusive(rec_term) {
-                            let text = chunk.strip_suffix(rec_term).unwrap_or(chunk);
+                        for chunk in rendered.split_inclusive(|&b| b == rec_term as u8) {
+                            let text = chunk.strip_suffix(&[rec_term as u8]).unwrap_or(chunk);
                             if !text.is_empty() { emit(text, number, expanded_offset + 1, base + expanded_offset, 0); }
-                            number += usize::from(chunk.ends_with(rec_term));
+                            number += usize::from(chunk.ends_with(&[rec_term as u8]));
                         }
                         cursor = e;
                         expanded_offset += rendered.len();
@@ -4438,9 +4458,9 @@ fn run_grep_engine(
                     let rendered = apply_rg_line_replace(&content[base..end], base, &relative, &replacements);
                     let column = relative[0].0 + 1;
                     let mut byte = base;
-                    if rendered.is_empty() { emit("", idx + 1, column, base, 0); }
-                    for (i, chunk) in rendered.split_inclusive(rec_term).enumerate() {
-                        let text = chunk.strip_suffix(rec_term).unwrap_or(chunk);
+                    if rendered.is_empty() { emit(b"", idx + 1, column, base, 0); }
+                    for (i, chunk) in rendered.split_inclusive(|&b| b == rec_term as u8).enumerate() {
+                        let text = chunk.strip_suffix(&[rec_term as u8]).unwrap_or(chunk);
                         emit(text, idx + 1 + i, column, byte, chunk.len() - text.len());
                         byte += chunk.len();
                     }
@@ -4452,13 +4472,12 @@ fn run_grep_engine(
 
         if multiline && cfg.only_matching && !cfg.invert {
             for &(fl, _ll, s, e) in &multiline_spans {
-                let matched_slice = rg_match_text(content, s, e);
-                let rendered = replacements.get(&s).map_or(matched_slice, String::as_str);
+                let rendered = &content[s..e];
                 let line_start = source_lines.get(fl).copied().unwrap_or(0);
                 let number = fl + 1 + if cfg.is_rg && cfg.null_data {
                     line_offsets.partition_point(|&off| off <= s) - line_offsets.partition_point(|&off| off <= line_start)
                 } else { 0 };
-                for (chunk_idx, chunk) in rendered.split(rec_term).enumerate() {
+                for (chunk_idx, chunk) in rendered.split(|&b| b == rec_term as u8).enumerate() {
                     if chunk.is_empty() {
                         continue;
                     }
@@ -4478,7 +4497,7 @@ fn run_grep_engine(
                     if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) {
                         out.push('\t');
                     }
-                    out.push_str(chunk);
+                    out.push_str(&bytes_to_stream_string(chunk));
                     out.push(rec_term);
                 }
             }
@@ -4515,19 +4534,19 @@ fn run_grep_engine(
                 if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
                 let expanded;
                 let text = if let Some((s, e)) = piece {
-                    replacements.get(&(base + s)).map_or(rg_match_text(line, s, e), String::as_str)
+                    replacements.get(&(base + s)).map_or(&line[s..e], Vec::as_slice)
                 } else if replacement.is_some() && matched.is_some() {
                     expanded = apply_rg_line_replace(line, base, spans, &replacements);
                     &expanded
                 } else { line };
-                let text = if cfg.trim { text.trim_start_matches(|c: char| c == ' ' || ('\t'..='\r').contains(&c)) } else { text };
+                let text = if cfg.trim { text.trim_ascii_start() } else { text };
                 let ending = if pieces { 0 } else { line_offsets.get(idx + 1).copied().unwrap_or(content.len()) - base - line.len() };
                 if cfg.max_columns.is_some_and(|n| n > 0 && text.len() + ending > n) {
                     if replacement.is_some() && matched.is_some() {
                         out.push_str(&format!("[Omitted long line with {} matches]", if pieces { 1 } else { spans.len() }));
                     } else if matched.is_some() { out.push_str("[Omitted long matching line]"); }
                     else { out.push_str("[Omitted long context line]"); }
-                } else { out.push_str(text); }
+                } else { out.push_str(&bytes_to_stream_string(text)); }
                 if pieces && cfg.crlf && !cfg.null_data { out.push('\r'); }
                 out.push(rec_term);
             }
@@ -4539,7 +4558,7 @@ fn run_grep_engine(
             "{{\"type\":\"summary\",\"data\":{{\"stats\":{{\"matches\":{total_matches},\"matched_lines\":{total_matched_lines},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}}}}\n"
         ));
     } else if cfg.stats {
-        let bytes_printed = out.len();
+        let bytes_printed = stream_byte_len(&out);
         out.push_str(&format!(
             "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
         ));

@@ -3697,7 +3697,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let mut position = 0;
             let mut length = -1;
             let array = args.get(2).map(|name| name.trim());
-            ZeroRegex::awk(&pat).scan(&hay, array.is_some(), |start, end, caps| {
+            ZeroRegex::awk(&pat).scan(hay.as_bytes(), array.is_some(), |start, end, caps| {
                 position = start + 1;
                 length = (end - start) as isize;
                 if let Some(name) = array {

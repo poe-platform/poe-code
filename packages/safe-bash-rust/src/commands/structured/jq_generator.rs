@@ -688,7 +688,7 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
     if name == "test" { return emit(JVal::Bool(rx.is_match(text))); }
     let mut flow = Ok(Continue(()));
     let (mut byte, mut offset) = (0, 0);
-    rx.scan(text, true, |s, e, caps| {
+    rx.scan(text.as_bytes(), true, |s, e, caps| {
         let mut copies = 1;
         let value = match name {
             "scan" if caps.is_empty() => JVal::Str(text[s..e].to_owned()),

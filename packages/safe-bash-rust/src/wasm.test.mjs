@@ -7066,3 +7066,33 @@ test("rg distinguishes text, explicit binary inputs and discovered binary files"
     }
   } finally { rs.dispose(); }
 });
+
+test("rg searches invalid UTF-8 at its original byte offsets and writes original bytes", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const data = Uint8Array.of(255,97,195,169,10,226,130,10);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/blob",data);
+  const js = new Shell({cwd:"/",fs}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/",files:{"/blob":data}});
+  try {
+    for (const [options,expected,filter] of [
+      ["-ob .",[49,58,97,10,50,58,195,169,10]],
+      ["-a -ob '�'",[48,58,255,10,53,58,226,10,54,58,130,10]],
+      ["-a -r '<$1>' '(�)'",[60,255,62,97,195,169,10,60,226,62,60,130,62,10]],
+      ["-a '�'",data], ["-a -o 'é'",[195,169,10]], ["-a -o -M1 '�'",[255,10,226,10,130,10]],
+      ["-bo 'a$'",[]], ["-bo '(é)$'",[50,58,195,169,10]],
+      ["--json -a '�'",
+        new TextEncoder().encode('[{"bytes":"/2HDqQo="},{"bytes":"/w=="}]\n[{"bytes":"4oIK"},{"bytes":"4g=="}]\n'),
+        "jq -c 'select(.type==\"match\") | [.data.lines,.data.submatches[0].match]'"],
+    ]) {
+      for (const search of ["rg "+options+" /blob", "cat /blob | rg "+options]) {
+        const cmd = filter ? search+" | "+filter : search;
+        for (const sh of [js,rs]) {
+          const r=await sh.exec(cmd);
+          assert.deepEqual([r.exitCode,r.stderr],[expected.length ? 0 : 1,""],cmd);
+          assert.deepEqual(r.stdoutBytes,Uint8Array.from(expected),cmd);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

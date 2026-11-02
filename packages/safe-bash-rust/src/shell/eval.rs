@@ -3021,7 +3021,7 @@ impl<'a> EvalState<'a> {
             }
         }
         cmd_parts.extend(simple.words.iter().cloned());
-        let (mut debug_out, skip_cmd) = self.fire_debug_trap(&cmd_parts.join(" "));
+        let (debug_out, skip_cmd) = self.fire_debug_trap(&cmd_parts.join(" "));
         if skip_cmd {
             return Ok(debug_out);
         }
@@ -3268,6 +3268,26 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        let has_inline_input = simple.redirects.iter().any(|r| {
+            matches!(
+                r.kind,
+                RedirectKind::HereString(_) | RedirectKind::HereDoc { .. }
+            )
+        });
+        let is_external_inline = has_inline_input
+            && !expanded_words.is_empty()
+            && !self.functions.contains_key(&expanded_words[0])
+            && !Self::is_shell_builtin_name(&expanded_words[0]);
+        let outer_env = is_external_inline.then(|| self.env.clone());
+        let result = self.run_expanded_simple(simple, expanded_words, stdin, debug_out, has_inline_input, is_external_inline);
+        if let Some(env) = outer_env { *self.env = env; }
+        result
+    }
+
+    fn run_expanded_simple(
+        &mut self, simple: &SimpleCommand, expanded_words: Vec<String>, stdin: &mut String,
+        mut debug_out: BuiltinOutcome, has_inline_input: bool, is_external_inline: bool,
+    ) -> Result<BuiltinOutcome, EvalError> {
         let is_posix = self
             .env
             .get("\0set_posix")
@@ -3295,12 +3315,6 @@ impl<'a> EvalState<'a> {
                             | "unset"
                     )
             });
-        let has_inline_input = simple.redirects.iter().any(|r| {
-            matches!(
-                r.kind,
-                RedirectKind::HereString(_) | RedirectKind::HereDoc { .. }
-            )
-        });
         let has_readonly_assign = simple.assignments.iter().any(|(k, _, _)| {
             let base_k = k.split('[').next().unwrap_or(k);
             let resolved = resolve_nameref_base(base_k, self.env);
@@ -3361,10 +3375,6 @@ impl<'a> EvalState<'a> {
             for binding in temp_saved.iter_mut().rev() { binding.exchange(self.env); }
         }
 
-        let is_external_inline = has_inline_input
-            && !expanded_words.is_empty()
-            && !self.functions.contains_key(&expanded_words[0])
-            && !Self::is_shell_builtin_name(&expanded_words[0]);
         let prev_iso = std::mem::replace(&mut self.isolated_inline_input, is_external_inline);
         let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
             match self.setup_redirects(&simple.redirects, stdin) {
@@ -16075,6 +16085,21 @@ hash -l
             crate::shell::ExecOptions { stdin: Some("abcdef".into()), ..Default::default() },
         ).unwrap();
         assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "[a]bc\ndef", ""));
+    }
+
+    #[test]
+    fn external_inline_input_expansion_keeps_its_variable_changes_local() {
+        for (cmd, expected) in [
+            ("i=0; x=$((i++)) cat <<<foo; echo $i", "foo\n0\n"),
+            ("i=0; cat <<<$((i++)); echo $i", "0\n0\n"),
+            ("i=0; x=$((i++)) : <<<foo; echo $i", "1\n"),
+            ("i=0; f() { cat; }; x=$((i++)) f <<<foo; echo $i", "foo\n1\n"),
+            (r#"unset x; x=inner cat <<<"${x:=changed}:$(echo $x)"; echo $x"#, "changed:inner\n\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(cmd).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{cmd}");
+        }
     }
 
     #[test]

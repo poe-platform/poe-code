@@ -7783,3 +7783,17 @@ test("bzip2 splits blocks by encoded run length before the level's block limit",
     }
   } finally { rs.dispose(); }
 });
+
+test("unzstd switches codecs after each gzip member in a mixed stream", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const sh of [js, rs]) {
+      const stream = "(printf one | gzip; printf two | zstd; printf three | gzip; printf four | gzip; printf five | zstd)";
+      const result = await sh.exec(stream + " | unzstd -c");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "onetwothreefourfive");
+    }
+  } finally { rs.dispose(); }
+});

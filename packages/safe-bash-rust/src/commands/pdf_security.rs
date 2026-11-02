@@ -72,7 +72,10 @@ impl Security {
                         .and_then(Value::word)
                         .is_some_and(|w| w.starts_with(b"/"));
             match v {
-                Value::String { bytes, .. } => rc4(key, bytes, 0),
+                Value::String { bytes, hex } => {
+                    rc4(key, bytes, 0);
+                    *hex = true;
+                }
                 Value::Array(a) => {
                     for x in a {
                         visit(x, key)

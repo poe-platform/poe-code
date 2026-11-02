@@ -40,7 +40,9 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 
 #[derive(Default)]
 pub(in super::super) struct PageEdits<'a> {
-    pub selections: Vec<(String, String)>,
+    pub selections: Vec<(String, String, Option<&'a str>)>,
+    pub password: &'a str,
+    pub decrypt: bool,
     pub rotations: Vec<&'a str>,
     pub split_pages: Option<usize>,
     pub info: bool,
@@ -61,7 +63,7 @@ pub(in super::super) fn rewrite(
     read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let (mut objects, trailer) = index(bytes,"")?;
+    let (mut objects, trailer) = index(bytes,edits.password)?;
     objects.preserve_hex = !edits.selections.is_empty();
     let root = trailer
         .get(b"Root")
@@ -202,9 +204,10 @@ pub(in super::super) fn rewrite(
         .0
         .checked_add(1)
         .ok_or(TOO_LARGE)?;
-    let generate = edits.generate_object_streams && edits.split_pages.is_none();
+    let decrypt = edits.decrypt && objects.security.is_some();
+    let generate = !decrypt && edits.generate_object_streams && edits.split_pages.is_none();
     let mut packed = (generate && !edits.normalize_content).then(Packed::default);
-    let mut out = bytes.get(..8).ok_or(INVALID)?.to_vec();
+    let mut out = if decrypt { b"%PDF-1.7".to_vec() } else { bytes.get(..8).ok_or(INVALID)?.to_vec() };
     if generate && out.as_slice() < b"%PDF-1.5" {
         out.copy_from_slice(b"%PDF-1.5");
     }
@@ -266,7 +269,7 @@ pub(in super::super) fn rewrite(
         }
     }
     let mut trailer_entries = format!("/Root {} {} R\n", root.0, root.1).into_bytes();
-    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID"))] {
+    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID").filter(|_| !decrypt))] {
         if let Some(v) = value {
             trailer_entries.push(b'/');
             trailer_entries.extend_from_slice(key);

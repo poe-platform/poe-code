@@ -387,7 +387,7 @@ impl PageOutput {
     pub(in super::super) fn select(
         base: &[u8],
         primary: Option<&str>,
-        specs: &[(String, String)],
+        edits: &super::PageEdits<'_>,
         collate: Option<usize>,
         mut read: impl FnMut(&str) -> Option<Vec<u8>>,
         limits: &crate::budget::ShellLimits,
@@ -402,7 +402,8 @@ impl PageOutput {
             inputs.insert(name, Some(Cow::Borrowed(base)));
         }
         let filename = |name| if name == "." { primary } else { Some(name) };
-        for (name, _) in specs {
+        let specs=&edits.selections;
+        for (name, _, _) in specs {
             if let Some(key) = filename(name)
                 && let std::collections::btree_map::Entry::Vacant(entry) = inputs.entry(key)
             {
@@ -419,26 +420,27 @@ impl PageOutput {
             }
         }
         let mut output = Self::new(limits.max_output_bytes);
-        let base_source = PageSource::open(base,"")?;
+        let base_source = PageSource::open(base,edits.password).map_err(|e|format!("{}: {e}",primary.unwrap_or("empty")))?;
         output
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
         let mut sources = BTreeMap::new();
         if let Some(name) = primary {
-            sources.insert(name, base_source);
+            sources.insert((name,edits.password), base_source);
         }
         let mut groups = Vec::new();
         let mut available = limits.max_output_bytes / 20;
         let batch = collate.filter(|_| specs.len() > 1);
-        for (name, range) in specs {
+        for (name, range, password) in specs {
             let key = filename(name).ok_or_else(|| format!("cannot open {name}"))?;
-            let source = match sources.entry(key) {
+            let identity = (key,password.unwrap_or(edits.password));
+            let source = match sources.entry(identity) {
                 std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
                 std::collections::btree_map::Entry::Vacant(entry) => {
                     let bytes = inputs[key]
                         .as_deref()
                         .ok_or_else(|| format!("cannot open {key}"))?;
-                    entry.insert(PageSource::open(bytes,"").map_err(|_| "invalid page selection")?)
+                    entry.insert(PageSource::open(bytes,identity.1).map_err(|_| "invalid page selection")?)
                 }
             };
             let mut indices = Vec::new();
@@ -454,7 +456,7 @@ impl PageOutput {
                     .copy_pages(source, indices.iter().copied(), false, &[], Some(&mut seen))
                     .ok_or("could not copy selected PDF pages")?;
             } else {
-                groups.push((key, indices.into_iter(), seen));
+                groups.push((identity, indices.into_iter(), seen));
             }
         }
         if let Some(batch) = batch {

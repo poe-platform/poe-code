@@ -6314,7 +6314,6 @@ fn cmd_media_doc(
             let mut standard_rewrite = true;
             let mut copy_atts: Vec<(String, String)> = Vec::new();
             let mut encrypt_pw: Option<String> = None;
-            let mut decrypt_mode = false;
             let mut linearize = false;
             let mut qdf_mode = false;
             let mut uncompress = false;
@@ -6332,10 +6331,10 @@ fn cmd_media_doc(
             while i < args.len() {
                 let a = args[i].as_str();
                 if a.starts_with("--")
-                    && !matches!(a, "--empty" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
+                    && !matches!(a, "--empty" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
                         | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
                         | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf")
-                    && !["--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
+                    && !["--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
                         "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
                         "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
                 {
@@ -6589,7 +6588,7 @@ fn cmd_media_doc(
                     continue;
                 }
                 if a == "--decrypt" {
-                    decrypt_mode = true;
+                    edits.decrypt = true;
                     i += 1;
                     continue;
                 }
@@ -6672,7 +6671,8 @@ fn cmd_media_doc(
                         let src_f = args[i].clone();
                         let mut rng = "1-z".to_string();
                         let mut j = i + 1;
-                        if j < args.len() && args[j].starts_with("--password=") {
+                        let source_password = args.get(j).and_then(|s| s.strip_prefix("--password="));
+                        if source_password.is_some() {
                             j += 1;
                         }
                         let next_is_range = j < args.len()
@@ -6685,7 +6685,7 @@ fn cmd_media_doc(
                         } else {
                             i = j;
                         }
-                        edits.selections.push((src_f, rng));
+                        edits.selections.push((src_f, rng, source_password));
                     }
                     if i < args.len() && args[i] == "--" {
                         i += 1;
@@ -7184,6 +7184,7 @@ fn cmd_media_doc(
             }
 
             let out_arg = pos_files.get(usize::from(!replace_input && !empty_input)).cloned();
+            edits.password=password.as_deref().unwrap_or("");
             if standard_rewrite && let Some(dst_arg) = out_arg.as_deref() {
                 let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
                     else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
@@ -7192,7 +7193,7 @@ fn cmd_media_doc(
                 if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
                     let limit = fs.shell_limits().max_output_bytes;
                     let selected = if edits.selections.is_empty() { Some(bytes) } else {
-                        match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),&edits.selections,collate_group,read,&fs.shell_limits()) {
+                        match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),&edits,collate_group,read,&fs.shell_limits()) {
                             Ok(bytes) => bytes,
                             Err(e) if e == "invalid page selection" => return err_out("shell: line 1: internal error\n",1),
                             Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
@@ -7204,7 +7205,7 @@ fn cmd_media_doc(
                         }
                         let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
                             .map_err(|e| if e == "invalid page rotation" { err_out("shell: line 1: internal error\n",1) }
-                                else if e == pdf_reader::NO_CATALOG { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
+                                else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
                             let edited = edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
@@ -7214,8 +7215,9 @@ fn cmd_media_doc(
                                 graph = match rewrite() { Ok(v) => v, Err(e) => return e };
                                 &graph
                             } else { &bytes };
-                            let Ok(mut source) = pdf_reader::PageSource::open(data,password.as_deref().unwrap_or("")) else {
-                                return err_out("qpdf: invalid PDF object graph\n",2);
+                            let mut source = match pdf_reader::PageSource::open(data,edits.password) {
+                                Ok(source)=>source,
+                                Err(e)=>return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2),
                             };
                             let count = source.len();
                             let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
@@ -7346,7 +7348,7 @@ fn cmd_media_doc(
 
             if !edits.selections.is_empty() {
                 let mut groups: Vec<Vec<PdfPage>> = Vec::new();
-                for (sf, rng) in &edits.selections {
+                for (sf, rng, _) in &edits.selections {
                     let sdoc = if sf == "." {
                         doc.clone()
                     } else {
@@ -7540,7 +7542,7 @@ fn cmd_media_doc(
             if let Some(pw) = encrypt_pw {
                 doc.encrypted = Some(pw);
             }
-            if decrypt_mode {
+            if edits.decrypt {
                 doc.encrypted = None;
             }
             if linearize {

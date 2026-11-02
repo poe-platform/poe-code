@@ -4387,3 +4387,28 @@ test("qpdf authenticates standard PDF passwords and decrypts strings and streams
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf rewrites, decrypts and selects pages with each input's password",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("私");doc.addPage().drawText("secret",{x:8,y:9});doc.addPage();
+  const files={"/a.pdf":doc.save({encrypt:{revision:3,userPassword:"reader",ownerPassword:"owner"}}),
+    "/b.pdf":doc.save({encrypt:{revision:3,userPassword:"second",ownerPassword:"owner2"}}),"/out.pdf":Buffer.from("original")};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,bytes] of Object.entries(files))await fs.writeFile(name,bytes);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const cmd of ["qpdf a.pdf --password=bad --decrypt out.pdf","qpdf a.pdf --password=owner out.pdf",
+      "qpdf a.pdf --password=reader --object-streams=generate --decrypt out.pdf",
+      "qpdf --password=reader a.pdf --pages . 2,1 b.pdf --password=second 1 -- out.pdf",
+      "qpdf --password=reader a.pdf --pages . 1 . --password=bad 2 -- out.pdf",
+      "qpdf a.pdf --password=reader --split-pages=1 split-%d.pdf"]) {
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],cmd);
+      for(const path of cmd.includes("split-")?["/split-1.pdf","/split-2.pdf"]:["/out.pdf"]){
+        assert.deepEqual(Buffer.from(await wasm.fs.readFile(path)).toString("latin1"),Buffer.from(await fs.readFile(path)).toString("latin1"),cmd);
+      }
+    }
+  } finally {wasm.dispose();}
+});

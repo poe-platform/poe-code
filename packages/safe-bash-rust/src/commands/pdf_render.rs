@@ -3,48 +3,87 @@ use super::{
     CP1252, PdfDoc,
     pdf_copy::{literal, write_objects},
 };
-use crate::commands::{codecs::zlib_compress, structured::unescape_xml_entities};
+use crate::commands::{
+    codecs::zlib_compress,
+    structured::{HtmlNode, bounded_html_dom},
+};
 use std::{fmt::Write as _, io::Write};
 
-// Other block types need their own draw operations (images, links, outlines, etc.).
-fn paragraphs(mut html: &str) -> Option<Vec<(usize, String)>> {
-    let mut level = 0;
-    let mut result = Vec::new();
-    let mut current = String::new();
-    let mut hidden = 0usize;
-    loop {
-        let (text, tag) = html
-            .split_once('<')
-            .map_or((html, None), |(t, rest)| (t, Some(rest)));
-        if hidden == 0 {
-            current.push_str(text);
+#[derive(Default)]
+struct Paragraph {
+    level: usize,
+    text: String,
+    links: Vec<String>,
+}
+
+fn paragraphs(html: &str) -> Option<Vec<Paragraph>> {
+    fn flush(current: &mut Paragraph, blocks: &mut Vec<Paragraph>) {
+        if !current.text.trim().is_empty() {
+            blocks.push(std::mem::take(current));
+        } else {
+            *current = Paragraph::default();
         }
-        let Some(rest) = tag else { break };
-        let (tag, tail) = rest.split_once('>')?;
-        html = tail;
-        match tag.trim().to_ascii_lowercase().as_str() {
-            "head" | "title" => hidden += 1,
-            "/head" | "/title" => hidden = hidden.saturating_sub(1),
-            name @ ("p" | "/p" | "div" | "/div" | "h1" | "/h1" | "h2" | "/h2" | "h3" | "/h3"
-            | "h4" | "/h4" | "h5" | "/h5" | "h6" | "/h6") => {
-                if !current.trim().is_empty() {
-                    result.push((level, unescape_xml_entities(&current)));
+    }
+    fn visit(
+        nodes: &[HtmlNode],
+        current: &mut Paragraph,
+        blocks: &mut Vec<Paragraph>,
+    ) -> Option<()> {
+        for node in nodes {
+            let HtmlNode::Element(el) = node else {
+                if let HtmlNode::Text(text) = node {
+                    current.text.push_str(text);
                 }
-                current.clear();
-                level = name
-                    .strip_prefix('h')
-                    .and_then(|n| n.parse().ok())
-                    .unwrap_or(0);
+                continue;
+            };
+            match el.tag.as_str() {
+                "head" | "title" | "script" | "style" | "template" => {}
+                "br" => current.text.push('\n'),
+                "ul" | "ol" | "dl" | "pre" | "blockquote" | "hr" | "table" | "svg" | "img" => {
+                    return None;
+                }
+                "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
+                    flush(current, blocks);
+                    current.level = el
+                        .tag
+                        .strip_prefix('h')
+                        .and_then(|n| n.parse().ok())
+                        .unwrap_or(0);
+                    visit(&el.children, current, blocks)?;
+                    flush(current, blocks);
+                }
+                "a" => {
+                    let start = current.text.len();
+                    visit(&el.children, current, blocks)?;
+                    if current
+                        .text
+                        .get(start..)
+                        .is_some_and(|s| !s.trim().is_empty())
+                        && let Some(href) = el
+                            .attrs
+                            .iter()
+                            .find(|(k, _)| k.eq_ignore_ascii_case("href"))
+                            .map(|(_, v)| v.trim())
+                        && !href.is_empty()
+                    {
+                        current.links.push(href.to_owned());
+                    }
+                }
+                _ => visit(&el.children, current, blocks)?,
             }
-            "html" | "/html" | "body" | "/body" | "!doctype html" | "b" | "/b" | "i" | "/i"
-            | "strong" | "/strong" | "em" | "/em" | "span" | "/span" => {}
-            _ => return None,
         }
+        Some(())
     }
-    if !current.trim().is_empty() {
-        result.push((level, unescape_xml_entities(&current)));
-    }
-    Some(result)
+    let mut blocks = Vec::new();
+    let mut current = Paragraph::default();
+    visit(&bounded_html_dom(html)?, &mut current, &mut blocks)?;
+    flush(&mut current, &mut blocks);
+    Some(blocks)
+}
+
+enum PageResource {
+    Font(bool),
+    Link(Vec<u8>),
 }
 
 pub(super) fn win_ansi(s: &str) -> Vec<u8> {
@@ -61,16 +100,22 @@ pub(super) fn win_ansi(s: &str) -> Vec<u8> {
 }
 
 fn coordinate(value: f64) -> String {
-    if value.fract() == 0. {return value.to_string();}
+    if value.fract() == 0. {
+        return value.to_string();
+    }
     let text = format!("{value:.6}");
     let trimmed = text.trim_end_matches('0').trim_end_matches('.');
-    if trimmed == "-0" { "0".into() } else { trimmed.into() }
+    if trimmed == "-0" {
+        "0".into()
+    } else {
+        trimmed.into()
+    }
 }
 
 pub(in super::super) fn render_paragraphs(
     doc: &PdfDoc,
     [top, right, bottom, left]: [f64; 4],
-    outline_depth: impl Fn(usize) -> usize,
+    settings: impl Fn(usize) -> (usize, bool),
 ) -> Result<Option<Vec<u8>>, ()> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
     let mut bodies = vec![
@@ -99,8 +144,9 @@ pub(in super::super) fn render_paragraphs(
     let media_width = coordinate(width);
     let media_height = coordinate(height);
     let x = coordinate(left);
+    let mut remaining_links_budget = limit;
     let mut finish_page = |stream: &mut Vec<u8>,
-                           fonts: &mut Vec<bool>,
+                           objects: &mut Vec<PageResource>,
                            headings: &mut Vec<(usize, String)>|
      -> Result<(), ()> {
         let content = bodies.len() + 1;
@@ -116,23 +162,44 @@ pub(in super::super) fn render_paragraphs(
         remaining = remaining.checked_sub(body.len() + 160).ok_or(())?;
         bodies.push(body);
         let mut resources = String::from("<<");
-        if !fonts.is_empty() {
-            resources.push_str("\n/Font <<");
-            for i in 0..fonts.len() {
-                write!(resources, "\n/F{} {} 0 R", i + 1, page + i + 1).unwrap();
+        let mut annots = String::new();
+        let mut fonts = 0;
+        for (i, obj) in objects.iter().enumerate() {
+            let id = page + i + 1;
+            match obj {
+                PageResource::Font(_) => {
+                    if fonts == 0 {
+                        resources.push_str("\n/Font <<");
+                    }
+                    fonts += 1;
+                    write!(resources, "\n/F{fonts} {id} 0 R").unwrap();
+                }
+                PageResource::Link(_) => write!(annots, "{id} 0 R ").unwrap(),
             }
+        }
+        if fonts > 0 {
             resources.push_str("\n>>");
         }
         resources.push_str("\n>>");
-        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R\n>>").into_bytes());
-        for bold in fonts.drain(..) {
-            let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
-            bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
+        let annots = if annots.is_empty() {
+            annots
+        } else {
+            format!("\n/Annots [ {annots}]")
+        };
+        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R{annots}\n>>").into_bytes());
+        for obj in objects.drain(..) {
+            bodies.push(match obj {
+                PageResource::Font(bold) => {
+                    let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
+                    format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes()
+                }
+                PageResource::Link(body) => body,
+            });
         }
         outlines.extend(
             headings
                 .drain(..)
-                .map(|(level, title)| (level, title, (page,0))),
+                .map(|(level, title)| (level, title, (page, 0))),
         );
         pages.push(format!("{page} 0 R"));
         stream.clear();
@@ -144,9 +211,16 @@ pub(in super::super) fn render_paragraphs(
         };
         let mut stream = Vec::new();
         let mut y = height - top;
+        let mut objects = Vec::new();
         let mut fonts = Vec::new();
+        let (outline_depth, external_links) = settings(page_index);
         let mut headings = Vec::new();
-        for (level, block) in blocks {
+        for Paragraph {
+            level,
+            text: block,
+            links,
+        } in blocks
+        {
             let bold = level != 0;
             let size = match level {
                 0 => 11,
@@ -177,24 +251,29 @@ pub(in super::super) fn render_paragraphs(
             if y - (pitch * lines.len() as f64 + if bold { 10. } else { 6. }) < bottom
                 && !stream.is_empty()
             {
-                finish_page(&mut stream, &mut fonts, &mut headings)?;
+                finish_page(&mut stream, &mut objects, &mut headings)?;
+                fonts.clear();
                 y = height - top;
             }
             if bold {
                 y -= 4.;
-                if level <= outline_depth(page_index) {
+                if level <= outline_depth {
                     headings.push((
                         level,
                         block.split_whitespace().collect::<Vec<_>>().join(" "),
                     ));
                 }
             }
-            let font = fonts.iter().position(|b| *b == bold).unwrap_or_else(|| {
+            let block_top = y;
+            let font = fonts.iter().position(|&b| b == bold).unwrap_or_else(|| {
+                objects.push(PageResource::Font(bold));
                 fonts.push(bold);
                 fonts.len() - 1
             }) + 1;
             let color = if bold {
                 "0.1 0.12 0.18"
+            } else if !links.is_empty() {
+                "0.05 0.28 0.72"
             } else {
                 "0.12 0.12 0.12"
             };
@@ -215,9 +294,20 @@ pub(in super::super) fn render_paragraphs(
                 }
                 y -= pitch;
             }
+            if external_links {
+                for uri in links {
+                    let mut body = format!("<<\n/Type /Annot\n/Subtype /Link\n/Rect [ {x} {} {} {} ]\n/Border [ 0 0 0 ]\n/A <<\n/Type /Action\n/S /URI\n/URI ",coordinate(y),coordinate(left+content_width.min(220.)),coordinate(block_top)).into_bytes();
+                    super::pdf_rewrite::encode(&super::pdf_string::encode(&uri), &mut body)
+                        .map_err(|_| ())?;
+                    body.extend_from_slice(b"\n>>\n>>");
+                    remaining_links_budget =
+                        remaining_links_budget.checked_sub(body.len()).ok_or(())?;
+                    objects.push(PageResource::Link(body));
+                }
+            }
             y -= 6.;
         }
-        finish_page(&mut stream, &mut fonts, &mut headings)?;
+        finish_page(&mut stream, &mut objects, &mut headings)?;
     }
     bodies[1] = format!(
         "<<\n/Type /Pages\n/Count {}\n/Kids [ {} ]\n>>",
@@ -226,8 +316,8 @@ pub(in super::super) fn render_paragraphs(
     )
     .into_bytes();
     if !outlines.is_empty() {
-        let root = bodies.len()+1;
-        write_outlines(root,&mut bodies,outlines)?;
+        let root = bodies.len() + 1;
+        write_outlines(root, &mut bodies, outlines)?;
         bodies[0] =
             format!("<<\n/Type /Catalog\n/Pages 2 0 R\n/Outlines {root} 0 R\n>>").into_bytes();
     }
@@ -235,7 +325,7 @@ pub(in super::super) fn render_paragraphs(
 }
 
 pub(super) fn write_outlines(
-    root:usize,
+    root: usize,
     bodies: &mut Vec<Vec<u8>>,
     outlines: Vec<(usize, String, super::ObjectId)>,
 ) -> Result<(), ()> {

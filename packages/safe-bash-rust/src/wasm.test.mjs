@@ -5347,3 +5347,18 @@ test("wkhtmltopdf applies page dimensions, margins and DPI to PDF layout",async(
     }
   }finally{rs.dispose();}
 });
+
+test("wkhtmltopdf writes URI annotations for visible links in headings and paragraphs",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const files={"/a":Buffer.from('<article><h2 id="h">Visit <a href="/first">here</a></h2><section><p data-x=">">Read <a href=" relative?q=(one)&amp;b=2 "><em>more</em></a> and <a href="#last">again</a></p><script>hidden</script><p><a href="empty"> </a>Plain<br>text</p></section></article>'),"/b":Buffer.from('<p><a href="https://test/雪">Unicode destination</a></p>')};
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
+    for(const args of ["a b","--disable-external-links a b","a --disable-external-links b","--disable-external-links a b --enable-external-links","--page-width 100pt --copies 2 a b"]){
+      const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);
+      assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});

@@ -26354,7 +26354,7 @@ pub(super) enum HtmlNode {
 #[derive(Clone, Debug)]
 pub(super) struct HtmlElement {
     pub(super) tag: String,
-    attrs: Vec<(String, String)>,
+    pub(super) attrs: Vec<(String, String)>,
     pub(super) children: Vec<HtmlNode>,
 }
 

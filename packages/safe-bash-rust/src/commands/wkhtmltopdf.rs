@@ -98,7 +98,14 @@ pub(super) fn wkhtmltopdf(
     let mut ftr_center = String::new();
     let mut ftr_right = String::new();
     let mut replacements: Vec<(String, String)> = Vec::new();
-    let mut pos_args: Vec<(String, bool, bool)> = Vec::new();
+    struct Source {
+        path: String,
+        uncounted: bool,
+        cover: bool,
+        links: bool,
+    }
+    let mut links = true;
+    let mut pos_args: Vec<Source> = Vec::new();
     let mut next_is_cover = false;
     let mut next_is_cover_obj = false;
     let mut i = 0usize;
@@ -262,6 +269,15 @@ pub(super) fn wkhtmltopdf(
                 replacements.push((args[i + 1].clone(), args[i + 2].clone()));
                 i += 3;
             }
+            "--disable-external-links" | "--enable-external-links" => {
+                let enabled = args[i] == "--enable-external-links";
+                if let Some(source) = pos_args.last_mut() {
+                    source.links = enabled;
+                } else {
+                    links = enabled;
+                }
+                i += 1;
+            }
             "-q"
             | "--quiet"
             | "-g"
@@ -280,8 +296,6 @@ pub(super) fn wkhtmltopdf(
             | "--no-print-media-type"
             | "--disable-internal-links"
             | "--enable-internal-links"
-            | "--disable-external-links"
-            | "--enable-external-links"
             | "--resolve-relative-links"
             | "--keep-relative-links"
             | "--enable-toc-back-links"
@@ -342,7 +356,12 @@ pub(super) fn wkhtmltopdf(
                 i += 1;
             }
             a if a == "-" || !a.starts_with('-') => {
-                pos_args.push((a.to_string(), next_is_cover, next_is_cover_obj));
+                pos_args.push(Source {
+                    path: a.to_string(),
+                    uncounted: next_is_cover,
+                    cover: next_is_cover_obj,
+                    links,
+                });
                 next_is_cover = false;
                 next_is_cover_obj = false;
                 i += 1;
@@ -374,11 +393,7 @@ pub(super) fn wkhtmltopdf(
             1,
         );
     }
-    if batch_job
-        && pos_args[..pos_args.len() - 1]
-            .iter()
-            .any(|(name, _, _)| name == "-")
-    {
+    if batch_job && pos_args[..pos_args.len() - 1].iter().any(|s| s.path == "-") {
         return err_out(
             "wkhtmltopdf: UNSUPPORTED_CAPABILITY: Batch conversion cannot share stdin with HTML input\n",
             1,
@@ -404,10 +419,11 @@ pub(super) fn wkhtmltopdf(
     doc.page_w = pw;
     doc.page_h = ph;
     let mut all_headings: Vec<(String, String, usize)> = Vec::new();
-    let mut page_meta: Vec<(String, bool, bool)> = Vec::new();
+    let mut page_meta = Vec::new();
     let output_version = fs.generation();
-    let out_arg = &pos_args.last().unwrap().0;
-    for (src, is_cover, is_cover_obj) in &pos_args[..pos_args.len() - 1] {
+    let out_arg = &pos_args.last().unwrap().path;
+    for source in &pos_args[..pos_args.len() - 1] {
+        let src = &source.path;
         let raw_and_dir = if src == "-" {
             Some((stdin.to_string(), cwd.to_string()))
         } else {
@@ -454,7 +470,7 @@ pub(super) fn wkhtmltopdf(
         }
         for page_html in split_html_pages(&raw_html) {
             let page_num = doc.pages.len() + 1;
-            if !*is_cover_obj {
+            if !source.cover {
                 for (ht, hl) in extract_html_headings(&page_html) {
                     all_headings.push((ht, hl, page_num));
                 }
@@ -469,7 +485,7 @@ pub(super) fn wkhtmltopdf(
                 images,
                 urls,
             });
-            page_meta.push((src.clone(), *is_cover, *is_cover_obj));
+            page_meta.push(source);
         }
     }
     if let Some(t) = title_opt {
@@ -478,7 +494,7 @@ pub(super) fn wkhtmltopdf(
     if doc.title.is_empty() {
         doc.title = "Document".to_string();
     }
-    let counted_total = page_meta.iter().filter(|(_, is_cov, _)| !*is_cov).count() as i64;
+    let counted_total = page_meta.iter().filter(|s| !s.uncounted).count() as i64;
     let topage_val = counted_total + page_offset;
     let mut logical_page = 1 + page_offset;
     let sub_tokens = |tmpl: &str, pno: i64, webpage: &str, title: &str| -> String {
@@ -494,12 +510,13 @@ pub(super) fn wkhtmltopdf(
         out
     };
     for (idx, pg) in doc.pages.iter_mut().enumerate() {
-        let (ref wp, is_cov, is_cov_obj) = page_meta[idx];
+        let source = page_meta[idx];
+        let wp = &source.path;
         let cur_pno = logical_page;
-        if !is_cov {
+        if !source.uncounted {
             logical_page += 1;
         }
-        if !is_cov_obj {
+        if !source.cover {
             let mut hdr_parts = Vec::new();
             for t in [&hdr_left, &hdr_center, &hdr_right] {
                 if !t.is_empty() {
@@ -559,7 +576,7 @@ pub(super) fn wkhtmltopdf(
         doc.info
             .push(("Producer".to_string(), "@poe-code/pdf-ast".to_string()));
     }
-    let out_arg = &pos_args.last().unwrap().0;
+    let out_arg = &pos_args.last().unwrap().path;
     let furniture = [
         &hdr_left,
         &hdr_center,
@@ -575,11 +592,12 @@ pub(super) fn wkhtmltopdf(
             } else {
                 (i / copies, i % copies)
             };
-            if outline && copy == 0 && !page_meta[original].2 {
+            let depth = if outline && copy == 0 && !page_meta[original].cover {
                 outline_depth
             } else {
                 0
-            }
+            };
+            (depth, page_meta[original].links)
         }) {
             Ok(Some(pdf)) => pdf,
             Ok(None) => doc.serialize(),
@@ -594,8 +612,8 @@ pub(super) fn wkhtmltopdf(
     let dst = resolve_posix_path(cwd, out_arg);
     let inputs = pos_args[..pos_args.len() - 1]
         .iter()
-        .filter(|(name, _, _)| name != "-")
-        .map(|(name, _, _)| resolve_posix_path(cwd, name))
+        .filter(|s| s.path != "-")
+        .map(|s| resolve_posix_path(cwd, &s.path))
         .collect::<Vec<_>>();
     if let Err(message) = fs.publish_file(&dst, &serialized, &inputs, output_version) {
         return err_out(&format!("wkhtmltopdf: {message}\n"), 1);

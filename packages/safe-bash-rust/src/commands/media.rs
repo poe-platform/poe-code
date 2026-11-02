@@ -7756,6 +7756,7 @@ fn cmd_media_doc(
             let (mut user,mut owner) = (None,None);
             let mut grants = 0;
             let mut compress_streams=None;
+            let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
             let mut filtered = args[..op_idx].to_vec();
             let mut tail = args[op_idx..].iter().peekable();
             while let Some(arg) = tail.next() {
@@ -7764,7 +7765,10 @@ fn cmd_media_doc(
                         filtered.push(arg.clone());
                         if let Some(name) = tail.next() {filtered.push(name.clone());}
                     }
-                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files")=>{
+                    "drop_xfa" => drop_xfa=true,
+                    "drop_xmp" => drop_xmp=true,
+                    "need_appearances" => need_appearances=true,
+                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle")=>{
                         compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
@@ -7784,6 +7788,7 @@ fn cmd_media_doc(
             }
             let args = &filtered;
             let limit = fs.shell_limits().max_output_bytes;
+            let output_edits=pdf_reader::PageEdits {compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
             let write_pdftk_output = |mut bytes: Vec<u8>, tail: &[String]| -> BuiltinOutcome {
                 let Some([_,of]) = tail.windows(2).find(|w| w[0]=="output") else {
                     return err_out("Error: Output filename required.\n",1);
@@ -7807,7 +7812,7 @@ fn cmd_media_doc(
                 "passthrough" => {
                     let (bytes,password) = &inputs[&input_order[0]];
                     let bytes = if !is_legacy_pdf(bytes) {
-                        let edits = pdf_reader::PageEdits {password,compress_streams,..Default::default()};
+                        let edits = pdf_reader::PageEdits {password,..output_edits};
                         match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
                             Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
@@ -7856,7 +7861,7 @@ fn cmd_media_doc(
                         update.apply_legacy(&mut doc);
                         doc.serialize()
                     } else {
-                        let edits=pdf_reader::PageEdits {password,compress_streams,update:Some(&update),..Default::default()};
+                        let edits=pdf_reader::PageEdits {password,update:Some(&update),..output_edits};
                         match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
                             Ok(bytes)=>bytes,
                             Err(e)=>return err_out(&format!("Error: {e}\n"),1),
@@ -7940,7 +7945,7 @@ fn cmd_media_doc(
                         }
                         doc.serialize()
                     } else {
-                        let edits=pdf_reader::PageEdits { password, compress_streams, append_files:Some(&paths), attachment_page:page, ..Default::default() };
+                        let edits=pdf_reader::PageEdits { password, append_files:Some(&paths), attachment_page:page, ..output_edits };
                         match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],read,limit) {
                             Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
@@ -8038,7 +8043,7 @@ fn cmd_media_doc(
                             for (p,r) in doc.pages.iter_mut().zip(rotations){if let Some(r)=r{p.rot=r.apply(f64::from(p.rot));}}
                             doc.serialize()
                         }else{
-                            let edits=pdf_reader::PageEdits {password,page_rotations:&rotations,compress_streams,..Default::default()};
+                            let edits=pdf_reader::PageEdits {password,page_rotations:&rotations,..output_edits};
                             match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
                                 Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                             }
@@ -8086,6 +8091,11 @@ fn cmd_media_doc(
                             Ok(bytes) => bytes,
                             Err(e) => return err_out(&format!("Error: {e}\n"),1),
                         };
+                        let bytes=if drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
+                            match pdf_reader::rewrite(&bytes,&output_edits,&[],&[],&[],|_|None,limit) {
+                                Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                            }
+                        } else {bytes};
                         return write_pdftk_output(bytes,&rest[out_pos..]);
                     }
                     for (new_idx0, (hk, old_pno, rotation)) in chosen.iter().enumerate() {

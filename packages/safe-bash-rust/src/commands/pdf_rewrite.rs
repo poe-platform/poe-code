@@ -55,6 +55,8 @@ pub(in super::super) struct PageEdits<'a> {
     pub metadata: bool,
     pub structure: bool,
     pub acroform: bool,
+    pub drop_xfa: bool,
+    pub need_appearances: bool,
     pub page_labels: bool,
     pub generate_object_streams: bool,
     pub normalize_content: bool,
@@ -136,6 +138,14 @@ pub(in super::super) fn rewrite(
             store(id, &Value::Dict(entries))?;
         }
     }
+    if (edits.drop_xfa || edits.need_appearances)
+        && let Some((owner,Value::Dict(mut form)))=catalog.get(b"AcroForm").and_then(|v|objects.lookup_value(v))
+    {
+        if edits.drop_xfa { form.retain(|(k,_)|k.as_ref()!=b"XFA"); }
+        if edits.need_appearances { set(&mut form,b"NeedAppearances",Value::Word(b"true".as_slice().into())); }
+        let form=Value::Dict(form);
+        if let Some(id)=owner {store(id,&form)?;} else if let Value::Dict(root)=&mut catalog {set(root,b"AcroForm",form);}
+    }
     for (i, &id) in pages.iter().enumerate() {
         let rotation = edits.page_rotations.get(i).or_else(||rotations.get(i)).copied().flatten();
         if edits.split_pages.is_some() && rotation.is_none() {
@@ -161,7 +171,7 @@ pub(in super::super) fn rewrite(
         };
         if pin_page == Some(id) && !pins.is_empty() {
             let old=page.get(b"Annots");
-            let (array_id,mut annots)=match old.and_then(|v|attachments::lookup(&mut objects,v)) {
+            let (array_id,mut annots)=match old.and_then(|v|objects.lookup_value(v)) {
                 Some((id,Value::Array(a)))=>(id,a),
                 _=>(None,Vec::new()),
             };

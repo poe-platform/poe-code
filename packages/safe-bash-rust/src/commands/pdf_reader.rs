@@ -556,6 +556,23 @@ impl<'a> Objects<'a> {
         parse(fixed, &mut self.tokens)
     }
 
+    // Return the terminal (non-stream) value and its owner while preserving
+    // any intermediate indirect references in the parent dictionary.
+    fn lookup_value(&mut self, node: &Value<'a>) -> Option<(Option<ObjectId>, Value<'a>)> {
+        let mut value = node.clone();
+        let mut owner = None;
+        let mut seen = std::collections::BTreeSet::new();
+        while let Value::Ref(id) = value {
+            if !seen.insert(id) {return None;}
+            let (v, mut cursor) = self.object(id)?;
+            cursor.skip();
+            if cursor.0.starts_with(b"stream") {return None;}
+            owner = Some(id);
+            value = v;
+        }
+        Some((owner, value))
+    }
+
     fn resolve(&mut self, value: &Value<'a>) -> Option<Value<'a>> {
         match value.reference() {
             Some(id) => Some(self.object(id)?.0),

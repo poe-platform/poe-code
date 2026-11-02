@@ -4878,3 +4878,27 @@ test("pdftk appends attachments to existing name trees and selected page annotat
     assert.equal(Buffer.from(await rust.fs.readFile("/out")).toString(),"original");
   } finally { rust.dispose(); }
 });
+
+test("pdftk output flags edit the form owner and catalog without replacing the document", async () => {
+  const {PdfDocument, cosDict, cosString, cosBool, dictSet} = await import("@poe-code/pdf-ast");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {pdftkCommands} = await import("@poe-platform/safe-bash/commands/pdftk");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true})), rust = new RustWasmBash({cwd:"/"});
+  try {
+    for (const direct of [false,true]) {
+      const doc=PdfDocument.create(); doc.addPage().drawText("retain",{x:15,y:42});
+      const cos=doc.cos, root=cos.resolveDict(cos.rootRef);
+      const form=cosDict({XFA:cosString("form XML"), NeedAppearances:cosBool(false)});
+      dictSet(root,"AcroForm",direct?form:cos.allocateObject(cos.allocateObject(form)));
+      dictSet(root,"Metadata",cos.allocateObject(cosString("catalog metadata")));
+      const bytes=doc.save();
+      for (const f of [fs,rust.fs]) {await f.writeFile("/in",bytes);await f.writeFile("/data",Buffer.from("payload"));}
+      for (const [op,flags] of [["","DROP_XFA"],["","drop_xmp"],["","need_appearances"],["rotate 1east","need_appearances drop_xfa"],["attach_files data","drop_xfa need_appearances"],["update_info data","drop_xmp need_appearances"],["cat 1","drop_xfa drop_xmp compress"],["shuffle 1","need_appearances uncompress"]]) {
+        const cmd="pdftk in "+op+" output out "+flags;
+        for (const shell of [js,rust]) {const r=await shell.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+        const expected=await fs.readFile("/out"),actual=await rust.fs.readFile("/out");
+        assert.ok(Buffer.from(actual).equals(expected),cmd+" (direct="+direct+"), first different byte "+expected.findIndex((b,i)=>actual[i]!==b));
+      }
+    }
+  } finally {rust.dispose();}
+});

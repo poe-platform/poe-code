@@ -249,30 +249,6 @@ pub(super) fn edit<'a>(
     Ok(changed)
 }
 
-// The object to overwrite can be at the end of a chain of indirect references.
-// Keep the parent's original link so aliases still point through the same chain.
-pub(super) fn lookup<'a>(
-    objects: &mut Objects<'a>,
-    node: &Value<'a>,
-) -> Option<(Option<ObjectId>, Value<'a>)> {
-    let mut value = node.clone();
-    let mut owner = None;
-    let mut seen = std::collections::BTreeSet::new();
-    while let Value::Ref(id) = value {
-        if !seen.insert(id) {
-            return None;
-        }
-        let (v, mut cursor) = objects.object(id)?;
-        cursor.skip();
-        if cursor.0.starts_with(b"stream") {
-            return None;
-        }
-        owner = Some(id);
-        value = v;
-    }
-    Some((owner, value))
-}
-
 // PDFtk appends to the root Names array even when it contains duplicate keys or
 // has a Kids tree. Existing references, including an indirect Names array, stay valid.
 pub(super) fn append<'a>(
@@ -287,7 +263,7 @@ pub(super) fn append<'a>(
     mut remaining: usize,
 ) -> Result<Vec<Value<'a>>, String> {
     let mut dictionary = |node: Option<&Value<'a>>| -> Result<_, String> {
-        if let Some((id, Value::Dict(d))) = node.and_then(|v| lookup(objects, v)) {
+        if let Some((id, Value::Dict(d))) = node.and_then(|v| objects.lookup_value(v)) {
             return Ok((id, node.and_then(Value::reference), d));
         }
         let id = (next, 0);
@@ -304,7 +280,7 @@ pub(super) fn append<'a>(
         .iter()
         .find(|(k, _)| k.as_ref() == b"Names")
         .map(|(_, v)| v);
-    let (array_id, mut pairs) = match old.and_then(|v| lookup(objects, v)) {
+    let (array_id, mut pairs) = match old.and_then(|v| objects.lookup_value(v)) {
         Some((id, Value::Array(a))) => (id, a),
         _ => (None, vec![]),
     };

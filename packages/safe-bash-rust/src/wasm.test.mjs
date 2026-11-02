@@ -4978,3 +4978,34 @@ test("pdftk composites stamp and background streams, resources and page transfor
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf flattens rotations into content and maps page boxes and annotation rectangles",async()=>{
+  const {PdfDocument,cosArray:a,cosNumber:n,cosName:k,cosDict:d,dictSet,dictGet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const doc=PdfDocument.create(),c=doc.cos,box=(...values)=>a(values.map(x=>n(x)));
+  for(const [i,r] of [0,90,180,270].entries()){
+    const p=doc.addPage([180,310]);p.setRotation(r);p.drawText("Paint "+i,{x:20,y:35});
+    dictSet(p.pageDict,"TrimBox",box(10,20,160,250));
+    const ann=d({Subtype:k("Link"),Rect:box(12,32,66,86)});
+    dictSet(p.pageDict,"Annots",i%2?c.allocateObject(a([c.allocateObject(ann)])):a([ann]));
+  }
+  const first=doc.getPage(0);
+  dictSet(first.pageDict,"Rect",box(1,2,11,22));
+  const linked=doc.getPage(3).pageDict,annotations=c.resolve(dictGet(linked,"Annots"));
+  annotations.items.push(first.ref);
+  dictSet(doc.getPage(2).pageDict,"Contents",dictGet(doc.getPage(1).pageDict,"Contents"));
+  const last=doc.getPage(3).pageDict;dictSet(last,"Contents",a([dictGet(last,"Contents"),dictGet(doc.getPage(0).pageDict,"Contents")]));
+  const input=doc.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
+  try{
+    await fs.writeFile("/in",input);
+    for(const flags of ["","--rotate=+90:1","--object-streams=generate","--linearize","--split-pages=2","--pages . 2-4 --"]){
+      const cmd="qpdf in --flatten-rotation "+flags+" "+(flags.includes("split-pages")?"part-%d.pdf":"out");
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      for(const name of flags.includes("split-pages")?["part-1-2.pdf","part-3-4.pdf"]:["out"]){
+        const b=await fs.readFile("/"+name),v=await rs.fs.readFile("/"+name);
+        assert.ok(Buffer.from(v).equals(b),cmd+" "+name+" first different byte "+b.findIndex((x,i)=>x!==v[i]));
+      }
+    }
+  }finally{rs.dispose();}
+});

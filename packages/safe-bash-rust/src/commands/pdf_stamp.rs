@@ -6,7 +6,7 @@ use super::super::{
     pdf_string,
     pdf_update::encode_name,
 };
-use super::{ObjectId, Objects, PageSource, PageTree, Value};
+use super::{ObjectId, Objects, PageSource, PageTree, Value, attribute, geometry};
 use std::collections::{BTreeMap, BTreeSet};
 
 const BAD: &str = "invalid PDF stamp";
@@ -136,53 +136,6 @@ fn placement((dw, dh, dr): (f64, f64, f64), (sw, sh, sr): (f64, f64, f64)) -> St
         })
         .collect::<Vec<_>>();
     format!("q\n{} cm\n", parts.join(" "))
-}
-fn attribute<'a, 'p, T>(
-    o: &mut Objects<'a>,
-    tree: &'p PageTree<'a>,
-    mut page: &'p Value<'a>,
-    key: &[u8],
-    mut get: impl FnMut(&mut Objects<'a>, Value<'a>) -> Option<T>,
-) -> Option<T> {
-    let mut seen = BTreeSet::new();
-    loop {
-        if let Some((_, v)) = page.get(key).and_then(|v| o.lookup_value(v))
-            && let Some(v) = get(o, v)
-        {
-            return Some(v);
-        }
-        let parent = page.get(b"Parent")?.reference()?;
-        if !seen.insert(parent) {
-            return None;
-        }
-        page = tree.get(&parent)?.as_ref()?;
-    }
-}
-fn geometry<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'a>) -> (f64, f64, f64) {
-    let b = attribute(o, tree, v, b"MediaBox", |o, v| {
-        let Value::Array(a) = v else {
-            return None;
-        };
-        let mut b = [0.; 4];
-        for (i, n) in b.iter_mut().enumerate() {
-            *n = o.lookup_value(a.get(i)?)?.1.number()?;
-        }
-        Some(b)
-    })
-    .unwrap_or([0., 0., 612., 792.]);
-    let rotation = attribute(o, tree, v, b"Rotate", |_, v| {
-        Some(v.number().unwrap_or(0.).rem_euclid(360.))
-    })
-    .unwrap_or(0.);
-    (
-        (b[2] - b[0]).abs(),
-        (b[3] - b[1]).abs(),
-        if matches!(rotation, 90. | 180. | 270.) {
-            rotation
-        } else {
-            0.
-        },
-    )
 }
 fn names(data: &[u8], rename: &BTreeMap<String, String>, limit: usize) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();

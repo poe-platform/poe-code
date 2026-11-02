@@ -71,6 +71,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub compress_streams: Option<bool>,
     pub decrypt: bool,
     pub linearize: bool,
+    pub flatten_rotation: bool,
     pub rotations: Vec<&'a str>,
     pub page_rotations: &'a [Option<super::Rotation>],
     pub split_pages: Option<usize>,
@@ -101,12 +102,18 @@ pub(in super::super) fn rewrite(
         .and_then(Value::reference)
         .ok_or(INVALID)?;
     let mut catalog = objects.object(root).ok_or(INVALID)?.0;
-    let first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
-    let mut changed = if remove.is_empty() && add.is_empty() && copies.is_empty() {
-        BTreeMap::new()
-    } else {
-        attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?
-    };
+    let mut first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
+    let mut changed=BTreeMap::new();
+    let flattened=if edits.flatten_rotation {
+        let (pages,mut tree)=objects.page_tree(root,&catalog,0).ok_or(INVALID)?;
+        first_new=first_new.max(tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?);
+        let rotations=super::rotations(&edits.rotations,pages.len()).ok_or("invalid page rotation")?;
+        objects.flatten_rotations(&pages,&mut tree,&rotations,&mut changed,&mut first_new,limit)?;
+        Some((pages,tree))
+    }else{None};
+    if !(remove.is_empty() && add.is_empty() && copies.is_empty()) {
+        changed.extend(attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?);
+    }
     let Value::Dict(entries) = &mut catalog else {
         return Err(INVALID.into());
     };
@@ -121,13 +128,13 @@ pub(in super::super) fn rewrite(
         .get(b"Pages")
         .and_then(Value::reference)
         .ok_or(INVALID)?;
-    let (pages, mut tree) = objects
+    let (pages, mut tree) = if let Some(graph)=flattened {graph} else {objects
         .page_tree(
             root,
             &catalog,
             changed.keys().next_back().map_or(0, |id| id.0),
         )
-        .ok_or(INVALID)?;
+        .ok_or(INVALID)?};
     if let Some((stamp,multi,overlay))=edits.stamp {
         let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
         super::PageSource::open(stamp,"")?.stamp(&mut objects,&pages,&mut tree,multi,overlay,next,&mut changed,edits.compress_streams,limit)?;
@@ -142,8 +149,7 @@ pub(in super::super) fn rewrite(
     if edits.linearize {
         changed.insert((first_new,0), format!("<<\n/Linearized 1\n/N {}\n>>", pages.len()).into_bytes());
     }
-    let rotations =
-        super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
+    let rotations=if edits.flatten_rotation {vec![]} else {super::rotations(&edits.rotations,pages.len()).ok_or("invalid page rotation")?};
     let mut remaining = limit;
     let mut store = |id, value: &Value<'_>| -> Result<(), String> {
         let body = changed.entry(id).or_default();
@@ -175,7 +181,7 @@ pub(in super::super) fn rewrite(
     }
     for (i, &id) in pages.iter().enumerate() {
         let rotation = edits.page_rotations.get(i).or_else(||rotations.get(i)).copied().flatten();
-        if edits.split_pages.is_some() && rotation.is_none() {
+        if edits.split_pages.is_some() && rotation.is_none() && !edits.flatten_rotation {
             continue;
         }
         let page = objects.page_dict(id, &tree).ok_or(INVALID)?;

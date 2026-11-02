@@ -6335,7 +6335,6 @@ fn cmd_media_doc(
             let mut normalize_content = None;
             let mut min_version: Option<String> = None;
             let mut force_version: Option<String> = None;
-            let mut flatten_rotation = false;
             let mut overlay_specs: Vec<(bool, String, String, String, String)> = Vec::new();
             let mut collate_group: Option<usize> = None;
             let mut set_page_labels: Vec<String> = Vec::new();
@@ -6348,7 +6347,7 @@ fn cmd_media_doc(
                 if a.starts_with("--")
                     && !matches!(a, "--empty" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
                         | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
-                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt" | "--linearize")
+                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt" | "--linearize" | "--flatten-rotation")
                     && !["--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
                         "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
                         "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
@@ -6646,7 +6645,7 @@ fn cmd_media_doc(
                     continue;
                 }
                 if a == "--flatten-rotation" {
-                    flatten_rotation = true;
+                    edits.flatten_rotation = true;
                     i += 1;
                     continue;
                 }
@@ -7230,7 +7229,7 @@ fn cmd_media_doc(
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
-                            let edited = edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            let edited = edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
                                 || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
                             let graph;
                             let data = if edited {
@@ -7428,7 +7427,7 @@ fn cmd_media_doc(
                 if let Some(rotation) = edit { pg.rot = rotation.apply(f64::from(pg.rot)); }
             }
 
-            if flatten_rotation {
+            if edits.flatten_rotation {
                 for (idx, pg) in doc.pages.iter_mut().enumerate() {
                     if pg.rot == 90 || pg.rot == 270 {
                         let pno = idx + 1;

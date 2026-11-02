@@ -76,7 +76,7 @@ impl FileCommandInput<'_> {
         Ok(())
     }
 
-    fn read(&self, text: &mut String, mut maximum: usize,
+    pub(crate) fn read(&self, text: &mut String, mut maximum: usize,
         mut consume: impl FnMut(&[u8], bool) -> Result<(bool, usize), String>,
     ) -> Result<(), String> {
         use crate::vfs::{bytes_to_stream_string, stream_byte_len, stream_string_to_bytes};

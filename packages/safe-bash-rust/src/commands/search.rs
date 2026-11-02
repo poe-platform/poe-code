@@ -2552,7 +2552,8 @@ fn cmd_grep(
                 types_include: Vec::new(),
                 types_exclude: Vec::new(),
                 show_hidden: true,
-                unrestricted_level: 3,
+                respect_ignore: false,
+                binary: RgBinary::Auto,
                 byte_offset,
                 null_delim,
                 null_data,
@@ -2661,7 +2662,8 @@ fn cmd_grep(
             types_include: Vec::new(),
             types_exclude: Vec::new(),
             show_hidden: true,
-            unrestricted_level: 3,
+            respect_ignore: false,
+            binary: RgBinary::Auto,
             byte_offset,
             null_delim,
             null_data,
@@ -2758,6 +2760,8 @@ fn cmd_rg(
     let mut list_files_only = false;
     let mut show_hidden = false;
     let mut unrestricted_level = 0usize;
+    let mut respect_ignore = true;
+    let mut binary = RgBinary::Auto;
     let mut json_output = false;
     let mut stats = false;
     let mut multiline = false;
@@ -2867,13 +2871,21 @@ fn cmd_rg(
                 "--null-data" => null_data = true,
                 "--hidden" => show_hidden = true,
                 "--no-hidden" => show_hidden = false,
-                "--no-ignore" => unrestricted_level = unrestricted_level.max(1),
-                "--ignore" => unrestricted_level = 0,
+                "--no-ignore" => respect_ignore = false,
+                "--text" | "--a" => binary = RgBinary::Text,
+                "--binary" => binary = RgBinary::Binary,
+                "--no-binary" | "--no-text" => binary = RgBinary::Auto,
+                "--ignore" => respect_ignore = true,
                 "--no-ignore-vcs" => no_ignore_vcs = true,
                 "--ignore-vcs" => no_ignore_vcs = false,
                 "--no-ignore-dot" => no_ignore_dot = true,
                 "--ignore-dot" => no_ignore_dot = false,
-                "--unrestricted" => unrestricted_level += 1,
+                "--unrestricted" => {
+                    unrestricted_level += 1;
+                    respect_ignore = false;
+                    if unrestricted_level >= 2 { show_hidden = true; }
+                    if unrestricted_level >= 3 { binary = RgBinary::Binary; }
+                }
                 "--json" => {
                     json_output = true;
                     count_only = false;
@@ -3172,7 +3184,13 @@ fn cmd_rg(
                     'b' => byte_offset = true,
                     '0' => null_delim = true,
                     '.' => show_hidden = true,
-                    'u' => unrestricted_level += 1,
+                    'a' => binary = RgBinary::Text,
+                    'u' => {
+                        unrestricted_level += 1;
+                        respect_ignore = false;
+                        if unrestricted_level >= 2 { show_hidden = true; }
+                        if unrestricted_level >= 3 { binary = RgBinary::Binary; }
+                    }
                     'l' => {
                         files_with_matches = true;
                         files_without_match = false;
@@ -3404,7 +3422,7 @@ fn cmd_rg(
     }
     if !use_ignore_files {
         custom_ignore_files.clear();
-    } else if unrestricted_level == 0 {
+    } else if respect_ignore {
         for igf in &custom_ignore_files {
             let p = resolve_posix_path(cwd, igf);
             if fs.read_file(&p).is_err() {
@@ -3421,9 +3439,6 @@ fn cmd_rg(
         }
     }
 
-    if unrestricted_level >= 2 {
-        show_hidden = true;
-    }
 
     if list_files_only {
         let search_roots = if targets.is_empty() {
@@ -3455,7 +3470,7 @@ fn cmd_rg(
                 &types_include,
                 &types_exclude,
                 show_hidden,
-                unrestricted_level == 0,
+                respect_ignore,
                 no_ignore_vcs,
                 no_ignore_dot,
                 false,
@@ -3497,7 +3512,7 @@ fn cmd_rg(
     let flags = RxFlags { icase: ignore_case, multiline, dotall: multiline_dotall };
     let mut parsed = Vec::with_capacity(patterns.len());
     let mut cross_line = false;
-    let mut requires_vm = replace.as_deref().is_some_and(|rep| rep.contains('$'));
+    let mut requires_vm = binary == RgBinary::Text || replace.as_deref().is_some_and(|rep| rep.contains('$'));
     let multiline_whole = multiline && (!fixed_strings || patterns.iter().any(|pat| pat.contains('\n')));
     for pattern in &patterns {
         let mut branches = match parse_rx_branches(pattern, fixed_strings, RxDialect::Rg(flags)) {
@@ -3576,7 +3591,8 @@ fn cmd_rg(
             types_include,
             types_exclude,
             show_hidden,
-            unrestricted_level,
+            respect_ignore,
+            binary,
             byte_offset,
             null_delim,
             null_data,
@@ -3607,6 +3623,9 @@ fn cmd_rg(
     )
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum RgBinary { Auto, Binary, Text }
+
 struct GrepConfig {
     ascii_record_rx: Option<ZeroRegex>,
     is_rg: bool,
@@ -3628,7 +3647,8 @@ struct GrepConfig {
     types_include: Vec<String>,
     types_exclude: Vec<String>,
     show_hidden: bool,
-    unrestricted_level: usize,
+    respect_ignore: bool,
+    binary: RgBinary,
     byte_offset: bool,
     null_delim: bool,
     null_data: bool,
@@ -3966,7 +3986,7 @@ fn run_grep_engine(
     if cfg.is_rg && cfg.max_count == Some(0) {
         return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 1 };
     }
-    enum Input { Stdin, File(String, String), Error(String) }
+    enum Input { Stdin, File(String, String, bool), Error(String) }
     let mut inputs = Vec::new();
     let mut err = String::new();
     let mut had_error = false;
@@ -3976,7 +3996,7 @@ fn run_grep_engine(
         inputs.push(Input::Stdin);
     } else {
         let mut init_rules = Vec::new();
-        if cfg.is_rg && cfg.unrestricted_level == 0 {
+        if cfg.is_rg && cfg.respect_ignore {
             for igf in &cfg.custom_ignore_files {
                 let p = resolve_posix_path(cwd, igf);
                 if let Ok(bytes) = fs.read_file(&p) {
@@ -4020,7 +4040,7 @@ fn run_grep_engine(
                 &cfg.types_include,
                 &cfg.types_exclude,
                 cfg.show_hidden,
-                cfg.is_rg && cfg.unrestricted_level == 0,
+                cfg.is_rg && cfg.respect_ignore,
                 cfg.no_ignore_vcs,
                 cfg.no_ignore_dot,
                 cfg.dereference_recursive,
@@ -4031,7 +4051,7 @@ fn run_grep_engine(
                 &mut file_list,
             );
             if cfg.sort_by_path { file_list.sort_by(|a, b| a.0.cmp(&b.0)); }
-            inputs.extend(file_list.into_iter().map(|(label, path)| Input::File(label, path)));
+            inputs.extend(file_list.into_iter().map(|(label, path)| Input::File(label, path, !is_dir)));
         }
     }
 
@@ -4056,13 +4076,12 @@ fn run_grep_engine(
     let mut bytes_searched = 0;
     for input in inputs {
         let file_content;
-        let (fname, content, nul_off) = match input {
-            Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stdin, None),
-            Input::File(ref label, ref path) => {
+        let (fname, content, explicit) = match input {
+            Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stdin, true),
+            Input::File(ref label, ref path, explicit) => {
                 let Ok(bytes) = fs.read_file(path) else { continue; };
-                let nul = if cfg.null_data { None } else { bytes.iter().position(|&b| b == 0) };
                 file_content = String::from_utf8_lossy(&bytes).into_owned();
-                (Some(label.as_str()), file_content.as_str(), nul)
+                (Some(label.as_str()), file_content.as_str(), explicit)
             }
             Input::Error(message) => {
                 had_error = true;
@@ -4070,17 +4089,20 @@ fn run_grep_engine(
                 continue;
             }
         };
+        let nul_off = if cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.as_bytes().iter().position(|&b| b == 0) };
         searches += 1;
         bytes_searched += content.len();
-        if nul_off.is_some() && cfg.ignore_binary {
+        if nul_off.is_some() && (cfg.ignore_binary || cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit) {
             continue;
         }
         let mut line_offsets = Vec::new();
         let mut offset = 0;
-        let lines: Vec<_> = content.split_inclusive(rec_term).map(|record| {
+        let binary_records = cfg.is_rg && nul_off.is_some();
+        let delimiter = |c| c == rec_term || binary_records && c == '\0';
+        let lines: Vec<_> = content.split_inclusive(delimiter).map(|record| {
             line_offsets.push(offset);
             offset += record.len();
-            let line = record.strip_suffix(rec_term).unwrap_or(record);
+            let line = record.strip_suffix(delimiter).unwrap_or(record);
             if !cfg.null_data && !cfg.crlf && record.ends_with('\n') { line.strip_suffix('\r').unwrap_or(line) } else { line }
         }).collect();
         let mut match_indices: Vec<(usize, Vec<(usize, usize)>)> = Vec::new();
@@ -4108,7 +4130,7 @@ fn run_grep_engine(
             spans
         };
         let limit = cfg.max_count.unwrap_or(usize::MAX);
-        let whole_matches = multiline && replacement.is_none() && !cfg.invert && cfg.only_matching && !cfg.count_only && !cfg.json_output;
+        let whole_matches = !binary_records && multiline && replacement.is_none() && !cfg.invert && cfg.only_matching && !cfg.count_only && !cfg.json_output;
         let lf_offsets;
         let source_lines = if whole_matches && cfg.is_rg && cfg.null_data {
             lf_offsets = std::iter::once(0).chain(content.match_indices('\n').map(|(i, _)| i + 1)).collect::<Vec<_>>();
@@ -4168,6 +4190,7 @@ fn run_grep_engine(
             let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
                 if idx >= print_end || limit == 0 { break; }
+                if binary_records && idx > 0 && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) { break; }
                 let spans = if multiline {
                     projected.next_if(|(i, _)| *i == idx).map(|(_, spans)| spans).unwrap_or_default()
                 } else {

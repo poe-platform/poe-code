@@ -7043,3 +7043,26 @@ test("rg file listing status and quiet diagnostics follow target order", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("rg distinguishes text, explicit binary inputs and discovered binary files", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const sh of [js,rs]) await sh.exec("mkdir d; printf 'x\\0y\\nx\\n' >d/blob; echo z >d/plain");
+    const notice = 'binary file matches (found "\\0" byte around offset 1)\n';
+    for (const [cmd,code,stdout] of [
+      ["rg -a -n x d",0,"d/blob:1:x\0y\nd/blob:2:x\n"],
+      ["rg -n x d",1,""], ["rg -n '^y$' d/blob",0,notice], ["cat d/blob | rg x",0,notice],
+      ["rg --binary -c '^x$' d",0,"d/blob:2\n"], ["rg --files-without-match z d",1,""],
+      ["rg -uuu -a -ob . d/blob",0,"0:x\n1:\0\n2:y\n4:x\n"],
+      ["rg -a -uuu x d",0,"d/blob: "+notice], ["rg --binary --no-binary x d",1,""],
+      ["rg --text --no-text -c '^y$' d/blob",0,"1\n"], ["rg -B1 y d/blob",1,""],
+    ]) {
+      for (const sh of [js,rs]) {
+        const r=await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[code,stdout,""],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

@@ -6179,3 +6179,38 @@ test("tar pads newly written archives to the requested record size before compre
     assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(before));
   } finally { rs.dispose(); }
 });
+
+test("tar compares filesystem metadata and hard-link identity as well as file contents", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.mkdir("/src/d", {recursive: true});
+    await fs.writeFile("/src/d/a", Buffer.from("old"));
+    await fs.link("/src/d/a", "/src/d/b");
+    await fs.link("/src/d/a", "/src/d/c");
+    await fs.symlink("a", "/src/d/s");
+    await fs.writeFile("/src/d/line\nbreak", Buffer.from("gone"));
+    const seed = await js.exec("tar --format=ustar --sort=name --mtime=@3 --mode=700 --owner=77 --group=88 -cf - -C src d");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const f of [fs, rs.fs]) {
+      await f.mkdir("/live/d", {recursive: true});
+      await f.writeFile("/live/d/a", Buffer.from("new"));
+      await f.link("/live/d/a", "/live/d/c");
+      await f.writeFile("/live/d/b", Buffer.from("new"));
+      await f.symlink("b", "/live/d/s");
+      for (const p of ["/live/d", "/live/d/a", "/live/d/b"]) await f.utimes(p, 1000, 1000);
+      await f.writeFile("/in", seed.stdoutBytes);
+    }
+    for (const operand of ["d/a", "d/b", "d/c", "d/s", "d", "none"]) {
+      const cmd = "tar --totals -dvf in -C live " + operand;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, operand === "none" ? 2 : 1);
+      if (operand === "d/b") assert.match(a.stdout, /Not linked to archive target/);
+      if (operand === "d/c") assert.doesNotMatch(a.stdout, /Not linked/);
+      if (operand === "d/a") assert.match(a.stdout, /Uid differs\nd\/a: Gid differs/);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

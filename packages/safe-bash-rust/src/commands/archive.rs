@@ -5714,67 +5714,58 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         if !sel || tar_matches_exclude(entry.name, &excludes) { return Ok(()); }
         if diff_mode {
+            use crate::vfs::VfsEntryKind::{Directory, File, Symlink};
+            if entry.name.split('/').any(|part| part == "..") {
+                return Err(format!("unsafe parent component in member: {}", tar_format::display(entry.name)));
+            }
+            let mut difference = |reason: &str| {
+                out.push_str(&format!("{}: {reason}\n", tar_format::display(entry.name)));
+                exit_code = 1;
+            };
+            let lookup = |path: &str| match fs.lstat(path) {
+                Ok(stat) => Ok(Some(stat)),
+                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
+                Err(e) => Err(e),
+            };
             let dest = resolve_posix_path(&entry_root, entry.name);
-            if entry.typeflag == b'2' {
-                match fs.readlink(&dest) {
-                    Ok(actual_target) => {
-                        if actual_target != entry.linkname {
-                            out.push_str(&format!("{}: Symlink differs\n", entry.name));
-                            exit_code = 1;
-                        }
-                    }
-                    Err(_) => {
-                        if fs.exists(&dest) {
-                            out.push_str(&format!("{}: File type differs\n", entry.name));
-                        } else {
-                            out.push_str(&format!("{}: File is missing\n", entry.name));
-                        }
-                        exit_code = 1;
-                    }
+            let Some(st) = lookup(&dest)? else { difference("File is missing"); return Ok(()); };
+            let wanted = match entry.typeflag { b'5' => Directory, b'2' => Symlink, _ => File };
+            if st.kind != wanted { difference("File type differs"); return Ok(()); }
+            if st.mode & 0o7777 != entry.mode { difference("Mode differs"); }
+            for (archived, actual, message) in [(entry.uid, st.uid, "Uid differs"), (entry.gid, st.gid, "Gid differs")] {
+                if let Some(id) = archived {
+                    let actual = actual.ok_or("filesystem lacks ownership required for archive comparison")?;
+                    if u64::from(actual) != id { difference(message); }
                 }
-            } else if entry.typeflag == b'5' {
-                if !fs.exists(&dest) {
-                    out.push_str(&format!("{}: File is missing\n", entry.name));
-                    exit_code = 1;
-                } else if !fs.is_dir(&dest) {
-                    out.push_str(&format!("{}: File type differs\n", entry.name));
-                    exit_code = 1;
-                }
-            } else if entry.typeflag == b'0' {
-                if fs.readlink(&dest).is_ok() || fs.is_dir(&dest) {
-                    out.push_str(&format!("{}: File type differs\n", entry.name));
-                    exit_code = 1;
-                    return Ok(());
-                }
-                match fs.read_file(&dest) {
-                    Ok(disk_bytes) => {
-                        if let Ok(st) = fs.stat(&dest) {
-                            if (st.mode & 0o7777) != (entry.mode & 0o7777) {
-                                out.push_str(&format!("{}: Mode differs\n", entry.name));
-                                exit_code = 1;
-                            }
-                            if entry.mtime.is_some_and(|t| (st.mtime_ms / 1000.0).floor() != t.floor()) {
-                                out.push_str(&format!("{}: Mod time differs\n", entry.name));
-                                exit_code = 1;
-                            }
-                        }
-                        if disk_bytes.len() as u64 != entry.size {
-                            out.push_str(&format!("{}: Size differs\n", entry.name));
-                            exit_code = 1;
-                        } else if (entry.content.len() as u64) < entry.size {
-                            return Err("truncated archive body".into());
-                        } else if disk_bytes != entry.content {
-                            out.push_str(&format!("{}: Contents differ\n", entry.name));
-                            exit_code = 1;
-                        } else if verbose {
-                            out.push_str(&format!("{}\n", tar_quote_name(entry.name, &quoting_style)));
-                        }
+            }
+            if wanted != Symlink && entry.mtime.is_some_and(|t| (st.mtime_ms / 1000.).floor() != t.floor()) {
+                difference("Mod time differs");
+            }
+            match entry.typeflag {
+                b'2' => { if fs.readlink(&dest)? != entry.linkname { difference("Symlink differs"); } }
+                b'1' => {
+                    if entry.linkname.split('/').any(|part| part == "..") { return Err("unsafe hardlink target in archive comparison".into()); }
+                    let target = lookup(&resolve_posix_path(&entry_root, entry.linkname))?;
+                    if st.identity.is_none() || target.as_ref().is_some_and(|t| t.identity.is_none()) {
+                        return Err("filesystem lacks identity required for hardlink comparison".into());
                     }
-                    Err(_) => {
-                        out.push_str(&format!("{}: File is missing\n", entry.name));
-                        exit_code = 1;
-                    }
+                    if target.and_then(|t| t.identity) != st.identity { difference("Not linked to archive target"); }
                 }
+                b'0' if st.size as u64 != entry.size => difference("Size differs"),
+                b'0' => {
+                    if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
+                    let mut offset = 0;
+                    let mut equal = true;
+                    fs.read_chunks(&dest, &mut |chunk| {
+                        let end = offset + chunk.len();
+                        equal = entry.content.get(offset..end) == Some(chunk);
+                        offset = end;
+                        Ok(equal)
+                    })?;
+                    if !equal || offset != entry.content.len() { difference("Contents differ"); }
+                    if verbose { out.push_str(&format!("{}\n", tar_quote_name(entry.name, &quoting_style))); }
+                }
+                _ => {}
             }
         } else if list {
             let is_dir_entry = entry.typeflag == b'5' || entry.name.ends_with('/');

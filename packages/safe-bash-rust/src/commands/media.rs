@@ -104,6 +104,8 @@ const EXIF_TAGS: &[&str] = &["Artist","Title","Author","Description","ImageDescr
 
 #[path = "exiftool_png.rs"]
 mod exiftool_png;
+#[path = "exiftool_json.rs"]
+mod exiftool_json;
 #[path = "exiftool_argfiles.rs"]
 mod exiftool_argfiles;
 #[path = "tiff.rs"]
@@ -11791,7 +11793,7 @@ fn cmd_media_doc(
             let mut print_fmt = None;
             let mut updates = Vec::new();
             let mut requested_tags = Vec::new();
-            let mut duplicates = false;
+            let (mut duplicates, mut quote_scalars) = (false, false);
             let mut files = Vec::new();
             let mut out_path = None;
             let mut tags_from_file = None;
@@ -11809,6 +11811,7 @@ fn cmd_media_doc(
                             "-config" if !value.is_empty() => return err_out("Error: User configuration modules are not supported\n", 1),
                             "-charset" if !value.eq_ignore_ascii_case("filename=utf8") => return err_out("Error: Only UTF-8 filename charset is currently supported\n", 1),
                             "-api" if !value.eq_ignore_ascii_case("structformat=jsonq") => return err_out("Error: API option not yet supported\n", 1),
+                            "-api" => quote_scalars = true,
                             "-p" => print_fmt = Some(value.clone()),
                             "-o" => out_path = Some(value.clone()),
                             "-tagsfromfile" if value == "-" || value.contains('%') => return err_out("Error: tagsFromFile stdin and path templates are not yet supported\n", 1),
@@ -12082,8 +12085,7 @@ fn cmd_media_doc(
             }
             let read_all_tags = |f: &str, data: &[u8]| {
                 let full = resolve_posix_path(cwd, f);
-                let mut map = BTreeMap::new();
-                map.insert("SourceFile".to_owned(), vec![f.to_owned()]);
+                let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
                 let mut order = Vec::new();
                 let mut store = |name: &str, value: String, raw: Option<&[u8]>| {
                     let values = map.entry(name.to_owned()).or_default();
@@ -12176,23 +12178,11 @@ fn cmd_media_doc(
                 return finalize_exif_out(out);
             }
             if json_mode {
-                let mut items = Vec::new();
-                for (_, map, _) in &records {
-                    let mut fields = Vec::new();
-                    for (k, values) in map {
-                        let v = values.last().unwrap();
-                        if k == "ImageWidth" || k == "ImageHeight" || k == "PageCount" {
-                            fields.push(format!("\"{k}\": {v}"));
-                        } else {
-                            fields.push(format!("\"{k}\": \"{}\"", v.replace('"', "\\\"")));
-                        }
-                    }
-                    items.push(format!("  {{\n    {}\n  }}", fields.join(",\n    ")));
-                }
-                if items.is_empty() && !read_err_buf.is_empty() {
-                    return finalize_exif_out("[]\n".to_string());
-                }
-                return finalize_exif_out(format!("[\n{}\n]\n", items.join(",\n")));
+                let items = records.iter().map(|(file, map, order)| {
+                    let keys = if requested_tags.is_empty() { order } else { &requested_tags };
+                    exiftool_json::record(file, map, keys, group == 4, missing, quote_scalars)
+                }).collect::<Vec<_>>();
+                return finalize_exif_out(format!("[{}]\n", items.join(",\n")));
             }
             if csv_mode {
                 let mut hdr = vec!["SourceFile".to_string()];

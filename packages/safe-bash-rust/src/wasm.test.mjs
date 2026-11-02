@@ -3413,12 +3413,17 @@ test("exiftool reads and edits standard PNG chunks without altering image data",
     bytes.writeUInt32BE(crc32(bytes.subarray(4, -4)), bytes.length - 4); return bytes;
   };
   const input = Buffer.concat([base.subarray(0, 33), chunk("tEXt", "TITLE\0café"), chunk("tEXt", "Title\0old"), base.subarray(33)]);
+  const scalars = Buffer.concat([base.subarray(0, 33), ...[
+    ["Title", "001"], ["A", "-3.50e+2"], ["B", "TRUE"], ["C", "1234567890123456"],
+    ["D", "a\0b\x1b\x7f\t\n\r\\\""], ["E", "false\n"], ["F", "007"], ["G", ".25"],
+  ].map(([k,v]) => chunk("tEXt", k + "\0" + v)), base.subarray(33)]);
   const raw = Buffer.concat([input.subarray(0, 33), chunk("iTXt", "Title\0\0\0\0\0\xff"), input.subarray(33)]);
   const broken = Buffer.from(input); broken[32] ^= 1;
   for (const [source, flags] of [
     [input, "-s3 -Title -ColorType"], [input, "-Title=first -Title='café 雪' -Author=A"], [input, "-Title-=old"],
     [input, "-ModifyDate=2024-02-29T12:34:56.789+05:30"], [input, "-ModifyDate=bad"], [input, "-all="],
-    [raw, "-a -b -Title"], [raw, "-a -s3 -Title -Title"], [raw, "-T -a -Title -Title"],
+    [scalars, "-j"], [scalars, "-j -api structformat=jsonq"], [raw, "-j -G4 -Title -Title -ImageWidth -f -MissingTag"], [input, "-j"],
+    [input, "-j -api structformat=jsonq -ImageWidth -FileSize#"], [broken, "-j"], [raw, "-a -b -Title"], [raw, "-a -s3 -Title -Title"], [raw, "-T -a -Title -Title"],
     [Buffer.concat([base.subarray(0, 33), chunk("iTXt", "Title\0\0\0\0\0\xff"), base.subarray(33)]), "-b -Title"],
     [input, "-Title+=bad"], [input, "-Title+=NaN"], [input, "-Title+=2e+"], [input, "-Title+=+.25E2"], [input, "-Title+=1,5"], [input, "-Author=x -Title+=bad"],
     [broken, "-Title+=bad"], [input, "-Subject=x"], [input, "-Comment="], [input, "-tagsFromFile ref.png -Title"], [input, "-tagsFromFile ref.png -ImageWidth"],

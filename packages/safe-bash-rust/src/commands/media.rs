@@ -8071,73 +8071,47 @@ fn cmd_media_doc(
             }
         }
         "pdfdetach" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return ok_out("pdfdetach version 24.08.0\n");
-            }
-            if args
-                .iter()
-                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
-            {
-                return ok_out("Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n");
-            }
             let mut list_mode = false;
             let mut save_all = false;
-            let mut save_idx: Option<usize> = None;
-            let mut save_file: Option<String> = None;
-            let mut out_target: Option<String> = None;
-            let mut pw_opt: Option<String> = None;
-            let mut pdf_file: Option<String> = None;
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
+            let mut save_idx = 0.0;
+            let mut save_file = "";
+            let mut dest = "";
+            let mut password = "";
+            let mut pdf_file = None;
+            let mut args = args.iter().map(String::as_str);
+            while let Some(arg) = args.next() {
+                match arg {
+                    "-v" | "--version" => return ok_out("pdfdetach version 24.08.0\n"),
+                    "-h" | "-help" | "--help" | "-?" => return ok_out("Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n"),
                     "-list" => list_mode = true,
                     "-saveall" => save_all = true,
                     "-save" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfdetach: invalid -save argument\n", 99);
-                        };
-                        save_idx = Some(v);
-                        i += 1;
+                        let text = args.next().unwrap_or("").trim_start_matches(|c: char| c.is_whitespace() && c != '\u{85}' || c == '\u{feff}');
+                        let sign = usize::from(text.starts_with(['+', '-']));
+                        let digits = text[sign..].bytes().take_while(u8::is_ascii_digit).count();
+                        save_idx = text[..sign + digits].parse::<f64>().unwrap_or(0.0);
                     }
-                    "-savefile" => {
-                        let Some(v) = args.get(i + 1) else {
-                            return err_out("pdfdetach: missing -savefile argument\n", 99);
-                        };
-                        save_file = Some(v.clone());
-                        i += 1;
-                    }
-                    "-o" => {
-                        let Some(v) = args.get(i + 1) else {
-                            return err_out("pdfdetach: missing -o argument\n", 99);
-                        };
-                        out_target = Some(v.clone());
-                        i += 1;
-                    }
-                    "-upw" | "-opw" => {
-                        if let Some(v) = args.get(i + 1) {
-                            pw_opt = Some(v.clone());
-                            i += 1;
-                        }
-                    }
+                    "-savefile" => save_file = args.next().unwrap_or(""),
+                    "-o" => dest = args.next().unwrap_or(""),
+                    "-upw" | "-opw" => password = args.next().unwrap_or(""),
                     "-enc" => {
-                        let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                        let enc = args.next().unwrap_or("");
                         if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
                             return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
                         }
-                        i += 1;
                     }
-                    a if a == "-" || !a.starts_with('-') => { pdf_file.get_or_insert_with(|| a.to_string()); }
-                    a => return err_out(&format!("pdfdetach: unknown option {a}\n"), 99),
+                    a if a == "-" || !a.starts_with('-') => { pdf_file.get_or_insert(a); }
+                    _ => {}
                 }
-                i += 1;
             }
-            let Some(f) = pdf_file else {
+            let Some(f) = pdf_file.filter(|f| !f.is_empty()) else {
                 return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
             };
+            if f == "-" && stdin.is_empty() { return err_out("I/O Error: Couldn't open file '-'\n", 1); }
             let b = if f == "-" {
                 crate::vfs::stream_string_to_bytes(stdin)
             } else {
-                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd,&f)) else {
+                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd,f)) else {
                     return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
                 };
                 bytes
@@ -8152,27 +8126,26 @@ fn cmd_media_doc(
                 files
             } else {
                 let doc = PdfDoc::parse(&b);
-                if let Some(ref password) = doc.encrypted
-                    && !password.is_empty() && pw_opt.as_deref() != Some(password.as_str()) {
+                if let Some(ref required) = doc.encrypted
+                    && !required.is_empty() && password != required {
                     return err_out("PDF Error: Invalid PDF password\n", 1);
                 }
                 doc.attachments.into_iter().map(|(_,name,_,data)|(name,data)).collect()
             };
-            if list_mode || (!save_all && save_idx.is_none() && save_file.is_none()) {
+            if list_mode || (!save_all && save_idx == 0.0 && save_file.is_empty()) {
                 let mut out = format!("{} embedded files\n", attachments.len());
                 for (i, (name,_)) in attachments.iter().enumerate() {
                     out.push_str(&format!("{}: {name}\n", i+1));
                 }
                 return ok_out(&out);
             }
-            let dest = out_target.as_deref().unwrap_or("");
             let directory = dest.ends_with('/') || !dest.is_empty() && fs.is_dir(&resolve_posix_path(cwd,dest));
             let mut outputs = Vec::new();
             for (i,(name,bytes)) in attachments.into_iter().enumerate() {
-                if let Some(n) = save_idx {
-                    if i+1 != n { continue; }
-                } else if let Some(ref wanted) = save_file && wanted != &name { continue; }
-                let path = if !dest.is_empty() && !directory && (save_idx.is_some() || save_file.is_some()) {
+                let selected = if save_idx > 0.0 { (i + 1) as f64 == save_idx }
+                    else if !save_file.is_empty() { name == save_file } else { save_all };
+                if !selected { continue; }
+                let path = if !dest.is_empty() && !directory && (save_idx > 0.0 || !save_file.is_empty()) {
                     dest.to_string()
                 } else {
                     let leaf = name.rsplit(['/', '\\']).next().unwrap_or("");
@@ -8184,8 +8157,8 @@ fn cmd_media_doc(
                 outputs.push((path,bytes));
             }
             if outputs.is_empty() {
-                if let Some(n) = save_idx { return err_out(&format!("Error: Invalid file index {n}\n"),1); }
-                if let Some(name) = save_file { return err_out(&format!("Error: Embedded file '{name}' not found\n"),1); }
+                if save_idx > 0.0 { return err_out(&format!("Error: Invalid file index {}\n", mcp_protocol_rust::numbers::format(save_idx)),1); }
+                if !save_file.is_empty() { return err_out(&format!("Error: Embedded file '{save_file}' not found\n"),1); }
             }
             for (path, bytes) in outputs {
                 if !write_regular_output(fs,cwd,&path,&bytes) {

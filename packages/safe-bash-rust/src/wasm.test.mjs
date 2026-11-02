@@ -3125,3 +3125,36 @@ test("install directory failures and symbolic mode masks match production", asyn
     } finally { wasm.dispose(); }
   }
 });
+
+test("pdfdetach consumes option values in order and extracts only the selected attachments", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { pdfinfoCommands } = await import("@poe-platform/safe-bash/commands/pdfinfo");
+  const { PdfDocument, cosStream, cosArray, cosDict, cosName, cosString, dictSet } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage([10, 10]);
+  const attachments = ["one", "two"].map((name, i) => {
+    const data = doc.cos.allocateObject(cosStream(Uint8Array.of(i, 255)));
+    return doc.cos.allocateObject(cosDict({ Type: cosName("Filespec"), UF: cosString(name), EF: cosDict({ UF: data }) }));
+  });
+  dictSet(doc.cos.resolveDict(doc.cos.rootRef), "AF", cosArray(attachments));
+  const bytes = doc.save();
+  for (const args of ["--bogus", "--bogus in.pdf", "-o --help in.pdf", "-enc --version", "-h -v",
+    "-enc bogus -h", "in.pdf -save", "in.pdf -savefile", "in.pdf -o", "-save -h in.pdf", "-save nope in.pdf",
+    "-save 2tail in.pdf", "-save ' +1.9' in.pdf", "-save 0 in.pdf", "-save -1 in.pdf",
+    "-save -1 -savefile two in.pdf", "-save -1 -saveall in.pdf", "-save 3 -list in.pdf",
+    "-save 1234567890123456789012345 in.pdf", "-savefile '' in.pdf", "-saveall -savefile two in.pdf",
+    "-save 1 -savefile two -o selected in.pdf", "-savefile missing in.pdf", "'' in.pdf", "-"]) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/in.pdf", bytes);
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(pdfinfoCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/", files: { "/in.pdf": bytes } });
+    try {
+      const script = "pdfdetach " + args;
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      for (const path of ["/one", "/two", "/selected", "/--help"]) {
+        assert.deepEqual(await wasm.fs.readFile(path).catch(() => undefined), await fs.readFile(path).catch(() => undefined), script + ": " + path);
+      }
+    } finally { wasm.dispose(); }
+  }
+});

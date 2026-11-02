@@ -119,10 +119,13 @@ impl<'a> PageSource<'a> {
                 Some(v @ Value::String { .. }) => Some(v.clone()),
                 _ => None,
             };
-            if let Some(Value::String { bytes: s, hex }) = field
+            if let Some(Value::String { bytes: s, .. }) = field
                 && !s.is_empty()
             {
-                info.push((key, Value::String { bytes: s, hex }));
+                info.push((
+                    key,
+                    super::pdf_string::encode(&super::pdf_string::decode(&s)),
+                ));
             } else if key == b"Producer" {
                 info.push((
                     key,
@@ -284,7 +287,15 @@ impl<'a> PageSource<'a> {
     }
 }
 
+struct Form {
+    number: usize,
+    fields: Vec<usize>,
+    defaults: Vec<(&'static [u8], Vec<u8>)>,
+}
+
 pub(in super::super) struct PageOutput {
+    form: Option<Form>,
+    optional_content: bool,
     pages: Vec<usize>,
     labels: Vec<u8>,
     attachments: Vec<(Vec<u8>, Vec<u8>)>,
@@ -297,11 +308,17 @@ pub(in super::super) struct PageOutput {
 impl PageOutput {
     pub(in super::super) fn new(limit: usize) -> Self {
         Self {
+            form: None,
+            optional_content: false,
             pages: vec![],
             labels: Vec::new(),
             attachments: Vec::new(),
             attachment_names: BTreeSet::new(),
-            bodies: vec![vec![], vec![], vec![]],
+            bodies: vec![
+                b"<<\n/Type /Catalog\n/Pages 2 0 R\n".to_vec(),
+                vec![],
+                vec![],
+            ],
             limit,
             remaining: limit,
         }
@@ -343,11 +360,8 @@ impl PageOutput {
             super::pdf_string::encode("@poe-code/pdf-ast"),
         )];
         for key in [b"Title".as_slice(), b"Author", b"Subject", b"Keywords"] {
-            if let Some(Value::String { bytes, .. }) = source.info.get(key) {
-                info.push((
-                    key,
-                    super::pdf_string::encode(&super::pdf_string::decode(bytes)),
-                ));
+            if let Some(value) = source.info.get(key) {
+                info.push((key, value.clone()));
             }
         }
         super::pdf_rewrite::encode(&Value::Dict(info), &mut output.bodies[2]).ok()?;
@@ -419,11 +433,28 @@ impl PageOutput {
             copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
             copy.output.bodies[copy.ids[&id] - 1] = body;
         }
+        copy.catalog_fields(&source.catalog)?;
         Some(())
     }
 
     pub(in super::super) fn finish(mut self) -> Option<Vec<u8>> {
-        let mut catalog = b"<<\n/Type /Catalog\n/Pages 2 0 R\n".to_vec();
+        let mut catalog = std::mem::take(&mut self.bodies[0]);
+        if let Some(form) = self.form {
+            let mut body = b"<<\n/Fields [ ".to_vec();
+            for field in form.fields {
+                write!(body, "{field} 0 R ").ok()?;
+            }
+            body.extend_from_slice(b"]\n");
+            for (key, value) in form.defaults {
+                body.push(b'/');
+                body.extend_from_slice(key);
+                body.push(b' ');
+                body.extend_from_slice(&value);
+                body.push(b'\n');
+            }
+            body.extend_from_slice(b">>");
+            self.bodies[form.number - 1] = body;
+        }
         if !self.attachments.is_empty() {
             let mut names = b"<<\n/Names [ ".to_vec();
             for (name, bytes) in self.attachments {
@@ -504,6 +535,126 @@ struct Copy<'c, 'a> {
 }
 
 impl<'a> Copy<'_, 'a> {
+    // A root field can own a selected widget without itself being referenced by the page.
+    fn has_copied_field(
+        &mut self,
+        node: &Value<'a>,
+        seen: &mut BTreeSet<ObjectId>,
+        depth: usize,
+    ) -> Option<bool> {
+        if depth > 128 {
+            return None;
+        }
+        if let Some(id) = node.reference() {
+            if self.ids.contains_key(&id) {
+                return Some(true);
+            }
+            if !seen.insert(id) {
+                return Some(false);
+            }
+        }
+        if let Some(Value::Array(kids)) = self
+            .objects
+            .resolve(node)
+            .and_then(|v| v.get(b"Kids").and_then(|v| self.objects.resolve(v)))
+        {
+            for kid in kids {
+                if self.has_copied_field(&kid, seen, depth + 1)? {
+                    return Some(true);
+                }
+            }
+        }
+        Some(false)
+    }
+
+    fn catalog_fields(&mut self, catalog: &Value<'a>) -> Option<()> {
+        let form = catalog
+            .get(b"AcroForm")
+            .and_then(|v| self.objects.resolve(v));
+        if let Some(form) = form
+            && let Some(Value::Array(fields)) =
+                form.get(b"Fields").and_then(|v| self.objects.resolve(v))
+        {
+            let mut roots = Vec::new();
+            let mut seen = BTreeSet::new();
+            for field in fields {
+                if !self.has_copied_field(&field, &mut BTreeSet::new(), 0)? {
+                    continue;
+                }
+                self.value(&field, &mut Vec::new(), 0)?;
+                let Some((id, number)) = field
+                    .reference()
+                    .and_then(|id| self.ids.get(&id).map(|&n| (id, n)))
+                else {
+                    continue;
+                };
+                if !seen.insert(number) {
+                    continue;
+                }
+                roots.push(number);
+                let (dict, _) = self.objects.object(id)?;
+                if let Some(Value::Array(kids)) =
+                    dict.get(b"Kids").and_then(|v| self.objects.resolve(v))
+                {
+                    let mut kept = vec![];
+                    for kid in kids {
+                        if self.has_copied_field(&kid, &mut BTreeSet::new(), 0)? {
+                            kept.push(kid);
+                        }
+                    }
+                    if !kept.is_empty()
+                        && let Value::Dict(mut entries) = dict
+                    {
+                        set(&mut entries, b"Kids", Value::Array(kept));
+                        let mut body = vec![];
+                        self.value(&Value::Dict(entries), &mut body, 0)?;
+                        let old = std::mem::replace(&mut self.output.bodies[number - 1], body);
+                        self.output.remaining = (self.output.remaining + old.len())
+                            .checked_sub(self.output.bodies[number - 1].len())?;
+                    }
+                }
+            }
+            if !roots.is_empty() {
+                let mut target = match self.output.form.take() {
+                    Some(form) => form,
+                    None => {
+                        self.output.bodies.push(vec![]);
+                        let number = self.output.bodies.len();
+                        writeln!(self.output.bodies[0], "/AcroForm {number} 0 R").ok()?;
+                        Form {
+                            number,
+                            fields: vec![],
+                            defaults: vec![],
+                        }
+                    }
+                };
+                target.fields.extend(roots);
+                for key in [b"DR".as_slice(), b"DA"] {
+                    if let Some(v) = form.get(key)
+                        && !target.defaults.iter().any(|(k, _)| *k == key)
+                    {
+                        let mut body = vec![];
+                        self.value(v, &mut body, 0)?;
+                        self.output.remaining = self.output.remaining.checked_sub(body.len())?;
+                        target.defaults.push((key, body));
+                    }
+                }
+                self.output.form = Some(target);
+            }
+        }
+        if !self.output.optional_content
+            && let Some(v) = catalog.get(b"OCProperties")
+        {
+            let mut body = b"/OCProperties ".to_vec();
+            self.value(v, &mut body, 0)?;
+            body.push(b'\n');
+            self.output.remaining = self.output.remaining.checked_sub(body.len())?;
+            self.output.bodies[0].extend(body);
+            self.output.optional_content = true;
+        }
+        Some(())
+    }
+
     fn page(&mut self, id: ObjectId, rotation: Option<Rotation>) -> Option<Value<'a>> {
         let page = self.objects.object(id)?.0;
         let mut parent = page.get(b"Parent").and_then(Value::reference);

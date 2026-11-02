@@ -3726,25 +3726,32 @@ test("qpdf splits real page objects with their resources, rotations and document
   const { cosDict, cosRef, cosArray, cosNumber, cosName, cosString, cosStream, serializeCosDocument } = await import("@poe-code/pdf-ast");
   const box=(...v)=>cosArray(v.map(n=>cosNumber(n)));
   const nodes=[
-    cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),
+    cosDict({Type:cosName("Catalog"),Pages:cosRef(2),AcroForm:cosRef(10),OCProperties:cosRef(15)}),
     cosDict({Type:cosName("Pages"),Kids:cosArray([3,4,5].map(n=>cosRef(n))),Count:cosNumber(3),
       Rotate:cosNumber(-90),Resources:cosDict({Font:cosRef(7)}),MediaBox:box(10,20,90,100),CropBox:box(0,0,50,50)}),
-    ...[{}, {Rotate:cosNumber(90)}, {MediaBox:box(0,0,80,100)}].map(fields=>
-      cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(6),...fields})),
+    ...[{}, {Rotate:cosNumber(90)}, {MediaBox:box(0,0,80,100)}].map((fields,i)=>
+      cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(6),Annots:cosArray(i===2?[]:[cosRef(12+i)]),...fields})),
     cosStream(Uint8Array.of(255,0,128,10),{compress:true}),cosDict({F1:cosRef(8)}),
     cosDict({Type:cosName("Font"),Subtype:cosName("Type1"),BaseFont:cosName("Helvetica")}),
     cosDict({Producer:cosString("Original tool"),Creator:cosString("Other"),Title:cosString("雪"),Author:cosString("Author"),Keywords:cosString("topic")}),
+    cosDict({Fields:cosArray([cosRef(11),cosRef(13),cosRef(11)]),DR:cosRef(14),DA:cosString("/F1 10 Tf")}),
+    cosDict({FT:cosName("Tx"),T:cosString("Parent field"),Kids:cosRef(16)}),
+    cosDict({Type:cosName("Annot"),Subtype:cosName("Widget"),P:cosRef(3)}),
+    cosDict({Type:cosName("Annot"),Subtype:cosName("Widget"),FT:cosName("Tx"),T:cosString("Page two"),P:cosRef(4)}),
+    cosDict({Font:cosRef(7)}), cosDict({OCGs:cosArray([])}),cosArray([cosRef(12),cosDict({T:cosString("Unselected")})]),
   ];
   const input=serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1),infoRef:cosRef(9)});
   const fs=new MemoryFileSystem(), wasm=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
   await fs.writeFile("/in.pdf",input);
-  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  const { pdfuniteCommands } = await import("@poe-platform/safe-bash/commands/pdfunite");
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})).use(pdfuniteCommands({replace:true}));
   try {
     for(const [args,files] of [
       ["--split-pages chunks/x-%02d.pdf",["01","02","03"].map(n=>"/chunks/x-"+n+".pdf")],
       ["--split-pages=2 --rotate=+90:2-z output.pdf",["/output-1-2.pdf","/output-3-3.pdf"]],
       ["--split-pages=3 --remove-info stripped.pdf",["/stripped-1-3.pdf"]],
       ["--split-pages=2junk --rotate=90:1 --remove-info with-edits.pdf",["/with-edits-1-2.pdf","/with-edits-3-3.pdf"]],
+      ["--split-pages=3 --remove-acroform noform.pdf",["/noform-1-3.pdf"]],
       ["--split-pages 2 ignored.pdf",["/2-1.pdf","/2-2.pdf","/2-3.pdf"]],
       ["--split-pages --replace-input",["/in-1.pdf","/in-2.pdf","/in-3.pdf"]],
     ]) {
@@ -3753,6 +3760,9 @@ test("qpdf splits real page objects with their resources, rotations and document
       assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],args);
       for(const f of files) assert.deepEqual(Buffer.from(await wasm.fs.readFile(f)),Buffer.from(await fs.readFile(f)),f);
     }
+    const merge="pdfunite chunks/x-03.pdf chunks/x-01.pdf chunks/x-02.pdf merged.pdf";
+    for(const sh of [js,wasm]) {const r=await sh.exec(merge);assert.equal(r.exitCode,0,r.stderr);}
+    assert.deepEqual(Buffer.from(await wasm.fs.readFile("/merged.pdf")),Buffer.from(await fs.readFile("/merged.pdf")),merge);
     const same="qpdf in.pdf --split-pages in.pdf", want=await js.exec(same), got=await wasm.exec(same);
     assert.equal(want.exitCode,2);
     assert.deepEqual([got.exitCode,got.stderr],[want.exitCode,want.stderr]);

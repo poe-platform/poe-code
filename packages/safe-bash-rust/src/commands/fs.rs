@@ -4091,118 +4091,64 @@ fn cmd_stat(
     }
 }
 
-fn parse_du_size(s: &str, allow_neg: bool) -> Option<(i64, String)> {
-    let trimmed = s.trim();
-    let (neg, rest) = if allow_neg && let Some(r) = trimmed.strip_prefix('-') {
-        (true, r)
-    } else if allow_neg && let Some(r) = trimmed.strip_prefix('+') {
-        (false, r)
-    } else {
-        (false, trimmed)
-    };
-    let mut split_idx = 0usize;
-    for (idx, ch) in rest.char_indices() {
-        if ch.is_ascii_digit() {
-            split_idx = idx + ch.len_utf8();
-        } else {
-            break;
-        }
-    }
-    let digits = &rest[..split_idx];
-    let unit_str = &rest[split_idx..];
-    if digits.is_empty() && unit_str.is_empty() {
-        return None;
-    }
-    let mult: i64 = if digits.is_empty() {
-        1
-    } else {
-        digits.parse().ok()?
-    };
-    let (power, base, sfx) = if unit_str.is_empty() {
-        (0u32, 1024i64, String::new())
-    } else {
-        let mut chars = unit_str.chars();
-        let letter = chars.next()?;
-        let tail = chars.as_str();
-        let p = match letter.to_ascii_uppercase() {
-            'K' => 1u32,
-            'M' => 2,
-            'G' => 3,
-            'T' => 4,
-            'P' => 5,
-            'E' => 6,
-            _ => return None,
-        };
-        let b = match tail {
-            "" | "iB" => 1024i64,
-            "B" => 1000i64,
-            _ => return None,
-        };
-        let mut suffix = String::new();
-        if digits.is_empty() {
-            let up = letter.to_ascii_uppercase();
-            if tail == "B" {
-                suffix = format!("{}B", if up == 'K' { 'k' } else { up });
-            } else if tail == "iB" {
-                suffix = format!("{up}iB");
-            } else {
-                suffix.push(up);
-            }
-        }
-        (p, b, suffix)
-    };
-    let unit_val = mult.checked_mul(base.checked_pow(power)?)?;
-    let signed = if neg { -unit_val } else { unit_val };
-    Some((signed, sfx))
+enum DuFormat {
+    Blocks(u64, String),
+    Human(u64),
 }
 
-fn format_du_amount(
-    bytes: u64,
-    inodes: bool,
-    apparent: bool,
-    block_unit: Option<(u64, String)>,
-    human_base: Option<u64>,
-) -> String {
-    if inodes {
-        return bytes.to_string();
+const DU_MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
+
+fn parse_du_size(value: &str, allow_zero: bool) -> Result<DuFormat, String> {
+    match value {
+        "human-readable" => return Ok(DuFormat::Human(1024)),
+        "si" => return Ok(DuFormat::Human(1000)),
+        "" => return Err("invalid block size ''".into()),
+        _ => {}
     }
-    if let Some(base) = human_base {
-        let b = bytes;
-        let mut unit = 1u64;
-        let mut exp = 0usize;
-        while b >= unit.saturating_mul(base) && exp < 6 {
-            unit *= base;
-            exp += 1;
+    let digits = value.bytes().take_while(u8::is_ascii_digit).count();
+    let suffix = &value[digits..];
+    let (base, power) = if suffix.is_empty() { (1u64, 0) } else {
+        let mut chars = suffix.chars();
+        let letter = chars.next().unwrap();
+        let rank = "KMGTPEZYRQ".find(match letter { 'k' => 'K', 'm' => 'M', other => other });
+        let base = match chars.as_str() { "" | "iB" => 1024u64, "B" => 1000, _ => 0 };
+        match rank {
+            Some(i) if base != 0 => (base, i as u32 + 1),
+            _ => return Err(format!("invalid block size '{value}'")),
         }
-        if exp == 0 {
-            return b.to_string();
-        }
-        if b.div_ceil(unit) >= base && exp < 6 {
-            unit *= base;
-            exp += 1;
-        }
-        let tenths = (b * 10).div_ceil(unit);
-        let num_str = if tenths < 100 {
-            format!("{}.{}", tenths / 10, tenths % 10)
-        } else {
-            b.div_ceil(unit).to_string()
-        };
-        let suffixes = if base == 1000 {
-            b"kMGTPE"
-        } else {
-            b"KMGTPE"
-        };
-        return format!("{num_str}{}", suffixes[exp - 1] as char);
+    };
+    let significant = value[..digits].trim_start_matches('0');
+    if significant.len() > 16 { return Err(format!("block size exceeds safe integer range '{value}'")); }
+    let multiplier = if digits == 0 { 1 } else { significant.parse().unwrap_or(0) };
+    let unit = if multiplier == 0 { Some(0) } else { base.checked_pow(power).and_then(|n| n.checked_mul(multiplier)) };
+    let Some(unit) = unit.filter(|n| (*n > 0 || allow_zero) && *n <= DU_MAX_SAFE_INTEGER) else {
+        return Err(format!("invalid or unsafe block size '{value}'"));
+    };
+    let label = if digits != 0 { String::new() } else {
+        let letter = suffix[..1].to_ascii_uppercase();
+        if &suffix[1..] == "B" && letter == "K" { "kB".to_owned() } else { letter + &suffix[1..] }
+    };
+    Ok(DuFormat::Blocks(unit, label))
+}
+
+fn format_du_amount(bytes: u64, format: &DuFormat) -> String {
+    let base = match format {
+        DuFormat::Blocks(unit, suffix) => return format!("{}{suffix}", bytes.div_ceil(*unit)),
+        DuFormat::Human(base) => *base as u128,
+    };
+    let bytes = u128::from(bytes);
+    let mut unit = 1;
+    let mut exp = 0;
+    while bytes >= unit * base {
+        unit *= base;
+        exp += 1;
     }
-    if let Some((unit, ref sfx)) = block_unit {
-        let u = unit.max(1);
-        return format!("{}{sfx}", bytes.div_ceil(u));
-    }
-    if apparent {
-        bytes.to_string()
-    } else {
-        bytes.div_ceil(1024).max(1).to_string()
-    }
+    if exp == 0 { return bytes.to_string(); }
+    if bytes.div_ceil(unit) >= base { unit *= base; exp += 1; }
+    let tenths = (bytes * 10).div_ceil(unit);
+    let number = if tenths < 100 { format!("{}.{}", tenths / 10, tenths % 10) } else { bytes.div_ceil(unit).to_string() };
+    let symbols = if base == 1000 { b"kMGTPEZYRQ" } else { b"KMGTPEZYRQ" };
+    format!("{number}{}", symbols[exp - 1] as char)
 }
 
 fn du_matches_excludes(path_or_disp: &str, excludes: &[String]) -> bool {
@@ -4244,22 +4190,88 @@ fn cmd_du(
     let mut deref_mode = 'P';
     let mut null_output = false;
     let mut max_depth: Option<usize> = None;
-    let mut block_unit: Option<(u64, String)> = None;
-    let mut human_base: Option<u64> = None;
+    let mut format = None;
     let mut threshold: Option<i64> = None;
     let mut excludes: Vec<String> = Vec::new();
     let mut exclude_files: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
     let mut ended = false;
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if ended || a == "-" || !a.starts_with('-') {
-            targets.push(a.clone());
-            i += 1;
-            continue;
+    if args.iter().any(|a| a.contains('\0')) { return err_out("du: NUL in argument\n", 1); }
+    let mut help = false;
+    let mut argv = args.iter().map(String::as_str);
+    while let Some(arg) = argv.next() {
+        if ended || arg == "-" || !arg.starts_with('-') { targets.push(arg.into()); continue; }
+        if arg == "--" { ended = true; continue; }
+        let long = arg.starts_with("--");
+        let mut rest = if long { &arg[2..] } else { &arg[1..] };
+        loop {
+            let (flag, attached) = if long {
+                rest.split_once('=').map_or((rest, None), |(f, v)| (f, Some(v)))
+            } else {
+                let (flag, after) = rest.split_at(rest.chars().next().unwrap().len_utf8());
+                rest = after;
+                (flag, None)
+            };
+            let takes_value = if long { matches!(flag, "block-size" | "max-depth" | "exclude" | "exclude-from" | "threshold") }
+                else { matches!(flag, "B" | "d" | "t" | "X") };
+            if takes_value {
+                let Some(v) = attached.or_else(|| (!long && !rest.is_empty()).then_some(rest)).or_else(|| argv.next()) else {
+                    return err_out(&format!("du: option '{}{flag}' requires an argument\n", if long { "--" } else { "-" }), 1);
+                };
+                match flag {
+                    "B" | "block-size" => match parse_du_size(v, false) {
+                        Ok(f) => format = Some(f),
+                        Err(e) => return err_out(&format!("du: {e}\n"), 1),
+                    },
+                    "t" | "threshold" => {
+                        let raw = v.strip_prefix(['+', '-']).unwrap_or(v);
+                        let invalid = || err_out(&format!("du: invalid --threshold argument '{v}'\n"), 1);
+                        if raw.starts_with(['+', '-']) { return invalid(); }
+                        match parse_du_size(raw, true) {
+                            Ok(DuFormat::Blocks(n, _)) if n != 0 || !v.starts_with('-') =>
+                                threshold = Some(if v.starts_with('-') { -(n as i64) } else { n as i64 }),
+                            Ok(_) => return invalid(),
+                            Err(e) => return err_out(&format!("du: {e}\n"), 1),
+                        }
+                    }
+                    "exclude" => excludes.push(v.into()),
+                    "X" | "exclude-from" => exclude_files.push(v.into()),
+                    _ => {
+                        let Some(n) = v.parse::<u64>().ok().filter(|n| *n <= DU_MAX_SAFE_INTEGER && v.bytes().all(|c| c.is_ascii_digit())) else {
+                            return err_out(&format!("du: invalid maximum depth '{v}'\n"), 1);
+                        };
+                        max_depth = Some(usize::try_from(n).unwrap_or(usize::MAX));
+                    }
+                }
+                break;
+            }
+            if attached.is_some() { return err_out(&format!("du: option '--{flag}' does not accept an argument\n"), 1); }
+            match flag {
+                "a" | "all" => all = true,
+                "s" | "summarize" => summary_only = true,
+                "c" | "total" => show_total = true,
+                "h" | "human-readable" => format = Some(DuFormat::Human(1024)),
+                "si" => format = Some(DuFormat::Human(1000)),
+                "k" | "m" => format = Some(DuFormat::Blocks(if flag == "k" { 1024 } else { 1048576 }, String::new())),
+                "b" | "bytes" => { apparent = true; format = Some(DuFormat::Blocks(1, String::new())); }
+                "apparent-size" => apparent = true,
+                "l" | "count-links" => count_links = true,
+                "0" | "null" => null_output = true,
+                "inodes" => inodes = true,
+                "D" | "H" | "dereference-args" => deref_mode = 'H',
+                "L" | "dereference" => deref_mode = 'L',
+                "P" | "no-dereference" => deref_mode = 'P',
+                "S" | "separate-dirs" => separate = true,
+                "x" | "one-file-system" => one_fs = true,
+                "help" => help = true,
+                _ => return err_out(&format!("du: unrecognized option '{}{flag}'\n", if flag.chars().count() == 1 { "-" } else { "--" }), 1),
+            }
+            if long || rest.is_empty() { break; }
         }
-        if a == "--help" {
+    }
+    if all && summary_only { return err_out("du: cannot combine --all and --summarize\n", 1); }
+    if summary_only && max_depth.is_some_and(|d| d != 0) { return err_out("du: --summarize conflicts with --max-depth\n", 1); }
+    if help {
             return ok_out(concat!(
                 "Usage: du [OPTION]... [--] [FILE]...\n",
                 "Report provider allocation; unknown allocation is an error, never logical size.\n",
@@ -4288,255 +4300,23 @@ fn cmd_du(
                 "Incomplete totals are suppressed. Unknown identities count independently.\n",
                 "Traversal and output limits apply; adapters may have their own side effects.\n",
             ));
-        }
-        if a == "--" {
-            ended = true;
-            i += 1;
-            continue;
-        }
-        if let Some(ex) = a.strip_prefix("--exclude=") {
-            excludes.push(ex.to_string());
-            i += 1;
-        } else if a == "--exclude" && i + 1 < args.len() {
-            excludes.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(xf) = a.strip_prefix("--exclude-from=") {
-            exclude_files.push(xf.to_string());
-            i += 1;
-        } else if (a == "-X" || a == "--exclude-from") && i + 1 < args.len() {
-            exclude_files.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(d) = a.strip_prefix("--max-depth=") {
-            match d.parse::<usize>() {
-                Ok(n) => max_depth = Some(n),
-                Err(_) => return err_out(&format!("du: invalid maximum depth '{d}'\n"), 1),
-            }
-            i += 1;
-        } else if (a == "-d" || a == "--max-depth") && i + 1 < args.len() {
-            let d = &args[i + 1];
-            match d.parse::<usize>() {
-                Ok(n) => max_depth = Some(n),
-                Err(_) => return err_out(&format!("du: invalid maximum depth '{d}'\n"), 1),
-            }
-            i += 2;
-        } else if let Some(bs) = a.strip_prefix("--block-size=") {
-            if let Some((u, sfx)) = parse_du_size(bs, false) {
-                block_unit = Some((u.max(1) as u64, sfx));
-                human_base = None;
-            }
-            i += 1;
-        } else if (a == "-B" || a == "--block-size") && i + 1 < args.len() {
-            if let Some((u, sfx)) = parse_du_size(&args[i + 1], false) {
-                block_unit = Some((u.max(1) as u64, sfx));
-                human_base = None;
-            }
-            i += 2;
-        } else if let Some(th) = a.strip_prefix("--threshold=") {
-            threshold = parse_du_size(th, true).map(|(v, _)| v);
-            i += 1;
-        } else if (a == "-t" || a == "--threshold") && i + 1 < args.len() {
-            threshold = parse_du_size(&args[i + 1], true).map(|(v, _)| v);
-            i += 2;
-        } else if a == "--all" {
-            all = true;
-            i += 1;
-        } else if a == "--summarize" {
-            summary_only = true;
-            i += 1;
-        } else if a == "--total" {
-            show_total = true;
-            i += 1;
-        } else if a == "--bytes" {
-            apparent = true;
-            block_unit = Some((1, String::new()));
-            human_base = None;
-            i += 1;
-        } else if a == "--apparent-size" {
-            apparent = true;
-            i += 1;
-        } else if a == "--one-file-system" {
-            one_fs = true;
-            i += 1;
-        } else if a == "--count-links" {
-            count_links = true;
-            i += 1;
-        } else if a == "--dereference" {
-            deref_mode = 'L';
-            i += 1;
-        } else if a == "--dereference-args" {
-            deref_mode = 'H';
-            i += 1;
-        } else if a == "--no-dereference" {
-            deref_mode = 'P';
-            i += 1;
-        } else if a == "--human-readable" {
-            human_base = Some(1024);
-            i += 1;
-        } else if a == "--si" {
-            human_base = Some(1000);
-            i += 1;
-        } else if a == "--inodes" {
-            inodes = true;
-            i += 1;
-        } else if a == "--separate-dirs" {
-            separate = true;
-            i += 1;
-        } else if a == "--null" {
-            null_output = true;
-            i += 1;
-        } else if !a.starts_with("--") {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut j = 0usize;
-            while j < chars.len() {
-                match chars[j] {
-                    'a' => all = true,
-                    's' => summary_only = true,
-                    'x' => one_fs = true,
-                    'c' => show_total = true,
-                    'l' => count_links = true,
-                    'L' => deref_mode = 'L',
-                    'H' | 'D' => deref_mode = 'H',
-                    'P' => deref_mode = 'P',
-                    'b' => {
-                        apparent = true;
-                        block_unit = Some((1, String::new()));
-                        human_base = None;
-                    }
-                    'k' => {
-                        block_unit = Some((1024, String::new()));
-                        human_base = None;
-                    }
-                    'm' => {
-                        block_unit = Some((1_048_576, String::new()));
-                        human_base = None;
-                    }
-                    'h' => human_base = Some(1024),
-                    'S' => separate = true,
-                    '0' => null_output = true,
-                    'd' => {
-                        let rest: String = chars[j + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            match rest.parse::<usize>() {
-                                Ok(n) => max_depth = Some(n),
-                                Err(_) => {
-                                    return err_out(
-                                        &format!("du: invalid maximum depth '{rest}'\n"),
-                                        1,
-                                    );
-                                }
-                            }
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            let d = &args[i];
-                            match d.parse::<usize>() {
-                                Ok(n) => max_depth = Some(n),
-                                Err(_) => {
-                                    return err_out(
-                                        &format!("du: invalid maximum depth '{d}'\n"),
-                                        1,
-                                    );
-                                }
-                            }
-                        } else {
-                            return err_out("du: option requires an argument -- 'd'\n", 1);
-                        }
-                        break;
-                    }
-                    'B' => {
-                        let rest: String = chars[j + 1..].iter().collect();
-                        let val = if !rest.is_empty() {
-                            rest
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            String::new()
-                        };
-                        if let Some((u, sfx)) = parse_du_size(&val, false) {
-                            block_unit = Some((u.max(1) as u64, sfx));
-                            human_base = None;
-                        }
-                        break;
-                    }
-                    't' => {
-                        let rest: String = chars[j + 1..].iter().collect();
-                        let val = if !rest.is_empty() {
-                            rest
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            String::new()
-                        };
-                        threshold = parse_du_size(&val, true).map(|(v, _)| v);
-                        break;
-                    }
-                    'X' => {
-                        let rest: String = chars[j + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            exclude_files.push(rest);
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            exclude_files.push(args[i].clone());
-                        }
-                        break;
-                    }
-                    _ => {}
-                }
-                j += 1;
-            }
-            i += 1;
-        } else {
-            i += 1;
-        }
     }
-
-    if all && summary_only {
-        return err_out("du: cannot both summarize and show all entries\n", 1);
-    }
-    if summary_only && max_depth.is_some() && max_depth != Some(0) {
-        return err_out("du: warning: summarizing conflicts with --max-depth\n", 1);
-    }
-    if block_unit.is_none() && human_base.is_none() {
-        let default_unit = if env.contains_key("POSIXLY_CORRECT") {
-            (512u64, String::new())
-        } else {
-            (1024u64, String::new())
-        };
-        let mut selected_env: Option<&str> = None;
-        for key in ["DU_BLOCK_SIZE", "BLOCK_SIZE", "BLOCKSIZE"] {
-            if let Some(v) = env.get(key) {
-                selected_env = Some(v.as_str());
-                break;
-            }
-        }
-        if let Some(v) = selected_env {
-            if v == "human-readable" {
-                human_base = Some(1024);
-            } else if v == "si" {
-                human_base = Some(1000);
-            } else if let Some((u, sfx)) = parse_du_size(v, false)
-                && u >= 1
-            {
-                block_unit = Some((u as u64, sfx));
-            } else {
-                block_unit = Some(default_unit);
-            }
-        } else {
-            block_unit = Some(default_unit);
-        }
-    }
+    let format = format.unwrap_or_else(|| ["DU_BLOCK_SIZE", "BLOCK_SIZE", "BLOCKSIZE"].iter()
+        .find_map(|k| env.get(*k)).and_then(|v| parse_du_size(v, false).ok())
+        .unwrap_or_else(|| DuFormat::Blocks(if env.contains_key("POSIXLY_CORRECT") { 512 } else { 1024 }, String::new())));
 
     for xf in &exclude_files {
-        let p = resolve_posix_path(cwd, xf);
-        if let Ok(bytes) = fs.read_file(&p) {
-            let text = String::from_utf8_lossy(&bytes);
-            for line in text.lines() {
-                excludes.push(line.to_string());
+        let p = absolute_operand(cwd, xf);
+        let bytes = match fs.access_path(&p, true).and_then(|path| fs.read_file(&path)) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                if p.is_empty() { return err_out("du: no such file or directory ''\n", 1); }
+                let error = copy_error(&e, "readFile", &p);
+                return err_out(&format!("du: {}\n", error.split_once(": ").map_or(error.as_str(), |(_, msg)| msg)), 1);
             }
-        } else {
-            return err_out(&format!("du: cannot open '{xf}': No such file or directory\n"), 1);
-        }
+        };
+        let text = String::from_utf8_lossy(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes));
+        excludes.extend(text.split_terminator('\n').map(str::to_owned));
     }
 
     if targets.is_empty() {
@@ -4556,7 +4336,7 @@ fn cmd_du(
                 return;
             }
         }
-        let val = format_du_amount(amt, inodes, apparent, block_unit.clone(), human_base);
+        let val = if inodes { amt.to_string() } else { format_du_amount(amt, &format) };
         out.push_str(&format!("{val}\t{disp}{term}"));
     };
 

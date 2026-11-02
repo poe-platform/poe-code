@@ -3010,3 +3010,21 @@ test("chmod follows only operand symlinks, protects root, and defers restrictive
     } finally { wasm.dispose(); }
   }
 });
+
+test("du validates options before traversal and formats explicit block sizes like production", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), data = new Uint8Array(1537);
+  await fs.writeFile("/f", data);
+  const shell = new Shell({ fs }).use(agentCommands());
+  const wasm = new RustWasmBash({ files: { "/f": data } });
+  try {
+    for (const flags of ["--bad", "-bz", "--all=yes", "--block-size", "-X", "-d", "-t", "--exclude", "-as", "-sd2",
+      "-d+1", "-d9007199254740992", "-B1.1K", "-B0", "-B9007199254740992", "-B99999999999999999", "-B1g",
+      "-tsi", "-t-0", "-t++2", "-tbad", "--b", "--apparent-size -Bsi", "-abBhUmAn", "-abBKiB", "-b -d5000000000",
+      "-b --threshold=+1K", "-b -t-2K", "--exclude-from=/missing"]) {
+      const script = "du /f " + flags;
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+    }
+  } finally { wasm.dispose(); }
+});

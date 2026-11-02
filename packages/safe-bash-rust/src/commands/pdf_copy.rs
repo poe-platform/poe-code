@@ -323,6 +323,11 @@ impl<'a> PageSource<'a> {
     }
 }
 
+enum CopyRotation {
+    Before(Rotation),
+    After(Rotation),
+}
+
 struct Form {
     number: usize,
     fields: Vec<usize>,
@@ -369,7 +374,7 @@ impl PageOutput {
             Some(i) => i..i.checked_add(1)?,
             None => 0..source.len(),
         };
-        self.copy_pages(source, selection, single_page.is_none(), &[], None)
+        self.copy_pages(source, selection, single_page.is_none(), |_| None, None)
     }
 
     // Office's PageRange creates a new document, with fresh metadata.
@@ -380,7 +385,7 @@ impl PageOutput {
     ) -> Option<Vec<u8>> {
         let mut doc = Self::new(limit);
         doc.bodies[2] = b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec();
-        doc.copy_pages(source, pages, false, &[], None)?;
+        doc.copy_pages(source, pages, false, |_| None, None)?;
         doc.finish()
     }
 
@@ -453,7 +458,7 @@ impl PageOutput {
             let mut seen = BTreeSet::new();
             if batch.is_none() {
                 output
-                    .copy_pages(source, indices.iter().copied(), false, &[], Some(&mut seen))
+                    .copy_pages(source, indices.iter().copied(), false, |_| None, Some(&mut seen))
                     .ok_or("could not copy selected PDF pages")?;
             } else {
                 groups.push((identity, indices.into_iter(), seen));
@@ -473,7 +478,7 @@ impl PageOutput {
                             sources.get_mut(key).unwrap(),
                             selected,
                             false,
-                            &[],
+                            |_| None,
                             Some(seen),
                         )
                         .ok_or("could not copy selected PDF pages")?;
@@ -499,8 +504,100 @@ impl PageOutput {
     ) -> Option<Vec<u8>> {
         let mut output = Self::new(limit);
         output.set_info(source, &[b"Title", b"Author", b"Subject", b"Keywords"])?;
-        output.copy_pages(source, pages, false, rotations, None)?;
+        output.copy_pages(source, pages, false, |i| rotations.get(i).copied().flatten().map(CopyRotation::Before), None)?;
         output.finish()
+    }
+
+    pub(in super::super) fn assemble_pdftk(
+        inputs: &BTreeMap<String, (Vec<u8>, &str)>,
+        primary: &str,
+        selected: &[(String, usize, Option<Rotation>)],
+        docs: &BTreeMap<String, super::super::PdfDoc>,
+        limit: usize,
+    ) -> Result<Vec<u8>, &'static str> {
+        const INVALID: &str = "could not copy selected PDF pages";
+        let mut output = Self::new(limit);
+        let open = |handle: &str| {
+            let (bytes, password) = inputs.get(handle).ok_or(INVALID)?;
+            PageSource::open(bytes, password)
+        };
+        let source = open(primary)?;
+        output
+            .set_info(
+                &source,
+                &[
+                    b"Title",
+                    b"Author",
+                    b"Subject",
+                    b"Keywords",
+                    b"Creator",
+                    b"Producer",
+                ],
+            )
+            .ok_or(INVALID)?;
+        let mut sources = BTreeMap::from([(primary, (source, BTreeSet::new()))]);
+        let mut used = Vec::new();
+        let mut outlines = Vec::new();
+        for (handle, number, rotation) in selected {
+            let (source, seen) = match sources.entry(handle) {
+                std::collections::btree_map::Entry::Occupied(e) => e.into_mut(),
+                std::collections::btree_map::Entry::Vacant(e) => {
+                    e.insert((open(handle)?, BTreeSet::new()))
+                }
+            };
+            if seen.is_empty() {
+                used.push(handle);
+            }
+            let index = number.checked_sub(1).ok_or(INVALID)?;
+            let doc = &docs[handle];
+            output
+                .copy_pages(
+                    source,
+                    std::iter::once(index),
+                    false,
+                    |_| rotation.map(CopyRotation::After),
+                    Some(seen),
+                )
+                .ok_or(INVALID)?;
+            let id = *output.pages.last().ok_or(INVALID)?;
+            for (title, level, destination) in &doc.bookmarks {
+                if destination.parse::<usize>() == Ok(*number) {
+                    outlines.push((level.parse().unwrap_or(1), title.clone(), id));
+                }
+            }
+        }
+        if !outlines.is_empty() {
+            let root = super::pdf_render::write_outlines(&mut output.bodies, outlines)
+                .map_err(|_| INVALID)?;
+            writeln!(output.bodies[0], "/Outlines {root} 0 R").map_err(|_| INVALID)?;
+        }
+        let mut locations = BTreeMap::new();
+        for key in used {
+            for (name, bytes) in sources
+                .get_mut(key.as_str())
+                .ok_or(INVALID)?
+                .0
+                .read_attachments()
+                .ok_or(INVALID)?
+            {
+                let leaf = name.rsplit(['/', '\\']).next().unwrap_or(&name);
+                let encoded = crate::commands::codecs::zlib_compress(&bytes);
+                output.remaining = output
+                    .remaining
+                    .checked_sub(encoded.len() + leaf.len())
+                    .ok_or("PDF output byte limit exceeded")?;
+                let slot = *locations.entry(leaf.to_owned()).or_insert_with(|| {
+                    let Value::String { bytes, .. } = super::pdf_string::encode(leaf) else {
+                        unreachable!()
+                    };
+                    output.attachments.push((bytes, vec![]));
+                    output.attachments.len() - 1
+                });
+                output.attachments[slot].1 = encoded;
+            }
+        }
+        output.write_attachments(true).ok_or(INVALID)?;
+        output.finish().ok_or("PDF output byte limit exceeded")
     }
 
     fn set_info(&mut self, source: &PageSource<'_>, keys: &[&'static [u8]]) -> Option<()> {
@@ -510,7 +607,7 @@ impl PageOutput {
         )];
         for &key in keys {
             if let Some(value) = source.info.get(key) {
-                info.push((key.into(), value.clone()));
+                super::pdf_rewrite::set(&mut info,key,value.clone());
             }
         }
         super::pdf_rewrite::encode(&Value::Dict(info), &mut self.bodies[2]).ok()?;
@@ -522,7 +619,7 @@ impl PageOutput {
         source: &mut PageSource<'_>,
         selection: impl Iterator<Item = usize> + Clone,
         whole_document: bool,
-        rotations: &[Option<Rotation>],
+        rotation: impl Fn(usize) -> Option<CopyRotation>,
         mut materialized: Option<&mut BTreeSet<usize>>,
     ) -> Option<()> {
         let page_offset = self.pages.len();
@@ -581,7 +678,7 @@ impl PageOutput {
             let id = source.pages[i];
             let page = copy.page(
                 id,
-                rotations.get(i).copied().flatten(),
+                rotation(i),
                 materialized.as_mut().is_some_and(|seen| !seen.insert(i)),
             )?;
             let mut body = Vec::new();
@@ -593,7 +690,56 @@ impl PageOutput {
         Some(())
     }
 
+    fn write_attachments(&mut self, pdftk: bool) -> Option<()> {
+        if !self.attachments.is_empty() {
+            // pdftk allocates the name tree before appending its file streams.
+            let root = if pdftk {
+                self.bodies.len() + 1
+            } else {
+                self.bodies.len() + 2 * self.attachments.len() + 2
+            };
+            let tree = if pdftk { root + 1 } else { root - 1 };
+            let container = format!("<<\n/EmbeddedFiles {tree} 0 R\n>>").into_bytes();
+            if pdftk {
+                self.bodies.extend([container.clone(), vec![]]);
+            }
+            let mut names = b"<<\n/Names [ ".to_vec();
+            for (name, bytes) in std::mem::take(&mut self.attachments) {
+                let stream = self.bodies.len() + 1;
+                let mut body = format!(
+                    "<<\n/Type /EmbeddedFile\n/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
+                    bytes.len()
+                )
+                .into_bytes();
+                body.extend_from_slice(&bytes);
+                body.extend_from_slice(b"\nendstream");
+                self.bodies.push(body);
+                let mut spec = b"<<\n/Type /Filespec\n/F ".to_vec();
+                literal(&name, &mut spec);
+                spec.extend_from_slice(b"\n/UF ");
+                literal(&name, &mut spec);
+                write!(spec, "\n/EF <<\n/F {stream} 0 R").ok()?;
+                if !pdftk {
+                    write!(spec, "\n/UF {stream} 0 R").ok()?;
+                }
+                spec.extend_from_slice(b"\n>>\n>>");
+                self.bodies.push(spec);
+                literal(&name, &mut names);
+                write!(names, " {} 0 R ", stream + 1).ok()?;
+            }
+            names.extend_from_slice(b"]\n>>");
+            if pdftk {
+                self.bodies[tree - 1] = names;
+            } else {
+                self.bodies.extend([names, container]);
+            }
+            writeln!(self.bodies[0], "/Names {root} 0 R").ok()?;
+        }
+        Some(())
+    }
+
     pub(in super::super) fn finish(mut self) -> Option<Vec<u8>> {
+        self.write_attachments(false)?;
         let mut catalog = std::mem::take(&mut self.bodies[0]);
         if let Some(form) = self.form {
             let mut body = b"<<\n/Fields [ ".to_vec();
@@ -610,34 +756,6 @@ impl PageOutput {
             }
             body.extend_from_slice(b">>");
             self.bodies[form.number - 1] = body;
-        }
-        if !self.attachments.is_empty() {
-            let mut names = b"<<\n/Names [ ".to_vec();
-            for (name, bytes) in self.attachments {
-                let stream = self.bodies.len() + 1;
-                let mut body = format!(
-                    "<<\n/Type /EmbeddedFile\n/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
-                    bytes.len()
-                )
-                .into_bytes();
-                body.extend_from_slice(&bytes);
-                body.extend_from_slice(b"\nendstream");
-                self.bodies.push(body);
-                let mut spec = b"<<\n/Type /Filespec\n/F ".to_vec();
-                literal(&name, &mut spec);
-                spec.extend_from_slice(b"\n/UF ");
-                literal(&name, &mut spec);
-                write!(spec, "\n/EF <<\n/F {stream} 0 R\n/UF {stream} 0 R\n>>\n>>").ok()?;
-                self.bodies.push(spec);
-                literal(&name, &mut names);
-                write!(names, " {} 0 R ", stream + 1).ok()?;
-            }
-            names.extend_from_slice(b"]\n>>");
-            self.bodies.push(names);
-            let tree = self.bodies.len();
-            self.bodies
-                .push(format!("<<\n/EmbeddedFiles {tree} 0 R\n>>").into_bytes());
-            writeln!(catalog, "/Names {} 0 R", tree + 1).ok()?;
         }
         if !self.labels.is_empty() {
             let n = self.bodies.len() + 1;
@@ -814,7 +932,7 @@ impl<'a> Copy<'_, 'a> {
     fn page(
         &mut self,
         id: ObjectId,
-        rotation: Option<Rotation>,
+        rotation: Option<CopyRotation>,
         repeated: bool,
     ) -> Option<Value<'a>> {
         let page = self.objects.page_dict(id, self.tree)?;
@@ -846,7 +964,7 @@ impl<'a> Copy<'_, 'a> {
             .and_then(|v| self.objects.resolve(v))
             .and_then(|v| v.number())
             .unwrap_or(0.);
-        if let Some(rotation) = rotation {
+        if let Some(CopyRotation::Before(rotation)) = rotation {
             set(&mut entries, b"Rotate", rotation.word(angle));
         }
         let mut rectangle = |v: Option<&Value<'a>>| {
@@ -933,6 +1051,9 @@ impl<'a> Copy<'_, 'a> {
         }
         entries.extend(boxes);
         entries.push((b"Parent".into(), Value::Word(b"2 0 R".as_slice().into())));
+        if let Some(CopyRotation::After(rotation)) = rotation {
+            set(&mut entries,b"Rotate",rotation.word(angle));
+        }
         Some(Value::Dict(entries))
     }
 

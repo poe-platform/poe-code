@@ -2,8 +2,8 @@
 // without keeping a list of all the expanded page numbers.
 #[derive(Clone, Copy)]
 pub(in super::super) struct Rotation {
-    relative: bool,
-    degrees: i32,
+    pub(in super::super) relative: bool,
+    pub(in super::super) degrees: i32,
 }
 
 impl Rotation {

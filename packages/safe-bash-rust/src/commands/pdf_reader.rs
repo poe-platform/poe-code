@@ -8,7 +8,7 @@ pub(super) mod attachments;
 mod pdf_rewrite;
 #[path = "pdf_rotation.rs"]
 mod pdf_rotation;
-pub(super) use pdf_rotation::rotations;
+pub(super) use pdf_rotation::{Rotation, rotations};
 pub(super) use pdf_rewrite::{PageEdits,rewrite,empty_pdf};
 #[path = "pdf_copy.rs"]
 mod pdf_copy;

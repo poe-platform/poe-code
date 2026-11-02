@@ -216,69 +216,77 @@ pub(in super::super) fn render_paragraphs(
     )
     .into_bytes();
     if !outlines.is_empty() {
-        use super::{
-            Value,
-            pdf_rewrite::{encode, set},
-            pdf_string,
-        };
-        let root = bodies.len() + 1;
+        let root = write_outlines(&mut bodies, outlines)?;
         bodies[0] =
             format!("<<\n/Type /Catalog\n/Pages 2 0 R\n/Outlines {root} 0 R\n>>").into_bytes();
-        let mut dicts = vec![vec![(
-            b"Type".as_slice().into(),
-            Value::Word(b"/Outlines".as_slice().into()),
-        )]];
-        let mut stack = vec![(0, 0, 0)];
-        for (level, title, page) in outlines {
-            stack.truncate(level);
-            while stack.len() < level {
-                let last = stack.last().ok_or(())?.1;
-                if last == 0 {
-                    break;
-                }
-                stack.push((last, 0, 0));
-            }
-            let (parent, last, count) = stack.last_mut().ok_or(())?;
-            let index = dicts.len();
-            let reference = Value::Ref((root + index, 0));
-            let null = Value::Word(b"null".as_slice().into());
-            let mut dict = vec![
-                (b"Title".as_slice().into(), pdf_string::encode(&title)),
-                (b"Parent".into(), Value::Ref((root + *parent, 0))),
-                (
-                    b"Dest".into(),
-                    Value::Array(vec![
-                        Value::Ref((page, 0)),
-                        Value::Word(b"/XYZ".as_slice().into()),
-                        null.clone(),
-                        null.clone(),
-                        null,
-                    ]),
-                ),
-            ];
-            if *last != 0 {
-                set(&mut dicts[*last], b"Next", reference.clone());
-                dict.push((b"Prev".into(), Value::Ref((root + *last, 0))));
-            } else {
-                set(&mut dicts[*parent], b"First", reference.clone());
-            }
-            set(&mut dicts[*parent], b"Last", reference);
-            *count += 1;
-            set(
-                &mut dicts[*parent],
-                b"Count",
-                Value::Word(count.to_string().into_bytes().into()),
-            );
-            *last = index;
-            dicts.push(dict);
-        }
-        for dict in dicts {
-            let mut body = vec![];
-            encode(&Value::Dict(dict), &mut body).map_err(|_| ())?;
-            bodies.push(body);
-        }
     }
     write_objects(&bodies, limit).map(Some).ok_or(())
+}
+
+pub(super) fn write_outlines(
+    bodies: &mut Vec<Vec<u8>>,
+    outlines: Vec<(usize, String, usize)>,
+) -> Result<usize, ()> {
+    use super::{
+        Value,
+        pdf_rewrite::{encode, set},
+        pdf_string,
+    };
+    let root = bodies.len() + 1;
+    let mut dicts = vec![vec![(
+        b"Type".as_slice().into(),
+        Value::Word(b"/Outlines".as_slice().into()),
+    )]];
+    let mut stack = vec![(0, 0, 0)];
+    for (level, title, page) in outlines {
+        stack.truncate(level);
+        while stack.len() < level {
+            let last = stack.last().ok_or(())?.1;
+            if last == 0 {
+                break;
+            }
+            stack.push((last, 0, 0));
+        }
+        let (parent, last, count) = stack.last_mut().ok_or(())?;
+        let index = dicts.len();
+        let reference = Value::Ref((root + index, 0));
+        let null = Value::Word(b"null".as_slice().into());
+        let mut dict = vec![
+            (b"Title".as_slice().into(), pdf_string::encode(&title)),
+            (b"Parent".into(), Value::Ref((root + *parent, 0))),
+            (
+                b"Dest".into(),
+                Value::Array(vec![
+                    Value::Ref((page, 0)),
+                    Value::Word(b"/XYZ".as_slice().into()),
+                    null.clone(),
+                    null.clone(),
+                    null,
+                ]),
+            ),
+        ];
+        if *last != 0 {
+            set(&mut dicts[*last], b"Next", reference.clone());
+            dict.push((b"Prev".into(), Value::Ref((root + *last, 0))));
+        } else {
+            set(&mut dicts[*parent], b"First", reference.clone());
+        }
+        set(&mut dicts[*parent], b"Last", reference);
+        *count += 1;
+        set(
+            &mut dicts[*parent],
+            b"Count",
+            Value::Word(count.to_string().into_bytes().into()),
+        );
+        *last = index;
+        dicts.push(dict);
+    }
+    for dict in dicts {
+        let mut body = vec![];
+        encode(&Value::Dict(dict), &mut body).map_err(|_| ())?;
+        bodies.push(body);
+    }
+    Ok(root)
 }
 
 pub(in crate::commands) fn image_pdf(

@@ -7620,7 +7620,17 @@ fn cmd_media_doc(
                 "rotate",
             ];
             let mut handles: BTreeMap<String, PdfDoc> = BTreeMap::new();
-            let mut input_docs: Vec<PdfDoc> = Vec::new();
+            let mut inputs = BTreeMap::new();
+            let mut input_order = Vec::new();
+            let mut auto = 65;
+            let mut passwords = BTreeMap::new();
+            let mut default_password = "";
+            if let Some(pos) = args.iter().position(|x|x=="input_pw") {
+                for arg in args[pos+1..].iter().take_while(|x| !ops.contains(&x.as_str()) && *x!="output") {
+                    if let Some((handle,pw)) = arg.split_once('=') { passwords.insert(handle,pw); }
+                    else {default_password = arg;}
+                }
+            }
             let mut op = String::new();
             let mut op_idx = args.len();
             let mut i = 0usize;
@@ -7643,58 +7653,37 @@ fn cmd_media_doc(
                     }
                     continue;
                 }
-                if let Some((h, path)) = a.split_once('=')
-                    && !h.is_empty()
-                    && h.chars().all(|c| c.is_ascii_uppercase())
-                {
-                    let d = if path == "-" {
-                        let b = crate::vfs::stream_string_to_bytes(stdin);
-                        if !b.starts_with(b"%PDF-") {
-                            return err_out("Error: Failed to open PDF '-': Invalid PDF header: missing %PDF- signature\n", 1);
-                        }
-                        PdfDoc::parse(&b)
-                    } else {
-                        let full = resolve_posix_path(cwd, path);
-                        if fs.is_dir(&full) {
-                            return err_out(&format!("Error: Unable to find file '{path}'\n"), 1);
-                        }
-                        let Ok(b) = fs.read_file(&full) else {
-                            return err_out(&format!("Error: Unable to find file '{path}'\n"), 1);
-                        };
-                        if !b.starts_with(b"%PDF-") {
-                            return err_out(&format!("Error: Failed to open PDF '{path}': Invalid PDF header: missing %PDF- signature\n"), 1);
-                        }
-                        PdfDoc::parse(&b)
+                let (handle,path) = match a.split_once('=') {
+                    Some((h,path)) if !h.is_empty() => (h.to_owned(),path),
+                    _ => {
+                        let h = char::from_u32(auto).unwrap_or('?').to_string();
+                        auto += 1;
+                        (h,a)
+                    }
+                };
+                let bytes = if path == "-" {
+                    crate::vfs::stream_string_to_bytes(stdin)
+                } else {
+                    let Ok(b) = fs.read_file(&resolve_posix_path(cwd,path)) else {
+                        return err_out(&format!("Error: Unable to find file '{path}'\n"),1);
                     };
-                    handles.insert(h.to_string(), d.clone());
-                    input_docs.push(d);
-                } else if !a.starts_with('-') || a == "-" {
-                    let d = if a == "-" {
-                        let b = crate::vfs::stream_string_to_bytes(stdin);
-                        if !b.starts_with(b"%PDF-") {
-                            return err_out("Error: Failed to open PDF '-': Invalid PDF header: missing %PDF- signature\n", 1);
-                        }
-                        PdfDoc::parse(&b)
-                    } else {
-                        let full = resolve_posix_path(cwd, a);
-                        if fs.is_dir(&full) {
-                            return err_out(&format!("Error: Unable to find file '{a}'\n"), 1);
-                        }
-                        let Ok(b) = fs.read_file(&full) else {
-                            return err_out(&format!("Error: Unable to find file '{a}'\n"), 1);
-                        };
-                        if !b.starts_with(b"%PDF-") {
-                            return err_out(&format!("Error: Failed to open PDF '{a}': Invalid PDF header: missing %PDF- signature\n"), 1);
-                        }
-                        PdfDoc::parse(&b)
-                    };
-                    let auto_handle = ((b'A' + (input_docs.len() as u8)) as char).to_string();
-                    handles.entry(auto_handle).or_insert_with(|| d.clone());
-                    input_docs.push(d);
+                    b
+                };
+                if !bytes.starts_with(b"%PDF-") {
+                    return err_out(&format!("Error: Failed to open PDF '{path}': Invalid PDF header: missing %PDF- signature\n"),1);
                 }
+                let pw = passwords.get(handle.as_str()).copied().unwrap_or(default_password);
+                let doc = match pdf_reader::read(&bytes,pw) {
+                    Ok((doc,_)) => doc,
+                    Err(e @ (pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) => return err_out(&format!("Error: Failed to open PDF '{path}': {e}\n"),1),
+                    Err(_) => PdfDoc::parse(&bytes),
+                };
+                handles.insert(handle.clone(),doc);
+                inputs.insert(handle.clone(),(bytes,pw));
+                input_order.push(handle);
                 i += 1;
             }
-            if input_docs.is_empty() {
+            if input_order.is_empty() {
                 return err_out("Error: No input PDF files specified.\n", 1);
             }
             if op.is_empty() {
@@ -7787,7 +7776,7 @@ fn cmd_media_doc(
                 }
             };
 
-            let primary = input_docs.first().cloned().unwrap_or_else(PdfDoc::new);
+            let primary = handles[&input_order[0]].clone();
             match op.as_str() {
                 "passthrough" => {
                     let mut doc = primary;
@@ -8114,23 +8103,23 @@ fn cmd_media_doc(
                     write_pdftk_output(&mut doc, &rest[out_pos..])
                 }
                 "cat" | "shuffle" => {
-                    let rest = &args[op_idx + 1..];
+                    let rest = args.get(op_idx + 1..).unwrap_or_default();
                     let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
                     let specs = &rest[..out_pos];
                     let mut handle_keys: Vec<String> = handles.keys().cloned().collect();
                     handle_keys.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
 
-                    let eval_spec = |sp: &str| -> Vec<(String, usize, PdfPage)> {
+                    let eval_spec = |sp: &str| -> Vec<(String, usize, Option<pdf_reader::Rotation>)> {
                         if let Some(d) = handles.get(sp) {
                             return d
                                 .pages
                                 .iter()
                                 .enumerate()
-                                .map(|(idx, p)| (sp.to_string(), idx + 1, p.clone()))
+                                .map(|(idx, _)| (sp.to_string(), idx + 1, None))
                                 .collect();
                         }
                         let mut s = sp;
-                        let mut doc_key = "A".to_string();
+                        let mut doc_key = input_order[0].clone();
                         let mut doc_ref = &primary;
                         for hk in &handle_keys {
                             if let Some(after) = s.strip_prefix(hk.as_str())
@@ -8209,21 +8198,9 @@ fn cmd_media_doc(
                         if let Some( want_even ) = filter_odd_even {
                             pnos.retain(|p| (*p % 2 == 0) == want_even);
                         }
-                        let mut res = Vec::new();
-                        for pno in pnos {
-                            if let Some(pg) = doc_ref.pages.get(pno - 1) {
-                                let mut c = pg.clone();
-                                if let Some((is_rel, deg)) = rot_mode {
-                                    c.rot = if is_rel {
-                                        (c.rot + deg).rem_euclid(360)
-                                    } else {
-                                        deg.rem_euclid(360)
-                                    };
-                                }
-                                res.push((doc_key.clone(), pno, c));
-                            }
-                        }
-                        res
+                        let rotation = rot_mode.map(|(relative,degrees)| pdf_reader::Rotation {relative,degrees});
+                        pnos.into_iter().filter(|p| (1..=doc_ref.pages.len()).contains(p))
+                            .map(|p| (doc_key.clone(),p,rotation)).collect()
                     };
 
                     let mut out_doc = PdfDoc::new();
@@ -8233,19 +8210,19 @@ fn cmd_media_doc(
                     out_doc.page_w = primary.page_w;
                     out_doc.page_h = primary.page_h;
                     out_doc.info = primary.info.clone();
-                    let mut chosen: Vec<(String, usize, PdfPage)> = Vec::new();
+                    let mut chosen = Vec::new();
                     if specs.is_empty() {
-                        for (idx, d) in input_docs.iter().enumerate() {
+                        for hk in &input_order {
+                            let d = &handles[hk];
                             if out_doc.title.is_empty() {
                                 out_doc.title = d.title.clone();
                             }
-                            let hk = ((b'A' + (idx as u8)) as char).to_string();
-                            for (p_idx, pg) in d.pages.iter().enumerate() {
-                                chosen.push((hk.clone(), p_idx + 1, pg.clone()));
+                            for pno in 1..=d.pages.len() {
+                                chosen.push((hk.clone(), pno, None));
                             }
                         }
                     } else if op == "shuffle" {
-                        let lists: Vec<Vec<(String, usize, PdfPage)>> =
+                        let lists: Vec<_> =
                             specs.iter().map(|s| eval_spec(s)).collect();
                         let max_len = lists.iter().map(|l| l.len()).max().unwrap_or(0);
                         for idx in 0..max_len {
@@ -8260,7 +8237,17 @@ fn cmd_media_doc(
                             chosen.extend(eval_spec(s));
                         }
                     }
-                    for (new_idx0, (hk, old_pno, pg)) in chosen.iter().enumerate() {
+                    if let [_,dest] = &rest[out_pos..]
+                        && inputs.values().all(|(b,_)| !is_legacy_pdf(b))
+                    {
+                        let bytes = match pdf_reader::PageOutput::assemble_pdftk(&inputs,&input_order[0],&chosen,&handles,fs.shell_limits().max_output_bytes) {
+                            Ok(bytes) => bytes,
+                            Err(e) => return err_out(&format!("Error: {e}\n"),1),
+                        };
+                        return if *dest == "-" {ok_out(&crate::vfs::bytes_to_stream_string(&bytes))}
+                            else {write_copied_pdf(fs,cwd,dest,&bytes,1)};
+                    }
+                    for (new_idx0, (hk, old_pno, rotation)) in chosen.iter().enumerate() {
                         let new_pno = new_idx0 + 1;
                         if let Some(src_doc) = handles.get(hk) {
                             if let Some(m) = src_doc.page_media.get(old_pno) {
@@ -8271,8 +8258,11 @@ fn cmd_media_doc(
                                     out_doc.bookmarks.push((bt.clone(), bl.clone(), new_pno.to_string()));
                                 }
                             }
+                            if let Some(mut pg) = src_doc.pages.get(old_pno - 1).cloned() {
+                                if let Some(rot) = rotation { pg.rot = rot.apply(f64::from(pg.rot)); }
+                                out_doc.pages.push(pg);
+                            }
                         }
-                        out_doc.pages.push(pg.clone());
                     }
                     write_pdftk_output(&mut out_doc, &rest[out_pos..])
                 }

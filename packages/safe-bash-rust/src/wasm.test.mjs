@@ -4635,3 +4635,30 @@ test("qpdf writes and repairs fixed-width linearization offsets across edits",as
     }
   } finally {rust.dispose();}
 });
+
+test("pdftk cat and shuffle copy selected objects, bookmarks and attachments into readable PDFs", async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const fs=new MemoryFileSystem(),rust=new RustWasmBash({cwd:"/",files:{"/a.html":Buffer.from("<title>First</title><h1>Chapter A</h1>"),"/note":Buffer.from("attached")}});
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try {
+    const b=PdfDocument.create(); b.addPage().drawText("Second",{x:10,y:20});
+    await rust.fs.writeFile("/b",b.save());
+    assert.equal((await rust.exec("wkhtmltopdf a.html a.pdf && qpdf a.pdf --add-attachment note -- a")).exitCode,0);
+    for(const p of ["/a","/b"])await fs.writeFile(p,await rust.fs.readFile(p));
+    for(const mode of ["cat","shuffle Y1 Z1right Z1"]){
+      const cmd="pdftk Z=a Y=b "+mode+" output out";
+      const expected=await js.exec(cmd),actual=await rust.exec(cmd);
+      assert.deepEqual([actual.exitCode,actual.stderr],[expected.exitCode,expected.stderr]);
+      const bytes=await rust.fs.readFile("/out"),ref=await fs.readFile("/out");
+      assert.ok(Buffer.from(bytes).equals(ref),cmd+" byte "+ref.findIndex((value,i)=>bytes[i]!==value));
+      const doc=PdfDocument.load(bytes),want=PdfDocument.load(ref);
+      assert.equal(doc.extractText(),want.extractText());
+      assert.deepEqual(doc.getPages().map(p=>p.getRotation()),want.getPages().map(p=>p.getRotation()));
+      assert.equal((await rust.exec("qpdf out --show-attachment=note")).stdout,"attached");
+      const dump="pdftk out dump_data_utf8";
+      assert.equal((await rust.exec(dump)).stdout,(await js.exec(dump)).stdout);
+    }
+  } finally {rust.dispose();}
+});

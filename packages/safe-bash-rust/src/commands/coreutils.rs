@@ -1978,6 +1978,8 @@ fn cmd_sort(
     let mut flags: BTreeSet<char> = BTreeSet::new();
     let mut raw_sep: Option<String> = None;
     let mut out_file: Option<String> = None;
+    let mut memory_arg = None;
+    let mut batch_arg = None;
     let mut byte_limit_arg = None;
     let mut record_limit_arg = None;
     let mut key_specs: Vec<String> = Vec::new();
@@ -2086,6 +2088,8 @@ fn cmd_sort(
                     }
                 };
                 match opt {
+                    "--buffer-size" => memory_arg = Some(val.to_owned()),
+                    "--batch-size" => batch_arg = Some(val),
                     "--max-input-bytes" => byte_limit_arg = Some(val),
                     "--max-records" => record_limit_arg = Some(val),
                     _ => {}
@@ -2120,6 +2124,7 @@ fn cmd_sort(
                             );
                         };
                         match ch {
+                            'S' => memory_arg = Some(val),
                             't' => raw_sep = Some(val),
                             'k' => key_specs.push(val),
                             'o' => out_file = Some(val),
@@ -2308,13 +2313,28 @@ fn cmd_sort(
         }
     };
 
-    let parse_limit = |arg: Option<&str>| match arg {
-        None => Ok(u64::MAX),
-        Some(v) => v.parse::<u64>().ok().filter(|&n| n <= (1 << 53) - 1)
-            .ok_or_else(|| err_out(&format!("sort: invalid number '{v}'\n"), 2)),
+    const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
+    let number = |v: &str, minimum: u64| {
+        v.parse::<u64>().ok().filter(|&n| (minimum..=MAX_SAFE_INTEGER).contains(&n))
+            .ok_or_else(|| err_out(&format!("sort: invalid number '{v}'\n"), 2))
     };
-    let mut remaining_bytes = match parse_limit(byte_limit_arg) { Ok(n) => n, Err(e) => return e };
-    let mut remaining_records = match parse_limit(record_limit_arg) { Ok(n) => n, Err(e) => return e };
+    let memory_bytes = match memory_arg.as_deref() {
+        None => 8 * 1024 * 1024,
+        Some(v) => {
+            let shift = match v.as_bytes().last().map(u8::to_ascii_uppercase) {
+                Some(b'K') => 10, Some(b'M') => 20, Some(b'G') => 30, _ => 0,
+            };
+            let digits = if shift == 0 { v } else { &v[..v.len() - 1] };
+            match number(digits, 1) { Ok(n) => n.saturating_mul(1 << shift), Err(e) => return e }
+        }
+    };
+    let mut remaining_bytes = match byte_limit_arg.map(|v| number(v, 0)).transpose() { Ok(n) => n.unwrap_or(u64::MAX), Err(e) => return e };
+    let mut remaining_records = match record_limit_arg.map(|v| number(v, 0)).transpose() { Ok(n) => n.unwrap_or(u64::MAX), Err(e) => return e };
+    let fan_in = match batch_arg.map(|v| number(v, 2)).transpose() { Ok(n) => n.unwrap_or(16), Err(e) => return e };
+    if !(1024 * 1024..=MAX_SAFE_INTEGER).contains(&memory_bytes) {
+        return err_out("sort: sort memory budget must be at least 1048576 bytes\n", 2);
+    }
+    if fan_in > 32 { return err_out("sort: sort merge fan-in must be between 2 and 32\n", 2); }
     let mut per_file_records = Vec::with_capacity(names.len());
     for name in &names {
         let mut records = Vec::new();

@@ -15957,6 +15957,24 @@ hash -l
     }
 
     #[test]
+    fn sort_validates_memory_and_fan_in_before_reading_input() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for (options, error) in [
+            ("-S1k", "sort memory budget must be at least 1048576 bytes"),
+            ("--buffer-size=8388608G", "sort memory budget must be at least 1048576 bytes"),
+            ("-S0G --max-records=x", "invalid number '0'"),
+            ("--batch-size 1", "invalid number '1'"),
+            ("--batch-size=33", "sort merge fan-in must be between 2 and 32"),
+            ("-S1k --batch-size=-1", "invalid number '-1'"),
+            ("--buffer-size=bad -S+1m --batch-size=x --batch-size=32", ""),
+        ] {
+            let r = shell.exec(&format!("sort {options}")).unwrap();
+            let expected = if error.is_empty() { String::new() } else { format!("sort: {error}\n") };
+            assert_eq!((r.exit_code, r.stderr), (if error.is_empty() { 0 } else { 2 }, expected), "{options}");
+        }
+    }
+
+    #[test]
     fn cut_emits_complete_records_before_read_errors_and_continues_with_later_files() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/big", b"ab\ncd\nefghij").unwrap();

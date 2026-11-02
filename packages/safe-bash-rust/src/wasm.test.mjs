@@ -2037,6 +2037,19 @@ test("a memory file write publishes its mode and timestamps together", async t =
   } finally { bash.dispose(); }
 });
 
+test("companion replay uses the original working directory after exec options change", async () => {
+  const companion = new RustWasmBash({ directories: ["/other"] });
+  const bash = new RustWasmBash({ forceNative: false, companionFactory: () => companion });
+  try {
+    const options = {};
+    assert.equal((await bash.exec("mkdir created", options)).exitCode, 0);
+    options.cwd = "/other";
+    await bash.fs.realpath("/");
+    assert.equal((await companion.fs.stat("/workspace/created")).type, "directory");
+    await assert.rejects(companion.fs.stat("/other/created"), { code: "ENOENT" });
+  } finally { bash.dispose(); companion.dispose(); }
+});
+
 test("companion replay retains only completed writes and their original bytes and options", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});

@@ -1098,7 +1098,8 @@ export class RustWasmBash extends WasmShell {
       res.stdoutBytes = res.stderrBytes = new Uint8Array(0);
     }
     if (this.companionFactory && !this.forceNative) {
-      this._history.push({ type: "exec", script, options });
+      // Hybrid execution only admits native scripts without per-call options.
+      this._history.push({ type: "exec", script });
     }
     if (res.state) {
       await options.onState?.(res.state, res);
@@ -1156,12 +1157,7 @@ export class RustWasmBash extends WasmShell {
           if (item.type === "fs") {
             await item.run(comp.fs);
           } else if (item.type === "exec") {
-            const hasOpts = item.options && Object.keys(item.options).length > 0;
-            if (hasOpts) {
-              await comp.shell.exec(item.script, item.options);
-            } else {
-              await comp.shell.exec(item.script);
-            }
+            await comp.shell.exec(item.script);
           }
         }
         this._history.length = 0;

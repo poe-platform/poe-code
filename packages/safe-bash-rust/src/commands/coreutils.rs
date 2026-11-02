@@ -3537,6 +3537,19 @@ fn cmd_tac(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
         Some(s) => crate::vfs::stream_string_to_bytes(s),
         None => vec![b'\n'],
     };
+    // Reverse KMP finds the rightmost non-overlapping separators in one pass,
+    // even when a long separator shares a prefix with every input position.
+    let mut prefix = Vec::new();
+    if !regex_mode && sep_bytes.len() > 1 {
+        prefix.resize(sep_bytes.len(), 0);
+        let mut matched = 0;
+        for i in 1..sep_bytes.len() {
+            let byte = sep_bytes[sep_bytes.len() - 1 - i];
+            while matched != 0 && byte != sep_bytes[sep_bytes.len() - 1 - matched] { matched = prefix[matched - 1]; }
+            matched += usize::from(byte == sep_bytes[sep_bytes.len() - 1 - matched]);
+            prefix[i] = matched;
+        }
+    }
     let targets: Vec<String> = if files.is_empty() {
         vec!["-".to_string()]
     } else {
@@ -3590,25 +3603,16 @@ fn cmd_tac(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
             }
             out_bytes.extend_from_slice(&bytes[0..end]);
         } else {
-            let slen = sep_bytes.len();
             let mut end = bytes.len();
-            if slen > 0 && bytes.len() >= slen {
-                let mut idx = bytes.len() - slen;
-                loop {
-                    if bytes[idx..idx + slen] == sep_bytes[..] {
-                        let boundary = if before { idx } else { idx + slen };
-                        out_bytes.extend_from_slice(&bytes[boundary..end]);
-                        end = boundary;
-                        if idx < slen {
-                            break;
-                        }
-                        idx -= slen;
-                        continue;
-                    }
-                    if idx == 0 {
-                        break;
-                    }
-                    idx -= 1;
+            let mut matched = 0;
+            for (index, &byte) in bytes.iter().enumerate().rev() {
+                while matched != 0 && byte != sep_bytes[sep_bytes.len() - 1 - matched] { matched = prefix[matched - 1]; }
+                matched += usize::from(byte == sep_bytes[sep_bytes.len() - 1 - matched]);
+                if matched == sep_bytes.len() {
+                    let boundary = if before { index } else { index + matched };
+                    out_bytes.extend_from_slice(&bytes[boundary..end]);
+                    end = boundary;
+                    matched = 0;
                 }
             }
             out_bytes.extend_from_slice(&bytes[0..end]);

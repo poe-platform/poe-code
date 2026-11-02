@@ -226,6 +226,26 @@ pub(in super::super) struct LayerState<'d> {
     written: BTreeMap<ObjectId, usize>,
 }
 
+// A resource copied by an overlay may exist only in the pending output graph.
+pub(super) fn edited_stream<'a>(
+    o: &mut Objects<'a>,
+    body: &[u8],
+) -> Result<Option<(Value<'a>, std::borrow::Cow<'a, [u8]>)>, String> {
+    let mut c = super::super::Cursor(body);
+    let dict = c.value(0, &mut o.tokens, true).ok_or(BAD)?.into_owned();
+    c.skip();
+    if c.0.is_empty() {
+        return Ok(None);
+    }
+    let raw =
+        c.0.strip_prefix(b"stream\n")
+            .and_then(|b| b.strip_suffix(b"\nendstream"))
+            .ok_or(BAD)?;
+    o.remaining_bytes = o.remaining_bytes.checked_sub(raw.len()).ok_or(LARGE)?;
+    let data = o.decode(&dict, raw.to_vec().into()).ok_or(BAD)?;
+    Ok(Some((dict, data)))
+}
+
 impl LayerState<'_> {
     pub(super) fn content<'d>(
         &mut self,
@@ -316,15 +336,8 @@ impl LayerState<'_> {
             .filter(|id| !self.written.contains_key(*id))
             .chain(self.written.keys())
         {
-            let (mut dict, data) = if let Some(&start) = self.written.get(id) {
-                let body = &bodies[id];
-                let data = super::super::pdf_filters::flate(
-                    &body[start..body.len() - 10],
-                    dst.remaining_bytes,
-                )
-                .ok_or(BAD)?;
-                dst.remaining_bytes -= data.len();
-                (Value::Dict(vec![]), std::borrow::Cow::Owned(data))
+            let (mut dict, data) = if let Some(body) = bodies.get(id) {
+                edited_stream(dst, body)?.ok_or(BAD)?
             } else {
                 let (mut dict, cursor) = dst.object(*id).ok_or(BAD)?;
                 let raw = dst.raw_stream(*id, &mut dict, cursor).ok_or(BAD)?;

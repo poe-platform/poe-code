@@ -53,7 +53,7 @@ fn value_text(v: &Value<'_>) -> Option<String> {
 }
 
 impl<'a> LayerState<'a> {
-    fn lookup(
+    pub(super) fn lookup(
         &self,
         o: &mut Objects<'a>,
         bodies: &Bodies,
@@ -72,7 +72,7 @@ impl<'a> LayerState<'a> {
         }
         o.lookup_value(v)
     }
-    fn resources(
+    pub(super) fn resources(
         &self,
         o: &mut Objects<'a>,
         tree: &PageTree<'a>,
@@ -97,7 +97,7 @@ impl<'a> LayerState<'a> {
         }
         (None, d)
     }
-    fn save_dict(
+    pub(super) fn save_dict(
         &mut self,
         owner: Option<ObjectId>,
         d: Dict<'a>,

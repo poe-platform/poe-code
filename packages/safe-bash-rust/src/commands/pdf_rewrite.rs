@@ -84,6 +84,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub compress_streams: Option<bool>,
     pub decrypt: bool,
     pub linearize: bool,
+    pub prune_resources: bool,
     pub flatten_rotation: bool,
     pub flatten_annotations: Option<&'a str>,
     pub rotations: Vec<&'a str>,
@@ -181,7 +182,7 @@ pub(in super::super) fn rewrite(
     let mut first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
     let mut changed=BTreeMap::new();
     let mut edited_tree =
-        if edits.flatten_annotations.is_some() || edits.flatten_rotation || !edits.layers.is_empty() || !edits.label_specs.is_empty() || edits.generate_appearances {
+        if edits.prune_resources || edits.flatten_annotations.is_some() || edits.flatten_rotation || !edits.layers.is_empty() || !edits.label_specs.is_empty() || edits.generate_appearances {
             let (pages, tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
             first_new = first_new.max(
                 tree.keys()
@@ -196,7 +197,7 @@ pub(in super::super) fn rewrite(
             None
         };
     if let Some((pages, tree)) = &mut edited_tree
-        && (edits.flatten_annotations.is_some() || edits.flatten_rotation || !edits.layers.is_empty())
+        && (edits.prune_resources || edits.flatten_annotations.is_some() || edits.flatten_rotation || !edits.layers.is_empty())
     {
         let mut state = super::pdf_copy::pdf_stamp::LayerState::default();
         let mut edit_limit = limit;
@@ -279,6 +280,7 @@ pub(in super::super) fn rewrite(
             )?;
         }
         if let Some(mode)=edits.flatten_annotations {state.flatten_annotations(&mut objects,pages,tree,&mut changed,&mut first_new,&mut edit_limit,mode)?;}
+        if edits.prune_resources {state.prune_resources(&mut objects,pages,tree,&changed)?;}
         if edits.normalize_content {state.normalize(&mut objects,&mut changed,&mut edit_limit)?;}
         state.finish(&mut changed, edit_limit)?;
     }
@@ -394,7 +396,7 @@ pub(in super::super) fn rewrite(
     }
     for (i, &id) in pages.iter().enumerate() {
         let rotation = edits.page_rotations.get(i).or_else(||rotations.get(i)).copied().flatten();
-        if edits.split_pages.is_some() && edits.flatten_annotations.is_none() && rotation.is_none() && !edits.flatten_rotation && edits.layers.is_empty() {
+        if edits.split_pages.is_some() && !edits.prune_resources && edits.flatten_annotations.is_none() && rotation.is_none() && !edits.flatten_rotation && edits.layers.is_empty() {
             continue;
         }
         let page = objects.page_dict(id, &tree).ok_or(INVALID)?;

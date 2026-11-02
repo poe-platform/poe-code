@@ -6617,6 +6617,13 @@ fn cmd_media_doc(
                 if a == "--generate-appearances" {
                     edits.generate_appearances=true;i+=1;continue;
                 }
+                if a == "--remove-unreferenced-resources" || a.starts_with("--remove-unreferenced-resources=") {
+                    edits.prune_resources = match a.split_once('=').map_or("yes", |(_,m)|m) {
+                        "yes"|"auto"=>true,"no"=>false,
+                        m=>return err_out(&format!("qpdf: invalid remove-unreferenced-resources mode {m}\n"),2),
+                    };
+                    i+=1;continue;
+                }
                 if a == "--flatten-annotations" || a.starts_with("--flatten-annotations=") {
                     edits.flatten_annotations=Some(a.split_once('=').map_or("all",|(_,m)|m));i+=1;continue;
                 }
@@ -7240,11 +7247,11 @@ fn cmd_media_doc(
                             return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                         }
                         let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | "invalid page label" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
+                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | "invalid page label" | "invalid PDF resource stream" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
-                            let edited = edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            let edited = edits.prune_resources || edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
                                 || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
                             let graph;
                             let data = if edited {

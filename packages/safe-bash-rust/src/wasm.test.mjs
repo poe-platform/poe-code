@@ -5186,3 +5186,25 @@ test("qpdf flattens annotations with shared content, appearance resources and vi
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf prunes unused resources and follows names in patterns, forms and annotations",async()=>{
+  const {PdfDocument,cosDict,cosName,cosArray,cosStream,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const d=PdfDocument.create(),p=d.addPage(),alloc=v=>d.cos.allocateObject(v);
+  const stream=s=>alloc(cosStream(Buffer.from(s),{compress:true})),font=alloc(cosDict({BaseFont:cosName("Helvetica")}));
+  p.setRawContentStream("/P scn % /K#65ep\n");p.setRotation(90);
+  dictSet(p.dict,"Annots",cosArray([cosDict({AP:cosDict({N:stream("/Comment 10 Tf")})})]));
+  dictSet(p.dict,"Resources",alloc(cosDict({Pattern:cosDict({P:stream("/Form Do")}),XObject:alloc(cosDict({Form:stream("/Hidden 10 Tf"),Unused:stream("/UnusedFont 9 Tf")})),Font:cosDict({Hidden:font,Comment:font,Keep:font,UnusedFont:font})})));
+  const input=d.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
+  try{
+    await fs.writeFile("/in",input);
+    for(const flags of ["","=no","=auto --flatten-rotation","=yes --normalize-content=y","=yes --overlay in --","=yes --overlay in -- --normalize-content=y","=yes --split-pages","=invalid"]){
+      const cmd="qpdf in --remove-unreferenced-resources"+flags+" out.pdf",path=flags.includes("--split-pages")?"/out-1.pdf":"/out.pdf";
+      const e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr],[e.exitCode,e.stderr],cmd);
+      const expected=await fs.readFile(path),actual=await rs.fs.readFile(path);
+      assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((v,i)=>v!==actual[i]));
+    }
+  }finally{rs.dispose();}
+});

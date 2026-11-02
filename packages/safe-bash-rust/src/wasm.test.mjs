@@ -5496,6 +5496,12 @@ test("wkhtmltopdf embeds opaque and transparent PNG pixels with per-page image r
       const cmd="wkhtmltopdf "+args+" in -",e=await js.exec(cmd),r=await rs.exec(cmd);
       assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
     }
+    const invalid=Buffer.from('<img src="data:image/png;base64,'+image(255)+'" height="-Infinity"/>');
+    for(const f of [fs,rs.fs]){await f.writeFile("/in",invalid);await f.writeFile("/out",Buffer.from("prior"));}
+    for(const cmd of ["wkhtmltopdf in -","true\nwkhtmltopdf in out"]){
+      const e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout]);assert.equal(Buffer.from(await rs.fs.readFile("/out")).toString(),"prior");
+    }
   }finally{rs.dispose();}
 });
 

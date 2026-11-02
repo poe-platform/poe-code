@@ -397,6 +397,8 @@ fn page_font(
     }) + 1
 }
 
+const OUTPUT_LIMIT: &str = "wkhtmltopdf: PDF output exceeds resource limits\n";
+
 fn draw_rect(
     stream: &mut Vec<u8>,
     [x, y, w, h]: [f64; 4],
@@ -404,7 +406,7 @@ fn draw_rect(
     border: &str,
     stroke_width: f64,
     limit: usize,
-) -> Result<(), ()> {
+) -> Result<(), &'static str> {
     if !stream.is_empty() {
         stream.push(b'\n');
     }
@@ -422,7 +424,7 @@ fn draw_rect(
         coordinate(h)
     )
     .unwrap();
-    (stream.len() <= limit).then_some(()).ok_or(())
+    (stream.len() <= limit).then_some(()).ok_or(OUTPUT_LIMIT)
 }
 
 fn draw_text(
@@ -433,7 +435,7 @@ fn draw_text(
     size: f64,
     color: &str,
     limit: usize,
-) -> Result<(), ()> {
+) -> Result<(), &'static str> {
     if !stream.is_empty() {
         stream.push(b'\n');
     }
@@ -446,7 +448,7 @@ fn draw_text(
     .unwrap();
     literal(&win_ansi(text), stream);
     stream.extend_from_slice(b" Tj\nET\nQ");
-    (stream.len() <= limit).then_some(()).ok_or(())
+    (stream.len() <= limit).then_some(()).ok_or(OUTPUT_LIMIT)
 }
 
 pub(in super::super) fn render_html(
@@ -456,7 +458,7 @@ pub(in super::super) fn render_html(
     collate: bool,
     grayscale: bool,
     settings: impl Fn(usize) -> (usize, bool),
-) -> Result<Option<Vec<u8>>, ()> {
+) -> Result<Option<Vec<u8>>, &'static str> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
     let rgb = |[r, g, b]: [f64; 3]| {
         if grayscale {
@@ -497,7 +499,7 @@ pub(in super::super) fn render_html(
     let mut finish_page = |stream: &mut Vec<u8>,
                            objects: &mut Vec<PageResource>,
                            headings: &mut Vec<(usize, String)>|
-     -> Result<(), ()> {
+     -> Result<(), &'static str> {
         let compressed = zlib_compress(stream);
         let body = flate_stream("<<\n", &compressed);
         let sheet_bytes = objects
@@ -509,10 +511,10 @@ pub(in super::super) fn render_html(
                     PageResource::Image(image) => image.rgb.len() + image.mask.len() + 128,
                 })
             })
-            .ok_or(())?;
+            .ok_or(OUTPUT_LIMIT)?;
         remaining = remaining
-            .checked_sub(sheet_bytes.checked_mul(copies).ok_or(())?)
-            .ok_or(())?;
+            .checked_sub(sheet_bytes.checked_mul(copies).ok_or(OUTPUT_LIMIT)?)
+            .ok_or(OUTPUT_LIMIT)?;
         sheets.push((body, std::mem::take(objects), std::mem::take(headings)));
         stream.clear();
         Ok(())
@@ -542,7 +544,7 @@ pub(in super::super) fn render_html(
                 } => {
                     let raster = match super::super::png_pixels::Raster::decode(&png, limit) {
                         Ok(raster) => raster,
-                        Err("image exceeds memory budget") => return Err(()),
+                        Err("image exceeds memory budget") => return Err(OUTPUT_LIMIT),
                         Err(_) => continue,
                     };
                     let w = default(w, raster.width.min(240) as f64);
@@ -553,10 +555,13 @@ pub(in super::super) fn render_html(
                         image_count = 0;
                         y = height - top;
                     }
+                    if !w.is_finite() || !h.is_finite() || !(y - h).is_finite() {
+                        return Err("shell: line 1: internal error\n");
+                    }
                     let image = PdfBitmap::new(&raster.pixels, raster.width, raster.height);
                     remaining_resources = remaining_resources
                         .checked_sub(image.rgb.len() + image.mask.len())
-                        .ok_or(())?;
+                        .ok_or(OUTPUT_LIMIT)?;
                     objects.push(PageResource::Image(image));
                     image_count += 1;
                     occupied = true;
@@ -572,7 +577,7 @@ pub(in super::super) fn render_html(
                     )
                     .unwrap();
                     if stream.len() > limit {
-                        return Err(());
+                        return Err(OUTPUT_LIMIT);
                     }
                     y -= h + 8.;
                     continue;
@@ -805,7 +810,7 @@ pub(in super::super) fn render_html(
                     )
                     .unwrap();
                     if stream.len() > limit {
-                        return Err(());
+                        return Err(OUTPUT_LIMIT);
                     }
                     y -= 12.;
                     continue;
@@ -835,9 +840,11 @@ pub(in super::super) fn render_html(
                 for uri in links {
                     let mut body = format!("<<\n/Type /Annot\n/Subtype /Link\n/Rect [ {x} {} {} {} ]\n/Border [ 0 0 0 ]\n/A <<\n/Type /Action\n/S /URI\n/URI ",coordinate(y),coordinate(left+content_width.min(220.)),coordinate(block_top)).into_bytes();
                     super::pdf_rewrite::encode(&super::pdf_string::encode(&uri), &mut body)
-                        .map_err(|_| ())?;
+                        .map_err(|_| OUTPUT_LIMIT)?;
                     body.extend_from_slice(b"\n>>\n>>");
-                    remaining_resources = remaining_resources.checked_sub(body.len()).ok_or(())?;
+                    remaining_resources = remaining_resources
+                        .checked_sub(body.len())
+                        .ok_or(OUTPUT_LIMIT)?;
                     objects.push(PageResource::Link(body));
                 }
             }
@@ -850,7 +857,7 @@ pub(in super::super) fn render_html(
         }
         finish_page(&mut stream, &mut objects, &mut headings)?;
     }
-    for i in 0..sheets.len().checked_mul(copies).ok_or(())? {
+    for i in 0..sheets.len().checked_mul(copies).ok_or(OUTPUT_LIMIT)? {
         let (sheet, first_copy) = if collate {
             (i % sheets.len(), i < sheets.len())
         } else {
@@ -913,11 +920,11 @@ pub(in super::super) fn render_html(
     .into_bytes();
     if !outlines.is_empty() {
         let root = bodies.len() + 1;
-        write_outlines(root, &mut bodies, outlines)?;
+        write_outlines(root, &mut bodies, outlines).map_err(|_| OUTPUT_LIMIT)?;
         bodies[0] =
             format!("<<\n/Type /Catalog\n/Pages 2 0 R\n/Outlines {root} 0 R\n>>").into_bytes();
     }
-    write_objects(&bodies, limit).map(Some).ok_or(())
+    write_objects(&bodies, limit).map(Some).ok_or(OUTPUT_LIMIT)
 }
 
 pub(super) fn write_outlines(

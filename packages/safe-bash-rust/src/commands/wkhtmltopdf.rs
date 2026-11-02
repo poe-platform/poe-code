@@ -600,7 +600,7 @@ pub(super) fn wkhtmltopdf(
             collate,
             crate::budget::ShellLimits::default().max_output_bytes,
         ),
-        Err(()) => None,
+        Err(message) => return err_out(message, 1),
     };
     let Some(serialized) = serialized else {
         return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1);

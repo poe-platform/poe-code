@@ -4631,6 +4631,7 @@ test("qpdf writes and repairs fixed-width linearization offsets across edits",as
       assert.deepEqual([got.exitCode,got.stderr],[want.exitCode,want.stderr]);
       const a=Buffer.from(await rust.fs.readFile("/"+dest)),b=Buffer.from(await fs.readFile("/"+dest));
       assert.ok(a.equals(b),cmd+" byte "+b.findIndex((v,i)=>v!==a[i]));
+      assert.match((await rust.exec("pdfinfo "+dest)).stdout,/Optimized:\s+yes/);
     }
   } finally {rust.dispose();}
 });

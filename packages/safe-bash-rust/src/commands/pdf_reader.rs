@@ -974,6 +974,12 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
             _ => return None,
         }
     }
+    doc.linearized = objects.xref.keys().copied().collect::<Vec<_>>().into_iter().any(|id| {
+        objects.object(id).is_some_and(|(v,mut cursor)| {
+            cursor.skip();
+            !cursor.0.starts_with(b"stream") && v.get(b"Linearized").is_some()
+        })
+    });
     doc.bookmarks = objects.outlines(&catalog,&page_ids)?.into_iter().map(|(title,level,index)|(title,level.to_string(),(index+1).to_string())).collect();
     Some(doc)
 }

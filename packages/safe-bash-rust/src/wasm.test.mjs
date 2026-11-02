@@ -4713,3 +4713,29 @@ test("pdftk burst writes standalone page graphs and the source document report",
     }
   }finally{rust.dispose();}
 });
+
+test("pdftk unpacks authenticated attachments using only the last payload for each leaf name",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create();doc.addPage();
+  const rust=new RustWasmBash({cwd:"/",files:{"/in":doc.save(),"/one":Uint8Array.of(4),"/two":Uint8Array.of(2,0,255)}}),fs=new MemoryFileSystem();
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try {
+    const cmd="qpdf in --add-attachment one --filename=../nested/leaf.bin --key=a -- --add-attachment two --filename=../nested/leaf.bin --key=b -- --encrypt reader owner 256 -- secured";
+    const secured=await rust.exec(cmd);assert.equal(secured.exitCode,0,secured.stderr);
+    await fs.writeFile("/secured",await rust.fs.readFile("/secured"));
+    for(const shell of [js,rust]){
+      const r=await shell.exec("mkdir out && pdftk secured input_pw reader unpack_files output out");
+      assert.equal(r.exitCode,0,r.stderr);
+      assert.equal((await shell.exec("test -e /nested")).exitCode,1);
+    }
+    assert.deepEqual(await rust.fs.readFile("/out/leaf.bin"),await fs.readFile("/out/leaf.bin"));
+    assert.deepEqual(await rust.fs.readFile("/out/leaf.bin"),Uint8Array.of(2,0,255));
+    const invalid=await rust.exec("qpdf in --add-attachment one --filename=first.bin --key=a -- --add-attachment two --filename=.. --key=b -- invalid");
+    assert.equal(invalid.exitCode,0,invalid.stderr);
+    const rejected=await rust.exec("pdftk invalid unpack_files output out");
+    assert.notEqual(rejected.exitCode,0);
+    assert.equal((await rust.exec("test -f /out/first.bin")).exitCode,1);
+  }finally{rust.dispose();}
+});

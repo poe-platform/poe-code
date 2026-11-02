@@ -301,18 +301,21 @@ impl<'a> PageSource<'a> {
         Some(show.is_none().then_some(listing))
     }
 
-    pub(in super::super) fn read_attachments(&mut self) -> Option<Vec<(String, Vec<u8>)>> {
-        let mut seen = BTreeSet::new();
-        let mut result = Vec::new();
-        for Attachment {
-            filename: name,
-            stream: id,
-            ..
-        } in self.attachments(false)?
-        {
-            let name = super::pdf_string::decode(&name);
-            if seen.insert(name.clone()) {
-                result.push((name, self.objects.decoded_stream(id)?.into_owned()));
+    pub(in super::super) fn read_attachments(&mut self,pdftk:bool) -> Option<Vec<(String, Vec<u8>)>> {
+        let mut locations = BTreeMap::new();
+        let mut result: Vec<(String,Vec<u8>)> = Vec::new();
+        for file in self.attachments(false)? {
+            let mut name = super::pdf_string::decode(&file.filename);
+            if pdftk {name = super::super::pdftk_attachment_leaf(&name)?.to_owned();}
+            match locations.entry(name.clone()) {
+                std::collections::btree_map::Entry::Vacant(e) => {
+                    e.insert(result.len());
+                    result.push((name,self.objects.decoded_stream(file.stream)?.into_owned()));
+                }
+                std::collections::btree_map::Entry::Occupied(e) if pdftk => {
+                    result[*e.get()].1 = self.objects.decoded_stream(file.stream)?.into_owned();
+                }
+                _ => (),
             }
         }
         Some(result)
@@ -573,21 +576,20 @@ impl PageOutput {
         }
         let mut locations = BTreeMap::new();
         for key in used {
-            for (name, bytes) in sources
+            for (leaf, bytes) in sources
                 .get_mut(key.as_str())
                 .ok_or(INVALID)?
                 .0
-                .read_attachments()
+                .read_attachments(true)
                 .ok_or(INVALID)?
             {
-                let leaf = name.rsplit(['/', '\\']).next().unwrap_or(&name);
                 let encoded = crate::commands::codecs::zlib_compress(&bytes);
                 output.remaining = output
                     .remaining
                     .checked_sub(encoded.len() + leaf.len())
                     .ok_or("PDF output byte limit exceeded")?;
                 let slot = *locations.entry(leaf.to_owned()).or_insert_with(|| {
-                    let Value::String { bytes, .. } = super::pdf_string::encode(leaf) else {
+                    let Value::String { bytes, .. } = super::pdf_string::encode(&leaf) else {
                         unreachable!()
                     };
                     output.attachments.push((bytes, vec![]));

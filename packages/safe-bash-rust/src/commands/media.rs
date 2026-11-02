@@ -517,6 +517,11 @@ fn write_copied_pdf(fs: &dyn SafeBashFs, cwd: &str, name: &str, bytes: &[u8], st
     ok_out("")
 }
 
+fn pdftk_attachment_leaf(name: &str) -> Option<&str> {
+    let leaf = name.rsplit(['/', '\\']).next()?;
+    (!matches!(leaf, "" | "." | "..") && !leaf.contains('\0')).then_some(leaf)
+}
+
 fn is_legacy_pdf(bytes: &[u8]) -> bool {
     bytes.split(|c| *c == b'\n').nth(1).is_some_and(|line| matches!(line, b"%%SAFE_PDF_V2%%" | b"%%PAGE%%"))
 }
@@ -8086,17 +8091,34 @@ fn cmd_media_doc(
                 }
                 "unpack_files" => {
                     let rest = &args[op_idx + 1..];
-                    let out_dir = if let Some(pos) = rest.iter().position(|x| x == "output")
-                        && pos + 1 < rest.len()
-                    {
-                        resolve_posix_path(cwd, &rest[pos + 1])
+                    let directory = rest.windows(2).find(|v|v[0]=="output").map_or(".",|v|v[1].as_str());
+                    let clean = directory.strip_suffix('/').unwrap_or(directory);
+                    let local = clean=="." || clean.is_empty();
+                    let out_dir = if local {cwd.to_owned()} else {resolve_posix_path(cwd,clean)};
+                    let (bytes,password) = &inputs[&input_order[0]];
+                    let files = if is_legacy_pdf(bytes) {
+                        let mut files = Vec::new();
+                        for (_,name,_,bytes) in primary.attachments {
+                            let Some(leaf) = pdftk_attachment_leaf(&name) else {
+                                return err_out("Error: Invalid embedded attachment filename\n",1);
+                            };
+                            files.push((leaf.to_owned(),bytes));
+                        }
+                        files
                     } else {
-                        cwd.to_string()
+                        let Ok(mut source) = pdf_reader::PageSource::open(bytes,password) else {
+                            return err_out("Error: Invalid attachment source\n",1);
+                        };
+                        let Some(files) = source.read_attachments(true) else {
+                            return err_out("Error: Invalid embedded attachment\n",1);
+                        };
+                        files
                     };
                     let _ = fs.mkdir_all(&out_dir);
-                    for (_, fname, _, data) in &primary.attachments {
-                        let p = format!("{}/{fname}", out_dir.trim_end_matches('/'));
-                        let _ = fs.write_file(&p, data);
+                    for (name,bytes) in files {
+                        if name=="-" && local {continue;}
+                        let r = write_copied_pdf(fs,&out_dir,&name,&bytes,1);
+                        if r.exit_code!=0 {return r;}
                     }
                     ok_out("")
                 }
@@ -8356,7 +8378,7 @@ fn cmd_media_doc(
             }
             let source = pdf_reader::PageSource::open(&b,password);
             let attachments = if let Ok(mut source) = source {
-                let Some(files) = source.read_attachments() else {
+                let Some(files) = source.read_attachments(false) else {
                     return err_out("PDF Error: Invalid embedded file stream\n", 1);
                 };
                 files

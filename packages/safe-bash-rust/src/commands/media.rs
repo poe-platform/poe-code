@@ -7764,7 +7764,7 @@ fn cmd_media_doc(
                         filtered.push(arg.clone());
                         if let Some(name) = tail.next() {filtered.push(name.clone());}
                     }
-                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate")=>{
+                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files")=>{
                         compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
@@ -7913,32 +7913,39 @@ fn cmd_media_doc(
                     write_copied_pdf(fs,cwd,&doc_data_p,format_dump(&primary,false).as_bytes(),1)
                 }
                 "attach_files" => {
-                    let rest = &args[op_idx + 1..];
-                    let mut doc = primary;
-                    let mut idx = 0usize;
-                    let mut out_pos = rest.len();
-                    while idx < rest.len() {
-                        if rest[idx] == "to_page" && idx + 1 < rest.len() {
-                            idx += 2;
-                            continue;
-                        }
-                        if rest[idx] == "output" {
-                            out_pos = idx;
-                            break;
-                        }
-                        let afull = resolve_posix_path(cwd, &rest[idx]);
-                        let Ok(ab) = fs.read_file(&afull) else {
-                            return err_out(&format!("Error: Unable to find attachment file {}\n", rest[idx]), 1);
-                        };
-                        let fname = rest[idx]
-                            .rsplit('/')
-                            .next()
-                            .unwrap_or(&rest[idx])
-                            .to_string();
-                        doc.attachments.push((fname.clone(), fname, String::new(), ab));
-                        idx += 1;
+                    let rest=&args[op_idx+1..];
+                    let output=rest.iter().position(|s|s=="output").unwrap_or(rest.len());
+                    let mut operands=rest[..output].iter();
+                    let mut paths=Vec::new();
+                    let mut page=None;
+                    while let Some(arg)=operands.next() {
+                        if arg.eq_ignore_ascii_case("to_page") {
+                            page=operands.next().map(|s| {
+                                if s.eq_ignore_ascii_case("end") {return usize::MAX;}
+                                let s=s.trim_start().strip_prefix('+').unwrap_or(s.trim_start());
+                                let digits=s.bytes().take_while(u8::is_ascii_digit).count();
+                                if digits==0 {0} else {s[..digits].parse::<usize>().unwrap_or(usize::MAX).saturating_sub(1)}
+                            });
+                        } else {paths.push(arg.clone());}
                     }
-                    write_pdftk_output(doc.serialize(), &rest[out_pos..])
+                    let read=|path:&str| if path=="-" {Some(crate::vfs::stream_string_to_bytes(stdin))} else {fs.read_file(&resolve_posix_path(cwd,path)).ok()};
+                    let (bytes,password)=&inputs[&input_order[0]];
+                    let out=if is_legacy_pdf(bytes) {
+                        let mut doc=primary;
+                        for path in paths {
+                            if let Some(data)=read(&path) {
+                                let name=path.rsplit('/').next().unwrap_or(&path).to_owned();
+                                doc.attachments.push((name.clone(),name,String::new(),data));
+                            }
+                        }
+                        doc.serialize()
+                    } else {
+                        let edits=pdf_reader::PageEdits { password, compress_streams, append_files:Some(&paths), attachment_page:page, ..Default::default() };
+                        match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],read,limit) {
+                            Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                        }
+                    };
+                    write_pdftk_output(out,&rest[output..])
                 }
                 "unpack_files" => {
                     let rest = &args[op_idx + 1..];

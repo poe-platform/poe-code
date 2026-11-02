@@ -4841,3 +4841,40 @@ test("pdftk annotation reports retain destinations, action order, and text encod
     }
   }finally{rust.dispose();}
 });
+
+test("pdftk appends attachments to existing name trees and selected page annotations", async () => {
+  const {PdfDocument, cosArray, cosDict, cosString, dictSet, dictGet, serializeCosDocument} = await import("@poe-code/pdf-ast");
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {pdftkCommands} = await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc = PdfDocument.create();
+  doc.addPage().drawText("keep the page", {x: 30, y: 40});
+  const page = doc.addPage(), cos = doc.cos;
+  const names = cos.allocateObject(cosArray([cosString("old"), cosDict({})]));
+  dictSet(cos.resolveDict(cos.rootRef), "Names", cosDict({EmbeddedFiles: cosDict({Names: cos.allocateObject(names)}), Other: cosDict({})}));
+  dictSet(page.pageDict, "Annots", cos.allocateObject(cos.allocateObject(cosArray([cosDict({Contents: cosString("existing note")})]))));
+  const blank = PdfDocument.create(); blank.addPage();
+  const inline = PdfDocument.create(), embedded = inline.addPage();
+  dictSet(inline.cos.resolveDict(dictGet(inline.cos.resolveDict(inline.cos.rootRef),"Pages")), "Kids", cosArray([embedded.pageDict]));
+  const files = {"/inline":serializeCosDocument({objects:[...inline.cos.objects.values()],rootRef:inline.cos.rootRef,infoRef:inline.cos.infoRef}), "/in": doc.save(), "/blank": blank.save(), "/secret": doc.save({encrypt:{userPassword:"reader",ownerPassword:"owner"}}), "/data": Uint8Array.of(0, 255, 42)};
+  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd: "/", files});
+  const js = new Shell({cwd: "/", fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  for (const [p,b] of Object.entries(files)) await fs.writeFile(p,b);
+  try {
+    for (const cmd of ["pdftk inline attach_files data to_page 1 output out", "pdftk in attach_files data data to_page end output out", "pdftk blank attach_files data output out", "pdftk blank attach_files absent output out", "pdftk in attach_files - to_page 2 output out < data", "pdftk in attach_files data to_page 99 output out compress", "pdftk secret input_pw reader attach_files data to_page 0 output out uncompress"]) {
+      for (const shell of [js,rust]) { const r = await shell.exec(cmd); assert.equal(r.exitCode, 0, r.stderr); }
+      const expected = await fs.readFile("/out"), actual = await rust.fs.readFile("/out");
+      assert.ok(Buffer.from(actual).equals(expected), cmd + ": first different byte " + expected.findIndex((b,i)=>actual[i]!==b));
+    }
+    const payload = new Uint8Array(32768);
+    for (const f of [fs,rust.fs]) await f.writeFile("/data",payload);
+    const cmd="pdftk in attach_files data to_page end output out";
+    assert.equal((await js.exec(cmd)).exitCode,0);
+    const expected=await fs.readFile("/out");
+    const r=await rust.exec(cmd,{limits:{maxOutputBytes:expected.length}});
+    assert.equal(r.exitCode,0,r.stderr);
+    assert.deepEqual(Buffer.from(await rust.fs.readFile("/out")), Buffer.from(expected));
+    await rust.fs.writeFile("/out",Buffer.from("original"));
+    assert.notEqual((await rust.exec(cmd,{limits:{maxOutputBytes:expected.length-1}})).exitCode,0);
+    assert.equal(Buffer.from(await rust.fs.readFile("/out")).toString(),"original");
+  } finally { rust.dispose(); }
+});

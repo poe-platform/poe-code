@@ -42,6 +42,8 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
+    pub append_files: Option<&'a [String]>,
+    pub attachment_page: Option<usize>,
     pub update: Option<&'a super::Updates>,
     pub compress_streams: Option<bool>,
     pub decrypt: bool,
@@ -64,7 +66,7 @@ pub(in super::super) fn rewrite(
     remove: &[String],
     add: &[AddAttachment],
     copies: &[attachments::CopyAttachments],
-    read: impl FnMut(&str) -> Option<Vec<u8>>,
+    mut read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
     let (mut objects, mut trailer) = index(bytes,edits.password)?;
@@ -78,7 +80,7 @@ pub(in super::super) fn rewrite(
     let mut changed = if remove.is_empty() && add.is_empty() && copies.is_empty() {
         BTreeMap::new()
     } else {
-        attachments::edit(&mut objects, &mut catalog, remove, add, copies, read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?
+        attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?
     };
     let Value::Dict(entries) = &mut catalog else {
         return Err(INVALID.into());
@@ -101,6 +103,11 @@ pub(in super::super) fn rewrite(
             changed.keys().next_back().map_or(0, |id| id.0),
         )
         .ok_or(INVALID)?;
+    let pin_page=edits.attachment_page.and_then(|p| pages.get(p.min(pages.len().saturating_sub(1)))).copied();
+    let mut pins=if let Some(paths)=edits.append_files {
+        let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
+        attachments::append(&mut objects,&mut catalog,paths,pin_page.is_some(),edits.compress_streams,read,&mut changed,next,limit)?
+    } else {vec![]};
     if let Some(update)=edits.update {update.apply(&mut objects,&mut trailer,&mut catalog,&pages,&mut changed,limit)?;}
     let mut info=trailer.get(b"Info");
     if edits.linearize {
@@ -152,6 +159,16 @@ pub(in super::super) fn rewrite(
         let Value::Dict(mut fields) = page.clone() else {
             return Err(INVALID.into());
         };
+        if pin_page == Some(id) && !pins.is_empty() {
+            let old=page.get(b"Annots");
+            let (array_id,mut annots)=match old.and_then(|v|attachments::lookup(&mut objects,v)) {
+                Some((id,Value::Array(a)))=>(id,a),
+                _=>(None,Vec::new()),
+            };
+            annots.append(&mut pins);
+            let value=Value::Array(annots);
+            if let Some(id)=array_id {store(id,&value)?;} else {set(&mut fields,b"Annots",value);}
+        }
         if let Some(update)=edits.update {update.edit_page(i+1,&mut fields);}
         if let Some(rotation) = rotation {
             let original = inherited(b"Rotate")

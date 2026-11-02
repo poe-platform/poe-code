@@ -46,9 +46,8 @@ fn child<'a>(
 fn store_child<'a>(
     bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
     id: Option<ObjectId>,
-    dict: Dict<'a>,
+    value: Value<'a>,
 ) -> Result<Value<'a>, String> {
-    let value = Value::Dict(dict);
     if let Some(id) = id {
         let mut body = vec![];
         encode(&value, &mut body)?;
@@ -191,7 +190,7 @@ pub(super) fn edit<'a>(
             if !description.is_empty() {
                 dict.push((b"Desc".into(), string(description)));
             }
-            store_child(&mut changed, Some((spec, 0)), dict)
+            store_child(&mut changed, Some((spec, 0)), Value::Dict(dict))
         };
     let mut copied = false;
     for source in copies {
@@ -236,7 +235,7 @@ pub(super) fn edit<'a>(
         set(
             &mut names,
             b"EmbeddedFiles",
-            store_child(&mut changed, tree_id, tree)?,
+            store_child(&mut changed, tree_id, Value::Dict(tree))?,
         );
         let Value::Dict(catalog) = catalog else {
             return Err(INVALID.into());
@@ -244,8 +243,149 @@ pub(super) fn edit<'a>(
         set(
             catalog,
             b"Names",
-            store_child(&mut changed, names_id, names)?,
+            store_child(&mut changed, names_id, Value::Dict(names))?,
         );
     }
     Ok(changed)
+}
+
+// The object to overwrite can be at the end of a chain of indirect references.
+// Keep the parent's original link so aliases still point through the same chain.
+pub(super) fn lookup<'a>(
+    objects: &mut Objects<'a>,
+    node: &Value<'a>,
+) -> Option<(Option<ObjectId>, Value<'a>)> {
+    let mut value = node.clone();
+    let mut owner = None;
+    let mut seen = std::collections::BTreeSet::new();
+    while let Value::Ref(id) = value {
+        if !seen.insert(id) {
+            return None;
+        }
+        let (v, mut cursor) = objects.object(id)?;
+        cursor.skip();
+        if cursor.0.starts_with(b"stream") {
+            return None;
+        }
+        owner = Some(id);
+        value = v;
+    }
+    Some((owner, value))
+}
+
+// PDFtk appends to the root Names array even when it contains duplicate keys or
+// has a Kids tree. Existing references, including an indirect Names array, stay valid.
+pub(super) fn append<'a>(
+    objects: &mut Objects<'a>,
+    catalog: &mut Value<'a>,
+    paths: &[String],
+    pin: bool,
+    mode: Option<bool>,
+    mut read: impl FnMut(&str) -> Option<Vec<u8>>,
+    changed: &mut BTreeMap<ObjectId, Vec<u8>>,
+    mut next: usize,
+    mut remaining: usize,
+) -> Result<Vec<Value<'a>>, String> {
+    let mut dictionary = |node: Option<&Value<'a>>| -> Result<_, String> {
+        if let Some((id, Value::Dict(d))) = node.and_then(|v| lookup(objects, v)) {
+            return Ok((id, node.and_then(Value::reference), d));
+        }
+        let id = (next, 0);
+        next = next.checked_add(1).ok_or(TOO_LARGE)?;
+        Ok((Some(id), None, vec![]))
+    };
+    let (names_id, names_link, names) = dictionary(catalog.get(b"Names"))?;
+    let names = Value::Dict(names);
+    let (tree_id, tree_link, mut tree) = dictionary(names.get(b"EmbeddedFiles"))?;
+    let Value::Dict(mut names) = names else {
+        unreachable!()
+    };
+    let old = tree
+        .iter()
+        .find(|(k, _)| k.as_ref() == b"Names")
+        .map(|(_, v)| v);
+    let (array_id, mut pairs) = match old.and_then(|v| lookup(objects, v)) {
+        Some((id, Value::Array(a))) => (id, a),
+        _ => (None, vec![]),
+    };
+    let mut annots = Vec::new();
+    for path in paths {
+        let Some(data) = read(path) else { continue };
+        let filename = string(path.rsplit('/').next().unwrap_or(path));
+        let data = if mode == Some(false) {
+            data
+        } else {
+            crate::commands::codecs::zlib_compress(&data)
+        };
+        let len = data.len();
+        if len > remaining {
+            return Err(TOO_LARGE.into());
+        }
+        let fields = match mode {
+            None => format!("/Filter /FlateDecode\n/Length {len}"),
+            Some(true) => format!("/Length {len}\n/Filter /FlateDecode"),
+            Some(false) => format!("/Length {len}"),
+        };
+        let mut stream = format!("<<\n/Type /EmbeddedFile\n{fields}\n>>\nstream\n").into_bytes();
+        stream.extend(data);
+        stream.extend_from_slice(b"\nendstream");
+        let first = next;
+        next = next.checked_add(if pin { 3 } else { 2 }).ok_or(TOO_LARGE)?;
+        changed.insert((first, 0), stream);
+        let spec = store_child(
+            changed,
+            Some((first + 1, 0)),
+            Value::Dict(vec![
+                (b"Type".into(), Value::Word(b"/Filespec".as_slice().into())),
+                (b"F".into(), filename.clone()),
+                (b"UF".into(), filename.clone()),
+                (
+                    b"EF".into(),
+                    Value::Dict(vec![(b"F".into(), Value::Ref((first, 0)))]),
+                ),
+            ]),
+        )?;
+        pairs.extend([filename.clone(), spec.clone()]);
+        if pin {
+            let value = Value::Dict(vec![
+                (b"Type".into(), Value::Word(b"/Annot".as_slice().into())),
+                (
+                    b"Subtype".into(),
+                    Value::Word(b"/FileAttachment".as_slice().into()),
+                ),
+                (b"Name".into(), Value::Word(b"/PushPin".as_slice().into())),
+                (b"Contents".into(), filename),
+                (b"FS".into(), spec),
+                (
+                    b"Rect".into(),
+                    Value::Array(
+                        [b"20", b"20", b"40", b"40"]
+                            .iter()
+                            .map(|n| Value::Word(n.as_slice().into()))
+                            .collect(),
+                    ),
+                ),
+            ]);
+            annots.push(store_child(changed, Some((first + 2, 0)), value)?);
+        }
+        for (_, body) in changed.range((first, 0)..(next, 0)) {
+            remaining = remaining.checked_sub(body.len()).ok_or(TOO_LARGE)?;
+        }
+    }
+    let array = store_child(changed, array_id, Value::Array(pairs))?;
+    if array_id.is_none() {
+        set(&mut tree, b"Names", array);
+    }
+    let tree = store_child(changed, tree_id, Value::Dict(tree))?;
+    if tree_link.is_none() {
+        set(&mut names, b"EmbeddedFiles", tree);
+    }
+    let names = store_child(changed, names_id, Value::Dict(names))?;
+    let Value::Dict(root) = catalog else {
+        return Err(INVALID.into());
+    };
+    if names_link.is_none() {
+        set(root, b"Names", names);
+    }
+    Ok(annots)
 }

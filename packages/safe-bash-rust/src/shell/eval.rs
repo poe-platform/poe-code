@@ -3510,9 +3510,14 @@ impl<'a> EvalState<'a> {
 
         if let Some(dfd) = dup_fd {
             self.in_fds.entry(dfd).or_default().replace(local_stdin);
+        } else if !use_local && matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { .. })) {
+            self.sync_shared_stdin(self.resolve_in_fd(0), stdin, true);
         }
         self.route_outcome(&mut out);
         self.restore_redirects(saved_fds, saved_in);
+        if matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { .. })) {
+            self.sync_shared_stdin(self.resolve_in_fd(0), stdin, false);
+        }
 
         if !self.pending_out_procsubs.is_empty() {
             let pending = std::mem::take(&mut self.pending_out_procsubs);
@@ -15788,6 +15793,21 @@ hash -l
             fs.write_file("/f", b"abc").unwrap();
             let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3; cat /f; printf :; cat <&3")).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{child}");
+        }
+    }
+
+    #[test]
+    fn alternating_between_stdin_and_its_file_alias_reads_each_byte_once() {
+        for reader in [
+            "{ head -c1; head -c1 <&3; head -c1; }",
+            "env sh -c 'head -c1; head -c1 <&3; head -c1'",
+            "(head -c1 <&3; head -c1; head -c1 <&3)",
+            r#"{ read -N1 -u3 x; printf %s "$x"; head -c1; head -c1 <&3; }"#,
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abcdef").unwrap();
+            let r = shell.exec(&format!("exec 3</f; {reader} <&3; cat <&3")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "abcdef", ""), "{reader}");
         }
     }
 

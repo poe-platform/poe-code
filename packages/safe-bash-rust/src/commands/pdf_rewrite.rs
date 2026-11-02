@@ -59,7 +59,7 @@ pub(in super::super) fn rewrite(
     edits: &PageEdits,
     remove: &[String],
     add: &[AddAttachment],
-    copies: &[(String, String)],
+    copies: &[attachments::CopyAttachments],
     read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {

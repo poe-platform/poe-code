@@ -6312,7 +6312,7 @@ fn cmd_media_doc(
             let mut remove_atts: Vec<String> = Vec::new();
             let mut add_atts = Vec::new();
             let mut standard_rewrite = true;
-            let mut copy_atts: Vec<(String, String)> = Vec::new();
+            let mut copy_atts = Vec::new();
             let mut encrypt_pw: Option<String> = None;
             let mut linearize = false;
             let mut qdf_mode = false;
@@ -6550,18 +6550,20 @@ fn cmd_media_doc(
                         i += 1;
                         args.get(i).cloned().unwrap_or_default()
                     };
-                    let mut pfx = String::new();
+                    let mut source = pdf_reader::attachments::CopyAttachments {path:src_pdf, prefix:String::new(), password:String::new()};
                     i += 1;
                     while i < args.len() && args[i] != "--" {
                         if let Some(p) = args[i].strip_prefix("--prefix=") {
-                            pfx = p.to_string();
+                            source.prefix = p.to_string();
+                        } else if let Some(p) = args[i].strip_prefix("--password=") {
+                            source.password = p.to_string();
                         }
                         i += 1;
                     }
                     if i < args.len() && args[i] == "--" {
                         i += 1;
                     }
-                    copy_atts.push((src_pdf, pfx));
+                    copy_atts.push(source);
                     continue;
                 }
                 if a == "--split-pages" {
@@ -7204,7 +7206,7 @@ fn cmd_media_doc(
                             return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                         }
                         let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                            .map_err(|e| if e == "invalid page rotation" { err_out("shell: line 1: internal error\n",1) }
+                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
@@ -7471,15 +7473,31 @@ fn cmd_media_doc(
                 }
                 doc.attachments.push((key, fname, String::new(), ab));
             }
-            for (src_pdf, pfx) in copy_atts {
-                let sdoc = match load_input(&src_pdf) {
-                    Ok(d) => d,
-                    Err(e) => return e,
+            for source in copy_atts {
+                let bytes = if source.path == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
+                    else { fs.read_file(&resolve_posix_path(cwd, &source.path)).ok() };
+                let Some(bytes) = bytes else {
+                    return err_out(&format!("qpdf: cannot open {}\n", source.path), 2);
                 };
-                for (k, fname, mime, data) in sdoc.attachments {
-                    let nk = format!("{pfx}{k}");
-                    doc.attachments.retain(|(ek, _, _, _)| ek != &nk);
-                    doc.attachments.push((nk, fname, mime, data));
+                if is_legacy_pdf(&bytes) {
+                    let src = PdfDoc::parse(&bytes);
+                    if src.encrypted.as_ref().is_some_and(|pw| pw != &source.password) {
+                        return err_out("shell: line 1: internal error\n",1);
+                    }
+                    for (k, fname, mime, data) in src.attachments {
+                        let key = format!("{}{k}", source.prefix);
+                        doc.attachments.retain(|(ek, _, _, _)| ek != &key);
+                        doc.attachments.push((key, fname, mime, data));
+                    }
+                } else if let Err(e) = source.visit(&bytes, |key, filename, data| {
+                    if doc.attachments.iter().any(|(k,_,_,_)| k == &key) {
+                        return Err(format!("duplicate attachment key {key}"));
+                    }
+                    doc.attachments.push((key, filename, String::new(), data.to_vec()));
+                    Ok(())
+                }) {
+                    return if e == pdf_reader::attachments::INVALID_SOURCE {err_out("shell: line 1: internal error\n",1)}
+                        else {err_out(&format!("qpdf: {e}\n"),2)};
                 }
             }
 

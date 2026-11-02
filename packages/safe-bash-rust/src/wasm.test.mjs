@@ -3581,6 +3581,19 @@ test("qpdf adds, replaces and removes attachments without losing the PDF object 
         assert.equal(got.equals(want),true,script + ": first differing byte " + want.findIndex((v,i)=>v!==got[i]));
       }
     }
+    const copied = PdfDocument.load(await fs.readFile("/first.pdf"));
+    for (const [source,pw] of [["/locked-a","reader"],["/locked-b","second"]]) {
+      const bytes = copied.save({encrypt:{userPassword:pw,ownerPassword:"owner"}});
+      for (const backend of [fs,wasm.fs]) await backend.writeFile(source,bytes);
+    }
+    for (const pw of ["wrong","second"]) {
+      const cmd = "qpdf base.pdf --copy-attachments-from=locked-a --password=reader --prefix=a- -- "+
+        "--copy-attachments-from locked-b --prefix=b- --password="+pw+" -- copied.pdf";
+      const want = await shell.exec(cmd), got = await wasm.exec(cmd);
+      assert.equal(want.exitCode === 0,pw === "second",want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],cmd);
+      assert.deepEqual(await wasm.fs.readFile("/copied.pdf"),await fs.readFile("/copied.pdf"),cmd);
+    }
     for (const backend of [fs,wasm.fs]) await assert.rejects(backend.readFile("/bad.pdf"));
   } finally {wasm.dispose();}
 });

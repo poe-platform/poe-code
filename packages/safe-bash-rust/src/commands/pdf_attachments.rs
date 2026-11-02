@@ -15,6 +15,14 @@ pub(in super::super) struct AddAttachment {
     pub replace: bool,
 }
 
+pub(in super::super) struct CopyAttachments {
+    pub path: String,
+    pub prefix: String,
+    pub password: String,
+}
+
+pub(in super::super) const INVALID_SOURCE: &str = "invalid attachment source";
+
 const INVALID: &str = "invalid PDF attachment tree";
 const TOO_LARGE: &str = "PDF output byte limit exceeded";
 use super::Dict;
@@ -75,12 +83,47 @@ impl<'a> Objects<'a> {
     }
 }
 
+impl CopyAttachments {
+    pub(in super::super) fn visit(
+        &self,
+        bytes: &[u8],
+        mut visit: impl FnMut(String, String, &[u8]) -> Result<(), String>,
+    ) -> Result<(), String> {
+        let (mut src, trailer) = index(bytes, &self.password).map_err(|_| INVALID_SOURCE)?;
+        let catalog = src
+            .resolve(trailer.get(b"Root").ok_or(INVALID)?)
+            .ok_or(INVALID)?;
+        let names = catalog.get(b"Names").and_then(|v| src.resolve(v));
+        for (i, (key, spec)) in src
+            .tree_pairs(
+                names.as_ref().and_then(|d| d.get(b"EmbeddedFiles")),
+                b"Names",
+            )
+            .ok_or(INVALID)?
+            .into_iter()
+            .enumerate()
+        {
+            let orig = match src.resolve(&key) {
+                Some(Value::String { bytes: v, .. }) => v,
+                _ => format!("att_{}", 2 * i).into_bytes(),
+            };
+            let Some((filename, id)) = src.filespec(&spec, &orig) else {
+                continue;
+            };
+            let key = format!("{}{}", self.prefix, text(&orig));
+            let data = src.decoded_stream(id).ok_or(INVALID)?;
+            visit(key, text(&filename), &data)?;
+        }
+        Ok(())
+    }
+}
+
 pub(super) fn edit<'a>(
     objects: &mut Objects<'a>,
     catalog: &mut Value<'a>,
     remove: &[String],
     add: &[AddAttachment],
-    copies: &[(String, String)],
+    copies: &[CopyAttachments],
     mut read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<BTreeMap<ObjectId, Vec<u8>>, String> {
@@ -158,38 +201,17 @@ pub(super) fn edit<'a>(
             store_child(&mut changed, Some((spec, 0)), dict)
         };
     let mut copied = false;
-    for (path, prefix) in copies {
-        let bytes = read(path).ok_or_else(|| format!("cannot open {path}"))?;
-        let (mut src, trailer) = index(&bytes,"").map_err(|_| INVALID)?;
-        let catalog = src
-            .resolve(trailer.get(b"Root").ok_or(INVALID)?)
-            .ok_or(INVALID)?;
-        let names = catalog.get(b"Names").and_then(|v| src.resolve(v));
-        for (i, (key, spec)) in src
-            .tree_pairs(
-                names.as_ref().and_then(|d| d.get(b"EmbeddedFiles")),
-                b"Names",
-            )
-            .ok_or(INVALID)?
-            .into_iter()
-            .enumerate()
-        {
-            let orig = match src.resolve(&key) {
-                Some(Value::String { bytes: v, .. }) => v,
-                _ => format!("att_{}", 2 * i).into_bytes(),
-            };
-            let Some((filename, id)) = src.filespec(&spec, &orig) else {
-                continue;
-            };
-            let key = format!("{prefix}{}", text(&orig));
+    for source in copies {
+        let bytes = read(&source.path).ok_or_else(|| format!("cannot open {}", source.path))?;
+        source.visit(&bytes, |key, filename, data| {
             if pairs.iter().any(|(k, _, _)| k == &key) {
                 return Err(format!("duplicate attachment key {key}"));
             }
-            let data = src.decoded_stream(id).ok_or(INVALID)?;
-            let spec = file(&text(&filename), "", &data)?;
+            let spec = file(&filename, "", data)?;
             pairs.push((key.clone(), string(&key), spec));
             copied = true;
-        }
+            Ok(())
+        })?;
     }
     pairs.append(&mut descendant_pairs);
     pairs.retain(|(key, _, _)| !remove.contains(key));

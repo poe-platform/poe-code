@@ -35,7 +35,7 @@ fn coreutil(
         "cat" => cmd_cat(args, input, cwd, fs),
         "wc" => cmd_wc(args, input, cwd, env, fs),
         "head" | "tail" => run_head_or_tail(cmd, args, input, cwd, fs),
-        "sort" => cmd_sort(args, input.buffered()?, cwd, env, fs),
+        "sort" => cmd_sort(args, input, cwd, env, fs),
         "uniq" => cmd_uniq(args, input.buffered()?, cwd, env, fs),
         "cut" => cmd_cut(args, input.buffered()?, cwd, env, fs),
         "tr" => cmd_tr(args, input.buffered()?),
@@ -1900,7 +1900,7 @@ fn extract_sort_key_bytes<'a>(
 
 fn cmd_sort(
     args: &[String],
-    stdin: &mut String,
+    stdin: CommandInput,
     cwd: &str,
     _env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -1908,6 +1908,8 @@ fn cmd_sort(
     let mut flags: BTreeSet<char> = BTreeSet::new();
     let mut raw_sep: Option<String> = None;
     let mut out_file: Option<String> = None;
+    let mut byte_limit_arg = None;
+    let mut record_limit_arg = None;
     let mut key_specs: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
     let mut opts_done = false;
@@ -2004,21 +2006,20 @@ fn cmd_sort(
                 if let Err(msg) = apply_sort_mode(v, &mut flags) {
                     return err_out(&msg, 2);
                 }
-            } else if a == "--buffer-size"
-                || a == "--max-input-bytes"
-                || a == "--max-records"
-                || a == "--batch-size"
-            {
-                if i + 1 >= args.len() {
-                    return err_out(&format!("sort: option '{a}' requires an argument\n"), 2);
+            } else if matches!(a.split('=').next(), Some("--buffer-size" | "--max-input-bytes" | "--max-records" | "--batch-size")) {
+                let (opt, val) = match a.split_once('=') {
+                    Some(pair) => pair,
+                    None => {
+                        i += 1;
+                        let Some(val) = args.get(i) else { return err_out(&format!("sort: option '{a}' requires an argument\n"), 2) };
+                        (a.as_str(), val.as_str())
+                    }
+                };
+                match opt {
+                    "--max-input-bytes" => byte_limit_arg = Some(val),
+                    "--max-records" => record_limit_arg = Some(val),
+                    _ => {}
                 }
-                i += 1;
-            } else if a.starts_with("--buffer-size=")
-                || a.starts_with("--max-input-bytes=")
-                || a.starts_with("--max-records=")
-                || a.starts_with("--batch-size=")
-            {
-                // Accepted resource flags
             } else {
                 return err_out(&format!("sort: unrecognized option '{a}'\n"), 2);
             }
@@ -2138,46 +2139,6 @@ fn cmd_sort(
         files
     };
 
-    let mut per_file_records: Vec<Vec<Vec<u8>>> = Vec::with_capacity(names.len());
-    for name in &names {
-        let raw = if name == "-" {
-            take_stdin_bytes(stdin)
-        } else {
-            let path = resolve_posix_path(cwd, name);
-            if fs.is_dir(&path) {
-                return err_out(
-                    &format!("sort: EISDIR: illegal operation on a directory, readStream '{path}'\n"),
-                    2,
-                );
-            }
-            match fs.read_file(&path) {
-                Ok(b) => b,
-                Err(_) => {
-                    return err_out(
-                        &format!("sort: ENOENT: no such file or directory, readStream '{path}'\n"),
-                        2,
-                    );
-                }
-            }
-        };
-        if raw.is_empty() {
-            per_file_records.push(Vec::new());
-            continue;
-        }
-        let mut recs: Vec<Vec<u8>> = Vec::new();
-        let mut start = 0usize;
-        for (idx, &b) in raw.iter().enumerate() {
-            if b == delim_byte {
-                recs.push(raw[start..idx].to_vec());
-                start = idx + 1;
-            }
-        }
-        if start < raw.len() {
-            recs.push(raw[start..].to_vec());
-        }
-        per_file_records.push(recs);
-    }
-
     let simple = keys.is_empty()
         && !['b', 'f', 'h', 'n', 'g', 'M', 'V', 'd', 'i']
             .iter()
@@ -2277,21 +2238,77 @@ fn cmd_sort(
         }
     };
 
-    if checking {
-        let recs = &per_file_records[0];
-        for idx in 1..recs.len() {
-            let prev = &recs[idx - 1];
-            let cur = &recs[idx];
-            if full_compare(prev, cur) == std::cmp::Ordering::Greater
-                || (unique && key_compare(prev, cur) == std::cmp::Ordering::Equal)
-            {
-                if flags.contains(&'C') {
-                    return err_out("", 1);
+    let parse_limit = |arg: Option<&str>| match arg {
+        None => Ok(u64::MAX),
+        Some(v) => v.parse::<u64>().ok().filter(|&n| n <= (1 << 53) - 1)
+            .ok_or_else(|| err_out(&format!("sort: invalid number '{v}'\n"), 2)),
+    };
+    let mut remaining_bytes = match parse_limit(byte_limit_arg) { Ok(n) => n, Err(e) => return e };
+    let mut remaining_records = match parse_limit(record_limit_arg) { Ok(n) => n, Err(e) => return e };
+    let mut per_file_records = Vec::with_capacity(names.len());
+    for name in &names {
+        let mut records = Vec::new();
+        let mut previous: Option<Vec<u8>> = None;
+        let mut ordinal = 0usize;
+        let mut emit = |record: Vec<u8>| -> Result<(), BuiltinOutcome> {
+            remaining_records = remaining_records.checked_sub(1)
+                .ok_or_else(|| err_out("sort: EFBIG: sort input record limit exceeded\n", 2))?;
+            if checking {
+                ordinal += 1;
+                if let Some(prev) = &previous
+                    && (full_compare(prev, &record).is_gt() || unique && key_compare(prev, &record).is_eq()) {
+                    return Err(if flags.contains(&'C') { err_out("", 1) }
+                        else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) });
                 }
-                return err_out(&format!("sort: disorder at record {}\n", idx + 1), 1);
+                previous = Some(record);
+            } else {
+                records.push(record);
             }
-        }
-        return ok_out("");
+            Ok(())
+        };
+        let mut pending = Vec::new();
+        let mut scan = |chunk: &[u8]| -> Result<(), BuiltinOutcome> {
+            remaining_bytes = remaining_bytes.checked_sub(chunk.len() as u64)
+                .ok_or_else(|| err_out("sort: EFBIG: sort input byte limit exceeded\n", 2))?;
+            for part in chunk.split_inclusive(|&b| b == delim_byte) {
+                if let Some(record) = part.strip_suffix(&[delim_byte]) {
+                    pending.extend_from_slice(record);
+                    emit(std::mem::take(&mut pending))?;
+                } else {
+                    pending.extend_from_slice(part);
+                }
+            }
+            Ok(())
+        };
+        let mut outcome = Ok(());
+        let result = if name == "-" {
+            if let Some(source) = stdin.file {
+                source.read(stdin.text, usize::MAX, |chunk, _| {
+                    outcome = scan(chunk);
+                    Ok((outcome.is_ok(), chunk.len()))
+                })
+            } else {
+                outcome = scan(&take_stdin_bytes(stdin.text));
+                Ok(())
+            }
+        } else {
+            let path = absolute_operand(cwd, name);
+            if fs.is_dir(&path) {
+                return err_out(&format!("sort: EISDIR: illegal operation on a directory, readStream '{path}'\n"), 2);
+            }
+            let limit = fs.max_input_bytes();
+            let mut available = limit;
+            fs.read_chunks(&path, &mut |chunk| {
+                available = available.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+                outcome = scan(chunk);
+                Ok(outcome.is_ok())
+            }).map_err(|e| stream_file_error(e, "readStream", &path))
+        };
+        if let Err(e) = result { return err_out(&format!("sort: {e}\n"), 2); }
+        if let Err(e) = outcome { return e; }
+        if !pending.is_empty() && let Err(e) = emit(pending) { return e; }
+        if checking { return ok_out(""); }
+        per_file_records.push(records);
     }
 
     let sorted_records: Vec<Vec<u8>> = if flags.contains(&'m') {

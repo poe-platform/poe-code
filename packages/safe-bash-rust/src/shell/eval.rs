@@ -15935,6 +15935,28 @@ hash -l
     }
 
     #[test]
+    fn sort_checks_records_as_the_input_arrives_and_honors_input_limits() {
+        for (script, status, stdout, stderr) in [
+            ("{ sort /small; head -c2; } </big", 0, "x\nb\n", ""),
+            ("sort /", 2, "", "sort: EISDIR: illegal operation on a directory, readStream '/'\n"),
+            ("sort </big", 2, "", "sort: EFBIG: file too large, read '/big'\n"),
+            ("{ sort -c; echo $?; head -c2; } </big", 1, "1\n", "sort: disorder at record 2\nhead: EFBIG: file too large, read '/big'\n"),
+            ("sort -Cu </dup", 1, "", ""),
+            ("sort --max-records=1 /small /small", 2, "", "sort: EFBIG: sort input record limit exceeded\n"),
+            ("sort --max-input-bytes=1 /small", 2, "", "sort: EFBIG: sort input byte limit exceeded\n"),
+            ("sort --max-records=no </big", 2, "", "sort: invalid number 'no'\n"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            for (name, bytes) in [("/big", "b\na\nc\nd\ne\n"), ("/small", "x\n"), ("/dup", "a\na")] {
+                fs.write_file(name, bytes.as_bytes()).unwrap();
+            }
+            shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, stdout, stderr), "{script}");
+        }
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

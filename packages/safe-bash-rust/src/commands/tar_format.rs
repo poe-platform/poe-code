@@ -14,7 +14,7 @@ fn split_name(name: &str) -> Option<(&str, &str)> {
     Some((&name[i + 1..], &name[..i]))
 }
 
-fn display(path: &str) -> String {
+pub(super) fn display(path: &str) -> String {
     let mut out = String::new();
     for c in path.chars() {
         match c {

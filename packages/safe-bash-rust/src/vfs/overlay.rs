@@ -14,7 +14,7 @@ struct DirectoryObservation {
 
 #[derive(Clone, Copy)]
 pub(super) enum FileWrite<'a> {
-    Create(u32), Replace, Append,
+    Create(u32), Install { mode: u32, version: u64 }, Replace, Append,
     Edit { original: &'a FileStat, before: &'a [u8], in_place: bool },
     Publish { inputs: &'a [String], version: u64, stamp: u64 },
 }
@@ -214,7 +214,7 @@ impl OverlayVfs {
         }
         let versions = (self.lower.generation(), self.upper.generation());
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
-        if let FileWrite::Publish { version, .. } = operation {
+        if let FileWrite::Publish { version, .. } | FileWrite::Install { version, .. } = operation {
             if memory_layers.is_none() {
                 return Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into());
             }
@@ -260,11 +260,15 @@ impl OverlayVfs {
                 }
             }
         }
+        let install_mode = match operation { FileWrite::Install { mode, .. } => Some(mode), _ => None };
+        if install_mode.is_some() && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300 {
+            return Err("EACCES: permission denied".into());
+        }
         let upper_exists = self.upper.lstat(&target).is_ok();
         if let Some(st) = &existing {
             if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 { return Err("EISDIR: illegal operation on a directory".into()); }
-            if st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
-            if !upper_exists { self.check_file_copy_up(&target, st)?; }
+            if install_mode.is_none() && st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
+            if install_mode.is_none() && !upper_exists { self.check_file_copy_up(&target, st)?; }
         }
         let Some((lower, upper)) = memory_layers else {
             if matches!(operation, FileWrite::Append) && existing.is_some() {
@@ -288,8 +292,8 @@ impl OverlayVfs {
         }
         let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
-        let mode = exclusive_mode.unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
-        let atime = if matches!(operation, FileWrite::Edit { in_place: false, .. }) { None } else { existing.map(|st| st.atime_ms) };
+        let mode = install_mode.or(exclusive_mode).unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
+        let atime = if install_mode.is_some() || matches!(operation, FileWrite::Edit { in_place: false, .. }) { None } else { existing.map(|st| st.atime_ms) };
         self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, atime), parents, operation))
     }
 
@@ -402,6 +406,11 @@ impl SafeBashFs for OverlayVfs {
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         self.write_entry(path, data, FileWrite::Append)
+    }
+
+    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        self.write_entry(path, data, FileWrite::Install { mode, version })
     }
 
     fn publish_file(
@@ -741,6 +750,25 @@ mod tests {
         assert!(overlay.remove_published("/docs/result", stamp).unwrap());
         assert!(!overlay.exists("/docs/result"));
         assert_eq!(lower.read_file("/docs/result").unwrap(), b"prior");
+    }
+
+    #[test]
+    fn installing_an_entry_detaches_aliases_in_both_layers() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/dir/archive", b"old").unwrap();
+        lower.hard_link("/dir/archive", "/alias").unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        fs.replace_file_entry_with_mode("/dir/archive", b"first", 0o600, fs.generation()).unwrap();
+        assert_eq!(fs.read_file("/alias").unwrap(), b"old");
+        assert_eq!(lower.read_file("/dir/archive").unwrap(), b"old");
+        let version = fs.generation();
+        upper.hard_link("/dir/archive", "/second-alias").unwrap();
+        assert!(fs.replace_file_entry_with_mode("/dir/archive", b"stale", 0o644, version).is_err());
+        fs.replace_file_entry_with_mode("/dir/archive", b"second", 0o640, fs.generation()).unwrap();
+        assert_eq!(fs.read_file("/second-alias").unwrap(), b"first");
+        assert_eq!(fs.read_file("/dir/archive").unwrap(), b"second");
+        assert_eq!(fs.stat("/dir/archive").unwrap().mode & 0o7777, 0o640);
     }
 
     #[test]

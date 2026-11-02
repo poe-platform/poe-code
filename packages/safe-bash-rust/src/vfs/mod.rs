@@ -209,7 +209,10 @@ pub trait SafeBashFs: Send + Sync {
         Err("filesystem does not support race-safe patch mutations".into())
     }
     /// Atomically install a fresh regular file, leaving existing descriptors and hard links intact.
-    fn replace_file_entry(&self, _path: &str, _data: &[u8], _version: u64) -> Result<(), String> {
+    fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
+        self.replace_file_entry_with_mode(path, data, 0o644, version)
+    }
+    fn replace_file_entry_with_mode(&self, _path: &str, _data: &[u8], _mode: u32, _version: u64) -> Result<(), String> {
         Err("ENOTSUP: retained file replacement is unsupported".into())
     }
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.

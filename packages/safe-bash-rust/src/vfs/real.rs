@@ -291,6 +291,46 @@ impl SafeBashFs for RealVfs {
         Ok(())
     }
 
+    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+        use std::io::Write;
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static SERIAL: AtomicU64 = AtomicU64::new(0);
+        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        let dest = self.walk(&self.root, path, Walk::RenameEntry, false)?;
+        match std::fs::symlink_metadata(&dest) {
+            Ok(st) if !st.is_file() => return Err("ENOTSUP: destination must be a regular file or absent".into()),
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => return Err(mutation_error(e)),
+            _ => {}
+        }
+        // Stage beside the destination so rename cannot cross filesystems. As
+        // elsewhere in RealVfs, host paths must not be replaced concurrently.
+        let mut opts = std::fs::OpenOptions::new();
+        opts.write(true).create_new(true);
+        #[cfg(unix)]
+        std::os::unix::fs::OpenOptionsExt::mode(&mut opts, 0o600);
+        for _ in 0..128 {
+            let serial = SERIAL.fetch_add(1, Ordering::Relaxed);
+            let stage = dest.with_file_name(format!(".safe-bash-stage-{}-{serial}", std::process::id()));
+            if stage == dest { continue; }
+            let mut file = match opts.open(&stage) {
+                Ok(file) => file,
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                Err(e) => return Err(mutation_error(e)),
+            };
+            let result = (|| {
+                file.write_all(data)?;
+                #[cfg(unix)]
+                file.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(mode))?;
+                drop(file);
+                std::fs::rename(&stage, &dest)
+            })();
+            if result.is_err() { let _ = std::fs::remove_file(stage); }
+            return result.map_err(mutation_error);
+        }
+        Err("EEXIST: could not allocate a staging file".into())
+    }
+
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         self.write_bytes(path, data, false)
     }

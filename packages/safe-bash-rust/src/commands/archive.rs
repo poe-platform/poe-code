@@ -5277,6 +5277,44 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return err_out("tar: refusing to create an empty archive without -T\n", 2);
     }
 
+    let writing = create || append_mode || update_mode || delete_mode || catenate_mode;
+    let dest = archive_file.as_deref().filter(|p| writing && *p != "-").map(|p| resolve_posix_path(cwd, p));
+    let version = fs.generation();
+    let existing = if let Some(path) = &dest {
+        let stat = match fs.lstat(path) {
+            Ok(stat) => Some(stat),
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+            Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+        };
+        if stat.as_ref().is_some_and(|s| s.kind != crate::vfs::VfsEntryKind::File || s.mode & 0o170000 != 0o100000) || (!create && stat.is_none()) {
+            return err_out(if create { "tar: output archive must be a regular file, not a symlink or directory\n" } else { "tar: archive mutation requires an existing regular file\n" }, 2);
+        }
+        if stat.as_ref().is_some_and(|s| s.identity.is_none()) {
+            return err_out("tar: cannot safely replace an archive with unknown backing identity\n", 2);
+        }
+        let parent = crate::vfs::dirname_posix_path(path);
+        if let Err(e) = fs.stat(&parent) {
+            if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { return err_out(&format!("tar: ENOENT: no such file or directory, realpath '{parent}'\n"), 2); }
+            return err_out(&format!("tar: {e}\n"), 2);
+        }
+        stat
+    } else { None };
+    let mut warnings = String::new();
+    let mut include = |stat: &crate::vfs::FileStat, name: &str, explicit: bool| {
+        if let Some(prior) = &existing {
+            if stat.kind == crate::vfs::VfsEntryKind::File && stat.identity.is_none() {
+                return Err("cannot replace an existing archive when a source has unknown backing identity".into());
+            }
+            if stat.identity == prior.identity {
+                let name = tar_format::display(name);
+                if explicit { return Err(format!("input is the output archive: {}", tar_format::display(&name))); }
+                warnings.push_str(&format!("tar: {name}: file is the archive; not included\n"));
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    };
+
     if create {
         let mut entries: Vec<TarEntry> = Vec::new();
         let mut create_stderr = String::new();
@@ -5298,10 +5336,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 fs,
                 &mut entries,
                 &mut Vec::new(),
+                &mut include,
             ) {
                 return err_out(&format!("tar: {e}\n"), 2);
             }
         }
+        create_stderr.push_str(&warnings);
         for entry in &mut entries {
             if let Some(m) = override_mode {
                 entry.mode = m;
@@ -5367,18 +5407,11 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             raw_tar
         };
 
-        if let Some(af) = archive_file {
-            if af != "-" {
-                let full = resolve_posix_path(cwd, &af);
-                if let Err(e) = fs.write_file(&full, &out_bytes) {
-                    return err_out(&format!("tar: {}\n", e), 2);
-                }
-                return BuiltinOutcome {
-                    stdout: verbose_out,
-                    stderr: create_stderr,
-                    exit_code: 0,
-                };
+        if let Some(path) = &dest {
+            if let Err(e) = fs.replace_file_entry_with_mode(path, &out_bytes, 0o600, version) {
+                return err_out(&format!("tar: {e}\n"), 2);
             }
+            return BuiltinOutcome { stdout: verbose_out, stderr: create_stderr, exit_code: 0 };
         }
         return BuiltinOutcome {
             stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
@@ -5437,11 +5470,13 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
 
     if append_mode || update_mode || delete_mode || catenate_mode {
-        let Some(ref af) = archive_file else {
-            return err_out("tar: archive file required\n", 2);
+        let (Some(full), Some(prior)) = (&dest, &existing) else {
+            return err_out("tar: archive mutation requires a named archive\n", 2);
         };
-        let full = resolve_posix_path(cwd, af);
-        let existing_bytes = fs.read_file(&full).unwrap_or_default();
+        let existing_bytes = match fs.read_file(full) {
+            Ok(bytes) => bytes,
+            Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+        };
         let mut entries = parse_ustar_archive(&existing_bytes);
         let mut stderr = String::new();
         let mut exit_code = 0;
@@ -5459,10 +5494,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     fs,
                     &mut new_entries,
                     &mut Vec::new(),
+                    &mut include,
                 ) {
                     return err_out(&format!("tar: {e}\n"), 2);
                 }
             }
+            stderr.push_str(&warnings);
             for mut ne in new_entries {
                 if !transforms.is_empty() {
                     ne.name = apply_tar_transforms(&ne.name, &transforms);
@@ -5509,8 +5546,15 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if catenate_mode {
             for op in &operands {
                 let t_full = resolve_posix_path(&op.cwd, &op.name);
-                if let Ok(tb) = fs.read_file(&t_full) {
-                    entries.extend(parse_ustar_archive(&tb));
+                match fs.stat(&t_full) {
+                    Ok(st) if st.identity == prior.identity => return err_out("tar: cannot concatenate an archive to itself\n", 2),
+                    Ok(st) if st.kind != crate::vfs::VfsEntryKind::File || st.identity.is_none() => return err_out("tar: concatenation source must be a regular archive with retained identity\n", 2),
+                    Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+                    _ => {}
+                }
+                match fs.read_file(&t_full) {
+                    Ok(tb) => entries.extend(parse_ustar_archive(&tb)),
+                    Err(e) => return err_out(&format!("tar: {e}\n"), 2),
                 }
             }
         }
@@ -5521,7 +5565,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if totals {
             stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len()));
         }
-        let _ = fs.write_file(&full, &out_bytes);
+        if exit_code == 0 && out_bytes != existing_bytes
+            && let Err(e) = fs.replace_file_entry_with_mode(full, &out_bytes, prior.mode & 0o7777, version) {
+            return err_out(&format!("tar: {e}\n"), 2);
+        }
         return BuiltinOutcome {
             stdout: String::new(),
             stderr,
@@ -5848,6 +5895,7 @@ fn collect_tar_entries(
     fs: &dyn SafeBashFs,
     out: &mut Vec<TarEntry>,
     ancestors: &mut Vec<Option<crate::vfs::EntryIdentity>>,
+    include: &mut impl FnMut(&crate::vfs::FileStat, &str, bool) -> Result<bool, String>,
 ) -> Result<(), String> {
     let full = resolve_posix_path(base_dir, rel);
     let mut stripped_rel = rel;
@@ -5877,6 +5925,7 @@ fn collect_tar_entries(
     } else {
         st
     };
+    if !include(&st, stored_rel, ancestors.is_empty())? { return Ok(()); }
     let mode = st.mode & 0o7777;
     let mtime = st.mtime_ms / 1000.;
     let atime = Some(st.atime_ms / 1000.);
@@ -5953,6 +6002,7 @@ fn collect_tar_entries(
                 fs,
                 out,
                 ancestors,
+                include,
             ) {
                 first_error.get_or_insert(error);
             }
@@ -7560,6 +7610,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             fs,
             &mut raw_entries,
             &mut Vec::new(),
+            &mut |_, _, _| Ok(true),
         );
         for mut e in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();

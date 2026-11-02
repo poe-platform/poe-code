@@ -597,6 +597,11 @@ impl MemoryVfs {
                 }
             }
         }
+        if matches!(operation, FileWrite::Install { .. }) && !creating {
+            Self::replace_inode(&mut upper, path.to_owned(), data, 0o100000 | mode)?;
+            self.bump_generation();
+            return Ok(());
+        }
         let initial = if append && creating && atime.is_some() {
             let Some(MemoryNode::File { ino }) = base.nodes.get(path) else { return Err("EBUSY: lower file changed".into()); };
             base.files[ino].data.as_slice()
@@ -1045,7 +1050,7 @@ impl SafeBashFs for MemoryVfs {
         Ok(self.generation())
     }
 
-    fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         let entry = Self::mutation_entry(&state, path)?;
@@ -1057,7 +1062,8 @@ impl SafeBashFs for MemoryVfs {
         if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
             return Err("EACCES: permission denied".into());
         }
-        Self::replace_inode(&mut state, entry, data, 0o100644)?;
+        if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        Self::replace_inode(&mut state, entry, data, 0o100000 | mode)?;
         self.bump_generation();
         Ok(())
     }

@@ -5639,3 +5639,33 @@ test("tar leaves archives untouched when a source cannot be read", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("tar refuses explicit archive aliases and omits them from recursive inputs", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  for (const args of ["-cf dir/out dir/out", "-czf dir/out alias", "-chf dir/out link", "-cf link file", "-cf dir file", "-cf dir/out dir", "--format=ustar --mtime=@0 -cf dir/out link", "-rf dir/out file", "--delete -f dir/out file", "-rf dir/out alias", "-uf dir/out alias", "-Af dir/out alias"]) {
+    const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+    const rs = new RustWasmBash({cwd: "/"});
+    try {
+      await fs.writeFile("/file", Buffer.from("seed"));
+      const seed = await js.exec("tar -cf - file");
+      assert.equal(seed.exitCode, 0, seed.stderr);
+      for (const f of [fs, rs.fs]) {
+        await f.mkdir("/dir", {recursive: true});
+        await f.writeFile("/file", Buffer.from("seed"));
+        await f.writeFile("/dir/out", seed.stdoutBytes);
+        await f.link("/dir/out", "/alias");
+        await f.symlink("dir/out", "/link");
+        await f.chmod("/dir/out", 0o640);
+        await f.utimes("/file", 10000, 10000);
+        await f.utimes("/dir", 10000, 10000);
+      }
+      const cmd = "tar " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/dir/out")), Buffer.from(await fs.readFile("/dir/out")), cmd);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/alias")), Buffer.from(seed.stdoutBytes), cmd);
+      assert.equal((await rs.fs.stat("/dir/out")).mode, (await fs.stat("/dir/out")).mode, cmd);
+    } finally { rs.dispose(); }
+  }
+});

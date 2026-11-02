@@ -17,7 +17,9 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
 | Zero-Dep Command Suite | `rg`, `grep`, `find`, `fd`, `xargs`, `sed`, `awk`, `diff`, `diff3`, `patch`, `apply_patch`, `jq`, `yq`, `xan`, `sqlite3`, `tar`, `gzip`, `zstd`, `xz`, `bzip2`, `zip`, `unzip`, `sha256sum`, `xxd`, `od`, `dd`, and POSIX coreutils |
 
-Pass a shell’s own `fs` to `exec` to use its Wasm filesystem. Selecting another filesystem for a call requires a `companionFactory`; without one, `exec` rejects the call before running the script.
+Native Rust callers can pass `ExecOptions { fs: Some(filesystem), ..Default::default() }` to read and write a different `SafeBashFs` for one call. Subsequent calls use the shell’s original filesystem.
+
+In WebAssembly, pass a shell’s own `fs` to `exec` to use its Wasm filesystem. Selecting another filesystem for a call requires a `companionFactory`; without one, `exec` rejects the call before running the script.
 
 `sort` uses byte order in the C and POSIX locales. For other locales the Wasm loader uses `Intl.Collator`, and native Linux, macOS and Windows builds load the system ICU library on demand. An unavailable locale or collation service gives exit status 2 before any input or destination is opened. Language availability and ordering can differ between ICU versions. Shell `[[ < ]]` and `[[ > ]]` use the same locale service for UTF-8 locales, with the locale’s default case order. Custom Wasm hosts must provide the `safe_bash.collator_open(tagPtr, tagLen, lowerFirst)`, `collator_compare` and `collator_close` imports alongside the clock and entropy imports.
 

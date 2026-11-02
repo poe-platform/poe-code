@@ -34,6 +34,8 @@ pub struct ShellOptions {
 
 #[derive(Clone, Default)]
 pub struct ExecOptions {
+    /// Filesystem for this execution only. Defaults to the shell’s filesystem.
+    pub fs: Option<Arc<dyn SafeBashFs>>,
     pub cwd: Option<String>,
     pub stdin: Option<String>,
     pub timeout_ms: Option<u64>,
@@ -158,6 +160,7 @@ impl Shell {
             self.set_env(&k, &v);
         }
         let stdin = options.stdin.as_deref().unwrap_or("");
+        let fs = options.fs.as_deref().unwrap_or(self.fs.as_ref());
 
         if self.backend.mode != BackendMode::TypeScriptOnly
             && let Some(native_res) = self.backend.try_execute_native_with_limits(
@@ -167,7 +170,7 @@ impl Shell {
                 stdin,
                 options.timeout_ms,
                 &self.limits,
-                self.fs.as_ref(),
+                fs,
             )
         {
             let res = native_res?;
@@ -190,7 +193,7 @@ impl Shell {
             &mut self.env,
             stdin,
             options.timeout_ms,
-            self.fs.as_ref(),
+            fs,
         )?;
         Ok(ExecOutput {
             stdout: res.stdout,
@@ -205,6 +208,22 @@ impl Shell {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn per_call_filesystem_owns_reads_writes_and_failures() {
+        let (mut shell, default_fs) = Shell::with_memory_fs();
+        let external = Arc::new(MemoryVfs::new());
+        default_fs.write_file("/input", b"default").unwrap();
+        external.write_file("/input", b"external").unwrap();
+        let out = shell.exec_with_options(
+            "cat /input | tee /copy; cat /missing",
+            ExecOptions { fs: Some(external.clone()), ..Default::default() },
+        ).unwrap();
+        assert_eq!((out.exit_code, out.stdout.as_str(), out.used_typescript_bridge), (1, "external", false));
+        assert_eq!(external.read_file("/copy").unwrap(), b"external");
+        assert!(!default_fs.exists("/copy"));
+        assert_eq!(shell.exec("cat /input").unwrap().stdout, "default");
+    }
 
     #[test]
     fn noexec_prevents_writes_on_later_shell_turns() {
@@ -245,6 +264,7 @@ mod tests {
                     stdin: Some("world\n".into()),
                     timeout_ms: Some(1000),
                     env,
+                    ..Default::default()
                 },
             )
             .unwrap();

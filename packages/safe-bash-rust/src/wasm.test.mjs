@@ -3028,3 +3028,31 @@ test("du validates options before traversal and formats explicit block sizes lik
     }
   } finally { wasm.dispose(); }
 });
+
+test("install validates modes, accounts and host operations before changing files", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { installCommands } = await import("@poe-platform/safe-bash/commands/install");
+  for (const args of ["-s", "-Z", "--context=label", "--preserve-context", "-Z --preserve-context",
+    "-oroot", "-gstaff", "-o123", "--group=2", "-o+0x1", "-g08", "-o4294967296", "-o-1",
+    "-o0xffffffff", "-mBAD", "-m+777", "-m+w", "--strip-program=x", "-Cp", "-Cs", "--ver",
+    "--backup=n", "--backup=wrong", "--backup=", "--help=1", "--bogus", "-q",
+    "-D -s /src /new/file", "-d -g0 /new", "-mBAD -t /missing /src", "-t /dst /src"]) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(installCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/" });
+    try {
+      for (const backend of [fs, wasm.fs]) {
+        await backend.writeFile("/src", Uint8Array.of(1));
+        await backend.writeFile("/dst", Uint8Array.of(2));
+      }
+      const script = "install " + args + (args.includes("/") ? "" : " /src /dst");
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      assert.equal((await wasm.fs.stat("/dst")).mode, (await fs.stat("/dst")).mode, script);
+      for (const backend of [fs, wasm.fs]) await backend.chmod("/dst", 0o644);
+      assert.deepEqual(await wasm.fs.readFile("/dst"), await fs.readFile("/dst"), script);
+      assert.equal(await wasm.fs.stat("/new").then(() => true, () => false),
+        await fs.stat("/new").then(() => true, () => false), script);
+    } finally { wasm.dispose(); }
+  }
+});

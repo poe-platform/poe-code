@@ -117,14 +117,14 @@ fn child_disp_path(parent: &str, name: &str) -> String {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum BackupMode {
+pub(super) enum BackupMode {
     None,
     Simple,
     Existing,
     Numbered,
 }
 
-fn parse_backup_control(control: Option<&str>) -> Result<BackupMode, String> {
+pub(super) fn parse_backup_control(control: Option<&str>) -> Result<BackupMode, String> {
     let Some(s) = control else { return Ok(BackupMode::None) };
     let mut matched = None;
     for (aliases, mode) in [(["none", "off"], BackupMode::None), (["simple", "never"], BackupMode::Simple),
@@ -3174,11 +3174,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     }
 }
 
-pub(crate) fn eval_chmod_mode(spec: &str, current: u32, is_dir: bool) -> u32 {
-    eval_chmod_mode_checked(spec, current, is_dir, 0o022).unwrap_or(current)
-}
-
-fn eval_chmod_mode_checked(
+pub(super) fn eval_chmod_mode_checked(
     spec: &str,
     current: u32,
     is_dir: bool,

@@ -18080,6 +18080,34 @@ fn ensure_install_dirs(
     }
 }
 
+fn install_account(text: Option<&str>, kind: &str) -> Result<bool, String> {
+    let Some(text) = text else { return Ok(false) };
+    let digits = text.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
+    let digits = digits.strip_prefix('+').unwrap_or(digits);
+    let (base, digits) = if let Some(hex) = digits
+        .strip_prefix("0x")
+        .or_else(|| digits.strip_prefix("0X"))
+    {
+        (16, hex)
+    } else if digits.starts_with('0') && digits.len() > 1 {
+        (8, &digits[1..])
+    } else {
+        (10, digits)
+    };
+    let quoted = fmt_quote::quote(text, true, false);
+    if digits.is_empty() || !digits.chars().all(|c| c.is_digit(base)) {
+        if text.starts_with(|c: char| !c.is_ascii_digit() && c != '+' && c != '-') {
+            return Err(format!(
+                "cannot resolve {kind} {quoted}: Operation not supported (account database unavailable)"
+            ));
+        }
+        return Err(format!("invalid {kind} {quoted}"));
+    }
+    u32::from_str_radix(digits, base)
+        .map(|id| id != u32::MAX)
+        .map_err(|_| format!("invalid {kind} {quoted}"))
+}
+
 fn cmd_install(
     args: &[String],
     cwd: &str,
@@ -18107,199 +18135,143 @@ fn cmd_install(
     let posix = env.contains_key("POSIXLY_CORRECT");
 
     let long_opts = [
-        ("backup", "b", false, true),
-        ("compare", "C", false, false),
-        ("context", "Z", false, true),
-        ("debug", "debug", false, false),
-        ("directory", "d", false, false),
-        ("group", "g", true, false),
-        ("mode", "m", true, false),
-        ("no-target-directory", "T", false, false),
-        ("owner", "o", true, false),
-        ("preserve-timestamps", "p", false, false),
-        ("preserve-context", "preserve-context", false, false),
-        ("strip", "s", false, false),
-        ("strip-program", "strip-program", true, false),
-        ("suffix", "S", true, false),
-        ("target-directory", "t", true, false),
-        ("verbose", "v", false, false),
-        ("help", "help", false, false),
-        ("version", "version", false, false),
+        ("backup", "b"),
+        ("compare", "C"),
+        ("context", "Z"),
+        ("debug", "debug"),
+        ("directory", "d"),
+        ("group", "g"),
+        ("mode", "m"),
+        ("no-target-directory", "T"),
+        ("owner", "o"),
+        ("preserve-timestamps", "p"),
+        ("preserve-context", "preserve-context"),
+        ("strip", "s"),
+        ("strip-program", "strip-program"),
+        ("suffix", "S"),
+        ("target-directory", "t"),
+        ("verbose", "v"),
+        ("help", "help"),
+        ("version", "version"),
     ];
 
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
+    let usage = |message: &str| {
+        err_out(
+            &format!("install: {message}\nTry 'install --help' for more information.\n"),
+            1,
+        )
+    };
+    let (mut owner, mut group) = (None, None);
+    let (mut preserve_context, mut set_context, mut strip_program) = (false, false, false);
+    let mut arguments = args.iter();
+    while let Some(a) = arguments.next() {
         if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
-            if posix {
-                ended = true;
-            }
-            i += 1;
+            ended |= posix;
             continue;
         }
         if a == "--" {
             ended = true;
-            i += 1;
             continue;
         }
-        if let Some(rest) = a.strip_prefix("--") {
-            let (name, eq_val) = match rest.split_once('=') {
-                Some((n, v)) => (n, Some(v)),
-                None => (rest, None),
-            };
-            let exact = long_opts.iter().find(|&&(ln, _, _, _)| ln == name);
+        let long = a.strip_prefix("--");
+        let mut keys = &a[1..];
+        let mut name = "";
+        let mut value = None;
+        if let Some(rest) = long {
+            let (prefix, attached) = rest
+                .split_once('=')
+                .map_or((rest, None), |(n, v)| (n, Some(v)));
             let matches: Vec<_> = long_opts
                 .iter()
-                .filter(|&&(ln, _, _, _)| ln.starts_with(name))
+                .filter(|(n, ..)| n.starts_with(prefix))
                 .collect();
-            let selected = if let Some(ex) = exact {
-                ex
-            } else if matches.len() == 1 {
-                matches[0]
-            } else {
-                return err_out(&format!("install: unrecognized option '{a}'\n"), 1);
-            };
-            let (full_name, key, req_arg, opt_arg) = *selected;
-            if key == "help" {
-                return ok_out(include_str!("help/install.txt"));
-            }
-            if key == "version" {
-                return ok_out("install (safe-bash; GNU coreutils 9.7 target)\n");
-            }
-            if eq_val.is_some() && !req_arg && !opt_arg {
-                return err_out(
-                    &format!("install: option '--{full_name}' doesn't allow an argument\n"),
-                    1,
-                );
-            }
-            let val = if req_arg {
-                if let Some(v) = eq_val {
-                    Some(v.to_string())
-                } else if i + 1 < args.len() {
-                    i += 1;
-                    Some(args[i].clone())
-                } else {
-                    return err_out(
-                        &format!("install: option '--{full_name}' requires an argument\n"),
-                        1,
-                    );
+            let selected = long_opts.iter().find(|(n, ..)| *n == prefix);
+            let &(full, key) = match (selected, matches.as_slice()) {
+                (Some(option), _) => option,
+                (None, [option]) => *option,
+                (_, []) => return usage(&format!("unrecognized option '{a}'")),
+                _ => {
+                    return usage(&format!(
+                        "option '{a}' is ambiguous; possibilities: {}",
+                        matches
+                            .iter()
+                            .map(|(n, ..)| format!("'--{n}'"))
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                    ));
                 }
-            } else {
-                eq_val.map(|v| v.to_string())
             };
+
+            name = full;
+            keys = key;
+            value = attached;
+        }
+        while !keys.is_empty() {
+            let (key, tail) = if long.is_some() {
+                (keys, "")
+            } else {
+                keys.split_at(keys.chars().next().unwrap().len_utf8())
+            };
+            keys = tail;
+            if matches!(key, "g" | "m" | "o" | "t" | "S" | "strip-program") {
+                value = value.or_else(|| {
+                    if tail.is_empty() {
+                        arguments.next().map(String::as_str)
+                    } else {
+                        Some(tail)
+                    }
+                });
+                if value.is_none() {
+                    return if long.is_some() {
+                        usage(&format!("option '--{name}' requires an argument"))
+                    } else {
+                        usage(&format!("option requires an argument -- '{key}'"))
+                    };
+                }
+                keys = "";
+            } else if value.is_some() && !matches!(key, "b" | "Z") {
+                return usage(&format!("option '--{name}' doesn't allow an argument"));
+            }
             match key {
+                "help" => return ok_out(include_str!("help/install.txt")),
+                "version" => return ok_out("install (safe-bash; GNU coreutils 9.7 target)\n"),
                 "b" => {
                     make_backups = true;
-                    if let Some(v) = val {
-                        backup_control = Some(v);
+                    if let Some(v) = value {
+                        backup_control = Some(v.to_owned());
                     }
                 }
-                "C" => compare_mode = true,
+                "c" => {}
                 "d" => dir_mode = true,
+                "D" => create_dirs = true,
+                "C" => compare_mode = true,
                 "p" => preserve_ts = true,
                 "s" => strip_mode = true,
-                "v" | "debug" => verbose = true,
                 "T" => no_target_dir = true,
+                "v" | "debug" => verbose = true,
+                "g" => group = value,
+                "o" => owner = value,
+                "m" => mode_spec = value.map(str::to_owned),
                 "t" => {
                     if target_dir.is_some() {
                         return err_out("install: multiple target directories specified\n", 1);
                     }
-                    target_dir = val;
+                    target_dir = value.map(str::to_owned);
                 }
-                "m" => mode_spec = val,
                 "S" => {
                     make_backups = true;
-                    if let Some(v) = val {
-                        suffix = if v.is_empty() || v.contains('/') {
-                            "~".to_string()
-                        } else {
-                            v
-                        };
-                    }
+                    suffix = value
+                        .filter(|s| !s.is_empty() && !s.contains('/'))
+                        .unwrap_or("~")
+                        .to_owned();
                 }
-                _ => {}
+                "strip-program" => strip_program = true,
+                "preserve-context" => preserve_context = true,
+                "Z" => set_context = true,
+                _ => return usage(&format!("invalid option -- '{key}'")),
             }
-            i += 1;
-            continue;
         }
-        let chars: Vec<char> = a[1..].chars().collect();
-        let mut j = 0usize;
-        while j < chars.len() {
-            match chars[j] {
-                'D' => create_dirs = true,
-                'C' => compare_mode = true,
-                'd' => dir_mode = true,
-                'b' => make_backups = true,
-                'p' => preserve_ts = true,
-                's' => strip_mode = true,
-                'T' => no_target_dir = true,
-                'v' => verbose = true,
-                'c' | 'Z' => {}
-                'm' => {
-                    let rest: String = chars[j + 1..].iter().collect();
-                    if !rest.is_empty() {
-                        mode_spec = Some(rest);
-                    } else if i + 1 < args.len() {
-                        i += 1;
-                        mode_spec = Some(args[i].clone());
-                    } else {
-                        return err_out("install: option requires an argument -- 'm'\n", 1);
-                    }
-                    break;
-                }
-                't' => {
-                    if target_dir.is_some() {
-                        return err_out("install: multiple target directories specified\n", 1);
-                    }
-                    let rest: String = chars[j + 1..].iter().collect();
-                    if !rest.is_empty() {
-                        target_dir = Some(rest);
-                    } else if i + 1 < args.len() {
-                        i += 1;
-                        target_dir = Some(args[i].clone());
-                    } else {
-                        return err_out("install: option requires an argument -- 't'\n", 1);
-                    }
-                    break;
-                }
-                'S' => {
-                    make_backups = true;
-                    let rest: String = chars[j + 1..].iter().collect();
-                    let v = if !rest.is_empty() {
-                        rest
-                    } else if i + 1 < args.len() {
-                        i += 1;
-                        args[i].clone()
-                    } else {
-                        return err_out("install: option requires an argument -- 'S'\n", 1);
-                    };
-                    suffix = if v.is_empty() || v.contains('/') {
-                        "~".to_string()
-                    } else {
-                        v
-                    };
-                    break;
-                }
-                'g' | 'o' => {
-                    let rest: String = chars[j + 1..].iter().collect();
-                    if rest.is_empty() {
-                        if i + 1 < args.len() {
-                            i += 1;
-                        } else {
-                            return err_out(
-                                &format!("install: option requires an argument -- '{}'\n", chars[j]),
-                                1,
-                            );
-                        }
-                    }
-                    break;
-                }
-                ch => return err_out(&format!("install: invalid option -- '{ch}'\n"), 1),
-            }
-            j += 1;
-        }
-        i += 1;
     }
 
     if dir_mode && strip_mode {
@@ -18314,69 +18286,37 @@ fn cmd_install(
             1,
         );
     }
-    if compare_mode && preserve_ts {
-        return err_out(
-            "install: options --compare (-C) and --preserve-timestamps are mutually exclusive\n",
-            1,
-        );
-    }
-    if compare_mode && strip_mode {
-        return err_out(
-            "install: options --compare (-C) and --strip are mutually exclusive\n",
-            1,
-        );
-    }
-
-    let backup_mode: Option<&str> = if make_backups {
-        let requested = backup_control
+    use super::fs::{BackupMode, parse_backup_control};
+    let control = make_backups.then(|| {
+        backup_control
             .as_deref()
+            .filter(|s| !s.is_empty())
             .or_else(|| {
                 env.get("VERSION_CONTROL")
-                    .map(|s| s.as_str())
+                    .map(String::as_str)
                     .filter(|s| !s.is_empty())
             })
-            .unwrap_or("existing");
-        let aliases: &[(&str, Option<&str>)] = &[
-            ("none", None),
-            ("off", None),
-            ("simple", Some("simple")),
-            ("never", Some("simple")),
-            ("existing", Some("existing")),
-            ("nil", Some("existing")),
-            ("numbered", Some("numbered")),
-            ("t", Some("numbered")),
-        ];
-        if let Some(&(_, mapped)) = aliases.iter().find(|&&(k, _)| k == requested) {
-            mapped
-        } else {
-            let matching: Vec<Option<&str>> = aliases
-                .iter()
-                .filter(|&&(k, _)| k.starts_with(requested))
-                .map(|&(_, v)| v)
-                .collect();
-            let mut uniq = matching.clone();
-            uniq.dedup();
-            if uniq.len() == 1 {
-                uniq[0]
-            } else {
-                return err_out(
-                    &format!("install: invalid argument '{requested}' for 'backup type'\n"),
-                    1,
-                );
-            }
+            .unwrap_or("existing")
+    });
+    let backup_mode = match parse_backup_control(control) {
+        Ok(mode) => mode,
+        Err(message) => {
+            return usage(&format!(
+                "{message}\nValid arguments are:\n  - 'none', 'off'\n  - 'simple', 'never'\n  - 'existing', 'nil'\n  - 'numbered', 't'"
+            ));
         }
-    } else {
-        None
     };
-
+    if preserve_context && set_context {
+        return err_out("install: cannot set target context and preserve it\n", 1);
+    }
     if files.is_empty() {
-        return err_out("install: missing file operand\n", 1);
+        return usage("missing file operand");
     }
     if files.len() == 1 && !dir_mode && target_dir.is_none() {
-        return err_out(
-            &format!("install: missing destination file operand after '{}'\n", files[0]),
-            1,
-        );
+        return usage(&format!(
+            "missing destination file operand after {}",
+            fmt_quote::quote(&files[0], true, false)
+        ));
     }
     if no_target_dir && target_dir.is_some() {
         return err_out(
@@ -18385,31 +18325,20 @@ fn cmd_install(
         );
     }
     if no_target_dir && files.len() > 2 {
-        return err_out(&format!("install: extra operand '{}'\n", files[2]), 1);
+        return usage(&format!(
+            "extra operand {}",
+            fmt_quote::quote(&files[2], true, false)
+        ));
     }
 
     let mut out_buf = String::new();
     let mut err_buf = String::new();
     let mut exit_code = 0;
 
-    if dir_mode {
-        let target_mode = mode_spec
-            .as_deref()
-            .map(|spec| crate::commands::fs::eval_chmod_mode(spec, 0, true))
-            .unwrap_or(0o755);
-        for f in &files {
-            ensure_install_dirs(f, true, target_mode, verbose, cwd, fs, &mut out_buf);
-        }
-        return ok_out(&out_buf);
-    }
-
-    let target_mode = mode_spec
-        .as_deref()
-        .map(|spec| crate::commands::fs::eval_chmod_mode(spec, 0, false))
-        .unwrap_or(0o755);
-
     let (sources, target_dir_opt, single_dest_opt): (Vec<String>, Option<String>, Option<String>) =
-        if let Some(td) = target_dir {
+        if dir_mode {
+            (files, None, None)
+        } else if let Some(td) = target_dir {
             (files, Some(td), None)
         } else {
             let last = files.last().unwrap().clone();
@@ -18417,7 +18346,12 @@ fn cmd_install(
             if !no_target_dir && fs.is_dir(&last_resolved) {
                 (files[..files.len() - 1].to_vec(), Some(last), None)
             } else if files.len() > 2 {
-                return err_out(&format!("install: target '{last}' is not a directory\n"), 1);
+                let reason = if fs.exists(&last_resolved) {
+                    "Not a directory"
+                } else {
+                    "No such file or directory"
+                };
+                return err_out(&format!("install: target '{last}': {reason}\n"), 1);
             } else {
                 (vec![files[0].clone()], None, Some(last))
             }
@@ -18425,15 +18359,85 @@ fn cmd_install(
 
     if let Some(ref td) = target_dir_opt {
         let td_resolved = resolve_posix_path(cwd, td);
-        if create_dirs {
-            ensure_install_dirs(td, false, 0o755, verbose, cwd, fs, &mut out_buf);
+        if !fs.is_dir(&td_resolved) && (fs.exists(&td_resolved) || !create_dirs) {
+            let reason = if fs.exists(&td_resolved) {
+                "Not a directory"
+            } else {
+                "No such file or directory"
+            };
+            return err_out(&format!("install: failed to access '{td}': {reason}\n"), 1);
         }
-        if !fs.is_dir(&td_resolved) {
-            return err_out(
-                &format!("install: failed to access '{td}': No such file or directory\n"),
-                1,
-            );
+    }
+
+    let target_mode = match mode_spec.as_deref() {
+        None => 0o755,
+        Some(spec) => match super::fs::eval_chmod_mode_checked(spec, 0, dir_mode, 0) {
+            Ok(mode) => mode,
+            Err(_) => {
+                return err_out(
+                    &format!(
+                        "install: invalid mode {}\n",
+                        fmt_quote::quote(spec, false, false)
+                    ),
+                    1,
+                );
+            }
+        },
+    };
+    if strip_program && !strip_mode {
+        err_buf.push_str(
+            "install: WARNING: ignoring --strip-program option as -s option was not specified\n",
+        );
+    }
+    if compare_mode && (preserve_ts || strip_mode) {
+        let option = if preserve_ts {
+            "--preserve-timestamps"
+        } else {
+            "--strip"
+        };
+        return err_out(
+            &format!(
+                "{err_buf}install: options --compare (-C) and {option} are mutually exclusive\nTry 'install --help' for more information.\n"
+            ),
+            1,
+        );
+    }
+    if compare_mode && target_mode & 0o7000 != 0 {
+        err_buf.push_str("install: the --compare (-C) option is ignored when you specify a mode with non-permission bits\n");
+    }
+    let fail = |message: &str| err_out(&format!("{err_buf}install: {message}\n"), 1);
+    let mut change_owner = false;
+    for (value, kind) in [(owner, "user"), (group, "group")] {
+        match install_account(value, kind) {
+            Ok(change) => change_owner |= change,
+            Err(message) => return fail(&message),
         }
+    }
+    if change_owner {
+        return fail("cannot set ownership: Operation not supported (chown unavailable)");
+    }
+    if strip_mode {
+        return fail(
+            "cannot strip files: Operation not supported (trusted strip hook unavailable)",
+        );
+    }
+    if set_context || preserve_context {
+        return fail(
+            "cannot apply security context: Operation not supported (host profile unavailable)",
+        );
+    }
+    if dir_mode {
+        for f in &sources {
+            ensure_install_dirs(f, true, target_mode, verbose, cwd, fs, &mut out_buf);
+        }
+        return BuiltinOutcome {
+            stdout: out_buf,
+            stderr: err_buf,
+            exit_code,
+        };
+    }
+    if create_dirs && let Some(ref td) = target_dir_opt {
+        ensure_install_dirs(td, false, 0o755, verbose, cwd, fs, &mut out_buf);
     }
 
     for src_arg in &sources {
@@ -18490,7 +18494,7 @@ fn cmd_install(
         let dst_existed = fs.exists(&dst);
         let mut backup_display: Option<String> = None;
         if dst_existed {
-            if let Some(bmode) = backup_mode
+            if backup_mode != BackupMode::None
                 && let Ok(old_bytes) = fs.read_file(&dst)
             {
                 let mut highest_numbered = 0usize;
@@ -18499,8 +18503,8 @@ fn cmd_install(
                         highest_numbered = k;
                     }
                 }
-                let use_numbered =
-                    bmode == "numbered" || (bmode == "existing" && highest_numbered > 0);
+                let use_numbered = backup_mode == BackupMode::Numbered
+                    || (backup_mode == BackupMode::Existing && highest_numbered > 0);
                 let b_suf = if use_numbered {
                     format!(".~{}~", highest_numbered + 1)
                 } else {

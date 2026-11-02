@@ -1,3 +1,4 @@
+use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
@@ -17,14 +18,14 @@ pub fn try_run_search_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_search_command_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs,
+    try_run_search_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
         |words, input, cwd, env| exec_sub(words, input, cwd, env))
 }
 
 pub(super) fn try_run_search_command_with_input<F>(
     cmd: &str,
     args: &[String],
-    stdin: &mut String,
+    input: CommandInput,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -33,6 +34,7 @@ pub(super) fn try_run_search_command_with_input<F>(
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
+    let stdin = &mut *input.text;
     match cmd {
         "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
             cmd,
@@ -45,7 +47,7 @@ where
         "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env))),
         "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
-        "xargs" => Some(cmd_xargs(args, stdin, cwd, env, fs, &mut exec_sub)),
+        "xargs" => Some(cmd_xargs(args, input, cwd, env, fs, &mut exec_sub)),
         "which" => Some(cmd_which(args, cwd, env, fs)),
         _ => None,
     }
@@ -7223,7 +7225,7 @@ enum XargsBatchMode {
 
 fn cmd_xargs<F>(
     args: &[String],
-    stdin: &mut String,
+    input: CommandInput,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -7232,6 +7234,7 @@ fn cmd_xargs<F>(
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
+    let CommandInput { text: stdin, file } = input;
     let mut delim_mode = XargsDelimMode::Whitespace;
     let mut batch_mode = XargsBatchMode::Default;
     let mut max_args: Option<usize> = None;
@@ -7546,6 +7549,12 @@ where
             }
         }
     } else {
+        if let Some((position, unread)) = file {
+            let mut pos = position.get();
+            pos.consume(0, false);
+            position.set(pos);
+            unread.borrow_mut().clear();
+        }
         std::mem::take(stdin)
     };
     let input_str = input_buf.as_str();
@@ -7593,7 +7602,13 @@ where
             } else {
                 None
             };
-            let res = exec_sub(invoke, stdin, cwd, env);
+            let res = if arg_file.is_some() {
+                exec_sub(invoke, stdin, cwd, env)
+            } else {
+                let res = exec_sub(invoke, &mut String::new(), cwd, env);
+                if let Some((_, unread)) = file { stdin.clone_from(&unread.borrow()); }
+                res
+            };
             if let Some((sv, old)) = prev_slot {
                 if let Some(val) = old {
                     env.insert(sv, val);

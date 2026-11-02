@@ -15,7 +15,7 @@ pub fn try_run_coreutil(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), position: None }, cwd, env, fs)
+    try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)
 }
 
 pub(super) fn try_run_coreutil_with_input(
@@ -889,7 +889,7 @@ fn run_head_or_tail(
         } else {
             let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin.text));
             copy(&bytes[consumed..], true).map(|(_, used)| {
-                if let Some(position) = stdin.position {
+                if let Some((position, _)) = stdin.file {
                     let mut pos = position.get();
                     pos.consume(bytes.len() - consumed, false);
                     pos.consume(bytes.len() - consumed - used, prefix && bytes_mode && !skip);

@@ -89,7 +89,7 @@ pub enum FdTarget {
     InputFile {
         writable: bool,
         path: String,
-        owner_fd: u32,
+        unread: InputCursor,
         file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
         position: Rc<Cell<FileInputPosition>>,
     },
@@ -529,13 +529,6 @@ impl<'a> EvalState<'a> {
             }
             if let Some(buf) = self.in_fds.remove(&fd) {
                 self.in_fds.insert(owner, buf);
-            }
-            for target in self.fd_table.values_mut() {
-                if let FdTarget::InputFile { owner_fd, .. } = target
-                    && *owner_fd == fd
-                {
-                    *owner_fd = owner;
-                }
             }
             self.in_fd_aliases.remove(&owner);
             for v in self.in_fd_aliases.values_mut() {
@@ -3007,6 +3000,9 @@ impl<'a> EvalState<'a> {
         simple: &SimpleCommand,
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
+        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+            stdin.clone_from(&unread.borrow());
+        }
         if simple.line > 0 {
             let effective_line = simple.line + self.callback_line_offset;
             self.current_line = effective_line;
@@ -3508,15 +3504,16 @@ impl<'a> EvalState<'a> {
             }
         }
 
+        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+            unread.borrow_mut().clone_from(if use_local { &local_stdin } else { stdin });
+        }
         if let Some(dfd) = dup_fd {
             self.in_fds.entry(dfd).or_default().replace(local_stdin);
-        } else if !use_local && matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { .. })) {
-            self.sync_shared_stdin(self.resolve_in_fd(0), stdin, true);
         }
         self.route_outcome(&mut out);
         self.restore_redirects(saved_fds, saved_in);
-        if matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { .. })) {
-            self.sync_shared_stdin(self.resolve_in_fd(0), stdin, false);
+        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+            stdin.clone_from(&unread.borrow());
         }
 
         if !self.pending_out_procsubs.is_empty() {
@@ -4764,8 +4761,8 @@ impl<'a> EvalState<'a> {
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
-            CommandInput { text: stdin, position: match self.fd_table.get(&0) {
-                Some(FdTarget::InputFile { position, .. }) => Some(position),
+            CommandInput { text: stdin, file: match self.fd_table.get(&0) {
+                Some(FdTarget::InputFile { position, unread, .. }) => Some((position, unread)),
                 _ => None,
             } },
             self.cwd,
@@ -4844,6 +4841,10 @@ impl<'a> EvalState<'a> {
                     sub_eval.fd_table.remove(&0);
                     sub_eval.in_fds.remove(&0);
                     sub_eval.in_fd_aliases.remove(&0);
+                } else if let Some(FdTarget::InputFile { writable, unread, .. }) = sub_eval.fd_table.get_mut(&0) {
+                    // Nested commands receive a byte source for stdin, even when its file is writable.
+                    *writable = false;
+                    unread.borrow_mut().clone_from(sub_stdin);
                 }
                 if let Err(e) = sub_eval.budget.enter_substitution() {
                     sub_err = Some(EvalError::Budget(e));
@@ -7947,7 +7948,9 @@ impl<'a> EvalState<'a> {
     }
 
     fn sync_shared_stdin(&mut self, canon: u32, stdin: &mut String, from_stdin: bool) {
-        if canon >= 3 && canon != STDIN_STREAM_FD && self.resolve_in_fd(0) == canon {
+        let same_file = matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { unread, .. })
+            if self.in_fds.get(&canon).is_some_and(|source| Rc::ptr_eq(unread, source)));
+        if canon >= 3 && canon != STDIN_STREAM_FD && (same_file || self.resolve_in_fd(0) == canon) {
             if from_stdin {
                 self.in_fds.entry(canon).or_default().borrow_mut().clone_from(stdin);
             } else if let Some(buf) = self.in_fds.get(&canon) {
@@ -9157,7 +9160,7 @@ impl<'a> EvalState<'a> {
             .map_or(0o644, |mask| 0o666 & !mask)
     }
 
-    fn open_input_target(&self, target: &str, fd: u32, kind: &RedirectKind) -> Result<(String, Option<FdTarget>), BuiltinOutcome> {
+    fn open_input_target(&self, target: &str, kind: &RedirectKind) -> Result<(InputCursor, Option<FdTarget>), BuiltinOutcome> {
         use crate::vfs::{RedirectAccess, VfsEntryKind};
         let writable = matches!(kind, RedirectKind::ReadWrite(_));
         let operand = crate::vfs::path::absolute_operand(self.cwd, target);
@@ -9165,7 +9168,7 @@ impl<'a> EvalState<'a> {
         let path = if writable { self.output_redirect_path(target, kind)? } else {
             let (path, st) = self.fs.inspect_command_entry(&operand, true, "stat").map_err(error)?;
             if st.kind == VfsEntryKind::Directory {
-                if self.in_cmdsub_file_shortcut { return Ok((String::new(), None)); }
+                if self.in_cmdsub_file_shortcut { return Ok((InputCursor::default(), None)); }
                 return Err(error("EISDIR".into()));
             }
             if st.mode & 0o400 == 0 { return Err(error("EACCES".into())); }
@@ -9190,11 +9193,12 @@ impl<'a> EvalState<'a> {
         if bytes.len() > limit {
             return Err(BuiltinOutcome { stdout: String::new(), stderr: format!("{target}: EFBIG: File too large\n"), exit_code: 1 });
         }
+        let unread: InputCursor = Rc::new(bytes_to_stream_string(&bytes).into());
         let description = (writable || file.is_some()).then(|| FdTarget::InputFile {
-            writable, path, owner_fd: fd, file,
+            writable, path, unread: unread.clone(), file,
             position: Rc::new(Cell::new(FileInputPosition { remaining: bytes.len(), revision, ..Default::default() })),
         });
-        Ok((bytes_to_stream_string(&bytes), description))
+        Ok((unread, description))
     }
 
     fn open_output_target(&self, operand: &str, kind: &RedirectKind) -> Result<FdTarget, BuiltinOutcome> {
@@ -9390,7 +9394,7 @@ impl<'a> EvalState<'a> {
                         Ok(target) => target,
                         Err(err_out) => return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
                     };
-                    let (content, description) = match self.open_input_target(&target, *fd, &r.kind) {
+                    let (content, description) = match self.open_input_target(&target, &r.kind) {
                         Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
@@ -9406,15 +9410,14 @@ impl<'a> EvalState<'a> {
                         None => self.fd_table.remove(fd),
                     };
                     if *fd == 0 {
-                        local_stdin = content;
+                        local_stdin = content.borrow().clone();
                         use_local = true;
                         dup_fd = None;
-                        if matches!(r.kind, RedirectKind::ReadWrite(_)) { self.in_fd_aliases.insert(0, STDIN_STREAM_FD); }
                     } else {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                         }
-                        self.in_fds.insert(*fd, Rc::new(content.into()));
+                        self.in_fds.insert(*fd, content);
                     }
                 }
                 RedirectKind::HereString(fd) => {
@@ -9701,73 +9704,69 @@ impl<'a> EvalState<'a> {
                                     self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
                                 }
                                 self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                                let mut input_target = self.fd_table.get(&src_fd)
-                                    .filter(|target| matches!(target, FdTarget::InputFile { .. })).cloned();
-                                let canon = if src_fd == 0 && use_local { dup_fd.unwrap_or(0) }
-                                    else if let Some(FdTarget::InputFile { owner_fd, .. }) = &input_target {
-                                        self.resolve_in_fd(*owner_fd)
-                                    } else { self.resolve_in_fd(src_fd) };
-                                if move_fd && canon == src_fd
-                                    && let Some(FdTarget::InputFile { owner_fd, .. }) = &mut input_target {
-                                    *owner_fd = *fd;
+                                record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                                record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
+                                if *fd != 0 && !saved_in.iter().any(|(f, _)| f == fd) {
+                                    saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                 }
-                                if *fd == 0 {
-                                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 0);
-                                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, 0);
-                                    self.fd_table.remove(&0);
-                                    self.in_fd_aliases.remove(&0);
-                                    if canon == STDIN_STREAM_FD {
-                                        local_stdin.clear();
-                                        use_local = false;
-                                        dup_fd = None;
-                                    } else if canon != 0 {
-                                        local_stdin = self
-                                            .in_fds
-                                            .get(&canon)
-                                            .map(|s| s.borrow().clone())
-                                            .unwrap_or_default();
+                                if let Some(file @ FdTarget::InputFile { unread, .. }) = self.fd_table.get(&src_fd) {
+                                    self.in_fd_aliases.remove(fd);
+                                    if *fd == 0 {
+                                        local_stdin.clone_from(&unread.borrow());
                                         use_local = true;
-                                        if move_fd && canon == src_fd {
-                                            dup_fd = None;
-                                        } else {
-                                            dup_fd = Some(canon);
-                                            self.in_fd_aliases.insert(0, canon);
-                                        }
+                                        dup_fd = None;
+                                    } else {
+                                        self.in_fds.insert(*fd, unread.clone());
                                     }
-                                    if let Some(rwt) = input_target {
-                                        self.fd_table.insert(0, rwt);
-                                    }
+                                    self.fd_table.insert(*fd, file.clone());
                                 } else {
-                                    if !saved_in.iter().any(|(f, _)| f == fd) {
-                                        saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                                    }
-                                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                                    self.fd_table.remove(fd);
-                                    if let Some(rwt) = input_target {
-                                        self.fd_table.insert(*fd, rwt);
-                                    }
-                                    if src_fd == 0 && use_local && dup_fd.is_none() {
-                                        self.in_fds.insert(*fd, Rc::new(local_stdin.clone().into()));
-                                        self.in_fd_aliases.remove(fd);
-                                        self.in_fd_aliases.insert(0, *fd);
-                                        dup_fd = Some(*fd);
-                                    } else if move_fd
-                                        && src_fd != *fd
-                                        && canon == src_fd
-                                        && src_fd != 0
-                                    {
-                                        if !saved_in.iter().any(|(f, _)| *f == src_fd) {
-                                            saved_in
-                                                .push((src_fd, self.in_fds.get(&src_fd).cloned()));
+                                    let canon = if src_fd == 0 && use_local { dup_fd.unwrap_or(0) }
+                                        else { self.resolve_in_fd(src_fd) };
+                                    if *fd == 0 {
+                                        self.fd_table.remove(&0);
+                                        self.in_fd_aliases.remove(&0);
+                                        if canon == STDIN_STREAM_FD {
+                                            local_stdin.clear();
+                                            use_local = false;
+                                            dup_fd = None;
+                                        } else if canon != 0 {
+                                            local_stdin = self
+                                                .in_fds
+                                                .get(&canon)
+                                                .map(|s| s.borrow().clone())
+                                                .unwrap_or_default();
+                                            use_local = true;
+                                            if move_fd && canon == src_fd {
+                                                dup_fd = None;
+                                            } else {
+                                                dup_fd = Some(canon);
+                                                self.in_fd_aliases.insert(0, canon);
+                                            }
                                         }
-                                        if let Some(content) = self.in_fds.remove(&src_fd) {
-                                            self.in_fds.insert(*fd, content);
+                                    } else {
+                                        self.fd_table.remove(fd);
+                                        if src_fd == 0 && use_local && dup_fd.is_none() {
+                                            self.in_fds.insert(*fd, Rc::new(local_stdin.clone().into()));
+                                            self.in_fd_aliases.remove(fd);
+                                            self.in_fd_aliases.insert(0, *fd);
+                                            dup_fd = Some(*fd);
+                                        } else if move_fd
+                                            && src_fd != *fd
+                                            && canon == src_fd
+                                            && src_fd != 0
+                                        {
+                                            if !saved_in.iter().any(|(f, _)| *f == src_fd) {
+                                                saved_in
+                                                    .push((src_fd, self.in_fds.get(&src_fd).cloned()));
+                                            }
+                                            if let Some(content) = self.in_fds.remove(&src_fd) {
+                                                self.in_fds.insert(*fd, content);
+                                            }
+                                            self.in_fd_aliases.remove(fd);
+                                        } else if canon != *fd {
+                                            self.in_fds.remove(fd);
+                                            self.in_fd_aliases.insert(*fd, canon);
                                         }
-                                        self.in_fd_aliases.remove(fd);
-                                    } else if canon != *fd {
-                                        self.in_fds.remove(fd);
-                                        self.in_fd_aliases.insert(*fd, canon);
                                     }
                                 }
                             } else {
@@ -9985,23 +9984,10 @@ impl<'a> EvalState<'a> {
                 out.stderr.push_str("Bad file descriptor\n");
                 out.exit_code = 1;
             }
-            FdTarget::InputFile { path, owner_fd, file, position, writable: true } => {
+            FdTarget::InputFile { path, unread, file, position, writable: true } => {
                 if !self.is_default_null(path) {
-                    let cur_rem = if *owner_fd == 0 {
-                        self.in_fds
-                            .get(&0)
-                            .or_else(|| self.in_fds.get(&STDIN_STREAM_FD))
-                            .map(|s| stream_byte_len(&s.borrow()))
-                            .unwrap_or(0)
-                    } else {
-                        let canon = self.resolve_in_fd(*owner_fd);
-                        self.in_fds
-                            .get(&canon)
-                            .map(|s| stream_byte_len(&s.borrow()))
-                            .unwrap_or(0)
-                    };
                     let mut pos = position.get();
-                    pos.consume(cur_rem, false);
+                    pos.consume(stream_byte_len(&unread.borrow()), false);
                     let cur_off = pos.offset;
                     let write_bytes = stream_string_to_bytes(data);
                     let Some(file) = file else {
@@ -10031,12 +10017,7 @@ impl<'a> EvalState<'a> {
                             return;
                         }
                     };
-                    let canon = self.resolve_in_fd(*owner_fd);
-                    if let Some(cursor) = self.in_fds.get(&canon) {
-                        pos.replace_tail(&mut cursor.borrow_mut(), &tail);
-                    } else {
-                        pos.remaining = pos.buffered + tail.len();
-                    }
+                    pos.replace_tail(&mut unread.borrow_mut(), &tail);
                     pos.offset = end_off;
                     pos.revision = None;
                     position.set(pos);
@@ -15808,6 +15789,24 @@ hash -l
             fs.write_file("/f", b"abcdef").unwrap();
             let r = shell.exec(&format!("exec 3</f; {reader} <&3; cat <&3")).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "abcdef", ""), "{reader}");
+        }
+    }
+
+    #[test]
+    fn a_readwrite_file_on_stdin_retains_its_offset_through_reads_and_writes() {
+        for (script, expected, file) in [
+            ("{ head -c1; printf X >&0; cat; } 0<>/f", "ac", "aXc"),
+            ("{ read -N1 x; printf X >&0; cat; } 0<>/f", "bc", "abcX"),
+            ("exec 0<>/f; head -c1; printf X >&0; cat", "ac", "aXc"),
+            ("exec 3<>/f; xargs -I{} sh -c 'cat; head -c1 <&3' <&3", "", "abc"),
+            ("exec 3<>/f; env sh -c 'printf X 2>/err >&0 || printf Y >&3' <&3; cat /err", "sh: line 1: 0: Bad file descriptor\n", "Ybc"),
+            ("exec 3<>/f; env env cat <&3 3<&-; printf X >&3", "abc", "abcX"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abc").unwrap();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            assert_eq!(fs.read_file("/f").unwrap(), file.as_bytes(), "{script}");
         }
     }
 

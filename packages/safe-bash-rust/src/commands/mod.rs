@@ -49,7 +49,7 @@ impl FileInputPosition {
 
 pub(crate) struct CommandInput<'a> {
     pub(crate) text: &'a mut String,
-    pub(crate) position: Option<&'a Cell<FileInputPosition>>,
+    pub(crate) file: Option<(&'a Cell<FileInputPosition>, &'a RefCell<String>)>,
 }
 
 #[derive(Clone, Debug)]
@@ -690,7 +690,7 @@ pub fn try_run_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), position: None }, cwd, env, fs,
+    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
         |words, input, cwd, env| exec_sub(words, input, cwd, env))
 }
 
@@ -706,7 +706,7 @@ pub(crate) fn try_run_command_with_input<F>(
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    let CommandInput { text: stdin, position } = input;
+    let CommandInput { text: stdin, file } = input;
     if cmd == "env" {
         return Some(run_env_command(args, stdin, cwd, env, fs, exec_sub));
     }
@@ -721,13 +721,13 @@ where
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
-    if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, position }, cwd, env, fs) {
+    if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
-    if let Some(res) = search::try_run_search_command_with_input(cmd, args, stdin, cwd, env, fs, exec_sub) {
+    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, exec_sub) {
         return Some(res);
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {

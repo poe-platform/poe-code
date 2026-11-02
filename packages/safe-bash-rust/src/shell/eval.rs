@@ -16015,6 +16015,36 @@ hash -l
     }
 
     #[test]
+    fn sort_output_follows_links_before_parent_components() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let r = shell.exec("mkdir -p /dir/sub; ln -s /dir/sub /link; ln -s /missing/file /dangling; echo keep >/dst; printf 'b\\na\\n' >/src; sort -o /link/../dst /src").unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+        assert_eq!(fs.read_file("/dst").unwrap(), b"keep\n");
+        assert_eq!(fs.read_file("/dir/dst").unwrap(), b"a\nb\n");
+        for dst in ["/missing/../dst", "/dangling"] {
+            let r = shell.exec(&format!("sort -o {dst} /src")).unwrap();
+            assert_eq!((r.exit_code, r.stderr), (2, format!("sort: ENOENT: no such file or directory, writeStream '{dst}'\n")));
+        }
+        assert!(!fs.exists("/missing"));
+        assert_eq!(fs.read_file("/dst").unwrap(), b"keep\n");
+    }
+
+    #[test]
+    fn sort_and_uniq_do_not_overwrite_read_only_outputs_or_create_in_read_only_directories() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.exec("mkdir /dir; echo keep >/locked; chmod 444 /locked; chmod 555 /dir; ln -s /locked /link; echo a >/src").unwrap();
+        for (cmd, status) in [("sort", 2), ("uniq", 1)] {
+            for (dst, op) in [("/dir/new", "writeStream"), ("/dir", "access"), ("/locked", "access"), ("/link", "access")] {
+                let script = if cmd == "sort" { format!("sort -o {dst} /src") } else { format!("uniq /src {dst}") };
+                let r = shell.exec(&script).unwrap();
+                assert_eq!((r.exit_code, r.stderr), (status, format!("{cmd}: EACCES: permission denied, {op} '{dst}'\n")));
+            }
+        }
+        assert!(!fs.exists("/dir/new"));
+        assert_eq!(fs.read_file("/locked").unwrap(), b"keep\n");
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

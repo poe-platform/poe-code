@@ -324,6 +324,26 @@ fn stream_file_error(error: String, op: &str, path: &str) -> String {
     }
 }
 
+fn resolve_record_output(fs: &dyn SafeBashFs, path: &str) -> Result<String, String> {
+    let entry = fs.access_path(path, true).map_err(|e| {
+        let op = if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { "writeStream" } else { "access" };
+        stream_file_error(e, op, path)
+    })?;
+    match fs.lstat(&entry) {
+        Ok(st) if st.mode & 0o200 == 0 => Err(format!("EACCES: permission denied, access '{path}'")),
+        Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {
+            let op = if entry == "/" { "" } else { ", writeStream" };
+            Err(format!("EISDIR: illegal operation on a directory{op} '{path}'"))
+        }
+        Ok(_) => Ok(entry),
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
+            let parent = fs.stat(&dirname_posix_path(&entry)).map_err(|e| stream_file_error(e, "writeStream", path))?;
+            if parent.mode & 0o200 == 0 { Err(format!("EACCES: permission denied, writeStream '{path}'")) } else { Ok(entry) }
+        }
+        Err(e) => Err(stream_file_error(e, "access", path)),
+    }
+}
+
 impl CommandInput<'_> {
     fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs,
         mut consume: impl FnMut(&[u8]) -> bool,
@@ -2394,20 +2414,11 @@ fn cmd_sort(
     }
 
     if let Some(ref of) = out_file {
-        let dest = resolve_posix_path(cwd, of);
-        if fs.is_dir(&dest) {
-            return err_out(
-                &format!("sort: EISDIR: illegal operation on a directory, writeStream '{dest}'\n"),
-                2,
-            );
-        }
-        let parent = dirname_posix_path(&dest);
-        if !fs.is_dir(&parent) || fs.write_file(&dest, &out_bytes).is_err() {
-            return err_out(
-                &format!("sort: ENOENT: no such file or directory, writeStream '{dest}'\n"),
-                2,
-            );
-        }
+        let path = absolute_operand(cwd, of);
+        let result = resolve_record_output(fs, &path).and_then(|entry| {
+            fs.write_file(&entry, &out_bytes).map_err(|e| stream_file_error(e, "writeStream", &path))
+        });
+        if let Err(e) = result { return err_out(&format!("sort: {e}\n"), 2); }
         return ok_out("");
     }
     ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
@@ -2602,13 +2613,10 @@ fn cmd_uniq(
     let in_name = operands.first().map(|s| s.as_str()).unwrap_or("-");
     let destination = if let Some(name) = operands.get(1) {
         let path = absolute_operand(cwd, name);
-        let entry = match fs.access_path(&path, true) {
+        let entry = match resolve_record_output(fs, &path) {
             Ok(entry) => entry,
-            Err(e) => return err_out(&format!("uniq: {}\n", stream_file_error(e, "writeStream", &path)), 1),
+            Err(e) => return err_out(&format!("uniq: {e}\n"), 1),
         };
-        if fs.is_dir(&entry) {
-            return err_out(&format!("uniq: EISDIR: illegal operation on a directory, writeStream '{path}'\n"), 1);
-        }
         if let Err(e) = fs.write_file(&entry, &[]) {
             return err_out(&format!("uniq: {}\n", stream_file_error(e, "writeStream", &path)), 1);
         }

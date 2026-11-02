@@ -3963,22 +3963,17 @@ fn run_grep_engine(
         .map(|rep| parse_rg_replacement(rep, &rx.capture_names));
     let capture = replacement.iter().flatten().any(|part| matches!(part, RgReplacementPart::Group(_)));
 
-    let mut inputs: Vec<(Option<String>, String, Option<usize>)> = Vec::new();
+    if cfg.is_rg && cfg.max_count == Some(0) {
+        return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 1 };
+    }
+    enum Input { Stdin, File(String, String), Error(String) }
+    let mut inputs = Vec::new();
     let mut err = String::new();
     let mut had_error = false;
-    let default_stdin_label = cfg
-        .stdin_label
-        .clone()
-        .unwrap_or_else(|| "(standard input)".to_string());
-
+    let stdin_label = cfg.stdin_label.as_deref().unwrap_or(if cfg.is_rg { "<stdin>" } else { "(standard input)" });
     let mut searched_directory = false;
     if targets.is_empty() {
-        let lbl = if cfg.with_filename {
-            Some(default_stdin_label.clone())
-        } else {
-            None
-        };
-        inputs.push((lbl, stdin.to_string(), None));
+        inputs.push(Input::Stdin);
     } else {
         let mut init_rules = Vec::new();
         if cfg.is_rg && cfg.unrestricted_level == 0 {
@@ -3994,19 +3989,15 @@ fn run_grep_engine(
                 }
             }
         }
-        let mut file_list = Vec::new();
         for t in &targets {
             if t == "-" {
-                inputs.push((Some(default_stdin_label.clone()), stdin.to_string(), None));
+                inputs.push(Input::Stdin);
                 continue;
             }
             let resolved = resolve_posix_path(cwd, t);
             if !fs.exists(&resolved) {
-                if !cfg.no_messages {
-                    let prefix = if cfg.is_rg { "rg" } else { "grep" };
-                    err.push_str(&format!("{prefix}: ENOENT: no such file or directory, readFile '{resolved}'\n"));
-                }
-                had_error = true;
+                let (prefix, op) = if cfg.is_rg { ("rg", "stat") } else { ("grep", "readFile") };
+                inputs.push(Input::Error(format!("{prefix}: ENOENT: no such file or directory, {op} '{resolved}'\n")));
                 continue;
             }
             let is_dir = fs.is_dir(&resolved);
@@ -4015,12 +4006,10 @@ fn run_grep_engine(
                 if cfg.dir_action.as_deref() == Some("skip") {
                     continue;
                 }
-                if !cfg.no_messages {
-                    err.push_str(&format!("grep: EISDIR: illegal operation on a directory, readFile '{resolved}'\n"));
-                }
-                had_error = true;
+                inputs.push(Input::Error(format!("grep: EISDIR: illegal operation on a directory, readFile '{resolved}'\n")));
                 continue;
             }
+            let mut file_list = Vec::new();
             collect_search_files(
                 t,
                 cwd,
@@ -4041,19 +4030,8 @@ fn run_grep_engine(
                 cfg.max_filesize,
                 &mut file_list,
             );
-        }
-        if cfg.sort_by_path {
-            file_list.sort_by(|a, b| a.0.cmp(&b.0));
-        }
-        for (disp, full) in file_list {
-            if let Ok(bytes) = fs.read_file(&full) {
-                let nul_off = if !cfg.null_data {
-                    bytes.iter().position(|&b| b == 0)
-                } else {
-                    None
-                };
-                inputs.push((Some(disp), String::from_utf8_lossy(&bytes).into_owned(), nul_off));
-            }
+            if cfg.sort_by_path { file_list.sort_by(|a, b| a.0.cmp(&b.0)); }
+            inputs.extend(file_list.into_iter().map(|(label, path)| Input::File(label, path)));
         }
     }
 
@@ -4074,7 +4052,26 @@ fn run_grep_engine(
     let rec_term = if cfg.null_data { '\0' } else { '\n' };
     let multiline = cfg.multiline && (cfg.is_rg || rx.branches.iter().any(|program|
         program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, rx.ignore_case)))));
-    for (fname, content, nul_off) in &inputs {
+    let mut searches = 0;
+    let mut bytes_searched = 0;
+    for input in inputs {
+        let file_content;
+        let (fname, content, nul_off) = match input {
+            Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stdin, None),
+            Input::File(ref label, ref path) => {
+                let Ok(bytes) = fs.read_file(path) else { continue; };
+                let nul = if cfg.null_data { None } else { bytes.iter().position(|&b| b == 0) };
+                file_content = String::from_utf8_lossy(&bytes).into_owned();
+                (Some(label.as_str()), file_content.as_str(), nul)
+            }
+            Input::Error(message) => {
+                had_error = true;
+                if !cfg.no_messages { err.push_str(&message); }
+                continue;
+            }
+        };
+        searches += 1;
+        bytes_searched += content.len();
         if nul_off.is_some() && cfg.ignore_binary {
             continue;
         }
@@ -4209,11 +4206,13 @@ fn run_grep_engine(
             }
         }
 
+        let found = if cfg.is_rg && cfg.files_without_match { matched_count == 0 } else { matched_count > 0 };
+        any_match |= found;
+        if cfg.quiet && !cfg.stats && !cfg.json_output {
+            if found { return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 }; }
+            continue;
+        }
         if matched_count > 0 {
-            any_match = true;
-            if cfg.quiet && !cfg.stats && !cfg.json_output {
-                return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 };
-            }
             searches_with_match += 1;
             total_matched_lines += matched_count;
             total_matches += file_submatch_count;
@@ -4223,7 +4222,7 @@ fn run_grep_engine(
             if matched_count == 0 {
                 continue;
             }
-            let path_text = fname.as_deref().unwrap_or("<stdin>");
+            let path_text = fname.unwrap_or("<stdin>");
             let escaped_path = json_escape_str(path_text);
             out.push_str(&format!(
                 "{{\"type\":\"begin\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}}}}}}\n"
@@ -4272,6 +4271,7 @@ fn run_grep_engine(
             continue;
         }
 
+        if cfg.quiet { continue; }
         if let Some(off) = nul_off
             && cfg.is_rg
             && !cfg.files_with_matches
@@ -4512,14 +4512,11 @@ fn run_grep_engine(
     }
 
     if cfg.json_output {
-        let searches = inputs.len();
         out.push_str(&format!(
             "{{\"type\":\"summary\",\"data\":{{\"stats\":{{\"matches\":{total_matches},\"matched_lines\":{total_matched_lines},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}}}}\n"
         ));
     } else if cfg.stats {
-        let searches = inputs.len();
         let bytes_printed = out.len();
-        let bytes_searched: usize = inputs.iter().map(|(_, c, _)| c.len()).sum();
         out.push_str(&format!(
             "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
         ));

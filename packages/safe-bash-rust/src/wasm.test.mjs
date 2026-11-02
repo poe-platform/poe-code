@@ -7018,3 +7018,28 @@ test("rg chooses record anchors for ordinary ASCII searches in NUL-delimited bat
     }
   } finally { rs.dispose(); }
 });
+
+test("rg file listing status and quiet diagnostics follow target order", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const sh of [js,rs]) await sh.exec("echo x >b; echo x >a; echo y >y; touch empty");
+    const missing = "rg: ENOENT: no such file or directory, stat '/absent'\n";
+    for (const [cmd,code,stdout,stderr = ""] of [
+      ["rg --files-without-match x y",0,"y\n"], ["rg --files-without-match x b",1,""],
+      ["rg -q --files-without-match x b",1,""], ["rg -q --files-without-match x empty",0,""],
+      ["rg -m0 --files-without-match x absent",1,""], ["rg -c --include-zero -m0 x y",1,""],
+      ["echo y | rg --files-without-match x",0,"<stdin>\n"],
+      ["echo x | rg -l --sort=path x b - a",0,"b\n<stdin>\na\n"],
+      ["rg -q x b absent",0,""], ["rg -q x absent b",0,"",missing],
+      ["rg -q --files-without-match x b absent",2,"",missing],
+      ["rg --files-without-match x absent y",2,"y\n",missing],
+    ]) {
+      for (const sh of [js,rs]) {
+        const r=await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[code,stdout,stderr],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

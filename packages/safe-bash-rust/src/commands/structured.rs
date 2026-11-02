@@ -26442,7 +26442,7 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth
                     break;
                 }
                 if let Some(st) = stop_tag
-                    && matches!(st, "p" | "li")
+                    && (matches!(st, "p" | "li") || (matches!(st, "dt" | "dd") && close_name == "dl"))
                 {
                     break;
                 }
@@ -26462,7 +26462,7 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth
                 }
                 let tag_name = clean[..name_end].to_ascii_lowercase();
                 if let Some(st) = stop_tag
-                    && ((st == "p" && tag_name == "p") || (st == "li" && tag_name == "li"))
+                    && matches!((st, tag_name.as_str()), ("p", "p") | ("li", "li") | ("dt" | "dd", "dt" | "dd"))
                 {
                     break;
                 }

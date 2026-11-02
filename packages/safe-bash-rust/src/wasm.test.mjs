@@ -5426,7 +5426,7 @@ test("wkhtmltopdf draws code blocks, quote bars and horizontal rules on physical
 test("wkhtmltopdf preserves nested list order, continuation indentation and definition spacing",async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
-  const files={"/ordered":Buffer.from('<h2>Steps</h2><ol><li>Start<ul><li>Indented <b>item</b> with enough words to wrap twice on a narrow page</li></ul>continue here</li><li><ol><li>nested</li></ol></li><li></li></ol><p>End</p>'),"/definitions":Buffer.from('<dl><dt>Term</dt><dd>First definition</dd><dd>Another definition</dd><dt>New</dt><dd>Last definition</dd><dt>Unused</dt></dl><hr><ul><li>One</li><li><a href="/hidden">Two</a></li></ul>')};
+  const files={"/ordered":Buffer.from('<h2>Steps</h2><ol><li>Start<ul><li>Indented <b>item</b> with enough words to wrap twice on a narrow page</li></ul>continue here</li><li><ol><li>nested</li></ol></li><li></li></ol><p>End</p>'),"/definitions":Buffer.from('<dl><dt>Term</dt><dd>First definition</dd><dd>Another definition</dd><dt>New</dt><dd>Last definition</dd><dt>Unused</dt></dl><dl><dt>A<dd>B<dt>C<dd>D</dl><hr><ul><li>One</li><li><a href="/hidden">Two</a></li></ul>')};
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
   try{
     for(const [path,bytes] of Object.entries(files))await fs.writeFile(path,bytes);

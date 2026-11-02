@@ -4356,9 +4356,6 @@ fn tar_quote_name(name: &str, style: &str) -> String {
 }
 
 fn tar_strip_components(name: &str, strip: usize, is_dir: bool) -> Option<String> {
-    if strip == 0 {
-        return Some(name.to_string());
-    }
     let components: Vec<&str> = name
         .trim_start_matches('/')
         .split('/')
@@ -5615,8 +5612,36 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut exit_code = 0;
     let mut occ_counts = vec![0usize; operands.len()];
     let mut matched_ops = vec![false; operands.len()];
+    let mut warned_absolute = false;
+    let check_root = |root: &str| -> Result<(), String> {
+        let mut path = String::from("/");
+        for part in root.split('/').filter(|s| !s.is_empty()) {
+            path = resolve_posix_path(&path, part);
+            if fs.lstat(&path)?.kind != crate::vfs::VfsEntryKind::Directory {
+                return Err(format!("extraction root has a non-directory or symlink ancestor: {}", tar_format::display(&path)));
+            }
+        }
+        Ok(())
+    };
+    let extracting_files = extract && !to_stdout;
+    if extracting_files {
+        for root in std::iter::once(&mut current_dir).chain(operands.iter_mut().map(|op| &mut op.cwd)) {
+            match fs.access_path(root, true) {
+                Ok(path) => *root = path,
+                Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+            }
+        }
+        if let Err(e) = check_root(&current_dir) { return err_out(&format!("tar: {e}\n"), 2); }
+    }
+    let input_path = archive_file.as_deref().filter(|p| extracting_files && *p != "-").map(|p| resolve_posix_path(cwd, p));
+    let input_identity = input_path.as_deref().and_then(|p| fs.stat(p).ok()).and_then(|s| s.identity);
     let read = tar_format::read_members(data, ignore_zeros, false, |entry, raw| {
         let (sel, entry_root) = match_tar_operands(entry.name, &operands, wildcards, occurrence, &mut occ_counts, &mut matched_ops, &current_dir);
+        let transformed = (extract && !transforms.is_empty()).then(|| apply_tar_transforms(entry.name, &transforms));
+        let name = transformed.as_deref().unwrap_or(entry.name);
+        if extract && name.split('/').any(|s| s == "..") {
+            return Err(format!("unsafe parent component in member: {}", tar_format::display(name)));
+        }
         if !sel || tar_matches_exclude(entry.name, &excludes) { return Ok(()); }
         if diff_mode {
             let dest = resolve_posix_path(&entry_root, entry.name);
@@ -5683,8 +5708,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         } else if list {
             let is_dir_entry = entry.typeflag == b'5' || entry.name.ends_with('/');
-            let Some(base_name) = tar_strip_components(entry.name, strip_components, is_dir_entry) else {
-                return Ok(());
+            let base_name = if strip_components == 0 { entry.name.to_owned() } else {
+                if entry.name.split('/').any(|s| s == "..") { return Err(format!("unsafe parent component in member: {}", tar_format::display(entry.name))); }
+                let Some(name) = tar_strip_components(entry.name, strip_components, is_dir_entry) else { return Ok(()); };
+                name
             };
             let disp = if show_transformed && !transforms.is_empty() {
                 apply_tar_transforms(&base_name, &transforms)
@@ -5719,13 +5746,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 out.push_str(&format!("{quoted_disp}\n"));
             }
         } else if extract {
-            let effective_name = if !transforms.is_empty() {
-                apply_tar_transforms(entry.name, &transforms)
-            } else {
-                entry.name.to_owned()
-            };
-            let is_dir_entry = entry.typeflag == b'5' || effective_name.ends_with('/');
-            let Some(rel_name) = tar_strip_components(&effective_name, strip_components, is_dir_entry) else {
+            if entry.name.starts_with('/') && !warned_absolute {
+                stderr.push_str("tar: removing leading '/' from member names\n");
+                warned_absolute = true;
+            }
+            let is_dir_entry = entry.typeflag == b'5';
+            let Some(rel_name) = tar_strip_components(name, strip_components, is_dir_entry) else {
                 return Ok(());
             };
             if to_stdout {
@@ -5742,33 +5768,51 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             } else {
                 entry.name
             };
-            if rel_name.split('/').any(|seg| seg == "..") {
-                stderr.push_str(&format!("tar: {rel_name}: Member name contains '..'\n"));
-                exit_code = 2;
-                return Ok(());
-            }
+            use crate::vfs::VfsEntryKind::{Directory, File};
             let dest = resolve_posix_path(&entry_root, &rel_name);
-            if entry.typeflag == b'5' || rel_name.ends_with('/') {
-                let _ = fs.mkdir_all(&dest);
-                let _ = fs.chmod(&dest, entry.mode);
-            } else if entry.typeflag == b'2' {
-                let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
-                let _ = fs.symlink(entry.linkname, &dest);
-            } else {
-                if fs.exists(&dest) && !fs.is_dir(&dest) {
-                    if skip_old_files {
-                        return Ok(());
-                    }
-                    if keep_old_files {
-                        stderr.push_str(&format!("tar: {rel_name}: Cannot open: File exists\n"));
-                        exit_code = 2;
-                        return Ok(());
-                    }
+            if dest == entry_root && !is_dir_entry { return Err("non-directory entry would replace extraction root".into()); }
+            check_root(&entry_root)?;
+            let mut parent = entry_root.clone();
+            let parents = rel_name.trim_end_matches('/').rsplit_once('/').map_or("", |(dir, _)| dir);
+            for part in parents.split('/').filter(|s| !s.is_empty()) {
+                parent = resolve_posix_path(&parent, part);
+                match fs.lstat(&parent) {
+                    Ok(st) if st.kind == Directory => {}
+                    Ok(_) => return Err(format!("unsafe non-directory or symlink ancestor: {}", tar_format::display(&parent))),
+                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => fs.mkdir_one(&parent, 0o700)?,
+                    Err(e) => return Err(e),
                 }
-                let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
+            }
+            let mut revision = fs.generation();
+            let existing = match fs.lstat(&dest) {
+                Ok(st) => Some(st),
+                Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+                Err(e) => return Err(e),
+            };
+            if input_path.as_deref() == Some(&dest) || input_identity.is_some() && existing.as_ref().is_some_and(|s| s.identity == input_identity) {
+                return Err("entry would overwrite the input archive".into());
+            }
+            if let Some(st) = &existing && !(is_dir_entry && st.kind == Directory) {
+                if keep_old_files || skip_old_files {
+                    if keep_old_files {
+                        stderr.push_str(&format!("tar: {}: Cannot open: File exists\n", tar_format::display(entry.name)));
+                        exit_code = 2;
+                    }
+                    return Ok(());
+                }
+                if st.kind != File || is_dir_entry || entry.typeflag == b'2' {
+                    fs.remove_one(&dest, st.kind == Directory)?;
+                    revision = fs.generation();
+                }
+            }
+            if is_dir_entry {
+                if !existing.is_some_and(|s| s.kind == Directory) { fs.mkdir_one(&dest, 0o700)?; }
+                fs.chmod(&dest, entry.mode & 0o777)?;
+            } else if entry.typeflag == b'2' {
+                fs.symlink(entry.linkname, &dest)?;
+            } else {
                 if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
-                fs.write_file(&dest, entry.content)?;
-                let _ = fs.chmod(&dest, entry.mode);
+                fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & 0o777, revision)?;
             }
             if verbose && raw.is_some() { out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style))); }
         }

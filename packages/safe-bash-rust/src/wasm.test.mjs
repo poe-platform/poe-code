@@ -5893,3 +5893,45 @@ test("tar reads global and local PAX fields and GNU long names in member order",
     }
   } finally { rs.dispose(); }
 });
+
+test("tar confines member paths to real extraction directories", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.writeFile("/f", Buffer.from("member"));
+    const seed = await js.exec("tar --format=ustar -cf - f");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const f of [fs, rs.fs]) {
+      await f.mkdir("/dest", {recursive: true});
+      await f.mkdir("/outside", {recursive: true});
+      await f.symlink("/outside", "/dest/link");
+      await f.symlink("/dest", "/root-link");
+    }
+    for (const [name, args] of [
+      ["link/f", "-xvf in -C dest"], ["f", "-xf in -C root-link"],
+      ["/outside/f", "-xvf in -C dest"], ["leaf", "-xf in -C dest"], ["hard", "-xf in -C dest"], ["in", "-xf in"], ["../outside/f", "-xOf in"], ["../outside/f", "-xf in -C dest other"],
+      ["link/../outside/f", "--strip-components=2 -xf in -C dest"], [".", "-xf in -C dest"],
+    ]) {
+      const input = Buffer.from(seed.stdoutBytes);
+      input.fill(0, 0, 100); input.write(name);
+      input.fill(32, 148, 156);
+      input.write(input.subarray(0, 512).reduce((a, b) => a + b).toString(8).padStart(6, "0") + "\0 ", 148);
+      for (const f of [fs, rs.fs]) {
+        await f.writeFile("/in", input);
+        await f.writeFile("/outside/f", Buffer.from("untouched"));
+        if (name === "leaf") await f.symlink("/outside/f", "/dest/leaf");
+        if (name === "hard") await f.link("/outside/f", "/dest/hard");
+      }
+      const cmd = "tar " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, name.startsWith("/") || ["f", "leaf", "hard"].includes(name) ? 0 : 2, a.stderr);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], name + ": " + cmd);
+      assert.equal(Buffer.from(await rs.fs.readFile("/outside/f")).toString(), "untouched");
+      if (["f", "leaf", "hard"].includes(name)) assert.equal(Buffer.from(await rs.fs.readFile("/dest/" + name)).toString(), "member");
+      if (name === "in") assert.deepEqual(Buffer.from(await rs.fs.readFile("/in")), input);
+      if (name.startsWith("/")) assert.equal(Buffer.from(await rs.fs.readFile("/dest/outside/f")).toString(), "member");
+    }
+  } finally { rs.dispose(); }
+});

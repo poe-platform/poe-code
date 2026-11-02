@@ -19,9 +19,18 @@ enum BlockKind {
         last: bool,
     },
     Table(Vec<TableRow>),
+    Svg {
+        height: f64,
+        shapes: Vec<SvgShape>,
+    },
     Code,
     Quote,
     Rule,
+}
+
+enum SvgShape {
+    Rect([f64; 4]),
+    Text([f64; 2], String),
 }
 
 struct TableRow {
@@ -231,7 +240,53 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                         });
                     }
                 }
-                "svg" | "img" => {
+                "svg" => {
+                    flush(current, blocks);
+                    let attr = |el: &crate::commands::structured::HtmlElement, name: &str| {
+                        el.attrs
+                            .iter()
+                            .find(|(k, _)| k == name)
+                            .map_or(0., |(_, v)| super::super::js_number(v, 0.))
+                    };
+                    let default =
+                        |n: f64, fallback| if n == 0. || n.is_nan() { fallback } else { n };
+                    let height = default(attr(el, "height"), 100.);
+                    let mut shapes = Vec::new();
+                    let mut pending: Vec<_> = el.children.iter().rev().collect();
+                    while let Some(node) = pending.pop() {
+                        let HtmlNode::Element(child) = node else {
+                            continue;
+                        };
+                        match child.tag.as_str() {
+                            "rect" => shapes.push(SvgShape::Rect([
+                                attr(child, "x"),
+                                attr(child, "y"),
+                                default(attr(child, "width"), 40.),
+                                default(attr(child, "height"), 20.),
+                            ])),
+                            "text" => {
+                                let mut text = String::new();
+                                block_text(&child.children, &mut text);
+                                if !text.trim().is_empty() {
+                                    shapes.push(SvgShape::Text(
+                                        [
+                                            default(attr(child, "x"), 8.),
+                                            default(attr(child, "y"), 16.),
+                                        ],
+                                        text.trim().to_owned(),
+                                    ));
+                                }
+                            }
+                            _ => {}
+                        }
+                        pending.extend(child.children.iter().rev());
+                    }
+                    blocks.push(Block {
+                        kind: BlockKind::Svg { height, shapes },
+                        ..Block::default()
+                    });
+                }
+                "img" => {
                     return None;
                 }
                 "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
@@ -317,6 +372,34 @@ fn page_font(
         fonts.push(family);
         fonts.len() - 1
     }) + 1
+}
+
+fn draw_rect(
+    stream: &mut Vec<u8>,
+    [x, y, w, h]: [f64; 4],
+    fill: Option<&str>,
+    border: &str,
+    stroke_width: f64,
+    limit: usize,
+) -> Result<(), ()> {
+    if !stream.is_empty() {
+        stream.push(b'\n');
+    }
+    stream.extend_from_slice(b"q\n");
+    if let Some(fill) = fill {
+        writeln!(stream, "{fill} rg").unwrap();
+    }
+    let paint = if fill.is_some() { "B" } else { "S" };
+    write!(
+        stream,
+        "{border} RG\n{stroke_width} w\n{} {} {} {} re\n{paint}\nQ",
+        coordinate(x),
+        coordinate(y),
+        coordinate(w),
+        coordinate(h)
+    )
+    .unwrap();
+    (stream.len() <= limit).then_some(()).ok_or(())
 }
 
 fn draw_text(
@@ -422,6 +505,7 @@ pub(in super::super) fn render_html(
         };
         let mut stream = Vec::new();
         let mut y = height - top;
+        let mut occupied = false;
         let mut objects = Vec::new();
         let mut fonts = Vec::new();
         let (outline_depth, external_links) = settings(page_index);
@@ -433,6 +517,43 @@ pub(in super::super) fn render_html(
         } in blocks
         {
             let (size, pitch, family, offset, color, padding) = match kind {
+                BlockKind::Svg { height: h, shapes } => {
+                    if y - (h + 8.) < bottom && occupied {
+                        finish_page(&mut stream, &mut objects, &mut headings)?;
+                        fonts.clear();
+                        y = height - top;
+                    }
+                    occupied = true;
+                    let fill = rgb([0.92, 0.94, 0.98]);
+                    let border = rgb([0.3, 0.4, 0.6]);
+                    let ink = rgb([0.1, 0.12, 0.18]);
+                    for shape in shapes {
+                        match shape {
+                            SvgShape::Rect([x, dy, w, rh]) => draw_rect(
+                                &mut stream,
+                                [left + x, y - dy - rh, w, rh],
+                                Some(&fill),
+                                &border,
+                                0.8,
+                                limit,
+                            )?,
+                            SvgShape::Text([x, dy], text) => {
+                                let font = page_font("Helvetica", &mut fonts, &mut objects);
+                                draw_text(
+                                    &mut stream,
+                                    &text,
+                                    [left + x, y - dy],
+                                    font,
+                                    10.,
+                                    &ink,
+                                    limit,
+                                )?;
+                            }
+                        }
+                    }
+                    y -= h + 8.;
+                    continue;
+                }
                 BlockKind::Table(rows) => {
                     let columns = rows
                         .iter()
@@ -450,9 +571,10 @@ pub(in super::super) fn render_html(
                             .max()
                             .unwrap_or(0)
                             .max(20) as f64;
-                        if y - row_height < bottom && !stream.is_empty() {
+                        if y - row_height < bottom && occupied {
                             finish_page(&mut stream, &mut objects, &mut headings)?;
                             fonts.clear();
+                            occupied = false;
                             y = height - top;
                         }
                         let row_bottom = y - row_height;
@@ -463,23 +585,15 @@ pub(in super::super) fn render_html(
                             }
                             let span = span.min(columns - column);
                             let cell_x = left + column * col_width;
-                            if !stream.is_empty() {
-                                stream.push(b'\n');
-                            }
-                            stream.extend_from_slice(b"q\n");
-                            if row.header {
-                                writeln!(stream, "{fill} rg").unwrap();
-                            }
-                            let paint = if row.header { "B" } else { "S" };
-                            write!(
-                                stream,
-                                "{border} RG\n0.6 w\n{} {} {} {} re\n{paint}\nQ",
-                                coordinate(cell_x),
-                                coordinate(row_bottom),
-                                coordinate(span * col_width),
-                                coordinate(row_height)
-                            )
-                            .unwrap();
+                            draw_rect(
+                                &mut stream,
+                                [cell_x, row_bottom, span * col_width, row_height],
+                                row.header.then_some(fill.as_str()),
+                                &border,
+                                0.6,
+                                limit,
+                            )?;
+                            occupied = true;
                             let font = page_font(
                                 if row.header {
                                     "Helvetica-Bold"
@@ -576,14 +690,13 @@ pub(in super::super) fn render_html(
                 }
             }
             let needed = pitch * lines.len() as f64 + padding;
-            if y - needed < bottom && !stream.is_empty() {
+            if y - needed < bottom && occupied {
                 finish_page(&mut stream, &mut objects, &mut headings)?;
                 fonts.clear();
                 y = height - top;
             }
-            if matches!(kind, BlockKind::Code | BlockKind::Quote | BlockKind::Rule)
-                && !stream.is_empty()
-            {
+            occupied = true;
+            if matches!(kind, BlockKind::Quote | BlockKind::Rule) && !stream.is_empty() {
                 stream.push(b'\n');
             }
             match kind {
@@ -598,16 +711,14 @@ pub(in super::super) fn render_html(
                 }
                 BlockKind::Code => {
                     let h = needed - 4.;
-                    write!(
-                        stream,
-                        "q\n{} rg\n{} RG\n0.5 w\n{x} {} {} {} re\nB\nQ",
-                        rgb([0.95, 0.96, 0.97]),
-                        rgb([0.82, 0.84, 0.87]),
-                        coordinate(y - h),
-                        coordinate(content_width),
-                        coordinate(h)
-                    )
-                    .unwrap();
+                    draw_rect(
+                        &mut stream,
+                        [left, y - h, content_width, h],
+                        Some(&rgb([0.95, 0.96, 0.97])),
+                        &rgb([0.82, 0.84, 0.87]),
+                        0.5,
+                        limit,
+                    )?;
                     y -= 6.;
                 }
                 BlockKind::Quote => {

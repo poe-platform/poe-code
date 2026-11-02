@@ -5468,3 +5468,17 @@ test("HTML table parsing closes cells and inserts implicit row groups in source 
     }
   }finally{rs.dispose();}
 });
+
+test("wkhtmltopdf draws inline SVG rectangles and labels in order and reserves the diagram height",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const files={"/chart":Buffer.from('<h2>Chart</h2><p><a href="/key">Legend</a></p><svg width="200" height="64"><g><rect x="2" y="4" width="73.5" height="18"/><text x="8" y="16">Part <tspan>A</tspan></text></g><rect x="0x4" y="24"/><text y="39"> B &amp; C </text><circle r="15"/></svg><p>After diagram</p>'),"/empty":Buffer.from('<svg height="61"><circle r="15"/></svg><p>After empty figure</p>')};
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [path,bytes] of Object.entries(files))await fs.writeFile(path,bytes);
+    for(const args of ["chart","-g chart","--page-height 110pt --copies 2 --no-collate chart empty"]){
+      const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});

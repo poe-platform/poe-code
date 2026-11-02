@@ -5583,3 +5583,35 @@ test("wkhtmltopdf numbers headers and footers after laying out physical sheets",
     }
   } finally { rs.dispose(); }
 });
+
+test("tar writes interoperable PAX metadata and refuses unrepresentable USTAR entries", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  const long = "é".repeat(70) + "\nleaf";
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/plain", Buffer.from("a\0b"));
+      await f.writeFile("/" + long, Buffer.from("payload"));
+    }
+    for (const args of ["plain", "--format=pax plain", "--format ustar plain", "--format=posix --owner=4000000 --group=5000000 '" + long + "'", "--format=ustar '" + long + "'", "--format=ustar --owner=4000000 plain"]) {
+      for (const f of [fs, rs.fs]) {
+        await f.utimes("/plain", 12345.25, 67890.5);
+        await f.utimes("/" + long, 0.9765625, -1250.25);
+        await f.writeFile("/out", Buffer.from("prior"));
+      }
+      const cmd = "tar -cf out " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(await fs.readFile("/out")), cmd);
+      if (!a.exitCode) {
+        for (const list of ["tar -tf out", "tar -tvf out --full-time", "tar --utc --full-time -tf out"]) {
+          const expected = await js.exec(list), actual = await rs.exec(list);
+          assert.equal(expected.exitCode, 0, expected.stderr);
+          assert.deepEqual([actual.exitCode, actual.stderr, actual.stdout], [expected.exitCode, expected.stderr, expected.stdout], list);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

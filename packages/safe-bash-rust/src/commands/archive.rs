@@ -4255,38 +4255,16 @@ pub struct TarEntry {
     pub name: String,
     pub typeflag: u8,
     pub mode: u32,
-    pub mtime: u64,
+    pub mtime: f64,
+    pub atime: Option<f64>,
     pub uid: u32,
     pub gid: u32,
     pub linkname: String,
     pub content: Vec<u8>,
 }
 
-fn serialize_ustar_archive(entries: &[TarEntry]) -> Vec<u8> {
-    let mut out_bytes = Vec::new();
-    for entry in entries {
-        let header = build_ustar_header(
-            &entry.name,
-            entry.typeflag,
-            entry.mode,
-            entry.mtime,
-            entry.uid,
-            entry.gid,
-            &entry.linkname,
-            entry.content.len(),
-        );
-        out_bytes.extend_from_slice(&header);
-        if entry.typeflag == b'0' && !entry.content.is_empty() {
-            out_bytes.extend_from_slice(&entry.content);
-            let rem = entry.content.len() % 512;
-            if rem != 0 {
-                out_bytes.resize(out_bytes.len() + (512 - rem), 0);
-            }
-        }
-    }
-    out_bytes.resize(out_bytes.len() + 1024, 0);
-    out_bytes
-}
+#[path = "tar_format.rs"]
+mod tar_format;
 
 #[derive(Clone, Debug)]
 struct TarOperand {
@@ -4437,6 +4415,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut archive_file: Option<String> = None;
     let mut current_dir = cwd.to_string();
     let mut strip_components = 0usize;
+    let mut pax = true;
     let mut override_mode: Option<u32> = None;
     let mut override_mtime: Option<u64> = None;
     let mut override_uid: Option<u32> = None;
@@ -4771,6 +4750,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if a == "--format" && i + 1 < args.len() {
+                pax = args[i + 1] != "ustar";
                 if !matches!(args[i + 1].as_str(), "ustar" | "pax" | "posix") {
                     return err_out(&format!("tar: unsupported archive format: {}\n", args[i + 1]), 2);
                 }
@@ -4778,6 +4758,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if let Some(fmt) = a.strip_prefix("--format=") {
+                pax = fmt != "ustar";
                 if !matches!(fmt, "ustar" | "pax" | "posix") {
                     return err_out(&format!("tar: unsupported archive format: {fmt}\n"), 2);
                 }
@@ -5323,7 +5304,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 entry.mode = m;
             }
             if let Some(mt) = override_mtime {
-                entry.mtime = mt;
+                entry.mtime = mt as f64;
             }
             if let Some(u) = override_uid {
                 entry.uid = u;
@@ -5343,7 +5324,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 verbose_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
             }
         }
-        let raw_tar = serialize_ustar_archive(&entries);
+        let raw_tar = match tar_format::serialize(&entries, pax) {
+            Ok(bytes) => bytes,
+            Err(message) => return err_out(&format!("tar: {message}\n"), 2),
+        };
         if totals {
             create_stderr.push_str(&format!("Total bytes written: {}\n", raw_tar.len()));
         }
@@ -5524,7 +5508,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             }
         }
-        let out_bytes = serialize_ustar_archive(&entries);
+        let out_bytes = match tar_format::serialize(&entries, pax) {
+            Ok(bytes) => bytes,
+            Err(message) => return err_out(&format!("tar: {message}\n"), 2),
+        };
         if totals {
             stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len()));
         }
@@ -5614,7 +5601,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                                 diff_out.push_str(&format!("{}: Mode differs\n", entry.name));
                                 diff_code = 1;
                             }
-                            if ((st.mtime_ms / 1000.0) as u64) != entry.mtime {
+                            if (st.mtime_ms / 1000.0).floor() != entry.mtime.floor() {
                                 diff_out.push_str(&format!("{}: Mod time differs\n", entry.name));
                                 diff_code = 1;
                             }
@@ -5871,52 +5858,35 @@ fn collect_tar_entries(
     if !clean_rel.is_empty() && tar_matches_exclude(clean_rel, excludes) {
         return;
     }
-    if let Ok(target) = fs.readlink(&full) {
-        if !dereference {
-            let mtime = fs.stat(&full).map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
+    let Ok(st) = (if dereference { fs.stat(&full) } else { fs.lstat(&full) }) else { return; };
+    let mode = st.mode & 0o7777;
+    let mtime = st.mtime_ms / 1000.;
+    let atime = Some(st.atime_ms / 1000.);
+    let uid = st.uid.unwrap_or(0);
+    let gid = st.gid.unwrap_or(0);
+    if st.kind == crate::vfs::VfsEntryKind::Symlink {
+        if let Ok(target) = fs.readlink(&full) {
             out.push(TarEntry {
                 name: stored_rel.to_string(),
                 typeflag: b'2',
-                mode: 0o777,
-                mtime,
-                uid: 0,
-                gid: 0,
+                mode, mtime, atime, uid, gid,
                 linkname: target,
                 content: Vec::new(),
-            });
-            return;
-        }
-        let parent = crate::vfs::dirname_posix_path(&full);
-        let resolved_target = resolve_posix_path(&parent, &target);
-        if let Ok(bytes) = fs.read_file(&resolved_target) {
-            let st = fs.stat(&resolved_target).ok();
-            let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o644);
-            let mtime = st.as_ref().map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
-            out.push(TarEntry {
-                name: stored_rel.to_string(),
-                typeflag: b'0',
-                mode,
-                mtime,
-                uid: 0,
-                gid: 0,
-                linkname: String::new(),
-                content: bytes,
             });
         }
         return;
     }
-    if fs.is_dir(&full) {
-        let st = fs.stat(&full).ok();
-        let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o755);
-        let mtime = st.as_ref().map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
+    if st.kind == crate::vfs::VfsEntryKind::Directory {
+        if dereference && fs.readlink(&full).is_ok() { return; }
         if (!clean_rel.is_empty() && clean_rel != ".") || (stored_rel == "." && sort_by_name) {
             out.push(TarEntry {
                 name: format!("{}/", stored_rel.trim_end_matches('/')),
                 typeflag: b'5',
                 mode,
                 mtime,
-                uid: 0,
-                gid: 0,
+                atime,
+                uid,
+                gid,
                 linkname: String::new(),
                 content: Vec::new(),
             });
@@ -5954,16 +5924,14 @@ fn collect_tar_entries(
             }
         }
     } else if let Ok(bytes) = fs.read_file(&full) {
-        let st = fs.stat(&full).ok();
-        let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o644);
-        let mtime = st.as_ref().map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
         out.push(TarEntry {
             name: stored_rel.to_string(),
             typeflag: b'0',
             mode,
             mtime,
-            uid: 0,
-            gid: 0,
+            atime,
+            uid,
+            gid,
             linkname: String::new(),
             content: bytes,
         });
@@ -5998,88 +5966,27 @@ fn format_tar_mode(typeflag: u8, mode: u32) -> String {
     chars.iter().collect()
 }
 
-fn format_tar_mtime(epoch_secs: u64, full_time: bool, utc: bool) -> String {
-    let days = (epoch_secs / 86400) as i64;
-    let rem = epoch_secs % 86400;
-    let hour = rem / 3600;
-    let min = (rem % 3600) / 60;
-    let sec = rem % 60;
-    let z = days + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = (z - era * 146097) as u64;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe as i64 + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    let year = if m <= 2 { y + 1 } else { y };
+fn format_tar_mtime(epoch: f64, full_time: bool, utc: bool) -> String {
+    let millis = (epoch * 1000.) as i64;
+    let seconds = if utc { epoch.floor() as i64 } else { millis.div_euclid(1000) };
+    let (year, month, day) = crate::commands::coreutils::civil_from_days(seconds.div_euclid(86400));
+    let time = seconds.rem_euclid(86400);
+    let mut result = format!("{year:04}-{month:02}-{day:02} {:02}:{:02}", time / 3600, time % 3600 / 60);
     if full_time {
-        if utc {
-            format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}:{sec:02}")
-        } else {
-            format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}:{sec:02}.000")
+        result.push_str(&format!(":{:02}", time % 60));
+        if !utc {
+            result.push_str(&format!(".{:03}", millis.rem_euclid(1000)));
+        } else if let Some((_, digits)) = epoch.abs().to_string().split_once('.') {
+            // The reference displays at most nine places of the decimal timestamp.
+            let nanos = format!("{:0<9}", &digits[..digits.len().min(9)]).parse::<i64>().unwrap_or(0)
+                + i64::from(digits.as_bytes().get(9).is_some_and(|&c| c >= b'5'));
+            let nanos = (if epoch < 0. { -nanos } else { nanos }).rem_euclid(1_000_000_000);
+            if nanos != 0 { result.push_str(format!(".{nanos:09}").trim_end_matches('0')); }
         }
-    } else {
-        format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}")
     }
+    result
 }
 
-fn format_utc_mtime(epoch_secs: u64) -> String {
-    format_tar_mtime(epoch_secs, false, true)
-}
-
-fn build_ustar_header(
-    name: &str,
-    typeflag: u8,
-    mode: u32,
-    mtime: u64,
-    uid: u32,
-    gid: u32,
-    linkname: &str,
-    size: usize,
-) -> [u8; 512] {
-    let mut hdr = [0u8; 512];
-    let name_bytes = name.as_bytes();
-    if name_bytes.len() <= 100 {
-        hdr[0..name_bytes.len()].copy_from_slice(name_bytes);
-    } else if let Some(split_pos) = name
-        .char_indices()
-        .filter(|&(idx, ch)| ch == '/' && idx <= 155 && name.len() - idx - 1 <= 100)
-        .map(|(idx, _)| idx)
-        .next_back()
-    {
-        let prefix = &name_bytes[..split_pos];
-        let suffix = &name_bytes[split_pos + 1..];
-        hdr[0..suffix.len()].copy_from_slice(suffix);
-        hdr[345..345 + prefix.len()].copy_from_slice(prefix);
-    } else {
-        hdr[0..100].copy_from_slice(&name_bytes[..100]);
-    }
-    let mode_str = format!("{:07o}\0", mode & 0o7777);
-    hdr[100..108].copy_from_slice(mode_str.as_bytes());
-    let uid_str = format!("{uid:07o}\0");
-    let gid_str = format!("{gid:07o}\0");
-    hdr[108..116].copy_from_slice(uid_str.as_bytes());
-    hdr[116..124].copy_from_slice(gid_str.as_bytes());
-    let size_oct = format!("{size:011o}\0");
-    hdr[124..136].copy_from_slice(size_oct.as_bytes());
-    let mtime_oct = format!("{mtime:011o}\0");
-    hdr[136..148].copy_from_slice(mtime_oct.as_bytes());
-    hdr[148..156].fill(b' ');
-    hdr[156] = typeflag;
-    if !linkname.is_empty() {
-        let lb = linkname.as_bytes();
-        let lcopy = lb.len().min(100);
-        hdr[157..157 + lcopy].copy_from_slice(&lb[..lcopy]);
-    }
-    hdr[257..263].copy_from_slice(b"ustar\0");
-    hdr[263..265].copy_from_slice(b"00");
-    let cksum: u32 = hdr.iter().map(|&b| b as u32).sum();
-    let ck_str = format!("{cksum:06o}\0 ");
-    hdr[148..156].copy_from_slice(ck_str.as_bytes());
-    hdr
-}
 
 pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
     if data.len() >= 4 && &data[0..4] == b"PK\x03\x04" {
@@ -6101,7 +6008,8 @@ pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
                 name,
                 typeflag: b'0',
                 mode: 0o644,
-                mtime: 1700000000,
+                mtime: 1700000000.,
+                atime: None,
                 uid: 0,
                 gid: 0,
                 linkname: String::new(),
@@ -6163,7 +6071,8 @@ pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
     let mut pax_linkpath: Option<String> = None;
     let mut pax_uid: Option<u32> = None;
     let mut pax_gid: Option<u32> = None;
-    let mut pax_mtime: Option<u64> = None;
+    let mut pax_mtime: Option<f64> = None;
+    let mut pax_atime = None;
     while pos + 512 <= data.len() {
         let block = &data[pos..pos + 512];
         if block.iter().all(|&b| b == 0) {
@@ -6201,7 +6110,7 @@ pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
         let mtime_str = String::from_utf8_lossy(&block[136..148])
             .trim_matches(|c: char| c == '\0' || c.is_whitespace())
             .to_string();
-        let mut mtime = u64::from_str_radix(&mtime_str, 8).unwrap_or(1700000000);
+        let mut mtime = u64::from_str_radix(&mtime_str, 8).unwrap_or(1700000000) as f64;
         let typeflag = if block[156] == 0 { b'0' } else { block[156] };
         let link_end = block[157..257].iter().position(|&b| b == 0).unwrap_or(100);
         let mut linkname = String::from_utf8_lossy(&block[157..157 + link_end]).to_string();
@@ -6211,23 +6120,23 @@ pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
         let blocks = (size + 511) / 512;
         pos += blocks * 512;
         if typeflag == b'x' || typeflag == b'g' {
-            let text = String::from_utf8_lossy(&content);
-            for line in text.lines() {
-                if let Some((_len, kv)) = line.split_once(' ')
-                    && let Some((k, v)) = kv.split_once('=')
-                {
-                    match k {
-                        "path" => pax_path = Some(v.to_string()),
-                        "linkpath" => pax_linkpath = Some(v.to_string()),
-                        "uid" => pax_uid = v.parse::<u32>().ok(),
-                        "gid" => pax_gid = v.parse::<u32>().ok(),
-                        "mtime" => {
-                            let sec_part = v.split('.').next().unwrap_or(v);
-                            pax_mtime = sec_part.parse::<u64>().ok();
-                        }
+            let mut records = content.as_slice();
+            while !records.is_empty() {
+                let Some(space) = records.iter().position(|&b| b == b' ') else { return Vec::new(); };
+                let Some(length) = std::str::from_utf8(&records[..space]).ok().and_then(|v| v.parse::<usize>().ok()) else { return Vec::new(); };
+                let Some(record) = records.get(space+1..length).and_then(|r| r.strip_suffix(b"\n")) else { return Vec::new(); };
+                if let Some((key, value)) = std::str::from_utf8(record).ok().and_then(|s| s.split_once('=')) {
+                    match key {
+                        "path" => pax_path = Some(value.into()),
+                        "linkpath" => pax_linkpath = Some(value.into()),
+                        "uid" => pax_uid = value.parse().ok(),
+                        "gid" => pax_gid = value.parse().ok(),
+                        "mtime" => pax_mtime = value.parse().ok(),
+                        "atime" => pax_atime = value.parse().ok(),
                         _ => {}
                     }
                 }
+                records = &records[length..];
             }
             continue;
         }
@@ -6258,6 +6167,7 @@ pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
             name,
             typeflag,
             mode,
+            atime: pax_atime.take(),
             mtime,
             uid,
             gid,
@@ -7699,7 +7609,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             name: "__ZIP_COMMENT__".to_string(),
             typeflag: b'0',
             mode: 0o644,
-            mtime: 1700000000,
+            mtime: 1700000000.,
+                atime: None,
             uid: 0,
             gid: 0,
             linkname: String::new(),
@@ -8100,7 +8011,7 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             let sz = entry.content.len();
             total_len += sz;
             selected_count += 1;
-            let dt = format_utc_mtime(entry.mtime);
+            let dt = format_tar_mtime(entry.mtime, false, true);
             if verbose_list {
                 let crc = crc32_ieee(&entry.content);
                 out.push_str(&format!(

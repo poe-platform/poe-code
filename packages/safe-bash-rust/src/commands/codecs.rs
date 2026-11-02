@@ -1306,7 +1306,8 @@ mod tests {
                 name: "dir/".into(),
                 typeflag: b'5',
                 mode: 0o755,
-                mtime: 1_700_000_000,
+                mtime: 1_700_000_000.,
+                atime: None,
                 uid: 0,
                 gid: 0,
                 linkname: String::new(),
@@ -1316,7 +1317,8 @@ mod tests {
                 name: "dir/hello.txt".into(),
                 typeflag: b'0',
                 mode: 0o640,
-                mtime: 1_700_000_000,
+                mtime: 1_700_000_000.,
+                atime: None,
                 uid: 0,
                 gid: 0,
                 linkname: String::new(),
@@ -3363,12 +3365,12 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             && payload.iter().any(|b| matches!(b, 9 | 10 | 13 | 32..=255)));
         let crc = crc32_ieee(payload);
         let sz = payload.len() as u32;
-        let (dos_date, dos_time) = unix_to_dos_datetime(e.mtime);
+        let (dos_date, dos_time) = unix_to_dos_datetime(e.mtime as u64);
         let mut extra = [0u8; 9];
         extra[0..2].copy_from_slice(&0x5455u16.to_le_bytes());
         extra[2..4].copy_from_slice(&5u16.to_le_bytes());
         extra[4] = 1;
-        extra[5..9].copy_from_slice(&(e.mtime as i32).to_le_bytes());
+        extra[5..9].copy_from_slice(&(e.mtime as u64 as i32).to_le_bytes());
 
         let local_offset = out.len() as u32;
         out.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
@@ -3559,7 +3561,8 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
                 b'0'
             },
             mode,
-            mtime,
+            mtime: mtime as f64,
+            atime: None,
             uid: 0,
             gid: 0,
             linkname: if is_symlink {
@@ -3579,7 +3582,8 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
             name: "__ZIP_COMMENT__".to_string(),
             typeflag: b'0',
             mode: 0o644,
-            mtime: 1700000000,
+            mtime: 1700000000.,
+            atime: None,
             uid: 0,
             gid: 0,
             linkname: String::new(),

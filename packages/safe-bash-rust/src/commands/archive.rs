@@ -5955,6 +5955,25 @@ fn apply_tar_transforms(name: &str, transforms: &[String]) -> String {
     cur
 }
 
+fn tar_cache_directory(fs: &dyn SafeBashFs, directory: &str) -> Result<bool, String> {
+    let path = resolve_posix_path(directory, "CACHEDIR.TAG");
+    let stat = match fs.lstat(&path) {
+        Ok(st) if st.kind == crate::vfs::VfsEntryKind::Symlink => fs.stat(&path)?,
+        Ok(st) => st,
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => return Ok(false),
+        Err(e) => return Err(e),
+    };
+    if stat.kind != crate::vfs::VfsEntryKind::File { return Ok(false); }
+    let mut signature = b"Signature: 8a477f597d28d172789f06886806bc55".as_slice();
+    fs.read_chunks(&path, &mut |bytes| {
+        let count = bytes.len().min(signature.len());
+        if bytes[..count] != signature[..count] { return Ok(false); }
+        signature = &signature[count..];
+        Ok(!signature.is_empty())
+    })?;
+    Ok(signature.is_empty())
+}
+
 fn visit_archive_sources(
     stored_rel: &str,
     path: &str,
@@ -6010,8 +6029,7 @@ fn visit_archive_sources(
         if !recursion {
             return Ok(());
         }
-        let has_cache_tag =
-            exclude_caches && fs.exists(&format!("{}/CACHEDIR.TAG", full.trim_end_matches('/')));
+        let has_cache_tag = exclude_caches && tar_cache_directory(fs, &full)?;
         let mut children = fs.read_dir(&full)?;
         ancestors.push(st.identity);
         let mut first_error = None;

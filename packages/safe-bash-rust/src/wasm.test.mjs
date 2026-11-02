@@ -6119,3 +6119,32 @@ test("tar stores relative member names while reading the original operand path",
     }
   } finally { rs.dispose(); }
 });
+
+test("tar --exclude-caches skips contents only for directories bearing the cache signature", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    const signature = "Signature: 8a477f597d28d172789f06886806bc55";
+    for (const f of [fs, rs.fs]) {
+      for (const [dir, tag] of [["valid", signature], ["comment", signature + "\n# description"], ["short", signature.slice(0, -1)], ["wrong", " " + signature], ["symlink", null], ["dir", null], ["absent", null]]) {
+        await f.mkdir("/files/" + dir, {recursive: true});
+        await f.writeFile("/files/" + dir + "/data", Buffer.from(dir));
+        if (tag !== null) await f.writeFile("/files/" + dir + "/CACHEDIR.TAG", Buffer.from(tag));
+      }
+      await f.symlink("../valid/CACHEDIR.TAG", "/files/symlink/CACHEDIR.TAG");
+      await f.mkdir("/files/dir/CACHEDIR.TAG", {recursive: true});
+    }
+    for (const cmd of ["tar --sort=name --format=ustar --mtime=@1 --exclude-caches -cf out files", "tar --sort=name --format=ustar --mtime=@1 --exclude-caches -rf out files/short"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode, a.stderr], [0, ""]);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout]);
+      const listing = (await js.exec("tar tf out")).stdout;
+      for (const dir of ["short", "wrong", "dir", "absent"]) assert.ok(listing.includes("files/" + dir + "/data\n"));
+      for (const dir of ["valid", "comment", "symlink"]) assert.ok(!listing.includes("files/" + dir + "/data\n"));
+      assert.equal((await rs.exec("tar tf out")).stdout, listing);
+      assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(await fs.readFile("/out")));
+    }
+  } finally { rs.dispose(); }
+});

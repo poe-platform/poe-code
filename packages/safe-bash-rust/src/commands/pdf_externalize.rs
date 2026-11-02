@@ -63,7 +63,10 @@ impl<'a> LayerState<'a> {
         left: &mut usize,
         minimum: usize,
         compress: bool,
-    ) -> Result<(), String> {
+    ) -> Result<BTreeMap<ObjectId, Value<'static>>, String> {
+        // PDF serialization supplies the physical length. JSON reports the
+        // original dictionary, even when an inline image specifies /Length.
+        let mut lengths = BTreeMap::new();
         let mut counter = 0;
         for &id in pages {
             let original = o.page_dict(id, tree).ok_or(BAD)?;
@@ -98,6 +101,9 @@ impl<'a> LayerState<'a> {
                     let image = (*next, 0);
                     *next = next.checked_add(1).ok_or(LARGE)?;
                     let d = image_dict(entries);
+                    if let Some(length) = d.get(b"Length") {
+                        lengths.insert(image, length.clone());
+                    }
                     if d.get(b"Filter").is_none() {
                         self.decoded.insert(image);
                     }
@@ -119,6 +125,6 @@ impl<'a> LayerState<'a> {
             }
             tree.insert(id, Some(Value::Dict(page)));
         }
-        Ok(())
+        Ok(lengths)
     }
 }

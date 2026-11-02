@@ -7091,7 +7091,7 @@ fn cmd_media_doc(
                     return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
                 }
                 if let Ok(mut source) = source {
-                    let (json,files) = match source.qpdf_json(jv,json_keys.iter().any(|k| k == "pages"),
+                    let (json,files) = match source.qpdf_json(jv,edits.inline_images,json_keys.iter().any(|k| k == "pages"),
                         &json_objects,&json_stream_data,(&stream_prefix,out_file.as_deref()),fs.shell_limits().max_output_bytes) {
                         Ok(result) => result,
                         Err(e) => return err_out(e,1),

@@ -112,6 +112,7 @@ impl<'a> PageSource<'a> {
     pub(in crate::commands::archive) fn qpdf_json(
         &mut self,
         version: u32,
+        inline_images:Option<(usize,bool)>,
         page_list: bool,
         selectors: &[Option<ObjectId>],
         mode: &str,
@@ -131,7 +132,21 @@ impl<'a> PageSource<'a> {
                 .iter()
                 .filter(|id| !self.objects.xref.contains_key(id)),
         );
-        let highest = ids.iter().map(|id| id.0).max().unwrap_or(0);
+        let mut highest = ids.iter().map(|id| id.0).max().unwrap_or(0);
+        let mut edits=BTreeMap::new();
+        let mut edited_pages=BTreeSet::new();
+        let mut lengths=BTreeMap::new();
+        if let Some((minimum,compress))=inline_images{
+            let mut state=super::pdf_stamp::LayerState::default();
+            state.counts=self.objects.reference_counts(&self.pages,&self.tree);
+            let mut next=highest.checked_add(1).ok_or(SHELL_ERROR)?;
+            let mut left=limit;
+            lengths=state.externalize_images(&mut self.objects,&self.pages,&mut self.tree,&mut edits,&mut next,&mut left,minimum,compress).map_err(|_|SHELL_ERROR)?;
+            state.finish(&mut edits,left).map_err(|_|SHELL_ERROR)?;
+            ids.extend(edits.keys().copied().filter(|id|id.0>highest));
+            highest=next-1;
+            edited_pages.extend(self.pages.iter().copied());
+        }
         let mut objects = Vec::new();
         let mut files = Vec::new();
         let mut remaining = limit;
@@ -140,7 +155,20 @@ impl<'a> PageSource<'a> {
             if !selectors.is_empty() && !selectors.contains(&Some(id)) {
                 continue;
             }
-            let (v, stream) = if self.objects.xref.contains_key(&id) {
+            let (v, stream) = if let Some(body)=edits.remove(&id){
+                let mut c=super::super::Cursor(&body);
+                let mut v=c.value(0,&mut self.objects.tokens,true).ok_or(INVALID)?.into_owned();c.skip();
+                let raw=if c.0.is_empty(){None}else{
+                    let b=c.0.strip_prefix(b"stream\n").and_then(|s|s.strip_suffix(b"\nendstream")).ok_or(INVALID)?;
+                    if let Value::Dict(d)=&mut v{
+                        if let Some(length)=lengths.remove(&id){super::set(d,b"Length",length)}else{d.retain(|(k,_)|k.as_ref()!=b"Length")}
+                    }
+                    Some(b.to_vec().into())
+                };
+                (v,raw)
+            }else if edited_pages.contains(&id) && let Some(Some(v))=self.tree.get(&id){
+                (v.clone(),None)
+            }else if self.objects.xref.contains_key(&id) {
                 let (mut v, mut c) = self.objects.object(id).ok_or(INVALID)?;
                 c.skip();
                 let stream = if c.0.starts_with(b"stream") {

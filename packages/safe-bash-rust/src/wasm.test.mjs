@@ -5227,5 +5227,11 @@ test("qpdf externalizes inline images above the size threshold without splitting
         assert.ok(Buffer.from(r).equals(e),cmd+" first different byte "+e.findIndex((v,i)=>v!==r[i]));
       }
     }
+    for(const flags of ["--json=1 --json-stream-data=inline","--json=2 --json-stream-data=file --json-stream-prefix=p-"]){
+      const cmd="qpdf in --externalize-inline-images --ii-min-bytes=1 "+flags;
+      const e=await js.exec(cmd),r=await rs.exec(cmd);assert.equal(r.exitCode,e.exitCode,r.stderr);
+      assert.equal(r.stdout,e.stdout,cmd);
+      if(flags.includes("=file"))for(const p of Object.values(JSON.parse(e.stdout).qpdf[1]).map(o=>o.stream?.datafile).filter(Boolean))assert.deepEqual(Buffer.from(await rs.fs.readFile("/"+p)),Buffer.from(await fs.readFile("/"+p)));
+    }
   }finally{rs.dispose();}
 });

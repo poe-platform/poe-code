@@ -2446,6 +2446,16 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn with_expansion_input<T>(&mut self, input: &mut String, expand: impl FnOnce(&mut Self) -> T) -> T {
+        if input.is_empty() || self.in_fds.contains_key(&0) {
+            return expand(self);
+        }
+        self.in_fds.insert(0, std::mem::take(input));
+        let result = expand(self);
+        *input = self.in_fds.remove(&0).unwrap_or_default();
+        result
+    }
+
     // An invalid index fails this command. Errors expanding its words can stop the shell.
     fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<Option<String>, EvalError> {
         if word.starts_with('(') && word.ends_with(')') {
@@ -3275,7 +3285,7 @@ impl<'a> EvalState<'a> {
         if !has_inline_input && (is_posix || expanded_words.is_empty()) && has_readonly_assign {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                match self.assign_shell_word(k, v, *append) {
+                match self.with_expansion_input(stdin, |s| s.assign_shell_word(k, v, *append)) {
                     Ok(None) => {}
                     Ok(Some(msg)) => {
                         let mut out = BuiltinOutcome {
@@ -3363,7 +3373,8 @@ impl<'a> EvalState<'a> {
         if expanded_words.is_empty() {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                match self.assign_shell_word(k, v, *append) {
+                let input = if use_local && !has_inline_input { &mut local_stdin } else { &mut *stdin };
+                match self.with_expansion_input(input, |s| s.assign_shell_word(k, v, *append)) {
                     Ok(None) => {}
                     Ok(Some(msg)) => {
                         debug_out.stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
@@ -16235,6 +16246,22 @@ hash -l
             crate::shell::ExecOptions { stdin: Some("abcdef".into()), ..Default::default() },
         ).unwrap();
         assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "[a]bc\ndef", ""));
+    }
+
+    #[test]
+    fn standalone_assignment_substitutions_read_inherited_and_redirected_input() {
+        for (script, expected) in [
+            (r#"x=$(head -c1) y=$(head -c2); echo "$x:$y"; cat"#, "a:bc\ndef"),
+            (r#"printf FILE >f; x=$(head -c1) <f; echo "$x"; cat"#, "F\nabcdef"),
+            (r#"x=$(head -c1) <<<xyz; echo "$x"; cat"#, "a\nbcdef"),
+            (r#"exec 3<&0; x=$(head -c1 <&3); echo "$x"; cat <&3"#, "a\nbcdef"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let result = shell.exec_with_options(script, crate::shell::ExecOptions {
+                stdin: Some("abcdef".into()), ..Default::default()
+            }).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, expected, ""), "{script}");
+        }
     }
 
     #[test]

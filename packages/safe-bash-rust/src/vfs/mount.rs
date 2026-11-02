@@ -69,6 +69,11 @@ impl SafeBashFs for MountVfs {
         fs.lstat(&local).map(|st| (entry, st))
     }
 
+    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenReadWriteFile>>, String> {
+        let (fs, local) = self.route(path, true)?;
+        fs.open_read_write(&local, create_mode)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let (fs, rel) = self.route(path, true)?;
         fs.read_file(&rel)

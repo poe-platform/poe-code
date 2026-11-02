@@ -49,6 +49,7 @@ pub enum FdTarget {
     ReadWriteFile {
         path: String,
         owner_fd: u32,
+        file: Option<Rc<dyn crate::vfs::OpenReadWriteFile>>,
         position: Rc<Cell<FileInputPosition>>,
     },
     Closed,
@@ -9420,22 +9421,27 @@ impl<'a> EvalState<'a> {
                             return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
                     };
-                    if !self.is_default_null(&full) && !self.fs.exists(&full) {
-                        if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = self.redirect_error(&target, &e);
+                    let create_mode = self.env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok())
+                        .map_or(0o644, |mask| 0o666 & !mask);
+                    let opened = if self.is_default_null(&full) { Ok(None) } else {
+                        self.fs.open_read_write(&full, create_mode)
+                    };
+                    let file = match opened {
+                        Ok(file) => file,
+                        Err(e) => {
+                            let mut err_out = if e.starts_with("ENOTSUP:") {
+                                BuiltinOutcome { stdout: String::new(), stderr: format!("{}ENOTSUP: operation not supported, open '{}'\n", self.diag_prefix(), crate::vfs::path::absolute_operand(self.cwd, &target)), exit_code: 1 }
+                            } else { self.redirect_error(&target, &e) };
                             self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
-                        self.apply_umask_to_new_file(&full);
-                    }
-                    let content = match self.fs.read_file(&full) {
+                    };
+                    let read = match &file {
+                        Some(file) => self.budget.tick_fs_op().and_then(|_| file.read_at(0, self.budget.limits.max_input_bytes.saturating_add(1))),
+                        None if self.is_default_null(&full) => Ok(Vec::new()),
+                        None => self.fs.read_file(&full),
+                    };
+                    let content = match read {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_input_bytes {
                                 return Ok((
@@ -9487,6 +9493,7 @@ impl<'a> EvalState<'a> {
                         FdTarget::ReadWriteFile {
                             path: full,
                             owner_fd: *fd,
+                            file,
                             position: Rc::new(Cell::new(FileInputPosition { remaining: content_len, ..Default::default() })),
                         },
                     );
@@ -10392,7 +10399,7 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
-            FdTarget::ReadWriteFile { path, owner_fd, position } => {
+            FdTarget::ReadWriteFile { path, owner_fd, file, position } => {
                 if !self.is_default_null(path) {
                     let cur_rem = if *owner_fd == 0 {
                         self.in_fds
@@ -10411,33 +10418,48 @@ impl<'a> EvalState<'a> {
                     pos.consume(cur_rem, false);
                     let cur_off = pos.offset;
                     let write_bytes = stream_string_to_bytes(data);
-                    let mut file_bytes = self.fs.read_file(path).unwrap_or_default();
-                    let end_off = cur_off + write_bytes.len();
-                    if file_bytes.len() < end_off {
-                        file_bytes.resize(end_off, 0);
-                    }
-                    file_bytes[cur_off..end_off].copy_from_slice(&write_bytes);
-                    if let Err(e) = self.fs.write_file(path, &file_bytes) {
-                        out.stderr.push_str(&format!("{path}: {e}\n"));
-                        out.exit_code = 1;
-                    } else {
-                        let canon = self.resolve_in_fd(*owner_fd);
-                        let tail = &file_bytes[end_off..];
-                        if let Some(cursor) = self.in_fds.get(&canon) {
-                            let mut unread = cursor.borrow_mut();
-                            if pos.buffered == 0 {
-                                *unread = bytes_to_stream_string(tail);
-                            } else {
-                                let mut retained = stream_string_to_bytes(&unread);
-                                retained.truncate(pos.buffered);
-                                retained.extend_from_slice(tail);
-                                *unread = bytes_to_stream_string(&retained);
-                            }
+                    let Some(file) = file else {
+                        if let Err(e) = self.fs.write_file(path, &write_bytes) {
+                            out.stderr.push_str(&format!("{path}: {e}\n"));
+                            out.exit_code = 1;
                         }
-                        pos.offset = end_off;
-                        pos.remaining = pos.buffered + tail.len();
-                        position.set(pos);
+                        return;
+                    };
+                    let end_off = cur_off + write_bytes.len();
+                    let limit = self.budget.limits.max_input_bytes;
+                    let result = self.budget.tick_fs_op()
+                        .and_then(|_| self.budget.add_output_bytes(write_bytes.len()))
+                        .and_then(|_| file.write_at(cur_off, &write_bytes))
+                        .and_then(|_| self.budget.tick_fs_op())
+                        .and_then(|_| file.read_at(end_off, limit.saturating_add(1)));
+                    let tail = match result {
+                        Ok(tail) if tail.len() <= limit => tail,
+                        Ok(_) => {
+                            out.stderr.push_str(&format!("{path}: EFBIG: File too large\n"));
+                            out.exit_code = 1;
+                            return;
+                        }
+                        Err(e) => {
+                            out.stderr.push_str(&format!("{path}: {e}\n"));
+                            out.exit_code = 1;
+                            return;
+                        }
+                    };
+                    let canon = self.resolve_in_fd(*owner_fd);
+                    if let Some(cursor) = self.in_fds.get(&canon) {
+                        let mut unread = cursor.borrow_mut();
+                        if pos.buffered == 0 {
+                            *unread = bytes_to_stream_string(&tail);
+                        } else {
+                            let mut retained = stream_string_to_bytes(&unread);
+                            retained.truncate(pos.buffered);
+                            retained.extend_from_slice(&tail);
+                            *unread = bytes_to_stream_string(&retained);
+                        }
                     }
+                    pos.offset = end_off;
+                    pos.remaining = pos.buffered + tail.len();
+                    position.set(pos);
                 }
             }
             FdTarget::Closed => {}
@@ -16193,6 +16215,21 @@ hash -l
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{child}");
             assert_eq!(fs.read_file("/f").unwrap(), letters.as_bytes(), "{child}");
             assert_eq!(fs.read_file("/g").unwrap(), other.as_bytes(), "{child}");
+        }
+    }
+
+    #[test]
+    fn open_readwrite_file_outlives_rename_unlink_and_permission_changes() {
+        for (script, expected) in [
+            ("mv /f /saved; printf other >/f; printf Z >&3; cat /saved /f", "Zbcother"),
+            ("rm /f; printf other >/f; printf Z >&3; cat /f", "other"),
+            ("ln /f /alias; rm /f; printf Z >&3; cat /alias; test ! -e /f", "Zbc"),
+            ("chmod 200 /f; printf Z >&3; chmod 600 /f; cat /f", "Zbc"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abc").unwrap();
+            let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
+            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (expected, "", 0), "{script}");
         }
     }
 

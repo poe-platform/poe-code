@@ -2,8 +2,24 @@ use super::*;
 
 /// Keeps the inode and its bytes charged to the filesystem after its last name disappears.
 pub(crate) struct RetainedFile {
-    fs: MemoryVfs,
-    ino: u64,
+    pub(super) fs: MemoryVfs,
+    pub(super) ino: u64,
+}
+
+impl std::fmt::Debug for RetainedFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("RetainedFile").field(&self.ino).finish()
+    }
+}
+
+impl crate::vfs::OpenReadWriteFile for RetainedFile {
+    fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
+        Ok(self.read(offset as u64, limit))
+    }
+
+    fn write_at(&self, offset: usize, bytes: &[u8]) -> Result<(), String> {
+        self.write(Some(offset as u64), bytes).map(|_| ())
+    }
 }
 
 impl MemoryVfs {

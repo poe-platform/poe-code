@@ -733,6 +733,35 @@ impl MemoryVfs {
 
 impl SafeBashFs for MemoryVfs {
     fn memory_backend(&self) -> Option<&MemoryVfs> { Some(self) }
+    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenReadWriteFile>>, String> {
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        let entry = Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?;
+        if state.devices.entry(&entry).is_some() { return Ok(None); }
+        let ino = match state.nodes.get(&entry) {
+            Some(&MemoryNode::File { ino }) => {
+                if state.files[&ino].mode & 0o600 != 0o600 { return Err("EACCES: permission denied".into()); }
+                ino
+            }
+            Some(_) => return Err("EISDIR: illegal operation on a directory".into()),
+            None => {
+                if state.devices == Devices::Mounted { return Err("ENOENT: no such file or directory".into()); }
+                let parent = super::dirname_posix_path(&entry);
+                match state.nodes.get(&parent) {
+                    Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 => {}
+                    Some(MemoryNode::Directory { .. }) => return Err("EACCES: permission denied".into()),
+                    Some(_) => return Err("ENOTDIR: not a directory".into()),
+                    None => return Err("ENOENT: no such file or directory".into()),
+                }
+                Self::store_file(&mut state, entry.clone(), &[], 0o100000 | (create_mode & 0o7777), None, None)?;
+                self.bump_generation();
+                let MemoryNode::File { ino } = state.nodes[&entry] else { unreachable!() };
+                ino
+            }
+        };
+        state.files.get_mut(&ino).unwrap().opens += 1;
+        Ok(Some(std::rc::Rc::new(RetainedFile { fs: self.clone(), ino })))
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let norm = normalize_posix_path(path);
         let mut guard = self.state.write().map_err(|e| e.to_string())?;

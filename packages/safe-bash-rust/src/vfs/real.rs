@@ -183,6 +183,24 @@ impl RealVfs {
     }
 }
 
+impl super::OpenReadWriteFile for std::fs::File {
+    fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
+        use std::io::{Read, Seek, SeekFrom};
+        let mut file = self;
+        file.seek(SeekFrom::Start(offset as u64)).map_err(mutation_error)?;
+        let mut bytes = Vec::new();
+        file.take(limit as u64).read_to_end(&mut bytes).map_err(mutation_error)?;
+        Ok(bytes)
+    }
+
+    fn write_at(&self, offset: usize, bytes: &[u8]) -> Result<(), String> {
+        use std::io::{Seek, SeekFrom, Write};
+        let mut file = self;
+        file.seek(SeekFrom::Start(offset as u64)).map_err(mutation_error)?;
+        file.write_all(bytes).map_err(mutation_error)
+    }
+}
+
 impl SafeBashFs for RealVfs {
     fn stat(&self, path: &str) -> Result<FileStat, String> {
         self.metadata(path, true)
@@ -217,6 +235,15 @@ impl SafeBashFs for RealVfs {
         if let Some(ms) = atime_ms { times = times.set_accessed(time(ms)?); }
         if let Some(ms) = mtime_ms { times = times.set_modified(time(ms)?); }
         std::fs::File::open(host).and_then(|file| file.set_times(times)).map_err(|e| e.to_string())
+    }
+
+    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenReadWriteFile>>, String> {
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
+        let mut options = std::fs::OpenOptions::new();
+        options.read(true).write(true).create(true);
+        #[cfg(unix)]
+        std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode);
+        options.open(host).map(|f| Some(std::rc::Rc::new(f) as _)).map_err(mutation_error)
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {

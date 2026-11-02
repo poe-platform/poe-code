@@ -113,6 +113,17 @@ impl FsError {
     }
 }
 
+/// An opened regular file. Its operations use the same object even if its name is replaced.
+pub trait OpenReadWriteFile: std::fmt::Debug {
+    fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;
+    fn write_at(&self, offset: usize, bytes: &[u8]) -> Result<(), String>;
+}
+
+impl PartialEq for dyn OpenReadWriteFile {
+    fn eq(&self, other: &Self) -> bool { std::ptr::eq(self, other) }
+}
+impl Eq for dyn OpenReadWriteFile {}
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -123,6 +134,11 @@ pub trait SafeBashFs: Send + Sync {
     fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
         let entry = self.access_path(path, follow)?;
         self.lstat(&entry).map(|st| (entry, st))
+    }
+
+    /// Return None for a device whose special read/write behavior is provided by this VFS.
+    fn open_read_write(&self, path: &str, _create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenReadWriteFile>>, String> {
+        Err(format!("ENOTSUP: operation not supported, open '{path}'"))
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;

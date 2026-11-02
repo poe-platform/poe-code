@@ -110,6 +110,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.inspect_command_entry(path, follow, syscall)
     }
 
+    fn open_read_write(&self, path: &str, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenReadWriteFile>>, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.open_read_write(path, create_mode)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

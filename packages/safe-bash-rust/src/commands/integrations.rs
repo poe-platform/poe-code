@@ -1186,6 +1186,7 @@ fn render_op_inject_template(
 }
 
 mod op_cli;
+mod op_otp;
 #[path = "help/op_topics.rs"]
 mod op_topics;
 
@@ -2277,14 +2278,26 @@ where
                         } else {
                             vec![parsed]
                         };
+                        let mut codes = Vec::new();
                         for entry in inputs {
                             let id_or_title = entry.get("id").and_then(|v| v.as_str()).or_else(|| entry.get("title").and_then(|v| v.as_str())).unwrap_or("");
                             let idx = match op_item_index(st, vault, id_or_title, false) {
                                 Ok(i) => i, Err(error) => return op_err(error),
                             };
                             let it = &st.op_items[idx];
+                            if otp_mode {
+                                if !fields_spec.is_empty() { return op_err("backend did not return a generated one-time password"); }
+                                match op_otp::generate(it) {
+                                    Ok(code) => codes.push(code), Err(error) => return op_err(error),
+                                }
+                                continue;
+                            }
                             let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
                             results.push(item_json(it, vname, show_values));
+                        }
+                        if otp_mode {
+                            if codes.is_empty() { return op_err("Object selectors are required"); }
+                            return BuiltinOutcome { stdout: format!("{}\n", codes.join("\n")), stderr: String::new(), exit_code: 0 };
                         }
                         let out = to_pretty_json(&JVal::Array(results));
                         return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
@@ -2292,8 +2305,11 @@ where
                     let it = match op_item_index(st, vault, &sel, args.iter().any(|a| a == "--include-archive")) {
                         Ok(i) => &st.op_items[i], Err(error) => return op_err(error),
                     };
-                    if otp_mode {
-                        return BuiltinOutcome { stdout: "287082\n".to_string(), stderr: String::new(), exit_code: 0 };
+                    if otp_mode && fields_spec.is_empty() {
+                        return match op_otp::generate(it) {
+                            Ok(code) => BuiltinOutcome { stdout: format!("{code}\n"), stderr: String::new(), exit_code: 0 },
+                            Err(error) => op_err(error),
+                        };
                     }
                     let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
                     if !fields_spec.is_empty() {
@@ -2328,6 +2344,7 @@ where
                                 }
                             }
                         }
+                        if otp_mode { return op_err("backend did not return a generated one-time password"); }
                         if format_json {
                             let out_val = if selected.len() == 1 {
                                 selected[0].clone()

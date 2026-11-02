@@ -7611,3 +7611,47 @@ test("op requires an unambiguous vault for reference reads and vault mutations",
     }
   } finally { rs.dispose(); }
 });
+
+test("op computes OTPs for the stored field and clock using RFC 6238", async (t) => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const keys = {
+    SHA1: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+    SHA256: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA",
+    SHA512: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA",
+  };
+  let now = 59000;
+  t.mock.method(Date, "now", () => now);
+  try {
+    for (const shell of [js, rs]) {
+      const cmd = "op vault create Demo >/dev/null; op item create --vault Demo --category login --title Test >/dev/null";
+      assert.equal((await shell.exec(cmd)).exitCode, 0);
+      assert.equal((await shell.exec("op item get Test --otp")).stderr, "op: OTP field is unavailable\n");
+    }
+    for (const [algorithm, seconds, period, expected] of [
+      ["SHA1", 59, 30, "94287082"], ["SHA256", 59, 30, "46119246"], ["SHA512", 59, 30, "90693936"],
+      ["SHA1", 1111111109, 30, "07081804"], ["SHA256", 119, 60, "46119246"]]) {
+      now = seconds * 1000;
+      for (const sh of [js, rs]) {
+        const edit = await sh.exec("op item edit Test 'code[otp]=otpauth://totp/Example?digits=8&secret=" + keys[algorithm] + "&period=" + period + "&algorithm=" + algorithm + "' >/dev/null");
+        assert.equal(edit.exitCode, 0, edit.stderr);
+        const r = await sh.exec("op item get Test --otp");
+        assert.equal(r.stdout, expected + "\n", r.stderr);
+      }
+    }
+    for (const cmd of ["op item list --format=json | op item get - --otp",
+      "printf '[]' | op item get - --otp", "op item get Test --fields code --otp",
+      "op item get Test --fields absent --otp"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout],[a.exitCode,a.stderr,a.stdout],cmd);
+    }
+    for (const value of ["not-a-key!", "otpauth://hotp/A?secret=A", "otpauth://totp/test?secret=%41AAA&period=0",
+      "otpauth://totp/test?secret=AAAA&algorithm=MD5", "otpauth://@@totp/test?secret=AAAA",
+      "otpauth://totp/test?secret=AAAA&digits=0x8&period=0b11110", "otpauth://totp/A?secret=%47EZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"]) {
+      const cmd = "op item edit Test 'code[otp]=" + value + "' >/dev/null; op item get Test --otp";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout],[a.exitCode,a.stderr,a.stdout],value);
+    }
+  } finally { rs.dispose(); }
+});

@@ -8529,7 +8529,7 @@ fn openssl_hash(name: &str, data: &[u8]) -> Vec<u8> {
     }
 }
 
-fn openssl_hmac(name: &str, key: &[u8], data: &[u8]) -> Vec<u8> {
+pub(super) fn openssl_hmac(name: &str, key: &[u8], data: &[u8]) -> Vec<u8> {
     let block_size = if name == "sha384" || name == "sha512" { 128usize } else { 64usize };
     let mut k = if key.len() > block_size {
         openssl_hash(name, key)

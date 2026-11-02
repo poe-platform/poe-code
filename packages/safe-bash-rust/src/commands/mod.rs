@@ -9,8 +9,34 @@ pub mod text;
 
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::SafeBashFs;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::BTreeMap;
+
+/// The open file offset can be ahead of the consumer when a chunk has been prefetched.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct FileInputPosition {
+    pub(crate) offset: usize,
+    pub(crate) remaining: usize,
+    pub(crate) buffered: usize,
+}
+
+impl FileInputPosition {
+    pub(crate) fn consume(&mut self, remaining: usize, bounded: bool) {
+        let used = self.remaining.saturating_sub(remaining);
+        let needed = used.saturating_sub(self.buffered);
+        let pulled = if bounded { needed } else {
+            needed.next_multiple_of(65536).min(self.remaining.saturating_sub(self.buffered))
+        };
+        self.offset += pulled;
+        self.buffered = (self.buffered + pulled).saturating_sub(used);
+        self.remaining = remaining;
+    }
+}
+
+pub(crate) struct CommandInput<'a> {
+    pub(crate) text: &'a mut String,
+    pub(crate) position: Option<&'a Cell<FileInputPosition>>,
+}
 
 #[derive(Clone, Debug)]
 struct TimeoutFrame {
@@ -650,14 +676,14 @@ pub fn try_run_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_command_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs,
+    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), position: None }, cwd, env, fs,
         |words, input, cwd, env| exec_sub(words, input, cwd, env))
 }
 
 pub(crate) fn try_run_command_with_input<F>(
     cmd: &str,
     args: &[String],
-    stdin: &mut String,
+    input: CommandInput,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -666,6 +692,7 @@ pub(crate) fn try_run_command_with_input<F>(
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
+    let CommandInput { text: stdin, position } = input;
     if cmd == "env" {
         return Some(run_env_command(args, stdin, cwd, env, fs, exec_sub));
     }
@@ -680,7 +707,7 @@ where
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
-    if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, stdin, cwd, env, fs) {
+    if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, position }, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {

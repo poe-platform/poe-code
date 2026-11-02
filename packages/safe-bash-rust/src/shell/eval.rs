@@ -1,6 +1,6 @@
 use crate::backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
 use crate::budget::ExecutionBudget;
-use crate::commands::try_run_command_with_input;
+use crate::commands::{CommandInput, FileInputPosition, try_run_command_with_input};
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
     path_targets, resolve_physical_path, try_run_builtin,
@@ -49,8 +49,7 @@ pub enum FdTarget {
     ReadWriteFile {
         path: String,
         owner_fd: u32,
-        // Offset in the file and bytes buffered at the last write.
-        position: Rc<Cell<(usize, usize)>>,
+        position: Rc<Cell<FileInputPosition>>,
     },
     Closed,
 }
@@ -1376,7 +1375,11 @@ impl<'a> EvalState<'a> {
                 is_last && self.env.get("\0shopt_lastpipe").is_some_and(|v| v == "1");
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
+                let outer_input = self.fd_table.remove(&0);
                 let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin);
+                if let Some(target) = outer_input {
+                    self.fd_table.insert(0, target);
+                }
                 if let Some(p0) = prev_pipe0 {
                     self.env.insert("\0pipe_fd__0".to_string(), p0);
                 } else {
@@ -1403,6 +1406,7 @@ impl<'a> EvalState<'a> {
             if idx == 0 {
                 sub.async_default_stdin = self.async_default_stdin;
             } else {
+                sub.fd_table.remove(&0);
                 sub.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
             }
             if !is_last {
@@ -4775,7 +4779,10 @@ impl<'a> EvalState<'a> {
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
-            stdin,
+            CommandInput { text: stdin, position: match self.fd_table.get(&0) {
+                Some(FdTarget::ReadWriteFile { position, .. }) => Some(position),
+                _ => None,
+            } },
             self.cwd,
             self.env,
             fs_ref,
@@ -9480,7 +9487,7 @@ impl<'a> EvalState<'a> {
                         FdTarget::ReadWriteFile {
                             path: full,
                             owner_fd: *fd,
-                            position: Rc::new(Cell::new((0, content_len))),
+                            position: Rc::new(Cell::new(FileInputPosition { remaining: content_len, ..Default::default() })),
                         },
                     );
                 }
@@ -10400,13 +10407,9 @@ impl<'a> EvalState<'a> {
                             .map(|s| stream_byte_len(&s.borrow()))
                             .unwrap_or(0)
                     };
-                    let (base_off, last_rem) = position.get();
-                    let had_read = cur_rem < last_rem;
-                    let cur_off = if had_read {
-                        base_off + last_rem.min(65536)
-                    } else {
-                        base_off
-                    };
+                    let mut pos = position.get();
+                    pos.consume(cur_rem, false);
+                    let cur_off = pos.offset;
                     let write_bytes = stream_string_to_bytes(data);
                     let mut file_bytes = self.fs.read_file(path).unwrap_or_default();
                     let end_off = cur_off + write_bytes.len();
@@ -10418,19 +10421,22 @@ impl<'a> EvalState<'a> {
                         out.stderr.push_str(&format!("{path}: {e}\n"));
                         out.exit_code = 1;
                     } else {
-                        if !had_read {
-                            let new_rem_bytes = &file_bytes[end_off..];
-                            let new_rem_str = bytes_to_stream_string(new_rem_bytes);
-                            if *owner_fd != 0 {
-                                let canon = self.resolve_in_fd(*owner_fd);
-                                if let Some(cursor) = self.in_fds.get(&canon) {
-                                    cursor.replace(new_rem_str);
-                                }
+                        let canon = self.resolve_in_fd(*owner_fd);
+                        let tail = &file_bytes[end_off..];
+                        if let Some(cursor) = self.in_fds.get(&canon) {
+                            let mut unread = cursor.borrow_mut();
+                            if pos.buffered == 0 {
+                                *unread = bytes_to_stream_string(tail);
+                            } else {
+                                let mut retained = stream_string_to_bytes(&unread);
+                                retained.truncate(pos.buffered);
+                                retained.extend_from_slice(tail);
+                                *unread = bytes_to_stream_string(&retained);
                             }
-                            position.set((end_off, new_rem_bytes.len()));
-                        } else {
-                            position.set((end_off, cur_rem));
                         }
+                        pos.offset = end_off;
+                        pos.remaining = pos.buffered + tail.len();
+                        position.set(pos);
                     }
                 }
             }
@@ -16187,6 +16193,25 @@ hash -l
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{child}");
             assert_eq!(fs.read_file("/f").unwrap(), letters.as_bytes(), "{child}");
             assert_eq!(fs.read_file("/g").unwrap(), other.as_bytes(), "{child}");
+        }
+    }
+
+    #[test]
+    fn bounded_and_buffered_reads_advance_the_shared_file_position_differently() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        for (child, output, file) in [
+            ("{ printf z | head -c1; } <&3", "zb\ncdef", "Yb\ncdef"),
+            ("head -c1 <&3 >&3", "cdef", "aaYcdef"),
+            ("head -c1 <&3", "a\ncdef", "aY\ncdef"),
+            ("(head -c1 <&3; printf X >&3)", "acdef", "aXYcdef"),
+            ("head -c1 <&3; head -c2 <&3", "ab\ndef", "ab\nYdef"),
+            ("head -n1 <&3; head -c1 <&3", "ab\ncdef", "ab\ncdefY"),
+            ("read -N1 -u3 x; head -c1 <&3", "b\ncdef", "ab\ncdefY"),
+        ] {
+            fs.write_file("/f", b"ab\ncdef").unwrap();
+            let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3; cat <&3")).unwrap();
+            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (output, "", 0), "{child}");
+            assert_eq!(fs.read_file("/f").unwrap(), file.as_bytes(), "{child}");
         }
     }
 

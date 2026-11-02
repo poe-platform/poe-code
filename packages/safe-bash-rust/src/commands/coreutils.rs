@@ -1,3 +1,4 @@
+use super::CommandInput;
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::decode_ansi_c_escapes;
@@ -14,13 +15,13 @@ pub fn try_run_coreutil(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    try_run_coreutil_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs)
+    try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), position: None }, cwd, env, fs)
 }
 
 pub(super) fn try_run_coreutil_with_input(
     cmd: &str,
     args: &[String],
-    stdin: &mut String,
+    input: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -28,10 +29,11 @@ pub(super) fn try_run_coreutil_with_input(
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) {
         return Some(info);
     }
+    let stdin = &mut *input.text;
     match cmd {
         "cat" => Some(cmd_cat(args, stdin, cwd, fs)),
-        "head" => Some(run_head_or_tail("head", args, stdin, cwd, fs)),
-        "tail" => Some(run_head_or_tail("tail", args, stdin, cwd, fs)),
+        "head" => Some(run_head_or_tail("head", args, input, cwd, fs)),
+        "tail" => Some(run_head_or_tail("tail", args, input, cwd, fs)),
         "wc" => Some(cmd_wc(args, stdin, cwd, env, fs)),
         "sort" => Some(cmd_sort(args, stdin, cwd, env, fs)),
         "uniq" => Some(cmd_uniq(args, stdin, cwd, env, fs)),
@@ -645,7 +647,7 @@ fn prefix_len(chunk: &[u8], remaining: &mut usize, bytes: bool, delimiter: u8) -
 fn run_head_or_tail(
     name: &str,
     raw_args: &[String],
-    stdin: &mut String,
+    stdin: CommandInput,
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
@@ -885,8 +887,16 @@ fn run_head_or_tail(
                 copy(chunk, false).map(|(more, _)| more)
             }).and_then(|()| copy(&[], true).map(|_| ()))
         } else {
-            let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin));
-            copy(&bytes[consumed..], true).map(|(_, used)| { consumed += used; })
+            let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin.text));
+            copy(&bytes[consumed..], true).map(|(_, used)| {
+                if let Some(position) = stdin.position {
+                    let mut pos = position.get();
+                    pos.consume(bytes.len() - consumed, false);
+                    pos.consume(bytes.len() - consumed - used, prefix && bytes_mode && !skip);
+                    position.set(pos);
+                }
+                consumed += used;
+            })
         };
         if let Err(err) = result {
             if path.is_some() && err.starts_with("EIO:") {
@@ -900,7 +910,7 @@ fn run_head_or_tail(
     }
 
     if consumed != 0 && let Some(bytes) = input {
-        *stdin = crate::vfs::bytes_to_stream_string(&bytes[consumed..]);
+        *stdin.text = crate::vfs::bytes_to_stream_string(&bytes[consumed..]);
     }
 
     BuiltinOutcome {

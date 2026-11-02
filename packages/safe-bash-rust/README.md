@@ -19,6 +19,8 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 Pass a shell’s own `fs` to `exec` to use its Wasm filesystem. Selecting another filesystem for a call requires a `companionFactory`; without one, `exec` rejects the call before running the script.
 
+In UTF-8 locales, `fold` measures display columns with fixed Unicode width tables. They use the same zero-width marks and wide-character ranges as the JavaScript command, independent of the host locale library. See [the Unicode data license](./LICENSE.UNICODE).
+
 Native `tac -r` searches byte patterns from the end of each input. It reports `EFBIG` when a pattern exceeds 64 KiB or 64 nested groups, or when compilation or matching exceeds its work or memory budgets. JavaScript can accept larger patterns.
 
 ## Quick Start

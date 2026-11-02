@@ -1,3 +1,4 @@
+mod fold_widths;
 mod sort_keys;
 mod sort_record;
 mod sort_runs;
@@ -1042,7 +1043,7 @@ fn decode_wc_ranges(packed: &str) -> Vec<(u32, u32)> {
     out
 }
 
-fn wc_ranges_contains(ranges: &[(u32, u32)], point: u32) -> bool {
+fn ranges_contain(ranges: &[(u32, u32)], point: u32) -> bool {
     let mut low = 0usize;
     let mut high = ranges.len();
     while low < high {
@@ -1239,10 +1240,10 @@ fn cmd_wc(
         if (0x20..=0x7e).contains(&point) {
             return 1;
         }
-        if wc_ranges_contains(&zero_ranges, point) {
+        if ranges_contain(&zero_ranges, point) {
             return 0;
         }
-        if wc_ranges_contains(&wide_ranges, point) {
+        if ranges_contain(&wide_ranges, point) {
             2
         } else {
             1
@@ -11565,41 +11566,15 @@ fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
 }
 
 fn fold_char_width(cp: u32) -> usize {
-    if cp == 0 {
-        return 0;
+    if cp < 128 {
+        usize::from(cp != 0)
+    } else if ranges_contain(fold_widths::ZERO, cp) {
+        0
+    } else if ranges_contain(fold_widths::WIDE, cp) {
+        2
+    } else {
+        1
     }
-    if cp < 32 || (cp >= 0x7f && cp < 0xa0) {
-        return 1;
-    }
-    if (0x0300..=0x036f).contains(&cp)
-        || (0x1ab0..=0x1aff).contains(&cp)
-        || (0x1dc0..=0x1dff).contains(&cp)
-        || (0x20d0..=0x20ff).contains(&cp)
-        || (0xfe00..=0xfe0f).contains(&cp)
-        || (0xfe20..=0xfe2f).contains(&cp)
-        || (0xe0100..=0xe01ef).contains(&cp)
-        || (0x200b..=0x200f).contains(&cp)
-        || (0x2060..=0x206f).contains(&cp)
-        || cp == 0xfeff
-    {
-        return 0;
-    }
-    if (0x1100..=0x115f).contains(&cp)
-        || cp == 0x2329
-        || cp == 0x232a
-        || (0x2e80..=0xa4cf).contains(&cp)
-        || (0xac00..=0xd7a3).contains(&cp)
-        || (0xf900..=0xfaff).contains(&cp)
-        || (0xfe10..=0xfe19).contains(&cp)
-        || (0xfe30..=0xfe6f).contains(&cp)
-        || (0xff01..=0xff60).contains(&cp)
-        || (0xffe0..=0xffe6).contains(&cp)
-        || (0x1f300..=0x1faff).contains(&cp)
-        || (0x20000..=0x3fffd).contains(&cp)
-    {
-        return 2;
-    }
-    1
 }
 
 // An incomplete but valid prefix is held for the next read. At EOF each
@@ -21454,6 +21429,13 @@ mod tests {
 
         let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
         assert_eq!(tr.stdout, "HELLO");
+    }
+
+    #[test]
+    fn fold_uses_the_portable_width_profile_for_marks_and_wide_glyphs() {
+        let input = "x\u{ad}x\nx\u{5b0}x\nx\u{231a}x\nx\u{1f321}x\nx\u{1fae8}x\nx\u{1ae0}x";
+        let output = try_run_coreutil("fold", &args(&["-w2"]), input, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        assert_eq!(output.stdout, "x\u{ad}x\nx\u{5b0}x\nx\n\u{231a}\nx\nx\u{1f321}\nx\nx\u{1fae8}\nx\nx\u{1ae0}x");
     }
 
     #[test]

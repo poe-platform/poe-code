@@ -106,6 +106,8 @@ const EXIF_TAGS: &[&str] = &["Artist","Title","Author","Description","ImageDescr
 mod exiftool_png;
 #[path = "exiftool_json.rs"]
 mod exiftool_json;
+#[path = "qpdf_argfiles.rs"]
+mod qpdf_argfiles;
 #[path = "exiftool_argfiles.rs"]
 mod exiftool_argfiles;
 #[path = "tiff.rs"]
@@ -6284,12 +6286,10 @@ fn cmd_media_doc(
             ok_out("")
         }
         "qpdf" => {
-            if args.iter().any(|a| a == "--version") {
-                return ok_out("qpdf version 11.9.1 (@poe-code/pdf-ast)\n");
-            }
-            if args.iter().any(|a| a == "--help" || a == "-h" || a.starts_with("--help=")) {
-                return ok_out("Usage: qpdf [options] infile [outfile]\n");
-            }
+            let (args, input_remaining) = match qpdf_argfiles::expand(args, cwd, fs) {
+                Ok(expanded) => expanded,
+                Err(e) => return err_out(&e, 2),
+            };
             let publish = |operand: &str, bytes: &[u8]| {
                 let path = resolve_posix_path(cwd, operand);
                 fs.mkdir(&crate::vfs::dirname_posix_path(&path), true, 0o755)
@@ -6341,6 +6341,8 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
+                if matches!(a,"--help"|"-h"){return ok_out("Usage: qpdf [options] infile [outfile]\n")}
+                if a=="--version"{return ok_out("qpdf version 11.9.1 (@poe-code/pdf-ast)\n")}
                 if let Some(mode) = a.strip_prefix("--normalize-content=") {
                     normalize_content = Some(match mode {
                         "y" => true, "n" => false,
@@ -6771,6 +6773,29 @@ fn cmd_media_doc(
                 pos_files.first().cloned()
             };
 
+            if input_remaining < fs.shell_limits().max_input_bytes {
+                let mut remaining = input_remaining;
+                let mut seen = std::collections::BTreeSet::new();
+                for path in primary_arg.iter().map(String::as_str)
+                    .chain(update_from_json.iter().copied())
+                    .chain(edits.selections.iter().map(|s| s.0.as_str()))
+                    .chain(add_atts.iter().map(|a| a.path.as_str()))
+                    .chain(copy_atts.iter().map(|a| a.path.as_str()))
+                    .chain(edits.layers.iter().map(|l| l.path)) {
+                    if path.is_empty() || path == "." || !seen.insert(path) { continue; }
+                    let size = if path == "-" {
+                        crate::vfs::stream_byte_len(stdin)
+                    } else {
+                        fs.stat(&resolve_posix_path(cwd, path)).map_or(0, |s| s.size)
+                    };
+                    // The JS PDF reader reports a command failure if an operand
+                    // exceeds the budget remaining after argument-file reads.
+                    let Some(left) = remaining.checked_sub(size) else {
+                        return err_out("shell: line 1: internal error\n", 1);
+                    };
+                    remaining = left;
+                }
+            }
             if is_enc || req_pw {
                 let Some(f) = primary_arg.as_deref() else {
                     return err_out("qpdf: an input file is required\n", 2);
@@ -6795,7 +6820,7 @@ fn cmd_media_doc(
                 let Some(mut bytes)=original()else{return if primary_arg.is_none(){err_out("qpdf: an input file is required\n",2)}else{err_out(&format!("qpdf: cannot open {name}\n"),2)}};
                 let limits=fs.shell_limits();
                 let mut seen=std::collections::BTreeSet::new();seen.insert(name.to_string());
-                let mut left=limits.max_input_bytes;
+                let mut left=input_remaining;
                 if !empty_input{let Some(n)=left.checked_sub(bytes.len())else{return err_out("qpdf: input byte limit exceeded\n",2)};left=n;}
                 let mut acquire=|path:&str|->Result<Option<Vec<u8>>,String>{
                     let b=read(path);if let Some(b)=&b && seen.insert(path.to_string()){left=left.checked_sub(b.len()).ok_or("input byte limit exceeded")?;}

@@ -5270,3 +5270,27 @@ test("qpdf JSON errors preserve the output and report native JSON positions",asy
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf reads each argument-file line literally, once, before parsing options",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const d=PdfDocument.create();d.addPage();const file="é space.pdf";
+  const files={["/"+file]:d.save()};
+  Object.assign(files,{"/args":Buffer.from("\ufeff"+"\n".repeat(65532)+file+"\r\n\n"),"/show":Buffer.from("--show-npages\r"),"/write":Buffer.from("out file.pdf\r\n"),"/nested":Buffer.from("@args\n--show-npages"),"/version":Buffer.from("--help\n--version"),"/bad":Buffer.from("--normalize-content=invalid\n--version")});
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
+    for(const cmd of ["qpdf @args @show","qpdf @args @write","qpdf @nested","qpdf --help @missing","qpdf @version","qpdf @bad","qpdf --help=foo"]){
+      const e=await js.exec(cmd),r=await rs.exec(cmd);assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],cmd);
+      if(cmd.includes("@write"))assert.deepEqual(Buffer.from(await rs.fs.readFile("/out file.pdf")),Buffer.from(await fs.readFile("/out file.pdf")));
+    }
+    const cmd="qpdf @args @show", argBytes=files["/args"].length+files["/show"].length;
+    for(const shell of [js,rs])await assert.rejects(shell.exec(cmd,{limits:{maxInputBytes:argBytes-1}}),/maxInputBytes/);
+    for(const maxInputBytes of [argBytes,argBytes+files["/"+file].length]){
+      const opts={limits:{maxInputBytes}};
+      const e=await js.exec(cmd,opts),r=await rs.exec(cmd,opts);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],String(maxInputBytes));
+    }
+  }finally{rs.dispose();}
+});

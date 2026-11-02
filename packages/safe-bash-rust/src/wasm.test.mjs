@@ -7739,3 +7739,22 @@ test("pr timestamps stdin and merged pages from the clock and files from their m
     }
   } finally { rs.dispose(); }
 });
+
+test("bzip2 blocks with equal rotations and long shared prefixes decode in production", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["a", "abba".repeat(2048), "abc".repeat(8191) + "z" + "abc".repeat(8191)]) {
+      const bytes = Buffer.from(text);
+      await rs.fs.writeFile("/input", bytes);
+      const packed = await rs.exec("bzip2 -1c /input");
+      assert.equal(packed.exitCode, 0, packed.stderr);
+      await fs.writeFile("/archive", packed.stdoutBytes);
+      const unpacked = await js.exec("bunzip2 -c /archive");
+      assert.equal(unpacked.exitCode, 0, unpacked.stderr);
+      assert.deepEqual(Buffer.from(unpacked.stdoutBytes), bytes);
+    }
+  } finally { rs.dispose(); }
+});

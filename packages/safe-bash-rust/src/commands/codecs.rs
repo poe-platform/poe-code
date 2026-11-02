@@ -722,16 +722,26 @@ pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
         // 2. Burrows-Wheeler Transform
         let n = rle1.len();
         let mut indices: Vec<usize> = (0..n).collect();
-        indices.sort_by(|&a, &b| {
-            for k in 0..n {
-                let ba = rle1[(a + k) % n];
-                let bb = rle1[(b + k) % n];
-                if ba != bb {
-                    return ba.cmp(&bb);
-                }
+        // Rank cyclic prefixes in pairs instead of rescanning equal rotations byte by byte.
+        let mut ranks: Vec<usize> = rle1.iter().copied().map(usize::from).collect();
+        let mut next = vec![0; n];
+        let mut width = 1;
+        let mut previous_classes = 0;
+        while width < n {
+            let pair = |i: usize| (ranks[i], ranks[(i + width) % n]);
+            indices.sort_unstable_by_key(|&i| (pair(i), i));
+            let mut class = 0;
+            next[indices[0]] = class;
+            for group in indices.windows(2) {
+                class += usize::from(pair(group[0]) != pair(group[1]));
+                next[group[1]] = class;
             }
-            a.cmp(&b)
-        });
+            let classes = class + 1;
+            if classes == n || classes == previous_classes { break; }
+            previous_classes = classes;
+            std::mem::swap(&mut ranks, &mut next);
+            width *= 2;
+        }
         let orig_ptr = indices.iter().position(|&i| i == 0).unwrap_or(0) as u32;
         let mut bwt_last = Vec::with_capacity(n);
         for &rot in &indices {

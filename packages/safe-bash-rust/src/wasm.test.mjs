@@ -3438,3 +3438,22 @@ test("exiftool reads and edits standard PNG chunks without altering image data",
     } finally { wasm.dispose(); }
   }
 });
+
+test("magick writes pixel and alpha streams into a standard PDF from files and canvases", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { imagemagickCommands } = await import("@poe-platform/safe-bash/commands/imagemagick");
+  const { createHash } = await import("node:crypto");
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/" });
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(imagemagickCommands({ replace: true }));
+  try {
+    for (const runtime of [shell, wasm]) assert.equal((await runtime.exec("magick -size 64x48 gradient:red-blue f.png")).exitCode, 0);
+    for (const operands of ["f.png", "-size 3x2 xc:none", "f.png -resize 11x7! -colorspace Gray", "-size 9x3 xc:'#aabbcc77'"]) {
+      const script = "magick " + operands + " f.pdf";
+      const want = await shell.exec(script), got = await wasm.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr]);
+      const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+      assert.equal(digest(await wasm.fs.readFile("/f.pdf")), digest(await fs.readFile("/f.pdf")), script);
+    }
+  } finally { wasm.dispose(); }
+});

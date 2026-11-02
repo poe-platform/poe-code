@@ -64,6 +64,46 @@ fn tiff(im: &Raster, density:u32, limit: usize) -> Result<Vec<u8>, &'static str>
     Ok(out)
 }
 
+// image-ast stores a page-sized RGB image and a separate grayscale soft mask,
+// even for an opaque source. Lengths are indirect so the streams can precede them.
+fn pdf(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
+    use std::io::Write;
+    let (w, h) = (im.width, im.height);
+    let content = format!("q\n{w} 0 0 {h} 0 0 cm\n/Im0 Do\nQ\n");
+    let mut out = b"%PDF-1.4\n".to_vec();
+    let mut offsets = [0; 8];
+    for (i, body) in [
+        "<< /Type /Catalog /Pages 2 0 R >>".into(),
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".into(),
+        format!("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {w} {h}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>"),
+        format!("<< /Length {} >>\nstream\n{content}endstream", content.len()),
+    ].iter().enumerate() {
+        offsets[i] = out.len();
+        writeln!(out, "{} 0 obj\n{body}\nendobj", i + 1).unwrap();
+    }
+    for (id, color, mask) in [(5, "DeviceRGB", " /SMask 7 0 R"), (7, "DeviceGray", "")] {
+        let mut raw = Vec::with_capacity(im.pixels.len() * if id == 5 { 3 } else { 1 });
+        for pixel in &im.pixels {
+            if id == 7 { raw.push(pixel[3]); }
+            else if im.gray { raw.extend_from_slice(&[pixel[0]; 3]); }
+            else { raw.extend_from_slice(&pixel[..3]); }
+        }
+        let data = crate::commands::codecs::zlib_compress(&raw);
+        offsets[id - 1] = out.len();
+        writeln!(out, "{id} 0 obj\n<< /Type /XObject /Subtype /Image /Width {w} /Height {h} /ColorSpace /{color} /BitsPerComponent 8 /Filter /FlateDecode /Length {} 0 R{mask} >>\nstream", id + 1).unwrap();
+        if data.len() > limit.saturating_sub(out.len()) { return Err("output byte limit exceeded"); }
+        out.extend_from_slice(&data);
+        out.extend_from_slice(b"\nendstream\nendobj\n");
+        offsets[id] = out.len();
+        writeln!(out, "{} 0 obj\n{}\nendobj", id + 1, data.len()).unwrap();
+    }
+    let xref = out.len();
+    out.extend_from_slice(b"xref\n0 9\n0000000000 65535 f \n");
+    for offset in offsets { writeln!(out, "{offset:010} 00000 n ").unwrap(); }
+    writeln!(out, "trailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF").unwrap();
+    Ok(out)
+}
+
 pub(super) fn encode(
     im: &Raster,
     format: &str,
@@ -76,6 +116,7 @@ pub(super) fn encode(
         return Err("image exceeds memory budget");
     }
     let data = match format {
+        "pdf" => pdf(im, limit)?,
         "heic" | "heif" | "avif" => super::heif::encode(im, format, density, limit)?,
         "jpeg" => jpeg::encode(im, quality, density, limit)?,
         "tiff" => tiff(im, density, limit)?,

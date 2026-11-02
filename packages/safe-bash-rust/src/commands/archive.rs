@@ -6918,35 +6918,47 @@ fn cmd_gzip(
         return ok_out(&out);
     }
 
-    if test_mode {
-        if files.is_empty() || (files.len() == 1 && files[0] == "-") {
-            let data = crate::vfs::stream_string_to_bytes(stdin);
-            return match decompress_for_invoked(invoked, &data, &xz_format) {
-                Ok(_) => ok_out(""),
-                Err(e) => err_out(&format!("{invoked}: {e}\n"), 1),
-            };
+    let decode = |data: &[u8]| {
+        let pass = if is_gzip {
+            force && !data.starts_with(&[0x1f, 0x8b])
+        } else if is_bzip2 {
+            force && to_stdout && !test_mode && !super::codecs::bzip2_header_prefix(data)
+        } else {
+            false
+        };
+        if pass { return Ok(data.to_vec()); }
+        decompress_for_invoked(invoked, data, &xz_format)
+    };
+    let decode_error = |error: &str, file: &str| {
+        if is_bzip2 {
+            let msg = if error == "unexpected end of file" { error } else { "invalid compressed data or codec memory limit exceeded" };
+            err_out(&format!("{invoked}: {msg}\n"), 2)
+        } else if is_gzip || file == "-" {
+            err_out(&format!("{invoked}: {error}\n"), 1)
+        } else if test_mode {
+            err_out(&format!("{invoked}: {file}: {error}\n"), 1)
+        } else {
+            err_out(&format!("{invoked}: {file}: not in {invoked} format\n"), 1)
         }
+    };
+    if files.is_empty() {
+        files.push("-".to_string());
+    }
+    if test_mode {
         for f in &files {
-            if f == "-" {
-                let data = crate::vfs::stream_string_to_bytes(stdin);
-                if let Err(e) = decompress_for_invoked(invoked, &data, &xz_format) {
-                    return err_out(&format!("{invoked}: {e}\n"), 1);
-                }
-                continue;
-            }
-            let full = resolve_posix_path(cwd, f);
-            let Ok(data) = fs.read_file(&full) else {
-                return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
+            let data = if f == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, f)) else {
+                    return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
+                };
+                bytes
             };
-            if let Err(e) = decompress_for_invoked(invoked, &data, &xz_format) {
-                return err_out(&format!("{invoked}: {f}: {e}\n"), 1);
+            if let Err(e) = decode(&data) {
+                return decode_error(&e, f);
             }
         }
         return ok_out("");
-    }
-
-    if files.is_empty() {
-        files.push("-".to_string());
     }
 
     let mut stdout_buf = String::new();
@@ -6990,12 +7002,12 @@ fn cmd_gzip(
         if f == "-" {
             let data = crate::vfs::stream_string_to_bytes(stdin);
             if decompress {
-                match decompress_for_invoked(invoked, &data, &xz_format) {
+                match decode(&data) {
                     Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
-                    Err(_) if passthrough || (force && to_stdout) => {
+                    Err(_) if !is_gzip && !is_bzip2 && (passthrough || (force && to_stdout)) => {
                         stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&data));
                     }
-                    Err(e) => return err_out(&format!("{invoked}: {e}\n"), 1),
+                    Err(e) => return decode_error(&e, "-"),
                 }
             } else {
                 let comp = compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check);
@@ -7017,10 +7029,10 @@ fn cmd_gzip(
             return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
         };
         if decompress {
-            let dec = match decompress_for_invoked(invoked, &data, &xz_format) {
+            let dec = match decode(&data) {
                 Ok(d) => d,
-                Err(_) if (passthrough || force) && to_stdout => data.clone(),
-                Err(_) => return err_out(&format!("{invoked}: {f}: not in {invoked} format\n"), 1),
+                Err(_) if !is_gzip && !is_bzip2 && (passthrough || force) && to_stdout => data.clone(),
+                Err(e) => return decode_error(&e, f),
             };
             if to_stdout {
                 stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&dec));

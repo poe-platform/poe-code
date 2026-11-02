@@ -7694,3 +7694,24 @@ test("gunzip checks each member's optional header and trailer", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("gzip and bzip2 only pass unrecognized input through in supported force modes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [name, short, corrupt] of [
+      ["gunzip", "1f8b", "1f8bffe0000000000000"], ["bunzip2", "425a68", "425a6839000000000000"],
+    ]) {
+      for (const hex of ["", short, corrupt, "706c61696e"]) {
+        for (const vfs of [fs, rs.fs]) await vfs.writeFile("/input", Buffer.from(hex, "hex"));
+        for (const args of ["-c /input", "-t /input", "-fc /input", "-ft /input", "-fc < /input", "-t < /input"]) {
+          const cmd = name + " " + args;
+          const a = await js.exec(cmd), b = await rs.exec(cmd);
+          assert.deepEqual([b.exitCode, b.stderr, b.stdoutBytes], [a.exitCode, a.stderr, a.stdoutBytes], cmd + ": " + hex);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

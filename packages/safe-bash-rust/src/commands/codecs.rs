@@ -604,7 +604,7 @@ impl<'a> MsbBitReader<'a> {
         }
         while self.bit_cnt < n {
             if self.byte_pos >= self.data.len() {
-                return Err("Compressed data error".into());
+                return Err("unexpected end of file".into());
             }
             self.bit_buf = (self.bit_buf << 8) | (self.data[self.byte_pos] as u64);
             self.byte_pos += 1;
@@ -878,16 +878,21 @@ pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
     bw.finish()
 }
 
+pub(super) fn bzip2_header_prefix(data: &[u8]) -> bool {
+    b"BZh".iter().zip(data).all(|(a, b)| a == b)
+        && data.get(3).is_none_or(|level| (b'1'..=b'9').contains(level))
+}
+
 pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
-    if data.len() < 14 || &data[0..3] != b"BZh" || !(b'1'..=b'9').contains(&data[3]) {
-        return Err("Compressed data error".into());
-    }
     let mut pos = 0usize;
     let mut out = Vec::new();
 
-    while pos < data.len() {
-        if pos + 4 > data.len() || &data[pos..pos + 3] != b"BZh" || !(b'1'..=b'9').contains(&data[pos + 3]) {
+    loop {
+        if !bzip2_header_prefix(&data[pos..]) {
             return Err("Compressed data error".into());
+        }
+        if data.len() - pos < 4 {
+            return Err("unexpected end of file".into());
         }
         let max_block_size = ((data[pos + 3] - b'0') as usize) * 100_000;
         let mut br = MsbBitReader::new(data, pos + 4);
@@ -902,6 +907,7 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 }
                 br.align_byte();
                 pos = br.consumed_bytes();
+                if pos == data.len() { return Ok(out); }
                 break;
             }
             if magic != 0x3141_5926_5359 {
@@ -1143,7 +1149,6 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             out.extend_from_slice(&block_out);
         }
     }
-    Ok(out)
 }
 
 #[cfg(test)]

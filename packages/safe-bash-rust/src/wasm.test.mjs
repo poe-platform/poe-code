@@ -4693,3 +4693,23 @@ test("pdftk protects copied PDFs with distinct credentials and honors allow perm
     assert.deepEqual(await rust.fs.readFile("/out"),prior);
   } finally {rust.dispose();}
 });
+
+test("pdftk burst writes standalone page graphs and the source document report",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create();doc.setTitle("Source");doc.setCreator("Authoring app");
+  for(const s of ["first","second"])doc.addPage().drawText(s,{x:21,y:32});
+  const input=doc.save({encrypt:{userPassword:"reader",ownerPassword:"owner"}});
+  const rust=new RustWasmBash({cwd:"/",files:{"/in":input}}),fs=new MemoryFileSystem();
+  await fs.writeFile("/in",input);
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try {
+    for(const [pattern,outputs] of [["page_%%_%02d",["page_%_01","page_%_02"]],["same",["same"]],["-",[]]]){
+      const cmd="pdftk in input_pw reader burst output "+pattern;
+      for(const shell of [js,rust]){const r=await shell.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      for(const name of [...outputs,"doc_data.txt"])assert.deepEqual(await rust.fs.readFile("/"+name),await fs.readFile("/"+name),name);
+      if(pattern==="-")assert.equal((await rust.exec("test -f /-")).exitCode,1);
+    }
+  }finally{rust.dispose();}
+});

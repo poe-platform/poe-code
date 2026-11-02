@@ -8023,21 +8023,38 @@ fn cmd_media_doc(
                         .map(|(d, _)| if d.is_empty() { "/" } else { d })
                         .unwrap_or(cwd);
                     let _ = fs.mkdir_all(burst_dir);
-                    for (idx, pg) in primary.pages.iter().enumerate() {
-                        let mut single = PdfDoc::new();
-                        single.version = primary.version.clone();
-                        single.title = primary.title.clone();
-                        single.author = primary.author.clone();
-                        single.page_w = primary.page_w;
-                        single.page_h = primary.page_h;
-                        single.pages.push(pg.clone());
-                        let Some(name) = format_printf_num(&pat, idx + 1, None) else { return err_out("pdftk: filename width limit exceeded\n", 1); };
-                        let out_p = resolve_posix_path(cwd, &name);
-                        let _ = fs.write_file(&out_p, &single.serialize());
-                    }
                     let doc_data_p = format!("{}/doc_data.txt", burst_dir.trim_end_matches('/'));
-                    let _ = fs.write_file(&doc_data_p, format_dump(&primary, false).as_bytes());
-                    ok_out("")
+                    let (bytes,password) = &inputs[&input_order[0]];
+                    let mut source = if is_legacy_pdf(bytes) {None} else {
+                        match pdf_reader::PageSource::open(bytes,password) {
+                            Ok(source) => Some(source), Err(e) => return err_out(&format!("Error: {e}\n"),1),
+                        }
+                    };
+                    let count = primary.pages.len();
+                    let start = if filename_number_spec(&pat).is_none() {count.saturating_sub(1)} else {0};
+                    for idx in start..count {
+                        let Some(name) = format_printf_num(&pat,idx+1,None) else { return err_out("pdftk: filename width limit exceeded\n",1); };
+                        if name == "-" || resolve_posix_path(cwd,&name)==doc_data_p {continue;}
+                        let bytes = if let Some(source) = &mut source {
+                            let mut page = pdf_reader::PageOutput::new(limit);
+                            let Some(bytes) = page.append(source,Some(idx)).and_then(|()|page.finish()) else {
+                                return err_out("Error: Could not copy PDF page\n",1);
+                            };
+                            bytes
+                        } else {
+                            let mut single = PdfDoc::new();
+                            single.version = primary.version.clone();
+                            single.title = primary.title.clone();
+                            single.author = primary.author.clone();
+                            single.page_w = primary.page_w;
+                            single.page_h = primary.page_h;
+                            single.pages.push(primary.pages[idx].clone());
+                            single.serialize()
+                        };
+                        let r = write_copied_pdf(fs,cwd,&name,&bytes,1);
+                        if r.exit_code!=0 {return r;}
+                    }
+                    write_copied_pdf(fs,cwd,&doc_data_p,format_dump(&primary,false).as_bytes(),1)
                 }
                 "attach_files" => {
                     let rest = &args[op_idx + 1..];

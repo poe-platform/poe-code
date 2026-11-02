@@ -6493,3 +6493,23 @@ test("regex groups treat parentheses and alternatives inside brackets as charact
     }
   } finally { rs.dispose(); }
 });
+
+test("grep, rg, and sed choose nonoverlapping alternatives in their dialect order", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands()).use(sedCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [cmd, expected] of [
+      ["echo ab | rg -o 'a|ab'", "a\n"], ["echo ab | grep -Eo 'a|ab'", "ab\n"],
+      ["echo ab | rg -o -e ab -e a", "ab\n"], ["echo ab | grep -o -e a -e ab", "ab\n"],
+      ["echo xaaa | rg -o 'xa|aa'", "xa\naa\n"], ["echo ab | sed -E 's/a|ab/X/'", "X\n"],
+      ["echo abb | rg --count-matches 'ab|b'", "2\n"],
+      ["echo bcd | rg -o '^a|cd'", "cd\n"],
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode,a.stderr,a.stdout], [0,"",expected],cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

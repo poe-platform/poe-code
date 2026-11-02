@@ -488,11 +488,12 @@ pub fn is_known_command(name: &str) -> bool {
 
 #[derive(Clone)]
 pub struct ZeroRegex {
-    patterns: Vec<String>,
+    branches: Vec<(Vec<RxToken>, bool)>,
+    first_pattern: String,
     ignore_case: bool,
-    fixed_strings: bool,
     word_regexp: bool,
-    line_regexp: bool,
+    anchored: bool,
+    first_match: bool,
 }
 
 impl ZeroRegex {
@@ -503,13 +504,20 @@ impl ZeroRegex {
         word_regexp: bool,
         line_regexp: bool,
     ) -> Self {
-        Self {
-            patterns,
-            ignore_case,
-            fixed_strings,
-            word_regexp,
-            line_regexp,
+        let mut branches = Vec::new();
+        let mut anchored = true;
+        for pat in &patterns {
+            for mut tokens in parse_rx_branches(pat, fixed_strings) {
+                anchored &= line_regexp || matches!(tokens.first().map(|t| &t.atom), Some(RxAtom::Begin));
+                if line_regexp {
+                    tokens.push(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false });
+                }
+                let backrefs = !fixed_strings && has_backref_token(&tokens);
+                branches.push((tokens, backrefs));
+            }
         }
+        Self { branches, first_pattern: patterns.into_iter().next().unwrap_or_default(), ignore_case,
+            word_regexp, anchored, first_match: false }
     }
 
     pub fn is_match(&self, text: &str) -> bool {
@@ -517,21 +525,26 @@ impl ZeroRegex {
     }
 
     pub fn find_all(&self, text: &str) -> Vec<(usize, usize)> {
+        let hay: Vec<_> = text.char_indices().collect();
+        let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
         let mut results = Vec::new();
-        for pat in &self.patterns {
-            for m in find_single_pattern(
-                pat,
-                text,
-                self.ignore_case,
-                self.fixed_strings,
-                self.word_regexp,
-                self.line_regexp,
-            ) {
-                results.push(m);
+        let mut pos = 0;
+        let last_start = if self.anchored { 0 } else { hay.len() };
+        while pos <= last_start {
+            let mut ends = self.branches.iter().filter_map(|(tokens, backrefs)| {
+                let end = if *backrefs {
+                    match_tokens_with_caps(tokens, &hay, text, pos, self.ignore_case)?.0
+                } else {
+                    match_tokens(tokens, &hay, pos, self.ignore_case)?
+                };
+                (!self.word_regexp || is_word_boundary(&hay, pos, end)).then_some(end)
+            });
+            if let Some(end) = if self.first_match { ends.next() } else { ends.max() } {
+                results.push((byte_at(pos), byte_at(end)));
+                if end > pos { pos = end; continue; }
             }
+            pos += 1;
         }
-        results.sort_by_key(|&(s, e)| (s, e));
-        results.dedup();
         results
     }
 }
@@ -543,49 +556,6 @@ fn has_unescaped_trailing_dollar(pat: &str) -> bool {
     let before = &pat[..pat.len() - 1];
     let backslashes = before.chars().rev().take_while(|&c| c == '\\').count();
     backslashes.is_multiple_of(2)
-}
-
-fn find_single_pattern(
-    pat: &str,
-    text: &str,
-    ignore_case: bool,
-    fixed_strings: bool,
-    word_regexp: bool,
-    line_regexp: bool,
-) -> Vec<(usize, usize)> {
-    let hay: Vec<(usize, char)> = text.char_indices().collect();
-    let mut matches = Vec::new();
-    for mut tokens in parse_rx_branches(pat, fixed_strings) {
-        let anchored_start = line_regexp || matches!(tokens.first().map(|t| &t.atom), Some(RxAtom::Begin));
-        if line_regexp {
-            tokens.push(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false });
-        }
-        let backrefs = !fixed_strings && has_backref_token(&tokens);
-        let match_at = |pos| {
-            if backrefs {
-                match_tokens_with_caps(&tokens, &hay, text, pos, ignore_case).map(|(end, _)| end)
-            } else {
-                match_tokens(&tokens, &hay, pos, ignore_case)
-            }
-        };
-        let mut pos = 0usize;
-        let last_start = if anchored_start { 0 } else { hay.len() };
-        while pos <= last_start {
-            if let Some(end_idx) = match_at(pos)
-                && (!word_regexp || is_word_boundary(&hay, pos, end_idx))
-            {
-                let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
-                matches.push((byte_at(pos), byte_at(end_idx)));
-                if end_idx > pos {
-                    pos = end_idx;
-                    continue;
-                }
-            }
-            pos += 1;
-        }
-    }
-
-    matches
 }
 
 fn is_word_char(c: char) -> bool {
@@ -1776,7 +1746,7 @@ fn apply_rg_line_replace(
     if spans.is_empty() {
         return line.to_string();
     }
-    let pat0 = rx.patterns.first().map(|p| p.as_str()).unwrap_or("");
+    let pat0 = rx.first_pattern.as_str();
     let mut out = String::new();
     let mut last = 0usize;
     for &(s, e) in spans {
@@ -3984,13 +3954,14 @@ fn run_grep_engine(
     fs: &dyn SafeBashFs,
     cfg: GrepConfig,
 ) -> BuiltinOutcome {
-    let rx = ZeroRegex::new(
+    let mut rx = ZeroRegex::new(
         patterns,
         cfg.ignore_case,
         cfg.fixed_strings,
         cfg.word_regexp,
         cfg.line_regexp,
     );
+    rx.first_match = cfg.is_rg;
 
     let mut inputs: Vec<(Option<String>, String, Option<usize>)> = Vec::new();
     let mut err = String::new();
@@ -4337,7 +4308,7 @@ fn run_grep_engine(
                 for &(fl, _ll, s, e) in &multiline_spans {
                     let matched_slice = &content[s..e];
                     let rendered = if let Some(rep) = &cfg.replace {
-                        let pat0 = rx.patterns.first().map(|p| p.as_str()).unwrap_or("");
+                        let pat0 = rx.first_pattern.as_str();
                         let caps = regex_captures(&format!("^{pat0}$"), matched_slice, cfg.ignore_case)
                             .or_else(|| regex_captures(pat0, matched_slice, cfg.ignore_case))
                             .unwrap_or_else(|| vec![matched_slice.to_string()]);
@@ -4391,7 +4362,7 @@ fn run_grep_engine(
                     }
                     let matched_slice = &line[s..e];
                     if let Some(rep) = &cfg.replace {
-                        let pat0 = rx.patterns.first().map(|p| p.as_str()).unwrap_or("");
+                        let pat0 = rx.first_pattern.as_str();
                         let caps = regex_captures(&format!("^{pat0}$"), matched_slice, cfg.ignore_case)
                             .or_else(|| regex_captures(pat0, matched_slice, cfg.ignore_case))
                             .unwrap_or_else(|| vec![matched_slice.to_string()]);

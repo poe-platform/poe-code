@@ -2966,3 +2966,17 @@ test("chmod forwards the original guard to the active companion", async () => {
     assert.equal((await fs.stat("/private")).mode & 0o777, 0o600);
   } finally { bash.dispose(); }
 });
+
+test("yes selects GNU long options and diagnoses the first invalid option byte", async () => {
+  const { Shell, MemoryFileSystem, agentCommands, yesCommands } = await import("@poe-platform/safe-bash");
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(yesCommands({ replace: true }));
+  const wasm = new RustWasmBash();
+  try {
+    for (const script of ["yes --bad", "yes -xy", "yes -é", "yes --=x", "yes --ver=x", "yes --v", "yes --he",
+      "yes word --v", "POSIXLY_CORRECT= yes word --v | head -n1", "yes word -- --v | head -n1"]) {
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdoutBytes, actual.stderrBytes],
+        [expected.exitCode, expected.stdoutBytes, expected.stderrBytes], script);
+    }
+  } finally { wasm.dispose(); }
+});

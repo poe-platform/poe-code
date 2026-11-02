@@ -61,7 +61,7 @@ fn coreutil(
         "tee" => cmd_tee(args, input.buffered()?, cwd, fs),
         "sponge" => cmd_sponge(args, input.buffered()?, cwd, fs),
         "seq" => cmd_seq(args),
-        "yes" => cmd_yes(args),
+        "yes" => cmd_yes(args, env.contains_key("POSIXLY_CORRECT")),
         "basename" => cmd_basename(args),
         "dirname" => cmd_dirname(args),
         "env" | "printenv" => cmd_printenv(args, env),
@@ -4982,7 +4982,7 @@ fn cmd_seq(args: &[String]) -> BuiltinOutcome {
     }
 }
 
-fn cmd_yes(args: &[String]) -> BuiltinOutcome {
+fn cmd_yes(args: &[String], posixly_correct: bool) -> BuiltinOutcome {
     let mut delimiter_idx: Option<usize> = None;
     for (idx, arg) in args.iter().enumerate() {
         if arg == "--" {
@@ -4990,15 +4990,27 @@ fn cmd_yes(args: &[String]) -> BuiltinOutcome {
             break;
         }
         if arg == "-" || !arg.starts_with('-') {
+            if posixly_correct { break; }
             continue;
         }
-        if arg == "--help" {
-            return ok_out(include_str!("help/yes.txt"));
-        }
-        if arg == "--version" {
-            return ok_out("yes (virtual-bash GNU-compatible profile)\n");
-        }
-        return err_out(&format!("yes: invalid option '{arg}'\n"), 1);
+        let message = if let Some(long) = arg.strip_prefix("--") {
+            let name = long.split('=').next().unwrap();
+            if name.is_empty() {
+                format!("option '{arg}' is ambiguous; possibilities: '--help' '--version'")
+            } else if let Some(option) = ["help", "version"].into_iter().find(|opt| opt.starts_with(name)) {
+                if long == name {
+                    return ok_out(if option == "help" { include_str!("help/yes.txt") }
+                        else { "yes (virtual-bash GNU-compatible profile)\n" });
+                }
+                format!("option '--{option}' doesn't allow an argument")
+            } else {
+                format!("unrecognized option '{arg}'")
+            }
+        } else {
+            let bytes = stream_string_to_bytes(arg);
+            format!("invalid option -- '{}'", crate::vfs::bytes_to_stream_string(&bytes[1..2]))
+        };
+        return err_out(&format!("yes: {message}\nTry 'yes --help' for more information.\n"), 1);
     }
     let words: Vec<&str> = args
         .iter()

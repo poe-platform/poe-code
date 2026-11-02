@@ -4810,5 +4810,12 @@ test("pdftk reads inherited form values, widget states and choice options from e
       assert.equal((await rust.exec(cmd+" output report")).exitCode,0);
       assert.equal(Buffer.from(await rust.fs.readFile("/report")).toString(),expected.stdout);
     }
+    for (const target of ["-","fields.fdf"]){
+      const cmd="pdftk in input_pw reader generate_fdf output "+target;
+      const jr=await js.exec(cmd),rr=await rust.exec(cmd);assert.equal(rr.exitCode,0,rr.stderr);
+      const fdf=async (f,r)=>target==="-"?r.stdout:Buffer.from(await f.readFile("/fields.fdf")).toString();
+      const actual=await fdf(rust.fs,rr),expected=await fdf(fs,jr);
+      assert.match(expected,/\/Kids \[ << \/T \(name\)/);assert.equal(actual,expected);
+    }
   } finally{rust.dispose();}
 });

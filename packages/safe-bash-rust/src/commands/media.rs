@@ -7814,13 +7814,13 @@ fn cmd_media_doc(
                     } else {primary.serialize()};
                     write_pdftk_output(bytes,&args[op_idx..])
                 }
-                "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" => {
+                "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" | "generate_fdf" => {
                     let utf8 = op.ends_with("_utf8");
-                    let report = if op.starts_with("dump_data_fields") {
+                    let report = if op.starts_with("dump_data_fields") || op=="generate_fdf" {
                         let (bytes,password)=&inputs[&input_order[0]];
-                        if is_legacy_pdf(bytes){String::new()}else{match pdf_reader::field_report(bytes,password,utf8,limit){
+                        match pdf_reader::field_report(bytes,password,&op,limit){
                             Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                        }}
+                        }
                     } else {format_dump(&primary,utf8)};
                     if let Some([_,path])=args[op_idx+1..].windows(2).find(|w|w[0]=="output") && path!="-" {
                         write_copied_pdf(fs,cwd,path,report.as_bytes(),1)

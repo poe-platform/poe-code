@@ -2,7 +2,7 @@
 // contribute appearance states to their parent rather than separate fields.
 use super::super::encode_pdftk_text;
 use super::{ObjectId, Objects, Value, index, pdf_string};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Default)]
 struct Field {
@@ -40,10 +40,27 @@ impl<'a> Objects<'a> {
         None
     }
 }
+fn fdf_string(s: &str) -> String {
+    let mut result = String::from("(");
+    for c in s.chars() {
+        match c {
+            '(' | ')' | '\\' => {
+                result.push('\\');
+                result.push(c);
+            }
+            '\n' => result.push_str("\\n"),
+            '\r' => result.push_str("\\r"),
+            _ => result.push(c),
+        }
+    }
+    result.push(')');
+    result
+}
 struct Report {
     output: String,
     limit: usize,
     utf8: bool,
+    fdf_values: Option<BTreeMap<String, String>>,
     active: BTreeSet<ObjectId>,
 }
 impl Report {
@@ -166,6 +183,55 @@ impl Report {
                 }
             }
         }
+        let v = obj.inherited(&d, b"V");
+        let values = if button {
+            let state = match v.as_ref().and_then(Value::word) {
+                Some(b"true") => options.get(1).cloned().unwrap_or_else(|| "Yes".into()),
+                Some(w) if w.starts_with(b"/") => pdf_string::name(&w[1..]),
+                _ => "Off".into(),
+            };
+            vec![state]
+        } else if let Some(Value::Array(values)) = v {
+            let mut selected = Vec::new();
+            let mut remaining = self.limit;
+            for v in values {
+                if let Some(s) = obj.resolve(&v).as_ref().and_then(text) {
+                    remaining = remaining
+                        .checked_sub(s.len() + 1)
+                        .ok_or("PDF output byte limit exceeded")?;
+                    selected.push(s);
+                }
+            }
+            if selected.is_empty() {
+                selected.push(String::new());
+            }
+            selected
+        } else {
+            vec![v.as_ref().and_then(text).unwrap_or_default()]
+        };
+        if let Some(fdf) = &mut self.fdf_values {
+            let value = if button {
+                format!("/{}", values[0])
+            } else if values.len() == 1 {
+                fdf_string(&values[0])
+            } else {
+                format!(
+                    "[ {} ]",
+                    values
+                        .iter()
+                        .map(|v| fdf_string(v))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                )
+            };
+            // Bound the retained lookup independently of the eventual FDF output.
+            obj.remaining_bytes = obj
+                .remaining_bytes
+                .checked_sub(field.name.len() + value.len())
+                .ok_or("PDF form field byte limit exceeded")?;
+            fdf.insert(field.name, value);
+            return Ok(());
+        }
         self.line("---", "")?;
         self.line(
             "FieldType: ",
@@ -185,30 +251,8 @@ impl Report {
             self.line("FieldNameAlt: ", &s)?;
         }
         self.line("FieldFlags: ", &field.flags.to_string())?;
-        let v = obj.inherited(&d, b"V");
-        if button {
-            let state = match v.as_ref().and_then(Value::word) {
-                Some(b"true") => options.get(1).cloned().unwrap_or_else(|| "Yes".into()),
-                Some(w) if w.starts_with(b"/") => pdf_string::name(&w[1..]),
-                _ => "Off".into(),
-            };
-            self.line("FieldValue: ", &state)?;
-        } else if let Some(Value::Array(values)) = v {
-            let mut any = false;
-            for v in values {
-                if let Some(s) = obj.resolve(&v).as_ref().and_then(text) {
-                    self.line("FieldValue: ", &s)?;
-                    any = true;
-                }
-            }
-            if !any {
-                self.line("FieldValue: ", "")?;
-            }
-        } else {
-            self.line(
-                "FieldValue: ",
-                &v.as_ref().and_then(text).unwrap_or_default(),
-            )?;
+        for value in values {
+            self.line("FieldValue: ", &value)?;
         }
         if let Some(s) = obj
             .inherited(&d, b"DV")
@@ -234,33 +278,127 @@ impl Report {
         }
         Ok(())
     }
+    fn push(&mut self, s: &str) -> Result<(), &'static str> {
+        if s.len() > self.limit.saturating_sub(self.output.len()) {
+            return Err("PDF output byte limit exceeded");
+        }
+        self.output.push_str(s);
+        Ok(())
+    }
+    fn fdf_node<'a>(
+        &mut self,
+        obj: &mut Objects<'a>,
+        node: &Value<'a>,
+        prefix: &str,
+        separator: &str,
+        depth: usize,
+    ) -> Result<bool, &'static str> {
+        if depth > 128 {
+            return Err("PDF FDF field depth limit exceeded");
+        }
+        let Some(d @ Value::Dict(_)) = obj.resolve(node) else {
+            return Ok(false);
+        };
+        if depth > 0 && d.get(b"T").is_none() {
+            return Ok(false);
+        }
+        let partial = match d.get(b"T").and_then(|v| obj.resolve(v)) {
+            Some(Value::String { bytes, .. }) => pdf_string::decode(&bytes),
+            _ => String::new(),
+        };
+        let full = if prefix.is_empty() {
+            partial.clone()
+        } else if partial.is_empty() {
+            prefix.to_owned()
+        } else {
+            format!("{prefix}.{partial}")
+        };
+        let original = self.output.len();
+        self.push(separator)?;
+        self.push("<< /T ")?;
+        self.push(&fdf_string(if partial.is_empty() {
+            &full
+        } else {
+            &partial
+        }))?;
+        let start_kids = self.output.len();
+        let mut any = false;
+        if let Some(Value::Array(kids)) = d.get(b"Kids").and_then(|v| obj.resolve(v)) {
+            for kid in kids {
+                any |= self.fdf_node(
+                    obj,
+                    &kid,
+                    &full,
+                    if any { " " } else { " /Kids [ " },
+                    depth + 1,
+                )?;
+            }
+        }
+        if any {
+            self.push(" ] >>")?;
+        } else if full.is_empty() {
+            self.output.truncate(original);
+            return Ok(false);
+        } else {
+            debug_assert_eq!(self.output.len(), start_kids);
+            let value = self
+                .fdf_values
+                .as_ref()
+                .and_then(|f| f.get(&full))
+                .cloned()
+                .unwrap_or_else(|| match d.get(b"V").and_then(|v| obj.resolve(v)) {
+                    Some(Value::Word(w)) if w.starts_with(b"/") => {
+                        format!("/{}", pdf_string::name(&w[1..]))
+                    }
+                    Some(Value::String { bytes, .. }) => fdf_string(&pdf_string::decode(&bytes)),
+                    _ => "()".into(),
+                });
+            self.push(" /V ")?;
+            self.push(&value)?;
+            self.push(" >>")?;
+        }
+        Ok(true)
+    }
 }
 pub(in super::super) fn report(
     bytes: &[u8],
     password: &str,
-    utf8: bool,
+    op: &str,
     limit: usize,
 ) -> Result<String, &'static str> {
-    let (mut obj, trailer) = index(bytes, password)?;
-    let root = obj
-        .resolve(trailer.get(b"Root").ok_or("missing PDF catalog")?)
-        .ok_or("missing PDF catalog")?;
-    let form = root.get(b"AcroForm").and_then(|v| obj.resolve(v));
-    let Some(Value::Array(fields)) = form
-        .as_ref()
-        .and_then(|v| v.get(b"Fields"))
-        .and_then(|v| obj.resolve(v))
-    else {
-        return Ok(String::new());
-    };
     let mut report = Report {
         output: String::new(),
         limit,
-        utf8,
+        utf8: op.ends_with("_utf8"),
+        fdf_values: (op == "generate_fdf").then(BTreeMap::new),
         active: BTreeSet::new(),
     };
-    for f in fields {
-        report.field(&mut obj, &f, &Field::default(), 0)?;
+    if report.fdf_values.is_some() {
+        report.push("%FDF-1.2\n1 0 obj\n<< /FDF << /Fields [\n")?;
+    }
+    if !super::super::is_legacy_pdf(bytes) {
+        let (mut obj, trailer) = index(bytes, password)?;
+        let root = obj
+            .resolve(trailer.get(b"Root").ok_or("missing PDF catalog")?)
+            .ok_or("missing PDF catalog")?;
+        if let Some(Value::Array(fields)) = root
+            .get(b"AcroForm")
+            .and_then(|v| obj.resolve(v))
+            .and_then(|f| f.get(b"Fields").and_then(|v| obj.resolve(v)))
+        {
+            for f in &fields {
+                report.field(&mut obj, f, &Field::default(), 0)?;
+            }
+            if report.fdf_values.is_some() {
+                let mut any = false;
+                for f in fields {
+                    any |= report.fdf_node(&mut obj, &f, "", if any { "\n  " } else { "  " }, 0)?;
+                }
+            }
+        }
+    }
+    if report.fdf_values.is_some() {
+        report.push("\n] >> >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n")?;
     }
     Ok(report.output)
 }

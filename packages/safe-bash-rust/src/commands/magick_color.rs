@@ -559,10 +559,10 @@ impl super::png_pixels::Raster {
 
     pub fn sigmoidal_contrast(&mut self, spec: &str) {
         let mut parts = spec.split('x');
-        let beta = super::magick_float(parts.next().filter(|s| !s.is_empty()).unwrap_or("3"));
+        let beta = super::parse_float_prefix(parts.next().filter(|s| !s.is_empty()).unwrap_or("3"));
         let beta = if beta < 1e-4 { 1e-4 } else { beta };
         let midpoint = parts.next().unwrap_or("50%");
-        let mid = super::magick_float(if midpoint.is_empty() { "50" } else { midpoint });
+        let mid = super::parse_float_prefix(if midpoint.is_empty() { "50" } else { midpoint });
         let alpha = mid / if midpoint.ends_with('%') { 100. } else { 255. };
         let sigmoid = |v: f64| 1. / (1. + (beta * (alpha - v)).exp());
         let low = sigmoid(0.);
@@ -574,12 +574,12 @@ impl super::png_pixels::Raster {
         let mut parts = spec.split(',');
         let percent = spec.contains('%');
         let point = |s: Option<&str>, default| s.filter(|s| !s.is_empty()).map_or(default, |s| {
-            let n = super::magick_float(s);
+            let n = super::parse_float_prefix(s);
             if percent { n / 100. * 255. } else { n }
         });
         let black = point(parts.next(), 0.);
         let white = point(parts.next(), 255.);
-        let gamma = parts.next().map_or(1., super::magick_float);
+        let gamma = parts.next().map_or(1., super::parse_float_prefix);
         let exponent = 1. / gamma.max(0.01);
         let span = (white - black).max(1e-6);
         self.map_rgb(|v| {

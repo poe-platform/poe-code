@@ -280,7 +280,7 @@ fn magick_number(value: &str, empty: f64) -> f64 {
 }
 
 // JavaScript parseFloat accepts a numeric prefix followed by units.
-fn magick_float(raw:&str)->f64{
+fn parse_float_prefix(raw:&str)->f64{
     let s=raw.trim_start();
     let b=s.as_bytes();
     let mut i=usize::from(matches!(b.first(),Some(b'+'|b'-')));
@@ -298,7 +298,7 @@ fn magick_float(raw:&str)->f64{
 }
 
 fn magick_fuzz(raw:&str)->f64{
-    let value=magick_float(raw);
+    let value=parse_float_prefix(raw);
     if raw.ends_with('%'){value/100.*255.}else{value}
 }
 
@@ -4184,35 +4184,20 @@ impl InputTime {
     }
 }
 
-fn parse_ffmpeg_timestamp(spec: &str) -> Option<f64> {
-    let trimmed = spec.trim();
-    if trimmed.is_empty() {
-        return None;
+fn parse_ffmpeg_timestamp(spec: &str) -> f64 {
+    let number = |s: &str| {
+        let n = parse_float_prefix(s);
+        if n.is_nan() { 0. } else { n }
+    };
+    let spec = spec.trim();
+    if let Some(ms) = spec.strip_suffix("ms") { return number(ms) / 1_000.; }
+    if let Some(us) = spec.strip_suffix("us") { return number(us) / 1_000_000.; }
+    let mut parts = spec.split(':');
+    match (parts.next(), parts.next(), parts.next(), parts.next()) {
+        (Some(h), Some(m), Some(s), None) => number(h) * 3600. + number(m) * 60. + number(s),
+        (Some(m), Some(s), None, None) => number(m) * 60. + number(s),
+        _ => number(spec),
     }
-    if let Some(ms) = trimmed.strip_suffix("ms") {
-        return ms.parse::<f64>().ok().map(|v| v / 1000.0);
-    }
-    if let Some(us) = trimmed.strip_suffix("us") {
-        return us.parse::<f64>().ok().map(|v| v / 1_000_000.0);
-    }
-    if let Some(s) = trimmed.strip_suffix('s')
-        && !trimmed.contains(':')
-    {
-        return s.parse::<f64>().ok();
-    }
-    if trimmed.contains(':') {
-        let parts: Vec<f64> = trimmed
-            .split(':')
-            .map(|x| x.parse::<f64>().unwrap_or(0.0))
-            .collect();
-        if parts.len() == 3 {
-            return Some(parts[0] * 3600.0 + parts[1] * 60.0 + parts[2]);
-        }
-        if parts.len() == 2 {
-            return Some(parts[0] * 60.0 + parts[1]);
-        }
-    }
-    trimmed.parse::<f64>().ok()
 }
 
 fn format_ffmpeg_introspection(flag: &str, cmd: &str) -> Option<String> {
@@ -4590,17 +4575,17 @@ fn cmd_media_doc(
                     }
                     "-ss" if i + 1 < args.len() => {
                         let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.start}else{&mut ss_opt};
-                        *target = parse_ffmpeg_timestamp(&args[i + 1]);
+                        *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
                         i += 2;
                     }
                     "-to" if i + 1 < args.len() => {
                         let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.to}else{&mut to_opt};
-                        *target = parse_ffmpeg_timestamp(&args[i + 1]);
+                        *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
                         i += 2;
                     }
                     "-t" if i + 1 < args.len() => {
                         let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.duration}else{&mut t_opt};
-                        *target = parse_ffmpeg_timestamp(&args[i + 1]);
+                        *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
                         i += 2;
                     }
                     "-frames:v" | "-vframes" if i + 1 < args.len() => {
@@ -10339,7 +10324,7 @@ fn cmd_media_doc(
                         let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-sepia-tone"=>"80%","-solarize"=>"50%",_=>"8"}};
                         ops.push(match arg.as_str(){
                             "-sepia-tone"=>{
-                                let n=magick_float(value);
+                                let n=parse_float_prefix(value);
                                 let strength=if value.ends_with('%'){n}else{n/255.}/100.;
                                 PixelOp::Sepia(if strength.is_nan() || strength==0.{0.8}else{strength.clamp(0.,1.)})
                             }
@@ -13396,6 +13381,18 @@ mod media_unit_tests {
         assert_eq!(run(&["empty.aac"]).stderr, "ffprobe: EINVAL: invalid argument, read '/empty.aac'\n");
         for name in ["empty.aac","-"] {
             assert_eq!(run(&["-f","aac","-show_entries","stream=sample_rate,channels,nb_frames","-of","csv=p=0",name]).stdout, "44100,2,0\n");
+        }
+    }
+
+    #[test]
+    fn ffmpeg_duration_uses_a_numeric_prefix_or_zero() {
+        let fs = MemoryVfs::new();
+        for (spec, frames) in [("invalid", 0), ("", 0), ("0.5tail", 2), ("00:00.5junk", 2),
+            ("1e-1tail", 1), ("500xms", 2), ("500000us", 2)] {
+            let args = media_args(&["-f", "lavfi", "-i", "testsrc=s=4x4:r=4:d=1", "-t", spec, "-f", "y4m", "-"]);
+            let result = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(result.stdout.matches("FRAME\n").count(), frames, "{spec}");
         }
     }
 

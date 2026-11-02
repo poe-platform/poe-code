@@ -1,4 +1,4 @@
-use super::{magick_float, png_pixels::Raster};
+use super::{parse_float_prefix, png_pixels::Raster};
 
 pub(super) enum Adjustment<'a> {
     AutoLevel(Option<[bool; 4]>),
@@ -77,7 +77,7 @@ impl Adjustment<'_> {
             Self::Stretch(spec) => {
                 let mut parts = spec.split('x');
                 let number = |s: &str| {
-                    let n = magick_float(s);
+                    let n = parse_float_prefix(s);
                     if n.is_nan() { 0. } else { n }
                 };
                 let black = number(parts.next().unwrap_or(""));

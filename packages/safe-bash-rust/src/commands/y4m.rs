@@ -608,13 +608,11 @@ pub(super) fn render_frames(
                     let (k, v) = s
                         .split_once('=')
                         .unwrap_or((if j == 0 { "start" } else { "" }, s));
-                    if let Some(t) = super::parse_ffmpeg_timestamp(v) {
-                        match k {
-                            "start" => start = t,
-                            "end" => end = t,
-                            "duration" => duration = Some(t),
-                            _ => {}
-                        }
+                    match k {
+                        "start" => start = super::parse_ffmpeg_timestamp(v),
+                        "end" if !v.is_empty() => end = super::parse_ffmpeg_timestamp(v),
+                        "duration" if !v.is_empty() => duration = Some(super::parse_ffmpeg_timestamp(v)),
+                        _ => {}
                     }
                 }
                 let end = duration.map_or(end, |d| start + d);

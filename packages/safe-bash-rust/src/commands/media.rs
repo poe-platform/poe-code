@@ -7035,14 +7035,6 @@ fn cmd_media_doc(
                 return err_out(&format!("qpdf: attachment {} not found\n", show.unwrap()), 2);
             }
             if let Some(jv) = json_version {
-                let doc = if let Some(f) = primary_arg.as_deref() {
-                    match load_input(f) {
-                        Ok(d) => d,
-                        Err(e) => return e,
-                    }
-                } else {
-                    PdfDoc::new()
-                };
                 let out_file = if !empty_input && pos_files.len() >= 2 {
                     Some(pos_files[1].clone())
                 } else if empty_input && !pos_files.is_empty() {
@@ -7060,6 +7052,31 @@ fn cmd_media_doc(
                 if json_stream_data == "file" && stream_prefix.is_empty() {
                     return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
                 }
+                let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
+                    else if primary_arg.as_deref() == Some("-") { Some(crate::vfs::stream_string_to_bytes(stdin)) }
+                    else { primary_arg.as_ref().and_then(|p| fs.read_file(&resolve_posix_path(cwd,p)).ok()) };
+                if let Some(bytes) = input && let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
+                    let (json,files) = match source.qpdf_json(jv,json_keys.iter().any(|k| k == "pages"),
+                        &json_objects,&json_stream_data,&stream_prefix,fs.shell_limits().max_output_bytes) {
+                        Ok(result) => result,
+                        Err(e) => return err_out(e,1),
+                    };
+                    for (name,data) in files {
+                        if out_file.as_deref() != Some(&name) && let Err(e) = publish(&name,&data) { return e; }
+                    }
+                    if let Some(of) = out_file.as_deref() && of != "-" {
+                        return publish(of,json.as_bytes()).map_or_else(|e| e,|()| ok_out(""));
+                    }
+                    return ok_out(&json);
+                }
+                let doc = if let Some(f) = primary_arg.as_deref() {
+                    match load_input(f) {
+                        Ok(d) => d,
+                        Err(e) => return e,
+                    }
+                } else {
+                    PdfDoc::new()
+                };
                 let esc_json = |s: &str| -> String {
                     let mut out = String::new();
                     for ch in s.chars() {

@@ -4179,3 +4179,40 @@ test("qpdf validates JSON options before publishing output", async () => {
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf exports indexed objects, decoded streams and page references in both JSON formats", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument,cosBool,cosDict,cosName,cosString,cosNumber,cosArray,cosStream,dictSet}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("Index 雪");doc.addPage([51,52]).drawText("First",{x:1,y:3});doc.addPage([70,90]);
+  const cat=doc.cos.resolveDict(doc.cos.rootRef);
+  dictSet(cat,"PageLabels",cosDict({Nums:cosArray([cosNumber(0),cosDict({S:cosName("r"),P:cosString("π"),St:cosNumber(3)})])}));
+  const stream=doc.cos.allocateObject(cosStream(Uint8Array.of(255,0,77,9),{compress:true}));
+  const parent=doc.cos.allocateObject(cosDict({T:cosString("contact"),FT:cosName("Tx"),V:cosString("inherited")}));
+  dictSet(doc.cos.resolveDict(parent),"Kids",cosArray([cosDict({T:cosString("address"),Parent:parent})]));
+  const box=doc.cos.allocateObject(cosDict({T:cosName("checked"),FT:cosName("Btn"),V:cosName("Yes")}));
+  dictSet(cat,"AcroForm",cosDict({NeedAppearances:cosBool(true),Fields:cosArray([parent,box])}));
+  const dest=cosArray([doc.getPage(1).ref,cosName("Fit")]);
+  const first=doc.cos.allocateObject(cosDict({Title:cosString("first"),Dest:dest}));
+  const child=doc.cos.allocateObject(cosDict({Title:cosString("nested"),A:cosDict({D:cosString("second")}),Next:first}));
+  dictSet(doc.cos.resolveDict(first),"First",child);
+  dictSet(cat,"Outlines",cosDict({First:first}));
+  const spec=doc.cos.allocateObject(cosDict({F:cosString("file.bin"),EF:cosDict({F:stream})}));
+  dictSet(cat,"Names",cosDict({Dests:cosDict({Names:cosArray([cosString("second"),dest])}),
+    EmbeddedFiles:cosDict({Names:cosArray(["9","2","__proto__","attachment"].flatMap(k=>[cosString(k),spec]))})}));
+  const input=doc.save(),packed=doc.save({objectStreams:"generate"});
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/a.pdf":input,"/b.pdf":packed}});
+  await fs.writeFile("/a.pdf",input);await fs.writeFile("/b.pdf",packed);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const script of ["qpdf a.pdf --json=1 --json-key=pages","qpdf b.pdf --json",
+      "qpdf a.pdf --json=2 --json-object=3 --json-object=trailer","qpdf --empty --json=1",
+      "qpdf a.pdf --json --json-stream-data=inline --json-object="+stream.objectNumber,
+      "qpdf a.pdf --json --json-stream-data=file --json-stream-prefix=data- --json-object="+stream.objectNumber+" dest.json"]) {
+      const want=await js.exec(script),got=await wasm.exec(script);assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],script);
+      if(script.endsWith("dest.json"))for(const name of ["/dest.json","/data-"+stream.objectNumber])
+        assert.deepEqual(Buffer.from(await wasm.fs.readFile(name)),Buffer.from(await fs.readFile(name)));
+    }
+  } finally {wasm.dispose();}
+});

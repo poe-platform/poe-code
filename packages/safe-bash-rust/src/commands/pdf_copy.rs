@@ -5,6 +5,8 @@ use std::io::Write;
 
 #[path = "pdf_fonts.rs"]
 mod pdf_fonts;
+#[path = "pdf_json.rs"]
+mod pdf_json;
 #[path = "pdf_inspect.rs"]
 mod pdf_inspect;
 #[path = "pdf_text_layout.rs"]
@@ -36,6 +38,7 @@ pub(in super::super) struct PageSource<'a> {
     tree: BTreeMap<ObjectId, Option<Value<'a>>>,
     info: Value<'a>,
     catalog: Value<'a>,
+    trailer: Value<'a>,
 }
 
 struct Attachment {
@@ -173,6 +176,7 @@ impl<'a> PageSource<'a> {
             pages,
             info: Value::Dict(info),
             catalog,
+            trailer,
         })
     }
 

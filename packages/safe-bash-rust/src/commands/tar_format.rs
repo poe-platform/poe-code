@@ -291,8 +291,35 @@ pub(super) fn copy_members(
     {
         return Err("cannot modify compressed archives".into());
     }
+    read_members(data, ignore_zeros, true, |member, raw| {
+        if keep(member.name, member.mtime) {
+            out.extend_from_slice(raw.ok_or("archive changed during preparation")?);
+        }
+        Ok(())
+    })
+}
+
+pub(super) struct Member<'a> {
+    pub name: &'a str,
+    pub linkname: &'a str,
+    pub typeflag: u8,
+    pub mode: u32,
+    pub uid: Option<u64>,
+    pub gid: Option<u64>,
+    pub mtime: Option<f64>,
+    pub size: u64,
+    pub content: &'a [u8],
+}
+
+pub(super) fn read_members(
+    data: &[u8],
+    ignore_zeros: bool,
+    mutation: bool,
+    mut visit: impl FnMut(Member<'_>, Option<&[u8]>) -> Result<(), String>,
+) -> Result<(), String> {
     let (mut start, mut pos) = (0, 0);
     let mut fields = std::collections::BTreeMap::new();
+    let mut global = std::collections::BTreeMap::new();
     let (mut long_name, mut long_link) = (None, None);
     loop {
         if ignore_zeros && pos == data.len() && pos != 0 {
@@ -350,10 +377,10 @@ pub(super) fn copy_members(
             return Err("invalid archive permission bits".into());
         }
         let mut kind = block[156];
-        if kind == b'g' {
+        if mutation && kind == b'g' {
             return Err("global PAX headers are unsupported for archive mutation".into());
         }
-        if matches!(kind, b'x' | b'L' | b'K') {
+        if matches!(kind, b'x' | b'g' | b'L' | b'K') {
             let size = usize::try_from(number(&block[124..136], false)?)
                 .map_err(|_| "truncated archive")?;
             let body = data[pos..].get(..size).ok_or("truncated archive")?;
@@ -363,7 +390,12 @@ pub(super) fn copy_members(
                 return Err("truncated archive body".into());
             }
             pos += padding;
-            if kind == b'x' {
+            if kind == b'g' {
+                read_pax(body, &mut global)?;
+                if start == pos - size - padding - 512 {
+                    start = pos;
+                }
+            } else if kind == b'x' {
                 read_pax(body, &mut fields)?;
             } else {
                 let name = text(
@@ -380,6 +412,9 @@ pub(super) fn copy_members(
                 }
             }
             continue;
+        }
+        for (&key, &value) in &global {
+            fields.entry(key).or_insert(value);
         }
         for (&key, &value) in &fields {
             if value.is_empty() {
@@ -435,8 +470,8 @@ pub(super) fn copy_members(
             }
         };
         let size = numeric("size", 124..136, false)?.ok_or("missing effective size")? as u64;
-        numeric("uid", 108..116, false)?;
-        numeric("gid", 116..124, false)?;
+        let uid = numeric("uid", 108..116, false)?.map(|n| n as u64);
+        let gid = numeric("gid", 116..124, false)?.map(|n| n as u64);
         let mtime = numeric("mtime", 136..148, true)?;
         if mtime.is_some_and(|n| n.abs() > 8.64e12) {
             return Err("archive timestamp is outside the supported range".into());
@@ -456,20 +491,27 @@ pub(super) fn copy_members(
         if kind != b'0' && size != 0 {
             return Err("non-file entry has a nonzero payload size".into());
         }
-        let retain = keep(name, mtime);
+        let available = (data.len() - pos) as u64;
         let padded = size.next_multiple_of(512);
-        if padded > (data.len() - pos) as u64 {
-            return Err(if retain {
-                "archive changed during preparation"
-            } else {
-                "truncated archive body"
-            }
-            .into());
+        let end = pos + padded.min(available) as usize;
+        visit(
+            Member {
+                name,
+                linkname: link,
+                typeflag: kind,
+                mode: mode as u32,
+                uid,
+                gid,
+                mtime,
+                size,
+                content: &data[pos..pos + size.min(available) as usize],
+            },
+            (padded <= available).then(|| &data[start..end]),
+        )?;
+        if padded > available {
+            return Err("truncated archive body".into());
         }
-        pos += padded as usize;
-        if retain {
-            out.extend_from_slice(&data[start..pos]);
-        }
+        pos = end;
         start = pos;
         fields.clear();
     }

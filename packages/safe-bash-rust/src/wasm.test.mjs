@@ -5821,3 +5821,75 @@ test("tar append and update apply creation metadata to new entries and list only
     }
   } finally { rs.dispose(); }
 });
+
+test("tar reads valid members up to the first damaged header, body, or end record", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [name, value] of [["a", "one"], ["b", "two"]]) await fs.writeFile("/" + name, Buffer.from(value));
+    const seed = await js.exec("tar --mtime=@1 --format=ustar -cf - a b");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    const plain = Buffer.from(seed.stdoutBytes);
+    const damaged = Buffer.from(plain);
+    damaged[1024] ^= 1;
+    const {gzipSync} = await import("node:zlib");
+    for (const [bytes, error] of [
+      [Buffer.alloc(0), "truncated archive"], [damaged.subarray(1024), "header checksum mismatch"],
+      [damaged, "header checksum mismatch"], [gzipSync(damaged), "header checksum mismatch"],
+      [plain.subarray(0, 1537), "truncated archive body"], [plain.subarray(0, 1539), "truncated archive body"],
+      [plain.subarray(0, 2560), "truncated archive"], [Buffer.concat([plain, plain]), "nonzero trailing archive data or concatenated archive is unsupported"],
+      [plain, undefined], [gzipSync(plain), undefined],
+    ]) {
+      for (const cmd of ["tar --totals -tvf in", "tar -xvOf in", "tar -xvf in -C dest"]) {
+        for (const f of [fs, rs.fs]) {
+          await f.mkdir("/dest", {recursive: true});
+          for (const name of ["a","b"]) await f.writeFile("/dest/" + name, Buffer.from("old"));
+          await f.writeFile("/in", bytes);
+        }
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.equal(a.exitCode, error ? 2 : 0, a.stderr);
+        if (error) assert.ok(a.stderr.endsWith("tar: " + error + "\n"), a.stderr);
+        assert.deepEqual([b.exitCode, b.stdoutBytes, b.stderr], [a.exitCode, a.stdoutBytes, a.stderr], cmd + ": " + error);
+        for (const name of ["a","b"]) assert.deepEqual(Buffer.from(await rs.fs.readFile("/dest/" + name)), Buffer.from(await fs.readFile("/dest/" + name)), name);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("tar reads global and local PAX fields and GNU long names in member order", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.writeFile("/f", Buffer.from("abc"));
+    const seed = await js.exec("tar --format=ustar --mtime=@1 -cf - f");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    const tar = Buffer.from(seed.stdoutBytes);
+    const member = tar.subarray(0, 1024);
+    function extension(kind, payload) {
+      const record = Buffer.from(member);
+      record[156] = kind.charCodeAt(0);
+      record.write(Buffer.byteLength(payload).toString(8).padStart(11, "0"), 124);
+      record.fill(32, 148, 156);
+      record.write(record.subarray(0, 512).reduce((a, b) => a + b).toString(8).padStart(6, "0") + "\0 ", 148);
+      record.fill(0, 512);
+      record.write(payload, 512);
+      return record;
+    }
+    const global = extension("g", "18 uid=4294967297\n10 gid=42\n");
+    const input = Buffer.concat([global, member, extension("x", "7 uid=\n9 path=z\n"), member, extension("L", "a GNU name\0"), member, tar.subarray(1024)]);
+    for (const f of [fs, rs.fs]) await f.writeFile("/archive", input);
+    for (const cmd of ["tar -tvf archive", "tar -xOf archive z 'a GNU name'", "tar --totals -tf archive missing"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      if (!cmd.includes("missing")) assert.equal(a.exitCode, 0, a.stderr);
+      if (cmd.includes("-tvf")) {
+        assert.match(a.stdout, /4294967297\/42/);
+        assert.match(a.stdout, /-\/42/);
+      }
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

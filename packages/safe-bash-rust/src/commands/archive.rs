@@ -5594,120 +5594,97 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         crate::vfs::stream_string_to_bytes(stdin)
     };
 
-    let parsed = parse_ustar_archive(&archive_bytes);
-    if !archive_bytes.is_empty()
-        && !archive_bytes.iter().all(|&b| b == 0)
-        && parsed.is_empty()
-    {
-        return err_out("tar: This does not look like a tar archive\n", 2);
-    }
-    if diff_mode {
-        let mut diff_out = String::new();
-        let mut diff_code = 0;
-        let mut occ_counts = vec![0usize; operands.len()];
-        let mut matched_ops = vec![false; operands.len()];
-        for entry in parsed {
-            let (sel, entry_root) = match_tar_operands(
-                &entry.name,
-                &operands,
-                wildcards,
-                occurrence,
-                &mut occ_counts,
-                &mut matched_ops,
-                &current_dir,
-            );
-            if !sel || (!excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes)) {
-                continue;
-            }
-            let dest = resolve_posix_path(&entry_root, &entry.name);
+    let data = &archive_bytes[..];
+    let codec = explicit_compress.or_else(|| {
+        if data.starts_with(b"\x1f\x8b") { Some("gzip") }
+        else if data.starts_with(b"BZh") { Some("bzip2") }
+        else if data.starts_with(b"\xfd7zXZ\0") { Some("xz") }
+        else if data.starts_with(b"\x28\xb5\x2f\xfd") { Some("zstd") }
+        else { None }
+    });
+    let decoded;
+    let data = if let Some(codec) = codec {
+        decoded = match decompress_for_invoked(codec, data, codec) {
+            Ok(bytes) => bytes,
+            Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+        };
+        &decoded[..]
+    } else { data };
+    let mut out = String::new();
+    let mut stderr = String::new();
+    let mut exit_code = 0;
+    let mut occ_counts = vec![0usize; operands.len()];
+    let mut matched_ops = vec![false; operands.len()];
+    let read = tar_format::read_members(data, ignore_zeros, false, |entry, raw| {
+        let (sel, entry_root) = match_tar_operands(entry.name, &operands, wildcards, occurrence, &mut occ_counts, &mut matched_ops, &current_dir);
+        if !sel || tar_matches_exclude(entry.name, &excludes) { return Ok(()); }
+        if diff_mode {
+            let dest = resolve_posix_path(&entry_root, entry.name);
             if entry.typeflag == b'2' {
                 match fs.readlink(&dest) {
                     Ok(actual_target) => {
                         if actual_target != entry.linkname {
-                            diff_out.push_str(&format!("{}: Symlink differs\n", entry.name));
-                            diff_code = 1;
+                            out.push_str(&format!("{}: Symlink differs\n", entry.name));
+                            exit_code = 1;
                         }
                     }
                     Err(_) => {
                         if fs.exists(&dest) {
-                            diff_out.push_str(&format!("{}: File type differs\n", entry.name));
+                            out.push_str(&format!("{}: File type differs\n", entry.name));
                         } else {
-                            diff_out.push_str(&format!("{}: File is missing\n", entry.name));
+                            out.push_str(&format!("{}: File is missing\n", entry.name));
                         }
-                        diff_code = 1;
+                        exit_code = 1;
                     }
                 }
             } else if entry.typeflag == b'5' {
                 if !fs.exists(&dest) {
-                    diff_out.push_str(&format!("{}: File is missing\n", entry.name));
-                    diff_code = 1;
+                    out.push_str(&format!("{}: File is missing\n", entry.name));
+                    exit_code = 1;
                 } else if !fs.is_dir(&dest) {
-                    diff_out.push_str(&format!("{}: File type differs\n", entry.name));
-                    diff_code = 1;
+                    out.push_str(&format!("{}: File type differs\n", entry.name));
+                    exit_code = 1;
                 }
             } else if entry.typeflag == b'0' {
                 if fs.readlink(&dest).is_ok() || fs.is_dir(&dest) {
-                    diff_out.push_str(&format!("{}: File type differs\n", entry.name));
-                    diff_code = 1;
-                    continue;
+                    out.push_str(&format!("{}: File type differs\n", entry.name));
+                    exit_code = 1;
+                    return Ok(());
                 }
                 match fs.read_file(&dest) {
                     Ok(disk_bytes) => {
                         if let Ok(st) = fs.stat(&dest) {
                             if (st.mode & 0o7777) != (entry.mode & 0o7777) {
-                                diff_out.push_str(&format!("{}: Mode differs\n", entry.name));
-                                diff_code = 1;
+                                out.push_str(&format!("{}: Mode differs\n", entry.name));
+                                exit_code = 1;
                             }
-                            if (st.mtime_ms / 1000.0).floor() != entry.mtime.floor() {
-                                diff_out.push_str(&format!("{}: Mod time differs\n", entry.name));
-                                diff_code = 1;
+                            if entry.mtime.is_some_and(|t| (st.mtime_ms / 1000.0).floor() != t.floor()) {
+                                out.push_str(&format!("{}: Mod time differs\n", entry.name));
+                                exit_code = 1;
                             }
                         }
-                        if disk_bytes.len() != entry.content.len() {
-                            diff_out.push_str(&format!("{}: Size differs\n", entry.name));
-                            diff_code = 1;
+                        if disk_bytes.len() as u64 != entry.size {
+                            out.push_str(&format!("{}: Size differs\n", entry.name));
+                            exit_code = 1;
+                        } else if (entry.content.len() as u64) < entry.size {
+                            return Err("truncated archive body".into());
                         } else if disk_bytes != entry.content {
-                            diff_out.push_str(&format!("{}: Contents differ\n", entry.name));
-                            diff_code = 1;
+                            out.push_str(&format!("{}: Contents differ\n", entry.name));
+                            exit_code = 1;
                         } else if verbose {
-                            diff_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
+                            out.push_str(&format!("{}\n", tar_quote_name(entry.name, &quoting_style)));
                         }
                     }
                     Err(_) => {
-                        diff_out.push_str(&format!("{}: File is missing\n", entry.name));
-                        diff_code = 1;
+                        out.push_str(&format!("{}: File is missing\n", entry.name));
+                        exit_code = 1;
                     }
                 }
             }
-        }
-        return BuiltinOutcome {
-            stdout: diff_out,
-            stderr: String::new(),
-            exit_code: diff_code,
-        };
-    }
-    if list {
-        let mut out = String::new();
-        let mut stderr = String::new();
-        let mut exit_code = 0;
-        let mut occ_counts = vec![0usize; operands.len()];
-        let mut matched_ops = vec![false; operands.len()];
-        for entry in parsed {
-            let (sel, _) = match_tar_operands(
-                &entry.name,
-                &operands,
-                wildcards,
-                occurrence,
-                &mut occ_counts,
-                &mut matched_ops,
-                &current_dir,
-            );
-            if !sel || (!excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes)) {
-                continue;
-            }
+        } else if list {
             let is_dir_entry = entry.typeflag == b'5' || entry.name.ends_with('/');
-            let Some(base_name) = tar_strip_components(&entry.name, strip_components, is_dir_entry) else {
-                continue;
+            let Some(base_name) = tar_strip_components(entry.name, strip_components, is_dir_entry) else {
+                return Ok(());
             };
             let disp = if show_transformed && !transforms.is_empty() {
                 apply_tar_transforms(&base_name, &transforms)
@@ -5715,19 +5692,20 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 base_name
             };
             let link_disp = if show_transformed && !transforms.is_empty() && !entry.linkname.is_empty() {
-                apply_tar_transforms(&entry.linkname, &transforms)
+                apply_tar_transforms(entry.linkname, &transforms)
             } else {
-                entry.linkname.clone()
+                entry.linkname.to_owned()
             };
             let quoted_disp = tar_quote_name(&disp, &quoting_style);
             if verbose {
                 let perm = format_tar_mode(entry.typeflag, entry.mode);
-                let dt = format_tar_mtime(entry.mtime, full_time, utc);
-                let owner = format!("{}/{}", entry.uid, entry.gid);
+                let dt = entry.mtime.map_or_else(|| "-".to_owned(), |t| format_tar_mtime(t, full_time, utc));
+                let id = |n: Option<u64>| n.map_or_else(|| "-".to_owned(), |v| v.to_string());
+                let owner = format!("{}/{}", id(entry.uid), id(entry.gid));
                 let sz = if utc {
-                    format!("{:>width$}", entry.content.len(), width = 18usize.saturating_sub(owner.len()).max(1))
+                    format!("{:>width$}", entry.size, width = 18usize.saturating_sub(owner.len()).max(1))
                 } else {
-                    entry.content.len().to_string()
+                    entry.size.to_string()
                 };
                 let suffix = if entry.typeflag == b'2' {
                     format!(" -> {}", tar_quote_name(&link_disp, &quoting_style))
@@ -5740,72 +5718,34 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             } else {
                 out.push_str(&format!("{quoted_disp}\n"));
             }
-        }
-        for (idx, &m) in matched_ops.iter().enumerate() {
-            if !m {
-                stderr.push_str(&format!("tar: member not found: {}\n", operands[idx].name));
-                exit_code = 2;
-            }
-        }
-        if totals {
-            stderr.push_str(&format!("Total bytes read: {}\n", archive_bytes.len()));
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr,
-            exit_code,
-        };
-    }
-
-    if extract {
-        let mut out = String::new();
-        let mut stderr = String::new();
-        let mut exit_code = 0;
-        let mut occ_counts = vec![0usize; operands.len()];
-        let mut matched_ops = vec![false; operands.len()];
-        for entry in parsed {
-            let (sel, entry_root) = match_tar_operands(
-                &entry.name,
-                &operands,
-                wildcards,
-                occurrence,
-                &mut occ_counts,
-                &mut matched_ops,
-                &current_dir,
-            );
-            if !sel || (!excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes)) {
-                continue;
-            }
+        } else if extract {
             let effective_name = if !transforms.is_empty() {
-                apply_tar_transforms(&entry.name, &transforms)
+                apply_tar_transforms(entry.name, &transforms)
             } else {
-                entry.name.clone()
+                entry.name.to_owned()
             };
             let is_dir_entry = entry.typeflag == b'5' || effective_name.ends_with('/');
             let Some(rel_name) = tar_strip_components(&effective_name, strip_components, is_dir_entry) else {
-                continue;
+                return Ok(());
             };
             if to_stdout {
                 if verbose {
-                    stderr.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
+                    stderr.push_str(&format!("{}\n", tar_quote_name(entry.name, &quoting_style)));
                 }
                 if entry.typeflag == b'0' {
-                    out.push_str(&crate::vfs::bytes_to_stream_string(&entry.content));
+                    out.push_str(&crate::vfs::bytes_to_stream_string(entry.content));
                 }
-                continue;
+                return Ok(());
             }
             let shown_name = if show_transformed {
                 &rel_name
             } else {
-                &entry.name
+                entry.name
             };
-            if verbose {
-                out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style)));
-            }
             if rel_name.split('/').any(|seg| seg == "..") {
                 stderr.push_str(&format!("tar: {rel_name}: Member name contains '..'\n"));
                 exit_code = 2;
-                continue;
+                return Ok(());
             }
             let dest = resolve_posix_path(&entry_root, &rel_name);
             if entry.typeflag == b'5' || rel_name.ends_with('/') {
@@ -5813,41 +5753,42 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 let _ = fs.chmod(&dest, entry.mode);
             } else if entry.typeflag == b'2' {
                 let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
-                let _ = fs.symlink(&entry.linkname, &dest);
+                let _ = fs.symlink(entry.linkname, &dest);
             } else {
                 if fs.exists(&dest) && !fs.is_dir(&dest) {
                     if skip_old_files {
-                        continue;
+                        return Ok(());
                     }
                     if keep_old_files {
                         stderr.push_str(&format!("tar: {rel_name}: Cannot open: File exists\n"));
                         exit_code = 2;
-                        continue;
+                        return Ok(());
                     }
                 }
                 let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
-                let _ = fs.write_file(&dest, &entry.content);
+                if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
+                fs.write_file(&dest, entry.content)?;
                 let _ = fs.chmod(&dest, entry.mode);
             }
+            if verbose && raw.is_some() { out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style))); }
         }
-        for (idx, &m) in matched_ops.iter().enumerate() {
-            if !m {
-                stderr.push_str(&format!("tar: member not found: {}\n", operands[idx].name));
-                exit_code = 2;
-            }
+        Ok(())
+    });
+    let result = read.and_then(|()| {
+        if let Some(idx) = matched_ops.iter().position(|m| !m) {
+            return Err(format!("member not found: {}", tar_format::display(&operands[idx].name)));
         }
-        if totals {
-            stderr.push_str(&format!("Total bytes read: {}\n", archive_bytes.len()));
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr,
-            exit_code,
-        };
+        Ok(())
+    });
+    if let Err(error) = result {
+        stderr.push_str(&format!("tar: {error}\n"));
+        exit_code = 2;
+    } else if totals {
+        stderr.push_str(&format!("Total bytes read: {}\n", data.len()));
     }
-
-    ok_out("")
+    BuiltinOutcome { stdout: out, stderr, exit_code }
 }
+
 
 fn tar_matches_exclude(path: &str, excludes: &[String]) -> bool {
     let clean = path.trim_start_matches("./").trim_end_matches('/');
@@ -6081,196 +6022,6 @@ fn format_tar_mtime(epoch: f64, full_time: bool, utc: bool) -> String {
     result
 }
 
-
-pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
-    if data.len() >= 4 && &data[0..4] == b"PK\x03\x04" {
-        let mut zout = Vec::new();
-        let mut zpos = 0usize;
-        while zpos + 30 <= data.len() && &data[zpos..zpos + 4] == b"PK\x03\x04" {
-            let comp_size = u32::from_le_bytes(data[zpos + 18..zpos + 22].try_into().unwrap()) as usize;
-            let name_len = u16::from_le_bytes(data[zpos + 26..zpos + 28].try_into().unwrap()) as usize;
-            let extra_len = u16::from_le_bytes(data[zpos + 28..zpos + 30].try_into().unwrap()) as usize;
-            let name_start = zpos + 30;
-            if name_start + name_len + extra_len > data.len() {
-                break;
-            }
-            let name = String::from_utf8_lossy(&data[name_start..name_start + name_len]).to_string();
-            let data_start = name_start + name_len + extra_len;
-            let data_end = (data_start + comp_size).min(data.len());
-            let content = data[data_start..data_end].to_vec();
-            zout.push(TarEntry {
-                name,
-                typeflag: b'0',
-                mode: 0o644,
-                mtime: 1700000000.,
-                atime: None,
-                uid: 0,
-                gid: 0,
-                linkname: String::new(),
-                content,
-            });
-            zpos = data_end;
-        }
-        if !zout.is_empty() {
-            return zout;
-        }
-    }
-    let decompressed;
-    let data = if data.len() >= 18 && data[0] == 0x1f && data[1] == 0x8b {
-        match crate::commands::codecs::gzip_decompress(data) {
-            Ok(dec) => {
-                decompressed = dec;
-                &decompressed[..]
-            }
-            Err(_) => return Vec::new(),
-        }
-    } else if data.len() >= 4 && &data[0..3] == b"BZh" && (b'1'..=b'9').contains(&data[3]) {
-        match crate::commands::codecs::bzip2_decompress(data) {
-            Ok(dec) => {
-                decompressed = dec;
-                &decompressed[..]
-            }
-            Err(_) => return Vec::new(),
-        }
-    } else if data.len() >= 6 && &data[0..6] == &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
-        match crate::commands::codecs::xz_decompress(data) {
-            Ok(dec) => {
-                decompressed = dec;
-                &decompressed[..]
-            }
-            Err(_) => return Vec::new(),
-        }
-    } else if data.len() >= 4 && &data[0..4] == &[0x28, 0xb5, 0x2f, 0xfd] {
-        match crate::commands::codecs::zstd_decompress(data, false) {
-            Ok(dec) => {
-                decompressed = dec;
-                &decompressed[..]
-            }
-            Err(_) => return Vec::new(),
-        }
-    } else if data.len() >= 13 && data[0] == 0x5d && data[1] == 0x00 && (data.len() < 262 || &data[257..262] != b"ustar") {
-        match crate::commands::codecs::lzma_decompress(data) {
-            Ok(dec) => {
-                decompressed = dec;
-                &decompressed[..]
-            }
-            Err(_) => return Vec::new(),
-        }
-    } else {
-        data
-    };
-    let mut out = Vec::new();
-    let mut pos = 0usize;
-    let mut pax_path: Option<String> = None;
-    let mut pax_linkpath: Option<String> = None;
-    let mut pax_uid: Option<u32> = None;
-    let mut pax_gid: Option<u32> = None;
-    let mut pax_mtime: Option<f64> = None;
-    let mut pax_atime = None;
-    while pos + 512 <= data.len() {
-        let block = &data[pos..pos + 512];
-        if block.iter().all(|&b| b == 0) {
-            pos += 512;
-            continue;
-        }
-        if &block[257..262] != b"ustar" {
-            return Vec::new();
-        }
-        let name_end = block[0..100].iter().position(|&b| b == 0).unwrap_or(100);
-        let short_name = String::from_utf8_lossy(&block[0..name_end]).to_string();
-        let prefix_end = block[345..500].iter().position(|&b| b == 0).unwrap_or(155);
-        let prefix = String::from_utf8_lossy(&block[345..345 + prefix_end]).to_string();
-        let mut name = if prefix.is_empty() {
-            short_name
-        } else {
-            format!("{prefix}/{short_name}")
-        };
-        let mode_str = String::from_utf8_lossy(&block[100..108])
-            .trim_matches(|c: char| c == '\0' || c.is_whitespace())
-            .to_string();
-        let mode = u32::from_str_radix(&mode_str, 8).unwrap_or(0o644);
-        let uid_str = String::from_utf8_lossy(&block[108..116])
-            .trim_matches(|c: char| c == '\0' || c.is_whitespace())
-            .to_string();
-        let mut uid = u32::from_str_radix(&uid_str, 8).unwrap_or(0);
-        let gid_str = String::from_utf8_lossy(&block[116..124])
-            .trim_matches(|c: char| c == '\0' || c.is_whitespace())
-            .to_string();
-        let mut gid = u32::from_str_radix(&gid_str, 8).unwrap_or(0);
-        let size_str = String::from_utf8_lossy(&block[124..136])
-            .trim_matches(|c: char| c == '\0' || c.is_whitespace())
-            .to_string();
-        let size = usize::from_str_radix(&size_str, 8).unwrap_or(0);
-        let mtime_str = String::from_utf8_lossy(&block[136..148])
-            .trim_matches(|c: char| c == '\0' || c.is_whitespace())
-            .to_string();
-        let mut mtime = u64::from_str_radix(&mtime_str, 8).unwrap_or(1700000000) as f64;
-        let typeflag = if block[156] == 0 { b'0' } else { block[156] };
-        let link_end = block[157..257].iter().position(|&b| b == 0).unwrap_or(100);
-        let mut linkname = String::from_utf8_lossy(&block[157..157 + link_end]).to_string();
-        pos += 512;
-        let content_end = (pos + size).min(data.len());
-        let content = data[pos..content_end].to_vec();
-        let blocks = (size + 511) / 512;
-        pos += blocks * 512;
-        if typeflag == b'x' || typeflag == b'g' {
-            let mut records = content.as_slice();
-            while !records.is_empty() {
-                let Some(space) = records.iter().position(|&b| b == b' ') else { return Vec::new(); };
-                let Some(length) = std::str::from_utf8(&records[..space]).ok().and_then(|v| v.parse::<usize>().ok()) else { return Vec::new(); };
-                let Some(record) = records.get(space+1..length).and_then(|r| r.strip_suffix(b"\n")) else { return Vec::new(); };
-                if let Some((key, value)) = std::str::from_utf8(record).ok().and_then(|s| s.split_once('=')) {
-                    match key {
-                        "path" => pax_path = Some(value.into()),
-                        "linkpath" => pax_linkpath = Some(value.into()),
-                        "uid" => pax_uid = value.parse().ok(),
-                        "gid" => pax_gid = value.parse().ok(),
-                        "mtime" => pax_mtime = value.parse().ok(),
-                        "atime" => pax_atime = value.parse().ok(),
-                        _ => {}
-                    }
-                }
-                records = &records[length..];
-            }
-            continue;
-        }
-        if typeflag == b'L' {
-            pax_path = Some(String::from_utf8_lossy(&content).trim_end_matches('\0').to_string());
-            continue;
-        }
-        if typeflag == b'K' {
-            pax_linkpath = Some(String::from_utf8_lossy(&content).trim_end_matches('\0').to_string());
-            continue;
-        }
-        if let Some(p) = pax_path.take() {
-            name = p;
-        }
-        if let Some(lp) = pax_linkpath.take() {
-            linkname = lp;
-        }
-        if let Some(u) = pax_uid.take() {
-            uid = u;
-        }
-        if let Some(g) = pax_gid.take() {
-            gid = g;
-        }
-        if let Some(mt) = pax_mtime.take() {
-            mtime = mt;
-        }
-        out.push(TarEntry {
-            name,
-            typeflag,
-            mode,
-            atime: pax_atime.take(),
-            mtime,
-            uid,
-            gid,
-            linkname,
-            content,
-        });
-    }
-    out
-}
 
 fn crc32_ieee(data: &[u8]) -> u32 {
     crate::commands::codecs::crc32_ieee(data)

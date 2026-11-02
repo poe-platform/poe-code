@@ -7057,15 +7057,22 @@ fn cmd_media_doc(
                     else { primary_arg.as_ref().and_then(|p| fs.read_file(&resolve_posix_path(cwd,p)).ok()) };
                 if let Some(bytes) = input && let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
                     let (json,files) = match source.qpdf_json(jv,json_keys.iter().any(|k| k == "pages"),
-                        &json_objects,&json_stream_data,&stream_prefix,fs.shell_limits().max_output_bytes) {
+                        &json_objects,&json_stream_data,(&stream_prefix,out_file.as_deref()),fs.shell_limits().max_output_bytes) {
                         Ok(result) => result,
                         Err(e) => return err_out(e,1),
                     };
+                    let destination = out_file.as_deref().filter(|of| *of != "-");
+                    let mut published = false;
                     for (name,data) in files {
-                        if out_file.as_deref() != Some(&name) && let Err(e) = publish(&name,&data) { return e; }
+                        let bytes = if destination == Some(&name) {
+                            published = true;
+                            json.as_bytes()
+                        } else { &data };
+                        if let Err(e) = publish(&name,bytes) { return e; }
                     }
-                    if let Some(of) = out_file.as_deref() && of != "-" {
-                        return publish(of,json.as_bytes()).map_or_else(|e| e,|()| ok_out(""));
+                    if let Some(of) = destination {
+                        if !published && let Err(e) = publish(of,json.as_bytes()) { return e; }
+                        return ok_out("");
                     }
                     return ok_out(&json);
                 }

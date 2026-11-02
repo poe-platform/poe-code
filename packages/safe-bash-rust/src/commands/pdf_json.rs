@@ -131,7 +131,7 @@ impl<'a> PageSource<'a> {
         page_list: bool,
         selectors: &[Option<ObjectId>],
         mode: &str,
-        prefix: &str,
+        (prefix, destination): (&str, Option<&str>),
         limit: usize,
     ) -> Result<Report, &'static str> {
         let mut order: Vec<_> = self
@@ -151,6 +151,7 @@ impl<'a> PageSource<'a> {
         let mut objects = Vec::new();
         let mut files = Vec::new();
         let mut remaining = limit;
+        let mut inline_budget = limit;
         for id in ids {
             if !selectors.is_empty() && !selectors.contains(&Some(id)) {
                 continue;
@@ -175,18 +176,27 @@ impl<'a> PageSource<'a> {
                 if mode != "none" {
                     let data = self.objects.decode(&v, bytes).ok_or(SHELL_ERROR)?;
                     if mode == "inline" {
-                        if data.len().div_ceil(3) * 4 > remaining {
-                            return Err(SHELL_ERROR);
-                        }
+                        inline_budget = inline_budget
+                            .checked_sub(data.len().div_ceil(3).checked_mul(4).ok_or(SHELL_ERROR)?)
+                            .ok_or(SHELL_ERROR)?;
                         fields.push((
                             "data".encode_utf16().collect(),
                             string(&base64_encode(&data)),
                         ));
                     } else {
-                        remaining = remaining.checked_sub(data.len()).ok_or(SHELL_ERROR)?;
                         let path = format!("{prefix}{}", id.0);
                         fields.push(("datafile".encode_utf16().collect(), string(&path)));
-                        files.push((path, data.into_owned()));
+                        // The stream must decode within its limit even when the
+                        // report replaces it at publication.
+                        if data.len() > limit {
+                            return Err(SHELL_ERROR);
+                        }
+                        if Some(path.as_str()) == destination {
+                            files.push((path, Vec::new()));
+                        } else {
+                            remaining = remaining.checked_sub(data.len()).ok_or(SHELL_ERROR)?;
+                            files.push((path, data.into_owned()));
+                        }
                     }
                 }
                 record([("stream", J::Object(fields))])

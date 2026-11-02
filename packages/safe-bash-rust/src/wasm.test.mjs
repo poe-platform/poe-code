@@ -4239,3 +4239,26 @@ test("qpdf JSON preserves prior files after a late stream decode failure", async
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf counts the final JSON destination once when a stream has the same filename", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument,cosStream}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.addPage();
+  const ref=doc.cos.allocateObject(cosStream(new Uint8Array(1024).fill(5),{compress:true}));
+  const input=doc.save(),fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+  await fs.writeFile("/in.pdf",input);
+  const name="out-"+ref.objectNumber,cmd="qpdf in.pdf --json --json-object="+ref.objectNumber+
+    " --json-stream-data=file --json-stream-prefix=out- "+name;
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    const first=await js.exec(cmd);assert.equal(first.exitCode,0,first.stderr);
+    const expected=await fs.readFile("/"+name);
+    const limit=Math.max(expected.length,1024);
+    js.use(qpdfCommands({replace:true,limits:{maxOutputBytes:limit}}));
+    const want=await js.exec(cmd),got=await wasm.exec(cmd,{limits:{maxOutputBytes:limit}});
+    assert.equal(want.exitCode,0,want.stderr);
+    assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout]);
+    assert.deepEqual(Buffer.from(await wasm.fs.readFile("/"+name)),Buffer.from(expected));
+  } finally {wasm.dispose();}
+});

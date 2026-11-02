@@ -3661,3 +3661,31 @@ test("qpdf replaces only the destination entry and respects directory permission
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf removes selected catalog and information entries without rewriting unrelated streams", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { cosDict, cosRef, cosString, cosStream, cosArray, cosName, cosNumber, serializeCosDocument } = await import("@poe-code/pdf-ast");
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({cwd:"/"});
+  const shell = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const dated of [false,true]) {
+      const nodes = [
+        cosDict({Type:cosName("Catalog"), Pages:cosRef(2), Metadata:cosRef(5), PageLabels:cosRef(6),
+          StructTreeRoot:cosRef(7), MarkInfo:cosDict({}), AcroForm:cosRef(8), Extra:cosRef(5)}),
+        cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(3)]),Count:cosNumber(1)}),
+        cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(5)}),
+        cosDict({Title:cosString("Private"),Author:cosString("Writer"),...(dated?{ModDate:cosString("D:20261010120000Z")}: {})}),
+        cosStream(Uint8Array.of(128,0,255),{compress:true}),cosDict({Nums:cosArray([])}),cosDict({}),cosDict({Fields:cosArray([])}),
+      ];
+      const input = serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1),infoRef:cosRef(4)});
+      await fs.writeFile("/in.pdf",input); await wasm.fs.writeFile("/in.pdf",input);
+      for (const flags of ["--remove-info","--remove-metadata","--remove-structure","--remove-acroform","--remove-page-labels",
+          "--remove-info --remove-acroform --remove-page-labels --remove-structure"]) {
+        const script = "qpdf in.pdf "+flags+" -", want = await shell.exec(script), got = await wasm.exec(script);
+        assert.equal(want.exitCode,0,want.stderr);
+        assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],flags);
+      }
+    }
+  } finally {wasm.dispose();}
+});

@@ -6315,15 +6315,13 @@ fn cmd_media_doc(
             let mut page_specs: Vec<(String, String)> = Vec::new();
             let mut collate_group: Option<usize> = None;
             let mut set_page_labels: Vec<String> = Vec::new();
-            let mut remove_page_labels = false;
-            let mut remove_info = false;
-            let mut remove_metadata = false;
+            let mut removals = pdf_reader::Removals::default();
             let mut pos_files: Vec<String> = Vec::new();
 
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && a != "--empty" && a != "--replace-input" && a != "--copy-attachments-from" && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") {
+                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") {
                     standard_rewrite = false;
                 }
                 if a == "--empty" {
@@ -6651,20 +6649,13 @@ fn cmd_media_doc(
                     }
                     continue;
                 }
-                if a == "--remove-page-labels" {
-                    remove_page_labels = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--remove-info" {
-                    remove_info = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--remove-metadata" {
-                    remove_metadata = true;
-                    i += 1;
-                    continue;
+                match a {
+                    "--remove-page-labels" => removals.page_labels = true,
+                    "--remove-info" => removals.info = true,
+                    "--remove-metadata" => removals.metadata = true,
+                    "--remove-structure" => removals.structure = true,
+                    "--remove-acroform" => removals.acroform = true,
+                    _ => {}
                 }
                 if !a.starts_with('-') || a == "-" {
                     pos_files.push(a.to_string());
@@ -7164,7 +7155,7 @@ fn cmd_media_doc(
                 let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
                     else {primary_arg.as_deref().and_then(read)};
                 if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
-                    let output = match pdf_reader::rewrite(&bytes,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
+                    let output = match pdf_reader::rewrite(&bytes,&removals,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
                         Ok(bytes) => bytes, Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
                     };
                     if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
@@ -7384,7 +7375,7 @@ fn cmd_media_doc(
                 }
             }
 
-            if remove_page_labels {
+            if removals.page_labels {
                 doc.page_labels.clear();
             }
             if !set_page_labels.is_empty() {
@@ -7425,12 +7416,12 @@ fn cmd_media_doc(
                 }
             }
 
-            if remove_info {
+            if removals.info {
                 doc.title.clear();
                 doc.author.clear();
                 doc.info.clear();
             }
-            if remove_metadata {
+            if removals.metadata {
                 doc.exif.clear();
             }
             if let Some(fv) = force_version {

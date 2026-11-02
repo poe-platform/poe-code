@@ -38,8 +38,18 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
     )
 }
 
+#[derive(Default)]
+pub(in super::super) struct Removals {
+    pub info: bool,
+    pub metadata: bool,
+    pub structure: bool,
+    pub acroform: bool,
+    pub page_labels: bool,
+}
+
 pub(in super::super) fn rewrite(
     bytes: &[u8],
+    removals: &Removals,
     remove: &[String],
     add: &[AddAttachment],
     copies: &[(String, String)],
@@ -57,6 +67,17 @@ pub(in super::super) fn rewrite(
     } else {
         attachments::edit(&mut objects, &mut catalog, remove, add, copies, read, limit)?
     };
+    let Value::Dict(entries) = &mut catalog else {
+        return Err(INVALID.into());
+    };
+    entries.retain(|(key, _)| !match *key {
+        b"Metadata" => removals.info || removals.metadata,
+        b"StructTreeRoot" | b"MarkInfo" => removals.structure,
+        b"AcroForm" => removals.acroform,
+        b"PageLabels" => removals.page_labels,
+        _ => false,
+    });
+    let mut info = trailer.get(b"Info");
     let page_root = catalog
         .get(b"Pages")
         .and_then(Value::reference)
@@ -65,10 +86,24 @@ pub(in super::super) fn rewrite(
     let mut remaining = limit;
     let mut store = |id, value: &Value<'_>| -> Result<(), String> {
         let body = changed.entry(id).or_default();
+        body.clear();
         encode(value, body)?;
         remaining = remaining.checked_sub(body.len()).ok_or(TOO_LARGE)?;
         Ok(())
     };
+    if removals.info
+        && let Some(id) = info.and_then(Value::reference)
+        && let Some((Value::Dict(mut entries), mut cursor)) = objects.object(id)
+    {
+        cursor.skip();
+        if !cursor.0.starts_with(b"stream") {
+            entries.retain(|(key, _)| *key == b"ModDate");
+            if entries.is_empty() {
+                info = None;
+            }
+            store(id, &Value::Dict(entries))?;
+        }
+    }
     for &id in &pages {
         let page = objects.object(id).ok_or(INVALID)?.0;
         let inherited = |key: &[u8]| {
@@ -187,8 +222,8 @@ pub(in super::super) fn rewrite(
         root.0, root.1
     )
     .unwrap();
-    for key in [b"Info".as_slice(), b"ID"] {
-        if let Some(v) = trailer.get(key) {
+    for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID"))] {
+        if let Some(v) = value {
             out.push(b'/');
             out.extend_from_slice(key);
             out.push(b' ');

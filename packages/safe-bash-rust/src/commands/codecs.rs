@@ -485,47 +485,40 @@ pub fn gzip_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
 }
 
 pub(super) fn gzip_decompress_bounded(data: &[u8], limit: usize) -> Result<Vec<u8>, String> {
-    if data.len() < 18 || data[0] != 0x1f || data[1] != 0x8b {
-        return Err("not in gzip format".into());
-    }
+    let eof = "unexpected end of file";
     let mut pos = 0usize;
     let mut total_out = Vec::new();
-    while pos < data.len() {
-        if pos + 18 > data.len() || data[pos] != 0x1f || data[pos + 1] != 0x8b {
+    loop {
+        let start = pos;
+        if data.get(pos..pos + 2).ok_or(eof)? != [0x1f, 0x8b] {
             return Err("not in gzip format".into());
         }
-        if data[pos + 2] != 8 {
+        let header = data.get(pos..pos + 10).ok_or(eof)?;
+        if header[2] != 8 {
             return Err("unknown compression method".into());
         }
-        let flg = data[pos + 3];
-        if (flg & 0xe0) != 0 {
-            return Err("unknown flags".into());
+        let flags = header[3];
+        if flags & 0xe0 != 0 {
+            return Err("invalid gzip header flags".into());
         }
         pos += 10;
-        if (flg & 0x04) != 0 {
-            if pos + 2 > data.len() {
-                return Err("unexpected end of file".into());
-            }
-            let xlen = u16::from_le_bytes([data[pos], data[pos + 1]]) as usize;
-            pos += 2 + xlen;
-        }
-        if (flg & 0x08) != 0 {
-            while pos < data.len() && data[pos] != 0 {
-                pos += 1;
-            }
-            pos += 1;
-        }
-        if (flg & 0x10) != 0 {
-            while pos < data.len() && data[pos] != 0 {
-                pos += 1;
-            }
-            pos += 1;
-        }
-        if (flg & 0x02) != 0 {
+        if flags & 4 != 0 {
+            let len = u16::from_le_bytes(data.get(pos..pos + 2).ok_or(eof)?.try_into().unwrap());
             pos += 2;
+            data.get(pos..pos + usize::from(len)).ok_or(eof)?;
+            pos += usize::from(len);
         }
-        if pos > data.len() {
-            return Err("unexpected end of file".into());
+        for flag in [8, 16] {
+            if flags & flag != 0 {
+                pos += data[pos..].iter().position(|&b| b == 0).ok_or(eof)? + 1;
+            }
+        }
+        if flags & 2 != 0 {
+            let expected = u16::from_le_bytes(data.get(pos..pos + 2).ok_or(eof)?.try_into().unwrap());
+            if crc32_ieee(&data[start..pos]) as u16 != expected {
+                return Err("header crc mismatch".into());
+            }
+            pos += 2;
         }
         let (member_out, consumed) = inflate_raw_bounded(&data[pos..], limit - total_out.len())?;
         pos += consumed;
@@ -537,14 +530,14 @@ pub(super) fn gzip_decompress_bounded(data: &[u8], limit: usize) -> Result<Vec<u
         pos += 8;
         let actual_crc = crc32_ieee(&member_out);
         if actual_crc != expected_crc {
-            return Err("crc error".into());
+            return Err("incorrect data check (CRC)".into());
         }
         if (member_out.len() as u32) != expected_isize {
-            return Err("length error".into());
+            return Err("incorrect length check".into());
         }
         total_out.extend_from_slice(&member_out);
+        if pos == data.len() { return Ok(total_out); }
     }
-    Ok(total_out)
 }
 
 // ============================================================================

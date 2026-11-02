@@ -7673,3 +7673,24 @@ test("cal and ncal select the current UTC month or the supplied epoch", async (t
     }
   } finally { rs.dispose(); }
 });
+
+test("gunzip checks each member's optional header and trailer", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const valid = Buffer.from("1f8b081a0000000000036e616d65006e6f746500c78b03000000000000000000", "hex");
+  const corrupt = (index) => { const b = Buffer.from(valid); b[index] ^= 1; return b; };
+  try {
+    for (const data of [valid, Buffer.concat([valid, valid]), corrupt(20),
+      Buffer.concat([valid, corrupt(20)]), corrupt(24), corrupt(28),
+      Buffer.alloc(0), valid.subarray(0, 1), valid.subarray(0, 9),
+      valid.subarray(0, 16), valid.subarray(0, 20), valid.subarray(0, 21),
+      Buffer.from("1f8b08e0000000000000", "hex")]) {
+      for (const vfs of [fs, rs.fs]) await vfs.writeFile("/input.gz", data);
+      const cmd = "gunzip -t < /input.gz";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr], [a.exitCode, a.stderr], data.toString("hex"));
+    }
+  } finally { rs.dispose(); }
+});

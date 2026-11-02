@@ -113,6 +113,16 @@ async function main() {
     env: req.env || {},
   }).use(agentCommands()).use(rsvgConvertCommands());
 
+  // The host explicitly supplies the trusted Pyodide runtime; never use host Python.
+  const runtimeModuleURL = process.env.SAFE_BASH_PYODIDE_MODULE_URL;
+  if (runtimeModuleURL) {
+    const { pythonExecutorCommands } = await import('../../safe-bash/dist/commands/python/executor.js');
+    const { createNodePythonWorker } = await import('../../safe-bash/dist/commands/python/node.js');
+    shell.use(pythonExecutorCommands({
+      createWorker: () => createNodePythonWorker({ runtimeModuleURL, trustedPython: true }),
+    }));
+  }
+
   const session = shell.createSession();
   const controller = new AbortController();
   let timer;

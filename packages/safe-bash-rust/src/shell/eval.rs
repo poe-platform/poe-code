@@ -4729,10 +4729,10 @@ impl<'a> EvalState<'a> {
             | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo"
             | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox"
             | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite"
-            | "montage" | "compare" | "sips" | "exiftool" | "identify")
+            | "montage" | "compare" | "sips" | "exiftool" | "identify" | "python" | "python3")
         {
             if !self.allow_unported_fallback {
-                let unavailable = if long_listing { "native long listings are unavailable" } else { "native document/media processing is unavailable" };
+                let unavailable = if long_listing { "native long listings are unavailable" } else if matches!(effective_cmd, "python" | "python3") { "native Python is unavailable" } else { "native document/media processing is unavailable" };
                 return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; {unavailable}\n"), exit_code: 1 });
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;

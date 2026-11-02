@@ -4,6 +4,8 @@ Run virtualized shell commands in native Rust or WebAssembly (`wasm32-unknown-un
 
 `safe-bash-rust` provides a zero-dependency Rust `Shell`, `PoeAgentShellHost`, and WebAssembly runtime (`createRustWasmBash`) with built-in POSIX/Bash grammar, virtual filesystems (`MemoryVfs`, `OverlayVfs`, `MountVfs`, `RealVfs`), resource budgets (`ShellLimits`), and native implementations of `rg`, `find`, `xargs`, `sed`, `awk`, `jq`, `yq`, `xan`, `csvcut`/`csvgrep`/`csvsort`, `sqlite3`, `tar`, `gzip`/`zstd`/`xz`/`bzip2`/`zip`, `sha256sum`, `xxd`, `od`, and `dd`. Document and media commands, including `pandoc`, use the TypeScript safe-bash bridge in hybrid mode. Native-only and WebAssembly execution report these operations as unsupported instead of emitting incomplete documents or media files.
 
+For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the host process's `SAFE_BASH_PYODIDE_MODULE_URL` to its `pyodide.mjs` file URL. This registers `python` and `python3` with the existing Python worker adapter, sharing the shell's virtual files, working directory, stdin and environment. No host Python fallback is used. Pyodide JavaScript interoperability is not a security sandbox. Package provisioning is separate from the standard-library runtime.
+
 ## Feature Index
 
 | Capability | Description |

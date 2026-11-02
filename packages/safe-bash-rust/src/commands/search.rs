@@ -211,6 +211,11 @@ fn is_pure_shell_builtin(name: &str) -> bool {
 }
 
 pub fn is_known_command(name: &str) -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    if matches!(name, "python" | "python3") {
+        return std::env::var("SAFE_BASH_PYODIDE_MODULE_URL")
+            .is_ok_and(|value| !value.is_empty());
+    }
     matches!(
         name,
         ":" | "true"

@@ -6403,7 +6403,8 @@ test("tar rejects empty intermediate transformed member and link names", async (
 
 test("whole-line searches honor anchors and preserve them as text in fixed-string mode", async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
-  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands());
+  const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(sedCommands({replace: true}));
   const rs = new RustWasmBash({cwd: "/"});
   try {
     for (const f of [fs, rs.fs]) await f.writeFile("/in", Buffer.from("abc\nxabc\nabcx\n^abc$\nabc$\n\nxy\n"));
@@ -6421,6 +6422,16 @@ test("whole-line searches honor anchors and preserve them as text in fixed-strin
     for (const bin of ["grep", "rg"]) {
       const cmd = bin + " -Fx '^abc$' in";
       for (const sh of [js, rs]) assert.equal((await sh.exec(cmd)).stdout, "^abc$\n");
+    }
+    for (const [cmd, expected] of [
+      ["grep -Ex '(a|abc)' in", "abc\n"],
+      ["rg -o '(a|abc)$' in", "abc\nabc\n"],
+      ["rg -o '(a$|^abc)' in", "abc\nabc\nabc\n"],
+      [String.raw`sed -E 's/(a|abc)$/[\1]/' in`, "[abc]\nx[abc]\nabcx\n^abc$\nabc$\n\nxy\n"],
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode, a.stderr, a.stdout], [0, "", expected], cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
     }
   } finally { rs.dispose(); }
 });

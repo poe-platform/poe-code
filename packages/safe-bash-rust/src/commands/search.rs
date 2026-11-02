@@ -575,20 +575,11 @@ fn find_single_pattern(
     let hay: Vec<(usize, char)> = text.char_indices().collect();
     let mut matches = Vec::new();
 
-    let anchored_start = !fixed_strings && pat.starts_with('^');
-    let anchored_end = !fixed_strings && has_unescaped_trailing_dollar(pat);
-    let core_pat = if !fixed_strings {
-        let s = pat.strip_prefix('^').unwrap_or(pat);
-        if anchored_end {
-            &s[..s.len() - 1]
-        } else {
-            s
-        }
-    } else {
-        pat
-    };
-
-    let tokens = parse_rx(core_pat, fixed_strings);
+    let anchored_start = line_regexp || (!fixed_strings && pat.starts_with('^'));
+    let mut tokens = parse_rx(pat, fixed_strings);
+    if line_regexp {
+        tokens.push(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false });
+    }
     let backrefs = !fixed_strings && has_backref_token(&tokens);
     let match_at = |pos| {
         if backrefs {
@@ -597,47 +588,17 @@ fn find_single_pattern(
             match_tokens(&tokens, &hay, pos, ignore_case)
         }
     };
-    if line_regexp {
-        if match_at(0) == Some(hay.len()) { matches.push((0, text.len())); }
-        return matches;
-    }
-    if anchored_start {
-        if let Some(end_idx) = match_at(0) {
-            if !anchored_end || end_idx == hay.len() {
-                let end_byte = if end_idx < hay.len() {
-                    hay[end_idx].0
-                } else {
-                    text.len()
-                };
-                if !word_regexp || is_word_boundary(&hay, 0, end_idx) {
-                    matches.push((0, end_byte));
-                }
-            }
-        }
-        return matches;
-    }
-
     let mut pos = 0usize;
-    while pos <= hay.len() {
-        if let Some(end_idx) = match_at(pos) {
-            if (!anchored_end || end_idx == hay.len())
-                && (!word_regexp || is_word_boundary(&hay, pos, end_idx))
-            {
-                let start_byte = if pos < hay.len() {
-                    hay[pos].0
-                } else {
-                    text.len()
-                };
-                let end_byte = if end_idx < hay.len() {
-                    hay[end_idx].0
-                } else {
-                    text.len()
-                };
-                matches.push((start_byte, end_byte));
-                if end_idx > pos {
-                    pos = end_idx;
-                    continue;
-                }
+    let last_start = if anchored_start { 0 } else { hay.len() };
+    while pos <= last_start {
+        if let Some(end_idx) = match_at(pos)
+            && (!word_regexp || is_word_boundary(&hay, pos, end_idx))
+        {
+            let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
+            matches.push((byte_at(pos), byte_at(end_idx)));
+            if end_idx > pos {
+                pos = end_idx;
+                continue;
             }
         }
         pos += 1;
@@ -722,6 +683,8 @@ enum RxAtom {
     Class { negate: bool, chars: Vec<(char, char)> },
     Group { alts: Vec<String>, capturing: bool },
     Backref(usize),
+    Begin,
+    End,
     WordBoundary,
     WordStart,
     WordEnd,
@@ -731,6 +694,8 @@ fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Opti
     let before_word = pos > 0 && is_word_char(hay[pos - 1].1);
     let after_word = pos < hay.len() && is_word_char(hay[pos].1);
     match atom {
+        RxAtom::Begin => Some(pos == 0),
+        RxAtom::End => Some(pos == hay.len()),
         RxAtom::WordBoundary => Some(before_word != after_word),
         RxAtom::WordStart => Some(!before_word && after_word),
         RxAtom::WordEnd => Some(before_word && !after_word),
@@ -925,6 +890,8 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
 
     while idx < chars.len() {
         let atom = match chars[idx] {
+            '^' if idx == 0 => { idx += 1; RxAtom::Begin }
+            '$' if idx + 1 == chars.len() => { idx += 1; RxAtom::End }
             '.' => {
                 idx += 1;
                 RxAtom::Any
@@ -1054,7 +1021,7 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
         let mut lazy = false;
         if matches!(
             atom,
-            RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+            RxAtom::Begin | RxAtom::End | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
         ) {
             out.push(RxToken {
                 atom,
@@ -1298,6 +1265,8 @@ fn match_single_atom(
                 }
                 RxAtom::Group { .. }
                 | RxAtom::Backref(_)
+                | RxAtom::Begin
+                | RxAtom::End
                 | RxAtom::WordBoundary
                 | RxAtom::WordStart
                 | RxAtom::WordEnd => false,
@@ -1310,10 +1279,7 @@ fn match_single_atom(
 pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
     let hay: Vec<(usize, char)> = text.char_indices().collect();
     let anchored_start = pat.starts_with('^');
-    let anchored_end = pat.ends_with('$') && !pat.ends_with("\\$");
-    let s = pat.strip_prefix('^').unwrap_or(pat);
-    let core_pat = if anchored_end { &s[..s.len() - 1] } else { s };
-    let tokens = parse_rx(core_pat, false);
+    let tokens = parse_rx(pat, false);
 
     let start_positions: Vec<usize> = if anchored_start {
         vec![0]
@@ -1325,22 +1291,11 @@ pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<St
         if let Some((end_pos, caps)) =
             match_tokens_with_caps(&tokens, &hay, text, start_pos, ignore_case)
         {
-            if !anchored_end || end_pos == hay.len() {
-                let start_byte = if start_pos < hay.len() {
-                    hay[start_pos].0
-                } else {
-                    text.len()
-                };
-                let end_byte = if end_pos < hay.len() {
-                    hay[end_pos].0
-                } else {
-                    text.len()
-                };
-                let mut res = Vec::with_capacity(caps.len() + 1);
-                res.push(text[start_byte..end_byte].to_string());
-                res.extend(caps);
-                return Some(res);
-            }
+            let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
+            let mut res = Vec::with_capacity(caps.len() + 1);
+            res.push(text[byte_at(start_pos)..byte_at(end_pos)].to_string());
+            res.extend(caps);
+            return Some(res);
         }
     }
     None
@@ -1371,13 +1326,7 @@ pub fn regex_capture_spans_in_hay(
     target_end_pos: usize,
     ignore_case: bool,
 ) -> Vec<Option<(usize, usize)>> {
-    let s = pat.strip_prefix('^').unwrap_or(pat);
-    let core_pat = if s.ends_with('$') && !s.ends_with("\\$") {
-        &s[..s.len() - 1]
-    } else {
-        s
-    };
-    let tokens = parse_rx(core_pat, false);
+    let tokens = parse_rx(pat, false);
     for (end_pos, spans) in match_tokens_span_candidates(&tokens, hay, start_pos, ignore_case) {
         if end_pos == target_end_pos {
             return spans;

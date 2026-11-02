@@ -1,5 +1,70 @@
 use super::*;
 
+struct Length(f64, &'static str);
+
+impl Length {
+    fn parse(text: &str) -> Result<Self, &'static str> {
+        let bytes = text.as_bytes();
+        let mut end = bytes.iter().take_while(|b| b.is_ascii_digit()).count();
+        if bytes.get(end) == Some(&b'.') {
+            end += 1 + bytes[end + 1..]
+                .iter()
+                .take_while(|b| b.is_ascii_digit())
+                .count();
+        }
+        let value: f64 = text[..end]
+            .parse()
+            .ok()
+            .filter(|n: &f64| n.is_finite())
+            .ok_or("Expected an unsigned finite length")?;
+        let (unit, factor) = match text[end..].to_ascii_lowercase().as_str() {
+            "" | "mm" | "millimeter" => ("mm", 1.),
+            "cm" | "centimeter" => ("mm", 10.),
+            "m" | "meter" => ("mm", 1000.),
+            "in" | "inch" => ("in", 1.),
+            "pt" | "point" => ("pt", 1.),
+            "px" | "pixel" => ("px", 1.),
+            "pc" | "pica" => ("pc", 1.),
+            "didot" => ("didot", 1.),
+            "cicero" => ("cicero", 1.),
+            _ => return Err("Unknown or overflowing length unit"),
+        };
+        let n = value * factor;
+        if !n.is_finite() {
+            return Err("Unknown or overflowing length unit");
+        }
+        Ok(Self(n, unit))
+    }
+
+    fn points(&self, dpi: i32) -> f64 {
+        self.0
+            * match self.1 {
+                "mm" => 72. / 25.4,
+                "in" => 72.,
+                "px" => 72. / f64::from(dpi),
+                "pc" => 12.,
+                "didot" => 1.07,
+                "cicero" => 12.84,
+                _ => 1.,
+            }
+    }
+}
+
+fn integer(text: &str, min: i32) -> Result<i32, &'static str> {
+    let s = text.trim();
+    let digits = s.strip_prefix(['+', '-']).unwrap_or(s);
+    if digits.is_empty() {
+        return Err("Expected an integer");
+    }
+    if !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return Err("Expected a decimal integer");
+    }
+    s.parse()
+        .ok()
+        .filter(|&n| n >= min)
+        .ok_or("Integer is outside the admitted range")
+}
+
 pub(super) fn wkhtmltopdf(
     args: &[String],
     stdin: &str,
@@ -10,8 +75,17 @@ pub(super) fn wkhtmltopdf(
     let mut read_jobs = false;
     let mut information = None;
     let mut title_opt: Option<String> = None;
-    let mut page_size = "A4".to_string();
-    let mut orientation = "Portrait".to_string();
+    let (mut pw, mut ph) = (595.28, 841.89);
+    let mut landscape = false;
+    let mut width = Length(0., "mm");
+    let mut height = Length(0., "mm");
+    let mut margins = [
+        Length(-1., "mm"),
+        Length(10., "mm"),
+        Length(-1., "mm"),
+        Length(10., "mm"),
+    ];
+    let mut dpi = 96;
     let mut outline = true;
     let mut outline_depth = 4;
     let mut copies: usize = 1;
@@ -50,12 +124,86 @@ pub(super) fn wkhtmltopdf(
                 title_opt = Some(args[i + 1].clone());
                 i += 2;
             }
-            "-s" | "--page-size" if i + 1 < args.len() => {
-                page_size = args[i + 1].clone();
-                i += 2;
-            }
-            "-O" | "--orientation" if i + 1 < args.len() => {
-                orientation = args[i + 1].clone();
+            opt @ ("-s" | "--page-size" | "-O" | "--orientation" | "-T" | "--margin-top" | "-R"
+            | "--margin-right" | "-B" | "--margin-bottom" | "-L" | "--margin-left"
+            | "--page-width" | "--page-height" | "-d" | "--dpi") => {
+                let name = match opt {
+                    "-s" => "--page-size",
+                    "-O" => "--orientation",
+                    "-d" => "--dpi",
+                    "-T" => "--margin-top",
+                    "-R" => "--margin-right",
+                    "-B" => "--margin-bottom",
+                    "-L" => "--margin-left",
+                    name => name,
+                };
+                if !pos_args.is_empty() && i + 1 < args.len() {
+                    return err_out(
+                        &format!(
+                            "wkhtmltopdf: OPTION_LOCATION ({name}): Switch is in an incorrect object scope\n"
+                        ),
+                        1,
+                    );
+                }
+                let Some(value) = args.get(i + 1) else {
+                    return err_out(
+                        &format!(
+                            "wkhtmltopdf: MISSING_OPERAND ({name}): Switch is missing an operand\n"
+                        ),
+                        1,
+                    );
+                };
+                let invalid = |message: &str| {
+                    err_out(
+                        &format!("wkhtmltopdf: INVALID_VALUE ({name}): {message}\n"),
+                        1,
+                    )
+                };
+                match name {
+                    "--page-size" => {
+                        (pw, ph) = match value.to_ascii_lowercase().as_str() {
+                            "letter" => (612., 792.),
+                            "legal" => (612., 1008.),
+                            "executive" => (522., 756.),
+                            "ledger" | "tabloid" => (792., 1224.),
+                            "a3" => (841.89, 1190.55),
+                            "a5" => (419.53, 595.28),
+                            "b4" => (708.66, 1000.63),
+                            "b5" => (498.9, 708.66),
+                            "a0" | "a1" | "a2" | "a4" | "a6" | "a7" | "a8" | "a9" | "b0" | "b1"
+                            | "b2" | "b3" | "b6" | "b7" | "b8" | "b9" | "b10" | "c5e"
+                            | "comm10e" | "dle" | "folio" => (595.28, 841.89),
+                            _ => return invalid("Unknown enumerated value"),
+                        }
+                    }
+                    "--orientation" => {
+                        landscape = match value.to_ascii_lowercase().as_str() {
+                            "landscape" => true,
+                            "portrait" => false,
+                            _ => return invalid("Unknown enumerated value"),
+                        }
+                    }
+                    "--dpi" => {
+                        dpi = match integer(value, 1) {
+                            Ok(n) => n,
+                            Err(e) => return invalid(e),
+                        }
+                    }
+                    _ => {
+                        let length = match Length::parse(value) {
+                            Ok(n) => n,
+                            Err(e) => return invalid(e),
+                        };
+                        match name {
+                            "--page-width" => width = length,
+                            "--page-height" => height = length,
+                            "--margin-top" => margins[0] = length,
+                            "--margin-right" => margins[1] = length,
+                            "--margin-bottom" => margins[2] = length,
+                            _ => margins[3] = length,
+                        }
+                    }
+                }
                 i += 2;
             }
             "--outline-depth" if i + 1 < args.len() => {
@@ -148,20 +296,8 @@ pub(super) fn wkhtmltopdf(
             | "--default-header" => {
                 i += 1;
             }
-            "-T"
-            | "-B"
-            | "-L"
-            | "-R"
-            | "-d"
-            | "--margin-top"
-            | "--margin-bottom"
-            | "--margin-left"
-            | "--margin-right"
-            | "--encoding"
-            | "--dpi"
+            "--encoding"
             | "--zoom"
-            | "--page-width"
-            | "--page-height"
             | "--log-level"
             | "--image-quality"
             | "--image-dpi"
@@ -248,15 +384,20 @@ pub(super) fn wkhtmltopdf(
             1,
         );
     }
-    let (mut pw, mut ph) = match page_size.to_ascii_lowercase().as_str() {
-        "letter" => (612.0, 792.0),
-        "legal" => (612.0, 1008.0),
-        "a3" => (841.89, 1190.55),
-        "a5" => (419.53, 595.28),
-        "b5" => (498.90, 708.66),
-        _ => (595.28, 841.89),
-    };
-    if orientation.eq_ignore_ascii_case("landscape") {
+    if margins.iter().any(|l| l.1 != margins[3].1) {
+        return err_out(
+            "wkhtmltopdf: MARGIN_UNITS: All margins must use the same normalized unit\n",
+            1,
+        );
+    }
+    let margins = margins.map(|l| if l.0 < 0. { 36. } else { l.points(dpi) });
+    if width.0 > 0. {
+        pw = width.points(dpi);
+    }
+    if height.0 > 0. {
+        ph = height.points(dpi);
+    }
+    if landscape {
         std::mem::swap(&mut pw, &mut ph);
     }
     let mut doc = PdfDoc::new();
@@ -428,7 +569,7 @@ pub(super) fn wkhtmltopdf(
         &ftr_right,
     ];
     let serialized = if furniture.iter().all(|s| s.is_empty()) {
-        match pdf_reader::render_paragraphs(&doc, |i| {
+        match pdf_reader::render_paragraphs(&doc, margins, |i| {
             let (original, copy) = if collate {
                 (i % page_meta.len(), i / page_meta.len())
             } else {

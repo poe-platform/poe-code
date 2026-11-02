@@ -5330,3 +5330,20 @@ test("qpdf reads each argument-file line literally, once, before parsing options
     }
   }finally{rs.dispose();}
 });
+
+test("wkhtmltopdf applies page dimensions, margins and DPI to PDF layout",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const files={"/in":Buffer.from("<h1>Layout</h1>"+"<p>A paragraph with enough words to wrap on a narrow page.</p>".repeat(8))};
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true}));
+  const rs=new RustWasmBash({cwd:"/",files});await fs.writeFile("/in",files["/in"]);
+  try{
+    for(const args of ["--page-width 3in --page-height 100pt -T 1cm -B 0 --margin-left 2mm -R 0.01m","-s B4 -O landscape","-s executive","-s Ledger","--page-width 288px -d 144 --page-height 12pc","--page-width 0 --page-height 13didot -s A8","-T 1pt -B 2pt -L 3pt -R 4pt","-s wrong","-O sideways","-T 4pt","--page-width 1e2cm","--page-height -1","--dpi 0","in -L 10 out","--page-width"]){
+      const cmd="wkhtmltopdf "+args+((args.startsWith("in ")||args==="--page-width")?"":" in out");
+      for(const f of [fs,rs.fs])await f.writeFile("/out",Buffer.from("prior"));
+      const e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],cmd);
+      assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(await fs.readFile("/out")),cmd);
+    }
+  }finally{rs.dispose();}
+});

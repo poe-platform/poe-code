@@ -60,8 +60,16 @@ pub(super) fn win_ansi(s: &str) -> Vec<u8> {
         .collect()
 }
 
+fn coordinate(value: f64) -> String {
+    if value.fract() == 0. {return value.to_string();}
+    let text = format!("{value:.6}");
+    let trimmed = text.trim_end_matches('0').trim_end_matches('.');
+    if trimmed == "-0" { "0".into() } else { trimmed.into() }
+}
+
 pub(in super::super) fn render_paragraphs(
     doc: &PdfDoc,
+    [top, right, bottom, left]: [f64; 4],
     outline_depth: impl Fn(usize) -> usize,
 ) -> Result<Option<Vec<u8>>, ()> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
@@ -87,7 +95,10 @@ pub(in super::super) fn render_paragraphs(
     let mut remaining = limit;
     let width = doc.page_w;
     let height = doc.page_h;
-    let content_width = (width - 2. * 72. / 2.54).max(72.);
+    let content_width = (width - left - right).max(72.);
+    let media_width = coordinate(width);
+    let media_height = coordinate(height);
+    let x = coordinate(left);
     let mut finish_page = |stream: &mut Vec<u8>,
                            fonts: &mut Vec<bool>,
                            headings: &mut Vec<(usize, String)>|
@@ -113,7 +124,7 @@ pub(in super::super) fn render_paragraphs(
             resources.push_str("\n>>");
         }
         resources.push_str("\n>>");
-        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {width} {height} ]\n/Resources {resources}\n/Contents {content} 0 R\n>>").into_bytes());
+        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R\n>>").into_bytes());
         for bold in fonts.drain(..) {
             let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
             bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
@@ -132,7 +143,7 @@ pub(in super::super) fn render_paragraphs(
             return Ok(None);
         };
         let mut stream = Vec::new();
-        let mut y = height - 36.;
+        let mut y = height - top;
         let mut fonts = Vec::new();
         let mut headings = Vec::new();
         for (level, block) in blocks {
@@ -163,11 +174,11 @@ pub(in super::super) fn render_paragraphs(
                     len = n;
                 }
             }
-            if y - (pitch * lines.len() as f64 + if bold { 10. } else { 6. }) < 36.
+            if y - (pitch * lines.len() as f64 + if bold { 10. } else { 6. }) < bottom
                 && !stream.is_empty()
             {
                 finish_page(&mut stream, &mut fonts, &mut headings)?;
-                y = height - 36.;
+                y = height - top;
             }
             if bold {
                 y -= 4.;
@@ -191,11 +202,10 @@ pub(in super::super) fn render_paragraphs(
                 if !stream.is_empty() {
                     stream.push(b'\n');
                 }
-                let coord = format!("{:.6}", y - size as f64);
+                let coord = coordinate(y - size as f64);
                 write!(
                     stream,
-                    "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 28.346457 {} Tm\n",
-                    coord.trim_end_matches('0').trim_end_matches('.')
+                    "q\n{color} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 {x} {coord} Tm\n"
                 )
                 .unwrap();
                 literal(&win_ansi(&line), &mut stream);

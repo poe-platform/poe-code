@@ -5403,12 +5403,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     return Err(format!("cannot preserve hardlinks without complete backing identity: {}", tar_format::display(name)));
                 }
                 if !transforms.is_empty() {
-                    entry.name = apply_tar_transforms(&entry.name, &transforms);
-                    if entry.name.is_empty() || entry.name.split('/').any(|part| part == "..") {
+                    entry.name = apply_tar_transforms(&entry.name, &transforms)?;
+                    if entry.name.split('/').any(|part| part == "..") {
                         return Err(format!("unsafe transformed member name: {}", tar_format::display(&entry.name)));
                     }
                     if entry.typeflag == b'5' && !entry.name.ends_with('/') { entry.name.push('/'); }
-                    if entry.typeflag == b'2' { entry.linkname = apply_tar_transforms(&entry.linkname, &transforms); }
+                    if entry.typeflag == b'2' { entry.linkname = apply_tar_transforms(&entry.linkname, &transforms)?; }
                 }
                 // A repeated archive path supersedes its previous binding. A hard link
                 // can reference only a name that would still refer to that file on extraction.
@@ -5739,7 +5739,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let input_identity = input_path.as_deref().and_then(|p| fs.stat(p).ok()).and_then(|s| s.identity);
     let read = tar_format::read_members(data, ignore_zeros, false, |entry, raw| {
         let (sel, entry_root) = match_tar_operands(entry.name, &operands, wildcards, occurrence, &mut occ_counts, &mut matched_ops, &current_dir);
-        let transformed = (extract && !transforms.is_empty()).then(|| apply_tar_transforms(entry.name, &transforms));
+        let transformed = (extract && !transforms.is_empty()).then(|| apply_tar_transforms(entry.name, &transforms)).transpose()?;
+        let link = (extract && !transforms.is_empty() && !entry.linkname.is_empty()).then(|| apply_tar_transforms(entry.linkname, &transforms)).transpose()?;
         let name = transformed.as_deref().unwrap_or(entry.name);
         if extract && name.split('/').any(|s| s == "..") {
             return Err(format!("unsafe parent component in member: {}", tar_format::display(name)));
@@ -5807,12 +5808,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 name
             };
             let disp = if show_transformed && !transforms.is_empty() {
-                apply_tar_transforms(&base_name, &transforms)
+                apply_tar_transforms(&base_name, &transforms)?
             } else {
                 base_name
             };
             let link_disp = if show_transformed && !transforms.is_empty() && !entry.linkname.is_empty() {
-                apply_tar_transforms(entry.linkname, &transforms)
+                apply_tar_transforms(entry.linkname, &transforms)?
             } else {
                 entry.linkname.to_owned()
             };
@@ -5875,7 +5876,6 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     Err(e) => return Err(e),
                 }
             }
-            let link = (matches!(entry.typeflag, b'1' | b'2') && !transforms.is_empty()).then(|| apply_tar_transforms(entry.linkname, &transforms));
             let link = link.as_deref().unwrap_or(entry.linkname);
             if entry.typeflag == b'2' {
                 if link.is_empty() || link.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
@@ -6028,10 +6028,15 @@ fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Res
     Ok(())
 }
 
-fn apply_tar_transforms(name: &str, transforms: &[TarTransform]) -> String {
-    transforms.iter().fold(name.to_owned(), |name, t| {
-        super::search::replace_regex_in_text(&name, &t.pattern, &t.replacement, t.ignore_case, t.global, None).0
-    })
+fn apply_tar_transforms(name: &str, transforms: &[TarTransform]) -> Result<String, String> {
+    let mut name = name.to_owned();
+    for t in transforms {
+        name = super::search::replace_regex_in_text(&name, &t.pattern, &t.replacement, t.ignore_case, t.global, None).0;
+        if name.is_empty() || name.contains('\0') {
+            return Err("invalid empty, NUL, or non-Unicode path".into());
+        }
+    }
+    Ok(name)
 }
 
 fn tar_cache_directory(fs: &dyn SafeBashFs, directory: &str) -> Result<bool, String> {

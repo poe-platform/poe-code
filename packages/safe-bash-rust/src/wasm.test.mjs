@@ -6365,3 +6365,33 @@ test("sed and tar distinguish literal BRE punctuation from repetition and reject
     assert.equal((await rs.exec(cmd)).stdout, "");
   } finally { rs.dispose(); }
 });
+
+test("tar rejects empty intermediate transformed member and link names", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/a", Buffer.from("data"));
+      await f.symlink("other", "/link");
+      await f.mkdir("/out");
+    }
+    const seed = await js.exec("tar --format=ustar -cf - link a");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const f of [fs, rs.fs]) await f.writeFile("/in", seed.stdoutBytes);
+    for (const [args, pattern] of [
+      ["-cf in a", "a"], ["-rf in link", "other"], ["-tvf in --show-transformed-names", "other"],
+      ["-xf in -C out", "link"], ["-xf in -C out a", "other"], ["-xOf in a", "other"],
+    ]) {
+      const cmd = "tar " + args + " --transform='s/^" + pattern + "$//;s/^$/recovered/'";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode, a.stderr], [2, "tar: invalid empty, NUL, or non-Unicode path\n"], cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      for (const f of [fs, rs.fs]) {
+        assert.ok(Buffer.from(await f.readFile("/in")).equals(Buffer.from(seed.stdoutBytes)));
+        assert.deepEqual(await f.readdir("/out"), []);
+      }
+    }
+  } finally { rs.dispose(); }
+});

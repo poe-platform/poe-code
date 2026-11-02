@@ -91,8 +91,70 @@ pub(in super::super) struct PageEdits<'a> {
     pub drop_xfa: bool,
     pub need_appearances: bool,
     pub page_labels: bool,
+    pub label_specs: Vec<&'a str>,
     pub generate_object_streams: bool,
     pub normalize_content: bool,
+}
+
+fn page_labels(specs: &[&str], limit: usize) -> Result<Vec<u8>, String> {
+    let number = |n: f64| {
+        if n.abs() >= 1e21 {
+            format!("{n:e}").replace('e', "e+")
+        } else {
+            n.to_string()
+        }
+    };
+    let name = |s: &str| {
+        let mut out = Vec::new();
+        for unit in s.encode_utf16() {
+            if !(33..=126).contains(&unit) || b"()<>[]{}/%#".contains(&(unit as u8)) {
+                write!(out, "#{unit:02X}").unwrap();
+            } else {
+                out.push(unit as u8);
+            }
+        }
+        out
+    };
+    let mut body = b"<<\n/Nums [ ".to_vec();
+    for spec in specs {
+        let Some((page, label)) = spec.split_once(':').filter(|(p, _)| !p.is_empty()) else {
+            continue;
+        };
+        let index = super::super::qpdf_decimal(page).unwrap_or(1.).max(1.) - 1.;
+        if !index.is_finite() {
+            return Err("invalid page label".into());
+        }
+        let mut parts = label.split('/');
+        let style = parts.next().unwrap();
+        let second = parts.next().unwrap_or("");
+        let start = super::super::qpdf_decimal(second).filter(|n| n.is_finite());
+        let prefix = parts.next().unwrap_or(if start.is_none() { second } else { "" });
+        let mut fields = Vec::new();
+        if style != "n" {
+            // The retained writer serializes the label tree, then reads it back before saving.
+            let mut token = vec![b'/'];
+            if style.is_ascii() {
+                token.extend(name(style));
+            } else {
+                token.extend(name(&super::pdf_string::name(&name(style))));
+            }
+            set(&mut fields, b"S", Value::Word(token.into()));
+        }
+        if let Some(n) = start.filter(|&n| n != 0. && n != 1.) {
+            set(&mut fields, b"St", Value::Word(number(n).into_bytes().into()));
+        }
+        if !prefix.is_empty() {
+            set(&mut fields, b"P", super::pdf_string::encode(prefix));
+        }
+        write!(body, "{} ", number(index)).unwrap();
+        encode(&Value::Dict(fields), &mut body)?;
+        body.push(b' ');
+        if body.len() > limit {
+            return Err(TOO_LARGE.into());
+        }
+    }
+    body.extend_from_slice(b"]\n>>");
+    Ok(body)
 }
 
 pub(in super::super) fn rewrite(
@@ -113,26 +175,34 @@ pub(in super::super) fn rewrite(
     let mut catalog = objects.object(root).ok_or(INVALID)?.0;
     let mut first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
     let mut changed=BTreeMap::new();
-    let edited_tree = if edits.flatten_rotation || !edits.layers.is_empty() {
-        let (pages, mut tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
-        first_new = first_new.max(
-            tree.keys()
-                .next_back()
-                .ok_or(INVALID)?
-                .0
-                .checked_add(1)
-                .ok_or(TOO_LARGE)?,
-        );
+    let mut edited_tree =
+        if edits.flatten_rotation || !edits.layers.is_empty() || !edits.label_specs.is_empty() {
+            let (pages, tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
+            first_new = first_new.max(
+                tree.keys()
+                    .next_back()
+                    .ok_or(INVALID)?
+                    .0
+                    .checked_add(1)
+                    .ok_or(TOO_LARGE)?,
+            );
+            Some((pages, tree))
+        } else {
+            None
+        };
+    if let Some((pages, tree)) = &mut edited_tree
+        && (edits.flatten_rotation || !edits.layers.is_empty())
+    {
         let mut state = super::pdf_copy::pdf_stamp::LayerState::default();
         let mut edit_limit = limit;
-        state.counts = objects.reference_counts(&pages, &tree);
+        state.counts = objects.reference_counts(pages, tree);
         let rotations = super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
         if !edits.layers.is_empty() {
             for (i, r) in rotations.iter().copied().enumerate() {
                 if let Some(r) = r {
                     let id = pages[i];
-                    let mut page = objects.page_dict(id, &tree).ok_or(INVALID)?;
-                    let (_, _, angle) = super::pdf_copy::geometry(&mut objects, &tree, &page);
+                    let mut page = objects.page_dict(id, tree).ok_or(INVALID)?;
+                    let (_, _, angle) = super::pdf_copy::geometry(&mut objects, tree, &page);
                     let Value::Dict(d) = &mut page else {
                         return Err(INVALID.into());
                     };
@@ -172,8 +242,8 @@ pub(in super::super) fn rewrite(
                 (first_new, edit_limit) = source
                     .stamp(
                         &mut objects,
-                        &pages,
-                        &mut tree,
+                        pages,
+                        tree,
                         pairs,
                         &mut state,
                         true,
@@ -194,8 +264,8 @@ pub(in super::super) fn rewrite(
         }
         if edits.flatten_rotation {
             objects.flatten_rotations(
-                &pages,
-                &mut tree,
+                pages,
+                tree,
                 if edits.layers.is_empty() { &rotations } else { &[] },
                 &mut changed,
                 &mut first_new,
@@ -204,12 +274,20 @@ pub(in super::super) fn rewrite(
             )?;
         }
         state.finish(&mut changed, edit_limit)?;
-        Some((pages, tree))
-    } else {
-        None
-    };
+    }
+    let mut next_edit = first_new
+        .checked_add(usize::from(edits.linearize))
+        .ok_or(TOO_LARGE)?;
+    if !edits.label_specs.is_empty() {
+        let Value::Dict(cat) = &mut catalog else {
+            return Err(INVALID.into());
+        };
+        set(cat, b"PageLabels", Value::Ref((next_edit, 0)));
+        changed.insert((next_edit, 0), page_labels(&edits.label_specs, limit)?);
+        next_edit = next_edit.checked_add(1).ok_or(TOO_LARGE)?;
+    }
     if !(remove.is_empty() && add.is_empty() && copies.is_empty()) {
-        changed.extend(attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?);
+        changed.extend(attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, next_edit)?);
     }
     let Value::Dict(entries) = &mut catalog else {
         return Err(INVALID.into());
@@ -218,7 +296,7 @@ pub(in super::super) fn rewrite(
         b"Metadata" => edits.info || edits.metadata,
         b"StructTreeRoot" | b"MarkInfo" => edits.structure,
         b"AcroForm" => edits.acroform,
-        b"PageLabels" => edits.page_labels,
+        b"PageLabels" => edits.page_labels && edits.label_specs.is_empty(),
         _ => false,
     });
     let page_root = catalog

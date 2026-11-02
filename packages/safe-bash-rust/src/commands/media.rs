@@ -6336,7 +6336,6 @@ fn cmd_media_doc(
             let mut min_version: Option<String> = None;
             let mut force_version: Option<String> = None;
             let mut collate_group: Option<usize> = None;
-            let mut set_page_labels: Vec<String> = Vec::new();
             let mut edits = pdf_reader::PageEdits::default();
             let mut pos_files: Vec<String> = Vec::new();
 
@@ -6345,7 +6344,7 @@ fn cmd_media_doc(
                 let a = args[i].as_str();
                 if a.starts_with("--")
                     && !matches!(a, "--empty" | "--overlay" | "--underlay" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
-                        | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
+                        | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--set-page-labels"
                         | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt" | "--linearize" | "--flatten-rotation")
                     && !["--overlay=", "--underlay=", "--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
                         "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
@@ -6727,7 +6726,7 @@ fn cmd_media_doc(
                 if a == "--set-page-labels" {
                     i += 1;
                     while i < args.len() && args[i] != "--" {
-                        set_page_labels.push(args[i].clone());
+                        edits.label_specs.push(args[i].as_str());
                         i += 1;
                     }
                     if i < args.len() && args[i] == "--" {
@@ -7263,11 +7262,11 @@ fn cmd_media_doc(
                             return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                         }
                         let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
+                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | "invalid page label" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {
-                            let edited = !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            let edited = !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
                                 || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
                             let graph;
                             let data = if edited {
@@ -7566,9 +7565,9 @@ fn cmd_media_doc(
             if edits.page_labels {
                 doc.page_labels.clear();
             }
-            if !set_page_labels.is_empty() {
+            if !edits.label_specs.is_empty() {
                 doc.page_labels.clear();
-                for spec in &set_page_labels {
+                for spec in &edits.label_specs {
                     if let Some((pno_s, rest)) = spec.split_once(':') {
                         let pno = pno_s.parse::<usize>().unwrap_or(1).to_string();
                         let mut style_code = "D";

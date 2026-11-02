@@ -5061,3 +5061,31 @@ test("pdfunite flattens nested bookmarks and remaps destinations in repeated inp
     assert.ok(Buffer.from(actual).equals(expected),"first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
   } finally {rs.dispose();}
 });
+
+test("qpdf replaces page labels while retaining the existing document",async()=>{
+  const {PdfDocument,cosDict,cosArray,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const doc=PdfDocument.create();doc.setTitle("Label test");
+  for(let i=0;i<3;i++)doc.addPage().drawText("Page "+i,{x:15,y:25});
+  dictSet(doc.cos.resolveDict(doc.cos.rootRef),"PageLabels",doc.cos.allocateObject(cosDict({Nums:cosArray([])})));
+  const files={"/in":doc.save(),"/secret":doc.save({encrypt:{userPassword:"pass",ownerPassword:"owner"}}),"/attachment":Buffer.from("example")};
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try {
+    for(const [k,b] of Object.entries(files))await fs.writeFile(k,b);
+    for(const [args,outputs] of [
+      ["in --set-page-labels 1:r/2/前 3:n/Appendix bad 1:D/0 2:A/-2/end 1:前 100000000000000000000000000:r -- out",["out"]],
+      ["in --remove-page-labels --linearize --set-page-labels 3: 0:n/zero -- --add-attachment attachment -- out",["out"]],
+      ["in --pages . 3,1 -- --set-page-labels bad -- --object-streams=generate out",["out"]],
+      ["--password=pass --decrypt secret --set-page-labels 2:D/3/β -- out",["out"]],
+      ["in --set-page-labels 1:r/2 3:A -- --split-pages=2 part-%d.pdf",["part-1-2.pdf","part-3-3.pdf"]],
+    ]) {
+      const cmd="qpdf "+args;
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
+      for(const name of outputs){
+        const expected=await fs.readFile("/"+name),actual=await rs.fs.readFile("/"+name);
+        assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
+      }
+    }
+  } finally {rs.dispose();}
+});

@@ -11687,122 +11687,95 @@ fn cmd_media_doc(
                 return ok_out(include_str!("help/exiftool.txt"));
             }
             let mut expanded_args: Vec<String> = Vec::new();
-            let mut ai = 0usize;
-            while ai < args.len() {
-                let raw_a = &args[ai];
-                let low_a = raw_a.to_ascii_lowercase();
-                if matches!(low_a.as_str(), "-if" | "-stay_open" | "-common_args")
-                    || low_a.starts_with("-execute")
-                {
-                    return err_out(
-                        &format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {raw_a}\n"),
-                        1,
-                    );
+            let mut literal = false;
+            let mut takes_value = false;
+            let mut argv = args.iter();
+            while let Some(a) = argv.next() {
+                let option = a.to_ascii_lowercase();
+                if !literal && !takes_value && option == "-@" {
+                    let Some(input) = argv.next() else { return err_out("Error: Missing argument for -@\n", 1); };
+                    if input == "-" || input.contains('\0') { return err_out("Error: Argument-file stdin/invalid paths are not supported\n", 1); }
+                    let path = resolve_posix_path(cwd, input);
+                    match fs.lstat(&path) {
+                        Ok(st) if st.kind != crate::vfs::VfsEntryKind::File => return err_out("Error: Only regular VFS argument files are admitted\n", 1),
+                        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => return err_out(&format!("Error: ENOENT: no such file or directory, lstat '{path}'\n"), 1),
+                        Err(e) => return err_out(&format!("Error: {e}\n"), 1),
+                        Ok(_) => {}
+                    }
+                    let bytes = match fs.read_file(&path) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("Error: {e}\n"), 1) };
+                    let Ok(text) = std::str::from_utf8(&bytes) else { return err_out("Error: Only UTF-8 argument files are currently supported\n", 1); };
+                    for line in text.trim_start_matches('\u{feff}').lines() {
+                        let trimmed = line.trim();
+                        if !trimmed.is_empty() && !trimmed.starts_with('#') { expanded_args.push(trimmed.to_owned()); }
+                    }
+                } else {
+                    if !takes_value && a == "--" { literal = true; }
+                    takes_value = !literal && !takes_value && matches!(option.as_str(), "-config" | "-charset" | "-api" | "-o" | "-if" | "-p" | "-stay_open" | "-tagsfromfile");
+                    expanded_args.push(a.clone());
                 }
-                if args[ai] == "-@" && ai + 1 < args.len() {
-                    let af_full = resolve_posix_path(cwd, &args[ai + 1]);
-                    if let Ok(af_bytes) = fs.read_file(&af_full) {
-                        for line in String::from_utf8_lossy(&af_bytes).lines() {
-                            let trimmed = line.trim();
-                            if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                                expanded_args.push(trimmed.to_string());
-                            }
+            }
+            let tags = ["Artist","Title","Author","Description","ImageDescription","Software","Comment","Copyright","ModifyDate",
+                "ImageWidth","ImageHeight","BitDepth","ColorType","FileName","Directory","FileSize","FileTypeExtension","FileType",
+                "MIMEType","ImageSize","Subject","Keywords","Creator","Producer","CreateDate","PDFVersion","PageCount","Make",
+                "Model","Orientation","DateTime","XResolution","YResolution","ResolutionUnit","ExposureTime","FNumber","ISO",
+                "DateTimeOriginal","FocalLength","LensModel","UserComment"];
+            let known = |name: &str| tags.iter().copied().find(|t| t.eq_ignore_ascii_case(name));
+            let (mut json_mode, mut bin_mode, mut tab_mode, mut csv_mode, mut xml_mode) = (false, false, false, false, false);
+            let (mut group, mut short) = (0, 0usize);
+            let (mut value_conv, mut overwrite_orig) = (false, false);
+            let mut print_fmt = None;
+            let mut updates = Vec::new();
+            let mut requested_tags = Vec::new();
+            let mut files = Vec::new();
+            let mut out_path = None;
+            let mut tags_from_file = None;
+            let mut literal = false;
+            let mut parsed = expanded_args.iter();
+            while let Some(a) = parsed.next() {
+                if literal || !a.starts_with('-') || a == "-" { files.push(a.clone()); continue; }
+                if a == "--" { literal = true; continue; }
+                let option = a.to_ascii_lowercase();
+                match option.as_str() {
+                    "-config" | "-charset" | "-api" | "-p" | "-o" | "-tagsfromfile" => {
+                        if option == "-tagsfromfile" && tags_from_file.is_some() { return err_out("Error: Multiple tagsFromFile sources are not yet supported\n", 1); }
+                        let Some(value) = parsed.next() else { return err_out(&format!("Error: Missing argument for {a}\n"), 1); };
+                        match option.as_str() {
+                            "-config" if !value.is_empty() => return err_out("Error: User configuration modules are not supported\n", 1),
+                            "-charset" if !value.eq_ignore_ascii_case("filename=utf8") => return err_out("Error: Only UTF-8 filename charset is currently supported\n", 1),
+                            "-api" if !value.eq_ignore_ascii_case("structformat=jsonq") => return err_out("Error: API option not yet supported\n", 1),
+                            "-p" => print_fmt = Some(value.clone()),
+                            "-o" => out_path = Some(value.clone()),
+                            "-tagsfromfile" if value == "-" || value.contains('%') => return err_out("Error: tagsFromFile stdin and path templates are not yet supported\n", 1),
+                            "-tagsfromfile" => tags_from_file = Some(value.clone()),
+                            _ => {}
                         }
                     }
-                    ai += 2;
-                } else {
-                    expanded_args.push(args[ai].clone());
-                    ai += 1;
-                }
-            }
-            let json_mode = expanded_args
-                .iter()
-                .any(|a| a == "-j" || a == "-json" || a == "--json");
-            let s3_mode = expanded_args.iter().any(|a| a == "-s3");
-            let s2_mode = expanded_args.iter().any(|a| a == "-s2");
-            let group_mode = expanded_args
-                .iter()
-                .any(|a| a == "-G" || a == "-G0" || a == "-G1");
-            let tab_mode = expanded_args.iter().any(|a| a == "-T");
-            let csv_mode = expanded_args.iter().any(|a| a == "-csv");
-            let xml_mode = expanded_args.iter().any(|a| a == "-X" || a == "-x");
-            let overwrite_orig = expanded_args.iter().any(|a| a == "-overwrite_original");
-            let mut print_fmt: Option<String> = None;
-            let mut updates: Vec<(String, String)> = Vec::new();
-            let mut requested_tags: Vec<String> = Vec::new();
-            let mut files: Vec<String> = Vec::new();
-            let mut out_path: Option<String> = None;
-            let mut tags_from_file: Option<String> = None;
-            let mut literal = false;
-            let mut i = 0usize;
-            while i < expanded_args.len() {
-                let a = &expanded_args[i];
-                if !literal && a == "--" {
-                    literal = true;
-                    i += 1;
-                    continue;
-                }
-                if literal || !a.starts_with('-') || a == "-" {
-                    files.push(a.clone());
-                    i += 1;
-                    continue;
-                }
-                if matches!(a.as_str(), "-o" | "-p" | "-tagsFromFile" | "-TagsFromFile" | "-config" | "-charset" | "-api")
-                    && i + 1 >= expanded_args.len()
-                {
-                    return err_out(&format!("Error: Missing argument for {a}\n"), 1);
-                }
-                if a == "-o" && i + 1 < expanded_args.len() {
-                    out_path = Some(expanded_args[i + 1].clone());
-                    i += 2;
-                    continue;
-                }
-                if a == "-p" && i + 1 < expanded_args.len() {
-                    print_fmt = Some(expanded_args[i + 1].clone());
-                    i += 2;
-                    continue;
-                }
-                if (a == "-tagsFromFile" || a == "-TagsFromFile") && i + 1 < expanded_args.len() {
-                    if tags_from_file.is_some() {
-                        return err_out("Error: Multiple tagsFromFile sources are not yet supported\n", 1);
+                    "-j" | "-json" => json_mode = true, "-b" => bin_mode = true, "-csv" => csv_mode = true,
+                    "-x" => xml_mode = true, _ if a == "-T" => tab_mode = true,
+                    _ if a == "-G1" => group = 1, _ if a == "-G4" => group = 4,
+                    "-s" | "-ss" | "-sss" | "-s1" | "-s2" | "-s3" => {
+                        short = if a == "-S" || option == "-s2" {2} else if option == "-s1" {1}
+                            else if option == "-s3" {3} else {(short + a.len() - 1).min(3)};
                     }
-                    tags_from_file = Some(expanded_args[i + 1].clone());
-                    i += 2;
-                    continue;
-                }
-                if let Some(rest) = a.strip_prefix('-') {
-                    if let Some((k, v)) = rest.split_once('=') {
-                        updates.push((k.to_string(), v.to_string()));
-                    } else if !matches!(
-                        rest,
-                        "j" | "json"
-                            | "-json"
-                            | "s"
-                            | "s1"
-                            | "s2"
-                            | "s3"
-                            | "G"
-                            | "G0"
-                            | "G1"
-                            | "G4"
-                            | "T"
-                            | "csv"
-                            | "X"
-                            | "x"
-                            | "overwrite_original"
-                            | "overwrite_original_in_place"
-                            | "q"
-                            | "n"
-                            | "a"
-                            | "u"
-                            | "b"
-                            | "f"
-                    ) {
-                        requested_tags.push(rest.to_string());
+                    "-overwrite_original" | "-overwrite_original_in_place" => overwrite_orig = true,
+                    "-a" | "-f" | "-n" => {}
+                    "-if" | "-stay_open" | "-@" | "-common_args" => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
+                    _ if option.starts_with("-execute") => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
+                    _ => {
+                        let (raw, value) = a[1..].split_once('=').map_or((&a[1..], None), |(k,v)| (k,Some(v)));
+                        let name = raw.strip_suffix(['+','-']).unwrap_or(raw);
+                        let operation = &raw[name.len()..];
+                        let selector = name.strip_suffix('#').unwrap_or(name);
+                        if let Some(v) = value {
+                            updates.push((format!("{}{operation}", known(selector).unwrap_or(selector)), v.to_owned()));
+                        } else if let Some(tag) = known(selector).or_else(|| (selector == "MissingTag").then_some(selector)) {
+                            value_conv |= selector != name;
+                            requested_tags.push(tag.to_owned());
+                        } else { return err_out(&format!("Error: ExifTool option/tag not yet supported: {a}\n"), 1); }
                     }
                 }
-                i += 1;
             }
+            let (s3_mode, s2_mode, group_mode) = (short == 3, short == 2, group == 1);
             if tags_from_file.is_some() && !updates.is_empty() {
                 return err_out("Error: Combining tagsFromFile with assignments is not yet supported\n", 1);
             }
@@ -11819,14 +11792,18 @@ fn cmd_media_doc(
             if out_path.is_some() && (files.len() != 1 || !writing_mode) {
                 return err_out("Error: -o requires a single file with tag assignments in this profile\n", 1);
             }
-            let bin_mode = expanded_args.iter().any(|a| a.eq_ignore_ascii_case("-b"));
             if json_mode && bin_mode {
                 return err_out("Error: JSON binary policy not yet supported\n", 1);
             }
             if csv_mode && (json_mode || bin_mode || writing_mode) {
                 return err_out("Error: CSV combined output/import policy not yet supported\n", 1);
             }
-            let mode_count = [json_mode, csv_mode, xml_mode, tab_mode, print_fmt.is_some()]
+            if csv_mode && value_conv { return err_out("Error: CSV ValueConv-qualified headers not yet supported\n", 1); }
+            if group == 4 && (!json_mode || writing_mode) { return err_out("Error: Group-family qualification outside JSON not yet supported\n", 1); }
+            if group == 1 && (json_mode || csv_mode || bin_mode || xml_mode || tab_mode || print_fmt.is_some() || writing_mode) {
+                return err_out("Error: -G1 requires text extraction in this profile\n", 1);
+            }
+            let mode_count = [json_mode, csv_mode, bin_mode, xml_mode, tab_mode, print_fmt.is_some()]
                 .into_iter()
                 .filter(|x| *x)
                 .count();
@@ -11835,6 +11812,12 @@ fn cmd_media_doc(
             }
             if (xml_mode || tab_mode || print_fmt.is_some()) && writing_mode {
                 return err_out("Error: Presentation modes require extraction\n", 1);
+            }
+            if let Some(template) = &print_fmt {
+                for suffix in template.split('$').skip(1) {
+                    let tag = &suffix[..suffix.bytes().take_while(u8::is_ascii_alphabetic).count()];
+                    if known(tag).is_none() { return err_out("Error: Only literal $Tag template substitutions are supported\n", 1); }
+                }
             }
             let mut tags_from_file_err: Option<&'static str> = None;
             if let Some(ref src_tag_file) = tags_from_file {

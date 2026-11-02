@@ -3183,3 +3183,28 @@ test("pdftohtml selects stdin, page ranges and zoom like production", async () =
     }
   } finally { wasm.dispose(); }
 });
+
+test("exiftool rejects invalid metadata options before creating a backup or changing the input", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage([10, 10]);
+  const bytes = doc.save();
+  for (const flags of ["--invalid", "-bogus", "--json", "-G", "-G0", "-q", "-u", "-constructor",
+    "-@ /missing", "-@ -", "-@ /", "-CONFIG bad", "-charset utf16", "-api bad", "-tagsFromFile -", "-tagsfromfile %f",
+    "-G4", "-G1 -j", "-b -X", "-csv -Title#", "-p '$Unknown'", "-if cond"]) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/f.pdf", bytes);
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
+    try {
+      const script = "exiftool " + flags + (flags.startsWith("-p ") || flags.startsWith("-csv ") ? "" : " -Title=changed") + " /f.pdf";
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.equal(expected.exitCode, 1, script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      assert.deepEqual(await wasm.fs.readFile("/f.pdf"), bytes, script);
+      await assert.rejects(wasm.fs.stat("/f.pdf_original"), undefined, script);
+    } finally { wasm.dispose(); }
+  }
+});

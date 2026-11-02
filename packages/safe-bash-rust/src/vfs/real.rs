@@ -241,7 +241,8 @@ impl SafeBashFs for RealVfs {
         let exclusive = access == super::RedirectAccess::Exclusive;
         let host = self.walk(&self.root, path, if exclusive { Walk::RenameEntry } else { Walk::Follow }, false)?;
         let mut options = std::fs::OpenOptions::new();
-        options.read(access == super::RedirectAccess::ReadWrite).write(true).create(true).create_new(exclusive)
+        options.read(matches!(access, super::RedirectAccess::Read | super::RedirectAccess::ReadWrite))
+            .write(access != super::RedirectAccess::Read).create(access != super::RedirectAccess::Read).create_new(exclusive)
             .append(access == super::RedirectAccess::Append).truncate(access == super::RedirectAccess::Truncate);
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode);

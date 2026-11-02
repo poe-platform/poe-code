@@ -745,13 +745,13 @@ impl SafeBashFs for MemoryVfs {
         }
         let ino = match state.nodes.get(&entry) {
             Some(&MemoryNode::File { ino }) => {
-                let required = if access == super::RedirectAccess::ReadWrite { 0o600 } else { 0o200 };
+                let required = match access { super::RedirectAccess::Read => 0o400, super::RedirectAccess::ReadWrite => 0o600, _ => 0o200 };
                 if state.files[&ino].mode & required != required { return Err("EACCES: permission denied".into()); }
                 ino
             }
             Some(_) => return Err("EISDIR: illegal operation on a directory".into()),
             None => {
-                if state.devices == Devices::Mounted { return Err("ENOENT: no such file or directory".into()); }
+                if access == super::RedirectAccess::Read || state.devices == Devices::Mounted { return Err("ENOENT: no such file or directory".into()); }
                 let parent = super::dirname_posix_path(&entry);
                 match state.nodes.get(&parent) {
                     Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 => {}
@@ -767,7 +767,7 @@ impl SafeBashFs for MemoryVfs {
         };
         state.files.get_mut(&ino).unwrap().opens += 1;
         drop(state);
-        let file = RetainedFile { fs: self.clone(), ino, readable: access == super::RedirectAccess::ReadWrite };
+        let file = RetainedFile { fs: self.clone(), ino, access };
         if access == super::RedirectAccess::Truncate { file.truncate(0)?; }
         Ok(Some(std::rc::Rc::new(file)))
     }

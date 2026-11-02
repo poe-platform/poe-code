@@ -86,7 +86,8 @@ pub enum FdTarget {
     PipeStdout { peer_retired: bool },
     Stderr,
     File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>> },
-    ReadWriteFile {
+    InputFile {
+        writable: bool,
         path: String,
         owner_fd: u32,
         file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
@@ -458,7 +459,7 @@ impl<'a> EvalState<'a> {
         if matches!(self.fd_table.get(&fd), Some(FdTarget::Closed)) {
             return false;
         }
-        if matches!(self.fd_table.get(&fd), Some(FdTarget::ReadWriteFile { .. })) {
+        if matches!(self.fd_table.get(&fd), Some(FdTarget::InputFile { .. })) {
             return true;
         }
         if self.in_fds.contains_key(&fd) {
@@ -482,7 +483,7 @@ impl<'a> EvalState<'a> {
                     | FdTarget::PipeStdout { .. }
                     | FdTarget::Stderr
                     | FdTarget::File { .. }
-                    | FdTarget::ReadWriteFile { .. }
+                    | FdTarget::InputFile { writable: true, .. }
             )
         )
     }
@@ -530,7 +531,7 @@ impl<'a> EvalState<'a> {
                 self.in_fds.insert(owner, buf);
             }
             for target in self.fd_table.values_mut() {
-                if let FdTarget::ReadWriteFile { owner_fd, .. } = target
+                if let FdTarget::InputFile { owner_fd, .. } = target
                     && *owner_fd == fd
                 {
                     *owner_fd = owner;
@@ -4755,7 +4756,7 @@ impl<'a> EvalState<'a> {
             effective_cmd,
             args,
             CommandInput { text: stdin, position: match self.fd_table.get(&0) {
-                Some(FdTarget::ReadWriteFile { position, .. }) => Some(position),
+                Some(FdTarget::InputFile { position, .. }) => Some(position),
                 _ => None,
             } },
             self.cwd,
@@ -7901,7 +7902,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn refresh_file_input(&self, fd: u32, unread: &mut String) -> Result<(), EvalError> {
-        let Some(FdTarget::ReadWriteFile { file: Some(file), position, .. }) = self.fd_table.get(&fd) else { return Ok(()) };
+        let Some(FdTarget::InputFile { file: Some(file), position, .. }) = self.fd_table.get(&fd) else { return Ok(()) };
         let revision = file.revision();
         let mut pos = position.get();
         if revision.is_some() && revision == pos.revision { return Ok(()); }
@@ -9141,6 +9142,46 @@ impl<'a> EvalState<'a> {
             .map_or(0o644, |mask| 0o666 & !mask)
     }
 
+    fn open_input_target(&self, target: &str, fd: u32, kind: &RedirectKind) -> Result<(String, Option<FdTarget>), BuiltinOutcome> {
+        use crate::vfs::{RedirectAccess, VfsEntryKind};
+        let writable = matches!(kind, RedirectKind::ReadWrite(_));
+        let operand = crate::vfs::path::absolute_operand(self.cwd, target);
+        let error = |e: String| self.redirect_error(target, &e);
+        let path = if writable { self.output_redirect_path(target, kind)? } else {
+            let (path, st) = self.fs.inspect_command_entry(&operand, true, "stat").map_err(error)?;
+            if st.kind == VfsEntryKind::Directory {
+                if self.in_cmdsub_file_shortcut { return Ok((String::new(), None)); }
+                return Err(error("EISDIR".into()));
+            }
+            if st.mode & 0o400 == 0 { return Err(error("EACCES".into())); }
+            path
+        };
+        let access = if writable { RedirectAccess::ReadWrite } else { RedirectAccess::Read };
+        let null = self.is_default_null(&path);
+        let file = if null { None } else {
+            self.fs.open_redirect_file(&path, access, self.redirect_create_mode()).map_err(|e| {
+                if writable && e.starts_with("ENOTSUP:") {
+                    BuiltinOutcome { stdout: String::new(), stderr: format!("{}ENOTSUP: operation not supported, open '{operand}'\n", self.diag_prefix()), exit_code: 1 }
+                } else { error(e) }
+            })?
+        };
+        let revision = file.as_ref().and_then(|f| f.revision());
+        let limit = self.budget.limits.max_input_bytes;
+        let bytes = match &file {
+            Some(file) => self.budget.tick_fs_op().and_then(|_| file.read_at(0, limit.saturating_add(1))),
+            None if null => Ok(Vec::new()),
+            None => self.fs.read_file(&path),
+        }.map_err(error)?;
+        if bytes.len() > limit {
+            return Err(BuiltinOutcome { stdout: String::new(), stderr: format!("{target}: EFBIG: File too large\n"), exit_code: 1 });
+        }
+        let description = (writable || file.is_some()).then(|| FdTarget::InputFile {
+            writable, path, owner_fd: fd, file,
+            position: Rc::new(Cell::new(FileInputPosition { remaining: bytes.len(), revision, ..Default::default() })),
+        });
+        Ok((bytes_to_stream_string(&bytes), description))
+    }
+
     fn open_output_target(&self, operand: &str, kind: &RedirectKind) -> Result<FdTarget, BuiltinOutcome> {
         use crate::vfs::RedirectAccess;
         let append = matches!(kind, RedirectKind::Append(_) | RedirectKind::BothAppend);
@@ -9329,173 +9370,37 @@ impl<'a> EvalState<'a> {
                     Ok(Ok(target))
                 };
             match &r.kind {
-                RedirectKind::In(fd) => {
+                RedirectKind::In(fd) | RedirectKind::ReadWrite(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
-                        Ok(t) => t,
-                        Err(err_out) => {
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
+                        Ok(target) => target,
+                        Err(err_out) => return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
                     };
-                    let path = crate::vfs::path::absolute_operand(self.cwd, &target);
-                    let input = self.fs.inspect_command_entry(&path, true, "stat").and_then(|(resolved, st)| {
-                        if st.kind == crate::vfs::VfsEntryKind::Directory {
-                            if self.in_cmdsub_file_shortcut { Ok(Vec::new()) } else { Err("EISDIR".into()) }
-                        } else if st.mode & 0o400 == 0 {
-                            Err("EACCES".into())
-                        } else {
-                            self.fs.read_file(&resolved)
-                        }
-                    });
-                    let content = match input {
-                        Ok(bytes) => {
-                            if bytes.len() > self.budget.limits.max_input_bytes {
-                                return Ok((
-                                    (saved_fd_table, saved_aliases),
-                                    saved_in,
-                                    local_stdin,
-                                    true,
-                                    None,
-                                    Some(BuiltinOutcome {
-                                        stdout: String::new(),
-                                        stderr: format!("{target}: EFBIG: File too large\n"),
-                                        exit_code: 1,
-                                    }),
-                                ));
-                            }
-                            bytes_to_stream_string(&bytes)
-                        }
-                        Err(e) => {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                true,
-                                None,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                    self.fd_table.remove(fd);
-                    self.in_fd_aliases.remove(fd);
-                    if *fd == 0 {
-                        local_stdin = content;
-                        use_local = true;
-                        dup_fd = None;
-                    } else {
-                        if !saved_in.iter().any(|(f, _)| f == fd) {
-                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                        }
-                        self.in_fds.insert(*fd, Rc::new(content.into()));
-                    }
-                }
-                RedirectKind::ReadWrite(fd) => {
-                    let target = match expand_redir_target(self, &r.target)? {
-                        Ok(t) => t,
-                        Err(err_out) => {
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    let full = match self.output_redirect_path(&target, &r.kind) {
-                        Ok(path) => path,
+                    let (content, description) = match self.open_input_target(&target, *fd, &r.kind) {
+                        Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, true, None, Some(err_out)));
                         }
                     };
-                    let opened = if self.is_default_null(&full) { Ok(None) } else {
-                        self.fs.open_redirect_file(&full, crate::vfs::RedirectAccess::ReadWrite, self.redirect_create_mode())
-                    };
-                    let file = match opened {
-                        Ok(file) => file,
-                        Err(e) => {
-                            let mut err_out = if e.starts_with("ENOTSUP:") {
-                                BuiltinOutcome { stdout: String::new(), stderr: format!("{}ENOTSUP: operation not supported, open '{}'\n", self.diag_prefix(), crate::vfs::path::absolute_operand(self.cwd, &target)), exit_code: 1 }
-                            } else { self.redirect_error(&target, &e) };
-                            self.route_outcome(&mut err_out);
-                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                        }
-                    };
-                    let revision = file.as_ref().and_then(|f| f.revision());
-                    let read = match &file {
-                        Some(file) => self.budget.tick_fs_op().and_then(|_| file.read_at(0, self.budget.limits.max_input_bytes.saturating_add(1))),
-                        None if self.is_default_null(&full) => Ok(Vec::new()),
-                        None => self.fs.read_file(&full),
-                    };
-                    let content = match read {
-                        Ok(bytes) => {
-                            if bytes.len() > self.budget.limits.max_input_bytes {
-                                return Ok((
-                                    (saved_fd_table, saved_aliases),
-                                    saved_in,
-                                    local_stdin,
-                                    true,
-                                    None,
-                                    Some(BuiltinOutcome {
-                                        stdout: String::new(),
-                                        stderr: format!("{target}: EFBIG: File too large\n"),
-                                        exit_code: 1,
-                                    }),
-                                ));
-                            }
-                            bytes_to_stream_string(&bytes)
-                        }
-                        Err(e) => {
-                            let mut err_out = self.redirect_error(&target, &e);
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                true,
-                                None,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    let content_len = stream_byte_len(&content);
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.in_fd_aliases.remove(fd);
+                    match description {
+                        Some(file) => self.fd_table.insert(*fd, file),
+                        None => self.fd_table.remove(fd),
+                    };
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
                         dup_fd = None;
-                        self.in_fd_aliases.insert(0, STDIN_STREAM_FD);
+                        if matches!(r.kind, RedirectKind::ReadWrite(_)) { self.in_fd_aliases.insert(0, STDIN_STREAM_FD); }
                     } else {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                         }
                         self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
-                    self.fd_table.insert(
-                        *fd,
-                        FdTarget::ReadWriteFile {
-                            path: full,
-                            owner_fd: *fd,
-                            file,
-                            position: Rc::new(Cell::new(FileInputPosition { remaining: content_len, revision, ..Default::default() })),
-                        },
-                    );
                 }
                 RedirectKind::HereString(fd) => {
                     let val = match self.expand_word_to_string(&r.target) {
@@ -9760,8 +9665,8 @@ impl<'a> EvalState<'a> {
                                 ));
                             }
                             if self.is_fd_readable(src_fd) {
-                                let rw_target = self.fd_table.get(&src_fd)
-                                    .filter(|target| matches!(target, FdTarget::ReadWriteFile { .. })).cloned();
+                                let input_target = self.fd_table.get(&src_fd)
+                                    .filter(|target| matches!(target, FdTarget::InputFile { .. })).cloned();
                                 if move_fd && src_fd != *fd {
                                     self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
                                 }
@@ -9798,7 +9703,7 @@ impl<'a> EvalState<'a> {
                                             self.in_fd_aliases.insert(0, canon);
                                         }
                                     }
-                                    if let Some(rwt) = rw_target {
+                                    if let Some(rwt) = input_target {
                                         self.fd_table.insert(0, rwt);
                                     }
                                 } else {
@@ -9809,7 +9714,7 @@ impl<'a> EvalState<'a> {
                                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                                     self.fd_table.remove(fd);
-                                    if let Some(rwt) = rw_target {
+                                    if let Some(rwt) = input_target {
                                         self.fd_table.insert(*fd, rwt);
                                     }
                                     if src_fd == 0 && use_local && dup_fd.is_none() {
@@ -10203,7 +10108,11 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
-            FdTarget::ReadWriteFile { path, owner_fd, file, position } => {
+            FdTarget::InputFile { writable: false, .. } => {
+                out.stderr.push_str("Bad file descriptor\n");
+                out.exit_code = 1;
+            }
+            FdTarget::InputFile { path, owner_fd, file, position, writable: true } => {
                 if !self.is_default_null(path) {
                     let cur_rem = if *owner_fd == 0 {
                         self.in_fds
@@ -16051,7 +15960,7 @@ hash -l
     }
 
     #[test]
-    fn readwrite_input_reads_new_file_bytes_after_preserving_prefetched_data() {
+    fn file_input_reads_new_file_bytes_after_preserving_prefetched_data() {
         for (script, expected) in [
             ("printf ABCDE >/f; cat <&3", "ABCDE"),
             ("head -c1 <&3; printf XYZ >/f; cat <&3", "aYZ"),
@@ -16061,10 +15970,12 @@ hash -l
             ("mv /f /old; printf WORLD >/f; printf QQQ >>/old; cat <&3", "abcQQQ"),
             ("cat <&3; printf X >>/f; cat <&3", "abcX"),
         ] {
-            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-            fs.write_file("/f", b"abc").unwrap();
-            let r = shell.exec(&format!("exec 3<>/f; {script}")).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+            for redirect in ["3<", "3<>"] {
+                let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+                fs.write_file("/f", b"abc").unwrap();
+                let r = shell.exec(&format!("exec {redirect}/f; {script}")).unwrap();
+                assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{redirect}: {script}");
+            }
         }
     }
 

@@ -114,7 +114,7 @@ impl FsError {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RedirectAccess { Truncate, Append, Exclusive, ReadWrite }
+pub enum RedirectAccess { Read, Truncate, Append, Exclusive, ReadWrite }
 
 /// An opened regular file. Its operations use the same object even if its name is replaced.
 pub trait OpenRedirectFile: std::fmt::Debug {

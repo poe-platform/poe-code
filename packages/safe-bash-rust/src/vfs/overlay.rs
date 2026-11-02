@@ -311,6 +311,19 @@ impl OverlayVfs {
 }
 
 impl SafeBashFs for OverlayVfs {
+    fn open_redirect_file(&self, path: &str, access: super::RedirectAccess, mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
+        use super::RedirectAccess;
+        match access {
+            RedirectAccess::Read => {
+                let (layer, entry) = self.read_source(path)?;
+                layer.open_redirect_file(&entry, access, mode)
+            }
+            RedirectAccess::ReadWrite => Err(format!("ENOTSUP: operation not supported, open '{path}'")),
+            RedirectAccess::Exclusive => { self.create_file(path, &[], mode)?; Ok(None) }
+            _ => Ok(None),
+        }
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let (fs, path) = self.read_source(path)?;
         fs.read_file(&path)

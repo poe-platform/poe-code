@@ -62,7 +62,8 @@ impl<'a> FontTable<'_, 'a> {
             Some(Value::String { bytes, .. }) => super::super::text(&bytes),
             _ => "[none]".into(),
         };
-        let subtype = self.field(&dict, b"Subtype").and_then(|v| v.word());
+        let subtype = self.field(&dict, b"Subtype");
+        let subtype = subtype.as_ref().and_then(Value::word);
         let descendant = if subtype == Some(b"/Type0")
             && let Some(Value::Array(items)) = self.field(&dict, b"DescendantFonts")
         {
@@ -86,8 +87,7 @@ impl<'a> FontTable<'_, 'a> {
                 if descendant
                     .as_ref()
                     .and_then(|d| self.field(d, b"Subtype"))
-                    .and_then(|v| v.word())
-                    == Some(b"/CIDFontType2")
+                    .is_some_and(|v| v.word() == Some(b"/CIDFontType2"))
                 {
                     "CID TrueType"
                 } else {
@@ -122,9 +122,9 @@ impl<'a> FontTable<'_, 'a> {
             }
         } else {
             let enc = match self.field(&dict, b"Encoding") {
-                Some(Value::Word(b"/WinAnsiEncoding")) => "WinAnsi".into(),
-                Some(Value::Word(b"/MacRomanEncoding")) => "MacRoman".into(),
-                Some(Value::Word(b"/StandardEncoding")) => "Standard".into(),
+                Some(Value::Word(w)) if w.as_ref() == b"/WinAnsiEncoding" => "WinAnsi".into(),
+                Some(Value::Word(w)) if w.as_ref() == b"/MacRomanEncoding" => "MacRoman".into(),
+                Some(Value::Word(w)) if w.as_ref() == b"/StandardEncoding" => "Standard".into(),
                 Some(Value::Word(w)) if w.starts_with(b"/") => name(&w[1..]),
                 Some(Value::Dict(_)) => "Custom".into(),
                 _ => "Builtin".into(),
@@ -170,7 +170,7 @@ impl<'a> FontTable<'_, 'a> {
         }
         if let Some(Value::Dict(fonts)) = self.field(&dict, b"Font") {
             for (k, v) in fonts {
-                self.font(name(k), &v, depth)?;
+                self.font(name(&k), &v, depth)?;
             }
         }
         if let Some(Value::Dict(states)) = self.field(&dict, b"ExtGState") {
@@ -179,7 +179,7 @@ impl<'a> FontTable<'_, 'a> {
                     && let Some(Value::Array(a)) = self.field(&s, b"Font")
                     && let Some(f) = a.first()
                 {
-                    self.font(format!("ExtGS_{}", name(k)), f, depth)?;
+                    self.font(format!("ExtGS_{}", name(&k)), f, depth)?;
                 }
             }
         }
@@ -190,8 +190,9 @@ impl<'a> FontTable<'_, 'a> {
                         && self.seen.insert(format!("form:{n}"))
                         && let Some(stream) = self.stream_dict(&v)
                         && (key == b"Pattern"
-                            || self.field(&stream, b"Subtype").and_then(|v| v.word())
-                                == Some(b"/Form"))
+                            || self
+                                .field(&stream, b"Subtype")
+                                .is_some_and(|v| v.word() == Some(b"/Form")))
                     {
                         self.resources(stream.get(b"Resources"), depth + 1)?;
                     }

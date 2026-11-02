@@ -75,7 +75,12 @@ impl<'a> PageSource<'a> {
             .objects
             .xref
             .iter()
-            .map(|(id, (_, order))| (*id, *order))
+            .map(|(id, (loc, order))| {
+                (
+                    *id,
+                    (matches!(loc, super::super::Location::Member { .. }), *order),
+                )
+            })
             .collect::<Vec<_>>()
         {
             let (node, mut cursor) = self.objects.object(id)?;
@@ -136,8 +141,8 @@ impl<'a> PageSource<'a> {
                     return "0".to_owned();
                 };
                 match h.get(i).and_then(|v| self.objects.resolve(v)) {
-                    Some(Value::Word(w)) if w == b"true" || w == b"false" => {
-                        String::from_utf8_lossy(w).into_owned()
+                    Some(Value::Word(w)) if matches!(w.as_ref(), b"true" | b"false") => {
+                        String::from_utf8_lossy(&w).into_owned()
                     }
                     Some(v) => v.number().unwrap_or(0.).to_string(),
                     None => "0".into(),
@@ -219,12 +224,21 @@ impl<'a> PageSource<'a> {
                 Value::Array(_) => "array",
                 Value::String { .. } => "string",
                 Value::Ref(_) => "ref",
-                Value::Word(b"null") => "null",
-                Value::Word(b"true" | b"false") => "boolean",
+                Value::Word(w) if w.as_ref() == b"null" => "null",
+                Value::Word(w) if matches!(w.as_ref(), b"true" | b"false") => "boolean",
                 Value::Word(w) if w.starts_with(b"/") => "name",
                 Value::Word(_) => "number",
             };
-            writeln!(out, "{}/{}: uncompressed; type = {ty}", id.0, id.1).ok()?;
+            if let Some(container) = self.objects.latest_members.get(&id.0) {
+                writeln!(
+                    out,
+                    "{}/0: compressed; stream = {container}; index = undefined; type = {ty}",
+                    id.0
+                )
+                .ok()?;
+            } else {
+                writeln!(out, "{}/{}: uncompressed; type = {ty}", id.0, id.1).ok()?;
+            }
         }
         for &id in &self.pages {
             if !self.objects.xref.contains_key(&id) {
@@ -302,7 +316,7 @@ fn image_lines<'a>(
         match dict.get(b"Subtype").and_then(Value::word) {
             Some(b"/Image") => {
                 out.push_str("    /");
-                name(key, out);
+                name(&key, out);
                 out.push_str(": ");
                 if let Some((n, g)) = reference {
                     write!(out, "{n} {g} R").ok()?;

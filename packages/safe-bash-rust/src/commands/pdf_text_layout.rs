@@ -105,7 +105,7 @@ impl<'a> PageSource<'a> {
                             .get(b"BaseFont")
                             .and_then(Value::word)
                             .and_then(|w| w.strip_prefix(b"/"))
-                            .unwrap_or(key);
+                            .unwrap_or(&key);
                         let start =
                             dict.get(b"FirstChar").and_then(Value::number).unwrap_or(0.) as usize;
                         let widths = match dict.get(b"Widths").and_then(|w| self.objects.resolve(w))
@@ -115,12 +115,13 @@ impl<'a> PageSource<'a> {
                             }
                             _ => vec![],
                         };
-                        names.insert(key, fonts.len());
+                        let index = fonts.len();
                         fonts.push(Font {
                             name: Rc::from(String::from_utf8_lossy(family).as_ref()),
                             start,
                             widths,
                         });
+                        names.insert(key, index);
                     }
                 }
                 break;

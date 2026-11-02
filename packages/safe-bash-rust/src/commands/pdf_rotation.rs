@@ -8,12 +8,15 @@ pub(in super::super) struct Rotation {
 
 impl Rotation {
     pub(super) fn word(self, original: f64) -> super::Value<'static> {
-        super::Value::Word(match self.apply(original) {
-            90 => b"90",
-            180 => b"180",
-            270 => b"270",
-            _ => b"0",
-        })
+        super::Value::Word(
+            (match self.apply(original) {
+                90 => b"90".as_slice(),
+                180 => b"180",
+                270 => b"270",
+                _ => b"0".as_slice(),
+            })
+            .into(),
+        )
     }
 
     pub(in super::super) fn apply(self, original: f64) -> i32 {

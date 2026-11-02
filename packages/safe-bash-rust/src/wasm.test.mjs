@@ -4077,3 +4077,31 @@ test("qpdf decodes LZW phrase references, width changes and row predictors", asy
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf reads and copies pages stored inside compressed PDF object streams", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {pdfinfoCommands}=await import("@poe-platform/safe-bash/commands/pdfinfo");
+  const {pdftotextCommands}=await import("@poe-platform/safe-bash/commands/pdftotext");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("Index 雪");
+  doc.addPage([50,55]).drawText("Alpha",{x:2,y:3});doc.addPage([70,75]).drawText("Beta",{x:4,y:5});
+  const bytes=doc.save({objectStreams:"generate"});
+  const previous=Number(Buffer.from(bytes).toString("latin1").split("startxref").at(-1).split("%%EOF")[0].trim());
+  const revision="12 0 obj\n(latest)\nendobj\n";
+  const increment=revision+"xref\n12 1\n"+String(bytes.length+1).padStart(10,"0")+" 00000 n \ntrailer << /Size 13 /Prev "+
+    previous+" >>\nstartxref\n"+(bytes.length+1+revision.length)+"\n%%EOF";
+  const files={"/obj.pdf":bytes,"/increment.pdf":Buffer.concat([bytes,Buffer.from("\n"+increment)])};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [path,data] of Object.entries(files))await fs.writeFile(path,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})).use(pdftotextCommands({replace:true})).use(pdfinfoCommands({replace:true}));
+  try {
+    const flags=["--show-npages","--show-xref","--show-object=3","--show-pages --with-images","--check","--pages . 2,1 -- -","-"];
+    for(const script of [...flags.map(flag=>"qpdf obj.pdf "+flag),"qpdf increment.pdf --show-xref","pdftotext obj.pdf -","pdffonts obj.pdf","pdfinfo obj.pdf"]) {
+      const want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,0,want.stderr);
+      if(script.endsWith("--show-npages"))assert.equal(want.stdout,"2\n");
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+    }
+  } finally {wasm.dispose();}
+});

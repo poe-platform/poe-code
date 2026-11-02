@@ -33,18 +33,35 @@ mod pdf_filters;
 #[path = "pdf_string.rs"]
 mod pdf_string;
 
+use std::borrow::Cow;
+type Dict<'a> = Vec<(Cow<'a, [u8]>, Value<'a>)>;
+
 type ObjectId = (usize, usize);
 
 #[derive(Clone)]
 enum Value<'a> {
-    Word(&'a [u8]),
+    Word(Cow<'a, [u8]>),
     String { bytes: Vec<u8>, hex: bool },
     Ref(ObjectId),
     Array(Vec<Value<'a>>),
-    Dict(Vec<(&'a [u8], Value<'a>)>),
+    Dict(Dict<'a>),
 }
 
 impl<'a> Value<'a> {
+    fn into_owned(self) -> Value<'static> {
+        match self {
+            Self::Word(w) => Value::Word(Cow::Owned(w.into_owned())),
+            Self::String { bytes, hex } => Value::String { bytes, hex },
+            Self::Ref(r) => Value::Ref(r),
+            Self::Array(a) => Value::Array(a.into_iter().map(Value::into_owned).collect()),
+            Self::Dict(d) => Value::Dict(
+                d.into_iter()
+                    .map(|(k, v)| (Cow::Owned(k.into_owned()), v.into_owned()))
+                    .collect(),
+            ),
+        }
+    }
+
     fn get(&self, key: &[u8]) -> Option<&Self> {
         match self {
             Self::Dict(d) => d.iter().rev().find(|(k, _)| *k == key).map(|(_, v)| v),
@@ -54,17 +71,17 @@ impl<'a> Value<'a> {
     fn set_stream_length(&mut self, length: &'a [u8]) -> Option<()> {
         let Self::Dict(entries) = self else { return None };
         let mut found = false;
-        for (_, value) in entries.iter_mut().filter(|(k, _)| *k == b"Length") {
-            *value = Self::Word(length);
+        for (_, value) in entries.iter_mut().filter(|(k, _)| k.as_ref() == b"Length") {
+            *value = Self::Word(length.into());
             found = true;
         }
         if !found {
-            entries.push((b"Length", Self::Word(length)));
+            entries.push((b"Length".into(), Self::Word(length.into())));
         }
         Some(())
     }
 
-    fn word(&self) -> Option<&'a [u8]> {
+    fn word(&self) -> Option<&[u8]> {
         match self {
             Self::Word(w) => Some(w),
             _ => None,
@@ -171,7 +188,7 @@ impl<'a> Cursor<'a> {
                     return Some(Value::Dict(dict));
                 }
                 let key = self.word()?.strip_prefix(b"/")?;
-                dict.push((key, self.value(depth + 1, tokens, preserve_hex)?));
+                dict.push((key.into(), self.value(depth + 1, tokens, preserve_hex)?));
             }
         }
         if self.eat(b"[") {
@@ -265,7 +282,7 @@ impl<'a> Cursor<'a> {
                 return Some(Value::Ref((id, generation)));
             }
         }
-        Some(Value::Word(word))
+        Some(Value::Word(word.into()))
     }
 }
 
@@ -368,17 +385,109 @@ fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
     }
 }
 
+#[derive(Clone, Copy)]
+enum Location {
+    File(usize),
+    Member { container: usize, ordinal: usize },
+}
+
+struct ObjectStream<'a> {
+    bytes: Cow<'a, [u8]>,
+    members: Vec<(usize, usize)>, // object number and decoded byte offset
+}
+
 struct Objects<'a> {
     bytes: &'a [u8],
-    xref: BTreeMap<ObjectId, (usize, usize)>, // byte offset and newest-revision traversal order
+    xref: BTreeMap<ObjectId, (Location, usize)>, // location and newest-revision traversal order
+    latest_members: BTreeMap<usize, usize>,
+    streams: BTreeMap<usize, ObjectStream<'a>>,
+    loading: BTreeSet<usize>,
     tokens: usize,
     remaining_bytes: usize,
     preserve_hex: bool,
 }
 
 impl<'a> Objects<'a> {
+    fn new(bytes: &'a [u8]) -> Self {
+        Self {
+            bytes,
+            xref: BTreeMap::new(),
+            latest_members: BTreeMap::new(),
+            streams: BTreeMap::new(),
+            loading: BTreeSet::new(),
+            tokens: 1_000_000,
+            remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
+            preserve_hex: false,
+        }
+    }
+
+    fn object_stream(&mut self, number: usize) -> Option<ObjectStream<'a>> {
+        let (&id, _) = self.xref.range((number, 0)..=(number, usize::MAX)).next()?;
+        let Location::File(_) = self.xref[&id].0 else {
+            return None;
+        };
+        let (dict, c) = self.object(id)?;
+        if dict.get(b"Type")?.word()? != b"/ObjStm" {
+            return None;
+        }
+        let count = uint(dict.get(b"N")?.word()?)?;
+        let first = uint(dict.get(b"First")?.word()?)?;
+        self.tokens = self.tokens.checked_sub(count)?;
+        self.remaining_bytes = self
+            .remaining_bytes
+            .checked_sub(count.checked_mul(std::mem::size_of::<(usize, usize)>())?)?;
+        let encoded = self.stream(&dict, c)?;
+        let bytes = self.decode(&dict, encoded)?;
+        let mut header = Cursor(bytes.get(..first)?);
+        let mut members = Vec::with_capacity(count);
+        for _ in 0..count {
+            let number = uint(header.word()?)?;
+            let offset = first.checked_add(uint(header.word()?)?)?;
+            if number == 0
+                || offset >= bytes.len()
+                || members.last().is_some_and(|&(_, pos)| pos >= offset)
+            {
+                return None;
+            }
+            members.push((number, offset));
+        }
+        header.skip();
+        if !header.0.is_empty() {
+            return None;
+        }
+        Some(ObjectStream { bytes, members })
+    }
+
     fn object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
-        let mut c = Cursor(self.bytes.get(self.xref.get(&id)?.0..)?);
+        let offset = match self.xref.get(&id)?.0 {
+            Location::File(pos) => pos,
+            Location::Member { container, ordinal } => {
+                if !self.streams.contains_key(&container) {
+                    if self.loading.len() >= 64 || !self.loading.insert(container) {
+                        return None;
+                    }
+                    let stream = self.object_stream(container);
+                    self.loading.remove(&container);
+                    self.streams.insert(container, stream?);
+                }
+                let stream = self.streams.get(&container)?;
+                let &(number, start) = stream.members.get(ordinal)?;
+                if number != id.0 {
+                    return None;
+                }
+                let end = stream
+                    .members
+                    .get(ordinal + 1)
+                    .map_or(stream.bytes.len(), |r| r.1);
+                let bytes = stream.bytes.get(start..end)?;
+                self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
+                let value = Cursor(bytes)
+                    .value(0, &mut self.tokens, self.preserve_hex)?
+                    .into_owned();
+                return Some((value, Cursor(b"endobj")));
+            }
+        };
+        let mut c = Cursor(self.bytes.get(offset..)?);
         if (uint(c.word()?)?, uint(c.word()?)?) != id || c.word()? != b"obj" {
             return None;
         }
@@ -441,7 +550,7 @@ impl<'a> Objects<'a> {
                     if let Value::String { bytes: prefix, .. } = &v {
                         self.remaining_bytes = self.remaining_bytes.checked_sub(prefix.len())?;
                     }
-                    fields.push((k, v));
+                    fields.push((k.into(), v));
                 }
             }
             labels.push((index, Value::Dict(fields)));
@@ -487,7 +596,7 @@ impl<'a> Objects<'a> {
     fn xref_revision(
         &mut self,
         offset: usize,
-        record: &mut impl FnMut(usize, Option<(usize, usize)>),
+        record: &mut impl FnMut(usize, Option<(usize, Location)>),
     ) -> Option<Value<'a>> {
         let mut c = Cursor(self.bytes.get(offset..)?);
         let head = c.word()?;
@@ -504,7 +613,10 @@ impl<'a> Objects<'a> {
                     let pos = uint(c.word()?)?;
                     let generation = uint(c.word()?)?;
                     let flag = c.word()?;
-                    record(id, (flag == b"n").then_some((generation, pos)));
+                    record(
+                        id,
+                        (flag == b"n").then_some((generation, Location::File(pos))),
+                    );
                 }
             }
             return c.value(0, &mut self.tokens, false);
@@ -552,7 +664,17 @@ impl<'a> Objects<'a> {
                 let generation = field(d)?;
                 match ty {
                     0 => record(id, None),
-                    1 => record(id, Some((generation, pos))),
+                    1 => record(id, Some((generation, Location::File(pos)))),
+                    2 => record(
+                        id,
+                        Some((
+                            0,
+                            Location::Member {
+                                container: pos,
+                                ordinal: generation,
+                            },
+                        )),
+                    ),
                     _ => return None,
                 }
             }
@@ -573,13 +695,8 @@ fn last_xref(bytes: &[u8]) -> Option<usize> {
 
 fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
     let mut offset = last_xref(bytes)?;
-    let mut objects = Objects {
-        bytes,
-        xref: BTreeMap::new(),
-        tokens: 1_000_000,
-        preserve_hex: false,
-        remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
-    };
+    let mut objects = Objects::new(bytes);
+    let mut latest_members = BTreeMap::new();
     // Keep the first traversal position for inspection, but the last row
     // in that revision determines the object's generation, offset or deletion.
     let mut rows = BTreeMap::new();
@@ -594,7 +711,16 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
                 row.2 = location;
             }
         };
-        let trailer = objects.xref_revision(offset, &mut record)?;
+        let trailer = objects.xref_revision(offset, &mut |id, location| {
+            if revisions.len() == 1 {
+                if let Some((_, Location::Member { container, .. })) = location {
+                    latest_members.insert(id, container);
+                } else {
+                    latest_members.remove(&id);
+                }
+            }
+            record(id, location)
+        })?;
         let hybrid = trailer.get(b"XRefStm").map(|v| uint(v.word()?));
         let supplement = match hybrid {
             Some(Some(p)) if p != offset => Some(objects.xref_revision(p, &mut record)?),
@@ -610,7 +736,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
                 return None;
             };
             for (key, value) in entries {
-                if matches!(key, b"Root" | b"Info" | b"ID" | b"Size")
+                if matches!(key.as_ref(), b"Root" | b"Info" | b"ID" | b"Size")
                     && !latest.iter().any(|(k, _)| *k == key)
                 {
                     latest.push((key, value));
@@ -623,6 +749,7 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             _ => return None,
         }
     }
+    objects.latest_members = latest_members;
     objects.xref = rows
         .into_iter()
         .filter_map(|(id, (_, order, location))| {
@@ -656,13 +783,13 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
         for (k, v) in info {
             if let Value::String { bytes: b, .. } = v {
                 let value = pdf_string::decode(&b);
-                match k {
+                match k.as_ref() {
                     b"Title" => doc.title.clone_from(&value),
                     b"Author" => doc.author.clone_from(&value),
                     _ => {}
                 }
                 doc.info
-                    .push((std::str::from_utf8(k).ok()?.to_string(), value));
+                    .push((std::str::from_utf8(&k).ok()?.to_string(), value));
             }
         }
     }
@@ -775,12 +902,44 @@ mod tests {
         let bytes = b"stream\nx\rendstream junk endstream % comment\r\n endobj";
         let dict = Value::Dict(vec![]);
         let mut objects = Objects {
-            bytes, xref: BTreeMap::new(), tokens: 100, preserve_hex: false, remaining_bytes: 15,
+            tokens: 100,
+            remaining_bytes: 15,
+            ..Objects::new(bytes)
         };
         assert!(objects.stream(&dict, Cursor(bytes)).is_none());
         objects.remaining_bytes = bytes.len();
         assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
         assert_eq!(objects.stream(&dict, Cursor(b"stream\r\nx\rendstream junk")), Some(b"x".as_slice()));
+    }
+
+    #[test]
+    fn compressed_object_must_match_its_header_row_and_stay_within_its_span() {
+        for (header, payload, number, ordinal) in [
+            ("1 0 2 2 ", "42/Yes", 2, 0),
+            ("1 0 2 2 ", "42/Yes", 2, 2),
+            ("1 0 2 0 ", "42/Yes", 1, 0),
+            ("1 0 2 2 extra ", "42/Yes", 1, 0),
+            ("1 0 2 2 ", "[1] true", 1, 0),
+        ] {
+            let body = format!(
+                "7 0 obj << /Type /ObjStm /N 2 /First {} /Length {} >> stream\n{header}{payload}\nendstream",
+                header.len(),
+                header.len() + payload.len()
+            );
+            let mut objects = Objects::new(body.as_bytes());
+            objects.xref.insert((7, 0), (Location::File(0), 0));
+            objects.xref.insert(
+                (number, 0),
+                (
+                    Location::Member {
+                        container: 7,
+                        ordinal,
+                    },
+                    1,
+                ),
+            );
+            assert!(objects.object((number, 0)).is_none());
+        }
     }
 
     #[test]
@@ -797,11 +956,9 @@ mod tests {
             );
             let bytes = [head.as_bytes(), data, b"\nendstream endobj"].concat();
             let mut objects = Objects {
-                bytes: &bytes,
-                xref: BTreeMap::new(),
                 tokens: 1000,
                 remaining_bytes: 2048,
-                preserve_hex: false,
+                ..Objects::new(&bytes)
             };
             assert!(objects.xref_revision(0, &mut |_, _| {}).is_none());
         }

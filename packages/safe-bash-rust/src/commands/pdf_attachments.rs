@@ -17,7 +17,7 @@ pub(in super::super) struct AddAttachment {
 
 const INVALID: &str = "invalid PDF attachment tree";
 const TOO_LARGE: &str = "PDF output byte limit exceeded";
-type Dict<'a> = Vec<(&'a [u8], Value<'a>)>;
+use super::Dict;
 
 fn child<'a>(
     objects: &mut Objects<'a>,
@@ -100,7 +100,7 @@ pub(super) fn edit<'a>(
     let mut pairs = Vec::new();
     let root_count = match tree
         .iter()
-        .find(|(k, _)| *k == b"Names")
+        .find(|(k, _)| k.as_ref() == b"Names")
         .and_then(|(_, v)| objects.resolve(v))
     {
         Some(Value::Array(v)) => v.len() / 2,
@@ -141,19 +141,19 @@ pub(super) fn edit<'a>(
             let spec = stream + 1;
             let name = string(filename);
             let mut dict: Dict = vec![
-                (b"Type", Value::Word(b"/Filespec")),
-                (b"F", name.clone()),
-                (b"UF", name),
+                (b"Type".into(), Value::Word(b"/Filespec".as_slice().into())),
+                (b"F".into(), name.clone()),
+                (b"UF".into(), name),
                 (
-                    b"EF",
+                    b"EF".into(),
                     Value::Dict(vec![
-                        (b"F", Value::Ref((stream, 0))),
-                        (b"UF", Value::Ref((stream, 0))),
+                        (b"F".into(), Value::Ref((stream, 0))),
+                        (b"UF".into(), Value::Ref((stream, 0))),
                     ]),
                 ),
             ];
             if !description.is_empty() {
-                dict.push((b"Desc", string(description)));
+                dict.push((b"Desc".into(), string(description)));
             }
             store_child(&mut changed, Some((spec, 0)), dict)
         };
@@ -208,7 +208,7 @@ pub(super) fn edit<'a>(
     }
     if flatten || copied {
         if flatten {
-            tree.retain(|(k, _)| *k != b"Kids");
+            tree.retain(|(k, _)| k.as_ref() != b"Kids");
         }
         set(
             &mut tree,

@@ -35,13 +35,13 @@ pub(in super::super) fn edit_info(
             return Err(invalid.into());
         };
         for (k, v) in entries {
-            let key = match k {
+            let key = match k.as_ref() {
                 b"CreationDate" => "CreateDate",
                 b"ModDate" => "ModifyDate",
-                _ => std::str::from_utf8(k).unwrap_or(""),
+                _ => std::str::from_utf8(&k).unwrap_or(""),
             };
             if let Value::String { bytes: value, .. } = v
-                && INFO_TAGS.contains(&key)
+                && let Some(&key) = INFO_TAGS.iter().find(|&&tag| tag == key)
                 && !info.iter().any(|(k, _)| *k == key)
             {
                 info.push((key, decode(&value)));

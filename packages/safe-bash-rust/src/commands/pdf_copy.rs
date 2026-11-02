@@ -79,10 +79,8 @@ impl<'a> Objects<'a> {
                 },
                 None => kid,
             };
-            let kind = node
-                .get(b"Type")
-                .and_then(|v| self.resolve(v))
-                .and_then(|v| v.word());
+            let kind = node.get(b"Type").and_then(|v| self.resolve(v));
+            let kind = kind.as_ref().and_then(Value::word);
             let kids = node.get(b"Kids").and_then(|v| self.resolve(v));
             if kind == Some(b"/Pages") || matches!(kids, Some(Value::Array(_))) {
                 if let Some(Value::Array(kids)) = kids {
@@ -97,7 +95,7 @@ impl<'a> Objects<'a> {
                 };
                 fields.retain(|(key, _)| {
                     matches!(
-                        *key,
+                        key.as_ref(),
                         b"Parent"
                             | b"MediaBox"
                             | b"Resources"
@@ -156,12 +154,12 @@ impl<'a> PageSource<'a> {
                 && !s.is_empty()
             {
                 info.push((
-                    key,
+                    key.into(),
                     super::pdf_string::encode(&super::pdf_string::decode(&s)),
                 ));
             } else if key == b"Producer" {
                 info.push((
-                    key,
+                    key.into(),
                     Value::String {
                         bytes: b"@poe-code/pdf-ast".to_vec(),
                         hex: false,
@@ -500,12 +498,12 @@ impl PageOutput {
 
     fn set_info(&mut self, source: &PageSource<'_>, keys: &[&'static [u8]]) -> Option<()> {
         let mut info = vec![(
-            b"Producer".as_slice(),
+            b"Producer".into(),
             super::pdf_string::encode("@poe-code/pdf-ast"),
         )];
         for &key in keys {
             if let Some(value) = source.info.get(key) {
-                info.push((key, value.clone()));
+                info.push((key.into(), value.clone()));
             }
         }
         super::pdf_rewrite::encode(&Value::Dict(info), &mut self.bodies[2]).ok()?;
@@ -817,7 +815,7 @@ impl<'a> Copy<'_, 'a> {
         let Value::Dict(mut entries) = page else {
             return None;
         };
-        entries.retain(|(k, _)| *k != b"Parent");
+        entries.retain(|(k, _)| k.as_ref() != b"Parent");
         let mut inherited = BTreeMap::new();
         let mut seen = BTreeSet::new();
         while let Some(id) = parent {
@@ -830,12 +828,12 @@ impl<'a> Copy<'_, 'a> {
                 return None;
             };
             for (k, v) in fields {
-                inherited.entry(*k).or_insert(v);
+                inherited.entry(k.as_ref()).or_insert(v);
             }
         }
         let angle = entries
             .iter()
-            .find(|(k, _)| *k == b"Rotate")
+            .find(|(k, _)| k.as_ref() == b"Rotate")
             .map(|(_, v)| v)
             .or_else(|| inherited.get(b"Rotate".as_slice()).copied())
             .and_then(|v| self.objects.resolve(v))
@@ -863,20 +861,20 @@ impl<'a> Copy<'_, 'a> {
         let media = rectangle(
             entries
                 .iter()
-                .find(|(k, _)| *k == b"MediaBox")
+                .find(|(k, _)| k.as_ref() == b"MediaBox")
                 .map(|(_, v)| v)
                 .or_else(|| inherited.get(b"MediaBox".as_slice()).copied()),
         )
         .unwrap_or_else(|| {
             Value::Array(
                 [b"0".as_slice(), b"0", b"612", b"792"]
-                    .map(Value::Word)
+                    .map(|w| Value::Word(w.into()))
                     .into(),
             )
         });
         let [x, y, right, top] = media.rectangle()?;
-        if !entries.iter().any(|(k, _)| *k == b"MediaBox") {
-            entries.push((b"MediaBox", media.clone()));
+        if !entries.iter().any(|(k, _)| k.as_ref() == b"MediaBox") {
+            entries.push((b"MediaBox".into(), media.clone()));
         }
         let mut boxes = vec![];
         for key in [b"CropBox".as_slice(), b"BleedBox", b"TrimBox", b"ArtBox"] {
@@ -885,10 +883,10 @@ impl<'a> Copy<'_, 'a> {
             }
             let rect = rectangle(inherited.get(key).copied()).unwrap_or_else(|| media.clone());
             if rect.rectangle()? != [0., 0., (right - x).abs(), (top - y).abs()] {
-                boxes.push((key, rect));
+                boxes.push((key.into(), rect));
             }
         }
-        if !entries.iter().any(|(k, _)| *k == b"Resources") {
+        if !entries.iter().any(|(k, _)| k.as_ref() == b"Resources") {
             let mut fields = match inherited
                 .get(b"Resources".as_slice())
                 .and_then(|v| self.objects.resolve(v))
@@ -906,25 +904,28 @@ impl<'a> Copy<'_, 'a> {
             } else {
                 entries.len()
             };
-            entries.insert(position, (b"Resources", Value::Dict(fields)));
+            entries.insert(position, (b"Resources".into(), Value::Dict(fields)));
         }
-        if !entries.iter().any(|(k, _)| *k == b"Rotate") {
+        if !entries.iter().any(|(k, _)| k.as_ref() == b"Rotate") {
             let angle = angle.rem_euclid(360.);
             if matches!(angle, 90. | 180. | 270.) {
                 entries.push((
-                    b"Rotate",
-                    Value::Word(if angle == 90. {
-                        b"90"
-                    } else if angle == 180. {
-                        b"180"
-                    } else {
-                        b"270"
-                    }),
+                    b"Rotate".into(),
+                    Value::Word(
+                        (if angle == 90. {
+                            b"90"
+                        } else if angle == 180. {
+                            b"180"
+                        } else {
+                            b"270".as_slice()
+                        })
+                        .into(),
+                    ),
                 ));
             }
         }
         entries.extend(boxes);
-        entries.push((b"Parent", Value::Word(b"2 0 R")));
+        entries.push((b"Parent".into(), Value::Word(b"2 0 R".as_slice().into())));
         Some(Value::Dict(entries))
     }
 
@@ -945,7 +946,8 @@ impl<'a> Copy<'_, 'a> {
                     let stream = self.objects.stream(&v, cursor)?;
                     let length = stream.len().to_string();
                     // Clone references in source order, including an indirect /Length.
-                    if matches!(&v, Value::Dict(entries) if entries.iter().any(|(k, v)| *k == b"Length" && matches!(v, Value::Ref(_) | Value::Dict(_) | Value::Array(_)))) {
+                    if matches!(&v, Value::Dict(entries) if entries.iter().any(|(k, v)| k.as_ref() == b"Length" && matches!(v, Value::Ref(_) | Value::Dict(_) | Value::Array(_))))
+                    {
                         self.value(&v, &mut body, depth + 1)?;
                         body.clear();
                     }

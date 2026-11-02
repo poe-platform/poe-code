@@ -11,12 +11,12 @@ use std::{
 };
 const INVALID: &str = "invalid PDF object graph";
 const TOO_LARGE: &str = "PDF output byte limit exceeded";
-type Dict<'a> = Vec<(&'a [u8], Value<'a>)>;
+use super::Dict;
 pub(super) fn set<'a>(dict: &mut Dict<'a>, key: &'static [u8], value: Value<'a>) {
     if let Some((_, old)) = dict.iter_mut().find(|(k, _)| *k == key) {
         *old = value;
     } else {
-        dict.push((key, value));
+        dict.push((key.into(), value));
     }
 }
 
@@ -74,7 +74,7 @@ pub(in super::super) fn rewrite(
     let Value::Dict(entries) = &mut catalog else {
         return Err(INVALID.into());
     };
-    entries.retain(|(key, _)| !match *key {
+    entries.retain(|(key, _)| !match key.as_ref() {
         b"Metadata" => edits.info || edits.metadata,
         b"StructTreeRoot" | b"MarkInfo" => edits.structure,
         b"AcroForm" => edits.acroform,
@@ -109,7 +109,7 @@ pub(in super::super) fn rewrite(
     {
         cursor.skip();
         if !cursor.0.starts_with(b"stream") {
-            entries.retain(|(key, _)| *key == b"ModDate");
+            entries.retain(|(key, _)| key.as_ref() == b"ModDate");
             if entries.is_empty() {
                 info = None;
             }
@@ -183,7 +183,11 @@ pub(in super::super) fn rewrite(
             b"Kids",
             Value::Array(pages.into_iter().map(Value::Ref).collect()),
         );
-        set(&mut page_node, b"Count", Value::Word(count.as_bytes()));
+        set(
+            &mut page_node,
+            b"Count",
+            Value::Word(count.as_bytes().into()),
+        );
         store(page_root, &Value::Dict(page_node))?;
     }
     store(root, &catalog)?;

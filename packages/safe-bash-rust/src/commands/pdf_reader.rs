@@ -478,6 +478,10 @@ impl<'a> Objects<'a> {
     fn decoded_stream(&mut self, id: ObjectId) -> Option<std::borrow::Cow<'a, [u8]>> {
         let (dict, c) = self.object(id)?;
         let stream = self.stream(&dict, c)?;
+        self.decode(&dict, stream)
+    }
+
+    fn decode(&mut self, dict: &Value<'_>, stream: &'a [u8]) -> Option<std::borrow::Cow<'a, [u8]>> {
         let bytes = match dict.get(b"Filter") {
             None => std::borrow::Cow::Borrowed(stream),
             Some(f) if f.word() == Some(b"/FlateDecode") => {
@@ -486,16 +490,96 @@ impl<'a> Objects<'a> {
                 if cmf & 15 != 8 || flags & 32 != 0 || u16::from_be_bytes([cmf, flags]) % 31 != 0 {
                     return None;
                 }
-                std::borrow::Cow::Owned(
+                let (decoded, consumed) =
                     crate::commands::codecs::inflate_raw_bounded(payload, self.remaining_bytes)
-                        .ok()?
-                        .0,
-                )
+                        .ok()?;
+                if payload.get(consumed..consumed + 4)?
+                    != crate::commands::codecs::adler32(&decoded).to_be_bytes()
+                {
+                    return None;
+                }
+                std::borrow::Cow::Owned(decoded)
             }
             _ => return None,
         };
         self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
         Some(bytes)
+    }
+
+    fn xref_revision(
+        &mut self,
+        offset: usize,
+        record: &mut impl FnMut(usize, Option<(usize, usize)>),
+    ) -> Option<Value<'a>> {
+        let mut c = Cursor(self.bytes.get(offset..)?);
+        let head = c.word()?;
+        if head == b"xref" {
+            loop {
+                let first = c.word()?;
+                if first == b"trailer" {
+                    break;
+                }
+                let first = uint(first)?;
+                let count = uint(c.word()?)?;
+                self.tokens = self.tokens.checked_sub(count)?;
+                for id in first..first.checked_add(count)? {
+                    let pos = uint(c.word()?)?;
+                    let generation = uint(c.word()?)?;
+                    let flag = c.word()?;
+                    record(id, (flag == b"n").then_some((generation, pos)));
+                }
+            }
+            return c.value(0, &mut self.tokens, false);
+        }
+        uint(head)?;
+        uint(c.word()?)?;
+        if c.word()? != b"obj" {
+            return None;
+        }
+        let dict = c.value(0, &mut self.tokens, false)?;
+        let Value::Array(widths) = dict.get(b"W")? else {
+            return None;
+        };
+        let [a, b, d] = widths.as_slice() else {
+            return None;
+        };
+        let (a, b, d) = (uint(a.word()?)?, uint(b.word()?)?, uint(d.word()?)?);
+        let width = a.checked_add(b)?.checked_add(d)?;
+        if width == 0 {
+            return None;
+        }
+        let size = uint(dict.get(b"Size")?.word()?)?;
+        let ranges = match dict.get(b"Index") {
+            None => vec![(0, size)],
+            Some(Value::Array(v)) if v.len() % 2 == 0 => v
+                .chunks_exact(2)
+                .map(|p| Some((uint(p[0].word()?)?, uint(p[1].word()?)?)))
+                .collect::<Option<Vec<_>>>()?,
+            _ => return None,
+        };
+        let stream = self.stream(&dict, c)?;
+        let data = self.decode(&dict, stream)?;
+        let mut bytes = data.as_ref();
+        let mut field = |n| {
+            let (head, tail) = bytes.split_at_checked(n)?;
+            bytes = tail;
+            head.iter()
+                .try_fold(0usize, |v, &b| v.checked_mul(256)?.checked_add(b.into()))
+        };
+        for (first, count) in ranges {
+            self.tokens = self.tokens.checked_sub(count)?;
+            for id in first..first.checked_add(count)? {
+                let ty = if a == 0 { 1 } else { field(a)? };
+                let pos = field(b)?;
+                let generation = field(d)?;
+                match ty {
+                    0 => record(id, None),
+                    1 => record(id, Some((generation, pos))),
+                    _ => return None,
+                }
+            }
+        }
+        Some(dict)
     }
 
     fn stream_text(&mut self, id: ObjectId) -> Option<String> {
@@ -525,47 +609,34 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
     let mut latest = Vec::new();
     while revisions.insert(offset) {
         objects.tokens = objects.tokens.checked_sub(1)?;
-        let mut c = Cursor(bytes.get(offset..)?);
-        if c.word()? != b"xref" {
-            return None;
-        }
-        loop {
-            let first = c.word()?;
-            if first == b"trailer" {
-                break;
+        let mut record = |id, location| {
+            let order = rows.len();
+            let row = rows.entry(id).or_insert((offset, order, location));
+            if row.0 == offset {
+                row.2 = location;
             }
-            let first = uint(first)?;
-            let count = uint(c.word()?)?;
-            objects.tokens = objects.tokens.checked_sub(count)?;
-            for id in first..first.checked_add(count)? {
-                let pos = uint(c.word()?)?;
-                let generation = uint(c.word()?)?;
-                let location = match c.word()? {
-                    b"n" => Some((generation, pos)),
-                    b"f" => None,
-                    _ => return None,
-                };
-                let order = rows.len();
-                let row = rows.entry(id).or_insert((offset, order, location));
-                if row.0 == offset {
-                    row.2 = location;
-                }
-            }
-        }
-        let trailer = c.value(0, &mut objects.tokens, false)?;
-        if trailer.get(b"Encrypt").is_some() || trailer.get(b"XRefStm").is_some() {
-            return None;
-        }
-        let prev = trailer.get(b"Prev").map(|v| uint(v.word()?));
-        let Value::Dict(entries) = trailer else {
-            return None;
         };
-        // Only these inherited entries are needed by readers.
-        for (key, value) in entries {
-            if matches!(key, b"Root" | b"Info" | b"ID" | b"Size")
-                && !latest.iter().any(|(k, _)| *k == key)
-            {
-                latest.push((key, value));
+        let trailer = objects.xref_revision(offset, &mut record)?;
+        let hybrid = trailer.get(b"XRefStm").map(|v| uint(v.word()?));
+        let supplement = match hybrid {
+            Some(Some(p)) if p != offset => Some(objects.xref_revision(p, &mut record)?),
+            Some(None) => return None,
+            _ => None,
+        };
+        let prev = trailer.get(b"Prev").map(|v| uint(v.word()?));
+        for trailer in std::iter::once(trailer).chain(supplement) {
+            if trailer.get(b"Encrypt").is_some() {
+                return None;
+            }
+            let Value::Dict(entries) = trailer else {
+                return None;
+            };
+            for (key, value) in entries {
+                if matches!(key, b"Root" | b"Info" | b"ID" | b"Size")
+                    && !latest.iter().any(|(k, _)| *k == key)
+                {
+                    latest.push((key, value));
+                }
             }
         }
         match prev {
@@ -574,9 +645,12 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             _ => return None,
         }
     }
-    objects.xref = rows.into_iter().filter_map(|(id, (_, order, location))| {
-        location.map(|(generation, pos)| ((id, generation), (pos, order)))
-    }).collect();
+    objects.xref = rows
+        .into_iter()
+        .filter_map(|(id, (_, order, location))| {
+            location.map(|(generation, pos)| ((id, generation), (pos, order)))
+        })
+        .collect();
     Some((objects, Value::Dict(latest)))
 }
 
@@ -729,6 +803,30 @@ mod tests {
         objects.remaining_bytes = bytes.len();
         assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
         assert_eq!(objects.stream(&dict, Cursor(b"stream\r\nx\rendstream junk")), Some(b"x".as_slice()));
+    }
+
+    #[test]
+    fn binary_xref_rejects_truncated_or_oversized_rows() {
+        for (w, size, data) in [
+            ("1 1 0", 2, &[1, 7, 1][..]),
+            ("0 0 0", 2, &[]),
+            ("0 1 0", 2_000_000, &[1]),
+            ("1 0 0", 1, &[3]),
+        ] {
+            let head = format!(
+                "1 0 obj << /Size {size} /W [{w}] /Length {} >> stream\n",
+                data.len()
+            );
+            let bytes = [head.as_bytes(), data, b"\nendstream endobj"].concat();
+            let mut objects = Objects {
+                bytes: &bytes,
+                xref: BTreeMap::new(),
+                tokens: 1000,
+                remaining_bytes: 2048,
+                preserve_hex: false,
+            };
+            assert!(objects.xref_revision(0, &mut |_, _| {}).is_none());
+        }
     }
 
     #[test]

@@ -3930,3 +3930,43 @@ test("qpdf reads the last row of overlapping xref subsections and stops at a vis
     }
   } finally {wasm.dispose();}
 });
+test("qpdf inspects and copies pages indexed by binary cross-reference streams", async () => {
+  const {deflateSync}=await import("node:zlib");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const files={};
+  for(const compressed of [false,true]) {
+    let body="%PDF-1.7\n";
+    const offsets=[];
+    for(const v of ["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+      "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 10 20] >>"]) {
+      offsets.push(body.length);
+      body+=offsets.length+" 0 obj\n"+v+"\nendobj\n";
+    }
+    const at=body.length;
+    offsets.push(at);
+    const rows=compressed?[0,0,0,255,...offsets.flatMap(n=>[1,n>>8,n&255,0])]:offsets.flatMap(n=>[n>>8,n&255]);
+    const bytes=compressed?deflateSync(Buffer.from(rows)):Buffer.from(rows);
+    body+="4 0 obj\n<< /Type /XRef /Size 5 /Root 1 0 R /W "+
+      (compressed?"[1 2 1] /Filter /FlateDecode":"[0 2 0] /Index [1 2 3 2]")+
+      " /Length "+bytes.length+" >>\nstream\n"+bytes.toString("latin1")+"\nendstream\nendobj\n";
+    if(compressed) {
+      const table=body.length;
+      files["/hybrid.pdf"]=Buffer.from(body+"xref\n1 4\n"+"0000000000 00001 f \n".repeat(4)+
+        "trailer << /Size 5 /Root 1 0 R /XRefStm "+at+" >>\nstartxref\n"+table+"\n%%EOF","latin1");
+    }
+    files[compressed?"/compressed.pdf":"/sparse.pdf"]=Buffer.from(body+"startxref\n"+at+"\n%%EOF","latin1");
+  }
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [path,data] of Object.entries(files)) {
+      await fs.writeFile(path,data);
+      for(const flags of ["--check","--show-xref","--show-object=4 --raw-stream-data","--show-pages","--pages . 1 -- -","-"]) {
+        const script="qpdf "+path+" "+flags,want=await js.exec(script),got=await wasm.exec(script);
+        assert.equal(want.exitCode,0,want.stderr);
+        assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+      }
+    }
+  } finally {wasm.dispose();}
+});

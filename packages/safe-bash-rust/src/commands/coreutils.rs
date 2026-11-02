@@ -1,3 +1,4 @@
+mod sort_keys;
 mod sort_record;
 mod sort_runs;
 use sort_record::Record as SortRecord;
@@ -1478,369 +1479,6 @@ pub(crate) fn parse_leading_f64(s: &str) -> f64 {
 }
 
 #[derive(Clone, Debug)]
-struct SortNumericValue {
-    whole: Vec<u8>,
-    fraction: Vec<u8>,
-    negative: bool,
-    suffix_rank: usize,
-}
-
-fn parse_sort_numeric(bytes: &[u8], human: bool) -> SortNumericValue {
-    let len = bytes.len();
-    let mut i = 0usize;
-    while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
-        i += 1;
-    }
-    let mut neg = false;
-    if i < len && bytes[i] == b'-' {
-        neg = true;
-        i += 1;
-    }
-    let mut whole_start = i;
-    while whole_start < len && bytes[whole_start] == b'0' {
-        whole_start += 1;
-    }
-    let mut whole_end = whole_start;
-    while whole_end < len && bytes[whole_end].is_ascii_digit() {
-        whole_end += 1;
-    }
-    i = whole_end;
-    let mut frac_start = 0usize;
-    let mut frac_end = 0usize;
-    if i < len && bytes[i] == b'.' {
-        i += 1;
-        frac_start = i;
-        while i < len && bytes[i].is_ascii_digit() {
-            i += 1;
-        }
-        frac_end = i;
-        while frac_end > frac_start && bytes[frac_end - 1] == b'0' {
-            frac_end -= 1;
-        }
-    }
-    let whole = if whole_end > whole_start {
-        bytes[whole_start..whole_end].to_vec()
-    } else {
-        vec![b'0']
-    };
-    let fraction = if frac_end > frac_start {
-        bytes[frac_start..frac_end].to_vec()
-    } else {
-        Vec::new()
-    };
-    let nonzero = whole.as_slice() != b"0" || !fraction.is_empty();
-    let suffix_rank = if human && nonzero && i < len {
-        let s = if bytes[i] == b'k' { b'K' } else { bytes[i] };
-        b"KMGTPEZYRQ"
-            .iter()
-            .position(|&c| c == s)
-            .map(|p| p + 1)
-            .unwrap_or(0)
-    } else {
-        0
-    };
-    SortNumericValue {
-        whole,
-        fraction,
-        negative: neg && nonzero,
-        suffix_rank,
-    }
-}
-
-fn compare_sort_numeric(first: &SortNumericValue, second: &SortNumericValue) -> std::cmp::Ordering {
-    use std::cmp::Ordering;
-    if first.negative != second.negative {
-        return if first.negative {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        };
-    }
-    let mut compared = first.suffix_rank.cmp(&second.suffix_rank);
-    if compared == Ordering::Equal {
-        compared = first.whole.len().cmp(&second.whole.len());
-    }
-    if compared == Ordering::Equal {
-        compared = first.whole.cmp(&second.whole);
-    }
-    if compared == Ordering::Equal {
-        let width = first.fraction.len().max(second.fraction.len());
-        for idx in 0..width {
-            let a = first.fraction.get(idx).copied().unwrap_or(b'0');
-            let b = second.fraction.get(idx).copied().unwrap_or(b'0');
-            compared = a.cmp(&b);
-            if compared != Ordering::Equal {
-                break;
-            }
-        }
-    }
-    if first.negative {
-        compared.reverse()
-    } else {
-        compared
-    }
-}
-
-fn sort_general_numeric_value(bytes: &[u8]) -> (u8, f64) {
-    let mut start = 0usize;
-    while start < bytes.len() && (bytes[start] == b' ' || (9..=13).contains(&bytes[start])) {
-        start += 1;
-    }
-    let sub = &bytes[start..];
-    if sub.is_empty() {
-        return (0, 0.0);
-    }
-    let mut lower = Vec::with_capacity(sub.len());
-    for &b in sub {
-        lower.push(b.to_ascii_lowercase());
-    }
-    let neg = lower[0] == b'-';
-    let unsigned = if lower[0] == b'+' || lower[0] == b'-' {
-        &lower[1..]
-    } else {
-        &lower[..]
-    };
-    if unsigned.starts_with(b"nan") {
-        return (1, 0.0);
-    }
-    if unsigned.starts_with(b"inf") {
-        return (2, if neg { f64::NEG_INFINITY } else { f64::INFINITY });
-    }
-    if unsigned.starts_with(b"0x") {
-        let mut offset = 2usize;
-        let mut value = 0.0f64;
-        let mut scale = 1.0f64;
-        let mut fractional = false;
-        let mut digits = 0usize;
-        while offset < unsigned.len() {
-            let ch = unsigned[offset];
-            if ch == b'.' && !fractional {
-                fractional = true;
-                offset += 1;
-                continue;
-            }
-            let digit = match ch {
-                b'0'..=b'9' => Some((ch - b'0') as f64),
-                b'a'..=b'f' => Some((ch - b'a' + 10) as f64),
-                _ => None,
-            };
-            let Some(d) = digit else {
-                break;
-            };
-            digits += 1;
-            if fractional {
-                scale /= 16.0;
-                value += d * scale;
-            } else {
-                value = value * 16.0 + d;
-            }
-            offset += 1;
-        }
-        if digits > 0 {
-            if offset < unsigned.len() && unsigned[offset] == b'p' {
-                let exp_slice = &unsigned[offset + 1..];
-                let mut exp_end = 0usize;
-                if exp_end < exp_slice.len() && (exp_slice[0] == b'+' || exp_slice[0] == b'-') {
-                    exp_end += 1;
-                }
-                let exp_digits_start = exp_end;
-                while exp_end < exp_slice.len() && exp_slice[exp_end].is_ascii_digit() {
-                    exp_end += 1;
-                }
-                if exp_end > exp_digits_start
-                    && let Ok(exp_str) = std::str::from_utf8(&exp_slice[..exp_end])
-                    && let Ok(exp) = exp_str.parse::<i32>()
-                    && value != 0.0
-                {
-                    value *= 2.0f64.powi(exp);
-                }
-            }
-            return (2, if neg { -value } else { value });
-        }
-    }
-    let mut end = 0usize;
-    if end < lower.len() && (lower[0] == b'+' || lower[0] == b'-') {
-        end += 1;
-    }
-    let mut has_digits = false;
-    while end < lower.len() && lower[end].is_ascii_digit() {
-        has_digits = true;
-        end += 1;
-    }
-    if end < lower.len() && lower[end] == b'.' {
-        end += 1;
-        while end < lower.len() && lower[end].is_ascii_digit() {
-            has_digits = true;
-            end += 1;
-        }
-    }
-    if has_digits && end < lower.len() && lower[end] == b'e' {
-        let mut e_end = end + 1;
-        if e_end < lower.len() && (lower[e_end] == b'+' || lower[e_end] == b'-') {
-            e_end += 1;
-        }
-        let e_digits = e_end;
-        while e_end < lower.len() && lower[e_end].is_ascii_digit() {
-            e_end += 1;
-        }
-        if e_end > e_digits {
-            end = e_end;
-        }
-    }
-    if has_digits
-        && let Ok(s) = std::str::from_utf8(&lower[..end])
-        && let Ok(v) = s.parse::<f64>()
-        && !v.is_nan()
-    {
-        return (2, v);
-    }
-    (0, 0.0)
-}
-
-fn parse_month_sort_bytes(bytes: &[u8]) -> u8 {
-    let mut offset = 0usize;
-    while offset < bytes.len() && (bytes[offset] == b' ' || bytes[offset] == b'\t') {
-        offset += 1;
-    }
-    if offset + 3 > bytes.len() {
-        return 0;
-    }
-    let m = [
-        bytes[offset].to_ascii_uppercase(),
-        bytes[offset + 1].to_ascii_uppercase(),
-        bytes[offset + 2].to_ascii_uppercase(),
-    ];
-    match &m {
-        b"JAN" => 1,
-        b"FEB" => 2,
-        b"MAR" => 3,
-        b"APR" => 4,
-        b"MAY" => 5,
-        b"JUN" => 6,
-        b"JUL" => 7,
-        b"AUG" => 8,
-        b"SEP" => 9,
-        b"OCT" => 10,
-        b"NOV" => 11,
-        b"DEC" => 12,
-        _ => 0,
-    }
-}
-
-fn sort_version_order(byte: Option<u8>) -> i32 {
-    match byte {
-        Some(b'~') => -1,
-        None | Some(b'0'..=b'9') => 0,
-        Some(b) if b.is_ascii_alphabetic() => b as i32,
-        Some(b) => (b as i32) + 256,
-    }
-}
-
-fn compare_version_parts_bytes(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
-    use std::cmp::Ordering;
-    let mut first = 0usize;
-    let mut second = 0usize;
-    let is_digit = |b: Option<u8>| matches!(b, Some(b'0'..=b'9'));
-    while first < left.len() || second < right.len() {
-        while (first < left.len() && !is_digit(left.get(first).copied()))
-            || (second < right.len() && !is_digit(right.get(second).copied()))
-        {
-            let diff = sort_version_order(left.get(first).copied())
-                - sort_version_order(right.get(second).copied());
-            if diff != 0 {
-                return if diff < 0 {
-                    Ordering::Less
-                } else {
-                    Ordering::Greater
-                };
-            }
-            if first < left.len() {
-                first += 1;
-            }
-            if second < right.len() {
-                second += 1;
-            }
-        }
-        while left.get(first) == Some(&b'0') {
-            first += 1;
-        }
-        while right.get(second) == Some(&b'0') {
-            second += 1;
-        }
-        let mut difference: i32 = 0;
-        while is_digit(left.get(first).copied()) && is_digit(right.get(second).copied()) {
-            if difference == 0 {
-                difference = (left[first] as i32) - (right[second] as i32);
-            }
-            first += 1;
-            second += 1;
-        }
-        if is_digit(left.get(first).copied()) {
-            return Ordering::Greater;
-        }
-        if is_digit(right.get(second).copied()) {
-            return Ordering::Less;
-        }
-        if difference != 0 {
-            return if difference < 0 {
-                Ordering::Less
-            } else {
-                Ordering::Greater
-            };
-        }
-    }
-    Ordering::Equal
-}
-
-fn sort_version_prefix(bytes: &[u8]) -> &[u8] {
-    let mut matched = bytes.len();
-    let mut read_alpha = false;
-    let start = if bytes.first() == Some(&b'.') { 1 } else { 0 };
-    for (idx, &byte) in bytes.iter().enumerate().skip(start) {
-        let alpha = byte == b'~' || byte.is_ascii_alphabetic();
-        if read_alpha {
-            read_alpha = false;
-            if !alpha {
-                matched = bytes.len();
-            }
-        } else if byte == b'.' {
-            read_alpha = true;
-            if matched == bytes.len() {
-                matched = idx;
-            }
-        } else if !(alpha || byte.is_ascii_digit()) {
-            matched = bytes.len();
-        }
-    }
-    &bytes[..if read_alpha { bytes.len() } else { matched }]
-}
-
-fn compare_version_bytes(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
-    let special = |bytes: &[u8]| -> i32 {
-        if bytes.is_empty() {
-            0
-        } else if bytes[0] != b'.' {
-            4
-        } else if bytes.len() == 1 {
-            1
-        } else if bytes.len() == 2 && bytes[1] == b'.' {
-            2
-        } else {
-            3
-        }
-    };
-    let s_cmp = special(left).cmp(&special(right));
-    if s_cmp != std::cmp::Ordering::Equal {
-        return s_cmp;
-    }
-    let pref_cmp = compare_version_parts_bytes(sort_version_prefix(left), sort_version_prefix(right));
-    if pref_cmp != std::cmp::Ordering::Equal {
-        return pref_cmp;
-    }
-    compare_version_parts_bytes(left, right)
-}
-
-#[derive(Clone, Debug)]
 struct SortKey {
     start: usize,
     start_character: usize,
@@ -1920,65 +1558,6 @@ fn parse_sort_key(specification: &str) -> Result<SortKey, String> {
         end_character: end_char,
         flags,
     })
-}
-
-fn extract_sort_key_bytes<'a>(
-    line: &'a [u8],
-    key: &SortKey,
-    separator: Option<u8>,
-    global_blanks: bool,
-) -> &'a [u8] {
-    let mut fields: Vec<(usize, usize)> = Vec::new();
-    if let Some(sep) = separator {
-        let mut start = 0usize;
-        for offset in 0..=line.len() {
-            if offset == line.len() || line[offset] == sep {
-                fields.push((start, offset));
-                start = offset + 1;
-            }
-        }
-    } else {
-        let mut offset = 0usize;
-        while offset < line.len() {
-            let leading = offset;
-            while offset < line.len() && (line[offset] == b' ' || line[offset] == b'\t') {
-                offset += 1;
-            }
-            let start = leading;
-            while offset < line.len() && line[offset] != b' ' && line[offset] != b'\t' {
-                offset += 1;
-            }
-            fields.push((start, offset));
-        }
-    }
-    let field_start = |field: Option<(usize, usize)>, skip_blanks: bool| -> usize {
-        let (mut offset, end) = field.unwrap_or((line.len(), line.len()));
-        if skip_blanks {
-            while offset < end && (line[offset] == b' ' || line[offset] == b'\t') {
-                offset += 1;
-            }
-        }
-        offset
-    };
-    let inherit_blanks = key.flags.is_empty() && global_blanks;
-    let start = field_start(
-        fields.get(key.start - 1).copied(),
-        key.start_blanks || inherit_blanks,
-    ).saturating_add(key.start_character - 1);
-    let last = key.end.and_then(|e| fields.get(e - 1).copied());
-    let end = match key.end {
-        None => line.len(),
-        Some(_) => match last {
-            None => line.len(),
-            Some(lf) => match key.end_character {
-                None => lf.1,
-                Some(ec) => field_start(Some(lf), key.end_blanks || inherit_blanks).saturating_add(ec).min(line.len()),
-            },
-        },
-    };
-    let s = start.min(line.len());
-    let e = end.max(s).min(line.len());
-    &line[s..e]
 }
 
 struct SortInput<'a> {
@@ -2279,97 +1858,6 @@ fn cmd_sort(
     let stable = flags.contains(&'s');
     let unique = flags.contains(&'u');
 
-    let transform_slice = |slice: &[u8], fset: &BTreeSet<char>, is_unkeyed: bool| -> Vec<u8> {
-        let mut start = 0usize;
-        if is_unkeyed && fset.contains(&'b') {
-            while start < slice.len() && (slice[start] == b' ' || slice[start] == b'\t') {
-                start += 1;
-            }
-        }
-        let sub = &slice[start..];
-        let mut out = Vec::with_capacity(sub.len());
-        let has_d = fset.contains(&'d');
-        let has_i = fset.contains(&'i');
-        let has_f = fset.contains(&'f');
-        for &b in sub {
-            if has_d {
-                if !(b == b'\t' || b == b' ' || b.is_ascii_alphanumeric()) {
-                    continue;
-                }
-            } else if has_i && !(32..=126).contains(&b) {
-                continue;
-            }
-            out.push(if has_f { b.to_ascii_uppercase() } else { b });
-        }
-        out
-    };
-
-    let compare_single_key =
-        |first_raw: &[u8], second_raw: &[u8], fset: &BTreeSet<char>, is_unkeyed: bool| -> std::cmp::Ordering {
-            let first = transform_slice(first_raw, fset, is_unkeyed);
-            let second = transform_slice(second_raw, fset, is_unkeyed);
-            let ord = if fset.contains(&'g') {
-                let a = sort_general_numeric_value(&first);
-                let b = sort_general_numeric_value(&second);
-                a.0.cmp(&b.0)
-                    .then_with(|| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
-            } else if fset.contains(&'M') {
-                parse_month_sort_bytes(&first).cmp(&parse_month_sort_bytes(&second))
-            } else if fset.contains(&'V') {
-                compare_version_bytes(&first, &second)
-            } else if fset.contains(&'n') || fset.contains(&'h') {
-                let h = fset.contains(&'h');
-                compare_sort_numeric(
-                    &parse_sort_numeric(&first, h),
-                    &parse_sort_numeric(&second, h),
-                )
-            } else {
-                first.cmp(&second)
-            };
-            if fset.contains(&'r') {
-                ord.reverse()
-            } else {
-                ord
-            }
-        };
-
-    let key_compare = |left: &[u8], right: &[u8]| -> std::cmp::Ordering {
-        if simple {
-            let ord = left.cmp(right);
-            return if global_rev { ord.reverse() } else { ord };
-        }
-        if keys.is_empty() {
-            return compare_single_key(left, right, &flags, true);
-        }
-        for key in &keys {
-            let fset = if key.flags.is_empty() {
-                &flags
-            } else {
-                &key.flags
-            };
-            let k1 = extract_sort_key_bytes(left, key, separator, fset.contains(&'b'));
-            let k2 = extract_sort_key_bytes(right, key, separator, fset.contains(&'b'));
-            let ord = compare_single_key(k1, k2, fset, false);
-            if ord != std::cmp::Ordering::Equal {
-                return ord;
-            }
-        }
-        std::cmp::Ordering::Equal
-    };
-
-    let full_compare = |left: &[u8], right: &[u8]| -> std::cmp::Ordering {
-        let ord = key_compare(left, right);
-        if ord != std::cmp::Ordering::Equal || simple || stable || unique {
-            return ord;
-        }
-        let fallback = left.cmp(right);
-        if global_rev {
-            fallback.reverse()
-        } else {
-            fallback
-        }
-    };
-
     const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
     let number = |v: &str, minimum: u64| {
         v.parse::<u64>().ok().filter(|&n| (minimum..=MAX_SAFE_INTEGER).contains(&n))
@@ -2392,12 +1880,16 @@ fn cmd_sort(
         return err_out("sort: sort memory budget must be at least 1048576 bytes\n", 2);
     }
     if fan_in > 32 { return err_out("sort: sort merge fan-in must be between 2 and 32\n", 2); }
+    let directory = env.get("TMPDIR").filter(|s| !s.is_empty()).map_or_else(|| cwd.to_owned(), |v| absolute_operand(cwd, v));
+    let record_limit = (memory_bytes / (8 * (fan_in + 4))).min(sort_record::PAGE as u64) as usize;
+    let order = sort_keys::KeyOrder { keys: &keys, flags: &flags, separator, fs, directory: &directory, record_limit };
     let compare = |a: &SortRecord, b: &SortRecord| -> Result<std::cmp::Ordering, String> {
-        if simple {
-            let ord = a.byte_order(b)?;
-            return Ok(if global_rev { ord.reverse() } else { ord });
+        if !simple {
+            let cmp = order.compare(a, b)?;
+            if !cmp.is_eq() || stable || unique { return Ok(cmp); }
         }
-        Ok(full_compare(&a.read(0, a.len())?, &b.read(0, b.len())?))
+        let cmp = a.byte_order(b)?;
+        Ok(if global_rev { cmp.reverse() } else { cmp })
     };
     let merge = flags.contains(&'m');
     let mut out_bytes = Vec::new();
@@ -2409,8 +1901,6 @@ fn cmd_sort(
         if unique { prev_emitted = Some(record); }
         Ok(())
     };
-    let directory = env.get("TMPDIR").filter(|s| !s.is_empty()).map_or_else(|| cwd.to_owned(), |v| absolute_operand(cwd, v));
-    let record_limit = (memory_bytes / (8 * (fan_in + 4))).min(sort_record::PAGE as u64) as usize;
     let open = |name: &str| -> Result<SortInput, String> {
         let file = if name == "-" { None } else { Some(open_record_input(name, cwd, fs)?) };
         Ok(SortInput { file, fs, directory: &directory, inline_limit: record_limit.max(sort_record::PAGE - 8), chunk: Vec::new(), offset: 0 })
@@ -2455,7 +1945,7 @@ fn cmd_sort(
         let mut bytes = 0usize;
         let mut spilled = false;
         let flush = |batch: &mut Vec<SortRecord>, runs: &mut sort_runs::SortRuns| -> Result<(), String> {
-            sort_record::sort_batch(batch, &full_compare, &compare)?;
+            sort_record::sort_batch(batch, simple.then_some(global_rev), &compare)?;
             let mut run = sort_runs::Run::default();
             for record in batch.drain(..) { runs.append(&mut run, &record)?; }
             runs.add(run, &compare)
@@ -2494,7 +1984,7 @@ fn cmd_sort(
         if spilled {
             if !batch.is_empty() && let Err(e) = flush(&mut batch, &mut runs) { return sort_error(e); }
         } else {
-            if let Err(e) = sort_record::sort_batch(&mut batch, &full_compare, &compare) { return sort_error(e); }
+            if let Err(e) = sort_record::sort_batch(&mut batch, simple.then_some(global_rev), &compare) { return sort_error(e); }
             for record in batch { if let Err(e) = output(record) { return sort_error(e); } }
         }
     }

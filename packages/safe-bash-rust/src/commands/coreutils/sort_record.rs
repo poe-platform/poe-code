@@ -70,12 +70,12 @@ impl Record {
 }
 
 // The slice comparator cannot return scratch I/O errors. Merge owned records
-// explicitly when the batch includes a stored record.
-pub(super) fn sort_batch(batch: &mut [Record], bytes: &impl Fn(&[u8], &[u8]) -> Ordering,
+// explicitly when comparisons can require filesystem reads.
+pub(super) fn sort_batch(batch: &mut [Record], byte_order: Option<bool>,
     compare: &impl Fn(&Record, &Record) -> Result<Ordering, String>,
 ) -> Result<(), String> {
-    if batch.iter().all(|r| matches!(r, Record::Bytes(_))) {
-        batch.sort_by(|a, b| match (a, b) { (Record::Bytes(a), Record::Bytes(b)) => bytes(a, b), _ => unreachable!() });
+    if let Some(reverse) = byte_order && batch.iter().all(|r| matches!(r, Record::Bytes(_))) {
+        batch.sort_by(|a, b| match (a, b) { (Record::Bytes(a), Record::Bytes(b)) => if reverse { b.cmp(a) } else { a.cmp(b) }, _ => unreachable!() });
         return Ok(());
     }
     let mut work = Vec::with_capacity(batch.len());

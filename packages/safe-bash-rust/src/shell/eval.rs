@@ -16032,6 +16032,21 @@ hash -l
     }
 
     #[test]
+    fn sort_general_numeric_reads_latin1_decimal_whitespace_and_hex_exponents_at_any_size() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        for padding in [0, 70000] {
+            for (a,b) in [(b"2".as_slice(),b"0x1p   20".as_slice()), (b"1",b"\xa02"), (b"0x1p-999999999999",b"0.01")] {
+                let mut rows = vec![b'z'; padding];
+                rows.push(b':'); rows.extend_from_slice(a); rows.push(b'\n');
+                rows.extend(std::iter::repeat_n(b'z', padding)); rows.push(b':'); rows.extend_from_slice(b);
+                fs.write_file("/rows", &rows).unwrap();
+                let r = shell.exec("TMPDIR=/ sort -c -t: -k2,2g /rows").unwrap();
+                assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{a:?} {b:?} {padding}");
+            }
+        }
+    }
+
+    #[test]
     fn sort_key_positions_use_safe_integers_even_beyond_the_address_space() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/rows", b"y c\nx b\n").unwrap();

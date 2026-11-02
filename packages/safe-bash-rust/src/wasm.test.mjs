@@ -6311,7 +6311,7 @@ test("tar parses substitution expressions before publishing and preserves escape
       await f.writeFile("/a,a;A", Buffer.from("payload"));
       await f.writeFile("/archive", Buffer.from("original archive"));
     }
-    for (const expr of ["s,a,b,q", "", "g/a/b/", "s", "s\\a", "s,a,b", "s,,b,", "s,a,b,;x",
+    for (const expr of ["s/[z-a]/x/", "s,a,b,q", "", "g/a/b/", "s", "s\\a", "s,a,b", "s,,b,", "s,a,b,;x",
       String.raw`s/a/\U&/`, String.raw`s/(a)/\1/`, String.raw`s/(a)/\2/x`]) {
       const cmd = "tar -cf archive --transform='" + expr + "' 'a,a;A'";
       const a = await js.exec(cmd), b = await rs.exec(cmd);
@@ -6350,6 +6350,11 @@ test("sed and tar distinguish literal BRE punctuation from repetition and reject
       [String.raw`\(?:a\)\(a\)`, String.raw`<\1>`, false, 0],
       ["(?:a)", String.raw`\1`, true, 2], [String.raw`\(a`, "x", false, 2],
       [")", "x", true, 2], ["[a", "x", false, 2],
+      ["[z-a]", "x", false, 2], ["[[:missing:]]", "x", true, 2],
+      ["[[.a.]]", "x", false, 2], ["[[=a=]]", "x", true, 2],
+      [String.raw`[a-\d]`, "x", false, 2], [String.raw`[\w-z]`, "x", true, 2],
+      [String.raw`[a-\n]`, "x", false, 2], ["[]a-]", "x", true, 0],
+      ["[[:alpha:]0-9]", "x", false, 0],
     ]) {
       for (const cmd of [
         "echo '" + name + "' | sed " + (extended ? "-E " : "") + "'s/" + pattern + "/" + replacement + "/g'",

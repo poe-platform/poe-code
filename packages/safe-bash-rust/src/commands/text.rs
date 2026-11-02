@@ -611,7 +611,19 @@ fn validate_sed_labels(cmds: &[SedCmd]) -> Result<(), String> {
     check_sed_branches(cmds, &labels)
 }
 
-pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize), &'static str> {
+fn sed_bracket_char(chars: &mut std::str::Chars<'_>) -> Result<char, &'static str> {
+    let c = chars.next().ok_or("unterminated bracket expression")?;
+    if c != '\\' { return Ok(c); }
+    let decoded = match chars.clone().next() {
+        Some('n') => '\n', Some('t') => '\t', Some('r') => '\r', Some('f') => '\x0c',
+        Some('v') => '\x0b', Some('a') => '\x07', Some('\\') => '\\',
+        _ => return Ok('\\'),
+    };
+    chars.next();
+    Ok(decoded)
+}
+
+pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize), String> {
     let mut out = String::with_capacity(source.len());
     let mut chars = source.chars();
     let (mut groups, mut depth) = (0, 0usize);
@@ -621,12 +633,40 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
             let mut first = true;
             if start.starts_with('^') { chars.next(); }
             loop {
-                let b = chars.next().ok_or("unterminated bracket expression")?;
-                if b == ']' && !first { break; }
+                let rest = chars.as_str();
+                if !first && let Some(tail) = rest.strip_prefix(']') {
+                    chars = tail.chars();
+                    break;
+                }
                 first = false;
-                if b == '[' && let Some(marker @ (':' | '=' | '.')) = chars.clone().next() {
-                    let close = match marker { ':' => ":]", '=' => "=]", _ => ".]" };
-                    if let Some((_, tail)) = chars.as_str().split_once(close) { chars = tail.chars(); }
+                if let Some(class) = rest.strip_prefix("[:") {
+                    let (name, tail) = class.split_once(":]").unwrap_or(("", ""));
+                    if !matches!(name, "alpha" | "alnum" | "digit" | "lower" | "upper" | "xdigit" |
+                        "space" | "blank" | "cntrl" | "graph" | "print" | "punct") {
+                        return Err(format!("unsupported character class '{name}'"));
+                    }
+                    chars = tail.chars();
+                    continue;
+                }
+                if rest.starts_with("[.") || rest.starts_with("[=") {
+                    return Err("collating and equivalence classes are not supported".into());
+                }
+                let shorthand = |s: &str| matches!(s.as_bytes(), [b'\\', b'd' | b'D' | b'w' | b'W' | b's' | b'S', ..]);
+                if shorthand(rest) {
+                    chars = rest[2..].chars();
+                    if chars.as_str().starts_with('-') && !chars.as_str().starts_with("-]") {
+                        return Err("character class cannot be a range endpoint".into());
+                    }
+                    continue;
+                }
+                let low = sed_bracket_char(&mut chars)?;
+                if let Some(tail) = chars.as_str().strip_prefix('-') && !tail.is_empty() && !tail.starts_with(']') {
+                    if shorthand(tail) { return Err("character class cannot be a range endpoint".into()); }
+                    chars = tail.chars();
+                    let high = sed_bracket_char(&mut chars)?;
+                    if low.encode_utf16(&mut [0; 2]).iter().cmp(high.encode_utf16(&mut [0; 2]).iter()).is_gt() {
+                        return Err("reversed character range".into());
+                    }
                 }
             }
             out.push('[');
@@ -658,7 +698,7 @@ pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize
         }
         out.push(c);
     }
-    if depth != 0 { return Err("unmatched '(' in regular expression"); }
+    if depth != 0 { return Err("unmatched '(' in regular expression".into()); }
     Ok((out, groups))
 }
 

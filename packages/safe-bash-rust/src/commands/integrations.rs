@@ -923,7 +923,7 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
 }
 
 fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(String, bool), String> {
-    if uri.len() < 5 || !uri[..5].eq_ignore_ascii_case("op://") {
+    if !uri.get(..5).is_some_and(|scheme| scheme.eq_ignore_ascii_case("op://")) {
         return Err("Invalid secret reference scheme".to_string());
     }
     let query_start = uri.find('?');
@@ -3395,17 +3395,20 @@ where
             let snapshot_env = child_env.clone();
             for (_k, val) in child_env.iter_mut() {
                 if val.contains("{{") {
-                    if let Ok(rendered) = render_op_inject_template(val, &st, &snapshot_env, &mut secrets) {
-                        *val = rendered;
-                    }
+                    *val = match render_op_inject_template(val, &st, &snapshot_env, &mut secrets) {
+                        Ok(rendered) => rendered,
+                        Err(err) => return op_err(&err),
+                    };
                 } else if val.starts_with("op://") {
                     let expanded = expand_env_vars_in_ref(val, &snapshot_env);
-                    if let Ok(resolved) = resolve_op_reference(&st, &expanded) {
-                        if !resolved.is_empty() && !secrets.contains(&resolved) {
-                            secrets.push(resolved.clone());
-                        }
-                        *val = resolved;
+                    let resolved = match resolve_op_reference(&st, &expanded) {
+                        Ok(resolved) => resolved,
+                        Err(err) => return op_err(&err),
+                    };
+                    if !resolved.is_empty() && !secrets.contains(&resolved) {
+                        secrets.push(resolved.clone());
                     }
+                    *val = resolved;
                 }
             }
 

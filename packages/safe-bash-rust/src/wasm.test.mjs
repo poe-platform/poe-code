@@ -7450,3 +7450,18 @@ test("op resolves help for catalog commands, groups and aliases without executin
     }
   } finally { rs.dispose(); }
 });
+
+test("op read rejects non-ASCII scheme prefixes and op run stops on unresolved references", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const cmd of ["op read '😀😀'", "op read 'op:/é'", "op --version",
+      "TOKEN=op://missing/item/password op run -- touch ran",
+      "TOKEN='{{ op://missing/item/password }}' op run --no-masking -- touch ran",
+      "test -e ran"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

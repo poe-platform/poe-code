@@ -4512,3 +4512,30 @@ test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers",
     }
   } finally { rust.dispose(); }
 });
+
+test("qpdf decrypts a linearized PDF with 40-bit revision 4 object streams", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
+  const bytes = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-issue19484_1.pdf", import.meta.url));
+  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd:"/",files:{"/in":bytes}});
+  await fs.writeFile("/in",bytes);
+  const js = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const args of ["--show-encryption","--json --json-stream-data=inline"]) {
+      const want = await js.exec("qpdf in "+args), got = await rust.exec("qpdf in "+args);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[0,want.stderr,want.stdout]);
+    }
+    // Ignore linearization for the byte comparison so regenerated hint tables
+    // do not mask differences in decrypted objects or stream payloads.
+    const unhinted = Buffer.from(bytes);
+    unhinted.write("OriginalXX", unhinted.indexOf("/Linearized")+1, "ascii");
+    for (const backend of [fs,rust.fs]) await backend.writeFile("/in",unhinted);
+    const cmd = "qpdf in --decrypt out", want = await js.exec(cmd), got = await rust.exec(cmd);
+    assert.equal(want.exitCode,0,want.stderr);
+    assert.deepEqual([got.exitCode,got.stderr],[0,want.stderr]);
+    const actual = Buffer.from(await rust.fs.readFile("/out")), expected = Buffer.from(await fs.readFile("/out"));
+    assert.ok(actual.equals(expected), "first byte difference: "+expected.findIndex((v,i)=>actual[i]!==v));
+  } finally { rust.dispose(); }
+});

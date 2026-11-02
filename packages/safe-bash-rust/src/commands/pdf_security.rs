@@ -233,7 +233,7 @@ impl<'a> Objects<'a> {
             .and_then(|s| s.parse::<i64>().ok())
             .map(|bits| bits as i32)
             .ok_or(UNSUPPORTED)?;
-        let key = if v == 5 {
+        let mut key = if v == 5 {
             pdf_aes::file_key(&dict, pw, r).ok_or(PASSWORD)?
         } else {
             let bits = num(b"Length")
@@ -247,10 +247,7 @@ impl<'a> Objects<'a> {
                     Some(if n < 40 { n * 8 } else { n })
                 })
                 .unwrap_or(if v == 4 { 128 } else { 40 });
-            if !(40..=128).contains(&bits)
-                || bits % 8 != 0
-                || (v == 4 && bits != 128 && [strings, streams, embedded].contains(&Cipher::Aes128))
-            {
+            if !(40..=128).contains(&bits) || bits % 8 != 0 {
                 return Err(UNSUPPORTED);
             }
             let n = bits / 8;
@@ -311,6 +308,11 @@ impl<'a> Objects<'a> {
                 })
                 .ok_or(PASSWORD)?
         };
+        // PDF.js authenticates with the declared length, then zero-pads V4
+        // file keys to 128 bits before deriving object keys (issue 19484).
+        if v == 4 {
+            key.resize(16, 0);
+        }
         self.security = Some(Security {
             key,
             revision: r,

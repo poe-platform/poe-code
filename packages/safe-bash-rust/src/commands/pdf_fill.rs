@@ -34,6 +34,11 @@ struct Attributes {
     flags: i32,
     max_len: Option<f64>,
 }
+#[derive(Clone, Copy)]
+enum FieldEdit<'a> {
+    Update(&'a str, &'a Input),
+    Generate { force: bool },
+}
 struct Fill<'r, 'a> {
     objects: &'r mut Objects<'a>,
     values: BTreeMap<ObjectId, Value<'a>>,
@@ -90,6 +95,19 @@ impl<'a> Fill<'_, 'a> {
         self.next = self.next.checked_add(1).ok_or(LIMIT)?;
         Ok(id)
     }
+    fn stream(
+        &mut self,
+        dict: Value<'a>,
+        data: &[u8],
+        mode: Option<bool>,
+    ) -> Result<Value<'a>, String> {
+        let r = self.allocate()?;
+        let mut body = vec![];
+        write_stream(&mut body, dict, data, mode, self.remaining)?;
+        self.remaining = self.remaining.checked_sub(body.len()).ok_or(LIMIT)?;
+        self.bodies.insert(r, body);
+        Ok(Value::Ref(r))
+    }
     fn normal_states(&mut self, d: &Dict<'a>) -> Option<Dict<'a>> {
         let ap = self.attr(d, b"AP")?;
         let (_, normal) = self.resolve(ap.get(b"N")?)?;
@@ -133,7 +151,6 @@ impl<'a> Fill<'_, 'a> {
             font = f.trim_start_matches('/').into();
         }
         let f = self.allocate()?;
-        let stream = self.allocate()?;
         self.values.insert(
             f,
             Value::Dict(vec![
@@ -160,23 +177,57 @@ impl<'a> Fill<'_, 'a> {
             ),
         ]);
         dict.set_stream_length(paint.len()).ok_or(BAD)?;
-        let mut body = vec![];
-        write_stream(&mut body, dict, paint.as_bytes(), self.mode, self.remaining)?;
-        self.remaining = self.remaining.checked_sub(body.len()).ok_or(LIMIT)?;
-        self.bodies.insert(stream, body);
-        set(
-            d,
-            b"AP",
-            Value::Dict(vec![(b"N".into(), Value::Ref(stream))]),
-        );
+        let stream = self.stream(dict, paint.as_bytes(), self.mode)?;
+        set(d, b"AP", Value::Dict(vec![(b"N".into(), stream)]));
+        Ok(())
+    }
+    fn on_value(
+        &mut self,
+        d: &Dict<'a>,
+        kids: &Option<(Option<ObjectId>, Vec<Value<'a>>)>,
+    ) -> String {
+        let on = |normal: Option<Dict>| {
+            normal?
+                .into_iter()
+                .map(|(k, _)| pdf_string::name(&k))
+                .find(|s| s != "Off")
+        };
+        on(self.normal_states(d))
+            .or_else(|| {
+                kids.as_ref()?.1.iter().find_map(|v| {
+                    let (_, Value::Dict(k)) = self.resolve(v)? else {
+                        return None;
+                    };
+                    on(self.normal_states(&k))
+                })
+            })
+            .unwrap_or_else(|| "Yes".into())
+    }
+    fn draw_widgets(
+        &mut self,
+        d: &mut Dict<'a>,
+        kids: &mut Option<(Option<ObjectId>, Vec<Value<'a>>)>,
+        display: &str,
+        a: &Attributes,
+    ) -> Result<(), String> {
+        self.draw(d, display, a)?;
+        if let Some((_, ks)) = kids {
+            for k in ks {
+                if let Some((r, Value::Dict(mut child))) = self.resolve(k)
+                    && get(&child, b"T").is_none()
+                {
+                    self.draw(&mut child, display, a)?;
+                    self.put(r, Value::Dict(child), k);
+                }
+            }
+        }
         Ok(())
     }
     fn field(
         &mut self,
         node: &mut Value<'a>,
         a: &Attributes,
-        key: &str,
-        input: &Input,
+        edit: FieldEdit,
         active: &mut BTreeSet<ObjectId>,
         depth: usize,
     ) -> Result<bool, String> {
@@ -237,28 +288,16 @@ impl<'a> Fill<'_, 'a> {
         if children {
             if let Some((_, ks)) = &mut kids {
                 for k in ks {
-                    matched |= self.field(k, &a, key, input, active, depth + 1)?;
+                    matched |= self.field(k, &a, edit, active, depth + 1)?;
                 }
             }
-        } else if !a.path.is_empty() && a.path == key {
+        } else if let FieldEdit::Update(key, input) = edit
+            && !a.path.is_empty()
+            && a.path == key
+        {
             matched = true;
             if matches!(input, Input::Check(_)) || a.kind == "Btn" {
-                let on = |normal: Option<Dict>| {
-                    normal?
-                        .into_iter()
-                        .map(|(k, _)| pdf_string::name(&k))
-                        .find(|s| s != "Off")
-                };
-                let default = on(self.normal_states(&d))
-                    .or_else(|| {
-                        kids.as_ref()?.1.iter().find_map(|v| {
-                            let (_, Value::Dict(k)) = self.resolve(v)? else {
-                                return None;
-                            };
-                            on(self.normal_states(&k))
-                        })
-                    })
-                    .unwrap_or_else(|| "Yes".into());
+                let default = self.on_value(&d, &kids);
                 let state = match input {
                     Input::Check(true) => &default,
                     Input::Check(false) => "Off",
@@ -340,16 +379,75 @@ impl<'a> Fill<'_, 'a> {
                         set(&mut d, b"I", Value::Array(inds));
                     }
                 }
-                self.draw(&mut d, &display, &a)?;
-                if let Some((_, ks)) = &mut kids {
-                    for k in ks {
-                        if let Some((r, Value::Dict(mut child))) = self.resolve(k)
-                            && get(&child, b"T").is_none()
-                        {
-                            self.draw(&mut child, &display, &a)?;
-                            self.put(r, Value::Dict(child), k);
+                self.draw_widgets(&mut d, &mut kids, &display, &a)?;
+            }
+        } else if let FieldEdit::Generate { force } = edit
+            && !a.path.is_empty()
+            && let Some(v) = self.attr(&d, b"V")
+        {
+            let has_normal = self
+                .attr(&d, b"AP")
+                .is_some_and(|ap| ap.get(b"N").is_some());
+            if force || !has_normal {
+                matched = true;
+                if a.kind == "Btn" {
+                    set(&mut d, b"AS", name(text(&v).as_deref().unwrap_or("Off")));
+                    if !has_normal {
+                        let on = self.on_value(&d, &kids);
+                        let dict = Value::Dict(vec![
+                            (b"Type".into(), word(b"/XObject")),
+                            (b"Subtype".into(), word(b"/Form")),
+                            (
+                                b"BBox".into(),
+                                Value::Array(vec![
+                                    word(b"0"),
+                                    word(b"0"),
+                                    word(b"12"),
+                                    word(b"12"),
+                                ]),
+                            ),
+                        ]);
+                        let yes =
+                            self.stream(dict.clone(), b"q 0 0 0 rg 2 2 8 8 re f Q\n", None)?;
+                        let no = self.stream(dict, b"q Q\n", None)?;
+                        set(
+                            &mut d,
+                            b"AP",
+                            Value::Dict(vec![(
+                                b"N".into(),
+                                Value::Dict(vec![
+                                    (encode_name(&on).into(), yes),
+                                    (b"Off".into(), no),
+                                ]),
+                            )]),
+                        );
+                    }
+                } else {
+                    let mut display = text(&v).unwrap_or_default();
+                    if a.kind == "Ch"
+                        && let Some(Value::Array(choices)) = self.attr(&d, b"Opt")
+                    {
+                        for choice in choices {
+                            if let Some((_, Value::Array(pair))) = self.resolve(&choice)
+                                && pair.len() >= 2
+                            {
+                                let label = |v: Option<(Option<ObjectId>, Value)>| match v {
+                                    Some((_, Value::String { bytes, .. })) => {
+                                        pdf_string::decode(&bytes)
+                                    }
+                                    _ => String::new(),
+                                };
+                                if label(self.resolve(&pair[0])) == display {
+                                    let s = label(self.resolve(&pair[1]));
+                                    if !s.is_empty() {
+                                        display = s;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
+                    self.draw_widgets(&mut d, &mut kids, &display, &a)?;
                 }
             }
         }
@@ -375,7 +473,7 @@ pub(super) fn apply<'a>(
     next: usize,
     bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
     limit: usize,
-) -> Result<(), String> {
+) -> Result<usize, String> {
     let Value::Dict(cat) = catalog else {
         return Err(BAD.into());
     };
@@ -392,6 +490,35 @@ pub(super) fn apply<'a>(
         font: edits.replacement_font,
         default_da: String::new(),
     };
+    if edits.generate_appearances
+        && let Some(slot) = cat.iter_mut().find(|(k, _)| k.as_ref() == b"AcroForm")
+        && let Some((r, Value::Dict(mut form))) = fill.resolve(&slot.1)
+    {
+        fill.default_da = fill
+            .attr(&form, b"DA")
+            .as_ref()
+            .and_then(text)
+            .unwrap_or_default();
+        let force = fill
+            .attr(&form, b"NeedAppearances")
+            .is_some_and(|v| v.word() == Some(b"true"));
+        if let Some((_, fields)) = form.iter_mut().find(|(k, _)| k.as_ref() == b"Fields")
+            && let Some((owner, Value::Array(mut items))) = fill.resolve(fields)
+        {
+            for item in &mut items {
+                fill.field(
+                    item,
+                    &Attributes::default(),
+                    FieldEdit::Generate { force },
+                    &mut BTreeSet::new(),
+                    0,
+                )?;
+            }
+            fill.put(owner, Value::Array(items), fields);
+        }
+        set(&mut form, b"NeedAppearances", word(b"false"));
+        fill.put(r, Value::Dict(form), &mut slot.1);
+    }
     if let Some(bytes) = edits.form_data {
         fill.fill(cat, pdf_form_data::parse(bytes, limit)?)?;
     }
@@ -426,7 +553,7 @@ pub(super) fn apply<'a>(
         fill.remaining = fill.remaining.checked_sub(body.len()).ok_or(LIMIT)?;
         fill.bodies.insert(id, body);
     }
-    Ok(())
+    Ok(fill.next)
 }
 
 impl<'a> Fill<'_, 'a> {
@@ -464,8 +591,7 @@ impl<'a> Fill<'_, 'a> {
                     matched |= self.field(
                         field,
                         &Attributes::default(),
-                        &key,
-                        &input,
+                        FieldEdit::Update(&key, &input),
                         &mut BTreeSet::new(),
                         0,
                     )?;

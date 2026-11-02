@@ -5138,3 +5138,27 @@ test("pdftk flattens existing and filled widgets while preserving links and rema
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf generates missing form appearances and respects existing or forced appearances",async()=>{
+  const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,cosBool,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  function form(force){
+    const d=PdfDocument.create(),p=d.addPage(),alloc=v=>d.cos.allocateObject(v);p.drawText("base",{x:2,y:8});
+    const text=alloc(cosDict({T:cosString("name"),FT:cosName("Tx"),V:cosString("Zoë\r\n(a)"),AP:cosDict({N:cosNumber(0)}),Kids:cosArray([cosDict({Subtype:cosName("Widget")})])}));
+    const choice=cosDict({T:cosString("choice"),FT:cosName("Ch"),V:cosString("one"),Opt:cosArray([cosArray([cosString("one"),cosString("One option")])])});
+    const button=alloc(cosDict({T:cosString("check"),FT:cosName("Btn"),V:cosName("Yes")}));
+    dictSet(d.cos.resolveDict(d.cos.rootRef),"AcroForm",alloc(cosDict({DA:cosString("/Cour 10 Tf 0.4 g"),Fields:cosArray([text,choice,button]),NeedAppearances:cosBool(force)})));
+    dictSet(p.pageDict,"Annots",cosArray([text,button]));return d.save();
+  }
+  const files={"/in":form(false),"/force":form(true),"/note":Buffer.from("file")},fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [path,b] of Object.entries(files))await fs.writeFile(path,b);
+    for(const args of ["in out","force out","in --remove-acroform out","force --object-streams=generate out","force --linearize --set-page-labels 1:r -- --add-attachment note -- out","in --overlay force -- --split-pages p-%d.pdf"]){
+      const cmd="qpdf --generate-appearances "+args,path=args.includes("--split-pages")?"/p-1.pdf":"/out";
+      for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
+      const expected=await fs.readFile(path),actual=await rs.fs.readFile(path);
+      assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((v,i)=>v!==actual[i]));
+    }
+  }finally{rs.dispose();}
+});

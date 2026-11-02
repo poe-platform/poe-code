@@ -73,6 +73,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub password: &'a str,
     pub layers:Vec<Layer<'a>>,
     pub flatten_forms: bool,
+    pub generate_appearances: bool,
     pub form_data: Option<&'a [u8]>,
     pub replacement_font: Option<&'a str>,
     pub stamp: Option<(&'a [u8], bool, bool)>,
@@ -179,7 +180,7 @@ pub(in super::super) fn rewrite(
     let mut first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
     let mut changed=BTreeMap::new();
     let mut edited_tree =
-        if edits.flatten_rotation || !edits.layers.is_empty() || !edits.label_specs.is_empty() {
+        if edits.flatten_rotation || !edits.layers.is_empty() || !edits.label_specs.is_empty() || edits.generate_appearances {
             let (pages, tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
             first_new = first_new.max(
                 tree.keys()
@@ -288,6 +289,9 @@ pub(in super::super) fn rewrite(
         set(cat, b"PageLabels", Value::Ref((next_edit, 0)));
         changed.insert((next_edit, 0), page_labels(&edits.label_specs, limit)?);
         next_edit = next_edit.checked_add(1).ok_or(TOO_LARGE)?;
+    }
+    if edits.generate_appearances && !edits.acroform && let Some((pages,tree))=&mut edited_tree {
+        next_edit=super::pdf_fill::apply(&mut objects,&mut catalog,pages,tree,edits,next_edit,&mut changed,limit)?;
     }
     if !(remove.is_empty() && add.is_empty() && copies.is_empty()) {
         changed.extend(attachments::edit(&mut objects, &mut catalog, remove, add, copies, &mut read, limit, next_edit)?);

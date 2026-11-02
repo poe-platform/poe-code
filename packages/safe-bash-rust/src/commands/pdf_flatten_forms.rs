@@ -5,19 +5,6 @@ use super::*;
 use std::fmt::Write;
 
 impl<'a> Fill<'_, 'a> {
-    fn stream(
-        &mut self,
-        dict: Value<'a>,
-        data: &[u8],
-        mode: Option<bool>,
-    ) -> Result<Value<'a>, String> {
-        let r = self.allocate()?;
-        let mut body = vec![];
-        write_stream(&mut body, dict, data, mode, self.remaining)?;
-        self.remaining = self.remaining.checked_sub(body.len()).ok_or(LIMIT)?;
-        self.bodies.insert(r, body);
-        Ok(Value::Ref(r))
-    }
     fn append_paint(&mut self, page: &mut Dict<'a>, paint: String) -> Result<(), String> {
         let mut dict = Value::Dict(vec![]);
         dict.set_stream_length(paint.len()).ok_or(BAD)?;

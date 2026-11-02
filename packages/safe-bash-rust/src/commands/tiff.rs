@@ -394,7 +394,7 @@ mod tests {
             density: 72,
             pixels: vec![[200, 30, 40, 255], [9, 27, 100, 255], [88, 111, 55, 255]],
         };
-        let jpeg = super::super::jpeg::encode(&im, 85., 72, 1 << 20).unwrap();
+        let jpeg = super::super::jpeg::encode(super::super::jpeg::Input::Raster(&im, 85., 72), 1 << 20).unwrap();
         let expected = super::super::jpeg_decode::decode(&jpeg, 1 << 20)
             .unwrap()
             .pixels;

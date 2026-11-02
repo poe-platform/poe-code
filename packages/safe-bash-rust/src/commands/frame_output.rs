@@ -118,7 +118,7 @@ pub(super) fn encode(
     let data = match format {
         "pdf" => pdf(im, limit)?,
         "heic" | "heif" | "avif" => super::heif::encode(im, format, density, limit)?,
-        "jpeg" => jpeg::encode(im, quality, density, limit)?,
+        "jpeg" => jpeg::encode(jpeg::Input::Raster(im, quality, density), limit)?,
         "tiff" => tiff(im, density, limit)?,
         "gif" => super::gif::encode(w,h,&im.pixels,Default::default(),limit)?,
         "webp" => super::webp::encode(im, density, limit)?,

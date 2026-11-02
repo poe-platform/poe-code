@@ -5498,3 +5498,20 @@ test("wkhtmltopdf embeds opaque and transparent PNG pixels with per-page image r
     }
   }finally{rs.dispose();}
 });
+
+test("pdftohtml publishes painted PDF images and inlines the same pixels in HTML and XML",async()=>{
+  const {PdfDocument,encodePng}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftotextCommands}=await import("@poe-platform/safe-bash/commands/pdftotext");
+  const doc=PdfDocument.create(),p=doc.addPage(),q=doc.addPage(),image=doc.embedPng(encodePng({width:13,height:10,data:Uint8Array.from({length:520},(_,i)=> i%4===3?(i<200?128:255):i*71)}));
+  for(const page of [p,q,p])page.drawImage(image,{x:10,y:15,width:28,height:20});
+  const bytes=doc.save(),fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftotextCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":bytes}});
+  try{
+    await fs.mkdir("/tmp",{recursive:true});await fs.writeFile("/in",bytes);
+    for(const args of ["-i -stdout","-stdout","-dataurls -stdout","-xml -f 2 -dataurls -stdout","-fmt png","-fmt jpg","-fmt jpg -dataurls -stdout"]){
+      const files=!args.includes("-stdout"),cmd="pdftohtml "+args+" in"+(files?" doc.html":""),e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);assert.equal(r.stdout,e.stdout,cmd);
+      if(files)for(const path of ["/doc.html",...["page1_1","page1_2","page2_1"].map(f=>"/"+f+"."+args.slice(-3))])assert.deepEqual(Buffer.from(await rs.fs.readFile(path)),Buffer.from(await fs.readFile(path)),path);
+    }
+  }finally{rs.dispose();}
+});

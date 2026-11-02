@@ -181,7 +181,7 @@ pub(super) fn transform<'a>(
             .as_deref()
             .ok_or("Input buffer contains unsupported image format")?;
         if super::jpeg_decode::signature(input) {
-            let encoded = super::jpeg::encode(raster, 85., raster.density, limit)?;
+            let encoded = super::jpeg::encode(super::jpeg::Input::Raster(raster, 85., raster.density), limit)?;
             *raster = super::jpeg_decode::decode(&encoded, limit)?;
         } else if super::gif::signature(input) {
             let encoded = super::gif::encode_first_frame(raster, input, limit)?;

@@ -9213,11 +9213,51 @@ fn cmd_media_doc(
                 let (w, h, _) = doc.page_media.get(&pno).copied().unwrap_or((doc.page_w, doc.page_h, None));
                 (w.abs(), h.abs())
             };
-            let mut page_text = |pno: usize| {
+            let mut image_files = Vec::new();
+            let limit = fs.shell_limits().max_output_bytes;
+            let mut remaining = limit;
+            let mut page_content = |pno: usize| -> Result<_, &'static str> {
                 let mut fonts = vec![("Helvetica".to_string(), (12.0 * zoom).round() as i64)];
                 let mut markup = Vec::new();
+                if !ignore_images {
+                    let mut idx = 0;
+                    let mut emit = |w: usize, h: usize, bytes: Vec<u8>| -> Option<()> {
+                        idx += 1;
+                        let name = format!("page{pno}_{idx}.{image_fmt}");
+                        let src = if data_urls {
+                            remaining = remaining.checked_sub(bytes.len().div_ceil(3).checked_mul(4)?)?;
+                            let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
+                            format!("data:{mime};base64,{}", base64_encode(&bytes))
+                        } else {
+                            if !stdout_output {
+                                remaining = remaining.checked_sub(bytes.len())?;
+                                image_files.push((format!("{image_dir}{name}"), bytes));
+                            }
+                            name
+                        };
+                        markup.push(if xml_mode {
+                            format!(r#"    <image top="0" left="0" width="{w}" height="{h}" src="{src}"/>"#)
+                        } else {
+                            format!(r#"  <img src="{src}" width="{w}" height="{h}"/>"#)
+                        });
+                        Some(())
+                    };
+                    if let Some(source) = source.as_mut() {
+                        source.images(pno, fs.max_input_bytes(), true, |im| {
+                            let bytes = if image_fmt == "jpg" {
+                                jpeg::encode(jpeg::Input::Pdf {width:im.width, height:im.height, pixels:&im.pixels},limit).ok()?
+                            } else { im.encode("PNG")? };
+                            emit(im.width,im.height,bytes)
+                        }).ok_or("PDF Error: Invalid or oversized PDF image\n")?;
+                    } else if let Some(pg) = doc.pages.get(pno-1) {
+                        for &(w,h,_) in &pg.images {
+                            let im = ImageMeta { fmt: if image_fmt=="jpg" {"JPEG"} else {"PNG"}.into(), w,h,cs:"sRGB".into(),exif:BTreeMap::new() };
+                            emit(w as usize,h as usize,write_image_bytes(&im)).ok_or("PDF image limit exceeded\n")?;
+                        }
+                    }
+                }
                 if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7))) {
-                    let links = source.as_mut()?.page_links(pno, fs.shell_limits().max_input_bytes)?;
+                    let links = source.as_mut().and_then(|s| s.page_links(pno, fs.shell_limits().max_input_bytes)).ok_or("PDF link limit exceeded\n")?;
                     let height = dimensions(pno).1;
                     let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
                     for run in layout {
@@ -9256,7 +9296,7 @@ fn cmd_media_doc(
                         });
                     }
                 }
-                Some((fonts, markup))
+                Ok((fonts, markup))
             };
             let rendered = if xml_mode {
                 let mut lines = vec![
@@ -9267,40 +9307,12 @@ fn cmd_media_doc(
                 for pno in first_p..=end_p {
                     let (pw, ph) = dimensions(pno);
                     let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
-                    let Some((fonts, markup)) = page_text(pno) else {return err_out("PDF link limit exceeded\n",1)};
+                    let (fonts, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
                     lines.push(format!(
                         "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
                     ));
                     for (id, (family, size)) in fonts.iter().enumerate() {
                         lines.push(format!(r##"    <fontspec id="{id}" size="{size}" family="{}" color="#000000"/>"##, html_escape_str(family)));
-                    }
-                    if let Some(pg) = doc.pages.get(pno - 1) {
-                        if !ignore_images {
-                            for (img_idx, (iw, ih, _)) in pg.images.iter().enumerate() {
-                                let img_file = format!("page{pno}_{}.{image_fmt}", img_idx + 1);
-                                let im = ImageMeta {
-                                    fmt: if image_fmt == "jpg" { "JPEG".to_string() } else { "PNG".to_string() },
-                                    w: *iw,
-                                    h: *ih,
-                                    cs: "sRGB".to_string(),
-                                    exif: BTreeMap::new(),
-                                };
-                                let img_bytes = write_image_bytes(&im);
-                                if !data_urls && !stdout_output {
-                                    let full_img = resolve_posix_path(cwd, &format!("{image_dir}{img_file}"));
-                                    let _ = fs.write_file(&full_img, &img_bytes);
-                                }
-                                let src_attr = if data_urls {
-                                    let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
-                                    format!("data:{mime};base64,{}", base64_encode(&img_bytes))
-                                } else {
-                                    img_file
-                                };
-                                lines.push(format!(
-                                    "    <image top=\"0\" left=\"0\" width=\"{iw}\" height=\"{ih}\" src=\"{src_attr}\"/>"
-                                ));
-                            }
-                        }
                     }
                     lines.extend(markup);
                     lines.push("  </page>".to_string());
@@ -9329,38 +9341,10 @@ fn cmd_media_doc(
                 for pno in first_p..=end_p {
                     let (pw, ph) = dimensions(pno);
                     let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
-                    let Some((_, markup)) = page_text(pno) else {return err_out("PDF link limit exceeded\n",1)};
+                    let (_, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
                     lines.push(format!(
                         "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
                     ));
-                    if let Some(pg) = doc.pages.get(pno - 1) {
-                        if !ignore_images {
-                            for (img_idx, (iw, ih, _)) in pg.images.iter().enumerate() {
-                                let img_file = format!("page{pno}_{}.{image_fmt}", img_idx + 1);
-                                let im = ImageMeta {
-                                    fmt: if image_fmt == "jpg" { "JPEG".to_string() } else { "PNG".to_string() },
-                                    w: *iw,
-                                    h: *ih,
-                                    cs: "sRGB".to_string(),
-                                    exif: BTreeMap::new(),
-                                };
-                                let img_bytes = write_image_bytes(&im);
-                                if !data_urls && !stdout_output {
-                                    let full_img = resolve_posix_path(cwd, &format!("{image_dir}{img_file}"));
-                                    let _ = fs.write_file(&full_img, &img_bytes);
-                                }
-                                let src_attr = if data_urls {
-                                    let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
-                                    format!("data:{mime};base64,{}", base64_encode(&img_bytes))
-                                } else {
-                                    img_file
-                                };
-                                lines.push(format!(
-                                    "  <img src=\"{src_attr}\" width=\"{iw}\" height=\"{ih}\"/>"
-                                ));
-                            }
-                        }
-                    }
                     lines.extend(markup);
                     lines.push("</div>".to_string());
                 }
@@ -9380,8 +9364,13 @@ fn cmd_media_doc(
             if stdout_output {
                 ok_out(&rendered)
             } else {
-                let dst = resolve_posix_path(cwd, &out_path);
-                let _ = fs.write_file(&dst, rendered.as_bytes());
+                image_files.push((out_path,rendered.into_bytes()));
+                for (name, bytes) in image_files {
+                    let path=resolve_posix_path(cwd,&name);
+                    if fs.publish_file(&path,&bytes,&[],fs.generation()).is_err() {
+                        return err_out(&format!("I/O Error: Couldn't open html file '{name}'\n"),0);
+                    }
+                }
                 ok_out("")
             }
         }

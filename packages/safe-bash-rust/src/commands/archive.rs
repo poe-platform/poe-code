@@ -4409,6 +4409,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut totals = false;
     let mut utc = false;
     let mut full_time = false;
+    let mut ignore_zeros = false;
     let mut wildcards = false;
     let mut quoting_style = "escape".to_string();
     let mut occurrence: Option<usize> = None;
@@ -4974,7 +4975,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--wildcards" => wildcards = true,
                     "--no-wildcards" => wildcards = false,
                     "--verbose" => verbose = true,
-                    "--read-full-records" | "--ignore-zeros" | "--seek" | "--no-seek"
+                    "--ignore-zeros" => ignore_zeros = true,
+                    "--read-full-records" | "--seek" | "--no-seek"
                     | "--force-local" | "--numeric-owner" | "--no-same-owner" | "--touch"
                     | "--same-permissions" | "--preserve-permissions" | "--no-same-permissions"
                     | "--delay-directory-restore" | "--no-delay-directory-restore" => {}
@@ -5145,7 +5147,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             compress_format = Some("auto");
                             matched_flag = true;
                         }
-                        'p' | 'm' | 'B' | 'i' | 'n' => {
+                        'i' => { ignore_zeros = true; matched_flag = true; }
+                        'p' | 'm' | 'B' | 'n' => {
                             matched_flag = true;
                         }
                         'f' => {
@@ -5486,15 +5489,32 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Ok(bytes) => bytes,
             Err(e) => return err_out(&format!("tar: {e}\n"), 2),
         };
-        let read_members = |bytes: &[u8]| {
-            if bytes.starts_with(b"\x1f\x8b") || bytes.starts_with(b"BZ") || bytes.starts_with(b"\xfd7zXZ\0") {
-                return Err(err_out("tar: cannot modify compressed archives\n", 2));
+        let mut out_bytes = Vec::new();
+        let mut changed = false;
+        let mut times = BTreeMap::<String, Option<f64>>::new();
+        let mut matched_ops = vec![false; operands.len()];
+        let mut occ_counts = vec![0usize; operands.len()];
+        let scan = tar_format::copy_members(&existing_bytes, ignore_zeros, &mut out_bytes, |name, mtime| {
+            if update_mode {
+                times.entry(name.trim_end_matches('/').to_owned()).and_modify(|prior| {
+                    if mtime.is_none() || (prior.is_some() && mtime > *prior) { *prior = mtime; }
+                }).or_insert(mtime);
             }
-            Ok(parse_ustar_archive(bytes))
-        };
-        let mut entries = match read_members(&existing_bytes) { Ok(entries) => entries, Err(error) => return error };
+            if delete_mode {
+                let (selected, _) = match_tar_operands(name, &operands, wildcards, occurrence, &mut occ_counts, &mut matched_ops, &current_dir);
+                if selected && !tar_matches_exclude(name, &excludes) {
+                    changed = true;
+                    return false;
+                }
+            }
+            true
+        });
+        if let Err(e) = scan { return err_out(&format!("tar: {e}\n"), 2); }
         let mut stderr = String::new();
-        let mut exit_code = 0;
+        if delete_mode && let Some(idx) = matched_ops.iter().position(|&matched| !matched) {
+            return err_out(&format!("tar: member not found: {}\n", tar_format::display(&operands[idx].name)), 2);
+        }
+        if totals { stderr.push_str(&format!("Total bytes read: {}\n", existing_bytes.len())); }
         if append_mode || update_mode {
             let mut new_entries = Vec::new();
             for op in &operands {
@@ -5511,86 +5531,59 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     &mut Vec::new(),
                     &mut include,
                 ) {
-                    return err_out(&format!("tar: {e}\n"), 2);
+                    return err_out(&format!("{stderr}tar: {e}\n"), 2);
                 }
             }
             stderr.push_str(&warnings);
+            let mut added = Vec::new();
             for mut ne in new_entries {
                 if !transforms.is_empty() {
                     ne.name = apply_tar_transforms(&ne.name, &transforms);
                 }
-                if update_mode {
-                    let unchanged = entries
-                        .iter()
-                        .rev()
-                        .find(|e| e.name == ne.name)
-                        .is_some_and(|e| ne.mtime < e.mtime || (ne.mtime == e.mtime && e.content == ne.content));
-                    if !unchanged {
-                        entries.push(ne);
-                    }
-                } else {
-                    entries.push(ne);
+                if let Some(archived) = times.get(ne.name.trim_end_matches('/')) {
+                    let Some(t) = archived else { return err_out(&format!("{stderr}tar: archive lacks mtime required for update\n"), 2); };
+                    if ne.mtime <= *t { continue; }
                 }
+                added.push(ne);
             }
-        } else if delete_mode {
-            let mut occ_counts = vec![0usize; operands.len()];
-            let mut matched_ops = vec![false; operands.len()];
-            let mut retained = Vec::with_capacity(entries.len());
-            for e in entries {
-                let (sel, _) = match_tar_operands(
-                    &e.name,
-                    &operands,
-                    wildcards,
-                    occurrence,
-                    &mut occ_counts,
-                    &mut matched_ops,
-                    &current_dir,
-                );
-                let excluded = !excludes.is_empty() && tar_matches_exclude(&e.name, &excludes);
-                if !(sel && !excluded) {
-                    retained.push(e);
-                }
-            }
-            entries = retained;
-            for (idx, &m) in matched_ops.iter().enumerate() {
-                if !m {
-                    stderr.push_str(&format!("tar: member not found: {}\n", operands[idx].name));
-                    exit_code = 2;
+            if !added.is_empty() {
+                changed = true;
+                if let Err(e) = tar_format::write_members(&mut out_bytes, &added, pax) {
+                    return err_out(&format!("{stderr}tar: {e}\n"), 2);
                 }
             }
         } else if catenate_mode {
             for op in &operands {
                 let t_full = resolve_posix_path(&op.cwd, &op.name);
                 match fs.stat(&t_full) {
-                    Ok(st) if st.identity == prior.identity => return err_out("tar: cannot concatenate an archive to itself\n", 2),
-                    Ok(st) if st.kind != crate::vfs::VfsEntryKind::File || st.identity.is_none() => return err_out("tar: concatenation source must be a regular archive with retained identity\n", 2),
-                    Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+                    Ok(st) if st.identity == prior.identity => return err_out(&format!("{stderr}tar: cannot concatenate an archive to itself\n"), 2),
+                    Ok(st) if st.kind != crate::vfs::VfsEntryKind::File || st.identity.is_none() => return err_out(&format!("{stderr}tar: concatenation source must be a regular archive with retained identity\n"), 2),
+                    Err(e) => return err_out(&format!("{stderr}tar: {e}\n"), 2),
                     _ => {}
                 }
                 match fs.read_file(&t_full) {
-                    Ok(tb) => match read_members(&tb) {
-                        Ok(members) => entries.extend(members),
-                        Err(error) => return error,
+                    Ok(tb) => match tar_format::copy_members(&tb, ignore_zeros, &mut out_bytes, |_, _| true) {
+                        Ok(()) => {
+                            changed = true;
+                            if totals { stderr.push_str(&format!("Total bytes read: {}\n", tb.len())); }
+                        }
+                        Err(error) => return err_out(&format!("{stderr}tar: {error}\n"), 2),
                     },
-                    Err(e) => return err_out(&format!("tar: {e}\n"), 2),
+                    Err(e) => return err_out(&format!("{stderr}tar: {e}\n"), 2),
                 }
             }
         }
-        let out_bytes = match tar_format::serialize(&entries, pax) {
-            Ok(bytes) => bytes,
-            Err(message) => return err_out(&format!("tar: {message}\n"), 2),
-        };
-        if totals {
-            stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len()));
-        }
-        if exit_code == 0 && out_bytes != existing_bytes
-            && let Err(e) = fs.replace_file_entry_with_mode(full, &out_bytes, prior.mode & 0o7777, version) {
-            return err_out(&format!("tar: {e}\n"), 2);
+        if changed {
+            out_bytes.resize(out_bytes.len() + 1024, 0);
+            if let Err(e) = fs.replace_file_entry_with_mode(full, &out_bytes, prior.mode & 0o7777, version) {
+                return err_out(&format!("{stderr}tar: {e}\n"), 2);
+            }
+            if totals { stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len())); }
         }
         return BuiltinOutcome {
             stdout: String::new(),
             stderr,
-            exit_code,
+            exit_code: 0,
         };
     }
 

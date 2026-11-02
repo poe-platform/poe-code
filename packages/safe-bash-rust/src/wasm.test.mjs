@@ -5696,3 +5696,103 @@ test("tar never rewrites a compressed archive during mutation", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("tar validates raw mutation records and preserves untouched member bytes", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/new", Buffer.from("new"));
+      await f.utimes("/new", 1000, 1000);
+    }
+    const seed = await js.exec("tar --format=ustar --mtime=@1 -cf - new");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    const tar = Buffer.from(seed.stdoutBytes);
+    const checksum = Buffer.from(tar);
+    checksum[0] ^= 1;
+    const extension = (kind, payload) => {
+      const head = Buffer.from(tar.subarray(0, 512));
+      head[156] = kind.charCodeAt(0);
+      head.write(payload.length.toString(8).padStart(11, "0"), 124);
+      head.fill(32, 148, 156);
+      head.write(head.reduce((a, b) => a + b, 0).toString(8).padStart(6, "0") + "\0 ", 148);
+      const body = Buffer.alloc(512);
+      body.write(payload);
+      return Buffer.concat([head, body]);
+    };
+    const optional = extension("x", "21 SCHILY.fflags=foo\n");
+    const extended = Buffer.concat([optional, tar]);
+    const zeros = Buffer.alloc(1024);
+    const cases = [
+      [checksum, "header checksum mismatch"], [tar.subarray(0, 400), "truncated archive"],
+      [tar.subarray(0, 513), "archive changed during preparation"], [tar.subarray(0, 1536), "truncated archive"],
+      [Buffer.concat([tar, Buffer.alloc(1)]), "truncated archive trailing record"],
+      [Buffer.concat([tar, tar]), "nonzero trailing archive data or concatenated archive is unsupported"],
+      [Buffer.concat([tar.subarray(0, 1536), tar]), "missing second end-of-archive block"],
+      [Buffer.concat([optional, zeros]), "orphan extended header at end of archive"],
+      [Buffer.concat([extension("g", "21 SCHILY.fflags=foo\n"), tar]), "global PAX headers are unsupported for archive mutation"],
+      [Buffer.concat([extension("x", "20 SCHILY.fflags=foo\n"), tar]), "invalid PAX record framing"],
+      [Buffer.concat([extension("x", "11 alien=x\n"), tar]), "unsupported PAX keyword: alien"],
+      [extended, undefined],
+    ];
+    for (const [input, error] of cases) {
+      for (const cmd of ["tar rf out new", "tar Af base out", "tar --delete -f out new"]) {
+        for (const f of [fs, rs.fs]) {
+          await f.writeFile("/out", input);
+          await f.writeFile("/base", tar);
+          await f.utimes("/new", 1000, 1000);
+        }
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        const diagnostic = cmd.includes("--delete") && error === "archive changed during preparation" ? "truncated archive body" : error;
+        assert.deepEqual([a.exitCode, a.stderr], diagnostic ? [2, "tar: " + diagnostic + "\n"] : [0, ""], cmd);
+        assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd + ": " + error);
+        for (const path of ["/out", "/base"]) {
+          const expected = Buffer.from(await fs.readFile(path));
+          if (error) assert.deepEqual(expected, path === "/out" ? input : tar);
+          assert.deepEqual(Buffer.from(await rs.fs.readFile(path)), expected, cmd + " " + path);
+        }
+      }
+    }
+    const joined = Buffer.concat([extended, tar]);
+    for (const cmd of ["tar --ignore-zeros --delete --occurrence=2 -f out new", "tar -irf out new"]) {
+      for (const f of [fs, rs.fs]) {
+        await f.writeFile("/out", joined);
+        await f.utimes("/new", 1000, 1000);
+      }
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout]);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/out")), Buffer.from(await fs.readFile("/out")));
+    }
+  } finally { rs.dispose(); }
+});
+
+test("tar update uses the newest archived mtime and preserves a no-op archive", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.writeFile("/f", Buffer.from("old"));
+    const newer = await js.exec("tar --format=ustar --mtime=@3 -cf - f");
+    const older = await js.exec("tar --format=ustar --mtime=@1 -cf - f");
+    assert.equal(newer.exitCode, 0, newer.stderr);
+    assert.equal(older.exitCode, 0, older.stderr);
+    for (const [input, mtime] of [[newer.stdoutBytes, 3000], [Buffer.concat([newer.stdoutBytes.slice(0, -1024), older.stdoutBytes]), 2000], [newer.stdoutBytes, 4000]]) {
+      for (const f of [fs, rs.fs]) {
+        await f.writeFile("/f", Buffer.from("new"));
+        await f.utimes("/f", mtime, mtime);
+        await f.writeFile("/out", input);
+      }
+      const cmd = "tar --totals -uf out f";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout]);
+      const result = Buffer.from(await fs.readFile("/out"));
+      assert.equal(result.equals(input), mtime <= 3000);
+      assert.deepEqual(Buffer.from(await rs.fs.readFile("/out")), result);
+    }
+  } finally { rs.dispose(); }
+});

@@ -7208,3 +7208,20 @@ test("grep validates bounded regex batches before emitting matches, counts or fi
     }
   } finally { rs.dispose(); }
 });
+
+test("grep -o selects empty matches without printing them or inverted records", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const args of ["-nob '^'","-ob 'a*'","-aob '^'","-o -e '' -e a","-ov a","-ovc a","-ovn '^'","-A1 -no a","-B1 -no a"]) {
+      const cmd="printf 'aab\\nz\\nz\\naz\\n' | grep "+args;
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd);
+    }
+    const cmd="echo a >f; grep -B1 -o '^' f f";
+    for (const sh of [js,rs]) {
+      const r=await sh.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"--\n",""],cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -2738,7 +2738,7 @@ fn cmd_grep(
             Ok(parsed) => parsed,
             Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {message}\n"), exit_code: 2 },
         };
-        use_vm |= branches.requires_vm;
+        use_vm |= !pat.is_empty() && branches.requires_vm;
         // The delegated provider searches ASCII literals as bytes, including under -E.
         // Escaped ordinary characters translate to literals too; shorthands translate to classes.
         if !fixed_strings {
@@ -4210,6 +4210,7 @@ fn run_grep_engine(
     let mut bytes_searched = 0;
     let mut json_bytes_printed = 0;
     let mut failed_batch = false;
+    let mut grep_group = false;
     for input in inputs {
         if failed_batch { break; }
         let (fname, content, explicit) = match input {
@@ -4669,7 +4670,8 @@ fn run_grep_engine(
             continue;
         }
 
-        let context = (cfg.before_ctx > 0 || cfg.after_ctx > 0) && (cfg.is_rg || !cfg.only_matching);
+        if !cfg.is_rg && cfg.only_matching && cfg.invert { continue; }
+        let context = cfg.before_ctx > 0 || cfg.after_ctx > 0;
         let mut selected = match_indices.iter().peekable();
         let mut previous_match = None;
         let mut previous_printed = None;
@@ -4678,15 +4680,18 @@ fn run_grep_engine(
             if matched.is_some() { previous_match = Some(idx); }
             else if !context || !(previous_match.is_some_and(|i| idx - i <= cfg.after_ctx)
                 || selected.peek().is_some_and(|(i, _)| i - idx <= cfg.before_ctx)) { continue; }
-            if context && previous_printed.is_some_and(|p| idx > p + 1) && let Some(sep) = &cfg.context_separator {
+            if context && previous_printed.map_or(grep_group, |p| idx > p + 1) && let Some(sep) = &cfg.context_separator {
                 out.push_str(sep); out.push(if cfg.is_rg { '\n' } else { rec_term });
             }
+            if context && !cfg.is_rg { grep_group = true; }
             previous_printed = Some(idx);
+            if !cfg.is_rg && cfg.only_matching && matched.is_none() { continue; }
             let spans = matched.map(|(_, spans)| spans).or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
             let sep = if matched.is_some() { ':' } else { '-' };
             let pieces = cfg.only_matching && !cfg.invert && matched.is_some();
             for i in 0..if pieces { spans.len() } else { 1 } {
                 let piece = pieces.then(|| spans[i]);
+                if !cfg.is_rg && piece.is_some_and(|(s,e)| s == e) { continue; }
                 if line_show_filename && let Some(f) = fname {
                     out.push_str(f); out.push(if cfg.null_delim { '\0' } else { sep });
                 }

@@ -144,6 +144,11 @@ pub trait SafeBashFs: Send + Sync {
         self.lstat(&entry).map(|st| (entry, st))
     }
 
+    /// Open unnamed temporary storage in this directory. Dropping the handle releases its bytes.
+    fn scratch_file(&self, _directory: &str) -> Result<std::rc::Rc<dyn OpenRedirectFile>, String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
+
     /// None uses the filesystem’s path-based output or special-device operations.
     fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
         if access == RedirectAccess::ReadWrite { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }

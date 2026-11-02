@@ -15983,6 +15983,37 @@ hash -l
     }
 
     #[test]
+    fn sort_spills_runs_to_the_selected_filesystem_and_releases_them() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let rows: Vec<_> = (0..800).map(|i| format!("{i:04}{}\n", "x".repeat(1019))).collect();
+        fs.write_file("/rows", rows.iter().rev().cloned().collect::<String>().as_bytes()).unwrap();
+        fs.write_file("/dest", b"original").unwrap();
+        for (tmp, diagnostic) in [("/missing", "ENOENT: no such file or directory, stat '/missing'"), ("/dest", "ENOTDIR: not a directory '/dest'")] {
+            let r = shell.exec(&format!("TMPDIR={tmp} sort -S1M /rows -o /dest")).unwrap();
+            assert_eq!((r.exit_code, r.stderr), (2, format!("sort: {diagnostic}\n")));
+            assert_eq!(fs.read_file("/dest").unwrap(), b"original");
+        }
+        // Leave enough room to start spilling but not to finish. A second attempt
+        // with exactly enough space must be able to reuse all the scratch quota.
+        fs.set_max_total_bytes(800 * 1024 + 350 * 1024);
+        let r = shell.exec("TMPDIR=/ sort -S1M /rows -o /dest").unwrap();
+        assert_eq!(r.exit_code, 2);
+        assert!(r.stderr.contains("ENOSPC"), "{}", r.stderr);
+        assert_eq!(fs.read_file("/dest").unwrap(), b"original");
+        fs.set_max_total_bytes(800 * (1024 + 1040) + 20);
+        let r = shell.exec("TMPDIR=/ sort -S1M /rows -o /dest").unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+        assert_eq!(fs.read_file("/dest").unwrap(), rows.concat().as_bytes());
+        assert!(fs.list_dir("/").unwrap().iter().all(|p| !p.starts_with(".storage-")));
+        for name in ["a","b","c","d","e"] {
+            fs.write_file(&format!("/{name}"), format!("x {name}\ny {name}\n").as_bytes()).unwrap();
+        }
+        let r = shell.exec("sort -msk1,1 --batch-size=2 /a /b /c /d /e").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "x a\nx b\nx c\nx d\nx e\ny a\ny b\ny c\ny d\ny e\n", ""));
+
+    }
+
+    #[test]
     fn sort_validates_memory_and_fan_in_before_reading_input() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (options, error) in [

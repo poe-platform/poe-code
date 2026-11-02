@@ -733,6 +733,22 @@ impl MemoryVfs {
 
 impl SafeBashFs for MemoryVfs {
     fn memory_backend(&self) -> Option<&MemoryVfs> { Some(self) }
+    fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn super::OpenRedirectFile>, String> {
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        let child = Self::mutation_entry(&state, &format!("{}/.storage", directory.trim_end_matches('/')))?;
+        let parent = super::dirname_posix_path(&child);
+        match state.nodes.get(&parent) {
+            Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 && state.devices != Devices::Mounted => {}
+            _ => return Err("EACCES: permission denied".into()),
+        }
+        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        let ino = state.allocate_ino();
+        let now = super::now_ms();
+        state.files.insert(ino, MemoryFile { data: Vec::new(), publication: None, mode: 0o100600,
+            atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now, opens: 1, linked: false });
+        Ok(std::rc::Rc::new(RetainedFile { fs: self.clone(), ino, access: super::RedirectAccess::ReadWrite }))
+    }
+
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         let exclusive = access == super::RedirectAccess::Exclusive;

@@ -110,6 +110,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.inspect_command_entry(path, follow, syscall)
     }
 
+    fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>, String> {
+        self.budget.limits.check_path(directory)?;
+        self.budget.tick_fs_op()?;
+        self.inner.scratch_file(directory)
+    }
+
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

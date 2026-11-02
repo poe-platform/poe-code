@@ -1,3 +1,4 @@
+mod sort_runs;
 use super::CommandInput;
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
@@ -2023,7 +2024,7 @@ fn cmd_sort(
     args: &[String],
     mut stdin: CommandInput,
     cwd: &str,
-    _env: &BTreeMap<String, String>,
+    env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut flags: BTreeSet<char> = BTreeSet::new();
@@ -2400,11 +2401,14 @@ fn cmd_sort(
         Ok(SortInput { file, chunk: Vec::new(), offset: 0 })
     };
     let mut next = |input: &mut SortInput| input.next_record(&mut stdin, delim_byte, &mut remaining_bytes, &mut remaining_records);
+    let directory = env.get("TMPDIR").filter(|s| !s.is_empty()).map_or_else(|| cwd.to_owned(), |v| absolute_operand(cwd, v));
+    let batch_limit = usize::try_from(memory_bytes / 4).unwrap_or(usize::MAX);
+    let mut runs = sort_runs::SortRuns::new(fs, directory, batch_limit);
+    let sort_error = |e| err_out(&format!("sort: {e}\n"), 2);
     if merge && !checking {
-        let mut runs = Vec::new();
-        let direct = names.len() <= fan_in as usize;
+        let direct = names.len() <= fan_in as usize && out_file.is_none();
         for group in names.chunks(fan_in as usize) {
-            let mut run = Vec::new();
+            let mut run = sort_runs::Run::default();
             let result = (|| -> Result<(), String> {
                 let mut sources = Vec::with_capacity(group.len());
                 for name in group {
@@ -2414,7 +2418,7 @@ fn cmd_sort(
                 }
                 while let Some(index) = (0..sources.len()).min_by(|&a, &b| full_compare(&sources[a].0, &sources[b].0)) {
                     let (head, source) = &mut sources[index];
-                    if direct { output(std::mem::take(head)); } else { run.push(std::mem::take(head)); }
+                    if direct { output(std::mem::take(head)); } else { runs.append(&mut run, head)?; }
                     if let Some(record) = next(source)? {
                         *head = record;
                     } else { sources.remove(index); }
@@ -2426,22 +2430,18 @@ fn cmd_sort(
                 if direct && out_file.is_none() { error.stdout = crate::vfs::bytes_to_stream_string(&out_bytes); }
                 return error;
             }
-            if !direct { runs.push(run); }
-        }
-        let mut sources: Vec<_> = runs.into_iter().map(|v| v.into_iter().peekable()).collect();
-        loop {
-            let mut best: Option<(usize, &[u8])> = None;
-            for (index, source) in sources.iter_mut().enumerate() {
-                if let Some(head) = source.peek()
-                    && best.is_none_or(|(_, previous)| full_compare(head, previous).is_lt()) {
-                    best = Some((index, head));
-                }
-            }
-            let Some((index, _)) = best else { break };
-            output(sources[index].next().unwrap());
+            if !direct && let Err(e) = runs.add(run, &full_compare) { return sort_error(e); }
         }
     } else {
-        let mut all = Vec::new();
+        let mut batch = Vec::new();
+        let mut bytes = 0usize;
+        let mut spilled = false;
+        let flush = |batch: &mut Vec<Vec<u8>>, runs: &mut sort_runs::SortRuns| -> Result<(), String> {
+            batch.sort_by(|a, b| full_compare(a, b));
+            let mut run = sort_runs::Run::default();
+            for record in batch.drain(..) { runs.append(&mut run, &record)?; }
+            runs.add(run, &full_compare)
+        };
         for name in &names {
             let mut source = match open(name) { Ok(source) => source, Err(e) => return err_out(&format!("sort: {e}\n"), 2) };
             let mut previous = None::<Vec<u8>>;
@@ -2457,13 +2457,26 @@ fn cmd_sort(
                         return if flags.contains(&'C') { err_out("", 1) } else { err_out(&format!("sort: disorder at record {ordinal}\n"), 1) };
                     }
                     previous = Some(record);
-                } else { all.push(record); }
+                } else {
+                    bytes = bytes.saturating_add(record.len()).saturating_add(128);
+                    batch.push(record);
+                    if bytes >= batch_limit {
+                        if let Err(e) = flush(&mut batch, &mut runs) { return sort_error(e); }
+                        spilled = true;
+                        bytes = 0;
+                    }
+                }
             }
             if checking { return ok_out(""); }
         }
-        all.sort_by(|a, b| full_compare(a, b));
-        for record in all { output(record); }
+        if spilled {
+            if !batch.is_empty() && let Err(e) = flush(&mut batch, &mut runs) { return sort_error(e); }
+        } else {
+            batch.sort_by(|a, b| full_compare(a, b));
+            for record in batch { output(record); }
+        }
     }
+    if let Err(e) = runs.finish(&full_compare, output) { return sort_error(e); }
 
     if let Some(ref of) = out_file {
         let path = absolute_operand(cwd, of);

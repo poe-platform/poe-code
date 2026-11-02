@@ -237,6 +237,16 @@ impl SafeBashFs for RealVfs {
         std::fs::File::open(host).and_then(|file| file.set_times(times)).map_err(|e| e.to_string())
     }
 
+    #[cfg(all(target_os = "linux", any(target_arch = "x86", target_arch = "x86_64", target_arch = "riscv64", target_arch = "arm", target_arch = "aarch64")))]
+    fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn super::OpenRedirectFile>, String> {
+        use std::os::unix::fs::OpenOptionsExt;
+        let parent = self.walk(&self.root, directory, Walk::Follow, false)?;
+        // Linux O_TMPFILE creates a private inode without a name to replace or clean up.
+        let o_directory = if cfg!(any(target_arch = "arm", target_arch = "aarch64")) { 0o40000 } else { 0o200000 };
+        std::fs::OpenOptions::new().read(true).write(true).custom_flags(0o20000000 | o_directory).mode(0o600)
+            .open(parent).map(|file| std::rc::Rc::new(file) as _).map_err(mutation_error)
+    }
+
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let exclusive = access == super::RedirectAccess::Exclusive;
         let host = self.walk(&self.root, path, if exclusive { Walk::RenameEntry } else { Walk::Follow }, false)?;

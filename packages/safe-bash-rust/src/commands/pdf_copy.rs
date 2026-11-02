@@ -44,11 +44,14 @@ struct Attachment {
     stream: ObjectId,
 }
 
-impl<'a> PageSource<'a> {
-    pub(in super::super) fn open(bytes: &'a [u8]) -> Option<Self> {
-        let (mut objects, trailer) = index(bytes)?;
-        let root = trailer.get(b"Root")?.reference()?;
-        let catalog = objects.object(root)?.0;
+type PageTree<'a> = BTreeMap<ObjectId, Option<Value<'a>>>;
+
+impl<'a> Objects<'a> {
+    pub(super) fn page_tree(
+        &mut self,
+        root: ObjectId,
+        catalog: &Value<'a>,
+    ) -> Option<(Vec<ObjectId>, PageTree<'a>)> {
         let mut pending = vec![catalog.get(b"Pages")?.reference()?];
         let mut tree = BTreeMap::from([(root, None)]);
         let mut pages = Vec::new();
@@ -56,7 +59,7 @@ impl<'a> PageSource<'a> {
             if tree.insert(id, None).is_some() {
                 return None;
             }
-            let node = objects.object(id)?.0;
+            let node = self.object(id)?.0;
             match node.get(b"Type")?.word()? {
                 b"/Page" => pages.push(id),
                 b"/Pages" => {
@@ -81,6 +84,16 @@ impl<'a> PageSource<'a> {
                 _ => return None,
             }
         }
+        Some((pages, tree))
+    }
+}
+
+impl<'a> PageSource<'a> {
+    pub(in super::super) fn open(bytes: &'a [u8]) -> Option<Self> {
+        let (mut objects, trailer) = index(bytes)?;
+        let root = trailer.get(b"Root")?.reference()?;
+        let catalog = objects.object(root)?.0;
+        let (pages, tree) = objects.page_tree(root, &catalog)?;
         let meta = match trailer.get(b"Info").and_then(Value::reference) {
             Some(r) => objects.object(r)?.0,
             None => Value::Dict(Vec::new()),

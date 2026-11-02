@@ -2,10 +2,10 @@
 // existing objects: outlines, annotations and unrelated name trees keep their refs.
 use super::{
     ObjectId, Objects, Value, index,
-    pdf_copy::encode_value,
+    pdf_rewrite::{encode, set},
     pdf_string::{decode as text, encode as string},
 };
-use std::{collections::BTreeMap, io::Write};
+use std::collections::BTreeMap;
 
 pub(in super::super) struct AddAttachment {
     pub path: String,
@@ -18,14 +18,6 @@ pub(in super::super) struct AddAttachment {
 const INVALID: &str = "invalid PDF attachment tree";
 const TOO_LARGE: &str = "PDF output byte limit exceeded";
 type Dict<'a> = Vec<(&'a [u8], Value<'a>)>;
-
-fn set<'a>(dict: &mut Dict<'a>, key: &'static [u8], value: Value<'a>) {
-    if let Some((_, old)) = dict.iter_mut().find(|(k, _)| *k == key) {
-        *old = value;
-    } else {
-        dict.push((key, value));
-    }
-}
 
 fn child<'a>(
     objects: &mut Objects<'a>,
@@ -41,13 +33,6 @@ fn child<'a>(
     let id = *next;
     *next = id.checked_add(1).ok_or(TOO_LARGE)?;
     Ok((Some((id, 0)), vec![]))
-}
-
-fn encode(v: &Value<'_>, out: &mut Vec<u8>) -> Result<(), String> {
-    encode_value(v, out, 0, &mut |(n, g), out, _| {
-        write!(out, "{n} {g} R").ok()
-    })
-    .ok_or_else(|| INVALID.into())
 }
 
 fn store_child<'a>(
@@ -90,20 +75,15 @@ impl<'a> Objects<'a> {
     }
 }
 
-pub(in super::super) fn edit(
-    bytes: &[u8],
+pub(super) fn edit<'a>(
+    objects: &mut Objects<'a>,
+    catalog: &mut Value<'a>,
     remove: &[String],
     add: &[AddAttachment],
     copies: &[(String, String)],
     mut read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
-) -> Result<Vec<u8>, String> {
-    let (mut objects, trailer) = index(bytes).ok_or(INVALID)?;
-    let root = trailer
-        .get(b"Root")
-        .and_then(Value::reference)
-        .ok_or(INVALID)?;
-    let catalog = objects.object(root).ok_or(INVALID)?.0;
+) -> Result<BTreeMap<ObjectId, Vec<u8>>, String> {
     let mut next = objects
         .xref
         .keys()
@@ -113,9 +93,9 @@ pub(in super::super) fn edit(
         .checked_add(1)
         .ok_or(TOO_LARGE)?;
     let mut changed = BTreeMap::new();
-    let (names_id, names) = child(&mut objects, &catalog, b"Names", &mut next)?;
+    let (names_id, names) = child(objects, catalog, b"Names", &mut next)?;
     let names = Value::Dict(names);
-    let (tree_id, mut tree) = child(&mut objects, &names, b"EmbeddedFiles", &mut next)?;
+    let (tree_id, mut tree) = child(objects, &names, b"EmbeddedFiles", &mut next)?;
     let flatten = !add.is_empty() || !remove.is_empty();
     let mut pairs = Vec::new();
     let root_count = match tree
@@ -243,91 +223,14 @@ pub(in super::super) fn edit(
             b"EmbeddedFiles",
             store_child(&mut changed, tree_id, tree)?,
         );
-        let Value::Dict(mut catalog) = catalog else {
+        let Value::Dict(catalog) = catalog else {
             return Err(INVALID.into());
         };
         set(
-            &mut catalog,
+            catalog,
             b"Names",
             store_child(&mut changed, names_id, names)?,
         );
-        store_child(&mut changed, Some(root), catalog)?;
-    } else {
-        next = objects
-            .xref
-            .keys()
-            .next_back()
-            .ok_or(INVALID)?
-            .0
-            .checked_add(1)
-            .ok_or(TOO_LARGE)?;
     }
-
-    let mut out = bytes.get(..8).ok_or(INVALID)?.to_vec();
-    out.extend_from_slice(b"\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n");
-    if next > limit / 20 {
-        return Err(TOO_LARGE.into());
-    }
-    let mut xref = format!("xref\n0 {next}\n0000000000 65535 f \n").into_bytes();
-    for n in 1..next {
-        let original = objects
-            .xref
-            .range((n, 0)..=(n, usize::MAX))
-            .next()
-            .map(|(&id, _)| id);
-        let id = original.unwrap_or((n, 0));
-        if original.is_none() && !changed.contains_key(&id) {
-            xref.extend_from_slice(b"0000000000 65535 f \n");
-            continue;
-        }
-        writeln!(xref, "{:010} {:05} n ", out.len(), id.1).unwrap();
-        writeln!(out, "{n} {} obj", id.1).unwrap();
-        if let Some(body) = changed.remove(&id) {
-            if body.len() > limit.saturating_sub(out.len()) {
-                return Err(TOO_LARGE.into());
-            }
-            out.extend_from_slice(&body);
-        } else {
-            let (dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
-            cursor.skip();
-            encode(&dict, &mut out)?;
-            if cursor.0.starts_with(b"stream") {
-                let data = objects.stream(&dict, cursor).ok_or(INVALID)?;
-                if data.len() > limit.saturating_sub(out.len()) {
-                    return Err(TOO_LARGE.into());
-                }
-                out.extend_from_slice(b"\nstream\n");
-                out.extend_from_slice(data);
-                out.extend_from_slice(b"\nendstream");
-            } else if !cursor.0.starts_with(b"endobj") {
-                return Err(INVALID.into());
-            }
-        }
-        out.extend_from_slice(b"\nendobj\n\n");
-        if out.len() > limit {
-            return Err(TOO_LARGE.into());
-        }
-    }
-    let offset = out.len();
-    out.extend_from_slice(&xref);
-    write!(
-        out,
-        "trailer\n<<\n/Size {next}\n/Root {} {} R\n",
-        root.0, root.1
-    )
-    .unwrap();
-    for key in [b"Info".as_slice(), b"ID"] {
-        if let Some(v) = trailer.get(key) {
-            out.push(b'/');
-            out.extend_from_slice(key);
-            out.push(b' ');
-            encode(v, &mut out)?;
-            out.push(b'\n');
-        }
-    }
-    write!(out, ">>\n\nstartxref\n{offset}\n%%EOF").unwrap();
-    if out.len() > limit {
-        return Err(TOO_LARGE.into());
-    }
-    Ok(out)
+    Ok(changed)
 }

@@ -3611,3 +3611,31 @@ test("qpdf displays actual PDF objects, stream bytes and nested form image refer
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf copies the complete graph and materializes inherited page attributes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { cosDict, cosRef, cosString, cosStream, cosArray, cosName, cosNumber, serializeCosDocument } = await import("@poe-code/pdf-ast");
+  const box = (w,h) => cosArray([0,0,w,h].map(k => cosNumber(k)));
+  const nodes = [
+    cosDict({Type:cosName("Catalog"),Pages:cosRef(2),Outlines:cosRef(8)}),
+    cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(3)]),Count:cosNumber(2),MediaBox:box(48,80),Resources:cosDict({Font:cosRef(7)})}),
+    cosDict({Type:cosName("Pages"),Parent:cosRef(2),Count:cosNumber(2),Kids:cosArray([cosRef(4),cosRef(5)]),Rotate:cosNumber(90),CropBox:box(42,72)}),
+    cosDict({Type:cosName("Page"),Parent:cosRef(3),Contents:cosRef(6)}),
+    cosDict({Type:cosName("Page"),Parent:cosRef(3),MediaBox:box(30,20),Resources:cosDict({}),Rotate:cosNumber(180)}),
+    cosStream(Uint8Array.of(255,0,1,2,10),{compress:true}),cosDict({}),cosDict({Title:cosString("雪")}),
+  ];
+  const input = serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1),version:"1.4"});
+  const fs = new MemoryFileSystem(), wasm = new RustWasmBash({cwd:"/", files:{"/in.pdf":input}});
+  await fs.writeFile("/in.pdf",input);
+  const shell = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for (const [script,file] of [["qpdf in.pdf out.pdf","/out.pdf"],["cat in.pdf | qpdf - -",null],
+      ["qpdf in.pdf --replace-input","/in.pdf"],["qpdf --empty empty.pdf","/empty.pdf"]]) {
+      const got=await wasm.exec(script), want=await shell.exec(script);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual([got.exitCode,got.stdoutBytes,got.stderr],[want.exitCode,want.stdoutBytes,want.stderr],script);
+      if (file) assert.deepEqual(Buffer.from(await wasm.fs.readFile(file)),Buffer.from(await fs.readFile(file)),script);
+    }
+  } finally {wasm.dispose();}
+});

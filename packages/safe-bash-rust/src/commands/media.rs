@@ -6289,7 +6289,7 @@ fn cmd_media_doc(
             let mut show_att: Option<String> = None;
             let mut remove_atts: Vec<String> = Vec::new();
             let mut add_atts = Vec::new();
-            let mut only_attachments = true;
+            let mut standard_rewrite = true;
             let mut copy_atts: Vec<(String, String)> = Vec::new();
             let mut split_pages_group: Option<usize> = None;
             let mut encrypt_pw: Option<String> = None;
@@ -6312,8 +6312,8 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && a != "--replace-input" && a != "--copy-attachments-from" && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") {
-                    only_attachments = false;
+                if a.starts_with("--") && a != "--empty" && a != "--replace-input" && a != "--copy-attachments-from" && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") {
+                    standard_rewrite = false;
                 }
                 if a == "--empty" {
                     empty_input = true;
@@ -7149,13 +7149,14 @@ fn cmd_media_doc(
             } else {
                 None
             };
-            if only_attachments && (!add_atts.is_empty() || !remove_atts.is_empty() || !copy_atts.is_empty())
-                && let (Some(input), Some(dst_arg)) = (primary_arg.as_deref(),out_arg.as_deref())
-                && (replace_input || dst_arg != input || dst_arg == "-") {
+            if standard_rewrite && let Some(dst_arg) = out_arg.as_deref()
+                && (replace_input || primary_arg.as_deref() != Some(dst_arg) || dst_arg == "-") {
                 let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
                     else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
-                if let Some(bytes) = read(input) && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
-                    let output = match pdf_reader::attachments::edit(&bytes,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
+                let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
+                    else {primary_arg.as_deref().and_then(read)};
+                if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
+                    let output = match pdf_reader::rewrite(&bytes,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
                         Ok(bytes) => bytes, Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
                     };
                     if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}

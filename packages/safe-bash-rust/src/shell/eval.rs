@@ -4243,20 +4243,7 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         });
                     }
-                    let read_res = self.fs.read_file(&full).or_else(|e| {
-                        if let Some(fd_str) = full
-                            .strip_prefix("/dev/fd/")
-                            .or_else(|| full.strip_prefix("/proc/self/fd/"))
-                            && let Ok(fd) = fd_str.parse::<u32>()
-                        {
-                            let canon = self.resolve_in_fd(fd);
-                            if let Some(buf) = self.in_fds.get(&canon) {
-                                return Ok(stream_string_to_bytes(&buf.borrow()));
-                            }
-                        }
-                        Err(e)
-                    });
-                    match read_res {
+                    match self.fs.read_file(&full) {
                         Ok(bytes) => {
                             if let Err(e) = self.budget.add_source_bytes(bytes.len()) {
                                 self.budget.leave_substitution();
@@ -16509,12 +16496,28 @@ fi"#,
     }
 
     #[test]
+    fn source_resolves_descriptor_paths_in_the_filesystem() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        for path in ["/dev/fd/3", "/proc/self/fd/3"] {
+            let script = format!("source {path} 3<<<'echo descriptor'");
+            let r = shell.exec(&script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, "", format!("shell: line 1: {path}: No such file or directory\n")));
+            fs.mkdir_all(&crate::vfs::dirname_posix_path(path)).unwrap();
+            fs.write_file(path, b"echo file").unwrap();
+            let r = shell.exec(&script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "file\n", ""));
+        }
+    }
+
+    #[test]
     fn unit_eval_read_mapfile_callback_pipe_fd_and_diagnostic_parity() {
         let mut cwd = "/workspace".to_string();
         let mut env = BTreeMap::new();
         env.insert("LC_ALL".to_string(), "C".to_string());
         let vfs = crate::vfs::MemoryVfs::new();
         vfs.mkdir_all("/workspace").unwrap();
+        vfs.mkdir_all("/dev/fd").unwrap();
+        vfs.write_file("/dev/fd/3", b"cb_src() {\n  missing_cb_cmd\n}\n").unwrap();
         let budget = ExecutionBudget::default();
         let custom = BTreeMap::new();
         let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);

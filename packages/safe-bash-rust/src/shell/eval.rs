@@ -16078,6 +16078,20 @@ hash -l
     }
 
     #[test]
+    fn expand_and_unexpand_carry_columns_through_read_errors_and_later_files() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/input", b"x   ERROR").unwrap();
+        fs.write_file("/end", b"\tZ").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        for (name, expected) in [("expand", "x       Z"), ("unexpand", "x\t\tZ")] {
+            let r = shell.exec(&format!("{name} -t4 /missing - /end </input")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, expected, format!("{name}: ENOENT: no such file or directory, stat '/missing'\n{name}: EFBIG: file too large, read '/input'\n")));
+            let r = shell.exec(&format!("{{ {name} /end; head -c1; }} </input")).unwrap();
+            assert_eq!(r.exit_code, 0); assert!(r.stderr.is_empty()); assert!(r.stdout.ends_with("Zx"));
+        }
+    }
+
+    #[test]
     fn nl_preserves_complete_lines_and_numbering_after_read_errors() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"a\nb\nfragment").unwrap();

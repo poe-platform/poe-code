@@ -77,8 +77,8 @@ fn coreutil(
         "id" => cmd_id(args, env, fs),
         "sleep" => cmd_sleep(args, env),
         "factor" => cmd_factor(args, input.buffered()?),
-        "expand" => cmd_expand(args, input.buffered()?, cwd, fs),
-        "unexpand" => cmd_unexpand(args, input.buffered()?, cwd, fs),
+        "expand" => cmd_expand(args, input, cwd, fs),
+        "unexpand" => cmd_unexpand(args, input, cwd, fs),
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fold" => cmd_fold(args, input.buffered()?, cwd, env, fs),
@@ -14742,42 +14742,21 @@ impl ParsedTabs {
     }
 }
 
-fn read_expand_inputs(
-    files: &[String],
-    stdin: &mut String,
-    cwd: &str,
-    fs: &dyn SafeBashFs,
-    cmd_name: &str,
-) -> (Vec<Vec<u8>>, String, i32) {
-    if files.is_empty() || (files.len() == 1 && files[0] == "-") {
-        return (vec![take_stdin_bytes(stdin)], String::new(), 0);
-    }
-    let mut chunks = Vec::new();
-    let mut err_buf = String::new();
-    let mut code = 0;
-    for f in files {
-        if f == "-" {
-            chunks.push(take_stdin_bytes(stdin));
-            continue;
-        }
-        let path = resolve_posix_path(cwd, f);
-        if fs.is_dir(&path) {
-            err_buf.push_str(&format!("{cmd_name}: {f}: Is a directory\n"));
-            code = 1;
-            continue;
-        }
-        match fs.read_file(&path) {
-            Ok(bytes) => chunks.push(bytes),
-            Err(e) => {
-                err_buf.push_str(&format!("{cmd_name}: {f}: {e}\n"));
-                code = 1;
-            }
+fn read_tab_inputs(
+    mut files: Vec<String>, mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs,
+    command: &str, mut consume: impl FnMut(&[u8]),
+) -> String {
+    if files.is_empty() { files.push("-".into()); }
+    let mut errors = String::new();
+    for name in files {
+        if let Err(e) = stdin.read_operand(&name, cwd, fs, true, |chunk| { consume(chunk); true }) {
+            errors.push_str(&format!("{command}: {e}\n"));
         }
     }
-    (chunks, err_buf, code)
+    errors
 }
 
-fn cmd_expand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_expand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut initial_only = false;
     let mut files = Vec::new();
@@ -14870,12 +14849,11 @@ fn cmd_expand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashF
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),
     };
-    let (chunks, err_buf, exit_code) = read_expand_inputs(&files, stdin, cwd, fs, "expand");
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut column = 0usize;
     let mut initial = true;
-    for raw_in in chunks {
-        for &b in &raw_in {
+    let errors = read_tab_inputs(files, stdin, cwd, fs, "expand", |chunk| {
+        for &b in chunk {
             if b == b'\t' && (!initial_only || initial) {
                 let stop = tabs.next_stop(column, true).unwrap_or(column + 1);
                 while column < stop {
@@ -14899,15 +14877,15 @@ fn cmd_expand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashF
                 }
             }
         }
-    }
+    });
     BuiltinOutcome {
         stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        stderr: err_buf,
-        exit_code,
+        exit_code: i32::from(!errors.is_empty()),
+        stderr: errors,
     }
 }
 
-fn cmd_unexpand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_unexpand(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut all_flag = false;
     let mut has_t = false;
@@ -15016,7 +14994,6 @@ fn cmd_unexpand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBas
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),
     };
-    let (chunks, err_buf, exit_code) = read_expand_inputs(&files, stdin, cwd, fs, "unexpand");
     let all = !first_only && (all_flag || has_t);
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut column = 0usize;
@@ -15053,8 +15030,8 @@ fn cmd_unexpand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBas
         *pending_tab = false;
     };
 
-    for raw_in in chunks {
-        for &b in &raw_in {
+    let errors = read_tab_inputs(files, stdin, cwd, fs, "unexpand", |chunk| {
+        for &b in chunk {
             if active && (b == b' ' || b == b'\t') {
                 if let Some(stop) = tabs.next_stop(column, false) {
                     if pending_count == 0 {
@@ -15105,7 +15082,7 @@ fn cmd_unexpand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBas
                 }
             }
         }
-    }
+    });
     flush_blanks(
         &mut out_bytes,
         pending_start,
@@ -15116,8 +15093,8 @@ fn cmd_unexpand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBas
     );
     BuiltinOutcome {
         stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        stderr: err_buf,
-        exit_code,
+        exit_code: i32::from(!errors.is_empty()),
+        stderr: errors,
     }
 }
 

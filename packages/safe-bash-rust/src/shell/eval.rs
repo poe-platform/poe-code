@@ -9573,7 +9573,8 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, Rc::new(content.into()));
                     }
                 }
-                RedirectKind::DupIn { fd, raw_move } => {
+                RedirectKind::DupIn { fd, raw_move } | RedirectKind::DupOut { fd, raw_move, .. } => {
+                    let output = matches!(r.kind, RedirectKind::DupOut { .. });
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
                         Err(err_out) => {
@@ -9610,6 +9611,21 @@ impl<'a> EvalState<'a> {
                         };
                         let is_digits = !src_str.is_empty()
                             && src_str.chars().all(|c| c.is_ascii_digit());
+                        if !is_digits && matches!(r.kind, RedirectKind::DupOut { origin: DupOrigin::Default, .. }) {
+                            let opened = match self.open_output_target(&target, &r.kind) {
+                                Ok(opened) => opened,
+                                Err(mut err_out) => {
+                                    self.route_outcome(&mut err_out);
+                                    return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                                }
+                            };
+                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
+                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
+                            self.fd_table
+                                .insert(1, opened.clone());
+                            self.fd_table.insert(2, opened);
+                            continue;
+                        }
                         if !is_digits {
                             let prefix = self.diag_prefix();
                             let mut err_out = BuiltinOutcome {
@@ -9646,7 +9662,7 @@ impl<'a> EvalState<'a> {
                         }
                         if let Ok(src_fd) = src_str.parse::<u32>() {
                             if !self.is_fd_open(src_fd)
-                                || (!move_fd && !self.is_fd_readable(src_fd))
+                                || (!move_fd && !(if output { self.is_fd_writable(src_fd) } else { self.is_fd_readable(src_fd) }))
                             {
                                 let prefix = self.diag_prefix();
                                 let mut err_out = BuiltinOutcome {
@@ -9664,23 +9680,23 @@ impl<'a> EvalState<'a> {
                                     Some(err_out),
                                 ));
                             }
+                            if src_fd == *fd { continue; }
                             if self.is_fd_readable(src_fd) {
-                                let input_target = self.fd_table.get(&src_fd)
-                                    .filter(|target| matches!(target, FdTarget::InputFile { .. })).cloned();
-                                if move_fd && src_fd != *fd {
+                                if move_fd {
                                     self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
                                 }
-                                let canon = if src_fd == 0 {
-                                    if use_local {
-                                        dup_fd.unwrap_or(0)
-                                    } else {
-                                        self.resolve_in_fd(0)
-                                    }
-                                } else {
-                                    self.resolve_in_fd(src_fd)
-                                };
+                                self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                                let mut input_target = self.fd_table.get(&src_fd)
+                                    .filter(|target| matches!(target, FdTarget::InputFile { .. })).cloned();
+                                let canon = if src_fd == 0 && use_local { dup_fd.unwrap_or(0) }
+                                    else if let Some(FdTarget::InputFile { owner_fd, .. }) = &input_target {
+                                        self.resolve_in_fd(*owner_fd)
+                                    } else { self.resolve_in_fd(src_fd) };
+                                if move_fd && canon == src_fd
+                                    && let Some(FdTarget::InputFile { owner_fd, .. }) = &mut input_target {
+                                    *owner_fd = *fd;
+                                }
                                 if *fd == 0 {
-                                    self.evacuate_in_fd_owner(0, &mut saved_aliases);
                                     record_saved_fd(&self.fd_table, &mut saved_fd_table, 0);
                                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, 0);
                                     self.fd_table.remove(&0);
@@ -9710,7 +9726,6 @@ impl<'a> EvalState<'a> {
                                     if !saved_in.iter().any(|(f, _)| f == fd) {
                                         saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                     }
-                                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                                     self.fd_table.remove(fd);
@@ -9749,9 +9764,23 @@ impl<'a> EvalState<'a> {
                                 }
                                 self.in_fds.remove(fd);
                                 self.in_fd_aliases.remove(fd);
-                                if let Some(inherited) = self.fd_table.get(&src_fd).cloned() {
-                                    self.fd_table.insert(*fd, inherited);
+                                if *fd == 0 {
+                                    self.materialize_stdin_aliases(default_stdin, &mut saved_in);
+                                    local_stdin.clear();
+                                    use_local = true;
+                                    dup_fd = None;
                                 }
+                                let inherited = self
+                                    .fd_table
+                                    .get(&src_fd)
+                                    .cloned()
+                                    .unwrap_or(FdTarget::Closed);
+                                if matches!(inherited, FdTarget::PipeStdout { .. }) {
+                                    self.env.insert(format!("\0pipe_fd__{fd}"), "1".to_string());
+                                } else {
+                                    self.env.remove(&format!("\0pipe_fd__{fd}"));
+                                }
+                                self.fd_table.insert(*fd, inherited);
                             }
                             if move_fd && src_fd != *fd {
                                 record_saved_fd(&self.fd_table, &mut saved_fd_table, src_fd);
@@ -9827,177 +9856,6 @@ impl<'a> EvalState<'a> {
                     }
                     self.in_fd_aliases.remove(fd);
                     self.fd_table.insert(*fd, opened);
-                }
-                RedirectKind::DupOut {
-                    fd,
-                    origin,
-                    raw_move,
-                } => {
-                    let target = match expand_redir_target(self, &r.target)? {
-                        Ok(t) => t,
-                        Err(err_out) => {
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                    };
-                    if target == "-" {
-                        self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                        record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                        record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                        if *fd == 0 {
-                            local_stdin.clear();
-                            use_local = true;
-                            dup_fd = None;
-                        } else {
-                            if !saved_in.iter().any(|(f, _)| f == fd) {
-                                saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                            }
-                            self.in_fds.remove(fd);
-                        }
-                        self.in_fd_aliases.remove(fd);
-                        self.fd_table.insert(*fd, FdTarget::Closed);
-                    } else {
-                        let (src_str, move_fd) = match target.strip_suffix('-') {
-                            Some(s) if !s.is_empty() => (s, true),
-                            _ => (target.as_str(), false),
-                        };
-                        let is_digits = !src_str.is_empty()
-                            && src_str.chars().all(|c| c.is_ascii_digit());
-                        if !is_digits && *origin == DupOrigin::Default {
-                            let opened = match self.open_output_target(&target, &r.kind) {
-                                Ok(opened) => opened,
-                                Err(mut err_out) => {
-                                    self.route_outcome(&mut err_out);
-                                    return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
-                                }
-                            };
-                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
-                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
-                            self.fd_table
-                                .insert(1, opened.clone());
-                            self.fd_table.insert(2, opened);
-                            continue;
-                        }
-                        if !is_digits {
-                            let prefix = self.diag_prefix();
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{prefix}{target}: Bad file descriptor\n"),
-                                exit_code: 1,
-                            };
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        if move_fd && !*raw_move {
-                            let prefix = self.diag_prefix();
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{prefix}{target}: ambiguous redirect\n"),
-                                exit_code: 1,
-                            };
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                        if is_digits && let Ok(src_fd) = src_str.parse::<u32>() {
-                            if !self.is_fd_open(src_fd)
-                                || (!move_fd && !self.is_fd_writable(src_fd))
-                            {
-                                let prefix = self.diag_prefix();
-                                let mut err_out = BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{prefix}{src_fd}: Bad file descriptor\n"),
-                                    exit_code: 1,
-                                };
-                                self.route_outcome(&mut err_out);
-                                return Ok((
-                                    (saved_fd_table, saved_aliases),
-                                    saved_in,
-                                    local_stdin,
-                                    use_local,
-                                    dup_fd,
-                                    Some(err_out),
-                                ));
-                            }
-                            self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                            record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                            record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                            if !saved_in.iter().any(|(f, _)| f == fd) {
-                                saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                            }
-                            self.in_fds.remove(fd);
-                            self.in_fd_aliases.remove(fd);
-                            if *fd == 0 {
-                                self.materialize_stdin_aliases(default_stdin, &mut saved_in);
-                                local_stdin.clear();
-                                use_local = true;
-                                dup_fd = None;
-                            }
-                            let inherited = self
-                                .fd_table
-                                .get(&src_fd)
-                                .cloned()
-                                .unwrap_or(FdTarget::Closed);
-                            if matches!(inherited, FdTarget::PipeStdout { .. }) {
-                                self.env.insert(format!("\0pipe_fd__{fd}"), "1".to_string());
-                            } else {
-                                self.env.remove(&format!("\0pipe_fd__{fd}"));
-                            }
-                            self.fd_table.insert(*fd, inherited);
-                            if move_fd && src_fd != *fd {
-                                self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
-                                record_saved_fd(&self.fd_table, &mut saved_fd_table, src_fd);
-                                record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, src_fd);
-                                if src_fd == 0 {
-                                    local_stdin.clear();
-                                    use_local = true;
-                                    dup_fd = None;
-                                } else {
-                                    if !saved_in.iter().any(|(f, _)| *f == src_fd) {
-                                        saved_in.push((src_fd, self.in_fds.get(&src_fd).cloned()));
-                                    }
-                                    self.in_fds.remove(&src_fd);
-                                }
-                                self.in_fd_aliases.remove(&src_fd);
-                                self.fd_table.insert(src_fd, FdTarget::Closed);
-                            }
-                        } else {
-                            let prefix = self.diag_prefix();
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{prefix}{target}: Bad file descriptor\n"),
-                                exit_code: 1,
-                            };
-                            self.route_outcome(&mut err_out);
-                            return Ok((
-                                (saved_fd_table, saved_aliases),
-                                saved_in,
-                                local_stdin,
-                                use_local,
-                                dup_fd,
-                                Some(err_out),
-                            ));
-                        }
-                    }
                 }
                 RedirectKind::BothOut | RedirectKind::BothAppend => {
                     let target = match expand_redir_target(self, &r.target)? {
@@ -15903,6 +15761,18 @@ hash -l
             let result = shell.exec(&format!("exec 3</letters; {child}; echo :; cat <&3")).unwrap();
             assert_eq!(result.stdout, format!("{read}:\nbcdef"), "{child}");
             assert_eq!((result.exit_code, result.stderr.as_str()), (0, ""));
+        }
+    }
+
+    #[test]
+    fn duplicating_a_readwrite_file_in_either_direction_keeps_the_same_cursor() {
+        for redirect in ["4>&3", "4<&3", "4>&3-", "4<&3-", "4>&3; exec 3>&-", "4>&3; exec 3<>/g",
+            "4<&3; exec 5<&3-; exec 4<&5", "3>&3-; exec 4<&3"] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abc").unwrap();
+            let r = shell.exec(&format!("exec 3<>/f; exec {redirect}; head -c1 <&4; printf Y >&4; cat <&4")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "ac", ""), "{redirect}");
+            assert_eq!(fs.read_file("/f").unwrap(), b"aYc", "{redirect}");
         }
     }
 

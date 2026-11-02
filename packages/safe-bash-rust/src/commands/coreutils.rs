@@ -82,7 +82,7 @@ fn coreutil(
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
         "fold" => cmd_fold(args, input, cwd, env, fs),
-        "fmt" => cmd_fmt(args, input.buffered()?, cwd, env, fs),
+        "fmt" => cmd_fmt(args, input, cwd, env, fs),
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, fs),
         "pr" => cmd_pr(args, input.buffered()?, cwd, env, fs),
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
@@ -368,6 +368,13 @@ fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_fir
 }
 
 impl CommandInput<'_> {
+    fn next_stdin_chunk(&mut self, chunk: &mut Vec<u8>) -> Result<(), String> {
+        chunk.clear();
+        if let Some(source) = self.file {
+            source.read(self.text, 65536, |bytes, _| { chunk.extend_from_slice(bytes); Ok((false, bytes.len())) })
+        } else { *chunk = take_stdin_bytes(self.text); Ok(()) }
+    }
+
     fn read_stdin(&mut self, mut consume: impl FnMut(&[u8]) -> bool) -> Result<(), String> {
         if let Some(source) = self.file {
             source.read(self.text, usize::MAX, |chunk, _| Ok((consume(chunk), chunk.len())))
@@ -1572,13 +1579,7 @@ impl SortInput<'_> {
         loop {
             if self.offset == self.chunk.len() {
                 if let Some(next) = &mut self.file { next(&mut self.chunk)?; }
-                else if let Some(source) = stdin.file {
-                    self.chunk.clear();
-                    source.read(stdin.text, 65536, |chunk, _| {
-                        self.chunk.extend_from_slice(chunk);
-                        Ok((false, chunk.len()))
-                    })?;
-                } else { self.chunk = take_stdin_bytes(stdin.text); }
+                else { stdin.next_stdin_chunk(&mut self.chunk)?; }
                 self.offset = 0;
                 *bytes = bytes.checked_sub(self.chunk.len() as u64).ok_or("EFBIG: sort input byte limit exceeded")?;
                 if self.chunk.is_empty() {
@@ -11925,7 +11926,9 @@ struct FmtWord {
 }
 
 struct FmtFormatter<'a> {
-    input: &'a [u8],
+    source: crate::vfs::ChunkReader<'a>,
+    input: Vec<u8>,
+    eof: bool,
     pos: usize,
     out: Vec<u8>,
     text: Vec<u8>,
@@ -11954,14 +11957,16 @@ struct FmtFormatter<'a> {
 }
 
 impl<'a> FmtFormatter<'a> {
-    fn read(&mut self) -> i32 {
-        if self.pos < self.input.len() {
-            let b = self.input[self.pos] as i32;
-            self.pos += 1;
-            b
-        } else {
-            -1
+    fn read(&mut self) -> Result<i32, String> {
+        if self.pos == self.input.len() {
+            if self.eof { return Ok(-1); }
+            (self.source)(&mut self.input)?;
+            self.pos = 0;
+            if self.input.is_empty() { self.eof = true; return Ok(-1); }
         }
+        let byte = self.input[self.pos];
+        self.pos += 1;
+        Ok(i32::from(byte))
     }
 
     fn spaces(&mut self, count: usize) {
@@ -11979,7 +11984,7 @@ impl<'a> FmtFormatter<'a> {
         }
     }
 
-    fn whitespace(&mut self, mut byte: i32) -> i32 {
+    fn whitespace(&mut self, mut byte: i32) -> Result<i32, String> {
         while byte == 32 || byte == 9 {
             if byte == 32 {
                 self.column += 1;
@@ -11987,15 +11992,15 @@ impl<'a> FmtFormatter<'a> {
                 self.tabs = true;
                 self.column = (self.column / 8 + 1) * 8;
             }
-            byte = self.read();
+            byte = self.read()?;
         }
-        byte
+        Ok(byte)
     }
 
-    fn line_start(&mut self) -> i32 {
+    fn line_start(&mut self) -> Result<i32, String> {
         self.column = 0;
-        let first = self.read();
-        let mut byte = self.whitespace(first);
+        let first = self.read()?;
+        let mut byte = self.whitespace(first)?;
         self.next_prefix = if !self.prefix.is_empty() {
             self.column
         } else {
@@ -12005,14 +12010,14 @@ impl<'a> FmtFormatter<'a> {
             for i in 0..self.prefix.len() {
                 let expected = self.prefix[i] as i32;
                 if byte != expected {
-                    return byte;
+                    return Ok(byte);
                 }
                 self.column += 1;
-                byte = self.read();
+                byte = self.read()?;
             }
-            byte = self.whitespace(byte);
+            byte = self.whitespace(byte)?;
         }
-        byte
+        Ok(byte)
     }
 
     fn compatible(&self, byte: i32) -> bool {
@@ -12150,7 +12155,7 @@ impl<'a> FmtFormatter<'a> {
         }
     }
 
-    fn read_line(&mut self, mut byte: i32) -> i32 {
+    fn read_line(&mut self, mut byte: i32) -> Result<i32, String> {
         loop {
             let mut word = FmtWord {
                 start: self.used,
@@ -12167,7 +12172,7 @@ impl<'a> FmtFormatter<'a> {
                 }
                 self.text[self.used] = byte as u8;
                 self.used += 1;
-                byte = self.read();
+                byte = self.read()?;
                 if byte == -1 || byte == 32 || (9..=13).contains(&byte) {
                     break;
                 }
@@ -12192,7 +12197,7 @@ impl<'a> FmtFormatter<'a> {
             let pb = self.text[terminal];
             word.period = matches!(pb, 0 | 46 | 63 | 33);
             let before = self.column;
-            byte = self.whitespace(byte);
+            byte = self.whitespace(byte)?;
             word.space = self.column - before;
             word.final_word = byte == -1 || (word.period && (byte == 10 || word.space > 1));
             if byte == 10 || byte == -1 || self.uniform {
@@ -12206,8 +12211,8 @@ impl<'a> FmtFormatter<'a> {
         self.line_start()
     }
 
-    fn run(&mut self) {
-        let mut byte = self.line_start();
+    fn run(&mut self) -> Result<(), String> {
+        let mut byte = self.line_start()?;
         loop {
             if byte == 10
                 || byte == -1
@@ -12236,13 +12241,13 @@ impl<'a> FmtFormatter<'a> {
                 }
                 while byte != -1 && byte != 10 {
                     self.out.push(byte as u8);
-                    byte = self.read();
+                    byte = self.read()?;
                 }
                 if byte == -1 {
                     break;
                 }
                 self.out.push(b'\n');
-                byte = self.line_start();
+                byte = self.line_start()?;
                 continue;
             }
             self.last_length = 0;
@@ -12250,7 +12255,7 @@ impl<'a> FmtFormatter<'a> {
             self.first_indent = self.column;
             self.words.clear();
             self.used = 0;
-            byte = self.read_line(byte);
+            byte = self.read_line(byte)?;
             let compat = self.compatible(byte);
             self.secondary(compat);
             if !self.split {
@@ -12262,7 +12267,7 @@ impl<'a> FmtFormatter<'a> {
                     };
                 if accept_second {
                     loop {
-                        byte = self.read_line(byte);
+                        byte = self.read_line(byte)?;
                         if !(self.compatible(byte) && self.column == self.other_indent) {
                             break;
                         }
@@ -12276,12 +12281,13 @@ impl<'a> FmtFormatter<'a> {
             self.optimize();
             self.render(self.words.len());
         }
+        Ok(())
     }
 }
 
 fn cmd_fmt(
     args: &[String],
-    stdin: &mut String,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -12505,27 +12511,43 @@ fn cmd_fmt(
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
+    let limit = fs.max_input_bytes();
+    let mut received = 0usize;
     for f in &inputs {
-        let file_bytes: Vec<u8> = if f == "-" {
-            take_stdin_bytes(stdin)
-        } else {
-            let p = resolve_posix_path(cwd, f);
-            if fs.is_dir(&p) {
-                stderr.push_str(&format!("fmt: error reading '{f}': Is a directory\n"));
-                exit_code = 1;
-                continue;
-            }
-            match fs.read_file(&p) {
-                Ok(b) => b,
-                Err(_) => {
-                    stderr.push_str(&format!("fmt: cannot open '{f}' for reading: No such file or directory\n"));
-                    exit_code = 1;
-                    continue;
-                }
+        let describe_error = |error: &str| {
+            let (code, _) = error.split_once(':').unwrap_or(("", error));
+            let message = match code {
+                "ENOENT" => "No such file or directory", "ENOTDIR" => "Not a directory", "EACCES" => "Permission denied",
+                "ELOOP" => "Too many levels of symbolic links", "EISDIR" => "Is a directory", "EIO" => "Input/output error",
+                "EBADF" => "Bad file descriptor", _ => return format!("fmt: {error}\n"),
+            };
+            if matches!(code, "ENOENT" | "ENOTDIR" | "EACCES" | "ELOOP") {
+                format!("fmt: cannot open '{f}' for reading: {message}\n")
+            } else if f == "-" { format!("fmt: read error: {message}\n") }
+            else { format!("fmt: error reading '{f}': {message}\n") }
+        };
+        let mut reader = if f == "-" { None } else {
+            match open_record_input(f, cwd, fs, false) {
+                Ok(reader) => Some(reader),
+                Err(e) => { stderr.push_str(&describe_error(&e)); exit_code = 1; continue; }
             }
         };
+        let mut read_error = None;
         let mut formatter = FmtFormatter {
-            input: &file_bytes,
+            source: Box::new(|chunk| {
+                let result = if let Some(next) = &mut reader { next(chunk) } else { stdin.next_stdin_chunk(chunk) };
+                if let Err(e) = result {
+                    if e.starts_with("EFBIG:") { return Err("byte command input limit exceeded".into()); }
+                    if e.starts_with("Execution aborted:") { return Err(e); }
+                    read_error = Some(e);
+                    chunk.clear();
+                }
+                received = received.checked_add(chunk.len()).filter(|&n| n <= limit)
+                    .ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+                Ok(())
+            }),
+            input: Vec::new(),
+            eof: false,
             pos: 0,
             out: Vec::new(),
             text: vec![0; 5000],
@@ -12552,8 +12574,16 @@ fn cmd_fmt(
             out_column: 0,
             tabs: false,
         };
-        formatter.run();
+        if let Err(e) = formatter.run() {
+            // The formatter publishes full 1024-byte blocks until successful EOF.
+            out_bytes.extend_from_slice(&formatter.out[..formatter.out.len() / 1024 * 1024]);
+            stderr.push_str(&format!("fmt: {e}\n"));
+            exit_code = 1;
+            break;
+        }
         out_bytes.extend_from_slice(&formatter.out);
+        drop(formatter);
+        if let Some(e) = read_error { stderr.push_str(&describe_error(&e)); exit_code = 1; }
     }
 
     BuiltinOutcome {

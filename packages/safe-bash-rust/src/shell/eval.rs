@@ -16078,6 +16078,22 @@ hash -l
     }
 
     #[test]
+    fn fmt_validates_before_reading_and_keeps_published_output_on_input_overflow() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let data = "x\n\n".repeat(30000);
+        fs.write_file("/input", data.as_bytes()).unwrap();
+        fs.write_file("/small", b"y").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 65536, ..Default::default() });
+        let r = shell.exec("{ fmt /small; head -c1; } </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "y\nx", ""));
+        let r = shell.exec("fmt </input").unwrap();
+        assert_eq!((r.exit_code, r.stdout.len(), r.stderr.as_str()), (1, 64512, "fmt: byte command input limit exceeded\n"));
+        assert_eq!(r.stdout, &data[..64512]);
+        let r = shell.exec("fmt /small/foo /small").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "y\n", "fmt: cannot open '/small/foo' for reading: Not a directory\n"));
+    }
+
+    #[test]
     fn tac_reverses_only_successfully_read_operands_and_leaves_unused_stdin_alone() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/input", b"q\nw\nERROR").unwrap();

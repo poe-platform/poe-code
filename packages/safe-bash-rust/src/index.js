@@ -323,13 +323,13 @@ export class WasmFileSystem {
         return this.bash._companion.fs.chmod(filePath, mode);
       }
     }
+    this.bash.chmod(filePath, mode);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
         run: (fs) => (fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()),
       });
     }
-    this.bash.chmod(filePath, mode);
   }
 
   async unlink(filePath, options) {
@@ -356,11 +356,12 @@ export class WasmFileSystem {
       await this.bash._ensureCompanionSynced();
       return this.bash._companion.fs.rm(filePath, options);
     }
-    this.bash.removePath(filePath, options?.recursive === true ? 0 : 1, options?.force === true);
+    const recursive = options?.recursive === true, force = options?.force === true;
+    this.bash.removePath(filePath, recursive ? 0 : 1, force);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
-        run: (fs) => fs.rm(filePath, options),
+        run: (fs) => fs.rm(filePath, {recursive, force}),
       });
     }
   }
@@ -385,6 +386,8 @@ export class WasmFileSystem {
 
   async utimes(filePath, atime, mtime, options) {
     options?.signal?.throwIfAborted();
+    if (atime instanceof Date) atime = atime.getTime();
+    if (mtime instanceof Date) mtime = mtime.getTime();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.utimes) {

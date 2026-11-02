@@ -2050,6 +2050,39 @@ test("companion replay uses the original working directory after exec options ch
   } finally { bash.dispose(); companion.dispose(); }
 });
 
+test("failed chmod does not poison the next companion call", async () => {
+  const companion = new RustWasmBash();
+  const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
+  try {
+    await assert.rejects(bash.fs.chmod("/missing", 0o644), {code:"ENOENT"});
+    await bash.fs.writeFile("/after", "ok");
+    assert.equal(await bash.fs.realpath("/after"), "/after");
+  } finally { bash.dispose(); }
+});
+
+test("companion replay keeps admitted removal flags and file timestamps", async () => {
+  const companion = new RustWasmBash();
+  const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});
+  try {
+    const controller = new AbortController();
+    const removal = {recursive:true, signal:controller.signal};
+    await bash.fs.mkdir("/tree");
+    await bash.fs.writeFile("/tree/file", "");
+    await bash.fs.rm("/tree", removal);
+    removal.recursive = false;
+    controller.abort();
+    const when = new Date(12345);
+    await bash.fs.writeFile("/keep", "");
+    await bash.fs.utimes("/keep", when, when);
+    when.setTime(0);
+    await bash.fs.realpath("/");
+    await assert.rejects(companion.fs.stat("/tree"), {code:"ENOENT"});
+    const stat = await companion.fs.stat("/keep");
+    assert.equal(stat.atimeMs, 12345);
+    assert.equal(stat.mtimeMs, 12345);
+  } finally { bash.dispose(); }
+});
+
 test("companion replay retains only completed writes and their original bytes and options", async () => {
   const companion = new RustWasmBash();
   const bash = new RustWasmBash({forceNative:false, companionFactory:() => companion});

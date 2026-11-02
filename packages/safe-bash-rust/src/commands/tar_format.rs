@@ -87,96 +87,81 @@ fn header(
     h
 }
 
-pub(super) fn serialize(entries: &[TarEntry], pax: bool) -> Result<Vec<u8>, String> {
-    let mut out = Vec::new();
-    write_members(&mut out, entries, pax)?;
-    out.resize(out.len() + 1024, 0);
-    Ok(out)
-}
-
-pub(super) fn write_members(
-    out: &mut Vec<u8>,
-    entries: &[TarEntry],
-    pax: bool,
-) -> Result<(), String> {
-    for e in entries {
-        let mut records = String::new();
-        let names = split_name(&e.name).unwrap_or_else(|| {
-            record(&mut records, "path", &e.name);
-            ("PaxEntry", "")
-        });
-        let link = if e.linkname.len() > 100 || !e.linkname.is_ascii() || e.linkname.contains('\0')
-        {
-            record(&mut records, "linkpath", &e.linkname);
-            "PaxLink"
-        } else {
-            &e.linkname
-        };
-        let mut owner = [e.uid, e.gid];
-        for (id, key) in owner.iter_mut().zip(["uid", "gid"]) {
-            if *id > 0o7777777 {
-                record(&mut records, key, &id.to_string());
-                *id = 0;
-            }
+pub(super) fn write_member(out: &mut Vec<u8>, e: &TarEntry, pax: bool) -> Result<(), String> {
+    let mut records = String::new();
+    let names = split_name(&e.name).unwrap_or_else(|| {
+        record(&mut records, "path", &e.name);
+        ("PaxEntry", "")
+    });
+    let link = if e.linkname.len() > 100 || !e.linkname.is_ascii() || e.linkname.contains('\0') {
+        record(&mut records, "linkpath", &e.linkname);
+        "PaxLink"
+    } else {
+        &e.linkname
+    };
+    let mut owner = [e.uid, e.gid];
+    for (id, key) in owner.iter_mut().zip(["uid", "gid"]) {
+        if *id > 0o7777777 {
+            record(&mut records, key, &id.to_string());
+            *id = 0;
         }
-        let size = e.content.len();
-        let header_size = if size as u64 > 0o77777777777 {
-            record(&mut records, "size", &size.to_string());
-            0
-        } else {
-            size
-        };
-        let mtime = if pax { e.mtime } else { e.mtime.floor() };
-        if !mtime.is_finite() || mtime.abs() > 8.64e12 {
-            return Err("invalid source mtime".into());
+    }
+    let size = e.content.len();
+    let header_size = if size as u64 > 0o77777777777 {
+        record(&mut records, "size", &size.to_string());
+        0
+    } else {
+        size
+    };
+    let mtime = if pax { e.mtime } else { e.mtime.floor() };
+    if !mtime.is_finite() || mtime.abs() > 8.64e12 {
+        return Err("invalid source mtime".into());
+    }
+    let mtime = if mtime.fract() != 0. || !(0.0..=0o77777777777_u64 as f64).contains(&mtime) {
+        record(&mut records, "mtime", &decimal_time(mtime));
+        0
+    } else {
+        mtime as u64
+    };
+    if pax && let Some(t) = e.atime {
+        if !t.is_finite() || t.abs() > 8.64e12 {
+            return Err("invalid source atime".into());
         }
-        let mtime = if mtime.fract() != 0. || !(0.0..=0o77777777777_u64 as f64).contains(&mtime) {
-            record(&mut records, "mtime", &decimal_time(mtime));
-            0
-        } else {
-            mtime as u64
-        };
-        if pax && let Some(t) = e.atime {
-            if !t.is_finite() || t.abs() > 8.64e12 {
-                return Err("invalid source atime".into());
-            }
-            record(&mut records, "atime", &decimal_time(t));
+        record(&mut records, "atime", &decimal_time(t));
+    }
+    if !records.is_empty() {
+        if !pax {
+            let message = format!("metadata requires PAX format: {}", display(&e.name));
+            let clipped =
+                String::from_utf16_lossy(&message.encode_utf16().take(1024).collect::<Vec<_>>());
+            return Err(display(&clipped));
         }
-        if !records.is_empty() {
-            if !pax {
-                let message = format!("metadata requires PAX format: {}", display(&e.name));
-                let clipped = String::from_utf16_lossy(
-                    &message.encode_utf16().take(1024).collect::<Vec<_>>(),
-                );
-                return Err(display(&clipped));
-            }
-            if records.len() > 65536 {
-                return Err("PAX header byte limit exceeded".into());
-            }
-            out.extend_from_slice(&header(
-                ("PaxHeader", ""),
-                "",
-                b'x',
-                0o644,
-                owner,
-                mtime,
-                records.len(),
-            ));
-            out.extend_from_slice(records.as_bytes());
-            out.resize(out.len().next_multiple_of(512), 0);
+        if records.len() > 65536 {
+            return Err("PAX header byte limit exceeded".into());
         }
         out.extend_from_slice(&header(
-            names,
-            link,
-            e.typeflag,
-            e.mode,
+            ("PaxHeader", ""),
+            "",
+            b'x',
+            0o644,
             owner,
             mtime,
-            header_size,
+            records.len(),
         ));
-        out.extend_from_slice(&e.content);
+        out.extend_from_slice(records.as_bytes());
         out.resize(out.len().next_multiple_of(512), 0);
     }
+    out.extend_from_slice(&header(
+        names,
+        link,
+        e.typeflag,
+        e.mode,
+        owner,
+        mtime,
+        header_size,
+    ));
+    out.extend_from_slice(&e.content);
+    out.resize(out.len().next_multiple_of(512), 0);
     Ok(())
 }
 

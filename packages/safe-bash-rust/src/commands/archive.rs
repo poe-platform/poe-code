@@ -5358,7 +5358,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         stat
     } else { None };
     let mut warnings = String::new();
-    let mut include = |stat: &crate::vfs::FileStat, name: &str, explicit: bool| {
+    let mut manifest = Vec::new();
+    let mut bindings = BTreeMap::new();
+    let mut aliases = BTreeMap::<crate::vfs::EntryIdentity, BTreeMap<usize, String>>::new();
+    let mut prepare = |stat: &crate::vfs::FileStat, full: String, mut entry: TarEntry, explicit: bool| {
+        let index = manifest.len();
+        let name = entry.name.trim_end_matches('/');
         if let Some(prior) = &existing {
             if stat.kind == crate::vfs::VfsEntryKind::File && stat.identity.is_none() {
                 return Err("cannot replace an existing archive when a source has unknown backing identity".into());
@@ -5370,19 +5375,51 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return Ok(false);
             }
         }
+        if entry.typeflag == b'2' && stat.nlink.unwrap_or(1) > 1 {
+            return Err("hardlinked symbolic-link sources are unsupported".into());
+        }
+        if entry.typeflag == b'0' && stat.nlink.unwrap_or(1) > 1 && stat.identity.is_none() {
+            return Err(format!("cannot preserve hardlinks without complete backing identity: {}", tar_format::display(name)));
+        }
+        if !transforms.is_empty() {
+            entry.name = apply_tar_transforms(&entry.name, &transforms);
+            if entry.name.is_empty() || entry.name.split('/').any(|part| part == "..") {
+                return Err(format!("unsafe transformed member name: {}", tar_format::display(&entry.name)));
+            }
+            if entry.typeflag == b'5' && !entry.name.ends_with('/') { entry.name.push('/'); }
+            if entry.typeflag == b'2' { entry.linkname = apply_tar_transforms(&entry.linkname, &transforms); }
+        }
+        // A repeated archive path supersedes its previous binding. A hard link
+        // can reference only a name that would still refer to that file on extraction.
+        let path = resolve_posix_path("/", &entry.name);
+        if let Some((id, old)) = bindings.remove(&path)
+            && let Some(names) = aliases.get_mut(&id) {
+            names.remove(&old);
+            if names.is_empty() { aliases.remove(&id); }
+        }
+        if entry.typeflag == b'0' && let Some(id) = &stat.identity {
+            let names = aliases.entry(id.clone()).or_default();
+            if let Some((_, first)) = names.first_key_value() {
+                entry.typeflag = b'1';
+                entry.linkname = first.clone();
+            }
+            names.insert(index, entry.name.clone());
+            bindings.insert(path, (id.clone(), index));
+        }
+        manifest.push((full, entry));
         Ok(true)
     };
 
-    let prepare_entry = |entry: &mut TarEntry| {
+    let write_entry = |out: &mut Vec<u8>, path: &str, entry: &mut TarEntry| -> Result<(), String> {
+        if entry.typeflag == b'0' { entry.content = fs.read_file(path)?; }
         if let Some(mode) = override_mode { entry.mode = mode; }
         if let Some(mtime) = override_mtime { entry.mtime = mtime as f64; }
         if let Some(uid) = override_uid { entry.uid = uid; }
         if let Some(gid) = override_gid { entry.gid = gid; }
-        if !transforms.is_empty() { entry.name = apply_tar_transforms(&entry.name, &transforms); }
+        tar_format::write_member(out, entry, pax)
     };
 
     if create {
-        let mut entries: Vec<TarEntry> = Vec::new();
         let mut create_stderr = String::new();
         for op in &operands {
             if op.name.contains("..") {
@@ -5391,7 +5428,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     op.name
                 ));
             }
-            if let Err(e) = collect_tar_entries(
+            if let Err(e) = visit_archive_sources(
                 &op.name,
                 &op.cwd,
                 &excludes[..op.exclude_count.min(excludes.len())],
@@ -5400,25 +5437,22 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 sort_by_name,
                 op.recursion,
                 fs,
-                &mut entries,
                 &mut Vec::new(),
-                &mut include,
+                &mut prepare,
             ) {
                 return err_out(&format!("tar: {e}\n"), 2);
             }
         }
         create_stderr.push_str(&warnings);
         let mut verbose_out = String::new();
-        for entry in &mut entries {
-            prepare_entry(entry);
+        let mut raw_tar = Vec::new();
+        for (path, mut entry) in manifest {
+            if let Err(e) = write_entry(&mut raw_tar, &path, &mut entry) { return err_out(&format!("tar: {e}\n"), 2); }
             if verbose {
                 verbose_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
             }
         }
-        let raw_tar = match tar_format::serialize(&entries, pax) {
-            Ok(bytes) => bytes,
-            Err(message) => return err_out(&format!("tar: {message}\n"), 2),
-        };
+        raw_tar.resize(raw_tar.len() + 1024, 0);
         if totals {
             create_stderr.push_str(&format!("Total bytes written: {}\n", raw_tar.len()));
         }
@@ -5553,9 +5587,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         if totals { stderr.push_str(&format!("Total bytes read: {}\n", existing_bytes.len())); }
         if append_mode || update_mode {
-            let mut new_entries = Vec::new();
             for op in &operands {
-                if let Err(e) = collect_tar_entries(
+                if let Err(e) = visit_archive_sources(
                     &op.name,
                     &op.cwd,
                     &excludes[..op.exclude_count.min(excludes.len())],
@@ -5564,32 +5597,23 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     sort_by_name,
                     op.recursion,
                     fs,
-                    &mut new_entries,
                     &mut Vec::new(),
-                    &mut include,
+                    &mut prepare,
                 ) {
                     return err_out(&format!("{stderr}tar: {e}\n"), 2);
                 }
             }
             stderr.push_str(&warnings);
-            let mut added = Vec::new();
-            for mut ne in new_entries {
-                let source_mtime = ne.mtime;
-                prepare_entry(&mut ne);
+            for (path, mut ne) in manifest {
                 if let Some(archived) = times.get(ne.name.trim_end_matches('/')) {
                     let Some(t) = archived else { return err_out(&format!("{stderr}tar: archive lacks mtime required for update\n"), 2); };
-                    if source_mtime <= *t { continue; }
+                    if ne.mtime <= *t { continue; }
                 }
+                if let Err(e) = write_entry(&mut out_bytes, &path, &mut ne) { return err_out(&format!("{stderr}tar: {e}\n"), 2); }
                 if verbose {
                     stdout.push_str(&format!("{}\n", tar_quote_name(&ne.name, &quoting_style)));
                 }
-                added.push(ne);
-            }
-            if !added.is_empty() {
                 changed = true;
-                if let Err(e) = tar_format::write_members(&mut out_bytes, &added, pax) {
-                    return err_out(&format!("{stderr}tar: {e}\n"), 2);
-                }
             }
         } else if catenate_mode {
             for op in &operands {
@@ -5948,7 +5972,7 @@ fn apply_tar_transforms(name: &str, transforms: &[String]) -> String {
     cur
 }
 
-fn collect_tar_entries(
+fn visit_archive_sources(
     rel: &str,
     base_dir: &str,
     excludes: &[String],
@@ -5957,9 +5981,8 @@ fn collect_tar_entries(
     sort_by_name: bool,
     recursion: bool,
     fs: &dyn SafeBashFs,
-    out: &mut Vec<TarEntry>,
     ancestors: &mut Vec<Option<crate::vfs::EntryIdentity>>,
-    include: &mut impl FnMut(&crate::vfs::FileStat, &str, bool) -> Result<bool, String>,
+    prepare: &mut impl FnMut(&crate::vfs::FileStat, String, TarEntry, bool) -> Result<bool, String>,
 ) -> Result<(), String> {
     let full = resolve_posix_path(base_dir, rel);
     let mut stripped_rel = rel;
@@ -5967,7 +5990,7 @@ fn collect_tar_entries(
         stripped_rel = rest;
     }
     let clean_rel = stripped_rel.trim_start_matches("./");
-    let stored_rel = if stripped_rel == "." && sort_by_name {
+    let stored_rel = if stripped_rel == "." {
         "."
     } else if stripped_rel.starts_with("./") && stripped_rel != "." {
         stripped_rel
@@ -5989,28 +6012,20 @@ fn collect_tar_entries(
     } else {
         st
     };
-    if !include(&st, stored_rel, ancestors.is_empty())? { return Ok(()); }
-    let mode = st.mode & 0o7777;
-    let mtime = st.mtime_ms / 1000.;
-    let atime = Some(st.atime_ms / 1000.);
-    let uid = st.uid.unwrap_or(0);
-    let gid = st.gid.unwrap_or(0);
-    if st.kind == crate::vfs::VfsEntryKind::Symlink {
-        let target = fs.readlink(&full)?;
-        out.push(TarEntry {
-            name: stored_rel.to_string(),
-            typeflag: b'2',
-            mode,
-            mtime,
-            atime,
-            uid,
-            gid,
-            linkname: target,
-            content: Vec::new(),
-        });
-        return Ok(());
-    }
-    if st.kind == crate::vfs::VfsEntryKind::Directory {
+    use crate::vfs::VfsEntryKind::{Directory, File, Symlink};
+    let entry = TarEntry {
+        name: if st.kind == Directory { format!("{}/", stored_rel.trim_end_matches('/')) } else { stored_rel.to_owned() },
+        typeflag: match st.kind { Directory => b'5', Symlink => b'2', File => b'0' },
+        mode: st.mode & 0o7777,
+        mtime: st.mtime_ms / 1000.,
+        atime: Some(st.atime_ms / 1000.),
+        uid: st.uid.unwrap_or(0),
+        gid: st.gid.unwrap_or(0),
+        linkname: if st.kind == Symlink { fs.readlink(&full)? } else { String::new() },
+        content: Vec::new(),
+    };
+    if !prepare(&st, full.clone(), entry, ancestors.is_empty())? { return Ok(()); }
+    if st.kind == Directory {
         if st.identity.is_some() && ancestors.contains(&st.identity) {
             return Err(format!(
                 "source directory cycle: {}",
@@ -6019,19 +6034,6 @@ fn collect_tar_entries(
         }
         if ancestors.len() > 256 {
             return Err("source traversal depth limit exceeded".into());
-        }
-        if (!clean_rel.is_empty() && clean_rel != ".") || (stored_rel == "." && sort_by_name) {
-            out.push(TarEntry {
-                name: format!("{}/", stored_rel.trim_end_matches('/')),
-                typeflag: b'5',
-                mode,
-                mtime,
-                atime,
-                uid,
-                gid,
-                linkname: String::new(),
-                content: Vec::new(),
-            });
         }
         if !recursion {
             return Ok(());
@@ -6048,14 +6050,14 @@ fn collect_tar_entries(
             if has_cache_tag && c != "CACHEDIR.TAG" {
                 continue;
             }
-            let child_rel = if stored_rel == "." && sort_by_name {
+            let child_rel = if stored_rel == "." {
                 format!("./{c}")
             } else if clean_rel.is_empty() || clean_rel == "." {
                 c
             } else {
                 format!("{}/{c}", stored_rel.trim_end_matches('/'))
             };
-            if let Err(error) = collect_tar_entries(
+            if let Err(error) = visit_archive_sources(
                 &child_rel,
                 base_dir,
                 excludes,
@@ -6064,9 +6066,8 @@ fn collect_tar_entries(
                 sort_by_name,
                 recursion,
                 fs,
-                out,
                 ancestors,
-                include,
+                prepare,
             ) {
                 first_error.get_or_insert(error);
             }
@@ -6075,19 +6076,6 @@ fn collect_tar_entries(
         if let Some(e) = first_error {
             return Err(e);
         }
-    } else {
-        let bytes = fs.read_file(&full)?;
-        out.push(TarEntry {
-            name: stored_rel.to_string(),
-            typeflag: b'0',
-            mode,
-            mtime,
-            atime,
-            uid,
-            gid,
-            linkname: String::new(),
-            content: bytes,
-        });
     }
     Ok(())
 }
@@ -7473,7 +7461,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let _ = update_mode;
     for t in &effective_targets {
         let mut raw_entries = Vec::new();
-        let _ = collect_tar_entries(
+        let _ = visit_archive_sources(
             t,
             cwd,
             &excludes,
@@ -7482,9 +7470,12 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             false,
             true,
             fs,
-            &mut raw_entries,
             &mut Vec::new(),
-            &mut |_, _, _| Ok(true),
+            &mut |_, path, mut entry, _| {
+                if entry.typeflag == b'0' { entry.content = fs.read_file(&path)?; }
+                raw_entries.push(entry);
+                Ok(true)
+            },
         );
         for mut e in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();

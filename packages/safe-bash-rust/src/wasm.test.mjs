@@ -6019,3 +6019,72 @@ test("tar recreates hard links only to files published earlier in this extractio
     }
   } finally { rs.dispose(); }
 });
+
+test("tar creation binds hard links to the earliest still-live archive name", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.mkdir("/src", {recursive: true});
+      await f.mkdir("/other", {recursive: true});
+      await f.writeFile("/src/a", Buffer.from("shared"));
+      await f.link("/src/a", "/src/b");
+      await f.link("/src/a", "/src/c");
+      await f.writeFile("/other/a", Buffer.from("replaced"));
+      await f.symlink("a", "/src/s");
+      await f.utimes("/src/a", 1000, 1000);
+    }
+    const seed = await js.exec("tar --format=ustar --mtime=@0 -cf - -C other a");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const [op, names] of [
+      ["c", "a b c"], ["c", "a a ./a b a"], ["c", "a b -C /other a -C /src c"],
+      ["c", "--transform=s/a/x/ a b"], ["c", "--transform=s/[ab]/n/ a b c"], ["c", "-h s a"],
+      ["r", "a b c"], ["u", "a b c"], ["c", "--format=pax a b c"],
+      ["c", "--no-recursion . a b"],
+    ]) {
+      for (const f of [fs, rs.fs]) {
+        await f.utimes("/src/a", 1000, 1000);
+        await f.writeFile("/out", seed.stdoutBytes);
+      }
+      const cmd = "tar --format=ustar --mtime=@1 -" + op + "f out -C src " + names;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+      assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(await fs.readFile("/out")), cmd);
+      if (op === "c" && names === "a b c") {
+        await rs.fs.mkdir("/dest", {recursive: true});
+        const result = await rs.exec("tar xf out -C dest");
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal((await rs.fs.stat("/dest/a")).ino, (await rs.fs.stat("/dest/c")).ino);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("tar refuses hard-linked symlinks unless dereferenced, while ZIP stores each operand", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/f", Buffer.from("payload"));
+      await f.link("/f", "/alias");
+      await f.symlink("f", "/sym");
+      await f.link("/sym", "/sym2");
+      await f.writeFile("/out", Buffer.from("original"));
+    }
+    for (const flags of ["-cf", "-chf"]) {
+      const cmd = "tar --format=ustar --mtime=@0 " + flags + " out sym2 f alias";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, flags === "-cf" ? 2 : 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout]);
+      assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(await fs.readFile("/out")));
+      if (a.exitCode) assert.equal(Buffer.from(await rs.fs.readFile("/out")).toString(), "original");
+    }
+    const zip = await rs.exec("zip -q separate.zip f alias && unzip -p separate.zip f && unzip -p separate.zip alias");
+    assert.deepEqual([zip.exitCode, zip.stderr, zip.stdout], [0, "", "payloadpayload"]);
+  } finally { rs.dispose(); }
+});

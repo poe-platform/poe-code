@@ -5454,3 +5454,17 @@ test("wkhtmltopdf draws table rows, column spans and multiline cells across page
     }
   }finally{rs.dispose();}
 });
+
+test("HTML table parsing closes cells and inserts implicit row groups in source order",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const html=Buffer.from('<table><thead><tr><th>A<th>B<tbody><tr><td>1<td>2<tr><td>3<td>4</tbody><tr><td>5<td>6<tfoot><tr><td>7<td>8</tfoot><tr><td>9<td>10</table><p>After</p>');
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":html}});
+  try{
+    await fs.writeFile("/in",html);
+    for(const cmd of ["htmlq 'table > *' < in","htmlq -t 'tbody > tr > td' < in","htmlq p < in","wkhtmltopdf in -"]){
+      const e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});

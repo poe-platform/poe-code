@@ -26442,7 +26442,10 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth
                     break;
                 }
                 if let Some(st) = stop_tag
-                    && (matches!(st, "p" | "li") || (matches!(st, "dt" | "dd") && close_name == "dl"))
+                    && (matches!(st, "p" | "li") || matches!((st, close_name.as_str()),
+                        ("dt" | "dd", "dl") | ("td" | "th", "tr") |
+                        ("td" | "th" | "tr", "thead" | "tbody" | "tfoot") |
+                        ("td" | "th" | "tr" | "thead" | "tbody" | "tfoot", "table")))
                 {
                     break;
                 }
@@ -26462,7 +26465,10 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth
                 }
                 let tag_name = clean[..name_end].to_ascii_lowercase();
                 if let Some(st) = stop_tag
-                    && matches!((st, tag_name.as_str()), ("p", "p") | ("li", "li") | ("dt" | "dd", "dt" | "dd"))
+                    && matches!((st, tag_name.as_str()),
+                        ("p", "p") | ("li", "li") | ("dt" | "dd", "dt" | "dd") |
+                        ("td" | "th", "td" | "th" | "tr") | ("tr", "tr") |
+                        ("td" | "th" | "tr" | "thead" | "tbody" | "tfoot", "thead" | "tbody" | "tfoot"))
                 {
                     break;
                 }
@@ -26505,23 +26511,22 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth
                 let mut children = parse_html_children(src, pos, Some(&tag_name), depth - 1);
                 if tag_name == "table"
                     && children.iter().any(|c| matches!(c, HtmlNode::Element(el) if el.tag == "tr"))
-                    && !children.iter().any(|c| matches!(c, HtmlNode::Element(el) if el.tag == "tbody"))
                 {
-                    let mut tbody_children = Vec::new();
-                    let mut rest_children = Vec::new();
-                    for c in children {
-                        match c {
-                            HtmlNode::Element(ref el) if el.tag == "tr" => tbody_children.push(c),
-                            HtmlNode::Text(ref t) if t.trim().is_empty() => {}
-                            other => rest_children.push(other),
+                    let mut implicit: Option<HtmlElement> = None;
+                    for child in std::mem::take(&mut children) {
+                        if matches!(&child, HtmlNode::Element(el) if el.tag == "tr") {
+                            implicit.get_or_insert_with(|| HtmlElement {
+                                tag: "tbody".into(), attrs: Vec::new(), children: Vec::new()
+                            }).children.push(child);
+                        } else if let Some(group) = &mut implicit
+                            && matches!(&child, HtmlNode::Text(t) if t.trim().is_empty()) {
+                            group.children.push(child);
+                        } else {
+                            if let Some(group) = implicit.take() { children.push(HtmlNode::Element(group)); }
+                            children.push(child);
                         }
                     }
-                    rest_children.push(HtmlNode::Element(HtmlElement {
-                        tag: "tbody".to_string(),
-                        attrs: Vec::new(),
-                        children: tbody_children,
-                    }));
-                    children = rest_children;
+                    if let Some(group) = implicit { children.push(HtmlNode::Element(group)); }
                 }
                 out.push(HtmlNode::Element(HtmlElement {
                     tag: tag_name,

@@ -1,6 +1,7 @@
 mod sort_keys;
 mod sort_record;
 mod sort_runs;
+mod tac_regex;
 use sort_record::Record as SortRecord;
 use super::CommandInput;
 use crate::vfs::path::absolute_operand;
@@ -3566,42 +3567,10 @@ fn cmd_tac(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
             continue;
         }
         if regex_mode {
-            let pat_str = String::from_utf8_lossy(&sep_bytes).to_string();
-            let anchored = if pat_str.starts_with("^") {
-                pat_str
-            } else {
-                format!("^{pat_str}")
-            };
-            let re = crate::commands::search::ZeroRegex::new(
-                vec![anchored],
-                false,
-                false,
-                false,
-                false,
-            );
-            let text_latin1: String = bytes.iter().map(|&b| b as char).collect();
-            let char_to_byte: Vec<usize> = text_latin1
-                .char_indices()
-                .map(|(bi, _)| bi)
-                .chain(std::iter::once(text_latin1.len()))
-                .collect();
-            let mut end = bytes.len();
-            let mut idx = bytes.len();
-            while idx > 0 {
-                idx -= 1;
-                let slice_str = &text_latin1[char_to_byte[idx]..char_to_byte[bytes.len()]];
-                let matches = re.find_all(slice_str);
-                if let Some(&(_, m_end_byte)) = matches.first() {
-                    let matched_chars = slice_str[..m_end_byte].chars().count();
-                    let match_end = idx + matched_chars;
-                    let boundary = if before { idx } else { match_end };
-                    if boundary <= end {
-                        out_bytes.extend_from_slice(&bytes[boundary..end]);
-                        end = boundary;
-                    }
-                }
+            if let Err(error) = tac_regex::reverse(&sep_bytes, &bytes, before, &mut out_bytes) {
+                stderr.push_str(&format!("tac: {error}\n"));
+                exit_code = 1;
             }
-            out_bytes.extend_from_slice(&bytes[0..end]);
         } else {
             let mut end = bytes.len();
             let mut matched = 0;
@@ -21513,6 +21482,33 @@ mod tests {
 
         let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
         assert_eq!(tr.stdout, "HELLO");
+    }
+
+    #[test]
+    fn tac_regex_uses_rightmost_byte_matches_and_full_subject_anchors() {
+        let fs = MemoryVfs::new();
+        for (pattern, expected) in [
+            ("^a", "aabbb\nzab\nxx123a"),
+            ("$", "\nxx123\nzabaaabbb"),
+            ("^", "xx123zab\naaabbb\n"),
+            ("[[:digit:]]+", "32aaabbb\nzab\nxx1"),
+        ] {
+            let result = try_run_coreutil("tac", &args(&["-rs", pattern]), "aaabbb\nzab\nxx123", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((result.stdout.as_str(), result.stderr.as_str(), result.exit_code), (expected, "", 0), "{pattern}");
+        }
+        let grouped = try_run_coreutil("tac", &args(&["-rs", r"\(a?\)+\1"]), "axaa", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(grouped.stdout, "aaxa");
+        fs.write_file("/binary", b"a\xff\n\0a").unwrap();
+        let binary = try_run_coreutil("tac", &args(&["-brs", ".", "/binary"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(crate::vfs::stream_string_to_bytes(&binary.stdout), b"a\0\xff\na");
+        for (pattern, error) in [
+            ("[z", "Unmatched [, [^, [:, [., or [="),
+            (r"\1", "Invalid back reference"),
+            (r"\(x", r"Unmatched ( or \("),
+        ] {
+            let result = try_run_coreutil("tac", &args(&["-rs", pattern]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((result.exit_code, result.stderr), (1, format!("tac: EINVAL: {error}\n")));
+        }
     }
 
     #[test]

@@ -17,6 +17,8 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
 | Zero-Dep Command Suite | `rg`, `grep`, `find`, `fd`, `xargs`, `sed`, `awk`, `diff`, `diff3`, `patch`, `apply_patch`, `jq`, `yq`, `xan`, `sqlite3`, `tar`, `gzip`, `zstd`, `xz`, `bzip2`, `zip`, `unzip`, `sha256sum`, `xxd`, `od`, `dd`, and POSIX coreutils |
 
+Native `tac -r` searches byte patterns from the end of each input. It reports `EFBIG` when a pattern exceeds 64 KiB or 64 nested groups, or when compilation or matching exceeds its work or memory budgets. JavaScript can accept larger patterns.
+
 ## Quick Start
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`

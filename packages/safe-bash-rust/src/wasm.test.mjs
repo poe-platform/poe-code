@@ -6927,3 +6927,28 @@ test("rg multiline anchors and inline flags follow the scope of each group", asy
     }
   } finally { rs.dispose(); }
 });
+
+test("rg keeps selection, columns and replacement spans through the last context record", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [input, args, expected] of [
+      ["x\na\nxa\nb\na\nb", String.raw`-Um1 -A1 -r X 'a\nb'`, "xX\nX\n"],
+      ["z\nba\nb\n", String.raw`-Um1 -A1 -r X '\S'`, "X\nXX\n"],
+      ["a\\nb\\nc\\n", String.raw`-Unm1 -A1 'a\nb'`, "1:a\n2:b\n"],
+      ["z\\nbaa\\naaz\\nza", "-nm1 -A1 --column a", "2:2:baa\n3:1:aaz\n"],
+      ["z\\nbaa\\naaz\\nza", "-nm1 -A2 -v --column -r X a", "1:z\n2-2-baa\n3-1-aaz\n"],
+      ["z\\nbaa\\naaz\\nza", "-nm1 -A3 -v a", "1:z\n2-baa\n3-aaz\n4:za\n"],
+      ["x\\naa\\nb\\nz\\na\\nb\\nx", "-no -C1 -r X a", "1-x\n2:X\n2:X\n3-b\n4-z\n5:X\n6-b\n"],
+      ["z\\nbaa\\naaz\\nza", "-nm1 -A2 -o a", "2:a\n2:a\n3:a\n3:a\n4:a\n"],
+      ["x\\naa\\nb\\nz\\na\\nb\\nx", String.raw`-Unb --column -C1 'a\nb'`, "1-0-x\n2:2:2:aa\n3:1:5:b\n4-7-z\n5:1:9:a\n6:1:11:b\n7-13-x\n"],
+    ]) {
+      const cmd = `printf '${input}' | rg ${args}`;
+      for (const shell of [js, rs]) {
+        const r = await shell.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,expected,""],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

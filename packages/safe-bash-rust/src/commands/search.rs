@@ -970,8 +970,19 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<P
                         }
                         scalar(&mut idx)?
                     } else { lo };
-                    if jq && lo > hi { return Err("reversed character range".into()); }
-                    ranges.push((lo, hi));
+                    if jq && lo != hi {
+                        // In UTF-16, supplementary characters sort between these two BMP segments.
+                        let segments = [('\0', '\u{d7ff}'), ('\u{10000}', char::MAX), ('\u{e000}', '\u{ffff}')];
+                        let segment = |c| if c < '\u{e000}' { 0 } else if c > '\u{ffff}' { 1 } else { 2 };
+                        let (first, last) = (segment(lo), segment(hi));
+                        if (first, lo) > (last, hi) { return Err("reversed character range".into()); }
+                        for i in first..=last {
+                            ranges.push((if i == first { lo } else { segments[i].0 },
+                                         if i == last { hi } else { segments[i].1 }));
+                        }
+                    } else {
+                        ranges.push((lo, hi));
+                    }
                 }
                 if idx < chars.len() && chars[idx] == ']' { idx += 1; }
                 else if jq { return Err("unterminated bracket expression".into()); }

@@ -6831,3 +6831,21 @@ test("deep jq regex groups compile and discard invalid patterns without exhausti
     }
   } finally { rs.dispose(); }
 });
+
+test("jq character classes use UTF-16 range order across the surrogate interval", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [input,pattern,expected] of [
+      ["🦊","[a-\uffff]",true], ["\ue000","[a-🦊]",false], ["\ue000","[🦊-\uffff]",true],
+      ["🦊","[\ue000-🦊]","Regex failure: empty range in char class"], ["x","[^🦊-\uffff]",true],
+    ]) {
+      const cmd = `echo '${JSON.stringify(input)}' | jq -c 'try test(${JSON.stringify(pattern)}) catch .'`;
+      for (const shell of [js,rs]) {
+        const r=await shell.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr,r.stdout],[0,"",JSON.stringify(expected)+"\n"],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

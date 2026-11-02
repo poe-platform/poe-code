@@ -1,3 +1,5 @@
+#[path = "xz_filters.rs"]
+mod xz_filters;
 
 pub fn crc32_ieee(data: &[u8]) -> u32 {
     let mut crc = 0xffff_ffffu32;
@@ -2164,15 +2166,17 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             if (bh_flags & 0x80) != 0 {
                 let _ = field(&mut bh_pos)?;
             }
-            let mut deltas = Vec::new();
+            let mut filters = Vec::new();
             for i in 0..num_filters {
                 let id = field(&mut bh_pos)?;
                 let len = usize::try_from(field(&mut bh_pos)?).map_err(|_| "Compressed data is corrupt")?;
                 let props = data[bh_pos..pos + bh_size - 4].get(..len).ok_or("Compressed data is corrupt")?;
-                match (id, props, i + 1 == num_filters) {
-                    (0x03, [distance], false) => deltas.push(usize::from(*distance) + 1),
-                    (0x21, [0..=40], true) => {}
-                    _ => return Err("Unsupported options in headers".into()),
+                if i + 1 == num_filters {
+                    if id != 0x21 || !matches!(props, [0..=40]) {
+                        return Err("Unsupported options in headers".into());
+                    }
+                } else {
+                    filters.push(xz_filters::Filter::from_header(id, props).ok_or("Unsupported options in headers")?);
                 }
                 bh_pos += len;
             }
@@ -2264,10 +2268,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             let stored_check = &data[pos..pos + check_size];
             pos += check_size;
             let block_slice = &mut out[block_out_start..];
-            for distance in deltas.into_iter().rev() {
-                for i in distance..block_slice.len() {
-                    block_slice[i] = block_slice[i].wrapping_add(block_slice[i - distance]);
-                }
+            for filter in filters.iter().rev() {
+                filter.decode(block_slice);
             }
             match check_id {
                 0 => {}

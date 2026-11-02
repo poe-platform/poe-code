@@ -7923,3 +7923,28 @@ test("unxz reverses delta filters in block order before checking the output", as
     }
   } finally { rs.dispose(); }
 });
+
+test("unxz decodes x86 and ARM64 branches at the block's declared start offset", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [name, pattern, start] of [
+      ["x86", "e810000000e9ffffff00e8e9e80001ffffffffe800ffef0000", 4294967280],
+      ["arm64", "01000094ffffb39720000090210000d0fefffff000000014c0035fd6", 4092],
+    ]) {
+      const bytes = Buffer.from(pattern.repeat(320) + "00ff", "hex");
+      await fs.writeFile("/in", bytes);
+      for (const offset of ["", "=start=" + start]) {
+        const cmd = "xz -c --block-size=1KiB --" + name + offset + " --delta=dist=3 --lzma2 /in";
+        const packed = await js.exec(cmd);
+        assert.equal(packed.exitCode, 0, packed.stderr);
+        await rs.fs.writeFile("/z", packed.stdoutBytes);
+        const decoded = await rs.exec("unxz -c /z");
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.ok(Buffer.from(decoded.stdoutBytes).equals(bytes), cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

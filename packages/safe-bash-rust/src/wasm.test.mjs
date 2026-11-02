@@ -5257,3 +5257,16 @@ test("qpdf imports and updates JSON object graphs without losing streams or unre
     }
   }finally{rs.dispose();}
 });
+
+test("qpdf JSON errors preserve the output and report native JSON positions",async()=>{
+  const rs=new RustWasmBash({cwd:"/",files:{"/out":"original"}});
+  try{
+    for(const source of ['{"a":1,}', '["😀" x]', '{"a" x}', '[01]', '1e-', '"abc', '"a\\u21!', '["a\\q"]', 'truX', 'undefined', ' '.repeat(24)+'x','{\r\n"a": 1 x}']){
+      let message;try{JSON.parse(source);}catch(e){message=e.message;}
+      await rs.fs.writeFile("/in",Buffer.from(source));
+      const r=await rs.exec("qpdf --json-input in out");
+      assert.deepEqual([r.exitCode,r.stderr],[2,"qpdf: in: "+message+"\n"],source);
+      assert.equal(Buffer.from(await rs.fs.readFile("/out")).toString(),"original");
+    }
+  }finally{rs.dispose();}
+});

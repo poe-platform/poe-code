@@ -391,27 +391,167 @@ impl<'a> JsonDocument<'a> {
     }
 }
 
+// The JSON parser reports a byte offset. On a failure only, recover the
+// surrounding grammar and UTF-16 position used by JSON.parse diagnostics.
 fn syntax(input: &str, e: json::Error) -> String {
-    if e.offset >= input.len() {
+    use json::ErrorKind::*;
+    if matches!(e.kind, ByteLimit | DepthLimit | NodeLimit | InvalidLimits) {
+        return "QPDF JSON input limit exceeded".into();
+    }
+    let bytes = input.as_bytes();
+    let mut pos = e.offset.min(bytes.len());
+    let mut parents = vec![];
+    let mut last = b' '; // k: complete key, v: complete value, or literal punctuation
+    let mut quoted = false;
+    let mut key = false;
+    let mut slash = false;
+    let mut hex = 0;
+    let mut i = 0;
+    let mut zero = None;
+    while i < pos {
+        let b = bytes[i];
+        i += 1;
+        if quoted {
+            if hex > 0 {
+                hex -= 1
+            } else if slash {
+                slash = false;
+                if b == b'u' {
+                    hex = 4
+                }
+            } else if b == b'\\' {
+                slash = true
+            } else if b == b'"' {
+                quoted = false;
+                last = if key { b'k' } else { b'v' }
+            }
+            continue;
+        }
+        match b {
+            b' ' | b'\r' | b'\n' | b'\t' => (),
+            b'{' | b'[' => {
+                parents.push(b);
+                last = b
+            }
+            b'}' | b']' => {
+                parents.pop();
+                last = b'v'
+            }
+            b':' | b',' => last = b,
+            b'"' => {
+                quoted = true;
+                key = parents.last() == Some(&b'{') && matches!(last, b'{' | b',')
+            }
+            _ => {
+                let start = i - 1;
+                while i < pos && !b"{}[],:\" \r\n\t".contains(&bytes[i]) {
+                    i += 1
+                }
+                if matches!(&bytes[start..i], b"0" | b"-0") {
+                    zero = Some(i)
+                }
+                last = b'v'
+            }
+        }
+    }
+    let ch = bytes.get(pos).copied();
+    let stem = if quoted {
+        if hex > 0 {
+            Some("Bad Unicode escape in JSON")
+        } else if slash && ch.is_some() {
+            Some("Bad escaped character in JSON")
+        } else if ch.is_some() {
+            Some("Bad control character in string literal in JSON")
+        } else if !slash {
+            Some("Unterminated string in JSON")
+        } else {
+            None
+        }
+    } else if e.kind == InvalidNumber {
+        let prefix = &bytes[..pos];
+        if prefix.ends_with(b".") {
+            Some("Unterminated fractional number in JSON")
+        } else if prefix.ends_with(b"-")
+            && !matches!(prefix.get(pos.wrapping_sub(2)), Some(b'e' | b'E'))
+        {
+            Some("No number after minus sign in JSON")
+        } else {
+            Some("Exponent part is missing a number in JSON")
+        }
+    } else if zero == Some(pos) && ch.is_some_and(|b| b.is_ascii_digit()) {
+        Some("Unexpected number in JSON")
+    } else if e.kind == TrailingData {
+        Some("Unexpected non-whitespace character after JSON")
+    } else if last == b'k' {
+        Some("Expected ':' after property name in JSON")
+    } else if last == b'{' {
+        Some("Expected property name or '}' in JSON")
+    } else if last == b',' && parents.last() == Some(&b'{') {
+        Some("Expected double-quoted property name in JSON")
+    } else if last == b'v' && parents.last() == Some(&b'{') {
+        Some("Expected ',' or '}' after property value in JSON")
+    } else if last == b'v' && parents.last() == Some(&b'[') {
+        Some("Expected ',' or ']' after array element in JSON")
+    } else {
+        None
+    };
+    if stem.is_none() && !quoted {
+        if matches!(input, "undefined" | "NaN" | "Infinity" | "[object Object]") {
+            return format!("\"{input}\" is not valid JSON");
+        }
+        let literal: &[u8] = match ch {
+            Some(b't') => b"true",
+            Some(b'f') => b"false",
+            Some(b'n') => b"null",
+            _ => b"",
+        };
+        pos += literal
+            .iter()
+            .zip(&bytes[pos..])
+            .take_while(|(a, b)| a == b)
+            .count();
+    }
+    let prefix = &input[..pos];
+    let at = prefix.encode_utf16().count();
+    if let Some(stem) = stem {
+        let mut line = 1;
+        let mut column = 1;
+        let mut cr = false;
+        for u in prefix.encode_utf16() {
+            match u {
+                13 => {
+                    line += 1;
+                    column = 1
+                }
+                10 => {
+                    if !cr {
+                        line += 1
+                    };
+                    column = 1
+                }
+                _ => column += 1,
+            }
+            cr = u == 13
+        }
+        return format!("{stem} at position {at} (line {line} column {column})");
+    }
+    if pos == input.len() {
         return "Unexpected end of JSON input".into();
     }
-    let pos = e.offset.min(input.len());
-    let prefix = input.get(..pos).unwrap_or("");
-    let c = input
-        .get(pos..)
-        .and_then(|s| s.chars().next())
-        .unwrap_or('?');
-    let units: Vec<_> = input.encode_utf16().collect();
-    let at = prefix.encode_utf16().count();
-    let excerpt = if units.len() <= 20 {
+    let units = input.encode_utf16().count();
+    let excerpt = if units <= 20 {
         format!("\"{input}\"")
     } else {
+        let start = at.saturating_sub(10);
+        let end = (at + 10).min(units);
+        let window: Vec<_> = input.encode_utf16().skip(start).take(end - start).collect();
         format!(
             "{}\"{}\"{}",
             if at >= 10 { "..." } else { "" },
-            String::from_utf16_lossy(&units[at.saturating_sub(10)..(at + 10).min(units.len())]),
-            if at + 10 < units.len() { "..." } else { "" }
+            String::from_utf16_lossy(&window),
+            if end < units { "..." } else { "" }
         )
     };
+    let c = String::from_utf16_lossy(&[input[pos..].encode_utf16().next().unwrap()]);
     format!("Unexpected token '{c}', {excerpt} is not valid JSON")
 }

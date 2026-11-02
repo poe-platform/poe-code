@@ -4216,3 +4216,26 @@ test("qpdf exports indexed objects, decoded streams and page references in both 
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf JSON preserves prior files after a late stream decode failure", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument,cosName,cosStream,dictSet}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.addPage();
+  const first=doc.cos.allocateObject(cosStream(Uint8Array.of(1,2),{compress:false}));
+  const bad=cosStream(Uint8Array.of(3),{compress:false});
+  dictSet(bad.dict,"Filter",cosName("UnsupportedJsonFilter"));doc.cos.allocateObject(bad);
+  const files={"/in.pdf":doc.save(),"/out.json":"original",["/stream-"+first.objectNumber]:"prior"};
+  const fs=new MemoryFileSystem(), wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,bytes] of Object.entries(files))await fs.writeFile(name,Buffer.from(bytes));
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const mode of ["inline","file"]) {
+      const cmd="qpdf in.pdf --json --json-stream-data="+mode+" --json-stream-prefix=stream- out.json";
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.notEqual(want.exitCode,0);
+      assert.deepEqual([got.exitCode,got.stdout,got.stderr],[want.exitCode,want.stdout,want.stderr]);
+      for(const name of Object.keys(files).slice(1))assert.equal(Buffer.from(await wasm.fs.readFile(name)).toString(),files[name]);
+    }
+  } finally {wasm.dispose();}
+});

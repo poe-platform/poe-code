@@ -6,7 +6,7 @@ use mcp_protocol_rust::json::{self, Value as J};
 use std::collections::{BTreeMap, BTreeSet};
 
 const INVALID: &str = "qpdf: invalid PDF object or stream\n";
-const LIMIT: &str = "shell: line 1: internal error\n";
+const SHELL_ERROR: &str = "shell: line 1: internal error\n";
 type Report = (String, Vec<(String, Vec<u8>)>);
 
 fn string(s: &str) -> J {
@@ -78,7 +78,7 @@ fn cos(v: &Value<'_>) -> J {
 fn pretty(v: &J, depth: usize, out: &mut String, limit: usize) -> Result<(), &'static str> {
     let pad = |out: &mut String, d: usize| {
         if d * 2 + 1 > limit.saturating_sub(out.len()) {
-            return Err(LIMIT);
+            return Err(SHELL_ERROR);
         }
         out.push('\n');
         out.extend(std::iter::repeat_n(' ', d * 2));
@@ -90,7 +90,7 @@ fn pretty(v: &J, depth: usize, out: &mut String, limit: usize) -> Result<(), &'s
         _ => {
             let s = json::stringify(v);
             if s.len() > limit.saturating_sub(out.len()) {
-                return Err(LIMIT);
+                return Err(SHELL_ERROR);
             }
             out.push_str(&s);
             return Ok(());
@@ -119,7 +119,7 @@ fn pretty(v: &J, depth: usize, out: &mut String, limit: usize) -> Result<(), &'s
     }
     out.push(if obj { '}' } else { ']' });
     if out.len() > limit {
-        return Err(LIMIT);
+        return Err(SHELL_ERROR);
     }
     Ok(())
 }
@@ -158,31 +158,32 @@ impl<'a> PageSource<'a> {
             let (v, stream) = if self.objects.xref.contains_key(&id) {
                 let (v, mut c) = self.objects.object(id).ok_or(INVALID)?;
                 c.skip();
-                let stream = c.0.starts_with(b"stream");
-                if stream {
-                    self.objects.stream(&v, c).ok_or(INVALID)?;
-                }
+                let stream = if c.0.starts_with(b"stream") {
+                    Some(self.objects.stream(&v, c).ok_or(INVALID)?)
+                } else {
+                    None
+                };
                 (v, stream)
             } else {
                 (
                     self.tree.get(&id).and_then(|v| v.clone()).ok_or(INVALID)?,
-                    false,
+                    None,
                 )
             };
-            let obj = if stream {
+            let obj = if let Some(bytes) = stream {
                 let mut fields = vec![("dict".encode_utf16().collect(), cos(&v))];
                 if mode != "none" {
-                    let data = self.objects.decoded_stream(id).ok_or(INVALID)?;
+                    let data = self.objects.decode(&v, bytes).ok_or(SHELL_ERROR)?;
                     if mode == "inline" {
                         if data.len().div_ceil(3) * 4 > remaining {
-                            return Err(LIMIT);
+                            return Err(SHELL_ERROR);
                         }
                         fields.push((
                             "data".encode_utf16().collect(),
                             string(&base64_encode(&data)),
                         ));
                     } else {
-                        remaining = remaining.checked_sub(data.len()).ok_or(LIMIT)?;
+                        remaining = remaining.checked_sub(data.len()).ok_or(SHELL_ERROR)?;
                         let path = format!("{prefix}{}", id.0);
                         fields.push(("datafile".encode_utf16().collect(), string(&path)));
                         files.push((path, data.into_owned()));
@@ -273,7 +274,7 @@ impl<'a> PageSource<'a> {
         let mut attachments = Vec::new();
         let mut seen = BTreeSet::new();
         for a in self.attachments(true).ok_or(INVALID)? {
-            self.objects.decoded_stream(a.stream).ok_or(INVALID)?;
+            self.objects.decoded_stream(a.stream).ok_or(SHELL_ERROR)?;
             if a.key == "__proto__" || !seen.insert(a.key.clone()) {
                 continue;
             }
@@ -321,7 +322,7 @@ impl<'a> PageSource<'a> {
             &report,
             0,
             &mut output,
-            remaining.checked_sub(1).ok_or(LIMIT)?,
+            remaining.checked_sub(1).ok_or(SHELL_ERROR)?,
         )?;
         output.push('\n');
         Ok((output, files))

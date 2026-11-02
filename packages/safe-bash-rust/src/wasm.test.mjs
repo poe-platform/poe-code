@@ -7331,3 +7331,26 @@ test("grep walks directories, applies basename filters in order and reports file
     }
   } finally { rs.dispose(); }
 });
+
+test("rg file listing and searching use the same traversal and symlink rules", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const sh of [js, rs]) await sh.exec("mkdir -p d/sub d/empty d/.git; echo a >d/file; cp d/file d/.git/f; cp d/file d/sub/f; ln -s file d/link; ln -s sub d/sublink; ln -s missing d/bad");
+    for (const cmd of [
+      "rg a d", "rg --files d", "rg --files --hidden d", "rg --files ./d", "rg -L a d",
+      "rg --follow --files d", "rg -L --no-follow --files d", "rg --files -q d",
+      "rg --files --no-messages d/bad", "rg --files d/empty", "rg --files d/link",
+      "rg --max-filesize=1 --files d/file", "rg -g '*.js' a d/file", "rg --files --sort=path d/sub d/file",
+      "rg --files -", "rg --files -q missing d/file", "rg --files -q d/file missing",
+      "rg --files --stats d/sub", "rg --files -q --stats d/sub missing",
+      "cd d; rg a .", "cd d; rg a", "cd d; rg --files",
+      "ln -s .. d/sub/up; rg --follow a d", "rg -L --files d", "rg -Lq a d", "rg -L --files -q d",
+      "chmod 000 d/file; rg a d/link", "rg --no-messages a d/file", "rg --files d/file",
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

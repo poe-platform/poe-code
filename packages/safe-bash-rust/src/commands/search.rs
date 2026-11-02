@@ -2274,7 +2274,7 @@ fn cmd_grep(
             read_patterns_from_stdin = true;
             stream_string_to_bytes(stdin)
         } else {
-            match read_grep_file(fs, &grep_path(cwd, &file), "readStream") {
+            match read_grep_file(fs, &search_path(cwd, &file), "readStream") {
                 Ok(bytes) => bytes,
                 Err(e) => return error(e),
             }
@@ -2362,7 +2362,7 @@ fn cmd_grep(
         match key {
             "exclude-dir" => excluded_dirs.push(value),
             "exclude-from" => {
-                let bytes = match read_grep_file(fs, &grep_path(cwd, value), "readStream") {
+                let bytes = match read_grep_file(fs, &search_path(cwd, value), "readStream") {
                     Ok(bytes) => bytes,
                     Err(e) => return error(e),
                 };
@@ -2385,7 +2385,6 @@ fn cmd_grep(
                 !p.is_empty() && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
                     .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))) { GrepInput::PlainLiteral { fast_file: args[0] != "^" } }
                 else if bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
-            is_rg: false,
             ascii_record_rx: None,
             invert,
             count_only,
@@ -2393,7 +2392,6 @@ fn cmd_grep(
             files_with_matches,
             files_without_match,
             only_matching,
-            recursive,
             quiet,
             no_messages,
             no_filename,
@@ -2401,11 +2399,6 @@ fn cmd_grep(
             max_count,
             before_ctx,
             after_ctx,
-            globs: Vec::new(),
-            types_include: Vec::new(),
-            types_exclude: Vec::new(),
-            show_hidden: true,
-            respect_ignore: false,
             binary: RgBinary::Auto,
             byte_offset,
             null_delim,
@@ -2415,8 +2408,6 @@ fn cmd_grep(
             multiline: false,
             show_column: false,
             ignore_binary,
-            max_depth: None,
-            max_filesize: None,
             count_matches: false,
             include_zero: true,
             trim: false,
@@ -2425,14 +2416,10 @@ fn cmd_grep(
             context_separator,
             initial_tab,
             stdin_label,
-            grep_files: Some(GrepFiles { name: invoked_as, rules, excluded_dirs,
+            files: SearchFiles::Grep(GrepFiles { name: invoked_as, rules, excluded_dirs, recursive,
                 inspect: saw_recursive || recursive || dir_action.as_deref() == Some("skip") || devices == Some("skip"),
                 skip_dirs: dir_action.as_deref() == Some("skip"), skip_devices: devices == Some("skip"), follow: dereference_recursive }),
             max_columns: None,
-            no_ignore_vcs: false,
-            no_ignore_dot: false,
-            custom_ignore_files: Vec::new(),
-            sort_by_path: false,
             stats: false,
         },
     )
@@ -2519,7 +2506,7 @@ fn cmd_rg(
     let mut no_ignore_dot = false;
     let mut use_ignore_files = true;
     let mut custom_ignore_files: Vec<String> = Vec::new();
-    let mut sort_by_path = false;
+    let mut follow = false;
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
     let mut context_separator: Option<String> = Some("--".to_string());
@@ -2546,6 +2533,8 @@ fn cmd_rg(
             match a.as_str() {
                 "--help" => help_requested = true,
                 "--version" => version_mode = Some("long"),
+                "--follow" => follow = true,
+                "--no-follow" => follow = false,
                 "--no-config" | "--pcre2" | "--no-pcre2" => {}
                 "--no-messages" => no_messages = true,
                 "--messages" => no_messages = false,
@@ -2659,9 +2648,7 @@ fn cmd_rg(
                 }
                 "--sort" if i + 1 < args.len() => {
                     i += 1;
-                    if args[i] == "path" {
-                        sort_by_path = true;
-                    } else {
+                    if args[i] != "path" {
                         return BuiltinOutcome {
                             stdout: String::new(),
                             stderr: "rg: only --sort=path is supported\n".to_string(),
@@ -2830,9 +2817,7 @@ fn cmd_rg(
                     } else if let Some(igf) = a.strip_prefix("--ignore-file=") {
                         custom_ignore_files.push(igf.to_string());
                     } else if let Some(srt) = a.strip_prefix("--sort=") {
-                        if srt == "path" {
-                            sort_by_path = true;
-                        } else {
+                        if srt != "path" {
                             return BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: "rg: only --sort=path is supported\n".to_string(),
@@ -2952,6 +2937,7 @@ fn cmd_rg(
                         line_regexp = true;
                         word_regexp = false;
                     }
+                    'L' => follow = true,
                     'F' => fixed_strings = true,
                     'q' => quiet = true,
                     'I' => {
@@ -3184,56 +3170,31 @@ fn cmd_rg(
     }
 
 
+    let files = RgFiles { follow, globs, types_include, types_exclude, show_hidden, respect_ignore,
+        no_ignore_vcs, no_ignore_dot, custom_ignore_files, max_depth, max_filesize };
     if list_files_only {
-        let search_roots = if targets.is_empty() {
-            vec![".".to_string()]
-        } else {
-            targets
-        };
-        let mut init_rules = Vec::new();
-        for igf in &custom_ignore_files {
-            let p = resolve_posix_path(cwd, igf);
-            if let Ok(bytes) = fs.read_file(&p) {
-                for line in String::from_utf8_lossy(&bytes).lines() {
-                    let t = line.trim();
-                    if !t.is_empty() && !t.starts_with('#') {
-                        init_rules.push(t.to_string());
-                    }
-                }
-            }
-        }
-        let mut files = Vec::new();
-        for r in &search_roots {
-            collect_rg_files(
-                r,
-                cwd,
-                fs,
-                true,
-                &globs,
-                &types_include,
-                &types_exclude,
-                show_hidden,
-                respect_ignore,
-                no_ignore_vcs,
-                no_ignore_dot,
-                &init_rules,
-                0,
-                max_depth,
-                max_filesize,
-                &mut files,
-            );
-        }
-        if sort_by_path {
-            files.sort_by(|a, b| a.0.cmp(&b.0));
-        }
-        let sep = if null_delim { '\0' } else { '\n' };
         let mut out = String::new();
-        for (disp, _) in files {
-            let clean = disp.strip_prefix("./").unwrap_or(&disp);
-            out.push_str(clean);
-            out.push(sep);
+        let mut err = String::new();
+        let mut found = false;
+        let mut failed = false;
+        for input in files.inputs(&targets, cwd, fs, false) {
+            let label = match input {
+                SearchInput::Error(message) => {
+                    failed = true;
+                    if !no_messages { err.push_str(&message); }
+                    continue;
+                }
+                SearchInput::Stdin => "<stdin>".to_owned(),
+                SearchInput::File(label, _, _) => label,
+            };
+            found = true;
+            if quiet { break; }
+            out.push_str(&label);
+            out.push(if null_delim { '\0' } else { '\n' });
         }
-        return ok_out(&out);
+        if stats { out.push_str("\n0 matches\n0 matched lines\n0 files contained matches\n0 files searched\n0 bytes printed\n0 bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"); }
+        return BuiltinOutcome { stdout: out, stderr: err,
+            exit_code: if failed && !(found && quiet) { 2 } else { i32::from(!found) } };
     }
 
     if smart_case && !ignore_case {
@@ -3297,27 +3258,15 @@ fn cmd_rg(
         Some(record_rx)
     } else { None };
 
-    let recursive = targets.is_empty()
-        || targets
-            .iter()
-            .any(|t| fs.is_dir(&resolve_posix_path(cwd, t)));
-
     let effective_stdin = if read_patterns_from_stdin { "" } else { stdin };
-    let effective_targets = if targets.is_empty() && effective_stdin.is_empty() {
-        vec![".".to_string()]
-    } else {
-        targets
-    };
-
     run_grep_engine(
         rx,
-        effective_targets,
+        targets,
         effective_stdin,
         cwd,
         fs,
         GrepConfig {
             grep_input: GrepInput::Bytes,
-            is_rg: true,
             ascii_record_rx,
             invert,
             count_only,
@@ -3325,7 +3274,6 @@ fn cmd_rg(
             files_with_matches,
             files_without_match,
             only_matching,
-            recursive,
             quiet,
             no_messages,
             no_filename,
@@ -3333,11 +3281,6 @@ fn cmd_rg(
             max_count,
             before_ctx,
             after_ctx,
-            globs,
-            types_include,
-            types_exclude,
-            show_hidden,
-            respect_ignore,
             binary,
             byte_offset,
             null_delim,
@@ -3347,8 +3290,6 @@ fn cmd_rg(
             multiline: multiline && cross_line,
             show_column,
             ignore_binary: false,
-            max_depth,
-            max_filesize,
             count_matches,
             include_zero,
             trim,
@@ -3357,12 +3298,8 @@ fn cmd_rg(
             context_separator,
             initial_tab: false,
             stdin_label: None,
-            grep_files: None,
+            files: SearchFiles::Rg(files),
             max_columns,
-            no_ignore_vcs,
-            no_ignore_dot,
-            custom_ignore_files,
-            sort_by_path,
             stats,
         },
     )
@@ -3377,14 +3314,12 @@ enum GrepInput<'a> { Bytes, PlainLiteral { fast_file: bool }, Bounded(&'a str) }
 struct GrepConfig<'a> {
     grep_input: GrepInput<'a>,
     ascii_record_rx: Option<ZeroRegex>,
-    is_rg: bool,
     invert: bool,
     count_only: bool,
     line_number: bool,
     files_with_matches: bool,
     files_without_match: bool,
     only_matching: bool,
-    recursive: bool,
     quiet: bool,
     no_messages: bool,
     no_filename: bool,
@@ -3392,11 +3327,6 @@ struct GrepConfig<'a> {
     max_count: Option<usize>,
     before_ctx: usize,
     after_ctx: usize,
-    globs: Vec<String>,
-    types_include: Vec<String>,
-    types_exclude: Vec<String>,
-    show_hidden: bool,
-    respect_ignore: bool,
     binary: RgBinary,
     byte_offset: bool,
     null_delim: bool,
@@ -3406,8 +3336,6 @@ struct GrepConfig<'a> {
     multiline: bool,
     show_column: bool,
     ignore_binary: bool,
-    max_depth: Option<usize>,
-    max_filesize: Option<usize>,
     count_matches: bool,
     include_zero: bool,
     trim: bool,
@@ -3416,12 +3344,8 @@ struct GrepConfig<'a> {
     context_separator: Option<String>,
     initial_tab: bool,
     stdin_label: Option<String>,
-    grep_files: Option<GrepFiles<'a>>,
+    files: SearchFiles<'a>,
     max_columns: Option<usize>,
-    no_ignore_vcs: bool,
-    no_ignore_dot: bool,
-    custom_ignore_files: Vec<String>,
-    sort_by_path: bool,
     stats: bool,
 }
 
@@ -3552,158 +3476,97 @@ fn eval_cli_globs(globs: &[String], base: &str, target: &str) -> Option<bool> {
     result
 }
 
-#[allow(clippy::too_many_arguments)]
-fn collect_rg_files(
-    target: &str,
-    cwd: &str,
-    fs: &dyn SafeBashFs,
-    recursive: bool,
-    globs: &[String],
-    types_include: &[String],
-    types_exclude: &[String],
+struct RgFiles {
+    follow: bool,
+    globs: Vec<String>,
+    types_include: Vec<String>,
+    types_exclude: Vec<String>,
     show_hidden: bool,
-    respect_ignore_files: bool,
-    no_ignore_vcs: bool,
-    no_ignore_dot: bool,
-    parent_ignore_rules: &[String],
-    cur_depth: usize,
+    respect_ignore: bool,
     max_depth: Option<usize>,
     max_filesize: Option<usize>,
-    out: &mut Vec<(String, String)>,
-) {
-    let resolved = resolve_posix_path(cwd, target);
-    if fs.is_dir(&resolved) {
-        if !recursive {
-            return;
-        }
-        if let Some(md) = max_depth
-            && cur_depth >= md
-        {
-            return;
-        }
-        let mut local_rules = parent_ignore_rules.to_vec();
-        if respect_ignore_files {
-            for ig_name in [".gitignore", ".ignore", ".rgignore"] {
-                if ig_name == ".gitignore" && no_ignore_vcs {
-                    continue;
-                }
-                if (ig_name == ".ignore" || ig_name == ".rgignore") && no_ignore_dot {
-                    continue;
-                }
-                let ig_path = normalize_posix_path(&format!("{resolved}/{ig_name}"));
-                if let Ok(bytes) = fs.read_file(&ig_path) {
-                    for line in String::from_utf8_lossy(&bytes).lines() {
-                        let trimmed = line.trim();
-                        if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                            local_rules.push(trimmed.to_string());
-                        }
-                    }
+    no_ignore_vcs: bool,
+    no_ignore_dot: bool,
+    custom_ignore_files: Vec<String>,
+}
+
+enum SearchFiles<'a> { Grep(GrepFiles<'a>), Rg(RgFiles) }
+
+impl RgFiles {
+    fn inputs<'a>(&'a self, targets: &[String], cwd: &'a str, fs: &'a dyn SafeBashFs, stdin: bool)
+        -> impl Iterator<Item = SearchInput> + 'a {
+        use std::rc::Rc;
+        enum Visit { Entry(String, usize, Rc<Vec<String>>), Leave(String) }
+        let mut rules = Vec::new();
+        if self.respect_ignore {
+            for file in &self.custom_ignore_files {
+                if let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, file)) {
+                    rules.extend(String::from_utf8_lossy(&bytes).lines().map(str::to_owned));
                 }
             }
         }
-        if let Ok(entries) = fs.read_dir(&resolved) {
-            for e in entries {
-                if e == ".git" || (!show_hidden && e.starts_with('.')) {
-                    continue;
+        let rules = Rc::new(rules);
+        let mut pending: Vec<_> = targets.iter().rev().map(|t| Visit::Entry(t.clone(), 0, rules.clone())).collect();
+        let implicit = targets.is_empty();
+        if implicit {
+            pending.push(Visit::Entry(if stdin { "-" } else { "." }.into(), 0, rules));
+        }
+        let mut ancestors = BTreeMap::new();
+        let positive_glob = self.globs.iter().any(|p| !p.strip_prefix("i:").unwrap_or(p).starts_with('!'));
+        std::iter::from_fn(move || loop {
+            let (label, depth, mut rules) = match pending.pop()? {
+                Visit::Leave(path) => { ancestors.remove(&path); continue; }
+                Visit::Entry(label, depth, rules) => (label, depth, rules),
+            };
+            let explicit = depth == 0;
+            if explicit && label == "-" { return Some(SearchInput::Stdin); }
+            let path = search_path(cwd, &label);
+            let report = |e: &str, op| Some(SearchInput::Error(format!("rg: {}\n", search_fs_error(e, op, &path))));
+            let (resolved, stat) = match fs.inspect_command_entry(&path, explicit || self.follow, "stat") {
+                Ok(entry) => entry,
+                Err(e) => return report(&e, "stat"),
+            };
+            let directory = stat.kind == VfsEntryKind::Directory;
+            if !explicit {
+                if stat.kind == VfsEntryKind::Symlink { continue; }
+                if directory && let Some(ancestor) = ancestors.get(&resolved) {
+                    return Some(SearchInput::Error(format!("rg: File system loop found: {label} points to an ancestor {ancestor}\n")));
                 }
-                let child_resolved = normalize_posix_path(&format!("{resolved}/{e}"));
-                let child_is_dir = fs.is_dir(&child_resolved);
-                let disp = if target == "." {
-                    e.clone()
-                } else {
-                    format!("{}/{}", target.trim_end_matches('/'), e)
-                };
-                if respect_ignore_files && is_ignored_by_rules(&e, child_is_dir, &local_rules) {
-                    let glob_override =
-                        !child_is_dir && eval_cli_globs(globs, &e, &disp) == Some(true);
-                    if !glob_override {
-                        continue;
+                let base = label.rsplit('/').next().unwrap_or("");
+                match eval_cli_globs(&self.globs, base, label.strip_prefix("./").unwrap_or(&label)) {
+                    Some(false) => continue,
+                    Some(true) => {}
+                    None => {
+                        if !self.show_hidden && base.starts_with('.') || !directory && positive_glob
+                            || self.respect_ignore && is_ignored_by_rules(base, directory, &rules) { continue; }
+                        if !directory && ((!self.types_include.is_empty() && !self.types_include.iter().any(|t| file_matches_rg_type(base, t)))
+                            || self.types_exclude.iter().any(|t| file_matches_rg_type(base, t))) { continue; }
                     }
                 }
-                if child_is_dir {
-                    let excluded_dir = globs.iter().any(|g| {
-                        g.strip_prefix('!').is_some_and(|neg| {
-                            let clean = neg.trim_end_matches('/');
-                            glob_match(clean, &e) || glob_match(clean, &disp)
-                        })
-                    });
-                    if excluded_dir {
-                        continue;
-                    }
-                }
-                collect_rg_files(
-                    &disp,
-                    cwd,
-                    fs,
-                    true,
-                    globs,
-                    types_include,
-                    types_exclude,
-                    show_hidden,
-                    respect_ignore_files,
-                    no_ignore_vcs,
-                    no_ignore_dot,
-                    &local_rules,
-                    cur_depth + 1,
-                    max_depth,
-                    max_filesize,
-                    out,
-                );
+                if !directory && self.max_filesize.is_some_and(|max| stat.size > max) { continue; }
             }
-        }
-    } else if fs.exists(&resolved) {
-        if let Some(max_sz) = max_filesize {
-            match fs.read_file(&resolved) {
-                Ok(bytes) if bytes.len() <= max_sz => {}
-                _ => return,
-            }
-        }
-        let base = basename_posix_path(&resolved);
-        if !types_include.is_empty() && !types_include.iter().any(|t| file_matches_rg_type(&base, t))
-        {
-            return;
-        }
-        if types_exclude.iter().any(|t| file_matches_rg_type(&base, t)) {
-            return;
-        }
-        if !globs.is_empty() {
-            let mut include = true;
-            let mut has_pos = false;
-            let mut pos_matched = false;
-            for g in globs {
-                let (icase, raw_g) = if let Some(rest) = g.strip_prefix("i:") {
-                    (true, rest)
-                } else {
-                    (false, g.as_str())
-                };
-                if let Some(neg) = raw_g.strip_prefix('!') {
-                    let matched = if icase {
-                        glob_match(&neg.to_ascii_lowercase(), &base.to_ascii_lowercase())
-                            || glob_match(&neg.to_ascii_lowercase(), &target.to_ascii_lowercase())
-                    } else {
-                        glob_match(neg, &base) || glob_match(neg, target)
-                    };
-                    if matched {
-                        include = false;
-                    }
-                } else {
-                    has_pos = true;
-                    let matched = if icase {
-                        glob_match(&raw_g.to_ascii_lowercase(), &base.to_ascii_lowercase())
-                            || glob_match(&raw_g.to_ascii_lowercase(), &target.to_ascii_lowercase())
-                    } else {
-                        glob_match(raw_g, &base) || glob_match(raw_g, target)
-                    };
-                    if matched {
-                        pos_matched = true;
+            if !directory { return Some(SearchInput::File(label, resolved, explicit)); }
+            if self.max_depth.is_some_and(|max| depth >= max) { continue; }
+            let mut entries = match fs.read_dir(&resolved) {
+                Ok(entries) => entries,
+                Err(e) => return report(&e, "readdir"),
+            };
+            entries.sort_unstable();
+            if self.respect_ignore {
+                for name in [".gitignore", ".ignore", ".rgignore"] {
+                    if (name == ".gitignore" && self.no_ignore_vcs) || (name != ".gitignore" && self.no_ignore_dot)
+                        || entries.binary_search_by(|e| e.as_str().cmp(name)).is_err() { continue; }
+                    if let Ok(bytes) = fs.read_file(&resolve_posix_path(&resolved, name)) {
+                        Rc::make_mut(&mut rules).extend(String::from_utf8_lossy(&bytes).lines().map(str::to_owned));
                     }
                 }
             }
-            if !include || (has_pos && !pos_matched) {
-                return;
-            }
-        }
-        out.push((target.to_string(), resolved));
+            ancestors.insert(resolved.clone(), label.clone());
+            pending.push(Visit::Leave(resolved));
+            let prefix = label.strip_suffix('/').unwrap_or(&label);
+            pending.extend(entries.into_iter().rev().map(|child| Visit::Entry(
+                if implicit && explicit { child } else { format!("{prefix}/{child}") }, depth + 1, rules.clone())));
+        })
     }
 }
 
@@ -3711,6 +3574,7 @@ enum SearchInput { Stdin, File(String, String, bool), Error(String) }
 
 struct GrepFiles<'a> {
     name: &'a str,
+    recursive: bool,
     rules: Vec<(String, bool)>,
     excluded_dirs: Vec<&'a str>,
     inspect: bool,
@@ -3719,12 +3583,12 @@ struct GrepFiles<'a> {
     follow: bool,
 }
 
-fn grep_path(cwd: &str, name: &str) -> String {
+fn search_path(cwd: &str, name: &str) -> String {
     if name.is_empty() || name.starts_with('/') { name.to_owned() }
     else { format!("{}/{name}", cwd.trim_end_matches('/')) }
 }
 
-fn grep_fs_error(error: &str, op: &str, path: &str) -> String {
+fn search_fs_error(error: &str, op: &str, path: &str) -> String {
     if path.is_empty() { return "ENOENT: no such file or directory ''".into(); }
     if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
     let reason = error.split_once(", ").map_or(error, |(why, _)| why);
@@ -3733,15 +3597,15 @@ fn grep_fs_error(error: &str, op: &str, path: &str) -> String {
 
 fn read_grep_file(fs: &dyn SafeBashFs, path: &str, op: &str) -> Result<Vec<u8>, String> {
     fs.access_path(path, true).and_then(|resolved| fs.read_file(&resolved))
-        .map_err(|e| grep_fs_error(&e, op, path))
+        .map_err(|e| search_fs_error(&e, op, path))
 }
 
 impl GrepFiles<'_> {
-    fn inputs<'a>(&'a self, targets: &'a [String], cwd: &'a str, fs: &'a dyn SafeBashFs, recursive: bool)
+    fn inputs<'a>(&'a self, targets: &'a [String], cwd: &'a str, fs: &'a dyn SafeBashFs)
         -> impl Iterator<Item = SearchInput> + 'a {
         enum Visit { Entry(String, bool), Leave(String) }
         let mut pending = targets.iter().rev().map(|t| Visit::Entry(t.clone(), true)).collect::<Vec<_>>();
-        if pending.is_empty() { pending.push(Visit::Entry(if recursive { "." } else { "-" }.into(), true)); }
+        if pending.is_empty() { pending.push(Visit::Entry(if self.recursive { "." } else { "-" }.into(), true)); }
         let mut ancestors = std::collections::BTreeSet::new();
         let default_include = !self.rules.iter().any(|(_, include)| *include);
         std::iter::from_fn(move || loop {
@@ -3751,25 +3615,25 @@ impl GrepFiles<'_> {
             };
             if label == "-" { return Some(SearchInput::Stdin); }
             let base = label.rsplit('/').next().unwrap_or("");
-            let path = grep_path(cwd, &label);
+            let path = search_path(cwd, &label);
             if self.inspect {
                 let follow = explicit || self.follow;
                 let op = if follow { "stat" } else { "lstat" };
                 let (resolved, st) = match fs.inspect_command_entry(&path, follow, op) {
                     Ok(entry) => entry,
-                    Err(e) => return Some(SearchInput::Error(format!("{}: {}\n", self.name, grep_fs_error(&e, op, &path)))),
+                    Err(e) => return Some(SearchInput::Error(format!("{}: {}\n", self.name, search_fs_error(&e, op, &path)))),
                 };
                 if st.kind == VfsEntryKind::Symlink && !follow { continue; }
                 if st.kind == VfsEntryKind::Directory {
                     if self.skip_dirs { continue; }
-                    if recursive {
+                    if self.recursive {
                         if self.excluded_dirs.iter().any(|p| glob_match(p, base)) { continue; }
                         if ancestors.contains(&resolved) {
                             return Some(SearchInput::Error(format!("{}: {label}: recursive directory loop\n", self.name)));
                         }
                         let children = match fs.read_dir(&resolved) {
                             Ok(children) => children,
-                            Err(e) => return Some(SearchInput::Error(format!("{}: {}\n", self.name, grep_fs_error(&e, "readdir", &path)))),
+                            Err(e) => return Some(SearchInput::Error(format!("{}: {}\n", self.name, search_fs_error(&e, "readdir", &path)))),
                         };
                         ancestors.insert(resolved.clone());
                         pending.push(Visit::Leave(resolved));
@@ -3801,71 +3665,17 @@ fn run_grep_engine(
         .map(|rep| parse_rg_replacement(rep, &rx.capture_names));
     let capture = replacement.iter().flatten().any(|part| matches!(part, RgReplacementPart::Group(_)));
 
-    if cfg.is_rg && cfg.max_count == Some(0) {
+    let is_rg = matches!(&cfg.files, SearchFiles::Rg(_));
+    if is_rg && cfg.max_count == Some(0) {
         return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 1 };
     }
-    let mut inputs = Vec::new();
     let mut err = String::new();
     let mut had_error = false;
-    let stdin_label = cfg.stdin_label.as_deref().unwrap_or(if cfg.is_rg { "<stdin>" } else { "(standard input)" });
-    let mut searched_directory = false;
-    if cfg.grep_files.is_none() && targets.is_empty() {
-        inputs.push(SearchInput::Stdin);
-    } else if cfg.grep_files.is_none() {
-        let mut init_rules = Vec::new();
-        if cfg.is_rg && cfg.respect_ignore {
-            for igf in &cfg.custom_ignore_files {
-                let p = resolve_posix_path(cwd, igf);
-                if let Ok(bytes) = fs.read_file(&p) {
-                    for line in String::from_utf8_lossy(&bytes).lines() {
-                        let t = line.trim();
-                        if !t.is_empty() && !t.starts_with('#') {
-                            init_rules.push(t.to_string());
-                        }
-                    }
-                }
-            }
-        }
-        for t in &targets {
-            if t == "-" {
-                inputs.push(SearchInput::Stdin);
-                continue;
-            }
-            let resolved = resolve_posix_path(cwd, t);
-            if !fs.exists(&resolved) {
-                inputs.push(SearchInput::Error(format!("rg: ENOENT: no such file or directory, stat '{resolved}'\n")));
-                continue;
-            }
-            let is_dir = fs.is_dir(&resolved);
-            searched_directory |= is_dir;
-            let mut file_list = Vec::new();
-            collect_rg_files(
-                t,
-                cwd,
-                fs,
-                cfg.recursive,
-                &cfg.globs,
-                &cfg.types_include,
-                &cfg.types_exclude,
-                cfg.show_hidden,
-                cfg.respect_ignore,
-                cfg.no_ignore_vcs,
-                cfg.no_ignore_dot,
-                &init_rules,
-                0,
-                cfg.max_depth,
-                cfg.max_filesize,
-                &mut file_list,
-            );
-            if cfg.sort_by_path { file_list.sort_by(|a, b| a.0.cmp(&b.0)); }
-            inputs.extend(file_list.into_iter().map(|(label, path)| SearchInput::File(label, path, !is_dir)));
-        }
-    }
-
-    let multiple_files = targets.len() > 1 || inputs.len() > 1 || searched_directory;
-    let inputs: Box<dyn Iterator<Item = SearchInput> + '_> = match &cfg.grep_files {
-        Some(files) => Box::new(files.inputs(&targets, cwd, fs, cfg.recursive)),
-        None => Box::new(inputs.into_iter()),
+    let stdin_label = cfg.stdin_label.as_deref().unwrap_or(if is_rg { "<stdin>" } else { "(standard input)" });
+    let multiple_files = targets.len() > 1;
+    let inputs: Box<dyn Iterator<Item = SearchInput> + '_> = match &cfg.files {
+        SearchFiles::Grep(files) => Box::new(files.inputs(&targets, cwd, fs)),
+        SearchFiles::Rg(files) => Box::new(files.inputs(&targets, cwd, fs, !stdin.is_empty())),
     };
 
     let mut out = String::new();
@@ -3886,7 +3696,7 @@ fn run_grep_engine(
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => (Some(stdin_label), stream_string_to_bytes(stdin), true),
             SearchInput::File(ref label, ref path, explicit) => {
-                let bytes = if let Some(files) = &cfg.grep_files {
+                let bytes = if let SearchFiles::Grep(files) = &cfg.files {
                     let fast = matches!(cfg.grep_input, GrepInput::PlainLiteral { fast_file: true });
                     let op = if fast && path != "/dev" && !path.starts_with("/dev/") { "readFile" } else { "readStream" };
                     if cfg.max_count == Some(0) && !label.is_empty() {
@@ -3902,8 +3712,16 @@ fn run_grep_engine(
                         }
                     }
                 } else {
-                    let Ok(bytes) = fs.read_file(path) else { continue; };
-                    bytes
+                    match fs.read_file(path) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            had_error = true;
+                            if !cfg.no_messages {
+                                err.push_str(&format!("rg: {}\n", search_fs_error(&e, "readStream", &search_path(cwd, label))));
+                            }
+                            continue;
+                        }
+                    }
                 };
                 (Some(label.as_str()), bytes, explicit)
             }
@@ -3914,15 +3732,15 @@ fn run_grep_engine(
             }
         };
         let show_filename = !cfg.no_filename && (cfg.with_filename || multiple_files || !explicit);
-        let nul_off = if !cfg.is_rg || cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
+        let nul_off = if !is_rg || cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
         searches += 1;
-        if nul_off.is_some() && cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit {
+        if nul_off.is_some() && is_rg && cfg.binary == RgBinary::Auto && !explicit {
             continue;
         }
         bytes_searched += content.len();
         let mut line_offsets = Vec::new();
         let mut offset = 0;
-        let binary_records = cfg.is_rg && nul_off.is_some();
+        let binary_records = is_rg && nul_off.is_some();
         let delimiter = |c: &u8| *c == rec_term as u8 || binary_records && *c == 0;
         let lines: Vec<_> = content.split_inclusive(delimiter).map(|record| {
             line_offsets.push(offset);
@@ -3938,7 +3756,7 @@ fn run_grep_engine(
         let mut find_spans = |rx: &ZeroRegex, subject: &[u8], offset| {
             let mut spans = Vec::new();
             rx.scan(subject, capture, |s, e, caps| {
-                if cfg.is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
+                if is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
                     || matches!(rx.search, RxSearch::Rg { empty_pattern: true, .. }) && offset + s == content.len() && !content.ends_with(&[rec_term as u8])) { return true; }
                 if let Some(parts) = &replacement {
                     let mut expanded = Vec::new();
@@ -3959,7 +3777,7 @@ fn run_grep_engine(
         let limit = cfg.max_count.unwrap_or(usize::MAX);
         let whole_matches = !binary_records && multiline && replacement.is_none() && !cfg.invert && cfg.only_matching && !cfg.count_only && !cfg.json_output;
         let lf_offsets;
-        let source_lines = if whole_matches && cfg.is_rg && cfg.null_data {
+        let source_lines = if whole_matches && is_rg && cfg.null_data {
             lf_offsets = std::iter::once(0).chain(content.iter().enumerate().filter_map(|(i, &b)| (b == b'\n').then_some(i + 1))).collect::<Vec<_>>();
             &lf_offsets
         } else { &line_offsets };
@@ -3970,7 +3788,7 @@ fn run_grep_engine(
             let mut block_end = None;
             let mut blocks = 0;
             for (s, e) in find_spans(&rx, &content, 0) {
-                if whole_matches && cfg.is_rg {
+                if whole_matches && is_rg {
                     let first = source_lines.partition_point(|&off| off <= s).saturating_sub(1);
                     let last = source_lines.partition_point(|&off| off <= s.max(e.saturating_sub(1))).saturating_sub(1);
                     if matched_count >= limit && block_end.is_none_or(|end| first > end) { break; }
@@ -4009,11 +3827,11 @@ fn run_grep_engine(
             }
         }
         if multiline && (replacement.is_some() || whole_matches) {
-            if !(whole_matches && cfg.is_rg) { matched_count = match_indices.len(); }
+            if !(whole_matches && is_rg) { matched_count = match_indices.len(); }
             file_submatch_count = multiline_spans.len();
         } else {
             let mut projected = std::mem::take(&mut match_indices).into_iter().peekable();
-            let trailing = cfg.is_rg && !cfg.count_only && !cfg.quiet && !cfg.files_with_matches && !cfg.files_without_match;
+            let trailing = is_rg && !cfg.count_only && !cfg.quiet && !cfg.files_with_matches && !cfg.files_without_match;
             let mut batch_end = 0;
             let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
@@ -4059,17 +3877,17 @@ fn run_grep_engine(
                     }
                     find_spans(batch_rx, subject, line_offsets[idx])
                 };
-                if !cfg.is_rg && matched_count >= limit { continue; }
+                if !is_rg && matched_count >= limit { continue; }
                 let inverted_tail = trailing && cfg.invert && matched_count >= limit && idx + 1 == lines.len() && !content.ends_with(&[rec_term as u8]);
                 if (spans.is_empty() == cfg.invert) || inverted_tail {
                     if !multiline { file_submatch_count += spans.len(); }
                     match_indices.push((idx, spans));
                     matched_count += 1;
                     if matched_count == limit {
-                        if !trailing && (cfg.is_rg || cfg.after_ctx == 0 || cfg.count_only || cfg.quiet || cfg.files_with_matches || cfg.files_without_match) { break; }
+                        if !trailing && (is_rg || cfg.after_ctx == 0 || cfg.count_only || cfg.quiet || cfg.files_with_matches || cfg.files_without_match) { break; }
                         print_end = (idx + 1).saturating_add(cfg.after_ctx).min(lines.len());
                     }
-                    if cfg.quiet && !cfg.stats && !cfg.json_output || !cfg.is_rg && (cfg.files_with_matches || cfg.files_without_match) { break; }
+                    if cfg.quiet && !cfg.stats && !cfg.json_output || !is_rg && (cfg.files_with_matches || cfg.files_without_match) { break; }
                 } else if cfg.invert && (cfg.show_column || cfg.json_output) && (cfg.before_ctx > 0 || cfg.after_ctx > 0) {
                     context_matches.insert(idx, spans);
                 }
@@ -4079,7 +3897,7 @@ fn run_grep_engine(
             }
         }
 
-        let found = if cfg.is_rg && cfg.files_without_match { matched_count == 0 } else { matched_count > 0 };
+        let found = if is_rg && cfg.files_without_match { matched_count == 0 } else { matched_count > 0 };
         any_match |= found;
         if failed_batch && (cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet) { break; }
         if skipped_binary { matched_count = 0; }
@@ -4162,7 +3980,7 @@ fn run_grep_engine(
 
         if cfg.quiet { continue; }
         if let Some(off) = nul_off
-            && cfg.is_rg
+            && is_rg
             && !cfg.files_with_matches
             && !cfg.files_without_match
             && !cfg.count_only
@@ -4203,15 +4021,15 @@ fn run_grep_engine(
             continue;
         }
         if cfg.count_only {
-            let count_val = if !cfg.invert && (cfg.count_matches || cfg.is_rg && (cfg.only_matching || multiline)) {
+            let count_val = if !cfg.invert && (cfg.count_matches || is_rg && (cfg.only_matching || multiline)) {
                 file_submatch_count
             } else {
                 matched_count
             };
-            if cfg.is_rg && count_val == 0 && !cfg.include_zero {
+            if is_rg && count_val == 0 && !cfg.include_zero {
                 continue;
             }
-            let count_end = if cfg.is_rg { '\n' } else { rec_term };
+            let count_end = if is_rg { '\n' } else { rec_term };
             if show_filename {
                 if let Some(f) = fname {
                     let fsep = if cfg.null_delim { '\0' } else { ':' };
@@ -4275,7 +4093,7 @@ fn run_grep_engine(
                 }
                 if (cfg.before_ctx > 0 || cfg.after_ctx > 0) && previous_printed.is_some_and(|p| idx > p + 1)
                     && let Some(sep) = &cfg.context_separator {
-                    out.push_str(sep); out.push(if cfg.is_rg { '\n' } else { rec_term });
+                    out.push_str(sep); out.push(if is_rg { '\n' } else { rec_term });
                 }
                 previous_printed = Some(last);
                 let base = line_offsets[idx];
@@ -4330,7 +4148,7 @@ fn run_grep_engine(
             for &(fl, _ll, s, e) in &multiline_spans {
                 let rendered = &content[s..e];
                 let line_start = source_lines.get(fl).copied().unwrap_or(0);
-                let number = fl + 1 + if cfg.is_rg && cfg.null_data {
+                let number = fl + 1 + if is_rg && cfg.null_data {
                     line_offsets.partition_point(|&off| off <= s) - line_offsets.partition_point(|&off| off <= line_start)
                 } else { 0 };
                 for (chunk_idx, chunk) in rendered.split(|&b| b == rec_term as u8).enumerate() {
@@ -4359,7 +4177,7 @@ fn run_grep_engine(
             continue;
         }
 
-        if !cfg.is_rg && cfg.only_matching && cfg.invert { continue; }
+        if !is_rg && cfg.only_matching && cfg.invert { continue; }
         let context = cfg.before_ctx > 0 || cfg.after_ctx > 0;
         let mut selected = match_indices.iter().peekable();
         let mut previous_match = None;
@@ -4370,17 +4188,17 @@ fn run_grep_engine(
             else if !context || !(previous_match.is_some_and(|i| idx - i <= cfg.after_ctx)
                 || selected.peek().is_some_and(|(i, _)| i - idx <= cfg.before_ctx)) { continue; }
             if context && previous_printed.map_or(grep_group, |p| idx > p + 1) && let Some(sep) = &cfg.context_separator {
-                out.push_str(sep); out.push(if cfg.is_rg { '\n' } else { rec_term });
+                out.push_str(sep); out.push(if is_rg { '\n' } else { rec_term });
             }
-            if context && !cfg.is_rg { grep_group = true; }
+            if context && !is_rg { grep_group = true; }
             previous_printed = Some(idx);
-            if !cfg.is_rg && cfg.only_matching && matched.is_none() { continue; }
+            if !is_rg && cfg.only_matching && matched.is_none() { continue; }
             let spans = matched.map(|(_, spans)| spans).or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
             let sep = if matched.is_some() { ':' } else { '-' };
             let pieces = cfg.only_matching && !cfg.invert && matched.is_some();
             for i in 0..if pieces { spans.len() } else { 1 } {
                 let piece = pieces.then(|| spans[i]);
-                if !cfg.is_rg && piece.is_some_and(|(s,e)| s == e) { continue; }
+                if !is_rg && piece.is_some_and(|(s,e)| s == e) { continue; }
                 if line_show_filename && let Some(f) = fname {
                     out.push_str(f); out.push(if cfg.null_delim { '\0' } else { sep });
                 }

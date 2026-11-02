@@ -694,30 +694,29 @@ pub fn bzip2_compress(data: &[u8], level: u8) -> Vec<u8> {
     bw.write_bits((b'0' + lvl) as u64, 8);
 
     let mut combined_crc = 0u32;
-    let block_cap = ((lvl as usize) * 100_000).saturating_sub(20).max(1024);
+    let block_cap = usize::from(lvl) * 100_000 - 19;
+    let mut remaining = data;
 
-    for chunk in data.chunks(block_cap) {
-        let block_crc = bzip2_crc32(chunk);
-        combined_crc = combined_crc.rotate_left(1) ^ block_crc;
-
-        // 1. Initial RLE1
-        let mut rle1 = Vec::with_capacity(chunk.len());
-        let mut idx = 0usize;
-        while idx < chunk.len() {
-            let b = chunk[idx];
-            let mut run = 1usize;
-            while idx + run < chunk.len() && chunk[idx + run] == b && run < 255 {
+    while !remaining.is_empty() {
+        // The block limit applies after RLE1. Reserve room for the final five-byte run.
+        let mut rle1 = Vec::with_capacity(remaining.len().min(block_cap));
+        let mut idx = 0;
+        while idx < remaining.len() && rle1.len() < block_cap {
+            let b = remaining[idx];
+            let mut run = 1;
+            while run < 255 && idx + run < remaining.len() && remaining[idx + run] == b {
                 run += 1;
             }
             if run >= 4 {
                 rle1.extend_from_slice(&[b, b, b, b, (run - 4) as u8]);
             } else {
-                for _ in 0..run {
-                    rle1.push(b);
-                }
+                rle1.extend_from_slice(&remaining[idx..idx + run]);
             }
             idx += run;
         }
+        let block_crc = bzip2_crc32(&remaining[..idx]);
+        combined_crc = combined_crc.rotate_left(1) ^ block_crc;
+        remaining = &remaining[idx..];
 
         // 2. Burrows-Wheeler Transform
         let n = rle1.len();

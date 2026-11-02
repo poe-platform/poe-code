@@ -7758,3 +7758,28 @@ test("bzip2 blocks with equal rotations and long shared prefixes decode in produ
     }
   } finally { rs.dispose(); }
 });
+
+test("bzip2 splits blocks by encoded run length before the level's block limit", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  // A run of four equal bytes takes five bytes inside the block.
+  const bytes = Buffer.alloc(96000);
+  let seed = 1;
+  for (let i = 0; i < bytes.length; i += 4) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    bytes.fill(seed >>> 24, i, i + 4);
+  }
+  try {
+    await rs.fs.writeFile("/input", bytes);
+    const packed = await rs.exec("bzip2 -1c /input");
+    assert.equal(packed.exitCode, 0, packed.stderr);
+    for (const [sh, vfs] of [[js, fs], [rs, rs.fs]]) {
+      await vfs.writeFile("/archive", packed.stdoutBytes);
+      const unpacked = await sh.exec("bunzip2 -c /archive");
+      assert.equal(unpacked.exitCode, 0, unpacked.stderr);
+      assert.deepEqual(Buffer.from(unpacked.stdoutBytes), bytes);
+    }
+  } finally { rs.dispose(); }
+});

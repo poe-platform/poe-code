@@ -487,7 +487,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, First, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
+enum RxSearch { Longest, BytewiseLongest, First, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -606,14 +606,18 @@ impl ZeroRegex {
         }
         let mut hay = Vec::with_capacity(text.len());
         let mut invalid = Vec::new();
-        let mut offset = 0;
-        for chunk in text.utf8_chunks() {
-            hay.extend(chunk.valid().char_indices().map(|(i, c)| (offset + i, c)));
-            offset += chunk.valid().len();
-            for _ in chunk.invalid() {
-                if !matches!(self.search, RxSearch::Rg { binary_text: true, .. }) { invalid.push(hay.len()); }
-                hay.push((offset, char::REPLACEMENT_CHARACTER));
-                offset += 1;
+        if self.search == RxSearch::BytewiseLongest {
+            hay.extend(text.iter().enumerate().map(|(i, &byte)| (i, char::from(byte))));
+        } else {
+            let mut offset = 0;
+            for chunk in text.utf8_chunks() {
+                hay.extend(chunk.valid().char_indices().map(|(i, c)| (offset + i, c)));
+                offset += chunk.valid().len();
+                for _ in chunk.invalid() {
+                    if !matches!(self.search, RxSearch::Rg { binary_text: true, .. }) { invalid.push(hay.len()); }
+                    hay.push((offset, char::REPLACEMENT_CHARACTER));
+                    offset += 1;
+                }
             }
         }
         let mut invalid = invalid.into_iter().peekable();
@@ -621,7 +625,7 @@ impl ZeroRegex {
         let mut found = false;
         let mut pos = 0;
         let last_start = if self.anchored { 0 } else { hay.len() };
-        let first = self.search != RxSearch::Longest;
+        let first = !matches!(self.search, RxSearch::Longest | RxSearch::BytewiseLongest);
         let rg = matches!(self.search, RxSearch::Rg { .. });
         let mut interior_empty = None;
         while pos <= last_start {
@@ -1554,7 +1558,7 @@ impl RxProgram {
         capture: bool,
         accept: impl Fn(usize) -> bool,
     ) -> Option<RxMatch> {
-        let first = search != RxSearch::Longest;
+        let first = !matches!(search, RxSearch::Longest | RxSearch::BytewiseLongest);
         let (start, stop) = range.into_inner();
         let mut state = RxMatch {
             pc: 0,
@@ -2721,7 +2725,10 @@ fn cmd_grep(
     let mut rx = ZeroRegex::from_branches(parsed, false, word_regexp && !line_regexp, line_regexp);
     if use_vm {
         rx.search = RxSearch::Rg { empty_pattern: false, binary_text: text, word_assertions: true };
-    } else if null_data {
+    } else if word_regexp && bounded_ere {
+        rx.search = RxSearch::BytewiseLongest;
+    }
+    if !use_vm && null_data {
         // The bounded ERE dot includes LF within a NUL-delimited record.
         for op in rx.branches.iter_mut().flat_map(|p| &mut p.ops) {
             if let RxOp::Atom(RxToken { atom: RxAtom::Any { newline, .. }, .. }) = op { *newline = true; }

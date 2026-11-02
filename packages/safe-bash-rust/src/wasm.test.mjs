@@ -7275,3 +7275,15 @@ test("grep and rg apply stacked repetitions only in profiles that execute them",
     }
   } finally { rs.dispose(); }
 });
+
+test("grep bounded whole-word regexes report byte-sized matches inside UTF-8", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for(const sh of [js,rs]) await sh.exec("printf 'é\\naé.\\n🦊\\n' >f");
+    for(const opts of ["-wob .","-wob '[^a]'","-xwob ..","-xwob .","-xawob .","-Fwob é","-wob '\\b.'","-ob ."]) {
+      const cmd="grep "+opts+" f"; const a=await js.exec(cmd),b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdoutBytes],[a.exitCode,a.stderr,a.stdoutBytes],cmd);
+    }
+  } finally { rs.dispose(); }
+});

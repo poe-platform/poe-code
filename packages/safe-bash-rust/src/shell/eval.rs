@@ -9192,20 +9192,6 @@ impl<'a> EvalState<'a> {
         !self.provided_devices && path == "/dev/null"
     }
 
-    fn is_noclobber_blocked(&self, full_path: &str) -> bool {
-        if !self.noclobber {
-            return false;
-        }
-        let resolved = resolve_physical_path(self.cwd, full_path, self.fs);
-        if self.is_default_null(&resolved) || self.fs.stat(&resolved).is_ok_and(|st| st.mode & 0o170000 == 0o020000) {
-            return false;
-        }
-        if self.fs.exists(full_path) {
-            return !self.fs.is_dir(full_path);
-        }
-        self.fs.lstat(full_path).is_ok()
-    }
-
     fn redirect_error(&self, target: &str, error: &str) -> BuiltinOutcome {
         let detail = match error.split(':').next().unwrap_or(error) {
             "ENOENT" => "No such file or directory",
@@ -9225,19 +9211,38 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn check_redirect_parent_dir(&self, full: &str, target: &str) -> Option<BuiltinOutcome> {
-        if self.is_default_null(full) {
-            return None;
+    fn output_redirect_path(&self, target: &str, kind: &RedirectKind) -> Result<String, BuiltinOutcome> {
+        let operand = crate::vfs::path::absolute_operand(self.cwd, target);
+        let error = |e: &str| self.redirect_error(target, e);
+        if operand.is_empty() { return Err(error("ENOENT")); }
+        let entry = operand.trim_end_matches('/');
+        if entry.is_empty() { return Err(error("EISDIR")); }
+        let path = self.fs.access_path(entry, true).map_err(|e| error(&e))?;
+        if target.ends_with('/') { return Err(error("EISDIR")); }
+        if self.is_default_null(&path) { return Ok(path); }
+        let stat = match self.fs.lstat(&path) {
+            Ok(st) => Some(st),
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+            Err(e) => return Err(error(&e)),
+        };
+        if self.noclobber && matches!(kind, RedirectKind::Out(_) | RedirectKind::BothOut | RedirectKind::DupOut { .. }) {
+            let blocked = match &stat {
+                Some(st) => st.kind != crate::vfs::VfsEntryKind::Directory && st.mode & 0o170000 != 0o020000,
+                None => self.fs.lstat(&operand).is_ok(),
+            };
+            if blocked { return Err(error("cannot overwrite existing file")); }
         }
-        let parent = full
-            .rsplit_once('/')
-            .map(|(p, _)| if p.is_empty() { "/" } else { p })
-            .unwrap_or("/");
-        match self.fs.stat(parent) {
-            Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => None,
-            Ok(_) => Some(self.redirect_error(target, "ENOTDIR")),
-            Err(e) => Some(self.redirect_error(target, &e)),
+        if let Some(st) = stat {
+            if st.kind == crate::vfs::VfsEntryKind::Directory { return Err(error("EISDIR")); }
+            let required = if matches!(kind, RedirectKind::ReadWrite(_)) { 0o600 } else { 0o200 };
+            if st.mode & required != required { return Err(error("EACCES")); }
+        } else {
+            let parent = crate::vfs::dirname_posix_path(&path);
+            let parent = self.fs.stat(&parent).map_err(|e| error(&e))?;
+            if parent.kind != crate::vfs::VfsEntryKind::Directory { return Err(error("ENOTDIR")); }
+            if parent.mode & 0o300 != 0o300 { return Err(error("EACCES")); }
         }
+        Ok(path)
     }
 
     #[allow(clippy::type_complexity)]
@@ -9422,18 +9427,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
+                    let full = match self.output_redirect_path(&target, &r.kind) {
+                        Ok(path) => path,
+                        Err(mut err_out) => {
+                            self.route_outcome(&mut err_out);
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                    };
                     if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = self.redirect_error(&target, &e);
@@ -9915,34 +9915,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
-                    if self.is_noclobber_blocked(&full) {
-                        let mut err_out = BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{target}: cannot overwrite existing file\n"),
-                            exit_code: 1,
-                        };
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
+                    let full = match self.output_redirect_path(&target, &r.kind) {
+                        Ok(path) => path,
+                        Err(mut err_out) => {
+                            self.route_outcome(&mut err_out);
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                    };
                     if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
@@ -9992,18 +9971,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
+                    let full = match self.output_redirect_path(&target, &r.kind) {
+                        Ok(path) => path,
+                        Err(mut err_out) => {
+                            self.route_outcome(&mut err_out);
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                    };
                     if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
@@ -10053,18 +10027,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
+                    let full = match self.output_redirect_path(&target, &r.kind) {
+                        Ok(path) => path,
+                        Err(mut err_out) => {
+                            self.route_outcome(&mut err_out);
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                    };
                     if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = self.redirect_error(&target, &e);
@@ -10139,36 +10108,13 @@ impl<'a> EvalState<'a> {
                         let is_digits = !src_str.is_empty()
                             && src_str.chars().all(|c| c.is_ascii_digit());
                         if !is_digits && *origin == DupOrigin::Default {
-                            let full = resolve_posix_path(self.cwd, &target);
-                            if let Some(mut err_out) =
-                                self.check_redirect_parent_dir(&full, &target)
-                            {
-                                self.route_outcome(&mut err_out);
-                                return Ok((
-                                    (saved_fd_table, saved_aliases),
-                                    saved_in,
-                                    local_stdin,
-                                    use_local,
-                                    dup_fd,
-                                    Some(err_out),
-                                ));
-                            }
-                            if self.is_noclobber_blocked(&full) {
-                                let mut err_out = BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{target}: cannot overwrite existing file\n"),
-                                    exit_code: 1,
-                                };
-                                self.route_outcome(&mut err_out);
-                                return Ok((
-                                    (saved_fd_table, saved_aliases),
-                                    saved_in,
-                                    local_stdin,
-                                    use_local,
-                                    dup_fd,
-                                    Some(err_out),
-                                ));
-                            }
+                            let full = match self.output_redirect_path(&target, &r.kind) {
+                                Ok(path) => path,
+                                Err(mut err_out) => {
+                                    self.route_outcome(&mut err_out);
+                                    return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                                }
+                            };
                             if !self.is_default_null(&full) {
                                 let existed = self.fs.exists(&full);
                                 if let Err(e) = self.fs.write_file(&full, b"") {
@@ -10323,34 +10269,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
-                    if self.is_noclobber_blocked(&full) {
-                        let mut err_out = BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{target}: cannot overwrite existing file\n"),
-                            exit_code: 1,
-                        };
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
+                    let full = match self.output_redirect_path(&target, &r.kind) {
+                        Ok(path) => path,
+                        Err(mut err_out) => {
+                            self.route_outcome(&mut err_out);
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                    };
                     if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
@@ -10389,18 +10314,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let full = resolve_posix_path(self.cwd, &target);
-                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
-                        self.route_outcome(&mut err_out);
-                        return Ok((
-                            (saved_fd_table, saved_aliases),
-                            saved_in,
-                            local_stdin,
-                            use_local,
-                            dup_fd,
-                            Some(err_out),
-                        ));
-                    }
+                    let full = match self.output_redirect_path(&target, &r.kind) {
+                        Ok(path) => path,
+                        Err(mut err_out) => {
+                            self.route_outcome(&mut err_out);
+                            return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                    };
                     if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = self.redirect_error(&target, &e);
@@ -15687,6 +15607,28 @@ mod tests {
             assert_eq!((r.exit_code, r.stdout.as_str()), (1, ""), "{script}");
             assert_eq!(r.stderr, format!("shell: line 1: {operand}: {reason}\n"));
         }
+    }
+
+    #[test]
+    fn denied_output_redirects_preserve_files_and_do_not_create_entries() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/private/f", b"hidden").unwrap();
+        fs.chmod("/private", 0o600).unwrap();
+        fs.write_file("/public/f", b"original").unwrap();
+        fs.chmod("/public/f", 0o400).unwrap();
+        fs.chmod("/public", 0o555).unwrap();
+        fs.symlink("/public/f", "/alias").unwrap();
+        for op in [">", "2>>", ">|", "&>", "&>>", "<>", ">&"] {
+            for path in ["/private/f", "/private/../alias", "/alias", "/public/new"] {
+                let r = shell.exec(&format!("echo changed {op}{path}")).unwrap();
+                assert_eq!((r.exit_code, r.stdout.as_str()), (1, ""), "{op}{path}");
+                assert_eq!(r.stderr, format!("shell: line 1: {path}: Permission denied\n"));
+            }
+        }
+        assert_eq!(fs.read_file("/public/f").unwrap(), b"original");
+        fs.chmod("/private", 0o700).unwrap();
+        assert_eq!(fs.read_file("/private/f").unwrap(), b"hidden");
+        assert!(!fs.exists("/public/new"));
     }
 
     #[test]

@@ -14,6 +14,10 @@ enum BlockKind {
     #[default]
     Paragraph,
     Heading(usize),
+    ListItem {
+        depth: usize,
+        last: bool,
+    },
     Code,
     Quote,
     Rule,
@@ -57,7 +61,12 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
             }
         }
     }
-    fn visit(nodes: &[HtmlNode], current: &mut Block, blocks: &mut Vec<Block>) -> Option<()> {
+    fn visit(
+        nodes: &[HtmlNode],
+        depth: usize,
+        current: &mut Block,
+        blocks: &mut Vec<Block>,
+    ) -> Option<()> {
         for node in nodes {
             let HtmlNode::Element(el) = node else {
                 if let HtmlNode::Text(text) = node {
@@ -85,7 +94,86 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     block_text(&el.children, &mut current.text);
                     flush(current, blocks);
                 }
-                "ul" | "ol" | "dl" | "table" | "svg" | "img" => {
+                "ul" | "ol" => {
+                    flush(current, blocks);
+                    let mut ordinal = 0;
+                    for item in &el.children {
+                        let HtmlNode::Element(li) = item else {
+                            continue;
+                        };
+                        if li.tag != "li" {
+                            continue;
+                        }
+                        ordinal += 1;
+                        let mut start = 0;
+                        let mut marked = false;
+                        for end in 0..=li.children.len() {
+                            let nested = li.children.get(end);
+                            if nested.is_some()
+                                && !matches!(nested, Some(HtmlNode::Element(e)) if matches!(e.tag.as_str(), "ul" | "ol" | "table"))
+                            {
+                                continue;
+                            }
+                            let mut fragment = String::new();
+                            block_text(&li.children[start..end], &mut fragment);
+                            if !marked || !fragment.trim().is_empty() {
+                                let mut text = if marked {
+                                    String::new()
+                                } else if el.tag == "ol" {
+                                    format!("{ordinal}. ")
+                                } else {
+                                    "• ".into()
+                                };
+                                text.push_str(fragment.trim());
+                                blocks.push(Block {
+                                    kind: BlockKind::ListItem { depth, last: true },
+                                    text,
+                                    links: Vec::new(),
+                                });
+                                marked = true;
+                            }
+                            if let Some(nested) = nested {
+                                visit(std::slice::from_ref(nested), depth + 1, current, blocks)?;
+                                start = end + 1;
+                            }
+                        }
+                    }
+                }
+                "dl" => {
+                    flush(current, blocks);
+                    let mut term = String::new();
+                    let start = blocks.len();
+                    for item in &el.children {
+                        let HtmlNode::Element(el) = item else {
+                            continue;
+                        };
+                        match el.tag.as_str() {
+                            "dt" => {
+                                term.clear();
+                                block_text(&el.children, &mut term);
+                            }
+                            "dd" => {
+                                let mut text = String::from("• ");
+                                if !term.trim().is_empty() {
+                                    text.push_str(term.trim());
+                                    text.push_str(": ");
+                                }
+                                block_text(&el.children, &mut text);
+                                blocks.push(Block {
+                                    kind: BlockKind::ListItem { depth, last: false },
+                                    text,
+                                    links: Vec::new(),
+                                });
+                                term.clear();
+                            }
+                            _ => {}
+                        }
+                    }
+                    if let Some(item) = blocks[start..].last_mut() {
+                        item.kind = BlockKind::ListItem { depth, last: true };
+                    }
+                }
+                "table" | "svg" | "img" => {
                     return None;
                 }
                 "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
@@ -95,12 +183,12 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                         .strip_prefix('h')
                         .and_then(|n| n.parse().ok())
                         .map_or(BlockKind::Paragraph, BlockKind::Heading);
-                    visit(&el.children, current, blocks)?;
+                    visit(&el.children, depth, current, blocks)?;
                     flush(current, blocks);
                 }
                 "a" => {
                     let start = current.text.len();
-                    visit(&el.children, current, blocks)?;
+                    visit(&el.children, depth, current, blocks)?;
                     if current
                         .text
                         .get(start..)
@@ -115,14 +203,14 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                         current.links.push(href.to_owned());
                     }
                 }
-                _ => visit(&el.children, current, blocks)?,
+                _ => visit(&el.children, depth, current, blocks)?,
             }
         }
         Some(())
     }
     let mut blocks = Vec::new();
     let mut current = Block::default();
-    visit(&bounded_html_dom(html)?, &mut current, &mut blocks)?;
+    visit(&bounded_html_dom(html)?, 0, &mut current, &mut blocks)?;
     flush(&mut current, &mut blocks);
     Some(blocks)
 }
@@ -276,11 +364,23 @@ pub(in super::super) fn render_html(
                         10.,
                     )
                 }
+                BlockKind::ListItem { depth, .. } => (
+                    11.,
+                    15.,
+                    "Helvetica",
+                    depth as f64 * 18. + 10.,
+                    [0.12; 3],
+                    2.,
+                ),
                 BlockKind::Code => (9.5, 13., "Courier", 6., [0.15, 0.15, 0.2], 12.),
                 BlockKind::Quote => (10.5, 14.5, "Helvetica-Oblique", 14., [0.25, 0.27, 0.32], 6.),
                 BlockKind::Rule => (0., 0., "", 0., [0.; 3], 12.),
             };
             let max_chars = match kind {
+                BlockKind::ListItem { depth, .. } => ((content_width - 14. - depth as f64 * 18.)
+                    / 5.8)
+                    .floor()
+                    .max(20.),
                 BlockKind::Quote => ((content_width - 18.) / (size * 0.52)).floor().max(20.),
                 BlockKind::Heading(_) => (content_width / (size * 0.55)).floor().max(15.),
                 _ => (content_width / (11. * 0.52)).floor().max(20.),
@@ -365,7 +465,7 @@ pub(in super::super) fn render_html(
                     y -= 12.;
                     continue;
                 }
-                BlockKind::Paragraph => {}
+                BlockKind::Paragraph | BlockKind::ListItem { .. } => {}
             }
             let block_top = y;
             let font = fonts.iter().position(|&f| f == family).unwrap_or_else(|| {
@@ -373,9 +473,12 @@ pub(in super::super) fn render_html(
                 fonts.push(family);
                 fonts.len() - 1
             }) + 1;
-            let text_x = coordinate(left + offset);
+            let mut text_x = coordinate(left + offset);
             let color = rgb(color);
-            for line in lines {
+            for (i, line) in lines.into_iter().enumerate() {
+                if i == 1 && matches!(kind, BlockKind::ListItem { .. }) {
+                    text_x = coordinate(left + offset + 12.);
+                }
                 if !stream.is_empty() {
                     stream.push(b'\n');
                 }
@@ -403,10 +506,11 @@ pub(in super::super) fn render_html(
                     objects.push(PageResource::Link(body));
                 }
             }
-            y -= if matches!(kind, BlockKind::Code) {
-                8.
-            } else {
-                6.
+            y -= match kind {
+                BlockKind::Code => 8.,
+                BlockKind::ListItem { last: true, .. } => 4.,
+                BlockKind::ListItem { last: false, .. } => 0.,
+                _ => 6.,
             };
         }
         finish_page(&mut stream, &mut objects, &mut headings)?;

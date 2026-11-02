@@ -7545,3 +7545,25 @@ test("op resolves global and command flags against the selected catalog command"
     }
   } finally { rs.dispose(); }
 });
+
+test("op item hides sensitive field values unless the parsed output flags allow them", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const marker = "(use 'op item get --reveal' to reveal)";
+  const values = ["sample-secret", "sample-pin", "sample-otp", "visible-user"];
+  try {
+    for (const args of ["vault create Demo", "item create --vault Demo --category login --title Fixture username=visible-user password=sample-secret 'pin[concealed]=sample-pin' 'code[otp]=sample-otp'",
+      "item get Fixture", "item get Fixture --fields password,pin,code,username",
+      "item get Fixture --fields pin --reveal", "item get Fixture --reveal --reveal=false",
+      "item get Fixture --format=json", "item edit Fixture --title --reveal",
+      "read op://Demo/--reveal/password"]) {
+      const cmd = "op " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      for (const r of [a,b]) assert.equal(r.exitCode, 0, r.stderr);
+      const visible = r => [marker, ...values].map(v => r.stdout.includes(v));
+      assert.deepEqual(visible(b), visible(a), cmd);
+      if (args.includes("--fields") || args.startsWith("read ")) assert.equal(b.stdout, a.stdout, cmd);
+    }
+  } finally { rs.dispose(); }
+});

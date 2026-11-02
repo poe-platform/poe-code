@@ -808,7 +808,7 @@ fn vault_json(v: &OpVault) -> Value {
     JVal::Object(m.0)
 }
 
-fn item_json(item: &OpItem, vault_name: &str) -> Value {
+fn item_json(item: &OpItem, vault_name: &str, show_values: bool) -> Value {
     let fields: Vec<Value> = item
         .fields
         .iter()
@@ -823,7 +823,10 @@ fn item_json(item: &OpItem, vault_name: &str) -> Value {
             if let (Some(sid), Some(slabel)) = (&f.section_id, &f.section_label) {
                 m.insert("section".into(), jval!({ "id": sid, "label": slabel }));
             }
-            m.insert("value".into(), JVal::Str(f.value.clone()));
+            let hidden = matches!(f.field_type.as_str(), "CONCEALED" | "OTP" | "SSHKEY")
+                || f.purpose.as_deref() == Some("PASSWORD");
+            let value = if hidden && !show_values { "(use 'op item get --reveal' to reveal)" } else { &f.value };
+            m.insert("value".into(), JVal::Str(value.into()));
             let ref_path = if let Some(slabel) = &f.section_label {
                 format!("op://{}/{}/{}/{}", vault_name, item.title, slabel, f.label)
             } else {
@@ -1921,6 +1924,7 @@ where
             }
         }
         "item" => {
+            let show_values = format_json || parsed.reveal;
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
@@ -2151,7 +2155,7 @@ where
                         }
                     }
 
-                    let out_json = item_json(&item, &vault.name);
+                    let out_json = item_json(&item, &vault.name, show_values);
                     st.op_items.push(item);
                     let out = to_pretty_json(&out_json);
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
@@ -2223,7 +2227,7 @@ where
                             continue;
                         }
                         let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
-                        arr.push(item_json(it, vname));
+                        arr.push(item_json(it, vname, show_values));
                     }
                     let stdout = if format_json {
                         format!("{}\n", to_pretty_json(&JVal::Array(arr)))
@@ -2318,7 +2322,7 @@ where
                             let id_or_title = entry.get("id").and_then(|v| v.as_str()).or_else(|| entry.get("title").and_then(|v| v.as_str())).unwrap_or("");
                             if let Some(it) = st.op_items.iter().find(|it| it.id == id_or_title || it.title.eq_ignore_ascii_case(id_or_title)) {
                                 let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
-                                results.push(item_json(it, vname));
+                                results.push(item_json(it, vname, show_values));
                             }
                         }
                         let out = to_pretty_json(&JVal::Array(results));
@@ -2338,7 +2342,7 @@ where
                     }
                     let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
                     if !fields_spec.is_empty() {
-                        let full_item = item_json(it, vname);
+                        let full_item = item_json(it, vname, show_values);
                         let empty_fields = Vec::new();
                         let item_fields = full_item.get("fields").and_then(|v| v.as_array()).unwrap_or(&empty_fields);
                         let mut selected: Vec<Value> = Vec::new();
@@ -2395,7 +2399,7 @@ where
                             exit_code: 0,
                         };
                     }
-                    let out = to_pretty_json(&item_json(it, vname));
+                    let out = to_pretty_json(&item_json(it, vname, show_values));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "edit" => {
@@ -2478,7 +2482,7 @@ where
                     }
                     st.op_seq = seq;
                     let vname = st.op_vaults.iter().find(|v| v.id == st.op_items[idx].vault_id).map(|v| v.name.clone()).unwrap_or_else(|| "Private".into());
-                    let out = to_pretty_json(&item_json(&st.op_items[idx], &vname));
+                    let out = to_pretty_json(&item_json(&st.op_items[idx], &vname, show_values));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "move" => {
@@ -2527,7 +2531,7 @@ where
                     };
                     it.id = new_id;
                     it.vault_id = dst.id.clone();
-                    let out = to_pretty_json(&item_json(it, &dst.name));
+                    let out = to_pretty_json(&item_json(it, &dst.name, show_values));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "delete" | "remove" | "rm" => {

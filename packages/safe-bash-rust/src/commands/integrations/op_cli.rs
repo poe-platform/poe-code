@@ -17,6 +17,7 @@ pub(super) struct Command {
     pub path: &'static str,
     pub args: Vec<String>,
     pub format_json: bool,
+    pub reveal: bool,
     pub selection: Option<&'static str>,
 }
 
@@ -26,6 +27,7 @@ struct Scan {
     help: &'static str,
     help_word: bool,
     operands: usize,
+    switches: BTreeMap<&'static str, bool>,
     globals: BTreeMap<&'static str, String>,
     args: Vec<String>,
 }
@@ -69,11 +71,11 @@ fn scan(args: &[String], resolved: Option<&str>) -> Result<Scan, String> {
         help: OP_ROOT_HELP,
         help_word: false,
         operands: 0,
+        switches: BTreeMap::new(),
         globals: BTreeMap::new(),
         args: Vec::new(),
     };
     let mut local_flags = Vec::new();
-    let mut switches = BTreeMap::new();
     let mut literal = None;
     let mut words = args.iter();
     let mut pending = None;
@@ -163,7 +165,7 @@ fn scan(args: &[String], resolved: Option<&str>) -> Result<Scan, String> {
                         Kind::Optional => local_flags
                             .push(value.map_or_else(|| name.to_owned(), |v| format!("{name}={v}"))),
                         Kind::Bool => {
-                            switches.insert(name, enabled);
+                            scan.switches.insert(name, enabled);
                         }
                     }
                 }
@@ -193,10 +195,10 @@ fn scan(args: &[String], resolved: Option<&str>) -> Result<Scan, String> {
     }
     if resolved.is_some() {
         local_flags.extend(
-            switches
-                .into_iter()
-                .filter(|(_, on)| *on)
-                .map(|(name, _)| name.to_owned()),
+            scan.switches
+                .iter()
+                .filter(|(_, on)| **on)
+                .map(|(name, _)| (*name).to_owned()),
         );
         if scan.path == "run" {
             // The child receives exactly the parsed operands, regardless of where
@@ -283,6 +285,7 @@ pub(super) fn parse(
     Ok(Command {
         path,
         format_json: format == Some("json"),
+        reveal: scan.switches.get("--reveal") == Some(&true),
         selection,
         args: path
             .split(' ')

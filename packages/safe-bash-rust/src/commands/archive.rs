@@ -6268,7 +6268,7 @@ fn cmd_gzip(
     let mut to_stdout = matches!(invoked, "zcat" | "zstdcat" | "xzcat" | "lzcat" | "bzcat");
     let mut keep = is_zstd;
     let mut force = false;
-    let mut passthrough = invoked == "zstdcat";
+    let mut passthrough = (invoked == "zstdcat").then_some(true);
     let mut exclude_compressed = false;
     let mut list_mode = false;
     let mut robot_mode = false;
@@ -6373,8 +6373,8 @@ fn cmd_gzip(
                         2,
                     );
                 }
-                "--pass-through" => passthrough = true,
-                "--no-pass-through" => passthrough = false,
+                "--pass-through" if is_zstd => passthrough = Some(true),
+                "--no-pass-through" if is_zstd => passthrough = Some(false),
                 "--exclude-compressed" => exclude_compressed = true,
                 "-l" | "--list" => {
                     if !is_gzip && !is_xz {
@@ -6923,6 +6923,12 @@ fn cmd_gzip(
             force && !data.starts_with(&[0x1f, 0x8b])
         } else if is_bzip2 {
             force && to_stdout && !test_mode && !super::codecs::bzip2_header_prefix(data)
+        } else if is_zstd && !test_mode && passthrough.unwrap_or(force && to_stdout) {
+            !data.is_empty() && !data.get(..4).is_some_and(|bytes| {
+                let magic = u32::from_le_bytes(bytes.try_into().unwrap());
+                matches!(magic, 0xfd2fb525..=0xfd2fb528 | 0x184d2a50..=0x184d2a5f | 0x587a37fd | 0x184d2204)
+                    || matches!(magic & 0xffff, 0x8b1f | 0x005d)
+            })
         } else {
             false
         };
@@ -6933,6 +6939,15 @@ fn cmd_gzip(
         if is_bzip2 {
             let msg = if error == "unexpected end of file" { error } else { "invalid compressed data or codec memory limit exceeded" };
             err_out(&format!("{invoked}: {msg}\n"), 2)
+        } else if is_zstd {
+            let msg = match error {
+                "Src size is incorrect" => "unexpected end of file",
+                "Unknown frame descriptor" | "Reserved bit set" | "Dictionary mismatch"
+                | "Corrupted block detected" | "Restored data doesn't match checksum" =>
+                    "invalid compressed data or codec memory limit exceeded",
+                _ => error,
+            };
+            err_out(&format!("{invoked}: {msg}\n"), 1)
         } else if is_gzip || file == "-" {
             err_out(&format!("{invoked}: {error}\n"), 1)
         } else if test_mode {
@@ -7004,7 +7019,7 @@ fn cmd_gzip(
             if decompress {
                 match decode(&data) {
                     Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
-                    Err(_) if !is_gzip && !is_bzip2 && (passthrough || (force && to_stdout)) => {
+                    Err(_) if is_xz && force && to_stdout => {
                         stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&data));
                     }
                     Err(e) => return decode_error(&e, "-"),
@@ -7031,7 +7046,7 @@ fn cmd_gzip(
         if decompress {
             let dec = match decode(&data) {
                 Ok(d) => d,
-                Err(_) if !is_gzip && !is_bzip2 && (passthrough || force) && to_stdout => data.clone(),
+                Err(_) if is_xz && force && to_stdout => data.clone(),
                 Err(e) => return decode_error(&e, f),
             };
             if to_stdout {

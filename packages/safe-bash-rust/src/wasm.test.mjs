@@ -7797,3 +7797,22 @@ test("unzstd switches codecs after each gzip member in a mixed stream", async ()
     }
   } finally { rs.dispose(); }
 });
+
+test("zstd probes the frame header before passing through unknown input", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem();
+  const js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const hex of ["", "28b5", "706c61696e", "28b52ffd", "1f8b0800", "04224d18",
+      "28b52ffd18", "28b52ffd1800", "28b52ffd3000010000", "28b52ffd2000070000",
+      "502a4d1888ffffff", "502a4d1889ffffff", "502a4d18ffffffff"]) {
+      for (const vfs of [fs, rs.fs]) await vfs.writeFile("/input", Buffer.from(hex, "hex"));
+      for (const cmd of ["zstdcat < /input", "unzstd -c /input", "unzstd -fc /input",
+        "unzstd --pass-through -t /input", "zstdcat -f --no-pass-through /input"]) {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdoutBytes, b.stderr], [a.exitCode, a.stdoutBytes, a.stderr], cmd + ": " + hex);
+      }
+    }
+  } finally { rs.dispose(); }
+});

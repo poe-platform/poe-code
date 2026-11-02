@@ -2733,7 +2733,6 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
     }
     let mut pos = 0usize;
     let mut out = Vec::new();
-    let mut frames = 0usize;
 
     while pos < data.len() {
         let rem = &data[pos..];
@@ -2742,7 +2741,6 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
                 let (member, consumed) = gzip_member(rem, usize::MAX)?;
                 out.extend_from_slice(&member);
                 pos += consumed;
-                frames += 1;
                 continue;
             }
             if rem.len() >= 6 && &rem[0..6] == &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
@@ -2763,7 +2761,9 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
         }
 
         if rem.len() < 4 {
-            return Err("Unknown frame descriptor".into());
+            let incomplete = 0xfd2fb528u32.to_le_bytes().starts_with(rem)
+                || (0x184d2a50u32..=0x184d2a5f).any(|magic| magic.to_le_bytes().starts_with(rem));
+            return Err(if incomplete { "unexpected end of file" } else { "Unknown frame descriptor" }.into());
         }
         let magic = u32::from_le_bytes([rem[0], rem[1], rem[2], rem[3]]);
         if (0x184d_2a50..=0x184d_2a5f).contains(&magic) {
@@ -2771,11 +2771,14 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
                 return Err("Src size is incorrect".into());
             }
             let frame_size = u32::from_le_bytes([rem[4], rem[5], rem[6], rem[7]]) as usize;
-            if pos + 8 + frame_size > data.len() {
+            // The production wasm32 Zstandard decoder reserves the top 119 size_t values for errors.
+            if frame_size > (u32::MAX - 119) as usize {
+                return Err("Corrupted block detected".into());
+            }
+            if frame_size > rem.len() - 8 {
                 return Err("Src size is incorrect".into());
             }
             pos += 8 + frame_size;
-            frames += 1;
             continue;
         }
         if magic != 0xfd2f_b528 {
@@ -2787,9 +2790,6 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
         }
         let fhd = data[pos];
         pos += 1;
-        if (fhd & 0x18) != 0 {
-            return Err("Reserved bit set".into());
-        }
         let fcs_flag = fhd >> 6;
         let single_segment = (fhd & 0x20) != 0;
         let has_checksum = (fhd & 0x04) != 0;
@@ -2857,6 +2857,9 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
             }
         };
 
+        if fhd & 0x08 != 0 {
+            return Err("Reserved bit set".into());
+        }
         let frame_out_start = out.len();
         let mut fstate = ZstdFrameDecoderState::new();
         loop {
@@ -2920,10 +2923,8 @@ pub fn zstd_decompress(data: &[u8], allow_foreign: bool) -> Result<Vec<u8>, Stri
                 return Err("Restored data doesn't match checksum".into());
             }
         }
-        frames += 1;
     }
 
-    let _ = frames;
     Ok(out)
 }
 

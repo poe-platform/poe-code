@@ -1970,6 +1970,90 @@ fn json_escape_str(s: &str) -> String {
     out
 }
 
+// Translate grep syntax to the common search parser. The bounded provider's
+// diagnostics refer to its translated ERE, where group names are omitted.
+fn grep_expression(source: &str, extended: bool) -> (String, Option<usize>) {
+    let mut out = String::with_capacity(source.len());
+    let mut offset = None;
+    let mut group_headers = 0;
+    let mut chars = source.chars().peekable();
+    let mut bracket = false;
+    let mut first_member = false;
+    let mut branch_start = true;
+    while let Some(c) = chars.next() {
+        let first = branch_start;
+        branch_start = false;
+        if (!c.is_ascii() || c == '\0') && offset.is_none() { offset = Some(out.len() - group_headers); }
+        if !bracket && (extended && c == '{' || !extended && c == '\\' && chars.next_if_eq(&'{').is_some()) {
+            out.push('{');
+            let start = out.len();
+            let mut closed = false;
+            while let Some(c) = chars.next() {
+                if extended && c == '}' || !extended && c == '\\' && chars.next_if_eq(&'}').is_some() { closed = true; break; }
+                out.push(c);
+            }
+            let body = &out[start..];
+            let (left, right) = body.split_once(',').unwrap_or((body, body));
+            if closed && !left.is_empty() && left.bytes().chain(right.bytes()).all(|b| b.is_ascii_digit())
+                && let Ok(lo @ 0..=1000) = left.parse::<usize>() {
+                let hi = right.parse::<usize>().ok();
+                if right.is_empty() || hi.is_some_and(|n| (lo..=1000).contains(&n)) {
+                    out.truncate(start); out.push_str(&lo.to_string());
+                    if hi != Some(lo) { out.push(','); if let Some(n) = hi { out.push_str(&n.to_string()); } }
+                }
+            }
+            if closed { out.push('}'); }
+        } else if c == '\\' && let Some(next) = chars.next() {
+            if (!next.is_ascii() || next == '\0') && offset.is_none() { offset = Some(out.len() - group_headers); }
+            if !bracket && !extended && "()+?|}".contains(next) { branch_start = matches!(next, '(' | '|'); out.push(next); continue; }
+            let class = match next {
+                'd' | 'D' => "0-9", 'w' | 'W' => "[:alnum:]_", 's' | 'S' => "[:space:]", _ => "",
+            };
+            if !class.is_empty() && (!bracket || next.is_ascii_lowercase()) {
+                if !bracket { out.push('['); if next.is_ascii_uppercase() { out.push('^'); } }
+                out.push_str(class);
+                if !bracket { out.push(']'); }
+            } else if matches!(next, 't' | 'r') {
+                out.push(if next == 't' { '\t' } else { '\r' });
+            } else {
+                let escapes = if bracket { r"]\^-nDWS" } else { r"\.^$*+?()[]{}|bB<>n123456789" };
+                if escapes.contains(next) { out.push('\\'); }
+                out.push(next);
+            }
+            first_member = false;
+        } else if bracket {
+            if c == '[' && chars.peek() == Some(&':') {
+                out.push(c);
+                for c in chars.by_ref() { out.push(c); if c == ']' { break; } }
+            } else {
+                if c == ']' && !first_member { bracket = false; }
+                out.push(c);
+            }
+            first_member = false;
+        } else if c == '[' {
+            out.push(c);
+            if chars.next_if_eq(&'^').is_some() { out.push('^'); }
+            bracket = true;
+            first_member = true;
+        } else if extended && c == '(' && chars.peek() == Some(&'?') {
+            out.push(c);
+            let mut tail = chars.clone();
+            tail.next();
+            if tail.next_if_eq(&':').is_some() { chars = tail; continue; }
+            tail.next_if_eq(&'P');
+            if tail.next_if_eq(&'<').is_some() && !matches!(tail.peek(), Some('=' | '!')) {
+                let start = out.len();
+                for c in chars.by_ref() { out.push(c); if c == '>' { break; } }
+                group_headers += out.len() - start;
+            }
+        } else {
+            if !extended && ("()+?|{}".contains(c) || first && c == '*') || c == ']' || c == '}' { out.push('\\'); }
+            out.push(c);
+        }
+    }
+    (out, offset)
+}
+
 fn cmd_grep(
     invoked_as: &str,
     args: &[String],
@@ -2569,64 +2653,16 @@ fn cmd_grep(
         } else { bytes.into_iter().map(char::from).collect() };
         patterns.push(pat);
     }
-    if !fixed_strings && patterns.iter().any(|p| has_unsupported_regex_features(p)) {
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: format!("{invoked_as}: invalid or unsupported regular expression\n"),
-            exit_code: 2,
-        };
-    }
-
-    if extended_regexp && !fixed_strings {
-        patterns = patterns
-            .into_iter()
-            .map(|pat| preprocess_ere_pattern(&pat, false))
-            .collect();
-    } else if !extended_regexp && !fixed_strings {
-        patterns = patterns
-            .into_iter()
-            .map(|pat| {
-                let mut out = String::with_capacity(pat.len() + 4);
-                let chs: Vec<char> = pat.chars().collect();
-                let mut k = 0usize;
-                let mut in_bracket = false;
-                while k < chs.len() {
-                    if chs[k] == '\\' && k + 1 < chs.len() {
-                        out.push('\\');
-                        out.push(chs[k + 1]);
-                        k += 2;
-                    } else if chs[k] == '[' && !in_bracket {
-                        in_bracket = true;
-                        out.push('[');
-                        k += 1;
-                    } else if chs[k] == ']' && in_bracket {
-                        in_bracket = false;
-                        out.push(']');
-                        k += 1;
-                    } else if !in_bracket
-                        && matches!(chs[k], '(' | ')' | '+' | '?' | '{' | '}' | '|')
-                    {
-                        out.push('[');
-                        out.push(chs[k]);
-                        out.push(']');
-                        k += 1;
-                    } else {
-                        out.push(chs[k]);
-                        k += 1;
-                    }
-                }
-                out
-            })
-            .collect();
-    }
-
     let mut parsed = Vec::with_capacity(patterns.len());
     let mut use_vm = text;
     let mut bounded_ere = false;
-    for pat in &patterns {
+    let mut profile_error = None;
+    for source in &patterns {
         let normalized;
-        let pat = if fixed_strings || extended_regexp { pat } else {
-            normalized = normalize_bre_escapes(pat);
+        let pat = if fixed_strings { source } else {
+            let (expr, offset) = grep_expression(source, extended_regexp);
+            profile_error = profile_error.or(offset);
+            normalized = expr;
             &normalized
         };
         let flags = RxFlags { icase: ignore_case, multiline, dotall: false };
@@ -2648,6 +2684,9 @@ fn cmd_grep(
             }
         }
         parsed.push(branches);
+    }
+    if !use_vm && let Some(offset) = profile_error {
+        return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: unsupported ERE profile at {offset}: only non-NUL ASCII in the C/POSIX profile\n"), exit_code: 2 };
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, word_regexp && !line_regexp, line_regexp);
     if use_vm {

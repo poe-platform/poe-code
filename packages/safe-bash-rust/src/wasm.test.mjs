@@ -7242,3 +7242,18 @@ test("grep preserves bytes and precedence of pattern files and argument patterns
     }
   } finally { rs.dispose(); }
 });
+
+test("grep reports out-of-profile pattern bytes before opening the target", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for(const sh of [js,rs]) await sh.exec("printf 'xé\\n' >p; echo a >f");
+    for(const args of ["é absent","-xf p f","-Eo '(x)é' f","-o 'a+é' f","-Eo '\\dé' f",
+      "-Eo '[\\w]é' f","-o '\\qé' f","-Eo '(?:a){02,2}é' f","-Eo '(?<abc>a)é' f",
+      "-e é -e '\\ba' f","-F é f","-a 'é' f","-o '\\(a\\)é' f","-o '*' f","-o 'a\\{02,02\\}é' f"]) {
+      const cmd="grep "+args;
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd);
+    }
+  } finally { rs.dispose(); }
+});

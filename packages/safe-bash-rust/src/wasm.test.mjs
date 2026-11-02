@@ -3401,3 +3401,40 @@ test("exiftool prints decimal file sizes with three significant digits", async (
     }
   } finally { wasm.dispose(); }
 });
+
+test("exiftool reads and edits standard PNG chunks without altering image data", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { crc32 } = await import("node:zlib");
+  const base = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=", "base64");
+  const chunk = (type, text) => {
+    const data = Buffer.from(text, "latin1"), bytes = Buffer.alloc(data.length + 12);
+    bytes.writeUInt32BE(data.length); bytes.write(type, 4); data.copy(bytes, 8);
+    bytes.writeUInt32BE(crc32(bytes.subarray(4, -4)), bytes.length - 4); return bytes;
+  };
+  const input = Buffer.concat([base.subarray(0, 33), chunk("tEXt", "TITLE\0café"), chunk("tEXt", "Title\0old"), base.subarray(33)]);
+  const broken = Buffer.from(input); broken[32] ^= 1;
+  for (const [source, flags] of [
+    [input, "-s3 -Title -ColorType"], [input, "-Title=first -Title='café 雪' -Author=A"], [input, "-Title-=old"],
+    [input, "-ModifyDate=2024-02-29T12:34:56.789+05:30"], [input, "-ModifyDate=bad"], [input, "-all="],
+    [input, "-Subject=x"], [input, "-Comment="], [input, "-tagsFromFile ref.png -Title"], [input, "-tagsFromFile ref.png -ImageWidth"],
+    [Buffer.concat([input, Buffer.from("junk")]), "-Title=updated"], [broken, "-Title=updated"],
+    [Buffer.concat([input.subarray(0, 33), chunk("vpAg", "private"), input.subarray(33)]), "-all="],
+  ]) {
+    const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files: { "/f.png": source, "/ref.png": input } });
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+    try {
+      await fs.writeFile("/f.png", source); await fs.writeFile("/ref.png", input);
+      const compare = async script => {
+        const want = await shell.exec(script), got = await wasm.exec(script);
+        assert.deepEqual([got.exitCode, got.stdoutBytes, got.stderr], [want.exitCode, want.stdoutBytes, want.stderr], script);
+      };
+      await compare("exiftool " + flags + " f.png");
+      for (const path of ["/f.png", "/f.png_original"]) {
+        const read = backend => backend.readFile(path).then(bytes => Buffer.from(bytes), e => e.code);
+        assert.deepEqual(await read(wasm.fs), await read(fs), flags + ": " + path);
+      }
+      await compare("exiftool -s3 -Title -Author -ModifyDate f.png");
+    } finally { wasm.dispose(); }
+  }
+});

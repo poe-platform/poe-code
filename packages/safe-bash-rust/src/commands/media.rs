@@ -96,6 +96,14 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
+const EXIF_TAGS: &[&str] = &["Artist","Title","Author","Description","ImageDescription","Software","Comment","Copyright","ModifyDate",
+                "ImageWidth","ImageHeight","BitDepth","ColorType","FileName","Directory","FileSize","FileTypeExtension","FileType",
+                "MIMEType","ImageSize","Subject","Keywords","Creator","Producer","CreateDate","PDFVersion","PageCount","Make",
+                "Model","Orientation","DateTime","XResolution","YResolution","ResolutionUnit","ExposureTime","FNumber","ISO",
+                "DateTimeOriginal","FocalLength","LensModel","UserComment"];
+
+#[path = "exiftool_png.rs"]
+mod exiftool_png;
 #[path = "exiftool_argfiles.rs"]
 mod exiftool_argfiles;
 #[path = "tiff.rs"]
@@ -11696,12 +11704,7 @@ fn cmd_media_doc(
                 Ok(args) => args,
                 Err(e) => return err_out(&format!("Error: {e}\n"), 1),
             };
-            let tags = ["Artist","Title","Author","Description","ImageDescription","Software","Comment","Copyright","ModifyDate",
-                "ImageWidth","ImageHeight","BitDepth","ColorType","FileName","Directory","FileSize","FileTypeExtension","FileType",
-                "MIMEType","ImageSize","Subject","Keywords","Creator","Producer","CreateDate","PDFVersion","PageCount","Make",
-                "Model","Orientation","DateTime","XResolution","YResolution","ResolutionUnit","ExposureTime","FNumber","ISO",
-                "DateTimeOriginal","FocalLength","LensModel","UserComment"];
-            let known = |name: &str| tags.iter().copied().find(|t| t.eq_ignore_ascii_case(name));
+            let known = |name: &str| EXIF_TAGS.iter().copied().find(|t| t.eq_ignore_ascii_case(name));
             let (mut json_mode, mut bin_mode, mut tab_mode, mut csv_mode, mut xml_mode) = (false, false, false, false, false);
             let (mut group, mut short) = (0, 0usize);
             let (mut value_conv, mut overwrite_orig, mut in_place) = (false, false, false);
@@ -11826,39 +11829,40 @@ fn cmd_media_doc(
                     Err(e) => tags_from_file_err = Some(e),
                     Ok((_, src_bytes)) if src_bytes.is_empty() => tags_from_file_err = Some("Not a PNG file".into()),
                     Ok((_, src_bytes)) => {
-                    let mut src_tags: BTreeMap<String, String> = BTreeMap::new();
-                    if src_full.to_ascii_lowercase().ends_with(".pdf")
-                        || src_bytes.starts_with(b"%PDF-")
-                    {
-                        let pdf = PdfDoc::parse(&src_bytes);
-                        if !pdf.title.is_empty() {
-                            src_tags.insert("Title".to_string(), pdf.title);
-                        }
-                        if !pdf.author.is_empty() {
-                            src_tags.insert("Author".to_string(), pdf.author);
-                        }
-                        for (k, v) in pdf.info {
-                            src_tags.insert(k, v);
-                        }
-                        for (k, v) in pdf.exif {
-                            src_tags.insert(k, v);
-                        }
-                    } else {
-                        let src_meta = read_image_meta(&src_bytes, &src_full);
-                        for (k, v) in src_meta.exif {
-                            if !k.starts_with("__") {
-                                src_tags.insert(k, v);
+                        let mut src_tags = BTreeMap::new();
+                        let mut order = Vec::new();
+                        let mut collect = |k: &str, v: String| {
+                            if src_tags.insert(k.to_owned(), v).is_none() {order.push(k.to_owned());}
+                        };
+                        if src_full.to_ascii_lowercase().ends_with(".pdf")
+                            || src_bytes.starts_with(b"%PDF-")
+                        {
+                            let pdf = PdfDoc::parse(&src_bytes);
+                            if !pdf.title.is_empty() {
+                                collect("Title", pdf.title);
+                            }
+                            if !pdf.author.is_empty() {
+                                collect("Author", pdf.author);
+                            }
+                            for (k, v) in pdf.info {
+                                collect(&k, v);
+                            }
+                            for (k, v) in pdf.exif {
+                                collect(&k, v);
+                            }
+                        } else if exiftool_png::candidate(&src_bytes) {
+                            if let Err(e) = exiftool_png::inspect(&src_bytes, &mut collect) { tags_from_file_err = Some(e.into()); }
+                        } else {
+                            let src_meta = read_image_meta(&src_bytes, &src_full);
+                            for (k, v) in src_meta.exif {
+                                if !k.starts_with("__") {
+                                    collect(&k, v);
+                                }
                             }
                         }
-                    }
-                    for (k, v) in src_tags {
-                        if (requested_tags.is_empty()
-                            || requested_tags.iter().any(|rt| rt.eq_ignore_ascii_case(&k)))
-                            && !v.is_empty()
-                        {
-                            updates.push((k, v));
+                        for k in if requested_tags.is_empty() { &order } else { &requested_tags } {
+                            if let Some(v) = src_tags.get(k) { updates.push((k.clone(), v.clone())); }
                         }
-                    }
                     }
                 }
             }
@@ -11918,19 +11922,31 @@ fn cmd_media_doc(
                     if let Some(src_err) = &tags_from_file_err {
                         err_out.push_str(&format!("Error: {src_err} - {f}\n")); continue;
                     }
-                    let revision = if is_pdf && data.split(|&b| b == b'\n').nth(1) != Some(b"%%SAFE_PDF_V2%%") {
-                        match pdf_reader::edit_info(&data, &updates, tags_from_file.is_some()) {
-                            Ok(suffix) if suffix.is_empty() && out_path.is_none() && !updates.iter().any(|(k,v)| !v.is_empty() && !k.ends_with(['+', '-'])) => {
-                                unchanged += 1;
-                                continue;
-                            }
-                            Ok(suffix) => Some(suffix),
-                            Err(e) => {
-                                err_out.push_str(&format!("Error: {e} - {f}\n"));
-                                continue;
-                            }
+                    let copied;
+                    let updates = if tags_from_file.is_some() && (is_pdf || exiftool_png::candidate(&data)) {
+                        copied = updates.iter().filter(|(k, _)| if is_pdf { pdf_reader::INFO_TAGS.contains(&k.as_str()) } else { exiftool_png::writable(k) }).cloned().collect::<Vec<_>>();
+                        &copied
+                    } else { &updates };
+                    let edited = if !is_pdf && exiftool_png::candidate(&data) {
+                        exiftool_png::edit(&data, updates, fs)
+                    } else if is_pdf && data.split(|&b| b == b'\n').nth(1) != Some(b"%%SAFE_PDF_V2%%") {
+                        pdf_reader::edit_info(&data, updates, tags_from_file.is_some()).map(|suffix| [data.as_slice(), &suffix].concat())
+                    } else {
+                        let mut edited = data.clone();
+                        for (k, v) in updates {
+                            let k = k.trim_end_matches(['+', '-']);
+                            edited.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
                         }
-                    } else { None };
+                        Ok(edited)
+                    };
+                    let edited = match edited {
+                        Ok(bytes) if out_path.is_none() && bytes == data && !updates.iter().any(|(k,v)| !v.is_empty() && !k.ends_with(['+', '-'])) => {
+                            unchanged += 1;
+                            continue;
+                        }
+                        Ok(bytes) => bytes,
+                        Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
+                    };
                     if out_path.is_none() {
                         if original.mode & 0o200 == 0 {
                             err_out.push_str(&format!("Error: EACCES: permission denied, access '{full}' - {f}\n")); continue;
@@ -11949,15 +11965,6 @@ fn cmd_media_doc(
                                 }
                             }
                             Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
-                        }
-                    }
-                    let mut edited = data.clone();
-                    if let Some(suffix) = revision {
-                        edited.extend_from_slice(&suffix);
-                    } else {
-                        for (k, v) in &updates {
-                            let k = k.trim_end_matches(['+', '-']);
-                            edited.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
                         }
                     }
                     if let Some(path) = &out_path {
@@ -12027,6 +12034,9 @@ fn cmd_media_doc(
                     for &name in pdf_reader::INFO_TAGS {
                         if let Some(value) = info.remove(name) && !value.is_empty() { insert(name, value); }
                     }
+                } else if exiftool_png::candidate(data) {
+                    insert("FileTypeExtension", "png".into());
+                    exiftool_png::inspect(data, &mut insert)?;
                 } else {
                     let im = read_image_meta(data, &full);
                     let ext = if im.fmt == "JPEG" { "jpg".into() } else { im.fmt.to_ascii_lowercase() };
@@ -12043,7 +12053,7 @@ fn cmd_media_doc(
                         if !k.starts_with("__") { insert(&k, v); }
                     }
                 }
-                (map, order)
+                Ok::<_, &str>((map, order))
             };
             let mut records = Vec::new();
             let mut read_err_buf = String::new();
@@ -12053,7 +12063,10 @@ fn cmd_media_doc(
                 match data {
                     Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
                     Ok(bytes) if bytes.is_empty() => read_err_buf.push_str(&format!("Error: File is empty - {f}\n")),
-                    Ok(bytes) => { let (tags, order) = read_all_tags(&f, &bytes); records.push((f, tags, order)); }
+                    Ok(bytes) => match read_all_tags(&f, &bytes) {
+                        Ok((tags, order)) => records.push((f, tags, order)),
+                        Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
+                    }
                 }
             }
             let finalize_exif_out = |stdout: String| BuiltinOutcome {

@@ -4446,6 +4446,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut keep_old_files = false;
     let mut touch = false;
     let mut permission_mask = 0o777;
+    let mut delay_directories = true;
     let mut exclude_caches = false;
     let mut show_transformed = false;
     let mut dereference = false;
@@ -5030,8 +5031,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--same-permissions" | "--preserve-permissions" => permission_mask = 0o777,
                     "--no-same-permissions" => permission_mask = 0o755,
                     "--read-full-records" | "--seek" | "--no-seek"
-                    | "--force-local" | "--numeric-owner" | "--no-same-owner"
-                    | "--delay-directory-restore" | "--no-delay-directory-restore" => {}
+                    | "--force-local" | "--numeric-owner" | "--no-same-owner" => {}
+                    "--delay-directory-restore" => delay_directories = true,
+                    "--no-delay-directory-restore" => delay_directories = false,
                     "--same-owner" => {
                         return err_out(
                             "tar: filesystem does not support restoring archive ownership\n",
@@ -5699,6 +5701,30 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         Ok(())
     };
+    struct DirectoryMetadata {
+        mode: u32,
+        atime: Option<f64>,
+        mtime: Option<f64>,
+    }
+    let mut directories = BTreeMap::new();
+    let restore_directories = |pending: &mut BTreeMap<String, DirectoryMetadata>, next: Option<&str>| -> Result<(), String> {
+        let mut paths: Vec<_> = pending.keys()
+            .filter(|dir| !next.is_some_and(|path| crate::vfs::is_path_within(dir, path)))
+            .cloned().collect();
+        paths.sort_by_key(|path| std::cmp::Reverse(path.len()));
+        for path in paths {
+            check_root(&crate::vfs::dirname_posix_path(&path))?;
+            if fs.lstat(&path)?.kind != crate::vfs::VfsEntryKind::Directory {
+                return Err("directory changed before metadata restoration".into());
+            }
+            let meta = pending.remove(&path).unwrap();
+            if meta.atime.is_some() || meta.mtime.is_some() {
+                fs.set_times(&path, meta.atime, meta.mtime)?;
+            }
+            fs.chmod(&path, meta.mode)?;
+        }
+        Ok(())
+    };
     let extracting_files = extract && !to_stdout;
     if extracting_files {
         for root in std::iter::once(&mut current_dir).chain(operands.iter_mut().map(|op| &mut op.cwd)) {
@@ -5867,6 +5893,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 if !fs.supports_hard_links(&target) { return Err("filesystem does not support hardlinks".into()); }
                 Some(target)
             } else { None };
+            if !delay_directories { restore_directories(&mut directories, Some(&dest))?; }
             for parent in parents { fs.mkdir_one(parent, 0o700)?; }
             let mut revision = fs.generation();
             let existing = match fs.lstat(&dest) {
@@ -5890,17 +5917,18 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     revision = fs.generation();
                 }
             }
+            let times = if touch { (None, None) } else { (entry.atime.map(|t| t * 1000.), entry.mtime.map(|t| t * 1000.)) };
             published.remove(&dest);
+            if !is_dir_entry { directories.remove(&dest); }
             if is_dir_entry {
                 if !existing.is_some_and(|s| s.kind == Directory) { fs.mkdir_one(&dest, 0o700)?; }
-                fs.chmod(&dest, entry.mode & 0o777)?;
+                directories.insert(dest.clone(), DirectoryMetadata { mode: entry.mode & permission_mask, atime: times.0, mtime: times.1 });
             } else if entry.typeflag == b'2' {
                 fs.symlink(link, &dest)?;
             } else if let Some(target) = hard_target {
                 fs.hard_link(&target, &dest)?;
             } else {
                 if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
-                let times = if touch { (None, None) } else { (entry.atime.map(|t| t * 1000.), entry.mtime.map(|t| t * 1000.)) };
                 if times == (None, None) {
                     fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & permission_mask, revision)?;
                 } else {
@@ -5919,7 +5947,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if let Some(idx) = matched_ops.iter().position(|m| !m) {
             return Err(format!("member not found: {}", tar_format::display(&operands[idx].name)));
         }
-        Ok(())
+        restore_directories(&mut directories, None)
     });
     if let Err(error) = result {
         stderr.push_str(&format!("tar: {error}\n"));

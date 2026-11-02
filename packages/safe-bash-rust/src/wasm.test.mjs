@@ -6243,3 +6243,38 @@ test("tar restores file permissions and PAX times, honoring touch and permission
     }
   } finally { rs.dispose(); }
 });
+
+test("tar restores directory metadata at archive end or when leaving a subtree", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.mkdir("/dir/nested", {recursive: true});
+    await fs.mkdir("/sibling");
+    await fs.writeFile("/last", Buffer.from("end"));
+    const seed = await js.exec("tar --format=ustar --mtime=@123 --mode=577 -cf - dir sibling last");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const [index, [flags, corrupt]] of [
+      ["--no-same-permissions", false], ["--touch", false], ["", true],
+      ["--no-delay-directory-restore", true], ["--no-delay-directory-restore --delay-directory-restore", true],
+    ].entries()) {
+      const bytes = Buffer.from(seed.stdoutBytes);
+      if (corrupt) {
+        assert.equal(bytes.subarray(1536, 1540).toString(), "last");
+        bytes[1536] ^= 1;
+      }
+      const dest = "/out" + index;
+      for (const f of [fs, rs.fs]) { await f.writeFile("/in", bytes); await f.mkdir(dest); }
+      const cmd = "tar -xf in -C " + dest + " " + flags;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, corrupt ? 2 : 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr], [a.exitCode, a.stderr], cmd);
+      for (const dir of ["dir", "dir/nested", "sibling"]) {
+        const path = dest + "/" + dir;
+        const snapshot = st => [st.mode & 0o777, st.atimeMs === 123000, st.mtimeMs === 123000];
+        assert.deepEqual(snapshot(await rs.fs.stat(path)), snapshot(await fs.stat(path)), cmd + ": " + dir);
+      }
+    }
+  } finally { rs.dispose(); }
+});

@@ -6885,6 +6885,9 @@ test("rg multiline counts, inverts and limits the selected records", async () =>
   const rs = new RustWasmBash({cwd: "/"});
   try {
     for (const [args, expected, code = 0] of [
+      [String.raw`-Uc '\S'`, "6\n"], [String.raw`-Uc '[^\n]'`, "6\n"],
+      [String.raw`-Uc '[a\S]'`, "6\n"], ["-Uc --multiline-dotall a", "3\n"],
+      ["-UFc --multiline-dotall a", "2\n"], ["-Uc '(?s:a)'", "2\n"],
       ["-Uc a", "2\n"], ["-Uoc a", "3\n"], ["-Um0 a", "", 1],
       [String.raw`-Uvc 'a\nb'`, "1\n"], [String.raw`-Uoc 'a\nb'`, "2\n"],
       [String.raw`-Unvm1 -r X 'a\nb'`, "5:z\n"], [String.raw`-Unm1 'a\nb'`, "1:aa\n"],

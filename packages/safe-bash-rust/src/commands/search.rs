@@ -861,6 +861,7 @@ fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
 type RxBranches = Vec<Vec<RxToken>>;
 
 struct ParsedRegex {
+    cross_line: bool,
     root: RxBranches,
     groups: Vec<RxBranches>,
 }
@@ -892,7 +893,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         _ => RxFlags::default(),
     };
     if fixed {
-        return Ok(ParsedRegex { root: vec![pat
+        return Ok(ParsedRegex { cross_line: pat.contains('\n'), root: vec![pat
             .chars()
             .map(|c| RxToken {
                 atom: RxAtom::Char(c),
@@ -903,7 +904,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             })
             .collect()], groups: Vec::new() });
     }
-    let mut parsed = ParsedRegex { root: Vec::new(), groups: Vec::new() };
+    let mut parsed = ParsedRegex { cross_line: mode.dotall || pat.contains('\n'), root: Vec::new(), groups: Vec::new() };
     let normalized;
     let source = if matches!(dialect, RxDialect::Auto) {
         normalized = normalize_bre_escapes(pat);
@@ -963,6 +964,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     negate = true;
                     idx += 1;
                 }
+                parsed.cross_line |= negate;
                 let mut ranges = Vec::new();
                 let scalar = |idx: &mut usize| -> Result<char, String> {
                     let c = chars[*idx];
@@ -984,6 +986,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     if chars[idx..].starts_with(&['[', ':']) {
                         if let Some(end) = chars[idx + 2..].windows(2).position(|w| w == [':', ']']) {
                             let name: String = chars[idx + 2..idx + 2 + end].iter().collect();
+                            parsed.cross_line |= name == "space";
                             if let Some(class) = posix_class_ranges(&name) { ranges.extend_from_slice(class); }
                             else if jq { return Err(format!("unsupported character class '{name}'")); }
                             idx += end + 4;
@@ -993,7 +996,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     if jq && matches!(&chars[idx..], ['[', '.' | '=', ..]) {
                         return Err("collating and equivalence classes are not supported".into());
                     }
+                    if chars[idx..].starts_with(&['\\', 'n']) { parsed.cross_line = true; }
                     if let Some(class) = bracket_shorthand(&chars[idx..]) {
+                        parsed.cross_line |= matches!(chars[idx + 1], 's' | 'S' | 'W' | 'D');
                         ranges.extend_from_slice(class);
                         idx += 2;
                         if jq && chars.get(idx) == Some(&'-') && chars.get(idx + 1) != Some(&']') {
@@ -1101,6 +1106,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
         };
 
+        parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true } | RxAtom::Space(_) | RxAtom::Word(true)
+            | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
         let case = if !mode.icase { RxCase::Sensitive } else if rg { RxCase::Ascii } else { RxCase::Unicode };
         let mut min = 1usize;
         let mut max = Some(1usize);
@@ -3450,6 +3457,7 @@ fn cmd_rg(
 
     let flags = RxFlags { icase: ignore_case, multiline, dotall: multiline_dotall };
     let mut parsed = Vec::with_capacity(patterns.len());
+    let mut cross_line = false;
     for pattern in &patterns {
         let mut branches = match parse_rx_branches(pattern, fixed_strings, RxDialect::Rg(flags)) {
             Ok(branches) => branches,
@@ -3463,6 +3471,7 @@ fn cmd_rg(
                     case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
             }
         }
+        cross_line |= branches.cross_line;
         parsed.push(branches);
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, !line_regexp && word_regexp, false);
@@ -3512,7 +3521,7 @@ fn cmd_rg(
             null_data: false,
             json_output,
             replace,
-            multiline,
+            multiline: multiline && cross_line,
             show_column,
             ignore_binary: false,
             max_depth,
@@ -4001,8 +4010,8 @@ fn run_grep_engine(
     let mut searches_with_match = 0usize;
 
     let rec_term = if cfg.null_data { '\0' } else { '\n' };
-    let multiline = cfg.multiline && rx.branches.iter().any(|program|
-        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if (matches_char(tok, rec_term, rx.ignore_case) || cfg.is_rg && matches!(tok.atom, RxAtom::Begin | RxAtom::End)))));
+    let multiline = cfg.multiline && (cfg.is_rg || rx.branches.iter().any(|program|
+        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, rx.ignore_case)))));
     for (fname, content, nul_off) in &inputs {
         if nul_off.is_some() && cfg.ignore_binary {
             continue;

@@ -6554,3 +6554,26 @@ test("substitutions use original capture boundaries and count eligible empty mat
     }
   } finally { rs.dispose(); }
 });
+
+test("rg replacements use the captures selected in the original input", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  const pattern = String.raw`'\b(a)|(a)' -r '<$1,$2>'`;
+  try {
+    for (const [cmd, expected] of [
+      [`echo aaa | rg ${pattern}`, "<a,><,a><,a>\n"],
+      [`echo aaa | rg -no ${pattern}`, "1:<a,>\n1:<,a>\n1:<,a>\n"],
+      [`printf 'x\\naaa\\ny\\n' | rg -n -C1 ${pattern}`, "1-x\n2:<a,><,a><,a>\n3-y\n"],
+      [`echo aaa | rg -Uo ${pattern}`, "<a,>\n<,a>\n<,a>\n"],
+      ["echo ba | rg -o -e '(a)' -e '(b)' -r '<$0,$1,$2>'", "<b,,b>\n<a,a,>\n"],
+      ["echo ba | rg -o -e '(?P<one>a)' -e '(?P<two>b)' -r '<$one,$two>'", "<,b>\n<a,>\n"],
+      ["echo a | rg '(a)' -r '${}|${bad-$1}|${1}|$$'", "${}|${bad-a}|a|$\n"],
+    ]) {
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0, "", expected], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

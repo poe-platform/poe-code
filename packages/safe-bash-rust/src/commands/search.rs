@@ -489,7 +489,7 @@ pub fn is_known_command(name: &str) -> bool {
 #[derive(Clone)]
 pub struct ZeroRegex {
     branches: Vec<RxProgram>,
-    first_pattern: String,
+    capture_names: BTreeMap<String, usize>,
     ignore_case: bool,
     word_regexp: bool,
     anchored: bool,
@@ -506,14 +506,18 @@ impl ZeroRegex {
     ) -> Self {
         let mut branches = Vec::new();
         let mut anchored = true;
+        let mut capture_names = BTreeMap::new();
+        let mut group_offset = 0;
         for pat in &patterns {
             let alternatives = parse_rx_branches(pat, fixed_strings);
             anchored &= line_regexp || alternatives.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
             let mut program = RxProgram::new(alternatives);
             if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false })); }
+            for (name, slot) in std::mem::take(&mut program.names) { capture_names.insert(name, group_offset + slot); }
+            group_offset += program.groups;
             branches.push(program);
         }
-        Self { branches, first_pattern: patterns.into_iter().next().unwrap_or_default(), ignore_case,
+        Self { branches, capture_names, ignore_case,
             word_regexp, anchored, first_match: false }
     }
 
@@ -537,13 +541,17 @@ impl ZeroRegex {
         let mut pos = 0;
         let last_start = if self.anchored { 0 } else { hay.len() };
         while pos <= last_start {
+            let mut group_offset = 0;
             let mut matches = self.branches.iter().filter_map(|program| {
+                let base = group_offset;
+                group_offset += program.groups;
                 program.run(&hay, pos, self.ignore_case, self.first_match, capture, |end|
-                    !self.word_regexp || is_word_boundary(&hay, pos, end))
+                    !self.word_regexp || is_word_boundary(&hay, pos, end)).map(|m| (base, m))
             });
-            if let Some(mut m) = if self.first_match { matches.next() } else { matches.max_by_key(|m| m.pos) } {
+            if let Some((base, mut m)) = if self.first_match { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
                 found = true;
                 if capture {
+                    if base > 0 { m.caps.splice(0..0, std::iter::repeat_n(None, base)); }
                     for (lo, hi) in m.caps.iter_mut().flatten() { *lo = byte_at(*lo); *hi = byte_at(*hi); }
                 }
                 if !visit(byte_at(pos), byte_at(m.pos), &m.caps) { break; }
@@ -581,7 +589,7 @@ enum RxAtom {
     Word(bool),
     Space(bool),
     Class { negate: bool, chars: Vec<(char, char)> },
-    Group { alts: Vec<Vec<RxToken>>, capturing: bool },
+    Group { alts: Vec<Vec<RxToken>>, capturing: bool, name: Option<String> },
     Backref(usize),
     Begin,
     End,
@@ -874,14 +882,17 @@ fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
             '(' => {
                 idx += 1;
                 let capturing = !chars[idx..].starts_with(&['?', ':']);
+                let mut name = None;
                 if !capturing {
                     idx += 2;
                 } else if (chars[idx..].starts_with(&['?', 'P', '<']) ||
                     (chars[idx..].starts_with(&['?', '<']) && !matches!(chars.get(idx+2), Some('=' | '!'))))
                     && let Some(end) = chars[idx..].iter().position(|&c| c == '>') {
+                    let start = if chars[idx + 1] == 'P' { 3 } else { 2 };
+                    name = Some(chars[idx + start..idx + end].iter().collect());
                     idx += end + 1;
                 }
-                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), capturing));
+                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), capturing, name));
                 continue;
             }
             '|' => {
@@ -891,9 +902,9 @@ fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
             }
             ')' if !groups.is_empty() => {
                 idx += 1;
-                let (outer, outer_alts, capturing) = groups.pop().unwrap();
+                let (outer, outer_alts, capturing, name) = groups.pop().unwrap();
                 alts.push(std::mem::replace(&mut out, outer));
-                RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), capturing }
+                RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), capturing, name }
             }
             c => {
                 idx += 1;
@@ -954,9 +965,9 @@ fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
             lazy,
         });
     }
-    while let Some((outer, outer_alts, capturing)) = groups.pop() {
+    while let Some((outer, outer_alts, capturing, name)) = groups.pop() {
         alts.push(std::mem::replace(&mut out, outer));
-        let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), capturing };
+        let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), capturing, name };
         out.push(RxToken { atom, min: 1, max: Some(1), lazy: false });
     }
     alts.push(out);
@@ -1037,6 +1048,7 @@ enum RxOp {
 struct RxProgram {
     ops: Vec<RxOp>,
     groups: usize,
+    names: BTreeMap<String, usize>,
     backrefs: bool,
 }
 
@@ -1053,6 +1065,7 @@ impl RxProgram {
         let mut program = Self {
             ops: Vec::new(),
             groups: 0,
+            names: BTreeMap::new(),
             backrefs: false,
         };
         program.compile(alts, true);
@@ -1080,10 +1093,11 @@ impl RxProgram {
                     self.ops.push(RxOp::Repeat { min: tok.min, max: tok.max, lazy: tok.lazy, after: 0 });
                     head
                 });
-                if let RxAtom::Group { alts, capturing } = tok.atom {
+                if let RxAtom::Group { alts, capturing, name } = tok.atom {
                     let slot = self.groups;
                     let open = self.ops.len();
                     if capturing {
+                        if let Some(name) = name { self.names.insert(name, slot); }
                         self.groups += 1;
                         self.ops.push(RxOp::Open { slot, until: slot + 1 });
                     }
@@ -1457,155 +1471,51 @@ pub fn replace_regex_count_in_text(
     (out, replace_count)
 }
 
-fn apply_rg_line_replace(
-    line: &str,
-    spans: &[(usize, usize)],
-    rep: &str,
-    rx: &ZeroRegex,
-    ignore_case: bool,
-) -> String {
-    if spans.is_empty() {
-        return line.to_string();
-    }
-    let pat0 = rx.first_pattern.as_str();
+fn apply_rg_line_replace(line: &str, offset: usize, spans: &[(usize, usize)], replacements: &BTreeMap<usize, String>) -> String {
     let mut out = String::new();
-    let mut last = 0usize;
+    let mut last = 0;
     for &(s, e) in spans {
-        if s < last || e > line.len() {
-            continue;
-        }
         out.push_str(&line[last..s]);
-        let matched_slice = &line[s..e];
-        let caps = regex_captures(&format!("^{pat0}$"), matched_slice, ignore_case)
-            .or_else(|| regex_captures(pat0, matched_slice, ignore_case))
-            .unwrap_or_else(|| vec![matched_slice.to_string()]);
-        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps, pat0));
+        if let Some(replacement) = replacements.get(&(offset + s)) { out.push_str(replacement); }
         last = e;
     }
     out.push_str(&line[last..]);
     out
 }
 
-fn extract_named_capture_groups(pat: &str) -> Vec<(String, usize)> {
-    let chs: Vec<char> = pat.chars().collect();
-    let mut out = Vec::new();
-    let mut idx = 0usize;
-    let mut in_bracket = false;
-    let mut group_num = 0usize;
-    while idx < chs.len() {
-        if chs[idx] == '\\' && idx + 1 < chs.len() {
-            idx += 2;
-            continue;
-        }
-        if chs[idx] == '[' && !in_bracket {
-            in_bracket = true;
-            idx += 1;
-            continue;
-        }
-        if chs[idx] == ']' && in_bracket {
-            in_bracket = false;
-            idx += 1;
-            continue;
-        }
-        if !in_bracket && chs[idx] == '(' {
-            let rest: String = chs[idx + 1..].iter().collect();
-            if rest.starts_with("?:")
-                || rest.starts_with("?=")
-                || rest.starts_with("?!")
-                || rest.starts_with("?<=")
-                || rest.starts_with("?<!")
-            {
-                idx += 1;
-                continue;
-            }
-            group_num += 1;
-            if let Some(after_p) = rest.strip_prefix("?P<").or_else(|| rest.strip_prefix("?<")) {
-                if !after_p.starts_with('=') && !after_p.starts_with('!') {
-                    if let Some(gt) = after_p.find('>') {
-                        let name = &after_p[..gt];
-                        if !name.is_empty() {
-                            out.push((name.to_string(), group_num));
-                        }
-                    }
-                }
-            }
-        }
-        idx += 1;
-    }
-    out
+enum RgReplacementPart<'a> {
+    Literal(&'a str),
+    Match,
+    Group(usize),
 }
 
-fn expand_rg_replacement(replacement: &str, matched_str: &str, caps: &[String], pat0: &str) -> String {
-    let named_groups = extract_named_capture_groups(pat0);
-    let mut out = String::new();
-    let mut chars = replacement.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '$' {
-            match chars.peek().copied() {
-                Some('{') => {
-                    chars.next();
-                    let mut token = String::new();
-                    let mut closed = false;
-                    while let Some(&nc) = chars.peek() {
-                        chars.next();
-                        if nc == '}' {
-                            closed = true;
-                            break;
-                        }
-                        token.push(nc);
-                    }
-                    if !closed {
-                        out.push_str("${");
-                        out.push_str(&token);
-                    } else if token == "0" {
-                        out.push_str(matched_str);
-                    } else if !token.is_empty() && token.chars().all(|ch| ch.is_ascii_digit()) {
-                        if let Ok(n) = token.parse::<usize>()
-                            && let Some(cap) = caps.get(n)
-                        {
-                            out.push_str(cap);
-                        }
-                    } else if let Some((_, gidx)) = named_groups.iter().find(|(nm, _)| nm == &token) {
-                        if let Some(cap) = caps.get(*gidx) {
-                            out.push_str(cap);
-                        }
-                    }
-                }
-                Some(nc) if nc.is_ascii_alphanumeric() || nc == '_' => {
-                    let mut token = String::new();
-                    while let Some(&ch) = chars.peek() {
-                        if ch.is_ascii_alphanumeric() || ch == '_' {
-                            token.push(ch);
-                            chars.next();
-                        } else {
-                            break;
-                        }
-                    }
-                    if token == "0" {
-                        out.push_str(matched_str);
-                    } else if token.chars().all(|ch| ch.is_ascii_digit()) {
-                        if let Ok(n) = token.parse::<usize>()
-                            && let Some(cap) = caps.get(n)
-                        {
-                            out.push_str(cap);
-                        }
-                    } else if let Some((_, gidx)) = named_groups.iter().find(|(nm, _)| nm == &token) {
-                        if let Some(cap) = caps.get(*gidx) {
-                            out.push_str(cap);
-                        }
-                    }
-                }
-                Some('$') => {
-                    chars.next();
-                    out.push('$');
-                }
-                _ => out.push('$'),
-            }
-        } else {
-            out.push(c);
+fn parse_rg_replacement<'a>(mut source: &'a str, names: &BTreeMap<String, usize>) -> Vec<RgReplacementPart<'a>> {
+    use RgReplacementPart::*;
+    let mut parts = Vec::new();
+    while let Some((literal, rest)) = source.split_once('$') {
+        if !literal.is_empty() { parts.push(Literal(literal)); }
+        if let Some(tail) = rest.strip_prefix('$') {
+            parts.push(Literal("$"));
+            source = tail;
+            continue;
+        }
+        let braced = rest.starts_with('{');
+        let key = if braced { &rest[1..] } else { rest };
+        let n = key.bytes().take_while(|c| c.is_ascii_alphanumeric() || *c == b'_').count();
+        if n == 0 || (braced && !key[n..].starts_with('}')) {
+            parts.push(Literal("$"));
+            source = rest;
+            continue;
+        }
+        source = &key[n + usize::from(braced)..];
+        match key[..n].parse::<usize>() {
+            Ok(0) => parts.push(Match),
+            Ok(i) => parts.push(Group(i - 1)),
+            Err(_) => if let Some(&i) = names.get(&key[..n]) { parts.push(Group(i)); },
         }
     }
-    out
+    if !source.is_empty() { parts.push(Literal(source)); }
+    parts
 }
 
 fn json_escape_str(s: &str) -> String {
@@ -3684,6 +3594,11 @@ fn run_grep_engine(
     );
     rx.first_match = cfg.is_rg;
 
+    let replacement = cfg.replace.as_deref()
+        .filter(|_| !(cfg.count_only || cfg.quiet || cfg.json_output || cfg.files_with_matches || cfg.files_without_match || cfg.invert))
+        .map(|rep| parse_rg_replacement(rep, &rx.capture_names));
+    let capture = replacement.iter().flatten().any(|part| matches!(part, RgReplacementPart::Group(_)));
+
     let mut inputs: Vec<(Option<String>, String, Option<usize>)> = Vec::new();
     let mut err = String::new();
     let mut had_error = false;
@@ -3823,8 +3738,24 @@ fn run_grep_engine(
         let mut matched_count = 0usize;
         let mut file_submatch_count = 0usize;
 
+        let mut replacements = BTreeMap::new();
+        let mut find_spans = |subject: &str, offset| {
+            let Some(parts) = &replacement else { return rx.find_all(subject); };
+            let mut spans = Vec::new();
+            rx.scan(subject, capture, |s, e, caps| {
+                let expanded = parts.iter().map(|part| match part {
+                    RgReplacementPart::Literal(text) => *text,
+                    RgReplacementPart::Match => &subject[s..e],
+                    RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or("", |(lo, hi)| &subject[lo..hi]),
+                }).collect();
+                replacements.insert(offset + s, expanded);
+                spans.push((s, e));
+                true
+            });
+            spans
+        };
         if cfg.multiline && !cfg.invert {
-            let full_spans = rx.find_all(content);
+            let full_spans = find_spans(content, 0);
             for (s, e) in full_spans {
                 let mut span_matched = false;
                 let mut first_line = None;
@@ -3868,7 +3799,7 @@ fn run_grep_engine(
                 } else {
                     line
                 };
-                let line_matches = rx.find_all(match_subject);
+                let line_matches = find_spans(match_subject, line_offsets[idx]);
                 let is_matched = if cfg.invert {
                     line_matches.is_empty()
                 } else {
@@ -4028,15 +3959,7 @@ fn run_grep_engine(
             if cfg.multiline {
                 for &(fl, _ll, s, e) in &multiline_spans {
                     let matched_slice = &content[s..e];
-                    let rendered = if let Some(rep) = &cfg.replace {
-                        let pat0 = rx.first_pattern.as_str();
-                        let caps = regex_captures(&format!("^{pat0}$"), matched_slice, cfg.ignore_case)
-                            .or_else(|| regex_captures(pat0, matched_slice, cfg.ignore_case))
-                            .unwrap_or_else(|| vec![matched_slice.to_string()]);
-                        expand_rg_replacement(rep, matched_slice, &caps, pat0)
-                    } else {
-                        matched_slice.to_string()
-                    };
+                    let rendered = replacements.get(&s).map_or(matched_slice, String::as_str);
                     for (chunk_idx, chunk) in rendered.split('\n').enumerate() {
                         if chunk.is_empty() {
                             continue;
@@ -4082,15 +4005,7 @@ fn run_grep_engine(
                         out.push('\t');
                     }
                     let matched_slice = &line[s..e];
-                    if let Some(rep) = &cfg.replace {
-                        let pat0 = rx.first_pattern.as_str();
-                        let caps = regex_captures(&format!("^{pat0}$"), matched_slice, cfg.ignore_case)
-                            .or_else(|| regex_captures(pat0, matched_slice, cfg.ignore_case))
-                            .unwrap_or_else(|| vec![matched_slice.to_string()]);
-                        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps, pat0));
-                    } else {
-                        out.push_str(matched_slice);
-                    }
+                    out.push_str(replacements.get(&(line_off + s)).map_or(matched_slice, String::as_str));
                     out.push(rec_term);
                 }
             }
@@ -4140,8 +4055,8 @@ fn run_grep_engine(
                 if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) {
                     out.push('\t');
                 }
-                let rendered_line = if let (Some(rep), Some(spans)) = (&cfg.replace, match_map.get(&idx)) {
-                    apply_rg_line_replace(lines[idx], spans, rep, &rx, cfg.ignore_case)
+                let rendered_line = if let (Some(_), Some(spans)) = (&cfg.replace, match_map.get(&idx)) {
+                    apply_rg_line_replace(lines[idx], line_offsets[idx], spans, &replacements)
                 } else {
                     lines[idx].to_string()
                 };
@@ -4170,14 +4085,13 @@ fn run_grep_engine(
                 out.push(rec_term);
             }
         } else if cfg.multiline && !cfg.invert && cfg.replace.is_some() {
-            let rep = cfg.replace.as_deref().unwrap_or("");
             for &(fl, ll, s, e) in &multiline_spans {
                 let b_start = line_offsets.get(fl).copied().unwrap_or(0);
                 let b_end = line_offsets.get(ll).copied().unwrap_or(0) + lines.get(ll).map(|l| l.len()).unwrap_or(0);
                 let block_slice = &content[b_start..b_end.min(content.len())];
                 let rel_s = s.saturating_sub(b_start).min(block_slice.len());
                 let rel_e = e.saturating_sub(b_start).min(block_slice.len());
-                let rendered_line = apply_rg_line_replace(block_slice, &[(rel_s, rel_e)], rep, &rx, cfg.ignore_case);
+                let rendered_line = apply_rg_line_replace(block_slice, b_start, &[(rel_s, rel_e)], &replacements);
                 let mut rel_off = 0usize;
                 for (chunk_idx, chunk) in rendered_line.split('\n').enumerate() {
                     if line_show_filename {
@@ -4227,8 +4141,8 @@ fn run_grep_engine(
                 if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) {
                     out.push('\t');
                 }
-                let rendered_line = if let Some(rep) = &cfg.replace {
-                    apply_rg_line_replace(lines[*idx], spans, rep, &rx, cfg.ignore_case)
+                let rendered_line = if cfg.replace.is_some() {
+                    apply_rg_line_replace(lines[*idx], line_offsets[*idx], spans, &replacements)
                 } else {
                     lines[*idx].to_string()
                 };

@@ -2,10 +2,10 @@
 use super::{PdfDoc, PdfPage};
 use std::collections::{BTreeMap, BTreeSet};
 
-#[path = "pdf_copy.rs"]
-mod pdf_copy;
 #[path = "pdf_attachments.rs"]
 pub(super) mod attachments;
+#[path = "pdf_copy.rs"]
+mod pdf_copy;
 pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};
 
 #[path = "pdf_office.rs"]
@@ -21,12 +21,15 @@ mod pdf_render;
 pub(in crate::commands) use pdf_render::image_pdf;
 pub(super) use pdf_render::render_paragraphs;
 
+#[path = "pdf_string.rs"]
+mod pdf_string;
+
 type ObjectId = (usize, usize);
 
 #[derive(Clone)]
 enum Value<'a> {
     Word(&'a [u8]),
-    String(Vec<u8>),
+    String { bytes: Vec<u8>, hex: bool },
     Ref(ObjectId),
     Array(Vec<Value<'a>>),
     Dict(Vec<(&'a [u8], Value<'a>)>),
@@ -155,7 +158,7 @@ impl<'a> Cursor<'a> {
                     b')' => {
                         level -= 1;
                         if level == 0 {
-                            return Some(Value::String(bytes));
+                            return Some(Value::String { bytes, hex: false });
                         }
                     }
                     b'\\' => {
@@ -213,7 +216,8 @@ impl<'a> Cursor<'a> {
             if let Some(h) = high {
                 bytes.push(h)
             }
-            return Some(Value::String(bytes));
+            // pdf-ast stores parsed string bytes in literal form when it rewrites a PDF.
+            return Some(Value::String { bytes, hex: false });
         }
         let word = self.word()?;
         if let Some(id) = uint(word) {
@@ -310,10 +314,10 @@ fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
                 }
                 previous_line = Some((baseline, font_size));
                 match last.take() {
-                    Some(Value::String(b)) => out.push_str(&text(&b)),
+                    Some(Value::String { bytes: b, .. }) => out.push_str(&text(&b)),
                     Some(Value::Array(a)) => {
                         for part in a {
-                            if let Value::String(b) = part {
+                            if let Value::String { bytes: b, .. } = part {
                                 out.push_str(&text(&b));
                             }
                         }
@@ -393,11 +397,11 @@ impl<'a> Objects<'a> {
                     && match (k, &v) {
                         (b"S", Value::Word(w)) => w.starts_with(b"/"),
                         (b"St", Value::Word(w)) => uint(w).is_some(),
-                        (b"P", Value::String(_)) => true,
+                        (b"P", Value::String { .. }) => true,
                         _ => false,
                     }
                 {
-                    if let Value::String(prefix) = &v {
+                    if let Value::String { bytes: prefix, .. } = &v {
                         self.remaining_bytes = self.remaining_bytes.checked_sub(prefix.len())?;
                     }
                     fields.push((k, v));
@@ -534,7 +538,7 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
         .to_string();
     if let Some(Value::Array(ids)) = trailer.get(b"ID") {
         for (id, target) in ids.iter().zip([&mut doc.pdf_id0, &mut doc.pdf_id1]) {
-            if let Value::String(bytes) = id {
+            if let Value::String { bytes, .. } = id {
                 *target = super::hex_enc(bytes);
             }
         }
@@ -543,8 +547,8 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
         && let Value::Dict(info) = objects.object(r)?.0
     {
         for (k, v) in info {
-            if let Value::String(b) = v {
-                let value = text(&b);
+            if let Value::String { bytes: b, .. } = v {
+                let value = pdf_string::decode(&b);
                 match k {
                     b"Title" => doc.title.clone_from(&value),
                     b"Author" => doc.author.clone_from(&value),
@@ -562,7 +566,7 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
             .and_then(uint)
             .unwrap_or(1);
         let prefix = match label.get(b"P") {
-            Some(Value::String(s)) => text(s),
+            Some(Value::String { bytes: s, .. }) => pdf_string::decode(s),
             _ => String::new(),
         };
         let style = match label.get(b"S").and_then(Value::word) {

@@ -255,7 +255,9 @@ impl<'a> PageSource<'a> {
                                 shift(&mut tm, -k * st.size * st.hscale / 1000., 0.);
                                 continue;
                             }
-                            let Value::String(raw) = item else { continue };
+                            let Value::String { bytes: raw, .. } = item else {
+                                continue;
+                            };
                             for &b in raw {
                                 let m = concat(tm, st.ctm);
                                 let scale = m[0].hypot(m[1]);

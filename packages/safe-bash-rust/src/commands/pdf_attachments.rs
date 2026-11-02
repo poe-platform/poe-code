@@ -1,6 +1,10 @@
 // Edit the EmbeddedFiles name tree without rebuilding pages or renumbering
 // existing objects: outlines, annotations and unrelated name trees keep their refs.
-use super::{ObjectId, Objects, Value, index, pdf_copy::encode_value, text};
+use super::{
+    ObjectId, Objects, Value, index,
+    pdf_copy::encode_value,
+    pdf_string::{decode as text, encode as string},
+};
 use std::{collections::BTreeMap, io::Write};
 
 pub(in super::super) struct AddAttachment {
@@ -62,20 +66,6 @@ fn store_child<'a>(
     }
 }
 
-fn string(value: &str) -> Value<'static> {
-    let bytes = value
-        .chars()
-        .map(|c| u8::try_from(u32::from(c)))
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap_or_else(|_| {
-            [0xfe, 0xff]
-                .into_iter()
-                .chain(value.encode_utf16().flat_map(u16::to_be_bytes))
-                .collect()
-        });
-    Value::String(bytes)
-}
-
 impl<'a> Objects<'a> {
     pub(super) fn filespec(
         &mut self,
@@ -93,7 +83,7 @@ impl<'a> Objects<'a> {
             .or_else(|| spec.get(b"F"))
             .and_then(|v| self.resolve(v))
         {
-            Some(Value::String(s)) => s,
+            Some(Value::String { bytes: s, .. }) => s,
             _ => fallback.to_vec(),
         };
         Some((name, stream))
@@ -144,7 +134,7 @@ pub(in super::super) fn edit(
         .enumerate()
     {
         let resolved = match objects.resolve(&key) {
-            Some(Value::String(v)) => text(&v),
+            Some(Value::String { bytes: v, .. }) => text(&v),
             _ => String::new(),
         };
         if i < root_count {
@@ -205,7 +195,7 @@ pub(in super::super) fn edit(
             .enumerate()
         {
             let orig = match src.resolve(&key) {
-                Some(Value::String(v)) => v,
+                Some(Value::String { bytes: v, .. }) => v,
                 _ => format!("att_{}", 2 * i).into_bytes(),
             };
             let Some((filename, id)) = src.filespec(&spec, &orig) else {

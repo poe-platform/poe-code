@@ -3567,6 +3567,10 @@ test("qpdf adds, replaces and removes attachments without losing the PDF object 
       ["base.pdf --copy-attachments-from second.pdf -- --remove-attachment=one --add-attachment b --key=two --replace -- mixed.pdf","/mixed.pdf"],
       ["kept.pdf --list-attachments",null],
       ["first.pdf --show-attachment=thing.bin",null],
+      ["base.pdf --add-attachment a --key=€Œ --filename=雪.bin --description='résumé 🧪' -- unicode.pdf","/unicode.pdf"],
+      ["unicode.pdf --list-attachments",null], ["unicode.pdf --show-attachment=€Œ",null],
+      ["base.pdf --copy-attachments-from unicode.pdf --prefix=雪 -- copied-unicode.pdf","/copied-unicode.pdf"],
+      ["copied-unicode.pdf --remove-attachment=雪€Œ removed.pdf","/removed.pdf"],
       ["base.pdf --add-attachment missing -- bad.pdf",null],
     ]) {
       const script = "qpdf "+args, a = await shell.exec(script), b = await wasm.exec(script);

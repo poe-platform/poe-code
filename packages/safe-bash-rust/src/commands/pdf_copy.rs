@@ -94,15 +94,21 @@ impl<'a> PageSource<'a> {
         ] {
             let field = match meta.get(key) {
                 Some(Value::Ref(id)) => Some(objects.object(*id)?.0),
-                Some(Value::String(s)) => Some(Value::String(s.clone())),
+                Some(v @ Value::String { .. }) => Some(v.clone()),
                 _ => None,
             };
-            if let Some(Value::String(s)) = field
+            if let Some(Value::String { bytes: s, hex }) = field
                 && !s.is_empty()
             {
-                info.push((key, Value::String(s)));
+                info.push((key, Value::String { bytes: s, hex }));
             } else if key == b"Producer" {
-                info.push((key, Value::String(b"@poe-code/pdf-ast".to_vec())));
+                info.push((
+                    key,
+                    Value::String {
+                        bytes: b"@poe-code/pdf-ast".to_vec(),
+                        hex: false,
+                    },
+                ));
             }
         }
         Some(Self {
@@ -126,7 +132,7 @@ impl<'a> PageSource<'a> {
         let mut specs = Vec::new();
         for (key, spec) in pairs {
             let name = match self.objects.resolve(&key) {
-                Some(Value::String(bytes)) => bytes,
+                Some(Value::String { bytes, .. }) => bytes,
                 _ if qpdf => format!("att_{}", specs.len() * 2).into_bytes(),
                 _ => format!("attachment_{}", specs.len() + 1).into_bytes(),
             };
@@ -187,10 +193,12 @@ impl<'a> PageSource<'a> {
         }
         let mut files = Vec::new();
         for (fallback, spec) in specs {
-            let Some((name,stream)) = self.objects.filespec(&spec,&fallback) else {continue;};
+            let Some((name, stream)) = self.objects.filespec(&spec, &fallback) else {
+                continue;
+            };
             self.objects.remaining_bytes = self.objects.remaining_bytes.checked_sub(name.len())?;
             let key = if qpdf {
-                super::text(if fallback.is_empty() {
+                super::pdf_string::decode(if fallback.is_empty() {
                     &name
                 } else {
                     &fallback
@@ -217,7 +225,7 @@ impl<'a> PageSource<'a> {
             if !seen.insert(file.key.clone()) {
                 continue;
             }
-            let filename = super::text(&file.filename);
+            let filename = super::pdf_string::decode(&file.filename);
             if let Some(key) = show {
                 if key == file.key || key == filename {
                     return Some(Some(crate::vfs::bytes_to_stream_string(
@@ -241,7 +249,7 @@ impl<'a> PageSource<'a> {
             ..
         } in self.attachments(false)?
         {
-            let name = super::text(&name);
+            let name = super::pdf_string::decode(&name);
             if seen.insert(name.clone()) {
                 result.push((name, self.objects.decoded_stream(id)?.into_owned()));
             }
@@ -322,7 +330,10 @@ impl PageOutput {
                 ..
             } in source.attachments(false)?
             {
-                if !self.attachment_names.insert(super::text(&name)) {
+                if !self
+                    .attachment_names
+                    .insert(super::pdf_string::decode(&name))
+                {
                     continue;
                 }
                 let bytes = source.objects.decoded_stream(id)?;
@@ -532,7 +543,15 @@ pub(super) fn encode_value(
     }
     match value {
         Value::Word(w) => out.extend_from_slice(w),
-        Value::String(s) => literal(s, out),
+        Value::String { bytes, hex: false } => literal(bytes, out),
+        Value::String { bytes, hex: true } => {
+            const HEX: &[u8; 16] = b"0123456789ABCDEF";
+            out.push(b'<');
+            for b in bytes {
+                out.extend_from_slice(&[HEX[(b >> 4) as usize], HEX[(b & 15) as usize]]);
+            }
+            out.push(b'>');
+        }
         Value::Array(items) => {
             out.extend_from_slice(b"[ ");
             for item in items {
@@ -565,6 +584,7 @@ pub(super) fn literal(s: &[u8], out: &mut Vec<u8>) {
                 out.push(b'\\');
                 out.push(b);
             }
+            b'\t' => out.extend_from_slice(b"\\t"),
             b'\r' => out.extend_from_slice(b"\\r"),
             b'\n' => out.extend_from_slice(b"\\n"),
             _ => out.push(b),

@@ -1,4 +1,4 @@
-use super::{Value, index, last_xref, pdf_copy::literal, text, uint};
+use super::{Value, index, last_xref, pdf_copy::literal, pdf_string::decode, uint};
 use std::io::Write;
 
 pub(in super::super) const INFO_TAGS: &[&str] = &[
@@ -40,11 +40,11 @@ pub(in super::super) fn edit_info(
                 b"ModDate" => "ModifyDate",
                 _ => std::str::from_utf8(k).unwrap_or(""),
             };
-            if let Value::String(value) = v
+            if let Value::String { bytes: value, .. } = v
                 && INFO_TAGS.contains(&key)
                 && !info.iter().any(|(k, _)| *k == key)
             {
-                info.push((key, text(&value)));
+                info.push((key, decode(&value)));
             }
         }
     }

@@ -59,7 +59,7 @@ impl<'a> FontTable<'_, 'a> {
             .and_then(|v| self.objects.resolve(v));
         let font = match base {
             Some(Value::Word(w)) if w.starts_with(b"/") => name(&w[1..]),
-            Some(Value::String(bytes)) => super::super::text(&bytes),
+            Some(Value::String { bytes, .. }) => super::super::text(&bytes),
             _ => "[none]".into(),
         };
         let subtype = self.field(&dict, b"Subtype").and_then(|v| v.word());

@@ -16078,6 +16078,20 @@ hash -l
     }
 
     #[test]
+    fn tr_validates_arguments_before_input_and_preserves_squeeze_state_across_reads() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let data = format!("{}aabb", "a".repeat(65536));
+        fs.write_file("/data", data.as_bytes()).unwrap();
+        let r = shell.exec("tr -s ab AB </data").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "AB", ""));
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 4, ..Default::default() });
+        let r = shell.exec("tr -s ab AB </data").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "A", "tr: EFBIG: file too large, read '/data'\n"));
+        let r = shell.exec("{ tr --wrong; echo $?; head -c1; } </data").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "2\na", "tr: unrecognized option '--wrong'\n"));
+    }
+
+    #[test]
     fn cut_emits_complete_records_before_read_errors_and_continues_with_later_files() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         fs.write_file("/big", b"ab\ncd\nefghij").unwrap();

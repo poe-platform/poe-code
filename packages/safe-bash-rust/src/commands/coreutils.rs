@@ -42,7 +42,7 @@ fn coreutil(
         "sort" => cmd_sort(args, input, cwd, env, fs),
         "uniq" => cmd_uniq(args, input, cwd, env, fs),
         "cut" => cmd_cut(args, input, cwd, env, fs),
-        "tr" => cmd_tr(args, input.buffered()?),
+        "tr" => cmd_tr(args, input),
         "nl" => cmd_nl(args, input.buffered()?, cwd, fs),
         "tac" => cmd_tac(args, input.buffered()?, cwd, fs),
         "rev" => cmd_rev(args, input.buffered()?, cwd, env, fs),
@@ -366,16 +366,19 @@ fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs) -> Resul
 }
 
 impl CommandInput<'_> {
+    fn read_stdin(&mut self, mut consume: impl FnMut(&[u8]) -> bool) -> Result<(), String> {
+        if let Some(source) = self.file {
+            source.read(self.text, usize::MAX, |chunk, _| Ok((consume(chunk), chunk.len())))
+        } else {
+            consume(&take_stdin_bytes(self.text));
+            Ok(())
+        }
+    }
+
     fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs,
         mut consume: impl FnMut(&[u8]) -> bool,
     ) -> Result<(), String> {
-        if name == "-" {
-            if let Some(source) = self.file {
-                return source.read(self.text, usize::MAX, |chunk, _| Ok((consume(chunk), chunk.len())));
-            }
-            consume(&take_stdin_bytes(self.text));
-            return Ok(());
-        }
+        if name == "-" { return self.read_stdin(consume); }
         let mut next = open_record_input(name, cwd, fs)?;
         let mut chunk = Vec::new();
         loop {
@@ -411,15 +414,7 @@ impl CommandInput<'_> {
     }
 
     pub(super) fn append_bytes(&mut self, output: &mut Vec<u8>) -> Result<(), String> {
-        if let Some(source) = self.file {
-            source.read(self.text, usize::MAX, |chunk, _| {
-                output.extend_from_slice(chunk);
-                Ok((true, chunk.len()))
-            })
-        } else {
-            output.extend(take_stdin_bytes(self.text));
-            Ok(())
-        }
+        self.read_stdin(|chunk| { output.extend_from_slice(chunk); true })
     }
 }
 
@@ -2988,7 +2983,7 @@ fn parse_tr_character_set(
     })
 }
 
-fn cmd_tr(args: &[String], stdin: &mut String) -> BuiltinOutcome {
+fn cmd_tr(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
     let mut deleting = false;
     let mut squeezing = false;
     let mut complement = false;
@@ -3108,21 +3103,23 @@ fn cmd_tr(args: &[String], stdin: &mut String) -> BuiltinOutcome {
         }
     }
 
-    let raw_in = take_stdin_bytes(stdin);
-    let mut out_bytes: Vec<u8> = Vec::with_capacity(raw_in.len());
-    let mut prev_out: Option<u8> = None;
-    for &b in &raw_in {
-        if deleting && removed[b as usize] {
-            continue;
+    let mut out_bytes = Vec::new();
+    let mut prev_out = None;
+    let result = stdin.read_stdin(|chunk| {
+        for &b in chunk {
+            if removed[b as usize] { continue; }
+            let mapped = mapping[b as usize];
+            if squeezed[mapped as usize] && prev_out == Some(mapped) { continue; }
+            prev_out = Some(mapped);
+            out_bytes.push(mapped);
         }
-        let mapped = mapping[b as usize];
-        if squeezing && squeezed[mapped as usize] && prev_out == Some(mapped) {
-            continue;
-        }
-        prev_out = Some(mapped);
-        out_bytes.push(mapped);
+        true
+    });
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        exit_code: i32::from(result.is_err()),
+        stderr: result.err().map_or_else(String::new, |e| format!("tr: {e}\n")),
     }
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
 fn validate_nl_style(s: &str) -> Result<(), String> {

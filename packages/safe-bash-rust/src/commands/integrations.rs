@@ -918,6 +918,29 @@ fn generate_recipe_password(spec: Option<&str>, seq: u64) -> String {
     out
 }
 
+fn mask_op_output(out: &mut BuiltinOutcome, secrets: &[String]) {
+    let mut patterns: Vec<_> = secrets.iter().filter(|s| !s.is_empty())
+        .map(|s| stream_string_to_bytes(s)).collect();
+    if patterns.is_empty() { return; }
+    patterns.sort_unstable_by_key(|p| std::cmp::Reverse(p.len()));
+    for stream in [&mut out.stdout, &mut out.stderr] {
+        if stream.is_empty() { continue; }
+        let bytes = stream_string_to_bytes(stream);
+        let mut rest = bytes.as_slice();
+        let mut masked = Vec::with_capacity(rest.len());
+        while !rest.is_empty() {
+            if let Some(pattern) = patterns.iter().find(|p| rest.starts_with(p)) {
+                masked.extend_from_slice(b"<concealed by 1Password>");
+                rest = &rest[pattern.len()..];
+            } else {
+                masked.push(rest[0]);
+                rest = &rest[1..];
+            }
+        }
+        *stream = bytes_to_stream_string(&masked);
+    }
+}
+
 fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, String> {
     resolve_op_reference_with_kind(st, uri).map(|(v, _)| v)
 }
@@ -3414,12 +3437,7 @@ where
 
             let mut out = exec_sub(sub_words, stdin, cwd, &mut child_env);
             if !no_masking {
-                for sec in &secrets {
-                    if !sec.is_empty() {
-                        out.stdout = out.stdout.replace(sec, "<concealed by 1Password>");
-                        out.stderr = out.stderr.replace(sec, "<concealed by 1Password>");
-                    }
-                }
+                mask_op_output(&mut out, &secrets);
             }
             out
         }
@@ -3735,10 +3753,7 @@ where
                             }
                             let mut out = exec_sub(&pos_args[1..], stdin, cwd, &mut child_env);
                             if !no_masking {
-                                for sec in &secrets {
-                                    out.stdout = out.stdout.replace(sec, "<concealed by 1Password>");
-                                    out.stderr = out.stderr.replace(sec, "<concealed by 1Password>");
-                                }
+                                mask_op_output(&mut out, &secrets);
                             }
                             return out;
                         }

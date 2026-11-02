@@ -7465,3 +7465,24 @@ test("op read rejects non-ASCII scheme prefixes and op run stops on unresolved r
     }
   } finally { rs.dispose(); }
 });
+
+test("op masks the longest original byte match in run and snapshot child output", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const fields = ["A=text", "B=text-end", "C=concealed", "D=é"];
+  const setup = "op vault create Demo >/dev/null; op item create --vault Demo --category login --title Item " + fields.join(" ") + " >/dev/null";
+  const refs = fields.map(field => field[0] + "=op://Demo/Item/" + field[0]).join(" ");
+  try {
+    for (const cmd of [setup, fields.join(" ") + " op environment snapshot create demo --vars A,B,C,D >/dev/null"]) {
+      for (const sh of [js, rs]) { const r = await sh.exec(cmd); assert.equal(r.exitCode, 0, r.stderr); }
+    }
+    for (const prefix of [refs + " op run", "op environment snapshot restore demo"]) {
+      for (const option of ["", " --no-masking"]) {
+        const cmd = prefix + option + ' -- sh -c \'printf "\\377text-endétext"; echo concealedtext-end >&2; exit 3\'';
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, [...b.stdoutBytes], [...b.stderrBytes]], [a.exitCode, [...a.stdoutBytes], [...a.stderrBytes]], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

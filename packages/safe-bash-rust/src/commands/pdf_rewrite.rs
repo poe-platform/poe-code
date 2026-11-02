@@ -84,7 +84,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub compress_streams: Option<bool>,
     pub decrypt: bool,
     pub linearize: bool,
-    pub inline_images: Option<(usize,bool)>,
+    pub inline_images: Option<(u64,bool)>,
     pub prune_resources: bool,
     pub flatten_rotation: bool,
     pub flatten_annotations: Option<&'a str>,

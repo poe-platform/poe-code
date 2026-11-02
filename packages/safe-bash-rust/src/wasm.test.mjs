@@ -5219,13 +5219,20 @@ test("qpdf externalizes inline images above the size threshold without splitting
   const input=d.save(),fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":input}});
   try{
     await fs.writeFile("/in",input);
-    for(const flags of ["--ii-min-bytes=3","--ii-min-bytes=8 --remove-unreferenced-resources","--ii-min-bytes=1 --stream-data=uncompress --normalize-content=n","--ii-min-bytes=2 --qdf --split-pages",""]){
+    for(const flags of ["--ii-min-bytes=-0tail","--ii-min-bytes=\ufeff1","--ii-min-bytes=\u00851","--ii-min-bytes=1 --ii-min-bytes="+"9".repeat(310),"--ii-min-bytes=9007199254740991","--ii-min-bytes=3","--ii-min-bytes=8 --remove-unreferenced-resources","--ii-min-bytes=1 --stream-data=uncompress --normalize-content=n","--ii-min-bytes=2 --qdf --split-pages",""]){
       const cmd="qpdf in --externalize-inline-images "+flags+" out.pdf";
       for(const sh of [js,rs]){const r=await sh.exec(cmd);assert.equal(r.exitCode,0,cmd+": "+r.stderr);}
       for(const path of flags.includes("--split-pages")?["/out-1.pdf","/out-2.pdf"]:["/out.pdf"]){
         const e=await fs.readFile(path),r=await rs.fs.readFile(path);
         assert.ok(Buffer.from(r).equals(e),cmd+" first different byte "+e.findIndex((v,i)=>v!==r[i]));
       }
+    }
+    for(const flags of ["out.pdf","--json","--show-pages"]){
+      const cmd="qpdf in --externalize-inline-images --ii-min-bytes=9007199254740992 "+flags;
+      const before=await rs.fs.readFile("/out.pdf");
+      const e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stderr,r.stdout],[e.exitCode,e.stderr,e.stdout],cmd);
+      assert.deepEqual(await rs.fs.readFile("/out.pdf"),before);
     }
     for(const flags of ["--json=1 --json-stream-data=inline","--json=2 --json-stream-data=file --json-stream-prefix=p-"]){
       const cmd="qpdf in --externalize-inline-images --ii-min-bytes=1 "+flags;

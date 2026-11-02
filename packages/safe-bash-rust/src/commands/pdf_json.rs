@@ -112,7 +112,7 @@ impl<'a> PageSource<'a> {
     pub(in crate::commands::archive) fn qpdf_json(
         &mut self,
         version: u32,
-        inline_images:Option<(usize,bool)>,
+        inline_images:Option<(u64,bool)>,
         page_list: bool,
         selectors: &[Option<ObjectId>],
         mode: &str,

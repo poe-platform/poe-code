@@ -61,9 +61,10 @@ impl<'a> LayerState<'a> {
         bodies: &mut BTreeMap<ObjectId, Vec<u8>>,
         next: &mut usize,
         left: &mut usize,
-        minimum: usize,
+        minimum: u64,
         compress: bool,
     ) -> Result<BTreeMap<ObjectId, Value<'static>>, String> {
+        if minimum >= 1 << 53 { return Err("invalid inline-image minimum size".into()); }
         // PDF serialization supplies the physical length. JSON reports the
         // original dictionary, even when an inline image specifies /Length.
         let mut lengths = BTreeMap::new();
@@ -88,7 +89,7 @@ impl<'a> LayerState<'a> {
             let mut modified = false;
             let mut bytes =
                 serialize_content(&data, true, &mut o.tokens, *left, |entries, pixels| {
-                    if pixels.len() < minimum {
+                    if (pixels.len() as u64) < minimum {
                         return Ok(None);
                     }
                     let name = loop {

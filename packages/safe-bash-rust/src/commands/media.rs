@@ -1666,7 +1666,7 @@ fn read_office_source(
 
 // Number.parseInt(value, 10) consumes just a signed decimal prefix.
 fn qpdf_decimal(s: &str) -> Option<f64> {
-    let s = s.trim_start();
+    let s = s.trim_start_matches(|c: char| c == '\u{feff}' || c != '\u{85}' && c.is_whitespace());
     let digits = s.strip_prefix(['-', '+']).unwrap_or(s);
     let count = digits.bytes().take_while(u8::is_ascii_digit).count();
     (count > 0)
@@ -6623,9 +6623,9 @@ fn cmd_media_doc(
                 }
                 if a=="--externalize-inline-images" {externalize_inline=true;i+=1;continue;}
                 if let Some(s)=a.strip_prefix("--ii-min-bytes="){
-                    let s=s.trim_start();let s=s.strip_prefix('+').unwrap_or(s);
-                    let end=s.find(|c:char|!c.is_ascii_digit()).unwrap_or(s.len());
-                    if end>0 {ii_min_bytes=s[..end].parse().unwrap_or(usize::MAX);}
+                    if let Some(n) = qpdf_decimal(s).filter(|n| n.is_finite() && *n >= 0.) {
+                        ii_min_bytes = n as u64;
+                    }
                     i+=1;continue;
                 }
                 if a == "--remove-unreferenced-resources" || a.starts_with("--remove-unreferenced-resources=") {
@@ -7242,7 +7242,7 @@ fn cmd_media_doc(
                             return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                         }
                         let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                            .map_err(|e| if matches!(e.as_str(), "invalid page rotation" | "invalid page label" | "invalid PDF resource stream" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
+                            .map_err(|e| if matches!(e.as_str(), "invalid inline-image minimum size" | "invalid page rotation" | "invalid page label" | "invalid PDF resource stream" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
                                 else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
                                 else {err_out(&format!("qpdf: {e}\n"),2)});
                         if let Some(group) = edits.split_pages {

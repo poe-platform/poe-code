@@ -114,7 +114,7 @@ impl FsError {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RedirectAccess { Truncate, Append, ReadWrite }
+pub enum RedirectAccess { Truncate, Append, Exclusive, ReadWrite }
 
 /// An opened regular file. Its operations use the same object even if its name is replaced.
 pub trait OpenRedirectFile: std::fmt::Debug {
@@ -140,9 +140,12 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     /// None uses the filesystem’s path-based output or special-device operations.
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, _create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
+    fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
         if access == RedirectAccess::ReadWrite { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }
-        else { Ok(None) }
+        else {
+            if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
+            Ok(None)
+        }
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;

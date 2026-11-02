@@ -144,6 +144,29 @@ mod tests {
         fs.write_file("/another", b"four").unwrap();
     }
     #[test]
+    fn exclusive_output_acquisition_cannot_truncate_another_openers_file() {
+        use crate::vfs::RedirectAccess;
+        let fs = MemoryVfs::new();
+        let start = std::sync::Barrier::new(2);
+        std::thread::scope(|scope| {
+            let open = || {
+                start.wait();
+                match fs.open_redirect_file("/output", RedirectAccess::Exclusive, 0o600) {
+                    Ok(Some(fd)) => { fd.write_at(Some(0), b"winner").unwrap(); true }
+                    Err(e) if e.starts_with("EEXIST:") => false,
+                    other => panic!("{other:?}"),
+                }
+            };
+            let other = scope.spawn(open);
+            assert_ne!(open(), other.join().unwrap());
+        });
+        assert_eq!(fs.read_file("/output").unwrap(), b"winner");
+        fs.symlink("/missing", "/link").unwrap();
+        assert!(fs.open_redirect_file("/link", RedirectAccess::Exclusive, 0o600).unwrap_err().starts_with("EEXIST:"));
+        assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
     fn unlinked_file_remains_charged_until_last_close() {
         let fs = MemoryVfs::new();
         fs.set_max_total_bytes(7);

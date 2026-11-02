@@ -73,6 +73,20 @@ test("cat enforces its input quota per regular file, including later chunks", as
   } finally { bash.dispose(); }
 });
 
+test("noclobber checks the final name without replacing files or following dangling links", async () => {
+  for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
+    const bash = new RustWasmBash({profile, files:{"/dir/file":"original"}, symlinks:{"/dangling":"/absent", "/cycle":"/cycle", "/alias":"/dir"}});
+    try {
+      for (const target of ["/dir/file", "/dir", "/dangling", "/cycle", "/alias"]) {
+        const r = await bash.exec("set -C; echo changed >" + target);
+        assert.deepEqual([r.exitCode, r.stderr], [1, `shell: line 1: ${target}: cannot overwrite existing file\n`], profile);
+      }
+      const r = await bash.exec("set -C; printf new >/alias/new; cat /dir/new /dir/file; test ! -e /absent");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "neworiginal", ""]);
+    } finally { bash.dispose(); }
+  }
+});
+
 test("cat checks access before reading aliases and preserves each filesystem's path errors", async () => {
   for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
     const bash = new RustWasmBash({ profile, files: {

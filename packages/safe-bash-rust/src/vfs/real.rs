@@ -238,9 +238,10 @@ impl SafeBashFs for RealVfs {
     }
 
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
-        let host = self.walk(&self.root, path, Walk::Follow, false)?;
+        let exclusive = access == super::RedirectAccess::Exclusive;
+        let host = self.walk(&self.root, path, if exclusive { Walk::RenameEntry } else { Walk::Follow }, false)?;
         let mut options = std::fs::OpenOptions::new();
-        options.read(access == super::RedirectAccess::ReadWrite).write(true).create(true)
+        options.read(access == super::RedirectAccess::ReadWrite).write(true).create(true).create_new(exclusive)
             .append(access == super::RedirectAccess::Append).truncate(access == super::RedirectAccess::Truncate);
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode);

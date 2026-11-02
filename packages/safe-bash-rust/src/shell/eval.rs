@@ -9173,14 +9173,31 @@ impl<'a> EvalState<'a> {
 
     fn open_output_target(&self, operand: &str, kind: &RedirectKind) -> Result<FdTarget, BuiltinOutcome> {
         use crate::vfs::RedirectAccess;
-        let path = self.output_redirect_path(operand, kind)?;
         let append = matches!(kind, RedirectKind::Append(_) | RedirectKind::BothAppend);
-        let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        let exclusive = self.noclobber && !append && !matches!(kind, RedirectKind::Clobber(_));
+        let access = if exclusive { RedirectAccess::Exclusive } else if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
         let mode = self.redirect_create_mode();
-        let error = |e: String| self.redirect_error(operand, &e);
+        let error = |e: String| {
+            if exclusive && e.starts_with("EEXIST:") { self.redirect_error(operand, "cannot overwrite existing file") }
+            else if exclusive && (e.starts_with("EBUSY:") || e.starts_with("ENOTSUP:")) {
+                BuiltinOutcome { stdout: String::new(), stderr: format!("{}{e}\n", self.diag_prefix()), exit_code: 1 }
+            } else { self.redirect_error(operand, &e) }
+        };
+        let path = if exclusive {
+            let raw = crate::vfs::path::absolute_operand(self.cwd, operand);
+            let entry = self.fs.access_path(&raw, false).map_err(error)?;
+            // Only device links may be followed under noclobber. Leave a dangling or
+            // looping final link in place so exclusive acquisition reports EEXIST.
+            match self.fs.inspect_command_entry(&entry, true, "stat") {
+                Ok((path, st)) if st.mode & 0o170000 == 0o020000 => path,
+                Ok(_) => entry,
+                Err(e) if e.starts_with("ENOENT:") || e.starts_with("ELOOP:") || e.ends_with("(os error 2)") => entry,
+                Err(e) => return Err(error(e)),
+            }
+        } else { self.output_redirect_path(operand, kind)? };
         let file = if self.is_default_null(&path) { None } else {
             let file = self.fs.open_redirect_file(&path, access, mode).map_err(error)?;
-            if file.is_none() {
+            if file.is_none() && !exclusive {
                 let existed = self.fs.exists(&path);
                 if !append || !existed {
                     self.fs.write_file(&path, b"").map_err(error)?;
@@ -9232,13 +9249,6 @@ impl<'a> EvalState<'a> {
             Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
             Err(e) => return Err(error(&e)),
         };
-        if self.noclobber && matches!(kind, RedirectKind::Out(_) | RedirectKind::BothOut | RedirectKind::DupOut { .. }) {
-            let blocked = match &stat {
-                Some(st) => st.kind != crate::vfs::VfsEntryKind::Directory && st.mode & 0o170000 != 0o020000,
-                None => self.fs.lstat(&operand).is_ok(),
-            };
-            if blocked { return Err(error("cannot overwrite existing file")); }
-        }
         if let Some(st) = stat {
             if st.kind == crate::vfs::VfsEntryKind::Directory { return Err(error("EISDIR")); }
             let required = if matches!(kind, RedirectKind::ReadWrite(_)) { 0o600 } else { 0o200 };

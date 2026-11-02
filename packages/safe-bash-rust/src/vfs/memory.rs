@@ -735,8 +735,14 @@ impl SafeBashFs for MemoryVfs {
     fn memory_backend(&self) -> Option<&MemoryVfs> { Some(self) }
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
-        let entry = Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?;
-        if state.devices.entry(&entry).is_some() { return Ok(None); }
+        let exclusive = access == super::RedirectAccess::Exclusive;
+        let entry = if exclusive { Self::mutation_entry(&state, path)? } else {
+            Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?
+        };
+        if state.devices.entry(&entry).is_some_and(|name| !name.is_empty()) { return Ok(None); }
+        if exclusive && (state.nodes.contains_key(&entry) || state.devices.entry(&entry).is_some()) {
+            return Err("EEXIST: file already exists".into());
+        }
         let ino = match state.nodes.get(&entry) {
             Some(&MemoryNode::File { ino }) => {
                 let required = if access == super::RedirectAccess::ReadWrite { 0o600 } else { 0o200 };

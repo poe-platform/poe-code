@@ -70,7 +70,11 @@ impl SafeBashFs for MountVfs {
     }
 
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
-        let (fs, local) = self.route(path, true)?;
+        let exclusive = access == super::RedirectAccess::Exclusive;
+        if exclusive && (path == "/" || self.mounts.contains_key(path)) {
+            return Err(format!("EBUSY: resource busy or locked, open '{path}'"));
+        }
+        let (fs, local) = self.route(path, !exclusive)?;
         fs.open_redirect_file(&local, access, create_mode)
     }
 

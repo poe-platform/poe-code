@@ -11569,7 +11569,7 @@ fn fold_char_width(cp: u32) -> usize {
         return 0;
     }
     if cp < 32 || (cp >= 0x7f && cp < 0xa0) {
-        return 0;
+        return 1;
     }
     if (0x0300..=0x036f).contains(&cp)
         || (0x1ab0..=0x1aff).contains(&cp)
@@ -11755,64 +11755,68 @@ fn cmd_fold(
         let mut line_buf: Vec<u8> = Vec::new();
         let mut col = 0u64;
         let mut last_blank: Option<usize> = None;
-        let mut consume = |raw_in: &[u8], eof: bool| {
-            let mut off = 0usize;
-            while off < raw_in.len() {
-                if raw_in[off] == b'\n' {
+        let mut consume = |unit_slice: &[u8], cp: u32, valid: bool, direct: bool| {
+            if cp == 10 {
+                out_bytes.extend_from_slice(&line_buf);
+                out_bytes.push(b'\n');
+                line_buf.clear();
+                col = 0;
+                last_blank = None;
+                return;
+            }
+            // The original admits a direct ASCII NUL as one column when it
+            // fits. On overflow, or when drained by the decoder, it uses wcwidth.
+            if cp == 0 && direct && col < width {
+                col += 1;
+                line_buf.push(0);
+                return;
+            }
+            while adjust_col(col, cp, unit_slice.len(), valid) > width && !line_buf.is_empty() {
+                if break_spaces && let Some(lb) = last_blank {
+                    out_bytes.extend_from_slice(&line_buf[..lb]);
+                    out_bytes.push(b'\n');
+                    line_buf.drain(..lb);
+                    col = 0;
+                    last_blank = None;
+                    let mut roff = 0usize;
+                    while roff < line_buf.len() {
+                        let (rcp, rulen, rvalid) = decode_fold_unit(&line_buf[roff..], utf8, true).unwrap();
+                        col = if rcp == 0 { col + 1 } else { adjust_col(col, rcp, rulen, rvalid) };
+                        roff += rulen;
+                        if rcp == 32 || rcp == 9 {
+                            last_blank = Some(roff);
+                        }
+                    }
+                } else {
                     out_bytes.extend_from_slice(&line_buf);
                     out_bytes.push(b'\n');
                     line_buf.clear();
                     col = 0;
                     last_blank = None;
-                    off += 1;
-                    continue;
-                }
-                let Some((cp, ulen, valid)) = decode_fold_unit(&raw_in[off..], utf8, eof) else { break };
-                let unit_slice = &raw_in[off..off + ulen];
-                off += ulen;
-
-                while adjust_col(col, cp, ulen, valid) > width && !line_buf.is_empty() {
-                    if break_spaces && let Some(lb) = last_blank {
-                        out_bytes.extend_from_slice(&line_buf[..lb]);
-                        out_bytes.push(b'\n');
-                        line_buf.drain(..lb);
-                        col = 0;
-                        last_blank = None;
-                        let mut roff = 0usize;
-                        while roff < line_buf.len() {
-                            let (rcp, rulen, rvalid) = decode_fold_unit(&line_buf[roff..], utf8, true).unwrap();
-                            col = adjust_col(col, rcp, rulen, rvalid);
-                            roff += rulen;
-                            if rcp == 32 || rcp == 9 {
-                                last_blank = Some(roff);
-                            }
-                        }
-                    } else {
-                        out_bytes.extend_from_slice(&line_buf);
-                        out_bytes.push(b'\n');
-                        line_buf.clear();
-                        col = 0;
-                        last_blank = None;
-                    }
-                }
-                col = adjust_col(col, cp, ulen, valid);
-                line_buf.extend_from_slice(unit_slice);
-                if break_spaces && (cp == 32 || cp == 9) {
-                    last_blank = Some(line_buf.len());
                 }
             }
-            off
+            col = adjust_col(col, cp, unit_slice.len(), valid);
+            line_buf.extend_from_slice(unit_slice);
+            if break_spaces && (cp == 32 || cp == 9) {
+                last_blank = Some(line_buf.len());
+            }
         };
-        let mut prefix = Vec::new();
+        let mut pending = [0u8; 4];
+        let mut len = 0;
         let result = stdin.read_operand(f, cwd, fs, true, |chunk| {
-            if prefix.is_empty() {
-                let used = consume(chunk, false);
-                prefix.extend_from_slice(&chunk[used..]);
-            } else {
-                let mut joined = std::mem::take(&mut prefix);
-                joined.extend_from_slice(chunk);
-                let used = consume(&joined, false);
-                prefix.extend_from_slice(&joined[used..]);
+            for byte in chunk {
+                if len == 0 && (!utf8 || byte.is_ascii()) {
+                    consume(std::slice::from_ref(byte), u32::from(*byte), byte.is_ascii(), true);
+                    continue;
+                }
+                pending[len] = *byte;
+                len += 1;
+                while len != 0 {
+                    let Some((cp, used, valid)) = decode_fold_unit(&pending[..len], true, false) else { break };
+                    consume(&pending[..used], cp, valid, false);
+                    pending.copy_within(used..len, 0);
+                    len -= used;
+                }
             }
             true
         });
@@ -11821,7 +11825,9 @@ fn cmd_fold(
             exit_code = 1;
             continue;
         }
-        consume(&prefix, true);
+        for byte in &pending[..len] {
+            consume(std::slice::from_ref(byte), u32::from(*byte), false, false);
+        }
         if !line_buf.is_empty() {
             out_bytes.extend_from_slice(&line_buf);
         }
@@ -21448,6 +21454,14 @@ mod tests {
 
         let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
         assert_eq!(tr.stdout, "HELLO");
+    }
+
+    #[test]
+    fn fold_counts_controls_and_keeps_decoder_buffered_nuls_with_their_record() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/bytes", b"x\x01x\nx\0xx\nxx\0x\n\xe1\x81\0x\nx\xc2\x85x\n").unwrap();
+        let result = try_run_coreutil("fold", &args(&["-w2", "/bytes"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(crate::vfs::stream_string_to_bytes(&result.stdout), b"x\x01\nx\nx\0\nxx\nxx\0\nx\n\xe1\x81\0\nx\nx\xc2\x85\nx\n");
     }
 
     #[test]

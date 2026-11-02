@@ -160,7 +160,7 @@ pub(super) fn edit<'a>(
     let mut copied = false;
     for (path, prefix) in copies {
         let bytes = read(path).ok_or_else(|| format!("cannot open {path}"))?;
-        let (mut src, trailer) = index(&bytes).ok_or(INVALID)?;
+        let (mut src, trailer) = index(&bytes).map_err(|_| INVALID)?;
         let catalog = src
             .resolve(trailer.get(b"Root").ok_or(INVALID)?)
             .ok_or(INVALID)?;

@@ -4318,3 +4318,23 @@ test("qpdf recovers missing cross-references from object bodies, including packe
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf refuses to replace output when a damaged PDF has no recoverable catalog",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const bytes=Buffer.from("%PDF-1.7\n12 0 obj << /Title (no catalog) >> endobj\ntrailer << /Root 12 0 R >>");
+  const files={"/truncated.pdf":bytes,"/out.json":Buffer.from("original")};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [name,data] of Object.entries(files))await fs.writeFile(name,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const cmd of ["qpdf truncated.pdf --json --json-key=pages out.json",
+      "cat truncated.pdf | qpdf - --json=1 --json-key=qpdf out.json",
+      "qpdf truncated.pdf --show-pages","qpdf truncated.pdf out.json"]) {
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.equal(want.exitCode,2);assert.match(want.stderr,/no \/Type \/Catalog object found/);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout]);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out.json")),files["/out.json"]);
+    }
+  } finally {wasm.dispose();}
+});

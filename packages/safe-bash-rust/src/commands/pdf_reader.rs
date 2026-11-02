@@ -707,9 +707,10 @@ fn last_xref(bytes: &[u8]) -> Option<usize> {
 #[path = "pdf_repair.rs"]
 mod pdf_repair;
 
-fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
+pub(super) const NO_CATALOG: &str = "Unable to repair PDF: no /Type /Catalog object found";
+fn index(bytes: &[u8]) -> Result<(Objects<'_>, Value<'_>), &'static str> {
     if let Some((mut objects, trailer)) = strict_index(bytes) {
-        if trailer.get(b"Encrypt").is_some() { return None; }
+        if trailer.get(b"Encrypt").is_some() { return Err("encrypted PDF"); }
         let offsets_valid = objects.xref.iter().all(|(id, (location, _))| match location {
             Location::File(at) => bytes.get(*at..).and_then(|s| Cursor(s).object_header()) == Some(*id),
             Location::Member { .. } => true,
@@ -719,10 +720,12 @@ fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
                 .and_then(|id| objects.object(id)).map(|(value, _)| value)
             && matches!(catalog.get(b"Pages"), Some(Value::Ref(_) | Value::Dict(_)))
         {
-            return Some((objects, trailer));
+            return Ok((objects, trailer));
         }
     }
-    pdf_repair::recover(bytes)
+    let (objects, trailer) = pdf_repair::recover(bytes).ok_or("invalid PDF object graph")?;
+    trailer.get(b"Root").and_then(Value::reference).ok_or(NO_CATALOG)?;
+    Ok((objects, trailer))
 }
 
 fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
@@ -796,7 +799,7 @@ mod pdf_metadata;
 pub(super) use pdf_metadata::{INFO_TAGS, edit_info};
 
 pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
-    let (mut objects, trailer) = index(bytes)?;
+    let (mut objects, trailer) = index(bytes).ok()?;
     let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
     let mut doc = PdfDoc::new();
     doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)

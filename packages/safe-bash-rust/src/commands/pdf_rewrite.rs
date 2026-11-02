@@ -61,7 +61,7 @@ pub(in super::super) fn rewrite(
     read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let (mut objects, trailer) = index(bytes).ok_or(INVALID)?;
+    let (mut objects, trailer) = index(bytes)?;
     objects.preserve_hex = !edits.selections.is_empty();
     let root = trailer
         .get(b"Root")

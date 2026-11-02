@@ -416,7 +416,7 @@ pub(in crate::commands::archive) fn render_svg(
     if format == "pdf" {
         return Ok(pdf);
     }
-    let mut source = PageSource::open(&pdf).ok_or("Invalid SVG page")?;
+    let mut source = PageSource::open(&pdf).map_err(|_| "Invalid SVG page")?;
     source
         .raster(
             1,

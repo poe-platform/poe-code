@@ -164,6 +164,5 @@ pub(super) fn recover(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
         }
     }
     let trailer = Value::Dict(trailer);
-    trailer.get(b"Root")?.reference()?;
     Some((objects, trailer))
 }

@@ -130,13 +130,14 @@ impl<'a> Objects<'a> {
 }
 
 impl<'a> PageSource<'a> {
-    pub(in super::super) fn open(bytes: &'a [u8]) -> Option<Self> {
+    pub(in super::super) fn open(bytes: &'a [u8]) -> Result<Self, &'static str> {
+        const INVALID: &str = "invalid PDF object graph";
         let (mut objects, trailer) = index(bytes)?;
-        let root = trailer.get(b"Root")?.reference()?;
-        let catalog = objects.object(root)?.0;
-        let (pages, tree) = objects.page_tree(root, &catalog, 0)?;
+        let root = trailer.get(b"Root").and_then(Value::reference).ok_or(INVALID)?;
+        let catalog = objects.object(root).ok_or(INVALID)?.0;
+        let (pages, tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
         let meta = match trailer.get(b"Info").and_then(Value::reference) {
-            Some(r) => objects.object(r)?.0,
+            Some(r) => objects.object(r).ok_or(INVALID)?.0,
             None => Value::Dict(Vec::new()),
         };
         let mut info = Vec::new();
@@ -149,7 +150,7 @@ impl<'a> PageSource<'a> {
             b"Creator",
         ] {
             let field = match meta.get(key) {
-                Some(Value::Ref(id)) => Some(objects.object(*id)?.0),
+                Some(Value::Ref(id)) => Some(objects.object(*id).ok_or(INVALID)?.0),
                 Some(v @ Value::String { .. }) => Some(v.clone()),
                 _ => None,
             };
@@ -170,7 +171,7 @@ impl<'a> PageSource<'a> {
                 ));
             }
         }
-        Some(Self {
+        Ok(Self {
             objects,
             tree,
             pages,
@@ -418,7 +419,7 @@ impl PageOutput {
             }
         }
         let mut output = Self::new(limits.max_output_bytes);
-        let base_source = PageSource::open(base).ok_or("invalid PDF object graph")?;
+        let base_source = PageSource::open(base)?;
         output
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
@@ -437,7 +438,7 @@ impl PageOutput {
                     let bytes = inputs[key]
                         .as_deref()
                         .ok_or_else(|| format!("cannot open {key}"))?;
-                    entry.insert(PageSource::open(bytes).ok_or("invalid page selection")?)
+                    entry.insert(PageSource::open(bytes).map_err(|_| "invalid page selection")?)
                 }
             };
             let mut indices = Vec::new();

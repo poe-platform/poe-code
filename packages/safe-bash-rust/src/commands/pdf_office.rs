@@ -204,7 +204,7 @@ pub(in super::super) fn render_office(
                 .unwrap_or(a)
                 .min(kids.len());
             if a <= b && b - a + 1 < kids.len() {
-                let mut src = PageSource::open(&pdf)?;
+                let mut src = PageSource::open(&pdf).ok()?;
                 pdf = PageOutput::selected(&mut src, a - 1..b, limit)?;
             }
         }

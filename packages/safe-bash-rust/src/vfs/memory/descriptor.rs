@@ -39,6 +39,11 @@ impl MemoryVfs {
     }
 }
 
+impl crate::vfs::FileReadHandle for RetainedFile {
+    fn stat(&self) -> Result<FileStat, String> { Ok(self.stat()) }
+    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> { Ok(self.read(offset, maximum)) }
+}
+
 impl RetainedFile {
     pub(crate) fn stat(&self) -> FileStat {
         let state = self.fs.state.read().unwrap();

@@ -12,6 +12,7 @@ const SYNCHRONIZE: u32 = 128;
 
 enum Target {
     Regular(RetainedFile),
+    ReadOnly(Box<dyn crate::vfs::FileReadHandle>),
     Device {
         stat: FileStat,
         name: String,
@@ -88,7 +89,7 @@ impl WasmSession {
             Target::Regular(self.memory_vfs.retain_file(&p)?)
         };
         let kind = match target {
-            Target::Regular(_) => 0,
+            Target::Regular(_) | Target::ReadOnly(_) => 0,
             Target::Device { mounted: false, .. } => 1,
             Target::Device { mounted: true, .. } => 2,
         };
@@ -103,6 +104,61 @@ impl WasmSession {
         self.next_descriptor = next;
         Ok((id, kind))
     }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: usize) -> i32 {
+    let mut map = sessions().lock().unwrap();
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let path = unsafe { str_from_raw(ptr, len) };
+    let wrapped = sess.profile == Profile::Memory && !sess.shell.backend.provided_devices;
+    let mut syscall = "openReadFile";
+    let mut resolved = None;
+    let result = (|| {
+        let fs = &sess.shell.fs;
+        let p = fs.access_path(path, true)?;
+        let st = fs.lstat(&p)?;
+        let null = st.mode & 0o170000 == 0o020000 && st.allocated_bytes == Some(0);
+        if sess.profile == Profile::Devices && (p == "/dev" || p.starts_with("/dev/")) {
+            return Err("ENOTSUP: operation not supported".into());
+        }
+        if wrapped && p == "/dev" {
+            syscall = "";
+            return Err("EISDIR: illegal operation on a directory".into());
+        }
+        resolved = Some(p);
+        let p = resolved.as_deref().unwrap();
+        let target = if null {
+            Target::Device { stat: st, name: "null".into(), mounted: false }
+        } else {
+            Target::ReadOnly(fs.open_read_file(p)?)
+        };
+        let fd = sess.next_descriptor;
+        let next = fd.checked_add(1).filter(|n| *n <= i32::MAX as u32).ok_or("EMFILE: too many open files")?;
+        if sess.descriptors.len() >= sess.memory_vfs.max_entries() { return Err("ENOSPC: no space left on device".into()); }
+        sess.descriptors.insert(fd, Descriptor { target, flags: READ, position: 0 });
+        sess.next_descriptor = next;
+        // Handle errors refer to the backing operand, not an overlay or mount alias.
+        sess.last_output_buf.clear();
+        sess.last_output_buf.push(if null { 4 } else { 3 });
+        sess.last_output_buf.extend_from_slice(if sess.profile == Profile::Memory { path } else { p }.as_bytes());
+        Ok(fd as i32)
+    })();
+    result.unwrap_or_else(|e: String| {
+        let mut operand = path;
+        if (wrapped || sess.profile == Profile::Overlay) && path.contains('\0') {
+            return sess.read_error(&e, "resolve", path, None, Some("paths must be strings without NUL bytes"));
+        }
+        if wrapped && resolved.is_none() {
+            if e.starts_with("EACCES:") && let Some((_, suffix)) = e.split_once(", lstat '") {
+                syscall = "lstat";
+                operand = suffix.strip_suffix('\'').unwrap_or(path);
+            } else if e.starts_with("ELOOP:") || e.starts_with("ENOTDIR: not a directory '") {
+                syscall = "";
+            }
+        }
+        sess.read_error(&e, syscall, operand, resolved.as_deref(), None)
+    })
 }
 
 #[unsafe(no_mangle)]
@@ -162,6 +218,7 @@ pub unsafe extern "C" fn safe_bash_descriptor(
                     return Err("EBADF".into());
                 }
                 let bytes = match &d.target {
+                    Target::ReadOnly(handle) => handle.read(offset, len)?,
                     Target::Regular(file) => file.read(offset, len),
                     Target::Device { name, .. } if name == "null" => Vec::new(),
                     Target::Device { .. } => match random_bytes {
@@ -181,6 +238,7 @@ pub unsafe extern "C" fn safe_bash_descriptor(
                     return Err("EBADF".into());
                 }
                 let end = match &d.target {
+                    Target::ReadOnly(_) => return Err("EBADF".into()),
                     Target::Regular(file) => {
                         let append = d.flags & APPEND != 0;
                         if append && !sequential {
@@ -218,6 +276,7 @@ pub unsafe extern "C" fn safe_bash_descriptor(
             }
             3 => {
                 sess.last_output_buf = stat_bytes(match &d.target {
+                    Target::ReadOnly(handle) => handle.stat()?,
                     Target::Regular(f) => f.stat(),
                     Target::Device { stat, .. } => stat.clone(),
                 });

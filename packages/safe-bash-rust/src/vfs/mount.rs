@@ -88,6 +88,11 @@ impl SafeBashFs for MountVfs {
         fs.read_file(&rel)
     }
 
+    fn open_read_file(&self, path: &str) -> Result<Box<dyn super::FileReadHandle>, String> {
+        let (fs, entry) = self.route(path, true)?;
+        fs.open_read_file(&entry)
+    }
+
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         let (fs, path) = self.route(path, true)?;
         fs.open_chunks(&path)

@@ -825,6 +825,16 @@ impl SafeBashFs for MemoryVfs {
         }
     }
 
+    fn open_read_file(&self, path: &str) -> Result<Box<dyn super::FileReadHandle>, String> {
+        let path = self.access_path(path, true)?;
+        let st = self.lstat(&path)?;
+        if st.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+        if st.mode & 0o170000 != 0o100000 { return Err("ENOTSUP: operation not supported".into()); }
+        let file = self.retain_file(&path)?;
+        if file.stat().mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        Ok(Box::new(file))
+    }
+
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         let (resolved, devices) = {
             let state = self.state.read().map_err(|e| e.to_string())?;

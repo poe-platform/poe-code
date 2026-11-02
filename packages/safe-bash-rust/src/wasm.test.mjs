@@ -2826,3 +2826,35 @@ test("the production shell can list files and check permissions on a Wasm filesy
     await assert.rejects(wasm.fs.access("/dir", 0, {signal:controller.signal}), {name:"AbortError"});
   } finally { await shell.dispose(); wasm.dispose(); }
 });
+
+test("cat reads Wasm file operands and retained reads survive pathname replacement", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
+  try {
+    for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+      const bash = new RustWasmBash({profile, files:{"/f":Uint8Array.of(65,255,66), "/denied":{content:"protected",mode:0}}});
+      try {
+        const r = await shell.exec("cat /f", {fs:bash.fs});
+        assert.equal(r.exitCode, 0, r.stderr);
+        assert.deepEqual(r.stdoutBytes, Uint8Array.of(65,255,66));
+        await assert.rejects(bash.fs.openReadFile("/denied"), {code:"EACCES"});
+        const aborted = new AbortController();
+        const pending = bash.fs.openReadFile("/f", {signal:aborted.signal});
+        aborted.abort();
+        await assert.rejects(pending, {name:"AbortError"});
+        const h = await bash.fs.openReadFile("/f");
+        const before = await h.stat();
+        await bash.fs.unlink("/f");
+        await bash.fs.writeFile("/f", "replacement");
+        assert.equal((await h.stat()).ino, before.ino);
+        assert.deepEqual(await h.read(1, 2**40), Uint8Array.of(255,66));
+        assert.equal(await h.seekEnd(), 3n);
+        assert.deepEqual(await h.read(2**40, 1), new Uint8Array());
+        await assert.rejects(h.read(0, 0), {code:"EINVAL"});
+        await h.close();
+        await h.close();
+        await assert.rejects(h.read(0, 1), {code:"EBADF"});
+      } finally { bash.dispose(); }
+    }
+  } finally { await shell.dispose(); }
+});

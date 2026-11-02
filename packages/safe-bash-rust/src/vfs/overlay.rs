@@ -329,6 +329,11 @@ impl SafeBashFs for OverlayVfs {
         fs.read_file(&path)
     }
 
+    fn open_read_file(&self, path: &str) -> Result<Box<dyn super::FileReadHandle>, String> {
+        let (layer, entry) = self.read_source(path)?;
+        layer.open_read_file(&entry)
+    }
+
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         let (fs, path) = self.read_source(path)?;
         fs.open_chunks(&path)

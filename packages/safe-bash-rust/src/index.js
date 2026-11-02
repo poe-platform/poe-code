@@ -137,7 +137,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
     const signal = options?.signal;
     try {
       signal?.throwIfAborted();
-      if (closing) throw fsOperationError("EBADF", syscall, path);
+      if (closing) throw fsOperationError("EBADF", kind === 4 ? undefined : syscall, path);
     } catch (error) { return Promise.reject(error); }
     const result = pending.then(() => { signal?.throwIfAborted(); return action(); });
     pending = result.then(() => {}, () => {});
@@ -157,12 +157,28 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
       throw fsOperationError("EINVAL", syscall, path);
     }
   }
-  return {
-    capabilities,
-    stat: options => run("fstat", options, () => {
-      const size = call("fstat", 3);
-      return bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size);
+  const stat = options => run("fstat", options, () => {
+    const size = call("fstat", 3);
+    return bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size);
+  });
+  const close = () => closing ??= pending.then(() => { try { call("close", 7); } finally { bash = undefined; } });
+  if (kind === 3 || kind === 4) return {
+    stat, close,
+    seekEnd: options => run("lseek", options, () => {
+      const size = call("lseek", 3);
+      return BigInt(bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size).size);
     }),
+    read: (position, maximum, options) => run("read", options, () => {
+      if (!Number.isSafeInteger(position) || position < 0 || !Number.isSafeInteger(maximum)
+          || maximum < 0 || kind !== 4 && (maximum === 0 || maximum > Number.MAX_SAFE_INTEGER - position)) throw fsOperationError("EINVAL", kind === 4 ? undefined : "read", path);
+      // The Wasm ABI uses a u32 length. Rust clips it to the retained bytes before allocating.
+      const n = call("read", 0, position, 0, Math.min(maximum, 0xffffffff));
+      const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+      return new Uint8Array(bash.exports.memory.buffer.slice(ptr, ptr + n));
+    }),
+  };
+  return {
+    capabilities, stat, close,
     getPosition: options => run("getPosition", options, () => call("getPosition", 4)),
     probeRead: options => run("probeRead", options, () => { call("probeRead", 5); return "ready"; }),
     read: (buffer, position, options) => run("read", options, async () => {
@@ -194,12 +210,11 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
       if (typeof dataOnly !== "boolean") throw fsOperationError("EINVAL", "fsync", path);
       call(dataOnly ? "fdatasync" : "fsync", 6);
     }),
-    close: () => closing ??= pending.then(() => { try { call("close", 7); } finally { bash = undefined; } }),
   };
 }
 
 const wasmMetadataCapabilities = Object.freeze({
-  read: true, stat: true, readdir: true, realpath: true, access: true,
+  read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
   permissions: true, readlink: true, symlinks: true,
 });
 
@@ -474,6 +489,32 @@ export class WasmFileSystem {
     } finally {
       bash._freeBytes(p);
     }
+  }
+
+  async openReadFile(filePath, options = {}) {
+    const {signal} = options;
+    signal?.throwIfAborted();
+    const bash = this.bash;
+    if (bash._companion) {
+      await bash._ensureCompanionSynced();
+      if (!bash._companion.fs.openReadFile) throw fsOperationError("ENOTSUP", "openReadFile", filePath);
+      return bash._companion.fs.openReadFile(filePath, options);
+    }
+    if (typeof filePath !== "string") throw new TypeError("Filesystem paths must be strings");
+    const path = bash._allocBytes(encoder.encode(filePath));
+    try {
+      const fd = bash.exports.safe_bash_open_read_file(bash.sessionId, path.ptr, path.len);
+      if (fd === -1) throw new Error("Wasm session unavailable");
+      if (fd < 0) throw readOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, bash.exports.safe_bash_output_ptr(bash.sessionId), -fd)));
+      const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+      const info = new Uint8Array(bash.exports.memory.buffer, ptr, bash.exports.safe_bash_output_len(bash.sessionId));
+      const handle = wasmDescriptor(bash, decoder.decode(info.subarray(1)), fd, info[0], "read", false);
+      if (signal) {
+        await Promise.resolve();
+        if (signal.aborted) { await handle.close(); signal.throwIfAborted(); }
+      }
+      return handle;
+    } finally { bash._freeBytes(path); }
   }
 
   async open(filePath, options) {

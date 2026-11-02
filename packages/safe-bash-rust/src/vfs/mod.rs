@@ -132,6 +132,12 @@ impl Eq for dyn OpenRedirectFile {}
 /// Replace the buffer with the next file chunk, or clear it at EOF.
 pub type ChunkReader<'a> = Box<dyn FnMut(&mut Vec<u8>) -> Result<(), String> + 'a>;
 
+/// Positioned reads and metadata on the same opened object, even after unlink.
+pub trait FileReadHandle: Send + Sync {
+    fn stat(&self) -> Result<FileStat, String>;
+    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String>;
+}
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -156,6 +162,10 @@ pub trait SafeBashFs: Send + Sync {
             if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
             Ok(None)
         }
+    }
+
+    fn open_read_file(&self, _path: &str) -> Result<Box<dyn FileReadHandle>, String> {
+        Err("ENOTSUP: retained reads are not supported".into())
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;

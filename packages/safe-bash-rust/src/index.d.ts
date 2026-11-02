@@ -92,6 +92,12 @@ export class WasmFileSystem {
   rmdir(dirPath: string, options?: { signal?: AbortSignal }): Promise<void>;
   utimes(filePath: string, atime: Date | number, mtime: Date | number, options?: { signal?: AbortSignal }): Promise<void>;
   realpath(filePath: string, options?: { signal?: AbortSignal }): Promise<string>;
+  openReadFile(filePath: string, options?: { signal?: AbortSignal; allowDirectory?: boolean }): Promise<{
+    stat(options?: {signal?: AbortSignal}): Promise<WasmFileStat>;
+    read(position: number, maximum: number, options?: {signal?: AbortSignal}): Promise<Uint8Array>;
+    seekEnd(options?: {signal?: AbortSignal}): Promise<bigint>;
+    close(): Promise<void>;
+  }>;
   open(filePath: string, options: {
     access: "read" | "write" | "readwrite"; creation?: "never" | "ifMissing" | "exclusive";
     truncate?: boolean; append?: boolean; mode?: number; exactMode?: boolean; noFollow?: boolean;

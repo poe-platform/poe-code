@@ -1936,10 +1936,34 @@ impl<'a> EvalState<'a> {
                         )));
                     }
 
-                    self.refresh_file_input(0, eff_stdin)?;
-                    let (line_bytes, terminated) =
-                        select_read_line(eff_stdin, self.budget.limits.max_output_bytes)?;
-                    self.record_file_stdin(eff_stdin);
+                    let mut line_bytes = Vec::new();
+                    let mut escaped = false;
+                    let mut terminated = false;
+                    let budget = self.budget;
+                    if let Err(error) = self.read_fd_chunks(0, eff_stdin, &mut |chunk, _| {
+                        for (i, &byte) in chunk.iter().enumerate() {
+                            if byte == 0 { continue; }
+                            if std::mem::take(&mut escaped) {
+                                if byte == b'\n' { continue; }
+                            } else if byte == b'\\' {
+                                escaped = true;
+                                continue;
+                            } else if byte == b'\n' {
+                                terminated = true;
+                                return Ok((false, i + 1));
+                            }
+                            if line_bytes.len() >= budget.limits.max_output_bytes {
+                                return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", budget.limits.max_output_bytes)));
+                            }
+                            line_bytes.push(byte);
+                        }
+                        Ok((true, chunk.len()))
+                    }) {
+                        budget.check_exceeded().map_err(EvalError::Budget)?;
+                        stderr.push_str(&format!("{}{error}\n", self.diag_prefix()));
+                        code = 1;
+                        break;
+                    }
                     let line_str = bytes_to_stream_string(&line_bytes);
                     if let Err(e) = self.assign_variable("REPLY", &line_str, false) {
                         match e {
@@ -3517,7 +3541,9 @@ impl<'a> EvalState<'a> {
             }
         }
 
-        self.record_file_stdin(if use_local { &local_stdin } else { stdin });
+        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+            unread.borrow_mut().clone_from(if use_local { &local_stdin } else { stdin });
+        }
         if let Some(dfd) = dup_fd {
             self.in_fds.entry(dfd).or_default().replace(local_stdin);
         }
@@ -5782,7 +5808,7 @@ impl<'a> EvalState<'a> {
                 Err(other) => Err(other),
             }
         } else {
-            let res = sub.eval_stdin_stream(stdin, &arg0);
+            let res = sub.eval_stdin_stream(stdin, &arg0, &self.diag_prefix());
             self.budget.leave_substitution();
             res
         }
@@ -5792,6 +5818,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         stdin: &mut String,
         arg0: &str,
+        caller: &str,
     ) -> Result<BuiltinOutcome, EvalError> {
         let mut stdout = String::new();
         let mut stderr = String::new();
@@ -5801,25 +5828,19 @@ impl<'a> EvalState<'a> {
         let mut total_parse_units = 0usize;
 
         loop {
-            self.refresh_file_input(0, stdin)?;
-            let (line_bytes, eof) = if stdin.is_empty() {
-                (Vec::new(), true)
-            } else {
-                let raw_bytes = stream_string_to_bytes(stdin);
-                let take_len = match raw_bytes.iter().position(|&b| b == b'\n') {
-                    Some(nl) => nl + 1,
-                    None => raw_bytes.len(),
-                };
-                let taken = raw_bytes[..take_len].to_vec();
-                *stdin = bytes_to_stream_string(&raw_bytes[take_len..]);
-                self.record_file_stdin(stdin);
-                (taken, false)
+            let budget = self.budget;
+            let line = match self.read_delimited_record(0, stdin, b'\n', |n, _| budget.add_source_bytes(n)) {
+                Ok(line) => line,
+                Err(error) => {
+                    budget.check_exceeded().map_err(EvalError::Budget)?;
+                    budget.check_cancelled().map_err(EvalError::Budget)?;
+                    stderr.push_str(&format!("{caller}{error}\n"));
+                    last_code = 1;
+                    break;
+                }
             };
-
-            if !line_bytes.is_empty() {
-                self.budget
-                    .add_source_bytes(line_bytes.len())
-                    .map_err(EvalError::Budget)?;
+            let eof = line.is_none();
+            if let Some(line_bytes) = line {
                 let decoded = match Self::decode_script_bytes(&line_bytes, arg0) {
                     Ok(s) => s,
                     Err(mut err_out) => {
@@ -7928,12 +7949,6 @@ impl<'a> EvalState<'a> {
         format!("{name}: line {line}: ")
     }
 
-    fn record_file_stdin(&self, stdin: &str) {
-        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
-            stdin.clone_into(&mut unread.borrow_mut());
-        }
-    }
-
     fn refresh_file_input(&self, fd: u32, unread: &mut String) -> Result<(), EvalError> {
         if let Some(source) = self.fd_table.get(&fd).and_then(|fd| fd.file_input(self.budget)) {
             source.materialize(unread).map_err(EvalError::Syntax)?;
@@ -7968,6 +7983,20 @@ impl<'a> EvalState<'a> {
             self.sync_shared_stdin(canon, stdin, false);
         }
         Ok(())
+    }
+
+    fn read_delimited_record(&mut self, fd: u32, stdin: &mut String, delimiter: u8,
+        mut charge: impl FnMut(usize, usize) -> Result<(), String>,
+    ) -> Result<Option<Vec<u8>>, String> {
+        let mut record = Vec::new();
+        self.read_fd_chunks(fd, stdin, &mut |chunk, _| {
+            let end = chunk.iter().position(|&b| b == delimiter);
+            let used = end.map_or(chunk.len(), |i| i + 1);
+            charge(used, record.len().saturating_add(used))?;
+            record.extend_from_slice(&chunk[..used]);
+            Ok((end.is_none(), used))
+        })?;
+        Ok((!record.is_empty()).then_some(record))
     }
 
     fn read_record(&mut self, fd: u32, stdin: &mut String,
@@ -8707,23 +8736,19 @@ impl<'a> EvalState<'a> {
         let mut take_next_record = |this: &mut Self, stdin: &mut String| -> Result<Option<Vec<u8>>, EvalError> {
             this.budget.tick_loop().map_err(EvalError::Budget)?;
             let budget = this.budget;
-            let mut record = Vec::new();
-            let result = this.read_fd_chunks(fd_num, stdin, &mut |chunk, _| {
-                let end = chunk.iter().position(|&b| b == delim_byte);
-                let used = end.map_or(chunk.len(), |i| i + 1);
+            let result = this.read_delimited_record(fd_num, stdin, delim_byte, |used, len| {
                 total_input_bytes = total_input_bytes.saturating_add(used);
                 if total_input_bytes > budget.limits.max_input_bytes {
                     return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", budget.limits.max_input_bytes)));
                 }
-                if record.len().saturating_add(used) > budget.limits.max_output_bytes {
+                if len > budget.limits.max_output_bytes {
                     return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", budget.limits.max_output_bytes)));
                 }
-                record.extend_from_slice(&chunk[..used]);
-                Ok((end.is_none(), used))
+                Ok(())
             });
             budget.check_exceeded().map_err(EvalError::Budget)?;
             // mapfile stops at a source error without publishing the incomplete record.
-            Ok((result.is_ok() && !record.is_empty()).then_some(record))
+            Ok(result.unwrap_or(None))
         };
 
         for _ in 0..skip_count {
@@ -13426,52 +13451,6 @@ fn format_select_menu(values: &[String], env: &BTreeMap<String, String>) -> Stri
     bytes_to_stream_string(&out_bytes)
 }
 
-fn select_read_line(
-    stdin: &mut String,
-    max_output_bytes: usize,
-) -> Result<(Vec<u8>, bool), EvalError> {
-    let raw = stream_string_to_bytes(stdin);
-    let mut line = Vec::new();
-    let mut escaped = false;
-    let mut terminated = false;
-    let mut idx = 0usize;
-    while idx < raw.len() {
-        let byte = raw[idx];
-        idx += 1;
-        if byte == 0 {
-            continue;
-        }
-        if escaped {
-            escaped = false;
-            if byte != b'\n' {
-                if line.len() >= max_output_bytes {
-                    return Err(EvalError::Budget(format!(
-                        "Execution aborted: Shell limit exceeded: maxOutputBytes ({max_output_bytes})"
-                    )));
-                }
-                line.push(byte);
-            }
-            continue;
-        }
-        if byte == b'\\' {
-            escaped = true;
-            continue;
-        }
-        if byte == b'\n' {
-            terminated = true;
-            break;
-        }
-        if line.len() >= max_output_bytes {
-            return Err(EvalError::Budget(format!(
-                "Execution aborted: Shell limit exceeded: maxOutputBytes ({max_output_bytes})"
-            )));
-        }
-        line.push(byte);
-    }
-    *stdin = bytes_to_stream_string(&raw[idx..]);
-    Ok((line, terminated))
-}
-
 fn parse_select_choice(bytes: &[u8]) -> Option<usize> {
     let is_ws = |b: u8| b == b' ' || (9..=13).contains(&b);
     let mut start = 0usize;
@@ -15726,6 +15705,21 @@ hash -l
             fs.write_file("/f", b"abcdef").unwrap();
             let r = shell.exec(&format!("exec 3</f; {reader} <&3; cat <&3")).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "abcdef", ""), "{reader}");
+        }
+    }
+
+    #[test]
+    fn shell_line_readers_keep_completed_work_and_locate_source_errors_at_the_call() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/script", b"echo A\necho B\necho C\n").unwrap();
+        fs.write_file("/choices", b"1\n123456789012345").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 12, ..Default::default() });
+        for (script, output, diagnostic) in [
+            ("echo parent\nsh </script; echo rc:$?", "parent\nA\nrc:1\n", "shell: line 2: EFBIG: file too large, read '/script'\n"),
+            ("PS3='>'; select v in A; do echo $v; done </choices; echo rc:$?", "A\nrc:1\n", "1) A\n>>shell: line 1: EFBIG: file too large, read '/choices'\n"),
+        ] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, output, diagnostic));
         }
     }
 

@@ -7257,3 +7257,21 @@ test("grep reports out-of-profile pattern bytes before opening the target", asyn
     }
   } finally { rs.dispose(); }
 });
+
+test("grep and rg apply stacked repetitions only in profiles that execute them", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for(const sh of [js,rs]) await sh.exec("printf 'abaac\\n42\\n' >f");
+    for(const cmd of [
+      "rg -ao 'a*??' f","grep -Ex '(a?)++' f","rg -a -r '<$1>' '(a?)?{2,3}' f",
+      "grep -Eo 'a++' f","grep -Ex 'a++' f","rg '(?<word>a)++' f","rg '🦊a++' f","rg '\\d++' f",
+      "rg -e 'a++' -e '' f","rg '(?:a)++' missing","grep -Eaob 'a++' f","grep -Eo 'a++?' f",
+      "grep -Eob -e 'a?+' -e '\\b' f","rg -o '(?i:a+*)' f","rg -Uo '[^x]++' f",
+      "rg -a -r '<$1>' '(a+){1,2}+' f","rg -a -o '(a?)*+' f","grep -o 'a*\\+' f",
+    ]) {
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd);
+    }
+  } finally { rs.dispose(); }
+});

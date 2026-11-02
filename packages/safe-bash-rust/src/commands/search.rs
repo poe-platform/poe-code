@@ -487,7 +487,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, Jq, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
+enum RxSearch { Longest, First, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -529,7 +529,7 @@ impl ZeroRegex {
             format!("Regex failure: {message}")
         })?;
         let mut rx = Self::from_branches([branches], false, false, false);
-        rx.search = RxSearch::Jq;
+        rx.search = RxSearch::First;
         rx.branches[0].nonempty = flags.contains('n');
         Ok(rx)
     }
@@ -632,7 +632,7 @@ impl ZeroRegex {
             let mut matches = self.branches.iter().filter_map(|program| {
                 let base = group_offset;
                 group_offset += program.groups;
-                program.run(&hay, pos..=bound, self.ignore_case, first, capture, |end|
+                program.run(&hay, pos..=bound, self.ignore_case, self.search, capture, |end|
                     !self.word_regexp || is_word_boundary(&hay, pos, end) && (!matches!(self.search, RxSearch::Rg { word_assertions: true, .. })
                         || pos < end && is_word_char(hay[pos].1) && is_word_char(hay[end - 1].1))).map(|m| (base, m))
             });
@@ -650,7 +650,7 @@ impl ZeroRegex {
                 // No consuming atom can start there. Evaluate that zero-width path once.
                 if *interior_empty.get_or_insert_with(|| {
                     let neighbors = [(0, ch), (1, ch)];
-                    self.branches.iter().any(|p| p.run(&neighbors, 1..=1, false, true, false, |end| end == 1).is_some())
+                    self.branches.iter().any(|p| p.run(&neighbors, 1..=1, false, self.search, false, |end| end == 1).is_some())
                 }) {
                     for byte in start + 1..byte_at(pos + 1) {
                         found = true;
@@ -691,7 +691,7 @@ enum RxAtom {
     Word(bool),
     Space(bool),
     Class { negate: bool, chars: Vec<(char, char)> },
-    Group { index: usize, width: Option<usize>, kind: RxGroup },
+    Group { index: usize, width: Option<usize>, nullable: bool, kind: RxGroup },
     Backref(usize),
     Begin,
     LineBegin,
@@ -914,6 +914,7 @@ fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
 type RxBranches = Vec<Vec<RxToken>>;
 
 struct ParsedRegex {
+    bounded_error: Option<(usize, &'static str)>,
     cross_line: bool,
     requires_vm: bool,
     root: RxBranches,
@@ -924,8 +925,11 @@ impl ParsedRegex {
     fn close_group(&mut self, branches: RxBranches, kind: RxGroup) -> RxAtom {
         let index = self.groups.len();
         let width = rx_fixed_width(&branches);
+        let nullable = branches.iter().any(|seq| seq.iter().all(|tok| tok.min == 0 || matches!(tok.atom,
+            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary(_)
+            | RxAtom::WordStart | RxAtom::WordEnd | RxAtom::Group { nullable: true, .. })));
         self.groups.push(branches);
-        RxAtom::Group { index, width, kind }
+        RxAtom::Group { index, width, nullable, kind }
     }
 }
 
@@ -951,7 +955,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         return Err(if fixed { "literal newline in pattern requires --multiline (-U)" } else { "unsupported ERE literal newline without --multiline (-U)" }.into());
     }
     if fixed {
-        return Ok(ParsedRegex { cross_line: pat.contains('\n'), requires_vm: false, root: vec![pat
+        return Ok(ParsedRegex { bounded_error: None, cross_line: pat.contains('\n'), requires_vm: false, root: vec![pat
             .chars()
             .map(|c| RxToken {
                 atom: RxAtom::Char(c),
@@ -962,7 +966,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             })
             .collect()], groups: Vec::new() });
     }
-    let mut parsed = ParsedRegex { cross_line: mode.dotall || pat.contains('\n'), requires_vm: false, root: Vec::new(), groups: Vec::new() };
+    let mut parsed = ParsedRegex { bounded_error: None, cross_line: mode.dotall || pat.contains('\n'), requires_vm: false, root: Vec::new(), groups: Vec::new() };
     let normalized;
     let source = if matches!(dialect, RxDialect::Auto) {
         normalized = normalize_bre_escapes(pat);
@@ -978,7 +982,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
     let mut rg_names = std::collections::BTreeSet::new();
 
     while idx < chars.len() {
-        let atom = match chars[idx] {
+        let mut atom = match chars[idx] {
             '^' if (rg || jq) && mode.multiline => { idx += 1; RxAtom::LineBegin }
             '^' if rg || jq || out.is_empty() => { idx += 1; RxAtom::Begin }
             '$' if rg && !mode.multiline => { idx += 1; RxAtom::End }
@@ -1224,7 +1228,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             });
             continue;
         }
-        if idx < chars.len() {
+        while idx < chars.len() {
             let before_quantifier = idx;
             match chars[idx] {
                 '*' => {
@@ -1278,6 +1282,23 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 idx += 1;
             }
             if jq && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) { return Err("nested quantifier is not supported".into()); }
+            let stacked = rg && idx != before_quantifier && matches!(chars.get(idx), Some('*' | '+' | '?' | '{'));
+            if rg && parsed.bounded_error.is_none() {
+                let error = if matches!(atom, RxAtom::Group { nullable: true, .. }) && max.is_none_or(|n| n > 1) {
+                    Some((before_quantifier, "nullable captured repetition"))
+                } else if stacked { Some((idx, "stacked repetition")) } else { None };
+                if let Some((pos, message)) = error {
+                    let (prefix, _, headers) = translate_search_pattern(&chars[..pos].iter().collect::<String>(), true);
+                    parsed.bounded_error = Some((prefix.encode_utf16().count() - headers, message));
+                }
+            }
+            if stacked {
+                let inner = RxToken { atom, case, min, max, lazy };
+                atom = parsed.close_group(vec![vec![inner]], RxGroup::Plain);
+                lazy = false;
+                continue;
+            }
+            break;
         }
         out.push(RxToken {
             atom, case,
@@ -1293,7 +1314,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         let atom = parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind);
         out.push(RxToken { atom, case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
     }
-    parsed.requires_vm |= out.is_empty();
+    parsed.requires_vm |= out.is_empty() && !alts.is_empty();
     alts.push(out);
     parsed.root = alts;
     Ok(parsed)
@@ -1464,7 +1485,7 @@ impl RxProgram {
                     ops.push(RxOp::Repeat { min: tok.min, max: tok.max, lazy: tok.lazy, after: 0 });
                     head
                 });
-                if let RxAtom::Group { index, width, kind } = tok.atom {
+                if let RxAtom::Group { index, width, kind, .. } = tok.atom {
                     let open = ops.len();
                     match kind {
                         RxGroup::Assertion { behind, positive } => ops.push(RxOp::Assert {
@@ -1529,10 +1550,11 @@ impl RxProgram {
         hay: &[(usize, char)],
         range: std::ops::RangeInclusive<usize>,
         icase: bool,
-        first: bool,
+        search: RxSearch,
         capture: bool,
         accept: impl Fn(usize) -> bool,
     ) -> Option<RxMatch> {
+        let first = search != RxSearch::Longest;
         let (start, stop) = range.into_inner();
         let mut state = RxMatch {
             pc: 0,
@@ -1605,18 +1627,21 @@ impl RxProgram {
                     RxOp::Enter => state.repeats.push((0, state.pos)),
                     RxOp::Again(head) => {
                         let RxOp::Repeat {
-                            min, max, after, ..
+                            min, max, lazy, after
                         } = self.ops[*head]
                         else {
                             unreachable!()
                         };
                         let (count, from) = state.repeats.last_mut().unwrap();
                         if state.pos == *from {
-                            // An empty optional iteration must not replace the last capture.
-                            if *count >= min {
-                                break;
+                            if let Some(max) = max && matches!(search, RxSearch::Rg { .. }) {
+                                // Finite repeats in the scalar matcher allow a final empty
+                                // capture. Repeating that same path cannot advance the cursor.
+                                *count = if lazy && *count < min { min } else { max };
+                            } else {
+                                if *count >= min { break; }
+                                *count = min;
                             }
-                            *count = min;
                         } else if max.is_some() || *count < min {
                             *count += 1;
                         }
@@ -1768,7 +1793,7 @@ pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<St
     let hay: Vec<_> = text.char_indices().collect();
     let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
     for start in 0..=hay.len() {
-        if let Some(m) = program.run(&hay, start..=hay.len(), ignore_case, true, true, |_| true) {
+        if let Some(m) = program.run(&hay, start..=hay.len(), ignore_case, RxSearch::First, true, |_| true) {
             return Some(
                 std::iter::once(Some((start, m.pos)))
                     .chain(m.caps)
@@ -1791,7 +1816,7 @@ pub fn regex_capture_spans_in_hay(
 ) -> Vec<Option<(usize, usize)>> {
     let program = RxProgram::new(parse_rx_branches(pat, false, RxDialect::Auto).expect("permissive regex parser"));
     program
-        .run(hay, start..=hay.len(), ignore_case, true, true, |pos| pos == end)
+        .run(hay, start..=hay.len(), ignore_case, RxSearch::First, true, |pos| pos == end)
         .map_or_else(|| vec![None; program.groups], |m| m.caps)
 }
 
@@ -1972,7 +1997,7 @@ fn json_escape_str(s: &str) -> String {
 
 // Translate grep syntax to the common search parser. The bounded provider's
 // diagnostics refer to its translated ERE, where group names are omitted.
-fn grep_expression(source: &str, extended: bool) -> (String, Option<usize>) {
+fn translate_search_pattern(source: &str, extended: bool) -> (String, Option<usize>, usize) {
     let mut out = String::with_capacity(source.len());
     let mut offset = None;
     let mut group_headers = 0;
@@ -1983,7 +2008,7 @@ fn grep_expression(source: &str, extended: bool) -> (String, Option<usize>) {
     while let Some(c) = chars.next() {
         let first = branch_start;
         branch_start = false;
-        if (!c.is_ascii() || c == '\0') && offset.is_none() { offset = Some(out.len() - group_headers); }
+        if (!c.is_ascii() || c == '\0') && offset.is_none() { offset = Some(out.encode_utf16().count() - group_headers); }
         if !bracket && (extended && c == '{' || !extended && c == '\\' && chars.next_if_eq(&'{').is_some()) {
             out.push('{');
             let start = out.len();
@@ -2004,7 +2029,7 @@ fn grep_expression(source: &str, extended: bool) -> (String, Option<usize>) {
             }
             if closed { out.push('}'); }
         } else if c == '\\' && let Some(next) = chars.next() {
-            if (!next.is_ascii() || next == '\0') && offset.is_none() { offset = Some(out.len() - group_headers); }
+            if (!next.is_ascii() || next == '\0') && offset.is_none() { offset = Some(out.encode_utf16().count() - group_headers); }
             if !bracket && !extended && "()+?|}".contains(next) { branch_start = matches!(next, '(' | '|'); out.push(next); continue; }
             let class = match next {
                 'd' | 'D' => "0-9", 'w' | 'W' => "[:alnum:]_", 's' | 'S' => "[:space:]", _ => "",
@@ -2044,14 +2069,14 @@ fn grep_expression(source: &str, extended: bool) -> (String, Option<usize>) {
             if tail.next_if_eq(&'<').is_some() && !matches!(tail.peek(), Some('=' | '!')) {
                 let start = out.len();
                 for c in chars.by_ref() { out.push(c); if c == '>' { break; } }
-                group_headers += out.len() - start;
+                group_headers += out[start..].encode_utf16().count();
             }
         } else {
             if !extended && ("()+?|{}".contains(c) || first && c == '*') || c == ']' || c == '}' { out.push('\\'); }
             out.push(c);
         }
     }
-    (out, offset)
+    (out, offset, group_headers)
 }
 
 fn cmd_grep(
@@ -2660,8 +2685,10 @@ fn cmd_grep(
     for source in &patterns {
         let normalized;
         let pat = if fixed_strings { source } else {
-            let (expr, offset) = grep_expression(source, extended_regexp);
-            profile_error = profile_error.or(offset);
+            let (expr, offset, _) = translate_search_pattern(source, extended_regexp);
+            if profile_error.is_none() && let Some(i) = offset {
+                profile_error = Some(format!("unsupported ERE profile at {i}: only non-NUL ASCII in the C/POSIX profile"));
+            }
             normalized = expr;
             &normalized
         };
@@ -2670,7 +2697,10 @@ fn cmd_grep(
             Ok(parsed) => parsed,
             Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {message}\n"), exit_code: 2 },
         };
-        use_vm |= !pat.is_empty() && branches.requires_vm;
+        use_vm |= branches.requires_vm;
+        if profile_error.is_none() && let Some((i, message)) = branches.bounded_error {
+            profile_error = Some(format!("unsupported ERE profile at {}: {message}", i + 2 * usize::from(line_regexp)));
+        }
         // The delegated provider searches ASCII literals as bytes, including under -E.
         // Escaped ordinary characters translate to literals too; shorthands translate to classes.
         if !fixed_strings {
@@ -2685,8 +2715,8 @@ fn cmd_grep(
         }
         parsed.push(branches);
     }
-    if !use_vm && let Some(offset) = profile_error {
-        return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: unsupported ERE profile at {offset}: only non-NUL ASCII in the C/POSIX profile\n"), exit_code: 2 };
+    if !use_vm && let Some(error) = profile_error {
+        return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {error}\n"), exit_code: 2 };
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, word_regexp && !line_regexp, line_regexp);
     if use_vm {
@@ -3571,6 +3601,7 @@ fn cmd_rg(
     let flags = RxFlags { icase: ignore_case, multiline, dotall: multiline_dotall };
     let mut parsed = Vec::with_capacity(patterns.len());
     let mut cross_line = false;
+    let mut bounded_error = None;
     let mut requires_vm = binary == RgBinary::Text || replace.as_deref().is_some_and(|rep| rep.contains('$'));
     let multiline_whole = multiline && (!fixed_strings || patterns.iter().any(|pat| pat.contains('\n')));
     for pattern in &patterns {
@@ -3586,9 +3617,14 @@ fn cmd_rg(
                     case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
             }
         }
+        bounded_error = bounded_error.or(branches.bounded_error);
         requires_vm |= branches.requires_vm;
         cross_line |= branches.cross_line;
         parsed.push(branches);
+    }
+    if !requires_vm && !(multiline && cross_line) && let Some((i, message)) = bounded_error {
+        return BuiltinOutcome { stdout: String::new(),
+            stderr: format!("rg: unsupported ERE profile at {}: {message}\n", i + 2 * usize::from(line_regexp)), exit_code: 2 };
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, !line_regexp && word_regexp, false);
     rx.search = RxSearch::Rg { word_assertions: true, binary_text: binary == RgBinary::Text, empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };

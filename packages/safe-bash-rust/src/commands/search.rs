@@ -504,12 +504,12 @@ impl ZeroRegex {
         word_regexp: bool,
         line_regexp: bool,
     ) -> Self {
-        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, false).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
+        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, None).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
     }
 
     pub(super) fn jq(pattern: &str, flags: &str, filter: &str) -> Result<Self, String> {
-        let pattern = preprocess_ere_pattern(pattern, flags.contains(['m', 'p']), flags.contains('x'));
-        let branches = parse_rx_branches(&pattern, false, true).map_err(|err| {
+        let pattern = preprocess_ere_pattern(pattern, false, flags.contains('x'));
+        let branches = parse_rx_branches(&pattern, false, Some(flags)).map_err(|err| {
             let message = match err.as_str() {
                 "unterminated bracket expression" => "premature end of char-class",
                 "unmatched '(' in regular expression" => "end pattern with unmatched parenthesis",
@@ -519,7 +519,7 @@ impl ZeroRegex {
             };
             format!("Regex failure: {message}")
         })?;
-        let mut rx = Self::from_branches([branches], flags.contains('i'), false, false);
+        let mut rx = Self::from_branches([branches], false, false, false);
         rx.first_match = true;
         rx.branches[0].nonempty = flags.contains('n');
         Ok(rx)
@@ -533,7 +533,7 @@ impl ZeroRegex {
         for alternatives in patterns {
             anchored &= line_regexp || alternatives.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
             let mut program = RxProgram::new(alternatives);
-            if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false })); }
+            if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, unicode_icase: false, min: 1, max: Some(1), lazy: false })); }
             for (name, slot) in std::mem::take(&mut program.names) { capture_names.push((name, group_offset + slot)); }
             group_offset += program.groups;
             branches.push(program);
@@ -604,7 +604,7 @@ fn is_word_boundary(hay: &[(usize, char)], start: usize, end: usize) -> bool {
 
 #[derive(Debug, Clone)]
 enum RxAtom {
-    Any,
+    Any { newline: bool },
     Char(char),
     Digit(bool),
     Word(bool),
@@ -613,7 +613,9 @@ enum RxAtom {
     Group { alts: Vec<Vec<RxToken>>, kind: RxGroup },
     Backref(usize),
     Begin,
+    LineBegin,
     End,
+    JqEnd { multiline: bool },
     WordBoundary,
     WordStart,
     WordEnd,
@@ -631,7 +633,9 @@ fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Opti
     let after_word = pos < hay.len() && is_word_char(hay[pos].1);
     match atom {
         RxAtom::Begin => Some(pos == 0),
+        RxAtom::LineBegin => Some(pos == 0 || hay[pos - 1].1 == '\n'),
         RxAtom::End => Some(pos == hay.len()),
+        RxAtom::JqEnd { multiline } => Some(pos == hay.len() || ((*multiline || pos + 1 == hay.len()) && hay[pos].1 == '\n')),
         RxAtom::WordBoundary => Some(before_word != after_word),
         RxAtom::WordStart => Some(!before_word && after_word),
         RxAtom::WordEnd => Some(before_word && !after_word),
@@ -642,6 +646,7 @@ fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Opti
 #[derive(Debug, Clone)]
 struct RxToken {
     atom: RxAtom,
+    unicode_icase: bool,
     min: usize,
     max: Option<usize>,
     lazy: bool,
@@ -825,12 +830,24 @@ fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
     })
 }
 
-fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken>>, String> {
+#[derive(Clone, Copy, Default)]
+struct JqPatternFlags {
+    icase: bool,
+    multiline: bool,
+    dotall: bool,
+}
+
+fn parse_rx_branches(pat: &str, fixed: bool, jq_flags: Option<&str>) -> Result<Vec<Vec<RxToken>>, String> {
+    let jq = jq_flags.is_some();
+    let mut mode = jq_flags.map_or_else(JqPatternFlags::default, |f| JqPatternFlags {
+        icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']),
+    });
     if fixed {
         return Ok(vec![pat
             .chars()
             .map(|c| RxToken {
                 atom: RxAtom::Char(c),
+                unicode_icase: false,
                 min: 1,
                 max: Some(1),
                 lazy: false,
@@ -848,11 +865,13 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
 
     while idx < chars.len() {
         let atom = match chars[idx] {
-            '^' if out.is_empty() => { idx += 1; RxAtom::Begin }
+            '^' if jq && mode.multiline => { idx += 1; RxAtom::LineBegin }
+            '^' if jq || out.is_empty() => { idx += 1; RxAtom::Begin }
+            '$' if jq => { idx += 1; RxAtom::JqEnd { multiline: mode.multiline } }
             '$' if matches!(chars.get(idx + 1), None | Some('|') | Some(')')) => { idx += 1; RxAtom::End }
             '.' => {
                 idx += 1;
-                RxAtom::Any
+                RxAtom::Any { newline: mode.dotall }
             }
             '\\' if idx + 1 < chars.len() => {
                 let nc = chars[idx + 1];
@@ -946,7 +965,32 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
             }
             '(' => {
                 idx += 1;
+                let outer_mode = mode;
                 let kind = match &chars[idx..] {
+                    ['?', 'i' | 'm' | 's' | '-', ..] if jq => {
+                        idx += 1;
+                        let mut enabled = true;
+                        let mut changed = false;
+                        while let Some(&flag) = chars.get(idx) {
+                            match flag {
+                                ')' | ':' => break,
+                                '-' if enabled => { enabled = false; changed = false; idx += 1; continue; }
+                                'i' => mode.icase = enabled,
+                                'm' => mode.multiline = enabled,
+                                's' => mode.dotall = enabled,
+                                _ => return Err("unsupported inline regular expression flag".into()),
+                            }
+                            changed = true;
+                            idx += 1;
+                        }
+                        if !changed { return Err("empty inline regular expression flags".into()); }
+                        match chars.get(idx) {
+                            Some(')') => { idx += 1; continue; }
+                            Some(':') => { idx += 1; RxGroup::Plain }
+                            _ => return Err("unterminated inline regular expression flags".into()),
+                        }
+                    }
+
                     ['?', ':', ..] => { idx += 2; RxGroup::Plain }
                     ['?', c @ ('=' | '!'), ..] if jq => {
                         idx += 2; RxGroup::Assertion { behind: false, positive: *c == '=' }
@@ -954,20 +998,21 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
                     ['?', '<', c @ ('=' | '!'), ..] if jq => {
                         idx += 3; RxGroup::Assertion { behind: true, positive: *c == '=' }
                     }
-                    tail if (tail.starts_with(&['?', 'P', '<']) || (tail.starts_with(&['?', '<']) && !matches!(tail.get(2), Some('=' | '!'))))
+                    tail if ((!jq && tail.starts_with(&['?', 'P', '<'])) || (tail.starts_with(&['?', '<']) && !matches!(tail.get(2), Some('=' | '!'))))
                         && let Some(end) = tail.iter().position(|&c| c == '>') => {
                         let start = if tail[1] == 'P' { 3 } else { 2 };
                         idx += end + 1;
                         RxGroup::Capture(Some(tail[start..end].iter().collect()))
                     }
                     ['?', '<', ..] if jq => return Err("invalid named capture".into()),
+                    ['?', ..] if jq => return Err("unsupported jq regular expression group".into()),
                     _ => RxGroup::Capture(None),
                 };
                 let slot = if jq && matches!(kind, RxGroup::Capture(_)) {
                     group_count += 1;
                     Some(group_count - 1)
                 } else { None };
-                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), kind, slot));
+                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), kind, slot, outer_mode));
                 continue;
             }
             '|' => {
@@ -977,7 +1022,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
             }
             ')' if !groups.is_empty() => {
                 idx += 1;
-                let (outer, outer_alts, kind, slot) = groups.pop().unwrap();
+                let (outer, outer_alts, kind, slot, outer_mode) = groups.pop().unwrap();
+                mode = outer_mode;
                 if let Some(entry) = slot.and_then(|i| closed.get_mut(i)) { *entry = true; }
                 alts.push(std::mem::replace(&mut out, outer));
                 RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind }
@@ -993,10 +1039,10 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
         let mut lazy = false;
         if matches!(
             atom,
-            RxAtom::Begin | RxAtom::End | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::JqEnd { .. } | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
         ) {
             out.push(RxToken {
-                atom,
+                atom, unicode_icase: mode.icase,
                 min: 1,
                 max: Some(1),
                 lazy: false,
@@ -1045,17 +1091,17 @@ fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Result<Vec<Vec<RxToken
             if jq && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) { return Err("nested quantifier is not supported".into()); }
         }
         out.push(RxToken {
-            atom,
+            atom, unicode_icase: mode.icase,
             min,
             max,
             lazy,
         });
     }
     if jq && !groups.is_empty() { return Err("unmatched '(' in regular expression".into()); }
-    while let Some((outer, outer_alts, kind, _)) = groups.pop() {
+    while let Some((outer, outer_alts, kind, _, _)) = groups.pop() {
         alts.push(std::mem::replace(&mut out, outer));
         let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind };
-        out.push(RxToken { atom, min: 1, max: Some(1), lazy: false });
+        out.push(RxToken { atom, unicode_icase: false, min: 1, max: Some(1), lazy: false });
     }
     alts.push(out);
     Ok(alts)
@@ -1086,7 +1132,7 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
         for tok in seq {
             let n = match &tok.atom {
                 RxAtom::Backref(_) => return None,
-                RxAtom::Begin | RxAtom::End | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::JqEnd { .. } | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
                 | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
                 RxAtom::Group { alts, .. } => rx_fixed_width(alts)?,
                 _ => 1,
@@ -1100,11 +1146,17 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
     width
 }
 
-fn matches_char(atom: &RxAtom, ch: char, ignore_case: bool) -> bool {
-    match atom {
-        RxAtom::Any => ch != '\n',
+fn folded_in_range(mut folded: impl Iterator<Item = char>, lo: char, hi: char) -> bool {
+    folded.next().is_some_and(|first| first >= lo && (first < hi || first == hi && folded.next().is_none()))
+}
+
+fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
+    match &token.atom {
+        RxAtom::Any { newline } => *newline || ch != '\n',
         RxAtom::Char(expected) => {
-            if ignore_case {
+            if token.unicode_icase {
+                ch == *expected || ch.to_lowercase().eq(expected.to_lowercase())
+            } else if ignore_case {
                 ch.to_ascii_lowercase() == expected.to_ascii_lowercase()
             } else {
                 ch == *expected
@@ -1117,6 +1169,8 @@ fn matches_char(atom: &RxAtom, ch: char, ignore_case: bool) -> bool {
             let inside = chars.iter().any(|&(s, e)| {
                 let range = s..=e;
                 range.contains(&ch)
+                    || token.unicode_icase && (folded_in_range(ch.to_lowercase(), s, e)
+                        || folded_in_range(ch.to_uppercase(), s, e))
                     || ignore_case
                         && (range.contains(&ch.to_ascii_lowercase())
                             || range.contains(&ch.to_ascii_uppercase()))
@@ -1126,6 +1180,8 @@ fn matches_char(atom: &RxAtom, ch: char, ignore_case: bool) -> bool {
         RxAtom::Group { .. }
         | RxAtom::Backref(_)
         | RxAtom::Begin
+        | RxAtom::LineBegin
+        | RxAtom::JqEnd { .. }
         | RxAtom::End
         | RxAtom::WordBoundary
         | RxAtom::WordStart
@@ -1429,13 +1485,17 @@ impl RxProgram {
                         let limit = tok.max.unwrap_or(usize::MAX).min((bound - end) / width);
                         for _ in 0..limit {
                             let ok = if let Some((lo, hi)) = reference {
-                                hay[lo..hi].iter().zip(&hay[end..end + width]).all(
-                                    |(&(_, a), &(_, b))| {
-                                        a == b || icase && a.eq_ignore_ascii_case(&b)
-                                    },
-                                )
+                                let left = &hay[lo..hi];
+                                let right = &hay[end..end + width];
+                                if tok.unicode_icase && left.iter().chain(right).any(|&(_, c)| !c.is_ascii()) {
+                                    let lower = |chars: &[(usize, char)]| chars.iter().map(|&(_, c)| c).collect::<String>().to_lowercase();
+                                    lower(left) == lower(right)
+                                } else {
+                                    left.iter().zip(right).all(|(&(_, a), &(_, b))|
+                                        a == b || (icase || tok.unicode_icase) && a.eq_ignore_ascii_case(&b))
+                                }
                             } else {
-                                matches_char(&tok.atom, hay[end].1, icase)
+                                matches_char(tok, hay[end].1, icase)
                             };
                             if !ok {
                                 break;
@@ -1495,7 +1555,7 @@ impl RxProgram {
 }
 
 pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false, false).expect("permissive regex parser"));
+    let program = RxProgram::new(parse_rx_branches(pat, false, None).expect("permissive regex parser"));
     let hay: Vec<_> = text.char_indices().collect();
     let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
     for start in 0..=hay.len() {
@@ -1520,7 +1580,7 @@ pub fn regex_capture_spans_in_hay(
     end: usize,
     ignore_case: bool,
 ) -> Vec<Option<(usize, usize)>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false, false).expect("permissive regex parser"));
+    let program = RxProgram::new(parse_rx_branches(pat, false, None).expect("permissive regex parser"));
     program
         .run(hay, start, ignore_case, true, true, |pos| pos == end)
         .map_or_else(|| vec![None; program.groups], |m| m.caps)
@@ -3889,7 +3949,7 @@ fn run_grep_engine(
 
     let rec_term = if cfg.null_data { '\0' } else { '\n' };
     let multiline = cfg.multiline && (replacement.is_none() || rx.branches.iter().any(|program|
-        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(&tok.atom, rec_term, cfg.ignore_case)))));
+        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, cfg.ignore_case)))));
     for (fname, content, nul_off) in &inputs {
         if nul_off.is_some() && cfg.ignore_binary {
             continue;

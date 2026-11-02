@@ -6785,3 +6785,30 @@ test("jq bracket ranges decode escaped endpoints before comparing them", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("jq inline regex flags apply to the enclosing group and restore outer modes", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [input,pattern,flags,expected] of [
+      ["aA","(?i:a)(?-i:A)","",true], ["aAA","(?i)a(a)(?-i)a","",false],
+      ["aAa","(?i)a(a)(?-i)a","",true], ["aB","(?i:a)b","",false],
+      ["Éé",String.raw`(?i:(é)\1)`,"",true], ["é","[À-Ö]","i",true],
+      ["ß","[S]","i",false], ["ß","[S-T]","i",true], ["İ","[i]","i",false],
+      ["ΟΣος",String.raw`(ΟΣ)\1`,"i",true],
+      ["a\nb","(?m:^b)","",true], ["a\nb","a(?s:.)b","",true],
+      ["a\nb","a(?-s:.)b","m",false], ["b\n","b$","",true],
+      ["x","(?-:x)","","Regex failure: empty inline regular expression flags"],
+      ["x","(?ix:x)","","Regex failure: unsupported inline regular expression flag"],
+      ["x","(?i","","Regex failure: unterminated inline regular expression flags"],
+      ["x","(?P<x>x)","","Regex failure: unsupported jq regular expression group"],
+    ]) {
+      const cmd = `printf '%s\\n' '${JSON.stringify(input)}' | jq -c 'try test(${JSON.stringify(pattern)};${JSON.stringify(flags)}) catch .'`;
+      for (const shell of [js,rs]) {
+        const r=await shell.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr,r.stdout],[0,"",JSON.stringify(expected)+"\n"],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

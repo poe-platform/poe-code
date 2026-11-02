@@ -5,6 +5,8 @@ use std::io::Write;
 
 #[path = "pdf_fonts.rs"]
 mod pdf_fonts;
+#[path = "pdf_inspect.rs"]
+mod pdf_inspect;
 #[path = "pdf_text_layout.rs"]
 mod pdf_text_layout;
 pub(super) use pdf_text_layout::widths::WIDTHS;

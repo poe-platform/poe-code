@@ -6847,6 +6847,23 @@ fn cmd_media_doc(
                 ];
                 return ok_out(&format!("{}\n", lines.join("\n")));
             }
+            if (show_pages || show_xref || show_object.is_some())
+                && let Some(input) = primary_arg.as_deref() {
+                let bytes = if input == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
+                    else {fs.read_file(&resolve_posix_path(cwd,input)).ok()};
+                if let Some(bytes) = bytes && let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
+                    let displayed = if show_pages {source.qpdf_pages(with_images)}
+                        else if show_xref {source.qpdf_xref()}
+                        else {
+                            let digits=show_object.as_deref().unwrap().trim_start().trim_start_matches('+');
+                            let n=digits.bytes().take_while(u8::is_ascii_digit).count();
+                            source.qpdf_object(digits[..n].parse().unwrap_or(0),raw_stream_data,filtered_stream_data)
+                        };
+                    return match displayed {
+                        Some(out)=>ok_out(&out), None=>err_out(&format!("qpdf: {input}: invalid PDF object or stream\n"),2)
+                    };
+                }
+            }
             if show_xref {
                 let Some(f) = primary_arg.as_deref() else {
                     return err_out("qpdf: an input file is required\n", 2);

@@ -52,6 +52,8 @@ If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` create 
 
 Custom filesystems can support `touch` and timestamp-preserving copies by implementing `set_times(path, atime_ms, mtime_ms)`. Each time is an `Option<f64>` in milliseconds since the Unix epoch; leave the corresponding time unchanged for `None`. Implement `append_file` if the backend supports atomic append or writing without read permission. The default reads the existing file and stops if that read fails for any reason other than `ENOENT`.
 
+Implement `open_chunks` if a custom filesystem can stream input. Each call to the returned reader replaces its buffer with the next chunk, or clears it at EOF. The default reads the whole file. For external sorting, implement `scratch_file(directory)` to return a private, unnamed file with positioned reads and writes. Its storage must stay available until the last handle is dropped. When a sort needs to spill and the filesystem does not support scratch files, it fails. The memory filesystem charges scratch bytes against its normal quotas.
+
 ### 2. WebAssembly Shell from JavaScript / TypeScript
 
 The JavaScript entry point requires Node.js to load the packaged WebAssembly binary. Use `await bash.fs.open(path, { access: "readwrite" })` for positioned I/O on memory files. Use `await bash.fs.link(existingPath, newPath)` to give a file or symlink a second name. The descriptor stays attached to the opened file after renames and unlinks; call `await descriptor.close()` to release it. Use `await bash.fs.readdir(path, { maxEntries })` for sorted `{ name, type }` entries; exceeding the limit raises `EFBIG`. The synchronous `bash.readdir(path)` returns names.

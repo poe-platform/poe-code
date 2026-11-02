@@ -72,6 +72,8 @@ pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
     pub layers:Vec<Layer<'a>>,
+    pub form_data: Option<&'a [u8]>,
+    pub replacement_font: Option<&'a str>,
     pub stamp: Option<(&'a [u8], bool, bool)>,
     pub trailer_id: Option<&'a [u8]>,
     pub append_files: Option<&'a [String]>,
@@ -337,6 +339,10 @@ pub(in super::super) fn rewrite(
         )?;
         state.finish(&mut changed, remaining)?;
     }
+    if let Some(data)=edits.form_data{
+        let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
+        super::pdf_fill::apply(&mut objects,&mut catalog,data,edits,next,&mut changed,limit)?;
+    }
     let pin_page=edits.attachment_page.and_then(|p| pages.get(p.min(pages.len().saturating_sub(1)))).copied();
     let mut pins=if let Some(paths)=edits.append_files {
         let next=tree.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?.max(first_new);
@@ -369,7 +375,7 @@ pub(in super::super) fn rewrite(
             store(id, &Value::Dict(entries))?;
         }
     }
-    if (edits.drop_xfa || edits.need_appearances)
+    if edits.form_data.is_none() && (edits.drop_xfa || edits.need_appearances)
         && let Some((owner,Value::Dict(mut form)))=catalog.get(b"AcroForm").and_then(|v|objects.lookup_value(v))
     {
         if edits.drop_xfa { form.retain(|(k,_)|k.as_ref()!=b"XFA"); }
@@ -505,6 +511,13 @@ pub(in super::super) fn rewrite(
             out.extend_from_slice(&body);
         } else {
             let (mut dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
+            if let Some(font)=edits.replacement_font
+                && dict.get(b"Subtype").and_then(Value::word)==Some(b"/Type1")
+                && dict.get(b"BaseFont").and_then(Value::word)==Some(b"/Helvetica")
+                && let Value::Dict(d)=&mut dict{
+                let mut raw=vec![b'/'];raw.extend(super::pdf_update::encode_name(font.strip_prefix('/').unwrap_or(font)));
+                set(d,b"BaseFont",Value::Word(raw.into()));
+            }
             cursor.skip();
             if cursor.0.starts_with(b"stream") {
                 let mut data=objects.raw_stream(id,&mut dict,cursor).ok_or(INVALID)?;

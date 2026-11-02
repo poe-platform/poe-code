@@ -5089,3 +5089,27 @@ test("qpdf replaces page labels while retaining the existing document",async()=>
     }
   } finally {rs.dispose();}
 });
+
+test("pdftk fill_form updates field values, widget appearances and new fields across data formats",async()=>{
+  const {PdfDocument,cosDict,cosName,cosString,cosNumber,cosArray,dictSet}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const d=PdfDocument.create(),page=d.addPage(),alloc=x=>d.cos.allocateObject(x);
+  page.drawText("Page before filling",{x:10,y:25});
+  const widget=alloc(cosDict({Subtype:cosName("Widget"),Rect:cosArray([20,30,202,64].map(n=>cosNumber(n)))}));
+  const name=alloc(cosDict({T:cosString("name"),FT:cosName("Tx"),Q:cosNumber(2),Kids:cosArray([widget])}));
+  const choice=cosDict({T:cosString("choice"),FT:cosName("Ch"),Opt:cosArray([cosArray([cosString("x"),cosString("Display")])])});
+  const button=alloc(cosDict({T:cosString("check"),FT:cosName("Btn"),AP:cosDict({N:cosDict({Off:cosDict({}),Marked:cosDict({})})})}));
+  dictSet(page.pageDict,"Annots",cosArray([widget,button]));
+  dictSet(d.cos.resolveDict(d.cos.rootRef),"AcroForm",alloc(cosDict({Fields:alloc(cosArray([name,choice,button])),DA:cosString("/Helv 12 Tf 0.1 0.2 0.3 rg")})));
+  const files={"/in":d.save(),"/plain":Buffer.from("name=discard\nname=Zoë (A)\nchoice=x\ncheck=Yes\nnew: value"),"/xml":Buffer.from('<xfdf><fields><field name="name"><value>A&amp;B</value><value>C</value></field></fields></xfdf>'),"/fdf":Buffer.from('%FDF-1.2\n1 0 obj << /FDF << /Fields [2 0 R] >> >> endobj\n2 0 obj << /T (group) /Kids [3 0 R] >> endobj\n3 0 obj << /T (check) /V /Yes >> endobj'),"/report":Buffer.from("FieldName: name\nFieldValue: Andr&#233;"),"/secret":d.save({encrypt:{userPassword:"pass",ownerPassword:"owner"}})};
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(pdftkCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [k,b] of Object.entries(files))await fs.writeFile(k,b);
+    for(const cmd of ["pdftk in fill_form plain output out","pdftk in fill_form - output out compress need_appearances < xml","pdftk in fill_form fdf output out","pdftk secret input_pw pass fill_form report output out replacement_font /Courier uncompress","pdftk in fill_form absent output out"]){
+      const e=await js.exec(cmd),r=await rs.exec(cmd);assert.deepEqual([r.exitCode,r.stderr],[e.exitCode,e.stderr],cmd);
+      const expected=await fs.readFile("/out"),actual=await rs.fs.readFile("/out");
+      assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((v,i)=>v!==actual[i]));
+    }
+  }finally{rs.dispose();}
+});

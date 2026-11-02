@@ -7667,6 +7667,7 @@ fn cmd_media_doc(
             let mut handles: BTreeMap<String, PdfDoc> = BTreeMap::new();
             let mut inputs = BTreeMap::new();
             let mut input_order = Vec::new();
+            let mut source_sizes=BTreeMap::new();
             let mut auto = 65;
             let mut passwords = BTreeMap::new();
             let mut default_password = "";
@@ -7726,6 +7727,7 @@ fn cmd_media_doc(
                     Err(_) => PdfDoc::parse(&bytes),
                 };
                 handles.insert(handle.clone(),doc);
+                source_sizes.insert(path,bytes.len());
                 inputs.insert(handle.clone(),(bytes,pw));
                 input_order.push(handle);
                 i += 1;
@@ -7796,6 +7798,7 @@ fn cmd_media_doc(
             let (mut user,mut owner) = (None,None);
             let mut grants = 0;
             let mut keep_final_id=false;
+            let mut replacement_font=None;
             let mut compress_streams=None;
             let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
             let mut operands=Vec::new();
@@ -7806,10 +7809,11 @@ fn cmd_media_doc(
                     "output" => output=tail.next().map(String::as_str),
                     "keep_first_id" => (),
                     "keep_final_id" => keep_final_id=true,
+                    "replacement_font" => replacement_font=tail.next().map(String::as_str).filter(|s|!s.is_empty()),
                     "drop_xfa" => drop_xfa=true,
                     "drop_xmp" => drop_xmp=true,
                     "need_appearances" => need_appearances=true,
-                    "compress"|"uncompress" if matches!(op.as_str(),"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
+                    "compress"|"uncompress" if matches!(op.as_str(),"fill_form"|"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
                         compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
                     }
                     "user_pw" => user = tail.next().map(String::as_str),
@@ -7855,6 +7859,22 @@ fn cmd_media_doc(
 
             let primary = handles[&input_order[0]].clone();
             match op.as_str() {
+                "fill_form" => {
+                    let path=operands.first().map_or("-",String::as_str);
+                    let data=if path=="-"{crate::vfs::stream_string_to_bytes(stdin)}else{
+                        let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{return err_out(&format!("Error: Unable to open form data file '{path}'\n"),1)};
+                        b
+                    };
+                    source_sizes.insert(path,data.len());
+                    if source_sizes.values().try_fold(fs.max_input_bytes(),|n,&size|n.checked_sub(size)).is_none(){
+                        return err_out("pdftk: input byte limit exceeded\n",1);
+                    }
+                    let (bytes,password)=&inputs[primary_handle];
+                    let edits=pdf_reader::PageEdits{form_data:Some(&data),replacement_font,password,..output_edits};
+                    match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
+                        Ok(bytes)=>write_pdftk_output(bytes),Err(e)=>err_out(&format!("Error: {e}\n"),1)
+                    }
+                }
                 "passthrough" => {
                     let (bytes,password) = &inputs[&input_order[0]];
                     let bytes = if !is_legacy_pdf(bytes) {

@@ -13,7 +13,7 @@ struct Field {
     max_length: Option<f64>,
 }
 
-fn text(v: &Value) -> Option<String> {
+pub(super) fn text(v: &Value) -> Option<String> {
     match v {
         Value::String { bytes, .. } => Some(pdf_string::decode(bytes)),
         Value::Word(w) => Some(pdf_string::name(w.strip_prefix(b"/")?)),

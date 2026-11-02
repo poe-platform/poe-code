@@ -126,15 +126,8 @@ pub(super) fn edit<'a>(
     copies: &[CopyAttachments],
     mut read: impl FnMut(&str) -> Option<Vec<u8>>,
     limit: usize,
+    mut next: usize,
 ) -> Result<BTreeMap<ObjectId, Vec<u8>>, String> {
-    let mut next = objects
-        .xref
-        .keys()
-        .next_back()
-        .ok_or(INVALID)?
-        .0
-        .checked_add(1)
-        .ok_or(TOO_LARGE)?;
     let mut changed = BTreeMap::new();
     let (names_id, names) = child(objects, catalog, b"Names", &mut next)?;
     let names = Value::Dict(names);

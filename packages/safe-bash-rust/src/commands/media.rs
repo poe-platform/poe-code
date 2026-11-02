@@ -6321,7 +6321,6 @@ fn cmd_media_doc(
             let mut standard_rewrite = true;
             let mut copy_atts = Vec::new();
             let mut encryption = None;
-            let mut linearize = false;
             let mut qdf_mode = false;
             let mut uncompress = false;
             let mut normalize_content = None;
@@ -6340,7 +6339,7 @@ fn cmd_media_doc(
                 if a.starts_with("--")
                     && !matches!(a, "--empty" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
                         | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
-                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt")
+                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt" | "--linearize")
                     && !["--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
                         "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
                         "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
@@ -6607,12 +6606,12 @@ fn cmd_media_doc(
                     continue;
                 }
                 if a == "--linearize" {
-                    linearize = true;
+                    edits.linearize = true;
                     i += 1;
                     continue;
                 }
                 if a == "--no-linearize" {
-                    linearize = false;
+                    edits.linearize = false;
                     i += 1;
                     continue;
                 }
@@ -7580,7 +7579,7 @@ fn cmd_media_doc(
             if edits.decrypt {
                 doc.encrypted = None;
             }
-            if linearize {
+            if edits.linearize {
                 doc.linearized = true;
             }
             let serialized = doc.serialize();

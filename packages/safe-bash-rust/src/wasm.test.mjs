@@ -4613,3 +4613,24 @@ test("wkhtmltopdf writes heading fonts, nested outlines and page destinations as
     }
   } finally {rust.dispose();}
 });
+
+test("qpdf writes and repairs fixed-width linearization offsets across edits",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {readFile}=await import("node:fs/promises");
+  const doc=PdfDocument.create();doc.addPage().drawText("one",{x:8,y:9});doc.addPage();
+  const files={"/in":doc.save(),"/note":Buffer.from("note"),"/old":await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-issue19484_1.pdf",import.meta.url))};
+  const fs=new MemoryFileSystem(),rust=new RustWasmBash({cwd:"/",files});
+  for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [src,args] of [["in","--linearize --add-attachment note --"],["out","--linearize"],["old","--decrypt"]]){
+      const dest=src==="out"?"again":"out",cmd="qpdf "+src+" "+args+" "+dest;
+      const want=await js.exec(cmd),got=await rust.exec(cmd);
+      assert.deepEqual([got.exitCode,got.stderr],[want.exitCode,want.stderr]);
+      const a=Buffer.from(await rust.fs.readFile("/"+dest)),b=Buffer.from(await fs.readFile("/"+dest));
+      assert.ok(a.equals(b),cmd+" byte "+b.findIndex((v,i)=>v!==a[i]));
+    }
+  } finally {rust.dispose();}
+});

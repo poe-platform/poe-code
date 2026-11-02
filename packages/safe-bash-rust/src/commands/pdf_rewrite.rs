@@ -43,6 +43,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
     pub decrypt: bool,
+    pub linearize: bool,
     pub rotations: Vec<&'a str>,
     pub split_pages: Option<usize>,
     pub info: bool,
@@ -70,10 +71,11 @@ pub(in super::super) fn rewrite(
         .and_then(Value::reference)
         .ok_or(INVALID)?;
     let mut catalog = objects.object(root).ok_or(INVALID)?.0;
+    let first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
     let mut changed = if remove.is_empty() && add.is_empty() && copies.is_empty() {
         BTreeMap::new()
     } else {
-        attachments::edit(&mut objects, &mut catalog, remove, add, copies, read, limit)?
+        attachments::edit(&mut objects, &mut catalog, remove, add, copies, read, limit, first_new.checked_add(usize::from(edits.linearize)).ok_or(TOO_LARGE)?)?
     };
     let Value::Dict(entries) = &mut catalog else {
         return Err(INVALID.into());
@@ -97,6 +99,9 @@ pub(in super::super) fn rewrite(
             changed.keys().next_back().map_or(0, |id| id.0),
         )
         .ok_or(INVALID)?;
+    if edits.linearize {
+        changed.insert((first_new,0), format!("<<\n/Linearized 1\n/N {}\n>>", pages.len()).into_bytes());
+    }
     let rotations =
         super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
     let mut remaining = limit;
@@ -282,10 +287,13 @@ pub(in super::super) fn rewrite(
     {
         return p.finish(out, rows, &trailer_entries, limit);
     }
-    finish_classic(out, rows, &trailer_entries, limit)
+    finish_classic(out, rows, &trailer_entries, root.0, limit)
 }
 
-pub(super) fn finish_classic(mut out: Vec<u8>, rows: Vec<(u8,usize,usize)>, trailer_entries: &[u8], limit: usize) -> Result<Vec<u8>, String> {
+#[path = "pdf_linearize.rs"]
+mod pdf_linearize;
+pub(super) use pdf_linearize::finish_classic;
+fn write_xref(mut out: Vec<u8>, rows: Vec<(u8,usize,usize)>, trailer_entries: &[u8], limit: usize) -> Result<Vec<u8>, String> {
     let next = rows.len();
     if next > limit.saturating_sub(out.len()) / 20 { return Err(TOO_LARGE.into()); }
     let offset = out.len();

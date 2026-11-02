@@ -96,5 +96,15 @@ pub(in super::super) fn encrypt_document(
     };
     encode(&Value::Array(vec![id.clone(), id]), &mut entries)?;
     entries.push(b'\n');
-    finish_classic(out, rows, &entries, limit)
+    finish_classic(
+        out,
+        rows,
+        &entries,
+        trailer
+            .get(b"Root")
+            .and_then(Value::reference)
+            .ok_or(invalid)?
+            .0,
+        limit,
+    )
 }

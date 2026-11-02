@@ -36,7 +36,7 @@ fn coreutil(
         "wc" => cmd_wc(args, input, cwd, env, fs),
         "head" | "tail" => run_head_or_tail(cmd, args, input, cwd, fs),
         "sort" => cmd_sort(args, input, cwd, env, fs),
-        "uniq" => cmd_uniq(args, input.buffered()?, cwd, env, fs),
+        "uniq" => cmd_uniq(args, input, cwd, env, fs),
         "cut" => cmd_cut(args, input, cwd, env, fs),
         "tr" => cmd_tr(args, input.buffered()?),
         "nl" => cmd_nl(args, input.buffered()?, cwd, fs),
@@ -336,15 +336,43 @@ impl CommandInput<'_> {
             return Ok(());
         }
         let path = absolute_operand(cwd, name);
-        if fs.is_dir(&path) {
+        let (entry, stat) = fs.inspect_command_entry(&path, true, "capabilitiesFor")
+            .map_err(|e| stream_file_error(e, "readStream", &path))?;
+        if stat.kind == crate::vfs::VfsEntryKind::Directory {
             return Err(format!("EISDIR: illegal operation on a directory, readStream '{path}'"));
         }
         let limit = fs.max_input_bytes();
         let mut available = limit;
-        fs.read_chunks(&path, &mut |chunk| {
+        fs.read_chunks(&entry, &mut |chunk| {
             available = available.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
             Ok(consume(chunk))
         }).map_err(|e| stream_file_error(e, "readStream", &path))
+    }
+
+    fn read_records(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, delimiter: u8,
+        mut emit: impl FnMut(&[u8]) -> Result<(), String>,
+    ) -> Result<(), String> {
+        let mut pending = Vec::new();
+        let mut result = Ok(());
+        self.read_operand(name, cwd, fs, |chunk| {
+            for part in chunk.split_inclusive(|&b| b == delimiter) {
+                if let Some(record) = part.strip_suffix(&[delimiter]) {
+                    result = if pending.is_empty() { emit(record) } else {
+                        pending.extend_from_slice(record);
+                        let result = emit(&pending);
+                        pending.clear();
+                        result
+                    };
+                    if result.is_err() { return false; }
+                } else {
+                    pending.extend_from_slice(part);
+                }
+            }
+            true
+        })?;
+        result?;
+        if !pending.is_empty() { emit(&pending)?; }
+        Ok(())
     }
 
     pub(super) fn append_bytes(&mut self, output: &mut Vec<u8>) -> Result<(), String> {
@@ -2387,7 +2415,7 @@ fn cmd_sort(
 
 fn cmd_uniq(
     args: &[String],
-    stdin: &mut String,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -2551,12 +2579,12 @@ fn cmd_uniq(
         return err_out(&format!("uniq: extra operand '{}'\n", operands[2]), 2);
     }
     if operands.len() == 2 && operands[0] != "-" {
-        let src = resolve_posix_path(cwd, &operands[0]);
+        let src = absolute_operand(cwd, &operands[0]);
         let (src_entry, src_stat) = match fs.inspect_command_entry(&src, true, "stat") {
             Ok(entry) => entry,
             Err(e) => return err_out(&format!("uniq: {}\n", stream_file_error(e, "stat", &src)), 1),
         };
-        let dst = resolve_posix_path(cwd, &operands[1]);
+        let dst = absolute_operand(cwd, &operands[1]);
         match fs.inspect_command_entry(&dst, true, "stat") {
             Ok((dst_entry, dst_stat)) => {
                 if src_entry == dst_entry || src_stat.identity.is_some() && src_stat.identity == dst_stat.identity {
@@ -2572,26 +2600,20 @@ fn cmd_uniq(
     }
 
     let in_name = operands.first().map(|s| s.as_str()).unwrap_or("-");
-    let raw = if in_name == "-" {
-        take_stdin_bytes(stdin)
-    } else {
-        let path = resolve_posix_path(cwd, in_name);
-        if fs.is_dir(&path) {
-            return err_out(
-                &format!("uniq: EISDIR: illegal operation on a directory, readStream '{path}'\n"),
-                1,
-            );
+    let destination = if let Some(name) = operands.get(1) {
+        let path = absolute_operand(cwd, name);
+        let entry = match fs.access_path(&path, true) {
+            Ok(entry) => entry,
+            Err(e) => return err_out(&format!("uniq: {}\n", stream_file_error(e, "writeStream", &path)), 1),
+        };
+        if fs.is_dir(&entry) {
+            return err_out(&format!("uniq: EISDIR: illegal operation on a directory, writeStream '{path}'\n"), 1);
         }
-        match fs.read_file(&path) {
-            Ok(b) => b,
-            Err(_) => {
-                return err_out(
-                    &format!("uniq: ENOENT: no such file or directory, readStream '{path}'\n"),
-                    1,
-                );
-            }
+        if let Err(e) = fs.write_file(&entry, &[]) {
+            return err_out(&format!("uniq: {}\n", stream_file_error(e, "writeStream", &path)), 1);
         }
-    };
+        Some((entry, path))
+    } else { None };
 
     let delimiter = if zero_term { 0u8 } else { b'\n' };
     let locale = env
@@ -2605,9 +2627,6 @@ fn cmd_uniq(
         skip_fields == 0 && skip_chars == 0 && max_chars.is_none() && !ignore_case;
 
     let compute_key = |bytes: &[u8]| -> Vec<u8> {
-        if identity_key {
-            return bytes.to_vec();
-        }
         let mut offset = 0usize;
         for _ in 0..skip_fields {
             while offset < bytes.len() && (bytes[offset] == b' ' || bytes[offset] == b'\t') {
@@ -2642,24 +2661,10 @@ fn cmd_uniq(
         }
     };
 
-    let mut records: Vec<&[u8]> = Vec::new();
-    if !raw.is_empty() {
-        let mut start = 0usize;
-        for (idx, &b) in raw.iter().enumerate() {
-            if b == delimiter {
-                records.push(&raw[start..idx]);
-                start = idx + 1;
-            }
-        }
-        if start < raw.len() {
-            records.push(&raw[start..]);
-        }
-    }
-
     let expanded = has_all_repeated || group_method.is_some();
     let method = group_method.as_deref().unwrap_or(&repeated_method);
     let mut out_bytes: Vec<u8> = Vec::new();
-    let mut previous: Option<&[u8]> = None;
+    let mut previous: Option<Vec<u8>> = None;
     let mut previous_key: Option<Vec<u8>> = None;
     let mut count = 0usize;
     let mut emitted_group = false;
@@ -2674,10 +2679,18 @@ fn cmd_uniq(
         out.push(delimiter);
     };
 
-    for line in records {
-        let cur_key = compute_key(line);
-        if let Some(ref pk) = previous_key
-            && pk == &cur_key
+    let flush = |out: &mut Vec<u8>| -> Result<(), String> {
+        if let Some((entry, path)) = &destination && !out.is_empty() {
+            let result = fs.append_file(entry, out);
+            out.clear();
+            result.map_err(|e| stream_file_error(e, "writeStream", path))?;
+        }
+        Ok(())
+    };
+    let result = stdin.read_records(in_name, cwd, fs, delimiter, |line| {
+        let cur_key = (!identity_key).then(|| compute_key(line));
+        if let Some(prev) = previous.as_deref()
+            && previous_key.as_deref().unwrap_or(prev) == cur_key.as_deref().unwrap_or(line)
         {
             count += 1;
             if expanded && !unique_only {
@@ -2685,7 +2698,7 @@ fn cmd_uniq(
                     if method == "prepend" || (method == "separate" && emitted_group) {
                         out_bytes.push(delimiter);
                     }
-                    emit_line(&mut out_bytes, previous.unwrap(), count);
+                    emit_line(&mut out_bytes, prev, count);
                     emitted_group = true;
                 }
                 out_bytes.extend_from_slice(line);
@@ -2693,13 +2706,13 @@ fn cmd_uniq(
             }
         } else {
             if !expanded
-                && let Some(prev) = previous
+                && let Some(prev) = previous.as_deref()
                 && selected(count)
             {
                 emit_line(&mut out_bytes, prev, count);
             }
-            previous = Some(line);
-            previous_key = Some(cur_key);
+            previous = Some(line.to_vec());
+            previous_key = cur_key;
             count = 1;
             if group_method.is_some() {
                 if method == "prepend" || method == "both" || emitted_group {
@@ -2709,35 +2722,23 @@ fn cmd_uniq(
                 emitted_group = true;
             }
         }
-    }
-    if !expanded
-        && let Some(prev) = previous
-        && selected(count)
-    {
-        emit_line(&mut out_bytes, prev, count);
-    }
-    if emitted_group && (method == "append" || method == "both") {
-        out_bytes.push(delimiter);
-    }
-
-    if let Some(out_name) = operands.get(1) {
-        let dst = resolve_posix_path(cwd, out_name);
-        if fs.is_dir(&dst) {
-            return err_out(
-                &format!("uniq: EISDIR: illegal operation on a directory, writeStream '{dst}'\n"),
-                1,
-            );
+        if destination.is_some() && out_bytes.len() >= 65536 { flush(&mut out_bytes)?; }
+        Ok(())
+    });
+    if result.is_ok() {
+        if !expanded && let Some(prev) = previous && selected(count) {
+            emit_line(&mut out_bytes, &prev, count);
         }
-        let parent = dirname_posix_path(&dst);
-        if !fs.is_dir(&parent) || fs.write_file(&dst, &out_bytes).is_err() {
-            return err_out(
-                &format!("uniq: ENOENT: no such file or directory, writeStream '{dst}'\n"),
-                1,
-            );
+        if emitted_group && (method == "append" || method == "both") {
+            out_bytes.push(delimiter);
         }
-        return ok_out("");
     }
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    let result = flush(&mut out_bytes).and(result);
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        exit_code: i32::from(result.is_err()),
+        stderr: result.err().map(|e| format!("uniq: {e}\n")).unwrap_or_default(),
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -3038,7 +3039,7 @@ fn cmd_cut(
             let mut boundary = find_sep(line_bytes, 0);
             if boundary.is_none() {
                 if only_delimited {
-                    return;
+                    return Ok(());
                 }
                 out_bytes.extend_from_slice(line_bytes);
             } else {
@@ -3098,32 +3099,12 @@ fn cmd_cut(
             }
         }
         out_bytes.push(record_delim);
+        Ok(())
     };
     for name in &names {
-        let mut pending = Vec::new();
-        let result = stdin.read_operand(name, cwd, fs, |chunk| {
-            for part in chunk.split_inclusive(|&b| b == record_delim) {
-                if let Some(record) = part.strip_suffix(&[record_delim]) {
-                    if pending.is_empty() {
-                        emit(record);
-                    } else {
-                        pending.extend_from_slice(record);
-                        emit(&pending);
-                        pending.clear();
-                    }
-                } else {
-                    pending.extend_from_slice(part);
-                }
-            }
-            true
-        });
-        match result {
-            Err(e) => {
-                stderr.push_str(&format!("cut: {e}\n"));
-                exit_code = 1;
-            }
-            Ok(()) if !pending.is_empty() => emit(&pending),
-            _ => {}
+        if let Err(e) = stdin.read_records(name, cwd, fs, record_delim, &mut emit) {
+            stderr.push_str(&format!("cut: {e}\n"));
+            exit_code = 1;
         }
     }
 

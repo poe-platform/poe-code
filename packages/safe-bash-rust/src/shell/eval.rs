@@ -15983,6 +15983,38 @@ hash -l
     }
 
     #[test]
+    fn uniq_publishes_completed_groups_on_read_failure() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/big", b"a\na\nb\nc\nxyz").unwrap();
+        fs.write_file("/old", b"old").unwrap();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        for (args, stdout) in [("-c", "      2 a\n      1 b\n"), ("--group=both", "\na\na\n\nb\n\nc\n"), ("- /old", "")] {
+            let r = shell.exec(&format!("uniq {args} </big")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, stdout, "uniq: EFBIG: file too large, read '/big'\n"), "{args}");
+        }
+        assert_eq!(fs.read_file("/old").unwrap(), b"a\nb\n");
+        let r = shell.exec("{ uniq /old; head -c1; } </big").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "a\nb\na", ""));
+        let r = shell.exec("{ uniq - /absent/dst; head -c1; } </big").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "a", "uniq: ENOENT: no such file or directory, writeStream '/absent/dst'\n"));
+    }
+
+    #[test]
+    fn record_filters_follow_links_before_parent_components() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        let r = shell.exec("mkdir -p /target/sub; ln -s /target/sub /link; ln -s /missing/file /dangling; printf 'yes\\nyes\\n' >/target/src; echo no >/src").unwrap();
+        assert_eq!(r.exit_code, 0);
+        let r = shell.exec("cut -b1 /link/../src; sort /link/../src; uniq /link/../src /target/src").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "y\ny\nyes\nyes\n", "uniq: input and output must be different files\n"));
+        for dst in ["/missing/../target/src", "/dangling"] {
+            let r = shell.exec(&format!("uniq /src {dst}")).unwrap();
+            assert_eq!((r.exit_code, r.stderr), (1, format!("uniq: ENOENT: no such file or directory, writeStream '{dst}'\n")));
+        }
+        assert!(!fs.exists("/missing"));
+        assert_eq!(fs.read_file("/target/src").unwrap(), b"yes\nyes\n");
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

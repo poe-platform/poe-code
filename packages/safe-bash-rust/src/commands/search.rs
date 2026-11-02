@@ -4097,6 +4097,7 @@ fn run_grep_engine(
         program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, rx.ignore_case)))));
     let mut searches = 0;
     let mut bytes_searched = 0;
+    let mut json_bytes_printed = 0;
     for input in inputs {
         let (fname, content, explicit) = match input {
             Input::Stdin => ((cfg.is_rg || cfg.with_filename || !targets.is_empty()).then_some(stdin_label), stream_string_to_bytes(stdin), true),
@@ -4112,10 +4113,10 @@ fn run_grep_engine(
         };
         let nul_off = if cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
         searches += 1;
-        bytes_searched += content.len();
         if nul_off.is_some() && (cfg.ignore_binary || cfg.is_rg && cfg.binary == RgBinary::Auto && !explicit) {
             continue;
         }
+        bytes_searched += content.len();
         let mut line_offsets = Vec::new();
         let mut offset = 0;
         let binary_records = cfg.is_rg && nul_off.is_some();
@@ -4248,7 +4249,7 @@ fn run_grep_engine(
                         print_end = (idx + 1).saturating_add(cfg.after_ctx).min(lines.len());
                     }
                     if cfg.quiet && !cfg.stats && !cfg.json_output { break; }
-                } else if cfg.invert && cfg.show_column && (cfg.before_ctx > 0 || cfg.after_ctx > 0) {
+                } else if cfg.invert && (cfg.show_column || cfg.json_output) && (cfg.before_ctx > 0 || cfg.after_ctx > 0) {
                     context_matches.insert(idx, spans);
                 }
             }
@@ -4270,9 +4271,20 @@ fn run_grep_engine(
         }
 
         if cfg.json_output {
-            if matched_count == 0 {
-                continue;
+            let mut file_searched = content.len();
+            if let Some((limited, _)) = match_indices.get(limit - 1) {
+                let stop = limited.saturating_add(if cfg.quiet { 0 } else { cfg.after_ctx });
+                if stop < lines.len() {
+                    let last = match_indices.last().unwrap().0;
+                    file_searched = line_offsets.get(last + 1).copied().unwrap_or(content.len());
+                    if cfg.invert || line_offsets[stop] + lines[stop].len() == content.len() {
+                        file_searched = file_searched.max(line_offsets[stop]);
+                    }
+                    bytes_searched -= content.len() - file_searched;
+                }
             }
+            if matched_count == 0 || cfg.quiet { continue; }
+            let output_start = out.len();
             let path_text = fname.unwrap_or("<stdin>");
             let escaped_path = json_escape_str(path_text);
             out.push_str(&format!(
@@ -4301,28 +4313,26 @@ fn run_grep_engine(
                 } else { rg_json_data(raw_line) };
                 let line_no = idx + 1;
                 let abs_off = line_offsets.get(idx).copied().unwrap_or(0);
-                if let Some(spans) = match_map.get(&idx) {
-                    let mut subs_json = String::new();
-                    for (si, &(s, e)) in spans.iter().enumerate() {
-                        if si > 0 {
-                            subs_json.push(',');
-                        }
-                        let mtxt = rg_json_data(&lines[idx][s..e]);
-                        subs_json.push_str(&format!(
-                            "{{\"match\":{mtxt},\"start\":{s},\"end\":{e}}}"
-                        ));
-                    }
-                    out.push_str(&format!(
-                        "{{\"type\":\"match\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
-                    ));
-                } else {
-                    out.push_str(&format!(
-                        "{{\"type\":\"context\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[]}}}}\n"
+                let selected = match_map.contains_key(&idx);
+                let event = if selected { "match" } else { "context" };
+                let spans = match_map.get(&idx).copied().or_else(|| context_matches.get(&idx));
+                let mut subs_json = String::new();
+                for (si, &(s, e)) in spans.into_iter().flatten().enumerate() {
+                    if si > 0 { subs_json.push(','); }
+                    let mtxt = rg_json_data(&lines[idx][s..e]);
+                    subs_json.push_str(&format!(
+                        "{{\"match\":{mtxt},\"start\":{s},\"end\":{e}}}"
                     ));
                 }
+                out.push_str(&format!(
+                    "{{\"type\":\"{event}\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
+                ));
             }
+            let file_printed = stream_byte_len(&out[output_start..]);
+            json_bytes_printed += file_printed;
+            let binary_offset = nul_off.map_or_else(|| "null".to_owned(), |off| off.to_string());
             out.push_str(&format!(
-                "{{\"type\":\"end\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"stats\":{{\"matches\":{file_submatch_count},\"matched_lines\":{matched_count}}}}}}}\n"
+                "{{\"type\":\"end\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"binary_offset\":{binary_offset},\"stats\":{{\"elapsed\":{{\"secs\":0,\"nanos\":0,\"human\":\"0.000000s\"}},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":{file_searched},\"bytes_printed\":{file_printed},\"matched_lines\":{matched_count},\"matches\":{file_submatch_count}}}}}}}\n"
             ));
             continue;
         }
@@ -4569,7 +4579,7 @@ fn run_grep_engine(
 
     if cfg.json_output {
         out.push_str(&format!(
-            "{{\"type\":\"summary\",\"data\":{{\"stats\":{{\"matches\":{total_matches},\"matched_lines\":{total_matched_lines},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}}}}\n"
+            "{{\"data\":{{\"elapsed_total\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"stats\":{{\"bytes_printed\":{json_bytes_printed},\"bytes_searched\":{bytes_searched},\"elapsed\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"matched_lines\":{total_matched_lines},\"matches\":{total_matches},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}},\"type\":\"summary\"}}\n"
         ));
     } else if cfg.stats {
         let bytes_printed = stream_byte_len(&out);

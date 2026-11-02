@@ -7138,3 +7138,17 @@ test("grep validates plain ASCII searches record by record and preserves earlier
     }
   } finally { rs.dispose(); }
 });
+
+test("rg JSON end and summary records account for each input and emitted byte", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const sh of [js,rs]) await sh.exec("mkdir d; printf 'éx\nx\nz\nx' > d/a; echo z > d/b; printf 'x\\0z\\nx\n' > d/bin");
+    for (const args of ["x d/a d/b", "x d/bin", "x d", "-m1 -A1 x d/a", "-m1 x d/a d/b", "-C1 -v x d/a",
+      "-q x d/a d/bin", "missing d", "x nofile", "-Ua -C1 'x\\nz' d/a", "--crlf x d/a"]) {
+      const cmd="rg --json "+args;
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout],[a.exitCode,a.stderr,a.stdout],cmd);
+    }
+  } finally { rs.dispose(); }
+});

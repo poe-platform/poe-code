@@ -493,8 +493,7 @@ pub struct ZeroRegex {
     ignore_case: bool,
     word_regexp: bool,
     anchored: bool,
-    pub(super) first_match: bool,
-    pub(super) nonempty: bool,
+    first_match: bool,
 }
 
 impl ZeroRegex {
@@ -505,12 +504,23 @@ impl ZeroRegex {
         word_regexp: bool,
         line_regexp: bool,
     ) -> Self {
+        Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, false)), ignore_case, word_regexp, line_regexp)
+    }
+
+    pub(super) fn jq(pattern: &str, flags: &str) -> Self {
+        let pattern = preprocess_ere_pattern(pattern, flags.contains(['m', 'p']), flags.contains('x'));
+        let mut rx = Self::from_branches([parse_rx_branches(&pattern, false, true)], flags.contains('i'), false, false);
+        rx.first_match = true;
+        rx.branches[0].nonempty = flags.contains('n');
+        rx
+    }
+
+    fn from_branches(patterns: impl IntoIterator<Item = Vec<Vec<RxToken>>>, ignore_case: bool, word_regexp: bool, line_regexp: bool) -> Self {
         let mut branches = Vec::new();
         let mut anchored = true;
         let mut capture_names = Vec::new();
         let mut group_offset = 0;
-        for pat in &patterns {
-            let alternatives = parse_rx_branches(pat, fixed_strings);
+        for alternatives in patterns {
             anchored &= line_regexp || alternatives.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
             let mut program = RxProgram::new(alternatives);
             if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false })); }
@@ -519,7 +529,7 @@ impl ZeroRegex {
             branches.push(program);
         }
         Self { branches, capture_names, ignore_case,
-            word_regexp, anchored, first_match: false, nonempty: false }
+            word_regexp, anchored, first_match: false }
     }
 
     pub fn is_match(&self, text: &str) -> bool {
@@ -547,7 +557,7 @@ impl ZeroRegex {
                 let base = group_offset;
                 group_offset += program.groups;
                 program.run(&hay, pos, self.ignore_case, self.first_match, capture, |end|
-                    (!self.nonempty || end > pos) && (!self.word_regexp || is_word_boundary(&hay, pos, end))).map(|m| (base, m))
+                    !self.word_regexp || is_word_boundary(&hay, pos, end)).map(|m| (base, m))
             });
             if let Some((base, mut m)) = if self.first_match { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
                 found = true;
@@ -590,13 +600,20 @@ enum RxAtom {
     Word(bool),
     Space(bool),
     Class { negate: bool, chars: Vec<(char, char)> },
-    Group { alts: Vec<Vec<RxToken>>, capturing: bool, name: Option<String> },
+    Group { alts: Vec<Vec<RxToken>>, kind: RxGroup },
     Backref(usize),
     Begin,
     End,
     WordBoundary,
     WordStart,
     WordEnd,
+}
+
+#[derive(Debug, Clone)]
+enum RxGroup {
+    Capture(Option<String>),
+    Plain,
+    Assertion { behind: bool, positive: bool },
 }
 
 fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Option<bool> {
@@ -690,7 +707,7 @@ fn normalize_bre_escapes(pat: &str) -> String {
     out
 }
 
-pub(super) fn preprocess_ere_pattern(pat: &str, dotall: bool, extended_whitespace: bool) -> String {
+fn preprocess_ere_pattern(pat: &str, dotall: bool, extended_whitespace: bool) -> String {
     let chs: Vec<char> = pat.chars().collect();
     let mut out = String::with_capacity(pat.len() + 8);
     let mut k = 0usize;
@@ -785,7 +802,7 @@ pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> 
     })
 }
 
-fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
+fn parse_rx_branches(pat: &str, fixed: bool, jq: bool) -> Vec<Vec<RxToken>> {
     if fixed {
         return vec![pat
             .chars()
@@ -886,18 +903,23 @@ fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
             }
             '(' => {
                 idx += 1;
-                let capturing = !chars[idx..].starts_with(&['?', ':']);
-                let mut name = None;
-                if !capturing {
-                    idx += 2;
-                } else if (chars[idx..].starts_with(&['?', 'P', '<']) ||
-                    (chars[idx..].starts_with(&['?', '<']) && !matches!(chars.get(idx+2), Some('=' | '!'))))
-                    && let Some(end) = chars[idx..].iter().position(|&c| c == '>') {
-                    let start = if chars[idx + 1] == 'P' { 3 } else { 2 };
-                    name = Some(chars[idx + start..idx + end].iter().collect());
-                    idx += end + 1;
-                }
-                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), capturing, name));
+                let kind = match &chars[idx..] {
+                    ['?', ':', ..] => { idx += 2; RxGroup::Plain }
+                    ['?', c @ ('=' | '!'), ..] if jq => {
+                        idx += 2; RxGroup::Assertion { behind: false, positive: *c == '=' }
+                    }
+                    ['?', '<', c @ ('=' | '!'), ..] if jq => {
+                        idx += 3; RxGroup::Assertion { behind: true, positive: *c == '=' }
+                    }
+                    tail if (tail.starts_with(&['?', 'P', '<']) || (tail.starts_with(&['?', '<']) && !matches!(tail.get(2), Some('=' | '!'))))
+                        && let Some(end) = tail.iter().position(|&c| c == '>') => {
+                        let start = if tail[1] == 'P' { 3 } else { 2 };
+                        idx += end + 1;
+                        RxGroup::Capture(Some(tail[start..end].iter().collect()))
+                    }
+                    _ => RxGroup::Capture(None),
+                };
+                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), kind));
                 continue;
             }
             '|' => {
@@ -907,9 +929,9 @@ fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
             }
             ')' if !groups.is_empty() => {
                 idx += 1;
-                let (outer, outer_alts, capturing, name) = groups.pop().unwrap();
+                let (outer, outer_alts, kind) = groups.pop().unwrap();
                 alts.push(std::mem::replace(&mut out, outer));
-                RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), capturing, name }
+                RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind }
             }
             c => {
                 idx += 1;
@@ -970,9 +992,9 @@ fn parse_rx_branches(pat: &str, fixed: bool) -> Vec<Vec<RxToken>> {
             lazy,
         });
     }
-    while let Some((outer, outer_alts, capturing, name)) = groups.pop() {
+    while let Some((outer, outer_alts, kind)) = groups.pop() {
         alts.push(std::mem::replace(&mut out, outer));
-        let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), capturing, name };
+        let atom = RxAtom::Group { alts: std::mem::replace(&mut alts, outer_alts), kind };
         out.push(RxToken { atom, min: 1, max: Some(1), lazy: false });
     }
     alts.push(out);
@@ -994,6 +1016,28 @@ fn parse_quantifier(chars: &[char]) -> Option<(usize, Option<usize>, usize)> {
         let exact = body.trim().parse::<usize>().ok()?;
         Some((exact, Some(exact), close + 1))
     }
+}
+
+// A fixed-width lookbehind has exactly one possible starting position.
+fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
+    let mut width = None;
+    for seq in alts {
+        let mut sum = 0usize;
+        for tok in seq {
+            let n = match &tok.atom {
+                RxAtom::Backref(_) => return None,
+                RxAtom::Begin | RxAtom::End | RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+                | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
+                RxAtom::Group { alts, .. } => rx_fixed_width(alts)?,
+                _ => 1,
+            };
+            if n != 0 && Some(tok.min) != tok.max { return None; }
+            sum = sum.checked_add(n.checked_mul(tok.min)?)?;
+        }
+        if width.is_some_and(|w| w != sum) { return None; }
+        width = Some(sum);
+    }
+    width
 }
 
 fn matches_char(atom: &RxAtom, ch: char, ignore_case: bool) -> bool {
@@ -1032,6 +1076,8 @@ fn matches_char(atom: &RxAtom, ch: char, ignore_case: bool) -> bool {
 #[derive(Clone)]
 enum RxOp {
     Atom(RxToken),
+    Assert { behind: bool, positive: bool, width: Option<usize>, after: usize },
+    AssertEnd,
     Split(usize),
     Jump(usize),
     Open {
@@ -1055,6 +1101,7 @@ struct RxProgram {
     groups: usize,
     names: Vec<(String, usize)>,
     backrefs: bool,
+    nonempty: bool,
 }
 
 #[derive(Clone)]
@@ -1065,6 +1112,17 @@ struct RxMatch {
     repeats: Vec<(usize, usize)>,
 }
 
+struct AssertionFrame {
+    resume: RxMatch,
+    body: usize,
+    origin: usize,
+    last_origin: usize,
+    end: Option<usize>,
+    positive: bool,
+    pending_base: usize,
+    seen: std::collections::HashSet<(usize, usize, Vec<(usize, usize)>, Vec<Option<(usize, usize)>>)>,
+}
+
 impl RxProgram {
     fn new(alts: Vec<Vec<RxToken>>) -> Self {
         let mut program = Self {
@@ -1072,6 +1130,7 @@ impl RxProgram {
             groups: 0,
             names: Vec::new(),
             backrefs: false,
+            nonempty: false,
         };
         program.compile(alts, true);
         program
@@ -1098,18 +1157,26 @@ impl RxProgram {
                     self.ops.push(RxOp::Repeat { min: tok.min, max: tok.max, lazy: tok.lazy, after: 0 });
                     head
                 });
-                if let RxAtom::Group { alts, capturing, name } = tok.atom {
-                    let slot = self.groups;
+                if let RxAtom::Group { alts, kind } = tok.atom {
                     let open = self.ops.len();
-                    if capturing {
-                        if let Some(name) = name { self.names.push((name, slot)); }
-                        self.groups += 1;
-                        self.ops.push(RxOp::Open { slot, until: slot + 1 });
-                    }
-                    self.compile(alts, false);
-                    if capturing {
-                        self.ops[open] = RxOp::Open { slot, until: self.groups };
-                        self.ops.push(RxOp::Close(slot));
+                    match kind {
+                        RxGroup::Assertion { behind, positive } => {
+                            let width = if behind { rx_fixed_width(&alts) } else { Some(0) };
+                            self.ops.push(RxOp::AssertEnd);
+                            self.compile(alts, false);
+                            self.ops.push(RxOp::AssertEnd);
+                            self.ops[open] = RxOp::Assert { behind, positive, width, after: self.ops.len() };
+                        }
+                        RxGroup::Capture(name) => {
+                            let slot = self.groups;
+                            if let Some(name) = name { self.names.push((name, slot)); }
+                            self.groups += 1;
+                            self.ops.push(RxOp::Open { slot, until: slot + 1 });
+                            self.compile(alts, false);
+                            self.ops[open] = RxOp::Open { slot, until: self.groups };
+                            self.ops.push(RxOp::Close(slot));
+                        }
+                        RxGroup::Plain => self.compile(alts, false),
                     }
                 } else {
                     self.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
@@ -1158,10 +1225,11 @@ impl RxProgram {
         let mut pending = Vec::new();
         let mut seen = std::collections::HashSet::new();
         let mut best: Option<RxMatch> = None;
-        loop {
+        let mut assertions: Vec<AssertionFrame> = Vec::new();
+        'search: loop {
             loop {
                 let Some(op) = self.ops.get(state.pc) else {
-                    if accept(state.pos) && best.as_ref().is_none_or(|m| m.pos < state.pos) {
+                    if (!self.nonempty || state.pos > start) && accept(state.pos) && best.as_ref().is_none_or(|m| m.pos < state.pos) {
                         if first || state.pos == hay.len() {
                             return Some(state);
                         }
@@ -1171,6 +1239,35 @@ impl RxProgram {
                 };
                 state.pc += 1;
                 match op {
+                    RxOp::Assert { behind, positive, width, after } => {
+                        let pos = state.pos;
+                        let origin = match width {
+                            Some(w) if *w > pos => {
+                                if *positive { break; }
+                                state.pc = *after;
+                                continue;
+                            }
+                            Some(w) => pos - w,
+                            None => 0,
+                        };
+                        let body = state.pc;
+                        state.pc = *after;
+                        let probe = RxMatch { pc: body, pos: origin, caps: state.caps.clone(), repeats: Vec::new() };
+                        assertions.push(AssertionFrame {
+                            resume: state, body, origin, last_origin: if width.is_some() { origin } else { pos },
+                            end: behind.then_some(pos), positive: *positive, pending_base: pending.len(), seen: std::mem::take(&mut seen),
+                        });
+                        state = probe;
+                    }
+                    RxOp::AssertEnd => {
+                        let frame = assertions.last().unwrap();
+                        if frame.end.is_some_and(|end| state.pos != end) || (self.nonempty && state.pos == frame.origin) { break; }
+                        let frame = assertions.pop().unwrap();
+                        seen = frame.seen;
+                        pending.truncate(frame.pending_base);
+                        if !frame.positive { break; }
+                        state = RxMatch { caps: state.caps, ..frame.resume };
+                    }
                     RxOp::Jump(dest) => state.pc = *dest,
                     RxOp::Open { slot, until } if !state.caps.is_empty() => {
                         state.caps[*slot..*until].fill(None);
@@ -1268,7 +1365,8 @@ impl RxProgram {
                         };
                         let width = reference.map_or(1, |(lo, hi)| hi - lo);
                         let mut end = state.pos;
-                        let limit = tok.max.unwrap_or(usize::MAX).min((hay.len() - end) / width);
+                        let bound = assertions.last().and_then(|frame| frame.end).unwrap_or(hay.len());
+                        let limit = tok.max.unwrap_or(usize::MAX).min((bound - end) / width);
                         for _ in 0..limit {
                             let ok = if let Some((lo, hi)) = reference {
                                 hay[lo..hi].iter().zip(&hay[end..end + width]).all(
@@ -1311,6 +1409,23 @@ impl RxProgram {
                     }
                 }
             }
+            // Once all alternatives in an assertion fail, try its next possible
+            // start (variable-width lookbehind), or resume a negative assertion.
+            while let Some(frame) = assertions.last_mut() {
+                if pending.len() != frame.pending_base { break; }
+                if frame.origin < frame.last_origin {
+                    frame.origin += 1;
+                    seen.clear();
+                    state = RxMatch { pc: frame.body, pos: frame.origin, caps: frame.resume.caps.clone(), repeats: Vec::new() };
+                    continue 'search;
+                }
+                let frame = assertions.pop().unwrap();
+                seen = frame.seen;
+                if !frame.positive {
+                    state = frame.resume;
+                    continue 'search;
+                }
+            }
             match pending.pop() {
                 Some(next) => state = next,
                 None => return best,
@@ -1320,7 +1435,7 @@ impl RxProgram {
 }
 
 pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false));
+    let program = RxProgram::new(parse_rx_branches(pat, false, false));
     let hay: Vec<_> = text.char_indices().collect();
     let byte = |i| hay.get(i).map_or(text.len(), |&(offset, _)| offset);
     for start in 0..=hay.len() {
@@ -1345,7 +1460,7 @@ pub fn regex_capture_spans_in_hay(
     end: usize,
     ignore_case: bool,
 ) -> Vec<Option<(usize, usize)>> {
-    let program = RxProgram::new(parse_rx_branches(pat, false));
+    let program = RxProgram::new(parse_rx_branches(pat, false, false));
     program
         .run(hay, start, ignore_case, true, true, |pos| pos == end)
         .map_or_else(|| vec![None; program.groups], |m| m.caps)

@@ -2597,7 +2597,7 @@ fn try_eval_jq_builtin(
                             if !flags.chars().all(|c| "gimns".contains(c)) {
                                 return Err(format!("{flags}g is not a valid modifier string").into());
                             }
-                            let rx = jq_regex(&pat, &flags);
+                            let rx = ZeroRegex::jq(&pat, &flags);
                             let global = fname == "gsub" || flags.contains('g');
                             let mut results = vec![String::new()];
                             let mut copied = 0;
@@ -2967,14 +2967,6 @@ fn jval_contains(haystack: &JVal, needle: &JVal) -> bool {
         }),
         (a, b) => a == b,
     }
-}
-
-fn jq_regex(pattern: &str, flags: &str) -> ZeroRegex {
-    let pattern = super::search::preprocess_ere_pattern(pattern, flags.contains(['m', 'p']), flags.contains('x'));
-    let mut rx = ZeroRegex::new(vec![pattern], flags.contains('i'), false, false, false);
-    rx.first_match = true;
-    rx.nonempty = flags.contains('n');
-    rx
 }
 
 fn jq_capture_object(text: &str, rx: &ZeroRegex, caps: &[Option<(usize, usize)>]) -> JVal {
@@ -3518,7 +3510,7 @@ fn eval_jq_splits_regex(
     vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, JqFault> {
     let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-    let rx = jq_regex(&pat, &flags);
+    let rx = ZeroRegex::jq(&pat, &flags);
     let mut parts = Vec::new();
     let mut last = 0usize;
     for (ms, me) in rx.find_all(s) {

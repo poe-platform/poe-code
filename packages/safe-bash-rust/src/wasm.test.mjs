@@ -6705,3 +6705,28 @@ test("jq regex modifiers preserve literal characters and select multiline dot be
     }
   } finally { rs.dispose(); }
 });
+
+test("jq lookaround preserves assertion captures without consuming input", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [input, filter, expected] of [
+      ["aaa", 'match("(?<=a)(a)";"g")|.offset', [1,2]],
+      ["🦊a🦊a", 'match("(?<=(?<prev>🦊))a";"g")|.captures[0].offset', [0,2]],
+      ["aabb", 'scan("(?<=(a+))b")', [["aa"]]],
+      ["abac", 'scan("a(?=(b|c))")', [["b"],["c"]]],
+      ["abac", 'scan("a(?!b)(.)")', [["c"]]],
+      ["abba", 'match("(?<!a)b";"g")|.offset', [2]],
+      ["abab", String.raw`scan("(a)(?=b\\1)b")`, [["a"]]],
+      ["aa", 'scan("(?<=a(?=a))a")', ["a"]],
+      ["a", 'match("(?=())a";"n")|.string', []],
+    ]) {
+      const cmd = `echo '${JSON.stringify(input)}' | jq -c '[${filter}]'`;
+      for (const shell of [js, rs]) {
+        const r = await shell.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr,r.stdout], [0,"",JSON.stringify(expected)+"\n"], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

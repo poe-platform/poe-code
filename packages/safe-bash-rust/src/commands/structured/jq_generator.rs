@@ -684,7 +684,7 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
         }
         return Ok(Continue(()));
     }
-    let rx = super::jq_regex(pat, flags);
+    let rx = super::ZeroRegex::jq(pat, flags);
     if name == "test" { return emit(JVal::Bool(rx.is_match(text))); }
     let mut flow = Ok(Continue(()));
     let (mut byte, mut offset) = (0, 0);
@@ -708,7 +708,7 @@ fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emi
                         let name = names.next_if(|(_, slot)| *slot == i)
                             .map_or(JVal::Null, |(name, _)| JVal::Str(name.clone()));
                         let (pos, len, value) = cap.map_or((-1.0, 0, JVal::Null), |(lo, hi)| (
-                            (offset + text[s..lo].chars().count()) as f64,
+                            (if lo < s { offset - text[lo..s].chars().count() } else { offset + text[s..lo].chars().count() }) as f64,
                             text[lo..hi].chars().count(), JVal::Str(text[lo..hi].to_owned())));
                         JVal::Object(vec![
                             ("offset".into(), JVal::Number(pos, None)),

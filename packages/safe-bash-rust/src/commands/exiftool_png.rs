@@ -44,7 +44,7 @@ fn color(code: u8) -> &'static str {
 fn scan(
     bytes: &[u8],
     strip: bool,
-    mut visit: impl FnMut(&[u8], Option<(String, String)>),
+    mut visit: impl FnMut(&[u8], Option<(String, String, Option<&[u8]>)>),
 ) -> Result<(), &'static str> {
     let mut rest = bytes.strip_prefix(SIGNATURE).ok_or("Not a PNG file")?;
     let (mut first, mut idat, mut ended) = (true, false, false);
@@ -120,6 +120,7 @@ fn scan(
                         "{:04}:{m:02}:{d:02} {h:02}:{min:02}:{s:02}",
                         u16::from_be_bytes([hi, lo])
                     ),
+                    None,
                 ))
             }
             b"tEXt" | b"iTXt" => {
@@ -130,8 +131,8 @@ fn scan(
                     .ok_or("Invalid PNG text keyword")?;
                 let keyword: String = data[..pos].iter().map(|&b| char::from(b)).collect();
                 let raw = &data[pos + 1..];
-                let value = if kind == b"tEXt" {
-                    raw.iter().map(|&b| char::from(b)).collect()
+                let (value, binary) = if kind == b"tEXt" {
+                    (raw.iter().map(|&b| char::from(b)).collect(), None)
                 } else {
                     if raw.len() < 2 {
                         return Err("PNG truncated iTXt header");
@@ -152,13 +153,13 @@ fn scan(
                     {
                         return Err("PNG qualified/XMP iTXt not yet supported");
                     }
-                    String::from_utf8_lossy(value).into_owned()
+                    (String::from_utf8_lossy(value).into_owned(), Some(value))
                 };
                 let key = super::EXIF_TAGS
                     .iter()
                     .find(|n| n.eq_ignore_ascii_case(&keyword))
                     .map_or(keyword, |s| s.to_string());
-                Some((key, value))
+                Some((key, value, binary))
             }
             _ => None,
         };
@@ -173,7 +174,7 @@ fn scan(
 
 pub(super) fn inspect(
     bytes: &[u8],
-    mut insert: impl FnMut(&str, String),
+    mut insert: impl FnMut(&str, String, Option<&[u8]>),
 ) -> Result<(), &'static str> {
     scan(bytes, false, |chunk, tag| {
         if &chunk[4..8] == b"IHDR" {
@@ -188,11 +189,11 @@ pub(super) fn inspect(
                 ("MIMEType", "image/png".into()),
                 ("ImageSize", format!("{w}x{h}")),
             ] {
-                insert(k, v);
+                insert(k, v, None);
             }
         }
-        if let Some((k, v)) = tag {
-            insert(&k, v);
+        if let Some((k, v, binary)) = tag {
+            insert(&k, v, binary);
         }
     })
 }
@@ -323,7 +324,7 @@ pub(super) fn edit(
         if kind == b"IDAT" {
             insertion.get_or_insert(kept.len());
         }
-        if let Some((key, value)) = tag
+        if let Some((key, value, _)) = tag
             && (key == "ModifyDate") == (kind == b"tIME")
             && let Some(op) = ops.iter_mut().find(|o| o.key == key)
         {

@@ -1387,11 +1387,16 @@ fn apply_field_assignment(item: &mut OpItem, spec: &str, fs: &dyn SafeBashFs, cw
     Ok(())
 }
 
-fn is_op_bool(val: &str) -> bool {
-    matches!(
-        val,
-        "true" | "1" | "t" | "TRUE" | "True" | "T" | "false" | "0" | "f" | "FALSE" | "False" | "F"
-    )
+fn op_bool(val: &str) -> Option<bool> {
+    match val {
+        "true" | "1" | "t" | "TRUE" | "True" | "T" => Some(true),
+        "false" | "0" | "f" | "FALSE" | "False" | "F" => Some(false),
+        _ => None,
+    }
+}
+
+fn supported_op_encoding(value: &str) -> bool {
+    matches!(value.to_ascii_lowercase().as_str(), "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk")
 }
 
 fn parse_op_file_mode_str(val: &str) -> Option<u32> {
@@ -1534,15 +1539,12 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
                     }
                 }
                 "--encoding" if !is_help => {
-                    if !matches!(
-                        val.to_ascii_lowercase().as_str(),
-                        "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk"
-                    ) {
+                    if !supported_op_encoding(val) {
                         return Err("unsupported character-encoding".into());
                     }
                 }
                 "--cache" | "--debug" | "--iso-timestamps" => {
-                    if !is_op_bool(val) {
+                    if op_bool(val).is_none() {
                         return Err(format!("invalid boolean value for {flag}"));
                     }
                 }
@@ -1552,7 +1554,7 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
                     }
                 }
                 "--allow-admins-to-manage" => {
-                    if !is_op_bool(val) {
+                    if op_bool(val).is_none() {
                         return Err("invalid value for --allow-admins-to-manage".into());
                     }
                 }
@@ -1651,10 +1653,7 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
                     }
                 }
                 "--encoding" if !is_help => {
-                    if !matches!(
-                        val.to_ascii_lowercase().as_str(),
-                        "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk"
-                    ) {
+                    if !supported_op_encoding(val) {
                         return Err("unsupported character-encoding".into());
                     }
                 }
@@ -1664,7 +1663,7 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
                     }
                 }
                 "--allow-admins-to-manage" => {
-                    if !is_op_bool(val) {
+                    if op_bool(val).is_none() {
                         return Err("invalid value for --allow-admins-to-manage".into());
                     }
                 }
@@ -1713,13 +1712,13 @@ fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Res
     }
     if let Some(c) = env.get("OP_CACHE")
         && !c.is_empty()
-        && !is_op_bool(c)
+        && op_bool(c).is_none()
     {
         return Err("invalid boolean value for --cache".into());
     }
     if let Some(d) = env.get("OP_DEBUG")
         && !d.is_empty()
-        && !is_op_bool(d)
+        && op_bool(d).is_none()
     {
         return Err("invalid boolean value for --debug".into());
     }
@@ -1799,6 +1798,109 @@ fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
     out
 }
 
+// A positional word belongs to the subcommand dispatcher. Root flags alone
+// select help or version without opening an account.
+fn op_root_flags(args: &[String], env: &BTreeMap<String, String>) -> Option<BuiltinOutcome> {
+    let mut flags = BTreeMap::new();
+    let mut args = args.iter();
+    while let Some(token) = args.next() {
+        if token == "--" {
+            break;
+        }
+        if !token.starts_with('-') || token == "-" {
+            return None;
+        }
+        let (name, value) = token
+            .split_once('=')
+            .map_or((token.as_str(), None), |(k, v)| (k, Some(v)));
+        match name {
+            "--account" | "--config" | "--encoding" | "--format" | "--session" => {
+                let Some(value) = value.or_else(|| args.next().map(String::as_str)) else {
+                    return Some(op_err(&format!("flag needs a value: {name}")));
+                };
+                flags.insert(name, value);
+            }
+            _ => {
+                let mut short = name.strip_prefix('-')?.chars().peekable();
+                loop {
+                    let flag = if name.starts_with("--") {
+                        name
+                    } else {
+                        match short.next()? {
+                            'h' => "--help",
+                            'v' => "--version",
+                            c if short.peek().is_some() => {
+                                return Some(op_err(&format!("unknown shorthand flag: {c}")));
+                            }
+                            c => return Some(op_err(&format!("unknown flag: -{c}"))),
+                        }
+                    };
+                    if !matches!(
+                        flag,
+                        "--cache"
+                            | "--debug"
+                            | "--help"
+                            | "--iso-timestamps"
+                            | "--no-color"
+                            | "--version"
+                    ) {
+                        return Some(op_err(&format!("unknown flag: {flag}")));
+                    }
+                    let last = name.starts_with("--") || short.peek().is_none();
+                    let val = if last {
+                        value.unwrap_or("true")
+                    } else {
+                        "true"
+                    };
+                    if op_bool(val).is_none() {
+                        return Some(op_err(&format!("invalid boolean value for {flag}")));
+                    }
+                    flags.insert(flag, val);
+                    if last {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    for (flag, var) in [("--cache", "OP_CACHE"), ("--debug", "OP_DEBUG")] {
+        if !flags.contains_key(flag)
+            && env
+                .get(var)
+                .is_some_and(|v| !v.is_empty() && op_bool(v).is_none())
+        {
+            return Some(op_err(&format!("invalid boolean value for {flag}")));
+        }
+    }
+    if flags
+        .get("--format")
+        .copied()
+        .or_else(|| {
+            env.get("OP_FORMAT")
+                .map(String::as_str)
+                .filter(|v| !v.is_empty())
+        })
+        .is_some_and(|v| !matches!(v, "json" | "human-readable"))
+    {
+        return Some(op_err("format must be json or human-readable"));
+    }
+    let enabled = |name| flags.get(name).and_then(|v| op_bool(v)) == Some(true);
+    let version = enabled("--version");
+    if !version
+        && !enabled("--help")
+        && flags
+            .get("--encoding")
+            .is_some_and(|v| !supported_op_encoding(v))
+    {
+        return Some(op_err("unsupported character-encoding"));
+    }
+    Some(BuiltinOutcome {
+        stdout: if version { "0.0.1\n" } else { OP_ROOT_HELP }.to_string(),
+        stderr: String::new(),
+        exit_code: 0,
+    })
+}
+
 fn cmd_op<F>(
     args: &[String],
     stdin: &str,
@@ -1817,24 +1919,11 @@ where
         return op_err("OP_BIOMETRIC_UNLOCK_ENABLED must be true or false.");
     }
 
-    if args.is_empty() {
-        return BuiltinOutcome {
-            stdout: OP_ROOT_HELP.to_string(),
-            stderr: String::new(),
-            exit_code: 0,
-        };
+    if let Some(result) = op_root_flags(args, env) {
+        return result;
     }
-
     if let Err(msg) = validate_op_cli_flags(args, env) {
         return op_err(&msg);
-    }
-
-    if args.len() == 1 && (args[0] == "--version" || args[0] == "-v") {
-        return BuiltinOutcome {
-            stdout: "0.0.1\n".to_string(),
-            stderr: String::new(),
-            exit_code: 0,
-        };
     }
 
     let first = args[0].as_str();

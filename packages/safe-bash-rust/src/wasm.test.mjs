@@ -7408,3 +7408,21 @@ test("rg numeric options keep their spelling, size units and safe integer bounds
     }
   } finally { rs.dispose(); }
 });
+
+test("op validates root flags before selecting help or version", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ cwd: "/", fs: new MemoryFileSystem() }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const args of ["--unknown", "--unknown=yes", "--unknown --help", "-z", "-zv", "-z=1", "-",
+      "--debug", "--cache=false", "--version=false", "--version=bad", "-hv", "--no-color --version",
+      "-- --not-a-flag", "--format json", "--format", "--config demo --version", "--encoding=x --version",
+      "--account=sample", "--session sample", "--encoding=x --help", "--encoding=x", "--format=bad --version",
+      "--version --version=false", "-vh=false", "--format=invalid --format=json",
+      "--cache=t --debug=F", "--format="]) {
+      const cmd = "op " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stderr,b.stdout], [a.exitCode,a.stderr,a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -6602,3 +6602,33 @@ test("rg multiline replacement renders each selected block once", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("jq regex filters use original capture slots and preserve missing values", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [input, filter, values] of [
+      ["aaa", String.raw`scan("\\b(a)|(a)")`, [["a",null],[null,"a"],[null,"a"]]],
+      ["🦊aab", 'match("a|aa";"g") | .offset', [1,2]],
+      ["🦊aab", 'splits("a|aa")', ["🦊","","b"]],
+      ["🦊ab", 'match("(?<x>a)|(b)";"g") | .captures | map(.offset)', [[1,-1],[-1,2]]],
+      ["aaa", 'scan("a|aa")', ["a","a","a"]],
+      ["ab", 'scan("a*")', ["a","",""]],
+      ["ab", 'capture("(a)(?<tail>b)")', [{tail:"b"}]],
+      ["aaa", 'capture("(?<x>a)";"g")', [{x:"a"},{x:"a"},{x:"a"}]],
+      ["aaa", 'capture("(?<x>b)")', []],
+      ["aaa", 'capture("(?<a>x)|(?<b>a)")', [{a:null,b:"a"}]],
+      ["aaa", String.raw`gsub("(?<start>\\ba)|(?<inside>a)"; .inside // "-")`, ["-aa"]],
+      ["ab", 'gsub("";"-")', ["-a-b-"]],
+      ["ab", 'sub("a"; "&")', ["&b"]],
+      ["ab", 'sub("a"; .|type)', ["objectb"]],
+    ]) {
+      const cmd = `echo '${JSON.stringify(input)}' | jq -c '[${filter}]'`;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0,"",JSON.stringify(values) + "\n"], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

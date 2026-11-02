@@ -20,7 +20,7 @@ use json_format::{JsonFormat, JsonStrings, escape_json_str};
 #[path = "mermaid.rs"]
 mod mermaid;
 use crate::commands::search::{
-    ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
+    ZeroRegex, regex_capture_spans_in_hay,
 };
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -2574,98 +2574,33 @@ fn try_eval_jq_builtin(
                 "test" => {
                     if let JVal::Str(st) = input {
                         let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        let (cleaned_pat, _) = parse_jq_regex_groups(&pat);
-                        let ignore_case = flags.contains('i');
-                        let matched =
-                            ZeroRegex::new(vec![cleaned_pat], ignore_case, false, false, false)
-                                .is_match(st);
+                        let matched = jq_regex(pat, &flags).is_match(st);
                         return Ok(Some(vec![JVal::Bool(matched)]));
                     }
                 }
                 "match" => {
                     if let JVal::Str(st) = input {
                         let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        return Ok(Some(eval_jq_match_regex(st, &pat, &flags)));
+                        return Ok(Some(eval_jq_match_regex(st, pat, &flags)));
                     }
                 }
-                "capture" => {
+                "capture" | "scan" => {
                     if let JVal::Str(st) = input {
                         let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        let ignore_case = flags.contains('i');
-                        let (cleaned_pat, names) = strip_jq_named_groups(&pat);
-                        let rx = ZeroRegex::new(
-                            vec![cleaned_pat.clone()],
-                            ignore_case,
-                            false,
-                            false,
-                            false,
-                        );
-                        if let Some(&(s_idx, e_idx)) = rx.find_all(st).first() {
-                            let matched_slice = &st[s_idx..e_idx];
-                            let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
-                            let core = core.strip_suffix('$').unwrap_or(core);
-                            let caps =
-                                regex_captures(&format!("^{core}$"), matched_slice, ignore_case)
-                                    .or_else(|| {
-                                        regex_captures(&cleaned_pat, matched_slice, ignore_case)
-                                    })
-                                    .unwrap_or_default();
-                            let mut obj = Vec::new();
-                            for (idx, gname) in names.into_iter().enumerate() {
-                                let val = caps.get(idx + 1).cloned().unwrap_or_default();
-                                obj.push((gname, JVal::Str(val)));
-                            }
-                            return Ok(Some(vec![JVal::Object(obj)]));
-                        }
-                        return Ok(Some(vec![JVal::Object(Vec::new())]));
-                    }
-                }
-                "scan" => {
-                    if let JVal::Str(st) = input {
-                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        if pat.is_empty() && flags.contains('n') {
-                            return Ok(Some(Vec::new()));
-                        }
-                        let ignore_case = flags.contains('i');
-                        let (cleaned_pat, _) = strip_jq_named_groups(&pat);
-                        let has_groups = cleaned_pat.contains('(');
-                        let rx = ZeroRegex::new(
-                            vec![cleaned_pat.clone()],
-                            ignore_case,
-                            false,
-                            false,
-                            false,
-                        );
+                        let rx = jq_regex(pat, &flags);
                         let mut out = Vec::new();
-                        let mut last_end = 0usize;
-                        for (s_idx, e_idx) in rx.find_all(st) {
-                            if s_idx >= last_end && e_idx > s_idx {
-                                let matched_slice = &st[s_idx..e_idx];
-                                if has_groups {
-                                    let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
-                                    let core = core.strip_suffix('$').unwrap_or(core);
-                                    let caps = regex_captures(
-                                        &format!("^{core}$"),
-                                        matched_slice,
-                                        ignore_case,
-                                    )
-                                    .or_else(|| {
-                                        regex_captures(&cleaned_pat, matched_slice, ignore_case)
-                                    })
-                                    .unwrap_or_default();
-                                    if caps.len() > 1 {
-                                        out.push(JVal::Array(
-                                            caps[1..].iter().map(|c| JVal::Str(c.clone())).collect(),
-                                        ));
-                                    } else {
-                                        out.push(JVal::Str(matched_slice.to_string()));
-                                    }
-                                } else {
-                                    out.push(JVal::Str(matched_slice.to_string()));
-                                }
-                                last_end = e_idx;
+                        rx.scan(st, true, |s, e, caps| {
+                            if s == e && flags.contains('n') { return true; }
+                            if fname == "capture" {
+                                out.push(jq_capture_object(st, &rx, caps));
+                                flags.contains('g')
+                            } else {
+                                out.push(if caps.is_empty() { JVal::Str(st[s..e].to_owned()) }
+                                    else { JVal::Array(caps.iter().map(|span|
+                                        span.map_or(JVal::Null, |(lo, hi)| JVal::Str(st[lo..hi].to_owned()))).collect()) });
+                                true
                             }
-                        }
+                        });
                         return Ok(Some(out));
                     }
                 }
@@ -2692,79 +2627,36 @@ fn try_eval_jq_builtin(
                             } else {
                                 String::new()
                             };
-                            let ignore_case = flags.contains('i');
-                            let is_global = fname == "gsub" || flags.contains('g');
-                            let (cleaned_pat, names) = strip_jq_named_groups(&pat);
-                            let rx = ZeroRegex::new(
-                                vec![cleaned_pat.clone()],
-                                ignore_case,
-                                false,
-                                false,
-                                false,
-                            );
-                            let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
-                            let core = core.strip_suffix('$').unwrap_or(core);
-                            let mut results: Vec<String> = vec![String::new()];
-                            let mut copied = 0usize;
-                            for (s_idx, e_idx) in rx.find_all(st) {
-                                if s_idx < copied {
-                                    continue;
-                                }
-                                let matched_slice = &st[s_idx..e_idx];
-                                let cap_input = if !names.is_empty() {
-                                    let caps = regex_captures(
-                                        &format!("^{core}$"),
-                                        matched_slice,
-                                        ignore_case,
-                                    )
-                                    .or_else(|| {
-                                        regex_captures(&cleaned_pat, matched_slice, ignore_case)
-                                    })
-                                    .unwrap_or_default();
-                                    let mut cap_obj = Vec::new();
-                                    for (g_i, gname) in names.iter().enumerate() {
-                                        let v = caps.get(g_i + 1).cloned().unwrap_or_default();
-                                        cap_obj.push((gname.clone(), JVal::Str(v)));
-                                    }
-                                    JVal::Object(cap_obj)
-                                } else {
-                                    input.clone()
+                            let rx = jq_regex(pat, &flags);
+                            let global = fname == "gsub" || flags.contains('g');
+                            let mut results = vec![String::new()];
+                            let mut copied = 0;
+                            let mut fault = None;
+                            rx.scan(st, !rx.capture_names.is_empty(), |s, e, caps| {
+                                if s == e && flags.contains('n') { return true; }
+                                let captures = jq_capture_object(st, &rx, caps);
+                                let replacements = match eval_jq(repl_e, &captures, vars) {
+                                    Ok(values) => values,
+                                    Err(err) => { fault = Some(err); return false; }
                                 };
-                                let rep_vals = eval_jq(repl_e, &cap_input, vars)?;
-                                let mut next = Vec::new();
-                                for (idx, rv) in rep_vals.iter().enumerate() {
-                                    let prefix =
-                                        results.get(idx).map(|s| s.as_str()).unwrap_or("");
-                                    let rep_s = if names.is_empty() {
-                                        let raw_rep = rv.to_raw_string(true, false);
-                                        let (replaced_one, _) = replace_regex_in_text(
-                                            matched_slice,
-                                            &cleaned_pat,
-                                            &raw_rep,
-                                            ignore_case,
-                                            false,
-                                            None,
-                                        );
-                                        replaced_one
-                                    } else {
-                                        rv.to_raw_string(true, false)
-                                    };
-                                    next.push(format!("{prefix}{}{rep_s}", &st[copied..s_idx]));
-                                }
-                                if !next.is_empty() {
-                                    for idx in next.len()..results.len() {
-                                        next.push(results[idx].clone());
+                                if !replacements.is_empty() {
+                                    results.resize_with(results.len().max(replacements.len()), String::new);
+                                    for (prefix, value) in results.iter_mut().zip(replacements) {
+                                        prefix.push_str(&st[copied..s]);
+                                        match value {
+                                            JVal::Str(text) => prefix.push_str(&text),
+                                            JVal::Null => (),
+                                            _ => {
+                                                fault = Some(format!("string (\"\") and {} cannot be added", jq_generator::describe(&value)).into());
+                                                return false;
+                                            }
+                                        }
                                     }
-                                    results = next;
-                                    copied = e_idx;
+                                    copied = e;
                                 }
-                                if !is_global {
-                                    break;
-                                }
-                                if e_idx == s_idx {
-                                    break;
-                                }
-                            }
+                                global
+                            });
+                            if let Some(err) = fault { return Err(err); }
                             let out: Vec<JVal> = results
                                 .into_iter()
                                 .map(|prefix| JVal::Str(format!("{prefix}{}", &st[copied..])))
@@ -3108,25 +3000,17 @@ fn jval_contains(haystack: &JVal, needle: &JVal) -> bool {
     }
 }
 
-fn strip_jq_named_groups(pat: &str) -> (String, Vec<String>) {
-    let chars: Vec<char> = pat.chars().collect();
-    let mut cleaned = String::new();
-    let mut names = Vec::new();
-    let mut i = 0usize;
-    while i < chars.len() {
-        if chars[i] == '(' && i + 2 < chars.len() && chars[i + 1] == '?' && chars[i + 2] == '<' {
-            if let Some(rel_gt) = chars[i + 3..].iter().position(|&c| c == '>') {
-                let name: String = chars[i + 3..i + 3 + rel_gt].iter().collect();
-                names.push(name);
-                cleaned.push('(');
-                i += 3 + rel_gt + 1;
-                continue;
-            }
-        }
-        cleaned.push(chars[i]);
-        i += 1;
-    }
-    (cleaned, names)
+fn jq_regex(pattern: String, flags: &str) -> ZeroRegex {
+    let mut rx = ZeroRegex::new(vec![pattern], flags.contains('i'), false, false, false);
+    rx.first_match = true;
+    rx
+}
+
+fn jq_capture_object(text: &str, rx: &ZeroRegex, caps: &[Option<(usize, usize)>]) -> JVal {
+    JVal::Object(rx.capture_names.iter().map(|(name, i)| {
+        let value = caps[*i].map_or(JVal::Null, |(s, e)| JVal::Str(text[s..e].to_owned()));
+        (name.clone(), value)
+    }).collect())
 }
 
 fn epoch_to_iso8601(epoch: i64) -> String {
@@ -3656,62 +3540,38 @@ fn parse_jq_regex_groups(pat: &str) -> (String, Vec<Option<String>>) {
     (cleaned, groups)
 }
 
-fn eval_jq_match_regex(s: &str, pat: &str, flags: &str) -> Vec<JVal> {
-    let (clean_pat, group_names) = parse_jq_regex_groups(pat);
-    let case_i = flags.contains('i');
-    let global = flags.contains('g');
-    let ignore_empty = flags.contains('n');
-    let rx = ZeroRegex::new(vec![clean_pat.clone()], case_i, false, false, false);
-    let byte_matches = rx.find_all(s);
-    let hay: Vec<(usize, char)> = s.char_indices().collect();
+fn eval_jq_match_regex(text: &str, pattern: String, flags: &str) -> Vec<JVal> {
+    let rx = jq_regex(pattern, flags);
     let mut out = Vec::new();
-    for (mb_start, mb_end) in byte_matches {
-        if ignore_empty && mb_start == mb_end {
-            continue;
-        }
-        let start_char = s[..mb_start].chars().count();
-        let end_char = start_char + s[mb_start..mb_end].chars().count();
-        let spans = regex_capture_spans_in_hay(&clean_pat, &hay, start_char, end_char, case_i);
-        let mut captures = Vec::new();
-        for (idx, span_opt) in spans.into_iter().enumerate() {
-            let name_jval = group_names
-                .get(idx)
-                .and_then(|n| n.clone())
-                .map(JVal::Str)
-                .unwrap_or(JVal::Null);
-            match span_opt {
-                Some((cs, ce)) => {
-                    let cap_str: String = hay[cs..ce].iter().map(|&(_, c)| c).collect();
-                    captures.push(JVal::Object(vec![
-                        ("offset".to_string(), JVal::Number(cs as f64, None)),
-                        ("length".to_string(), JVal::Number((ce - cs) as f64, None)),
-                        ("string".to_string(), JVal::Str(cap_str)),
-                        ("name".to_string(), name_jval),
-                    ]));
-                }
-                None => {
-                    captures.push(JVal::Object(vec![
-                        ("offset".to_string(), JVal::Number(-1.0, None)),
-                        ("length".to_string(), JVal::Number(0.0, None)),
-                        ("string".to_string(), JVal::Null),
-                        ("name".to_string(), name_jval),
-                    ]));
-                }
-            }
-        }
+    let (mut byte, mut offset) = (0, 0);
+    rx.scan(text, true, |s, e, caps| {
+        if flags.contains('n') && s == e { return true; }
+        offset += text[byte..s].chars().count();
+        let length = text[s..e].chars().count();
+        let mut names = rx.capture_names.iter().peekable();
+        let captures = caps.iter().enumerate().map(|(i, cap)| {
+            let name = names.next_if(|(_, slot)| *slot == i)
+                .map_or(JVal::Null, |(name, _)| JVal::Str(name.clone()));
+            let (pos, len, value) = cap.map_or((-1.0, 0, JVal::Null), |(lo, hi)| (
+                (offset + text[s..lo].chars().count()) as f64,
+                text[lo..hi].chars().count(), JVal::Str(text[lo..hi].to_owned())));
+            JVal::Object(vec![
+                ("offset".into(), JVal::Number(pos, None)),
+                ("length".into(), JVal::Number(len as f64, None)),
+                ("string".into(), value),
+                ("name".into(), name),
+            ])
+        }).collect();
         out.push(JVal::Object(vec![
-            ("offset".to_string(), JVal::Number(start_char as f64, None)),
-            (
-                "length".to_string(),
-                JVal::Number((end_char - start_char) as f64, None),
-            ),
-            ("string".to_string(), JVal::Str(s[mb_start..mb_end].to_string())),
-            ("captures".to_string(), JVal::Array(captures)),
+            ("offset".into(), JVal::Number(offset as f64, None)),
+            ("length".into(), JVal::Number(length as f64, None)),
+            ("string".into(), JVal::Str(text[s..e].to_owned())),
+            ("captures".into(), JVal::Array(captures)),
         ]));
-        if !global {
-            break;
-        }
-    }
+        byte = e;
+        offset += length;
+        flags.contains('g')
+    });
     out
 }
 
@@ -3722,10 +3582,8 @@ fn eval_jq_splits_regex(
     vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, JqFault> {
     let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-    let (clean_pat, _) = parse_jq_regex_groups(&pat);
-    let case_i = flags.contains('i');
     let ignore_empty = flags.contains('n');
-    let rx = ZeroRegex::new(vec![clean_pat], case_i, false, false, false);
+    let rx = jq_regex(pat, &flags);
     let mut parts = Vec::new();
     let mut last = 0usize;
     for (ms, me) in rx.find_all(s) {

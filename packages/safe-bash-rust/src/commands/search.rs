@@ -489,11 +489,11 @@ pub fn is_known_command(name: &str) -> bool {
 #[derive(Clone)]
 pub struct ZeroRegex {
     branches: Vec<RxProgram>,
-    capture_names: BTreeMap<String, usize>,
+    pub(super) capture_names: Vec<(String, usize)>,
     ignore_case: bool,
     word_regexp: bool,
     anchored: bool,
-    first_match: bool,
+    pub(super) first_match: bool,
 }
 
 impl ZeroRegex {
@@ -506,14 +506,14 @@ impl ZeroRegex {
     ) -> Self {
         let mut branches = Vec::new();
         let mut anchored = true;
-        let mut capture_names = BTreeMap::new();
+        let mut capture_names = Vec::new();
         let mut group_offset = 0;
         for pat in &patterns {
             let alternatives = parse_rx_branches(pat, fixed_strings);
             anchored &= line_regexp || alternatives.iter().all(|seq| matches!(seq.first().map(|t| &t.atom), Some(RxAtom::Begin)));
             let mut program = RxProgram::new(alternatives);
             if line_regexp { program.ops.push(RxOp::Atom(RxToken { atom: RxAtom::End, min: 1, max: Some(1), lazy: false })); }
-            for (name, slot) in std::mem::take(&mut program.names) { capture_names.insert(name, group_offset + slot); }
+            for (name, slot) in std::mem::take(&mut program.names) { capture_names.push((name, group_offset + slot)); }
             group_offset += program.groups;
             branches.push(program);
         }
@@ -534,7 +534,7 @@ impl ZeroRegex {
         results
     }
 
-    fn scan(&self, text: &str, capture: bool, mut visit: impl FnMut(usize, usize, &[Option<(usize, usize)>]) -> bool) -> bool {
+    pub(super) fn scan(&self, text: &str, capture: bool, mut visit: impl FnMut(usize, usize, &[Option<(usize, usize)>]) -> bool) -> bool {
         let hay: Vec<_> = text.char_indices().collect();
         let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
         let mut found = false;
@@ -1048,7 +1048,7 @@ enum RxOp {
 struct RxProgram {
     ops: Vec<RxOp>,
     groups: usize,
-    names: BTreeMap<String, usize>,
+    names: Vec<(String, usize)>,
     backrefs: bool,
 }
 
@@ -1065,7 +1065,7 @@ impl RxProgram {
         let mut program = Self {
             ops: Vec::new(),
             groups: 0,
-            names: BTreeMap::new(),
+            names: Vec::new(),
             backrefs: false,
         };
         program.compile(alts, true);
@@ -1097,7 +1097,7 @@ impl RxProgram {
                     let slot = self.groups;
                     let open = self.ops.len();
                     if capturing {
-                        if let Some(name) = name { self.names.insert(name, slot); }
+                        if let Some(name) = name { self.names.push((name, slot)); }
                         self.groups += 1;
                         self.ops.push(RxOp::Open { slot, until: slot + 1 });
                     }
@@ -1489,7 +1489,7 @@ enum RgReplacementPart<'a> {
     Group(usize),
 }
 
-fn parse_rg_replacement<'a>(mut source: &'a str, names: &BTreeMap<String, usize>) -> Vec<RgReplacementPart<'a>> {
+fn parse_rg_replacement<'a>(mut source: &'a str, names: &[(String, usize)]) -> Vec<RgReplacementPart<'a>> {
     use RgReplacementPart::*;
     let mut parts = Vec::new();
     while let Some((literal, rest)) = source.split_once('$') {
@@ -1511,7 +1511,7 @@ fn parse_rg_replacement<'a>(mut source: &'a str, names: &BTreeMap<String, usize>
         match key[..n].parse::<usize>() {
             Ok(0) => parts.push(Match),
             Ok(i) => parts.push(Group(i - 1)),
-            Err(_) => if let Some(&i) = names.get(&key[..n]) { parts.push(Group(i)); },
+            Err(_) => if let Some((_, i)) = names.iter().rev().find(|(name, _)| name == &key[..n]) { parts.push(Group(*i)); },
         }
     }
     if !source.is_empty() { parts.push(Literal(source)); }

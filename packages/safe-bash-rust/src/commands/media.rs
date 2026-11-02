@@ -6328,8 +6328,17 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--pages" | "--collate" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") && a != "--split-pages" && !a.starts_with("--split-pages=") && !a.starts_with("--collate=") {
+                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--pages" | "--collate" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") && a != "--split-pages" && !a.starts_with("--split-pages=") && !a.starts_with("--collate=") && !a.starts_with("--object-streams=") {
                     standard_rewrite = false;
+                }
+                if let Some(mode) = a.strip_prefix("--object-streams=") {
+                    edits.generate_object_streams = match mode {
+                        "generate" => true,
+                        "preserve" | "disable" => false,
+                        _ => return err_out(&format!("qpdf: invalid object-streams mode {mode}\n"),2),
+                    };
+                    i += 1;
+                    continue;
                 }
                 if a == "--empty" {
                     empty_input = true;

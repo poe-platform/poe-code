@@ -4105,3 +4105,35 @@ test("qpdf reads and copies pages stored inside compressed PDF object streams", 
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf writes generated object streams and binary indexes with production bytes", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument,cosArray,cosDict,cosName,cosNumber,cosRef,cosString,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("Pack 雪");
+  doc.addPage([50,55]).drawText("One",{x:2,y:3});doc.addPage([70,75]).drawText("Two",{x:4,y:5});
+  const bytes=Buffer.from(doc.save());bytes.write("%PDF-1.4");
+  const sparse=(generation)=>serializeCosDocument({version:"1.4",rootRef:cosRef(8,2),objects:[
+    {objectNumber:2,generationNumber:generation,value:cosDict({Type:cosName("Pages"),Count:cosNumber(0),Kids:cosArray([])})},
+    {objectNumber:8,generationNumber:2,value:cosDict({Type:cosName("Catalog"),Pages:cosRef(2,generation)})}],
+    idArray:cosArray([cosString("left"),cosString("right")])});
+  const files={"/in.pdf":bytes,"/sparse.pdf":sparse(0),"/direct.pdf":sparse(3)};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [path,data] of Object.entries(files))await fs.writeFile(path,data);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [script,code] of [
+      ["qpdf in.pdf --object-streams=generate -",0],["qpdf --empty --object-streams=generate -",0],
+      ["qpdf in.pdf --pages . 2,1 -- --object-streams=generate -",0],
+      ["qpdf sparse.pdf --object-streams=generate -",0],["qpdf direct.pdf --object-streams=generate -",0],
+      ["qpdf in.pdf --rotate=+90:1 --object-streams=generate packed.pdf",0],
+      ["qpdf packed.pdf --show-xref",0],["qpdf packed.pdf --object-streams=generate -",0],
+      ["qpdf packed.pdf --object-streams=disable -",0],["qpdf packed.pdf --object-streams=preserve -",0],
+      ["qpdf in.pdf --object-streams=bad packed.pdf",2]]) {
+      const want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,code,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+      if(script.endsWith(" packed.pdf"))assert.deepEqual(Buffer.from(await wasm.fs.readFile("/packed.pdf")),Buffer.from(await fs.readFile("/packed.pdf")));
+    }
+  } finally {wasm.dispose();}
+});

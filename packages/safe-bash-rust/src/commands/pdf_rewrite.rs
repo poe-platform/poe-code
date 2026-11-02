@@ -48,6 +48,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub structure: bool,
     pub acroform: bool,
     pub page_labels: bool,
+    pub generate_object_streams: bool,
 }
 
 pub(in super::super) fn rewrite(
@@ -200,13 +201,18 @@ pub(in super::super) fn rewrite(
         .0
         .checked_add(1)
         .ok_or(TOO_LARGE)?;
+    let mut packed =
+        (edits.generate_object_streams && edits.split_pages.is_none()).then(Packed::default);
     let mut out = bytes.get(..8).ok_or(INVALID)?.to_vec();
+    if packed.is_some() && out.as_slice() < b"%PDF-1.5" {
+        out.copy_from_slice(b"%PDF-1.5");
+    }
     out.extend_from_slice(b"\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n");
     if next > limit / 20 {
         return Err(TOO_LARGE.into());
     }
-    let mut xref = format!("xref\n0 {next}\n0000000000 65535 f \n").into_bytes();
-    for n in 1..next {
+    let mut rows = vec![(0u8, 0usize, 65535usize); next];
+    for (n, row) in rows.iter_mut().enumerate().skip(1) {
         let original = objects
             .xref
             .range((n, 0)..=(n, usize::MAX))
@@ -214,11 +220,12 @@ pub(in super::super) fn rewrite(
             .map(|(&id, _)| id);
         let id = original.unwrap_or((n, 0));
         if original.is_none() && !changed.contains_key(&id) {
-            xref.extend_from_slice(b"0000000000 65535 f \n");
             continue;
         }
-        writeln!(xref, "{:010} {:05} n ", out.len(), id.1).unwrap();
+        let start = out.len();
+        *row = (1, start, id.1);
         writeln!(out, "{n} {} obj", id.1).unwrap();
+        let body_start = out.len();
         if let Some(body) = changed.remove(&id) {
             if body.len() > limit.saturating_sub(out.len()) {
                 return Err(TOO_LARGE.into());
@@ -244,31 +251,147 @@ pub(in super::super) fn rewrite(
                 return Err(INVALID.into());
             }
         }
+        if let Some(p) = &mut packed
+            && id.1 == 0
+            && let Some(ordinal) = p.append(n, &out[body_start..], &mut objects.tokens, limit)?
+        {
+            *row = (2, next, ordinal);
+            out.truncate(start);
+            continue;
+        }
         out.extend_from_slice(b"\nendobj\n\n");
         if out.len() > limit {
             return Err(TOO_LARGE.into());
         }
     }
-    let offset = out.len();
-    out.extend_from_slice(&xref);
-    write!(
-        out,
-        "trailer\n<<\n/Size {next}\n/Root {} {} R\n",
-        root.0, root.1
-    )
-    .unwrap();
+    let mut trailer_entries = format!("/Root {} {} R\n", root.0, root.1).into_bytes();
     for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID"))] {
         if let Some(v) = value {
-            out.push(b'/');
-            out.extend_from_slice(key);
-            out.push(b' ');
-            encode(v, &mut out)?;
-            out.push(b'\n');
+            trailer_entries.push(b'/');
+            trailer_entries.extend_from_slice(key);
+            trailer_entries.push(b' ');
+            encode(v, &mut trailer_entries)?;
+            trailer_entries.push(b'\n');
         }
     }
+    if let Some(p) = packed
+        && p.count != 0
+    {
+        return p.finish(out, rows, &trailer_entries, limit);
+    }
+    let offset = out.len();
+    writeln!(out, "xref\n0 {next}").unwrap();
+    for (ty, pos, generation) in rows {
+        writeln!(
+            out,
+            "{pos:010} {generation:05} {} ",
+            if ty == 0 { 'f' } else { 'n' }
+        )
+        .unwrap();
+    }
+    writeln!(out, "trailer\n<<\n/Size {next}").unwrap();
+    out.extend_from_slice(&trailer_entries);
     write!(out, ">>\n\nstartxref\n{offset}\n%%EOF").unwrap();
     if out.len() > limit {
         return Err(TOO_LARGE.into());
     }
     Ok(out)
+}
+
+#[derive(Default)]
+struct Packed {
+    header: Vec<u8>,
+    bodies: Vec<u8>,
+    count: usize,
+}
+
+impl Packed {
+    fn append(
+        &mut self,
+        number: usize,
+        body: &[u8],
+        tokens: &mut usize,
+        limit: usize,
+    ) -> Result<Option<usize>, String> {
+        // Only ordinary generation-zero values are eligible. Object bodies
+        // here have just been serialized by this writer.
+        if body.ends_with(b"\nendstream")
+            || super::Cursor(body)
+                .value(0, tokens, false)
+                .ok_or(INVALID)?
+                .get(b"Linearized")
+                .is_some()
+        {
+            return Ok(None);
+        }
+        if self.count != 0 {
+            self.header.push(b' ');
+        }
+        write!(self.header, "{number} {}", self.bodies.len()).unwrap();
+        if body.len()
+            >= limit
+                .saturating_sub(self.header.len())
+                .saturating_sub(self.bodies.len())
+        {
+            return Err(TOO_LARGE.into());
+        }
+        self.bodies.extend_from_slice(body);
+        self.bodies.push(b'\n');
+        self.count += 1;
+        Ok(Some(self.count - 1))
+    }
+
+    fn finish(
+        mut self,
+        mut out: Vec<u8>,
+        mut rows: Vec<(u8, usize, usize)>,
+        trailer: &[u8],
+        limit: usize,
+    ) -> Result<Vec<u8>, String> {
+        use crate::commands::codecs::zlib_compress;
+        let container = rows.len();
+        self.header.push(b'\n');
+        let first = self.header.len();
+        self.header.append(&mut self.bodies);
+        let payload = zlib_compress(&self.header);
+        rows.push((1, out.len(), 0));
+        write!(out,"{container} 0 obj\n<<\n/Type /ObjStm\n/N {}\n/First {first}\n/Filter /FlateDecode\n/Length {}\n>>\nstream\n",self.count,payload.len()).unwrap();
+        if payload.len() > limit.saturating_sub(out.len()) {
+            return Err(TOO_LARGE.into());
+        }
+        out.extend_from_slice(&payload);
+        out.extend_from_slice(b"\nendstream\nendobj\n\n");
+        let offset = out.len();
+        let index = rows.len();
+        rows.push((1, offset, 0));
+        let size = rows.len();
+        let mut binary = Vec::with_capacity(size * 7);
+        for (ty, pos, generation) in rows {
+            binary.push(ty);
+            binary.extend_from_slice(&(pos as u32).to_be_bytes());
+            binary.extend_from_slice(&(generation as u16).to_be_bytes());
+        }
+        let payload = zlib_compress(&binary);
+        write!(
+            out,
+            "{index} 0 obj\n<<\n/Type /XRef\n/Size {size}\n/W [ 1 4 2 ]\n"
+        )
+        .unwrap();
+        out.extend_from_slice(trailer);
+        write!(
+            out,
+            "/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
+            payload.len()
+        )
+        .unwrap();
+        if payload.len() > limit.saturating_sub(out.len()) {
+            return Err(TOO_LARGE.into());
+        }
+        out.extend_from_slice(&payload);
+        write!(out, "\nendstream\nendobj\n\nstartxref\n{offset}\n%%EOF").unwrap();
+        if out.len() > limit {
+            return Err(TOO_LARGE.into());
+        }
+        Ok(out)
+    }
 }

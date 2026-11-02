@@ -1926,8 +1926,10 @@ impl<'a> EvalState<'a> {
                         )));
                     }
 
+                    self.refresh_file_input(0, eff_stdin)?;
                     let (line_bytes, terminated) =
                         select_read_line(eff_stdin, self.budget.limits.max_output_bytes)?;
+                    self.record_file_stdin(eff_stdin);
                     let line_str = bytes_to_stream_string(&line_bytes);
                     if let Err(e) = self.assign_variable("REPLY", &line_str, false) {
                         match e {
@@ -3504,9 +3506,7 @@ impl<'a> EvalState<'a> {
             }
         }
 
-        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
-            unread.borrow_mut().clone_from(if use_local { &local_stdin } else { stdin });
-        }
+        self.record_file_stdin(if use_local { &local_stdin } else { stdin });
         if let Some(dfd) = dup_fd {
             self.in_fds.entry(dfd).or_default().replace(local_stdin);
         }
@@ -5792,6 +5792,7 @@ impl<'a> EvalState<'a> {
         let mut total_parse_units = 0usize;
 
         loop {
+            self.refresh_file_input(0, stdin)?;
             let (line_bytes, eof) = if stdin.is_empty() {
                 (Vec::new(), true)
             } else {
@@ -5802,6 +5803,7 @@ impl<'a> EvalState<'a> {
                 };
                 let taken = raw_bytes[..take_len].to_vec();
                 *stdin = bytes_to_stream_string(&raw_bytes[take_len..]);
+                self.record_file_stdin(stdin);
                 (taken, false)
             };
 
@@ -7915,6 +7917,12 @@ impl<'a> EvalState<'a> {
         let name = self.script_name.as_deref().unwrap_or("shell");
         let line = self.current_line.max(1);
         format!("{name}: line {line}: ")
+    }
+
+    fn record_file_stdin(&self, stdin: &str) {
+        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+            stdin.clone_into(&mut unread.borrow_mut());
+        }
     }
 
     fn refresh_file_input(&self, fd: u32, unread: &mut String) -> Result<(), EvalError> {
@@ -15790,6 +15798,25 @@ hash -l
             let r = shell.exec(&format!("exec 3</f; {reader} <&3; cat <&3")).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "abcdef", ""), "{reader}");
         }
+    }
+
+    #[test]
+    fn shell_script_lines_and_commands_advance_the_same_file_on_stdin() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.set_limits(crate::budget::ShellLimits { max_commands: 30, ..Default::default() });
+        fs.write_file("/script", b"echo once\nhead -c1\nXecho after\n").unwrap();
+        for script in ["sh </script", "exec 3</script; env sh <&3; cat <&3"] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "once\nXafter\n", ""));
+        }
+    }
+
+    #[test]
+    fn select_consumes_its_reply_before_running_its_body() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/choices", b"1\n2\n").unwrap();
+        let r = shell.exec("exec 3</choices; PS3='>'; select v in A B; do head -c1 <&3; break; done <&3; cat <&3").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "2\n", "1) A\n2) B\n>"));
     }
 
     #[test]

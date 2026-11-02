@@ -7171,3 +7171,21 @@ test("rg rejects malformed regexes before searching and treats fixed patterns li
     }
   } finally { rs.dispose(); }
 });
+
+test("rg whole-word matching follows the matcher selected for each record batch", async () => {
+  const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});
+  try {
+    for (const [data,options] of [
+      ["x.\n.\n","-w '^'"], ["x.\n.\n","-aw '^'"], ["x.\n","-w '(?i:x.)'"],
+      ["x.\né\n","-w 'x.'"], ["x.\né","-w 'x.'"], ["x.\né\n","-w -m1 'x.'"],
+      ["x.\né\n","-wq --json 'x.'"], ["x.\0é\n","-w 'x.'"], ["ééaé\n","-w é"],
+      ["x.\né\n","-wx 'x.'"], ["x.\né\n","-aw -o '.*'"],
+    ]) {
+      await fs.writeFile("/f",new TextEncoder().encode(data)); rs.writeFile("/f",data);
+      const cmd="rg "+options+" /f";
+      const a=await js.exec(cmd), b=await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd+" on "+JSON.stringify(data));
+    }
+  } finally { rs.dispose(); }
+});

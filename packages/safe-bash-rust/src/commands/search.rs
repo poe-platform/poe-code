@@ -487,7 +487,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, Jq, Rg { empty_pattern: bool, binary_text: bool } }
+enum RxSearch { Longest, Jq, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -633,7 +633,8 @@ impl ZeroRegex {
                 let base = group_offset;
                 group_offset += program.groups;
                 program.run(&hay, pos..=bound, self.ignore_case, first, capture, |end|
-                    !self.word_regexp || (!rg || pos != end) && is_word_boundary(&hay, pos, end)).map(|m| (base, m))
+                    !self.word_regexp || is_word_boundary(&hay, pos, end) && (!matches!(self.search, RxSearch::Rg { word_assertions: true, .. })
+                        || pos < end && is_word_char(hay[pos].1) && is_word_char(hay[end - 1].1))).map(|m| (base, m))
             });
             if let Some((base, mut m)) = if first { matches.next() } else { matches.max_by_key(|(_, m)| m.pos) } {
                 found = true;
@@ -3616,19 +3617,24 @@ fn cmd_rg(
         parsed.push(branches);
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, !line_regexp && word_regexp, false);
-    rx.search = RxSearch::Rg { binary_text: binary == RgBinary::Text, empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };
+    rx.search = RxSearch::Rg { word_assertions: true, binary_text: binary == RgBinary::Text, empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };
 
-    // The delegated ASCII matcher treats the full NUL-delimited record as one line.
-    let ascii_record_rx = if null_data && multiline && !requires_vm && !cross_line && rx.branches.iter().any(|p|
-        p.ops.iter().any(|op| matches!(op, RxOp::Atom(t) if matches!(t.atom, RxAtom::LineBegin | RxAtom::NewlineEnd { .. })))) {
+    // The delegated matcher checks neighboring bytes for -w and anchors NUL-delimited
+    // records as a whole. The scalar matcher uses explicit word and line assertions.
+    let record_anchors = null_data && multiline && rx.branches.iter().any(|p|
+        p.ops.iter().any(|op| matches!(op, RxOp::Atom(t) if matches!(t.atom, RxAtom::LineBegin | RxAtom::NewlineEnd { .. }))));
+    let ascii_record_rx = if !requires_vm && !(multiline && cross_line) && (rx.word_regexp || record_anchors) {
         let mut record_rx = rx.clone();
-        for program in &mut record_rx.branches {
-            for op in &mut program.ops {
-                if let RxOp::Atom(token) = op {
-                    match token.atom {
-                        RxAtom::LineBegin => token.atom = RxAtom::Begin,
-                        RxAtom::NewlineEnd { .. } => token.atom = RxAtom::End,
-                        _ => {}
+        if let RxSearch::Rg { word_assertions, .. } = &mut record_rx.search { *word_assertions = false; }
+        if record_anchors {
+            for program in &mut record_rx.branches {
+                for op in &mut program.ops {
+                    if let RxOp::Atom(token) = op {
+                        match token.atom {
+                            RxAtom::LineBegin => token.atom = RxAtom::Begin,
+                            RxAtom::NewlineEnd { .. } => token.atom = RxAtom::End,
+                            _ => {}
+                        }
                     }
                 }
             }
@@ -4289,7 +4295,8 @@ fn run_grep_engine(
                     let subject = if cfg.crlf { line.strip_suffix(b"\r").unwrap_or(line) } else { line };
                     if idx == batch_end && let Some(record_rx) = &cfg.ascii_record_rx {
                         // Production dispatches whole batches to the UTF-8 matcher if any record needs it.
-                        let batch_size = if cfg.max_count.is_some() || cfg.quiet || cfg.files_with_matches || cfg.files_without_match { 1 } else { 128 };
+                        let batch_size = if cfg.max_count.is_some() || cfg.quiet && !cfg.json_output || cfg.files_with_matches
+                            || cfg.files_without_match || binary_records && trailing && !cfg.json_output { 1 } else { 128 };
                         batch_end = idx + 1;
                         let mut bytes = line.len();
                         while batch_end < lines.len() && batch_end - idx < batch_size
@@ -4298,7 +4305,7 @@ fn run_grep_engine(
                             bytes += lines[batch_end].len();
                             batch_end += 1;
                         }
-                        batch_rx = if lines[idx..batch_end].iter().all(|row| row.is_ascii()) { record_rx } else { &rx };
+                        batch_rx = if lines[idx..batch_end].iter().all(|row| row.is_ascii() && !row.contains(&0)) { record_rx } else { &rx };
                     }
                     find_spans(batch_rx, subject, line_offsets[idx])
                 };

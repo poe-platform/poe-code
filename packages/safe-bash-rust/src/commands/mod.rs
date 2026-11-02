@@ -127,6 +127,13 @@ pub(crate) struct CommandInput<'a> {
     pub(crate) file: Option<FileCommandInput<'a>>,
 }
 
+impl<'a> CommandInput<'a> {
+    fn buffered(self) -> Result<&'a mut String, String> {
+        if let Some(source) = self.file { source.materialize(self.text)?; }
+        Ok(self.text)
+    }
+}
+
 #[derive(Clone, Debug)]
 struct TimeoutFrame {
     id: u64,
@@ -790,7 +797,7 @@ where
         return Some(run_timeout_command(args, stdin, cwd, env, exec_sub));
     }
 
-    if let Some(out) = coreutils::try_run_stream_reader(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
+    if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
         return Some(out);
     }
     if let Some(source) = file && let Err(error) = source.materialize(stdin) {
@@ -800,9 +807,6 @@ where
         exec_sub(words, &mut input.to_owned(), cwd, env)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
-        return Some(res);
-    }
-    if let Some(res) = coreutils::try_run_other_coreutil(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {

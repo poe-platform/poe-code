@@ -15869,6 +15869,15 @@ hash -l
     }
 
     #[test]
+    fn commands_without_input_leave_a_redirected_file_unread() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        fs.write_file("/f", b"0123456789abcdef").unwrap();
+        let r = shell.exec("{ seq 2; basename /f; expr 4 + 3; head -c1; } </f").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "1\n2\nf\n7\n0", ""));
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

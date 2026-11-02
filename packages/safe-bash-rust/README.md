@@ -68,7 +68,7 @@ Implement `open_chunks` if a custom filesystem can stream input. Each call to th
 
 The JavaScript entry point requires Node.js to load the packaged WebAssembly binary. Use `await bash.fs.open(path, { access: "readwrite" })` for positioned I/O on memory files. Use `await bash.fs.link(existingPath, newPath)` to give a file or symlink a second name. The descriptor stays attached to the opened file after renames and unlinks; call `await descriptor.close()` to release it. Use `await bash.fs.readdir(path, { maxEntries })` for sorted `{ name, type }` entries; exceeding the limit raises `EFBIG`. The synchronous `bash.readdir(path)` returns names.
 
-Use `await bash.fs.openReadFile(path)` for positioned reads from regular Wasm files. The handle follows the opened file across renames and unlinks; close it when finished. Production JavaScript commands such as `cat` can read these files through this interface.
+Use `await bash.fs.openReadFile(path)` for positioned reads from regular Wasm files. The handle follows the opened file across renames and unlinks; close it when finished. Pass `{ allowDirectory: true }` to read directory metadata. Directory handles reject byte reads with `EISDIR`. Production JavaScript commands such as `cat` can read these files through this interface.
 
 Use `await bash.fs.access(path, mode)` to check existence (0), read (4), write (2), or execute/search permission (1). Combine permission bits to require all of them.
 

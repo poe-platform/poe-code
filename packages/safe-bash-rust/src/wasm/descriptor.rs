@@ -107,7 +107,7 @@ impl WasmSession {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: usize) -> i32 {
+pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: usize, allow_directory: bool) -> i32 {
     let mut map = sessions().lock().unwrap();
     let Some(sess) = map.get_mut(&id) else { return -1 };
     let path = unsafe { str_from_raw(ptr, len) };
@@ -131,7 +131,7 @@ pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: 
         let target = if null {
             Target::Device { stat: st, name: "null".into(), mounted: false }
         } else {
-            Target::ReadOnly(fs.open_read_file(p)?)
+            Target::ReadOnly(fs.open_read_file(p, allow_directory)?)
         };
         let fd = sess.next_descriptor;
         let next = fd.checked_add(1).filter(|n| *n <= i32::MAX as u32).ok_or("EMFILE: too many open files")?;

@@ -1,5 +1,32 @@
 use super::*;
 
+// Only directories opened for reading track their location. Rename moves
+// that location; unlink leaves final metadata without retaining the pathname.
+#[derive(Debug)]
+pub(super) struct DirectoryReadState {
+    pub(super) path: Option<String>,
+    pub(super) stat: FileStat,
+}
+
+pub(super) struct RetainedDirectory {
+    pub(super) fs: MemoryVfs,
+    pub(super) location: Arc<std::sync::Mutex<DirectoryReadState>>,
+}
+
+impl crate::vfs::FileReadHandle for RetainedDirectory {
+    fn stat(&self) -> Result<FileStat, String> {
+        let fs = self.fs.state.read().map_err(|e| e.to_string())?;
+        let handle = self.location.lock().map_err(|e| e.to_string())?;
+        match &handle.path {
+            Some(p) => self.fs.resolved_metadata(&fs, p).ok_or_else(|| "ESTALE: directory entry changed".into()),
+            None => Ok(handle.stat.clone()),
+        }
+    }
+    fn read(&self, _: u64, _: usize) -> Result<Vec<u8>, String> {
+        Err("EISDIR".into())
+    }
+}
+
 /// Keeps the inode and its bytes charged to the filesystem after its last name disappears.
 pub(crate) struct RetainedFile {
     pub(super) fs: MemoryVfs,
@@ -133,6 +160,19 @@ impl Drop for RetainedFile {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn replaced_snapshot_does_not_retarget_a_retained_directory() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/dir").unwrap();
+        let handle = fs.open_read_file("/dir", true).unwrap();
+        let before = handle.stat().unwrap();
+        fs.replace_entries(&fs.export_entries().unwrap()).unwrap();
+        fs.chmod("/dir", 0o500).unwrap();
+        let after = handle.stat().unwrap();
+        assert_eq!((after.identity, after.mode, after.nlink), (before.identity, before.mode, Some(0)));
+        assert_ne!(fs.stat("/dir").unwrap().mode, before.mode);
+    }
 
     #[test]
     fn replacing_a_snapshot_preserves_open_files_and_rejects_over_budget_without_changes() {

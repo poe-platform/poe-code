@@ -1,5 +1,6 @@
 mod descriptor;
 mod transfer;
+use descriptor::DirectoryReadState;
 pub(crate) use descriptor::RetainedFile;
 
 use crate::vfs::path::{normalize_posix_path, parent_posix_path};
@@ -12,6 +13,7 @@ use std::sync::{Arc, RwLock};
 enum MemoryNode {
     File { ino: u64 },
     Directory {
+        retained: std::sync::Weak<std::sync::Mutex<DirectoryReadState>>,
         ino: u64,
         mode: u32,
         atime_ms: f64,
@@ -32,7 +34,7 @@ enum MemoryNode {
 
 impl MemoryNode {
     fn directory(ino: u64, mode: u32, now: f64) -> Self {
-        Self::Directory { ino, mode, atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now }
+        Self::Directory { retained: Default::default(), ino, mode, atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now }
     }
 
     fn status_changed(&mut self, files: &mut HashMap<u64, MemoryFile>, now: f64) {
@@ -40,6 +42,19 @@ impl MemoryNode {
             Self::File { ino } => files.get_mut(ino).unwrap().ctime_ms = now,
             Self::Directory { ctime_ms, .. } => *ctime_ms = now,
             Self::Symlink { ctime_bits, .. } => ctime_bits.store(now.to_bits(), Ordering::Relaxed),
+        }
+    }
+
+    fn detach_directory_reads(&self) {
+        if let Self::Directory { retained, mode, atime_ms, mtime_ms, ctime_ms, .. } = self
+            && let Some(handle) = retained.upgrade() {
+            let mut state = handle.lock().unwrap();
+            state.path = None;
+            state.stat.mode = *mode;
+            state.stat.atime_ms = *atime_ms;
+            state.stat.mtime_ms = *mtime_ms;
+            state.stat.ctime_ms = Some(*ctime_ms);
+            state.stat.nlink = Some(0);
         }
     }
 
@@ -193,6 +208,9 @@ impl MemoryState {
 
     fn insert_directory(&mut self, path: String, node: MemoryNode) {
         if path != "/" && !self.nodes.contains_key(&path) { *self.child_dirs.entry(super::dirname_posix_path(&path)).or_default() += 1; }
+        if let MemoryNode::Directory { retained, .. } = &node && let Some(handle) = retained.upgrade() {
+            handle.lock().unwrap().path = Some(path.clone());
+        }
         self.nodes.insert(path, node);
     }
 
@@ -368,7 +386,11 @@ impl MemoryVfs {
     fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
         let state = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&state, path, follow).map_err(|e| e.message)?;
-        let device = state.devices.entry(&resolved);
+        self.resolved_metadata(&state, &resolved).ok_or_else(|| format!("ENOENT: no such file or directory, {} '{}'", if follow { "stat" } else { "lstat" }, normalize_posix_path(path)))
+    }
+
+    fn resolved_metadata(&self, state: &MemoryState, resolved: &str) -> Option<FileStat> {
+        let device = state.devices.entry(resolved);
         let (kind, size, mode, atime_ms, mtime_ms, ctime, birth, ino) = if let Some(name) = device {
             let ino = match name { "" if state.devices == Devices::Null => 2, "null" if state.devices == Devices::Null => 1, "" => 1, "null" => 2, "random" => 3, "urandom" => 4, "zero" => 5, "full" => 6, _ => unreachable!() };
             let (kind, mode) = if name.is_empty() {
@@ -380,22 +402,22 @@ impl MemoryVfs {
             } else { 0.0 };
             (kind, 0, mode, created, created, created, created, ino)
         } else {
-            match state.nodes.get(&resolved) {
+            match state.nodes.get(resolved) {
                 Some(MemoryNode::File { ino }) => {
                     let file = &state.files[ino];
                     (VfsEntryKind::File, file.data.len(), file.mode, file.atime_ms, file.mtime_ms, file.ctime_ms, file.birthtime_ms, *ino)
                 }
-                Some(MemoryNode::Directory { ino, mode, atime_ms, mtime_ms, ctime_ms, birthtime_ms }) => (VfsEntryKind::Directory, 0, *mode, *atime_ms, *mtime_ms, *ctime_ms, *birthtime_ms, *ino),
+                Some(MemoryNode::Directory { ino, mode, atime_ms, mtime_ms, ctime_ms, birthtime_ms, .. }) => (VfsEntryKind::Directory, 0, *mode, *atime_ms, *mtime_ms, *ctime_ms, *birthtime_ms, *ino),
                 Some(MemoryNode::Symlink { ino, target, mode, atime_ms, mtime_ms, ctime_bits, birthtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *atime_ms, *mtime_ms, f64::from_bits(ctime_bits.load(Ordering::Relaxed)), *birthtime_ms, *ino),
-                None => return Err(format!("ENOENT: no such file or directory, {} '{}'", if follow { "stat" } else { "lstat" }, normalize_posix_path(path))),
+                None => return None,
             }
         };
         let default_device = device.is_some() && state.devices == Devices::Null;
-        Ok(FileStat {
+        Some(FileStat {
             uid: (state.devices != Devices::Mounted).then_some(0), gid: (state.devices != Devices::Mounted).then_some(0),
             io_block_size: device.is_none().then_some(65536), filesystem_type: device.is_none().then_some("memory"),
             nlink: (state.devices != Devices::Mounted).then(|| if device.is_some() { 1 } else if kind == VfsEntryKind::Directory {
-                2 + state.child_dirs.get(&resolved).copied().unwrap_or(0)
+                2 + state.child_dirs.get(resolved).copied().unwrap_or(0)
             } else { 1 + state.extra_links.get(&ino).map_or(0, |g| g.extra) }),
             identity: Some(EntryIdentity::Memory(if device.is_some() && state.devices != Devices::Mounted { self.id + 1 } else { self.id }, ino)),
             allocated_bytes: default_device.then_some(0),
@@ -587,7 +609,7 @@ impl MemoryVfs {
             upper.parent_changed(parent, now);
             let ino = upper.allocate_ino();
             upper.insert_directory(parent.to_owned(), MemoryNode::Directory {
-                ino, mode: if parent == path { st.mode } else { mode },
+                retained: Default::default(), ino, mode: if parent == path { st.mode } else { mode },
                 atime_ms: if parent == path { st.atime_ms } else { previous_atime },
                 mtime_ms: if parent == path { st.mtime_ms } else { now },
                 ctime_ms: now, birthtime_ms: now,
@@ -679,7 +701,7 @@ impl MemoryVfs {
         let now = super::now_ms();
         guard.parent_changed(k, now);
         node.status_changed(&mut guard.files, now);
-        if matches!(node, MemoryNode::Directory { .. }) { guard.removed_directory(k); return; }
+        if matches!(node, MemoryNode::Directory { .. }) { node.detach_directory_reads(); guard.removed_directory(k); return; }
         let ino = node.ino();
         if let Some(extra) = guard.extra_links.get_mut(&ino) {
             extra.extra -= 1;
@@ -825,14 +847,30 @@ impl SafeBashFs for MemoryVfs {
         }
     }
 
-    fn open_read_file(&self, path: &str) -> Result<Box<dyn super::FileReadHandle>, String> {
+    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn super::FileReadHandle>, String> {
+        let revision = self.generation();
         let path = self.access_path(path, true)?;
-        let st = self.lstat(&path)?;
-        if st.kind == VfsEntryKind::Directory { return Err("EISDIR: illegal operation on a directory".into()); }
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        if self.generation() != revision { return Err("EAGAIN: path changed during open".into()); }
+        let st = self.resolved_metadata(&state, &path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
+        if st.kind == VfsEntryKind::Directory {
+            if !allow_directory { return Err("EISDIR: illegal operation on a directory".into()); }
+            if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+            let Some(MemoryNode::Directory { retained, .. }) = state.nodes.get_mut(&path) else {
+                return Err("ENOTSUP: operation not supported".into());
+            };
+            let location = retained.upgrade().unwrap_or_else(|| {
+                let handle = Arc::new(std::sync::Mutex::new(DirectoryReadState { path: Some(path), stat: st }));
+                *retained = Arc::downgrade(&handle);
+                handle
+            });
+            return Ok(Box::new(descriptor::RetainedDirectory { fs: self.clone(), location }));
+        }
         if st.mode & 0o170000 != 0o100000 { return Err("ENOTSUP: operation not supported".into()); }
-        let file = self.retain_file(&path)?;
-        if file.stat().mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
-        Ok(Box::new(file))
+        if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        let ino = state.nodes[&path].ino();
+        state.files.get_mut(&ino).unwrap().opens += 1;
+        Ok(Box::new(RetainedFile { fs: self.clone(), ino, access: super::RedirectAccess::Read }))
     }
 
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
@@ -1387,6 +1425,7 @@ impl SafeBashFs for MemoryVfs {
             file.linked = false;
             guard.files.insert(ino, file);
         }
+        for node in current.nodes.values() { node.detach_directory_reads(); }
         *current = guard;
         self.bump_generation();
         Ok(())

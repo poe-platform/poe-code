@@ -199,7 +199,7 @@ impl MemoryVfs {
                     staged.insert_directory(
                         new_path,
                         MemoryNode::Directory {
-                            ino,
+                            retained: Default::default(), ino,
                             ctime_ms: now, birthtime_ms: now,
                             mode: *mode,
                             atime_ms: *atime_ms,

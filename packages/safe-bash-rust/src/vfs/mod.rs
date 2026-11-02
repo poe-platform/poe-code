@@ -164,7 +164,7 @@ pub trait SafeBashFs: Send + Sync {
         }
     }
 
-    fn open_read_file(&self, _path: &str) -> Result<Box<dyn FileReadHandle>, String> {
+    fn open_read_file(&self, _path: &str, _allow_directory: bool) -> Result<Box<dyn FileReadHandle>, String> {
         Err("ENOTSUP: retained reads are not supported".into())
     }
 

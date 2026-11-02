@@ -31,6 +31,22 @@ pub struct OverlayVfs {
     directories: Arc<Mutex<BTreeMap<String, DirectoryObservation>>>,
 }
 
+struct OverlayDirectoryRead {
+    handle: Box<dyn super::FileReadHandle>,
+    identity: Option<EntryIdentity>,
+}
+
+impl super::FileReadHandle for OverlayDirectoryRead {
+    fn stat(&self) -> Result<FileStat, String> {
+        let mut st = self.handle.stat()?;
+        st.identity.clone_from(&self.identity);
+        Ok(st)
+    }
+    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> {
+        self.handle.read(offset, maximum)
+    }
+}
+
 impl OverlayVfs {
     fn read_source(&self, path: &str) -> Result<(&dyn SafeBashFs, String), String> {
         let norm = self.access_path(path, true)?;
@@ -329,9 +345,32 @@ impl SafeBashFs for OverlayVfs {
         fs.read_file(&path)
     }
 
-    fn open_read_file(&self, path: &str) -> Result<Box<dyn super::FileReadHandle>, String> {
-        let (layer, entry) = self.read_source(path)?;
-        layer.open_read_file(&entry)
+    fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn super::FileReadHandle>, String> {
+        let versions = (self.upper.generation(), self.lower.generation());
+        let entry = self.access_path(path, true)?;
+        let (layer, st) = match self.upper.lstat(&entry) {
+            Ok(st) => (&self.upper, st),
+            Err(e) if e.starts_with("ENOENT:") && !self.is_deleted(&entry) =>
+                (&self.lower, self.lower.lstat(&entry)?),
+            Err(e) => return Err(e),
+        };
+        if st.kind == VfsEntryKind::Directory && !allow_directory {
+            return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'"));
+        }
+        if st.mode & 0o400 == 0 {
+            return Err(format!("EACCES: permission denied, overlay '{entry}'"));
+        }
+        let handle = layer.open_read_file(&entry, allow_directory)?;
+        if st.identity.is_none() || handle.stat()?.identity != st.identity {
+            return Err("ENOTSUP: overlay reads require stable backend identity".into());
+        }
+        let opened: Box<dyn super::FileReadHandle> = if st.kind == VfsEntryKind::Directory {
+            Box::new(OverlayDirectoryRead { handle, identity: self.stat(&entry)?.identity })
+        } else { handle };
+        if versions != (self.upper.generation(), self.lower.generation()) {
+            return Err("EAGAIN: overlay changed during open".into());
+        }
+        Ok(opened)
     }
 
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {

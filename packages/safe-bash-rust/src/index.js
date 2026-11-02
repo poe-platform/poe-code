@@ -166,7 +166,8 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
     stat, close,
     seekEnd: options => run("lseek", options, () => {
       const size = call("lseek", 3);
-      return BigInt(bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size).size);
+      const st = bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size);
+      return st.isDirectory ? (1n << 63n) - 1n : BigInt(st.size);
     }),
     read: (position, maximum, options) => run("read", options, () => {
       if (!Number.isSafeInteger(position) || position < 0 || !Number.isSafeInteger(maximum)
@@ -503,7 +504,7 @@ export class WasmFileSystem {
     if (typeof filePath !== "string") throw new TypeError("Filesystem paths must be strings");
     const path = bash._allocBytes(encoder.encode(filePath));
     try {
-      const fd = bash.exports.safe_bash_open_read_file(bash.sessionId, path.ptr, path.len);
+      const fd = bash.exports.safe_bash_open_read_file(bash.sessionId, path.ptr, path.len, options.allowDirectory === true);
       if (fd === -1) throw new Error("Wasm session unavailable");
       if (fd < 0) throw readOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, bash.exports.safe_bash_output_ptr(bash.sessionId), -fd)));
       const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);

@@ -2858,3 +2858,36 @@ test("cat reads Wasm file operands and retained reads survive pathname replaceme
     }
   } finally { await shell.dispose(); }
 });
+
+test("retained directory metadata survives moves, unlink and overlay copy-up", async () => {
+  for (const profile of ["warm-memory-fastpath","overlay-cow-fs","strict-budgets-mount-dev"]) {
+    const b = new RustWasmBash({profile, directories:["/d"]});
+    try {
+      const h = await b.fs.openReadFile("/d", {allowDirectory:true});
+      try {
+        const original = await h.stat();
+        assert.equal(original.type,"directory");
+        const listed = await b.fs.stat("/d");
+        assert.equal(listed.identityScope, original.identityScope);
+        assert.equal(listed.ino, original.ino);
+        assert.equal(await h.seekEnd(), (1n << 63n) - 1n);
+        await assert.rejects(h.read(0,1), {code:"EISDIR",syscall:"read"});
+        await b.fs.mkdir("/d/nested");
+        assert.equal((await h.stat()).nlink, profile === "overlay-cow-fs" ? 2 : 3);
+        await b.fs.rmdir("/d/nested");
+        await b.fs.chmod("/d",0o700);
+        if (profile !== "overlay-cow-fs") {
+          await b.fs.rename("/d","/moved");
+          await b.fs.rmdir("/moved");
+        } else {
+          await b.fs.rmdir("/d");
+        }
+        await b.fs.mkdir("/d");
+        const removed = await h.stat();
+        assert.equal(removed.nlink,profile === "overlay-cow-fs" ? 2 : 0);
+        assert.equal(removed.mode,profile === "overlay-cow-fs" ? original.mode : 0o40700);
+        assert.equal(removed.ino,original.ino);
+      } finally { await h.close(); }
+    } finally { b.dispose(); }
+  }
+});

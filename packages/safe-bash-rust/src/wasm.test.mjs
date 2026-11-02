@@ -6088,3 +6088,34 @@ test("tar refuses hard-linked symlinks unless dereferenced, while ZIP stores eac
     assert.deepEqual([zip.exitCode, zip.stderr, zip.stdout], [0, "", "payloadpayload"]);
   } finally { rs.dispose(); }
 });
+
+test("tar stores relative member names while reading the original operand path", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.mkdir("/base/deep/sub", {recursive: true});
+      await f.writeFile("/base/deep/sub/file", Buffer.from("nested"));
+      await f.symlink("deep/sub", "/base/dirlink");
+      await f.writeFile("/base/deep/file", Buffer.from("through link"));
+      await f.writeFile("/base/file", Buffer.from("parent"));
+      await f.writeFile("/base/name..ok", Buffer.from("literal"));
+    }
+    const seed = await js.exec("tar --mtime=@0 --format=ustar -cf - -C base file");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    for (const args of [
+      "-cf out /base/deep", "-cf out /base/deep/../file", "-cf out -C /base/deep ../file",
+      "-cf out -C /base deep/sub/..", "-cf out -C /base deep/../name..ok", "-cf out -C /base name..ok",
+      "-cf out -C /base ./deep//sub/./file", "-cf out -C /base dirlink/../file", "-cf out -C /base missing/../file", "-rf out /base/deep/sub/../sub", "-uf out /base/deep",
+    ]) {
+      for (const f of [fs, rs.fs]) await f.writeFile("/out", seed.stdoutBytes);
+      const cmd = "tar --mtime=@1 --format=ustar --sort=name " + args;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, args.includes("missing") ? 2 : 0, a.stderr);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      assert.ok(Buffer.from(await rs.fs.readFile("/out")).equals(await fs.readFile("/out")), cmd);
+    }
+  } finally { rs.dispose(); }
+});

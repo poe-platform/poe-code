@@ -3857,3 +3857,37 @@ test("qpdf inspection validates encoded streams and reports linearization withou
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf recovers a wrong stream length and writes the recovered bytes with a correct length", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {cosDict,cosRef,cosName,cosArray,cosNumber,cosStream,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const payload=Buffer.from("A\x00\xff endstream ignored\r\nreal payload","latin1");
+  const nodes=[cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),
+    cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(3)]),Count:cosNumber(1)}),
+    cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(4)}),cosStream(payload,{dict:cosDict({Pad:cosNumber(0)}),compress:false}),cosNumber(payload.length)];
+  const pdf=Buffer.from(serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)})).toString("latin1");
+  const header="/Pad 0\n/Length "+payload.length;
+  const replaceHeader=value=>Buffer.from(pdf.replace(header,value.padStart(header.length)),"latin1");
+  const embeddedEnd=payload.toString("latin1").replace("endstream ignored","endstream endobj ");
+  const files={
+    "/wrong.pdf":replaceHeader("/Pad 0\n/Length 02"),
+    "/missing.pdf":replaceHeader("/Pad 0\n/Ignore "+payload.length),
+    "/indirect.pdf":replaceHeader("/Length 5 0 R"),
+    "/repeated.pdf":Buffer.from(pdf.replace(header+"\n", "/Length 1/Length 2"), "latin1"),
+    "/declared.pdf":Buffer.from(pdf.replace(payload.toString("latin1"),embeddedEnd),"latin1")
+  };
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [path,bytes] of Object.entries(files)) {
+      await fs.writeFile(path,bytes);
+      for(const flags of ["--check","--show-object=4","--show-object=4 --raw-stream-data","-","--pages . 1 -- -"]) {
+        const script="qpdf "+path+" "+flags,want=await js.exec(script),got=await wasm.exec(script);
+        assert.equal(want.exitCode,0,want.stderr);
+        if(flags.includes("--raw-stream-data"))assert.deepEqual(Buffer.from(want.stdoutBytes),path==="/declared.pdf"?Buffer.from(embeddedEnd,"latin1"):payload);
+        assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
+      }
+    }
+  } finally{wasm.dispose();}
+});

@@ -938,19 +938,28 @@ impl<'a> Copy<'_, 'a> {
                 let n = self.output.bodies.len() + 1;
                 self.ids.insert(*id, n);
                 self.output.bodies.push(vec![]);
-                let (v, mut cursor) = self.objects.object(*id)?;
+                let (mut v, mut cursor) = self.objects.object(*id)?;
                 let mut body = Vec::new();
-                self.value(&v, &mut body, depth + 1)?;
                 cursor.skip();
                 if cursor.0.starts_with(b"stream") {
                     let stream = self.objects.stream(&v, cursor)?;
+                    let length = stream.len().to_string();
+                    // Clone references in source order, including an indirect /Length.
+                    if matches!(&v, Value::Dict(entries) if entries.iter().any(|(k, v)| *k == b"Length" && matches!(v, Value::Ref(_) | Value::Dict(_) | Value::Array(_)))) {
+                        self.value(&v, &mut body, depth + 1)?;
+                        body.clear();
+                    }
+                    v.set_stream_length(length.as_bytes())?;
+                    self.value(&v, &mut body, depth + 1)?;
                     if stream.len() > self.output.remaining.checked_sub(body.len())? {
                         return None;
                     }
                     body.extend_from_slice(b"\nstream\n");
                     body.extend_from_slice(stream);
                     body.extend_from_slice(b"\nendstream");
-                } else if !cursor.0.starts_with(b"endobj") {
+                } else if cursor.0.starts_with(b"endobj") {
+                    self.value(&v, &mut body, depth + 1)?;
+                } else {
                     return None;
                 }
                 self.output.remaining = self.output.remaining.checked_sub(body.len())?;

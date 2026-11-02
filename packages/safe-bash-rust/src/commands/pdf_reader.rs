@@ -48,6 +48,19 @@ impl<'a> Value<'a> {
             _ => None,
         }
     }
+    fn set_stream_length(&mut self, length: &'a [u8]) -> Option<()> {
+        let Self::Dict(entries) = self else { return None };
+        let mut found = false;
+        for (_, value) in entries.iter_mut().filter(|(k, _)| *k == b"Length") {
+            *value = Self::Word(length);
+            found = true;
+        }
+        if !found {
+            entries.push((b"Length", Self::Word(length)));
+        }
+        Some(())
+    }
+
     fn word(&self) -> Option<&'a [u8]> {
         match self {
             Self::Word(w) => Some(w),
@@ -95,6 +108,20 @@ impl<'a> Cursor<'a> {
                 .position(|&b| matches!(b, b'\r' | b'\n'))
                 .map_or(&[], |end| &self.0[end..]);
         }
+    }
+
+    // A bad length can point anywhere in binary data. Probe only the fixed
+    // keyword and charge skipped comments and whitespace against the scan budget.
+    fn keyword(&mut self, word: &[u8], budget: &mut usize) -> Option<bool> {
+        let whitespace = |b| matches!(b, 0 | 9 | 10 | 12 | 13 | 32);
+        let mut comment = false;
+        while let Some((&b, rest)) = self.0.split_first() {
+            if !comment && b != b'%' && !whitespace(b) { break; }
+            *budget = budget.checked_sub(1)?;
+            comment = (comment || b == b'%') && !matches!(b, b'\n' | b'\r');
+            self.0 = rest;
+        }
+        Some(self.eat(word) && self.0.first().is_none_or(|&b| whitespace(b) || b"()<>[]{}/%".contains(&b)))
     }
 
     fn eat(&mut self, token: &[u8]) -> bool {
@@ -419,18 +446,33 @@ impl<'a> Objects<'a> {
         Some(labels)
     }
 
-    fn stream(&mut self, dict: &Value<'a>, mut c: Cursor<'a>) -> Option<&'a [u8]> {
-        if c.word()? != b"stream" || !(c.eat(b"\r\n") || c.eat(b"\n") || c.eat(b"\r")) {
-            return None;
+    fn stream(&mut self, dict: &Value<'_>, mut c: Cursor<'a>) -> Option<&'a [u8]> {
+        if !c.keyword(b"stream", &mut self.remaining_bytes)? { return None; }
+        if !c.eat(b"\r\n") && !c.eat(b"\r") { c.eat(b"\n"); }
+        let payload = c.0;
+        let length = dict.get(b"Length").and_then(|v| match v.reference() {
+            Some(r) => uint(self.object(r)?.0.word()?),
+            None => uint(v.word()?),
+        });
+        if let Some(n) = length
+            && let Some(tail) = payload.get(n..)
+            && Cursor(tail).keyword(b"endstream", &mut self.remaining_bytes)?
+        {
+            return Some(&payload[..n]);
         }
-        let length = dict.get(b"Length")?;
-        let length = match length.reference() {
-            Some(r) => uint(self.object(r)?.0.word()?)?,
-            None => uint(length.word()?)?,
-        };
-        let bytes = c.0.get(..length)?;
-        c.0 = &c.0[length..];
-        (c.word()? == b"endstream").then_some(bytes)
+        let mut first = None;
+        for (offset, window) in payload.windows(9).enumerate() {
+            self.remaining_bytes = self.remaining_bytes.checked_sub(1)?;
+            if window != b"endstream" { continue; }
+            first.get_or_insert(offset);
+            if Cursor(&payload[offset + 9..]).keyword(b"endobj", &mut self.remaining_bytes)? {
+                first = Some(offset);
+                break;
+            }
+        }
+        let data = &payload[..first?];
+        Some(data.strip_suffix(b"\r\n").or_else(|| data.strip_suffix(b"\n"))
+            .or_else(|| data.strip_suffix(b"\r")).unwrap_or(data))
     }
 
     fn decoded_stream(&mut self, id: ObjectId) -> Option<std::borrow::Cow<'a, [u8]>> {
@@ -670,6 +712,19 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stream_recovery_must_finish_looking_for_an_endobj_within_budget() {
+        let bytes = b"stream\nx\rendstream junk endstream % comment\r\n endobj";
+        let dict = Value::Dict(vec![]);
+        let mut objects = Objects {
+            bytes, xref: BTreeMap::new(), tokens: 100, preserve_hex: false, remaining_bytes: 15,
+        };
+        assert!(objects.stream(&dict, Cursor(bytes)).is_none());
+        objects.remaining_bytes = bytes.len();
+        assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
+        assert_eq!(objects.stream(&dict, Cursor(b"stream\r\nx\rendstream junk")), Some(b"x".as_slice()));
+    }
 
     #[test]
     fn positioned_text_distinguishes_paragraphs_from_adjacent_lines() {

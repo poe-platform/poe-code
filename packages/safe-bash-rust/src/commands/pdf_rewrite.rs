@@ -221,18 +221,22 @@ pub(in super::super) fn rewrite(
             }
             out.extend_from_slice(&body);
         } else {
-            let (dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
+            let (mut dict, mut cursor) = objects.object(id).ok_or(INVALID)?;
             cursor.skip();
-            encode(&dict, &mut out)?;
             if cursor.0.starts_with(b"stream") {
                 let data = objects.stream(&dict, cursor).ok_or(INVALID)?;
+                let length = data.len().to_string();
+                dict.set_stream_length(length.as_bytes()).ok_or(INVALID)?;
+                encode(&dict, &mut out)?;
                 if data.len() > limit.saturating_sub(out.len()) {
                     return Err(TOO_LARGE.into());
                 }
                 out.extend_from_slice(b"\nstream\n");
                 out.extend_from_slice(data);
                 out.extend_from_slice(b"\nendstream");
-            } else if !cursor.0.starts_with(b"endobj") {
+            } else if cursor.0.starts_with(b"endobj") {
+                encode(&dict, &mut out)?;
+            } else {
                 return Err(INVALID.into());
             }
         }

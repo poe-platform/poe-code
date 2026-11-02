@@ -6333,3 +6333,35 @@ test("tar parses substitution expressions before publishing and preserves escape
     }
   } finally { rs.dispose(); }
 });
+
+test("sed and tar distinguish literal BRE punctuation from repetition and reject unfinished groups", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const {sedCommands} = await import("@poe-platform/safe-bash/commands/sed");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(sedCommands({replace: true})).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    const name = "aa a+ a? a{2} a|b";
+    for (const f of [fs, rs.fs]) await f.writeFile("/" + name, Buffer.from("x"));
+    for (const [pattern, replacement, extended, status] of [
+      ["a+", "x", false, 0], ["a?", "x", false, 0], ["a{2}", "x", false, 0],
+      [String.raw`\(a\)\+`, "x", false, 0], [String.raw`a\{2\}`, "x", false, 0],
+      [String.raw`a\+`, "x", true, 0], [String.raw`a\|b`, "x", true, 0],
+      [String.raw`\(?:a\)\(a\)`, String.raw`<\1>`, false, 0],
+      ["(?:a)", String.raw`\1`, true, 2], [String.raw`\(a`, "x", false, 2],
+      [")", "x", true, 2], ["[a", "x", false, 2],
+    ]) {
+      for (const cmd of [
+        "echo '" + name + "' | sed " + (extended ? "-E " : "") + "'s/" + pattern + "/" + replacement + "/g'",
+        "tar -cf archive --transform='s/" + pattern + "/" + replacement + "/g" + (extended ? "x" : "") + "' '" + name + "' && tar -tf archive",
+      ]) {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.equal(a.exitCode, status, cmd + ": " + a.stderr);
+        assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+      }
+    }
+    const cmd = "echo 'aa' | sed -n '/a+/p'";
+    assert.equal((await js.exec(cmd)).stdout, "");
+    assert.equal((await rs.exec(cmd)).stdout, "");
+  } finally { rs.dispose(); }
+});

@@ -557,39 +557,6 @@ fn split_sed_statements(script: &str) -> Result<Vec<String>, String> {
     Ok(out)
 }
 
-pub(super) fn count_sed_regex_groups(pat: &str, extended: bool) -> usize {
-    let chs: Vec<char> = pat.chars().collect();
-    let mut k = 0usize;
-    let mut in_bracket = false;
-    let mut groups = 0usize;
-    while k < chs.len() {
-        if chs[k] == '\\' && k + 1 < chs.len() {
-            if !in_bracket && !extended && chs[k + 1] == '(' {
-                groups += 1;
-            }
-            k += 2;
-        } else if chs[k] == '[' && !in_bracket {
-            in_bracket = true;
-            k += 1;
-            if k < chs.len() && (chs[k] == '^' || chs[k] == '!') {
-                k += 1;
-            }
-            if k < chs.len() && chs[k] == ']' {
-                k += 1;
-            }
-        } else if chs[k] == ']' && in_bracket {
-            in_bracket = false;
-            k += 1;
-        } else {
-            if !in_bracket && extended && chs[k] == '(' {
-                groups += 1;
-            }
-            k += 1;
-        }
-    }
-    groups
-}
-
 fn max_sed_repl_backref(repl: &str) -> usize {
     let chs: Vec<char> = repl.chars().collect();
     let mut k = 0usize;
@@ -644,95 +611,55 @@ fn validate_sed_labels(cmds: &[SedCmd]) -> Result<(), String> {
     check_sed_branches(cmds, &labels)
 }
 
-pub(super) fn convert_bre_parens(pat: &str) -> String {
-    let mut out = String::with_capacity(pat.len() + 4);
-    let chs: Vec<char> = pat.chars().collect();
-    let mut k = 0usize;
-    let mut in_bracket = false;
-    while k < chs.len() {
-        if chs[k] == '\\' && k + 1 < chs.len() {
-            let nc = chs[k + 1];
-            if !in_bracket && (nc == '(' || nc == ')' || nc == '|') {
-                out.push(nc);
-            } else {
-                out.push('\\');
-                out.push(nc);
-            }
-            k += 2;
-        } else if chs[k] == '[' && !in_bracket {
-            in_bracket = true;
-            out.push('[');
-            k += 1;
-            if k < chs.len() && (chs[k] == '^' || chs[k] == '!') {
-                out.push(chs[k]);
-                k += 1;
-            }
-            if k < chs.len() && chs[k] == ']' {
-                out.push(']');
-                k += 1;
-            }
-        } else if in_bracket && chs[k] == '[' && k + 1 < chs.len() && matches!(chs[k + 1], ':' | '.' | '=') {
-            let kind = chs[k + 1];
-            out.push('[');
-            out.push(kind);
-            k += 2;
-            while k < chs.len() {
-                out.push(chs[k]);
-                if chs[k] == kind && k + 1 < chs.len() && chs[k + 1] == ']' {
-                    out.push(']');
-                    k += 2;
-                    break;
+pub(super) fn sed_pattern(source: &str, extended: bool) -> Result<(String, usize), &'static str> {
+    let mut out = String::with_capacity(source.len());
+    let mut chars = source.chars();
+    let (mut groups, mut depth) = (0, 0usize);
+    while let Some(mut c) = chars.next() {
+        if c == '[' {
+            let start = chars.as_str();
+            let mut first = true;
+            if start.starts_with('^') { chars.next(); }
+            loop {
+                let b = chars.next().ok_or("unterminated bracket expression")?;
+                if b == ']' && !first { break; }
+                first = false;
+                if b == '[' && let Some(marker @ (':' | '=' | '.')) = chars.clone().next() {
+                    let close = match marker { ':' => ":]", '=' => "=]", _ => ".]" };
+                    if let Some((_, tail)) = chars.as_str().split_once(close) { chars = tail.chars(); }
                 }
-                k += 1;
             }
-        } else if chs[k] == ']' && in_bracket {
-            in_bracket = false;
-            out.push(']');
-            k += 1;
-        } else if !in_bracket && (chs[k] == '(' || chs[k] == ')' || chs[k] == '|') {
             out.push('[');
-            out.push(chs[k]);
-            out.push(']');
-            k += 1;
-        } else {
-            out.push(chs[k]);
-            k += 1;
+            out.push_str(&start[..start.len() - chars.as_str().len()]);
+            continue;
         }
-    }
-    out
-}
-
-pub(super) fn convert_ere_escaped_parens(pat: &str) -> String {
-    let mut out = String::with_capacity(pat.len() + 4);
-    let chs: Vec<char> = pat.chars().collect();
-    let mut k = 0usize;
-    let mut in_bracket = false;
-    while k < chs.len() {
-        if chs[k] == '\\' && k + 1 < chs.len() {
-            let nc = chs[k + 1];
-            if !in_bracket && (nc == '(' || nc == ')') {
-                out.push('[');
-                out.push(nc);
-                out.push(']');
-            } else {
-                out.push('\\');
-                out.push(nc);
+        let escaped = c == '\\';
+        if escaped { c = chars.next().ok_or("trailing backslash in regular expression")?; }
+        if "()|+?{}".contains(c) {
+            if extended == escaped {
+                // Quote literal operators as single-character classes: the search matcher
+                // also accepts escaped BRE operators when given an unqualified pattern.
+                out.extend(['[', c, ']']);
+                continue;
             }
-            k += 2;
-        } else if chs[k] == '[' && !in_bracket {
-            in_bracket = true;
-            out.push('[');
-            k += 1;
-        } else if chs[k] == ']' && in_bracket {
-            in_bracket = false;
-            out.push(']');
-            k += 1;
-        } else {
-            out.push(chs[k]);
-            k += 1;
+            if c == '(' {
+                depth += 1;
+                if let Some(tail) = chars.as_str().strip_prefix("?:") {
+                    out.push_str("(?:");
+                    chars = tail.chars();
+                    continue;
+                }
+                groups += 1;
+            } else if c == ')' {
+                depth = depth.checked_sub(1).ok_or("unmatched ')' in regular expression")?;
+            }
+        } else if escaped {
+            out.push('\\');
         }
+        out.push(c);
     }
-    out
+    if depth != 0 { return Err("unmatched '(' in regular expression"); }
+    Ok((out, groups))
 }
 
 fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> Result<Option<SedCmd>, String> {
@@ -926,14 +853,10 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
             if parts.len() < 3 {
                 return Err("sed: unterminated substitution\n".to_string());
             }
-            if !parts[0].is_empty() && max_sed_repl_backref(&parts[1]) > count_sed_regex_groups(&parts[0], extended) {
+            let (pat, groups) = sed_pattern(&parts[0], extended).map_err(|e| format!("sed: {e}\n"))?;
+            if !pat.is_empty() && max_sed_repl_backref(&parts[1]) > groups {
                 return Err("sed: replacement references an undefined capture group\n".to_string());
             }
-            let pat = if extended {
-                convert_ere_escaped_parens(&parts[0])
-            } else {
-                convert_bre_parens(&parts[0])
-            };
             let repl = unescape_sed_repl(&parts[1]);
             let flags = parts.get(2).cloned().unwrap_or_default();
             let mut global = false;
@@ -1208,12 +1131,9 @@ fn parse_one_sed_addr(s: &str, extended: bool) -> (Option<SedAddr>, &str, Option
                 if pat.is_empty() && ic {
                     return (None, s, Some("sed: flags on an empty regex are not supported\n".to_string()));
                 }
-                let conv = if pat.is_empty() {
-                    String::new()
-                } else if extended {
-                    convert_ere_escaped_parens(&pat)
-                } else {
-                    convert_bre_parens(&pat)
+                let conv = match sed_pattern(&pat, extended) {
+                    Ok((p, _)) => p,
+                    Err(e) => return (None, s, Some(format!("sed: {e}\n"))),
                 };
                 return (Some(SedAddr::Regex(conv, ic)), final_rest, None);
             }

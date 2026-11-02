@@ -6012,7 +6012,7 @@ fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Res
                 _ => return Err(format!("unsupported transform flag: {flag}")),
             }
         }
-        let groups = super::text::count_sed_regex_groups(pattern, extended);
+        let (pattern, groups) = super::text::sed_pattern(pattern, extended)?;
         let mut repl = replacement.chars();
         while let Some(c) = repl.next() {
             if c == '\\' {
@@ -6023,7 +6023,6 @@ fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Res
                 }
             }
         }
-        let pattern = if extended { super::text::convert_ere_escaped_parens(pattern) } else { super::text::convert_bre_parens(pattern) };
         transforms.push(TarTransform { pattern, replacement: replacement.into(), global, ignore_case });
     }
     Ok(())

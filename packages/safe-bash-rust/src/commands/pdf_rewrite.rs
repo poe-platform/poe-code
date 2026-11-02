@@ -41,6 +41,7 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 #[derive(Default)]
 pub(in super::super) struct PageEdits<'a> {
     pub rotations: Vec<&'a str>,
+    pub split_pages: Option<usize>,
     pub info: bool,
     pub metadata: bool,
     pub structure: bool,
@@ -108,6 +109,10 @@ pub(in super::super) fn rewrite(
         }
     }
     for (i, &id) in pages.iter().enumerate() {
+        let rotation = rotations.get(i).copied().flatten();
+        if edits.split_pages.is_some() && rotation.is_none() {
+            continue;
+        }
         let page = objects.object(id).ok_or(INVALID)?.0;
         let inherited = |key: &[u8]| {
             let mut current = &page;
@@ -126,55 +131,53 @@ pub(in super::super) fn rewrite(
         let Value::Dict(mut fields) = page.clone() else {
             return Err(INVALID.into());
         };
-        if let Some(rotation) = rotations.get(i).copied().flatten() {
+        if let Some(rotation) = rotation {
             let original = inherited(b"Rotate")
                 .and_then(|v| objects.resolve(v))
                 .and_then(|v| v.number())
                 .unwrap_or(0.);
-            let angle = match rotation.apply(original) {
-                90 => b"90".as_slice(),
-                180 => b"180",
-                270 => b"270",
-                _ => b"0",
-            };
-            set(&mut fields, b"Rotate", Value::Word(angle));
+            set(&mut fields, b"Rotate", rotation.word(original));
         }
-        if !matches!(
-            page.get(b"Resources").and_then(|v| objects.resolve(v)),
-            Some(Value::Dict(_))
-        ) {
-            let mut res = match inherited(b"Resources").and_then(|v| objects.resolve(v)) {
-                Some(Value::Dict(entries)) => entries,
-                _ => vec![],
-            };
-            for (_, v) in &mut res {
-                if let Some(sub @ Value::Dict(_)) = objects.resolve(v) {
-                    *v = sub;
+        if edits.split_pages.is_none() {
+            if !matches!(
+                page.get(b"Resources").and_then(|v| objects.resolve(v)),
+                Some(Value::Dict(_))
+            ) {
+                let mut res = match inherited(b"Resources").and_then(|v| objects.resolve(v)) {
+                    Some(Value::Dict(entries)) => entries,
+                    _ => vec![],
+                };
+                for (_, v) in &mut res {
+                    if let Some(sub @ Value::Dict(_)) = objects.resolve(v) {
+                        *v = sub;
+                    }
+                }
+                set(&mut fields, b"Resources", Value::Dict(res));
+            }
+            for k in [b"MediaBox".as_slice(), b"CropBox", b"Rotate"] {
+                if !fields.iter().any(|(key, _)| *key == k)
+                    && let Some(v) = inherited(k).and_then(|v| objects.resolve(v))
+                {
+                    set(&mut fields, k, v);
                 }
             }
-            set(&mut fields, b"Resources", Value::Dict(res));
+            set(&mut fields, b"Parent", Value::Ref(page_root));
         }
-        for k in [b"MediaBox".as_slice(), b"CropBox", b"Rotate"] {
-            if !fields.iter().any(|(key, _)| *key == k)
-                && let Some(v) = inherited(k).and_then(|v| objects.resolve(v))
-            {
-                set(&mut fields, k, v);
-            }
-        }
-        set(&mut fields, b"Parent", Value::Ref(page_root));
         store(id, &Value::Dict(fields))?;
     }
-    let Value::Dict(mut page_node) = objects.object(page_root).ok_or(INVALID)?.0 else {
-        return Err(INVALID.into());
-    };
-    let count = pages.len().to_string();
-    set(
-        &mut page_node,
-        b"Kids",
-        Value::Array(pages.into_iter().map(Value::Ref).collect()),
-    );
-    set(&mut page_node, b"Count", Value::Word(count.as_bytes()));
-    store(page_root, &Value::Dict(page_node))?;
+    if edits.split_pages.is_none() {
+        let Value::Dict(mut page_node) = objects.object(page_root).ok_or(INVALID)?.0 else {
+            return Err(INVALID.into());
+        };
+        let count = pages.len().to_string();
+        set(
+            &mut page_node,
+            b"Kids",
+            Value::Array(pages.into_iter().map(Value::Ref).collect()),
+        );
+        set(&mut page_node, b"Count", Value::Word(count.as_bytes()));
+        store(page_root, &Value::Dict(page_node))?;
+    }
     store(root, &catalog)?;
     let next = objects
         .xref

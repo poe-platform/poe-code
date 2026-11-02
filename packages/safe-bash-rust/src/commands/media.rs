@@ -1653,6 +1653,16 @@ fn read_office_source(
     Ok((paras, None))
 }
 
+// Number.parseInt(value, 10) consumes just a signed decimal prefix.
+fn qpdf_decimal(s: &str) -> Option<f64> {
+    let s = s.trim_start();
+    let digits = s.strip_prefix(['-', '+']).unwrap_or(s);
+    let count = digits.bytes().take_while(u8::is_ascii_digit).count();
+    (count > 0)
+        .then(|| s[..s.len() - digits.len() + count].parse().ok())
+        .flatten()
+}
+
 fn parse_qpdf_page_spec(spec: &str, total: usize) -> Vec<usize> {
     let mut selected: Vec<usize> = Vec::new();
     for tok in spec.split(',') {
@@ -6302,7 +6312,6 @@ fn cmd_media_doc(
             let mut add_atts = Vec::new();
             let mut standard_rewrite = true;
             let mut copy_atts: Vec<(String, String)> = Vec::new();
-            let mut split_pages_group: Option<usize> = None;
             let mut encrypt_pw: Option<String> = None;
             let mut decrypt_mode = false;
             let mut linearize = false;
@@ -6320,7 +6329,7 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") {
+                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") && a != "--split-pages" && !a.starts_with("--split-pages=") {
                     standard_rewrite = false;
                 }
                 if a == "--empty" {
@@ -6497,18 +6506,12 @@ fn cmd_media_doc(
                     continue;
                 }
                 if a == "--split-pages" {
-                    let mut grp = 1usize;
-                    if i + 1 < args.len() && args[i + 1].chars().all(|c| c.is_ascii_digit()) {
-                        grp = args[i + 1].parse::<usize>().unwrap_or(1).max(1);
-                        i += 2;
-                    } else {
-                        i += 1;
-                    }
-                    split_pages_group = Some(grp);
+                    edits.split_pages = Some(1);
+                    i += 1;
                     continue;
                 }
                 if let Some(sp) = a.strip_prefix("--split-pages=") {
-                    split_pages_group = Some(sp.parse::<usize>().unwrap_or(1).max(1));
+                    edits.split_pages = Some((qpdf_decimal(sp).unwrap_or(1.) as usize).max(1));
                     i += 1;
                     continue;
                 }
@@ -7105,7 +7108,58 @@ fn cmd_media_doc(
                 return ok_out(&rendered);
             }
 
-            if let Some(group_sz) = split_pages_group {
+            let out_arg = pos_files.get(usize::from(!replace_input && !empty_input)).cloned();
+            if standard_rewrite && let Some(dst_arg) = out_arg.as_deref() {
+                let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
+                    else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
+                let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
+                    else {primary_arg.as_deref().and_then(read)};
+                if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
+                    if !replace_input && dst_arg != "-" && primary_arg.as_deref() == Some(dst_arg) {
+                        return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
+                    }
+                    let limit = fs.shell_limits().max_output_bytes;
+                    let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
+                        .map_err(|e| if e == "invalid page rotation" { err_out("shell: line 1: internal error\n",1) }
+                            else {err_out(&format!("qpdf: {e}\n"),2)});
+                    if let Some(group) = edits.split_pages {
+                        let edited = edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                            || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
+                        let graph;
+                        let data = if edited {
+                            graph = match rewrite() { Ok(v) => v, Err(e) => return e };
+                            &graph
+                        } else { &bytes };
+                        let Some(mut source) = pdf_reader::PageSource::open(data) else {
+                            return err_out("qpdf: invalid PDF object graph\n",2);
+                        };
+                        let count = source.len();
+                        let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
+                            return err_out("shell: line 1: internal error\n",1);
+                        };
+                        let mut outputs = vec![];
+                        let mut remaining = limit;
+                        for start in (0..count).step_by(group) {
+                            let end = start.saturating_add(group).min(count);
+                            let Some(name) = format_qpdf_split_name(dst_arg,count,group,start+1,end) else {
+                                return err_out("qpdf: filename width limit exceeded\n",2);
+                            };
+                            let Some(part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,remaining) else {
+                                return err_out("qpdf: could not copy pages within output limits\n",2);
+                            };
+                            remaining -= part.len();
+                            outputs.push((name,part));
+                        }
+                        for (name,part) in outputs { if let Err(e) = publish(&name,&part) { return e; } }
+                        return ok_out("");
+                    }
+                    let output = match rewrite() { Ok(v) => v, Err(e) => return e };
+                    if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
+                    return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
+                }
+            }
+
+            if let Some(group_sz) = edits.split_pages {
                 let Some(f) = primary_arg.as_deref() else {
                     return err_out("qpdf: an input file is required\n", 2);
                 };
@@ -7113,14 +7167,14 @@ fn cmd_media_doc(
                     Ok(d) => d,
                     Err(e) => return e,
                 };
-                if pos_files.len() < 2 {
-                    return err_out("qpdf: an output file is required\n", 2);
+                let Some(pat) = out_arg.as_deref() else { return err_out("qpdf: an output file is required\n",2); };
+                if !replace_input && pat != "-" && pat == f {
+                    return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                 }
-                let pat = &pos_files[1];
                 let total = doc.pages.len();
                 let mut start = 1usize;
                 while start <= total {
-                    let end = (start + group_sz - 1).min(total);
+                    let end = start.saturating_add(group_sz - 1).min(total);
                     let mut sub = PdfDoc::new();
                     sub.version = doc.version.clone();
                     sub.title = doc.title.clone();
@@ -7133,32 +7187,6 @@ fn cmd_media_doc(
                     start = end + 1;
                 }
                 return ok_out("");
-            }
-
-            let out_arg = if replace_input {
-                pos_files.first().cloned()
-            } else if empty_input {
-                pos_files.first().cloned()
-            } else if pos_files.len() >= 2 {
-                pos_files.last().cloned()
-            } else {
-                None
-            };
-            if standard_rewrite && let Some(dst_arg) = out_arg.as_deref()
-                && (replace_input || primary_arg.as_deref() != Some(dst_arg) || dst_arg == "-") {
-                let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
-                    else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
-                let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
-                    else {primary_arg.as_deref().and_then(read)};
-                if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
-                    let output = match pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
-                        Ok(bytes) => bytes,
-                        Err(e) if e == "invalid page rotation" => return err_out("shell: line 1: internal error\n",1),
-                        Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
-                    };
-                    if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
-                    return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
-                }
             }
 
             let mut doc = if empty_input {
@@ -15865,7 +15893,7 @@ mod media_unit_tests {
         let bytes = dest.finish().unwrap();
         let merged = pdf_reader::read(&bytes).unwrap();
         assert_eq!(merged.pages.len(), count);
-        assert_eq!(merged.page_media[&count], (300., 410., None));
+        assert_eq!(merged.page_media[&count], (300., 410., Some([4., 6., 304., 416.])));
     }
 
     #[test]

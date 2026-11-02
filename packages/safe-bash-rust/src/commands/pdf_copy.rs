@@ -1,5 +1,5 @@
 // Rebuild the reachable object graph so page extraction does not retain sibling pages.
-use super::{ObjectId, Objects, Value, index};
+use super::{ObjectId, Objects, Value, index, pdf_rewrite::set, pdf_rotation::Rotation};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 
@@ -76,7 +76,14 @@ impl<'a> Objects<'a> {
                     fields.retain(|(key, _)| {
                         matches!(
                             *key,
-                            b"Parent" | b"MediaBox" | b"Resources" | b"Rotate" | b"CropBox"
+                            b"Parent"
+                                | b"MediaBox"
+                                | b"Resources"
+                                | b"Rotate"
+                                | b"CropBox"
+                                | b"BleedBox"
+                                | b"TrimBox"
+                                | b"ArtBox"
                         )
                     });
                     tree.insert(id, Some(Value::Dict(fields)));
@@ -309,7 +316,7 @@ impl PageOutput {
             Some(i) => i..i.checked_add(1)?,
             None => 0..source.len(),
         };
-        self.copy_pages(source, selection, single_page.is_none())
+        self.copy_pages(source, selection, single_page.is_none(), &[])
     }
 
     // Office's PageRange creates a new document, with fresh metadata.
@@ -320,8 +327,32 @@ impl PageOutput {
     ) -> Option<Vec<u8>> {
         let mut doc = Self::new(limit);
         doc.bodies[2] = b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec();
-        doc.copy_pages(source, pages, false)?;
+        doc.copy_pages(source, pages, false, &[])?;
         doc.finish()
+    }
+
+    pub(in super::super) fn split(
+        source: &mut PageSource<'_>,
+        pages: std::ops::Range<usize>,
+        rotations: &[Option<Rotation>],
+        limit: usize,
+    ) -> Option<Vec<u8>> {
+        let mut output = Self::new(limit);
+        let mut info = vec![(
+            b"Producer".as_slice(),
+            super::pdf_string::encode("@poe-code/pdf-ast"),
+        )];
+        for key in [b"Title".as_slice(), b"Author", b"Subject", b"Keywords"] {
+            if let Some(Value::String { bytes, .. }) = source.info.get(key) {
+                info.push((
+                    key,
+                    super::pdf_string::encode(&super::pdf_string::decode(bytes)),
+                ));
+            }
+        }
+        super::pdf_rewrite::encode(&Value::Dict(info), &mut output.bodies[2]).ok()?;
+        output.copy_pages(source, pages, false, rotations)?;
+        output.finish()
     }
 
     fn copy_pages(
@@ -329,6 +360,7 @@ impl PageOutput {
         source: &mut PageSource<'_>,
         selection: std::ops::Range<usize>,
         whole_document: bool,
+        rotations: &[Option<Rotation>],
     ) -> Option<()> {
         let page_offset = self.pages.len();
         let mut ids = BTreeMap::new();
@@ -381,7 +413,7 @@ impl PageOutput {
         }
         for i in selection {
             let id = source.pages[i];
-            let page = copy.page(id)?;
+            let page = copy.page(id, rotations.get(i).copied().flatten())?;
             let mut body = Vec::new();
             copy.value(&page, &mut body, 0)?;
             copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
@@ -472,13 +504,14 @@ struct Copy<'c, 'a> {
 }
 
 impl<'a> Copy<'_, 'a> {
-    fn page(&mut self, id: ObjectId) -> Option<Value<'a>> {
+    fn page(&mut self, id: ObjectId, rotation: Option<Rotation>) -> Option<Value<'a>> {
         let page = self.objects.object(id)?.0;
         let mut parent = page.get(b"Parent").and_then(Value::reference);
         let Value::Dict(mut entries) = page else {
             return None;
         };
         entries.retain(|(k, _)| *k != b"Parent");
+        let mut inherited = BTreeMap::new();
         let mut seen = BTreeSet::new();
         while let Some(id) = parent {
             if !seen.insert(id) || seen.len() > 128 {
@@ -490,25 +523,94 @@ impl<'a> Copy<'_, 'a> {
                 return None;
             };
             for (k, v) in fields {
-                if *k != b"Parent" && !entries.iter().any(|(key, _)| key == k) {
-                    entries.push((*k, v.clone()));
-                }
+                inherited.entry(*k).or_insert(v);
             }
         }
+        let angle = entries
+            .iter()
+            .find(|(k, _)| *k == b"Rotate")
+            .map(|(_, v)| v)
+            .or_else(|| inherited.get(b"Rotate".as_slice()).copied())
+            .and_then(|v| self.objects.resolve(v))
+            .and_then(|v| v.number())
+            .unwrap_or(0.);
+        if let Some(rotation) = rotation {
+            set(&mut entries, b"Rotate", rotation.word(angle));
+        }
+        let mut rectangle = |v: Option<&Value<'a>>| {
+            let Value::Array(items) = self.objects.resolve(v?)? else {
+                return None;
+            };
+            if items.len() < 4 {
+                return None;
+            }
+            let mut numbers = vec![];
+            for item in &items[..4] {
+                let n = self.objects.resolve(item)?;
+                n.number().filter(|v| v.is_finite())?;
+                numbers.push(n);
+            }
+            Some(Value::Array(numbers))
+        };
+        let media = rectangle(
+            entries
+                .iter()
+                .find(|(k, _)| *k == b"MediaBox")
+                .map(|(_, v)| v)
+                .or_else(|| inherited.get(b"MediaBox".as_slice()).copied()),
+        )
+        .unwrap_or_else(|| {
+            Value::Array(
+                [b"0".as_slice(), b"0", b"612", b"792"]
+                    .map(Value::Word)
+                    .into(),
+            )
+        });
+        let [x, y, right, top] = media.rectangle()?;
         if !entries.iter().any(|(k, _)| *k == b"MediaBox") {
-            entries.push((
-                b"MediaBox",
-                Value::Array(
-                    [b"0".as_slice(), b"0", b"612", b"792"]
-                        .map(Value::Word)
-                        .into(),
-                ),
-            ));
+            entries.push((b"MediaBox", media.clone()));
+        }
+        let mut boxes = vec![];
+        for key in [b"CropBox".as_slice(), b"BleedBox", b"TrimBox", b"ArtBox"] {
+            if entries.iter().any(|(k, _)| *k == key) {
+                continue;
+            }
+            let rect = rectangle(inherited.get(key).copied()).unwrap_or_else(|| media.clone());
+            if rect.rectangle()? != [0., 0., (right - x).abs(), (top - y).abs()] {
+                boxes.push((key, rect));
+            }
         }
         if !entries.iter().any(|(k, _)| *k == b"Resources") {
-            entries.push((b"Resources", Value::Dict(vec![])));
+            let mut fields = match inherited
+                .get(b"Resources".as_slice())
+                .and_then(|v| self.objects.resolve(v))
+            {
+                Some(Value::Dict(fields)) => fields,
+                _ => vec![],
+            };
+            for (_, value) in &mut fields {
+                if let Some(dict @ Value::Dict(_)) = self.objects.resolve(value) {
+                    *value = dict;
+                }
+            }
+            entries.push((b"Resources", Value::Dict(fields)));
         }
-
+        if !entries.iter().any(|(k, _)| *k == b"Rotate") {
+            let angle = angle.rem_euclid(360.);
+            if matches!(angle, 90. | 180. | 270.) {
+                entries.push((
+                    b"Rotate",
+                    Value::Word(if angle == 90. {
+                        b"90"
+                    } else if angle == 180. {
+                        b"180"
+                    } else {
+                        b"270"
+                    }),
+                ));
+            }
+        }
+        entries.extend(boxes);
         entries.push((b"Parent", Value::Word(b"2 0 R")));
         Some(Value::Dict(entries))
     }

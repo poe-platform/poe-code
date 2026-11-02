@@ -7,6 +7,15 @@ pub(in super::super) struct Rotation {
 }
 
 impl Rotation {
+    pub(super) fn word(self, original: f64) -> super::Value<'static> {
+        super::Value::Word(match self.apply(original) {
+            90 => b"90",
+            180 => b"180",
+            270 => b"270",
+            _ => b"0",
+        })
+    }
+
     pub(in super::super) fn apply(self, original: f64) -> i32 {
         let original = original.rem_euclid(360.);
         let base = if self.relative && matches!(original, 90. | 180. | 270.) {
@@ -16,16 +25,6 @@ impl Rotation {
         };
         (base + self.degrees).rem_euclid(360)
     }
-}
-
-// Number.parseInt(value, 10) consumes just a signed decimal prefix.
-fn decimal(s: &str) -> Option<f64> {
-    let s = s.trim_start();
-    let digits = s.strip_prefix(['-', '+']).unwrap_or(s);
-    let count = digits.bytes().take_while(u8::is_ascii_digit).count();
-    (count > 0)
-        .then(|| s[..s.len() - digits.len() + count].parse().ok())
-        .flatten()
 }
 
 struct Range {
@@ -57,7 +56,7 @@ pub(in super::super) fn rotations(specs: &[&str], count: usize) -> Option<Vec<Op
         if s == "z" {
             return Some(count as i64);
         }
-        let n = decimal(s.strip_prefix('r').unwrap_or(s))?;
+        let n = super::super::qpdf_decimal(s.strip_prefix('r').unwrap_or(s))?;
         if n < 1. || n > count as f64 {
             return None;
         }
@@ -70,7 +69,7 @@ pub(in super::super) fn rotations(specs: &[&str], count: usize) -> Option<Vec<Op
     for spec in specs {
         let (angle, range) = spec.split_once(':').unwrap_or((spec, ""));
         let relative = angle.starts_with(['-', '+']);
-        let degrees = decimal(angle).map(|n| {
+        let degrees = super::super::qpdf_decimal(angle).map(|n| {
             (if angle.starts_with('-') {
                 -n.abs()
             } else {

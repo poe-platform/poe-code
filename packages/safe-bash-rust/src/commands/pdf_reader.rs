@@ -687,6 +687,12 @@ impl<'a> Objects<'a> {
     }
 }
 
+pub(super) fn header_version(bytes: &[u8]) -> Option<&[u8]> {
+    let head = &bytes[..bytes.len().min(1024)];
+    let start = head.windows(5).position(|w| w == b"%PDF-")? + 5;
+    Some(&head[start..head.len().min(start + 3)])
+}
+
 fn last_xref(bytes: &[u8]) -> Option<usize> {
     let tail = bytes.get(bytes.len().saturating_sub(4096)..)?;
     let offset_pos = tail.windows(9).rposition(|w| w == b"startxref")? + 9;

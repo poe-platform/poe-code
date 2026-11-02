@@ -4262,3 +4262,28 @@ test("qpdf counts the final JSON destination once when a stream has the same fil
     assert.deepEqual(Buffer.from(await wasm.fs.readFile("/"+name)),Buffer.from(expected));
   } finally {wasm.dispose();}
 });
+
+test("qpdf JSON validates the input before report options, including stdin and prefixed PDF headers", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  let body="prefix\n%PDF-1.5\n";const offsets=[];
+  for(const [i,value] of ["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [] /Count 0 >>"].entries()) {
+    offsets.push(body.length);body+=(i+1)+" 0 obj\n"+value+"\nendobj\n";
+  }
+  const at=body.length;
+  body+="xref\n0 3\n0000000000 65535 f \n"+offsets.map(n=>String(n).padStart(10,"0")+" 00000 n \n").join("")+
+    "trailer << /Root 1 0 R /Size 3 >>\nstartxref\n"+at+"\n%%EOF";
+  const files={"/prefixed.pdf":Buffer.from(body),"/bad":Buffer.from("text"),"/out":Buffer.from("prior")};
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
+  for(const [k,v] of Object.entries(files))await fs.writeFile(k,v);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const cmd of ["qpdf --json","qpdf missing --json=1 --json-key=qpdf out","qpdf bad --json --json-stream-data=file",
+      "cat bad | qpdf - --json out","qpdf prefixed.pdf --json=2"]) {
+      const want=await js.exec(cmd),got=await wasm.exec(cmd);
+      assert.equal(want.exitCode,cmd.includes("prefixed.pdf")?0:2);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],cmd);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out")),files["/out"]);
+    }
+  } finally {wasm.dispose();}
+});

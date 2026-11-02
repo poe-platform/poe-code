@@ -7042,6 +7042,21 @@ fn cmd_media_doc(
                 } else {
                     None
                 };
+                let input = match primary_arg.as_deref() {
+                    _ if empty_input => match pdf_reader::empty_pdf(fs.shell_limits().max_input_bytes) {
+                        Some(bytes) => bytes,
+                        None => return err_out("shell: line 1: internal error\n",1),
+                    },
+                    Some("-") => crate::vfs::stream_string_to_bytes(stdin),
+                    Some(name) => match fs.read_file(&resolve_posix_path(cwd,name)) {
+                        Ok(bytes) => bytes,
+                        Err(_) => return err_out(&format!("qpdf: cannot open {name}\n"),2),
+                    },
+                    None => return err_out("qpdf: an input file is required\n",2),
+                };
+                if !json_input && pdf_reader::header_version(&input).is_none() {
+                    return err_out(&format!("qpdf: {}: Invalid PDF header: missing %PDF- signature\n",primary_arg.as_deref().unwrap_or("empty")),2);
+                }
                 for k in &json_keys {
                     if jv == 1 && k == "qpdf" {return err_out("qpdf: json-key=qpdf is not valid for json=1\n",2);}
                     if jv == 2 && matches!(k.as_str(),"objects"|"objectinfo") {
@@ -7052,10 +7067,7 @@ fn cmd_media_doc(
                 if json_stream_data == "file" && stream_prefix.is_empty() {
                     return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
                 }
-                let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
-                    else if primary_arg.as_deref() == Some("-") { Some(crate::vfs::stream_string_to_bytes(stdin)) }
-                    else { primary_arg.as_ref().and_then(|p| fs.read_file(&resolve_posix_path(cwd,p)).ok()) };
-                if let Some(bytes) = input && let Some(mut source) = pdf_reader::PageSource::open(&bytes) {
+                if let Some(mut source) = pdf_reader::PageSource::open(&input) {
                     let (json,files) = match source.qpdf_json(jv,json_keys.iter().any(|k| k == "pages"),
                         &json_objects,&json_stream_data,(&stream_prefix,out_file.as_deref()),fs.shell_limits().max_output_bytes) {
                         Ok(result) => result,
@@ -7076,14 +7088,9 @@ fn cmd_media_doc(
                     }
                     return ok_out(&json);
                 }
-                let doc = if let Some(f) = primary_arg.as_deref() {
-                    match load_input(f) {
-                        Ok(d) => d,
-                        Err(e) => return e,
-                    }
-                } else {
-                    PdfDoc::new()
-                };
+                let doc = if json_input && !empty_input {
+                    parse_qpdf_json_doc(&String::from_utf8_lossy(&input))
+                } else { PdfDoc::parse(&input) };
                 let esc_json = |s: &str| -> String {
                     let mut out = String::new();
                     for ch in s.chars() {

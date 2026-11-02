@@ -224,9 +224,12 @@ impl<'a> PageSource<'a> {
                 record([("value", J::Object(entries))]),
             ));
         }
-        let version_text = std::str::from_utf8(self.objects.bytes.get(5..8).ok_or(INVALID)?)
-            .map_err(|_| INVALID)?;
-        let mut meta = vec![("pdfversion".encode_utf16().collect(), string(version_text))];
+        let version_text = super::super::header_version(self.objects.bytes)
+            .ok_or(INVALID)?
+            .iter()
+            .map(|b| char::from(*b))
+            .collect::<String>();
+        let mut meta = vec![("pdfversion".encode_utf16().collect(), string(&version_text))];
         if version == 2 {
             meta.push((
                 "maxobjectid".encode_utf16().collect(),

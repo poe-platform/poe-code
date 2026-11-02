@@ -6577,3 +6577,28 @@ test("rg replacements use the captures selected in the original input", async ()
     }
   } finally { rs.dispose(); }
 });
+
+test("rg multiline replacement renders each selected block once", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [input, args, expected] of [
+      ["aa\\naa\\n", "-Unob --column a -r XX", "1:1:0:XX\n1:2:1:XX\n2:1:3:XX\n2:2:4:XX\n"],
+      ["aa\\naa\\n", "-U '^a' -r X", "Xa\nXa\n"],
+      ["aaa\\n", String.raw`-U '\b(a)|(a)' -r '<$1,$2>'`, "<a,><,a><,a>\n"],
+      ["xa\\nba\\nby\\n", String.raw`-U '(a)\n(b)' -r '<$1-$2>'`, "x<a-b><a-b>y\n"],
+      ["before\\nxa\\nby\\nafter\\n", String.raw`-Unb --column -C1 '(a)\n(b)' -r '$2` + "\n" + "$1'", "1-0-before\n2:2:7:xb\n3:2:10:ay\n4-13-after\n"],
+      ["a\\n", String.raw`-Unb '(a)\n' -r '$0'`, "1:0:a\n"],
+      ["xa\\nby\\nxa\\nby\\n", String.raw`-Um1 '(a)\n(b)' -r X`, "xXy\n"],
+      ["xa\\nba\\nby\\n", String.raw`-Unob --column '(a)\n(b)' -r X`, "1:2:1:X\n1:3:2:X\n"],
+      ["é\\r\\n🦊foo\\nbar\\n", String.raw`-Unob --column '(foo)\n(bar)' -r '$2-$1'`, "2:5:8:bar-foo\n"],
+    ]) {
+      const cmd = `printf '${input}' | rg ${args}`;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0, "", expected], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

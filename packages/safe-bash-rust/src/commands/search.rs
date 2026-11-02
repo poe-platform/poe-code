@@ -3708,32 +3708,21 @@ fn run_grep_engine(
     let mut searches_with_match = 0usize;
 
     let rec_term = if cfg.null_data { '\0' } else { '\n' };
+    let multiline = cfg.multiline && (replacement.is_none() || rx.branches.iter().any(|program|
+        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(&tok.atom, rec_term, cfg.ignore_case)))));
     for (fname, content, nul_off) in &inputs {
         if nul_off.is_some() && cfg.ignore_binary {
             continue;
         }
-        let lines: Vec<&str> = if cfg.null_data {
-            let mut v: Vec<&str> = content.split('\0').collect();
-            if v.last() == Some(&"") {
-                v.pop();
-            }
-            v
-        } else if cfg.crlf {
-            let mut v: Vec<&str> = content.split('\n').collect();
-            if v.last() == Some(&"") {
-                v.pop();
-            }
-            v
-        } else {
-            content.lines().collect()
-        };
-        let mut line_offsets: Vec<usize> = Vec::with_capacity(lines.len());
-        let mut cur_off = 0usize;
-        for l in &lines {
-            line_offsets.push(cur_off);
-            cur_off += l.len() + 1;
-        }
-        let mut match_indices = Vec::new();
+        let mut line_offsets = Vec::new();
+        let mut offset = 0;
+        let lines: Vec<_> = content.split_inclusive(rec_term).map(|record| {
+            line_offsets.push(offset);
+            offset += record.len();
+            let line = record.strip_suffix(rec_term).unwrap_or(record);
+            if !cfg.null_data && !cfg.crlf && record.ends_with('\n') { line.strip_suffix('\r').unwrap_or(line) } else { line }
+        }).collect();
+        let mut match_indices: Vec<(usize, Vec<(usize, usize)>)> = Vec::new();
         let mut multiline_spans: Vec<(usize, usize, usize, usize)> = Vec::new();
         let mut matched_count = 0usize;
         let mut file_submatch_count = 0usize;
@@ -3743,7 +3732,7 @@ fn run_grep_engine(
             let Some(parts) = &replacement else { return rx.find_all(subject); };
             let mut spans = Vec::new();
             rx.scan(subject, capture, |s, e, caps| {
-                let expanded = parts.iter().map(|part| match part {
+                let expanded: String = parts.iter().map(|part| match part {
                     RgReplacementPart::Literal(text) => *text,
                     RgReplacementPart::Match => &subject[s..e],
                     RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or("", |(lo, hi)| &subject[lo..hi]),
@@ -3754,43 +3743,35 @@ fn run_grep_engine(
             });
             spans
         };
-        if cfg.multiline && !cfg.invert {
-            let full_spans = find_spans(content, 0);
-            for (s, e) in full_spans {
-                let mut span_matched = false;
-                let mut first_line = None;
-                let mut last_line = 0usize;
-                for (idx, line) in lines.iter().enumerate() {
-                    let l_start = line_offsets[idx];
-                    let l_end = l_start + line.len();
-                    if s < l_end && e > l_start {
-                        any_match = true;
-                        if cfg.quiet && !cfg.stats && !cfg.json_output {
-                            return BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: err,
-                                exit_code: 0,
-                            };
-                        }
-                        span_matched = true;
-                        if first_line.is_none() {
-                            first_line = Some(idx);
-                        }
-                        last_line = idx;
-                        if !match_indices.iter().any(|(i, _)| *i == idx) {
-                            let rel_s = s.saturating_sub(l_start).min(line.len());
-                            let rel_e = e.saturating_sub(l_start).min(line.len());
-                            match_indices.push((idx, vec![(rel_s, rel_e)]));
-                        }
+        if multiline && !cfg.invert {
+            let mut block_end = None;
+            let mut blocks = 0;
+            for (s, e) in find_spans(content, 0) {
+                if lines.is_empty() || (s == content.len() && content.ends_with(rec_term)) { continue; }
+                let first = line_offsets.partition_point(|&off| off <= s) - 1;
+                let last = line_offsets.partition_point(|&off| off <= s.max(e.saturating_sub(1))) - 1;
+                if block_end.is_none_or(|end| first > end) {
+                    if replacement.is_some() && cfg.max_count.is_some_and(|n| blocks >= n) { break; }
+                    blocks += 1;
+                }
+                block_end = Some(last);
+                any_match = true;
+                if cfg.quiet && !cfg.stats && !cfg.json_output {
+                    return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 };
+                }
+                for idx in first..=last {
+                    let span = (s.saturating_sub(line_offsets[idx]).min(lines[idx].len()),
+                                e.saturating_sub(line_offsets[idx]).min(lines[idx].len()));
+                    if let Some((prev, spans)) = match_indices.last_mut()
+                        && *prev == idx {
+                        spans.push(span);
+                    } else {
+                        match_indices.push((idx, vec![span]));
                     }
                 }
-                if span_matched {
-                    if let Some(fl) = first_line {
-                        multiline_spans.push((fl, last_line, s, e));
-                    }
-                    matched_count += 1;
-                    file_submatch_count += 1;
-                }
+                multiline_spans.push((first, last, s, e));
+                matched_count += 1;
+                file_submatch_count += 1;
             }
         } else {
             for (idx, line) in lines.iter().enumerate() {
@@ -3955,8 +3936,90 @@ fn run_grep_engine(
         }
         let line_show_filename = show_filename && !use_heading;
 
+        if multiline && replacement.is_some() {
+            // Adjacent selected records share one replacement buffer. Context keeps
+            // its original coordinates even if a replacement changes the line count.
+            let mut at = 0;
+            let mut previous_end: Option<usize> = None;
+            let mut previous_printed: Option<usize> = None;
+            let mut idx = 0;
+            while idx < lines.len() {
+                let start = at;
+                let mut last = idx;
+                while at < multiline_spans.len() && multiline_spans[at].0 <= last + usize::from(at > start) {
+                    last = multiline_spans[at].1;
+                    at += 1;
+                }
+                let spans = &multiline_spans[start..at];
+                let selected = !spans.is_empty();
+                if selected { previous_end = Some(last); }
+                if !selected && !(previous_end.is_some_and(|end| idx - end <= cfg.after_ctx)
+                    || multiline_spans.get(at).is_some_and(|m| m.0 - idx <= cfg.before_ctx)) {
+                    idx += 1;
+                    continue;
+                }
+                if (cfg.before_ctx > 0 || cfg.after_ctx > 0) && previous_printed.is_some_and(|p| idx > p + 1)
+                    && let Some(sep) = &cfg.context_separator {
+                    out.push_str(sep); out.push(rec_term);
+                }
+                previous_printed = Some(last);
+                let base = line_offsets[idx];
+                let sep = if selected { ':' } else { '-' };
+                let mut emit = |chunk: &str, line, column, byte, ending: usize| {
+                    if line_show_filename && let Some(f) = fname {
+                        out.push_str(f); out.push(if cfg.null_delim { '\0' } else { sep });
+                    }
+                    if cfg.line_number { out.push_str(&format!("{line}{sep}")); }
+                    if cfg.show_column && selected { out.push_str(&format!("{column}{sep}")); }
+                    if cfg.byte_offset { out.push_str(&format!("{byte}{sep}")); }
+                    if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
+                    let chunk = if cfg.trim { chunk.trim_start_matches([' ', '\t']) } else { chunk };
+                    if cfg.max_columns.is_some_and(|n| n > 0 && chunk.len() + ending > n) {
+                        if selected {
+                            let count = if cfg.only_matching { 1 } else { spans.len() };
+                            out.push_str(&format!("[Omitted long line with {count} matches]"));
+                        } else { out.push_str("[Omitted long context line]"); }
+                    } else { out.push_str(chunk); }
+                    out.push(rec_term);
+                };
+                if !selected {
+                    emit(lines[idx], idx + 1, 0, base, 1);
+                } else if cfg.only_matching {
+                    let mut cursor = base;
+                    let mut expanded_offset = 0;
+                    let mut number = idx + 1;
+                    for &(_, _, s, e) in spans {
+                        number += content[cursor..s].matches(rec_term).count();
+                        expanded_offset += s - cursor;
+                        let rendered = &replacements[&s];
+                        for chunk in rendered.split_inclusive(rec_term) {
+                            let text = chunk.strip_suffix(rec_term).unwrap_or(chunk);
+                            if !text.is_empty() { emit(text, number, expanded_offset + 1, base + expanded_offset, 0); }
+                            number += usize::from(chunk.ends_with(rec_term));
+                        }
+                        cursor = e;
+                        expanded_offset += rendered.len();
+                    }
+                } else {
+                    let end = line_offsets.get(last + 1).copied().unwrap_or(content.len());
+                    let relative: Vec<_> = spans.iter().map(|&(_, _, s, e)| (s - base, e - base)).collect();
+                    let rendered = apply_rg_line_replace(&content[base..end], base, &relative, &replacements);
+                    let column = relative[0].0 + 1;
+                    let mut byte = base;
+                    if rendered.is_empty() { emit("", idx + 1, column, base, 0); }
+                    for (i, chunk) in rendered.split_inclusive(rec_term).enumerate() {
+                        let text = chunk.strip_suffix(rec_term).unwrap_or(chunk);
+                        emit(text, idx + 1 + i, column, byte, chunk.len() - text.len());
+                        byte += chunk.len();
+                    }
+                }
+                idx = last + 1;
+            }
+            continue;
+        }
+
         if cfg.only_matching && !cfg.invert {
-            if cfg.multiline {
+            if multiline {
                 for &(fl, _ll, s, e) in &multiline_spans {
                     let matched_slice = &content[s..e];
                     let rendered = replacements.get(&s).map_or(matched_slice, String::as_str);
@@ -3998,6 +4061,7 @@ fn run_grep_engine(
                     if cfg.line_number {
                         out.push_str(&format!("{}:", idx + 1));
                     }
+                    if cfg.show_column { out.push_str(&format!("{}:", s + 1)); }
                     if cfg.byte_offset {
                         out.push_str(&format!("{}:", line_off + s));
                     }
@@ -4083,41 +4147,6 @@ fn run_grep_engine(
                     out.push_str(&trimmed_line);
                 }
                 out.push(rec_term);
-            }
-        } else if cfg.multiline && !cfg.invert && cfg.replace.is_some() {
-            for &(fl, ll, s, e) in &multiline_spans {
-                let b_start = line_offsets.get(fl).copied().unwrap_or(0);
-                let b_end = line_offsets.get(ll).copied().unwrap_or(0) + lines.get(ll).map(|l| l.len()).unwrap_or(0);
-                let block_slice = &content[b_start..b_end.min(content.len())];
-                let rel_s = s.saturating_sub(b_start).min(block_slice.len());
-                let rel_e = e.saturating_sub(b_start).min(block_slice.len());
-                let rendered_line = apply_rg_line_replace(block_slice, b_start, &[(rel_s, rel_e)], &replacements);
-                let mut rel_off = 0usize;
-                for (chunk_idx, chunk) in rendered_line.split('\n').enumerate() {
-                    if line_show_filename {
-                        if let Some(f) = fname {
-                            let fsep = if cfg.null_delim { '\0' } else { ':' };
-                            out.push_str(&format!("{f}{fsep}"));
-                        }
-                    }
-                    if cfg.line_number {
-                        out.push_str(&format!("{}:", fl + 1 + chunk_idx));
-                    }
-                    if cfg.show_column {
-                        let col = s.saturating_sub(b_start) + 1;
-                        out.push_str(&format!("{col}:"));
-                    }
-                    if cfg.byte_offset {
-                        out.push_str(&format!("{}:", b_start + rel_off));
-                    }
-                    if cfg.trim {
-                        out.push_str(chunk.trim_start_matches([' ', '\t']));
-                    } else {
-                        out.push_str(chunk);
-                    }
-                    out.push(rec_term);
-                    rel_off += chunk.len() + 1;
-                }
             }
         } else {
             for (idx, spans) in &match_indices {

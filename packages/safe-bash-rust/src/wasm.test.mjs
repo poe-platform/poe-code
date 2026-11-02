@@ -6875,3 +6875,24 @@ test("awk uses extended regex escapes consistently in rules, fields and function
     }
   } finally { rs.dispose(); }
 });
+
+test("rg multiline counts, inverts and limits the selected records", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [args, expected, code = 0] of [
+      ["-Uc a", "2\n"], ["-Uoc a", "3\n"], ["-Um0 a", "", 1],
+      [String.raw`-Uvc 'a\nb'`, "1\n"], [String.raw`-Uoc 'a\nb'`, "2\n"],
+      [String.raw`-Unvm1 -r X 'a\nb'`, "5:z\n"], [String.raw`-Unm1 'a\nb'`, "1:aa\n"],
+      [String.raw`-Unom1 'a\nb'`, "1:a\n2:b\n"], [String.raw`-Uocm1 'a\nb'`, "1\n"],
+      [String.raw`-Unob --column 'a\nb'`, "1:2:1:a\n2:2:1:b\n3:1:5:a\n4:1:5:b\n"],
+    ]) {
+      const cmd = "printf 'aa\\nb\\na\\nb\\nz\\n' | rg " + args;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stderr, result.stdout], [code, "", expected], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

@@ -4008,8 +4008,8 @@ fn run_grep_engine(
     let mut searches_with_match = 0usize;
 
     let rec_term = if cfg.null_data { '\0' } else { '\n' };
-    let multiline = cfg.multiline && (replacement.is_none() || rx.branches.iter().any(|program|
-        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, cfg.ignore_case)))));
+    let multiline = cfg.multiline && rx.branches.iter().any(|program|
+        program.ops.iter().any(|op| matches!(op, RxOp::Atom(tok) if matches_char(tok, rec_term, cfg.ignore_case))));
     for (fname, content, nul_off) in &inputs {
         if nul_off.is_some() && cfg.ignore_binary {
             continue;
@@ -4043,7 +4043,9 @@ fn run_grep_engine(
             });
             spans
         };
-        if multiline && !cfg.invert {
+        let limit = cfg.max_count.unwrap_or(usize::MAX);
+        if multiline {
+            let whole_matches = replacement.is_none() && !cfg.invert && cfg.only_matching && !cfg.count_only && !cfg.json_output;
             let mut block_end = None;
             let mut blocks = 0;
             for (s, e) in find_spans(content, 0) {
@@ -4051,14 +4053,10 @@ fn run_grep_engine(
                 let first = line_offsets.partition_point(|&off| off <= s) - 1;
                 let last = line_offsets.partition_point(|&off| off <= s.max(e.saturating_sub(1))) - 1;
                 if block_end.is_none_or(|end| first > end) {
-                    if replacement.is_some() && cfg.max_count.is_some_and(|n| blocks >= n) { break; }
+                    if replacement.is_some() && blocks >= limit || whole_matches && match_indices.len() >= limit { break; }
                     blocks += 1;
                 }
                 block_end = Some(last);
-                any_match = true;
-                if cfg.quiet && !cfg.stats && !cfg.json_output {
-                    return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 };
-                }
                 for idx in first..=last {
                     let span = (s.saturating_sub(line_offsets[idx]).min(lines[idx].len()),
                                 e.saturating_sub(line_offsets[idx]).min(lines[idx].len()));
@@ -4070,9 +4068,19 @@ fn run_grep_engine(
                     }
                 }
                 multiline_spans.push((first, last, s, e));
-                matched_count += 1;
-                file_submatch_count += 1;
             }
+            if cfg.invert {
+                let mut covered = match_indices.into_iter().peekable();
+                match_indices = (0..lines.len()).filter(|idx| {
+                    covered.next_if(|(i, _)| i == idx).is_none()
+                }).take(limit).map(|idx| (idx, Vec::new())).collect();
+            } else {
+                if replacement.is_none() && !whole_matches { match_indices.truncate(limit); }
+                if let Some((last, _)) = match_indices.last() {
+                    file_submatch_count = multiline_spans.partition_point(|m| m.0 <= *last);
+                }
+            }
+            matched_count = match_indices.len();
         } else {
             for (idx, line) in lines.iter().enumerate() {
                 let match_subject = if cfg.crlf {
@@ -4087,27 +4095,20 @@ fn run_grep_engine(
                     !line_matches.is_empty()
                 };
                 if is_matched {
-                    any_match = true;
-                    if cfg.quiet && !cfg.stats && !cfg.json_output {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: err,
-                            exit_code: 0,
-                        };
-                    }
-                    file_submatch_count += line_matches.len().max(1);
+                    if matched_count >= limit { break; }
+                    file_submatch_count += line_matches.len();
                     match_indices.push((idx, line_matches));
                     matched_count += 1;
-                    if let Some(max_c) = cfg.max_count {
-                        if matched_count >= max_c {
-                            break;
-                        }
-                    }
+                    if matched_count >= limit || cfg.quiet && !cfg.stats && !cfg.json_output { break; }
                 }
             }
         }
 
         if matched_count > 0 {
+            any_match = true;
+            if cfg.quiet && !cfg.stats && !cfg.json_output {
+                return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 };
+            }
             searches_with_match += 1;
             total_matched_lines += matched_count;
             total_matches += file_submatch_count;
@@ -4208,7 +4209,7 @@ fn run_grep_engine(
             continue;
         }
         if cfg.count_only {
-            let count_val = if cfg.count_matches {
+            let count_val = if !cfg.invert && (cfg.count_matches || cfg.is_rg && (cfg.only_matching || multiline)) {
                 file_submatch_count
             } else {
                 matched_count
@@ -4336,6 +4337,7 @@ fn run_grep_engine(
                         if cfg.line_number {
                             out.push_str(&format!("{}:", fl + 1 + chunk_idx));
                         }
+                        if cfg.show_column { out.push_str(&format!("{}:", s - line_offsets[fl] + 1)); }
                         if cfg.byte_offset {
                             out.push_str(&format!("{s}:"));
                         }

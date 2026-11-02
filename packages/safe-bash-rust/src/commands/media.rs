@@ -7814,19 +7814,23 @@ fn cmd_media_doc(
                     } else {primary.serialize()};
                     write_pdftk_output(bytes,&args[op_idx..])
                 }
-                "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" | "generate_fdf" => {
+                "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" | "generate_fdf" | "dump_data_annots" | "dump_data_annots_utf8" => {
                     let utf8 = op.ends_with("_utf8");
                     let report = if op.starts_with("dump_data_fields") || op=="generate_fdf" {
                         let (bytes,password)=&inputs[&input_order[0]];
                         match pdf_reader::field_report(bytes,password,&op,limit){
                             Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                         }
+                    } else if op.starts_with("dump_data_annots") {
+                        let mut report=format!("PdfID0: {}\nPdfID1: {}\nNumberOfPages: {}\n",primary.pdf_id0,primary.pdf_id1,primary.pages.len());
+                        let (bytes,password)=&inputs[&input_order[0]];
+                        if !is_legacy_pdf(bytes) && let Err(e)=pdf_reader::PageSource::open(bytes,password).and_then(|mut s|s.annotation_report(utf8,limit,&mut report)){return err_out(&format!("Error: {e}\n"),1);}
+                        report
                     } else {format_dump(&primary,utf8)};
                     if let Some([_,path])=args[op_idx+1..].windows(2).find(|w|w[0]=="output") && path!="-" {
                         write_copied_pdf(fs,cwd,path,report.as_bytes(),1)
                     }else{ok_out(&report)}
                 }
-                "dump_data_annots" => ok_out(""),
                 "update_info" | "update_info_utf8" => {
                     let rest = &args[op_idx + 1..];
                     if rest.is_empty() {

@@ -4819,3 +4819,25 @@ test("pdftk reads inherited form values, widget states and choice options from e
     }
   } finally{rust.dispose();}
 });
+
+test("pdftk annotation reports retain destinations, action order, and text encoding",async()=>{
+  const {PdfDocument,cosArray:a,cosString:s,cosNumber:n,cosName:k,cosDict:d,dictSet,cosBool}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create(),page=doc.addPage(),second=doc.addPage(),root=doc.cos.resolveDict(doc.cos.rootRef);
+  dictSet(root,"Dests",d({Chapter:a([second.ref,k("Fit")])}));
+  const action=d({S:k("GoTo"),D:k("Chapter")}),ref=doc.cos.allocateObject(action);
+  dictSet(action,"Next",a([d({S:k("URI"),URI:s("résumé")}),d({S:k("GoToR"),F:d({UF:s("file.pdf")}),D:a([n(4),k("Fit")])}),ref]));
+  dictSet(page.pageDict,"Annots",a([d({Subtype:k("Link"),A:ref,Rect:a([1,2,3,4].map(x=>n(x))),Contents:s("café"),Open:cosBool(true),F:n(4),C:a([n(1),n(0),n(1)])}),d({Dest:a([page.ref,k("Fit")])})]));
+  const files={"/in":doc.save()},fs=new MemoryFileSystem(),rust=new RustWasmBash({cwd:"/",files});
+  await fs.writeFile("/in",files["/in"]);const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try{
+    for(const op of ["dump_data_annots","dump_data_annots_utf8"]){
+      const cmd="pdftk in "+op;
+      const expected=await js.exec(cmd);assert.equal(expected.exitCode,0,expected.stderr);assert.match(expected.stdout,/AnnotActionPageNumber: 2/);
+      assert.equal((await rust.exec(cmd)).stdout,expected.stdout);
+      assert.equal((await rust.exec(cmd+" output report")).exitCode,0);
+      assert.equal(Buffer.from(await rust.fs.readFile("/report")).toString(),expected.stdout);
+    }
+  }finally{rust.dispose();}
+});

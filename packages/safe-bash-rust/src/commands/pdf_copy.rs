@@ -7,6 +7,8 @@ use std::io::Write;
 mod pdf_fonts;
 #[path = "pdf_json.rs"]
 mod pdf_json;
+#[path = "pdf_annots.rs"]
+mod pdf_annots;
 #[path = "pdf_inspect.rs"]
 mod pdf_inspect;
 #[path = "pdf_text_layout.rs"]

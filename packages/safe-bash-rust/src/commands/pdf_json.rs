@@ -366,6 +366,50 @@ impl<'a> PageSource<'a> {
     }
 }
 impl<'a> Objects<'a> {
+    pub(super) fn named_destinations(&mut self,catalog:&Value<'a>)->Option<BTreeMap<String,Value<'a>>>{
+        let mut named = BTreeMap::new();
+        if let Some(names) = catalog
+            .get(b"Names")
+            .and_then(|v| self.resolve(v))
+        {
+            for (k, v) in self.tree_pairs(names.get(b"Dests"), b"Names")? {
+                if let Some(k) = self.resolve(&k).and_then(|v| text(&v)) {
+                    named.entry(k).or_insert(v);
+                }
+            }
+        }
+        if let Some(Value::Dict(dests)) = catalog
+            .get(b"Dests")
+            .and_then(|v| self.resolve(v))
+        {
+            for (k, v) in dests {
+                named.insert(name(&k), v);
+            }
+        }
+        Some(named)
+    }
+    pub(super) fn destination_index(&mut self,raw:Option<&Value<'a>>,named:&BTreeMap<String,Value<'a>>,indices:&BTreeMap<usize,usize>,count:usize)->Option<usize>{
+        let mut dest=self.resolve(raw?);
+            if let Some(Value::Dict(_)) = &dest {
+                dest = dest
+                    .as_ref()
+                    .and_then(|v| v.get(b"D").or_else(|| v.get(b"Dest")))
+                    .and_then(|v| self.resolve(v));
+            }
+            if let Some(k) = dest.as_ref().and_then(text) {
+                dest = named.get(&k).and_then(|v| self.resolve(v));
+                if let Some(Value::Dict(_)) = &dest {
+                    dest = dest
+                        .as_ref()
+                        .and_then(|v| v.get(b"D"))
+                        .and_then(|v| self.resolve(v));
+                }
+            }
+        let Value::Array(a)=dest? else{return None};
+        let first=a.first()?;
+        if let Some(id)=first.reference(){indices.get(&id.0).copied()}
+        else {first.number().filter(|n|*n>=0. && *n<count as f64).map(|n|n.round() as usize)}
+    }
     pub(in super::super) fn outlines(&mut self, catalog:&Value<'a>, pages:&[ObjectId]) -> Option<Vec<(String,usize,usize)>> {
         let root = catalog
             .get(b"Outlines")
@@ -386,25 +430,7 @@ impl<'a> Objects<'a> {
             .rev()
             .map(|(i, id)| (id.0, i))
             .collect();
-        let mut named = BTreeMap::new();
-        if let Some(names) = catalog
-            .get(b"Names")
-            .and_then(|v| self.resolve(v))
-        {
-            for (k, v) in self.tree_pairs(names.get(b"Dests"), b"Names")? {
-                if let Some(k) = self.resolve(&k).and_then(|v| text(&v)) {
-                    named.entry(k).or_insert(v);
-                }
-            }
-        }
-        if let Some(Value::Dict(dests)) = catalog
-            .get(b"Dests")
-            .and_then(|v| self.resolve(v))
-        {
-            for (k, v) in dests {
-                named.insert(name(&k), v);
-            }
-        }
+        let named=self.named_destinations(catalog)?;
         let mut seen = BTreeSet::new();
         while let Some((v,level)) = stack.pop() {
             self.tokens = self.tokens.checked_sub(1)?;
@@ -425,40 +451,8 @@ impl<'a> Objects<'a> {
             if title.is_empty() {
                 continue;
             }
-            let mut dest = dict
-                .get(b"Dest")
-                .or_else(|| dict.get(b"A"))
-                .and_then(|v| self.resolve(v));
-            if let Some(Value::Dict(_)) = &dest {
-                dest = dest
-                    .as_ref()
-                    .and_then(|v| v.get(b"D").or_else(|| v.get(b"Dest")))
-                    .and_then(|v| self.resolve(v));
-            }
-            if let Some(k) = dest.as_ref().and_then(text) {
-                dest = named.get(&k).and_then(|v| self.resolve(v));
-                if let Some(Value::Dict(_)) = &dest {
-                    dest = dest
-                        .as_ref()
-                        .and_then(|v| v.get(b"D"))
-                        .and_then(|v| self.resolve(v));
-                }
-            }
-            let index = match dest {
-                Some(Value::Array(a)) => a
-                    .first()
-                    .and_then(|v| {
-                        if let Some(id) = v.reference() {
-                            indices.get(&id.0).copied()
-                        } else {
-                            v.number()
-                                .filter(|n| *n >= 0. && *n < pages.len() as f64)
-                                .map(|n| n.round() as usize)
-                        }
-                    })
-                    .unwrap_or(0),
-                _ => 0,
-            };
+            let dest=dict.get(b"Dest").or_else(||dict.get(b"A"));
+            let index=self.destination_index(dest,&named,&indices,pages.len()).unwrap_or(0);
             rows.push((title,level,index));
         }
         Some(rows)

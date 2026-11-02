@@ -2552,15 +2552,22 @@ fn cmd_uniq(
     }
     if operands.len() == 2 && operands[0] != "-" {
         let src = resolve_posix_path(cwd, &operands[0]);
-        if !fs.exists(&src) {
-            return err_out(
-                &format!("uniq: ENOENT: no such file or directory, stat '{src}'\n"),
-                1,
-            );
-        }
+        let (src_entry, src_stat) = match fs.inspect_command_entry(&src, true, "stat") {
+            Ok(entry) => entry,
+            Err(e) => return err_out(&format!("uniq: {}\n", stream_file_error(e, "stat", &src)), 1),
+        };
         let dst = resolve_posix_path(cwd, &operands[1]);
-        if operands[1] != "-" && src == dst && fs.exists(&src) {
-            return err_out("uniq: input and output must be different files\n", 2);
+        match fs.inspect_command_entry(&dst, true, "stat") {
+            Ok((dst_entry, dst_stat)) => {
+                if src_entry == dst_entry || src_stat.identity.is_some() && src_stat.identity == dst_stat.identity {
+                    return err_out("uniq: input and output must be different files\n", 2);
+                }
+                if src_stat.identity.is_none() || dst_stat.identity.is_none() {
+                    return err_out(&format!("uniq: ENOTSUP: cannot determine whether input and output are distinct files, uniq '{src}' -> '{dst}'\n"), 1);
+                }
+            }
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {}
+            Err(e) => return err_out(&format!("uniq: {}\n", stream_file_error(e, "stat", &dst)), 1),
         }
     }
 
@@ -2713,9 +2720,7 @@ fn cmd_uniq(
         out_bytes.push(delimiter);
     }
 
-    if let Some(out_name) = operands.get(1)
-        && out_name != "-"
-    {
+    if let Some(out_name) = operands.get(1) {
         let dst = resolve_posix_path(cwd, out_name);
         if fs.is_dir(&dst) {
             return err_out(

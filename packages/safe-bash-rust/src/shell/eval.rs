@@ -15970,6 +15970,19 @@ hash -l
     }
 
     #[test]
+    fn uniq_preserves_its_input_when_the_output_is_an_alias() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        for (link, output) in [("ln /src /hard", "/hard"), ("ln -s /src /soft", "/soft"), ("ln /src ./-", "-")] {
+            fs.write_file("/src", b"a\na\nb\n").unwrap();
+            let r = shell.exec(&format!("{link}; uniq /src {output}")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "", "uniq: input and output must be different files\n"), "{link}");
+            assert_eq!(fs.read_file("/src").unwrap(), b"a\na\nb\n");
+        }
+        let r = shell.exec("rm ./-; uniq /src -; cat ./-").unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "a\nb\n", ""));
+    }
+
+    #[test]
     fn opening_or_writing_a_file_redirect_does_not_consume_its_read_budget() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
         shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });

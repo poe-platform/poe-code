@@ -178,7 +178,7 @@ impl<'a> Objects<'a> {
         catalog: &Value<'a>,
         reserved: usize,
     ) -> Option<(Vec<ObjectId>, PageTree<'a>)> {
-        let mut pending = vec![catalog.get(b"Pages")?.clone()];
+        let mut pending: Vec<_> = catalog.get(b"Pages").cloned().into_iter().collect();
         let mut tree = BTreeMap::from([(root, None)]);
         let mut pages = Vec::new();
         let mut highest = self.xref.keys().next_back()?.0.max(reserved);

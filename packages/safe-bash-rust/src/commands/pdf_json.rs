@@ -236,11 +236,7 @@ impl<'a> PageSource<'a> {
                 record([("value", J::Object(entries))]),
             ));
         }
-        let version_text = super::super::header_version(self.objects.bytes)
-            .ok_or(INVALID)?
-            .iter()
-            .map(|b| char::from(*b))
-            .collect::<String>();
+        let version_text = super::super::header_version(self.objects.bytes).ok_or(INVALID)?;
         let mut meta = vec![("pdfversion".encode_utf16().collect(), string(&version_text))];
         if version == 2 {
             meta.push((

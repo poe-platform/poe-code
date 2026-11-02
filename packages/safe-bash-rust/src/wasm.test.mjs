@@ -4314,6 +4314,7 @@ test("qpdf recovers missing cross-references from object bodies, including packe
   const damagedRow="xref\n"+doc.getPage(1).ref.objectNumber+" 1\n0000000001 00000 n \n"+
     unreferenced.objectNumber+" 1\n0000000000 00001 f \ntrailer << /Prev "+previous+" /Size 89 >>\nstartxref\n"+(plain.length+stray.length)+"\n%%EOF";
   const files={
+    "/prefixed.pdf":Buffer.concat([Buffer.from("leading bytes\n"),plain]),
     "/partial.pdf":Buffer.concat([plain,Buffer.from(stray+damagedRow)]),
     "/wrong-root.pdf":Buffer.from(plain.toString("latin1").replace("/Root 1 0 R","/Root 2 0 R"),"latin1"),
     "/missing-root.pdf":Buffer.from(plain.toString("latin1").replace("/Root 1 0 R","/FooX 1 0 R"),"latin1"),
@@ -4328,13 +4329,39 @@ test("qpdf recovers missing cross-references from object bodies, including packe
   for(const [name,bytes] of Object.entries(files))await fs.writeFile(name,bytes);
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
   try {
-    for(const name of Object.keys(files))for(const args of ["--json --json-key=pages","--show-xref","--show-pages","--pages . 2,1 -- -","-"]) {
+    for(const name of Object.keys(files))for(const args of ["--check","--json --json-key=pages","--show-xref","--show-pages","--pages . 2,1 -- -","-"]) {
       const cmd="qpdf "+name+" "+args;
       const want=await js.exec(cmd),got=await wasm.exec(cmd);
       assert.equal(want.exitCode,0,want.stderr);
       assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],[want.exitCode,want.stderr,Buffer.from(want.stdoutBytes)],cmd);
     }
   } finally {wasm.dispose();}
+});
+
+test("qpdf inspects and saves catalogs without an indirect page tree",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const files={"/prefixed":Buffer.from("prefix\n%PDF-1.ÿ\n1 0 obj << /Type /Catalog >> endobj\n","latin1")};
+  for(const [name,pages] of Object.entries({empty:"",dangling:"/Pages 12 0 R",inline:"/Pages << /Type /Pages /Kids [<< /Type /Page /MediaBox [0 0 10 20] >>] >>"})){
+    files["/"+name]=Buffer.from("%PDF-1.4\n1 0 obj << /Type /Catalog "+pages+" >> endobj\n");
+  }
+  const fs=new MemoryFileSystem(),js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  const rs=new RustWasmBash({cwd:"/",files});
+  try{
+    for(const [path,bytes] of Object.entries(files)){
+      await fs.writeFile(path,bytes);
+      for(const args of ["--show-npages","--show-xref","--json","--check","-","--linearize -","--object-streams=generate -"]){
+        const cmd="qpdf "+path+" "+args;
+        const e=await js.exec(cmd),r=await rs.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stderr,Buffer.from(r.stdoutBytes)],[e.exitCode,e.stderr,Buffer.from(e.stdoutBytes)],cmd);
+      }
+      if(path==="/inline"){
+        const cmd="qpdf /inline --remove-info --split-pages part.pdf";
+        for(const sh of [js,rs])assert.equal((await sh.exec(cmd)).exitCode,0);
+        assert.deepEqual(Buffer.from(await rs.fs.readFile("/part-1.pdf")),Buffer.from(await fs.readFile("/part-1.pdf")));
+      }
+    }
+  }finally{rs.dispose();}
 });
 
 test("qpdf refuses to replace output when a damaged PDF has no recoverable catalog",async()=>{

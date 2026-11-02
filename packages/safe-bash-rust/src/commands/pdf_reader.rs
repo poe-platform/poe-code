@@ -779,10 +779,10 @@ impl<'a> Objects<'a> {
     }
 }
 
-pub(super) fn header_version(bytes: &[u8]) -> Option<&[u8]> {
+pub(super) fn header_version(bytes: &[u8]) -> Option<String> {
     let head = &bytes[..bytes.len().min(1024)];
     let start = head.windows(5).position(|w| w == b"%PDF-")? + 5;
-    Some(&head[start..head.len().min(start + 3)])
+    Some(head[start..head.len().min(start + 3)].iter().copied().map(char::from).collect())
 }
 
 fn last_xref(bytes: &[u8]) -> Option<usize> {
@@ -887,9 +887,7 @@ pub(super) fn read(bytes: &[u8], password: &str) -> Result<(PdfDoc, Option<pdf_s
 fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -> Option<PdfDoc> {
     let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
     let mut doc = PdfDoc::new();
-    doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)
-        .ok()?
-        .to_string();
+    doc.version = header_version(bytes)?;
     if let Some(id_array @ Value::Array(ids)) = trailer.get(b"ID") {
         let mut encoded=Vec::new();
         pdf_rewrite::encode(id_array,&mut encoded).ok()?;

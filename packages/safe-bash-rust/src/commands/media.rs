@@ -6758,7 +6758,7 @@ fn cmd_media_doc(
                 let Ok(b) = fs.read_file(&full) else {
                     return Err(err_out(&format!("qpdf: cannot open {path_arg}\n"), 2));
                 };
-                if !b.starts_with(b"%PDF-") {
+                if pdf_reader::header_version(&b).is_none() {
                     return Err(err_out(
                         &format!("qpdf: {path_arg}: Invalid PDF header: missing %PDF- signature\n"),
                         2,
@@ -7043,7 +7043,7 @@ fn cmd_media_doc(
                         Ok(b) => b, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
                     }};
                 let show = show_att.as_deref();
-                if !bytes.starts_with(b"%PDF-") { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
+                if pdf_reader::header_version(&bytes).is_none() { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
                 let doc = PdfDoc::parse(&bytes);
                 let mut out = String::new();
                 for (k, fname, _, data) in doc.attachments {
@@ -7201,7 +7201,7 @@ fn cmd_media_doc(
             edits.password=password.as_deref().unwrap_or("");
             if let Some(dst_arg) = out_arg.as_deref() {
                 let input = primary();
-                if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
+                if let Some(bytes) = input && pdf_reader::header_version(&bytes).is_some() && !is_legacy_pdf(&bytes) {
                     let limit = fs.shell_limits().max_output_bytes;
                     if !edits.layers.is_empty() {
                         let mut remaining = fs.shell_limits().max_input_bytes;

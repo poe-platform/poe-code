@@ -158,8 +158,7 @@ impl<'a> PageSource<'a> {
             ));
         }
         if check {
-            let version =
-                std::str::from_utf8(self.objects.bytes.strip_prefix(b"%PDF-")?.get(..3)?).ok()?;
+            let version = super::super::header_version(self.objects.bytes)?;
             let state = if count == 0 {
                 "empty"
             } else if dict.is_some() {

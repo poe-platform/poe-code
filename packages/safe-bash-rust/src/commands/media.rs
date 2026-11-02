@@ -6316,6 +6316,8 @@ fn cmd_media_doc(
             let mut decrypt_mode = false;
             let mut linearize = false;
             let mut qdf_mode = false;
+            let mut uncompress = false;
+            let mut normalize_content = None;
             let mut min_version: Option<String> = None;
             let mut force_version: Option<String> = None;
             let mut flatten_rotation = false;
@@ -6328,8 +6330,40 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--pages" | "--collate" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") && a != "--split-pages" && !a.starts_with("--split-pages=") && !a.starts_with("--collate=") && !a.starts_with("--object-streams=") {
+                if a.starts_with("--")
+                    && !matches!(a, "--empty" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
+                        | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
+                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf")
+                    && !["--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
+                        "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
+                        "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
+                {
                     standard_rewrite = false;
+                }
+                if let Some(mode) = a.strip_prefix("--normalize-content=") {
+                    normalize_content = Some(match mode {
+                        "y" => true, "n" => false,
+                        _ => return err_out(&format!("qpdf: invalid normalize-content value {mode}\n"),2),
+                    });
+                    i += 1;
+                    continue;
+                }
+                if let Some(mode) = a.strip_prefix("--compress-streams=") {
+                    uncompress = match mode {
+                        "y" => false, "n" => true,
+                        _ => return err_out(&format!("qpdf: invalid compress-streams value {mode}\n"),2),
+                    };
+                    i += 1;
+                    continue;
+                }
+                if let Some(mode) = a.strip_prefix("--stream-data=") {
+                    match mode {
+                        "uncompress" => uncompress = true,
+                        "compress" | "preserve" => uncompress = false,
+                        _ => {}
+                    }
+                    i += 1;
+                    continue;
                 }
                 if let Some(mode) = a.strip_prefix("--object-streams=") {
                     edits.generate_object_streams = match mode {
@@ -6553,6 +6587,7 @@ fn cmd_media_doc(
                 }
                 if a == "--qdf" {
                     qdf_mode = true;
+                    uncompress = true;
                     i += 1;
                     continue;
                 }
@@ -6663,6 +6698,8 @@ fn cmd_media_doc(
                 }
                 i += 1;
             }
+
+            edits.normalize_content = normalize_content.unwrap_or(qdf_mode || uncompress);
 
             let parse_qpdf_json_doc = |s: &str| -> PdfDoc {
                 let mut d = PdfDoc::new();
@@ -7460,7 +7497,6 @@ fn cmd_media_doc(
             if linearize {
                 doc.linearized = true;
             }
-            let _ = qdf_mode;
             let serialized = doc.serialize();
             if dst_arg == "-" {
                 ok_out(&crate::vfs::bytes_to_stream_string(&serialized))

@@ -49,6 +49,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub acroform: bool,
     pub page_labels: bool,
     pub generate_object_streams: bool,
+    pub normalize_content: bool,
 }
 
 pub(in super::super) fn rewrite(
@@ -201,10 +202,10 @@ pub(in super::super) fn rewrite(
         .0
         .checked_add(1)
         .ok_or(TOO_LARGE)?;
-    let mut packed =
-        (edits.generate_object_streams && edits.split_pages.is_none()).then(Packed::default);
+    let generate = edits.generate_object_streams && edits.split_pages.is_none();
+    let mut packed = (generate && !edits.normalize_content).then(Packed::default);
     let mut out = bytes.get(..8).ok_or(INVALID)?.to_vec();
-    if packed.is_some() && out.as_slice() < b"%PDF-1.5" {
+    if generate && out.as_slice() < b"%PDF-1.5" {
         out.copy_from_slice(b"%PDF-1.5");
     }
     out.extend_from_slice(b"\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n");

@@ -4137,3 +4137,27 @@ test("qpdf writes generated object streams and binary indexes with production by
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf stream and normalization options preserve real PDF objects and control packing", async () => {
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const doc=PdfDocument.create();doc.setTitle("Original");doc.addPage([30,70]).drawText("Original",{x:1,y:3});
+  const bytes=Buffer.from(doc.save());bytes.write("%PDF-1.4");
+  const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files:{"/in.pdf":bytes,"/dest.pdf":"previous"}});
+  await fs.writeFile("/in.pdf",bytes);await fs.writeFile("/dest.pdf",Buffer.from("previous"));
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [flags,code] of [
+      ["--stream-data=preserve",0],["--stream-data=uncompress",0],["--compress-streams=y",0],["--normalize-content=y",0],
+      ["--stream-data=compress --pages . 1,1 --",0],["--object-streams=generate --qdf",0],
+      ["--qdf --object-streams=generate --normalize-content=n",0],["--object-streams=generate --compress-streams=n",0],
+      ["--object-streams=generate --stream-data=uncompress --stream-data=preserve",0],
+      ["--object-streams=generate --stream-data=uncompress --stream-data=unknown",0],
+      ["--compress-streams=unknown",2],["--normalize-content=unknown",2]]) {
+      const script="qpdf in.pdf "+flags+" dest.pdf",want=await js.exec(script),got=await wasm.exec(script);
+      assert.equal(want.exitCode,code,want.stderr);assert.deepEqual([got.exitCode,got.stderr],[want.exitCode,want.stderr],script);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/dest.pdf")),Buffer.from(await fs.readFile("/dest.pdf")),script);
+    }
+  } finally {wasm.dispose();}
+});

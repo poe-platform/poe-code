@@ -6997,3 +6997,24 @@ test("rg null-data keeps record delimiters independent of count and filename out
     }
   } finally { rs.dispose(); }
 });
+
+test("rg chooses record anchors for ordinary ASCII searches in NUL-delimited batches", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [input,args,expected] of [
+      ["b\\nc\\0", "'^b$'", ""], ["b\\nc\\0", "'(?m:^b$)'", "1:b\nc\0"],
+      ["b\\nc\\0", "-r '$0' '^b$'", "1:b\nc\0"], ["b\\né\\0", "'^b$'", "1:b\né\0"],
+      ["b\\nc\\0é\\0", "'^b$'", "1:b\nc\0"], ["b\\nc\\0é", "'^b$'", ""],
+      ["b\\nc\\0é\\0", "-m1 '^b$'", ""], ["b\\nc\\0", "-x b", ""],
+      ["b\\nc\\0", "'b$|()'", "1:b\nc\0"],
+    ]) {
+      const cmd = `printf '${input}' >f; rg --null-data -Un ${args} f`;
+      for (const sh of [js,rs]) {
+        const r=await sh.exec(cmd);
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[expected ? 0 : 1,expected,""],cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

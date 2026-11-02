@@ -882,6 +882,7 @@ type RxBranches = Vec<Vec<RxToken>>;
 
 struct ParsedRegex {
     cross_line: bool,
+    requires_vm: bool,
     root: RxBranches,
     groups: Vec<RxBranches>,
 }
@@ -913,7 +914,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         _ => RxFlags::default(),
     };
     if fixed {
-        return Ok(ParsedRegex { cross_line: pat.contains('\n'), root: vec![pat
+        return Ok(ParsedRegex { cross_line: pat.contains('\n'), requires_vm: false, root: vec![pat
             .chars()
             .map(|c| RxToken {
                 atom: RxAtom::Char(c),
@@ -924,7 +925,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             })
             .collect()], groups: Vec::new() });
     }
-    let mut parsed = ParsedRegex { cross_line: mode.dotall || pat.contains('\n'), root: Vec::new(), groups: Vec::new() };
+    let mut parsed = ParsedRegex { cross_line: mode.dotall || pat.contains('\n'), requires_vm: false, root: Vec::new(), groups: Vec::new() };
     let normalized;
     let source = if matches!(dialect, RxDialect::Auto) {
         normalized = normalize_bre_escapes(pat);
@@ -1019,6 +1020,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     }
                     if chars[idx..].starts_with(&['\\', 'n']) { parsed.cross_line = true; }
                     if let Some(class) = bracket_shorthand(&chars[idx..]) {
+                        parsed.requires_vm |= matches!(chars[idx + 1], 'S' | 'W' | 'D');
                         parsed.cross_line |= matches!(chars[idx + 1], 's' | 'S' | 'W' | 'D');
                         ranges.extend_from_slice(class);
                         idx += 2;
@@ -1061,6 +1063,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 let outer_mode = mode;
                 let kind = match &chars[idx..] {
                     ['?', 'i' | 'm' | 's' | '-', ..] if rg || jq => {
+                        parsed.requires_vm = true;
                         idx += 1;
                         let mut enabled = true;
                         let mut changed = false;
@@ -1109,6 +1112,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 continue;
             }
             '|' => {
+                parsed.requires_vm |= out.is_empty();
                 idx += 1;
                 alts.push(std::mem::take(&mut out));
                 continue;
@@ -1118,6 +1122,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 let (outer, outer_alts, kind, slot, outer_mode) = groups.pop().unwrap();
                 mode = outer_mode;
                 if let Some(entry) = slot.and_then(|i| closed.get_mut(i)) { *entry = true; }
+                parsed.requires_vm |= out.is_empty();
                 alts.push(std::mem::replace(&mut out, outer));
                 parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind)
             }
@@ -1127,6 +1132,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
         };
 
+        parsed.requires_vm |= matches!(atom, RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
         parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true } | RxAtom::Space(_) | RxAtom::Word(true)
             | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
         let case = if !mode.icase { RxCase::Sensitive } else if rg { RxCase::Ascii } else { RxCase::Unicode };
@@ -1182,6 +1188,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
             if idx < chars.len() && chars[idx] == '?' && idx != before_quantifier {
                 lazy = true;
+                parsed.requires_vm = true;
                 idx += 1;
             }
             if jq && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) { return Err("nested quantifier is not supported".into()); }
@@ -1199,6 +1206,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         let atom = parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind);
         out.push(RxToken { atom, case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
     }
+    parsed.requires_vm |= out.is_empty();
     alts.push(out);
     parsed.root = alts;
     Ok(parsed)
@@ -2525,6 +2533,7 @@ fn cmd_grep(
             fs,
             GrepConfig {
                 is_rg: false,
+                ascii_record_rx: None,
                 invert,
                 count_only,
                 line_number,
@@ -2633,6 +2642,7 @@ fn cmd_grep(
         fs,
         GrepConfig {
             is_rg: false,
+            ascii_record_rx: None,
             invert,
             count_only,
             line_number,
@@ -3487,6 +3497,8 @@ fn cmd_rg(
     let flags = RxFlags { icase: ignore_case, multiline, dotall: multiline_dotall };
     let mut parsed = Vec::with_capacity(patterns.len());
     let mut cross_line = false;
+    let mut requires_vm = replace.as_deref().is_some_and(|rep| rep.contains('$'));
+    let multiline_whole = multiline && (!fixed_strings || patterns.iter().any(|pat| pat.contains('\n')));
     for pattern in &patterns {
         let mut branches = match parse_rx_branches(pattern, fixed_strings, RxDialect::Rg(flags)) {
             Ok(branches) => branches,
@@ -3494,17 +3506,36 @@ fn cmd_rg(
         };
         if line_regexp {
             for branch in &mut branches.root {
-                branch.insert(0, RxToken { atom: if multiline { RxAtom::LineBegin } else { RxAtom::Begin },
+                branch.insert(0, RxToken { atom: if multiline_whole { RxAtom::LineBegin } else { RxAtom::Begin },
                     case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
-                branch.push(RxToken { atom: if multiline { RxAtom::NewlineEnd { multiline: true } } else { RxAtom::End },
+                branch.push(RxToken { atom: if multiline_whole { RxAtom::NewlineEnd { multiline: true } } else { RxAtom::End },
                     case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
             }
         }
+        requires_vm |= branches.requires_vm;
         cross_line |= branches.cross_line;
         parsed.push(branches);
     }
     let mut rx = ZeroRegex::from_branches(parsed, false, !line_regexp && word_regexp, false);
     rx.search = RxSearch::Rg { empty_pattern: !line_regexp && patterns.len() == 1 && patterns[0].is_empty() };
+
+    // The delegated ASCII matcher treats the full NUL-delimited record as one line.
+    let ascii_record_rx = if null_data && multiline && !requires_vm && !cross_line && rx.branches.iter().any(|p|
+        p.ops.iter().any(|op| matches!(op, RxOp::Atom(t) if matches!(t.atom, RxAtom::LineBegin | RxAtom::NewlineEnd { .. })))) {
+        let mut record_rx = rx.clone();
+        for program in &mut record_rx.branches {
+            for op in &mut program.ops {
+                if let RxOp::Atom(token) = op {
+                    match token.atom {
+                        RxAtom::LineBegin => token.atom = RxAtom::Begin,
+                        RxAtom::NewlineEnd { .. } => token.atom = RxAtom::End,
+                        _ => {}
+                    }
+                }
+            }
+        }
+        Some(record_rx)
+    } else { None };
 
     let recursive = targets.is_empty()
         || targets
@@ -3526,6 +3557,7 @@ fn cmd_rg(
         fs,
         GrepConfig {
             is_rg: true,
+            ascii_record_rx,
             invert,
             count_only,
             line_number,
@@ -3576,6 +3608,7 @@ fn cmd_rg(
 }
 
 struct GrepConfig {
+    ascii_record_rx: Option<ZeroRegex>,
     is_rg: bool,
     invert: bool,
     count_only: bool,
@@ -4059,7 +4092,7 @@ fn run_grep_engine(
         let mut file_submatch_count = 0usize;
 
         let mut replacements = BTreeMap::new();
-        let mut find_spans = |subject: &str, offset| {
+        let mut find_spans = |rx: &ZeroRegex, subject: &str, offset| {
             let mut spans = Vec::new();
             rx.scan(subject, capture, |s, e, caps| {
                 if cfg.is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
@@ -4089,7 +4122,7 @@ fn run_grep_engine(
         if multiline {
             let mut block_end = None;
             let mut blocks = 0;
-            for (s, e) in find_spans(content, 0) {
+            for (s, e) in find_spans(&rx, content, 0) {
                 if whole_matches && cfg.is_rg {
                     let first = source_lines.partition_point(|&off| off <= s).saturating_sub(1);
                     let last = source_lines.partition_point(|&off| off <= s.max(e.saturating_sub(1))).saturating_sub(1);
@@ -4134,13 +4167,28 @@ fn run_grep_engine(
         } else {
             let mut projected = std::mem::take(&mut match_indices).into_iter().peekable();
             let trailing = cfg.is_rg && !cfg.count_only && !cfg.quiet && !cfg.files_with_matches && !cfg.files_without_match;
+            let mut batch_end = 0;
+            let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
                 if idx >= print_end || limit == 0 { break; }
                 let spans = if multiline {
                     projected.next_if(|(i, _)| *i == idx).map(|(_, spans)| spans).unwrap_or_default()
                 } else {
                     let subject = if cfg.crlf { line.strip_suffix('\r').unwrap_or(line) } else { line };
-                    find_spans(subject, line_offsets[idx])
+                    if idx == batch_end && let Some(record_rx) = &cfg.ascii_record_rx {
+                        // Production dispatches whole batches to the UTF-8 matcher if any record needs it.
+                        let batch_size = if cfg.max_count.is_some() || cfg.quiet || cfg.files_with_matches || cfg.files_without_match { 1 } else { 128 };
+                        batch_end = idx + 1;
+                        let mut bytes = line.len();
+                        while batch_end < lines.len() && batch_end - idx < batch_size
+                            && bytes < 65536 && bytes + lines[batch_end].len() <= 65536
+                            && (batch_end + 1 < lines.len() || content.ends_with(rec_term)) {
+                            bytes += lines[batch_end].len();
+                            batch_end += 1;
+                        }
+                        batch_rx = if lines[idx..batch_end].iter().all(|row| row.is_ascii()) { record_rx } else { &rx };
+                    }
+                    find_spans(batch_rx, subject, line_offsets[idx])
                 };
                 let inverted_tail = trailing && cfg.invert && matched_count >= limit && idx + 1 == lines.len() && !content.ends_with(rec_term);
                 if (spans.is_empty() == cfg.invert) || inverted_tail {

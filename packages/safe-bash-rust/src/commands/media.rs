@@ -7745,42 +7745,62 @@ fn cmd_media_doc(
                 out
             };
 
-            let write_pdftk_output = |doc: &mut PdfDoc, tail: &[String]| -> BuiltinOutcome {
-                let mut out_target: Option<String> = None;
-                let mut idx = 0usize;
-                while idx < tail.len() {
-                    match tail[idx].as_str() {
-                        "output" if idx + 1 < tail.len() => {
-                            out_target = Some(tail[idx + 1].clone());
-                            idx += 2;
-                        }
-                        "owner_pw" | "user_pw" if idx + 1 < tail.len() => {
-                            doc.encrypted = Some(tail[idx + 1].clone());
-                            idx += 2;
-                        }
-                        _ => {
-                            idx += 1;
-                        }
+            let (mut user,mut owner) = (None,None);
+            let mut grants = 0;
+            let mut filtered = args[..op_idx].to_vec();
+            let mut tail = args[op_idx..].iter().peekable();
+            while let Some(arg) = tail.next() {
+                match arg.to_ascii_lowercase().as_str() {
+                    "output" => {
+                        filtered.push(arg.clone());
+                        if let Some(name) = tail.next() {filtered.push(name.clone());}
                     }
+                    "user_pw" => user = tail.next().map(String::as_str),
+                    "owner_pw" => owner = tail.next().map(String::as_str),
+                    "allow" => while let Some(grant) = tail.peek() {
+                        grants |= match grant.to_ascii_lowercase().as_str() {
+                            "printing" => 4|2048, "degradedprinting" => 4, "copycontents" => 16,
+                            "modifycontents" => 8|1024, "assembly" => 1024,
+                            "modifyannotations" => 32|256, "fillin" => 256, "screenreaders" => 512,
+                            "allfeatures" => 4|8|16|32|256|512|1024|2048, _ => break,
+                        };
+                        tail.next();
+                    },
+                    "encrypt_128bit" | "encrypt_40bit" | "dont_ask" | "do_ask" | "verbose" => (),
+                    _ => filtered.push(arg.clone()),
                 }
-                let Some(of) = out_target else {
-                    return err_out("Error: Output filename required.\n", 1);
+            }
+            let args = &filtered;
+            let limit = fs.shell_limits().max_output_bytes;
+            let write_pdftk_output = |mut bytes: Vec<u8>, tail: &[String]| -> BuiltinOutcome {
+                let Some([_,of]) = tail.windows(2).find(|w| w[0]=="output") else {
+                    return err_out("Error: Output filename required.\n",1);
                 };
-                let serialized = doc.serialize();
-                if of == "-" {
-                    ok_out(&crate::vfs::bytes_to_stream_string(&serialized))
-                } else {
-                    let dst = resolve_posix_path(cwd, &of);
-                    let _ = fs.write_file(&dst, &serialized);
-                    ok_out("")
+                if user.is_some_and(|s|!s.is_empty()) || owner.is_some_and(|s|!s.is_empty()) {
+                    if is_legacy_pdf(&bytes) {
+                        return err_out("Error: Cannot encrypt a nonstandard PDF output\n",1);
+                    }
+                    let mask = !0xfff | 192 | if grants==0 {4|32|256|512|2048} else {grants};
+                    bytes = match pdf_reader::encrypt_document(&bytes,user.unwrap_or(""),owner.or(user).unwrap_or("owner"),mask,limit) {
+                        Ok(bytes) => bytes,
+                        Err(e) => return err_out(&format!("Error: {e}\n"),1),
+                    };
                 }
+                if of == "-" {ok_out(&crate::vfs::bytes_to_stream_string(&bytes))}
+                else {write_copied_pdf(fs,cwd,of,&bytes,1)}
             };
 
             let primary = handles[&input_order[0]].clone();
             match op.as_str() {
                 "passthrough" => {
-                    let mut doc = primary;
-                    write_pdftk_output(&mut doc, &args[op_idx..])
+                    let (bytes,password) = &inputs[&input_order[0]];
+                    let bytes = if !is_legacy_pdf(bytes) {
+                        let edits = pdf_reader::PageEdits {password,decrypt:true,..Default::default()};
+                        match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
+                            Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                        }
+                    } else {primary.serialize()};
+                    write_pdftk_output(bytes,&args[op_idx..])
                 }
                 "dump_data" | "dump_data_utf8" => {
                     let utf8 = op == "dump_data_utf8";
@@ -7986,7 +8006,7 @@ fn cmd_media_doc(
                         &mut pni, &mut pst, &mut ppf, &mut psy, &mut pm_num, &mut pm_rot,
                         &mut pm_dim, &mut pm_crop,
                     );
-                    write_pdftk_output(&mut doc, &rest[1..])
+                    write_pdftk_output(doc.serialize(), &rest[1..])
                 }
                 "burst" => {
                     let rest = &args[op_idx + 1..];
@@ -8045,7 +8065,7 @@ fn cmd_media_doc(
                         doc.attachments.push((fname.clone(), fname, String::new(), ab));
                         idx += 1;
                     }
-                    write_pdftk_output(&mut doc, &rest[out_pos..])
+                    write_pdftk_output(doc.serialize(), &rest[out_pos..])
                 }
                 "unpack_files" => {
                     let rest = &args[op_idx + 1..];
@@ -8100,7 +8120,7 @@ fn cmd_media_doc(
                         }
                     }
                     let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
-                    write_pdftk_output(&mut doc, &rest[out_pos..])
+                    write_pdftk_output(doc.serialize(), &rest[out_pos..])
                 }
                 "cat" | "shuffle" => {
                     let rest = args.get(op_idx + 1..).unwrap_or_default();
@@ -8237,15 +8257,14 @@ fn cmd_media_doc(
                             chosen.extend(eval_spec(s));
                         }
                     }
-                    if let [_,dest] = &rest[out_pos..]
+                    if rest[out_pos..].len() == 2
                         && inputs.values().all(|(b,_)| !is_legacy_pdf(b))
                     {
                         let bytes = match pdf_reader::PageOutput::assemble_pdftk(&inputs,&input_order[0],&chosen,&handles,fs.shell_limits().max_output_bytes) {
                             Ok(bytes) => bytes,
                             Err(e) => return err_out(&format!("Error: {e}\n"),1),
                         };
-                        return if *dest == "-" {ok_out(&crate::vfs::bytes_to_stream_string(&bytes))}
-                            else {write_copied_pdf(fs,cwd,dest,&bytes,1)};
+                        return write_pdftk_output(bytes,&rest[out_pos..]);
                     }
                     for (new_idx0, (hk, old_pno, rotation)) in chosen.iter().enumerate() {
                         let new_pno = new_idx0 + 1;
@@ -8264,7 +8283,7 @@ fn cmd_media_doc(
                             }
                         }
                     }
-                    write_pdftk_output(&mut out_doc, &rest[out_pos..])
+                    write_pdftk_output(out_doc.serialize(), &rest[out_pos..])
                 }
                 _ => ok_out(""),
             }

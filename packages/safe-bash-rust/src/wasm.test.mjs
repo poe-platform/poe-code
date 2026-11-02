@@ -4662,3 +4662,34 @@ test("pdftk cat and shuffle copy selected objects, bookmarks and attachments int
     }
   } finally {rust.dispose();}
 });
+
+test("pdftk protects copied PDFs with distinct credentials and honors allow permissions",async()=>{
+  const {PdfDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const doc=PdfDocument.create();doc.addPage().drawText("secret page",{x:10,y:30});
+  const data=doc.save(),rust=new RustWasmBash({cwd:"/",files:{"/in":data}}),fs=new MemoryFileSystem();
+  await fs.writeFile("/in",data);
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true}));
+  try {
+    for(const cmd of ["pdftk in output out user_pw reader owner_pw owner",
+      "pdftk in cat 1right owner_pw owner allow Printing CopyContents output out user_pw reader",
+      "pdftk out input_pw reader cat 1 output out user_pw reader owner_pw owner allow ModifyAnnotations"]){
+      for(const [shell,files] of [[js,fs],[rust,rust.fs]]){
+        const result=await shell.exec(cmd);
+        assert.equal(result.exitCode,0,result.stderr);
+        const bytes=await files.readFile("/out");
+        assert.throws(()=>PdfDocument.load(bytes,{password:"wrong"}),/Invalid PDF password/);
+        for(const password of ["reader","owner"])assert.match(PdfDocument.load(bytes,{password}).extractText(),/secret page/);
+      }
+      const read=async files=>PdfDocument.load(await files.readFile("/out"),{password:"reader"});
+      const a=await read(rust.fs),b=await read(fs);
+      assert.equal(a.getPage(0).getRotation(),b.getPage(0).getRotation());
+      assert.deepEqual(a.cos.encryption.permissions,b.cos.encryption.permissions);
+    }
+    const prior=await rust.fs.readFile("/out");
+    const refused=await rust.exec("pdftk in update_info - output out user_pw secret");
+    assert.notEqual(refused.exitCode,0);
+    assert.deepEqual(await rust.fs.readFile("/out"),prior);
+  } finally {rust.dispose();}
+});

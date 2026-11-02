@@ -58,6 +58,7 @@ struct State {
     hscale: f64,
 }
 pub(super) enum Draw<'a, 'b> {
+    Image(super::ObjectId, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
         byte: u8,
@@ -73,7 +74,7 @@ impl<'a> PageSource<'a> {
     pub(super) fn draw_page(
         &mut self,
         page: &Value<'a>,
-        mut emit: impl FnMut(Draw<'_, '_>) -> Option<()>,
+        mut emit: impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
     ) -> Option<()> {
         let mut node = page;
         let mut fonts = vec![Font {
@@ -82,9 +83,19 @@ impl<'a> PageSource<'a> {
             widths: vec![],
         }];
         let mut names = BTreeMap::new();
+        let mut xobjects = BTreeMap::new();
         for _ in 0..128 {
             if let Some(res) = node.get(b"Resources") {
                 let res = self.objects.resolve(res)?;
+                if let Some(Value::Dict(entries)) =
+                    res.get(b"XObject").and_then(|v| self.objects.resolve(v))
+                {
+                    xobjects.extend(
+                        entries
+                            .into_iter()
+                            .filter_map(|(k, v)| Some((k, v.reference()?))),
+                    );
+                }
                 if let Some(Value::Dict(entries)) =
                     res.get(b"Font").and_then(|v| self.objects.resolve(v))
                 {
@@ -165,7 +176,16 @@ impl<'a> PageSource<'a> {
                     }
                 };
                 let num = |i: usize| args.get(i)?.number();
-                emit(Draw::Operator(op, &args, st.ctm))?;
+                emit(Draw::Operator(op, &args, st.ctm), &mut self.objects)?;
+                if op == b"Do"
+                    && let Some(id) = args
+                        .last()
+                        .and_then(Value::word)
+                        .and_then(|n| n.strip_prefix(b"/"))
+                        .and_then(|n| xobjects.get(n))
+                {
+                    emit(Draw::Image(*id, st.ctm), &mut self.objects)?;
+                }
                 match op {
                     b"q" => {
                         if stack.len() >= 256 {
@@ -250,15 +270,18 @@ impl<'a> PageSource<'a> {
                                 let right = x + scale * dx.abs().max(advance);
                                 let matrix =
                                     concat([st.size * st.hscale, 0., 0., st.size, 0., st.rise], m);
-                                emit(Draw::Glyph {
-                                    byte: b,
-                                    family: &font.name,
-                                    size,
-                                    bounds: [x, y - size * 0.2, right, y + size * 0.8],
-                                    baseline: y,
-                                    matrix,
-                                    mode: st.mode,
-                                })?;
+                                emit(
+                                    Draw::Glyph {
+                                        byte: b,
+                                        family: &font.name,
+                                        size,
+                                        bounds: [x, y - size * 0.2, right, y + size * 0.8],
+                                        baseline: y,
+                                        matrix,
+                                        mode: st.mode,
+                                    },
+                                    &mut self.objects,
+                                )?;
                             }
                         }
                     }
@@ -276,7 +299,7 @@ impl<'a> PageSource<'a> {
             .0;
         let mut runs: Vec<TextLine> = vec![];
         let mut space = false;
-        self.draw_page(&page, |event| {
+        self.draw_page(&page, |event, _| {
             if let Draw::Glyph {
                 byte: b,
                 family,

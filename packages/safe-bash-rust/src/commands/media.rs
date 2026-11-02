@@ -9844,6 +9844,8 @@ fn cmd_media_doc(
             }
             let mut list_mode = false;
             let mut page_nums = false;
+            let mut unique = false;
+            let (mut min_width, mut min_height) = (0,0);
             let mut print_names = false;
             let mut png_mode = false;
             let mut tiff_mode = false;
@@ -9863,7 +9865,8 @@ fn cmd_media_doc(
                     "-tiff" => tiff_mode = true,
                     "-j" => jpeg_mode = true,
                     "-all" => all_mode = true,
-                    "-jp2" | "-jbig2" | "-ccitt" | "-u" | "-q" => {}
+                    "-u" => unique=true, "-q" => {},
+                    "-jp2" | "-jbig2" | "-ccitt" => {}
                     "-f" => {
                         let Some(raw) = args.get(i + 1) else {
                             return err_out("Missing value for '-f'\n", 99);
@@ -9893,9 +9896,8 @@ fn cmd_media_doc(
                         let Some(raw) = args.get(i + 1) else {
                             return err_out(&format!("Missing value for '{flag}'\n"), 99);
                         };
-                        if raw.parse::<isize>().is_err() {
-                            return err_out(&format!("Bad '{flag}' value on command line\n"), 99);
-                        }
+                        let Ok(value)=raw.parse::<isize>() else {return err_out(&format!("Bad '{flag}' value on command line\n"),99);};
+                        if flag=="-min-width" {min_width=value.max(0) as usize;} else {min_height=value.max(0) as usize;}
                         i += 1;
                     }
                     "-upw" | "-opw" => {
@@ -9953,6 +9955,73 @@ fn cmd_media_doc(
                     ),
                     99,
                 );
+            }
+            if let Some(mut source) = pdf_reader::PageSource::open(&b) {
+                let mut idx = 0;
+                let mut seen = std::collections::BTreeSet::new();
+                let mut out = if list_mode {
+                    "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n--------------------------------------------------------------------------------------------\n".to_owned()
+                } else {
+                    String::new()
+                };
+                let mut outputs = Vec::new();
+                let mut remaining = fs.shell_limits().max_output_bytes;
+                for page in start_p..=end_p {
+                    let done = source.images(page, fs.max_input_bytes(), !list_mode, |im| {
+                        let (w, h) = (im.width, im.height);
+                        if w < min_width || h < min_height || unique && !seen.insert(im.id) {
+                            return Some(());
+                        }
+                        if list_mode {
+                            out.push_str(&im.listing(page, idx));
+                        } else {
+                            let (ext, format) = if tiff_mode {
+                                ("tif", "TIFF")
+                            } else if png_mode || all_mode {
+                                ("png", "PNG")
+                            } else {
+                                ("ppm", "PPM")
+                            };
+                            let root = &pos[1];
+                            let name = if page_nums {
+                                format!("{root}-{page:03}-{idx:03}.{ext}")
+                            } else {
+                                format!("{root}-{idx:03}.{ext}")
+                            };
+                            let bytes = im.encode(format)?;
+                            remaining = remaining.checked_sub(bytes.len())?;
+                            if print_names {
+                                out.push_str(&name);
+                                out.push('\n');
+                            }
+                            outputs.push((name, bytes));
+                        }
+                        idx += 1;
+                        Some(())
+                    });
+                    if done.is_none() {
+                        return err_out("PDF Error: Invalid or oversized PDF image\n", 1);
+                    }
+                }
+                for (name, data) in outputs {
+                    let path = resolve_posix_path(cwd, &name);
+                    let version = fs.generation();
+                    let result = fs.access_path(&path, true).and_then(|entry| {
+                        let parent = fs.stat(&crate::vfs::dirname_posix_path(&entry))?;
+                        if parent.mode & 0o300 != 0o300 {
+                            return Err("EACCES".into());
+                        }
+                        fs.publish_file(&entry, &data, &[], version)
+                    });
+                    if result.is_err() {
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: format!("I/O Error: Couldn't open image file '{name}'\n"),
+                            exit_code: 2,
+                        };
+                    }
+                }
+                return ok_out(&out);
             }
             let mut all_imgs: Vec<(usize, u32, u32, String)> = Vec::new();
             for (pidx, pg) in doc.pages.iter().enumerate() {

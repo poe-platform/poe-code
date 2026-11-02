@@ -3457,3 +3457,49 @@ test("magick writes pixel and alpha streams into a standard PDF from files and c
     }
   } finally { wasm.dispose(); }
 });
+
+test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { pdftoppmCommands } = await import("@poe-platform/safe-bash/commands/pdftoppm");
+  const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([15, 10]);
+  const pixels = Uint8Array.from({length: 8 * 6 * 4}, (_, i) => (i * 73 + 19) % 256);
+  const image = doc.embedPng(encodePng({width: 8, height: 6, data: pixels}));
+  page.drawImage(image, { x: 1, y: 2, width: 8, height: 6 });
+  page.drawImage(image, { x: 6, y: 1, width: 4, height: 3 });
+  const bytes = doc.save(), fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
+  await fs.writeFile("/f.pdf", bytes);
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(pdftoppmCommands({ replace: true }));
+  try {
+    for (const options of ["-r 72", "-r 144", "-r 36", "-scale-to 4", "-r 72 -x 2 -W 8 -y 1 -H 4"]) {
+      const script = "pdftoppm -singlefile " + options + " f.pdf out";
+      const want = await shell.exec(script), got = await wasm.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stderr], [want.exitCode, want.stderr]);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out.ppm")), Buffer.from(await fs.readFile("/out.ppm")), script);
+    }
+  } finally { wasm.dispose(); }
+});
+
+test("pdfimages lists and extracts the painted image from a real PDF, retaining its soft mask", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { pdfimagesCommands } = await import("@poe-platform/safe-bash/commands/pdfimages");
+  const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create(), page = doc.addPage([20, 10]);
+  const image = doc.embedPng(encodePng({width: 2, height: 1, data: Uint8Array.of(220, 11, 33, 255, 7, 99, 166, 64)}));
+  page.drawImage(image, { x: 8, y: 0, width: 2, height: 1 });
+  page.drawImage(image, { x: 0, y: 0, width: 8, height: 4 });
+  const bytes = doc.save(), fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/", files: { "/f.pdf": bytes } });
+  await fs.mkdir("/tmp", { recursive: true });
+  await fs.writeFile("/f.pdf", bytes);
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(pdfimagesCommands({ replace: true }));
+  try {
+    for (const args of ["-list f.pdf", "-u -list f.pdf", "-tiff -u f.pdf tiff", "-min-width 3 -list f.pdf", "-png -print-filenames f.pdf img", "-p -print-filenames f.pdf copy"]) {
+      const script = "pdfimages " + args, want = await shell.exec(script), got = await wasm.exec(script);
+      assert.equal(want.exitCode, 0, want.stderr);
+      assert.deepEqual([got.exitCode, got.stdout, got.stderr], [want.exitCode, want.stdout, want.stderr], script);
+    }
+    for (const path of ["/img-000.png", "/img-001.png", "/copy-001-000.ppm", "/tiff-000.tif"])
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile(path)), Buffer.from(await fs.readFile(path)), path);
+  } finally { wasm.dispose(); }
+});

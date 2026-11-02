@@ -37,6 +37,123 @@ struct Bitmap {
     work: usize,
 }
 impl Bitmap {
+    fn image(
+        &mut self,
+        mut im: super::pdf_bitmap::Image,
+        ox: f64,
+        top: f64,
+        scale: f64,
+    ) -> Option<()> {
+        let [a, b, c, d, e, f] = im.matrix;
+        let det = a * d - b * c;
+        if det.abs() <= 1e-8 {
+            return Some(());
+        }
+        let bounds = |values: [f64; 4], max: usize| {
+            let lo = values.into_iter().fold(f64::INFINITY, f64::min).floor() as usize;
+            let hi = values.into_iter().fold(f64::NEG_INFINITY, f64::max).ceil() as usize;
+            lo.min(max)..hi.min(max)
+        };
+        let xs = bounds(
+            [e, a + e, a + c + e, c + e].map(|x| (x - ox) * scale),
+            self.w,
+        );
+        let ys = bounds(
+            [f, b + f, b + d + f, d + f].map(|y| (top - y) * scale),
+            self.h,
+        );
+        if xs.is_empty() || ys.is_empty() {
+            return Some(());
+        }
+        self.work = self.work.checked_sub(xs.len().checked_mul(ys.len())?)?;
+        let (mut w, mut h) = (im.width, im.height);
+        let ax = a * scale / w as f64;
+        let ay = b * scale / w as f64;
+        let bx = c * scale / h as f64;
+        let by = d * scale / h as f64;
+        let (s1, s2) = (ax * ax + ay * ay, bx * bx + by * by);
+        let smooth = ((s1 + s2 + (s1 - s2).hypot(2. * (ax * bx + ay * by))) / 2.) as f32 <= 1.;
+        let mut wx = d.hypot(c) * w as f64 / (det * scale).abs();
+        let mut hy = b.hypot(a) * h as f64 / (det * scale).abs();
+        let linear = |pixels: &[[u8; 4]], w: usize, h: usize, x: f64, y: f64| {
+            let (x, y) = (x.clamp(0., (w - 1) as f64), y.clamp(0., (h - 1) as f64));
+            let mut sample = [0.; 4];
+            for j in 0..2 {
+                for i in 0..2 {
+                    let p = pixels[(y as usize + j).min(h - 1) * w + (x as usize + i).min(w - 1)];
+                    let alpha = f64::from(p[3])
+                        * if i == 1 { x.fract() } else { 1. - x.fract() }
+                        * if j == 1 { y.fract() } else { 1. - y.fract() };
+                    for k in 0..3 {
+                        sample[k] += f64::from(p[k]) * alpha;
+                    }
+                    sample[3] += alpha;
+                }
+            }
+            if sample[3] > 0. {
+                for k in 0..3 {
+                    sample[k] /= sample[3];
+                }
+            }
+            sample
+        };
+        while wx > 2. && w > 1 || hy > 2. && h > 1 {
+            let nw = if wx > 2. { w.div_ceil(2) } else { w };
+            let nh = if hy > 2. { h.div_ceil(2) } else { h };
+            self.work = self.work.checked_sub(nw * nh)?;
+            let mut level = Vec::with_capacity(nw * nh);
+            for y in 0..nh {
+                for x in 0..nw {
+                    level.push(
+                        linear(
+                            &im.pixels,
+                            w,
+                            h,
+                            (x as f64 + 0.5) * w as f64 / nw as f64 - 0.5,
+                            (y as f64 + 0.5) * h as f64 / nh as f64 - 0.5,
+                        )
+                        .map(|v| v.round() as u8),
+                    );
+                }
+            }
+            wx /= w as f64 / nw as f64;
+            hy /= h as f64 / nh as f64;
+            w = nw;
+            h = nh;
+            im.pixels = level;
+        }
+        for y in ys {
+            for x in xs.clone() {
+                let dy = top - (y as f64 + 0.5) / scale - f;
+                let dx = ox + (x as f64 + 0.5) / scale - e;
+                let (u, v) = ((d * dx - c * dy) / det, (-b * dx + a * dy) / det);
+                if !(0. ..=1.).contains(&u) || !(0. ..=1.).contains(&v) {
+                    continue;
+                }
+                let (u, v) = (u * w as f64, (1. - v) * h as f64);
+                let s = if smooth {
+                    linear(&im.pixels, w, h, u - 0.5, v - 0.5)
+                } else {
+                    im.pixels[(v as usize).min(h - 1) * w + (u as usize).min(w - 1)].map(f64::from)
+                };
+                let dest = &mut self.pixels[y * self.w + x];
+                let alpha = s[3] / 255.;
+                if alpha == 0. {
+                    continue;
+                }
+                let remain = f64::from(dest[3]) / 255. * (1. - alpha);
+                let total = alpha + remain;
+                for k in 0..3 {
+                    dest[k] = ((s[k] / 255. * alpha + f64::from(dest[k]) / 255. * remain) / total
+                        * 255.)
+                        .round() as u8;
+                }
+                dest[3] = (total * 255.).round() as u8;
+            }
+        }
+        Some(())
+    }
+
     fn paint(&mut self, paths: &[Vec<Point>], color: [f64; 3], even: bool, aa: bool) -> Option<()> {
         let mut lo = [self.w as f64, self.h as f64];
         let mut hi = [0f64; 2];
@@ -115,7 +232,7 @@ impl Bitmap {
         Some(())
     }
 }
-fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str) -> Option<Vec<u8>> {
+pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str) -> Option<Vec<u8>> {
     let png = matches!(format,"PNG"|"RGBA");
     let rgb = format=="PNG" && pixels.iter().all(|p| p[3] == 255);
     let mut raw = match format {
@@ -287,8 +404,14 @@ impl PageSource<'_> {
         let mut width = 1.;
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut stack = vec![];
-        self.draw_page(&page, |event| {
+        self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
+                Draw::Image(id, matrix) => {
+                    if let Some(image) = super::pdf_bitmap::Image::read(objects, id, matrix, opt.limit, true)? {
+                        bitmap.image(image, ox, oy + ph, sx)?;
+                    }
+                    return Some(());
+                }
                 Draw::Operator(op, args, ctm) => (op, args, ctm),
                 Draw::Glyph {
                     byte,

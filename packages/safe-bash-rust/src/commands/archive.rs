@@ -5662,6 +5662,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut occ_counts = vec![0usize; operands.len()];
     let mut matched_ops = vec![false; operands.len()];
     let mut warned_absolute = false;
+    let mut published = BTreeMap::<String, Option<crate::vfs::EntryIdentity>>::new();
     let check_root = |root: &str| -> Result<(), String> {
         let mut path = String::from("/");
         for part in root.split('/').filter(|s| !s.is_empty()) {
@@ -5831,12 +5832,24 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     Err(e) => return Err(e),
                 }
             }
-            let link = (entry.typeflag == b'2' && !transforms.is_empty()).then(|| apply_tar_transforms(entry.linkname, &transforms));
+            let link = (matches!(entry.typeflag, b'1' | b'2') && !transforms.is_empty()).then(|| apply_tar_transforms(entry.linkname, &transforms));
             let link = link.as_deref().unwrap_or(entry.linkname);
             if entry.typeflag == b'2' {
                 if link.is_empty() || link.contains('\0') { return Err("invalid empty, NUL, or non-Unicode path".into()); }
                 check_tar_symlink(fs, &entry_root, &dest, link)?;
             }
+            let hard_target = if entry.typeflag == b'1' {
+                if link.split('/').any(|s| s == "..") { return Err(format!("unsafe parent component in member: {}", tar_format::display(link))); }
+                let rel = tar_strip_components(link, strip_components, false).ok_or("hardlink target removed by strip-components")?;
+                let target = resolve_posix_path(&entry_root, &rel);
+                if target == dest { return Err("self-referential hardlink entry is unsupported".into()); }
+                let expected = published.get(&target).ok_or_else(|| format!("hardlink target was not previously extracted (forward or unselected target): {}", tar_format::display(link)))?;
+                check_root(&crate::vfs::dirname_posix_path(&target))?;
+                let stat = fs.lstat(&target)?;
+                if stat.kind != File || (expected.is_some() && expected != &stat.identity) { return Err("hardlink target changed or is not a regular file".into()); }
+                if !fs.supports_hard_links(&target) { return Err("filesystem does not support hardlinks".into()); }
+                Some(target)
+            } else { None };
             for parent in parents { fs.mkdir_one(parent, 0o700)?; }
             let mut revision = fs.generation();
             let existing = match fs.lstat(&dest) {
@@ -5855,19 +5868,26 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     }
                     return Ok(());
                 }
-                if st.kind != File || is_dir_entry || entry.typeflag == b'2' {
+                if st.kind != File || entry.typeflag != b'0' {
                     fs.remove_one(&dest, st.kind == Directory)?;
                     revision = fs.generation();
                 }
             }
+            published.remove(&dest);
             if is_dir_entry {
                 if !existing.is_some_and(|s| s.kind == Directory) { fs.mkdir_one(&dest, 0o700)?; }
                 fs.chmod(&dest, entry.mode & 0o777)?;
             } else if entry.typeflag == b'2' {
                 fs.symlink(link, &dest)?;
+            } else if let Some(target) = hard_target {
+                fs.hard_link(&target, &dest)?;
             } else {
                 if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
                 fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & 0o777, revision)?;
+            }
+            if matches!(entry.typeflag, b'0' | b'1') {
+                let identity = fs.lstat(&dest)?.identity;
+                published.insert(dest, identity);
             }
             if verbose && raw.is_some() { out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style))); }
         }

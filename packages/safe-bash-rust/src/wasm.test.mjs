@@ -5966,3 +5966,56 @@ test("tar verifies symlink targets against the extraction root before changing t
     } finally { rs.dispose(); }
   }
 });
+
+test("tar recreates hard links only to files published earlier in this extraction", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.mkdir("/src", {recursive: true});
+    await fs.writeFile("/src/a", Buffer.from("payload"));
+    await fs.link("/src/a", "/src/b");
+    const seed = await js.exec("tar --format=ustar -cf - src/a src/b");
+    assert.equal(seed.exitCode, 0, seed.stderr);
+    const tar = Buffer.from(seed.stdoutBytes);
+    assert.equal(tar[1024 + 156], 49);
+    for (const [flags, operand, allowed] of [
+      ["", "", true], ["--strip-components=1", "", true], ["--transform=s/src/dst/", "", true], ["", "src/b", false],
+    ]) {
+      for (const f of [fs, rs.fs]) {
+        await f.mkdir("/extract/src", {recursive: true});
+        await f.writeFile("/in", tar);
+        await f.writeFile("/extract/src/a", Buffer.from("existing"));
+      }
+      const cmd = "tar -xvf in -C extract " + flags + " " + operand;
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, allowed ? 0 : 2, a.stderr);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+      if (allowed) {
+        const base = flags.includes("strip") ? "/extract/" : flags.includes("transform") ? "/extract/dst/" : "/extract/src/";
+        for (const f of [fs, rs.fs]) {
+          assert.equal(Buffer.from(await f.readFile(base + "b")).toString(), "payload");
+          assert.equal((await f.stat(base + "a")).ino, (await f.stat(base + "b")).ino);
+        }
+      }
+    }
+    const link = tar.subarray(1024, 1536);
+    const forward = Buffer.concat([link, tar.subarray(0, 1024), tar.subarray(1536)]);
+    const self = Buffer.from(link);
+    self.fill(0, 157, 257); self.write("src/b", 157);
+    self.fill(32, 148, 156);
+    self.write(self.reduce((a, b) => a + b).toString(8).padStart(6, "0") + "\0 ", 148);
+    for (const [bytes, diagnostic] of [[forward, "hardlink target was not previously extracted (forward or unselected target): src/a"], [Buffer.concat([self, tar.subarray(1536)]), "self-referential hardlink entry is unsupported"]]) {
+      for (const f of [fs, rs.fs]) {
+        await f.writeFile("/extract/src/b", Buffer.from("keep"));
+        await f.writeFile("/in", bytes);
+      }
+      const cmd = "tar -xf in -C extract";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode, a.stderr], [2, "tar: " + diagnostic + "\n"]);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout]);
+      assert.equal(Buffer.from(await rs.fs.readFile("/extract/src/b")).toString(), "keep");
+    }
+  } finally { rs.dispose(); }
+});

@@ -19,6 +19,10 @@ enum BlockKind {
         last: bool,
     },
     Table(Vec<TableRow>),
+    Image {
+        png: Vec<u8>,
+        dimensions: [f64; 2],
+    },
     Svg {
         height: f64,
         shapes: Vec<SvgShape>,
@@ -26,6 +30,10 @@ enum BlockKind {
     Code,
     Quote,
     Rule,
+}
+
+fn default(n: f64, fallback: f64) -> f64 {
+    if n == 0. || n.is_nan() { fallback } else { n }
 }
 
 enum SvgShape {
@@ -75,6 +83,12 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                 },
             }
         }
+    }
+    fn attr(el: &crate::commands::structured::HtmlElement, name: &str) -> f64 {
+        el.attrs
+            .iter()
+            .find(|(k, _)| k == name)
+            .map_or(0., |(_, v)| super::super::js_number(v, 0.))
     }
     fn visit(
         nodes: &[HtmlNode],
@@ -242,14 +256,6 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                 }
                 "svg" => {
                     flush(current, blocks);
-                    let attr = |el: &crate::commands::structured::HtmlElement, name: &str| {
-                        el.attrs
-                            .iter()
-                            .find(|(k, _)| k == name)
-                            .map_or(0., |(_, v)| super::super::js_number(v, 0.))
-                    };
-                    let default =
-                        |n: f64, fallback| if n == 0. || n.is_nan() { fallback } else { n };
                     let height = default(attr(el, "height"), 100.);
                     let mut shapes = Vec::new();
                     let mut pending: Vec<_> = el.children.iter().rev().collect();
@@ -287,7 +293,23 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
                     });
                 }
                 "img" => {
-                    return None;
+                    flush(current, blocks);
+                    if let Some(src) = el
+                        .attrs
+                        .iter()
+                        .find(|(k, _)| k == "src")
+                        .and_then(|(_, v)| v.strip_prefix("data:image/png;base64,"))
+                        && let Ok(png) = crate::commands::archive::base64_decode(src)
+                        && png.starts_with(b"\x89PNG\r\n\x1a\n")
+                    {
+                        blocks.push(Block {
+                            kind: BlockKind::Image {
+                                png,
+                                dimensions: [attr(el, "width"), attr(el, "height")],
+                            },
+                            ..Block::default()
+                        });
+                    }
                 }
                 "p" | "div" | "section" | "article" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
                     flush(current, blocks);
@@ -330,6 +352,7 @@ fn html_blocks(html: &str) -> Option<Vec<Block>> {
 
 enum PageResource {
     Font(&'static str),
+    Image(PdfBitmap),
     Link(Vec<u8>),
 }
 
@@ -469,26 +492,21 @@ pub(in super::super) fn render_html(
     let media_width = coordinate(width);
     let media_height = coordinate(height);
     let x = coordinate(left);
-    let mut remaining_links_budget = limit;
+    let mut remaining_resources = limit;
     let mut sheets = Vec::new();
     let mut finish_page = |stream: &mut Vec<u8>,
                            objects: &mut Vec<PageResource>,
                            headings: &mut Vec<(usize, String)>|
      -> Result<(), ()> {
         let compressed = zlib_compress(stream);
-        let mut body = format!(
-            "<<\n/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
-            compressed.len()
-        )
-        .into_bytes();
-        body.extend(compressed);
-        body.extend_from_slice(b"\nendstream");
+        let body = flate_stream("<<\n", &compressed);
         let sheet_bytes = objects
             .iter()
             .try_fold(body.len() + 160, |size, resource| {
                 size.checked_add(match resource {
                     PageResource::Font(_) => 80,
                     PageResource::Link(bytes) => bytes.len(),
+                    PageResource::Image(image) => image.rgb.len() + image.mask.len() + 128,
                 })
             })
             .ok_or(())?;
@@ -508,6 +526,7 @@ pub(in super::super) fn render_html(
         let mut occupied = false;
         let mut objects = Vec::new();
         let mut fonts = Vec::new();
+        let mut image_count = 0;
         let (outline_depth, external_links) = settings(page_index);
         let mut headings = Vec::new();
         for Block {
@@ -517,10 +536,52 @@ pub(in super::super) fn render_html(
         } in blocks
         {
             let (size, pitch, family, offset, color, padding) = match kind {
+                BlockKind::Image {
+                    png,
+                    dimensions: [w, h],
+                } => {
+                    let raster = match super::super::png_pixels::Raster::decode(&png, limit) {
+                        Ok(raster) => raster,
+                        Err("image exceeds memory budget") => return Err(()),
+                        Err(_) => continue,
+                    };
+                    let w = default(w, raster.width.min(240) as f64);
+                    let h = default(h, raster.height.min(180) as f64);
+                    if y - (h + 8.) < bottom && occupied {
+                        finish_page(&mut stream, &mut objects, &mut headings)?;
+                        fonts.clear();
+                        image_count = 0;
+                        y = height - top;
+                    }
+                    let image = PdfBitmap::new(&raster.pixels, raster.width, raster.height);
+                    remaining_resources = remaining_resources
+                        .checked_sub(image.rgb.len() + image.mask.len())
+                        .ok_or(())?;
+                    objects.push(PageResource::Image(image));
+                    image_count += 1;
+                    occupied = true;
+                    if !stream.is_empty() {
+                        stream.push(b'\n');
+                    }
+                    write!(
+                        stream,
+                        "q\n{} 0 0 {} {x} {} cm\n/Im{image_count} Do\nQ",
+                        coordinate(w),
+                        coordinate(h),
+                        coordinate(y - h)
+                    )
+                    .unwrap();
+                    if stream.len() > limit {
+                        return Err(());
+                    }
+                    y -= h + 8.;
+                    continue;
+                }
                 BlockKind::Svg { height: h, shapes } => {
                     if y - (h + 8.) < bottom && occupied {
                         finish_page(&mut stream, &mut objects, &mut headings)?;
                         fonts.clear();
+                        image_count = 0;
                         y = height - top;
                     }
                     occupied = true;
@@ -574,6 +635,7 @@ pub(in super::super) fn render_html(
                         if y - row_height < bottom && occupied {
                             finish_page(&mut stream, &mut objects, &mut headings)?;
                             fonts.clear();
+                            image_count = 0;
                             occupied = false;
                             y = height - top;
                         }
@@ -693,6 +755,7 @@ pub(in super::super) fn render_html(
             if y - needed < bottom && occupied {
                 finish_page(&mut stream, &mut objects, &mut headings)?;
                 fonts.clear();
+                image_count = 0;
                 y = height - top;
             }
             occupied = true;
@@ -774,8 +837,7 @@ pub(in super::super) fn render_html(
                     super::pdf_rewrite::encode(&super::pdf_string::encode(&uri), &mut body)
                         .map_err(|_| ())?;
                     body.extend_from_slice(b"\n>>\n>>");
-                    remaining_links_budget =
-                        remaining_links_budget.checked_sub(body.len()).ok_or(())?;
+                    remaining_resources = remaining_resources.checked_sub(body.len()).ok_or(())?;
                     objects.push(PageResource::Link(body));
                 }
             }
@@ -798,34 +860,42 @@ pub(in super::super) fn render_html(
         let content = bodies.len() + 1;
         let page = content + 1;
         bodies.push(body.clone());
+        bodies.push(Vec::new());
         let mut resources = String::from("<<\n/Font <<");
+        let mut images = String::new();
         let mut annots = String::new();
         let mut fonts = 0;
-        for (i, obj) in objects.iter().enumerate() {
-            let id = page + i + 1;
+        let mut image_count = 0;
+        for obj in objects {
+            let id = bodies.len() + 1;
             match obj {
-                PageResource::Font(_) => {
+                PageResource::Font(font) => {
                     fonts += 1;
                     write!(resources, "\n/F{fonts} {id} 0 R").unwrap();
+                    bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
                 }
-                PageResource::Link(_) => write!(annots, "{id} 0 R ").unwrap(),
+                PageResource::Link(body) => {
+                    write!(annots, "{id} 0 R ").unwrap();
+                    bodies.push(body.clone());
+                }
+                PageResource::Image(image) => {
+                    image_count += 1;
+                    image.write(&mut bodies);
+                    write!(images, "\n/Im{image_count} {} 0 R", bodies.len()).unwrap();
+                }
             }
         }
-        resources.push_str("\n>>\n>>");
+        resources.push_str("\n>>");
+        if !images.is_empty() {
+            write!(resources, "\n/XObject <<{images}\n>>").unwrap();
+        }
+        resources.push_str("\n>>");
         let annots = if annots.is_empty() {
             annots
         } else {
             format!("\n/Annots [ {annots}]")
         };
-        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R{annots}\n>>").into_bytes());
-        for obj in objects {
-            bodies.push(match obj {
-                PageResource::Font(font) => {
-                    format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes()
-                }
-                PageResource::Link(body) => body.clone(),
-            });
-        }
+        bodies[page-1] = format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {media_width} {media_height} ]\n/Resources {resources}\n/Contents {content} 0 R{annots}\n>>").into_bytes();
         if first_copy {
             outlines.extend(
                 headings
@@ -916,6 +986,60 @@ pub(super) fn write_outlines(
     Ok(())
 }
 
+fn flate_stream(dict: &str, data: &[u8]) -> Vec<u8> {
+    let mut body = format!(
+        "{dict}/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
+        data.len()
+    )
+    .into_bytes();
+    body.extend_from_slice(data);
+    body.extend_from_slice(b"\nendstream");
+    body
+}
+
+struct PdfBitmap {
+    w: usize,
+    h: usize,
+    rgb: Vec<u8>,
+    mask: Vec<u8>,
+}
+
+impl PdfBitmap {
+    fn new(pixels: &[[u8; 4]], w: usize, h: usize) -> Self {
+        let mask = if pixels.iter().any(|p| p[3] != 255) {
+            zlib_compress(&pixels.iter().map(|p| p[3]).collect::<Vec<_>>())
+        } else {
+            Vec::new()
+        };
+        Self {
+            w,
+            h,
+            mask,
+            rgb: zlib_compress(
+                &pixels
+                    .iter()
+                    .flat_map(|p| &p[..3])
+                    .copied()
+                    .collect::<Vec<_>>(),
+            ),
+        }
+    }
+    fn write(&self, bodies: &mut Vec<Vec<u8>>) {
+        let dict = |color| {
+            format!(
+                "<<\n/Type /XObject\n/Subtype /Image\n/Width {}\n/Height {}\n/ColorSpace /Device{color}\n/BitsPerComponent 8\n",
+                self.w, self.h
+            )
+        };
+        let mut rgb = dict("RGB");
+        if !self.mask.is_empty() {
+            bodies.push(flate_stream(&dict("Gray"), &self.mask));
+            writeln!(rgb, "/SMask {} 0 R", bodies.len()).unwrap();
+        }
+        bodies.push(flate_stream(&rgb, &self.rgb));
+    }
+}
+
 pub(in crate::commands) fn image_pdf(
     pixels: &[[u8; 4]],
     w: usize,
@@ -924,50 +1048,17 @@ pub(in crate::commands) fn image_pdf(
     page_h: f64,
     limit: usize,
 ) -> Option<Vec<u8>> {
-    fn stream(mut dict: String, raw: &[u8]) -> Vec<u8> {
-        let data = zlib_compress(raw);
-        dict.push_str(&format!(
-            "/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
-            data.len()
-        ));
-        let mut b = dict.into_bytes();
-        b.extend(data);
-        b.extend_from_slice(b"\nendstream");
-        b
-    }
     let page_w = super::super::svg_format_num(page_w, 6);
     let page_h = super::super::svg_format_num(page_h, 6);
-    let alpha = pixels.iter().any(|p| p[3] != 255);
-    let image = if alpha { 7 } else { 6 };
+    let bitmap = PdfBitmap::new(pixels, w, h);
+    let image = if bitmap.mask.is_empty() { 6 } else { 7 };
     let mut bodies=vec![
         b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
         b"<<\n/Type /Pages\n/Count 1\n/Kids [ 5 0 R ]\n>>".to_vec(),
         b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec(),
-        stream("<<\n".into(),format!("q\n{page_w} 0 0 {page_h} 0 0 cm\n/Im1 Do\nQ").as_bytes()),
+        flate_stream("<<\n",&zlib_compress(format!("q\n{page_w} 0 0 {page_h} 0 0 cm\n/Im1 Do\nQ").as_bytes())),
         format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {page_w} {page_h} ]\n/Resources <<\n/Font <<\n>>\n/XObject <<\n/Im1 {image} 0 R\n>>\n>>\n/Contents 4 0 R\n>>").into_bytes(),
     ];
-    let dict = |color: &str| {
-        format!(
-            "<<\n/Type /XObject\n/Subtype /Image\n/Width {w}\n/Height {h}\n/ColorSpace /Device{color}\n/BitsPerComponent 8\n"
-        )
-    };
-    if alpha {
-        bodies.push(stream(
-            dict("Gray"),
-            &pixels.iter().map(|p| p[3]).collect::<Vec<_>>(),
-        ));
-    }
-    let mut rgb = dict("RGB");
-    if alpha {
-        rgb.push_str("/SMask 6 0 R\n");
-    }
-    bodies.push(stream(
-        rgb,
-        &pixels
-            .iter()
-            .flat_map(|p| &p[..3])
-            .copied()
-            .collect::<Vec<_>>(),
-    ));
+    bitmap.write(&mut bodies);
     write_objects(&bodies, limit)
 }

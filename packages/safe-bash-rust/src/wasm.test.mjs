@@ -5482,3 +5482,19 @@ test("wkhtmltopdf draws inline SVG rectangles and labels in order and reserves t
     }
   }finally{rs.dispose();}
 });
+
+test("wkhtmltopdf embeds opaque and transparent PNG pixels with per-page image resources",async()=>{
+  const {encodePng}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {wkhtmltopdfCommands}=await import("@poe-platform/safe-bash/commands/wkhtmltopdf");
+  const image=(alpha)=>Buffer.from(encodePng({width:2,height:1,data:Uint8Array.from([255,64,0,255,0,128,255,alpha])})).toString("base64");
+  const html=Buffer.from('<img src="data:image/png;base64,'+image(128)+'" width="40" height="20"/><p><a href="/caption">Caption</a></p><img src="data:image/png;base64,'+image(255)+'"/><h2>Heading</h2><img src="missing.png"/><img src="data:image/png;base64,invalid"/>');
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files:{"/in":html}});
+  try{
+    await fs.writeFile("/in",html);
+    for(const args of ["","-g","--page-height 100pt --copies 2 --no-collate"]){
+      const cmd="wkhtmltopdf "+args+" in -",e=await js.exec(cmd),r=await rs.exec(cmd);
+      assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);
+    }
+  }finally{rs.dispose();}
+});

@@ -18037,45 +18037,60 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
 
 fn ensure_install_dirs(
     display: &str,
-    final_dir: bool,
-    target_mode: u32,
+    final_mode: Option<(u32, u32)>,
     verbose: bool,
     cwd: &str,
     fs: &dyn SafeBashFs,
     out_buf: &mut String,
-) {
+) -> Result<(), String> {
     if display.is_empty() {
-        return;
+        return Err("cannot create directory '': No such file or directory".into());
     }
-    let parts: Vec<&str> = display.split('/').filter(|s| !s.is_empty()).collect();
     let mut current = if display.starts_with('/') {
-        "/".to_string()
+        "/".to_owned()
     } else {
         String::new()
     };
-    let comps: Vec<&str> = if parts.is_empty() { vec!["."] } else { parts };
-    for (idx, comp) in comps.iter().enumerate() {
-        current = if !current.is_empty() && current != "/" {
-            format!("{current}/{comp}")
-        } else {
-            format!("{current}{comp}")
-        };
-        let path = resolve_posix_path(cwd, &current);
-        let is_last = idx + 1 == comps.len();
-        let existed = fs.exists(&path);
-        if !existed {
-            let _ = fs.mkdir_all(&path);
-            let creation_mode = if final_dir && is_last {
-                target_mode
-            } else {
-                0o755
-            };
-            let _ = fs.chmod(&path, 0o040000 | creation_mode);
-            if verbose {
-                out_buf.push_str(&format!("install: creating directory '{current}'\n"));
+    let mut parts = display.split('/').filter(|s| !s.is_empty()).peekable();
+    loop {
+        let part = parts.next().unwrap_or(".");
+        if !current.is_empty() && current != "/" {
+            current.push('/');
+        }
+        current.push_str(part);
+        let label = fmt_quote::quote(&current, true, false);
+        let fail = |e: String| format!("cannot create directory {label}: {}", install_reason(&e));
+        let operand = absolute_operand(cwd, &current);
+        let mode = final_mode.filter(|_| parts.peek().is_none());
+        match fs.inspect_command_entry(&operand, true, "stat") {
+            Ok((_, st)) if st.kind != crate::vfs::VfsEntryKind::Directory => {
+                return Err(fail("ENOTDIR: not a directory".into()));
             }
-        } else if final_dir && is_last {
-            let _ = fs.chmod(&path, 0o040000 | target_mode);
+            Ok((path, st)) => {
+                if let Some((bits, mask)) = mode {
+                    let wanted = st.mode & 0o7777 & !mask | bits;
+                    if st.mode & 0o7777 != wanted {
+                        fs.chmod(&path, wanted).map_err(|e| {
+                            format!(
+                                "cannot change permissions of {label}: {}",
+                                install_reason(&e)
+                            )
+                        })?;
+                    }
+                }
+            }
+            Err(e) if install_reason(&e) == "No such file or directory" => {
+                let path = fs.access_path(&operand, false).map_err(fail)?;
+                fs.mkdir_one(&path, mode.map_or(0o755, |(bits, _)| bits))
+                    .map_err(fail)?;
+                if verbose {
+                    out_buf.push_str(&format!("install: creating directory {label}\n"));
+                }
+            }
+            Err(e) => return Err(fail(e)),
+        }
+        if parts.peek().is_none() {
+            return Ok(());
         }
     }
 }
@@ -18392,9 +18407,9 @@ fn cmd_install(
         }
     }
 
-    let target_mode = match mode_spec.as_deref() {
-        None => 0o755,
-        Some(spec) => match super::fs::eval_chmod_mode_checked(spec, 0, dir_mode, 0) {
+    let (target_mode, mode_mask) = match mode_spec.as_deref() {
+        None => (0o755, 0o7777),
+        Some(spec) => match super::fs::eval_chmod_mode_checked(spec, 0, dir_mode, None) {
             Ok(mode) => mode,
             Err(_) => {
                 return err_out(
@@ -18451,7 +18466,17 @@ fn cmd_install(
     }
     if dir_mode {
         for f in &sources {
-            ensure_install_dirs(f, true, target_mode, verbose, cwd, fs, &mut out_buf);
+            if let Err(e) = ensure_install_dirs(
+                f,
+                Some((target_mode, mode_mask)),
+                verbose,
+                cwd,
+                fs,
+                &mut out_buf,
+            ) {
+                err_buf.push_str(&format!("install: {e}\n"));
+                exit_code = 1;
+            }
         }
         return BuiltinOutcome {
             stdout: out_buf,
@@ -18459,8 +18484,16 @@ fn cmd_install(
             exit_code,
         };
     }
-    if create_dirs && let Some(ref td) = target_dir_opt {
-        ensure_install_dirs(td, false, 0o755, verbose, cwd, fs, &mut out_buf);
+    if create_dirs
+        && let Some(ref td) = target_dir_opt
+        && let Err(e) = ensure_install_dirs(td, None, verbose, cwd, fs, &mut out_buf)
+    {
+        err_buf.push_str(&format!("install: {e}\n"));
+        return BuiltinOutcome {
+            stdout: out_buf,
+            stderr: err_buf,
+            exit_code: 1,
+        };
     }
 
     use crate::vfs::VfsEntryKind;
@@ -18480,13 +18513,12 @@ fn cmd_install(
             if create_dirs {
                 ensure_install_dirs(
                     &dirname_posix_path(&display),
-                    false,
-                    0o755,
+                    None,
                     verbose,
                     cwd,
                     fs,
                     &mut out_buf,
-                );
+                )?;
             }
             let (src, source) = fs
                 .inspect_command_entry(&absolute_operand(cwd, src_arg), true, "stat")

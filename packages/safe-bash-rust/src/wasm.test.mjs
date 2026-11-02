@@ -3095,3 +3095,33 @@ test("install replaces directory entries without writing through destination or 
     } finally { wasm.dispose(); }
   }
 });
+
+test("install directory failures and symbolic mode masks match production", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { installCommands } = await import("@poe-platform/safe-bash/commands/install");
+  for (const args of ["-d /file /new", "-d /file/sub /new", "-d ''", "-d /locked/sub", "-d /dangling",
+    "-D /file /locked/sub/file", "-D -t /locked/sub /file", "-d -m g+w /dir", "-d -m +20 /dir",
+    "-d -m -20 /dir", "-d -m o=u /dir", "-d -m u+s,u=rx /new", "-d -m a+X /new",
+    "-d -m 755 /dir", "-d -m g+w /new", "-d -m a= /new", "-d /dir/child/../sub"]) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(installCommands({ replace: true }));
+    const wasm = new RustWasmBash({ cwd: "/" });
+    try {
+      for (const backend of [fs, wasm.fs]) {
+        await backend.writeFile("/file", Uint8Array.of(1));
+        await backend.mkdir("/dir");
+        await backend.chmod("/dir", 0o2751);
+        await backend.mkdir("/locked");
+        await backend.chmod("/locked", 0o555);
+        await backend.symlink("/absent", "/dangling");
+      }
+      const script = "install -v " + args;
+      const expected = await shell.exec(script), actual = await wasm.exec(script);
+      assert.deepEqual([actual.exitCode, actual.stdout, actual.stderr], [expected.exitCode, expected.stdout, expected.stderr], script);
+      for (const path of ["/file", "/dir", "/new", "/locked/sub", "/dir/sub", "/absent"]) {
+        const mode = backend => backend.stat(path).then(st => st.mode, () => undefined);
+        assert.equal(await mode(wasm.fs), await mode(fs), script + ": " + path);
+      }
+    } finally { wasm.dispose(); }
+  }
+});

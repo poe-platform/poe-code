@@ -593,8 +593,8 @@ fn cmd_mkdir(
         .unwrap_or(0o022);
     let default_mode = (0o777 & !umask_val) & 0o777;
     let explicit_mode = match mode_spec {
-        Some(ref spec) => match eval_chmod_mode_checked(spec, default_mode, true, umask_val) {
-            Ok(m) => Some(m),
+        Some(ref spec) => match eval_chmod_mode_checked(spec, default_mode, true, Some(umask_val)) {
+            Ok((m, _)) => Some(m),
             Err(msg) => return err_out(&format!("mkdir: {msg}\n"), 2),
         },
         None => None,
@@ -3178,8 +3178,8 @@ pub(super) fn eval_chmod_mode_checked(
     spec: &str,
     current: u32,
     is_dir: bool,
-    umask: u32,
-) -> Result<u32, String> {
+    chmod_umask: Option<u32>,
+) -> Result<(u32, u32), String> {
     if spec.is_empty() {
         return Err(format!("invalid mode: '{spec}'"));
     }
@@ -3199,19 +3199,22 @@ pub(super) fn eval_chmod_mode_checked(
             return Err(format!("invalid mode: '{spec}'"));
         }
         let cur = current & 0o7777;
-        return Ok(match num_op {
+        let mode = match num_op {
             Some('+') => cur | bits,
             Some('-') => cur & !bits,
             _ => {
-                let preserve = if is_dir && num_op.is_none() && num_digits.len() < 5 {
+                let preserve = if chmod_umask.is_some() && is_dir && num_op.is_none() && num_digits.len() < 5 {
                     cur & 0o6000
                 } else {
                     0
                 };
                 bits | preserve
             }
-        });
+        };
+        let mask = if matches!(num_op, Some('+' | '-')) { bits } else { 0o7777 };
+        return Ok((mode, mask));
     }
+    let mut mask = 0;
     let mut mode = current & 0o7777;
     for clause in spec.split(',') {
         if clause.is_empty() {
@@ -3283,13 +3286,14 @@ pub(super) fn eval_chmod_mode_checked(
             }
             bits &= users;
             if who.is_empty() {
-                bits &= !umask;
+                bits &= !chmod_umask.unwrap_or(0);
             }
+            mask |= if op == '=' { users } else { bits };
             match op {
                 '+' => mode |= bits,
                 '-' => mode &= !bits,
                 '=' => {
-                    let preserve = if is_dir && !perms.contains('s') {
+                    let preserve = if chmod_umask.is_some() && is_dir && !perms.contains('s') {
                         0o6000
                     } else {
                         0
@@ -3300,7 +3304,7 @@ pub(super) fn eval_chmod_mode_checked(
             }
         }
     }
-    Ok(mode)
+    Ok((mode, mask))
 }
 
 fn format_perm_9(perm: u32) -> String {
@@ -3426,7 +3430,7 @@ fn cmd_chmod(
         };
 
     if ref_mode.is_none()
-        && let Err(msg) = eval_chmod_mode_checked(&mode_str, 0o644, false, umask_val)
+        && let Err(msg) = eval_chmod_mode_checked(&mode_str, 0o644, false, Some(umask_val))
     {
         return err_out(&format!("chmod: {msg}\n"), 1);
     }
@@ -3472,7 +3476,7 @@ fn cmd_chmod(
                 let old = st.mode & 0o7777;
                 let new = match ref_mode {
                     Some(mode) => mode,
-                    None => eval_chmod_mode_checked(&mode_str, old, dir, umask_val)?,
+                    None => eval_chmod_mode_checked(&mode_str, old, dir, Some(umask_val))?.0,
                 };
                 let defer = recursive && dir && old & 0o777 & !new != 0;
                 if !defer { change(&target, &display, old, new)?; }

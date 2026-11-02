@@ -8032,18 +8032,6 @@ impl<'a> EvalState<'a> {
         Ok((out, escaped_offsets, terminated))
     }
 
-    fn record_input_bytes(&mut self, fd: u32, canon: u32, direct: bool, stdin: &mut String) -> Result<Vec<u8>, EvalError> {
-        if direct {
-            self.refresh_file_input(fd, stdin)?;
-            return Ok(stream_string_to_bytes(stdin));
-        }
-        if fd == 0 && canon != STDIN_STREAM_FD { self.sync_shared_stdin(canon, stdin, true); }
-        let Some(cursor) = self.in_fds.get(&canon) else { return Ok(Vec::new()) };
-        let mut unread = cursor.borrow_mut();
-        self.refresh_file_input(fd, &mut unread)?;
-        Ok(stream_string_to_bytes(&unread))
-    }
-
     fn sync_shared_stdin(&mut self, canon: u32, stdin: &mut String, from_stdin: bool) {
         let same_file = matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { unread, .. })
             if self.in_fds.get(&canon).is_some_and(|source| Rc::ptr_eq(unread, source)));
@@ -8716,51 +8704,30 @@ impl<'a> EvalState<'a> {
         let mut cb_stderr = String::new();
         let mut total_input_bytes = 0usize;
 
-        let take_next_record = |this: &mut Self,
-                                stdin_ref: &mut String,
-                                total_bytes: &mut usize|
-         -> Result<Option<Vec<u8>>, EvalError> {
+        let mut take_next_record = |this: &mut Self, stdin: &mut String| -> Result<Option<Vec<u8>>, EvalError> {
             this.budget.tick_loop().map_err(EvalError::Budget)?;
-            let canon = this.resolve_in_fd(fd_num);
-            let use_direct_stdin = (fd_num == 0 && !this.in_fd_aliases.contains_key(&0))
-                || (canon == STDIN_STREAM_FD && !this.in_fds.contains_key(&STDIN_STREAM_FD));
-            let raw_in = this.record_input_bytes(fd_num, canon, use_direct_stdin, stdin_ref)?;
-            if raw_in.is_empty() {
-                return Ok(None);
-            }
-            let mut end = raw_in.len();
-            for (pos, &b) in raw_in.iter().enumerate() {
-                if b == delim_byte {
-                    end = pos + 1;
-                    break;
+            let budget = this.budget;
+            let mut record = Vec::new();
+            let result = this.read_fd_chunks(fd_num, stdin, &mut |chunk, _| {
+                let end = chunk.iter().position(|&b| b == delim_byte);
+                let used = end.map_or(chunk.len(), |i| i + 1);
+                total_input_bytes = total_input_bytes.saturating_add(used);
+                if total_input_bytes > budget.limits.max_input_bytes {
+                    return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", budget.limits.max_input_bytes)));
                 }
-            }
-            *total_bytes = total_bytes.saturating_add(end);
-            if *total_bytes > this.budget.limits.max_input_bytes {
-                return Err(EvalError::Budget(format!(
-                    "Execution aborted: Shell limit exceeded: maxInputBytes ({})",
-                    this.budget.limits.max_input_bytes
-                )));
-            }
-            if end > this.budget.limits.max_output_bytes {
-                return Err(EvalError::Budget(format!(
-                    "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
-                    this.budget.limits.max_output_bytes
-                )));
-            }
-            let rec = raw_in[..end].to_vec();
-            let rest = bytes_to_stream_string(&raw_in[end..]);
-            if use_direct_stdin {
-                *stdin_ref = rest;
-            } else {
-                this.in_fds.entry(canon).or_default().replace(rest);
-                this.sync_shared_stdin(canon, stdin_ref, false);
-            }
-            Ok(Some(rec))
+                if record.len().saturating_add(used) > budget.limits.max_output_bytes {
+                    return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxOutputBytes ({})", budget.limits.max_output_bytes)));
+                }
+                record.extend_from_slice(&chunk[..used]);
+                Ok((end.is_none(), used))
+            });
+            budget.check_exceeded().map_err(EvalError::Budget)?;
+            // mapfile stops at a source error without publishing the incomplete record.
+            Ok((result.is_ok() && !record.is_empty()).then_some(record))
         };
 
         for _ in 0..skip_count {
-            match take_next_record(self, stdin, &mut total_input_bytes)? {
+            match take_next_record(self, stdin)? {
                 Some(_) => {}
                 None => {
                     self.env.remove(&active_key);
@@ -8789,7 +8756,7 @@ impl<'a> EvalState<'a> {
             if max_count != 0 && count > max_count {
                 break;
             }
-            let Some(rec_bytes) = take_next_record(self, stdin, &mut total_input_bytes)? else {
+            let Some(rec_bytes) = take_next_record(self, stdin)? else {
                 break;
             };
             let nul_pos = rec_bytes.iter().position(|&b| b == 0);
@@ -15873,6 +15840,20 @@ hash -l
             let r = shell.exec(r#"{ LC_ALL=C.UTF-8 read -N65536 x; printf '%s|' "$x"; cat; } </f"#).unwrap();
             assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
             assert_eq!(r.stdout, format!("{prefix}{last}|Z"));
+        }
+    }
+
+    #[test]
+    fn mapfile_keeps_completed_records_when_its_next_file_read_fails() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 8, ..Default::default() });
+        fs.write_file("/f", b"a\nb\n0123456789").unwrap();
+        for (script, expected) in [
+            ("mapfile -t a </f; echo $?:${a[*]}", "0:a b\n"),
+            ("exec 3</f; readarray -tn1 -s1 -u3 a; head -c2 <&3; echo :${a[*]}", "01:b\n"),
+        ] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
         }
     }
 

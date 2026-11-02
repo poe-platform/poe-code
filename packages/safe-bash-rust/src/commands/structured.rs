@@ -18228,8 +18228,8 @@ fn serialize_sql_db(
         if is_auto_inc {
             has_auto_inc = true;
         }
-        let seq_val = (tbl.next_seq as i64).max(if is_auto_inc { max_rowid } else { 0 });
-        if seq_val > 0 && (is_auto_inc || tbl.next_seq > 0) {
+        let seq_val = (tbl.next_seq as i64).max(max_rowid);
+        if seq_val > 0 {
             let s_rowid = (seq_rows.len() + 1) as i64;
             seq_rows.push((
                 s_rowid,
@@ -18806,10 +18806,39 @@ fn find_sql_col(cols: &[String], target: &str) -> Option<usize> {
 }
 
 
+// The outer statement selects the access mode; quoted words and CTE bodies do not.
+fn sqlite_mutates(upper: &str) -> bool {
+    let mut depth = 0usize;
+    let mut chars = upper.char_indices().peekable();
+    while let Some((start, ch)) = chars.next() {
+        match ch {
+            '\'' | '"' | '`' | '[' => {
+                let end = if ch == '[' { ']' } else { ch };
+                while let Some((_, c)) = chars.next() {
+                    if c == end && chars.next_if(|(_, c)| *c == end).is_none() { break; }
+                }
+            }
+            '(' => depth += 1,
+            ')' => depth = depth.saturating_sub(1),
+            c if c.is_ascii_alphabetic() || c == '_' => {
+                while chars.next_if(|(_, c)| c.is_alphanumeric() || matches!(c, '_' | '$')).is_some() {}
+                if depth != 0 { continue; }
+                let end = chars.peek().map_or(upper.len(), |(i, _)| *i);
+                match &upper[start..end] {
+                    "CREATE" | "DROP" | "ALTER" | "INSERT" | "REPLACE" | "UPDATE" | "DELETE" | "VACUUM" | "REINDEX" | "ANALYZE" => return true,
+                    "PRAGMA" => return upper[end..].contains(['=', '(']),
+                    "SELECT" | "VALUES" | "EXPLAIN" => return false,
+                    _ => {}
+                }
+            }
+            _ => {}
+        }
+    }
+    false
+}
+
 fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut mode = "list".to_string();
-    let mut csv_mode = false;
-    let mut json_mode = false;
     let mut header_mode = false;
     let mut echo_mode = false;
     let mut readonly_mode = false;
@@ -18817,24 +18846,25 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut row_sep = "\n".to_string();
     let mut nullvalue = String::new();
     let mut widths: Vec<usize> = Vec::new();
-    let mut init_files: Vec<String> = Vec::new();
+    let mut init_file = None;
+    let mut bail = false;
     let mut cmd_stmts: Vec<String> = Vec::new();
     let mut positional = Vec::new();
 
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
-            "--" => { positional.extend_from_slice(&args[i + 1..]); break; }
-            "-version" | "--version" => return ok_out("3.45.0 2024-01-15 17:01:13 1066602b2b1976fe58b5150777cced894af17c803e068f5918390d6915b46e1d\n"),
-            "-help" | "--help" => return ok_out(include_str!("help/sqlite3.txt")),
+        let arg = args[i].as_str();
+        let option = if arg.starts_with("--") && arg != "--" { &arg[1..] } else { arg };
+        match option {
+            "--" if arg == "--" => { positional.extend_from_slice(&args[i + 1..]); break; }
+            "-version" => return ok_out("3.45.0 2024-01-15 17:01:13 1066602b2b1976fe58b5150777cced894af17c803e068f5918390d6915b46e1d\n"),
+            "-help" => return ok_out(include_str!("help/sqlite3.txt")),
             "-csv" => {
                 mode = "csv".to_string();
-                csv_mode = true;
                 sep = ",".to_string();
             }
             "-json" => {
                 mode = "json".to_string();
-                json_mode = true;
             }
             "-markdown" => {
                 mode = "markdown".to_string();
@@ -18865,6 +18895,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             "-list" => {
                 mode = "list".to_string();
+                sep = "|".to_string();
             }
             "-line" => {
                 mode = "line".to_string();
@@ -18876,24 +18907,21 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "-noheader" => header_mode = false,
             "-echo" => echo_mode = true,
             "-readonly" => readonly_mode = true,
-            "-separator" if i + 1 < args.len() => {
+            "-batch" | "-interactive" => {}
+            "-bail" => bail = true,
+            "-separator" | "-nullvalue" | "-cmd" | "-init" => {
                 i += 1;
-                sep = args[i].clone();
+                let value = args.get(i);
+                match option {
+                    "-separator" => sep = value.map_or("|", String::as_str).to_owned(),
+                    "-nullvalue" => nullvalue = value.cloned().unwrap_or_default(),
+                    "-cmd" => cmd_stmts.extend(value.cloned()),
+                    _ => init_file = value,
+                }
             }
-            "-nullvalue" if i + 1 < args.len() => {
-                i += 1;
-                nullvalue = args[i].clone();
-            }
-            "-init" if i + 1 < args.len() => {
-                i += 1;
-                init_files.push(args[i].clone());
-            }
-            "-cmd" if i + 1 < args.len() => {
-                i += 1;
-                cmd_stmts.push(args[i].clone());
-            }
-            a if !a.starts_with('-') => positional.push(a.to_string()),
-            _ => {}
+            _ if arg.starts_with('-') && positional.is_empty() =>
+                return err_out(&format!("sqlite3: Error: unknown option: {arg}\n"), 1),
+            _ => positional.push(arg.to_owned()),
         }
         i += 1;
     }
@@ -18921,7 +18949,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 
     let mut out = String::new();
     let mut cleaned_sql = String::new();
+    let mut csv_mode = mode == "csv";
+    let mut json_mode = mode == "json";
     let cli_csv_mode = csv_mode;
+    let mut dirty = false;
+    let mut errors = String::new();
     let mut dot_mode_csv = false;
     let mut insert_table: Option<String> = None;
     let mut once_path: Option<String> = None;
@@ -18950,7 +18982,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
     }
 
-    for init_f in &init_files {
+    if let Some(init_f) = init_file {
         let full = resolve_posix_path(cwd, init_f);
         if let Ok(bytes) = fs.read_file(&full) {
             expand_dot_reads(&String::from_utf8_lossy(&bytes), cwd, fs, &mut cleaned_sql);
@@ -18996,6 +19028,23 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
         };
 
+        let upper = stmt.to_ascii_uppercase();
+        let dot_command = stmt.split_whitespace().next().filter(|name| name.starts_with('.'));
+        let mutates = if let Some(cmd) = dot_command {
+            matches!(cmd, ".import" | ".restore")
+        } else {
+            sqlite_mutates(&upper)
+        };
+        if readonly_mode && mutates {
+            errors.push_str("Error: attempt to write a readonly database\n");
+            if bail || (dot_command.is_none() && positional.len() >= 2) { break; }
+            continue;
+        }
+        dirty |= mutates && dot_command.is_none();
+        if let Some(rest) = stmt.strip_prefix(".bail") {
+            bail = matches!(rest.trim(), "on" | "1" | "true");
+            continue;
+        }
         if let Some(rest) = stmt.strip_prefix(".mode") {
             let parts: Vec<&str> = rest.split_whitespace().collect();
             let m_name = parts.first().copied().unwrap_or("list").to_ascii_lowercase();
@@ -19190,11 +19239,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             continue;
         }
-        if let Some(rest) = stmt.strip_prefix(".restore") {
+        if dot_command == Some(".restore") {
+            let rest = &stmt[".restore".len()..];
             let target = rest.trim().trim_matches('\'').trim_matches('"');
             if !target.is_empty() {
                 let full = resolve_posix_path(cwd, target);
                 if let Ok(bytes) = fs.read_file(&full) {
+                    dirty = true;
                     deserialize_sql_db(&bytes, &mut tables, &mut views, &mut indexes, &mut triggers, &mut user_version, &mut application_id);
                 }
             }
@@ -19250,7 +19301,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             emit_chunk(chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
             continue;
         }
-        if let Some(rest) = stmt.strip_prefix(".import") {
+        if dot_command == Some(".import") {
+            let rest = &stmt[".import".len()..];
             let parts: Vec<&str> = rest.split_whitespace().collect();
             let mut skip_lines = 0usize;
             let mut explicit_csv = false;
@@ -19277,6 +19329,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 let full = resolve_posix_path(cwd, pos_parts[0]);
                 let tname = pos_parts[1].to_string();
                 if let Ok(bytes) = fs.read_file(&full) {
+                    dirty = true;
                     let text = String::from_utf8_lossy(&bytes);
                     let mut lines = text.lines().filter(|l| !l.trim().is_empty()).skip(skip_lines);
                     if tables.contains_key(&tname) {
@@ -19333,17 +19386,6 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 }
             }
             continue;
-        }
-        let upper = stmt.to_ascii_uppercase();
-        if readonly_mode
-            && (upper.starts_with("INSERT")
-                || upper.starts_with("UPDATE")
-                || upper.starts_with("DELETE")
-                || upper.starts_with("CREATE")
-                || upper.starts_with("ALTER")
-                || upper.starts_with("DROP"))
-        {
-            return err_out("Error: attempt to write a readonly database\n", 1);
         }
         if upper.starts_with("BEGIN") {
             tx_snapshot = Some(tables.clone());
@@ -20104,7 +20146,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
     }
 
-    if db_path != ":memory:" {
+    if dirty && !readonly_mode && db_path != ":memory:" {
         if tables.values().any(|t| t.is_fts5) {
             return err_out("Error: unsupported FTS5 binary persistence; use a SQL dump\n", 1);
         }
@@ -20113,7 +20155,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         let _ = fs.write_file(&full, &bytes);
     }
 
-    ok_out(&out)
+    BuiltinOutcome { stdout: out, exit_code: i32::from(!errors.is_empty()), stderr: errors }
 }
 
 
@@ -36434,6 +36476,28 @@ mod tests {
                 assert_eq!(fs.read_file("/result").unwrap(), b"existing output");
             }
         }
+    }
+
+    #[test]
+    fn sqlite_cli_checks_options_before_opening_and_preserves_readonly_databases() {
+        let fs = MemoryVfs::new();
+        let run = |argv: &[&str]| cmd_sqlite3(&args(argv), "", "/", &fs);
+        let bad = run(&["--bad", "/db", "CREATE TABLE t(x)"]);
+        assert_eq!((bad.exit_code, bad.stderr.as_str()), (1, "sqlite3: Error: unknown option: --bad\n"));
+        assert!(fs.stat("/db").is_err());
+        assert_eq!(run(&["--readonly", "/missing", "SELECT 1"]).stdout, "1\n");
+        assert!(fs.stat("/missing").is_err());
+        assert_eq!(run(&["/db", "CREATE TABLE t(x); INSERT INTO t VALUES(1)"]).exit_code, 0);
+        fs.set_times("/db", None, Some(123.)).unwrap();
+        let before = fs.read_file("/db").unwrap();
+        for sql in ["/*comment*/ INSERT INTO t VALUES(2)", "WITH s AS (SELECT 2) INSERT INTO t SELECT * FROM s",
+            "PRAGMA user_version=2", ".import /data t", ".restore /backup"] {
+            let denied = run(&["--readonly", "/db", sql]);
+            assert_eq!((denied.exit_code, denied.stderr.as_str()), (1, "Error: attempt to write a readonly database\n"), "{sql}");
+        }
+        assert_eq!(run(&["--header", "--csv", "/db", "SELECT * FROM t"]).stdout, "x\n1\n");
+        assert_eq!(fs.read_file("/db").unwrap(), before);
+        assert_eq!(fs.stat("/db").unwrap().mtime_ms, 123.);
     }
 
     #[test]

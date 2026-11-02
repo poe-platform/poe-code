@@ -4752,6 +4752,10 @@ impl<'a> EvalState<'a> {
         let provided_devices = self.provided_devices;
         let mut sub_err: Option<EvalError> = None;
 
+        let inherited_stdin = std::ptr::from_ref(&*stdin);
+        let inherited_targets = &self.fd_table;
+        let inherited_inputs = &self.in_fds;
+        let inherited_aliases = &self.in_fd_aliases;
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
@@ -4763,7 +4767,7 @@ impl<'a> EvalState<'a> {
             self.env,
             fs_ref,
             |sub_words, sub_stdin, sub_cwd, sub_env| {
-                let mut fd_table = BTreeMap::new();
+                let mut fd_table = inherited_targets.clone();
                 fd_table.insert(1, FdTarget::Stdout);
                 fd_table.insert(2, FdTarget::Stderr);
                 let mut sub_eval = EvalState {
@@ -4781,8 +4785,8 @@ impl<'a> EvalState<'a> {
                     current_line: 1,
                     local_scopes: Vec::new(),
                     fd_table,
-                    in_fds: BTreeMap::new(),
-                    in_fd_aliases: BTreeMap::new(),
+                    in_fds: inherited_inputs.clone(),
+                    in_fd_aliases: inherited_aliases.clone(),
                     mapfile_callback_depth: 0,
                     callback_line_offset: 0,
                     traps: BTreeMap::new(),
@@ -4830,6 +4834,12 @@ impl<'a> EvalState<'a> {
                     used_typescript_bridge: used_typescript_bridge.clone(),
                     provided_devices,
                 };
+                if !std::ptr::eq(inherited_stdin, sub_stdin) {
+                    sub_eval.evacuate_in_fd_owner(0, &mut Vec::new());
+                    sub_eval.fd_table.remove(&0);
+                    sub_eval.in_fds.remove(&0);
+                    sub_eval.in_fd_aliases.remove(&0);
+                }
                 if let Err(e) = sub_eval.budget.enter_substitution() {
                     sub_err = Some(EvalError::Budget(e));
                     return BuiltinOutcome {
@@ -15761,6 +15771,23 @@ hash -l
             let result = shell.exec(&format!("exec 3</letters; {child}; echo :; cat <&3")).unwrap();
             assert_eq!(result.stdout, format!("{read}:\nbcdef"), "{child}");
             assert_eq!((result.exit_code, result.stderr.as_str()), (0, ""));
+        }
+    }
+
+    #[test]
+    fn nested_commands_share_inherited_file_positions_and_isolate_rebindings() {
+        for (child, expected) in [
+            ("env env head -c1 <&3", "aaYc:c"),
+            ("timeout 1 sh -c 'head -c1 <&3'", "aaYc:c"),
+            ("env sh -c 'printf X >&3; exec 3>&-'", "XYc:c"),
+            ("printf z | xargs -I{} sh -c 'cat; head -c1 <&3'", "aaYc:c"),
+            ("printf pipe | env head -c1", "pYbc:bc"),
+            ("env sh -c 'head -c1 <&4' 4<&3", "aaYc:c"),
+        ] {
+            let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+            fs.write_file("/f", b"abc").unwrap();
+            let r = shell.exec(&format!("exec 3<>/f; {child}; printf Y >&3; cat /f; printf :; cat <&3")).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{child}");
         }
     }
 

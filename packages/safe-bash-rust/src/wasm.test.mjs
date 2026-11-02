@@ -6300,3 +6300,36 @@ test("tar honors the last overwrite policy and finishes extracting after kept co
     }
   } finally { rs.dispose(); }
 });
+
+test("tar parses substitution expressions before publishing and preserves escaped delimiters", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const f of [fs, rs.fs]) {
+      await f.writeFile("/a,a;A", Buffer.from("payload"));
+      await f.writeFile("/archive", Buffer.from("original archive"));
+    }
+    for (const expr of ["s,a,b,q", "", "g/a/b/", "s", "s\\a", "s,a,b", "s,,b,", "s,a,b,;x",
+      String.raw`s/a/\U&/`, String.raw`s/(a)/\1/`, String.raw`s/(a)/\2/x`]) {
+      const cmd = "tar -cf archive --transform='" + expr + "' 'a,a;A'";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.equal(a.exitCode, 2, cmd);
+      assert.deepEqual([b.exitCode, b.stderr], [2, a.stderr], cmd);
+      for (const f of [fs, rs.fs]) assert.equal(Buffer.from(await f.readFile("/archive")).toString(), "original archive");
+    }
+    for (const [expr, name] of [
+      [String.raw`s,\,,.,;s;A;z;ig`, "z.z;z"],
+      [String.raw`s/(a)/[\1]/gix`, "[a],[a];[A]"],
+      [String.raw`s/\(a\)/{\1}/g`, "{a},{a};A"],
+      [String.raw`s/a;/a\//`, "a,a/A"],
+      ["s/(a)/literal/", "a,a;A"],
+    ]) {
+      const cmd = "tar -cf archive --xform '" + expr + "' 'a,a;A' && tar -tf archive";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([a.exitCode, a.stderr, a.stdout], [0, "", name + "\n"], cmd);
+      assert.deepEqual([b.exitCode, b.stderr, b.stdout], [a.exitCode, a.stderr, a.stdout], cmd);
+    }
+  } finally { rs.dispose(); }
+});

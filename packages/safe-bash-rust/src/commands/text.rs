@@ -557,7 +557,7 @@ fn split_sed_statements(script: &str) -> Result<Vec<String>, String> {
     Ok(out)
 }
 
-fn count_sed_regex_groups(pat: &str, extended: bool) -> usize {
+pub(super) fn count_sed_regex_groups(pat: &str, extended: bool) -> usize {
     let chs: Vec<char> = pat.chars().collect();
     let mut k = 0usize;
     let mut in_bracket = false;
@@ -644,7 +644,7 @@ fn validate_sed_labels(cmds: &[SedCmd]) -> Result<(), String> {
     check_sed_branches(cmds, &labels)
 }
 
-fn convert_bre_parens(pat: &str) -> String {
+pub(super) fn convert_bre_parens(pat: &str) -> String {
     let mut out = String::with_capacity(pat.len() + 4);
     let chs: Vec<char> = pat.chars().collect();
     let mut k = 0usize;
@@ -702,7 +702,7 @@ fn convert_bre_parens(pat: &str) -> String {
     out
 }
 
-fn convert_ere_escaped_parens(pat: &str) -> String {
+pub(super) fn convert_ere_escaped_parens(pat: &str) -> String {
     let mut out = String::with_capacity(pat.len() + 4);
     let chs: Vec<char> = pat.chars().collect();
     let mut k = 0usize;

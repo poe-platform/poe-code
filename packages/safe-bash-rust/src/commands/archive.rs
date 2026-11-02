@@ -4472,7 +4472,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut override_uid: Option<u32> = None;
     let mut override_gid: Option<u32> = None;
     let mut excludes: Vec<String> = Vec::new();
-    let mut transforms: Vec<String> = Vec::new();
+    let mut transforms = Vec::new();
     let mut operands: Vec<TarOperand> = Vec::new();
     let mut pending_files_from: Vec<(String, bool, bool, usize)> = Vec::new();
 
@@ -4651,14 +4651,16 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 i += 1;
                 continue;
             }
-            if (a == "--transform" || a == "--xform") && i + 1 < args.len() {
+            let transform = if matches!(a.as_str(), "--transform" | "--xform") && i + 1 < args.len() {
                 i += 1;
-                transforms.push(args[i].clone());
-                i += 1;
-                continue;
-            }
-            if let Some(tr) = a.strip_prefix("--transform=").or_else(|| a.strip_prefix("--xform=")) {
-                transforms.push(tr.to_string());
+                Some(args[i].as_str())
+            } else {
+                a.strip_prefix("--transform=").or_else(|| a.strip_prefix("--xform="))
+            };
+            if let Some(source) = transform {
+                if let Err(e) = parse_tar_transforms(source, &mut transforms) {
+                    return err_out(&format!("tar: {e}\n"), 2);
+                }
                 i += 1;
                 continue;
             }
@@ -5974,28 +5976,63 @@ fn tar_matches_exclude(path: &str, excludes: &[String]) -> bool {
     false
 }
 
-fn apply_tar_transforms(name: &str, transforms: &[String]) -> String {
-    let mut cur = name.to_string();
-    for tr in transforms {
-        for rule in tr.split(';') {
-            let r = rule.trim();
-            if !r.starts_with('s') || r.len() < 4 {
-                continue;
+struct TarTransform {
+    pattern: String,
+    replacement: String,
+    global: bool,
+    ignore_case: bool,
+}
+
+fn parse_tar_transforms(source: &str, transforms: &mut Vec<TarTransform>) -> Result<(), String> {
+    if source.is_empty() { return Err("empty transform expression".into()); }
+    let mut chars = source.chars();
+    while let Some(op) = chars.next() {
+        if op != 's' { return Err("only substitution transforms are supported".into()); }
+        let delimiter = chars.next().filter(|c| !matches!(c, '\\' | '\n')).ok_or("invalid transform delimiter")?;
+        let mut field = || {
+            let start = chars.as_str();
+            while let Some(c) = chars.next() {
+                if c == delimiter {
+                    return Ok(&start[..start.len() - chars.as_str().len() - c.len_utf8()]);
+                }
+                if c == '\\' { chars.next(); }
             }
-            let delim = r.chars().nth(1).unwrap();
-            let rest = &r[1 + delim.len_utf8()..];
-            let parts: Vec<&str> = rest.split(delim).collect();
-            if parts.len() >= 2 {
-                let pat = parts[0];
-                let rep = parts[1];
-                let flags = parts.get(2).copied().unwrap_or("");
-                let global = flags.contains('g');
-                let icase = flags.contains('i');
-                cur = crate::commands::search::replace_regex_in_text(&cur, pat, rep, icase, global, None).0;
+            Err("unterminated transform expression")
+        };
+        let pattern = field()?;
+        if pattern.is_empty() { return Err("empty transform pattern is unsupported".into()); }
+        let replacement = field()?;
+        let (mut global, mut ignore_case, mut extended) = (false, false, false);
+        for flag in chars.by_ref() {
+            match flag {
+                ';' => break,
+                'g' => global = true,
+                'i' => ignore_case = true,
+                'x' => extended = true,
+                _ => return Err(format!("unsupported transform flag: {flag}")),
             }
         }
+        let groups = super::text::count_sed_regex_groups(pattern, extended);
+        let mut repl = replacement.chars();
+        while let Some(c) = repl.next() {
+            if c == '\\' {
+                match repl.next() {
+                    Some('u' | 'U' | 'l' | 'L' | 'E') => return Err("transform replacement case conversion is unsupported".into()),
+                    Some(n @ '1'..='9') if (n as usize - '0' as usize) > groups => return Err("transform references an undefined capture group".into()),
+                    _ => {}
+                }
+            }
+        }
+        let pattern = if extended { super::text::convert_ere_escaped_parens(pattern) } else { super::text::convert_bre_parens(pattern) };
+        transforms.push(TarTransform { pattern, replacement: replacement.into(), global, ignore_case });
     }
-    cur
+    Ok(())
+}
+
+fn apply_tar_transforms(name: &str, transforms: &[TarTransform]) -> String {
+    transforms.iter().fold(name.to_owned(), |name, t| {
+        super::search::replace_regex_in_text(&name, &t.pattern, &t.replacement, t.ignore_case, t.global, None).0
+    })
 }
 
 fn tar_cache_directory(fs: &dyn SafeBashFs, directory: &str) -> Result<bool, String> {

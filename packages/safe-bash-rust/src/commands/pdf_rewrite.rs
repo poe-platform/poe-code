@@ -282,6 +282,12 @@ pub(in super::super) fn rewrite(
     {
         return p.finish(out, rows, &trailer_entries, limit);
     }
+    finish_classic(out, rows, &trailer_entries, limit)
+}
+
+pub(super) fn finish_classic(mut out: Vec<u8>, rows: Vec<(u8,usize,usize)>, trailer_entries: &[u8], limit: usize) -> Result<Vec<u8>, String> {
+    let next = rows.len();
+    if next > limit.saturating_sub(out.len()) / 20 { return Err(TOO_LARGE.into()); }
     let offset = out.len();
     writeln!(out, "xref\n0 {next}").unwrap();
     for (ty, pos, generation) in rows {
@@ -293,7 +299,7 @@ pub(in super::super) fn rewrite(
         .unwrap();
     }
     writeln!(out, "trailer\n<<\n/Size {next}").unwrap();
-    out.extend_from_slice(&trailer_entries);
+    out.extend_from_slice(trailer_entries);
     write!(out, ">>\n\nstartxref\n{offset}\n%%EOF").unwrap();
     if out.len() > limit {
         return Err(TOO_LARGE.into());

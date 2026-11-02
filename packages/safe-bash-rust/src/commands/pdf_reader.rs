@@ -33,6 +33,10 @@ mod pdf_filters;
 #[path = "pdf_string.rs"]
 mod pdf_string;
 
+#[path = "pdf_encrypt.rs"]
+mod pdf_encrypt;
+pub(super) use pdf_encrypt::encrypt_document;
+
 #[path = "pdf_security.rs"]
 mod pdf_security;
 pub(super) use pdf_security::{PASSWORD, UNSUPPORTED, accepts_password};

@@ -6313,7 +6313,7 @@ fn cmd_media_doc(
             let mut add_atts = Vec::new();
             let mut standard_rewrite = true;
             let mut copy_atts = Vec::new();
-            let mut encrypt_pw: Option<String> = None;
+            let mut encryption = None;
             let mut linearize = false;
             let mut qdf_mode = false;
             let mut uncompress = false;
@@ -6333,7 +6333,7 @@ fn cmd_media_doc(
                 if a.starts_with("--")
                     && !matches!(a, "--empty" | "--decrypt" | "--replace-input" | "--pages" | "--collate" | "--remove-info"
                         | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels"
-                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf")
+                        | "--copy-attachments-from" | "--add-attachment" | "--split-pages" | "--qdf" | "--encrypt")
                     && !["--password=", "--copy-attachments-from=", "--add-attachment=", "--remove-attachment=", "--rotate=",
                         "--split-pages=", "--collate=", "--object-streams=", "--normalize-content=",
                         "--compress-streams=", "--stream-data="].iter().any(|key| a.starts_with(key))
@@ -6577,13 +6577,18 @@ fn cmd_media_doc(
                     continue;
                 }
                 if a == "--encrypt" {
-                    let upw = args.get(i + 1).cloned().unwrap_or_default();
-                    let opw = args.get(i + 2).cloned().unwrap_or_default();
-                    encrypt_pw = Some(if !upw.is_empty() { upw } else { opw });
-                    i += 1;
+                    let user = args.get(i+1).map_or("", String::as_str);
+                    let owner = args.get(i+2).map_or("", String::as_str);
+                    // The production command writes revision 6 for every requested key length.
+                    let mut permissions = -1028i32; // all enabled except document assembly
+                    i += 4;
                     while i < args.len() && args[i] != "--" {
+                        permissions &= !match args[i].as_str() {
+                            "--print=none" => 4, "--modify=none" => 8, "--extract=n" => 16, "--annotate=n" => 32, _ => 0,
+                        };
                         i += 1;
                     }
+                    encryption = Some((user,owner,permissions));
                     if i < args.len() && args[i] == "--" {
                         i += 1;
                     }
@@ -7241,7 +7246,12 @@ fn cmd_media_doc(
                             for (name,part) in outputs { if let Err(e) = publish(&name,&part) { return e; } }
                             return ok_out("");
                         }
-                        let output = match rewrite() { Ok(v) => v, Err(e) => return e };
+                        let mut output = match rewrite() { Ok(v) => v, Err(e) => return e };
+                        if let Some((user,owner,mask)) = encryption && !edits.decrypt {
+                            output = match pdf_reader::encrypt_document(&output,user,owner,mask,limit) {
+                                Ok(v) => v, Err(e) => return err_out(&format!("qpdf: {e}\n"),2),
+                            };
+                        }
                         if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
                         return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
                     }
@@ -7557,8 +7567,8 @@ fn cmd_media_doc(
             {
                 doc.version = mv;
             }
-            if let Some(pw) = encrypt_pw {
-                doc.encrypted = Some(pw);
+            if encryption.is_some() && !edits.decrypt {
+                return err_out("qpdf: cannot encrypt a nonstandard PDF output\n",2);
             }
             if edits.decrypt {
                 doc.encrypted = None;

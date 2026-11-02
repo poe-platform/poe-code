@@ -43,21 +43,13 @@ fn hash(pw: &[u8], salt: &[u8], user: &[u8], r: usize) -> [u8; 32] {
     for i in 1..=288 {
         let combined = [pw, &k, user].concat();
         let mut blocks = combined.repeat(64);
-        let (rounds, n) = aes_expand_key(&k[..16]);
-        let mut iv: [u8; 16] = k[16..32].try_into().unwrap();
-        for chunk in blocks.chunks_exact_mut(16) {
-            for (v, b) in iv.iter_mut().zip(chunk.iter()) {
-                *v ^= *b;
-            }
-            iv = aes_encrypt_block(&iv, &rounds, n);
-            chunk.copy_from_slice(&iv);
-        }
+        let last = encrypt_blocks(&k[..16], k[16..32].try_into().unwrap(), &mut blocks);
         k = match blocks[..16].iter().map(|&b| usize::from(b)).sum::<usize>() % 3 {
             0 => sha256_bytes(&blocks).to_vec(),
             1 => sha384_bytes(&blocks).to_vec(),
             _ => sha512_bytes(&blocks).to_vec(),
         };
-        if i >= 64 && usize::from(iv[15]) + 32 <= i {
+        if i >= 64 && usize::from(last[15]) + 32 <= i {
             break;
         }
     }
@@ -99,4 +91,95 @@ pub(super) fn file_key(dict: &Value<'_>, password: &str, r: usize) -> Option<Vec
     } else {
         authenticate(&prepared).or_else(|| (prepared != raw).then(|| authenticate(raw)).flatten())
     }
+}
+
+fn encrypt_blocks(key: &[u8], mut iv: [u8; 16], bytes: &mut [u8]) -> [u8; 16] {
+    let (rounds, n) = aes_expand_key(key);
+    for block in bytes.chunks_exact_mut(16) {
+        for (v, b) in iv.iter_mut().zip(block.iter()) {
+            *v ^= *b;
+        }
+        iv = aes_encrypt_block(&iv, &rounds, n);
+        block.copy_from_slice(&iv);
+    }
+    iv
+}
+
+pub(in super::super) fn encryption(
+    user: &str,
+    owner: &str,
+    permissions: i32,
+) -> Result<([u8; 32], Value<'static>), String> {
+    use crate::vfs::memory::fill_random;
+    let mut key = [0; 32];
+    fill_random(&mut key)?;
+    let entry = |password: &str, user: &[u8]| -> Result<_, String> {
+        let mut salt = [0; 16];
+        fill_random(&mut salt)?;
+        let pw = pdf_password::prepared(password);
+        let validation = hash(&pw, &salt[..8], user, 6);
+        let mut wrapped = key;
+        encrypt_blocks(&hash(&pw, &salt[8..], user, 6), [0; 16], &mut wrapped);
+        Ok(([validation.as_slice(), &salt].concat(), wrapped))
+    };
+    let (u, ue) = entry(user, &[])?;
+    let (o, oe) = entry(owner, &u)?;
+    let mut perms = [0xff; 16];
+    perms[..4].copy_from_slice(&permissions.to_le_bytes());
+    perms[8..12].copy_from_slice(b"Tadb");
+    fill_random(&mut perms[12..])?;
+    encrypt_blocks(&key, [0; 16], &mut perms);
+    let word = |s: &'static [u8]| Value::Word(s.into());
+    let hex = |bytes| Value::String { bytes, hex: true };
+    let cf = Value::Dict(vec![(
+        b"StdCF".into(),
+        Value::Dict(vec![
+            (b"CFM".into(), word(b"/AESV3")),
+            (b"AuthEvent".into(), word(b"/DocOpen")),
+            (b"Length".into(), word(b"32")),
+        ]),
+    )]);
+    Ok((
+        key,
+        Value::Dict(vec![
+            (b"Filter".into(), word(b"/Standard")),
+            (b"V".into(), word(b"5")),
+            (b"R".into(), word(b"6")),
+            (b"Length".into(), word(b"256")),
+            (
+                b"P".into(),
+                Value::Word(permissions.to_string().into_bytes().into()),
+            ),
+            (b"EncryptMetadata".into(), word(b"true")),
+            (b"U".into(), hex(u)),
+            (b"O".into(), hex(o)),
+            (b"UE".into(), hex(ue.to_vec())),
+            (b"OE".into(), hex(oe.to_vec())),
+            (b"Perms".into(), hex(perms.to_vec())),
+            (b"CF".into(), cf),
+            (b"StmF".into(), word(b"/StdCF")),
+            (b"StrF".into(), word(b"/StdCF")),
+        ]),
+    ))
+}
+
+pub(in super::super) fn encrypt(
+    key: &[u8; 32],
+    data: &[u8],
+    limit: usize,
+) -> Result<Vec<u8>, String> {
+    let padding = 16 - data.len() % 16;
+    let size = data
+        .len()
+        .checked_add(padding + 16)
+        .filter(|n| *n <= limit)
+        .ok_or("PDF output byte limit exceeded")?;
+    let mut iv = [0; 16];
+    crate::vfs::memory::fill_random(&mut iv)?;
+    let mut out = Vec::with_capacity(size);
+    out.extend_from_slice(&iv);
+    out.extend_from_slice(data);
+    out.resize(size, padding as u8);
+    encrypt_blocks(key, iv, &mut out[16..]);
+    Ok(out)
 }

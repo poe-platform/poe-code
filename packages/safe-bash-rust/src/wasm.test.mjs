@@ -4539,3 +4539,49 @@ test("qpdf decrypts a linearized PDF with 40-bit revision 4 object streams", asy
     assert.ok(actual.equals(expected), "first byte difference: "+expected.findIndex((v,i)=>actual[i]!==v));
   } finally { rust.dispose(); }
 });
+
+test("qpdf writes interoperable AES-256 files with separate passwords and permissions", async t => {
+  const {PdfDocument,cosDict,cosName,cosString,dictSet,dictGet} = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.setTitle("private metadata");
+  doc.addPage().drawText("private text", {x:10,y:10});
+  const secret = "custom private string";
+  const root = doc.cos.resolveDict(doc.cos.rootRef);
+  dictSet(root, "Evidence", cosString(secret));
+  dictSet(root, "Signature", cosDict({Type:cosName("Sig"), Contents:cosString("public signature")}));
+  const rust = new RustWasmBash({cwd:"/",files:{"/in":doc.save(),"/payload":Buffer.from("private attachment")}});
+  try {
+    let previous;
+    for (const bits of [128,256]) {
+      const result = await rust.exec("qpdf in --add-attachment payload -- --encrypt 'réader' owner "+bits+" --print=none --extract=n -- out");
+      assert.equal(result.exitCode,0,result.stderr);
+      const bytes = Buffer.from(await rust.fs.readFile("/out"));
+      assert.throws(()=>PdfDocument.load(bytes,{password:"wrong"}), /Invalid PDF password/);
+      for (const password of ["re\u0301ader","owner"]) {
+        const parsed = PdfDocument.load(bytes,{password});
+        assert.equal(parsed.cos.encryption.revision,6);
+        assert.equal(parsed.cos.encryption.permissions.print,false);
+        assert.equal(parsed.cos.encryption.permissions.copy,false);
+        assert.equal(parsed.cos.encryption.permissions.modify,true);
+        assert.match(parsed.extractText(), /private text/);
+      }
+      assert.ok(!bytes.includes(secret) && !bytes.includes("private attachment"));
+      assert.ok(bytes.includes("public signature"));
+      assert.equal((await rust.exec("qpdf out --password=owner --show-attachment=payload")).stdout,"private attachment");
+      const cos = PdfDocument.load(bytes,{password:"owner"}).cos, key = cos.encryption.fileKey;
+      const {createDecipheriv} = await import("node:crypto");
+      const decipher = createDecipheriv("aes-256-ecb",key,null);
+      decipher.setAutoPadding(false);
+      const perms = Buffer.concat([decipher.update(dictGet(cos.resolveDict(cos.encryptRef),"Perms").bytes),decipher.final()]);
+      assert.equal(perms.readInt32LE(),-1048);
+      assert.deepEqual([...perms.subarray(4,12)],[255,255,255,255,84,97,100,98]);
+      if (previous) assert.notDeepEqual(previous,key);
+      previous = key;
+    }
+    const prior = await rust.fs.readFile("/out");
+    t.mock.method(globalThis.crypto,"getRandomValues",()=>{throw new Error("no entropy");});
+    const failed = await rust.exec("qpdf in --encrypt user owner 256 -- out");
+    assert.notEqual(failed.exitCode,0);
+    assert.deepEqual(await rust.fs.readFile("/out"),prior);
+  } finally {rust.dispose();}
+});

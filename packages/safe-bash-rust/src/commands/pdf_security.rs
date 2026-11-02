@@ -6,7 +6,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
 };
 #[path = "pdf_aes.rs"]
-mod pdf_aes;
+pub(super) mod pdf_aes;
 
 #[derive(Clone, Copy, PartialEq)]
 enum Cipher {
@@ -104,36 +104,44 @@ impl Security {
         if self.excluded(id, v) {
             return;
         }
-        fn visit(v: &mut Value<'_>, key: &[u8], method: Cipher) {
-            let signature = [b"Type".as_slice(), b"FT"]
-                .iter()
-                .any(|k| v.get(k).and_then(Value::word) == Some(b"/Sig"))
-                || matches!(v.get(b"ByteRange"), Some(Value::Array(_)))
-                    && v.get(b"Filter")
-                        .and_then(Value::word)
-                        .is_some_and(|w| w.starts_with(b"/"));
-            match v {
-                Value::String { bytes, hex } => {
-                    method.decrypt(key, bytes);
-                    *hex = true;
-                }
-                Value::Array(a) => {
-                    for x in a {
-                        visit(x, key, method)
-                    }
-                }
-                Value::Dict(d) => {
-                    for (k, x) in d {
-                        if !signature || k.as_ref() != b"Contents" {
-                            visit(x, key, method)
-                        }
-                    }
-                }
-                _ => {}
+        let key = self.object_key(id, self.strings);
+        let Ok(()) = transform_strings(v, &mut |bytes| {
+            self.strings.decrypt(&key, bytes);
+            Ok::<_, std::convert::Infallible>(())
+        });
+    }
+}
+pub(super) fn transform_strings<E>(
+    v: &mut Value<'_>,
+    transform: &mut impl FnMut(&mut Vec<u8>) -> Result<(), E>,
+) -> Result<(), E> {
+    let signature = [b"Type".as_slice(), b"FT"]
+        .iter()
+        .any(|k| v.get(k).and_then(Value::word) == Some(b"/Sig"))
+        || matches!(v.get(b"ByteRange"), Some(Value::Array(_)))
+            && v.get(b"Filter")
+                .and_then(Value::word)
+                .is_some_and(|w| w.starts_with(b"/"));
+    match v {
+        Value::String { bytes, hex } => {
+            transform(bytes)?;
+            *hex = true;
+        }
+        Value::Array(a) => {
+            for x in a {
+                transform_strings(x, transform)?
             }
         }
-        visit(v, &self.object_key(id, self.strings), self.strings);
+        Value::Dict(d) => {
+            for (k, x) in d {
+                if !signature || k.as_ref() != b"Contents" {
+                    transform_strings(x, transform)?
+                }
+            }
+        }
+        _ => {}
     }
+    Ok(())
 }
 impl<'a> Objects<'a> {
     fn resolve_encryption(
@@ -355,16 +363,17 @@ impl<'a> Objects<'a> {
         } else {
             security.streams
         };
-        let decrypt = |method: Cipher, data: &mut Cow<'a, [u8]>, objects: &mut Self| -> Option<()> {
-            if method != Cipher::Identity {
-                objects.remaining_bytes = objects.remaining_bytes.checked_sub(data.len())?;
-                method.decrypt(
-                    &objects.security.as_ref()?.object_key(id, method),
-                    data.to_mut(),
-                );
-            }
-            Some(())
-        };
+        let decrypt =
+            |method: Cipher, data: &mut Cow<'a, [u8]>, objects: &mut Self| -> Option<()> {
+                if method != Cipher::Identity {
+                    objects.remaining_bytes = objects.remaining_bytes.checked_sub(data.len())?;
+                    method.decrypt(
+                        &objects.security.as_ref()?.object_key(id, method),
+                        data.to_mut(),
+                    );
+                }
+                Some(())
+            };
         let mut filters = match dict.get(b"Filter").or_else(|| dict.get(b"F")) {
             Some(v) => match self.filter_value(v.clone())? {
                 Value::Array(a) => a

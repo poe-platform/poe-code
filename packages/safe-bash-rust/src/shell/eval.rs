@@ -16032,6 +16032,19 @@ hash -l
     }
 
     #[test]
+    fn sort_key_positions_use_safe_integers_even_beyond_the_address_space() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/rows", b"y c\nx b\n").unwrap();
+        for key in ["4294967300", "2.9007199254740991", "2.1,2.9007199254740991"] {
+            let r = shell.exec(&format!("sort -sk{key} /rows")).unwrap();
+            assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{key}");
+            assert_eq!(r.stdout, if key.starts_with("2.1,") { "x b\ny c\n" } else { "y c\nx b\n" }, "{key}");
+        }
+        let r = shell.exec("sort -k9007199254740992 /rows").unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (2, "sort: invalid number '9007199254740992'\n"));
+    }
+
+    #[test]
     fn sort_validates_memory_and_fan_in_before_reading_input() {
         let (mut shell, _) = crate::shell::Shell::with_memory_fs();
         for (options, error) in [

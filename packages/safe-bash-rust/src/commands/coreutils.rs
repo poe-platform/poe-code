@@ -1854,7 +1854,7 @@ struct SortKey {
 fn parse_sort_key(specification: &str) -> Result<SortKey, String> {
     let bytes = specification.as_bytes();
     let mut offset = 0usize;
-    let parse_pos = |offset: &mut usize, min_val: usize| -> Result<usize, String> {
+    let parse_pos = |offset: &mut usize, min_val: u64| -> Result<usize, String> {
         let begin = *offset;
         while *offset < bytes.len() && bytes[*offset].is_ascii_digit() {
             *offset += 1;
@@ -1864,16 +1864,16 @@ fn parse_sort_key(specification: &str) -> Result<SortKey, String> {
         }
         let raw = &specification[begin..*offset];
         let val = raw
-            .parse::<usize>()
+            .parse::<u64>()
             .map_err(|_| format!("sort: invalid number '{raw}'\n"))?;
-        if val < min_val {
+        if !(min_val..(1 << 53)).contains(&val) {
             return Err(format!("sort: invalid number '{raw}'\n"));
         }
-        Ok(val)
+        Ok(usize::try_from(val).unwrap_or(usize::MAX))
     };
     let mut flags = BTreeSet::new();
     let parse_endpoint = |offset: &mut usize,
-                          min_char: usize,
+                          min_char: u64,
                           flags: &mut BTreeSet<char>|
      -> Result<(usize, Option<usize>, bool), String> {
         let field = parse_pos(offset, 1)?;
@@ -1964,8 +1964,7 @@ fn extract_sort_key_bytes<'a>(
     let start = field_start(
         fields.get(key.start - 1).copied(),
         key.start_blanks || inherit_blanks,
-    ) + key.start_character
-        - 1;
+    ).saturating_add(key.start_character - 1);
     let last = key.end.and_then(|e| fields.get(e - 1).copied());
     let end = match key.end {
         None => line.len(),
@@ -1973,7 +1972,7 @@ fn extract_sort_key_bytes<'a>(
             None => line.len(),
             Some(lf) => match key.end_character {
                 None => lf.1,
-                Some(ec) => (field_start(Some(lf), key.end_blanks || inherit_blanks) + ec).min(line.len()),
+                Some(ec) => field_start(Some(lf), key.end_blanks || inherit_blanks).saturating_add(ec).min(line.len()),
             },
         },
     };

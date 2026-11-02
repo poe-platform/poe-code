@@ -786,9 +786,9 @@ pub(super) fn header_version(bytes: &[u8]) -> Option<String> {
 }
 
 fn last_xref(bytes: &[u8]) -> Option<usize> {
-    let tail = bytes.get(bytes.len().saturating_sub(4096)..)?;
-    let offset_pos = tail.windows(9).rposition(|w| w == b"startxref")? + 9;
-    uint(Cursor(&tail[offset_pos..]).word()?)
+    let offset_pos = bytes.windows(9).rposition(|w| w == b"startxref")? + 9;
+    let offset: f64 = std::str::from_utf8(Cursor(&bytes[offset_pos..]).word()?).ok()?.parse().ok()?;
+    (offset >= 0. && offset < bytes.len() as f64 && offset.fract() == 0.).then_some(offset as usize)
 }
 
 #[path = "pdf_repair.rs"]

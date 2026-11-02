@@ -3929,6 +3929,8 @@ test("qpdf reads the last row of overlapping xref subsections and stops at a vis
     "/visited.pdf":Buffer.from(body+"xref\n1 4\n"+[...offsets.slice(1,4),newest].map(row).join("")+
       "trailer << /Size 5 /Root 1 0 R /Prev "+xref+" >>\nstartxref\n"+xref+"\n%%EOF")
   };
+  files["/padded.pdf"]=Buffer.concat([files["/deleted.pdf"],Buffer.alloc(32768,32)]);
+  files["/decimal.pdf"]=Buffer.from(files["/deleted.pdf"].toString().replace("startxref\n"+xref+"\n","startxref\n+"+xref+".0\n"));
   const fs=new MemoryFileSystem(),wasm=new RustWasmBash({cwd:"/",files});
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
   try {
@@ -3937,7 +3939,7 @@ test("qpdf reads the last row of overlapping xref subsections and stops at a vis
       for(const flags of ["--show-object=4","--show-pages","--check","--pages . 1 -- -"]) {
         const script="qpdf "+path+" "+flags,want=await js.exec(script),got=await wasm.exec(script);
         assert.equal(want.exitCode,0,want.stderr);
-        if(flags==="--show-object=4")assert.equal(want.stdout,path==="/deleted.pdf"?"null\n":"(latest object)\n");
+        if(flags==="--show-object=4")assert.equal(want.stdout,["/deleted.pdf","/padded.pdf","/decimal.pdf"].includes(path)?"null\n":"(latest object)\n");
         assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
       }
     }

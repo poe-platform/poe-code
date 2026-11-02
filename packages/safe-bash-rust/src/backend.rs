@@ -144,6 +144,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         }))
     }
 
+    fn commit_file_edit(&self, path: &str, original: &crate::vfs::FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(after.len())?;
+        self.inner.commit_file_edit(path, original, before, after, in_place)
+    }
+
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

@@ -98,6 +98,11 @@ impl SafeBashFs for MountVfs {
         fs.open_chunks(&path)
     }
 
+    fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
+        let (_, fs, entry) = self.location(&self.resolve(path, false, WalkPurpose::Access)?);
+        fs.commit_file_edit(&entry, original, before, after, in_place)
+    }
+
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         let entry = self.resolve(path, false, WalkPurpose::Rename)?;
         if entry != path { return Err("EAGAIN: resolved entry changed".into()); }

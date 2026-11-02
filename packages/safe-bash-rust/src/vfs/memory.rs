@@ -206,6 +206,15 @@ impl MemoryState {
         }
     }
 
+    fn insert_new_file(&mut self, path: String, data: Vec<u8>, mode: u32, publication: Option<u64>) {
+        let ino = self.allocate_ino();
+        let now = super::now_ms();
+        self.files.insert(ino, MemoryFile { data, publication, mode, atime_ms: now, mtime_ms: now,
+            ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
+        self.parent_changed(&path, now);
+        self.nodes.insert(path, MemoryNode::File { ino });
+    }
+
     fn insert_directory(&mut self, path: String, node: MemoryNode) {
         if path != "/" && !self.nodes.contains_key(&path) { *self.child_dirs.entry(super::dirname_posix_path(&path)).or_default() += 1; }
         if let MemoryNode::Directory { retained, .. } = &node && let Some(handle) = retained.upgrade() {
@@ -445,6 +454,33 @@ impl MemoryVfs {
         Ok(())
     }
 
+    fn check_edit(&self, state: &MemoryState, path: &str, original: &FileStat, before: &[u8], in_place: bool) -> Result<(), String> {
+        let changed = || format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'");
+        let Some(MemoryNode::File { ino }) = state.nodes.get(path) else { return Err(changed()) };
+        let mut observed = self.resolved_metadata(state, path).ok_or_else(changed)?;
+        // Reading the original may advance atime. All other metadata and the bytes must still match.
+        observed.atime_ms = original.atime_ms;
+        if observed != *original || state.files[ino].data != before { return Err(changed()); }
+        if original.mode & 0o200 == 0 { return Err(format!("EACCES: permission denied, access '{path}'")); }
+        if !in_place && original.nlink != Some(1) { return Err("VFS hardlink replacement is not yet supported".into()); }
+        Ok(())
+    }
+
+    fn replace_inode(state: &mut MemoryState, entry: String, after: &[u8], mode: u32) -> Result<(), String> {
+        // Reserve the new inode and its contents before detaching the old one. Open readers
+        // retain the old file and its byte charge until they close their last descriptor.
+        if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+        if after.len() > state.limits.max_file_bytes { return Err("EFBIG: file size budget exceeded".into()); }
+        if after.len() > state.limits.max_total_bytes.saturating_sub(state.total_bytes) { return Err("ENOSPC: file system byte budget exceeded".into()); }
+        let mut data = Vec::new();
+        data.try_reserve_exact(after.len()).map_err(|_| "ENOSPC: insufficient memory")?;
+        data.extend_from_slice(after);
+        Self::unlink_locked(state, &entry);
+        state.total_bytes += data.len();
+        state.insert_new_file(entry, data, mode, None);
+        Ok(())
+    }
+
     fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32, publication: Option<u64>, suffix: Option<&[u8]>) -> Result<(), String> {
         let existing = match state.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => return Err(format!("EISDIR: illegal operation on a directory, open '{resolved}'")),
@@ -477,16 +513,11 @@ impl MemoryVfs {
             file.mtime_ms = super::now_ms();
             file.ctime_ms = file.mtime_ms;
         } else {
-            let ino = state.allocate_ino();
-            let now = super::now_ms();
             let mut contents = Vec::new();
             contents.try_reserve_exact(new_len).map_err(|_| "ENOSPC: insufficient memory")?;
             contents.extend_from_slice(data);
             if let Some(tail) = suffix { contents.extend_from_slice(tail); }
-            state.files.insert(ino, MemoryFile { data: contents, publication, mode: create_mode,
-                atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
-            state.parent_changed(&resolved, now);
-            state.nodes.insert(resolved, MemoryNode::File { ino });
+            state.insert_new_file(resolved, contents, create_mode, publication);
         }
         state.total_bytes = next_total;
         Ok(())
@@ -546,11 +577,25 @@ impl MemoryVfs {
         Ok((base, upper))
     }
 
-    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>, append: bool, publication: Option<u64>) -> Result<(), String> {
+    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>, operation: super::overlay::FileWrite<'_>) -> Result<(), String> {
+        use super::overlay::FileWrite;
+        let append = matches!(operation, FileWrite::Append);
+        let publication = match operation { FileWrite::Publish { stamp, .. } => Some(stamp), _ => None };
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
         let creating = !upper.nodes.contains_key(path);
         if creating && parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
             return Err("ENOSPC: inode limit exceeded".into());
+        }
+        if let FileWrite::Edit { original, before, in_place } = operation {
+            if creating { lower.check_edit(&base, path, original, before, in_place)?; }
+            else {
+                self.check_edit(&upper, path, original, before, in_place)?;
+                if !in_place {
+                    Self::replace_inode(&mut upper, path.to_owned(), data, original.mode)?;
+                    self.bump_generation();
+                    return Ok(());
+                }
+            }
         }
         let initial = if append && creating && atime.is_some() {
             let Some(MemoryNode::File { ino }) = base.nodes.get(path) else { return Err("EBUSY: lower file changed".into()); };
@@ -900,6 +945,23 @@ impl SafeBashFs for MemoryVfs {
                 }))
             }
         }
+    }
+
+    fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let entry = Self::mutation_entry(&state, path)?;
+        self.check_edit(&state, &entry, original, before, in_place)?;
+        if in_place {
+            Self::store_file(&mut state, entry, after, original.mode, None, None)?;
+        } else {
+            let parent = super::dirname_posix_path(&entry);
+            if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+                return Err("EACCES: permission denied".into());
+            }
+            Self::replace_inode(&mut state, entry, after, original.mode)?;
+        }
+        self.bump_generation();
+        Ok(())
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
@@ -1585,6 +1647,23 @@ mod tests {
             }
             assert!(!fs.remove_published("/a", stamp).unwrap(), "{change}");
         }
+    }
+
+    #[test]
+    fn conditional_edits_leave_original_on_quota_failure_and_update_hardlinks_in_place() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/f", b"abc").unwrap();
+        let original = fs.stat("/f").unwrap();
+        fs.set_max_total_bytes(5);
+        assert!(fs.commit_file_edit("/f", &original, b"abc", b"def", false).unwrap_err().starts_with("ENOSPC:"));
+        assert_eq!(fs.stat("/f").unwrap().identity, original.identity);
+        assert_eq!(fs.read_file("/f").unwrap(), b"abc");
+        fs.hard_link("/f", "/alias").unwrap();
+        assert!(fs.commit_file_edit("/f", &original, b"abc", b"stale", true).unwrap_err().starts_with("EAGAIN:"));
+        let linked = fs.stat("/f").unwrap();
+        fs.commit_file_edit("/f", &linked, b"abc", b"def", true).unwrap();
+        assert_eq!(fs.read_file("/alias").unwrap(), b"def");
+        assert_eq!(fs.stat("/alias").unwrap().identity, original.identity);
     }
 
     #[test]

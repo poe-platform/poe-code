@@ -190,6 +190,12 @@ pub trait SafeBashFs: Send + Sync {
         }
     }
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
+    /// Commit an edit only while the original regular file and its contents still match.
+    /// A replacement gets a new inode; an in-place edit keeps existing links and handles.
+    fn commit_file_edit(&self, _path: &str, _original: &FileStat, _before: &[u8], _after: &[u8], in_place: bool) -> Result<(), String> {
+        Err(if in_place { "VFS atomic in-place publication not supported" }
+            else { "VFS atomic replacement publication not supported" }.into())
+    }
     /// Create at the resolved entry with the requested mode. An occupied name is never followed or overwritten.
     fn create_file(&self, _path: &str, _data: &[u8], _mode: u32) -> Result<(), String> {
         Err("ENOTSUP: exclusive file creation is unsupported".into())

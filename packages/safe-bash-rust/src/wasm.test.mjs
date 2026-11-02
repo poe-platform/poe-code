@@ -3307,3 +3307,32 @@ test("exiftool creates named outputs and backups without overwriting occupied na
     } finally { wasm.dispose(); }
   }
 });
+
+test("exiftool replaces the inode on normal edits and retains it for explicit in-place edits", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage();
+  const bytes = doc.save();
+  for (const flags of ["", "-overwrite_original", "-overwrite_original_in_place"]) {
+    const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/" });
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
+    try {
+      for (const [backend, runtime] of [[fs, shell], [wasm.fs, wasm]]) {
+        await backend.writeFile("/source.pdf", bytes, { mode: 0o640 });
+        const before = await backend.stat("/source.pdf");
+        const handle = await backend.open("/source.pdf", { access: "read", creation: "never" });
+        try {
+          const result = await runtime.exec("exiftool -Title=new " + flags + " /source.pdf");
+          assert.equal(result.exitCode, 0, result.stderr);
+          const after = await backend.stat("/source.pdf");
+          assert.equal(after.ino === before.ino, flags === "-overwrite_original_in_place", flags);
+          assert.equal(after.mode, before.mode);
+          assert.equal((await handle.stat()).size, flags === "-overwrite_original_in_place" ? after.size : before.size);
+          assert.equal(PdfDocument.load(await backend.readFile("/source.pdf")).getMetadata().title, "new");
+        } finally { await handle.close(); }
+      }
+    } finally { wasm.dispose(); }
+  }
+});

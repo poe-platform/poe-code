@@ -11908,7 +11908,7 @@ fn cmd_media_doc(
                 let mut err_out = String::new();
                 for f in &files {
                     let full = resolve_posix_path(cwd, f);
-                    let (original, mut data) = match acquire(&full) {
+                    let (original, data) = match acquire(&full) {
                         Ok(file) => file,
                         Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
                     };
@@ -11967,24 +11967,25 @@ fn cmd_media_doc(
                             Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
                         }
                     }
+                    let mut edited = data.clone();
                     if let Some(suffix) = revision {
-                        data.extend_from_slice(&suffix);
+                        edited.extend_from_slice(&suffix);
                     } else {
                         for (k, v) in &updates {
                             let k = k.trim_end_matches(['+', '-']);
-                            data.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
+                            edited.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
                         }
                     }
                     if let Some(path) = &out_path {
                         if path == "-" || path.contains('\0') {
                             err_out.push_str(&format!("Error: Invalid or unsupported ExifTool file path - {f}\n")); continue;
                         }
-                        match create(&resolve_posix_path(cwd, path), &data) {
+                        match create(&resolve_posix_path(cwd, path), &edited) {
                             Ok(()) => created += 1,
                             Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
                         }
                     } else {
-                        match fs.write_file(&full, &data) {
+                        match fs.commit_file_edit(&full, &original, &data, &edited, in_place) {
                             Ok(()) => updated += 1,
                             Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
                         }

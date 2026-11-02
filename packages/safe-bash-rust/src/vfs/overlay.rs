@@ -12,9 +12,10 @@ struct DirectoryObservation {
     logical: EntryIdentity,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum FileWrite<'a> {
+#[derive(Clone, Copy)]
+pub(super) enum FileWrite<'a> {
     Create(u32), Replace, Append,
+    Edit { original: &'a FileStat, before: &'a [u8], in_place: bool },
     Publish { inputs: &'a [String], version: u64, stamp: u64 },
 }
 
@@ -207,20 +208,21 @@ impl OverlayVfs {
         if exclusive_mode.is_some() && memory_layers.is_none() {
             return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
         }
+        if let FileWrite::Edit { in_place, .. } = operation && memory_layers.is_none() {
+            return Err(if in_place { "VFS atomic in-place publication not supported" }
+                else { "VFS atomic replacement publication not supported" }.into());
+        }
         let versions = (self.lower.generation(), self.upper.generation());
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
-        let publication = if let FileWrite::Publish { version, stamp, .. } = operation {
+        if let FileWrite::Publish { version, .. } = operation {
             if memory_layers.is_none() {
                 return Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into());
             }
             if self.generation() != version {
                 return Err("EAGAIN: filesystem changed before publication".into());
             }
-            Some(stamp)
-        } else {
-            None
-        };
-        let target = self.access_path(path, exclusive_mode.is_none() && publication.is_none())?;
+        }
+        let target = self.access_path(path, matches!(operation, FileWrite::Replace | FileWrite::Append))?;
         if exclusive_mode.is_some() && target != path { return Err("EAGAIN: resolved entry changed".into()); }
         let existing = match self.lstat(&target) {
             Ok(_) if exclusive_mode.is_some() => return Err("EEXIST: file already exists".into()),
@@ -228,6 +230,12 @@ impl OverlayVfs {
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
+        if let FileWrite::Edit { in_place, .. } = operation {
+            if existing.is_none() { return Err(format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'")); }
+            if !in_place && self.stat(&crate::vfs::dirname_posix_path(&target))?.mode & 0o300 != 0o300 {
+                return Err("EACCES: permission denied".into());
+            }
+        }
         if let FileWrite::Publish { inputs, .. } = operation {
             if existing
                 .as_ref()
@@ -259,7 +267,7 @@ impl OverlayVfs {
             if !upper_exists { self.check_file_copy_up(&target, st)?; }
         }
         let Some((lower, upper)) = memory_layers else {
-            if operation == FileWrite::Append && existing.is_some() {
+            if matches!(operation, FileWrite::Append) && existing.is_some() {
                 let mut contents = self.read_file(&target)?;
                 contents.extend_from_slice(data);
                 return self.upper.write_file(&target, &contents);
@@ -281,7 +289,8 @@ impl OverlayVfs {
         let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
         let mode = exclusive_mode.unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
-        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, existing.map(|st| st.atime_ms)), parents, operation == FileWrite::Append, publication))
+        let atime = if matches!(operation, FileWrite::Edit { in_place: false, .. }) { None } else { existing.map(|st| st.atime_ms) };
+        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, atime), parents, operation))
     }
 
     fn forget_directory(&self, path: &str) {
@@ -376,6 +385,10 @@ impl SafeBashFs for OverlayVfs {
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         let (fs, path) = self.read_source(path)?;
         fs.open_chunks(&path)
+    }
+
+    fn commit_file_edit(&self, path: &str, original: &FileStat, before: &[u8], after: &[u8], in_place: bool) -> Result<(), String> {
+        self.write_entry(path, after, FileWrite::Edit { original, before, in_place })
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
@@ -839,6 +852,30 @@ mod tests {
         assert_ne!(fs.stat("/a/b").unwrap().identity, b);
         lower.remove_path("/a").unwrap();
         assert_ne!(fs.stat("/a").unwrap().identity, replacement);
+    }
+
+    #[test]
+    fn conditional_edits_copy_up_once_and_reject_changed_or_replaced_files() {
+        let lower = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        lower.write_file("/d/f", b"base").unwrap();
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        lower.set_times("/d/f", Some(42.0), None).unwrap();
+        let base = fs.stat("/d/f").unwrap();
+        fs.commit_file_edit("/d/f", &base, b"base", b"copy", false).unwrap();
+        assert_eq!(lower.read_file("/d/f").unwrap(), b"base");
+        let copy = fs.stat("/d/f").unwrap();
+        assert_ne!(base.identity, copy.identity);
+        assert_ne!(base.atime_ms, copy.atime_ms);
+        assert!(fs.commit_file_edit("/d/f", &base, b"base", b"stale", false).is_err());
+        assert!(fs.commit_file_edit("/d/f", &copy, b"wrong", b"stale", true).is_err());
+        let held = fs.open_read_file("/d/f", false).unwrap();
+        fs.commit_file_edit("/d/f", &copy, b"copy", b"new", false).unwrap();
+        assert_eq!(held.read(0, 16).unwrap(), b"copy");
+        let edited = fs.stat("/d/f").unwrap();
+        fs.commit_file_edit("/d/f", &edited, b"new", b"in place", true).unwrap();
+        assert_eq!(fs.stat("/d/f").unwrap().identity, edited.identity);
+        assert_eq!(fs.read_file("/d/f").unwrap(), b"in place");
     }
 
     #[test]

@@ -876,7 +876,10 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
     doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)
         .ok()?
         .to_string();
-    if let Some(Value::Array(ids)) = trailer.get(b"ID") {
+    if let Some(id_array @ Value::Array(ids)) = trailer.get(b"ID") {
+        let mut encoded=Vec::new();
+        pdf_rewrite::encode(id_array,&mut encoded).ok()?;
+        doc.trailer_id=Some(encoded);
         for (id, target) in ids.iter().zip([&mut doc.pdf_id0, &mut doc.pdf_id1]) {
             if let Value::String { bytes, .. } = id {
                 *target = super::hex_enc(bytes);

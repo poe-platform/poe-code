@@ -436,6 +436,7 @@ struct PdfDoc {
     version: String,
     title: String,
     author: String,
+    trailer_id: Option<Vec<u8>>,
     pdf_id0: String,
     pdf_id1: String,
     encrypted: Option<String>,
@@ -533,6 +534,7 @@ impl PdfDoc {
             version: "1.4".to_string(),
             title: String::new(),
             author: String::new(),
+            trailer_id: None,
             pdf_id0: "00000000000000000000000000000000".to_string(),
             pdf_id1: "00000000000000000000000000000000".to_string(),
             encrypted: None,
@@ -7757,6 +7759,7 @@ fn cmd_media_doc(
 
             let (mut user,mut owner) = (None,None);
             let mut grants = 0;
+            let mut keep_final_id=false;
             let mut compress_streams=None;
             let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
             let mut operands=Vec::new();
@@ -7765,6 +7768,8 @@ fn cmd_media_doc(
             while let Some(arg) = tail.next() {
                 match arg.to_ascii_lowercase().as_str() {
                     "output" => output=tail.next().map(String::as_str),
+                    "keep_first_id" => (),
+                    "keep_final_id" => keep_final_id=true,
                     "drop_xfa" => drop_xfa=true,
                     "drop_xmp" => drop_xmp=true,
                     "need_appearances" => need_appearances=true,
@@ -7788,7 +7793,14 @@ fn cmd_media_doc(
             }
 
             let limit = fs.shell_limits().max_output_bytes;
-            let output_edits=pdf_reader::PageEdits {compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
+            let primary_handle=&input_order[0];
+            let id_handle=if keep_final_id {input_order.last().unwrap_or(primary_handle)} else {primary_handle};
+            // An edit of the primary PDF already carries its (possibly updated) ID.
+            // Assembly creates a new trailer, so copy the chosen input ID explicitly.
+            let trailer_id=if id_handle!=primary_handle || matches!(op.as_str(),"cat"|"shuffle") {
+                handles[id_handle].trailer_id.as_deref()
+            } else {None};
+            let output_edits=pdf_reader::PageEdits {trailer_id,compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
             let write_pdftk_output = |mut bytes: Vec<u8>| -> BuiltinOutcome {
                 let of=output.filter(|s|!s.is_empty()).unwrap_or("-");
                 if user.is_some_and(|s|!s.is_empty()) || owner.is_some_and(|s|!s.is_empty()) {
@@ -8071,7 +8083,7 @@ fn cmd_media_doc(
                             Ok(bytes) => bytes,
                             Err(e) => return err_out(&format!("Error: {e}\n"),1),
                         };
-                        let bytes=if drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
+                        let bytes=if trailer_id.is_some() || drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
                             match pdf_reader::rewrite(&bytes,&output_edits,&[],&[],&[],|_|None,limit) {
                                 Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
                             }

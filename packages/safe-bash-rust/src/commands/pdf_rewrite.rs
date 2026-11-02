@@ -42,6 +42,7 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 pub(in super::super) struct PageEdits<'a> {
     pub selections: Vec<(String, String, Option<&'a str>)>,
     pub password: &'a str,
+    pub trailer_id: Option<&'a [u8]>,
     pub append_files: Option<&'a [String]>,
     pub attachment_page: Option<usize>,
     pub update: Option<&'a super::Updates>,
@@ -315,7 +316,11 @@ pub(in super::super) fn rewrite(
     }
     let mut trailer_entries = format!("/Root {} {} R\n", root.0, root.1).into_bytes();
     for (key, value) in [(b"Info".as_slice(), info), (b"ID", trailer.get(b"ID").filter(|_| !decrypt))] {
-        if let Some(v) = value {
+        if key==b"ID" && let Some(id)=edits.trailer_id {
+            trailer_entries.extend_from_slice(b"/ID ");
+            trailer_entries.extend_from_slice(id);
+            trailer_entries.push(b'\n');
+        } else if let Some(v) = value {
             trailer_entries.push(b'/');
             trailer_entries.extend_from_slice(key);
             trailer_entries.push(b' ');

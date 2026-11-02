@@ -4921,3 +4921,25 @@ test("pdftk separates output options from operands and defaults to binary stdout
     await assert.rejects(rust.fs.stat("/old"),{code:"ENOENT"});
   } finally {rust.dispose();}
 });
+
+test("pdftk keeps the selected input trailer ID across assembly and metadata edits",async()=>{
+  const {PdfDocument,cosArray,cosHexString,serializeCosDocument}=await import("@poe-code/pdf-ast");
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {pdftkCommands}=await import("@poe-platform/safe-bash/commands/pdftk");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(pdftkCommands({replace:true})),rs=new RustWasmBash({cwd:"/"});
+  try{
+    for(const [path,num] of [["One",0x10],["Two",0x20],["None",null]]){
+      const d=PdfDocument.create();d.addPage().drawText(path,{x:10,y:25});
+      const ids=num===null?undefined:cosArray([cosHexString(Uint8Array.of(num)),cosHexString(Uint8Array.of(num+1))]);
+      const bytes=serializeCosDocument({objects:[...d.cos.objects.values()],rootRef:d.cos.rootRef,infoRef:d.cos.infoRef,idArray:ids});
+      for(const f of [fs,rs.fs])await f.writeFile("/"+path,bytes);
+    }
+    for(const f of [fs,rs.fs])await f.writeFile("/data",Buffer.from("PdfID0: 3456\nPdfID1: 7890\n"));
+    for(const [op,flags,last] of [["cat B1 A1","","Two"],["shuffle B1 A1","keep_final_id","Two"],["cat","keep_final_id","None"],["","keep_final_id","None"],["","keep_final_id","Two"],["rotate B1east","keep_final_id","Two"],["attach_files data","keep_final_id","Two"],["update_info data","keep_first_id","Two"],["update_info data","keep_final_id","Two"],["update_info data","keep_final_id","None"]]){
+      const cmd="pdftk A=One B="+last+" "+op+" output result "+flags;
+      for(const shell of [js,rs]){const r=await shell.exec(cmd);assert.equal(r.exitCode,0,r.stderr);}
+      const a=await rs.fs.readFile("/result"),b=await fs.readFile("/result");
+      assert.ok(Buffer.from(a).equals(b),cmd+" first different byte "+b.findIndex((v,i)=>v!==a[i]));
+    }
+  }finally{rs.dispose();}
+});

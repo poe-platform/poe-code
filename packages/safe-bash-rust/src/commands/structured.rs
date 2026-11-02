@@ -2571,41 +2571,6 @@ fn try_eval_jq_builtin(
                     };
                     return Ok(Some(vec![JVal::Bool(res)]));
                 }
-                "test" => {
-                    if let JVal::Str(st) = input {
-                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        let matched = jq_regex(pat, &flags).is_match(st);
-                        return Ok(Some(vec![JVal::Bool(matched)]));
-                    }
-                }
-                "match" => {
-                    if let JVal::Str(st) = input {
-                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        return Ok(Some(eval_jq_match_regex(st, pat, &flags)));
-                    }
-                }
-                "capture" | "scan" => {
-                    if let JVal::Str(st) = input {
-                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
-                        if fname == "scan" && pat.is_empty() && !flags.contains('n') {
-                            return Ok(Some(vec![JVal::Str(String::new()); st.len() + 1]));
-                        }
-                        let rx = jq_regex(pat, &flags);
-                        let mut out = Vec::new();
-                        rx.scan(st, true, |s, e, caps| {
-                            if fname == "capture" {
-                                out.push(jq_capture_object(st, &rx, caps));
-                                flags.contains('g')
-                            } else {
-                                out.push(if caps.is_empty() { JVal::Str(st[s..e].to_owned()) }
-                                    else { JVal::Array(caps.iter().map(|span|
-                                        span.map_or(JVal::Null, |(lo, hi)| JVal::Str(st[lo..hi].to_owned()))).collect()) });
-                                true
-                            }
-                        });
-                        return Ok(Some(out));
-                    }
-                }
                 "splits" => {
                     if let JVal::Str(st) = input {
                         return Ok(Some(eval_jq_splits_regex(st, arg_expr, input, vars)?));
@@ -3540,45 +3505,6 @@ fn parse_jq_regex_groups(pat: &str) -> (String, Vec<Option<String>>) {
         i += 1;
     }
     (cleaned, groups)
-}
-
-fn eval_jq_match_regex(text: &str, pattern: String, flags: &str) -> Vec<JVal> {
-    let byte_boundaries = pattern.is_empty() && flags.contains('g');
-    let rx = jq_regex(pattern, flags);
-    let mut out = Vec::new();
-    let (mut byte, mut offset) = (0, 0);
-    rx.scan(text, true, |s, e, caps| {
-        offset += text[byte..s].chars().count();
-        let length = text[s..e].chars().count();
-        let mut names = rx.capture_names.iter().peekable();
-        let captures = caps.iter().enumerate().map(|(i, cap)| {
-            let name = names.next_if(|(_, slot)| *slot == i)
-                .map_or(JVal::Null, |(name, _)| JVal::Str(name.clone()));
-            let (pos, len, value) = cap.map_or((-1.0, 0, JVal::Null), |(lo, hi)| (
-                (offset + text[s..lo].chars().count()) as f64,
-                text[lo..hi].chars().count(), JVal::Str(text[lo..hi].to_owned())));
-            JVal::Object(vec![
-                ("offset".into(), JVal::Number(pos, None)),
-                ("length".into(), JVal::Number(len as f64, None)),
-                ("string".into(), value),
-                ("name".into(), name),
-            ])
-        }).collect();
-        let result = JVal::Object(vec![
-            ("offset".into(), JVal::Number(offset as f64, None)),
-            ("length".into(), JVal::Number(length as f64, None)),
-            ("string".into(), JVal::Str(text[s..e].to_owned())),
-            ("captures".into(), JVal::Array(captures)),
-        ]);
-        // For an empty global pattern jq rounds every interior UTF-8 byte up
-        // to the next code point. Nonempty patterns keep code-point offsets.
-        let copies = if byte_boundaries { text[..s].chars().next_back().map_or(1, char::len_utf8) } else { 1 };
-        out.extend(std::iter::repeat_n(result, copies));
-        byte = e;
-        offset += length;
-        flags.contains('g')
-    });
-    out
 }
 
 fn eval_jq_splits_regex(

@@ -6653,3 +6653,29 @@ test("jq nonempty matching retries alternatives and empty patterns count UTF-8 b
     }
   } finally { rs.dispose(); }
 });
+
+test("jq regex generators consume patterns and flags only as requested", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd: "/", fs: new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [filter, stdout, error = ""] of [
+      ['first(scan(("a",error("late"))))', '"a"\n'],
+      ['[scan(("a","b"))]', '["a","b"]\n'],
+      ['[capture(("(?<x>a)","(?<y>b)"))]', '[{"x":"a"},{"y":"b"}]\n'],
+      ['[match(("a","b");("","i"))|.string]', '["a","a","b","b"]\n'],
+      ['[test((["a","i"],["c","g"]))]', '[true,false]\n'],
+      ['[scan(empty)]', '[]\n'],
+      ['scan(["a"])', '', 'array (["a"]) is not a string'],
+      ['scan("a";3)', '', 'number (3) is not a string'],
+      ['match("a";"l")', '', 'l is not a valid modifier string'],
+    ]) {
+      const cmd = `echo '"ab"' | jq -c '${filter}'`;
+      for (const shell of [js, rs]) {
+        const result = await shell.exec(cmd);
+        assert.deepEqual([result.exitCode, result.stderr, result.stdout],
+          [error ? 5 : 0, error ? "jq: error (at <stdin>:1): " + error + "\n" : "", stdout], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

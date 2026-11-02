@@ -361,6 +361,21 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }) {
             return flow;
         }
+        if let Some(args) = args && matches!(name, "scan" | "capture" | "match" | "test") {
+            let pair = split_jq_binary(args, ";");
+            let source = pair.as_ref().map_or(args, |(p, _)| p.as_str());
+            return visit_jq(source, input, vars, &mut |pat| {
+                if let Some((_, flags)) = &pair {
+                    visit_jq(flags, input, vars, &mut |f| regex_results(name, input, &pat, &f, emit))
+                } else if name != "scan" && let JVal::Array(parts) = &pat && !(name == "capture" && parts.is_empty()) {
+                    regex_results(name, input, parts.first().unwrap_or(&JVal::Null), parts.get(1).unwrap_or(&JVal::Null), emit)
+                } else if name == "capture" && !matches!(pat, JVal::Str(_)) {
+                    Err(format!("{} not a string or array", pat.type_name()).into())
+                } else {
+                    regex_results(name, input, &pat, &JVal::Null, emit)
+                }
+            });
+        }
         if let Some(filter) = args
             && matches!(name, "indices" | "index" | "rindex")
         {
@@ -648,6 +663,79 @@ fn recurse(value: &JVal, update: &str, condition: Option<&str>, vars: &JqScope<'
             recurse(&child, update, None, vars, remaining, emit)
         }
     })
+}
+
+fn regex_results(name: &str, input: &JVal, pattern: &JVal, modifiers: &JVal, emit: &mut Emit<'_>) -> Flow {
+    let flags = match modifiers {
+        JVal::Str(s) => s.as_str(),
+        JVal::Null => "",
+        other => return Err(format!("{} is not a string", describe(other)).into()),
+    };
+    if !flags.chars().all(|c| "gimnpsx".contains(c)) {
+        return Err(format!("{flags} is not a valid modifier string").into());
+    }
+    let JVal::Str(text) = input else {
+        return Err(format!("{} cannot be matched, as it is not a string", describe(input)).into());
+    };
+    let JVal::Str(pat) = pattern else { return Err(format!("{} is not a string", describe(pattern)).into()); };
+    if name == "scan" && pat.is_empty() && !flags.contains('n') {
+        for _ in 0..=text.len() {
+            if emit(JVal::Str(String::new()))?.is_break() { return Ok(Break(())); }
+        }
+        return Ok(Continue(()));
+    }
+    let rx = super::jq_regex(pat.clone(), flags);
+    if name == "test" { return emit(JVal::Bool(rx.is_match(text))); }
+    let mut flow = Ok(Continue(()));
+    let (mut byte, mut offset) = (0, 0);
+    rx.scan(text, true, |s, e, caps| {
+        let mut copies = 1;
+        let value = match name {
+            "scan" if caps.is_empty() => JVal::Str(text[s..e].to_owned()),
+            "scan" => JVal::Array(caps.iter().map(|span|
+                span.map_or(JVal::Null, |(lo, hi)| JVal::Str(text[lo..hi].to_owned()))).collect()),
+            "capture" => super::jq_capture_object(text, &rx, caps),
+            _ => {
+                offset += text[byte..s].chars().count();
+                let length = text[s..e].chars().count();
+                // jq rounds interior UTF-8 byte positions up to the next code point.
+                if pat.is_empty() && flags.contains('g') {
+                    copies = text[..s].chars().next_back().map_or(1, char::len_utf8);
+                }
+                let value = {
+                    let mut names = rx.capture_names.iter().peekable();
+                    let captures = caps.iter().enumerate().map(|(i, cap)| {
+                        let name = names.next_if(|(_, slot)| *slot == i)
+                            .map_or(JVal::Null, |(name, _)| JVal::Str(name.clone()));
+                        let (pos, len, value) = cap.map_or((-1.0, 0, JVal::Null), |(lo, hi)| (
+                            (offset + text[s..lo].chars().count()) as f64,
+                            text[lo..hi].chars().count(), JVal::Str(text[lo..hi].to_owned())));
+                        JVal::Object(vec![
+                            ("offset".into(), JVal::Number(pos, None)),
+                            ("length".into(), JVal::Number(len as f64, None)),
+                            ("string".into(), value),
+                            ("name".into(), name),
+                        ])
+                    }).collect();
+                    JVal::Object(vec![
+                        ("offset".into(), JVal::Number(offset as f64, None)),
+                        ("length".into(), JVal::Number(length as f64, None)),
+                        ("string".into(), JVal::Str(text[s..e].to_owned())),
+                        ("captures".into(), JVal::Array(captures)),
+                    ])
+                };
+                byte = e;
+                offset += length;
+                value
+            }
+        };
+        for v in std::iter::repeat_n(value, copies) {
+            flow = emit(v);
+            if !matches!(flow, Ok(Continue(()))) { return false; }
+        }
+        name == "scan" || flags.contains('g')
+    });
+    flow
 }
 
 fn iterate(value: &JVal, emit: &mut Emit<'_>) -> Flow {

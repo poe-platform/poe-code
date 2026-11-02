@@ -5277,7 +5277,16 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return err_out("tar: refusing to create an empty archive without -T\n", 2);
     }
 
-    let writing = create || append_mode || update_mode || delete_mode || catenate_mode;
+    let modifying = append_mode || update_mode || delete_mode || catenate_mode;
+    if modifying {
+        if archive_file.as_deref().unwrap_or("-") == "-" {
+            return err_out("tar: archive mutation requires a named archive\n", 2);
+        }
+        if explicit_compress.is_some() {
+            return err_out("tar: cannot modify compressed archives\n", 2);
+        }
+    }
+    let writing = create || modifying;
     let dest = archive_file.as_deref().filter(|p| writing && *p != "-").map(|p| resolve_posix_path(cwd, p));
     let version = fs.generation();
     let existing = if let Some(path) = &dest {
@@ -5469,7 +5478,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         (selected, chosen_root)
     };
 
-    if append_mode || update_mode || delete_mode || catenate_mode {
+    if modifying {
         let (Some(full), Some(prior)) = (&dest, &existing) else {
             return err_out("tar: archive mutation requires a named archive\n", 2);
         };
@@ -5477,7 +5486,13 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Ok(bytes) => bytes,
             Err(e) => return err_out(&format!("tar: {e}\n"), 2),
         };
-        let mut entries = parse_ustar_archive(&existing_bytes);
+        let read_members = |bytes: &[u8]| {
+            if bytes.starts_with(b"\x1f\x8b") || bytes.starts_with(b"BZ") || bytes.starts_with(b"\xfd7zXZ\0") {
+                return Err(err_out("tar: cannot modify compressed archives\n", 2));
+            }
+            Ok(parse_ustar_archive(bytes))
+        };
+        let mut entries = match read_members(&existing_bytes) { Ok(entries) => entries, Err(error) => return error };
         let mut stderr = String::new();
         let mut exit_code = 0;
         if append_mode || update_mode {
@@ -5553,7 +5568,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     _ => {}
                 }
                 match fs.read_file(&t_full) {
-                    Ok(tb) => entries.extend(parse_ustar_archive(&tb)),
+                    Ok(tb) => match read_members(&tb) {
+                        Ok(members) => entries.extend(members),
+                        Err(error) => return error,
+                    },
                     Err(e) => return err_out(&format!("tar: {e}\n"), 2),
                 }
             }

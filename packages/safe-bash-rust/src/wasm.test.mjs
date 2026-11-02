@@ -5669,3 +5669,30 @@ test("tar refuses explicit archive aliases and omits them from recursive inputs"
     } finally { rs.dispose(); }
   }
 });
+
+test("tar never rewrites a compressed archive during mutation", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.writeFile("/input", Buffer.from("contents"));
+    const plain = await js.exec("tar cf - input");
+    assert.equal(plain.exitCode, 0, plain.stderr);
+    for (const flag of ["z", "j", "J"]) {
+      const encoded = await js.exec("tar -c" + flag + "f - input");
+      assert.equal(encoded.exitCode, 0, encoded.stderr);
+      for (const cmd of ["tar rf packed missing", "tar uf packed input", "tar --delete -f packed input", "tar Af plain packed", "tar -" + flag + "rf absent input"]) {
+        for (const f of [fs, rs.fs]) {
+          await f.writeFile("/plain", plain.stdoutBytes);
+          await f.writeFile("/packed", encoded.stdoutBytes);
+        }
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([a.exitCode, a.stdout, a.stderr], [2, "", "tar: cannot modify compressed archives\n"], cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+        assert.deepEqual(Buffer.from(await rs.fs.readFile("/packed")), Buffer.from(encoded.stdoutBytes), cmd);
+        assert.deepEqual(Buffer.from(await rs.fs.readFile("/plain")), Buffer.from(plain.stdoutBytes), cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

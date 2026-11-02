@@ -39,7 +39,8 @@ pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
 }
 
 #[derive(Default)]
-pub(in super::super) struct Removals {
+pub(in super::super) struct PageEdits<'a> {
+    pub rotations: Vec<&'a str>,
     pub info: bool,
     pub metadata: bool,
     pub structure: bool,
@@ -49,7 +50,7 @@ pub(in super::super) struct Removals {
 
 pub(in super::super) fn rewrite(
     bytes: &[u8],
-    removals: &Removals,
+    edits: &PageEdits,
     remove: &[String],
     add: &[AddAttachment],
     copies: &[(String, String)],
@@ -71,10 +72,10 @@ pub(in super::super) fn rewrite(
         return Err(INVALID.into());
     };
     entries.retain(|(key, _)| !match *key {
-        b"Metadata" => removals.info || removals.metadata,
-        b"StructTreeRoot" | b"MarkInfo" => removals.structure,
-        b"AcroForm" => removals.acroform,
-        b"PageLabels" => removals.page_labels,
+        b"Metadata" => edits.info || edits.metadata,
+        b"StructTreeRoot" | b"MarkInfo" => edits.structure,
+        b"AcroForm" => edits.acroform,
+        b"PageLabels" => edits.page_labels,
         _ => false,
     });
     let mut info = trailer.get(b"Info");
@@ -83,6 +84,8 @@ pub(in super::super) fn rewrite(
         .and_then(Value::reference)
         .ok_or(INVALID)?;
     let (pages, tree) = objects.page_tree(root, &catalog).ok_or(INVALID)?;
+    let rotations =
+        super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
     let mut remaining = limit;
     let mut store = |id, value: &Value<'_>| -> Result<(), String> {
         let body = changed.entry(id).or_default();
@@ -91,7 +94,7 @@ pub(in super::super) fn rewrite(
         remaining = remaining.checked_sub(body.len()).ok_or(TOO_LARGE)?;
         Ok(())
     };
-    if removals.info
+    if edits.info
         && let Some(id) = info.and_then(Value::reference)
         && let Some((Value::Dict(mut entries), mut cursor)) = objects.object(id)
     {
@@ -104,7 +107,7 @@ pub(in super::super) fn rewrite(
             store(id, &Value::Dict(entries))?;
         }
     }
-    for &id in &pages {
+    for (i, &id) in pages.iter().enumerate() {
         let page = objects.object(id).ok_or(INVALID)?.0;
         let inherited = |key: &[u8]| {
             let mut current = &page;
@@ -123,6 +126,19 @@ pub(in super::super) fn rewrite(
         let Value::Dict(mut fields) = page.clone() else {
             return Err(INVALID.into());
         };
+        if let Some(rotation) = rotations.get(i).copied().flatten() {
+            let original = inherited(b"Rotate")
+                .and_then(|v| objects.resolve(v))
+                .and_then(|v| v.number())
+                .unwrap_or(0.);
+            let angle = match rotation.apply(original) {
+                90 => b"90".as_slice(),
+                180 => b"180",
+                270 => b"270",
+                _ => b"0",
+            };
+            set(&mut fields, b"Rotate", Value::Word(angle));
+        }
         if !matches!(
             page.get(b"Resources").and_then(|v| objects.resolve(v)),
             Some(Value::Dict(_))
@@ -139,7 +155,7 @@ pub(in super::super) fn rewrite(
             set(&mut fields, b"Resources", Value::Dict(res));
         }
         for k in [b"MediaBox".as_slice(), b"CropBox", b"Rotate"] {
-            if page.get(k).is_none()
+            if !fields.iter().any(|(key, _)| *key == k)
                 && let Some(v) = inherited(k).and_then(|v| objects.resolve(v))
             {
                 set(&mut fields, k, v);

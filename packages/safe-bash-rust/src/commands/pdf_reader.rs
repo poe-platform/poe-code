@@ -6,7 +6,10 @@ use std::collections::{BTreeMap, BTreeSet};
 pub(super) mod attachments;
 #[path = "pdf_rewrite.rs"]
 mod pdf_rewrite;
-pub(super) use pdf_rewrite::{Removals,rewrite,empty_pdf};
+#[path = "pdf_rotation.rs"]
+mod pdf_rotation;
+pub(super) use pdf_rotation::rotations;
+pub(super) use pdf_rewrite::{PageEdits,rewrite,empty_pdf};
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
 pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};

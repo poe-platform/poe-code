@@ -6309,19 +6309,18 @@ fn cmd_media_doc(
             let mut qdf_mode = false;
             let mut min_version: Option<String> = None;
             let mut force_version: Option<String> = None;
-            let mut rotations: Vec<(bool, i32, String)> = Vec::new();
             let mut flatten_rotation = false;
             let mut overlay_specs: Vec<(bool, String, String, String, String)> = Vec::new();
             let mut page_specs: Vec<(String, String)> = Vec::new();
             let mut collate_group: Option<usize> = None;
             let mut set_page_labels: Vec<String> = Vec::new();
-            let mut removals = pdf_reader::Removals::default();
+            let mut edits = pdf_reader::PageEdits::default();
             let mut pos_files: Vec<String> = Vec::new();
 
             let mut i = 0usize;
             while i < args.len() {
                 let a = args[i].as_str();
-                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") {
+                if a.starts_with("--") && !matches!(a, "--empty" | "--replace-input" | "--remove-info" | "--remove-metadata" | "--remove-structure" | "--remove-acroform" | "--remove-page-labels" | "--copy-attachments-from") && !a.starts_with("--copy-attachments-from=") && a != "--add-attachment" && !a.starts_with("--add-attachment=") && !a.starts_with("--remove-attachment=") && !a.starts_with("--rotate=") {
                     standard_rewrite = false;
                 }
                 if a == "--empty" {
@@ -6557,10 +6556,7 @@ fn cmd_media_doc(
                     continue;
                 }
                 if let Some(rot_spec) = a.strip_prefix("--rotate=") {
-                    let (deg_s, rng_s) = rot_spec.split_once(':').unwrap_or((rot_spec, "1-z"));
-                    let rel = deg_s.starts_with('+') || deg_s.starts_with('-');
-                    let deg: i32 = deg_s.trim_start_matches('+').parse().unwrap_or(0);
-                    rotations.push((rel, deg, rng_s.to_string()));
+                    edits.rotations.push(rot_spec);
                     i += 1;
                     continue;
                 }
@@ -6650,11 +6646,11 @@ fn cmd_media_doc(
                     continue;
                 }
                 match a {
-                    "--remove-page-labels" => removals.page_labels = true,
-                    "--remove-info" => removals.info = true,
-                    "--remove-metadata" => removals.metadata = true,
-                    "--remove-structure" => removals.structure = true,
-                    "--remove-acroform" => removals.acroform = true,
+                    "--remove-page-labels" => edits.page_labels = true,
+                    "--remove-info" => edits.info = true,
+                    "--remove-metadata" => edits.metadata = true,
+                    "--remove-structure" => edits.structure = true,
+                    "--remove-acroform" => edits.acroform = true,
                     _ => {}
                 }
                 if !a.starts_with('-') || a == "-" {
@@ -7155,8 +7151,10 @@ fn cmd_media_doc(
                 let input = if empty_input { pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes) }
                     else {primary_arg.as_deref().and_then(read)};
                 if let Some(bytes) = input && bytes.starts_with(b"%PDF-") && !is_legacy_pdf(&bytes) {
-                    let output = match pdf_reader::rewrite(&bytes,&removals,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
-                        Ok(bytes) => bytes, Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
+                    let output = match pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,fs.shell_limits().max_output_bytes) {
+                        Ok(bytes) => bytes,
+                        Err(e) if e == "invalid page rotation" => return err_out("shell: line 1: internal error\n",1),
+                        Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
                     };
                     if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
                     return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
@@ -7281,16 +7279,11 @@ fn cmd_media_doc(
                 doc.pages = new_pages;
             }
 
-            for (rel, deg, rng) in &rotations {
-                for pno in parse_qpdf_page_spec(rng, doc.pages.len()) {
-                    if let Some(pg) = doc.pages.get_mut(pno - 1) {
-                        if *rel {
-                            pg.rot = (pg.rot + deg).rem_euclid(360);
-                        } else {
-                            pg.rot = deg.rem_euclid(360);
-                        }
-                    }
-                }
+            let Some(rotations) = pdf_reader::rotations(&edits.rotations, doc.pages.len()) else {
+                return err_out("shell: line 1: internal error\n",1);
+            };
+            for (pg, edit) in doc.pages.iter_mut().zip(rotations) {
+                if let Some(rotation) = edit { pg.rot = rotation.apply(f64::from(pg.rot)); }
             }
 
             if flatten_rotation {
@@ -7375,7 +7368,7 @@ fn cmd_media_doc(
                 }
             }
 
-            if removals.page_labels {
+            if edits.page_labels {
                 doc.page_labels.clear();
             }
             if !set_page_labels.is_empty() {
@@ -7416,12 +7409,12 @@ fn cmd_media_doc(
                 }
             }
 
-            if removals.info {
+            if edits.info {
                 doc.title.clear();
                 doc.author.clear();
                 doc.info.clear();
             }
-            if removals.metadata {
+            if edits.metadata {
                 doc.exif.clear();
             }
             if let Some(fv) = force_version {

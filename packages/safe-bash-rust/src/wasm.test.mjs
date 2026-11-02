@@ -3689,3 +3689,33 @@ test("qpdf removes selected catalog and information entries without rewriting un
     }
   } finally {wasm.dispose();}
 });
+
+test("qpdf rotates selected real pages in order, retaining inherited geometry and content", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const { qpdfCommands } = await import("@poe-platform/safe-bash/commands/qpdf");
+  const { cosDict, cosRef, cosArray, cosNumber, cosName, cosStream, serializeCosDocument } = await import("@poe-code/pdf-ast");
+  const nodes = [
+    cosDict({Type:cosName("Catalog"),Pages:cosRef(2)}),
+    cosDict({Type:cosName("Pages"),Count:cosNumber(4),Kids:cosArray([3,4,5,6].map(n=>cosRef(n))),Rotate:cosRef(7),MediaBox:cosArray([0,0,48,62].map(n=>cosNumber(n)))}),
+    ...[{}, {Rotate:cosNumber(270)}, {Rotate:cosNumber(90.5)}, {Rotate:cosNumber(-90)}].map(fields=>
+      cosDict({Type:cosName("Page"),Parent:cosRef(2),Contents:cosRef(8),...fields})),
+    cosNumber(90),cosStream(Uint8Array.of(0,128,255,1),{compress:true}),
+  ];
+  const input=serializeCosDocument({objects:nodes.map((value,i)=>({objectNumber:i+1,generationNumber:0,value})),rootRef:cosRef(1)});
+  const fs=new MemoryFileSystem(), wasm=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
+  await fs.writeFile("/in.pdf",input);
+  const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  try {
+    for(const [args,code] of [
+      ["--rotate=+90",0],["--rotate=-90:1,1 --rotate=180:r2-z --rotate=+90:z-1:even",0],
+      ["--rotate=+90:z-1,x3,3,1:odd",0],["--rotate=450: --rotate=+90:1,2,2,3:even",0],
+      ["--rotate=bogus",1],["--rotate=45:1",1],["--rotate=90:5",1],["--rotate=90:r0",1],
+      ["--rotate=45:1,x1",0],
+    ]) {
+      const script="qpdf in.pdf "+args+" out.pdf", want=await js.exec(script), got=await wasm.exec(script);
+      assert.equal(want.exitCode,code,args);
+      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],args);
+      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out.pdf")),Buffer.from(await fs.readFile("/out.pdf")),args);
+    }
+  } finally {wasm.dispose();}
+});

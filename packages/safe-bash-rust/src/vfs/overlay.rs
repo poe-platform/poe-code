@@ -14,7 +14,7 @@ struct DirectoryObservation {
 
 #[derive(Clone, Copy)]
 pub(super) enum FileWrite<'a> {
-    Create(u32), Install { mode: u32, version: u64 }, Replace, Append,
+    Create(u32), Install { mode: u32, times: (Option<f64>, Option<f64>), version: u64 }, Replace, Append,
     Edit { original: &'a FileStat, before: &'a [u8], in_place: bool },
     Publish { inputs: &'a [String], version: u64, stamp: u64 },
 }
@@ -408,9 +408,10 @@ impl SafeBashFs for OverlayVfs {
         self.write_entry(path, data, FileWrite::Append)
     }
 
-    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        self.write_entry(path, data, FileWrite::Install { mode, version })
+        if [times.0, times.1].into_iter().flatten().any(|t| !t.is_finite()) { return Err("EINVAL: invalid file timestamp".into()); }
+        self.write_entry(path, data, FileWrite::Install { mode, times, version })
     }
 
     fn publish_file(
@@ -759,13 +760,18 @@ mod tests {
         lower.hard_link("/dir/archive", "/alias").unwrap();
         let upper = Arc::new(MemoryVfs::new());
         let fs = OverlayVfs::new(lower.clone(), upper.clone());
-        fs.replace_file_entry_with_mode("/dir/archive", b"first", 0o600, fs.generation()).unwrap();
+        fs.replace_file_entry_with_metadata("/dir/archive", b"first", 0o600, (Some(-500.), Some(1000.)), fs.generation()).unwrap();
+        let first = fs.stat("/dir/archive").unwrap();
+        assert_eq!((first.atime_ms, first.mtime_ms), (-500., 1000.));
         assert_eq!(fs.read_file("/alias").unwrap(), b"old");
         assert_eq!(lower.read_file("/dir/archive").unwrap(), b"old");
         let version = fs.generation();
         upper.hard_link("/dir/archive", "/second-alias").unwrap();
         assert!(fs.replace_file_entry_with_mode("/dir/archive", b"stale", 0o644, version).is_err());
-        fs.replace_file_entry_with_mode("/dir/archive", b"second", 0o640, fs.generation()).unwrap();
+        fs.replace_file_entry_with_metadata("/dir/archive", b"second", 0o640, (Some(1500.), Some(2500.)), fs.generation()).unwrap();
+        let second = fs.stat("/dir/archive").unwrap();
+        assert_eq!((second.atime_ms, second.mtime_ms), (1500., 2500.));
+        assert_eq!(fs.stat("/second-alias").unwrap().mtime_ms, 1000.);
         assert_eq!(fs.read_file("/second-alias").unwrap(), b"first");
         assert_eq!(fs.read_file("/dir/archive").unwrap(), b"second");
         assert_eq!(fs.stat("/dir/archive").unwrap().mode & 0o7777, 0o640);

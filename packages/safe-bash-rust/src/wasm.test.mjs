@@ -6214,3 +6214,32 @@ test("tar compares filesystem metadata and hard-link identity as well as file co
     }
   } finally { rs.dispose(); }
 });
+
+test("tar restores file permissions and PAX times, honoring touch and permission overrides", async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const {tarCommands} = await import("@poe-platform/safe-bash/commands/tar");
+  const fs = new MemoryFileSystem(), js = new Shell({cwd: "/", fs}).use(agentCommands()).use(tarCommands({replace: true}));
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    await fs.writeFile("/member", Buffer.from("file"));
+    for (const format of ["pax", "ustar"]) {
+      await fs.utimes("/member", 123456, 45789);
+      const seed = await js.exec("tar --format=" + format + " --mode=6777 -cf - member");
+      assert.equal(seed.exitCode, 0, seed.stderr);
+      for (const f of [fs, rs.fs]) await f.writeFile("/in", seed.stdoutBytes);
+      for (const flags of ["", "--no-same-permissions", "--no-same-permissions -p", "-p --no-same-permissions", "-m", "--touch"]) {
+        const cmd = "tar -xf in " + flags;
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stderr, b.stdout], [0, "", ""], cmd);
+        assert.equal(a.exitCode, 0, a.stderr);
+        const expected = await fs.stat("/member"), actual = await rs.fs.stat("/member");
+        assert.equal(actual.mode, expected.mode, cmd);
+        if (flags === "-m" || flags === "--touch") {
+          for (const st of [expected, actual]) assert.ok(st.atimeMs > 123456 && st.mtimeMs > 45789);
+        } else {
+          assert.deepEqual([actual.atimeMs, actual.mtimeMs], [expected.atimeMs, expected.mtimeMs], cmd);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

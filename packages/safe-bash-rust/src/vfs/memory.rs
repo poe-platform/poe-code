@@ -76,6 +76,13 @@ struct MemoryFile {
     linked: bool,
 }
 
+impl MemoryFile {
+    fn set_times(&mut self, (accessed, modified): (Option<f64>, Option<f64>)) {
+        if let Some(t) = accessed { self.atime_ms = t; }
+        if let Some(t) = modified { self.mtime_ms = t; }
+    }
+}
+
 pub(super) static NEXT_PUBLICATION: AtomicU64 = AtomicU64::new(1);
 static NEXT_LINK_GROUP: AtomicU64 = AtomicU64::new(1);
 static NEXT_FS_ID: AtomicU64 = AtomicU64::new(1);
@@ -206,13 +213,14 @@ impl MemoryState {
         }
     }
 
-    fn insert_new_file(&mut self, path: String, data: Vec<u8>, mode: u32, publication: Option<u64>) {
+    fn insert_new_file(&mut self, path: String, data: Vec<u8>, mode: u32, publication: Option<u64>) -> u64 {
         let ino = self.allocate_ino();
         let now = super::now_ms();
         self.files.insert(ino, MemoryFile { data, publication, mode, atime_ms: now, mtime_ms: now,
             ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
         self.parent_changed(&path, now);
         self.nodes.insert(path, MemoryNode::File { ino });
+        ino
     }
 
     fn insert_directory(&mut self, path: String, node: MemoryNode) {
@@ -466,7 +474,7 @@ impl MemoryVfs {
         Ok(())
     }
 
-    fn replace_inode(state: &mut MemoryState, entry: String, after: &[u8], mode: u32) -> Result<(), String> {
+    fn replace_inode(state: &mut MemoryState, entry: String, after: &[u8], mode: u32) -> Result<u64, String> {
         // Reserve the new inode and its contents before detaching the old one. Open readers
         // retain the old file and its byte charge until they close their last descriptor.
         if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
@@ -477,8 +485,7 @@ impl MemoryVfs {
         data.extend_from_slice(after);
         Self::unlink_locked(state, &entry);
         state.total_bytes += data.len();
-        state.insert_new_file(entry, data, mode, None);
-        Ok(())
+        Ok(state.insert_new_file(entry, data, mode, None))
     }
 
     fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32, publication: Option<u64>, suffix: Option<&[u8]>) -> Result<(), String> {
@@ -597,8 +604,9 @@ impl MemoryVfs {
                 }
             }
         }
-        if matches!(operation, FileWrite::Install { .. }) && !creating {
-            Self::replace_inode(&mut upper, path.to_owned(), data, 0o100000 | mode)?;
+        if let FileWrite::Install { times, .. } = operation && !creating {
+            let ino = Self::replace_inode(&mut upper, path.to_owned(), data, 0o100000 | mode)?;
+            upper.files.get_mut(&ino).unwrap().set_times(times);
             self.bump_generation();
             return Ok(());
         }
@@ -607,6 +615,10 @@ impl MemoryVfs {
             base.files[ino].data.as_slice()
         } else if append { &[] } else { data };
         Self::store_file(&mut upper, path.to_owned(), initial, 0o100000 | mode, publication, append.then_some(data))?;
+        if let FileWrite::Install { times, .. } = operation {
+            let ino = upper.nodes[path].ino();
+            upper.files.get_mut(&ino).unwrap().set_times(times);
+        }
         if creating {
             let now = super::now_ms();
             if let Some(atime) = atime {
@@ -1050,7 +1062,7 @@ impl SafeBashFs for MemoryVfs {
         Ok(self.generation())
     }
 
-    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         let entry = Self::mutation_entry(&state, path)?;
@@ -1063,7 +1075,9 @@ impl SafeBashFs for MemoryVfs {
             return Err("EACCES: permission denied".into());
         }
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        Self::replace_inode(&mut state, entry, data, 0o100000 | mode)?;
+        if [times.0, times.1].into_iter().flatten().any(|t| !t.is_finite()) { return Err("EINVAL: invalid file timestamp".into()); }
+        let ino = Self::replace_inode(&mut state, entry, data, 0o100000 | mode)?;
+        state.files.get_mut(&ino).unwrap().set_times(times);
         self.bump_generation();
         Ok(())
     }

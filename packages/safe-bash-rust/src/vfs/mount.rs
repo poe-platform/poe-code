@@ -146,6 +146,12 @@ impl SafeBashFs for MountVfs {
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         fs.replace_file_entry_with_mode(&rel, data, mode, local_version)
     }
+    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
+        let (fs, rel) = self.route(path, false)?;
+        let local_version = fs.generation();
+        if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
+        fs.replace_file_entry_with_metadata(&rel, data, mode, times, local_version)
+    }
 
     fn publish_file(
         &self,

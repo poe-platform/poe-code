@@ -292,6 +292,7 @@ pub(super) struct Member<'a> {
     pub uid: Option<u64>,
     pub gid: Option<u64>,
     pub mtime: Option<f64>,
+    pub atime: Option<f64>,
     pub size: u64,
     pub content: &'a [u8],
 }
@@ -488,6 +489,7 @@ pub(super) fn read_members(
                 uid,
                 gid,
                 mtime,
+                atime: fields.get("atime").map_or(mtime, |s| s.parse().ok()),
                 size,
                 content: &data[pos..pos + size.min(available) as usize],
             },

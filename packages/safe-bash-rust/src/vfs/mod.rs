@@ -212,7 +212,11 @@ pub trait SafeBashFs: Send + Sync {
     fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.replace_file_entry_with_mode(path, data, 0o644, version)
     }
-    fn replace_file_entry_with_mode(&self, _path: &str, _data: &[u8], _mode: u32, _version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+        self.replace_file_entry_with_metadata(path, data, mode, (None, None), version)
+    }
+    /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
+    fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {
         Err("ENOTSUP: retained file replacement is unsupported".into())
     }
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.

@@ -4444,6 +4444,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut verbatim_files_from = false;
     let mut skip_old_files = false;
     let mut keep_old_files = false;
+    let mut touch = false;
+    let mut permission_mask = 0o777;
     let mut exclude_caches = false;
     let mut show_transformed = false;
     let mut dereference = false;
@@ -5024,9 +5026,11 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--no-wildcards" => wildcards = false,
                     "--verbose" => verbose = true,
                     "--ignore-zeros" => ignore_zeros = true,
+                    "--touch" => touch = true,
+                    "--same-permissions" | "--preserve-permissions" => permission_mask = 0o777,
+                    "--no-same-permissions" => permission_mask = 0o755,
                     "--read-full-records" | "--seek" | "--no-seek"
-                    | "--force-local" | "--numeric-owner" | "--no-same-owner" | "--touch"
-                    | "--same-permissions" | "--preserve-permissions" | "--no-same-permissions"
+                    | "--force-local" | "--numeric-owner" | "--no-same-owner"
                     | "--delay-directory-restore" | "--no-delay-directory-restore" => {}
                     "--same-owner" => {
                         return err_out(
@@ -5196,7 +5200,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             matched_flag = true;
                         }
                         'i' => { ignore_zeros = true; matched_flag = true; }
-                        'p' | 'm' | 'B' | 'n' => {
+                        'p' => { permission_mask = 0o777; matched_flag = true; }
+                        'm' => { touch = true; matched_flag = true; }
+                        'B' | 'n' => {
                             matched_flag = true;
                         }
                         'f' => {
@@ -5894,7 +5900,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 fs.hard_link(&target, &dest)?;
             } else {
                 if (entry.content.len() as u64) < entry.size { return Err("truncated archive body".into()); }
-                fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & 0o777, revision)?;
+                let times = if touch { (None, None) } else { (entry.atime.map(|t| t * 1000.), entry.mtime.map(|t| t * 1000.)) };
+                if times == (None, None) {
+                    fs.replace_file_entry_with_mode(&dest, entry.content, entry.mode & permission_mask, revision)?;
+                } else {
+                    fs.replace_file_entry_with_metadata(&dest, entry.content, entry.mode & permission_mask, times, revision)?;
+                }
             }
             if matches!(entry.typeflag, b'0' | b'1') {
                 let identity = fs.lstat(&dest)?.identity;

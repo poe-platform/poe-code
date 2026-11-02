@@ -14,6 +14,17 @@ enum Walk {
     RenameEntry,
 }
 
+fn file_times((atime_ms, mtime_ms): (Option<f64>, Option<f64>)) -> Result<std::fs::FileTimes, String> {
+    let time = |ms: f64| {
+        let duration = Duration::try_from_secs_f64(ms.abs() / 1000.0).map_err(|_| "EOVERFLOW: file timestamp")?;
+        if ms < 0.0 { UNIX_EPOCH.checked_sub(duration) } else { UNIX_EPOCH.checked_add(duration) }.ok_or("EOVERFLOW: file timestamp")
+    };
+    let mut times = std::fs::FileTimes::new();
+    if let Some(ms) = atime_ms { times = times.set_accessed(time(ms)?); }
+    if let Some(ms) = mtime_ms { times = times.set_modified(time(ms)?); }
+    Ok(times)
+}
+
 fn mutation_error(e: std::io::Error) -> String {
     use std::io::ErrorKind;
     match e.kind() {
@@ -227,13 +238,7 @@ impl SafeBashFs for RealVfs {
 
     fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
-        let time = |ms: f64| {
-            let duration = Duration::try_from_secs_f64(ms.abs() / 1000.0).map_err(|_| "EOVERFLOW: file timestamp")?;
-            if ms < 0.0 { UNIX_EPOCH.checked_sub(duration) } else { UNIX_EPOCH.checked_add(duration) }.ok_or("EOVERFLOW: file timestamp")
-        };
-        let mut times = std::fs::FileTimes::new();
-        if let Some(ms) = atime_ms { times = times.set_accessed(time(ms)?); }
-        if let Some(ms) = mtime_ms { times = times.set_modified(time(ms)?); }
+        let times = file_times((atime_ms, mtime_ms))?;
         std::fs::File::open(host).and_then(|file| file.set_times(times)).map_err(|e| e.to_string())
     }
 
@@ -291,12 +296,13 @@ impl SafeBashFs for RealVfs {
         Ok(())
     }
 
-    fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
+    fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         use std::io::Write;
         use std::sync::atomic::{AtomicU64, Ordering};
         static SERIAL: AtomicU64 = AtomicU64::new(0);
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
+        let times = if times == (None, None) { None } else { Some(file_times(times)?) };
         let dest = self.walk(&self.root, path, Walk::RenameEntry, false)?;
         match std::fs::symlink_metadata(&dest) {
             Ok(st) if !st.is_file() => return Err("ENOTSUP: destination must be a regular file or absent".into()),
@@ -320,6 +326,7 @@ impl SafeBashFs for RealVfs {
             };
             let result = (|| {
                 file.write_all(data)?;
+                if let Some(times) = times { file.set_times(times)?; }
                 #[cfg(unix)]
                 file.set_permissions(std::os::unix::fs::PermissionsExt::from_mode(mode))?;
                 drop(file);

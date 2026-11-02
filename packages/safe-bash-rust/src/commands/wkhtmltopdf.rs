@@ -90,6 +90,7 @@ pub(super) fn wkhtmltopdf(
     let mut outline_depth = 4;
     let mut copies: usize = 1;
     let mut collate = true;
+    let mut grayscale = false;
     let mut page_offset: i64 = 0;
     let mut hdr_left = String::new();
     let mut hdr_center = String::new();
@@ -280,10 +281,18 @@ pub(super) fn wkhtmltopdf(
                 }
                 i += 1;
             }
+            "-g" | "--grayscale" => {
+                if !pos_args.is_empty() {
+                    return err_out(
+                        "wkhtmltopdf: OPTION_LOCATION (--grayscale): Switch is in an incorrect object scope\n",
+                        1,
+                    );
+                }
+                grayscale = true;
+                i += 1;
+            }
             "-q"
             | "--quiet"
-            | "-g"
-            | "--grayscale"
             | "-l"
             | "--lowquality"
             | "-n"
@@ -573,7 +582,7 @@ pub(super) fn wkhtmltopdf(
         &ftr_right,
     ];
     let rendered = if furniture.iter().all(|s| s.is_empty()) {
-        pdf_reader::render_paragraphs(&doc, margins, copies, collate, |i| {
+        pdf_reader::render_html(&doc, margins, copies, collate, grayscale, |i| {
             let depth = if outline && !page_meta[i].cover {
                 outline_depth
             } else {

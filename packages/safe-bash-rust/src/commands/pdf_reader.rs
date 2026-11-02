@@ -42,7 +42,7 @@ pub(super) use pdf_update::Updates;
 #[path = "pdf_render.rs"]
 mod pdf_render;
 pub(in crate::commands) use pdf_render::image_pdf;
-pub(super) use pdf_render::render_paragraphs;
+pub(super) use pdf_render::render_html;
 
 #[path = "pdf_filters.rs"]
 mod pdf_filters;

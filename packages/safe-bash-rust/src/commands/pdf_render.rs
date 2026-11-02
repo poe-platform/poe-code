@@ -158,14 +158,23 @@ fn coordinate(value: f64) -> String {
     }
 }
 
-pub(in super::super) fn render_paragraphs(
+pub(in super::super) fn render_html(
     doc: &PdfDoc,
     [top, right, bottom, left]: [f64; 4],
     copies: usize,
     collate: bool,
+    grayscale: bool,
     settings: impl Fn(usize) -> (usize, bool),
 ) -> Result<Option<Vec<u8>>, ()> {
     let limit = crate::budget::ShellLimits::default().max_output_bytes;
+    let rgb = |[r, g, b]: [f64; 3]| {
+        if grayscale {
+            let gray = ((0.299 * r + 0.587 * g + 0.114 * b) * 1000.).round() / 1000.;
+            format!("{gray} {gray} {gray}")
+        } else {
+            format!("{r} {g} {b}")
+        }
+    };
     let mut bodies = vec![
         b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
         vec![],
@@ -245,9 +254,9 @@ pub(in super::super) fn render_paragraphs(
                     "Helvetica",
                     0.,
                     if links.is_empty() {
-                        "0.12 0.12 0.12"
+                        [0.12, 0.12, 0.12]
                     } else {
-                        "0.05 0.28 0.72"
+                        [0.05, 0.28, 0.72]
                     },
                     6.,
                 ),
@@ -263,13 +272,13 @@ pub(in super::super) fn render_paragraphs(
                         1.35 * size,
                         "Helvetica-Bold",
                         0.,
-                        "0.1 0.12 0.18",
+                        [0.1, 0.12, 0.18],
                         10.,
                     )
                 }
-                BlockKind::Code => (9.5, 13., "Courier", 6., "0.15 0.15 0.2", 12.),
-                BlockKind::Quote => (10.5, 14.5, "Helvetica-Oblique", 14., "0.25 0.27 0.32", 6.),
-                BlockKind::Rule => (0., 0., "", 0., "", 12.),
+                BlockKind::Code => (9.5, 13., "Courier", 6., [0.15, 0.15, 0.2], 12.),
+                BlockKind::Quote => (10.5, 14.5, "Helvetica-Oblique", 14., [0.25, 0.27, 0.32], 6.),
+                BlockKind::Rule => (0., 0., "", 0., [0.; 3], 12.),
             };
             let max_chars = match kind {
                 BlockKind::Quote => ((content_width - 18.) / (size * 0.52)).floor().max(20.),
@@ -320,7 +329,9 @@ pub(in super::super) fn render_paragraphs(
                     let h = needed - 4.;
                     write!(
                         stream,
-                        "q\n0.95 0.96 0.97 rg\n0.82 0.84 0.87 RG\n0.5 w\n{x} {} {} {} re\nB\nQ",
+                        "q\n{} rg\n{} RG\n0.5 w\n{x} {} {} {} re\nB\nQ",
+                        rgb([0.95, 0.96, 0.97]),
+                        rgb([0.82, 0.84, 0.87]),
                         coordinate(y - h),
                         coordinate(content_width),
                         coordinate(h)
@@ -332,7 +343,8 @@ pub(in super::super) fn render_paragraphs(
                     let bar_x = coordinate(left + 4.);
                     write!(
                         stream,
-                        "q\n0.45 0.5 0.6 RG\n2.2 w\n{bar_x} {} m\n{bar_x} {} l\nS\nQ",
+                        "q\n{} RG\n2.2 w\n{bar_x} {} m\n{bar_x} {} l\nS\nQ",
+                        rgb([0.45, 0.5, 0.6]),
                         coordinate(y - 2.),
                         coordinate(y - needed + 4.)
                     )
@@ -342,7 +354,8 @@ pub(in super::super) fn render_paragraphs(
                     let bar_y = coordinate(y - 6.);
                     write!(
                         stream,
-                        "q\n0.75 0.75 0.78 RG\n0.75 w\n{x} {bar_y} m\n{} {bar_y} l\nS\nQ",
+                        "q\n{} RG\n0.75 w\n{x} {bar_y} m\n{} {bar_y} l\nS\nQ",
+                        rgb([0.75, 0.75, 0.78]),
                         coordinate(left + content_width)
                     )
                     .unwrap();
@@ -361,6 +374,7 @@ pub(in super::super) fn render_paragraphs(
                 fonts.len() - 1
             }) + 1;
             let text_x = coordinate(left + offset);
+            let color = rgb(color);
             for line in lines {
                 if !stream.is_empty() {
                     stream.push(b'\n');

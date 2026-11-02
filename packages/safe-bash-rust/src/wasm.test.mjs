@@ -5338,7 +5338,7 @@ test("wkhtmltopdf applies page dimensions, margins and DPI to PDF layout",async(
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true}));
   const rs=new RustWasmBash({cwd:"/",files});await fs.writeFile("/in",files["/in"]);
   try{
-    for(const args of ["--page-width 3in --page-height 100pt -T 1cm -B 0 --margin-left 2mm -R 0.01m","-s B4 -O landscape","-s executive","-s Ledger","--page-width 288px -d 144 --page-height 12pc","--page-width 0 --page-height 13didot -s A8","-T 1pt -B 2pt -L 3pt -R 4pt","-s wrong","-O sideways","-T 4pt","--page-width 1e2cm","--page-height -1","--dpi 0","--copies 0","--copies 2147483648","--copies 1.5","in -L 10 out","--page-width"]){
+    for(const args of ["--page-width 3in --page-height 100pt -T 1cm -B 0 --margin-left 2mm -R 0.01m","-s B4 -O landscape","-s executive","-s Ledger","--page-width 288px -d 144 --page-height 12pc","--page-width 0 --page-height 13didot -s A8","-T 1pt -B 2pt -L 3pt -R 4pt","-s wrong","-O sideways","-T 4pt","--page-width 1e2cm","--page-height -1","--dpi 0","--copies 0","--copies 2147483648","--copies 1.5","in -L 10 out","in -g out","--page-width"]){
       const cmd="wkhtmltopdf "+args+((args.startsWith("in ")||args==="--page-width")?"":" in out");
       for(const f of [fs,rs.fs])await f.writeFile("/out",Buffer.from("prior"));
       const e=await js.exec(cmd),r=await rs.exec(cmd);
@@ -5415,7 +5415,7 @@ test("wkhtmltopdf draws code blocks, quote bars and horizontal rules on physical
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()).use(wkhtmltopdfCommands({replace:true})),rs=new RustWasmBash({cwd:"/",files});
   try{
     for(const [path,bytes] of Object.entries(files))await fs.writeFile(path,bytes);
-    for(const args of ["code","quote","rule","blank","intro","--page-width 120pt --page-height 100pt --copies 2 --no-collate intro code quote rule"]){
+    for(const args of ["code","quote","rule","blank","intro","-g intro","--grayscale code quote rule","--page-width 120pt --page-height 100pt --copies 2 --no-collate intro code quote rule"]){
       const cmd="wkhtmltopdf "+args+" -",e=await js.exec(cmd),r=await rs.exec(cmd);
       assert.equal(e.exitCode,0,e.stderr);assert.equal(r.exitCode,0,r.stderr);
       assert.ok(Buffer.from(e.stdoutBytes).equals(r.stdoutBytes),cmd);

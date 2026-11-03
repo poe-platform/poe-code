@@ -8847,3 +8847,14 @@ test("mdq evaluates nested regex class unions, intersections and differences", a
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq ignores inline regex comments and reports unfinished or repeated ones", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands()), rs = new RustWasmBash();
+  try {
+    for (const pattern of ["a(?# hello)b", "a(?#)b", "(?i)a(?#x|[)b", "a(?#oops", "a(?#x)*b"]) {
+      const cmd = "printf 'ab\\n' | mdq 'P: /" + pattern + "/'", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

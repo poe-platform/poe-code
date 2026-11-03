@@ -1264,6 +1264,13 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     chars: ranges,
                 }
             }
+            '(' if mdq && chars[idx..].starts_with(&['(', '?', '#']) => {
+                idx += 3;
+                let len = chars[idx..].iter().position(|&c| c == ')')
+                    .ok_or_else(|| RxParseError::at(idx, "Opening parenthesis without closing parenthesis"))?;
+                idx += len + 1;
+                parsed.close_group(vec![Vec::new()], RxGroup::Plain)
+            }
             '(' if mdq && chars[idx..].starts_with(&['(', '?', '(']) => {
                 idx += 3;
                 groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), RxGroup::Conditional, None, mode));

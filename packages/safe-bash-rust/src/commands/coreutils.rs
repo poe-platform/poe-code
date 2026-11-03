@@ -3642,7 +3642,12 @@ fn cmd_rev(
         .map(|s| s.as_str())
         .unwrap_or("C");
     let lower_loc = locale.to_ascii_lowercase();
-    let utf8 = lower_loc.contains("utf-8") || lower_loc.contains("utf8");
+    let utf8 = lower_loc.match_indices("utf").any(|(i, _)| {
+        if i != 0 && !lower_loc[..i].ends_with(['.', '_', '-']) { return false; }
+        let suffix = &lower_loc[i + 3..];
+        suffix.strip_prefix("-8").or_else(|| suffix.strip_prefix('8')).is_some_and(|tail|
+            tail.is_empty() || (tail.starts_with('@') && !tail.contains(['\r', '\n', '\u{2028}', '\u{2029}'])))
+    });
     if !utf8 && locale != "C" && locale != "POSIX" {
         return err_out(
             &format!("rev: unsupported character encoding locale: '{locale}'\n"),

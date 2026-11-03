@@ -386,6 +386,19 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("rev requires a complete UTF-8 encoding name before reading input", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [locale, valid] of [
+      ["UTF-8", true], ["en_US.uTf8@euro", true], ["x-UTF8", true], ["xutf8", false], ["utf8.old", false],
+    ]) {
+      const r = await bash.exec("rev; cat", { stdin: "aé", env: { LC_ALL: locale } });
+      assert.deepEqual([r.stdout, r.stderr], valid ? ["éa", ""] :
+        ["aé", `rev: unsupported character encoding locale: '${locale}'\n`], locale);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("rev reports named file errors and continues with later files", async () => {
   const bash = new RustWasmBash({
     files: { "/denied": { content: "private", mode: 0o200 }, "/ok": "ab" },

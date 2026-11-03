@@ -3934,6 +3934,7 @@ fn run_grep_engine(
     let mut searches = 0;
     let mut bytes_searched = 0;
     let mut json_bytes_printed = 0;
+    let mut failed_output_bytes = 0;
     let mut failed_batch = false;
     let mut last_label = None::<String>;
     let mut last_line = 0;
@@ -3943,6 +3944,8 @@ fn run_grep_engine(
         let mut matched_count = 0usize;
         let mut binary_start = 0;
         let mut late_binary = None;
+        let mut read_failed = false;
+        let output_start = out.len();
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
                 let mut bytes = Vec::new();
@@ -4007,9 +4010,10 @@ fn run_grep_engine(
                         let name = match &cfg.files { SearchFiles::Grep(g) => g.name, SearchFiles::Rg(_) => "rg" };
                         err.push_str(&format!("{name}: {e}\n"));
                     }
-                    if presence_only { continue; }
+                    if cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet || multiline { continue; }
+                    read_failed = true;
                     // A failed pull does not terminate a partial record.
-                    bytes.truncate(bytes.iter().rposition(|&b| b == rec_term as u8).map_or(0, |i| i + 1));
+                    bytes.truncate(bytes.iter().rposition(|&b| delimiter(b)).map_or(0, |i| i + 1));
                 }
                 (Some(stdin_label), bytes, true)
             }
@@ -4051,7 +4055,7 @@ fn run_grep_engine(
         };
         let show_filename = !cfg.no_filename && (cfg.with_filename || multiple_files || !explicit);
         let nul_off = if !is_rg || cfg.null_data || cfg.binary == RgBinary::Text { None } else { content.iter().position(|&b| b == 0) };
-        searches += 1;
+        searches += usize::from(!read_failed);
         if nul_off.is_some() && is_rg && cfg.binary == RgBinary::Auto && !explicit {
             continue;
         }
@@ -4225,7 +4229,7 @@ fn run_grep_engine(
             if found { return BuiltinOutcome { stdout: String::new(), stderr: err, exit_code: 0 }; }
             continue;
         }
-        if matched_count > 0 {
+        if matched_count > 0 && !read_failed {
             searches_with_match += 1;
             total_matched_lines += matched_count;
             total_matches += file_submatch_count;
@@ -4243,10 +4247,9 @@ fn run_grep_engine(
                 }
             }
         }
-        bytes_searched += late_binary.map_or(file_searched, |(_, searched)| searched);
+        if !read_failed { bytes_searched += late_binary.map_or(file_searched, |(_, searched)| searched); }
         if cfg.json_output {
             if matched_count == 0 || cfg.quiet { continue; }
-            let output_start = out.len();
             let path_text = fname.unwrap_or("<stdin>");
             let escaped_path = json_escape_str(path_text);
             out.push_str(&format!(
@@ -4290,6 +4293,7 @@ fn run_grep_engine(
                     "{{\"type\":\"{event}\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
                 ));
             }
+            if read_failed { continue; }
             let file_printed = stream_byte_len(&out[output_start..]);
             json_bytes_printed += file_printed;
             let binary_offset = nul_off.map_or_else(|| "null".to_owned(), |off| off.to_string());
@@ -4306,6 +4310,7 @@ fn run_grep_engine(
         };
         if let Some(off) = nul_off && !cfg.files_with_matches && !cfg.files_without_match && !cfg.count_only {
             if matched_count > 0 { binary_notice(&mut out, off); }
+            if cfg.stats && read_failed { failed_output_bytes += stream_byte_len(&out[output_start..]); }
             continue;
         }
 
@@ -4533,6 +4538,7 @@ fn run_grep_engine(
             }
         }
         if let Some((off, _)) = late_binary { binary_notice(&mut out, off); }
+        if cfg.stats && read_failed { failed_output_bytes += stream_byte_len(&out[output_start..]); }
     }
 
     if cfg.json_output {
@@ -4541,7 +4547,7 @@ fn run_grep_engine(
         ));
     } else if cfg.stats {
         let bytes_printed = if cfg.count_only || cfg.files_with_matches || cfg.files_without_match { 0 }
-            else { stream_byte_len(&out) };
+            else { stream_byte_len(&out) - failed_output_bytes };
         out.push_str(&format!(
             "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
         ));
@@ -7336,6 +7342,26 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn failed_search_stream_does_not_publish_a_count_or_finished_file_stats() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for script in ["grep -m2 -c hit", "rg -m2 --stats hit", "rg -m2 -c --stats hit", "rg -m2 --json hit"] {
+            let bytes = if script.ends_with("--json hit") { b"hit\0partial" } else { b"hit\npartial" };
+            let chunks = [Ok(bytes.to_vec()), Err("input failed".into())];
+            let r = shell.exec_with_stream(script, chunks.into_iter()).unwrap();
+            assert_eq!(r.exit_code, 2, "{script}");
+            assert!(r.stderr.contains("input failed"), "{script}");
+            if script.starts_with("grep") { assert_eq!(r.stdout, ""); }
+            else if script.ends_with("--json hit") {
+                assert!(r.stdout.contains("\"type\":\"match\"") && !r.stdout.contains("\"type\":\"end\""));
+                assert!(r.stdout.contains("\"searches\":0"));
+            } else {
+                assert_eq!(r.stdout.lines().next(), Some(if script.contains(" -c ") { "" } else { "hit" }));
+                assert!(r.stdout.contains("0 files searched\n0 bytes printed\n0 bytes searched\n"));
+            }
+        }
     }
 
     #[test]

@@ -9651,3 +9651,19 @@ test("parameter lengths and slices count shell bytes only in the byte locale", a
     }
   } finally { sh.dispose(); }
 });
+
+test("ls and find escape display names but preserve raw print0 paths", async () => {
+  const sh = new RustWasmBash({files: {"/names/\ue0ff": "data"}});
+  try {
+    const escaped = "\\356\\203\\277";
+    for (const [cmd, expected] of [
+      ["ls /names", escaped + "\n"], ["find /names", "/names\n/names/" + escaped + "\n"],
+      ["find /names -print", "/names\n/names/" + escaped + "\n"],
+      ["find /names -print0", "/names\0/names/\ue0ff\0"],
+      ["cp -v /names/\ue0ff /dest", "'/names/" + escaped + "' -> '/dest'\n"],
+    ]) {
+      const r = await sh.exec(cmd);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], cmd);
+    }
+  } finally { sh.dispose(); }
+});

@@ -163,6 +163,23 @@ pub(super) fn backup_path(target: &str, mode: BackupMode, suffix: &str, fs: &dyn
     }
 }
 
+pub(super) fn write_display_name(text: &mut String, name: &str, quote_name: bool) {
+    if quote_name { text.push('"'); }
+    for b in crate::vfs::host_text(name).bytes() {
+        match b {
+            b'"' if quote_name => text.push_str("\\\""),
+            7 if quote_name => text.push_str("\\a"),
+            8 => text.push_str("\\b"), 9 => text.push_str("\\t"),
+            10 => text.push_str("\\n"), 11 => text.push_str("\\v"),
+            12 => text.push_str("\\f"), 13 => text.push_str("\\r"),
+            b'\\' => text.push_str("\\\\"),
+            32..=126 => text.push(char::from(b)),
+            _ => text.push_str(&format!("\\{b:03o}")),
+        }
+    }
+    if quote_name { text.push('"'); }
+}
+
 fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut show_all = false;
     let mut show_dots = false;
@@ -340,24 +357,6 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         stat: Option<FileStat>,
         time: f64,
     }
-    let fmt_name = |name: &str| -> String {
-        let mut text = String::with_capacity(name.len() + 2);
-        if quote_name { text.push('"'); }
-        for b in name.bytes() {
-            match b {
-                b'"' if quote_name => text.push_str("\\\""),
-                7 if quote_name => text.push_str("\\a"),
-                8 => text.push_str("\\b"), 9 => text.push_str("\\t"),
-                10 => text.push_str("\\n"), 11 => text.push_str("\\v"),
-                12 => text.push_str("\\f"), 13 => text.push_str("\\r"),
-                b'\\' => text.push_str("\\\\"),
-                32..=126 => text.push(char::from(b)),
-                _ => text.push_str(&format!("\\{b:03o}")),
-            }
-        }
-        if quote_name { text.push('"'); }
-        text
-    };
     let missing_target = |e: &str| e.starts_with("ENOENT:") || e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:") || e.ends_with("(os error 2)");
     let inspect = |path: String, name: String, operand: bool| -> Result<Entry, String> {
         let checked = |follow| fs.inspect_command_entry(&path, follow, "capabilitiesFor").map_err(|e| {
@@ -420,11 +419,11 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             let date = format_iso_stat_timestamp(entry.time.trunc()).ok_or("internal error")?;
             write!(row, "{kind}{} {} {} {} {size} {} ", format_perm_9(st.mode), st.nlink.unwrap_or(1), st.uid.unwrap_or(0), st.gid.unwrap_or(0), &date[..16]).unwrap();
         }
-        row.push_str(&fmt_name(&entry.name));
+        write_display_name(&mut row, &entry.name, quote_name);
         if long && entry.mode & 0o170000 == 0o120000 {
             let target = fs.readlink(&entry.path)?;
             row.push_str(" -> ");
-            row.push_str(&fmt_name(&target));
+            write_display_name(&mut row, &target, quote_name);
             if matches!(indicator, "classify" | "file-type") {
                 match fs.inspect_command_entry(&entry.path, true, "stat") {
                     Ok((_, st)) => row.push_str(suffix(st.mode)),
@@ -465,7 +464,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 if ancestors.contains(&physical) { return Err(format!("ELOOP: too many symbolic links encountered '{}'", dir.path)); }
                 if header {
                     if !out.is_empty() { out.push('\n'); }
-                    out.push_str(&fmt_name(&dir.name));
+                    write_display_name(&mut out, &dir.name, quote_name);
                     out.push_str(":\n");
                 }
                 let mut entries = fs.directory_entries(&physical, usize::MAX).map_err(|e| if e.starts_with("EACCES:") {
@@ -1181,7 +1180,7 @@ fn copy_operand_text(path: &str, prompt: bool) -> String {
     }
     let mut out = String::from("'");
     let mut escaped = false;
-    for b in path.bytes() {
+    for b in crate::vfs::host_text(path).bytes() {
         let special = !(32..127).contains(&b);
         if prompt && special != escaped {
             if special { out.push_str("'$'"); }

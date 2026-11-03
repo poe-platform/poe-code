@@ -5279,9 +5279,13 @@ where
             true
         }
         FindPred::Print { null_delim } => {
-            let sep = if *null_delim { '\0' } else { '\n' };
-            state.out.push_str(disp_path);
-            state.out.push(sep);
+            if *null_delim {
+                state.out.push_str(disp_path);
+                state.out.push('\0');
+            } else {
+                super::fs::write_display_name(state.out, disp_path, false);
+                state.out.push('\n');
+            }
             true
         }
         FindPred::Printf(fmt) => {
@@ -5587,7 +5591,7 @@ fn walk_find<F>(
         };
         match result {
             Ok(ok) => {
-                if ok && !explicit_action { state.out.push_str(disp); state.out.push('\n'); }
+                if ok && !explicit_action { super::fs::write_display_name(state.out, disp, false); state.out.push('\n'); }
                 true
             }
             Err(e) => {

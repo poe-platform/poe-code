@@ -9159,3 +9159,18 @@ test("XPath comparisons preserve operand types and compare every node value", as
     }
   } finally { rs.dispose(); }
 });
+
+test("XPath scalar output rounds to six digits while string() keeps full precision", async () => {
+  const rs = new RustWasmBash({ files: { "/doc": "<r/>" } });
+  try {
+    for (const [q, expected] of [
+      ['number("5e-324")', "5e-324"], ['number("2.2250738585072014e-308")', "2.22507e-308"],
+      ['number("123456.5")', "123457"], ['number("-123456.5")', "-123457"],
+      ['round(-0.5)', "-0"], ['round(0.49999999999999994)', "0"], ['string(-0)', "0"],
+      ['string(number("1e-7"))', "1e-7"], ['string(number("1e21"))', "1e+21"],
+    ]) {
+      const result = await rs.exec("xmllint --xpath '" + q + "' /doc");
+      assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0, "", expected + "\n"], q);
+    }
+  } finally { rs.dispose(); }
+});

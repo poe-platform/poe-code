@@ -15181,45 +15181,22 @@ enum XPathVal<'a> {
 }
 
 fn format_xpath_scalar_num(n: f64) -> String {
-    if n.is_nan() {
-        return "NaN".to_string();
-    }
-    if n == 0.0 {
-        return if n.is_sign_negative() {
-            "-0".to_string()
-        } else {
-            "0".to_string()
-        };
-    }
-    if !n.is_finite() {
-        return if n < 0.0 {
-            "-Infinity".to_string()
-        } else {
-            "Infinity".to_string()
-        };
-    }
-    let abs = n.abs();
-    let exp10 = abs.log10().floor() as i32;
-    let scale = 10f64.powi(5 - exp10);
-    let rounded = (n * scale).round() / scale;
-    let r_abs = rounded.abs();
-    if r_abs != 0.0 && (r_abs < 0.0001 || r_abs >= 1_000_000.0) {
-        let r_exp = r_abs.log10().floor() as i32;
-        let mant = rounded / 10f64.powi(r_exp);
-        let mant_clean = (mant * 100_000.0).round() / 100_000.0;
-        let mant_s = if mant_clean.fract() == 0.0 {
-            format!("{}", mant_clean as i64)
-        } else {
-            format!("{mant_clean}")
-        };
-        let sign_c = if r_exp >= 0 { '+' } else { '-' };
-        return format!("{mant_s}e{sign_c}{:02}", r_exp.unsigned_abs());
-    }
-    if rounded.fract() == 0.0 && rounded.abs() < 1e15 {
-        format!("{}", rounded as i64)
-    } else {
-        format!("{rounded}")
-    }
+    if n == 0.0 && n.is_sign_negative() { return "-0".into(); }
+    if n == 0.0 || !n.is_finite() { return mcp_protocol_rust::numbers::format(n); }
+
+    // Decimal rounding at six significant digits, including subnormals.
+    // Use the exact seventh digit: toPrecision rounds decimal ties away from zero.
+    let exact = format!("{:.1074e}", n.abs());
+    let (digits, exponent) = exact.split_once('e').unwrap();
+    let mut coefficient = digits.bytes().filter(|&b| b != b'.').take(7)
+        .fold(0u32, |acc, b| acc * 10 + u32::from(b - b'0'));
+    coefficient = (coefficient + 5) / 10;
+    let power = exponent.parse::<i32>().unwrap() - 5;
+    let rounded = format!("{coefficient}e{power}").parse::<f64>().unwrap().copysign(n);
+    if (0.0001..1_000_000.0).contains(&rounded.abs()) { return rounded.to_string(); }
+    let text = format!("{rounded:e}");
+    let (mantissa, exponent) = text.split_once('e').unwrap();
+    format!("{mantissa}e{:+03}", exponent.parse::<i32>().unwrap())
 }
 
 impl XPathVal<'_> {
@@ -15227,27 +15204,7 @@ impl XPathVal<'_> {
         match self {
             XPathVal::NodeSet(items) => items.first().map(xpath_item_string_value).unwrap_or_default(),
             XPathVal::Str(s) => s.clone(),
-            XPathVal::Num(n) => {
-                if n.is_nan() {
-                    "NaN".to_string()
-                } else if *n == 0.0 {
-                    if n.is_sign_negative() {
-                        "-0".to_string()
-                    } else {
-                        "0".to_string()
-                    }
-                } else if !n.is_finite() {
-                    if *n < 0.0 {
-                        "-Infinity".to_string()
-                    } else {
-                        "Infinity".to_string()
-                    }
-                } else if n.fract() == 0.0 && n.abs() < 1e15 {
-                    format!("{}", *n as i64)
-                } else {
-                    format!("{n}")
-                }
-            }
+            XPathVal::Num(n) => mcp_protocol_rust::numbers::format(*n),
             XPathVal::Bool(b) => if *b { "true".to_string() } else { "false".to_string() },
         }
     }
@@ -15496,7 +15453,10 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
             "number" => XPathVal::Num(first.to_num_val()),
             "floor" => XPathVal::Num(first.to_num_val().floor()),
             "ceiling" => XPathVal::Num(first.to_num_val().ceil()),
-            "round" => XPathVal::Num((first.to_num_val() + 0.5).floor()),
+            "round" => {
+                let n = first.to_num_val();
+                XPathVal::Num(if n.fract() == -0.5 { n.ceil() } else { n.round() })
+            }
             "count" => match first {
                 XPathVal::NodeSet(items) => XPathVal::Num(items.len() as f64),
                 _ => return Err("XPath function requires a node-set".into()),

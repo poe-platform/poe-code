@@ -94,3 +94,33 @@ it("preserves storage failures and cancellation identity", async () => {
   const failed = new StoredPathWriter({...f.storage, write:async()=>{throw reason;}});
   await failed.append({kind:"close"}); await expect(failed.finish()).rejects.toBe(reason);
 });
+
+it("rasterizes a small stored fill and clip without rereading geometry per sample row", async () => {
+  const { renderOperationStreamWindow } = await import("../render/raster.js");
+  const f = backing(); let reads = 0;
+  const storage = { ...f.storage, async read(...args: Parameters<PdfPixelStorage["read"]>) { reads++; return f.storage.read(...args); } };
+  const writer = new StoredPathWriter(storage);
+  await writer.append({ kind: "rect", x: 0, y: 0, width: 64, height: 64 });
+  const storedSegments = await writer.finish();
+  const result = await renderOperationStreamWindow({ width: 64, height: 64 }, async function* () {
+    yield { kind: "path", value: { segments: [], storedSegments, strokeWidth: 0, fillColor: { r: 1, g: 0, b: 0 },
+      clipPaths: [{ segments: [], storedSegments, fillRule: "nonzero" }] } };
+  }, { x: 0, y: 0, width: 64, height: 64 }, { scale: 1, transparent: true });
+  expect(result.data).toEqual(Uint8Array.from({ length: 64 * 64 * 4 }, (_, index) => index % 4 === 0 || index % 4 === 3 ? 255 : 0));
+  expect(reads).toBeLessThanOrEqual(2);
+});
+
+it("skips clipping geometry for a filled path outside the raster window", async () => {
+  const { renderOperationStreamWindow } = await import("../render/raster.js");
+  const f = backing(); let reads = 0;
+  const storage = { ...f.storage, async read(...args: Parameters<PdfPixelStorage["read"]>) { reads++; return f.storage.read(...args); } };
+  const writer = new StoredPathWriter(storage);
+  await writer.append({ kind: "rect", x: 0, y: 0, width: 64, height: 64 });
+  const storedSegments = await writer.finish();
+  const result = await renderOperationStreamWindow({ width: 64, height: 64 }, async function* () {
+    yield { kind: "path", value: { segments: [{ kind: "rect", x: 40, y: 40, width: 8, height: 8 }],
+      strokeWidth: 0, fillColor: { r: 1, g: 0, b: 0 }, clipPaths: [{ segments: [], storedSegments, fillRule: "nonzero" }] } };
+  }, { x: 0, y: 32, width: 16, height: 32 }, { scale: 1, transparent: true });
+  expect(result.data).toEqual(new Uint8Array(16 * 32 * 4));
+  expect(reads).toBe(0);
+});

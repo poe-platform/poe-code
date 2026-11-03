@@ -4,6 +4,7 @@ import type { PdfRetainedPageEvaluationOptions } from "../content/retained-page.
 import { PdfFileSource } from "../source.js";
 import { PdfStagingStorage } from "../staging-budget.js";
 import { PdfError } from "../errors.js";
+import { StoredOperationsWriter } from "../content/stored-operations.js";
 import { getBitmapCropRect, getDisplayListCropBox, renderOperationStreamWindow, type RenderToPngOptions } from "./raster.js";
 
 export interface PdfRetainedPixelOptions extends Omit<RenderToPngOptions, "hideAnnotations">, PdfRetainedPageEvaluationOptions {
@@ -20,8 +21,9 @@ export interface PdfRetainedPixels {
 
 /** Render one bounded window at a time into caller-backed tile storage, then
  * read transformed pixels without allocating the full page or collecting paints.
- * Replays page evaluation per tile; nested captures/resources retain their own
- * admission contracts. Storage is acquired lazily and owned by the iterator. */
+ * With caller-owned image backing, evaluate once and replay stored paints per
+ * tile. Otherwise replay evaluation. Nested captures/resources retain their own
+ * admission contracts. Tile storage is acquired lazily and owned by the iterator. */
 export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: PdfIndexStorage,
   options: PdfRetainedPixelOptions = {}): Promise<PdfRetainedPixels> {
   const { signal } = options; signal?.throwIfAborted();
@@ -54,10 +56,17 @@ export async function renderRetainedPagePixels(page: PdfRetainedPage, storage: P
     let source: PdfFileSource | undefined, failed = false;
     async function* tiles() {
       let work = 0;
+      const paints = options.imageStorage ? new StoredOperationsWriter(options.imageStorage, signal) : undefined;
+      if (paints) for await (const event of page.evaluateSteps(shared, options)) {
+        if (!event.captured) await paints.append(event.operation);
+        if (++work % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        signal?.throwIfAborted();
+      }
+      const stored = paints?.snapshot();
       for (let y = 0; y < height; y += tileSize) for (let x = 0; x < width; x += tileSize) {
         if (++work % 32 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         signal?.throwIfAborted();
-        const tile = await renderOperationStreamWindow(geometry, async function* () {
+        const tile = await renderOperationStreamWindow(geometry, stored ?? async function* () {
           for await (const event of page.evaluateSteps(shared, options)) if (!event.captured) yield event.operation;
         }, { x, y, width: Math.min(tileSize, width - x), height: Math.min(tileSize, height - y) }, { ...options, scale: scaleX });
         yield tile.data;

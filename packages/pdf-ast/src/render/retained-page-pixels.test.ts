@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosNumber, dictSet } from "../ast.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { cosArray, cosDict, cosName, cosNumber, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
@@ -17,24 +18,47 @@ async function fixture(rotation = 0) {
   const document = await PdfRetainedDocument.open(source, storage); const retained = (await document.pages().next()).value!;
   return { page, retained, storage, async close() { await document.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
 }
-for (const rotation of [0, 90, 180, 270]) for (const options of [{ scale: 0.7 }, { dpiX: 90, dpiY: 47, useCropBox: true }, { scale: 1, cropRect: { x: 3, y: 2, width: 13, height: 11 }, transparent: true }] satisfies RenderToPngOptions[]) {
-  it(`streams exact retained pixels across tile edges: rotation=${rotation}, ${JSON.stringify(options)}`, async () => {
+for (const backed of [false, true]) for (const rotation of [0, 90, 180, 270]) for (const options of [{ scale: 0.7 }, { dpiX: 90, dpiY: 47, useCropBox: true }, { scale: 1, cropRect: { x: 3, y: 2, width: 13, height: 11 }, transparent: true }] satisfies RenderToPngOptions[]) {
+  it(`streams exact retained pixels across tile edges: backed=${backed}, rotation=${rotation}, ${JSON.stringify(options)}`, async () => {
     const f = await fixture(rotation); const expected = renderDisplayListToBitmap(f.page.evaluateDisplayList(), options);
-    const image = await renderRetainedPagePixels(f.retained, f.storage, { ...options, tileSize: 8, chunkBytes: 31 });
-    expect([image.width, image.height]).toEqual([expected.width, expected.height]); const chunks = [];
-    for await (const chunk of image.pixels) { expect(chunk.length).toBeLessThanOrEqual(31); chunks.push(chunk.slice()); await Promise.resolve(); }
-    expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.data); await f.close();
+    const imageStorage = backed ? new PagedStorage({ fs: f.storage.fs, cwd: "/scratch", env: {}, signal: new AbortController().signal }, 1) : undefined;
+    try {
+      const image = await renderRetainedPagePixels(f.retained, f.storage, { ...options, tileSize: 8, chunkBytes: 31, ...(imageStorage ? { imageStorage } : {}) });
+      expect([image.width, image.height]).toEqual([expected.width, expected.height]); const chunks = [];
+      for await (const chunk of image.pixels) { expect(chunk.length).toBeLessThanOrEqual(31); chunks.push(chunk.slice()); await Promise.resolve(); }
+      expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.data);
+    } finally { await imageStorage?.close(); await f.close(); }
   });
 }
-it("cleans staged pixels when the consumer returns and preserves cancellation identity", async () => {
+
+it("preserves deferred background blending when replaying stored page paints", async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([24, 24]);
+  dictSet(page.pageDict, "Resources", cosDict({ ExtGState: cosDict({ Blend: cosDict({ BM: cosName("Difference"), ca: cosNumber(0.5) }) }) }));
+  page.setRawContentStream(new TextEncoder().encode("2 2 20 20 re W n /Blend gs 1 0 0 rg 0 0 18 18 re f 0 0 1 rg 6 6 18 18 re f"));
+  const expected = renderDisplayListToBitmap(page.evaluateDisplayList(), { scale: 1 });
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", doc.save());
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input");
+  const document = await PdfRetainedDocument.open(source, storage), retained = (await document.pages().next()).value!;
+  const imageStorage = new PagedStorage({ fs, cwd: "/scratch", env: {}, signal: new AbortController().signal }, 1);
+  try {
+    const image = await renderRetainedPagePixels(retained, storage, { scale: 1, tileSize: 8, imageStorage });
+    const chunks = []; for await (const chunk of image.pixels) chunks.push(chunk);
+    expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.data);
+  } finally { await imageStorage.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+it.each([false, true])("cleans staged pixels when the consumer returns and preserves cancellation identity (backed=%s)", async backed => {
   const f = await fixture(); const before = await f.storage.fs.readdir("/scratch");
   const controller = new AbortController(), reason = { reason: "stop pixels" };
-  const image = await renderRetainedPagePixels(f.retained, f.storage, { scale: 1, tileSize: 8, chunkBytes: 32, signal: controller.signal });
-  const stream = image.pixels[Symbol.asyncIterator](); await stream.next(); controller.abort(reason);
-  await expect(stream.next()).rejects.toBe(reason); expect(await f.storage.fs.readdir("/scratch")).toEqual(before);
-  const second = await renderRetainedPagePixels(f.retained, f.storage, { scale: 1, tileSize: 8, chunkBytes: 32 });
-  for await (const ignored of second.pixels) { void ignored; break; }
-  expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
+  const imageStorage = backed ? new PagedStorage({ fs: f.storage.fs, cwd: "/scratch", env: {}, signal: new AbortController().signal }, 1) : undefined;
+  try {
+    const image = await renderRetainedPagePixels(f.retained, f.storage, { scale: 1, tileSize: 8, chunkBytes: 32, signal: controller.signal, ...(imageStorage ? { imageStorage } : {}) });
+    const stream = image.pixels[Symbol.asyncIterator](); await stream.next(); controller.abort(reason);
+    await expect(stream.next()).rejects.toBe(reason); expect(await f.storage.fs.readdir("/scratch")).toEqual(before);
+    const second = await renderRetainedPagePixels(f.retained, f.storage, { scale: 1, tileSize: 8, chunkBytes: 32, ...(imageStorage ? { imageStorage } : {}) });
+    for await (const ignored of second.pixels) { void ignored; break; }
+    expect(await f.storage.fs.readdir("/scratch")).toEqual(before);
+  } finally { await imageStorage?.close(); await f.close(); }
 });
 
 it.each([32, 128])("uses fixed driver scratch and scalar external pixel storage at %i pixels", async dimension => {

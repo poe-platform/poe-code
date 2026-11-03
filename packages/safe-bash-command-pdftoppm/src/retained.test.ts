@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { test } from "vitest";
+import { test, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { PdfDocument, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedPage, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
 import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
@@ -28,6 +28,21 @@ async function fixture(input: Uint8Array, args: string[], stdin = false) {
   };
   return { fs, context, controller, stdout, stderr, counts: () => ({ reads, writes, published }), async clean() { assert.deepEqual(await fs.readdir("/scratch"), []); } };
 }
+test("retained invoice rendering evaluates once across tiles and preserves the complete image", async () => {
+  const doc = PdfDocument.create(), page = doc.addPage([144, 144]);
+  page.drawRect({ x: 5, y: 5, width: 134, height: 134, fill: { r: 0.9, g: 0.95, b: 0.9 } });
+  page.drawText("INVOICE", { x: 10, y: 120, size: 16 });
+  page.drawText("Total: $430.44", { x: 10, y: 20, size: 12 });
+  const input = doc.save(), args = ["-png", "-r", "150", "in.pdf", "out"], files = new Map([["in.pdf", input]]);
+  const expected = await runPdftoppmCli(args, files), f = await fixture(input, args);
+  const evaluate = vi.spyOn(PdfRetainedPage.prototype, "evaluateSteps");
+  try {
+    assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, expected.exitCode);
+    assert.deepEqual(await f.fs.readFile("/out-1.png"), files.get("out-1.png"));
+    assert.equal(evaluate.mock.calls.length, 1);
+    assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: 1 }); await f.clean();
+  } finally { evaluate.mockRestore(); }
+});
 for (const flags of [["-svg"], [], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
   test(`retained rendering matches bytes without whole input or output: ${flags.join(" ")}`, async () => {
     const input = pdf(), args = [...flags, "in.pdf", "out"], files = new Map([["in.pdf", input]]); const expected = await runPdftoppmCli(args, files);

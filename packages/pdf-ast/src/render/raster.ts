@@ -829,13 +829,52 @@ function strokeEdges(contours: Iterable<StrokePoint | undefined | null>): Iterab
 }
 
 const SUB_OFFSETS_4X4 = [0.125, 0.375, 0.625, 0.875] as const;
-/** Accumulate sample coverage without retaining/sorting edge intersections.
- * First count crossings strictly left of each sample; then replay exact ties
- * in original edge order to preserve inclusive interval endpoints. Scratch is
- * local to this render and proportional to the row, never to path complexity. */
+/** Flatten ordinary paths once, including stored geometry. Stop at a fixed
+ * bound so complex paths retain the streaming renderer's memory contract. */
+function* cacheSmallEdgesSteps(edges: Iterable<Edge | undefined>): Generator<void, Iterable<Edge | undefined>, void> {
+  if (Array.isArray(edges)) return edges;
+  const cached: Edge[] = [];
+  for (const edge of edges) {
+    if (!edge) { yield; continue; }
+    if (cached.length === 128) return edges;
+    cached.push(edge);
+  }
+  return cached;
+}
+
+/** Small cached paths use bounded sorted intersections. Complex paths count
+ * crossings left of each sample, then replay exact ties in original edge order.
+ * Scratch is bounded independently of path complexity. */
 function* computeSubScanlineCountsSteps(edges: Iterable<Edge | undefined>, scanY: number,
   fillRule: "nonzero" | "evenodd", deltas: Float64Array, winding: Float64Array, rowCounts: Uint8Array): Generator<void, void, void> {
   const samples = winding.length;
+  if (Array.isArray(edges)) {
+    // Only the bounded small-path cache takes this route. Stable sorting keeps
+    // coincident crossings in path order, including inclusive interval ends.
+    const crossings: { x: number; direction: number }[] = [];
+    for (const edge of edges as Edge[]) {
+      if ((edge.y0 <= scanY && edge.y1 > scanY) || (edge.y1 <= scanY && edge.y0 > scanY)) {
+        crossings.push({ x: edge.x0 + ((scanY - edge.y0) / (edge.y1 - edge.y0)) * (edge.x1 - edge.x0), direction: edge.y0 < edge.y1 ? 1 : -1 });
+      }
+    }
+    crossings.sort((a, b) => a.x - b.x);
+    let value = 0, start = 0;
+    for (const crossing of crossings) {
+      const before = value;
+      value = fillRule === "evenodd" ? 1 - value : value + crossing.direction;
+      if (before === 0 && value !== 0) start = crossing.x;
+      else if (before !== 0 && value === 0) {
+        const first = Math.max(0, Math.ceil((start - 0.125) * 4));
+        const end = Math.min(samples, Math.floor((crossing.x - 0.125) * 4) + 1);
+        for (let index = first; index < end;) {
+          const count = Math.min(end - index, 4 - index % 4);
+          rowCounts[index >>> 2] = rowCounts[index >>> 2]! + count;
+          index += count;
+        }
+      }
+    }
+    return;
+  }
   deltas.fill(0);
   let work = 0;
   for (const edge of edges) {
@@ -878,6 +917,7 @@ function *fillEdgesScanline4x4Steps(
   clipMask?: Uint8Array,
   groupAlpha?: Float32Array
 ): Generator<void, void, void> {
+  edges = yield* cacheSmallEdgesSteps(edges);
   let work = 0;
   let minY = Infinity;
   let maxY = -Infinity;
@@ -923,6 +963,7 @@ function *fillMaskScanline4x4Steps(
   fillRule: "nonzero" | "evenodd" = "nonzero",
   intersect = false
 ): Generator<void, void, void> {
+  edges = yield* cacheSmallEdgesSteps(edges);
   let work = 0;
   let minY = Infinity;
   let maxY = -Infinity;
@@ -1159,6 +1200,21 @@ function *renderDisplayListLayerSteps(
     if (++work % 16384 === 0) yield;
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+    let fillEdges: Iterable<Edge | undefined> | undefined;
+    if (operation.kind === "path" && operation.value.fillColor && !operation.value.strokeColor) {
+      const path = operation.value;
+      fillEdges = yield* cacheSmallEdgesSteps(screenFillEdges(path.segments, toScreen, path.storedSegments, images));
+      if (Array.isArray(fillEdges)) {
+        // Use the actual flattened edges, not font metrics or control-point
+        // bounds. Strokes may extend outside these bounds and are not culled.
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const edge of fillEdges as Edge[]) {
+          minX = Math.min(minX, edge.x0, edge.x1); minY = Math.min(minY, edge.y0, edge.y1);
+          maxX = Math.max(maxX, edge.x0, edge.x1); maxY = Math.max(maxY, edge.y0, edge.y1);
+        }
+        if (maxX < 0 || maxY < 0 || minX > width || minY > height) continue;
+      }
+    }
     if (operation.kind === "group") {
       const group = operation.value;
       const bitmap = (yield* renderDisplayListLayerSteps(
@@ -1230,7 +1286,7 @@ function *renderDisplayListLayerSteps(
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
-        const edges = screenFillEdges(path.segments, toScreen, path.storedSegments, images);
+        const edges = fillEdges ?? screenFillEdges(path.segments, toScreen, path.storedSegments, images);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
       }
@@ -1385,16 +1441,17 @@ function rasterWindowScale(page: Pick<PdfDisplayList, "width" | "height">, windo
 }
 
 /** Consume a replayable operation source without collecting a page display list.
- * Opaque output makes a compositing prepass to preserve background quantization.
+ * Opaque output uses stored effect flags or a compositing prepass to preserve
+ * background quantization.
  * Each operation is painted before advancing its source. Individual paths,
  * resources and nested captures still have the evaluator's memory ownership. */
 export async function renderOperationStreamWindow(page: Pick<PdfDisplayList, "width" | "height" | "origin">,
-  operations: () => AsyncIterable<PdfPaintOperation>, window: PdfCropRect,
+  operations: (() => AsyncIterable<PdfPaintOperation>) | PdfStoredOperations, window: PdfCropRect,
   options: PdfRasterWindowOptions & { readonly signal?: AbortSignal } = {}): Promise<RgbaBitmap> {
   const scale = rasterWindowScale(page, window, options);
   const { signal } = options; signal?.throwIfAborted();
   async function* cursor(): AsyncGenerator<PdfPaintOperation, void, void> {
-    const source = operations()[Symbol.asyncIterator](); let failed = false, pulls = 0;
+    const source = (typeof operations === "function" ? operations() : readStoredOperations(operations, signal))[Symbol.asyncIterator](); let failed = false, pulls = 0;
     try {
       while (true) {
         signal?.throwIfAborted();
@@ -1406,8 +1463,8 @@ export async function renderOperationStreamWindow(page: Pick<PdfDisplayList, "wi
     } catch (error) { failed = true; throw error; }
     finally { try { await source.return?.(); } catch (error) { if (!failed) await Promise.reject(error); } }
   }
-  const input: RasterOperationInput = { requested: false, next: undefined, compositing: false };
-  if (!options.transparent) for await (const operation of cursor()) {
+  const input: RasterOperationInput = { requested: false, next: undefined, compositing: typeof operations !== "function" && !!(operations.effects & 1) };
+  if (!options.transparent && typeof operations === "function") for await (const operation of cursor()) {
     if (hasCompositingEffects([operation])) { input.compositing = true; break; }
   }
   const list: PdfDisplayList = { ...page, pageIndex: 0, rotation: 0, glyphs: [], paths: [], images: [], annotations: [], operations: [] };

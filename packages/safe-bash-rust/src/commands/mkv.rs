@@ -337,7 +337,7 @@ pub(super) fn as_mp4(
             .ok_or("sample index exceeds memory budget")?;
         let (kind, handler, name, stsd, width, height) = match info.codec {
             Codec::Video { tag, width, height } => {
-                let (w, h) = (width.unwrap_or(320), height.unwrap_or(240));
+                let (w, h) = (width.unwrap_or(320) as u32, height.unwrap_or(240));
                 let codec = if tag != b"avc1" {
                     VideoCodec::Still(tag)
                 } else if t.private.len() >= 7 {

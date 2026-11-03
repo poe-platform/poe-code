@@ -123,7 +123,7 @@ pub(super) fn parse(input: &[u8]) -> Result<Movie<'_>, &'static str> {
             true,
             Codec::Video {
                 tag: b"avc1",
-                width: Some(width),
+                width: Some(width.into()),
                 height: Some(height),
             },
         ),

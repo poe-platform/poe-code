@@ -218,7 +218,7 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
 pub(super) enum Codec {
     Video {
         tag: &'static [u8; 4],
-        width: Option<u32>,
+        width: Option<i64>,
         height: Option<u32>,
     },
     Audio {
@@ -295,7 +295,7 @@ impl StreamInfo {
                     b"vp09" => ("vp9", "Google VP9"),
                     b"av01" => ("av1", "Alliance for Open Media AV1"),
                     b"avc1" => ("h264", "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"),
-                    b"mjpe" => ("mjpeg", "Motion JPEG"),
+                    b"mjpe" | b"jpeg" => ("mjpeg", "Motion JPEG"),
                     b"webp" => ("webp", "WebP image"),
                     b"gif " => ("gif", "GIF (Graphics Interchange Format)"),
                     b"raw " => ("rawvideo", "raw video"),
@@ -318,7 +318,7 @@ impl StreamInfo {
                     ),
                 ]);
                 if let Some(w) = width {
-                    row.push(("width", Number(w.into(), None)));
+                    row.push(("width", Number(w as f64, None)));
                 }
                 if let Some(h) = height {
                     row.push(("height", Number(h.into(), None)));
@@ -326,7 +326,7 @@ impl StreamInfo {
                 if let Some(width) = width.filter(|&w| w != 0) {
                     row.push((
                         "coded_width",
-                        Number(f64::from(width.div_ceil(16)) * 16., None),
+                        Number(((width + 15).div_euclid(16) * 16) as f64, None),
                     ));
                 }
                 if let Some(height) = height.filter(|&h| h != 0) {
@@ -344,7 +344,11 @@ impl StreamInfo {
                 {
                     row.push((
                         "display_aspect_ratio",
-                        Str(ratio(width.into(), height.into(), ':')),
+                        Str(format!(
+                            "{}{}",
+                            if width < 0 { "-" } else { "" },
+                            ratio(width.unsigned_abs(), height.into(), ':')
+                        )),
                     ));
                 }
                 row.extend([
@@ -352,7 +356,9 @@ impl StreamInfo {
                         "pix_fmt",
                         Str(match tag {
                             b"gif " => "rgb8",
-                            b"raw " | b"avc1" | b"hvc1" | b"vp08" | b"vp09" | b"av01" => "yuv420p",
+                            b"raw " | b"jpeg" | b"avc1" | b"hvc1" | b"vp08" | b"vp09" | b"av01" => {
+                                "yuv420p"
+                            }
                             _ => "rgb24",
                         }
                         .into()),
@@ -453,7 +459,7 @@ impl Clip {
                 tag, width, height, ..
             } => Codec::Video {
                 tag,
-                width: Some(width),
+                width: Some(width.into()),
                 height: Some(height),
             },
             Track::Subtitle { webvtt, .. } => Codec::Subtitle { webvtt },
@@ -551,6 +557,7 @@ impl Clip {
     }
 }
 
+#[derive(Clone, Copy)]
 pub(super) struct Packet {
     pub pts: i64,
     pub dts: i64,
@@ -606,7 +613,7 @@ impl Codec {
                     tag, width, height, ..
                 } => {
                     if let Some(w) = width {
-                        row.push(("width", Number(w.into(), None)));
+                        row.push(("width", Number(w as f64, None)));
                     }
                     if let Some(h) = height {
                         row.push(("height", Number(h.into(), None)));
@@ -616,9 +623,8 @@ impl Codec {
                             "pix_fmt",
                             Str(match tag {
                                 b"gif " => "rgb8",
-                                b"raw " | b"avc1" | b"hvc1" | b"vp08" | b"vp09" | b"av01" => {
-                                    "yuv420p"
-                                }
+                                b"raw " | b"jpeg" | b"avc1" | b"hvc1" | b"vp08" | b"vp09"
+                                | b"av01" => "yuv420p",
                                 _ => "rgb24",
                             }
                             .into()),

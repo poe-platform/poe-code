@@ -124,7 +124,7 @@ impl<'a> Header<'a> {
             (
                 Codec::Video {
                     tag,
-                    width: self.width.or_else(|| seq.as_ref().map(|s| s.width)),
+                    width: self.width.or_else(|| seq.as_ref().map(|s| s.width)).map(i64::from),
                     height: self.height.or_else(|| seq.as_ref().map(|s| s.height)),
                 },
                 seq.map(|s| s.profile),

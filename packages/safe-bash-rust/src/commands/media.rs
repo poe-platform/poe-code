@@ -2802,6 +2802,8 @@ mod adts;
 #[path = "mp4.rs"]
 mod mp4;
 
+#[path = "avi_input.rs"]
+mod avi_input;
 #[path = "media_format.rs"]
 mod media_format;
 #[path = "media_probe.rs"]
@@ -5433,10 +5435,15 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     }
     let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
     let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
-    if gif || still || real_mp4 || matches!(container, "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
+    if gif || still || real_mp4 || matches!(container, "avi" | "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
         let records=requested.contains("packet") || requested.contains("frame");
         let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
             writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+        if container == "avi" {
+            return match avi_input::report(&raw_bytes, name, fs.max_input_bytes(), opts) {
+                Ok(output) => ok_out(&output), Err(reason) => ffprobe_err(reason),
+            };
+        }
         if matches!(container, "mkv" | "webm") {
             return match mp4::mkv_input::report(&raw_bytes, name, fs.max_input_bytes(), opts) {
                 Ok(output) => ok_out(&output), Err(reason) => ffprobe_err(reason),
@@ -13613,6 +13620,25 @@ mod media_unit_tests {
         let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "clip.webm", "out.mp4"]), "", "/", &fs);
         assert_eq!((r.exit_code, r.stderr.as_str()), (1, "ffmpeg: Invalid Matroska/WebM file: missing EBML header signature\n"));
         assert!(!fs.exists("/out.mp4"));
+    }
+
+    #[test]
+    fn ffprobe_reads_avi_stream_headers_and_movie_chunks() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/clip.avi", include_bytes!("../../tests/fixtures/av.avi")).unwrap();
+        let r = cmd_media_doc("ffprobe", &media_args(&["-show_entries", "stream=codec_name,width,height,duration_ts,nb_frames", "-of", "csv=p=0", "clip.avi"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "h264,6,4,67500,3\naac,33792,33\n", ""));
+    }
+
+    #[test]
+    fn avi_empty_video_chunk_extends_the_preceding_packet() {
+        let fs=MemoryVfs::new();
+        let mut clip=include_bytes!("../../tests/fixtures/av.avi").to_vec();
+        clip.extend_from_slice(b"00dc\0\0\0\0");
+        fs.write_file("/clip.avi",&clip).unwrap();
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_packets","-show_entries","packet=stream_index,duration,size,pos,flags","-of","csv=p=0","clip.avi"]),"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(r.stdout.lines().take(3).collect::<Vec<_>>(), ["0,22500,395,0,K_", "0,22500,394,395,__","0,45000,394,789,__"]);
     }
 
     #[test]

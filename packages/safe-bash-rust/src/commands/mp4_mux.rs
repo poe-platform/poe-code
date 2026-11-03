@@ -344,7 +344,7 @@ fn video_entry(w: usize, h: usize, codec: VideoCodec<'_>) -> Result<Vec<u8>, &'s
         return Err("invalid AVC sample dimensions");
     }
     let (tag, config) = match codec {
-        VideoCodec::Avc(fps) => (b"avc1", Some(Cow::Owned(h264::configuration(w, h, fps)?))),
+        VideoCodec::Avc(fps) => (b"avc1", Some(Cow::Owned(h264::configuration(w as i64, h as u32, fps)?))),
         VideoCodec::Config(config) => (b"avc1", Some(Cow::Borrowed(config))),
         VideoCodec::Still(tag) => (tag, None),
     };
@@ -1760,6 +1760,7 @@ fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
 pub(super) struct InputBytes<'a> {
     pub bytes: Cow<'a, [u8]>,
     matroska: Option<super::mkv_input::Document<'a>>,
+    avi: Vec<super::super::avi_input::Description>,
 }
 
 fn materialize<'a>(
@@ -1783,6 +1784,7 @@ fn materialize<'a>(
             );
         let mut bytes = Cow::Borrowed(input);
         let mut matroska = None;
+        let mut avi = Vec::new();
         if (seek.start.is_some()
             || seek.end().is_some()
             || seek.loops > 0
@@ -1806,7 +1808,9 @@ fn materialize<'a>(
             bytes = Cow::Owned(mkv::as_mp4(&doc, limit)?);
             matroska = Some(doc);
         } else if format == "avi" {
-            bytes = Cow::Owned(avi::as_mp4(input, opts.limit.saturating_sub(admitted))?);
+            let (mp4, descriptions) = avi::as_mp4(input, opts.limit.saturating_sub(admitted))?;
+            bytes = Cow::Owned(mp4);
+            avi = descriptions;
         } else if format == "flv" {
             bytes = Cow::Owned(flv_as_mp4(input, opts.limit.saturating_sub(admitted))?);
         } else if sliced && let MediaInput::Images(seq) = source {
@@ -1843,7 +1847,7 @@ fn materialize<'a>(
         if admitted > opts.limit {
             return Err("input byte limit exceeded".into());
         }
-        materialized.push(InputBytes { bytes, matroska });
+        materialized.push(InputBytes { bytes, matroska, avi });
     }
     Ok(materialized)
 }
@@ -1998,14 +2002,9 @@ fn read_sources<'a>(
                 track.original = Original::Flv(tags);
             }
         }
-        if matches!(source, MediaInput::Bytes("avi", _))
-            && seek.start.is_none() && seek.end().is_none() && seek.loops == 0
-        {
-            for (t, (_, trak)) in tracks.iter_mut().zip(atoms(moov).filter(|(k, _)| *k == b"trak")) {
-                t.original = Original::Avi;
-                // Empty video chunks extend a sample but do not increase AVI's track duration.
-                t.duration = super::header_time(super::child(super::child(trak, b"mdia"), b"mdhd"), t.scale).1;
-            }
+        for (track, desc) in tracks.iter_mut().zip(&data.avi) {
+            track.original = Original::Avi(desc);
+            track.duration = desc.duration;
         }
         if let Some(doc) = &data.matroska {
             for (track, original) in tracks.iter_mut().zip(&doc.tracks) {
@@ -2548,7 +2547,7 @@ pub(in super::super) fn remux(
                 Streams::Aac { rate, channels, .. } => (*rate, usize::from(*channels), 1.),
                 Streams::Mp4(t) => {
                     let (track, trak) = &t[i];
-                    if matches!(track.original, Original::Avi | Original::Matroska(_))
+                    if matches!(track.original, Original::Avi(_) | Original::Matroska(_))
                         && track.tag == b"sowt"
                         && !audio.clear_samples
                     {
@@ -3287,7 +3286,6 @@ pub(in super::super) fn remux(
         if matches!(opts.format,"flv"|"avi") && selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
             return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
         }
-        if opts.format=="avi" {return avi::write(&tracks,duration,&audio).map_err(str::to_owned);}
         let mut source_tags = vec![Original::None; tracks.len()];
         if range.is_none() && opts.concat.is_none() && opts.composition.is_none() && loops == 0 {
             for (tags,&(j,i)) in source_tags.iter_mut().zip(&selected) {
@@ -3297,6 +3295,7 @@ pub(in super::super) fn remux(
                 }
             }
         }
+        if opts.format=="avi" {return avi::write(&tracks,duration,&audio,&source_tags).map_err(str::to_owned);}
         if opts.format=="flv" {
             let tags=["video","audio"].map(|kind|tracks.iter().position(|t|t.kind==kind).map_or(Original::None,|i|source_tags[i]));
             return flv::write(&tracks,duration,&audio,tags).map_err(str::to_owned);

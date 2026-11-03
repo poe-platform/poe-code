@@ -1,4 +1,4 @@
-use super::super::{atoms, audio_entry_format, child, esds, h264, u16_at, u32_at};
+use super::super::{atoms, audio_entry_format, esds, h264, u16_at, u32_at};
 use super::{Options, Track};
 
 type Result<T> = std::result::Result<T, &'static str>;
@@ -60,10 +60,25 @@ fn parameter_sets(config: &[u8]) -> (Vec<&[u8]>, Vec<&[u8]>) {
     let (&n, mut rest) = bytes.split_first().unwrap_or((&0, &[]));
     (sps, take(&mut rest, usize::from(n)))
 }
-pub(super) fn write(tracks: &[Track<'_>], seconds: f64, audio: &Options) -> Result<Vec<u8>> {
+pub(super) fn write(
+    tracks: &[Track<'_>],
+    seconds: f64,
+    audio: &Options,
+    originals: &[super::Original],
+) -> Result<Vec<u8>> {
     let video = tracks.iter().find(|t| t.kind == "video");
     let sound = tracks.iter().find(|t| t.kind == "audio");
-    let (w, h) = video.map_or((320, 240), |t| (t.width, t.height));
+    let source = tracks
+        .iter()
+        .zip(originals)
+        .find(|(t, _)| t.kind == "video")
+        .map(|(_, o)| *o)
+        .unwrap_or_default();
+    let width = source
+        .avi()
+        .map(|t| t.width)
+        .unwrap_or_else(|| video.map_or(320, |t| i64::from(t.width)));
+    let (w, h) = (width as u32, video.map_or(240, |t| t.height));
     let pixels = w.wrapping_mul(h).wrapping_mul(3);
     let n = video.map_or(0, |t| t.samples.len() as u32);
     let fps = if n != 0 && seconds > 0. {
@@ -195,12 +210,12 @@ pub(super) fn write(tracks: &[Track<'_>], seconds: f64, audio: &Options) -> Resu
                 let entry = atoms(t.stsd.get(8..).unwrap_or_default())
                     .next()
                     .map_or(&[][..], |(_, v)| v);
-                let config = child(entry.get(78..).unwrap_or_default(), b"avcC");
+                let config = source.avcc(entry).unwrap_or_default();
                 let length = usize::from(config.get(4).copied().unwrap_or(3) & 3) + 1;
                 let (mut sps, mut pps) = parameter_sets(config);
                 let fallback;
                 if sps.is_empty() || pps.is_empty() {
-                    fallback = h264::configuration(w as usize, h as usize, fps)?;
+                    fallback = h264::configuration(width, h, fps)?;
                     let (s, p) = parameter_sets(&fallback);
                     if sps.is_empty() {
                         sps = s;
@@ -264,7 +279,8 @@ pub(super) fn write(tracks: &[Track<'_>], seconds: f64, audio: &Options) -> Resu
     Ok(out.bytes)
 }
 
-pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
+use super::super::super::avi_input::Description;
+pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Description>)> {
     use super::super::super::{avi_input, media_probe::Codec};
     use super::{
         MATRIX, Sample, VideoCodec, audio_sample_entry, audio_specific_config, video_entry,
@@ -273,6 +289,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
 
     let mut budget = limit;
     let mut tracks = Vec::new();
+    let mut descriptions = Vec::new();
     for t in avi_input::parse(bytes, limit, avi_input::Read::Payloads)?
         .into_iter()
         .flatten()
@@ -324,15 +341,21 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
                 description: 1,
             });
         }
+        let mut desc = Description {
+            duration: t.info.ticks as u64,
+            ..Default::default()
+        };
+        if !video && samples.iter().any(|s| !s.key) {
+            desc.audio_keys = samples.iter().map(|s| s.key).collect();
+        }
         let (kind, handler, name, width, height, stsd) = match t.info.codec {
             Codec::Video { tag, width, height } => {
-                let w = width.unwrap_or(320) as u32;
+                desc.width = width.unwrap_or(320);
+                let w = u32::from(desc.width as u16);
                 let h = height.unwrap_or(240) as u32;
                 let mut config = Vec::new();
-                let codec = if tag != b"avc1" {
-                    VideoCodec::Still(tag)
-                } else if direct {
-                    VideoCodec::Config(t.extra)
+                let avcc = if direct {
+                    t.extra
                 } else if let Some(sps) = avi_input::nals(sets[0]).find(|n| n[0] & 31 == 7) {
                     config.extend_from_slice(&[
                         1,
@@ -358,9 +381,16 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
                             config[at] = 0xe0 | (config[at] & 31);
                         }
                     }
-                    VideoCodec::Config(&config)
+                    &config
                 } else {
-                    VideoCodec::Avc(t.fps.round().max(1.) as u32)
+                    config = h264::configuration(desc.width, h, t.fps.round().max(1.) as u32)?;
+                    &config
+                };
+                let codec = if tag == b"avc1" {
+                    VideoCodec::Config(avcc)
+                } else {
+                    desc.jpeg_avcc = avcc.to_vec();
+                    VideoCodec::Still(tag)
                 };
                 (
                     "video",
@@ -393,6 +423,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
             ),
             Codec::Subtitle { .. } => unreachable!(),
         };
+        descriptions.push(desc);
         let ticks = t.info.ticks;
         tracks.push(Track {
             id: t.info.id as u32,
@@ -415,7 +446,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
             matrix: MATRIX,
         });
     }
-    super::write(
+    let bytes = super::write(
         &tracks,
         1000,
         b"isom\0\0\x02\0isomiso2avc1mp41",
@@ -423,5 +454,6 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
         &[],
         false,
         limit,
-    )
+    )?;
+    Ok((bytes, descriptions))
 }

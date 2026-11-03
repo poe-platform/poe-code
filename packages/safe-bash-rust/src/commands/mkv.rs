@@ -142,10 +142,10 @@ pub(super) fn write(
             }
             if t.kind == "video" {
                 if codec == b"V_MPEG4/ISO/AVC" {
-                    let avcc = child(entry.get(78..).unwrap_or_default(), b"avcC");
+                    let avcc = source_tags[i].avcc(entry).unwrap_or_default();
                     let generated;
                     let avcc = if avcc.is_empty() {
-                        generated = h264::configuration(t.width as usize, t.height as usize, 30)?;
+                        generated = h264::configuration(i64::from(t.width), t.height, 30)?;
                         &generated
                     } else {
                         avcc
@@ -153,7 +153,7 @@ pub(super) fn write(
                     w.element(0x63a2, avcc)?;
                 }
                 w.group(0xe0, |w| {
-                    w.uint(0xb0, t.width)?;
+                    w.uint(0xb0, source_tags[i].avi().map_or(t.width, |a| a.width.max(0) as u32))?;
                     w.uint(0xba, t.height)
                 })?;
             } else if t.kind == "audio" {

@@ -392,11 +392,21 @@ fn audio_config(asc: &[u8]) -> (u8, u32, u8) {
 enum Original<'a> {
     #[default]
     None,
-    Avi,
+    Avi(&'a super::avi_input::Description),
     Flv(&'a [u8]),
     Matroska(&'a mkv_input::Track<'a>),
 }
 impl<'a> Original<'a> {
+    fn avi(self) -> Option<&'a super::avi_input::Description> {
+        if let Self::Avi(track) = self {Some(track)} else {None}
+    }
+    fn avcc(self, entry: &'a [u8]) -> Option<&'a [u8]> {
+        if let Some(t) = self.avi() && !t.jpeg_avcc.is_empty() {
+            return Some(&t.jpeg_avcc);
+        }
+        atoms(entry.get(78..).unwrap_or_default())
+            .find(|(k, _)| *k == b"avcC").map(|(_, body)| body)
+    }
     fn matroska(self) -> Option<&'a mkv_input::Track<'a>> {
         match self {
             Self::Matroska(track) => Some(track),
@@ -405,7 +415,7 @@ impl<'a> Original<'a> {
     }
     fn timestamps(&self, video: bool) -> Box<dyn Iterator<Item = u64> + '_> {
         match self {
-            Self::None | Self::Avi => Box::new(std::iter::empty()),
+            Self::None | Self::Avi(_) => Box::new(std::iter::empty()),
             Self::Flv(tags) => Box::new(flv_input::timestamps(tags, video).map(u64::from)),
             Self::Matroska(t) => Box::new(t.blocks.iter().map(|b| b.dts as u64)),
         }
@@ -715,7 +725,9 @@ impl<'a> Track<'a> {
     fn samples(&self, input_size: usize) -> impl Iterator<Item = Sample> + '_ {
         let mut timestamps = match self.original {Original::Flv(tags)=>Some(flv_input::timestamps(tags, self.kind=="video")), _=>None};
         let mut blocks=self.original.matroska().map(|t|t.packets());
+        let mut keys = self.original.avi().into_iter().flat_map(|a| &a.audio_keys);
         self.tables.samples(input_size).map(move |mut s| {
+            if let Some(&key) = keys.next() {s.key=key;}
             if let Some((p,_))=blocks.as_mut().and_then(Iterator::next) {s.dts=p.dts as u64;s.pts=p.pts.into();s.key=p.key;}
             if let Some(dts) = timestamps.as_mut().and_then(Iterator::next) {
                 s.pts += i128::from(dts) - i128::from(s.dts);
@@ -1433,8 +1445,7 @@ impl<'a> VideoDecoder<'a> {
             let (tag, entry) = desc.checked_sub(2)
                 .and_then(|i| self.track.other_video.get(i as usize).copied())
                 .unwrap_or((self.track.tag, self.track.entry));
-            let config = atoms(entry.get(78..).unwrap_or_default())
-                .find(|(k, _)| *k == b"avcC").map(|(_, body)| body);
+            let config = self.track.original.avcc(entry);
             let generated;
             let config = if let Some(config) = config {
                 config
@@ -1447,7 +1458,7 @@ impl<'a> VideoDecoder<'a> {
                 if w.div_ceil(16).max(1).saturating_mul(h.div_ceil(16).max(1)) > self.limit / 384 {
                     return Err("image exceeds memory budget");
                 }
-                generated = h264::configuration(w, h, 30)?;
+                generated = h264::configuration(w as i64, h as u32, 30)?;
                 &generated
             } else if super::image_header::recognized_image(data) {
                 return Err(h264::INVALID_PACKET);
@@ -1493,6 +1504,7 @@ fn render_track(
     full_size: bool,
     emit: impl FnMut(super::png_pixels::Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
+    if t.stats.count != 0 && t.original.avi().is_some_and(|a| a.width < 0) {return Err("Invalid H.264 pixel limit".into());}
     let (w, h) = (t.width as usize, t.height as usize);
     let limit = opts.limit;
     if t.stats.count > limit / size_of::<Sample>() {

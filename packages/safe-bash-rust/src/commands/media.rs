@@ -13546,6 +13546,32 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_preserves_avi_descriptions_and_packet_flags_across_containers() {
+        let fs = MemoryVfs::new();
+        let args = media_args(&["-y", "-i", "clip.avi", "out.webm"]);
+        for (mode, hash) in [
+            ("signed", "cca4790b31eb6e864e5a0249de8b7bebe6c6e4830df52e78340e7789d0c58e61"),
+            ("mjpeg", "21e2468d08517427c3b0e03466310f227e66b62fd3aed0e48882f18271ef9990"),
+            ("audio-key", "96718773e959b9d6bffb782f5b4298a34f71b52a6d9130d52496f709dc7c05ba"),
+        ] {
+            let mut bytes = include_bytes!("../../tests/fixtures/av.avi").to_vec();
+            let fmt = bytes.windows(4).position(|s| s == b"strf").unwrap() + 8;
+            match mode {
+                "signed" => bytes[fmt+4..fmt+8].copy_from_slice(&(-7i32).to_le_bytes()),
+                "mjpeg" => bytes[fmt+16..fmt+20].copy_from_slice(b"MJPG"),
+                _ => {
+                    let second = bytes.windows(4).enumerate().filter(|(_, s)| *s == b"01wb").nth(1).unwrap().0;
+                    bytes[second..second+4].copy_from_slice(b"01dc");
+                }
+            }
+            fs.write_file("/clip.avi", &bytes).unwrap();
+            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{mode}: {}", r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.webm").unwrap())), hash, "{mode}");
+        }
+    }
+
+    #[test]
     fn ffmpeg_converts_avi_input_packets_and_rejects_invalid_headers() {
         let fs = MemoryVfs::new();
         let args = media_args(&["-y", "-i", "clip.avi", "-c", "copy", "out.mp4"]);

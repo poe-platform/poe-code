@@ -546,8 +546,11 @@ impl BitWriter {
     }
 }
 
-pub(super) fn configuration(w: usize, h: usize, fps: u32) -> Result<Vec<u8>, &'static str> {
-    let (mw, mh) = (w.div_ceil(16).max(1), h.div_ceil(16).max(1));
+pub(super) fn configuration(w: i64, h: u32, fps: u32) -> Result<Vec<u8>, &'static str> {
+    let (mw, mh) = (
+        (w.max(1) as u64).div_ceil(16),
+        u64::from(h).div_ceil(16).max(1),
+    );
     let level = if w > 1280 || h > 720 { 40 } else { 31 };
     let mut b = BitWriter::default();
     b.bits(66, 8);
@@ -560,11 +563,14 @@ pub(super) fn configuration(w: usize, h: usize, fps: u32) -> Result<Vec<u8>, &'s
     b.ue(mw as u32 - 1);
     b.ue(mh as u32 - 1);
     b.bits(3, 2);
-    let (right, bottom) = ((mw * 16 - w) / 2, (mh * 16 - h) / 2);
+    let (right, bottom) = (
+        ((mw * 16) as i64 - w) as u32 >> 1,
+        (mh * 16 - u64::from(h)) as u32 >> 1,
+    );
     b.bits(u32::from(right + bottom > 0), 1);
     if right + bottom > 0 {
         for v in [0, right, 0, bottom] {
-            b.ue(v as u32)
+            b.ue(v)
         }
     }
     b.bits(3, 2);

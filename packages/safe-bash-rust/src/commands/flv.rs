@@ -37,10 +37,10 @@ pub(super) fn write(
         let entry = atoms(t.stsd.get(8..).unwrap_or_default())
             .next()
             .map_or(&[][..], |(_, e)| e);
-        let config = child(entry.get(78..).unwrap_or_default(), b"avcC");
+        let config = source_tags[0].avcc(entry).unwrap_or_default();
         let generated;
         let config = if config.is_empty() {
-            generated = h264::configuration(t.width as usize, t.height as usize, 30)?;
+            generated = h264::configuration(i64::from(t.width), t.height, 30)?;
             &generated
         } else {
             config
@@ -88,7 +88,7 @@ pub(super) fn write(
         let channels = options.channels.unwrap_or(channels);
         let fallback = audio_specific_config(options.rate.unwrap_or(rate), channels, 2);
         // AVI and FLV input tracks have channel and rate fields but no ES descriptor.
-        let config = if !matches!(source_tags[1], super::Original::Flv(_) | super::Original::Avi) {
+        let config = if !matches!(source_tags[1], super::Original::Flv(_) | super::Original::Avi(_)) {
             decoder_config(child(entry.get(offset..).unwrap_or_default(), b"esds"))
                 .1
                 .unwrap_or(&fallback)

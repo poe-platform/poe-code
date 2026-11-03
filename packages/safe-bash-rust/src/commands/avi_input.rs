@@ -142,6 +142,14 @@ enum Header<'a> {
     },
     Other,
 }
+// These fields cannot be recovered from the intermediate MP4 sample tables.
+#[derive(Default)]
+pub(super) struct Description {
+    pub width: i64,
+    pub duration: u64,
+    pub jpeg_avcc: Vec<u8>,
+    pub audio_keys: Vec<bool>,
+}
 pub(super) struct Track<'a> {
     pub info: StreamInfo,
     pub packets: Vec<Packet>,

@@ -341,11 +341,11 @@ fn video_entry(w: usize, h: usize, codec: VideoCodec<'_>) -> Result<Vec<u8>, &'s
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum VideoEncoding { Mp4, Fragmented, Flv }
+enum VideoEncoding { Mp4, Fragmented, Flv, Matroska }
 
 impl Remux<'_> {
     fn video_encoding(&self) -> VideoEncoding {
-        if self.format == "flv" { VideoEncoding::Flv } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
+        if self.format == "flv" { VideoEncoding::Flv } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
     }
 }
 
@@ -381,14 +381,14 @@ fn encode_video(
                     track.stsd = video_entry(
                         im.width,
                         im.height,
-                        VideoCodec::Avc((1. / duration).round().max(1.) as u32),
+                        VideoCodec::Avc(if encoding == VideoEncoding::Matroska {30} else {(1. / duration).round().max(1.) as u32}),
                     )?
                     .into();
                 }
             }
             // The MP4 encoder consumes the backing buffer. fps can reuse that
             // buffer, in which case the JS encoder reads zero RGB on the next use.
-            if encoding != VideoEncoding::Flv && (previous_buffer == Some(buffer)
+            if matches!(encoding, VideoEncoding::Mp4|VideoEncoding::Fragmented) && (previous_buffer == Some(buffer)
                 || matches!(buffer, y4m::Buffer::Input(i) if input_consumed(i)))
             {
                 im.pixels.fill([0, 0, 0, 255]);
@@ -404,13 +404,13 @@ fn encode_video(
                 samples.len(),
                 limit.saturating_sub(used),
             )?;
-            if encoding != VideoEncoding::Flv { previous = blocks; }
+            if matches!(encoding, VideoEncoding::Mp4|VideoEncoding::Fragmented) { previous = blocks; }
             used = used.saturating_add(data.len() + size_of::<Sample>());
             if used > limit {
                 return Err("output byte limit exceeded");
             }
             let duration = (duration * f64::from(track.scale)).round().max(1.) as u32;
-            if encoding == VideoEncoding::Flv {
+            if matches!(encoding, VideoEncoding::Flv|VideoEncoding::Matroska) {
                 let dts = (frame.pts * f64::from(track.scale)).round() as u64;
                 if let Some(prior) = samples.last_mut() {
                     prior.duration = dts.saturating_sub(last_dts) as u32;
@@ -1068,6 +1068,7 @@ fn adts_track<'a>(
 
 fn subtitle_track(
     text: &str,
+    raw: bool,
     range: Option<(f64, Option<f64>)>,
     movie_scale: u32,
     index_bytes: &mut usize,
@@ -1075,7 +1076,12 @@ fn subtitle_track(
 ) -> Result<Track<'static>, &'static str> {
     let mut samples = Vec::new();
     let (mut ticks, mut skip, mut first_dts) = (0u64, 0, 0);
-    for (data, duration, preroll, start) in super::super::subtitles::packets(text, range) {
+    let packets: Box<dyn Iterator<Item = _> + '_> = if raw {
+        Box::new(super::super::subtitles::cues(text).map(|c| (c.text.into_bytes(), c.duration, 0, c.start)))
+    } else {
+        Box::new(super::super::subtitles::packets(text, range))
+    };
+    for (data, duration, preroll, start) in packets {
         *index_bytes = index_bytes
             .saturating_add(size_of::<Sample>())
             .saturating_add(data.len());
@@ -1088,11 +1094,12 @@ fn subtitle_track(
                 first_dts = start.max(0) as u64;
             }
         }
+        let cts = if raw { start.saturating_sub(first_dts.saturating_add(ticks).min(i64::MAX as u64) as i64) } else { 0 };
         ticks = ticks.saturating_add(duration as u64);
         samples.push(Sample {
             data: data.into(),
             duration: duration as u32,
-            cts: 0,
+            cts,
             key: true,
             description: 1,
         });
@@ -1142,6 +1149,8 @@ fn subtitle_track(
 mod concat;
 #[path = "flv.rs"]
 mod flv;
+#[path = "mkv.rs"]
+mod mkv;
 pub(in super::super) use concat::DecodedConcat;
 
 fn repeat_tracks(
@@ -2625,18 +2634,8 @@ pub(in super::super) fn remux(
                     opts.video_encoding(),
                     limit,
                 )?,
-                Streams::GeneratedAudio(a) => {
-                    let track = a.track(&audio, scale, limit)?;
-                    index_bytes += track.samples.capacity() * size_of::<Sample>();
-                    tracks.push(track);
-                    continue;
-                }
-                Streams::Wave(w) => {
-                    let t = w.track(&audio, scale, limit)?;
-                    index_bytes += t.samples.capacity() * size_of::<Sample>();
-                    tracks.push(t);
-                    continue;
-                }
+                Streams::GeneratedAudio(a) => a.track(&audio, scale, limit)?,
+                Streams::Wave(w) => w.track(&audio, scale, limit)?,
                 Streams::Aac { .. } => {
                     tracks.push(adts_track(input, &audio, scale, &mut index_bytes)?);
                     continue;
@@ -2645,6 +2644,7 @@ pub(in super::super) fn remux(
                 Streams::Captions(text) => {
                     tracks.push(subtitle_track(
                         text,
+                        range.is_none() && matches!(opts.format,"mkv"|"webm"),
                         range,
                         scale,
                         &mut index_bytes,
@@ -2653,6 +2653,18 @@ pub(in super::super) fn remux(
                     continue;
                 }
             };
+            if track.kind == "audio" {
+                if track.samples.is_empty() && matches!(opts.format, "mkv" | "webm") {
+                    let channels = u16_at(&track.stsd, 32).into();
+                    track.samples.push(Sample {
+                        data: super::super::adts::silent(channels).into(),
+                        duration: 1024, cts: 0, key: true, description: 1,
+                    });
+                }
+                index_bytes += track.samples.capacity() * size_of::<Sample>();
+                tracks.push(track);
+                continue;
+            }
             track.matrix = rotation_matrix(opts.rotation.unwrap_or(0));
             index_bytes =
                 index_bytes.saturating_add(track.samples.capacity() * size_of::<Sample>());
@@ -2971,7 +2983,7 @@ pub(in super::super) fn remux(
         }
         tracks.push(track);
     }
-    if audio.clear_samples && opts.format != "flv" {
+    if audio.clear_samples && !matches!(opts.format,"flv"|"mkv"|"webm") {
         for (track, &(j, i)) in tracks.iter_mut().zip(&selected) {
             if track.kind != "audio" {
                 continue;
@@ -3085,35 +3097,6 @@ pub(in super::super) fn remux(
     if loops != 0 {
         repeat_tracks(&mut tracks, loops, scale, opts.limit)?;
     }
-    if opts.format == "flv" {
-        // The numbered-image reader releases the template MP4 backing its codec description.
-        if selected.iter().find(|&&(j, i)| sources[j].2.kind(i) == "video")
-            .is_some_and(|&(j, _)| matches!(sources[j].2, Streams::Images(_))) {
-            return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
-        }
-        let duration = if let Some(sequence) = &composed && matches!(opts.composition, Some(Composition::Fade { .. })) {
-            sequence.frames.iter().map(|(_, dur)| dur).sum()
-        } else if sources.len() > 1 && opts.concat.is_some() {
-            sources.iter().map(|(_, _, stream)| (0..stream.len()).map(|i| stream.seconds(i)).fold(0., f64::max)).sum()
-        } else {
-            presentation_duration(sources, &selected, scale, range)
-        };
-        // MP4 sample tables store cumulative durations. An untrimmed FLV copy
-        // must retain the source DTS even when timestamps have gaps or overlap.
-        let mut source_tags = [&[][..]; 2];
-        if range.is_none() && opts.concat.is_none() && opts.composition.is_none() && loops == 0 {
-            for (slot, kind) in ["video", "audio"].into_iter().enumerate() {
-                if kind == "video" && !opts.video_filters.is_empty() { continue; }
-                if let Some(&(j, i)) = selected.iter().find(|&&(j, i)| sources[j].2.kind(i) == kind)
-                    && let Streams::Mp4(tracks) = &sources[j].2
-                    && let Some(tags) = tracks[i].0.flv_tags
-                {
-                    source_tags[slot] = tags;
-                }
-            }
-        }
-        return flv::write(&tracks, duration, &audio, source_tags).map_err(str::to_owned);
-    }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();
     for (j, &(_, movie, ..)) in sources[..if opts.maps.is_empty() && opts.concat.is_none() {
@@ -3162,6 +3145,32 @@ pub(in super::super) fn remux(
         && let Some(year) = opts.metadata.get("year")
     {
         metadata.insert("date".into(), year.clone());
+    }
+    if matches!(opts.format,"flv"|"mkv"|"webm") {
+        let duration = if let Some(sequence) = &composed && matches!(opts.composition, Some(Composition::Fade { .. })) {
+            sequence.frames.iter().map(|(_, dur)| dur).sum()
+        } else if sources.len() > 1 && opts.concat.is_some() {
+            sources.iter().map(|(_, _, stream)| (0..stream.len()).map(|i| stream.seconds(i)).fold(0., f64::max)).sum()
+        } else {
+            presentation_duration(sources, &selected, scale, range)
+        };
+        let mut source_tags=vec![&[][..];tracks.len()];
+        if range.is_none() && opts.concat.is_none() && opts.composition.is_none() && loops == 0 {
+            for (tags,&(j,i)) in source_tags.iter_mut().zip(&selected) {
+                if sources[j].2.kind(i)=="video" && !opts.video_filters.is_empty() {continue;}
+                if let Streams::Mp4(tracks)=&sources[j].2
+                    && let Some(original)=tracks[i].0.flv_tags { *tags=original; }
+            }
+        }
+        if opts.format=="flv" {
+            // Numbered images release the template MP4 backing their codec description.
+            if selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
+                return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
+            }
+            let tags=["video","audio"].map(|kind|tracks.iter().position(|t|t.kind==kind).map_or(&[][..],|i|source_tags[i]));
+            return flv::write(&tracks,duration,&audio,tags).map_err(str::to_owned);
+        }
+        return mkv::write(&tracks,duration,opts.format=="webm",&metadata,&audio,&source_tags).map_err(str::to_owned);
     }
     let brands = atoms(input)
         .find(|(k, _)| *k == b"ftyp")

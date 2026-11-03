@@ -4777,6 +4777,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
     }else{None};
     let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null" || output_format==Some("null"){Some("null")}else{match output_format {
+        Some("webm") => Some("webm"),
         Some(name) => media_format::by_name(name),
         None => media_format::by_filename(&out_rel),
     }};
@@ -4786,7 +4787,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
     let frame_output=y4m_output || image_format.is_some();
     let audio_output = muxer == Some("aac");
-    let movie_output = matches!(muxer, Some("mp4" | "mov" | "flv"));
+    let movie_output = matches!(muxer, Some("mp4" | "mov" | "flv" | "mkv" | "webm"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
     let mut read_input = |path: &str, explicit: Option<&str>| {
         let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
@@ -13491,6 +13492,26 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffmpeg_writes_matroska_and_webm_tracks_blocks_and_tags() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        fs.write_file("/a.srt", b"1\n00:00:00,000 --> 00:00:01,000\nhello\n").unwrap();
+        for (source, format, expected) in [
+            ("-i av.mp4 -c copy", "mkv", "5e45cc5bc8fd2fc06cdde7b641ddfbe6b5b273cd8b16f5acad8a0b3a8483c1fc"),
+            ("-i av.mp4 -c copy", "webm", "c4afbbb95430f5938f97a5b1dadae5bdcef1b20027f6484ae8d3394ef4eb2193"),
+            ("-i a.srt", "mkv", "9e5c170feb33994639ccd0d77193964a0f7e49287d241bf2c1d2aeb52b8094cf"),
+            ("-i av.mp4 -metadata title=hello -metadata artist=Sample", "mkv", "26de4a6aff2be480ddf8a7433482badb587a90a37c13614248c8dd62011b63c7"),
+            ("-f lavfi -i color=s=4x4:r=4:d=1", "webm", "84e24f10ae7396bd549c4861762a5722d26928a2433f25f5e3a9d37e1aed0da1"),
+        ] {
+            let args = format!("-y {source} out.{format}").split_whitespace().map(str::to_owned).collect::<Vec<_>>();
+            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let bytes = fs.read_file(&format!("/out.{format}")).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(&bytes)), expected, "{source} -> {format}");
+        }
     }
 
     #[test]

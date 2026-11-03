@@ -490,7 +490,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, Expr, BytewiseLongest, First, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
+enum RxSearch { Longest, Expr, BytewiseLongest, First, Mdq, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -517,7 +517,7 @@ impl ZeroRegex {
     pub(super) fn mdq(pattern: &str) -> Result<Self, RxParseError> {
         let branches = parse_rx_branches(pattern, false, RxDialect::Mdq)?;
         let mut rx = Self::from_branches([branches], false, false, false);
-        rx.search = RxSearch::First;
+        rx.search = RxSearch::Mdq;
         Ok(rx)
     }
 
@@ -1028,6 +1028,12 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
     let mut group_count = 0;
     let mut closed = [false; 9];
     let mut rg_names = std::collections::BTreeSet::new();
+    let mut mdq_names = std::collections::HashMap::<String, usize>::new();
+    let mut numbered_refs = Vec::new();
+    let mut numeric_ref = |index: f64| {
+        numbered_refs.push(index);
+        RxAtom::Backref((index as usize).saturating_sub(1))
+    };
 
     let skip = |at: &mut usize, mode: RxFlags| {
         if mode.extended {
@@ -1072,6 +1078,34 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     'n' => RxAtom::Char('\n'),
                     't' => RxAtom::Char('\t'),
                     'r' => RxAtom::Char('\r'),
+                    '0'..='9' if mdq => {
+                        let start = idx - 1;
+                        while chars.get(idx).is_some_and(char::is_ascii_digit) { idx += 1; }
+                        let index = super::js_number(&chars[start..idx].iter().collect::<String>(), 0.);
+                        if nc == '0' && index != 0.0 { return Err(RxParseError::at(start, "Invalid back reference")); }
+                        numeric_ref(index)
+                    }
+                    'k' | 'g' if mdq => {
+                        let error_at = idx;
+                        let close = match chars.get(idx) { Some('<') => '>', Some('\'') => '\'',
+                            _ => return Err(RxParseError::at(error_at, "Could not parse group name")) };
+                        idx += 1;
+                        let Some(len) = chars[idx..].iter().position(|&c| c == close) else {
+                            return Err(RxParseError::at(error_at, "Could not parse group name"));
+                        };
+                        if nc == 'g' { return Err("Regex uses currently unimplemented feature: Subroutine Call".into()); }
+                        let name = chars[idx..idx+len].iter().collect::<String>();
+                        idx += len + 1;
+                        let number = super::js_number(&name, 0.0);
+                        if !name.is_empty() && number.fract() == 0.0 {
+                            numeric_ref(if name.starts_with('-') { group_count as f64 + number + 1.0 }
+                                else if name.starts_with('+') { group_count as f64 + number } else { number })
+                        } else {
+                            let slot = mdq_names.get(&name).ok_or_else(|| RxParseError::at(error_at,
+                                &format!("Invalid group name in back reference: {name}")))?;
+                            RxAtom::Backref(*slot)
+                        }
+                    }
                     d @ '1'..='9' => {
                         if rg { return Err("unsupported ERE backreference".into()); }
                         let slot = (d as u8 - b'1') as usize;
@@ -1210,6 +1244,17 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     chars: ranges,
                 }
             }
+            '(' if mdq && chars[idx..].starts_with(&['(', '?', 'P', '=']) => {
+                idx += 4;
+                let Some(len) = chars[idx..].iter().position(|&c| c == ')') else {
+                    return Err(RxParseError::at(idx, "Could not parse group name"));
+                };
+                let name = chars[idx..idx+len].iter().collect::<String>();
+                let slot = mdq_names.get(&name).ok_or_else(|| RxParseError::at(idx,
+                    &format!("Invalid group name in back reference: {name}")))?;
+                idx += len + 1;
+                RxAtom::Backref(*slot)
+            }
             '(' => {
                 idx += 1;
                 let outer_mode = mode;
@@ -1263,7 +1308,13 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                             return Err("invalid ERE capture name".into());
                         }
                         idx += end + 1;
-                        RxGroup::Capture(Some(name.iter().collect()))
+                        let name = name.iter().collect::<String>();
+                        if mdq && (!name.starts_with(|c: char| c == '_' || c.is_alphabetic())
+                            || !name.chars().all(|c| c == '_' || c.is_alphanumeric())
+                            || mdq_names.insert(name.clone(), group_count).is_some()) {
+                            return Err(RxParseError::at(idx, "Could not parse group name"));
+                        }
+                        RxGroup::Capture(Some(name))
                     }
                     ['?', '<', ..] | ['?', 'P', '<', ..] if rg => return Err("invalid ERE capture name".into()),
                     ['?', '<', ..] if jq => return Err("invalid named capture".into()),
@@ -1271,7 +1322,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     ['?', ..] if jq => return Err("unsupported jq regular expression group".into()),
                     _ => RxGroup::Capture(None),
                 };
-                let slot = if jq && matches!(kind, RxGroup::Capture(_)) {
+                let slot = if (mdq || jq) && matches!(kind, RxGroup::Capture(_)) {
                     group_count += 1;
                     Some(group_count - 1)
                 } else { None };
@@ -1440,6 +1491,12 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         alts.push(std::mem::replace(&mut out, outer));
         let atom = parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind);
         out.push(RxToken { atom, case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false });
+    }
+    if let Some(index) = numbered_refs.iter().find(|&&n| n < 1.0 || n > group_count as f64) {
+        return Err(format!("Invalid back reference to group {index}").into());
+    }
+    if !numbered_refs.is_empty() && !mdq_names.is_empty() {
+        return Err("Numbered backref/call not allowed because named group was used, use a named backref instead".into());
     }
     parsed.requires_vm |= out.is_empty() && !alts.is_empty();
     alts.push(out);
@@ -1765,7 +1822,8 @@ impl RxProgram {
                     RxOp::Jump(dest) => state.pc = *dest,
                     RxOp::Open { slot, until } if !state.caps.is_empty() => {
                         if search != RxSearch::Expr { state.caps[*slot..*until].fill(None); }
-                        state.caps[*slot] = Some((state.pos, state.pos));
+                        // mdq distinguishes an open group from a closed empty capture.
+                        state.caps[*slot] = Some((state.pos, if search == RxSearch::Mdq { usize::MAX } else { state.pos }));
                     }
                     RxOp::Close(slot) if !state.caps.is_empty() => {
                         state.caps[*slot].as_mut().unwrap().1 = state.pos;
@@ -1854,7 +1912,7 @@ impl RxProgram {
                             continue;
                         }
                         let reference = if let RxAtom::Backref(i) = tok.atom {
-                            match state.caps.get(i).copied().flatten() {
+                            match state.caps.get(i).copied().flatten().filter(|&(_, end)| end != usize::MAX) {
                                 Some((lo, hi)) if lo == hi => continue,
                                 Some(range) => Some(range),
                                 None if tok.min == 0 => continue,

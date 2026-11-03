@@ -8736,3 +8736,23 @@ test("mdq scoped regex flags control case, anchors, whitespace and greed", async
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq resolves and validates named, numbered and relative regex references", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["abab", "(?<w>ab)\\k<w>"], ["abab", "(?P<w>ab)(?P=w)"], ["abab", "(ab)\\k<-1>"],
+      ["aba", "(a)(b)\\k'-2'"], ["ab", "(\\1a)"], ["", "\\0"], ["a", "\\012"],
+      ["a", "(a)\\k<+1>"], ["abc", "(?<w>a)\\k<missing>"], ["abc", "(?P=unknown)"],
+      ["abab", "(?<w>ab)\\1"], ["a", "(a)\\g<1>"], ["a", "(a)\\g{1}"],
+      ["abc", "(?<a>x)(?<a>y)"], ["ab", "(?<0>ab)"], ["ab", "(?<>ab)"],
+      ["αΑ", "(?<α>α)(?i:\\k<α>)"], ["ab", "(a)(b)\\10"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: /" + pattern.replaceAll("'", "'\\''") + "/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

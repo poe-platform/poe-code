@@ -478,6 +478,7 @@ struct Parser<'a, 'b> {
     signatures: Vec<(&'a str, usize)>,
     missing: Vec<Missing<'a>>,
     definition_errors: Vec<Vec<Missing<'a>>>,
+    reads_input: bool,
     depth: usize,
 }
 
@@ -829,6 +830,7 @@ impl<'a> Parser<'a, '_> {
                     } else {
                         Cow::Borrowed(tok.text)
                     };
+                    self.reads_input |= name == "inputs";
                     let mark = self.missing.len();
                     let mut arity = 0;
                     if self.accept("(")? && !self.accept(")")? {
@@ -923,6 +925,7 @@ fn parse<'a>(
             .collect(),
         missing: Vec::new(),
         definition_errors: Vec::new(),
+        reads_input: false,
         variables: Vec::new(),
         labels: vec![],
         depth: 0,
@@ -963,6 +966,7 @@ fn parse<'a>(
             if count == 1 { "" } else { "s" }
         ));
     }
+    scope.inputs.borrow_mut().reads_input |= p.reads_input;
     let comments = p.lexer.comments;
     for (name, params, range) in definitions {
         let body = without_comments(source, range, &comments);

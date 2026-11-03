@@ -1,28 +1,17 @@
 use super::{JVal, SafeBashFs, jq_json::Parser, read_stream_diag, resolve_posix_path};
 use std::borrow::Cow;
 
+#[derive(Default)]
 pub(super) struct JqInputs<'a> {
-    reader: Reader<'a>,
+    reader: Option<Values<'a>>,
     pub warnings: String,
+    pub reads_input: bool,
     pub file_error: Option<String>,
 }
 
-enum Reader<'a> {
-    Documents(std::vec::IntoIter<JVal>),
-    Files(Box<Values<'a>>),
-}
-
 impl JqInputs<'_> {
-    pub fn documents(values: Vec<JVal>) -> Self {
-        Self {
-            reader: Reader::Documents(values.into_iter()),
-            file_error: None,
-            warnings: String::new(),
-        }
-    }
-
     pub fn location(&mut self) -> String {
-        if let Reader::Files(v) = &mut self.reader {
+        if let Some(v) = &mut self.reader {
             let b = &mut v.bytes;
             let Some(name) = &b.name else {
                 return "<unknown>".into();
@@ -43,16 +32,13 @@ impl JqInputs<'_> {
     }
 
     pub fn next(&mut self) -> Result<Option<JVal>, (i32, String)> {
-        let result = match &mut self.reader {
-            Reader::Documents(docs) => Ok(docs.next()),
-            Reader::Files(values) => {
-                let result = values.pull(&mut self.warnings);
-                if result.is_err() {
-                    values.done = true;
-                }
-                result
-            }
+        let Some(values) = &mut self.reader else {
+            return Ok(None);
         };
+        let result = values.pull(&mut self.warnings);
+        if result.is_err() {
+            values.done = true;
+        }
         match result {
             Err((2, e)) => {
                 self.file_error = Some(e.clone());
@@ -65,7 +51,9 @@ impl JqInputs<'_> {
 
 struct Bytes<'a> {
     files: std::vec::IntoIter<String>,
-    stdin: Option<&'a [u8]>,
+    xml: bool,
+    raw: bool,
+    stdin: Option<&'a str>,
     cwd: &'a str,
     fs: &'a dyn SafeBashFs,
     chunk: Cow<'a, [u8]>,
@@ -88,8 +76,24 @@ impl Bytes<'_> {
             let Some(path) = self.files.next() else {
                 return Ok(None);
             };
-            self.chunk = if path == "-" {
-                Cow::Borrowed(self.stdin.take().unwrap_or_default())
+            if self.xml && self.raw && path == "-" && self.stdin.is_none() {
+                continue;
+            }
+            self.name = Some(if path == "-" {
+                "<stdin>".into()
+            } else {
+                path.clone()
+            });
+            self.at = 0;
+            self.line = 0;
+            self.chunk = Cow::Borrowed(&[]);
+            let bytes = if path == "-" {
+                let input = self.stdin.take().unwrap_or_default();
+                if self.xml {
+                    Cow::Owned(crate::vfs::stream_string_to_bytes(input))
+                } else {
+                    Cow::Borrowed(input.as_bytes())
+                }
             } else {
                 let full = resolve_posix_path(self.cwd, &path);
                 Cow::Owned(
@@ -98,9 +102,16 @@ impl Bytes<'_> {
                         .map_err(|_| (2, read_stream_diag(&full, self.fs)))?,
                 )
             };
-            self.name = Some(if path == "-" { "<stdin>".into() } else { path });
-            self.at = 0;
-            self.line = 0;
+            self.chunk = if self.xml {
+                let text = std::str::from_utf8(&bytes)
+                    .map_err(|_| (1, "XML input must be UTF-8".to_string()))?;
+                super::parse_xml_strict_dom(text).map_err(|e| (1, e))?;
+                let mut json = super::parse_xml_to_jval(text, false).to_json_string(true, false, 0);
+                json.push('\n');
+                Cow::Owned(json.into_bytes())
+            } else {
+                bytes
+            };
             self.more_newlines = None;
         }
         Ok(Some(self.chunk[self.at]))
@@ -243,6 +254,7 @@ pub(super) fn files<'a>(
     sequence: bool,
     stream: bool,
     stream_errors: bool,
+    xml: bool,
 ) -> JqInputs<'a> {
     if files.is_empty() {
         files.push("-".into());
@@ -250,7 +262,9 @@ pub(super) fn files<'a>(
     let values = Values {
         bytes: Bytes {
             files: files.into_iter(),
-            stdin: Some(stdin.as_bytes()),
+            xml,
+            raw,
+            stdin: Some(stdin),
             cwd,
             fs,
             chunk: Cow::Borrowed(&[]),
@@ -272,9 +286,10 @@ pub(super) fn files<'a>(
         done: false,
     };
     JqInputs {
-        reader: Reader::Files(Box::new(values)),
+        reader: Some(values),
         file_error: None,
         warnings: String::new(),
+        reads_input: false,
     }
 }
 

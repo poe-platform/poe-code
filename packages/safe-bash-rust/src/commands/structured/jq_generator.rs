@@ -9,18 +9,18 @@ use std::ops::ControlFlow::{self, Break, Continue};
 
 #[derive(Debug)]
 pub(super) enum JqFault {
-    Error(JVal),
+    Error(i32, JVal),
     Limit(&'static str),
     Halt(i32, String),
 }
 impl From<String> for JqFault {
     fn from(s: String) -> Self {
-        Self::Error(JVal::Str(s))
+        Self::Error(5, JVal::Str(s))
     }
 }
 impl From<&str> for JqFault {
     fn from(s: &str) -> Self {
-        Self::Error(JVal::Str(s.into()))
+        Self::Error(5, JVal::Str(s.into()))
     }
 }
 
@@ -81,11 +81,11 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         vars.next_label.set(target + 1);
         let mut bound = vars.clone();
         bound.labels.insert(name.trim().into(), target);
-        return protected(body, input, &bound, emit, |e, _| {
+        return protected(body, input, &bound, emit, |code, e, _| {
             if e == JVal::Object(vec![("__jq".into(), JVal::Number(target as f64, None))]) {
                 Ok(Continue(()))
             } else {
-                Err(JqFault::Error(e))
+                Err(JqFault::Error(code, e))
             }
         });
     }
@@ -107,7 +107,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
     if let Some(rest) = s.strip_prefix("try ") {
         let pair = split_jq_binary(rest, " catch ");
         let body = pair.as_ref().map_or(rest, |(body, _)| body);
-        return protected(body, input, vars, emit, |e, emit| {
+        return protected(body, input, vars, emit, |_, e, emit| {
             if let Some((_, handler)) = &pair {
                 visit_jq(handler, &e, vars, emit)
             } else {
@@ -274,7 +274,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
     let operand = s.strip_suffix('?').unwrap_or(s).trim_end();
     use super::jq_parser::Subscript;
     if operand != s {
-        return protected(operand, input, vars, emit, |_, _| Ok(Continue(())));
+        return protected(operand, input, vars, emit, |_, _, _| Ok(Continue(())));
     }
     if let Some((base, op)) = super::jq_parser::subscript(s)? {
         let bases = |each: &mut dyn FnMut(&JVal) -> Flow| {
@@ -391,9 +391,9 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }
         match (name, args.filter(|arg| !arg.trim().is_empty())) {
             (".." | "recurse", None) => return descendants(input, emit),
-            ("error", None) => return Err(JqFault::Error(input.clone())),
+            ("error", None) => return Err(JqFault::Error(5, input.clone())),
             ("error", Some(filter)) => {
-                return visit_jq(filter, input, vars, &mut |v| Err(JqFault::Error(v)));
+                return visit_jq(filter, input, vars, &mut |v| Err(JqFault::Error(5, v)));
             }
             ("halt", None) => return Err(JqFault::Halt(0, String::new())),
             ("halt_error", None) => return halt_error(input, JVal::Number(5.0, None)),
@@ -608,13 +608,13 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         .and_then(|s| s.trim_start().strip_prefix('$'))
         && let Some(id) = vars.labels.get(name.trim())
     {
-        return Err(JqFault::Error(JVal::Object(vec![(
+        return Err(JqFault::Error(5, JVal::Object(vec![(
             "__jq".into(),
             JVal::Number(*id as f64, None),
         )])));
     }
     if s == "inputs" {
-        while let Some(value) = vars.pop_input().map_err(|(_, e)| e)? {
+        while let Some(value) = vars.pop_input().map_err(|(code,e)| JqFault::Error(code, JVal::Str(e)))? {
             if emit(value)?.is_break() {
                 return Ok(Break(()));
             }
@@ -865,7 +865,7 @@ fn protected(
     input: &JVal,
     vars: &JqScope<'_>,
     emit: &mut Emit<'_>,
-    handle: impl FnOnce(JVal, &mut Emit<'_>) -> Flow,
+    handle: impl FnOnce(i32, JVal, &mut Emit<'_>) -> Flow,
 ) -> Flow {
     let mut downstream = None;
     let result = visit_jq(body, input, vars, &mut |v| match emit(v) {
@@ -879,7 +879,7 @@ fn protected(
         return Err(e);
     }
     match result {
-        Err(JqFault::Error(e)) if vars.inputs.borrow().file_error.is_none() => handle(e, emit),
+        Err(JqFault::Error(code, e)) if vars.inputs.borrow().file_error.is_none() => handle(code, e, emit),
         other => other,
     }
 }

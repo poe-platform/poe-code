@@ -8949,3 +8949,26 @@ test("xq compiles jq functions and rejects unknown names before reading XML", as
     }
   } finally { rs.dispose(); }
 });
+
+test("xq converts XML when jq requests the next source", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const jsFs = new MemoryFileSystem(), js = new Shell({ fs: jsFs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const fs of [jsFs, rs.fs]) {
+      await fs.writeFile("/xml", Buffer.from("<r a='x'>🌱\uE080</r>"));
+      await fs.writeFile("/bad", Buffer.from("<r>"));
+      await fs.writeFile("/bytes", Uint8Array.of(0xff));
+    }
+    for (const cmd of [
+      "xq -c . xml bad", "xq -c . xml missing", "xq -nc 'first(inputs)' xml missing",
+      "xq -nc 'if false then inputs else 7 end' bad", "xq -nc 7 bad",
+      "xq -nc 'try inputs catch .' xml bad", "xq -nc inputs bytes",
+      "xq -Rc . xml xml", "xq -Rsc . xml xml", "xq --stream -c . xml",
+      "xq -c . - - <xml", "xq -c . <bytes", "xq 'error(\"msg\")' xml",
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

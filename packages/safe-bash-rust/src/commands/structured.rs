@@ -326,7 +326,7 @@ pub fn try_run_structured_command(
     match cmd {
         "jq" => Some(cmd_jq_with_env(args, stdin, cwd, env, fs)),
         "yq" => Some(cmd_yq(args, stdin, cwd, env, fs)),
-        "xq" => Some(cmd_xq(args, stdin, cwd, env, fs)),
+        "xq" => Some(utf8_output(cmd_jq_core(args, stdin, cwd, env, fs, true, None))),
         "csvcut" => Some(cmd_csvcut(args, stdin, cwd, fs)),
         "csvgrep" => Some(cmd_csvgrep(args, stdin, cwd, fs)),
         "csvstat" => Some(cmd_csvstat(args, stdin, cwd, fs)),
@@ -341,15 +341,7 @@ pub fn try_run_structured_command(
         "csvclean" => Some(cmd_csvclean(args, stdin, cwd, fs)),
         "csvpy" => Some(cmd_csvpy(args, stdin, cwd, fs)),
         "htmlq" => Some(cmd_htmlq(args, stdin, cwd, fs)),
-        "mdq" => {
-            let mut out = cmd_mdq(args, stdin, cwd, fs);
-            for channel in [&mut out.stdout, &mut out.stderr] {
-                if channel.as_bytes().contains(&0xee) {
-                    *channel = crate::vfs::bytes_to_stream_string(channel.as_bytes());
-                }
-            }
-            Some(out)
-        }
+        "mdq" => Some(utf8_output(cmd_mdq(args, stdin, cwd, fs))),
         "unrtf" => Some(cmd_unrtf(args, stdin, cwd, fs)),
         "pandoc" => Some(cmd_pandoc(args, stdin, cwd, fs)),
         "ast-grep" | "sg" => Some(cmd_ast_grep(cmd, args, stdin, cwd, fs)),
@@ -790,7 +782,7 @@ fn cmd_jq_core(
                 _ => {
                     if vars.contains_key(name) { continue; }
                     let full = resolve_posix_path(cwd, text);
-                    let mut source = jq_input::files(vec![full], "", cwd, fs, a == "--rawfile", true, false, false, false);
+                    let mut source = jq_input::files(vec![full], "", cwd, fs, a == "--rawfile", true, false, false, false, false);
                     match source.next() {
                         Ok(Some(value)) => value,
                         Ok(None) => unreachable!("slurp always yields one value"),
@@ -939,7 +931,7 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
+    let inputs = Rc::new(RefCell::new(jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors, xml_input)));
     let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
@@ -950,48 +942,7 @@ fn cmd_jq_core(
         if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) { return compile_err; }
         std::borrow::Cow::Borrowed(raw_filter.as_str())
     };
-    let mut deferred_xml_err: Option<(String, i32)> = None;
-
-    if xml_input {
-        let mut xml_vals: Vec<JVal> = Vec::new();
-        let sources: Vec<Option<&str>> = if files.is_empty() {
-            vec![None]
-        } else {
-            files.iter().map(|f| if f == "-" { None } else { Some(f.as_str()) }).collect()
-        };
-        for src in sources {
-            let text = match src {
-                None => stdin.to_string(),
-                Some(f) => {
-                    let full = resolve_posix_path(cwd, f);
-                    match fs.read_file(&full) {
-                        Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                        Err(_) => {
-                            let msg = format!("jq: {}\n", read_stream_diag(&full, fs));
-                            if null_input {
-                                deferred_xml_err = Some((msg, 2));
-                                break;
-                            }
-                            return err_out(&msg, 2);
-                        }
-                    }
-                }
-            };
-            if let Err(e) = parse_xml_strict_dom(&text) {
-                let msg = format!("jq: {e}\n");
-                if null_input {
-                    deferred_xml_err = Some((msg, 1));
-                    break;
-                }
-                return err_out(&msg, 1);
-            }
-            xml_vals.push(parse_xml_to_jval(&text, false));
-        }
-        if slurp && !raw_input { xml_vals = vec![JVal::Array(xml_vals)]; }
-        *inputs.borrow_mut() = JqInputs::documents(xml_vals);
-    } else {
-        *inputs.borrow_mut() = jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors);
-    }
+    let drain_xml = null_input && xml_input && !inputs.borrow().reads_input;
 
     let mut out = String::new();
     let mut stderr = String::new();
@@ -1054,22 +1005,24 @@ fn cmd_jq_core(
                 stderr.push_str(&message);
                 return BuiltinOutcome { stdout: out, stderr, exit_code };
             }
-            Err(JqFault::Error(value)) => {
+            Err(JqFault::Error(code, value)) => {
                 let error = value.to_raw_string(true, false);
                 let place = inputs.borrow_mut().location();
                 use std::fmt::Write;
                 writeln!(stderr, "jq: error (at {place}): {}", jq_input::diagnostic(&error, 1000)).unwrap();
-                status = 5;
+                status = code;
             }
         }
     }
 
-    if let Some((err_msg, err_code)) = deferred_xml_err {
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err_msg,
-            exit_code: err_code,
-        };
+    if drain_xml {
+        loop {
+            match vars.pop_input() {
+                Ok(Some(_)) => {}
+                Ok(None) => break,
+                Err((exit_code,msg)) => return BuiltinOutcome { stdout:out, stderr:format!("{stderr}jq: {msg}\n"), exit_code },
+            }
+        }
     }
 
     BuiltinOutcome {
@@ -4875,7 +4828,7 @@ fn cmd_yq(
             "json" | "j" => "json",
             other => other,
         };
-        let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
+        let inputs = Rc::new(RefCell::new(JqInputs::default()));
         let mut base_vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64, None));
@@ -4955,14 +4908,14 @@ fn cmd_yq(
     ok_out(&final_out)
 }
 
-fn cmd_xq(
-    args: &[String],
-    stdin: &str,
-    cwd: &str,
-    env: &BTreeMap<String, String>,
-    fs: &dyn SafeBashFs,
-) -> BuiltinOutcome {
-    cmd_jq_core(args, stdin, cwd, env, fs, true, None)
+fn utf8_output(mut out: BuiltinOutcome) -> BuiltinOutcome {
+    // Quote literal Unicode code points that the shell uses to carry raw bytes.
+    for channel in [&mut out.stdout, &mut out.stderr] {
+        if channel.as_bytes().contains(&0xee) {
+            *channel = crate::vfs::bytes_to_stream_string(channel.as_bytes());
+        }
+    }
+    out
 }
 
 pub(super) fn unescape_xml_entities(s: &str) -> String {

@@ -58,7 +58,7 @@ fn coreutil(
         "rev" => cmd_rev(args, input, cwd, env, fs),
         "paste" => cmd_paste(args, input, cwd, fs),
         "join" => cmd_join(args, input.buffered()?, cwd, fs),
-        "comm" => cmd_comm(args, input.buffered()?, cwd, fs),
+        "comm" => cmd_comm(args, input, cwd, fs),
         "getopt" => cmd_getopt(args, env),
         "dos2unix" => cmd_dos2unix(args, input.buffered()?, cwd, fs, false),
         "unix2dos" => cmd_dos2unix(args, input.buffered()?, cwd, fs, true),
@@ -3780,17 +3780,6 @@ fn parse_paste_delimiters(text: &str) -> Result<Vec<Vec<u8>>, String> {
     Ok(result)
 }
 
-fn split_records_by_byte(bytes: &[u8], sep: u8) -> Vec<Vec<u8>> {
-    if bytes.is_empty() {
-        return Vec::new();
-    }
-    let mut recs: Vec<Vec<u8>> = bytes.split(|&b| b == sep).map(|s| s.to_vec()).collect();
-    if bytes.last() == Some(&sep) {
-        recs.pop();
-    }
-    recs
-}
-
 #[derive(Default)]
 struct TableReader<'a> {
     file: Option<crate::vfs::ChunkReader<'a>>,
@@ -3996,7 +3985,7 @@ enum CommOrderMode {
     None,
 }
 
-fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_comm(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut suppressed = [false; 3];
     let mut show_total = false;
     let mut mode = CommOrderMode::Default;
@@ -4081,51 +4070,29 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("comm: EINVAL: comm requires exactly two files\n", 1);
     }
 
-    let stdin_bytes = crate::vfs::stream_string_to_bytes(stdin);
-    let mut stdin_q = std::collections::VecDeque::from(split_records_by_byte(&stdin_bytes, sep_byte));
-
-    enum CommSource {
-        Stdin,
-        File(std::collections::VecDeque<Vec<u8>>),
-    }
-
-    let mut sources: Vec<CommSource> = Vec::with_capacity(2);
-    for f in &files {
-        if f == "-" {
-            sources.push(CommSource::Stdin);
-        } else {
-            let p = resolve_posix_path(cwd, f);
-            if fs.is_dir(&p) {
-                return err_out(
-                    &format!("comm: EISDIR: illegal operation on a directory, '{p}'\n"),
-                    1,
-                );
-            }
-            match fs.read_file(&p) {
-                Ok(b) => sources.push(CommSource::File(std::collections::VecDeque::from(
-                    split_records_by_byte(&b, sep_byte),
-                ))),
-                Err(_) => {
-                    return err_out(
-                        &format!("comm: ENOENT: no such file or directory, stat '{p}'\n"),
-                        1,
-                    );
-                }
-            }
+    let mut readers = [TableReader::default(), TableReader::default()];
+    for (index, file) in files.iter().enumerate() {
+        if file != "-" {
+            readers[index] = match TableReader::open(file, cwd, fs) {
+                Ok(reader) => reader,
+                Err(e) => return err_out(&format!("comm: {e}\n"), 1),
+            };
         }
     }
-
-    let next_from = |idx: usize, srcs: &mut [CommSource], sq: &mut std::collections::VecDeque<Vec<u8>>| -> Option<Vec<u8>> {
-        match &mut srcs[idx] {
-            CommSource::Stdin => sq.pop_front(),
-            CommSource::File(q) => q.pop_front(),
-        }
+    let shared = files[0] == "-" && files[1] == "-";
+    let mut available = fs.max_input_bytes();
+    let mut next_from = |index: usize| -> Result<Option<Vec<u8>>, String> {
+        let mut record = Vec::new();
+        let reader = &mut readers[if shared { 0 } else { index }];
+        Ok(reader.next(&mut stdin, sep_byte, &mut record, &mut available, fs)?.then_some(record))
     };
-
-    let mut rows: [Option<Vec<u8>>; 2] = [
-        next_from(0, &mut sources, &mut stdin_q),
-        next_from(1, &mut sources, &mut stdin_q),
-    ];
+    let mut rows = [None, None];
+    for (index, row) in rows.iter_mut().enumerate() {
+        match next_from(index) {
+            Ok(record) => *row = record,
+            Err(e) => return err_out(&format!("comm: {e}\n"), 1),
+        }
+    }
     let mut previous: [Option<Vec<u8>>; 2] = [None, None];
     let mut totals = [0u64; 3];
     let mut unpaired = false;
@@ -4135,6 +4102,7 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
 
+    let max_output = fs.remaining_output_bytes();
     while rows[0].is_some() || rows[1].is_some() {
         let ord = match (&rows[0], &rows[1]) {
             (Some(a), Some(b)) => a.cmp(b),
@@ -4170,16 +4138,13 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
 
         if !suppressed[col] {
-            for k in 0..col {
-                if !suppressed[k] {
-                    out_bytes.extend_from_slice(&delim);
-                }
+            let r = rows[usize::from(col == 1)].as_ref().unwrap();
+            let tabs = suppressed[..col].iter().filter(|&&hide| !hide).count();
+            let size = delim.len().saturating_mul(tabs).saturating_add(r.len()).saturating_add(1);
+            if size > max_output - out_bytes.len() {
+                return err_out(&fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes), 1);
             }
-            let r = if col == 1 {
-                rows[1].as_ref().unwrap()
-            } else {
-                rows[0].as_ref().unwrap()
-            };
+            for _ in 0..tabs { out_bytes.extend_from_slice(&delim); }
             out_bytes.extend_from_slice(r);
             out_bytes.push(sep_byte);
         }
@@ -4190,7 +4155,13 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             {
                 continue;
             }
-            let next = next_from(idx, &mut sources, &mut stdin_q);
+            let next = match next_from(idx) {
+                Ok(record) => record,
+                Err(e) => {
+                    stderr.push_str(&format!("comm: {e}\n"));
+                    return BuiltinOutcome { stdout: crate::vfs::bytes_to_stream_string(&out_bytes), stderr, exit_code: 1 };
+                }
+            };
             let (prev_chk, next_chk) = if next.is_none() {
                 (previous[idx].as_ref(), rows[idx].as_ref())
             } else {
@@ -4222,7 +4193,7 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     }
 
-    if files[0] == "-" && files[1] == "-" {
+    if shared {
         stderr.push_str("comm: -: Bad file descriptor\n");
         return BuiltinOutcome {
             stdout: crate::vfs::bytes_to_stream_string(&out_bytes),

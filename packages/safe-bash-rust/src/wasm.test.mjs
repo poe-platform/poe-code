@@ -60,6 +60,23 @@ test("head and tail accept safe counts larger than Wasm memory", async () => {
   } finally { bash.dispose(); }
 });
 
+test("comm merges readers in order and preserves complete rows on a later read error", async () => {
+  const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n", "/blocked": { content: "x", mode: 0o200 } } });
+  try {
+    const limits = { maxInputBytes: 4 };
+    for (const [script, opts, stdout, stderr] of [
+      ["{ comm /g /g; head -c1; } </f", { limits }, "\t\t1\na", ""],
+      ["comm --total - -; cat", { stdin: "x\ny\nz" }, "x\n\ty\nz\n", "comm: -: Bad file descriptor\n"],
+      ["{ comm /dev/null -; cat; } </f", { limits }, "\ta\n\tb\n", "comm: EFBIG: file too large, read '/f'\n"],
+      ["comm - /blocked; cat", { stdin: "x" }, "", "comm: EACCES: permission denied, readStream '/blocked'\n"],
+    ]) {
+      const r = await bash.exec(script, opts);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, stderr], script);
+    }
+    await assert.rejects(bash.exec("comm /g /g", { limits: { maxInputBytes: 3 } }), /maxInputBytes/);
+  } finally { bash.dispose(); }
+});
+
 test("paste shares a reader for repeated stdin and opens named columns before reading rows", async () => {
   const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n", "/blocked": { content: "xx", mode: 0o200 } } });
   try {

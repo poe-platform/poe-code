@@ -28092,7 +28092,7 @@ struct MdqBlock {
     text: String,
     lang: String,
     metadata: String,
-    ordered: bool,
+    index: Option<usize>,
     checked: Option<bool>,
     url: String,
     children: Vec<MdqBlock>,
@@ -28247,11 +28247,26 @@ fn mdq_pipe_row(line: &str) -> Option<Vec<String>> {
     Some(cells)
 }
 
+fn mdq_list_marker(line: &str) -> Option<(u8, Option<usize>, &str)> {
+    let at = line.trim_start_matches(' ');
+    if line.len() - at.len() > 3 { return None; }
+    let digits = at.bytes().take_while(u8::is_ascii_digit).count();
+    let marker = *at.as_bytes().get(digits)?;
+    let index = match (digits, marker) {
+        (0, b'-' | b'*' | b'+') => None,
+        (1..=9, b'.' | b')') => Some(at[..digits].parse().ok()?),
+        _ => return None,
+    };
+    let rest = &at[digits + 1..];
+    if !rest.is_empty() && !rest.starts_with([' ', '\t']) { return None; }
+    Some((marker, index, rest.trim_start_matches([' ', '\t'])))
+}
+
 fn mdq_interrupts_paragraph(line: &str) -> bool {
     let at = line.trim_start_matches(' ');
     line.len() - at.len() <= 3 && (mdq_thematic_break(line) || mdq_heading(line).is_some()
-        || mdq_fence(line).is_some() || at.starts_with('>') || at.starts_with("- ")
-        || at.starts_with("* ") || at.starts_with("+ ") || at.starts_with("1. ") || at.starts_with("1) "))
+        || mdq_fence(line).is_some() || at.starts_with('>')
+        || mdq_list_marker(line).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1))))
 }
 
 fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
@@ -28385,29 +28400,26 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             });
             continue;
         }
-        let is_ul = trimmed.starts_with("- ") || trimmed.starts_with("* ") || trimmed.starts_with("+ ");
-        let ol_split = trimmed.find(". ");
-        let is_ol = ol_split.is_some_and(|pos| pos > 0 && trimmed[..pos].chars().all(|c| c.is_ascii_digit()));
-        if is_ul || is_ol {
-            let ordered = is_ol;
-            let item_rest = if is_ul {
-                trimmed[2..].trim()
-            } else {
-                trimmed[ol_split.unwrap() + 2..].trim()
-            };
-            let (checked, clean_text) = match item_rest.as_bytes() {
-                [b'[', state @ (b' ' | b'x' | b'X'), b']', b' ' | b'\t', ..] =>
-                    (Some(*state != b' '), item_rest[3..].trim_start()),
-                _ => (None, item_rest),
-            };
-            blocks.push(MdqBlock {
-                kind: "list_item".to_string(),
-                text: clean_text.to_string(),
-                ordered,
-                checked,
-                ..MdqBlock::default()
-            });
-            i += 1;
+        if let Some((marker, start, _)) = mdq_list_marker(line) {
+            let mut items = Vec::new();
+            while let Some((m, _, text)) = lines.get(i).and_then(|l| mdq_list_marker(l)) {
+                if m != marker || mdq_thematic_break(lines[i]) { break; }
+                let (checked, body) = match text.as_bytes() {
+                    [b'[', state @ (b' ' | b'x' | b'X'), b']', b' ' | b'\t', ..] =>
+                        (Some(*state != b' '), text[3..].trim_start()),
+                    _ => (None, text),
+                };
+                let children = if body.is_empty() { Vec::new() } else {
+                    vec![MdqBlock { kind: "paragraph".into(), text: body.trim_end().into(), ..MdqBlock::default() }]
+                };
+                items.push(MdqBlock {
+                    kind: "list_item".into(), index: start.map(|n| n + items.len()), checked, children,
+                    ..MdqBlock::default()
+                });
+                i += 1;
+                while i < lines.len() && lines[i].trim().is_empty() { i += 1; }
+            }
+            blocks.push(MdqBlock { kind: "list".into(), children: items, ..MdqBlock::default() });
             continue;
         }
         let mut p_lines = vec![trimmed];
@@ -28790,7 +28802,7 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
         return all
             .into_iter()
             .filter_map(|mut b| {
-                if b.kind != "list_item" || b.ordered != want_ordered {
+                if b.kind != "list_item" || b.index.is_some() != want_ordered {
                     return None;
                 }
                 let matches_task = match task_filter {
@@ -28799,9 +28811,9 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                     None => b.checked.is_none(),
                 };
                 if !matches_task { return None; }
-                let new_text = mdq_match_and_replace(rest, &b.text, true)?;
-                b.text = new_text;
-                Some(b)
+                let paragraph = b.children.first_mut()?;
+                paragraph.text = mdq_match_and_replace(rest, &paragraph.text, true)?;
+                Some(MdqBlock { kind: "list".into(), children: vec![b], ..MdqBlock::default() })
             })
             .collect();
     }
@@ -28974,14 +28986,12 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             let space = if b.metadata.is_empty() { "" } else { " " };
             format!("{fence}{}{space}{}\n{}\n{fence}\n", b.lang, b.metadata, b.text)
         }
+        "list" => b.children.iter().map(|item| mdq_render_block_md(item, link_format, previous_break)).collect(),
         "list_item" => {
-            let prefix = if b.ordered { "1. " } else { "- " };
-            let chk = match b.checked {
-                Some(true) => "[x] ",
-                Some(false) => "[ ] ",
-                None => "",
-            };
-            format!("{prefix}{chk}{}\n", mdq_inline_text(&b.text, false))
+            let marker = b.index.map_or_else(|| "- ".to_string(), |i| format!("{i}. "));
+            let check = match b.checked { Some(true) => "[x] ", Some(false) => "[ ] ", None => "" };
+            let body = b.children.first().map_or_else(String::new, |p| mdq_inline_text(&p.text, false));
+            format!("{marker}{check}{body}\n")
         }
         "quote" => {
             let mut out = String::new();
@@ -29091,15 +29101,12 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             }
             JVal::Object(vec![("code_block".to_string(), JVal::Object(fields))])
         }
+        "list" => JVal::Object(vec![("list".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))]),
         "list_item" => {
-            let mut item_obj = vec![(
-                "item".to_string(),
-                JVal::Array(vec![JVal::Object(vec![("paragraph".to_string(), JVal::Str(mdq_inline_text(&b.text, false)))])]),
-            )];
-            if let Some(chk) = b.checked {
-                item_obj.push(("checked".to_string(), JVal::Bool(chk)));
-            }
-            JVal::Object(vec![("list".to_string(), JVal::Array(vec![JVal::Object(item_obj)]))])
+            let mut fields = vec![("item".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))];
+            if let Some(index) = b.index { fields.push(("index".into(), JVal::Number(index as f64, None))); }
+            if let Some(check) = b.checked { fields.push(("checked".into(), JVal::Bool(check))); }
+            JVal::Object(fields)
         }
         "quote" => {
             let body: Vec<JVal> = b.children.iter().map(mdq_block_to_jval).collect();
@@ -30051,7 +30058,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let mut pieces = Vec::new();
         fn walk_plain(b: &MdqBlock, out: &mut Vec<String>) {
             match b.kind.as_str() {
-                "section" | "paragraph" | "list_item" | "link" | "image" => {
+                "section" | "paragraph" | "link" | "image" => {
                     let source = if matches!(b.kind.as_str(), "section" | "link" | "image") { &b.title } else { &b.text };
                     let text = mdq_inline_text(source, true);
                     if !text.is_empty() { out.push(text); }

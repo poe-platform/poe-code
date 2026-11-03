@@ -8202,3 +8202,22 @@ test("mdq item selectors distinguish ordinary items from checked and unchecked t
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq groups list items by marker, numbers from the first item, and selects their paragraphs", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["3. first\n9. second\n\n1. third\n- [x] task\n+ plus\n+ another",
+      "0) zero\n99) one\n\n1.\n2. two\n", "before\n2. continuation\n1. start\n* bullet\n",
+      "- one\n- [x] done\n- [ ] todo\n"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const selector of ["", "'1.'", "'-'", "'P:'", "'1. | P:'", "'- [?]'"]) {
+        for (const format of ["markdown", "json", "plain"]) {
+          const cmd = "mdq -o " + format + " " + selector + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+          assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

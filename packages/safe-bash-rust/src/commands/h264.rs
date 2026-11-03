@@ -358,14 +358,13 @@ impl Pcm {
                     slice_error = INVALID_PACKET;
                     return None;
                 };
-                if first_mb != 0 {
-                    return None;
-                }
                 let ty = b.ue()?;
+                let pps = b.ue()?;
                 let p = matches!(ty, 0 | 5);
                 if (!p && !matches!(ty, 2 | 7))
                     || p && (kind == 5 || self.next == 0)
-                    || b.ue()? != self.pps_id
+                    || pps != self.pps_id
+                    || first_mb != 0
                 {
                     return None;
                 }
@@ -800,6 +799,18 @@ impl<'a> AnnexB<'a> {
 #[cfg(test)]
 mod tests {
     use super::Sequence;
+
+    #[test]
+    fn truncated_secondary_slice_header_is_invalid() {
+        let config = super::configuration(320, 240, 30).unwrap();
+        let mut decoder =
+            super::Pcm::new(Sequence::from_config(&config).unwrap(), &config, 200_000).unwrap();
+        // first_mb_in_slice = 63 and slice_type = I, but no picture parameter set ID.
+        assert_eq!(
+            decoder.decode(&[0, 0, 0, 3, 0x65, 2, 3]),
+            Err(super::INVALID_PACKET)
+        );
+    }
 
     #[test]
     fn sequence_parameters_use_chroma_crop_units_and_extended_aspect_ratio() {

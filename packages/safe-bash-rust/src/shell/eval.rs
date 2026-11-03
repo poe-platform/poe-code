@@ -3054,7 +3054,7 @@ impl<'a> EvalState<'a> {
             .map(String::as_str).unwrap_or("MAPFILE");
         if !is_valid_shell_ident(name) || self.local_scopes.iter().any(|f| f.contains_key(name))
             || self.env.get(&format!("\0attr__{name}")).is_some_and(|a| !a.is_empty() && a != "a")
-            || self.env.contains_key(&format!("\0assoc__{name}"))
+            || self.env.contains_key(&format!("\0assoc__{name}")) || self.env.contains_key(&format!("\0nameref__{name}"))
             || (self.env.contains_key(name) && super::is_exported_scalar(self.env, name))
             || matches!(name, "PATH" | "PWD" | "OLDPWD" | "HOME" | "CDPATH" | "IFS" | "OPTIND" | "OPTERR" | "OPTARG" | "REPLY" | "LANG" | "LC_ALL" | "LC_CTYPE" | "RANDOM" | "SECONDS" | "LINENO") {
             return Ok(false);

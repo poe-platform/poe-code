@@ -334,23 +334,29 @@ function* lavfiSteps(
 
 async function ensureDecodedFrames(
   track: MediaTrack,
+  movieTimescale: number,
   budget: MediaBudgetTracker,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  maxFrames?: number
 ): Promise<MediaVideoFrame[]> {
-
-
-  if (track.decodedVideoFrames && track.decodedVideoFrames.length > 0) {
-    return [...track.decodedVideoFrames];
-  }
   const width = track.width ?? track.codecDescriptions[0]?.width ?? 64;
   const height = track.height ?? track.codecDescriptions[0]?.height ?? 64;
   const ts = track.timescale || 90000;
   const frames: MediaVideoFrame[] = [];
-  for (const frame of decodeH264Samples(track.samples, track.codecDescriptions, width, height, ts)) {
+  const decoded = track.decodedVideoFrames ?? decodeH264Samples(track.samples, track.codecDescriptions, width, height, ts);
+  for (const frame of decoded) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
-    budget.recordFrame(frame.width, frame.height);
+    if (!track.decodedVideoFrames) budget.recordFrame(frame.width, frame.height);
+    // Retained keyframes and B-frame references can precede the visible interval.
+    // Keep media timestamps: filters and serializers still apply the edit list.
+    const pts = Math.round(frame.ptsSeconds * ts);
+    if (track.editList?.length && !track.editList.some(edit =>
+      edit.mediaTime >= 0 && pts >= edit.mediaTime &&
+      pts < edit.mediaTime + edit.segmentDuration * ts / movieTimescale
+    )) continue;
     frames.push(frame);
+    if (maxFrames !== undefined && frames.length >= maxFrames) break;
   }
   return frames;
 }
@@ -1059,6 +1065,8 @@ export function evalSyncFfmpeg(
         const plugin = registry.detect(rawBytes, inp.path, inp.format);
         if (!plugin || !plugin.canDemux) return undefined;
         doc = plugin.parse(rawBytes, { filename: inp.path, budget });
+        const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
+        if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
       if (inp.startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceMp4(doc, { startSeconds: inp.startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
@@ -1647,11 +1655,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
             const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[0]!.timescale, budget
             , context.signal);
             const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[1]!.timescale, budget
             , context.signal);
             const durMatch = /duration=([0-9.]+)/.exec(filterComplex);
             const offMatch = /offset=([0-9.]+)/.exec(filterComplex);
@@ -1703,11 +1711,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (filterComplex.includes("vstack") && loadedDocs.length >= 2) {
             const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[0]!.timescale, budget
             , context.signal);
             const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[1]!.timescale, budget
             , context.signal);
             const count = Math.min(f0.length, f1.length);
             const stacked: MediaVideoFrame[] = [];
@@ -1749,11 +1757,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (filterComplex.includes("hstack") && loadedDocs.length >= 2) {
             const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[0]!.timescale, budget
             , context.signal);
             const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[1]!.timescale, budget
             , context.signal);
             const count = Math.min(f0.length, f1.length);
             const stacked: MediaVideoFrame[] = [];
@@ -1795,11 +1803,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (filterComplex.includes("overlay") && loadedDocs.length >= 2) {
             const f0 = await ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[0]!.timescale, budget
             , context.signal);
             const f1 = await ensureDecodedFrames(
               loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              budget
+              loadedDocs[1]!.timescale, budget
             , context.signal);
             const overlayMatch = /overlay(?:=(\d+):(\d+))?/.exec(filterComplex);
             const ox = parseInt(overlayMatch?.[1] ?? "0", 10) || 0;
@@ -1892,24 +1900,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           vfFilters.push(`fps=${outputFps}`);
         }
 
-        // Pre-apply `-frames:v <N>` before decoding when no temporal filter is used
-        if (
-          maxVideoFrames !== undefined &&
-          !vfFilters.some((f) => /\b(fps|select|reverse|trim|tile|setpts)\b/i.test(f))
-        ) {
+        const imageOutput = (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id === "image2";
+        // Output frame counts refer to displayed pictures, never encoded packets.
+        if (imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) {
           workingDoc = {
             ...workingDoc,
-            tracks: workingDoc.tracks.map((t) => {
-              if (t.type !== "video") return t;
-              if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
-                return { ...t, samples: [], decodedVideoFrames: t.decodedVideoFrames.slice(0, maxVideoFrames) };
-              }
-              if (t.samples.length > maxVideoFrames!) {
-                const slicedSamples = t.samples.slice(0, maxVideoFrames);
-                return { ...t, duration: slicedSamples.reduce((acc, s) => acc + s.duration, 0), samples: slicedSamples };
-              }
-              return t;
-            })
+            tracks: await mapWork(workingDoc.tracks, async track => {
+              if (track.type !== "video") return track;
+              const limit = vfFilters.length === 0 ? maxVideoFrames : undefined;
+              const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
+              return { ...track, samples: [], decodedVideoFrames: frames };
+            }, context.signal)
           };
         }
 
@@ -1948,7 +1949,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 else { presentationOffset += edit.mediaTime / t.timescale; break; }
               }
               const offsetTicks = Math.round(presentationOffset * t.timescale);
-              const decoded = await ensureDecodedFrames(t, budget, context.signal);
+              const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
               // Filters use the displayed timeline; retain media coordinates for the existing edit list.
               const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
               const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, loadedSubtitleCues, context.signal);
@@ -2181,6 +2182,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           return { exitCode: 0 };
         }
 
+        if (imageOutput && !workingDoc.tracks.some(track => track.type === "video" && track.decodedVideoFrames?.length)) {
+          throw new Error("No video frame in the requested presentation interval");
+        }
+
         // Check if outputTarget is an image sequence pattern like `frame_%03d.png`
         if (/%0?\d*d/.test(outputTarget)) {
           const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
@@ -2189,7 +2194,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
           }
           const vTrack = workingDoc.tracks.find((t) => t.type === "video");
-          const frames = vTrack ? await ensureDecodedFrames(vTrack, budget, context.signal) : [];
+          const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
           const limit = maxVideoFrames ? Math.min(frames.length, maxVideoFrames) : frames.length;
           const imgFmt: ImageFormat =
             outExt === "jpg" || outExt === "jpeg" ? "jpeg" :

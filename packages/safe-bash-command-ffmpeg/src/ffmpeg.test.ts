@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
 import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
   createFfmpegCommand,
+  evalSyncFfmpeg,
   createFfmpegCommands,
   createFfprobeCommand,
   type FfmpegCommandsOptions
@@ -53,18 +55,18 @@ async function runCmd(
   cmdDef: ReturnType<typeof createFfmpegCommand>,
   args: string[],
   vfs: ReturnType<typeof createTestVfs>,
-  stdinBytes = new Uint8Array(0)
+  stdinBytes = new Uint8Array(0),
+  signal = new AbortController().signal
 ): Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes: Uint8Array }> {
   const outChunks: Uint8Array[] = [];
   const errChunks: Uint8Array[] = [];
-  const controller = new AbortController();
 
   const res = await cmdDef.execute({
     args,
     cwd: "/",
     env: {},
     fs: vfs.fs as never,
-    signal: controller.signal,
+    signal,
     stdin: (async function* () {
       if (stdinBytes.byteLength > 0) yield stdinBytes;
     })() as never,
@@ -844,4 +846,72 @@ it("extracts external AAC to WAV and leaves existing output intact on corrupt AA
   const control = await runCmd(command, ["-y", "-i", "control.wav", "-c:a", "pcm_s16le", "audio.wav"], vfs);
   assert.equal(control.exitCode, 0, control.stderr);
   assert.equal(parseWav(vfs.store.get("/audio.wav")!).durationSeconds, 8);
+});
+
+// ffmpeg -f lavfi -i testsrc2=size=64x48:rate=10:duration=1 -c:v libx264 -bf 3 -g 30 fixture.mp4
+const seekH264 = Buffer.from("AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAACCNtZGF0AAACrAYF//+o3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NSByMzIyMiBiMzU2MDVhIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTMwIGtleWludF9taW49MyBzY2VuZWN1dD00MCBpbnRyYV9yZWZyZXNoPTAgcmNfbG9va2FoZWFkPTMwIHJjPWNyZiBtYnRyZWU9MSBjcmY9MjMuMCBxY29tcD0wLjYwIHFwbWluPTAgcXBtYXg9NjkgcXBzdGVwPTQgaXBfcmF0aW89MS40MCBhcT0xOjEuMDAAgAAAA/9liIQBf9RXbEfXd6NKk0vP473I5OWavVQJvghQBgab84741ZLDhyrwf6orDB+FS1YJO+MkNgtoaIOfvzmFbng+jIOueTLixAi9p+POnD4QiJfSgwFTSVe9EkhkV2cVS6ZTt7Vr4wKZIRR1bdERzupZkxeI7tkxPAyEGbXF9T0/ZMzuxSlgSVYcwrtareCEA3Hz7r9S9zjzbkypCqOAWIRu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", "base64");
+
+it("seeks H.264 B-frames in display order before limiting image output", async () => {
+  const track = parseMp4(seekH264).tracks[0]!;
+  assert.ok(track.samples.some(sample => sample.pts !== sample.dts));
+  assert.ok(track.samples.some(sample => !sample.isKeyframe));
+  const vfs = createTestVfs({ "in.mp4": seekH264 });
+  const command = createFfmpegCommand({ asts: allMediaAsts() });
+  assert.equal((await runCmd(command, ["-i", "in.mp4", "full_%03d.png"], vfs)).exitCode, 0);
+  assert.equal([...vfs.store.keys()].filter(key => key.startsWith("/full_")).length, 10);
+  const expected = vfs.store.get("/full_005.png")!;
+  assert.notDeepEqual(expected, vfs.store.get("/full_001.png"));
+  for (const seek of [["-ss", "0.4", "-i", "in.mp4"], ["-i", "in.mp4", "-ss", "0.4"]]) {
+    for (const output of [["-frames:v", "1", "single.png"], ["sequence_%03d.png"], ["-frames:v", "1", "limited_%03d.png"], ["-vf", "scale=64:48", "-frames:v", "1", "filtered.png"]]) {
+      const result = await runCmd(command, ["-y", ...seek, ...output], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const filename = output.at(-1)!.replace("%03d", "001");
+      assert.deepEqual(vfs.store.get(`/${filename}`), expected, `${seek.join(" ")} ${output.join(" ")}`);
+    }
+  }
+});
+
+it("charges seek preroll to the decode budget and stops after the requested display frame", async () => {
+  for (const [maxFrames, success] of [[4, false], [5, true]] as const) {
+    const vfs = createTestVfs({ "in.mp4": seekH264 });
+    const result = await runCmd(createFfmpegCommand({ asts: allMediaAsts(), limits: { maxFrames } }),
+      ["-ss", "0.4", "-i", "in.mp4", "-frames:v", "1", "out.png"], vfs);
+    assert.equal(result.exitCode === 0, success, result.stderr);
+    assert.equal(vfs.store.has("/out.png"), success);
+    if (!success) assert.match(result.stderr, /maxFrames/);
+  }
+});
+
+it("rejects image extraction with no displayed frame", async () => {
+  const vfs = createTestVfs({ "in.mp4": seekH264 });
+  const result = await runCmd(createFfmpegCommand({ asts: allMediaAsts() }),
+    ["-ss", "2", "-i", "in.mp4", "-frames:v", "1", "out.png"], vfs);
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(vfs.store.has("/out.png"), false);
+});
+
+it("cancels H.264 seeking before publishing an image", async () => {
+  const vfs = createTestVfs({ "in.mp4": seekH264 });
+  const controller = new AbortController();
+  let turns = 0;
+  registerYieldCheckpoint(controller.signal, () => {
+    if (++turns === 4) controller.abort(new Error("cancel seek"));
+  });
+  try {
+    const result = await runCmd(createFfmpegCommand({ asts: allMediaAsts() }),
+      ["-ss", "0.4", "-i", "in.mp4", "-frames:v", "1", "out.png"], vfs, new Uint8Array(), controller.signal);
+    assert.notEqual(result.exitCode, 0);
+  } catch (error) {
+    assert.match(String(error), /cancel seek/);
+  }
+  assert.ok(turns >= 4);
+  assert.equal(vfs.store.has("/out.png"), false);
+});
+
+it("declines synchronous encoded image extraction so decoding stays cooperative", () => {
+  let published = false;
+  const result = evalSyncFfmpeg(["-ss", "0.4", "-i", "in.mp4", "-frames:v", "1", "out.png"],
+    undefined, () => seekH264, () => { published = true; return true; });
+  assert.equal(result, undefined);
+  assert.equal(published, false);
 });

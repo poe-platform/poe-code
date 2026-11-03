@@ -28120,14 +28120,73 @@ fn mdq_code_delimiters(bytes: &[u8], start: usize, runs: &BTreeMap<usize, Vec<us
 }
 
 fn mdq_inline_html_len(s: &str) -> Option<usize> {
+    if s.starts_with("<!-->") { return Some(5); }
+    if s.starts_with("<!--->") { return Some(6); }
+    for (prefix, end) in [("<!--", "-->"), ("<?", "?>"), ("<![CDATA[", "]]>")] {
+        if let Some(rest) = s.strip_prefix(prefix) {
+            return rest.find(end).map(|i| prefix.len() + i + end.len());
+        }
+    }
+    let bytes = s.as_bytes();
+    if s.starts_with("<!") {
+        let name = bytes[2..].iter().take_while(|c| c.is_ascii_alphabetic()).count();
+        return (name > 0 && bytes.get(2 + name).is_some_and(u8::is_ascii_whitespace))
+            .then(|| s.find('>').map(|i| i + 1)).flatten();
+    }
+    let closing = s.starts_with("</");
+    let mut i = 1 + usize::from(closing);
+    if !bytes.get(i)?.is_ascii_alphabetic() { return None; }
+    i += bytes[i..].iter().take_while(|c| c.is_ascii_alphanumeric() || **c == b'-').count();
+    loop {
+        let gap = bytes[i..].iter().take_while(|c| c.is_ascii_whitespace()).count();
+        i += gap;
+        if bytes.get(i) == Some(&b'>') { return Some(i + 1); }
+        if !closing && bytes[i..].starts_with(b"/>") { return Some(i + 2); }
+        let first = *bytes.get(i)?;
+        if closing || gap == 0 || !(first.is_ascii_alphabetic() || matches!(first, b'_' | b':')) { return None; }
+        i += bytes[i..].iter().take_while(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b':' | b'-')).count();
+        let after_name = i;
+        i += bytes[i..].iter().take_while(|c| c.is_ascii_whitespace()).count();
+        if bytes.get(i) != Some(&b'=') { i = after_name; continue; }
+        i += 1;
+        i += bytes[i..].iter().take_while(|c| c.is_ascii_whitespace()).count();
+        let c = *bytes.get(i)?;
+        if matches!(c, b'\'' | b'"') {
+            i += 1;
+            i += bytes[i..].iter().position(|b| *b == c)? + 1;
+        } else {
+            let n = bytes[i..].iter().take_while(|c| !c.is_ascii_whitespace() && !matches!(c, b'"' | b'\'' | b'=' | b'<' | b'>' | b'`')).count();
+            if n == 0 { return None; }
+            i += n;
+        }
+    }
+}
+
+fn mdq_html_block_end(line: &str, interrupt: bool) -> Option<&'static [&'static str]> {
+    let s = line.trim_start_matches(' ');
+    if line.len() - s.len() > 3 || !s.starts_with('<') { return None; }
+    if s.starts_with("<!--") { return Some(&["-->"]); }
+    if s.starts_with("<?") { return Some(&["?>"]); }
+    if s.starts_with("<![CDATA[") { return Some(&["]]>"]); }
+    if s.starts_with("<!") && s.as_bytes().get(2).is_some_and(u8::is_ascii_alphabetic) { return Some(&[">"]); }
     let tag = s[1..].strip_prefix('/').unwrap_or(&s[1..]);
-    let name_len = tag.bytes().take_while(|c| c.is_ascii_alphanumeric() || *c == b'-').count();
-    if s.starts_with("<!--") {
-        s[4..].find("-->").map(|n| n + 7)
-    } else if tag.as_bytes().first().is_some_and(u8::is_ascii_alphabetic)
-        && tag.as_bytes().get(name_len).is_some_and(|c| c.is_ascii_whitespace() || matches!(c, b'>' | b'/')) {
-        find_tag_close_gt(s).map(|n| n + 1)
-    } else { None }
+    let n = tag.bytes().take_while(|b| b.is_ascii_alphanumeric() || *b == b'-').count();
+    let rest = &tag[n..];
+    if n == 0 || !(rest.is_empty() || rest.starts_with([' ', '\t', '>']) || rest.starts_with("/>")) { return None; }
+    let name = tag[..n].to_ascii_lowercase();
+    let raw = matches!(name.as_str(), "script" | "pre" | "style" | "textarea");
+    if raw && !s.starts_with("</") {
+        return (!rest.starts_with("/>")).then_some(&["</script>", "</pre>", "</style>", "</textarea>"]);
+    }
+    if matches!(name.as_str(),
+        "address" | "article" | "aside" | "base" | "basefont" | "blockquote" | "body" | "caption" | "center" |
+        "col" | "colgroup" | "dd" | "details" | "dialog" | "dir" | "div" | "dl" | "dt" | "fieldset" |
+        "figcaption" | "figure" | "footer" | "form" | "frame" | "frameset" | "h1" | "h2" | "h3" | "h4" |
+        "h5" | "h6" | "head" | "header" | "hr" | "html" | "iframe" | "legend" | "li" | "link" | "main" |
+        "menu" | "menuitem" | "nav" | "noframes" | "ol" | "optgroup" | "option" | "p" | "param" | "search" |
+        "section" | "summary" | "table" | "tbody" | "td" | "tfoot" | "th" | "thead" | "title" | "tr" | "track" | "ul")
+        || !interrupt && mdq_inline_html_len(s).is_some_and(|end| s[end..].trim_matches([' ', '\t']).is_empty())
+    { Some(&[]) } else { None }
 }
 
 fn mdq_inline_text(s: &str, plain: bool) -> String {
@@ -28276,7 +28335,7 @@ fn mdq_list_marker(line: &str) -> Option<(u8, Option<usize>, &str)> {
 fn mdq_interrupts_paragraph(line: &str) -> bool {
     let at = line.trim_start_matches(' ');
     line.len() - at.len() <= 3 && (mdq_thematic_break(line) || mdq_heading(line).is_some()
-        || mdq_fence(line).is_some() || at.starts_with('>')
+        || mdq_fence(line).is_some() || mdq_html_block_end(line, true).is_some() || at.starts_with('>')
         || mdq_list_marker(line).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1))))
 }
 
@@ -28342,18 +28401,18 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
                 metadata: metadata.trim_start().into(), ..MdqBlock::default() });
             continue;
         }
-        if trimmed.starts_with('<')
-            && trimmed.ends_with('>')
-            && !trimmed.starts_with("<http://")
-            && !trimmed.starts_with("<https://")
-            && !trimmed.starts_with("<mailto:")
-        {
-            blocks.push(MdqBlock {
-                kind: "html".to_string(),
-                text: line.trim_end().to_string(),
-                ..MdqBlock::default()
-            });
-            i += 1;
+        if let Some(ends) = mdq_html_block_end(line, false) {
+            let start = i;
+            loop {
+                let current = lines[i];
+                i += 1;
+                if i == lines.len() || if ends.is_empty() { lines[i].trim_matches([' ', '\t']).is_empty() }
+                    else { let lower = current.to_ascii_lowercase(); ends.iter().any(|end| lower.contains(end)) }
+                { break; }
+            }
+            let mut text = lines[start..i].join("\n");
+            text.truncate(text.trim_end().len());
+            blocks.push(MdqBlock { kind: "html".into(), text, ..MdqBlock::default() });
             continue;
         }
         if let Some((level, title)) = mdq_heading(line) {

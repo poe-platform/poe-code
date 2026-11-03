@@ -8252,3 +8252,23 @@ test("mdq selects inline links from body content and can filter the selected lin
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq keeps raw HTML blocks through their CommonMark terminators", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["before\n<div\nclass='x'>\n# not a heading\n\n# real",
+      "  <!-- comment\n\n# hidden\n--> after\nnext",
+      "<sCrIpT>\n\nclose </STYLE>\n# after\n",
+      "<?xml\n\n?>\n<!DOCTYPE\nhtml>\n<![CDATA[\n\n]]>\nafter",
+      "<custom a='1' />\nraw\n\nparagraph\n<custom>\nstill paragraph",
+      "<custom bad= >\nplain\n\n<span>inline</span>\n"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const flags of ["-o json", "'#'", "'P:'", "-o plain"]) {
+        const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+      }
+    }
+  } finally { rs.dispose(); }
+});

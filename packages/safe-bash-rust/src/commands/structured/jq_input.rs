@@ -58,6 +58,7 @@ pub(super) enum Source<'a> {
 struct Bytes<'a> {
     files: std::vec::IntoIter<String>,
     remaining: usize,
+    single_chunk: bool,
     raw: bool,
     stdin: Source<'a>,
     cwd: &'a str,
@@ -112,7 +113,7 @@ impl Bytes<'_> {
                 }
                 Source::Json(_) | Source::ShellJson(_) => {
                     let full = crate::vfs::path::absolute_operand(self.cwd, &path);
-                    Cow::Owned(read_jq_file(self.fs, &full).map_err(|e| (2, if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }))?)
+                    Cow::Owned(read_jq_file(self.fs, &full, self.single_chunk).map_err(|e| (2, if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }))?)
                 }
             };
             self.more_newlines = None;
@@ -263,6 +264,7 @@ pub(super) fn files<'a>(
     }
     let values = Values {
         bytes: Bytes {
+            single_chunk: !raw && files.len() == 1 && matches!(stdin, Source::ShellJson(Some(_))),
             files: files.into_iter(),
             remaining: fs.max_input_bytes(),
             raw,

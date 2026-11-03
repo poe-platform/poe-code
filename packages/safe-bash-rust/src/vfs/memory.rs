@@ -873,6 +873,10 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
+        self.read_single_chunk_input(path, None)
+    }
+
+    fn read_single_chunk_input(&self, path: &str, budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> {
         let norm = normalize_posix_path(path);
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
@@ -896,6 +900,9 @@ impl SafeBashFs for MemoryVfs {
             Some(&MemoryNode::File { ino }) => {
                 let file = guard.files.get_mut(&ino).unwrap();
                 if file.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+                if let Some(budget) = budget && file.data.len() > budget.limits.max_input_bytes {
+                    return Err(budget.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", budget.limits.max_input_bytes)));
+                }
                 file.atime_ms = super::now_ms();
                 Ok(file.data.clone())
             }

@@ -177,6 +177,8 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
+    /// Read a command input supplied as a single chunk by a direct memory filesystem.
+    fn read_single_chunk_input(&self, path: &str, _budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> { self.read_file(path) }
     fn open_chunks(&self, path: &str) -> Result<ChunkReader<'_>, String> {
         let data = self.read_file(path)?;
         let mut offset = 0usize;

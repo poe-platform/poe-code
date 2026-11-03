@@ -9872,3 +9872,25 @@ test("jq decodes shell bytes once and emits UTF-8 from files, filters and variab
     assert.equal(bad.stderr, "jq: ENOENT: no such file or directory, readStream '/missing" + pua + "'\n");
   } finally { sh.dispose(); }
 });
+
+test("jq admits a single memory file when its JSON input is first requested", async () => {
+  const files = {"/f": "12\n34\n"};
+  for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const sh = new RustWasmBash({files, profile});
+    try {
+      const limits = {maxInputBytes: 5};
+      for (const script of ["jq -c . /f", "jq -n 'first(inputs)' /f", "jq --stream -c length /f"]) {
+        if (profile === "warm-memory-fastpath") await assert.rejects(sh.exec(script, {limits}), /maxInputBytes/, script);
+        else assert.equal((await sh.exec(script, {limits})).exitCode, 0, script);
+      }
+      for (const [script, expected] of [
+        ["jq -n 1 /f", "1\n"], ["jq -Rr . /f", files["/f"]], ["jq -c . /f /f", files["/f"].repeat(2)],
+        ["jq --slurpfile v /f -nc '$v'", "[12,34]\n"],
+      ]) {
+        const r = await sh.exec(script, {limits});
+        assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], script);
+      }
+      assert.equal((await sh.exec("jq -c . /f", {limits: {maxInputBytes: 6}})).stdout, files["/f"]);
+    } finally { sh.dispose(); }
+  }
+});

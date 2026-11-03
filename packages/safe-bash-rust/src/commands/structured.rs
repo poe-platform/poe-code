@@ -675,9 +675,11 @@ fn read_xml_operand(
     })
 }
 
-fn read_jq_file(fs: &dyn SafeBashFs, path: &str) -> Result<Vec<u8>, String> {
-    fs.access_path(path, true).and_then(|entry| fs.read_file(&entry))
-        .map_err(|e| super::coreutils::stream_file_error(e, "readStream", path))
+fn read_jq_file(fs: &dyn SafeBashFs, path: &str, single_chunk: bool) -> Result<Vec<u8>, String> {
+    fs.access_path(path, true).and_then(|entry| {
+        if single_chunk && path != "/dev" && !path.starts_with("/dev/") { fs.read_single_chunk_input(&entry, None) }
+        else { fs.read_file(&entry) }
+    }).map_err(|e| super::coreutils::stream_file_error(e, "readStream", path))
 }
 
 fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {
@@ -1007,7 +1009,7 @@ fn cmd_jq_core(
 
     let raw_filter = if let Some(pf) = program_file {
         let full = crate::vfs::path::absolute_operand(cwd, &pf);
-        match read_jq_file(fs, &full) {
+        match read_jq_file(fs, &full, false) {
             Ok(bytes) => match String::from_utf8(bytes) {
                 Ok(source) => source,
                 Err(_) => return err_out("jq: program file is not valid UTF-8\n", 3),

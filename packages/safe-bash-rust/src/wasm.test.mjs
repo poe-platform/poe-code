@@ -8292,3 +8292,35 @@ test("mdq selects HTML nodes in document order and skips literal markup", async 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq wraps words at the requested width inside paragraphs, quotes and list items", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["# never wrap this heading\n\nfirst word 😀 second\nnext line\n",
+      "> word word word word word\n>\n> last paragraph", "- [ ] word word word word word",
+      "before\n\n~~~\n  never   wrap\n\nraw\n~~~\n\nafter",
+      "α\u00a0βγ  😀xyz longword", "a [two words](url) and ![three words](img) z", "next\n\n| x | y |\n| - | - |\n| foo | bar |"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const width of [0, 1, 10, 20]) {
+        const cmd = "mdq -l keep --wrap-width " + width + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("mdq quote selection rewrites matched children and skips code blocks", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "> first apple\n>\n> > second apple\n>\n> ~~~\n> codeonly apple\n> ~~~";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["'> !s/apple/pear/'", "-o json '> !s/apple/pear/'", "'> codeonly'", "'> apple | P:'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

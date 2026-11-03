@@ -6490,6 +6490,7 @@ where
             &cfg,
             &init_rules,
             fs,
+            &mut std::collections::BTreeSet::new(),
             &mut results,
         );
     }
@@ -6676,6 +6677,7 @@ fn walk_fd(
     cfg: &FdConfig,
     ignore_rules: &[String],
     fs: &dyn SafeBashFs,
+    ancestors: &mut std::collections::BTreeSet<String>,
     out: &mut Vec<(String, bool, bool)>,
 ) {
     if let Some(max_d) = cfg.max_depth {
@@ -6689,7 +6691,7 @@ fn walk_fd(
         }
     }
 
-    let st_opt = if cfg.follow {
+    let st_opt = if cfg.follow || depth == 0 {
         fs.stat(full).or_else(|_| fs.lstat(full)).ok()
     } else {
         fs.lstat(full).ok()
@@ -6698,6 +6700,11 @@ fn walk_fd(
         return;
     };
     let is_dir = st.kind == VfsEntryKind::Directory;
+    let canonical = if cfg.follow && is_dir {
+        let Ok(path) = fs.access_path(full, true) else { return; };
+        if ancestors.contains(&path) { return; }
+        Some(path)
+    } else { None };
 
     let mut matched_here = false;
     if depth > 0 {
@@ -6861,6 +6868,7 @@ fn walk_fd(
             }
         }
         if let Ok(entries) = fs.read_dir(full) {
+            if let Some(path) = &canonical { ancestors.insert(path.clone()); }
             for e in entries {
                 if !cfg.show_hidden && e.starts_with('.') {
                     continue;
@@ -6887,9 +6895,11 @@ fn walk_fd(
                     cfg,
                     &local_rules,
                     fs,
+                    ancestors,
                     out,
                 );
             }
+            if let Some(path) = canonical { ancestors.remove(&path); }
         }
     }
 }
@@ -7739,6 +7749,24 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn fd_follow_skips_active_directory_cycles_and_keeps_independent_aliases() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/work/tree/file", b"ok").unwrap();
+        fs.symlink("tree", "/work/alias").unwrap();
+        fs.symlink("..", "/work/tree/back").unwrap();
+        fs.symlink(".", "/work/tree/self").unwrap();
+        for (argv, expected) in [
+            (vec!["-LI", "-d4"], "alias/\nalias/file\ntree/\ntree/file\n"),
+            (vec!["-I", "-tl"], "alias\ntree/back\ntree/self\n"),
+            (vec!["-I", "-tf", ".", "alias"], "alias/file\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&argv), "", &mut "/work".into(), &mut BTreeMap::new(), &fs,
+                |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""));
+        }
     }
 
     #[test]

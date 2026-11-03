@@ -8027,3 +8027,27 @@ test("expr counts and slices bytes or characters using LC_CTYPE, and orders stri
     }
   } finally { rs.dispose(); }
 });
+
+test("expr uses anchored basic regular expressions for match and colon", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [text, pattern] of [
+      ["(ab)+?", "(ab)+?"], ["abcd", "a\\|abcd"], ["bc", "a\\|c"], ["", "^$"],
+      ["ababa", "\\(a\\|ab\\)\\1"], ["aaaa", "\\(a\\{1,3\\}\\)a"],
+      ["abab", "\\(a\\(b\\)\\?\\)*\\2"], ["ab", "\\(a*\\)\\{1,3\\}b"],
+      ["bb", "a\\(a\\)\\|bb"], ["9f", "[[:xdigit:]]*"], ["a\nb", ".*"],
+      ["a", "["], ["a", "[a"], ["a", "b\\"], ["a", "\\(x"], ["a", "\\)"],
+      ["a", "\\1"], ["a", "a\\{3,2\\}"], ["a", "[[:unknown:]]"], ["a", "a**"],
+      ["a", "\\w"], ["a", "[[.a.]]"], ["é", "."], ["a", "é"], ["é", "["],
+      ["a", "\\(a*\\)*\\1"],
+    ]) {
+      for (const args of ["'" + text + "' : '" + pattern + "'", "match '" + text + "' '" + pattern + "'"]) {
+        const script = "expr " + args;
+        const a = await js.exec(script), b = await rs.exec(script);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], script);
+      }
+    }
+  } finally { rs.dispose(); }
+});

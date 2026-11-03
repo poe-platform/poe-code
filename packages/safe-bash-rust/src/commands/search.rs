@@ -1,3 +1,5 @@
+mod expr_bre;
+pub(super) use expr_bre::expr_match;
 use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
@@ -487,7 +489,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, BytewiseLongest, First, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
+enum RxSearch { Longest, Expr, BytewiseLongest, First, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -1558,7 +1560,7 @@ impl RxProgram {
         capture: bool,
         accept: impl Fn(usize) -> bool,
     ) -> Option<RxMatch> {
-        let first = !matches!(search, RxSearch::Longest | RxSearch::BytewiseLongest);
+        let first = !matches!(search, RxSearch::Longest | RxSearch::BytewiseLongest | RxSearch::Expr);
         let (start, stop) = range.into_inner();
         let mut state = RxMatch {
             pc: 0,
@@ -1621,7 +1623,7 @@ impl RxProgram {
                     }
                     RxOp::Jump(dest) => state.pc = *dest,
                     RxOp::Open { slot, until } if !state.caps.is_empty() => {
-                        state.caps[*slot..*until].fill(None);
+                        if search != RxSearch::Expr { state.caps[*slot..*until].fill(None); }
                         state.caps[*slot] = Some((state.pos, state.pos));
                     }
                     RxOp::Close(slot) if !state.caps.is_empty() => {
@@ -1638,7 +1640,10 @@ impl RxProgram {
                         };
                         let (count, from) = state.repeats.last_mut().unwrap();
                         if state.pos == *from {
-                            if let Some(max) = max && matches!(search, RxSearch::Rg { .. }) {
+                            if search == RxSearch::Expr && max.is_some() {
+                                // Each optional copy may capture the empty string.
+                                *count += 1;
+                            } else if let Some(max) = max && matches!(search, RxSearch::Rg { .. }) {
                                 // Finite repeats in the scalar matcher allow a final empty
                                 // capture. Repeating that same path cannot advance the cursor.
                                 *count = if lazy && *count < min { min } else { max };

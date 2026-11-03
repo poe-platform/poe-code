@@ -5648,20 +5648,18 @@ fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool, locale: &ExprLo
     Ok(left)
 }
 
-fn eval_expr_colon(lhs: &str, pat: &str) -> String {
-    let has_group = pat.contains("\\(") || pat.contains('(');
-    let anchored = format!("^{}", pat.strip_prefix('^').unwrap_or(pat));
-    if let Some(caps) = crate::commands::search::regex_captures(&anchored, lhs, false) {
-        if has_group {
-            caps.get(1).cloned().unwrap_or_default()
-        } else {
-            caps.first().map(|m| m.chars().count().to_string()).unwrap_or_else(|| "0".to_string())
+fn eval_expr_colon(lhs: &str, pat: &str, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    locale.unicode()?;
+    if !matches!(locale.collate, "C" | "POSIX") && ExprLocale::utf8_language(locale.collate).is_none() {
+        let mut bytes = pat.bytes();
+        while let Some(byte) = bytes.next() {
+            if byte == b'\\' { bytes.next(); }
+            else if byte == b'[' {
+                return Err(("expr: unsupported BRE: bracket expressions require C/POSIX or UTF-8 LC_CTYPE and LC_COLLATE\n".into(), 2));
+            }
         }
-    } else if has_group {
-        String::new()
-    } else {
-        "0".to_string()
     }
+    crate::commands::search::expr_match(lhs, pat).map_err(|message| (format!("expr: {message}\n"), 2))
 }
 
 fn eval_expr_match(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
@@ -5670,7 +5668,7 @@ fn eval_expr_match(args: &[String], pos: &mut usize, active: bool, locale: &Expr
         *pos += 1;
         let right = eval_expr_primary(args, pos, active, locale)?;
         if active {
-            left = eval_expr_colon(&left, &right);
+            left = eval_expr_colon(&left, &right, locale)?;
         }
     }
     Ok(left)
@@ -5720,7 +5718,7 @@ fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool, locale: &Ex
         *pos += 1;
         let s = eval_expr_primary(args, pos, active, locale)?;
         let pat = eval_expr_primary(args, pos, active, locale)?;
-        return Ok(if active { eval_expr_colon(&s, &pat) } else { String::new() });
+        return Ok(if active { eval_expr_colon(&s, &pat, locale)? } else { String::new() });
     }
     if tok == "substr" {
         *pos += 1;

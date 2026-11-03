@@ -9175,3 +9175,17 @@ test("XPath scalar output rounds to six digits while string() keeps full precisi
     }
   } finally { rs.dispose(); }
 });
+
+test("XPath substring rounds character positions before clipping them to the string", async () => {
+  const rs = new RustWasmBash({ files: { "/doc": "<r/>" } });
+  try {
+    for (const [bounds, expected] of [
+      ["0.49999999999999994,1.5", "a"], ["3,0.49999999999999994", ""], ["2,1", "🌻"],
+      ['-number("1e300"),number("1.1e300")', "a🌻b"], ['number("bad")', ""],
+      ['-number("1e999")', "a🌻b"], ['-number("1e999"),number("1e999")', ""],
+    ]) {
+      const result = await rs.exec("xmllint --xpath 'substring(\"a🌻b\"," + bounds + ")' /doc");
+      assert.deepEqual([result.exitCode, result.stderr, result.stdout], [0, "", expected + "\n"], bounds);
+    }
+  } finally { rs.dispose(); }
+});

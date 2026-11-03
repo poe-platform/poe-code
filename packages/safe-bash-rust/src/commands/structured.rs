@@ -15358,6 +15358,10 @@ fn xpath_item_string_value(item: &XPathItem) -> String {
     }
 }
 
+fn xpath_round(n: f64) -> f64 {
+    if n.fract() == -0.5 { n.ceil() } else { n.round() }
+}
+
 fn xpath_space(c: char) -> bool {
     matches!(c, ' ' | '\t' | '\r' | '\n')
 }
@@ -15457,10 +15461,7 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
             "number" => XPathVal::Num(first.to_num_val()),
             "floor" => XPathVal::Num(first.to_num_val().floor()),
             "ceiling" => XPathVal::Num(first.to_num_val().ceil()),
-            "round" => {
-                let n = first.to_num_val();
-                XPathVal::Num(if n.fract() == -0.5 { n.ceil() } else { n.round() })
-            }
+            "round" => XPathVal::Num(xpath_round(first.to_num_val())),
             "count" => match first {
                 XPathVal::NodeSet(items) => XPathVal::Num(items.len() as f64),
                 _ => return Err("XPath function requires a node-set".into()),
@@ -15500,28 +15501,12 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
                 XPathVal::Bool(a.contains(&b))
             }
             "substring" => {
-                let st: Vec<char> = first.to_string_val().chars().collect();
-                let start_num = args[1].to_num_val();
-                if start_num.is_nan() {
-                    return Ok(XPathVal::Str(String::new()));
-                }
-                let start_1 = (start_num + 0.5).floor() as isize;
-                let end_1 = if args.len() >= 3 {
-                    let len_num = args[2].to_num_val();
-                    if len_num.is_nan() {
-                        return Ok(XPathVal::Str(String::new()));
-                    }
-                    start_1.saturating_add((len_num + 0.5).floor() as isize)
-                } else {
-                    (st.len() as isize) + 1
-                };
-                let from = start_1.saturating_sub(1).max(0) as usize;
-                let to = (end_1.saturating_sub(1).max(0) as usize).min(st.len());
-                if from < to && from < st.len() {
-                    XPathVal::Str(st[from..to].iter().collect())
-                } else {
-                    XPathVal::Str(String::new())
-                }
+                let start = xpath_round(args[1].to_num_val());
+                let end = args.get(2).map_or(f64::INFINITY, |len| start + xpath_round(len.to_num_val()));
+                if start.is_nan() || end.is_nan() { return Ok(XPathVal::Str(String::new())); }
+                let from = (start - 1.0) as usize;
+                let to = (end - 1.0) as usize;
+                XPathVal::Str(first.to_string_val().chars().skip(from).take(to.saturating_sub(from)).collect())
             }
             "substring-before" => {
                 let a = first.to_string_val();

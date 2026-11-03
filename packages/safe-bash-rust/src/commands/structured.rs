@@ -14996,9 +14996,10 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         };
         let bytes = xml::encode(rendered, if xpath.is_none() && !c14n { encoding.as_deref() } else { None });
         if let Some(of) = &out_file && xpath.is_none() {
-            let full = resolve_posix_path(cwd, of);
-            if let Err(e) = fs.write_file(&full, &bytes) {
-                return err_out(&format!("{stderr}xmllint: {of}: {e}\n"), 1);
+            if of.is_empty() { return err_out(&format!("{stderr}xmllint: ENOENT: no such file or directory ''\n"), 1); }
+            let path = crate::vfs::path::absolute_operand(cwd, of);
+            if let Err(e) = xml::write_output(fs, &path, &bytes) {
+                return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
             }
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }

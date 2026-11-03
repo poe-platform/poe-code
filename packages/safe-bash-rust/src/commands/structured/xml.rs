@@ -536,3 +536,35 @@ pub(super) fn encode(text: String, encoding: Option<&str>) -> Vec<u8> {
         _ => text.into_bytes(),
     }
 }
+
+pub(super) fn write_output(fs: &dyn crate::vfs::SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
+    use crate::vfs::{VfsEntryKind, dirname_posix_path, normalize_posix_path};
+    if normalize_posix_path(path) != path {
+        return Err(format!("EINVAL: invalid argument '{path}'"));
+    }
+    let missing = |e: &str| e.starts_with("ENOENT:") || e.ends_with("(os error 2)");
+    let resolution_error = |e| crate::commands::coreutils::stream_file_error(e, "prepareStagingResolution", path);
+    let entry = fs.access_path(path, true).map_err(resolution_error)?;
+    let existing = match fs.lstat(&entry) {
+        Ok(st) if st.kind == VfsEntryKind::Directory => {
+            let op = if entry == "/" { "" } else { ", writeStream" };
+            return Err(format!("EISDIR: illegal operation on a directory{op} '{path}'"));
+        }
+        Ok(st) => Some(st),
+        Err(e) if missing(&e) => None,
+        Err(e) => return Err(e),
+    };
+    let parent = dirname_posix_path(&entry);
+    let directory = fs.stat(&parent).map_err(resolution_error)?;
+    if directory.mode & 0o300 != 0o300 {
+        return Err(format!("EACCES: permission denied, writeStream '{path}'"));
+    }
+    if let Some(st) = existing {
+        if st.mode & 0o200 == 0 {
+            return Err(format!("EACCES: permission denied, publishStagedFile '{entry}'"));
+        }
+        fs.write_file(&entry, bytes)
+    } else {
+        fs.create_file(&entry, bytes, 0o666)
+    }.map_err(|e| crate::commands::coreutils::stream_file_error(e, "writeStream", path))
+}

@@ -316,7 +316,7 @@ fn take_stdin_bytes(stdin: &mut String) -> Vec<u8> {
     bytes
 }
 
-fn stream_file_error(error: String, op: &str, path: &str) -> String {
+pub(super) fn stream_file_error(error: String, op: &str, path: &str) -> String {
     let (reason, location) = error.split_once(", ").unwrap_or((&error, ""));
     if path.is_empty() {
         "ENOENT: no such file or directory ''".to_owned()

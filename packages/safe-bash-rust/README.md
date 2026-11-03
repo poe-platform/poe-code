@@ -58,7 +58,7 @@ let sorted = String::from_utf8(vfs.read_file("/workspace/sorted.txt").unwrap()).
 assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 ```
 
-If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` create a destination. It must create the file with the requested mode and return `EEXIST` if the name is already occupied, including by a dangling symlink. To support `ln` and `cp -l`, implement `supports_hard_links` and `hard_link`. A hard link shares the source inode, including when the source is a symlink. In a filesystem snapshot, entries with the same `link_group` share an inode; file payloads use `Arc<[u8]>` so a snapshot stores those bytes once.
+If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` and `xmllint -o` create a destination. It must create the file with the requested mode and return `EEXIST` if the name is already occupied, including by a dangling symlink. To support `ln` and `cp -l`, implement `supports_hard_links` and `hard_link`. A hard link shares the source inode, including when the source is a symlink. In a filesystem snapshot, entries with the same `link_group` share an inode; file payloads use `Arc<[u8]>` so a snapshot stores those bytes once.
 
 Custom filesystems can support `touch` and timestamp-preserving copies by implementing `set_times(path, atime_ms, mtime_ms)`. Each time is an `Option<f64>` in milliseconds since the Unix epoch; leave the corresponding time unchanged for `None`. Implement `append_file` if the backend supports atomic append or writing without read permission. The default reads the existing file and stops if that read fails for any reason other than `ENOENT`.
 

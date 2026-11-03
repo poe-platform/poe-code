@@ -9218,3 +9218,28 @@ test("xmllint canonicalizes expanded names and preserves the destination on a re
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint checks output permissions and path traversal before replacing file contents", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const store of [fs, rs.fs]) {
+      await store.writeFile("/doc", Buffer.from("<r/>"));
+      await store.writeFile("/out", Buffer.from("original"));
+      await store.link("/out", "/hard");
+      await store.symlink("/out", "/alias");
+      await store.mkdir("/dir");
+      await store.chmod("/out", 0o444);
+    }
+    for (const dest of ["alias", "new/out", "doc/out", "dir", "dir/../out", "dir/new"]) {
+      const cmd = "xmllint -o " + dest + " /doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], dest);
+    }
+    assert.equal(Buffer.from(await rs.fs.readFile("/hard")).toString(), "original");
+    await assert.rejects(rs.fs.stat("/new"), { code: "ENOENT" });
+    for (const store of [fs, rs.fs]) await store.chmod("/out", 0o644);
+    for (const shell of [js, rs]) assert.equal((await shell.exec("xmllint -o alias /doc")).exitCode, 0);
+    assert.deepEqual(Buffer.from(await rs.fs.readFile("/hard")), Buffer.from(await fs.readFile("/hard")));
+  } finally { rs.dispose(); }
+});

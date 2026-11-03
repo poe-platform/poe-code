@@ -3946,9 +3946,14 @@ fn run_grep_engine(
                 let mut bytes = Vec::new();
                 let presence_only = !multiline && !cfg.stats && !cfg.json_output
                     && (cfg.quiet || cfg.files_with_matches || cfg.files_without_match);
+                let binary_delimiter = is_rg && !cfg.null_data && cfg.binary != RgBinary::Text;
+                let delimiter = |b| b == rec_term as u8 || binary_delimiter && b == 0;
+                let selected = |line: &[u8]| {
+                    let matcher = cfg.ascii_record_rx.as_ref().filter(|_| line.is_ascii() && !line.contains(&0)).unwrap_or(&rx);
+                    let subject = if cfg.crlf { line.strip_suffix(b"\r").unwrap_or(line) } else { line };
+                    matcher.scan(subject, false, |_, _, _| false) != cfg.invert
+                };
                 let result = if cfg.max_count == Some(0) { Ok(()) } else if presence_only {
-                    // Status and filename output need only the first selected record.
-                    let delimiter = |b| b == rec_term as u8 || is_rg && cfg.binary != RgBinary::Text && b == 0;
                     stdin.read_stdin_records(delimiter, |line| {
                         if cfg.ignore_binary && line.contains(&0) { return false; }
                         if let GrepInput::Bounded(name) = cfg.grep_input && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
@@ -3956,10 +3961,31 @@ fn run_grep_engine(
                             failed_batch = true;
                             return false;
                         }
-                        let matcher = cfg.ascii_record_rx.as_ref().filter(|_| line.is_ascii() && !line.contains(&0)).unwrap_or(&rx);
-                        let subject = if cfg.crlf { line.strip_suffix(b"\r").unwrap_or(line) } else { line };
-                        matched_count = usize::from(matcher.scan(subject, false, |_, _, _| false) != cfg.invert);
+                        matched_count = usize::from(selected(line));
                         matched_count == 0
+                    })
+                } else if let Some(limit) = cfg.max_count && !multiline && stdin.file.is_some() {
+                    let display = !(cfg.count_only || cfg.quiet || cfg.files_with_matches || cfg.files_without_match);
+                    let mut after = if display && (is_rg || !(cfg.only_matching && cfg.invert)) { cfg.after_ctx } else { 0 };
+                    let (mut start, mut hits) = (0, 0);
+                    let mut binary = false;
+                    stdin.read_stdin(|chunk| {
+                        let base = bytes.len();
+                        bytes.extend_from_slice(chunk);
+                        binary |= binary_delimiter && chunk.contains(&0);
+                        for (i, _) in chunk.iter().enumerate().filter(|(_, b)| delimiter(**b)) {
+                            let line = &bytes[start..base + i];
+                            start = base + i + 1;
+                            if cfg.ignore_binary && line.contains(&0) || matches!(cfg.grep_input, GrepInput::Bounded(_))
+                                && (line.contains(&0) || std::str::from_utf8(line).is_err()) { return false; }
+                            if hits == limit { after -= 1; }
+                            else if selected(line) { hits += 1; }
+                            if hits == limit && after == 0 || binary && display && !cfg.json_output && (hits != 0 || cfg.before_ctx != 0) {
+                                // Keep the whole delivered chunk: rg detects NUL before emitting any of its records.
+                                return false;
+                            }
+                        }
+                        true
                     })
                 } else { stdin.append_bytes(&mut bytes) };
                 if failed_batch { had_error = true; break; }
@@ -7310,6 +7336,20 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn limited_search_leaves_later_chunks_for_the_next_command() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for search in ["grep", "rg"] {
+            let chunks = ["no\nhi", "t\nctx\n", "omit\nbefore\nhit\n", "ctx2\nextra\n", "later\n"];
+            let result = shell.exec_with_stream(&format!("{search} -n -B1 -A1 -m2 hit; cat"), chunks.map(|s| Ok(s.as_bytes().to_vec())).into_iter()).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
+                (0, "1-no\n2:hit\n3-ctx\n--\n5-before\n6:hit\n7-ctx2\nlater\n", ""), "{search}");
+            let chunks = [Ok(b"hit\n".to_vec()), Err("read beyond match limit".into())];
+            let result = shell.exec_with_stream(&format!("{search} -c -A2 -m1 hit"), chunks.into_iter()).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "1\n", ""), "{search}");
+        }
     }
 
     #[test]

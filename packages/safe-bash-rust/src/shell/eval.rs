@@ -5050,42 +5050,43 @@ impl<'a> EvalState<'a> {
                 let mut prefix = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
                 if let ChildIo::Inherit { stderr_before } = io && !stderr_before.is_empty() {
                     let target = sub_eval.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
-                    if target == FdTarget::Closed { prefix.exit_code = 1; return prefix; }
+                    if target == FdTarget::Closed { prefix.exit_code = 1; return Err(prefix); }
                     sub_eval.write_to_fd_target(&target, stderr_before, 0, &mut prefix);
-                    if prefix.exit_code != 0 { return prefix; }
+                    if prefix.exit_code != 0 { return Err(prefix); }
                     if let Err(e) = sub_eval.account_forwarded_output(&prefix.stdout, &prefix.stderr, (0, 0)) {
                         sub_err = Some(e);
-                        return prefix;
+                        return Err(prefix);
                     }
                 }
                 if let Err(e) = sub_eval.budget.enter_substitution() {
                     sub_err = Some(EvalError::Budget(e));
-                    return BuiltinOutcome {
+                    return Err(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: String::new(),
                         exit_code: 1,
-                    };
+                    });
                 }
                 if let Err(e) = sub_eval.budget.tick_command() {
                     sub_eval.budget.leave_substitution();
                     sub_err = Some(EvalError::Budget(e));
-                    return BuiltinOutcome {
+                    return Err(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: String::new(),
                         exit_code: 1,
-                    };
+                    });
                 }
+                let outer = matches!(io, ChildIo::Inherit { .. }).then(|| sub_eval.forwarded_output.take());
                 let res = sub_eval.dispatch_words(sub_words, sub_stdin, false);
                 sub_eval.budget.leave_substitution();
                 let mut out = match res {
                     Ok(o) => o,
                     Err(e) => {
                         sub_err = Some(e);
-                        return BuiltinOutcome {
+                        return Err(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
                             exit_code: 1,
-                        };
+                        });
                     }
                 };
                 if out.exit_code == 127
@@ -5093,9 +5094,19 @@ impl<'a> EvalState<'a> {
                 {
                     out.stderr = stripped.to_string();
                 }
+                if let Some((outer_out, outer_err)) = outer {
+                    sub_eval.route_outcome(&mut out);
+                    let charged = sub_eval.forwarded_output.take();
+                    if let Err(e) = sub_eval.account_forwarded_output(&out.stdout, &out.stderr, charged) {
+                        sub_err = Some(e);
+                        return Err(out);
+                    }
+                    let (a, b) = sub_eval.forwarded_output.get();
+                    sub_eval.forwarded_output.set((outer_out + a, outer_err + b));
+                }
                 out.stdout.insert_str(0, &prefix.stdout);
                 out.stderr.insert_str(0, &prefix.stderr);
-                out
+                Ok(out)
             },
         ) {
             if let Some(e) = sub_err {

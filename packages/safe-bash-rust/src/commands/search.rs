@@ -2,7 +2,7 @@ mod expr_bre;
 mod mdq_classes;
 mod mdq_class;
 pub(super) use expr_bre::expr_match;
-use super::CommandInput;
+use super::{ChildIo, ChildRun, CommandInput};
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
@@ -23,7 +23,7 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     try_run_search_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
-        |words, input, cwd, env| exec_sub(words, input, cwd, env))
+        |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
 }
 
 pub(super) fn try_run_search_command_with_input<F>(
@@ -36,8 +36,11 @@ pub(super) fn try_run_search_command_with_input<F>(
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
+    let mut capture = |words: &[String], stdin: &mut String, cwd: &mut String, env: &mut BTreeMap<String, String>| {
+        exec_sub(words, stdin, cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
+    };
     let stdin = &mut *input.text;
     match cmd {
         "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
@@ -49,8 +52,8 @@ where
             cmd == "fgrep",
         )),
         "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
-        "find" => Some(cmd_find(args, cwd, env, fs, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env))),
-        "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
+        "find" => Some(cmd_find(args, cwd, env, fs, &mut |words, cwd, env| capture(words, stdin, cwd, env))),
+        "fd" => Some(cmd_fd(args, cwd, env, fs, &mut capture)),
         "xargs" => Some(cmd_xargs(args, input, cwd, env, fs, &mut exec_sub)),
         "which" => Some(cmd_which(args, cwd, env, fs)),
         _ => None,
@@ -6968,7 +6971,7 @@ fn cmd_xargs<F>(
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
     let CommandInput { text: stdin, file } = input;
     let mut delim_mode = XargsDelimMode::Whitespace;
@@ -7315,16 +7318,18 @@ where
         };
     }
 
+    let mut first_batch = true;
     let mut run_batch =
         |invoke: &[String], out: &mut String, err: &mut String, exit_code: &mut i32| -> Option<i32> {
+            let mut before = if std::mem::take(&mut first_batch) { std::mem::take(err) } else { String::new() };
             if verbose {
                 let trace = invoke
                     .iter()
                     .map(|w| xargs_display(w))
                     .collect::<Vec<_>>()
                     .join(" ");
-                err.push_str(&trace);
-                err.push('\n');
+                before.push_str(&trace);
+                before.push('\n');
             }
             let prev_slot = if let Some(ref sv) = slot_var {
                 let old = env.get(sv).cloned();
@@ -7333,10 +7338,11 @@ where
             } else {
                 None
             };
-            let res = if arg_file.is_some() {
-                exec_sub(invoke, stdin, cwd, env)
+            let io = ChildIo::Inherit { stderr_before: &before };
+            let result = if arg_file.is_some() {
+                exec_sub(invoke, stdin, cwd, env, io)
             } else {
-                let res = exec_sub(invoke, &mut String::new(), cwd, env);
+                let res = exec_sub(invoke, &mut String::new(), cwd, env, io);
                 if let Some(source) = file { stdin.clone_from(&source.unread.borrow()); }
                 res
             };
@@ -7347,6 +7353,10 @@ where
                     env.remove(&sv);
                 }
             }
+            let res = match result {
+                Ok(res) => res,
+                Err(failed) => { out.push_str(&failed.stdout); err.push_str(&failed.stderr); return Some(failed.exit_code); }
+            };
             out.push_str(&res.stdout);
             err.push_str(&res.stderr);
             if res.exit_code == 255 {

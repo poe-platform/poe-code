@@ -786,17 +786,24 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
-        |words, input, cwd, env, io| {
-            let mut out = exec_sub(words, input, cwd, env);
-            if let ChildIo::Inherit { stderr_before } = io { out.stderr.insert_str(0, stderr_before); }
-            out
-        })
+        |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
 }
 
 pub(crate) enum ChildIo<'a> {
     Capture,
     Inherit { stderr_before: &'a str },
 }
+
+impl ChildIo<'_> {
+    fn captured(self, mut out: BuiltinOutcome) -> BuiltinOutcome {
+        if let Self::Inherit { stderr_before } = self { out.stderr.insert_str(0, stderr_before); }
+        out
+    }
+}
+
+// Err stops the invoking command: the child could not be started, for
+// example because the preceding xargs trace failed to write.
+type ChildRun = Result<BuiltinOutcome, BuiltinOutcome>;
 
 pub(crate) fn try_run_command_with_input<F>(
     cmd: &str,
@@ -808,18 +815,18 @@ pub(crate) fn try_run_command_with_input<F>(
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
     let CommandInput { text: stdin, file } = input;
     if cmd == "env" {
         return Some(run_env_command(args, stdin, cwd, env, fs, |words, input, cwd, env, stderr_before| {
-            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before })
+            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before }).unwrap_or_else(std::convert::identity)
         }));
     }
 
     if cmd == "timeout" {
         return Some(run_timeout_command(args, stdin, cwd, env, |words, input, cwd, env| {
-            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before: "" })
+            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before: "" }).unwrap_or_else(std::convert::identity)
         }));
     }
 
@@ -839,13 +846,12 @@ where
         return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 });
     }
     let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
-        exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture)
+        exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
-    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs,
-        |words, input, cwd, env| exec_sub(words, input, cwd, env, ChildIo::Capture)) {
+    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, exec_sub) {
         return Some(res);
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {

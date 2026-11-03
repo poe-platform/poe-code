@@ -209,6 +209,33 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 }
 
 #[test]
+fn xargs_traces_and_forwards_each_batch_before_starting_the_next() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    for (script, stdout, stderr) in [
+        ("xargs -n1 sh -c 'printf x; printf y >&2; printf z' <<< 'a b' 2>&1", "xyzxyz", ""),
+        ("xargs -tn1 printf %s <<< 'a b' 2>&1", "printf '%s' a\naprintf '%s' b\nb", ""),
+        ("xargs -n1 sh -c 'printf x; cat /out >&2; printf z' <<< 'a b' >/out; cat /out", "xzxz", "xxzx"),
+        ("xargs -n1 sh -c 'printf x; printf y >&2' <<< 'a b' 3>&1 1>&2 2>&3", "yy", "xx"),
+    ] {
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
+    }
+    let r = shell.exec("xargs -t touch <<< /ran 2>&-").unwrap();
+    assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "", ""));
+    assert!(!fs.exists("/ran"));
+    let script = "xargs -tn1 printf %s <<< 'a b' 2>&1";
+    let expected = "printf '%s' a\naprintf '%s' b\nb";
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: expected.len(), ..Default::default() });
+    assert_eq!(shell.exec(script).unwrap().stdout, expected);
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: expected.len() - 1, ..Default::default() });
+    assert!(shell.exec(script).unwrap_err().contains("maxOutputBytes"));
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: "touch /first\n".len(), ..Default::default() });
+    assert!(shell.exec("xargs -tn1 touch <<< '/first /next'").unwrap_err().contains("maxOutputBytes"));
+    assert!(fs.exists("/first"));
+    assert!(!fs.exists("/next"));
+}
+
+#[test]
 fn op_run_masks_writes_to_a_saved_copy_of_its_stdout() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     let result = shell.exec(r#"op vault create V >/dev/null

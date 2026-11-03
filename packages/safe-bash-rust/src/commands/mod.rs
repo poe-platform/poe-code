@@ -808,7 +808,7 @@ where
 {
     try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut capture_write,
         |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
-        .unwrap_or_else(|e| Some(BuiltinOutcome { stdout: String::new(), stderr: format!("shell: line 1: {e}\n"), exit_code: 1 }))
+        .unwrap_or_else(|e| Some(e.diagnose("shell: line 1: ")))
 }
 
 pub(crate) enum ChildIo<'a> {
@@ -827,6 +827,22 @@ impl ChildIo<'_> {
 // example because the preceding xargs trace failed to write.
 type ChildRun = Result<BuiltinOutcome, BuiltinOutcome>;
 
+/// An uncaught input error follows any output the command already produced.
+pub(crate) struct CommandFailure {
+    pub output: BuiltinOutcome,
+    pub message: String,
+}
+
+impl CommandFailure {
+    pub(crate) fn diagnose(mut self, prefix: &str) -> BuiltinOutcome {
+        self.output.stderr.push_str(prefix);
+        self.output.stderr.push_str(&self.message);
+        self.output.stderr.push('\n');
+        self.output.exit_code = 1;
+        self.output
+    }
+}
+
 type CommandWriter<'a> = dyn FnMut(u32, &str, &mut BuiltinOutcome) -> bool + 'a;
 
 fn capture_write(fd: u32, data: &str, out: &mut BuiltinOutcome) -> bool {
@@ -844,7 +860,7 @@ pub(crate) fn try_run_command_with_input<F>(
     fs: &dyn SafeBashFs,
     write: &mut CommandWriter<'_>,
     mut exec_sub: F,
-) -> Result<Option<BuiltinOutcome>, String>
+) -> Result<Option<BuiltinOutcome>, CommandFailure>
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {

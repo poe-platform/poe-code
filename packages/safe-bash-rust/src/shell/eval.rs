@@ -5211,9 +5211,7 @@ impl<'a> EvalState<'a> {
                 out.stderr.insert_str(0, &prefix.stderr);
                 Ok(out)
             },
-        ).unwrap_or_else(|error| Some(BuiltinOutcome {
-            stdout: String::new(), stderr: format!("{}{error}\n", self.diag_prefix()), exit_code: 1,
-        })) {
+        ).unwrap_or_else(|error| Some(error.diagnose(&self.diag_prefix()))) {
             if let Some(e) = sub_err {
                 return Err(e);
             }

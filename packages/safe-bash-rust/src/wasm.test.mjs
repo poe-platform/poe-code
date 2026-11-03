@@ -60,6 +60,38 @@ test("head and tail accept safe counts larger than Wasm memory", async () => {
   } finally { bash.dispose(); }
 });
 
+test("date reads batch lines from the selected source and preserves output before read failures", async () => {
+  const bash = new RustWasmBash({ files: { "/dates": "@0\n@1\n", "/blocked": { content: "@1", mode: 0o200 } } });
+  try {
+    const limits = { maxInputBytes: 4 };
+    for (const [script, opts, code, stdout, stderr] of [
+      ["{ date -ud @0 +%s; head -c1; } </dates", { limits }, 0, "0\n@", ""],
+      ["date -f - +%s; cat", { stdin: "\uFEFF@4\r\n@9" }, 0, "4\n9\n", ""],
+      ["date -f - +%s", {}, 0, "", ""],
+      ["true\n{ date -f - +%s; head -c1; } </dates", { limits }, 0, "0\n", "shell: line 2: EFBIG: file too large, read '/dates'\n"],
+      ["date -f /blocked +%s", {}, 1, "", "date: EACCES: permission denied, readStream '/blocked'\n"],
+    ]) {
+      const r = await bash.exec(script, opts);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], script);
+    }
+    await assert.rejects(bash.exec("date -f /dates +%s", { limits }), /maxInputBytes/);
+  } finally { bash.dispose(); }
+});
+
+test("date rejects conflicting input sources before consuming stdin", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, diagnostic] of [
+      ["-r 2 -d @1", "--date and --reference"],
+      ["-f - -d @1", "--file, --date and --reference"],
+      ["--reference=file --file=-", "--file, --date and --reference"],
+    ]) {
+      const r = await bash.exec("date " + args + "; echo $?; cat", { stdin: "@4\n" });
+      assert.deepEqual([r.stdout, r.stderr], ["1\n@4\n", "date: " + diagnostic + " are mutually exclusive\n"]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("redirected devices read on demand and share the input quota across descriptor copies", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

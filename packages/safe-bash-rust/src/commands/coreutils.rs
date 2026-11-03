@@ -7,7 +7,7 @@ mod sort_record;
 mod sort_runs;
 mod tac_regex;
 use sort_record::Record as SortRecord;
-use super::CommandInput;
+use super::{CommandFailure, CommandInput};
 use crate::vfs::path::absolute_operand;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::decode_ansi_c_escapes;
@@ -25,13 +25,16 @@ pub fn try_run_coreutil(
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
     try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)
-        .unwrap_or_else(|e| Some(err_out(&format!("shell: line 1: {e}\n"), 1)))
+        .unwrap_or_else(|e| Some(e.diagnose("shell: line 1: ")))
 }
 
 pub(super) fn try_run_coreutil_with_input(
     cmd: &str, args: &[String], input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
-) -> Result<Option<BuiltinOutcome>, String> {
-    if cmd == "envsubst" { return cmd_envsubst(args, input, env).map(Some); }
+) -> Result<Option<BuiltinOutcome>, CommandFailure> {
+    if cmd == "envsubst" {
+        return cmd_envsubst(args, input, env).map(Some).map_err(|message| CommandFailure { output: ok_out(""), message });
+    }
+    if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
         Ok(out) => out,
@@ -67,7 +70,6 @@ fn coreutil(
         "basename" => cmd_basename(args),
         "dirname" => cmd_dirname(args),
         "env" | "printenv" => cmd_printenv(args, env),
-        "date" => cmd_date(args, input.buffered()?, cwd, env, fs),
         "cal" | "ncal" => cmd_cal(cmd, args, env),
         "getconf" => cmd_getconf(args, cwd, fs),
         "locale" => cmd_locale(args, env),
@@ -8636,11 +8638,11 @@ pub(crate) fn format_strftime_for_printf(
 
 fn cmd_date(
     args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
-) -> BuiltinOutcome {
+) -> Result<BuiltinOutcome, CommandFailure> {
     let mut utc = false;
     let mut ended = false;
     let mut input_spec: Option<String> = None;
@@ -8685,8 +8687,8 @@ fn cmd_date(
                 None => (a.as_str(), None),
             };
             match name {
-                "--help" => return ok_out("Usage: date [-uj] [-d DATE | -r FILE_OR_SECONDS | -f FILE] [-v[+|-]VALUE[ymwdHMS]] [+FORMAT]\n-f, --file=FILE reads one date per line; FILE - reads stdin.\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n"),
-                "--version" => return ok_out("date (safe-bash virtual command)\n"),
+                "--help" => return Ok(ok_out("Usage: date [-uj] [-d DATE | -r FILE_OR_SECONDS | -f FILE] [-v[+|-]VALUE[ymwdHMS]] [+FORMAT]\n-f, --file=FILE reads one date per line; FILE - reads stdin.\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n")),
+                "--version" => return Ok(ok_out("date (safe-bash virtual command)\n")),
                 "--utc" | "--universal" => utc = true,
                 "--date" => {
                     let val = if let Some(v) = attached {
@@ -8695,7 +8697,7 @@ fn cmd_date(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out("date: option requires an argument: --date\n", 1);
+                        return Ok(err_out("date: option requires an argument: --date\n", 1));
                     };
                     input_spec = Some(val);
                 }
@@ -8706,7 +8708,7 @@ fn cmd_date(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out("date: option requires an argument: --reference\n", 1);
+                        return Ok(err_out("date: option requires an argument: --reference\n", 1));
                     };
                     ref_spec = Some((val, false));
                 }
@@ -8717,7 +8719,7 @@ fn cmd_date(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out("date: option requires an argument: --file\n", 1);
+                        return Ok(err_out("date: option requires an argument: --file\n", 1));
                     };
                     batch_file = Some(val);
                 }
@@ -8725,7 +8727,7 @@ fn cmd_date(
                     let p = attached.as_deref().unwrap_or("date");
                     match iso_fmt(p) {
                         Ok(f) => style_fmt = Some(f),
-                        Err(msg) => return err_out(&msg, 1),
+                        Err(msg) => return Ok(err_out(&msg, 1)),
                     }
                 }
                 "--rfc-email" | "--rfc-2822" | "--rfc-822" => {
@@ -8738,12 +8740,12 @@ fn cmd_date(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out("date: option requires an argument: --rfc-3339\n", 1);
+                        return Ok(err_out("date: option requires an argument: --rfc-3339\n", 1));
                     };
                     if p.is_empty()
                         || !["date", "seconds", "ns"].iter().any(|item| item.starts_with(p.as_str()))
                     {
-                        return err_out(&format!("date: unsupported RFC3339 precision: {p}\n"), 1);
+                        return Ok(err_out(&format!("date: unsupported RFC3339 precision: {p}\n"), 1));
                     }
                     let f = if "date".starts_with(p.as_str()) {
                         "%F"
@@ -8754,7 +8756,7 @@ fn cmd_date(
                     };
                     style_fmt = Some(f.to_string());
                 }
-                _ => return err_out(&format!("date: unsupported option: {name}\n"), 1),
+                _ => return Ok(err_out(&format!("date: unsupported option: {name}\n"), 1)),
             }
             i += 1;
             continue;
@@ -8781,7 +8783,7 @@ fn cmd_date(
                         let p = if rest.is_empty() { "date" } else { rest.as_str() };
                         match iso_fmt(p) {
                             Ok(f) => style_fmt = Some(f),
-                            Err(msg) => return err_out(&msg, 1),
+                            Err(msg) => return Ok(err_out(&msg, 1)),
                         }
                         break;
                     }
@@ -8793,10 +8795,10 @@ fn cmd_date(
                             i += 1;
                             args[i].clone()
                         } else {
-                            return err_out(
+                            return Ok(err_out(
                                 &format!("date: option requires an argument: -{flag}\n"),
                                 1,
-                            );
+                            ));
                         };
                         match flag {
                             'd' => input_spec = Some(val),
@@ -8804,13 +8806,13 @@ fn cmd_date(
                             'f' => batch_file = Some(val),
                             'v' => match parse_bsd_adjustment(&val) {
                                 Ok(adj) => adjustments.push(adj),
-                                Err(msg) => return err_out(&msg, 1),
+                                Err(msg) => return Ok(err_out(&msg, 1)),
                             },
                             _ => {}
                         }
                         break;
                     }
-                    _ => return err_out(&format!("date: unsupported option: -{flag}\n"), 1),
+                    _ => return Ok(err_out(&format!("date: unsupported option: -{flag}\n"), 1)),
                 }
             }
             i += 1;
@@ -8818,105 +8820,87 @@ fn cmd_date(
         }
         if let Some(f) = a.strip_prefix('+') {
             if plus_fmt.is_some() || style_fmt.is_some() {
-                return err_out("date: multiple output formats specified\n", 1);
+                return Ok(err_out("date: multiple output formats specified\n", 1));
             }
             plus_fmt = Some(f.to_string());
             i += 1;
             continue;
         }
-        return err_out(&format!("date: unexpected operand: {a}\n"), 1);
+        return Ok(err_out(&format!("date: unexpected operand: {a}\n"), 1));
     }
 
+    if input_spec.is_some() && ref_spec.is_some() {
+        return Ok(err_out("date: --date and --reference are mutually exclusive\n", 1));
+    }
+    if batch_file.is_some() && (input_spec.is_some() || ref_spec.is_some()) {
+        return Ok(err_out("date: --file, --date and --reference are mutually exclusive\n", 1));
+    }
     let fmt = plus_fmt
         .or(style_fmt)
         .unwrap_or_else(|| "%a %b %e %H:%M:%S %Z %Y".to_string());
     let (tz_offset, tz_label) = parse_tz_spec(env.get("TZ").map(|s| s.as_str()), utc);
     let Some(now) = super::fs::calendar_instant(crate::vfs::now_ms(), false) else {
-        return err_out("date: invalid clock or modification time\n", 1);
+        return Ok(err_out("date: invalid clock or modification time\n", 1));
     };
 
-    if let Some(ref fpath) = batch_file {
-        let content = if fpath == "-" {
-            stdin.to_string()
-        } else {
-            let resolved = resolve_posix_path(cwd, fpath);
-            if fs.is_dir(&resolved) {
-                return err_out(
-                    &format!("date: EISDIR: illegal operation on a directory, readStream '{resolved}'\n"),
-                    1,
-                );
-            }
-            let bytes = match fs.read_file(&resolved) {
-                Ok(b) => b,
-                Err(e) => {
-                    return err_out(
-                        &format!("date: {}\n", e.replace(", open '", ", readStream '")),
-                        1,
-                    );
-                }
-            };
-            String::from_utf8_lossy(&bytes).into_owned()
-        };
-        let mut out = String::new();
-        let mut err_buf = String::new();
-        let mut exit_code = 0;
-        let mut raw_lines: Vec<&str> = content.split('\n').collect();
-        if content.ends_with('\n') {
-            raw_lines.pop();
-        }
-        for line in raw_lines {
-            let clean = line.strip_suffix('\r').unwrap_or(line);
-            let (mut sec, ns) = match parse_date_spec_full(clean, tz_offset, now) {
-                Ok(v) => v,
+    if let Some(fpath) = batch_file {
+        let mut output = ok_out("");
+        let mut format_failed = false;
+        let result = stdin.read_records(&fpath, cwd, fs, false, b'\n', |line| {
+            let line = line.strip_prefix(b"\xef\xbb\xbf").unwrap_or(line);
+            let text = String::from_utf8_lossy(line);
+            let (sec, ns) = match parse_date_spec_full(text.trim_end_matches('\r'), tz_offset, now) {
+                Ok(instant) => instant,
                 Err(msg) => {
-                    err_buf.push_str(&msg);
-                    exit_code = 1;
-                    continue;
+                    output.stderr.push_str(&msg);
+                    output.exit_code = 1;
+                    return Ok(());
                 }
             };
-            if !adjustments.is_empty() {
-                sec = match apply_bsd_adjustments(sec, &adjustments, tz_offset) {
-                    Ok(v) => v,
-                    Err(msg) => return err_out(&msg, 1),
-                };
+            let rendered = apply_bsd_adjustments(sec, &adjustments, tz_offset)
+                .and_then(|sec| render_date_format(&fmt, sec, ns, tz_offset, &tz_label));
+            match rendered {
+                Ok(line) => { output.stdout.push_str(&line); Ok(()) }
+                Err(msg) => { format_failed = true; Err(msg) }
             }
-            match render_date_format(&fmt, sec, ns, tz_offset, &tz_label) {
-                Ok(rendered) => out.push_str(&rendered),
-                Err(msg) => return err_out(&msg, 1),
+        });
+        if let Err(message) = result {
+            if !format_failed && fpath == "-" && message.starts_with("EFBIG:") {
+                return Err(CommandFailure { output, message });
             }
+            if !format_failed { output.stderr.push_str("date: "); }
+            output.stderr.push_str(&message);
+            if !format_failed { output.stderr.push('\n'); }
+            output.exit_code = 1;
         }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err_buf,
-            exit_code,
-        };
+        return Ok(output);
     }
 
     let (mut epoch_sec, ns) = if let Some(ref spec) = input_spec {
         match parse_date_spec_full(spec, tz_offset, now) {
             Ok(v) => v,
-            Err(msg) => return err_out(&msg, 1),
+            Err(msg) => return Ok(err_out(&msg, 1)),
         }
     } else if let Some((ref rval, allow_epoch)) = ref_spec {
         let path = absolute_operand(cwd, rval);
         match fs.access_path(&path, true).and_then(|p| fs.stat(&p)) {
             Ok(st) => match super::fs::calendar_instant(st.mtime_ms, false) {
                 Some(instant) => instant,
-                None => return err_out("date: invalid clock or modification time\n", 1),
+                None => return Ok(err_out("date: invalid clock or modification time\n", 1)),
             },
             Err(e) if e.starts_with("ENOENT") || e.ends_with("(os error 2)") => {
                 let number = rval.strip_prefix(['+', '-']).unwrap_or(rval);
                 let (whole, fraction) = number.split_once('.').map_or((number, None), |(w,f)| (w, Some(f)));
                 let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
                 if !allow_epoch || !digits(whole) || !fraction.is_none_or(digits) {
-                    return err_out(&format!("date: ENOENT: no such file or directory, stat '{path}'\n"), 1);
+                    return Ok(err_out(&format!("date: ENOENT: no such file or directory, stat '{path}'\n"), 1));
                 }
                 match parse_epoch_ns(&format!("@{rval}")) {
                     Some((sec, ns)) if (-8_640_000_000_000..8_640_000_000_000).contains(&sec) || (sec, ns) == (8_640_000_000_000, 0) => (sec, ns),
-                    _ => return err_out("date: date is outside the supported range\n", 1),
+                    _ => return Ok(err_out("date: date is outside the supported range\n", 1)),
                 }
             }
-            Err(e) => return err_out(&format!("date: {e}\n"), 1),
+            Err(e) => return Ok(err_out(&format!("date: {e}\n"), 1)),
         }
     } else {
         now
@@ -8925,14 +8909,14 @@ fn cmd_date(
     if !adjustments.is_empty() {
         epoch_sec = match apply_bsd_adjustments(epoch_sec, &adjustments, tz_offset) {
             Ok(v) => v,
-            Err(msg) => return err_out(&msg, 1),
+            Err(msg) => return Ok(err_out(&msg, 1)),
         };
     }
 
-    match render_date_format(&fmt, epoch_sec, ns, tz_offset, &tz_label) {
+    Ok(match render_date_format(&fmt, epoch_sec, ns, tz_offset, &tz_label) {
         Ok(rendered) => ok_out(&rendered),
         Err(msg) => err_out(&msg, 1),
-    }
+    })
 }
 
 fn parse_cal_month_name(s: &str) -> Option<u32> {

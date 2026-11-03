@@ -184,7 +184,7 @@ impl Video {
         &self,
         opts: y4m::Options<'_>,
         sliced: bool,
-        emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+        emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String> {
         let (w, h) = (self.width as usize, self.height as usize);
         let count = (opts.end.unwrap_or(self.duration) * self.fps)

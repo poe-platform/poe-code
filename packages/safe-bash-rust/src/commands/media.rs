@@ -4786,7 +4786,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
     let frame_output=y4m_output || image_format.is_some();
     let audio_output = muxer == Some("aac");
-    let mp4_output = matches!(muxer, Some("mp4" | "mov"));
+    let movie_output = matches!(muxer, Some("mp4" | "mov" | "flv"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
     let mut read_input = |path: &str, explicit: Option<&str>| {
         let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
@@ -4801,7 +4801,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         Ok::<_, BuiltinOutcome>((id, bytes))
     };
     let mut sources = Vec::new();
-    if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
+    if movie_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
         let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
         let concat=fc_flag.contains("concat=");
         let chain = !fc_flag.is_empty() && !concat && composition.is_none();
@@ -4868,7 +4868,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             filter.push_str(rest);
             if !filter.trim().is_empty(){vf_flags.push(filter);}
         }
-        if (frame_output || mp4_output && remux_inputs) && !video_copy {
+        if (frame_output || movie_output && remux_inputs) && !video_copy {
             if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
             if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
         }
@@ -4919,7 +4919,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
                     else{Ok((64,64,10))}
             });
             match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-        } else if (mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null"))) && remux_inputs {
+        } else if (movie_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null"))) && remux_inputs {
             match mp4::mux::remux(sources,remux,0){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
         } else {None};
         if let Some(output)=output {
@@ -13482,6 +13482,26 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffmpeg_writes_flv_tags_for_copied_tracks_and_generated_frames() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        for (source, digest) in [
+            ("-i av.mp4 -ac 1", "4eabee78b39daa46272a04f116fdfb9218e97e0c2052dfd953b30b9001cee9af"),
+            ("-f lavfi -i color=s=4x4:r=29.97:d=4 -vf trim=start=0.3:end=1", "813aa5d02caaa52182e43dec263556e9db9184d159050d127e262ec2886fe493"),
+            ("-i av.mp4 -c copy", "74c32c137488ebbc18a9a6bc205f79146d1e5813821518806b96d274af661e94"),
+            ("-f lavfi -i color=c=red:s=4x4:r=2:d=1", "af594745a1a177d991d07d9254bf5f78b451b851435219dc422c7a6245f01782"),
+            ("-f lavfi -i sine=f=440:r=8000:d=0.1", "0fb79724d44245e7daf6d0fa0b30a2f37c06efeb704b846e5ca6300ed3b7f352"),
+        ] {
+            let args = format!("-y {source} out.flv").split_whitespace().map(str::to_owned).collect::<Vec<_>>();
+            let result = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let bytes = fs.read_file("/out.flv").unwrap();
+            assert_eq!(bytes.get(..4), Some(b"FLV\x01".as_slice()), "{source}");
+            assert_eq!(hex_enc(&sha256_bytes(&bytes)), digest, "{source}");
+        }
     }
 
     #[test]

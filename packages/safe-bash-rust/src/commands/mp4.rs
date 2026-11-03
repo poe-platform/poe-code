@@ -309,10 +309,9 @@ struct AudioConfig {
     rate: u32,
     channels: u16,
 }
-fn esds(payload: &[u8]) -> AudioConfig {
+fn decoder_config(payload: &[u8]) -> (u8, Option<&[u8]>) {
     let mut at = if payload.len() >= 4 { 4 } else { 0 };
     let mut indication = 0x40;
-    let mut asc = &[0x12, 0x10][..];
     while let Some(&tag) = payload.get(at) {
         at += 1;
         let mut len = 0;
@@ -343,17 +342,17 @@ fn esds(payload: &[u8]) -> AudioConfig {
                 at += 13
             }
             5 => {
-                asc = &payload[at..(at + len.min(6)).min(payload.len())];
-                break;
+                return (indication, payload.get(at..at.saturating_add(len).min(payload.len())));
             }
             _ => at = at.saturating_add(len),
         }
     }
+    (indication, None)
+}
+fn esds(payload: &[u8]) -> AudioConfig {
+    let (indication, asc) = decoder_config(payload);
     let mut bits = 0u64;
-    if asc.len() < 2 {
-        asc = &[0x12, 0x10]
-    }
-    for (i, &b) in asc.iter().enumerate() {
+    for (i, &b) in asc.filter(|a| a.len() >= 2).unwrap_or(&[0x12, 0x10]).iter().take(6).enumerate() {
         bits |= u64::from(b) << (56 - i * 8)
     }
     let mut take = |n: u32| {
@@ -1351,7 +1350,7 @@ pub(super) fn render_video(
     opts: super::y4m::Options<'_>,
     maps: &[&str],
     full_size: bool,
-    emit: impl FnMut(super::png_pixels::Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+    emit: impl FnMut(super::png_pixels::Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let moov = movie(input)?;
     let (tracks, duration) = read_tracks(input, moov)?;
@@ -1448,7 +1447,7 @@ fn render_track(
     duration: Option<f64>,
     opts: super::y4m::Options<'_>,
     full_size: bool,
-    emit: impl FnMut(super::png_pixels::Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+    emit: impl FnMut(super::png_pixels::Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let (w, h) = (t.width as usize, t.height as usize);
     let limit = opts.limit;

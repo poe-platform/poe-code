@@ -352,7 +352,7 @@ impl<'a> Clip<'a> {
     pub fn render(
         &self,
         options: Options<'_>,
-        emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
+        emit: impl FnMut(Raster, TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String> {
         render_frames(
             self.width,
@@ -372,11 +372,11 @@ pub(super) enum Buffer {
 }
 
 #[derive(Clone, Copy)]
-struct TimedFrame {
+pub(super) struct TimedFrame {
     index: usize,
-    buffer: Buffer,
-    pts: f64,
-    duration: f64,
+    pub buffer: Buffer,
+    pub pts: f64,
+    pub duration: f64,
 }
 
 struct TileStage<'a> {
@@ -471,7 +471,7 @@ pub(super) fn render_frames(
     times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
-    mut emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
+    mut emit: impl FnMut(Raster, TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(), String> {
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
@@ -665,7 +665,7 @@ pub(super) fn render_frames(
             op.apply(&mut im, opts.limit)?;
             charge_pixels(&mut work, im.pixels.len())?;
         }
-        emit(im, frame.duration, frame.buffer)?;
+        emit(im, frame)?;
     }
     Ok(())
 }
@@ -690,7 +690,7 @@ mod tests {
                 limit: 128 * 1024,
             },
             |i| Ok(spec.image(i)),
-            |_, _, _| Ok(()),
+            |_, _| Ok(()),
         );
         assert_eq!(result, Err("video pixel work limit exceeded".into()));
     }

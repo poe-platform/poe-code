@@ -276,7 +276,7 @@ impl ImageSequence {
     pub fn render(
         &self,
         opts: super::y4m::Options<'_>,
-        emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+        emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String> {
         let (w, h) = (self.frames[0].width, self.frames[0].height);
         super::y4m::render_frames(
@@ -369,7 +369,7 @@ pub(super) fn render_still(
     opts: super::y4m::Options<'_>,
     seek: super::InputTime,
     reslice: bool,
-    emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+    emit: impl FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
 ) -> Result<(usize, usize, u32), String> {
     let im = decode_still(bytes, opts.limit)?;
     let (w, h) = (im.width, im.height);
@@ -402,7 +402,7 @@ pub(super) fn render(
     unfiltered: bool,
     decode: impl FnOnce(
         bool,
-        &mut dyn FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+        &mut dyn FnMut(Raster, super::y4m::TimedFrame) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), String>,
 ) -> Result<Option<Vec<u8>>, String> {
     let limit = fs.max_input_bytes();
@@ -415,7 +415,8 @@ pub(super) fn render(
     let mut delays=Vec::new();
     let mut elapsed=0.;
     let mut previous=0u64;
-    let dims = decode(pattern.is_some() || animation, &mut |mut im, duration, _| {
+    let dims = decode(pattern.is_some() || animation, &mut |mut im, frame| {
+        let duration = frame.duration;
         if animation {
             let (w,h)=*geometry.get_or_insert((im.width,im.height));
             let n=w.saturating_mul(h);

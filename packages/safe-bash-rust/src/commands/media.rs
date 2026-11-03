@@ -4827,7 +4827,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         })?;
         if matches!(id, "hls" | "dash") {
             return streaming_input::read(id, &bytes, &resolve_posix_path(cwd,path), fs)
-                .map(|(kind, data, _)| (kind, data))
+                .and_then(|manifest| manifest.into_media(fs.max_input_bytes()))
                 .map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1));
         }
         if id == "mpegts" {
@@ -5477,10 +5477,16 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     }
     let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
     let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
-    if gif || still || real_mp4 || matches!(container, "mpegts" | "avi" | "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
+    if gif || still || real_mp4 || matches!(container, "dash" | "hls" | "mpegts" | "avi" | "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
         let records=requested.contains("packet") || requested.contains("frame");
         let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
             writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+        if matches!(container, "hls" | "dash") {
+            let format = media_format::FORMATS.iter().find(|f|f.0==container).unwrap();
+            let result = streaming_input::read(container, &raw_bytes, &path_str, fs).and_then(|doc|
+                mp4::streaming_probe::report(&doc, name, (format.1, format.2), raw_bytes.len(), fs.max_input_bytes(), opts));
+            return match result { Ok(output) => ok_out(&output), Err(e) => ffprobe_err(&e) };
+        }
         if container == "mpegts" {
             return match mp4::mpegts_input::report(&raw_bytes, name, fs.max_input_bytes(), opts) {
                 Ok(output) => ok_out(&output), Err(reason) => ffprobe_err(reason),
@@ -13694,6 +13700,18 @@ mod media_unit_tests {
             let r = cmd_media_doc("ffprobe",&args,"","/",&fs);
             assert_eq!(r.stdout, "h264,6,4,67500,3\naac,33792,33\n");
         }
+    }
+
+    #[test]
+    fn ffprobe_reads_hls_packets_and_measures_the_playlist() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i", "av.mp4", "-c", "copy", "-hls_time", "0.25", "streams/list.m3u8"]);
+        assert_eq!(cmd_media_doc("ffmpeg", &args, "", "/", &fs).exit_code, 0);
+        let args = media_args(&["-count_packets","-show_entries","stream=codec_name,nb_read_packets:format=format_name,size,duration","-of","csv=p=0","streams/list.m3u8"]);
+        let r = cmd_media_doc("ffprobe", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(r.stdout, "aac,35\nh264,3\nhls,0.750000,175\n");
     }
 
     #[test]

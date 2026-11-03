@@ -28,11 +28,7 @@ fn hls(text: &str, limit: usize) -> Result<(Vec<(Option<&str>, &str)>, f64), Str
     for line in text.lines().map(str::trim) {
         if let Some(value) = line.strip_prefix("#EXTINF:") {
             let duration = value.split(',').next().unwrap_or("").trim();
-            seconds += if duration.is_empty() {
-                0.
-            } else {
-                duration.parse().unwrap_or(f64::NAN)
-            };
+            seconds += crate::commands::js_number(duration, 0.);
         } else if let Some(attrs) = line.strip_prefix("#EXT-X-MAP:") {
             if attribute(attrs, "BYTERANGE").is_some() {
                 return Err("HLS initialization byte ranges are not supported".into());
@@ -61,12 +57,41 @@ fn hls(text: &str, limit: usize) -> Result<(Vec<(Option<&str>, &str)>, f64), Str
     Ok((segments, seconds))
 }
 
+pub(super) struct Manifest {
+    pub sequences: Vec<Vec<MediaInput>>,
+    pub duration: f64,
+}
+
+impl Manifest {
+    pub fn into_media(self, limit: usize) -> Result<(&'static str, Vec<u8>), String> {
+        let mut representations = Vec::new();
+        for mut sequence in self.sequences {
+            let media = if sequence.len() == 1 {
+                sequence.pop().unwrap()
+            } else {
+                MediaInput::Bytes("mp4", mp4::mux::assemble_segments(&sequence, true, limit)?)
+            };
+            representations.push(media);
+        }
+        if representations.len() == 1
+            && let Some(MediaInput::Bytes(kind, data)) = representations.pop()
+        {
+            Ok((kind, data))
+        } else {
+            Ok((
+                "mp4",
+                mp4::mux::assemble_segments(&representations, false, limit)?,
+            ))
+        }
+    }
+}
+
 pub(super) fn read(
     id: &str,
     bytes: &[u8],
     path: &str,
     fs: &dyn SafeBashFs,
-) -> Result<(&'static str, Vec<u8>, f64), String> {
+) -> Result<Manifest, String> {
     let text = String::from_utf8_lossy(bytes);
     let limit = fs.max_input_bytes();
     let dir = dirname_posix_path(path);
@@ -89,36 +114,33 @@ pub(super) fn read(
     };
     if id == "hls" {
         let (segments, duration) = hls(&text, limit)?;
-        let (kind, data) = sequence(segments, &mut read, limit)?;
-        return Ok((kind, data, duration));
+        return Ok(Manifest {
+            sequences: vec![sequence(segments, &mut read)?],
+            duration,
+        });
     }
     let (sequences, duration) = dash::parse(&text, limit)?;
-    let mut tracks = Vec::new();
-    for rep in sequences {
-        let (kind, data) = sequence(
-            rep.media
-                .iter()
-                .map(|uri| (rep.init.as_deref(), uri.as_str())),
-            &mut read,
-            limit,
-        )?;
-        tracks.push(MediaInput::Bytes(kind, data));
-    }
-    let (kind, data) = if tracks.len() == 1
-        && let Some(MediaInput::Bytes(kind, data)) = tracks.pop()
-    {
-        (kind, data)
-    } else {
-        ("mp4", mp4::mux::assemble_segments(&tracks, false, limit)?)
-    };
-    Ok((kind, data, duration))
+    let sequences = sequences
+        .iter()
+        .map(|rep| {
+            sequence(
+                rep.media
+                    .iter()
+                    .map(|uri| (rep.init.as_deref(), uri.as_str())),
+                &mut read,
+            )
+        })
+        .collect::<Result<_, _>>()?;
+    Ok(Manifest {
+        sequences,
+        duration,
+    })
 }
 
 fn sequence<'a>(
     segments: impl IntoIterator<Item = (Option<&'a str>, &'a str)>,
     mut read: impl FnMut(&str) -> Result<Vec<u8>, String>,
-    limit: usize,
-) -> Result<(&'static str, Vec<u8>), String> {
+) -> Result<Vec<MediaInput>, String> {
     let mut inputs = Vec::new();
     let mut active = None;
     for (init, uri) in segments {
@@ -144,10 +166,5 @@ fn sequence<'a>(
             ));
         }
     }
-    if inputs.len() == 1
-        && let Some(MediaInput::Bytes(id, data)) = inputs.pop()
-    {
-        return Ok((id, data));
-    }
-    Ok(("mp4", mp4::mux::assemble_segments(&inputs, true, limit)?))
+    Ok(inputs)
 }

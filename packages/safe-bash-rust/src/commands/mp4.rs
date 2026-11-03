@@ -445,6 +445,7 @@ struct Track<'a> {
     width: u32,
     height: u32,
     enabled: bool,
+    rotation: u16,
     language: String,
     handler: &'a [u8],
     stats: Stats,
@@ -702,6 +703,12 @@ impl<'a> Track<'a> {
                 .map_or(u32::from(u16_at(entry, 26)), |s| s.height),
             v => v,
         };
+        let a = u32_at(tk, dims - 36) as i32;
+        let b = u32_at(tk, dims - 32) as i32;
+        let angle = (f64::from(b).atan2(f64::from(a)).to_degrees() + 0.5).floor() as i32;
+        let rotation = match angle.rem_euclid(360) {
+            85..=95 => 90, 175..=185 => 180, 265..=275 => 270, _ => 0,
+        };
         Ok(Self {
             index,
             id,
@@ -717,6 +724,7 @@ impl<'a> Track<'a> {
             entry,
             width,
             height,
+            rotation,
             enabled: tk.len() < 24 || tk[3] & 1 != 0,
             language,
             handler,
@@ -1149,6 +1157,9 @@ impl<'a> Track<'a> {
                 Str(String::from_utf8_lossy(self.handler).into_owned()),
             ))
         }
+        if self.rotation != 0 {
+            tags.push(("rotate".into(), Str(self.rotation.to_string())));
+        }
         r.extend([
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
@@ -1172,6 +1183,12 @@ impl<'a> Track<'a> {
             ),
             ("tags", Object(tags)),
         ]);
+        if self.rotation != 0 {
+            r.push(("side_data_list", super::super::structured::JVal::Array(vec![Object(vec![
+                ("side_data_type".into(), Str("Display Matrix".into())),
+                ("rotation".into(), Number(-f64::from(self.rotation), None)),
+            ])])));
+        }
         if counts.0 {
             r.push(("nb_read_frames", Str(self.stats.count.to_string())))
         }
@@ -1591,6 +1608,9 @@ fn render_track(
     )?;
     Ok((w, h, 30))
 }
+
+#[path = "streaming_probe.rs"]
+pub(super) mod streaming_probe;
 
 pub(super) fn report(
     input: &[u8],

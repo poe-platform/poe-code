@@ -671,7 +671,7 @@ pub(super) fn format_row(
         ("size", Str(bytes.to_string())),
         (
             "bit_rate",
-            Str(if duration == 0. {
+            Str(if duration <= 0. {
                 "0".into()
             } else {
                 (bytes as f64 * 8. / duration).round().to_string()

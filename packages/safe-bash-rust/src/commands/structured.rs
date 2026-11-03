@@ -28084,7 +28084,7 @@ fn decode_base64_str(s: &str) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct MdqBlock {
     kind: String, // "section", "paragraph", "code", "list_item", "quote", "table", "link"
     level: usize,
@@ -28964,16 +28964,16 @@ fn mdq_select_one(nodes: &[MdqBlock], sel_raw: &str) -> Vec<MdqBlock> {
 
 fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
     match b.kind.as_str() {
-        "section" => {
-            let mut out = format!("{} {}\n", "#".repeat(b.level), b.title);
-            for (idx, ch) in b.children.iter().enumerate() {
-                if idx == 0 {
-                    out.push('\n');
-                }
-                out.push_str(&mdq_render_block_md(ch, link_format));
-                if idx + 1 < b.children.len() && !out.ends_with("\n\n") {
-                    out.push('\n');
-                }
+        "document" | "section" => {
+            let mut out = String::new();
+            if b.kind == "section" {
+                out.push_str(&"#".repeat(b.level));
+                if !b.title.is_empty() { out.push(' '); out.push_str(&b.title); }
+                out.push('\n');
+            }
+            for child in &b.children {
+                if !out.is_empty() && !out.ends_with("\n\n") { out.push('\n'); }
+                out.push_str(&mdq_render_block_md(child, link_format));
             }
             out
         }
@@ -29064,6 +29064,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
 
 fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
     match b.kind.as_str() {
+        "document" => JVal::Object(vec![("document".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))]),
         "section" => {
             let body: Vec<JVal> = b.children.iter().map(mdq_block_to_jval).collect();
             JVal::Object(vec![(
@@ -30010,7 +30011,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if let Err(err_outcome) = validate_mdq_query(&selector_str) {
         return err_outcome;
     }
-    let mut current = parse_mdq_markdown(&md_input);
+    let mut current = vec![MdqBlock { kind: "document".into(), children: parse_mdq_markdown(&md_input), ..MdqBlock::default() }];
     for stage in split_mdq_stages(&selector_str) {
         let st = stage.trim();
         if !st.is_empty() {
@@ -30030,7 +30031,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let items: Vec<JVal> = current.iter().map(mdq_block_to_jval).collect();
         let root = JVal::Object(vec![("items".to_string(), JVal::Array(items))]);
         return BuiltinOutcome {
-            stdout: format!("{}\n", root.to_json_string(true, false, 0)),
+            stdout: root.to_json_string(true, false, 0),
             stderr: String::new(),
             exit_code: if matched { 0 } else { 1 },
         };
@@ -30038,7 +30039,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if output_fmt == "plain" {
         let mut pieces = Vec::new();
         fn walk_plain(b: &MdqBlock, out: &mut Vec<String>) {
-            if b.kind == "section" {
+            if matches!(b.kind.as_str(), "document" | "section") {
                 if !b.title.is_empty() {
                     out.push(mdq_strip_inline(&b.title));
                 }

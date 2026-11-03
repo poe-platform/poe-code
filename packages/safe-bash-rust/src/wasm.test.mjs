@@ -8051,3 +8051,18 @@ test("expr uses anchored basic regular expressions for match and colon", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq keeps the document root distinct from a list of selected blocks", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["", "one\n\ntwo\n", "# First\n\none\n\n# Second\n\ntwo\n"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const flags of ["", "-q", "--no-br", "-o json", "-o plain", "'P:'", "-o json 'P:'", "-q '# absent'"]) {
+        const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

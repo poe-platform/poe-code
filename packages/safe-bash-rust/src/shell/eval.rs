@@ -9631,14 +9631,22 @@ impl<'a> EvalState<'a> {
                             Err(e) => return Err(e),
                         }
                     };
-                    if self.budget.limits.max_expansion_bytes > 0
-                        && stream_string_to_bytes(&content).len()
-                            > self.budget.limits.max_expansion_bytes
+                    let size = crate::vfs::stream_byte_len(&content);
+                    if self.budget.limits.max_expansion_bytes > 0 && size > self.budget.limits.max_expansion_bytes
                     {
                         return Err(EvalError::Budget(format!(
                             "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
                             self.budget.limits.max_expansion_bytes
                         )));
+                    }
+                    if size > self.budget.limits.max_input_bytes {
+                        let mut error = BuiltinOutcome {
+                            stdout: std::mem::take(&mut self.pending_stdout),
+                            stderr: format!("{}{}EFBIG: file too large, read\n", std::mem::take(&mut self.pending_stderr), self.diag_prefix()),
+                            exit_code: 1,
+                        };
+                        self.route_outcome(&mut error);
+                        return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(error)));
                     }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);

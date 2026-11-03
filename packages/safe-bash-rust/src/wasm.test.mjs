@@ -9384,3 +9384,20 @@ test("xmllint rejects malformed attributes before reading the rest of an open ta
     }
   } finally { rs.dispose(); }
 });
+
+test("heredocs check the expanded byte count before installing later redirects", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const error = "shell: line 1: EFBIG: file too large, read\n";
+    for (const [script, limit, code, stdout, stderr] of [
+      ["printf yes <<-'EOF'\n\t🦊\nEOF", 4, 1, "", error],
+      ["printf yes <<-'EOF'\n\t🦊\nEOF", 5, 0, "yes", ""],
+      ["{ echo ok; } 2>&1 <<EOF\n1234\nEOF", 4, 1, error, ""],
+      ["x=123; cat <<EOF\n${x}\nEOF", 4, 0, "123\n", ""],
+      ["printf old >dest; true <<EOF >dest\n12345\nEOF\ncat dest", 4, 0, "old", error],
+    ]) {
+      const r = await rs.exec(script, { limits: { maxInputBytes: limit } });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], script);
+    }
+  } finally { rs.dispose(); }
+});

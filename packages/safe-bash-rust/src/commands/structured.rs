@@ -28237,12 +28237,23 @@ fn mdq_text_span(s: &str, plain: bool) -> String {
 }
 
 fn mdq_render_span(s: &str, plain: bool, marks: &BTreeMap<usize, mdq_emphasis::Marks>, start: usize) -> String {
-    if marks.is_empty() && !s.contains(['\\', '`', '&']) { return s.to_string(); }
+    if marks.is_empty() && !s.contains(['\\', '`', '&', '\n']) { return s.to_string(); }
     let mut out = String::with_capacity(s.len());
     let bytes = s.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut i = 0usize;
     while i < bytes.len() {
+        if bytes[i..].starts_with(b"\\\n") {
+            out.push('\n');
+            i += 2;
+            continue;
+        }
+        if matches!(bytes[i], b' ' | b'\t') {
+            let start = i;
+            while bytes.get(i).is_some_and(|c| matches!(c, b' ' | b'\t')) { i += 1; }
+            if bytes.get(i) != Some(&b'\n') { out.push_str(&s[start..i]); }
+            continue;
+        }
         if matches!(bytes[i], b'&' | b'\\') && let Some(n) = mdq_decode_escape(&s[i..], &mut out) {
             i += n;
             continue;
@@ -28537,7 +28548,7 @@ fn parse_mdq_markdown(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
             blocks.push(MdqBlock { kind: "list".into(), children: items, ..MdqBlock::default() });
             continue;
         }
-        let mut p_lines = vec![trimmed];
+        let mut p_lines = vec![line.trim_start_matches([' ', '\t'])];
         let mut heading_level = None;
         i += 1;
         while i < lines.len() {
@@ -28546,7 +28557,7 @@ fn parse_mdq_markdown(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
                 i += 1;
                 break;
             }
-            let nl = lines[i].trim();
+            let nl = lines[i].trim_start_matches([' ', '\t']);
             if nl.is_empty() || mdq_interrupts_paragraph(lines[i]) {
                 break;
             }
@@ -28554,7 +28565,7 @@ fn parse_mdq_markdown(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
             i += 1;
         }
         let paragraph = p_lines.join("\n");
-        let text = mdq_links::extract(&paragraph, defs);
+        let text = mdq_links::extract(paragraph.trim_end_matches([' ', '\t']), defs);
         if text.is_empty() {
             if heading_level.is_some() { i -= 1; }
             continue;

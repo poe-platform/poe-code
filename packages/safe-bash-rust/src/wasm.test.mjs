@@ -8460,3 +8460,18 @@ test("mdq resolves emphasis delimiters around inline atoms and retains literal m
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq preserves source whitespace inside multiline code and HTML and consumes Markdown line breaks", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = ["a   \n b\t \n c", "slash\\\n  next and two\\\\\n lines", "``\nfoo\nbar  \nbaz\n``",
+      "A <a href=\"foo  \nbar\"> tag.", "*word\\\nnext* and `x  \n y` end", "[one](u)  [two](v)  \n [three](w)"].join("\n\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-o json", "-o plain", "-l inline", "-o json '</>'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

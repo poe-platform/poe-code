@@ -209,6 +209,19 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 }
 
 #[test]
+fn invoked_children_keep_directory_and_environment_changes_local() {
+    for invocation in [
+        "find . -maxdepth 0 -exec cd / \\; -exec export CHILD=yes \\;",
+        "xargs -I{} cd / <<< path; xargs -I{} export CHILD=yes <<< path",
+        "timeout 0 cd /; timeout 0 export CHILD=yes",
+    ] {
+        let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+        let r = shell.exec(&format!("{invocation}; pwd; echo \"[$CHILD]\"")).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "/work\n[]\n", ""), "{invocation}");
+    }
+}
+
+#[test]
 fn xargs_traces_and_forwards_each_batch_before_starting_the_next() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     for (script, stdout, stderr) in [

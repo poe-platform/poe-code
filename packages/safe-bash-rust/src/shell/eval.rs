@@ -4972,8 +4972,8 @@ impl<'a> EvalState<'a> {
                     fd_table.insert(2, FdTarget::Stderr);
                 }
                 let mut sub_eval = EvalState {
-                    cwd: sub_cwd,
-                    env: sub_env,
+                    cwd: &mut sub_cwd.clone(),
+                    env: &mut sub_env.clone(),
                     fs: fs_ref,
                     budget: budget_ref,
                     custom_commands: custom_ref,

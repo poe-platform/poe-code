@@ -15523,20 +15523,14 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
                 )
             }
             "translate" => {
-                let st = first.to_string_val();
-                let from_chars: Vec<char> = args[1].to_string_val().chars().collect();
-                let to_chars: Vec<char> = args[2].to_string_val().chars().collect();
-                let mut out = String::new();
-                for ch in st.chars() {
-                    if let Some(pos_idx) = from_chars.iter().position(|&fc| fc == ch) {
-                        if let Some(&tc) = to_chars.get(pos_idx) {
-                            out.push(tc);
-                        }
-                    } else {
-                        out.push(ch);
-                    }
+                let replacement = args[2].to_string_val();
+                let mut to = replacement.chars();
+                let mut table = std::collections::HashMap::new();
+                for ch in args[1].to_string_val().chars() {
+                    table.entry(ch).or_insert(to.next());
                 }
-                XPathVal::Str(out)
+                XPathVal::Str(first.to_string_val().chars()
+                    .filter_map(|ch| table.get(&ch).copied().unwrap_or(Some(ch))).collect())
             }
             "name" | "local-name" | "namespace-uri" => {
                 let XPathVal::NodeSet(items) = first else { return Err("XPath function requires a node-set".into()); };

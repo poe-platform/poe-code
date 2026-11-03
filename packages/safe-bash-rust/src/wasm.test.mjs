@@ -9189,3 +9189,11 @@ test("XPath substring rounds character positions before clipping them to the str
     }
   } finally { rs.dispose(); }
 });
+
+test("XPath translate uses the first mapping for each code point and drops unmapped replacements", async () => {
+  const rs = new RustWasmBash({ files: { "/doc": "<r/>" } });
+  try {
+    const result = await rs.exec(`xmllint --xpath 'translate("a🌻abcz", "aa🌻bc", "12🌺")' /doc`);
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "1🌺1z\n", ""]);
+  } finally { rs.dispose(); }
+});

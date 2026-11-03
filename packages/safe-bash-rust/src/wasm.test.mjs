@@ -8370,3 +8370,18 @@ test("mdq parses link destinations and titles before matching or rendering them"
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq numbers rendered links in order and emits their definitions at the selected position", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "# A [first](/one)\n\npara [second](/two 'a title') ![pic](/img)\n\n## B [third](/one)\n\nlast\n\n# C\n\n| link |\n| - |\n| [cell](/c) |";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-o json", "--link-pos=doc", "--link-pos=section", "'[]()'", "--link-pos=doc '[]()'",
+      "--no-br --link-pos=doc '[]()'", "-l inline -o json", "-l keep", "-o json '[]()'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -132,3 +132,51 @@ impl Target {
         }
     }
 }
+
+pub(super) struct References {
+    pub numbered: bool,
+    pub per_section: bool,
+    pub targets: Vec<Target>,
+    pub emitted: usize,
+}
+
+impl References {
+    pub fn suffix(&mut self, target: &Target) -> String {
+        if self.numbered {
+            self.targets.push(target.clone());
+            format!("[{}]", self.targets.len())
+        } else {
+            format!("({target})")
+        }
+    }
+
+    pub fn text(&mut self, src: &str) -> String {
+        if !src.contains('[') {
+            return super::mdq_text_span(src, false);
+        }
+        let mut text = String::new();
+        super::mdq_inline_parts(
+            src,
+            false,
+            |t| self.suffix(t),
+            |part, _| text.push_str(part),
+        );
+        text
+    }
+
+    pub fn write_pending(&mut self, w: &mut super::MdqWriter) {
+        if self.emitted == self.targets.len() {
+            return;
+        }
+        w.block(super::MdqLayout::Plain, |w| {
+            for i in self.emitted..self.targets.len() {
+                if i != self.emitted {
+                    w.write("\n", true);
+                }
+                w.write(&format!("[{}", i + 1), true);
+                w.write(&format!("]: {}", self.targets[i]), false);
+            }
+        });
+        self.emitted = self.targets.len();
+    }
+}

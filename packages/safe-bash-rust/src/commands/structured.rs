@@ -15,7 +15,7 @@ mod jq_json;
 mod jq_number;
 mod jq_parser;
 mod mdq_links;
-use mdq_links::Target as MdqTarget;
+use mdq_links::{References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
@@ -28853,7 +28853,7 @@ fn mdq_visit_inline_atoms<'a>(src: &'a str, mut visit: impl FnMut(std::ops::Rang
     }
 }
 
-fn mdq_inline_parts(src: &str, plain: bool, mut emit: impl FnMut(&str, bool)) {
+fn mdq_inline_parts(src: &str, plain: bool, mut suffix: impl FnMut(&MdqTarget) -> String, mut emit: impl FnMut(&str, bool)) {
     let mut at = 0;
     mdq_visit_inline_atoms(src, |range, atom| {
         if at < range.start { emit(&mdq_text_span(&src[at..range.start], plain), true); }
@@ -28863,7 +28863,7 @@ fn mdq_inline_parts(src: &str, plain: bool, mut emit: impl FnMut(&str, bool)) {
                 let label = mdq_text_span(display, plain || image);
                 if plain { emit(&label, true); } else {
                     let prefix = if image { "!" } else { "" };
-                    emit(&format!("{prefix}[{label}]({target})"), false);
+                    emit(&format!("{prefix}[{label}]{}", suffix(&target)), false);
                 }
             }
         }
@@ -28875,7 +28875,7 @@ fn mdq_inline_parts(src: &str, plain: bool, mut emit: impl FnMut(&str, bool)) {
 fn mdq_inline_text(src: &str, plain: bool) -> String {
     if !src.contains('[') { return mdq_text_span(src, plain); }
     let mut out = String::new();
-    mdq_inline_parts(src, plain, |part, _| out.push_str(part));
+    mdq_inline_parts(src, plain, |t| format!("({t})"), |part, _| out.push_str(part));
     out
 }
 
@@ -29084,7 +29084,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
     Vec::new()
 }
 
-fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut bool, w: &mut MdqWriter) {
+fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &mut bool, w: &mut MdqWriter) {
     let was_break = std::mem::replace(previous_break, b.kind == "break");
     match b.kind.as_str() {
         "break" if !was_break => w.block(MdqLayout::Plain, |w| w.write("   -----", false)),
@@ -29094,13 +29094,14 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
                     w.write(&"#".repeat(b.level), false);
                     if !b.title.is_empty() {
                         w.write(" ", false);
-                        w.write(&mdq_inline_text(&b.title, false), false);
+                        w.write(&refs.text(&b.title), false);
                     }
                 });
             }
-            for child in &b.children { mdq_render_block_md(child, link_format, previous_break, w); }
+            for child in &b.children { mdq_render_block_md(child, refs, previous_break, w); }
+            if b.kind == "section" && refs.per_section { refs.write_pending(w); }
         }
-        "paragraph" => w.block(MdqLayout::Plain, |w| mdq_inline_parts(&b.text, false, |part, wrap| w.write(part, wrap))),
+        "paragraph" => w.block(MdqLayout::Plain, |w| mdq_inline_parts(&b.text, false, |t| refs.suffix(t), |part, wrap| w.write(part, wrap))),
         "code" => {
             let ticks = b.text.lines().map(|s| s.bytes().take_while(|&c| c == b'`').count()).max().unwrap_or(0);
             let fence = "`".repeat((ticks + 1).max(3));
@@ -29110,7 +29111,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
         "list" | "quote" => {
             let layout = if b.kind == "quote" { MdqLayout::Quote } else { MdqLayout::Plain };
             w.block(layout, |w| {
-                for child in &b.children { mdq_render_block_md(child, link_format, previous_break, w); }
+                for child in &b.children { mdq_render_block_md(child, refs, previous_break, w); }
             });
         }
         "list_item" => {
@@ -29118,17 +29119,12 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             if let Some(checked) = b.checked { marker.push_str(if checked { "[x] " } else { "[ ] " }); }
             w.write(&marker, true);
             w.block(MdqLayout::Indent(marker.len()), |w| {
-                for child in &b.children { mdq_render_block_md(child, link_format, previous_break, w); }
+                for child in &b.children { mdq_render_block_md(child, refs, previous_break, w); }
             });
         }
         "link" | "image" => {
             let prefix = if b.kind == "image" { "!" } else { "" };
-            if matches!(link_format, "inline" | "keep") {
-                w.write(&format!("{prefix}[{}]({})", mdq_inline_text(&b.title, false), b.target), false);
-            } else {
-                w.write(&format!("{prefix}[{}][1]", b.title), false);
-                w.block(MdqLayout::Plain, |w| w.write(&format!("[1]: {}", b.target), false));
-            }
+            w.write(&format!("{prefix}[{}]{}", mdq_inline_text(&b.title, b.kind == "image"), refs.suffix(&b.target)), false);
         }
         "frontmatter" => {
             let delim = if b.lang == "toml" { "+++" } else { "---" };
@@ -29139,7 +29135,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             if b.table_rows.is_empty() {
                 return;
             }
-            let rows: Vec<Vec<_>> = b.table_rows.iter().map(|row| row.iter().map(|cell| mdq_inline_text(cell, false)).collect()).collect();
+            let rows: Vec<Vec<_>> = b.table_rows.iter().map(|row| row.iter().map(|cell| refs.text(cell)).collect()).collect();
             let mut widths: Vec<_> = b.table_aligns.iter().map(|a| match a.as_str() {
                 "left" | "right" => 2, "center" => 3, _ => 1,
             }).collect();
@@ -29188,22 +29184,23 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
     }
 }
 
-fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
+fn mdq_block_to_jval(b: &MdqBlock, refs: &mut MdqReferences) -> JVal {
     match b.kind.as_str() {
         "break" => JVal::Object(vec![("thematic_break".into(), JVal::Null)]),
-        "document" => JVal::Object(vec![("document".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))]),
+        "document" => JVal::Object(vec![("document".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect()))]),
         "section" => {
-            let body: Vec<JVal> = b.children.iter().map(mdq_block_to_jval).collect();
+            let title = refs.text(&b.title);
+            let body: Vec<JVal> = b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect();
             JVal::Object(vec![(
                 "section".to_string(),
                 JVal::Object(vec![
                     ("depth".to_string(), JVal::Number(b.level as f64, None)),
-                    ("title".to_string(), JVal::Str(mdq_inline_text(&b.title, false))),
+                    ("title".to_string(), JVal::Str(title)),
                     ("body".to_string(), JVal::Array(body)),
                 ]),
             )])
         }
-        "paragraph" => JVal::Object(vec![("paragraph".to_string(), JVal::Str(mdq_inline_text(&b.text, false)))]),
+        "paragraph" => JVal::Object(vec![("paragraph".to_string(), JVal::Str(refs.text(&b.text)))]),
         "code" => {
             let mut fields = vec![
                 ("code".to_string(), JVal::Str(b.text.clone())),
@@ -29217,15 +29214,15 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             }
             JVal::Object(vec![("code_block".to_string(), JVal::Object(fields))])
         }
-        "list" => JVal::Object(vec![("list".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))]),
+        "list" => JVal::Object(vec![("list".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect()))]),
         "list_item" => {
-            let mut fields = vec![("item".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))];
+            let mut fields = vec![("item".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect()))];
             if let Some(index) = b.index { fields.push(("index".into(), JVal::Number(index as f64, None))); }
             if let Some(check) = b.checked { fields.push(("checked".into(), JVal::Bool(check))); }
             JVal::Object(fields)
         }
         "quote" => {
-            let body: Vec<JVal> = b.children.iter().map(mdq_block_to_jval).collect();
+            let body: Vec<JVal> = b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect();
             JVal::Object(vec![("block_quote".to_string(), JVal::Array(body))])
         }
         "link" | "image" => {
@@ -29250,7 +29247,7 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             let rows = JVal::Array(
                 b.table_rows
                     .iter()
-                    .map(|r| JVal::Array(r.iter().map(|cell| JVal::Str(mdq_inline_text(cell, false))).collect()))
+                    .map(|r| JVal::Array(r.iter().map(|cell| JVal::Str(refs.text(cell))).collect()))
                     .collect(),
             );
             JVal::Object(vec![(
@@ -29751,6 +29748,7 @@ fn parse_mdq_query(query: &str) -> Result<Vec<MdqSelector>, BuiltinOutcome> {
 fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut output_fmt = "markdown".to_string();
     let mut link_format = "never-inline".to_string();
+    let mut section_links = true;
     let mut quiet = false;
     let mut breaks_opt: Option<bool> = None;
     let mut wrap_width: Option<u64> = None;
@@ -30074,6 +30072,8 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     wrap_width = digits.parse::<u64>().ok();
                 } else if flag == "output" {
                     output_fmt = value;
+                } else if flag == "link-pos" {
+                    section_links = value == "section";
                 } else if flag == "link-format" {
                     link_format = value;
                 }
@@ -30153,9 +30153,19 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             exit_code: if matched { 0 } else { 1 },
         };
     }
+    let mut refs = MdqReferences { numbered: link_format == "never-inline", per_section: section_links, targets: Vec::new(), emitted: 0 };
     if output_fmt == "json" {
-        let items: Vec<JVal> = current.iter().map(mdq_block_to_jval).collect();
-        let root = JVal::Object(vec![("items".to_string(), JVal::Array(items))]);
+        let items = current.iter().map(|b| mdq_block_to_jval(b, &mut refs)).collect();
+        let mut fields = vec![("items".into(), JVal::Array(items))];
+        if !refs.targets.is_empty() {
+            let links = refs.targets.into_iter().enumerate().map(|(i, t)| {
+                let mut value = vec![("url".into(), JVal::Str(t.url))];
+                if !t.title.is_empty() { value.push(("title".into(), JVal::Str(t.title))); }
+                ((i + 1).to_string(), JVal::Object(value))
+            }).collect();
+            fields.push(("links".into(), JVal::Object(links)));
+        }
+        let root = JVal::Object(fields);
         let mut stdout = String::new();
         JsonFormat { indent: "", strings: JsonStrings::JavaScript, color: false, sort_keys: false }.write(&root, 0, &mut stdout);
         return BuiltinOutcome {
@@ -30207,15 +30217,19 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     let mut writer = MdqWriter::new(wrap_width);
     let mut previous_break = false;
+    let separator = |w: &mut MdqWriter, previous_break: &mut bool| {
+        if breaks {
+            if !*previous_break { w.block(MdqLayout::Plain, |w| w.write("   -----", false)); }
+            *previous_break = true;
+        } else { w.write("\n", true); }
+    };
     for (i, b) in current.iter().enumerate() {
-        if i != 0 {
-            if breaks {
-                if !previous_break { writer.block(MdqLayout::Plain, |w| w.write("   -----", false)); }
-                previous_break = true;
-            } else { writer.write("\n", true); }
-        }
-        mdq_render_block_md(b, &link_format, &mut previous_break, &mut writer);
+        if i != 0 { separator(&mut writer, &mut previous_break); }
+        mdq_render_block_md(b, &mut refs, &mut previous_break, &mut writer);
+        if refs.per_section { refs.write_pending(&mut writer); }
     }
+    if current.len() > 1 && refs.emitted != refs.targets.len() { separator(&mut writer, &mut previous_break); }
+    refs.write_pending(&mut writer);
     BuiltinOutcome {
         stdout: writer.finish(),
         stderr: String::new(),

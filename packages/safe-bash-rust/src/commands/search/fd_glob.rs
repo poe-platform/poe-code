@@ -7,6 +7,47 @@ pub(super) struct FdGlob {
     directory_only: bool,
 }
 
+fn ascii_error(offset: usize) -> String {
+    format!("unsupported ERE profile at {offset}: only non-NUL ASCII in the C/POSIX profile")
+}
+
+// The glob frontend ends the class fragment at the first closing bracket.
+// Backslashes in that fragment are members, not regex escape sequences.
+fn append_class(expression: &mut String, contents: &str, start: usize) -> Result<(), String> {
+    if let Some(i) = contents.bytes().position(|b| !b.is_ascii() || b == 0) { return Err(ascii_error(i + 1)); }
+    let mut members = contents.as_bytes();
+    expression.push('[');
+    if matches!(members.first(), Some(b'!' | b'^')) {
+        expression.push('^');
+        members = &members[1..];
+    }
+    while let Some((&low, rest)) = members.split_first() {
+        let offset = start + 1 + contents.len() - members.len();
+        if low == b'[' {
+            if rest.starts_with(b".") || rest.starts_with(b"=") {
+                return Err(format!("unsupported ERE profile at {offset}: collating or equivalence element"));
+            }
+            if let Some(class) = rest.strip_prefix(b":") {
+                let known = class.strip_suffix(b":").and_then(|s| super::posix_class_ranges(std::str::from_utf8(s).unwrap()));
+                return Err(if known.is_some() { format!("invalid ERE at {start}: unclosed bracket expression") }
+                    else { format!("invalid ERE at {offset}: unknown character class") });
+            }
+        }
+        if low == b'\\' { expression.push('\\'); }
+        expression.push(char::from(low));
+        if let [b'-', high, tail @ ..] = rest {
+            if *high == b'[' { return Err(format!("invalid ERE at {}: nonliteral range endpoint", offset + 2)); }
+            if low > *high { return Err(format!("invalid ERE at {offset}: descending range")); }
+            expression.push('-');
+            if *high == b'\\' { expression.push('\\'); }
+            expression.push(char::from(*high));
+            members = tail;
+        } else { members = rest; }
+    }
+    expression.push(']');
+    Ok(())
+}
+
 impl FdGlob {
     pub(super) fn compile(source: &str, search_pattern: bool) -> Result<Self, String> {
         let directory_only = source.ends_with('/');
@@ -14,6 +55,7 @@ impl FdGlob {
         let mut expression = if search_pattern || source.starts_with('/') || pattern.contains('/') { "^" } else { "(^|/)" }.to_owned();
         let mut chars = if search_pattern { pattern } else { pattern.strip_prefix('/').unwrap_or(pattern) }.chars();
         let mut braces = 0;
+        let mut escapes = 0;
         while let Some(c) = chars.next() {
             match c {
                 '*' if chars.as_str().starts_with('*') => {
@@ -31,15 +73,12 @@ impl FdGlob {
                     let tail = body.strip_prefix(']').unwrap_or(body);
                     if let Some(end) = tail.find(']') {
                         let contents = &rest[..rest.len() - tail.len() + end];
-                        expression.push('[');
-                        if let Some(negated) = contents.strip_prefix('!') {
-                            expression.push('^');
-                            expression.push_str(negated);
-                        } else { expression.push_str(contents); }
-                        expression.push(']');
+                        let len = expression.len();
+                        append_class(&mut expression, contents, len - escapes)?;
+                        escapes += expression.len() - len - contents.len() - 2;
                         chars = tail[end + 1..].chars();
                     } else if search_pattern { return Err("invalid glob: unclosed glob character class".into()); }
-                    else { expression.push_str(r"\["); }
+                    else { expression.push_str(r"\["); escapes += 1; }
                 }
                 '{' => { braces += 1; expression.push('('); }
                 '}' if braces == 0 => return Err("invalid glob: unmatched glob brace".into()),
@@ -47,7 +86,8 @@ impl FdGlob {
                 ',' if braces > 0 => expression.push('|'),
                 c => {
                     let literal = if c == '\\' { chars.next().ok_or("invalid glob: trailing glob escape")? } else { c };
-                    if r".^$*+?()[]{}|\".contains(literal) { expression.push('\\'); }
+                    if !literal.is_ascii() || literal == '\0' { return Err(ascii_error(0)); }
+                    if r".^$*+?()[]{}|\".contains(literal) { expression.push('\\'); escapes += 1; }
                     expression.push(literal);
                 }
             }

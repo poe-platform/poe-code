@@ -7636,6 +7636,28 @@ mod tests {
     }
 
     #[test]
+    fn fd_glob_classes_preserve_literal_backslashes_and_portable_diagnostics() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w").unwrap();
+        for name in [r"\", "n", "z"] { fs.write_file(&format!("/w/{name}"), b"").unwrap(); }
+        for (pattern, stdout, stderr) in [
+            (r"[\n]", "\\\nn\n", ""),
+            (r"[^\]", "n\nz\n", ""),
+            ("^?a[z-a]", "", "fd: invalid ERE at 8: descending range\n"),
+            ("[a-[]", "", "fd: invalid ERE at 4: nonliteral range endpoint\n"),
+            ("[ü]", "", "fd: unsupported ERE profile at 1: only non-NUL ASCII in the C/POSIX profile\n"),
+            ("**é", "", "fd: unsupported ERE profile at 0: only non-NUL ASCII in the C/POSIX profile\n"),
+            ("[[:digit:]]", "", "fd: invalid ERE at 1: unclosed bracket expression\n"),
+            ("[[:madeup:]]", "", "fd: invalid ERE at 2: unknown character class\n"),
+            ("[[.a.]]", "", "fd: unsupported ERE profile at 2: collating or equivalence element\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&["-Ig", pattern]), "", &mut "/w".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (i32::from(!stderr.is_empty()), stdout, stderr), "{pattern}");
+        }
+    }
+
+    #[test]
     fn fd_exclude_globs_match_components_directories_and_alternatives() {
         let fs = MemoryVfs::new();
         fs.mkdir_all("/work/sub/deep").unwrap();

@@ -8682,3 +8682,20 @@ test("mdq Unicode regex shorthands agree inside classes and at word boundaries",
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq reports regex group, class and repetition errors at their query positions", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const query of [
+      "P: /(/", "P: /a)/", "P: /(猫/", "P: /[a/", "P: /[]/", "P: /[^]/",
+      "P: /[z-a]/", "P: /a**/", "P: /*cat/", "P: !s/a)/x/", "P: !s/[z-a]/x/",
+      "P: /a{3,2}/", "P: /a{,2}/", "P: /a{,}/", "P: /^*/", "P: /$+/", "P: /(?:)*/",
+      "P: !s/a\\/😀)/x/", "P: /😀[z-a]/",
+    ]) {
+      const cmd = "printf 'aba\\n' | mdq '" + query + "'", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], query);
+    }
+  } finally { rs.dispose(); }
+});

@@ -514,11 +514,11 @@ impl ZeroRegex {
         Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, RxDialect::Auto).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
     }
 
-    pub(super) fn mdq(pattern: &str) -> Self {
-        let branches = parse_rx_branches(pattern, false, RxDialect::Mdq).expect("permissive mdq regex parser");
+    pub(super) fn mdq(pattern: &str) -> Result<Self, RxParseError> {
+        let branches = parse_rx_branches(pattern, false, RxDialect::Mdq)?;
         let mut rx = Self::from_branches([branches], false, false, false);
         rx.search = RxSearch::First;
-        rx
+        Ok(rx)
     }
 
     pub(super) fn awk(pattern: &str) -> Self {
@@ -529,7 +529,7 @@ impl ZeroRegex {
     pub(super) fn jq(pattern: &str, flags: &str, filter: &str) -> Result<Self, String> {
         let pattern = preprocess_ere_pattern(pattern, flags.contains('x'));
         let branches = parse_rx_branches(&pattern, false, RxDialect::Jq(flags)).map_err(|err| {
-            let message = match err.as_str() {
+            let message = match err.message.as_str() {
                 "unterminated bracket expression" => "premature end of char-class",
                 "unmatched '(' in regular expression" => "end pattern with unmatched parenthesis",
                 "quantifier without an expression" if filter != "capture" => "target of repeat operator is not specified",
@@ -971,7 +971,21 @@ struct RxFlags {
 
 enum RxDialect<'a> { Auto, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
 
-fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, String> {
+#[derive(Debug)]
+pub(super) struct RxParseError {
+    pub message: String,
+    pub offset: Option<usize>,
+}
+
+impl<T: Into<String>> From<T> for RxParseError {
+    fn from(message: T) -> Self { Self { message: message.into(), offset: None } }
+}
+
+impl RxParseError {
+    fn at(offset: usize, message: &str) -> Self { Self { message: message.into(), offset: Some(offset) } }
+}
+
+fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, RxParseError> {
     let jq = matches!(dialect, RxDialect::Jq(_));
     let mdq = matches!(dialect, RxDialect::Mdq);
     let assertions = jq || mdq;
@@ -1015,8 +1029,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
     while idx < chars.len() {
         let mut atom = match chars[idx] {
             '^' if (rg || jq) && mode.multiline => { idx += 1; RxAtom::LineBegin }
-            '^' if rg || jq || out.is_empty() => { idx += 1; RxAtom::Begin }
-            '$' if rg && !mode.multiline => { idx += 1; RxAtom::End }
+            '^' if mdq || rg || jq || out.is_empty() => { idx += 1; RxAtom::Begin }
+            '$' if (mdq || rg) && !mode.multiline => { idx += 1; RxAtom::End }
             '$' if rg || jq => { idx += 1; RxAtom::NewlineEnd { multiline: mode.multiline } }
             '$' if matches!(chars.get(idx + 1), None | Some('|') | Some(')')) => { idx += 1; RxAtom::End }
             '.' => {
@@ -1054,8 +1068,10 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 }
             }
             '\\' if rg => return Err("invalid ERE: trailing backslash".into()),
+            ')' if mdq && groups.is_empty() => return Err(RxParseError::at(idx, "General parsing error: end of string not reached")),
+            '*' | '+' | '?' if mdq && (idx == 0 || chars[idx] == '*' || chars[idx - 1] == '|') => return Err(RxParseError::at(idx, "Target of repeat operator is invalid")),
             ')' if rg && groups.is_empty() => return Err("invalid ERE: unmatched ')'".into()),
-            c @ ('*' | '+' | '?' | '{') if rg => return Err(format!("invalid ERE: unexpected quantifier '{c}'")),
+            c @ ('*' | '+' | '?' | '{') if rg => return Err(format!("invalid ERE: unexpected quantifier '{c}'").into()),
             '\\' if jq => return Err("trailing backslash in regular expression".into()),
             '*' | '+' | '?' | '{' | '}' if jq => return Err("quantifier without an expression".into()),
             ')' if jq && groups.is_empty() => return Err("unmatched ')' in regular expression".into()),
@@ -1092,8 +1108,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                             let name: String = chars[idx + 2..idx + 2 + end].iter().collect();
                             parsed.cross_line |= name == "space";
                             if let Some(class) = posix_class_ranges(&name) { ranges.extend_from_slice(class); }
-                            else if rg { return Err(format!("invalid ERE character class [:{name}:]")); }
-                            else if jq { return Err(format!("unsupported character class '{name}'")); }
+                            else if rg { return Err(format!("invalid ERE character class [:{name}:]").into()); }
+                            else if jq { return Err(format!("unsupported character class '{name}'").into()); }
                             idx += end + 4;
                             if rg && matches!(&chars[idx..], ['-', end, ..] if *end != ']') {
                                 return Err("invalid ERE character range".into());
@@ -1149,6 +1165,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         }
                         scalar(&mut idx)?
                     } else { lo };
+                    if mdq && lo > hi { return Err("Regex error: error parsing pattern 0".into()); }
                     if rg && lo > hi { return Err("invalid ERE character range".into()); }
                     if jq && lo != hi {
                         // In UTF-16, supplementary characters sort between these two BMP segments.
@@ -1165,6 +1182,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     }
                 }
                 if idx < chars.len() && chars[idx] == ']' { idx += 1; }
+                else if mdq { return Err(RxParseError::at(idx, "Invalid character class")); }
                 else if rg { return Err("invalid ERE: unclosed bracket expression".into()); }
                 else if jq { return Err("unterminated bracket expression".into()); }
                 RxAtom::Class {
@@ -1268,13 +1286,12 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             if rg && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) {
                 return Err("invalid ERE: assertion cannot be quantified".into());
             }
-            out.push(RxToken {
-                atom, case,
-                min: 1,
-                max: Some(1),
-                lazy: false,
-            });
-            continue;
+            if mdq && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) {
+                atom = parsed.close_group(vec![vec![RxToken {atom, case, min:1, max:Some(1), lazy:false}]], RxGroup::Plain);
+            } else {
+                out.push(RxToken { atom, case, min: 1, max: Some(1), lazy: false });
+                continue;
+            }
         }
         while idx < chars.len() {
             let before_quantifier = idx;
@@ -1295,17 +1312,36 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     idx += 1;
                 }
                 '{' => {
-                    if rg {
+                    if mdq {
+                        let mut at = idx + 1;
+                        let count = |at: &mut usize| {
+                            let begin = *at;
+                            while chars.get(*at).is_some_and(char::is_ascii_digit) { *at += 1; }
+                            (begin < *at).then(|| chars[begin..*at].iter().collect::<String>().parse::<u64>().unwrap_or(u64::MAX))
+                        };
+                        let low = count(&mut at);
+                        let high = if chars.get(at) == Some(&',') { at += 1; count(&mut at) } else { low };
+                        if chars.get(at) == Some(&'}') && (low.is_some() || high != Some(0) && at > idx + 1) {
+                            const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
+                            let low = low.unwrap_or(0);
+                            if low > MAX_SAFE_INTEGER || high.is_some_and(|n| n < low || n > MAX_SAFE_INTEGER) {
+                                return Err("Regex error: error parsing pattern 0".into());
+                            }
+                            min = usize::try_from(low).unwrap_or(usize::MAX);
+                            max = high.map(|n| usize::try_from(n).unwrap_or(usize::MAX));
+                            idx = at + 1;
+                        }
+                    } else if rg {
                         let end = chars[idx..].iter().position(|&c| c == '}').ok_or("invalid ERE: unclosed repetition interval")?;
                         let body: String = chars[idx+1..idx+end].iter().collect();
                         let (lo, hi) = body.split_once(',').unwrap_or((&body, &body));
                         if lo.is_empty() || !lo.bytes().chain(hi.bytes()).all(|b| b.is_ascii_digit()) {
-                            return Err(format!("invalid ERE repetition interval '{{{body}}}'"));
+                            return Err(format!("invalid ERE repetition interval '{{{body}}}'").into());
                         }
                         min = lo.parse().unwrap_or(usize::MAX);
                         max = (!hi.is_empty()).then(|| hi.parse().unwrap_or(usize::MAX));
                         if min > 1000 || max.is_some_and(|n| n < min || n > 1000) {
-                            return Err(format!("invalid ERE repetition bounds '{{{body}}}'"));
+                            return Err(format!("invalid ERE repetition bounds '{{{body}}}'").into());
                         }
                         idx += end + 1;
                     } else if let Some((m_min, m_max, consumed)) = parse_quantifier(&chars[idx..]) {
@@ -1323,6 +1359,10 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     } else if jq { return Err("invalid repetition interval".into()); }
                 }
                 _ => {}
+            }
+            if mdq && idx != before_quantifier && let RxAtom::Group { index, kind: RxGroup::Plain, .. } = atom
+                && matches!(parsed.groups[index].as_slice(), [only] if only.is_empty()) {
+                return Err(RxParseError::at(before_quantifier, "Target of repeat operator is invalid"));
             }
             if idx < chars.len() && chars[idx] == '?' && idx != before_quantifier {
                 lazy = true;
@@ -1355,6 +1395,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             lazy,
         });
     }
+    if mdq && !groups.is_empty() { return Err(RxParseError::at(idx, "Opening parenthesis without closing parenthesis")); }
     if rg && !groups.is_empty() { return Err("invalid ERE: unclosed '('".into()); }
     if jq && !groups.is_empty() { return Err("unmatched '(' in regular expression".into()); }
     while let Some((outer, outer_alts, kind, _, _)) = groups.pop() {
@@ -2358,7 +2399,7 @@ fn cmd_grep(
         let flags = RxFlags { icase: ignore_case, multiline: false, dotall: false };
         let branches = match parse_rx_branches(pat, fixed_strings, RxDialect::Rg { flags, dot_nul: text || null_data }) {
             Ok(parsed) => parsed,
-            Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {message}\n"), exit_code: 2 },
+            Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {}\n", message.message), exit_code: 2 },
         };
         use_vm |= branches.requires_vm;
         if profile_error.is_none() && let Some((i, message)) = branches.bounded_error {
@@ -3192,7 +3233,7 @@ fn cmd_rg(
     for pattern in &patterns {
         let mut branches = match parse_rx_branches(pattern, fixed_strings, RxDialect::Rg { flags, dot_nul: null_data || binary == RgBinary::Text }) {
             Ok(branches) => branches,
-            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("rg: {error}\n"), exit_code: 2 },
+            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("rg: {}\n", error.message), exit_code: 2 },
         };
         if line_regexp {
             for branch in &mut branches.root {

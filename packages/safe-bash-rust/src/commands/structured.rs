@@ -29190,17 +29190,24 @@ fn parse_mdq_query(query: &str) -> Result<Vec<MdqSelector>, BuiltinOutcome> {
                     Some(begin + 1),
                 ));
             }
-            if matches!(source.chars().next(), Some('*' | '+' | '?')) {
-                let span = if replacement { begin - 3 } else { begin - 1 };
-                return Err(mdq_query_error(
-                    query,
-                    span + 1,
-                    "regex parse error: Target of repeat operator is invalid",
-                    Some(span + 2),
-                ));
-            }
+            let span = if replacement { begin - 3 } else { begin - 1 };
+            let pattern = ZeroRegex::mdq(&source).map_err(|e| match e.offset {
+                Some(offset) => {
+                    // Pattern offsets index the decoded expression in UTF-16; the caret
+                    // is drawn on the original query, which may still contain escaped slashes.
+                    let units = source.chars().take(offset).map(char::len_utf16).sum::<usize>();
+                    let mut consumed = 0;
+                    let pos = span + 1 + chars[span+1..].iter().take_while(|c| {
+                        if consumed >= units { return false; }
+                        consumed += c.len_utf16();
+                        true
+                    }).count();
+                    mdq_query_error(query, pos, &format!("regex parse error: {}", e.message), Some(pos + 1))
+                }
+                None => mdq_query_error(query, span, &format!("Error compiling regex: {}", e.message), Some(*at)),
+            })?;
             let template = if replacement { Some(segment(at)?) } else { None };
-            return Ok((false, MdqMatcher::Regex(ZeroRegex::mdq(&source), template)));
+            return Ok((false, MdqMatcher::Regex(pattern, template)));
         }
         if chars.get(*at) == Some(&'^') {
             start_anchor = true;

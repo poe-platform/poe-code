@@ -166,6 +166,7 @@ pub(super) fn parse(
     src: &str,
     expected_encoding: Option<&str>,
     warnings: Warnings<'_>,
+    retain_nodes: bool,
 ) -> Result<Document, String> {
     let src = src.strip_prefix('\u{feff}').unwrap_or(src);
     if !src.chars().all(valid) {
@@ -178,7 +179,7 @@ pub(super) fn parse(
     } else {
         src
     };
-    document(src, expected_encoding, warnings).map_err(|e| {
+    document(src, expected_encoding, warnings, retain_nodes).map_err(|e| {
         if e == "XML resource limit exceeded" {
             e.into()
         } else {
@@ -191,6 +192,7 @@ fn document(
     mut s: &str,
     expected_encoding: Option<&str>,
     mut warnings: Warnings<'_>,
+    retain_nodes: bool,
 ) -> Result<Document, &'static str> {
     let size = s.len();
     let mut doc = Document::default();
@@ -335,12 +337,12 @@ fn document(
                 has_root = true;
             }
             // The DOM consumers recurse when rendering or dropping a tree.
-            if stack.len() >= 512 {
+            if retain_nodes && stack.len() >= 512 {
                 return Err("XML resource limit exceeded");
             }
             let el = Element {
                 tag: tag.into(),
-                attrs,
+                attrs: if retain_nodes { attrs } else { Vec::new() },
                 children: Vec::new(),
             };
             let empty = s.starts_with('/');
@@ -388,6 +390,7 @@ fn document(
                 }
             }
         }
+        if !retain_nodes { continue; }
         if let Some(parent) = stack.last_mut() {
             parent.children.push(node);
         } else {
@@ -399,6 +402,7 @@ fn document(
     }
     if !stack.is_empty() {
         repair(&mut warnings, "incomplete document")?;
+        if !retain_nodes { return Ok(doc); }
         while let Some(el) = stack.pop() {
             if let Some(parent) = stack.last_mut() {
                 parent.children.push(Node::Element(el));

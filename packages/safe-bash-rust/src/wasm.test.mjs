@@ -9277,3 +9277,19 @@ test("nested XPath paths preserve their predicate contexts without a native call
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint --noout validates deeply nested input and still reports errors at the deepest element", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [leaf, flag, code, message] of [
+      ["<n:item/>", "", 0, ""], ["<n:item/>", "--recover", 0, ""],
+      ["&bad;", "", 1, "xmllint: Invalid XML: undeclared entity\n"],
+      ["&bad;", "--recover", 0, "xmllint: undeclared entity (recovered)\n"],
+      ["<unknown:item/>", "", 1, "xmllint: Invalid XML: unbound element prefix\n"],
+    ]) {
+      await rs.fs.writeFile("/doc", Buffer.from('<r xmlns:n="urn:n">' + "<t>".repeat(2048) + leaf + "</t>".repeat(2048) + "</r>"));
+      const result = await rs.exec("xmllint --noout " + flag + " /doc");
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [code, "", message], leaf);
+    }
+  } finally { rs.dispose(); }
+});

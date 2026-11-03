@@ -5371,7 +5371,7 @@ fn parse_yq_input_docs_with_meta(
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return Ok(vec![(xml::to_json(xml::parse(input, None, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
+        return Ok(vec![(xml::to_json(xml::parse(input, None, None, true).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
@@ -14937,17 +14937,17 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     };
     let render = |text: &str| {
         let mut warnings = Vec::new();
-        let doc = match xml::parse(text, Some("UTF-8"), recover.then_some(&mut warnings)) {
+        let doc = match xml::parse(text, Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some()) {
             Ok(doc) => doc,
             Err(e) => return err_out(&format!("xmllint: {e}\n"), 1),
         };
         let stderr: String = warnings.into_iter().map(|msg| format!("xmllint: {msg} (recovered)\n")).collect();
-        let mut dom = doc.nodes;
-        apply_xml_transforms(&mut dom, noblanks || (format_xml && !c14n && xpath.is_none()), nocdata, false);
-
         if noout && xpath.is_none() {
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }
+        let mut dom = doc.nodes;
+        apply_xml_transforms(&mut dom, noblanks || (format_xml && !c14n && xpath.is_none()), nocdata, false);
+
         let rendered = if let Some(xp) = &xpath {
             let mut res = eval_xmllint_xpath(&dom, xp);
             if res.exit_code != 0 {

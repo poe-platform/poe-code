@@ -373,6 +373,23 @@ fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_fir
     }))
 }
 
+fn visit_complete_records(chunk: &[u8], delimiter: u8, pending: &mut Vec<u8>, mut emit: impl FnMut(&[u8]) -> bool) -> bool {
+    for part in chunk.split_inclusive(|&b| b == delimiter) {
+        if let Some(record) = part.strip_suffix(&[delimiter]) {
+            let more = if pending.is_empty() { emit(record) } else {
+                pending.extend_from_slice(record);
+                let more = emit(pending);
+                pending.clear();
+                more
+            };
+            if !more { return false; }
+        } else {
+            pending.extend_from_slice(part);
+        }
+    }
+    true
+}
+
 impl CommandInput<'_> {
     fn next_stdin_chunk(&mut self, chunk: &mut Vec<u8>) -> Result<(), String> {
         chunk.clear();
@@ -408,20 +425,10 @@ impl CommandInput<'_> {
         let mut pending = Vec::new();
         let mut result = Ok(());
         self.read_operand(name, cwd, fs, stat_first, |chunk| {
-            for part in chunk.split_inclusive(|&b| b == delimiter) {
-                if let Some(record) = part.strip_suffix(&[delimiter]) {
-                    result = if pending.is_empty() { emit(record) } else {
-                        pending.extend_from_slice(record);
-                        let result = emit(&pending);
-                        pending.clear();
-                        result
-                    };
-                    if result.is_err() { return false; }
-                } else {
-                    pending.extend_from_slice(part);
-                }
-            }
-            true
+            visit_complete_records(chunk, delimiter, &mut pending, |record| {
+                result = emit(record);
+                result.is_ok()
+            })
         })?;
         result?;
         if !pending.is_empty() { emit(&pending)?; }
@@ -3707,19 +3714,7 @@ fn cmd_rev(
                 code = 1;
                 break;
             }
-            for part in chunk.split_inclusive(|&b| b == b'\n') {
-                if let Some(record) = part.strip_suffix(b"\n") {
-                    valid = if pending.is_empty() { reverse(record, true) } else {
-                        pending.extend_from_slice(record);
-                        let valid = reverse(&pending, true);
-                        pending.clear();
-                        valid
-                    };
-                    if !valid { break; }
-                } else {
-                    pending.extend_from_slice(part);
-                }
-            }
+            valid = visit_complete_records(&chunk, b'\n', &mut pending, |record| reverse(record, true));
             if !valid { break; }
             if chunk.is_empty() || !from_stdin {
                 if !pending.is_empty() { valid = reverse(&pending, false); }
@@ -7590,40 +7585,18 @@ fn cmd_numfmt(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
 
     let sep_char = if zero_terminated { '\0' } else { '\n' };
     let from_stdin = operands.is_empty();
-    let mut read_error = None;
-    let records: Vec<(String, bool)> = if from_stdin {
-        let mut bytes = Vec::new();
-        read_error = stdin.append_bytes(&mut bytes).err();
-        let stdin = crate::vfs::bytes_to_stream_string(&bytes);
-        let mut recs = Vec::new();
-        if !stdin.is_empty() {
-            let parts: Vec<&str> = stdin.split(sep_char).collect();
-            for (idx, p) in parts.iter().enumerate() {
-                if idx + 1 == parts.len() {
-                    if !p.is_empty() {
-                        recs.push(((*p).to_string(), false));
-                    }
-                } else {
-                    recs.push(((*p).to_string(), true));
-                }
-            }
-        }
-        recs
-    } else {
-        operands.into_iter().map(|op| (op, true)).collect()
-    };
-
     let mut out = String::new();
     let mut err = String::new();
     let mut had_invalid = false;
 
-    for (line_no, (item, has_term)) in records.into_iter().enumerate() {
-        if from_stdin && line_no < header_lines {
-            out.push_str(&item);
+    let mut emit = |item: &str, has_term: bool| {
+        if from_stdin && header_lines != 0 {
+            header_lines -= 1;
+            out.push_str(item);
             if has_term {
                 out.push(sep_char);
             }
-            continue;
+            return true;
         }
         let mut line_aborted = false;
         let formatted = if let Some(ref delim) = delimiter {
@@ -7721,16 +7694,26 @@ fn cmd_numfmt(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
                 rebuilt
             }
         };
-        if line_aborted {
-            return BuiltinOutcome {
-                stdout: out,
-                stderr: err,
-                exit_code: 2,
-            };
-        }
+        if line_aborted { return false; }
         out.push_str(&formatted);
-        if has_term {
-            out.push(sep_char);
+        if has_term { out.push(sep_char); }
+        true
+    };
+    let mut read_error = None;
+    if from_stdin {
+        let mut pending = Vec::new();
+        let mut more = true;
+        read_error = stdin.read_stdin(|chunk| {
+            more = visit_complete_records(chunk, sep_char as u8, &mut pending, |record|
+                emit(&crate::vfs::bytes_to_stream_string(record), true));
+            more
+        }).err();
+        if more && !pending.is_empty() && !emit(&crate::vfs::bytes_to_stream_string(&pending), false) {
+            read_error = None;
+        }
+    } else {
+        for item in operands {
+            if !emit(&item, true) { break; }
         }
     }
     if let Some(error) = read_error {

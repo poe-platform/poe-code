@@ -371,6 +371,19 @@ test("factor, envsubst and numfmt consume their shared stdin once", async () => 
   } finally { bash.dispose(); }
 });
 
+test("numfmt stops pulling on conversion failure and keeps records split across chunks", async () => {
+  const bash = new RustWasmBash({ files: {
+    "/bad": "2\nwrong\n" + "x".repeat(65528) + "Z",
+    "/split": "0".repeat(65535) + "14\n12",
+  } });
+  try {
+    const r = await bash.exec("{ numfmt; head -c1; } </bad");
+    assert.deepEqual([r.stdout, r.stderr], ["2\nZ", "numfmt: invalid number: 'wrong'\n"]);
+    const split = await bash.exec("numfmt </split");
+    assert.deepEqual([split.exitCode, split.stdout, split.stderr], [0, "14\n12", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("text utilities report redirected input errors after the bytes already read", async () => {
   const bash = new RustWasmBash({ files: { "/large": "15 \n2222222222" } });
   try {

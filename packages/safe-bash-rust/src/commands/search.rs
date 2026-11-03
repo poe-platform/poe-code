@@ -3940,17 +3940,36 @@ fn run_grep_engine(
     let mut headings = std::collections::BTreeSet::new();
     for input in inputs {
         if failed_batch { break; }
+        let mut matched_count = 0usize;
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
                 let mut bytes = Vec::new();
-                if cfg.max_count != Some(0)
-                    && let Err(e) = stdin.read_stdin(|chunk| { bytes.extend_from_slice(chunk); true })
-                {
+                let presence_only = !multiline && !cfg.stats && !cfg.json_output
+                    && (cfg.quiet || cfg.files_with_matches || cfg.files_without_match);
+                let result = if cfg.max_count == Some(0) { Ok(()) } else if presence_only {
+                    // Status and filename output need only the first selected record.
+                    let delimiter = |b| b == rec_term as u8 || is_rg && cfg.binary != RgBinary::Text && b == 0;
+                    stdin.read_stdin_records(delimiter, |line| {
+                        if cfg.ignore_binary && line.contains(&0) { return false; }
+                        if let GrepInput::Bounded(name) = cfg.grep_input && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
+                            err.push_str(&format!("{name}: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"));
+                            failed_batch = true;
+                            return false;
+                        }
+                        let matcher = cfg.ascii_record_rx.as_ref().filter(|_| line.is_ascii() && !line.contains(&0)).unwrap_or(&rx);
+                        let subject = if cfg.crlf { line.strip_suffix(b"\r").unwrap_or(line) } else { line };
+                        matched_count = usize::from(matcher.scan(subject, false, |_, _, _| false) != cfg.invert);
+                        matched_count == 0
+                    })
+                } else { stdin.append_bytes(&mut bytes) };
+                if failed_batch { had_error = true; break; }
+                if let Err(e) = result {
                     had_error = true;
                     if !cfg.no_messages {
                         let name = match &cfg.files { SearchFiles::Grep(g) => g.name, SearchFiles::Rg(_) => "rg" };
                         err.push_str(&format!("{name}: {e}\n"));
                     }
+                    if presence_only { continue; }
                     // A failed pull does not terminate a partial record.
                     bytes.truncate(bytes.iter().rposition(|&b| b == rec_term as u8).map_or(0, |i| i + 1));
                 }
@@ -4010,7 +4029,6 @@ fn run_grep_engine(
         }).collect();
         let mut match_indices: Vec<(usize, Vec<(usize, usize)>)> = Vec::new();
         let mut multiline_spans: Vec<(usize, usize, usize, usize)> = Vec::new();
-        let mut matched_count = 0usize;
         let mut file_submatch_count = 0usize;
 
         let mut replacements = BTreeMap::new();
@@ -7292,6 +7310,30 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn quiet_and_filename_searches_stop_at_the_decisive_chunk() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for (script, expected, status) in [
+            ("grep -q hit", "", 0), ("grep -l hit", "(standard input)\n", 0),
+            ("grep -L hit", "", 0), ("rg -q hit", "", 0),
+            ("rg -l hit", "<stdin>\n", 0), ("rg --files-without-match hit", "", 1),
+        ] {
+            let chunks = [Ok(b"no\nhi".to_vec()), Ok(b"t\nignored\n".to_vec()), Err("read beyond the match".into())];
+            let result = shell.exec_with_stream(script, chunks.into_iter()).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (status, expected, ""), "{script}");
+        }
+        for (script, first, expected) in [
+            ("rg -q hit; cat", b"hit\0rest".as_slice(), "later"),
+            ("grep -qv other; cat", b"hit\nrest", "later"),
+            ("grep -qI hit; cat", b"bad\0record\n", "later"),
+            ("rg -q --crlf '^hit$'; cat", b"hit\r\n", "later"),
+        ] {
+            let chunks = [Ok(first.to_vec()), Ok(b"later".to_vec())];
+            let result = shell.exec_with_stream(script, chunks.into_iter()).unwrap();
+            assert_eq!((result.stdout.as_str(), result.stderr.as_str()), (expected, ""), "{script}");
+        }
     }
 
     #[test]

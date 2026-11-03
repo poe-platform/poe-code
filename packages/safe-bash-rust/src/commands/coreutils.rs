@@ -380,9 +380,9 @@ fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_fir
     }))
 }
 
-fn visit_complete_records(chunk: &[u8], delimiter: u8, pending: &mut Vec<u8>, mut emit: impl FnMut(&[u8]) -> bool) -> bool {
-    for part in chunk.split_inclusive(|&b| b == delimiter) {
-        if let Some(record) = part.strip_suffix(&[delimiter]) {
+fn visit_complete_records(chunk: &[u8], delimiter: impl Fn(u8) -> bool, pending: &mut Vec<u8>, mut emit: impl FnMut(&[u8]) -> bool) -> bool {
+    for part in chunk.split_inclusive(|&b| delimiter(b)) {
+        if let Some((&last, record)) = part.split_last() && delimiter(last) {
             let more = if pending.is_empty() { emit(record) } else {
                 pending.extend_from_slice(record);
                 let more = emit(pending);
@@ -414,6 +414,17 @@ impl CommandInput<'_> {
         }
     }
 
+    pub(super) fn read_stdin_records(&mut self, delimiter: impl Fn(u8) -> bool, mut emit: impl FnMut(&[u8]) -> bool) -> Result<(), String> {
+        let mut pending = Vec::new();
+        let mut more = true;
+        self.read_stdin(|chunk| {
+            more = visit_complete_records(chunk, &delimiter, &mut pending, &mut emit);
+            more
+        })?;
+        if more && !pending.is_empty() { emit(&pending); }
+        Ok(())
+    }
+
     fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: bool,
         mut consume: impl FnMut(&[u8]) -> bool,
     ) -> Result<(), String> {
@@ -432,7 +443,7 @@ impl CommandInput<'_> {
         let mut pending = Vec::new();
         let mut result = Ok(());
         self.read_operand(name, cwd, fs, stat_first, |chunk| {
-            visit_complete_records(chunk, delimiter, &mut pending, |record| {
+            visit_complete_records(chunk, |b| b == delimiter, &mut pending, |record| {
                 result = emit(record);
                 result.is_ok()
             })
@@ -3722,7 +3733,7 @@ fn cmd_rev(
                 code = 1;
                 break;
             }
-            valid = visit_complete_records(&chunk, b'\n', &mut pending, |record| reverse(record, true));
+            valid = visit_complete_records(&chunk, |b| b == b'\n', &mut pending, |record| reverse(record, true));
             if !valid { break; }
             if chunk.is_empty() || !from_stdin {
                 if !pending.is_empty() { valid = reverse(&pending, false); }
@@ -7622,7 +7633,7 @@ fn cmd_numfmt(args: &[String], mut stdin: CommandInput, env: &BTreeMap<String, S
         let mut pending = Vec::new();
         let mut more = true;
         read_error = stdin.read_stdin(|chunk| {
-            more = visit_complete_records(chunk, sep_char as u8, &mut pending, |record|
+            more = visit_complete_records(chunk, |b| b == sep_char as u8, &mut pending, |record|
                 emit(&crate::vfs::bytes_to_stream_string(record), true));
             more
         }).err();

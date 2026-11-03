@@ -34,6 +34,19 @@ fn factor_parses_gnu_options_before_reading_numbers() {
     }
 }
 
+#[test]
+fn numfmt_quotes_invalid_input_in_the_message_locale() {
+    let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+    for (script, expected) in [
+        ("LC_ALL=C.UTF-8 numfmt bad", "numfmt: invalid number: ‘bad’\n"),
+        ("LC_MESSAGES=C.UTF-8 numfmt 'é’'", "numfmt: invalid number: ‘é\\’’\n"),
+        ("LC_ALL=C LC_MESSAGES=C.UTF-8 numfmt 'é'", "numfmt: invalid number: '\\303\\251'\n"),
+    ] {
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (2, expected), "{script}");
+    }
+}
+
 struct JqStreamFs;
 impl SafeBashFs for JqStreamFs {
     fn access_path(&self, path: &str, _: bool) -> Result<String, String> { Ok(path.into()) }

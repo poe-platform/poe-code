@@ -75,7 +75,7 @@ fn coreutil(
         "pathchk" => cmd_pathchk(args, cwd, fs),
         "expr" => cmd_expr(args, env),
         "bc" => cmd_bc(args, input.buffered()?, cwd, fs),
-        "numfmt" => cmd_numfmt(args, input),
+        "numfmt" => cmd_numfmt(args, input, env),
         "uname" => cmd_uname(args, env, fs),
         "whoami" => cmd_whoami(args, env, fs),
         "hostname" => cmd_hostname(args, cwd, env, fs),
@@ -7085,7 +7085,10 @@ fn rfind_top_level_add_sub(s: &str) -> Option<(usize, char)> {
     None
 }
 
-fn cmd_numfmt(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
+fn cmd_numfmt(args: &[String], mut stdin: CommandInput, env: &BTreeMap<String, String>) -> BuiltinOutcome {
+    let unicode = ["LC_ALL", "LC_MESSAGES", "LANG"].iter()
+        .find_map(|&key| env.get(key).filter(|s| !s.is_empty()))
+        .is_some_and(|s| s.to_ascii_lowercase().contains("utf"));
     let mut to_mode = "none".to_string();
     let mut from_mode = "none".to_string();
     let mut from_unit: f64 = 1.0;
@@ -7495,7 +7498,7 @@ fn cmd_numfmt(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
 
     let units = ['K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q'];
     let convert_field = |raw: &str| -> Result<String, String> {
-        let (mut val, in_prec) = parse_human_num(raw, &from_mode, &suffix, unit_sep.as_deref())?;
+        let (mut val, in_prec) = parse_human_num(raw, &from_mode, &suffix, unit_sep.as_deref(), unicode)?;
         val = val * from_unit / to_unit;
         let (mut num_s, unit_s) = if to_mode == "iec" || to_mode == "iec-i" || to_mode == "si" {
             let base = if to_mode == "si" { 1000.0 } else { 1024.0 };
@@ -7678,16 +7681,15 @@ fn parse_human_num(
     from_mode: &str,
     suffix: &str,
     unit_sep: Option<&str>,
+    unicode: bool,
 ) -> Result<(f64, usize), String> {
     let mut work = s.trim_start_matches([' ', '\t']);
-    if work.is_empty() {
-        return Err(format!("numfmt: invalid number: '{s}'\n"));
-    }
     if !suffix.is_empty()
         && let Some(stripped) = work.strip_suffix(suffix)
     {
         work = stripped;
     }
+    let quoted = || fmt_quote::quote(work, false, unicode);
     let bytes = work.as_bytes();
     let mut idx = 0usize;
     if idx < bytes.len() && (bytes[idx] == b'-' || bytes[idx] == b'+') {
@@ -7698,7 +7700,7 @@ fn parse_human_num(
         idx += 1;
     }
     if idx == int_start {
-        return Err(format!("numfmt: invalid number: '{s}'\n"));
+        return Err(format!("numfmt: invalid number: {}\n", quoted()));
     }
     let mut prec = 0usize;
     if idx < bytes.len() && bytes[idx] == b'.' {
@@ -7708,12 +7710,12 @@ fn parse_human_num(
             idx += 1;
         }
         if idx == frac_start {
-            return Err(format!("numfmt: invalid number: '{s}'\n"));
+            return Err(format!("numfmt: invalid number: {}\n", quoted()));
         }
         prec = idx - frac_start;
     }
     let Ok(base_num) = work[..idx].parse::<f64>() else {
-        return Err(format!("numfmt: invalid number: '{s}'\n"));
+        return Err(format!("numfmt: invalid number: {}\n", quoted()));
     };
     let mut rem = &work[idx..];
     if let Some(sep) = unit_sep
@@ -7726,32 +7728,32 @@ fn parse_human_num(
         return Ok((base_num, prec));
     }
     if from_mode == "none" || from_mode.is_empty() {
-        return Err(format!("numfmt: rejecting suffix in input: '{s}'\n"));
+        return Err(format!("numfmt: rejecting suffix in input: {}\n", quoted()));
     }
     let prefixes = "KMGTPEZYRQ";
     let mut chars = rem.chars();
     let first = chars.next().unwrap();
     let norm_first = if first == 'k' { 'K' } else { first };
     let Some(p_idx) = prefixes.find(norm_first) else {
-        return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+        return Err(format!("numfmt: invalid suffix in input: {}\n", quoted()));
     };
     let after_unit = chars.as_str();
     let step = match from_mode {
         "si" => {
             if !after_unit.is_empty() {
-                return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+                return Err(format!("numfmt: invalid suffix in input: {}\n", quoted()));
             }
             1000.0f64
         }
         "iec" => {
             if !after_unit.is_empty() {
-                return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+                return Err(format!("numfmt: invalid suffix in input: {}\n", quoted()));
             }
             1024.0f64
         }
         "iec-i" => {
             if after_unit != "i" {
-                return Err(format!("numfmt: missing 'i' suffix in input: '{s}'\n"));
+                return Err(format!("numfmt: missing 'i' suffix in input: {}\n", quoted()));
             }
             1024.0f64
         }
@@ -7761,10 +7763,10 @@ fn parse_human_num(
             } else if after_unit == "i" {
                 1024.0f64
             } else {
-                return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+                return Err(format!("numfmt: invalid suffix in input: {}\n", quoted()));
             }
         }
-        _ => return Err(format!("numfmt: invalid suffix in input: '{s}'\n")),
+        _ => return Err(format!("numfmt: invalid suffix in input: {}\n", quoted())),
     };
     Ok((base_num * step.powi((p_idx + 1) as i32), 0))
 }

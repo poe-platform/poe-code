@@ -9415,3 +9415,35 @@ test("xmllint diagnoses malformed end tags and instruction names before their te
     }
   } finally { rs.dispose(); }
 });
+
+test("xq streams XML operands in query order and charges their cumulative input bytes", async () => {
+  const rs = new RustWasmBash({ cwd: "/", files: {
+    "/f": "<r/>", "/broken": "<r/><r/>" + " ".repeat(70000),
+  } });
+  try {
+    const options = { limits: { maxInputBytes: 64 } };
+    for (const [cmd, code, stdout, stderr] of [
+      ["{ xq -c . f; head -c1; } <broken", 0, '{"r":null}\n<', ""],
+      ["{ xq .; head -c2; } <broken", 1, "", "jq: Invalid XML: multiple root elements\nhead: EFBIG: file too large, read '/broken'\n"],
+      ["xq --version <broken", 0, "jq-1.7.1\n", ""],
+    ]) {
+      const r = await rs.exec(cmd, options);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], cmd);
+    }
+    await assert.rejects(rs.exec("xq . f f", { limits: { maxInputBytes: 7 } }), /maxInputBytes/);
+    await assert.rejects(rs.exec("xq . broken", options), /maxInputBytes/);
+  } finally { rs.dispose(); }
+});
+
+test("XML byte streams remove the UTF-8 signature before XML normalization", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const count of [1, 2, 3]) {
+      await rs.fs.writeFile("/f", "\ufeff".repeat(count) + "<r/>");
+      for (const command of ["xq .", "xmllint --noout", "yq -p xml ."]) {
+        const r = await rs.exec(command + " f");
+        assert.equal(r.exitCode, Number(count > (command.startsWith("yq") ? 1 : 2)), command);
+      }
+    }
+  } finally { rs.dispose(); }
+});

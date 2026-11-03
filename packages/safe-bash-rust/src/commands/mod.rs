@@ -816,6 +816,9 @@ where
     if let Some(out) = fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
         return Some(out);
     }
+    if cmd == "xq" {
+        return Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs));
+    }
     if cmd == "xmllint" {
         return Some(structured::cmd_xmllint(args, CommandInput { text: stdin, file }, cwd, fs));
     }

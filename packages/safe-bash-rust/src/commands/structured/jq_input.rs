@@ -49,11 +49,16 @@ impl JqInputs<'_> {
     }
 }
 
+pub(super) enum Source<'a> {
+    Json(Option<&'a str>),
+    Xml(Option<super::super::CommandInput<'a>>),
+}
+
 struct Bytes<'a> {
     files: std::vec::IntoIter<String>,
-    xml: bool,
+    remaining: usize,
     raw: bool,
-    stdin: Option<&'a str>,
+    stdin: Source<'a>,
     cwd: &'a str,
     fs: &'a dyn SafeBashFs,
     chunk: Cow<'a, [u8]>,
@@ -76,7 +81,7 @@ impl Bytes<'_> {
             let Some(path) = self.files.next() else {
                 return Ok(None);
             };
-            if self.xml && self.raw && path == "-" && self.stdin.is_none() {
+            if self.raw && path == "-" && matches!(self.stdin, Source::Xml(None)) {
                 continue;
             }
             self.name = Some(if path == "-" {
@@ -87,30 +92,20 @@ impl Bytes<'_> {
             self.at = 0;
             self.line = 0;
             self.chunk = Cow::Borrowed(&[]);
-            let bytes = if path == "-" {
-                let input = self.stdin.take().unwrap_or_default();
-                if self.xml {
-                    Cow::Owned(crate::vfs::stream_string_to_bytes(input))
-                } else {
-                    Cow::Borrowed(input.as_bytes())
+            self.chunk = match &mut self.stdin {
+                Source::Xml(input) => {
+                    let full = (path != "-").then(|| crate::vfs::path::absolute_operand(self.cwd, &path));
+                    let parser = super::xml::Parser::new(Some("UTF-8"), None, true);
+                    let dom = super::read_xml_operand(self.fs, full.as_deref().map(|p| (p, usize::MAX)), input, &mut self.remaining, parser)?;
+                    let mut json = super::xml::to_json(dom.nodes, false).to_json_string(true, false, 0);
+                    json.push('\n');
+                    Cow::Owned(json.into_bytes())
                 }
-            } else {
-                let full = resolve_posix_path(self.cwd, &path);
-                Cow::Owned(
-                    self.fs
-                        .read_file(&full)
-                        .map_err(|_| (2, read_stream_diag(&full, self.fs)))?,
-                )
-            };
-            self.chunk = if self.xml {
-                let text = std::str::from_utf8(&bytes)
-                    .map_err(|_| (1, "XML input must be UTF-8".to_string()))?;
-                let dom = super::xml::parse(text, Some("UTF-8"), None, true).map_err(|e| (1, e))?;
-                let mut json = super::xml::to_json(dom.nodes, false).to_json_string(true, false, 0);
-                json.push('\n');
-                Cow::Owned(json.into_bytes())
-            } else {
-                bytes
+                Source::Json(input) if path == "-" => Cow::Borrowed(input.take().unwrap_or_default().as_bytes()),
+                Source::Json(_) => {
+                    let full = resolve_posix_path(self.cwd, &path);
+                    Cow::Owned(self.fs.read_file(&full).map_err(|_| (2, read_stream_diag(&full, self.fs)))?)
+                }
             };
             self.more_newlines = None;
         }
@@ -246,7 +241,7 @@ impl Values<'_> {
 
 pub(super) fn files<'a>(
     mut files: Vec<String>,
-    stdin: &'a str,
+    stdin: Source<'a>,
     cwd: &'a str,
     fs: &'a dyn SafeBashFs,
     raw: bool,
@@ -254,7 +249,6 @@ pub(super) fn files<'a>(
     sequence: bool,
     stream: bool,
     stream_errors: bool,
-    xml: bool,
 ) -> JqInputs<'a> {
     if files.is_empty() {
         files.push("-".into());
@@ -262,9 +256,9 @@ pub(super) fn files<'a>(
     let values = Values {
         bytes: Bytes {
             files: files.into_iter(),
-            xml,
+            remaining: fs.max_input_bytes(),
             raw,
-            stdin: Some(stdin),
+            stdin,
             cwd,
             fs,
             chunk: Cow::Borrowed(&[]),

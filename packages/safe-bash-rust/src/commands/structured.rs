@@ -329,7 +329,7 @@ pub fn try_run_structured_command(
     match cmd {
         "jq" => Some(cmd_jq_with_env(args, stdin, cwd, env, fs)),
         "yq" => Some(cmd_yq(args, stdin, cwd, env, fs)),
-        "xq" => Some(utf8_output(cmd_jq_core(args, stdin, cwd, env, fs, true, None))),
+        "xq" => Some(cmd_xq(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)),
         "csvcut" => Some(cmd_csvcut(args, stdin, cwd, fs)),
         "csvgrep" => Some(cmd_csvgrep(args, stdin, cwd, fs)),
         "csvstat" => Some(cmd_csvstat(args, stdin, cwd, fs)),
@@ -644,6 +644,37 @@ fn read_utf8_source(
     Ok(())
 }
 
+fn read_xml_operand(
+    fs: &dyn SafeBashFs, file: Option<(&str, usize)>, stdin: &mut Option<super::CommandInput<'_>>,
+    remaining: &mut usize, mut parser: xml::Parser<'_>,
+) -> Result<xml::Document, (i32, String)> {
+    let mut first = true;
+    let entry = file.map(|(path, _)| fs.access_path(path, true)).transpose();
+    let read = entry.and_then(|entry| read_utf8_source(fs, entry.as_deref().zip(file.map(|(_, size)| size)), remaining, |mut text| {
+        // The byte decoder consumes its UTF-8 signature before XML normalization.
+        if first && !text.is_empty() {
+            first = false;
+            text = text.strip_prefix('\u{feff}').unwrap_or(text);
+        }
+        parser.feed(text)
+    }, |append| {
+        let Some(mut input) = stdin.take() else { return Ok(()); };
+        let mut result = Ok(true);
+        input.read_stdin(|chunk| {
+            result = append(chunk);
+            matches!(result, Ok(true))
+        })?;
+        result.map(|_| ())
+    }));
+    read.and_then(|_| parser.finish()).map_err(|e| {
+        if e.starts_with("Invalid XML:") || e == "XML resource limit exceeded" { (1, e) }
+        else if e == "invalid data" { (1, "XML input must be UTF-8".into()) }
+        else if e.starts_with("Execution aborted:") { (5, e) }
+        else if let Some((path,_)) = file { (2, super::coreutils::stream_file_error(e, "readStream", path)) }
+        else { (2, e) }
+    })
+}
+
 fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {
     if fs.is_dir(full_path) {
         format!("EISDIR: illegal operation on a directory, readStream '{full_path}'")
@@ -737,16 +768,19 @@ pub(crate) fn cmd_jq_with_env(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    cmd_jq_core(args, stdin, cwd, env, fs, false, None)
+    cmd_jq_core(args, jq_input::Source::Json(Some(stdin)), cwd, env, fs, None)
+}
+
+pub(super) fn cmd_xq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    utf8_output(cmd_jq_core(args, jq_input::Source::Xml(Some(stdin)), cwd, env, fs, None))
 }
 
 fn cmd_jq_core(
     args: &[String],
-    stdin: &str,
+    stdin: jq_input::Source,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
-    xml_input: bool,
     yq: Option<&YqDocuments<'_>>,
 ) -> BuiltinOutcome {
     const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
@@ -817,7 +851,7 @@ fn cmd_jq_core(
                 _ => {
                     if vars.contains_key(name) { continue; }
                     let full = resolve_posix_path(cwd, text);
-                    let mut source = jq_input::files(vec![full], "", cwd, fs, a == "--rawfile", true, false, false, false, false);
+                    let mut source = jq_input::files(vec![full], jq_input::Source::Json(None), cwd, fs, a == "--rawfile", true, false, false, false);
                     match source.next() {
                         Ok(Some(value)) => value,
                         Ok(None) => unreachable!("slurp always yields one value"),
@@ -966,7 +1000,8 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    let inputs = Rc::new(RefCell::new(jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors, xml_input)));
+    let xml_input = matches!(stdin, jq_input::Source::Xml(_));
+    let inputs = Rc::new(RefCell::new(jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors)));
     let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
@@ -4823,7 +4858,7 @@ fn cmd_yq(
     }
 
     let yq = YqDocuments { docs: &doc_metas, next: Cell::new(0) };
-    let outcome = cmd_jq_core(&jq_args, &docs.join("\n"), cwd, env, fs, false, (!xq_xml_mode).then_some(&yq));
+    let outcome = cmd_jq_core(&jq_args, jq_input::Source::Json(Some(&docs.join("\n"))), cwd, env, fs, (!xq_xml_mode).then_some(&yq));
 
     if outcome.exit_code != 0 {
         return outcome;
@@ -15016,26 +15051,12 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut warnings = Vec::new();
-        let mut parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some());
-        let entry = path.as_ref().map(|p| fs.access_path(p, true)).transpose();
-        let read = entry.and_then(|entry| read_utf8_source(fs, entry.as_deref().map(|p| (p, remaining.clamp(1, 65536))), &mut remaining, |s| parser.feed(s), |append| {
-            let Some(mut input) = stdin.take() else { return Ok(()); };
-            let mut result = Ok(true);
-            input.read_stdin(|chunk| {
-                result = append(chunk);
-                matches!(result, Ok(true))
-            })?;
-            result.map(|_| ())
-        }));
-        let next = match read.and_then(|_| parser.finish()) {
+        let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some());
+        let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
+        let next = match read_xml_operand(fs, file, &mut stdin, &mut remaining, parser) {
             Ok(doc) => render(doc, warnings),
-            Err(e) if e.starts_with("Invalid XML:") || e == "XML resource limit exceeded" => err_out(&format!("xmllint: {e}\n"), 1),
-            Err(e) if e == "invalid data" => err_out("xmllint: XML input must be UTF-8\n", 1),
-            Err(e) if e.starts_with("Execution aborted:") => err_out(&e, 5),
-            Err(e) => {
-                let message = if let Some(path) = path { super::coreutils::stream_file_error(e, "readStream", &path) } else { e };
-                err_out(&format!("xmllint: {message}\n"), 1)
-            }
+            Err((5, e)) => err_out(&e, 5),
+            Err((_, e)) => err_out(&format!("xmllint: {e}\n"), 1),
         };
         result.stdout.push_str(&next.stdout);
         result.stderr.push_str(&next.stderr);

@@ -291,6 +291,8 @@ pub trait SafeBashFs: Send + Sync {
         crate::ShellLimits::limit_error(name, maximum)
     }
 
+    fn remaining_output_bytes(&self) -> usize { self.shell_limits().max_output_bytes }
+
     fn max_input_bytes(&self) -> usize {
         crate::budget::ShellLimits::default().max_input_bytes
     }

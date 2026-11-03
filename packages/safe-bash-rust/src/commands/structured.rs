@@ -14996,8 +14996,11 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         Ok(query) => query,
         Err(e) => return err_out(&format!("xmllint: {e}\n"), 10),
     };
-    let render = |doc: xml::Document, warnings: Vec<&str>| {
+    let limit = fs.shell_limits().max_output_bytes;
+    let over_limit = || err_out(&fs.limit_error("maxOutputBytes", limit), 5);
+    let render = |doc: xml::Document, warnings: Vec<&str>, available: usize| {
         let stderr: String = warnings.into_iter().map(|msg| format!("xmllint: {msg} (recovered)\n")).collect();
+        let Some(available) = available.checked_sub(stderr.len()) else { return over_limit() };
         if noout && xpath.is_none() {
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }
@@ -15005,7 +15008,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         apply_xml_transforms(&mut dom, noblanks || (format_xml && !c14n && xpath.is_none()), nocdata, false);
 
         let rendered = if let Some(xp) = &xpath {
-            let mut res = eval_xmllint_xpath(&dom, xp, fs);
+            let mut res = eval_xmllint_xpath(&dom, xp, available, fs);
             if res.exit_code != 0 {
                 res.stderr.insert_str(0, &stderr);
                 return res;
@@ -15040,15 +15043,14 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                 decl.push_str(&format!(" standalone=\"{sa}\""));
             }
             decl.push_str("?>\n");
-            let limit = fs.shell_limits().max_output_bytes;
-            let mut out = xml::EncodedOutput { bytes: Vec::new(), encoding: encoding.as_deref(), limit };
+            let mut out = xml::EncodedOutput { bytes: Vec::new(), encoding: encoding.as_deref(), limit: available };
             let escaping = match eff_encoding.map(String::as_str) {
                 None => xml::Escaping::Ascii,
                 Some("UTF-16" | "UTF-16BE" | "UTF-16LE") => xml::Escaping::Utf16,
                 Some("US-ASCII" | "ISO-8859-1") => xml::Escaping::SingleByte,
                 _ => xml::Escaping::Unicode,
             };
-            if out.write_str(&decl).is_err() { return err_out(&fs.limit_error("maxOutputBytes", limit), 5); }
+            if out.write_str(&decl).is_err() { return over_limit(); }
             for n in &dom {
                 let write = match n {
                     XmlNode::Element(el) => serialize_xml_pretty(el, format_xml, escaping, &mut out),
@@ -15056,11 +15058,12 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                     _ => continue,
                 };
                 if write.and_then(|()| out.write_char('\n')).is_err() {
-                    return err_out(&fs.limit_error("maxOutputBytes", limit), 5);
+                    return over_limit();
                 }
             }
             out.bytes
         };
+        if bytes.len() > available { return over_limit(); }
         if let Some((path, entry)) = destination {
             if let Err(e) = xml::write_output(fs, &path, &entry, &bytes) {
                 return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
@@ -15070,6 +15073,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         BuiltinOutcome { stdout: crate::vfs::bytes_to_stream_string(&bytes), stderr, exit_code: 0 }
     };
     let mut result = ok_out("");
+    let mut buffered = 0;
     let mut remaining = fs.max_input_bytes();
     let mut stdin = Some(stdin);
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
@@ -15078,10 +15082,14 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some());
         let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
         let next = match read_xml_operand(fs, file, &mut stdin, &mut remaining, parser) {
-            Ok(doc) => render(doc, warnings),
+            Ok(doc) => render(doc, warnings, fs.remaining_output_bytes().saturating_sub(buffered)),
             Err((5, e)) => err_out(&e, 5),
             Err((_, e)) => err_out(&format!("xmllint: {e}\n"), 1),
         };
+        if next.exit_code != 5 {
+            buffered += crate::vfs::stream_byte_len(&next.stdout) + crate::vfs::stream_byte_len(&next.stderr);
+            if buffered > fs.remaining_output_bytes() { return over_limit(); }
+        }
         result.stdout.push_str(&next.stdout);
         result.stderr.push_str(&next.stderr);
         if next.exit_code != 0 { result.exit_code = next.exit_code; }
@@ -15399,7 +15407,7 @@ impl<'a> XPathItem<'a> {
     }
 }
 
-fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query], fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query], available: usize, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut doc = XPathDocument { program, namespaces: BTreeMap::new(), entries: Vec::new(), requested: Cell::new(None), returned: Cell::new(None) };
     doc.add(0, XPathItem::Document(dom));
     doc.index(dom);
@@ -15436,7 +15444,7 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query], fs: &dyn SafeBa
                     XPathItem::Cdata(t) => format!("<![CDATA[{t}]]>"),
                     XPathItem::Markup(m) => (*m).into(),
                 };
-                if text.len() >= limit - out.len() {
+                if text.len() >= available - out.len() {
                     return err_out(&fs.limit_error("maxOutputBytes", limit), 5);
                 }
                 out.push_str(&text);

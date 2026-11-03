@@ -101,6 +101,8 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.record_exceeded(ShellLimits::limit_error(name, maximum))
     }
 
+    fn remaining_output_bytes(&self) -> usize { self.budget.remaining_output_bytes() }
+
     fn max_input_bytes(&self) -> usize {
         self.budget.limits.max_input_bytes
     }

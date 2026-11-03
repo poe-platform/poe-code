@@ -317,3 +317,23 @@ fn pure_rust_structured_text_search_math_and_graphviz_pipeline() {
     assert!(!res.used_typescript_bridge);
     assert_eq!(res.stdout, "{\"total\":42,\"calc\":100}\nSVG_OK\n");
 }
+
+#[test]
+fn xmllint_checks_cumulative_encoded_output_before_opening_the_next_document() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.write_file("/a", b"<root>123456789012345</root>").unwrap();
+    fs.write_file("/big", format!("<s>{}</s>", "a".repeat(300)).as_bytes()).unwrap();
+    for (flags, bytes) in [("--format", 102), ("--encode UTF-16", 280), ("--c14n", 56), ("--xpath 'string(/root)'", 32)] {
+        let script = format!("printf abc; xmllint {flags} /a /a /big");
+        for (limit, error) in [(bytes + 2, "maxOutputBytes"), (bytes + 3, "maxInputBytes")] {
+            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, max_input_bytes: 65, ..Default::default() });
+            let result = shell.exec(&script).unwrap_err();
+            assert!(result.contains(error), "{script}: {result}");
+        }
+    }
+    fs.write_file("/bad", b"<r>&bad;</r>").unwrap();
+    fs.write_file("/dest", b"old").unwrap();
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 60, ..Default::default() });
+    assert!(shell.exec("xmllint --recover -o /dest /bad").unwrap_err().contains("maxOutputBytes"));
+    assert_eq!(fs.read_file("/dest").unwrap(), b"old");
+}

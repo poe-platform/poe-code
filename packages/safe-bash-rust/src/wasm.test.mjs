@@ -8627,3 +8627,22 @@ test("mdq replacements respect the visible byte ranges of inline code", async ()
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq takes the first regex alternative and expands its actual captures", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, selector] of [
+      ["ab", "P: !s/a|ab/x/"], ["abab", "P: !s/(a)(b)/$2$1/"],
+      ["xyz", "P: !s/(?P<outer>x(?<inner>y))z/${inner}:${outer}/"],
+      ["a", "P: !s/(a)/$1word/"], ["héβ", "P: !s/(é)(β)/$2$1/"],
+      ["a", "P: !s/(a)/${}/"], ["a", "P: !s/(a)/$α/"],
+      ["abc", "P: !s/(a)(b)/${0x2}${ 1 }$𐐀/"], ["aba", "P: !s/a.*?a|a/M/"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq '" + selector + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], selector);
+    }
+  } finally { rs.dispose(); }
+});

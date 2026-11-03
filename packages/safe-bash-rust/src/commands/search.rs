@@ -513,6 +513,13 @@ impl ZeroRegex {
         Self::from_branches(patterns.iter().map(|p| parse_rx_branches(p, fixed_strings, RxDialect::Auto).expect("permissive regex parser")), ignore_case, word_regexp, line_regexp)
     }
 
+    pub(super) fn mdq(pattern: &str) -> Self {
+        let branches = parse_rx_branches(pattern, false, RxDialect::Mdq).expect("permissive mdq regex parser");
+        let mut rx = Self::from_branches([branches], false, false, false);
+        rx.search = RxSearch::First;
+        rx
+    }
+
     pub(super) fn awk(pattern: &str) -> Self {
         let branches = parse_rx_branches(pattern, false, RxDialect::Awk).expect("permissive awk regex parser");
         Self::from_branches([branches], false, false, false)
@@ -946,7 +953,7 @@ struct RxFlags {
     dotall: bool,
 }
 
-enum RxDialect<'a> { Auto, Awk, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
+enum RxDialect<'a> { Auto, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
 
 fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, String> {
     let jq = matches!(dialect, RxDialect::Jq(_));

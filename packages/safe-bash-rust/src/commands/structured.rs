@@ -26,9 +26,7 @@ mod json_format;
 use json_format::{JsonFormat, JsonStrings, escape_json_str};
 #[path = "mermaid.rs"]
 mod mermaid;
-use crate::commands::search::{
-    ZeroRegex, regex_capture_spans_in_hay,
-};
+use crate::commands::search::ZeroRegex;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
@@ -3447,67 +3445,6 @@ fn parse_jq_regex_args(
         return Ok((pat, flags));
     }
     Ok((val.to_raw_string(true, false), String::new()))
-}
-
-fn parse_jq_regex_groups(pat: &str) -> (String, Vec<Option<String>>) {
-    let chars: Vec<char> = pat.chars().collect();
-    let mut cleaned = String::new();
-    let mut groups = Vec::new();
-    let mut i = 0usize;
-    let mut in_bracket = false;
-    while i < chars.len() {
-        if chars[i] == '\\' && i + 1 < chars.len() {
-            cleaned.push(chars[i]);
-            cleaned.push(chars[i + 1]);
-            i += 2;
-            continue;
-        }
-        if chars[i] == '[' && !in_bracket {
-            in_bracket = true;
-            cleaned.push(chars[i]);
-            i += 1;
-            continue;
-        }
-        if chars[i] == ']' && in_bracket {
-            in_bracket = false;
-            cleaned.push(chars[i]);
-            i += 1;
-            continue;
-        }
-        if !in_bracket && chars[i] == '(' {
-            if i + 3 < chars.len() && chars[i + 1] == '?' && chars[i + 2] == 'P' && chars[i + 3] == '<' {
-                if let Some(rel_gt) = chars[i + 4..].iter().position(|&c| c == '>') {
-                    let name: String = chars[i + 4..i + 4 + rel_gt].iter().collect();
-                    groups.push(Some(name));
-                    cleaned.push('(');
-                    i += 4 + rel_gt + 1;
-                    continue;
-                }
-            } else if i + 2 < chars.len() && chars[i + 1] == '?' && chars[i + 2] == '<' {
-                if chars.get(i + 3) != Some(&'=') && chars.get(i + 3) != Some(&'!') {
-                    if let Some(rel_gt) = chars[i + 3..].iter().position(|&c| c == '>') {
-                        let name: String = chars[i + 3..i + 3 + rel_gt].iter().collect();
-                        groups.push(Some(name));
-                        cleaned.push('(');
-                        i += 3 + rel_gt + 1;
-                        continue;
-                    }
-                }
-            } else if i + 1 < chars.len() && chars[i + 1] == '?' {
-                cleaned.push('(');
-                i += 1;
-                continue;
-            } else {
-                groups.push(None);
-                cleaned.push('(');
-                i += 1;
-                continue;
-            }
-        }
-        cleaned.push(chars[i]);
-        i += 1;
-    }
-    (cleaned, groups)
 }
 
 fn eval_jq_splits_regex(
@@ -28392,7 +28329,7 @@ fn mdq_interrupts_paragraph(line: &str) -> bool {
 
 enum MdqMatcher {
     Literal { text: String, exact: bool, start: bool, end: bool },
-    Regex(String, Option<String>),
+    Regex(ZeroRegex, Option<String>),
 }
 
 fn mdq_match_literal(needle: &str, exact_case: bool, start_anchor: bool, end_anchor: bool, target: &str) -> bool {
@@ -28433,9 +28370,10 @@ fn mdq_match_literal(needle: &str, exact_case: bool, start_anchor: bool, end_anc
 
 fn expand_mdq_replacement(
     template: &str,
-    full_match: &str,
-    indexed_caps: &[Option<String>],
-    group_names: &[Option<String>],
+    target: &str,
+    matched: std::ops::Range<usize>,
+    caps: &[Option<(usize, usize)>],
+    names: &[(String, usize)],
 ) -> String {
     let chars: Vec<char> = template.chars().collect();
     let mut out = String::new();
@@ -28462,33 +28400,23 @@ fn expand_mdq_replacement(
                 i += 1;
                 continue;
             }
-        } else if end < chars.len() && chars[end].is_ascii_digit() {
-            while end < chars.len() && chars[end].is_ascii_digit() {
-                end += 1;
-            }
-            chars[i + 1..end].iter().collect()
         } else {
-            while end < chars.len() && (chars[end].is_ascii_alphanumeric() || chars[end] == '_') {
+            while end < chars.len() && (chars[end].is_ascii_digit() || chars[end] == '_'
+                || chars[end].len_utf16() == 1 && chars[end].to_lowercase().ne(chars[end].to_uppercase())) {
                 end += 1;
             }
             chars[i + 1..end].iter().collect()
         };
-        if !name.is_empty() {
-            if let Ok(idx) = name.parse::<usize>() {
-                if idx == 0 {
-                    out.push_str(full_match);
-                } else if let Some(Some(val)) = indexed_caps.get(idx - 1) {
-                    out.push_str(val);
-                }
-            } else if let Some(g_idx) = group_names
-                .iter()
-                .position(|gn| gn.as_deref() == Some(name.as_str()))
-                && let Some(Some(val)) = indexed_caps.get(g_idx)
-            {
-                out.push_str(val);
-            }
-        } else {
+        if name.is_empty() {
             out.push('$');
+            i += 1;
+            continue;
+        }
+        let index = names.iter().find_map(|(key, slot)| (key == &name).then_some((slot + 1) as f64))
+            .unwrap_or_else(|| super::js_number(&name, 0.0));
+        if index == 0.0 { out.push_str(&target[matched.clone()]); }
+        else if index >= 1.0 && index.fract() == 0.0 && let Some(Some((a, b))) = caps.get(index as usize - 1) {
+            out.push_str(&target[*a..*b]);
         }
         i = end;
     }
@@ -28496,44 +28424,26 @@ fn expand_mdq_replacement(
 }
 
 fn mdq_match_and_replace(defs: &MdqDefinitions, matcher: &MdqMatcher, target: &str, strip_inline_for_match: bool) -> Result<Option<String>, String> {
-    if let MdqMatcher::Regex(rx_str, Some(repl_template)) = matcher {
-        let (clean_pat, group_names) = parse_jq_regex_groups(rx_str);
-        let rx = ZeroRegex::new(vec![clean_pat.clone()], false, false, false, false);
+    if let MdqMatcher::Regex(rx, Some(repl_template)) = matcher {
         let formatted = if strip_inline_for_match && mdq_inline_atoms(defs, target, false).is_empty() {
             Some(mdq_emphasis::projection(target))
         } else { None };
         let target = formatted.as_ref().map_or(target, |(text,_)|text.as_str());
-        let byte_matches = rx.find_all(target);
-        if byte_matches.is_empty() {
-            return Ok(None);
-        }
-        let hay: Vec<(usize, char)> = target.char_indices().collect();
         let mut replaced = String::new();
         let mut last_byte = 0usize;
         let mut ranges = Vec::new();
-        for (mb_start, mb_end) in byte_matches {
+        let matched = rx.scan(target.as_bytes(), repl_template.contains('$'), |mb_start, mb_end, caps| {
             if mb_start < last_byte || mb_start == mb_end && ranges.last().is_some_and(|&(_,end,_)|end==mb_start) {
-                continue;
+                return true;
             }
             replaced.push_str(&target[last_byte..mb_start]);
-            let start_char = target[..mb_start].chars().count();
-            let end_char = start_char + target[mb_start..mb_end].chars().count();
-            let spans = regex_capture_spans_in_hay(&clean_pat, &hay, start_char, end_char, false);
-            let indexed_caps: Vec<Option<String>> = spans
-                .into_iter()
-                .map(|sp| sp.map(|(cs, ce)| hay[cs..ce].iter().map(|&(_, c)| c).collect()))
-                .collect();
-            let full_m = &target[mb_start..mb_end];
-            let replacement = expand_mdq_replacement(
-                repl_template,
-                full_m,
-                &indexed_caps,
-                &group_names,
-            );
+            let replacement = expand_mdq_replacement(repl_template, target, mb_start..mb_end, caps, &rx.capture_names);
             ranges.push((mb_start, mb_end, replacement.len()));
             replaced.push_str(&replacement);
             last_byte = mb_end;
-        }
+            true
+        });
+        if !matched { return Ok(None); }
         replaced.push_str(&target[last_byte..]);
         if let Some((_, events))=formatted {
             replaced = mdq_emphasis::reconstruct(&replaced,events,&ranges)?;
@@ -28547,10 +28457,7 @@ fn mdq_match_and_replace(defs: &MdqDefinitions, matcher: &MdqMatcher, target: &s
     };
     let matched = match matcher {
         MdqMatcher::Literal { text, exact, start, end } => mdq_match_literal(text, *exact, *start, *end, &check_target),
-        MdqMatcher::Regex(source, _) => {
-            let (clean, _) = parse_jq_regex_groups(source);
-            ZeroRegex::new(vec![clean], false, false, false, false).is_match(&check_target)
-        }
+        MdqMatcher::Regex(rx, _) => rx.is_match(&check_target),
     };
     if matched {
         Ok(Some(target.to_string()))
@@ -29293,7 +29200,7 @@ fn parse_mdq_query(query: &str) -> Result<Vec<MdqSelector>, BuiltinOutcome> {
                 ));
             }
             let template = if replacement { Some(segment(at)?) } else { None };
-            return Ok((false, MdqMatcher::Regex(source, template)));
+            return Ok((false, MdqMatcher::Regex(ZeroRegex::mdq(&source), template)));
         }
         if chars.get(*at) == Some(&'^') {
             start_anchor = true;

@@ -341,7 +341,15 @@ pub fn try_run_structured_command(
         "csvclean" => Some(cmd_csvclean(args, stdin, cwd, fs)),
         "csvpy" => Some(cmd_csvpy(args, stdin, cwd, fs)),
         "htmlq" => Some(cmd_htmlq(args, stdin, cwd, fs)),
-        "mdq" => Some(cmd_mdq(args, stdin, cwd, fs)),
+        "mdq" => {
+            let mut out = cmd_mdq(args, stdin, cwd, fs);
+            for channel in [&mut out.stdout, &mut out.stderr] {
+                if channel.as_bytes().contains(&0xee) {
+                    *channel = crate::vfs::bytes_to_stream_string(channel.as_bytes());
+                }
+            }
+            Some(out)
+        }
         "unrtf" => Some(cmd_unrtf(args, stdin, cwd, fs)),
         "pandoc" => Some(cmd_pandoc(args, stdin, cwd, fs)),
         "ast-grep" | "sg" => Some(cmd_ast_grep(cmd, args, stdin, cwd, fs)),
@@ -29783,37 +29791,37 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return mdq_argument_error("invalid argument '--[no]-br'; use '--br' or '--no-br'.", 1, None);
     }
     let mut md_input = String::new();
-    if files.is_empty() {
-        md_input.push_str(stdin);
-    } else {
-        let mut used_stdin = false;
-        for f in &files {
-            if f == "-" {
-                if !used_stdin {
-                    used_stdin = true;
-                    md_input.push_str(stdin);
-                }
-                md_input.push('\n');
+    let mut used_stdin = false;
+    let sources = files.iter().map(String::as_str).chain(files.is_empty().then_some("-"));
+    for f in sources {
+        let stdin_source = f == "-";
+        let failure = |kind: &str| {
+            let source = if stdin_source { "stdin".into() } else {
+                format!("file {}", JVal::Str(f.into()).to_json_string(true, false, 0))
+            };
+            err_out(&format!("{kind} while reading {source}\n"), 1)
+        };
+        if !stdin_source || !used_stdin {
+            let bytes = if stdin_source {
+                used_stdin = true;
+                crate::vfs::stream_string_to_bytes(stdin)
             } else {
                 let full = resolve_posix_path(cwd, f);
-                if let Ok(st) = fs.stat(&full)
-                    && st.kind == crate::vfs::VfsEntryKind::Directory
-                {
-                    let qf = JVal::Str(f.clone()).to_json_string(true, false, 0);
-                    return err_out(&format!("is a directory while reading file {qf}\n"), 1);
-                }
+                if fs.is_dir(&full) { return failure("is a directory"); }
                 match fs.read_file(&full) {
-                    Ok(b) => {
-                        md_input.push_str(&String::from_utf8_lossy(&b));
-                        md_input.push('\n');
-                    }
-                    Err(_) => {
-                        let qf = JVal::Str(f.clone()).to_json_string(true, false, 0);
-                        return err_out(&format!("entity not found while reading file {qf}\n"), 1);
-                    }
+                    Ok(bytes) => bytes,
+                    Err(e) => return failure(match e.split(':').next() {
+                        Some("ENOENT") => "entity not found",
+                        Some("EACCES") => "permission denied",
+                        Some("EISDIR") => "is a directory",
+                        _ => "other error",
+                    }),
                 }
-            }
+            };
+            let Ok(text) = std::str::from_utf8(&bytes) else { return failure("invalid data"); };
+            md_input.push_str(text);
         }
+        if !files.is_empty() { md_input.push('\n'); }
     }
     let stages = match parse_mdq_query(&selector_str) {
         Ok(stages) => stages,

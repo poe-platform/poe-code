@@ -8885,3 +8885,24 @@ test("mdq preserves inline objects across replacements and chained selectors", a
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq rejects invalid UTF-8 at the input being read and preserves valid Unicode bytes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const vfs of [rs.fs, fs]) {
+      await vfs.writeFile("/bad", Uint8Array.of(0xff));
+      await vfs.writeFile("/short", Uint8Array.of(0xe2, 0x82));
+      await vfs.writeFile("/ok", Buffer.from("é\uE080😀\n"));
+    }
+    for (const cmd of [
+      "mdq </bad", "mdq '??' </bad", "mdq --help </bad", "mdq '' /ok /short",
+      "mdq '' /ok </bad", "mdq '' - /ok </short", "mdq '' /bad /missing",
+      "mdq </ok", "mdq '' /ok", "mdq 'P: !s/é/Z/' </ok",
+    ]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, [...b.stdoutBytes], b.stderr], [a.exitCode, [...a.stdoutBytes], a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

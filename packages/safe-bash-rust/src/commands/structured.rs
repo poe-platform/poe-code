@@ -14,6 +14,8 @@ mod jq_input;
 mod jq_json;
 mod jq_number;
 mod jq_parser;
+mod mdq_links;
+use mdq_links::Target as MdqTarget;
 mod mdq_writer;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
@@ -28096,7 +28098,7 @@ struct MdqBlock {
     metadata: String,
     index: Option<usize>,
     checked: Option<bool>,
-    url: String,
+    target: MdqTarget,
     children: Vec<MdqBlock>,
     table_aligns: Vec<String>,
     table_rows: Vec<Vec<String>>,
@@ -28227,7 +28229,7 @@ fn mdq_decode_syntax(src: &str) -> String {
     out
 }
 
-fn mdq_inline_text(s: &str, plain: bool) -> String {
+fn mdq_text_span(s: &str, plain: bool) -> String {
     if !plain && !s.contains(['\\', '`', '&']) { return s.to_string(); }
     let mut out = String::with_capacity(s.len());
     let bytes = s.as_bytes();
@@ -28264,14 +28266,6 @@ fn mdq_inline_text(s: &str, plain: bool) -> String {
         if bytes[i] == b'<' && let Some(n) = mdq_inline_html_len(&s[i..]) {
             out.push_str(&s[i..i + n]);
             i += n;
-            continue;
-        }
-        if plain && bytes[i] == b'['
-            && let Some(close) = s[i + 1..].find(']').map(|n| i + 1 + n)
-            && s[close..].starts_with("](")
-            && let Some(end) = s[close + 2..].find(')') {
-            out.push_str(&mdq_inline_text(&s[i + 1..close], true));
-            i = close + 2 + end + 1;
             continue;
         }
         let ch = s[i..].chars().next().unwrap();
@@ -28821,7 +28815,7 @@ fn mdq_select_blocks(mut pending: Vec<MdqBlock>, mut select: impl FnMut(&mut Mdq
 
 enum MdqInlineAtom<'a> {
     Html(&'a str),
-    Link { image: bool, display: &'a str, url: &'a str },
+    Link { image: bool, display: &'a str, target: MdqTarget },
 }
 
 fn mdq_visit_inline_atoms<'a>(src: &'a str, mut visit: impl FnMut(std::ops::Range<usize>, MdqInlineAtom<'a>)) {
@@ -28848,15 +28842,41 @@ fn mdq_visit_inline_atoms<'a>(src: &'a str, mut visit: impl FnMut(std::ops::Rang
             let begin = k + if image { 2 } else { 1 };
             if let Some(close) = src[begin..].find(']').map(|n| begin + n)
                 && bytes.get(close + 1) == Some(&b'(')
-                && let Some(end) = src[close + 2..].find(')').map(|n| close + 2 + n) {
-                let url = src[close + 2..end].trim().trim_start_matches('<').trim_end_matches('>');
-                visit(k..end + 1, MdqInlineAtom::Link { image, display: &src[begin..close], url });
-                k = end + 1;
+                && let Some((target, used)) = MdqTarget::inline(&src[close + 2..]) {
+                let end = close + 2 + used;
+                visit(k..end, MdqInlineAtom::Link { image, display: &src[begin..close], target });
+                k = end;
                 continue;
             }
         }
         k += 1;
     }
+}
+
+fn mdq_inline_parts(src: &str, plain: bool, mut emit: impl FnMut(&str, bool)) {
+    let mut at = 0;
+    mdq_visit_inline_atoms(src, |range, atom| {
+        if at < range.start { emit(&mdq_text_span(&src[at..range.start], plain), true); }
+        match atom {
+            MdqInlineAtom::Html(text) => emit(text, true),
+            MdqInlineAtom::Link { image, display, target } => {
+                let label = mdq_text_span(display, plain || image);
+                if plain { emit(&label, true); } else {
+                    let prefix = if image { "!" } else { "" };
+                    emit(&format!("{prefix}[{label}]({target})"), false);
+                }
+            }
+        }
+        at = range.end;
+    });
+    if at < src.len() { emit(&mdq_text_span(&src[at..], plain), true); }
+}
+
+fn mdq_inline_text(src: &str, plain: bool) -> String {
+    if !src.contains('[') { return mdq_text_span(src, plain); }
+    let mut out = String::new();
+    mdq_inline_parts(src, plain, |part, _| out.push_str(part));
+    out
 }
 
 fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
@@ -28971,25 +28991,25 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
     };
     if let Some((kind, matcher, url_m)) = inline {
         let mut selected = Vec::new();
-        let mut emit = |found: &str, text: &str, url: &str| {
+        let mut emit = |found: &str, text: &str, target: Option<&MdqTarget>| {
             if found != kind { return; }
             if found == "html" {
                 if let Some(text) = mdq_match_and_replace(matcher, text, false) {
                     selected.push(MdqBlock { kind: found.into(), text, ..MdqBlock::default() });
                 }
-            } else if let (Some(title), Some(url)) = (
+            } else if let Some(target) = target && let (Some(title), Some(url)) = (
                 mdq_match_and_replace(matcher, text, true),
-                mdq_match_and_replace(url_m, url, false),
+                mdq_match_and_replace(url_m, &target.url, false),
             ) {
-                selected.push(MdqBlock { kind: found.into(), title, url, ..MdqBlock::default() });
+                selected.push(MdqBlock { kind: found.into(), title, target: MdqTarget { url, title: target.title.clone() }, ..MdqBlock::default() });
             }
         };
         let mut pending = nodes;
         pending.reverse();
         while let Some(b) = pending.pop() {
             pending.extend(b.children.into_iter().rev());
-            if b.kind == "html" { emit("html", &b.text, ""); continue; }
-            if b.kind == kind && kind != "html" { emit(kind, &b.title, &b.url); continue; }
+            if b.kind == "html" { emit("html", &b.text, None); continue; }
+            if b.kind == kind && kind != "html" { emit(kind, &b.title, Some(&b.target)); continue; }
             let paragraph = match b.kind.as_str() {
                 "paragraph" => Some(&b.text),
                 "link" if kind == "html" => Some(&b.title),
@@ -28997,12 +29017,12 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
             };
             for src in paragraph.into_iter().chain(b.table_rows.iter().flatten()) {
                 mdq_visit_inline_atoms(src, |_, atom| match atom {
-                    MdqInlineAtom::Html(text) => emit("html", text, ""),
-                    MdqInlineAtom::Link { image, display, url } => {
-                        emit(if image { "image" } else { "link" }, display, url);
+                    MdqInlineAtom::Html(text) => emit("html", text, None),
+                    MdqInlineAtom::Link { image, display, target } => {
+                        emit(if image { "image" } else { "link" }, display, Some(&target));
                         if kind == "html" && !image {
                             mdq_visit_inline_atoms(display, |_, inner| {
-                                if let MdqInlineAtom::Html(text) = inner { emit("html", text, ""); }
+                                if let MdqInlineAtom::Html(text) = inner { emit("html", text, None); }
                             });
                         }
                     }
@@ -29080,15 +29100,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             }
             for child in &b.children { mdq_render_block_md(child, link_format, previous_break, w); }
         }
-        "paragraph" => w.block(MdqLayout::Plain, |w| {
-            let mut at = 0;
-            mdq_visit_inline_atoms(&b.text, |range, atom| {
-                w.write(&mdq_inline_text(&b.text[at..range.start], false), true);
-                at = range.end;
-                w.write(&b.text[range], matches!(atom, MdqInlineAtom::Html(_)));
-            });
-            w.write(&mdq_inline_text(&b.text[at..], false), true);
-        }),
+        "paragraph" => w.block(MdqLayout::Plain, |w| mdq_inline_parts(&b.text, false, |part, wrap| w.write(part, wrap))),
         "code" => {
             let ticks = b.text.lines().map(|s| s.bytes().take_while(|&c| c == b'`').count()).max().unwrap_or(0);
             let fence = "`".repeat((ticks + 1).max(3));
@@ -29112,10 +29124,10 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
         "link" | "image" => {
             let prefix = if b.kind == "image" { "!" } else { "" };
             if matches!(link_format, "inline" | "keep") {
-                w.write(&format!("{prefix}[{}]({})", b.title, b.url), false);
+                w.write(&format!("{prefix}[{}]({})", mdq_inline_text(&b.title, false), b.target), false);
             } else {
                 w.write(&format!("{prefix}[{}][1]", b.title), false);
-                w.block(MdqLayout::Plain, |w| w.write(&format!("[1]: {}", b.url), false));
+                w.block(MdqLayout::Plain, |w| w.write(&format!("[1]: {}", b.target), false));
             }
         }
         "frontmatter" => {
@@ -29216,20 +29228,12 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             let body: Vec<JVal> = b.children.iter().map(mdq_block_to_jval).collect();
             JVal::Object(vec![("block_quote".to_string(), JVal::Array(body))])
         }
-        "link" => JVal::Object(vec![(
-            "link".to_string(),
-            JVal::Object(vec![
-                ("display".to_string(), JVal::Str(mdq_inline_text(&b.title, false))),
-                ("url".to_string(), JVal::Str(b.url.clone())),
-            ]),
-        )]),
-        "image" => JVal::Object(vec![(
-            "image".to_string(),
-            JVal::Object(vec![
-                ("alt".to_string(), JVal::Str(mdq_inline_text(&b.title, false))),
-                ("url".to_string(), JVal::Str(b.url.clone())),
-            ]),
-        )]),
+        "link" | "image" => {
+            let label = if b.kind == "link" { "display" } else { "alt" };
+            let mut fields = vec![(label.into(), JVal::Str(mdq_inline_text(&b.title, false))), ("url".into(), JVal::Str(b.target.url.clone()))];
+            if !b.target.title.is_empty() { fields.push(("title".into(), JVal::Str(b.target.title.clone()))); }
+            JVal::Object(vec![(b.kind.clone(), JVal::Object(fields))])
+        }
         "frontmatter" => JVal::Object(vec![(
             "front_matter".to_string(),
             JVal::Object(vec![

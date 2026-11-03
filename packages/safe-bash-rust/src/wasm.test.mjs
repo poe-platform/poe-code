@@ -8352,3 +8352,21 @@ test("mdq serializes controls with JavaScript JSON string escaping", async () =>
     assert.equal(result.exitCode, 0, result.stderr);
   } finally { rs.dispose(); }
 });
+
+test("mdq parses link destinations and titles before matching or rendering them", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = ["[a](<café path> 'a &amp; b')", "![b](part(one)two \"title\")",
+      "[c](a\\)b)", "[d](<x%20y>)", "[e](  \"two words\" )", "[bad](a b)",
+      "[f](x (note))", "[empty]()"].join("\n\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["-o json '[]()'", "-o json '![]()'", "-l keep '[a]()'", "-l inline '![]()'",
+      "-l inline '[c]()'", "-o json '[a]() | [](/caf%C3%A9/)'", "'[bad]()'",
+      "-l keep -o json", "-l inline", "-o plain"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

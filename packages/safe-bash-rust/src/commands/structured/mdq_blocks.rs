@@ -61,6 +61,7 @@ fn spaces(s: &str) -> usize {
 enum Container {
     Root,
     Quote,
+    Footnote,
     List(u8),
     Item {
         indent: usize,
@@ -105,7 +106,7 @@ fn sections(nodes: Vec<MdqBlock>) -> Vec<MdqBlock> {
     root
 }
 
-fn close(stack: &mut Vec<Frame>, keep: usize) {
+fn close(stack: &mut Vec<Frame>, keep: usize, defs: &mut MdqDefinitions) {
     while stack.len() > keep {
         let Frame { kind, mut node } = stack.pop().unwrap();
         if matches!(kind, Container::Item { .. })
@@ -120,7 +121,11 @@ fn close(stack: &mut Vec<Frame>, keep: usize) {
         if !matches!(kind, Container::List(_)) {
             node.children = sections(node.children);
         }
-        stack.last_mut().unwrap().node.children.push(node);
+        if matches!(kind, Container::Footnote) {
+            defs.notes.insert(node.title, node.children);
+        } else {
+            stack.last_mut().unwrap().node.children.push(node);
+        }
     }
 }
 
@@ -233,10 +238,10 @@ fn table(head: &str, line: &str) -> Option<MdqBlock> {
     })
 }
 
-pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
+pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Result<Vec<MdqBlock>, String> {
     let mut lines = input.lines().skip_while(|s| s.trim().is_empty()).peekable();
     let Some(first) = lines.next() else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
     let first = first.strip_prefix('\u{feff}').unwrap_or(first);
     let mut stack = vec![Frame {
@@ -273,6 +278,9 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
                     offset += indent + 1;
                     offset += usize::from(line.text[offset..].starts_with(' '));
                 }
+                Container::Footnote if indent >= 4 || indent == tail.len() => {
+                    offset += indent.min(4);
+                }
                 Container::Item {
                     indent: needed,
                     empty,
@@ -302,6 +310,9 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
             if let Some(Leaf::Paragraph(s)) = &mut leaf
                 && !blank
                 && !sibling
+                && !(matches!(stack[matched].kind, Container::Footnote)
+                    && tail[indent..].starts_with("[^")
+                    && tail[indent..].contains("]:"))
                 && !mdq_interrupts_paragraph(tail)
             {
                 s.push('\n');
@@ -309,7 +320,7 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
                 continue;
             }
             finish(&mut leaf, stack.last_mut().unwrap(), defs, None);
-            close(&mut stack, matched);
+            close(&mut stack, matched, defs);
         }
         match &mut leaf {
             Some(Leaf::Fence {
@@ -380,6 +391,28 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
             let tail = &line.text[offset..];
             let indent = spaces(tail);
             let at = offset + indent;
+            if indent <= 3
+                && let Some(rest) = line.text[at..].strip_prefix("[^")
+                && let Some((label, after)) = rest.split_once("]:")
+                && !label.is_empty()
+                && !label.contains(' ')
+            {
+                if defs.notes.insert(label.to_owned(), Vec::new()).is_some() {
+                    return Err(format!(
+                        "Markdown parse error:\nfound multiple definitions for link/image/footnote: {label}\n\n"
+                    ));
+                }
+                defs.note_keys.insert(mdq_links::normalized(label));
+                stack.push(Frame {
+                    kind: Container::Footnote,
+                    node: MdqBlock {
+                        title: label.into(),
+                        ..Default::default()
+                    },
+                });
+                offset = line.text.len() - after.len() + spaces(after);
+                continue;
+            }
             let item = if !mdq_thematic_break(tail) {
                 mdq_list_marker(tail)
             } else {
@@ -389,7 +422,7 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
                 && item.is_none_or(|(m, _, _)| m != previous)
             {
                 let len = stack.len();
-                close(&mut stack, len - 1);
+                close(&mut stack, len - 1, defs);
             }
             if indent <= 3 && line.text[at..].starts_with('>') {
                 stack.push(Frame {
@@ -492,6 +525,6 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
         }
     }
     finish(&mut leaf, stack.last_mut().unwrap(), defs, None);
-    close(&mut stack, 1);
-    sections(stack.pop().unwrap().node.children)
+    close(&mut stack, 1, defs);
+    Ok(sections(stack.pop().unwrap().node.children))
 }

@@ -1,5 +1,5 @@
 use super::mdq_decode_syntax;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Write};
 
 #[derive(Clone, Debug, Default)]
@@ -290,9 +290,14 @@ pub(super) enum Style {
     Shortcut,
 }
 
-pub(super) type Definitions = HashMap<String, Target>;
+#[derive(Default)]
+pub(super) struct Definitions {
+    links: HashMap<String, Target>,
+    pub notes: HashMap<String, Vec<super::MdqBlock>>,
+    pub note_keys: HashSet<String>,
+}
 
-fn normalized(label: &str) -> String {
+pub(super) fn normalized(label: &str) -> String {
     let mut folded = String::new();
     let mut gap = false;
     for c in label.chars() {
@@ -385,14 +390,14 @@ fn definition(raw: &str) -> Option<(String, Target, usize)> {
 
 pub(super) fn extract<'a>(mut paragraph: &'a str, defs: &mut Definitions) -> &'a str {
     while let Some((key, target, used)) = definition(paragraph) {
-        defs.entry(key).or_insert(target);
+        defs.links.entry(key).or_insert(target);
         paragraph = &paragraph[used..];
     }
     paragraph
 }
 
 pub(super) fn reference(raw: &str, display: &str, defs: &Definitions) -> Option<(Target, usize)> {
-    if defs.is_empty() {
+    if defs.links.is_empty() {
         return None;
     }
     let explicit = label(raw);
@@ -414,7 +419,7 @@ pub(super) fn reference(raw: &str, display: &str, defs: &Definitions) -> Option<
             )
         }
     };
-    let mut target = defs.get(&normalized(key))?.clone();
+    let mut target = defs.links.get(&normalized(key))?.clone();
     target.reference = Some((key.to_string(), style));
     Some((target, size))
 }
@@ -422,7 +427,12 @@ pub(super) fn reference(raw: &str, display: &str, defs: &Definitions) -> Option<
 #[derive(Default)]
 pub(super) struct References<'a> {
     pub format: &'a str,
-    pub per_section: bool,
+    per_section: bool,
+    section_notes: bool,
+    renumber_notes: bool,
+    pub notes: Vec<String>,
+    note_ids: HashMap<String, usize>,
+    emitted_notes: HashSet<usize>,
     pub targets: Vec<(String, Target)>,
     pub emitted: usize,
     indices: HashMap<String, usize>,
@@ -431,10 +441,17 @@ pub(super) struct References<'a> {
 }
 
 impl<'a> References<'a> {
-    pub fn new(format: &'a str, per_section: bool) -> Self {
+    pub fn new(
+        format: &'a str,
+        per_section: bool,
+        section_notes: bool,
+        renumber_notes: bool,
+    ) -> Self {
         Self {
             format,
             per_section,
+            section_notes,
+            renumber_notes,
             next: 1,
             ..Self::default()
         }
@@ -479,37 +496,137 @@ impl<'a> References<'a> {
             return super::mdq_text_span(src, false);
         }
         let mut text = String::new();
-        super::mdq_inline_parts(
-            defs,
-            src,
-            false,
-            |t| self.suffix(t),
-            |part, _| text.push_str(part),
-        );
+        super::mdq_inline_parts(defs, src, Some(self), |part, _| text.push_str(part));
         text
     }
 
-    pub fn write_pending(&mut self, w: &mut super::MdqWriter) {
-        if self.emitted == self.targets.len() {
+    pub fn note_name(&self, i: usize) -> String {
+        if self.renumber_notes {
+            (i + 1).to_string()
+        } else {
+            self.notes[i].clone()
+        }
+    }
+
+    pub fn note_id(&mut self, label: &str, defs: &Definitions) -> String {
+        if let Some(&i) = self.note_ids.get(label) {
+            return self.note_name(i);
+        }
+        enum Visit<'a> {
+            Note(&'a str),
+            Block(&'a super::MdqBlock),
+            Atom(super::MdqInlineAtom<'a>),
+        }
+        let id = self.notes.len();
+        let mut pending = vec![Visit::Note(label)];
+        while let Some(item) = pending.pop() {
+            match item {
+                Visit::Note(s) | Visit::Atom(super::MdqInlineAtom::Footnote(s)) => {
+                    if self.note_ids.contains_key(s) {
+                        continue;
+                    }
+                    self.note_ids.insert(s.into(), self.notes.len());
+                    self.notes.push(s.into());
+                    if let Some(body) = defs.notes.get(s) {
+                        pending.extend(body.iter().rev().map(Visit::Block));
+                    }
+                }
+                Visit::Atom(super::MdqInlineAtom::Link {
+                    image: false,
+                    target,
+                    ..
+                }) if target.reference.is_some() => {
+                    self.suffix(&target);
+                }
+                Visit::Atom(_) => {}
+                Visit::Block(b) => {
+                    pending.extend(b.children.iter().rev().map(Visit::Block));
+                    let src = match b.kind.as_str() {
+                        "section" => Some(&b.title),
+                        "paragraph" => Some(&b.text),
+                        _ => None,
+                    };
+                    for s in src.into_iter().chain(b.table_rows.iter().flatten()) {
+                        pending.extend(
+                            super::mdq_inline_atoms(defs, s, false)
+                                .into_iter()
+                                .rev()
+                                .map(|(_, a)| Visit::Atom(a)),
+                        );
+                    }
+                }
+            }
+        }
+        self.note_name(id)
+    }
+
+    pub fn has_pending(&self, end: bool) -> bool {
+        (end || self.per_section) && self.emitted < self.targets.len()
+            || (end || self.section_notes) && self.emitted_notes.len() < self.notes.len()
+    }
+
+    pub fn write_pending(
+        &mut self,
+        w: &mut super::MdqWriter,
+        defs: &Definitions,
+        previous_break: &mut bool,
+        end: bool,
+    ) {
+        if !self.has_pending(end) {
             return;
         }
+        fn less(a: &str, b: &str) -> bool {
+            if [a, b]
+                .iter()
+                .all(|k| !k.is_empty() && k.bytes().all(|c| c.is_ascii_digit()))
+            {
+                a.parse::<f64>().unwrap() < b.parse::<f64>().unwrap()
+            } else {
+                a.encode_utf16().lt(b.encode_utf16())
+            }
+        }
         w.block(super::MdqLayout::Plain, |w| {
-            let mut pending: Vec<_> = self.targets[self.emitted..].iter().collect();
-            super::mdq_order::sort(&mut pending, |(a, _), (b, _)| {
-                if [a, b].iter().all(|k| k.bytes().all(|c| c.is_ascii_digit())) {
-                    a.parse::<f64>().unwrap() < b.parse::<f64>().unwrap()
-                } else {
-                    a.encode_utf16().lt(b.encode_utf16())
+            let notes = end || self.section_notes;
+            if end || self.per_section {
+                let mut pending: Vec<_> = self.targets[self.emitted..].iter().collect();
+                super::mdq_order::sort(&mut pending, |(a, _), (b, _)| less(a, b));
+                let mut count = pending.len()
+                    + if notes {
+                        self.notes.len() - self.emitted_notes.len()
+                    } else {
+                        0
+                    };
+                for (id, target) in pending {
+                    w.write(&format!("[{id}"), true);
+                    w.write(&format!("]: {target}"), false);
+                    count -= 1;
+                    if count != 0 {
+                        w.write("\n", true);
+                    }
                 }
-            });
-            for (i, (id, target)) in pending.into_iter().enumerate() {
-                if i != 0 {
-                    w.write("\n", true);
+                self.emitted = self.targets.len();
+            }
+            if notes {
+                let mut indices: Vec<_> = (0..self.notes.len()).collect();
+                if !self.renumber_notes {
+                    super::mdq_order::sort(&mut indices, |a, b| {
+                        less(&self.notes[a], &self.notes[b])
+                    });
                 }
-                w.write(&format!("[{id}"), true);
-                w.write(&format!("]: {target}"), false);
+                for i in indices {
+                    if !self.emitted_notes.insert(i) {
+                        continue;
+                    }
+                    w.write(&format!("[^{}]: ", self.note_name(i)), true);
+                    w.block(super::MdqLayout::Indent(2), |w| {
+                        if let Some(body) = defs.notes.get(&self.notes[i]) {
+                            for b in body {
+                                super::mdq_render_block_md(defs, b, self, previous_break, w);
+                            }
+                        }
+                    });
+                }
             }
         });
-        self.emitted = self.targets.len();
     }
 }

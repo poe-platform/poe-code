@@ -8533,3 +8533,22 @@ test("mdq treats caret labels with spaces as ordinary reference links", async ()
     assert.equal((await rs.exec("mdq -o plain </input")).stdout, "A^x y.\n");
   } finally { rs.dispose(); }
 });
+
+test("mdq follows reachable footnotes once, resolves their bodies and places definitions", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "# First\n\nA[^UP] then [^a].\n\n# Next\n\nB[^up] and [^a].\n\n" +
+      "[^up]: lower note\n\n[^a]: one[^b] [ref][id]\n\n    second paragraph\n\n" +
+      "[^b]: > two[^a]\n\n[^unused]: hidden\n\n[id]: /found";
+    const duplicate = "test\n\n> [^a]: first\n\n[^a]: second";
+    for (const vfs of [rs.fs, fs]) { await vfs.writeFile("/in", Buffer.from(text)); await vfs.writeFile("/dup", Buffer.from(duplicate)); }
+    for (const cmd of ["mdq </in", "mdq -o json </in", "mdq -o plain </in", "mdq --footnote-pos doc --link-pos doc </in",
+      "mdq --renumber-footnotes false </in", "mdq -o json 'P: second' </in", "mdq -o json '[]()' </in",
+      "mdq -o json 'P: hidden' </in", "mdq --quiet </dup", "mdq -o json </dup"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -4852,8 +4852,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         let end=to_opt.or_else(||t_opt.map(|t|start+t));
         let limit=fs.max_input_bytes();
         let mut remaining=limit;
-        let retain=(frame_output || !vf_flags.is_empty() || size_opt.is_some() || output_fps.is_some() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some(),muxer==Some("wav"));
-        let mut decoded=mp4::mux::DecodedConcat::new(retain.0,retain.1);
+        let retain=(composition.is_some() || frame_output || !vf_flags.is_empty() || size_opt.is_some() || output_fps.is_some() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some(),muxer==Some("wav"));
         for (i,path) in inputs.iter().enumerate(){
             let (input,cut) = match input_reader.load(path, input_formats[i], image_options[i], remaining, retain, 0) {
                 Ok(input) => input, Err(e) => return err_out(&format!("ffmpeg: {e}\n"), 1),
@@ -4902,6 +4901,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
             if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
         }
+        let mut decoded=mp4::mux::DecodedConcat::new(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some()),!strip_audio && muxer==Some("wav"));
         let output_container=if muxer==Some("mkv") && matches!(format,Some("mkv"|"webm")) && mp4::mkv_input::webm_header(bytes) {"webm"}else{muxer.unwrap_or("")};
         let out_dir = crate::vfs::dirname_posix_path(&out_full);
         let hls = (muxer == Some("hls")).then_some(Hls { fs, cwd, dir: &out_dir, time: hls_time, pattern: hls_pattern, fmp4: hls_fmp4 });
@@ -14973,6 +14973,20 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_composes_raw_frames_from_a_concat_input() {
+        let fs = MemoryVfs::new();
+        for args in [
+            media_args(&["-f","lavfi","-i","testsrc=s=6x4:r=3:d=1","a.y4m"]),
+            media_args(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]),
+            media_args(&["-i","concat:a.y4m|b.y4m","-i","a.y4m","-filter_complex","hstack","stack.y4m"]),
+        ] {
+            let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+        }
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/stack.y4m").unwrap())), "91bba8d100eb6b4a8e723239d37869430473c2b76b062ca08d68f84bd5895765");
+    }
+
+    #[test]
     fn image2_preserves_empty_geometry_in_a_readable_tiff_directory() {
         let fs=MemoryVfs::new();
         fs.write_file("/b.tif",b"II*\0\x08\0\0\0\0\0").unwrap();
@@ -15068,6 +15082,10 @@ mod media_unit_tests {
         run(&["-i","s2.wav","-ac","2","s3.wav"]);
         run(&["-i","s.wav","-i","s3.wav","-filter_complex","concat=n=2","o.wav"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.wav").unwrap())), "3e3ef2ca4ef15ad24420095c5aaa6b749aec883f3cd6f6b08f9b64d2d4e386f8");
+        run(&["-i","concat:s.wav|s2.wav","-i","s.wav","-filter_complex","concat=n=2","nested.wav"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/nested.wav").unwrap())), "17915442de8ca11f1b21604bae40ebf82e869f4ff88f51e69020dd616e0325a5");
+        run(&["-i","concat:s.wav|s2.wav","-i","s.wav","-filter_complex","concat=n=2","-c","copy","nested.mp4"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/nested.mp4").unwrap())), "0718799c4ab81da09a80c0b80bdea426dfe40deee8b6ec04e0c3c7928f602bc3");
         run(&["-stream_loop","1","-f","lavfi","-i","sine=r=11025:d=0.17","-i","s.wav","-filter_complex","concat=n=2","loop.wav"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/loop.wav").unwrap())), "50458d1380abdffc8d6be359177bb38f6348e4bb23d83567b0fdd5540b5b56c1");
     }

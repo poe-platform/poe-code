@@ -11,8 +11,17 @@ pub(in super::super::super) struct DecodedConcat {
 }
 impl DecodedConcat {
     pub(in super::super::super) fn byte_size(&self) -> usize {
-        self.audio.values().map(|pcm|pcm.bytes.len()).sum::<usize>() +
-            self.video.iter().flat_map(|slots|slots.values()).flat_map(|seq| &seq.images).map(|im|im.pixels.len()*4).sum::<usize>()
+        self.audio
+            .values()
+            .map(|pcm| pcm.bytes.len())
+            .sum::<usize>()
+            + self
+                .video
+                .iter()
+                .flat_map(|slots| slots.values())
+                .flat_map(|seq| &seq.images)
+                .map(|im| im.pixels.len() * 4)
+                .sum::<usize>()
     }
     pub(in super::super::super) fn new(video: bool, export_pcm: bool) -> Self {
         Self {
@@ -231,7 +240,7 @@ pub(super) fn join<'a>(
     let mut decoded = BTreeMap::new();
     for (j, (_, _, source)) in sources.iter().enumerate() {
         let mut ordinals = BTreeMap::new();
-        for _ in 0..source.len() {
+        for i in 0..source.len() {
             let mut clip = tracks.next().ok_or("missing concat track")?;
             let ordinal = ordinals.entry(clip.kind).or_insert(0);
             let slot = slots
@@ -265,8 +274,11 @@ pub(super) fn join<'a>(
                 }
             };
             let t = &mut slots[slot];
+            let inner = inputs[j].decoded();
+            let inner_pcm = inner.and_then(|c| c.audio.get(&i));
             if t.kind == "audio" {
-                let pcm = matches!(source, Streams::Wave(_) | Streams::GeneratedAudio(_));
+                let pcm = matches!(source, Streams::Wave(_) | Streams::GeneratedAudio(_))
+                    || inner_pcm.is_some();
                 if (pcm || !samples.is_empty())
                     && decoded.insert(slot, pcm).is_some_and(|v| v != pcm)
                 {
@@ -277,6 +289,24 @@ pub(super) fn join<'a>(
                 }
             }
             let offset = f64::from(t.media_ticks) / f64::from(t.scale);
+            if let Some(src) = inner_pcm {
+                let pcm = retained.audio.entry(slot).or_insert_with(|| Pcm {
+                    rate: src.rate,
+                    channels: src.channels,
+                    bytes: Vec::new(),
+                });
+                if retained.export_pcm {
+                    let wave = src.wave();
+                    pcm.append(
+                        offset,
+                        (wave.rate, wave.channels),
+                        wave.data.len() / wave.stride(),
+                        &mut remaining,
+                        &mut audio_work,
+                        |f, c| wave.sample(f, c),
+                    )?;
+                }
+            }
             match source {
                 Streams::Wave(w) => {
                     let pcm = retained.audio.entry(slot).or_insert_with(|| Pcm {
@@ -331,8 +361,26 @@ pub(super) fn join<'a>(
                 && t.kind == "video"
                 && !samples.is_empty()
             {
-                match (source, &inputs[j]) {
-                    (Streams::Y4m(clip), _) => {
+                let inner_frames = inner.and_then(|c| c.video.as_ref()?.get(&i));
+                match (source, &inputs[j], inner_frames) {
+                    (Streams::Mp4(_), _, Some(seq)) => {
+                        let frames = frames.entry(slot).or_default();
+                        let base = frames.images.len();
+                        let bytes = seq
+                            .images
+                            .iter()
+                            .map(|im| im.pixels.len() * 4 + size_of::<Raster>())
+                            .sum::<usize>()
+                            + seq.times.len() * size_of::<(f64, f64, usize)>();
+                        remaining = remaining
+                            .checked_sub(bytes)
+                            .ok_or("video frames exceed memory budget")?;
+                        frames.images.extend_from_slice(&seq.images);
+                        frames
+                            .times
+                            .extend(seq.times.iter().map(|&(t, d, k)| (offset + t, d, base + k)));
+                    }
+                    (Streams::Y4m(clip), _, _) => {
                         frames.entry(slot).or_default().append(
                             offset,
                             clip.times(),
@@ -341,8 +389,8 @@ pub(super) fn join<'a>(
                             &mut remaining,
                         )?;
                     }
-                    (Streams::Still(_), MediaInput::Bytes(_, bytes))
-                    | (Streams::Mp4(_), MediaInput::Bytes("image2", bytes))
+                    (Streams::Still(_), MediaInput::Bytes(_, bytes), _)
+                    | (Streams::Mp4(_), MediaInput::Bytes("image2", bytes), _)
                         if !matches!(source, Streams::Mp4(v) if v[0].0.tag == b"avc1") =>
                     {
                         let times = (0..samples.len()).map(|i| (i as f64 / 25., 0.04));
@@ -361,7 +409,7 @@ pub(super) fn join<'a>(
             let mut map = Vec::new();
             let container = matches!(source, Streams::Mp4(_));
             for (tag, data) in atoms(entries.get(8..).unwrap_or_default()) {
-                let key = Description::read(tag, data, container, t.kind);
+                let key = Description::read(tag, data, container && inner_pcm.is_none(), t.kind);
                 let dict = &mut descriptions[slot];
                 let index = if let Some(&index) = dict.get(&key) {
                     index

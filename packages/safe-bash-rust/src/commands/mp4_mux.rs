@@ -2191,7 +2191,42 @@ pub(in super::super) fn render_mapped(
         filters: opts.video_filters,
         limit: opts.limit,
     };
-    if let Some(seq) = inputs[j].decoded().or(opts.concat.as_deref())
+    if let Some(sequence) = composed {
+        let (w, h) = sequence.geometry;
+        y4m::render_frames(
+            w,
+            h,
+            sequence.times(),
+            options,
+            |i| Ok(sequence.frames[i].0.clone()),
+            emit,
+        )?;
+        return Ok((w, h, 30));
+    }
+    let duration = if cut && options.filters.is_empty() && matches!(streams, Streams::Mp4(_)) {
+        presentation_duration(sources, &selected, movie_scale(sources), Some((options.start, Some(opts.end.unwrap_or(duration).min(duration)))))
+    } else { duration };
+    render_source(
+        &sources[j],
+        i,
+        (&inputs[j], opts.input_times[j], inputs[j].decoded().or(opts.concat.as_deref())),
+        Some(duration),
+        options,
+        full_size,
+        emit,
+    )
+}
+
+fn render_source(
+    (input, _, streams): &Source<'_>,
+    i: usize,
+    (source, seek, decoded): (&MediaInput, InputTime, Option<&DecodedConcat>),
+    duration: Option<f64>,
+    options: y4m::Options<'_>,
+    full_size: bool,
+    emit: impl FnMut(Raster, y4m::TimedFrame) -> Result<(), &'static str>,
+) -> Result<(usize, usize, u32), String> {
+    if let Some(seq) = decoded
         .and_then(|c| c.video.as_ref()?.get(&i))
         && let Streams::Mp4(tracks) = streams
         && !seq.visible(options.start, options.end).is_empty()
@@ -2221,41 +2256,6 @@ pub(in super::super) fn render_mapped(
         )?;
         return Ok((w, h, 30));
     }
-    if let Some(sequence) = composed {
-        let (w, h) = sequence.geometry;
-        y4m::render_frames(
-            w,
-            h,
-            sequence.times(),
-            options,
-            |i| Ok(sequence.frames[i].0.clone()),
-            emit,
-        )?;
-        return Ok((w, h, 30));
-    }
-    let duration = if cut && options.filters.is_empty() && matches!(streams, Streams::Mp4(_)) {
-        presentation_duration(sources, &selected, movie_scale(sources), Some((options.start, Some(opts.end.unwrap_or(duration).min(duration)))))
-    } else { duration };
-    render_source(
-        &sources[j],
-        i,
-        (&inputs[j], opts.input_times[j]),
-        Some(duration),
-        options,
-        full_size,
-        emit,
-    )
-}
-
-fn render_source(
-    (input, _, streams): &Source<'_>,
-    i: usize,
-    (source, seek): (&MediaInput, InputTime),
-    duration: Option<f64>,
-    options: y4m::Options<'_>,
-    full_size: bool,
-    emit: impl FnMut(Raster, y4m::TimedFrame) -> Result<(), &'static str>,
-) -> Result<(usize, usize, u32), String> {
     let cut = options.start != 0. || options.end.is_some();
     match streams {
         Streams::Y4m(v) => v.render(options, emit),
@@ -2418,7 +2418,7 @@ fn compose_frames(
         let (w, h, _) = render_source(
             source,
             i,
-            (&inputs[j], opts.input_times[j]),
+            (&inputs[j], opts.input_times[j], inputs[j].decoded()),
             None,
             options,
             true,
@@ -3095,7 +3095,7 @@ pub(in super::super) fn remux(
                         || !opts.video_filters.is_empty()
                         || opts.frames.is_some_and(|n| v.len() > n as usize))
             });
-        if let Some((seq, show)) = joined {
+        if let Some((seq, show)) = joined.filter(|_| composed_video.is_none()) {
             let mut consumed = vec![false; seq.images.len()];
             let limit = opts.limit.saturating_sub(index_bytes);
             encode_video(

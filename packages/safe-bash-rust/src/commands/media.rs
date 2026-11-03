@@ -4549,369 +4549,454 @@ fn cmd_media_doc(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     match cmd {
-        "ffmpeg" => {
-            if args.is_empty() {
-                return err_out(&format_ffmpeg_introspection("-h", "ffmpeg").unwrap_or_default(), 1);
+        "ffmpeg" => cmd_ffmpeg(args, stdin, cwd, fs),
+        "ffprobe" => cmd_ffprobe(args, stdin, cwd, fs),
+        "soffice" | "libreoffice" => cmd_soffice(args, cwd, fs),
+        "wkhtmltopdf" => wkhtmltopdf::wkhtmltopdf(args, stdin, cwd, fs, false),
+        "pdfunite" => cmd_pdfunite(args, cwd, fs),
+        "pdfseparate" => cmd_pdfseparate(args, cwd, fs),
+        "qpdf" => cmd_qpdf(args, stdin, cwd, fs),
+        "pdftk" => cmd_pdftk(args, stdin, cwd, fs),
+        "pdfdetach" => cmd_pdfdetach(args, stdin, cwd, fs),
+        "pdfinfo" => cmd_pdfinfo(args, stdin, cwd, fs),
+        "pdffonts" => cmd_pdffonts(args, stdin, cwd, fs),
+        "pdftotext" => cmd_pdftotext(args, stdin, cwd, fs),
+        "pdftohtml" => cmd_pdftohtml(args, stdin, cwd, fs),
+        "pdftoppm" | "pdftocairo" => cmd_pdftoppm(cmd, args, stdin, cwd, fs),
+        "pdfimages" => cmd_pdfimages(args, stdin, cwd, fs),
+        "magick" | "convert" | "mogrify" => cmd_magick(cmd, args, stdin, cwd, fs),
+        "composite" => cmd_composite(cmd, args, cwd, fs),
+        "montage" => cmd_montage(args, cwd, fs),
+        "compare" => cmd_compare(args, cwd, fs),
+        "identify" => cmd_identify(args, stdin, cwd, fs),
+        "sips" => cmd_sips(args, cwd, fs),
+        "exiftool" => cmd_exiftool(args, stdin, cwd, fs),
+        "diffpdf" | "pdfdiff" => cmd_diffpdf(cmd, args, cwd, fs),
+        "svgo" => cmd_svgo(args, stdin, cwd, fs),
+        "rsvg-convert" => cmd_rsvg_convert(args, stdin, cwd, fs),
+        "soxi" => cmd_soxi(args, stdin, cwd, fs),
+        "sox" => cmd_sox(args, stdin, cwd, fs),
+        "qrencode" => cmd_qrencode(args, stdin, cwd, fs),
+        _ => ok_out(""),
+    }
+}
+
+fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.is_empty() {
+        return err_out(&format_ffmpeg_introspection("-h", "ffmpeg").unwrap_or_default(), 1);
+    }
+    for arg in args {
+        if let Some(intro) = format_ffmpeg_introspection(arg, "ffmpeg") {
+            return ok_out(&intro);
+        }
+    }
+    let mut inputs: Vec<String> = Vec::new();
+    let (mut pending_format,mut output_format) = (None,None);
+    let mut input_formats=Vec::new();
+    let mut input_times=Vec::new();
+    let mut pending_time=InputTime::default();
+    let (mut audio_copy,mut video_copy)=(false,false);
+    let mut audio_filters=Vec::new();let mut fragmented=false;let mut maps=Vec::new();let mut strip_subtitles=false;let mut rotation=None;let mut shortest=false;
+    let mut fmt_flag = String::new();
+    let mut vf_flags: Vec<String> = Vec::new();
+    let mut fc_flag = String::new();
+    let mut ar_opt: Option<u32> = None;
+    let mut ac_opt: Option<u32> = None;
+    let (mut input_fps,mut output_fps)=(None,None);
+    let mut ss_opt: Option<f64> = None;
+    let mut to_opt: Option<f64> = None;
+    let mut t_opt: Option<f64> = None;
+    let mut vframes_opt: Option<u32> = None;
+    let mut size_opt: Option<(u32, u32)> = None;
+    let mut strip_audio = false;
+    let mut strip_video = false;
+    let mut overwrite = false;
+    let mut output_start=1u64;
+    let mut input_start=None;
+    let mut image_options=Vec::new();
+    let mut meta_title: Option<String> = None;
+    let mut meta_tags: BTreeMap<String, String> = BTreeMap::new();
+    let mut out_arg: Option<String> = None;
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-y" => {
+                overwrite = true;
+                i += 1;
             }
-            for arg in args {
-                if let Some(intro) = format_ffmpeg_introspection(arg, "ffmpeg") {
-                    return ok_out(&intro);
+            "-n" => {
+                overwrite = false;
+                i += 1;
+            }
+            "-an" => {
+                strip_audio = true;
+                i += 1;
+            }
+            "-vn" => {
+                strip_video = true;
+                i += 1;
+            }
+            "-i" if i + 1 < args.len() => {
+                inputs.push(args[i + 1].clone());
+                input_formats.push(pending_format.take());
+                image_options.push((input_start.take(),input_fps.take()));
+                input_times.push(std::mem::take(&mut pending_time));
+                i += 2;
+            }
+            "-f" if i + 1 < args.len() => {
+                fmt_flag = args[i + 1].clone();
+                if args[i+2..].iter().any(|arg| arg == "-i") { pending_format = Some(args[i+1].as_str()); }
+                else { output_format = Some(args[i+1].as_str()); }
+                i += 2;
+            }
+            "-vf" | "-filter:v" if i + 1 < args.len() => {
+                vf_flags.push(args[i + 1].clone());
+                i += 2;
+            }
+            "-filter_complex" if i + 1 < args.len() => {
+                fc_flag = args[i + 1].clone();
+                i += 2;
+            }
+            "-ar" if i + 1 < args.len() => {
+                ar_opt = args[i + 1].parse().ok().filter(|v| *v != 0);
+                i += 2;
+            }
+            "-ac" if i + 1 < args.len() => {
+                ac_opt = args[i + 1].parse().ok().filter(|v| *v != 0);
+                i += 2;
+            }
+            "-framerate" | "-r" if i + 1 < args.len() => {
+                let fps=args[i+1].parse::<f64>().ok().filter(|v|v.is_finite() && *v!=0.).unwrap_or(25.);
+                if args[i+2..].iter().any(|a|a=="-i"){input_fps=Some(fps);}else{output_fps=Some(fps);}
+                i += 2;
+            }
+            "-ss" if i + 1 < args.len() => {
+                let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.start}else{&mut ss_opt};
+                *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
+                i += 2;
+            }
+            "-to" if i + 1 < args.len() => {
+                let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.to}else{&mut to_opt};
+                *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
+                i += 2;
+            }
+            "-t" if i + 1 < args.len() => {
+                let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.duration}else{&mut t_opt};
+                *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
+                i += 2;
+            }
+            "-frames:v" | "-vframes" if i + 1 < args.len() => {
+                vframes_opt = args[i + 1].parse().ok();
+                i += 2;
+            }
+            "-s" if i + 1 < args.len() => {
+                if let Some((ws, hs)) = args[i + 1].split_once('x')
+                    && let (Ok(w), Ok(h)) = (ws.parse::<u32>(), hs.parse::<u32>())
+                {
+                    size_opt = Some((w, h));
                 }
+                i += 2;
             }
-            let mut inputs: Vec<String> = Vec::new();
-            let (mut pending_format,mut output_format) = (None,None);
-            let mut input_formats=Vec::new();
-            let mut input_times=Vec::new();
-            let mut pending_time=InputTime::default();
-            let (mut audio_copy,mut video_copy)=(false,false);
-            let mut audio_filters=Vec::new();let mut fragmented=false;let mut maps=Vec::new();let mut strip_subtitles=false;let mut rotation=None;let mut shortest=false;
-            let mut fmt_flag = String::new();
-            let mut vf_flags: Vec<String> = Vec::new();
-            let mut fc_flag = String::new();
-            let mut ar_opt: Option<u32> = None;
-            let mut ac_opt: Option<u32> = None;
-            let (mut input_fps,mut output_fps)=(None,None);
-            let mut ss_opt: Option<f64> = None;
-            let mut to_opt: Option<f64> = None;
-            let mut t_opt: Option<f64> = None;
-            let mut vframes_opt: Option<u32> = None;
-            let mut size_opt: Option<(u32, u32)> = None;
-            let mut strip_audio = false;
-            let mut strip_video = false;
-            let mut overwrite = false;
-            let mut output_start=1u64;
-            let mut input_start=None;
-            let mut image_options=Vec::new();
-            let mut meta_title: Option<String> = None;
-            let mut meta_tags: BTreeMap<String, String> = BTreeMap::new();
-            let mut out_arg: Option<String> = None;
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-y" => {
-                        overwrite = true;
-                        i += 1;
+            a if (a=="-metadata" || a.starts_with("-metadata:")) && i + 1 < args.len() => {
+                if let Some((k, v)) = args[i + 1].split_once('=') {
+                    if k=="rotate"{rotation=Some(v.parse::<i32>().unwrap_or(0));}
+                    if k == "title" {
+                        meta_title = Some(v.to_string());
                     }
-                    "-n" => {
-                        overwrite = false;
-                        i += 1;
-                    }
-                    "-an" => {
-                        strip_audio = true;
-                        i += 1;
-                    }
-                    "-vn" => {
-                        strip_video = true;
-                        i += 1;
-                    }
-                    "-i" if i + 1 < args.len() => {
-                        inputs.push(args[i + 1].clone());
-                        input_formats.push(pending_format.take());
-                        image_options.push((input_start.take(),input_fps.take()));
-                        input_times.push(std::mem::take(&mut pending_time));
-                        i += 2;
-                    }
-                    "-f" if i + 1 < args.len() => {
-                        fmt_flag = args[i + 1].clone();
-                        if args[i+2..].iter().any(|arg| arg == "-i") { pending_format = Some(args[i+1].as_str()); }
-                        else { output_format = Some(args[i+1].as_str()); }
-                        i += 2;
-                    }
-                    "-vf" | "-filter:v" if i + 1 < args.len() => {
-                        vf_flags.push(args[i + 1].clone());
-                        i += 2;
-                    }
-                    "-filter_complex" if i + 1 < args.len() => {
-                        fc_flag = args[i + 1].clone();
-                        i += 2;
-                    }
-                    "-ar" if i + 1 < args.len() => {
-                        ar_opt = args[i + 1].parse().ok().filter(|v| *v != 0);
-                        i += 2;
-                    }
-                    "-ac" if i + 1 < args.len() => {
-                        ac_opt = args[i + 1].parse().ok().filter(|v| *v != 0);
-                        i += 2;
-                    }
-                    "-framerate" | "-r" if i + 1 < args.len() => {
-                        let fps=args[i+1].parse::<f64>().ok().filter(|v|v.is_finite() && *v!=0.).unwrap_or(25.);
-                        if args[i+2..].iter().any(|a|a=="-i"){input_fps=Some(fps);}else{output_fps=Some(fps);}
-                        i += 2;
-                    }
-                    "-ss" if i + 1 < args.len() => {
-                        let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.start}else{&mut ss_opt};
-                        *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
-                        i += 2;
-                    }
-                    "-to" if i + 1 < args.len() => {
-                        let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.to}else{&mut to_opt};
-                        *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
-                        i += 2;
-                    }
-                    "-t" if i + 1 < args.len() => {
-                        let target=if args[i+2..].iter().any(|arg|arg=="-i"){&mut pending_time.duration}else{&mut t_opt};
-                        *target = Some(parse_ffmpeg_timestamp(&args[i + 1]));
-                        i += 2;
-                    }
-                    "-frames:v" | "-vframes" if i + 1 < args.len() => {
-                        vframes_opt = args[i + 1].parse().ok();
-                        i += 2;
-                    }
-                    "-s" if i + 1 < args.len() => {
-                        if let Some((ws, hs)) = args[i + 1].split_once('x')
-                            && let (Ok(w), Ok(h)) = (ws.parse::<u32>(), hs.parse::<u32>())
-                        {
-                            size_opt = Some((w, h));
-                        }
-                        i += 2;
-                    }
-                    a if (a=="-metadata" || a.starts_with("-metadata:")) && i + 1 < args.len() => {
-                        if let Some((k, v)) = args[i + 1].split_once('=') {
-                            if k=="rotate"{rotation=Some(v.parse::<i32>().unwrap_or(0));}
-                            if k == "title" {
-                                meta_title = Some(v.to_string());
-                            }
-                            meta_tags.insert(k.to_string(), v.to_string());
-                        }
-                        i += 2;
-                    }
-                    "-af" | "-filter:a" if i + 1 < args.len() => { audio_filters.push(args[i+1].as_str()); i += 2; }
-                    "-c" | "-codec" | "-c:a" | "-acodec" | "-codec:a" if i + 1 < args.len() => { audio_copy = args[i+1] == "copy"; if matches!(args[i].as_str(),"-c"|"-codec") {video_copy=audio_copy;} i += 2; }
-                    "-c:v" | "-vcodec" | "-codec:v" if i + 1 < args.len() => { video_copy = args[i+1] == "copy"; i += 2; }
-                    "-map" if i+1<args.len()=>{maps.push(args[i+1].as_str());i+=2;}
-                    "-shortest"=>{shortest=true;i+=1;}
-                    "-sn"=>{strip_subtitles=true;i+=1;}
-                    "-display_rotation" if i+1<args.len()=>{rotation=Some(args[i+1].parse::<i32>().unwrap_or(0).saturating_abs());i+=2;}
-                    "-movflags" if i+1<args.len()=>{let flags=&args[i+1];fragmented|=flags.contains("frag_keyframe")||flags.contains("empty_moov");i+=2;}
-                    "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
-                    | "-pix_fmt" | "-v" | "-loglevel" | "-preset"
-                    | "-crf" | "-threads"
-                        if i + 1 < args.len() =>
-                    {
-                        i += 2;
-                    }
-                    "-stream_loop" if i+1<args.len()=>{
-                        let n=args[i+1].trim_start().trim_start_matches('+');
-                        let digits=n.bytes().take_while(u8::is_ascii_digit).count();
-                        pending_time.loops=n[..digits].parse().unwrap_or(if digits>0{usize::MAX}else{0});
-                        i+=2;
-                    }
-                    "-start_number" => {
-                        let Some(n)=args.get(i+1).and_then(|s|s.parse::<u64>().ok()).filter(|&n|n<=9007199254740991) else {
-                            return err_out("ffmpeg: invalid start_number\n",1);
-                        };
-                        if !args[i+2..].iter().any(|a|a=="-i") {output_start=n;}else{input_start=Some(n);}
-                        i += 2;
-                    }
-                    a if a == "-" || !a.starts_with('-') => {
-                        out_arg = Some(a.to_string());
-                        i += 1;
-                    }
-                    _ => {
-                        i += 1;
-                    }
+                    meta_tags.insert(k.to_string(), v.to_string());
                 }
+                i += 2;
             }
-            if inputs.is_empty() {
-                return err_out("ffmpeg: must specify at least one input (-i)\n", 1);
+            "-af" | "-filter:a" if i + 1 < args.len() => { audio_filters.push(args[i+1].as_str()); i += 2; }
+            "-c" | "-codec" | "-c:a" | "-acodec" | "-codec:a" if i + 1 < args.len() => { audio_copy = args[i+1] == "copy"; if matches!(args[i].as_str(),"-c"|"-codec") {video_copy=audio_copy;} i += 2; }
+            "-c:v" | "-vcodec" | "-codec:v" if i + 1 < args.len() => { video_copy = args[i+1] == "copy"; i += 2; }
+            "-map" if i+1<args.len()=>{maps.push(args[i+1].as_str());i+=2;}
+            "-shortest"=>{shortest=true;i+=1;}
+            "-sn"=>{strip_subtitles=true;i+=1;}
+            "-display_rotation" if i+1<args.len()=>{rotation=Some(args[i+1].parse::<i32>().unwrap_or(0).saturating_abs());i+=2;}
+            "-movflags" if i+1<args.len()=>{let flags=&args[i+1];fragmented|=flags.contains("frag_keyframe")||flags.contains("empty_moov");i+=2;}
+            "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
+            | "-pix_fmt" | "-v" | "-loglevel" | "-preset"
+            | "-crf" | "-threads"
+                if i + 1 < args.len() =>
+            {
+                i += 2;
             }
-            let out_rel = match out_arg {
-                Some(o) => o,
-                None => return err_out("ffmpeg: must specify an output file\n", 1),
+            "-stream_loop" if i+1<args.len()=>{
+                let n=args[i+1].trim_start().trim_start_matches('+');
+                let digits=n.bytes().take_while(u8::is_ascii_digit).count();
+                pending_time.loops=n[..digits].parse().unwrap_or(if digits>0{usize::MAX}else{0});
+                i+=2;
+            }
+            "-start_number" => {
+                let Some(n)=args.get(i+1).and_then(|s|s.parse::<u64>().ok()).filter(|&n|n<=9007199254740991) else {
+                    return err_out("ffmpeg: invalid start_number\n",1);
+                };
+                if !args[i+2..].iter().any(|a|a=="-i") {output_start=n;}else{input_start=Some(n);}
+                i += 2;
+            }
+            a if a == "-" || !a.starts_with('-') => {
+                out_arg = Some(a.to_string());
+                i += 1;
+            }
+            _ => {
+                i += 1;
+            }
+        }
+    }
+    if inputs.is_empty() {
+        return err_out("ffmpeg: must specify at least one input (-i)\n", 1);
+    }
+    let out_rel = match out_arg {
+        Some(o) => o,
+        None => return err_out("ffmpeg: must specify an output file\n", 1),
+    };
+    let out_lower = out_rel.to_ascii_lowercase();
+    let out_full = resolve_posix_path(cwd, &out_rel);
+    let stdout = matches!(out_rel.as_str(), "-" | "pipe:" | "pipe:1" | "/dev/stdout" | "/dev/fd/1");
+    if !overwrite && !stdout && output_format != Some("null") {
+        let parent=crate::vfs::dirname_posix_path(&out_full);
+        if fs.exists(&parent) && !fs.is_dir(&parent) {
+            return err_out(&format!("ffmpeg: ENOTDIR: not a directory, stat '{out_full}'\n"),1);
+        }
+        match fs.stat(&out_full) {
+            Ok(_) => return err_out(&format!("File '{out_rel}' already exists. Exiting.\n"), 1),
+            Err(reason) if !reason.starts_with("ENOENT:") => return err_out(&format!("ffmpeg: {reason}\n"),1),
+            Err(_) => {}
+        }
+    }
+    let ext=out_lower.rsplit_once('.').map(|(_,ext)|ext);
+    let sequence=if ext.and_then(|f|frame_output::image_format(f,true)).is_some() && !matches!(output_format,Some("null"|"hls"|"dash")) {
+        match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+    }else{None};
+    let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null" || output_format==Some("null"){Some("null")}else{match output_format {
+        Some(name) => media_format::by_name(name),
+        None => media_format::by_filename(&out_rel),
+    }};
+    let y4m_output = muxer == Some("y4m");
+    let named=output_format.map(str::to_ascii_lowercase);
+    let image_name=if sequence.is_some(){ext}else{named.as_deref().or(ext)};
+    let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
+    let frame_output=y4m_output || image_format.is_some();
+    let audio_output = muxer == Some("aac");
+    let mp4_output = matches!(muxer, Some("mp4" | "mov"));
+    let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
+    if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
+        let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
+        let concat=fc_flag.contains("concat=");
+        let chain = !fc_flag.is_empty() && !concat && composition.is_none();
+        let source=&inputs[0];
+        let input_format=input_formats[0];
+        let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
+        let start=ss_opt.unwrap_or(0.).max(0.);
+        let end=to_opt.or_else(||t_opt.map(|t|start+t));
+        let limit=fs.max_input_bytes();
+        let mut remaining=limit;
+        let mut sources=Vec::new();
+        for (i,path) in inputs.iter().enumerate(){
+            let explicit=input_formats[i];
+            let input=if explicit==Some("lavfi"){
+                MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
+            }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg","tif","tiff","webp"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+            }{
+                let (number,fps)=image_options[i];
+                match frame_output::ImageSequence::read(fs,cwd,path,pattern,number,fps.unwrap_or(25.),remaining){
+                    Ok(seq)=>MediaInput::Images(seq),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+                }
+            }else{
+                let data=if media_stdin(path){crate::vfs::stream_string_to_bytes(stdin)}else{
+                    let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{break};b
+                };
+                let Some(id)=media_format::detect(&data,path,explicit)else{break};
+                MediaInput::Bytes(id,data)
             };
-            let out_lower = out_rel.to_ascii_lowercase();
-            let out_full = resolve_posix_path(cwd, &out_rel);
-            let stdout = matches!(out_rel.as_str(), "-" | "pipe:" | "pipe:1" | "/dev/stdout" | "/dev/fd/1");
-            if !overwrite && !stdout && output_format != Some("null") {
-                let parent=crate::vfs::dirname_posix_path(&out_full);
-                if fs.exists(&parent) && !fs.is_dir(&parent) {
-                    return err_out(&format!("ffmpeg: ENOTDIR: not a directory, stat '{out_full}'\n"),1);
+            let size=match &input {MediaInput::Bytes(_,b)=>b.len(),MediaInput::Images(seq)=>seq.frames.iter().map(|im|im.pixels.len()*4+size_of::<png_pixels::Raster>()).sum()};
+            let Some(left)=remaining.checked_sub(size)else{return err_out("ffmpeg: input byte limit exceeded\n",1)};
+            remaining=left;
+            let supported=input.remuxable();
+            sources.push(input);
+            if !supported{break;}
+        }
+        let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),_=>(None,&[][..])};
+        let supported=sources.first().is_some_and(MediaInput::remuxable);
+        let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
+        let still_input=format==Some("image2") && supported;
+        let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable);
+        if !fc_flag.is_empty() && remux_inputs {
+            maps.clear();
+            strip_video=false; strip_audio=false; strip_subtitles=false; rotation=None;
+            if concat || composition.is_some(){shortest=false;}
+            if concat {
+                let disabled=|option:&str| fc_flag.match_indices("concat=").any(|(i,_)|{
+                    let args=fc_flag[i+7..].split([';','[']).next().unwrap_or("");
+                    let word=|c:char|c.is_ascii_alphanumeric()||c=='_';
+                    args.match_indices(option).any(|(j,_)|!args[..j].ends_with(word) && !args[j+option.len()..].starts_with(word))
+                });
+                strip_audio=disabled("a=0");strip_video=disabled("v=0");
+            }
+        }
+        if chain && remux_inputs {
+            // The portable graph muxes all inputs first, then appends its
+            // unlabelled chain after any explicit video filters.
+            let mut rest=fc_flag.as_str();
+            let mut filter=String::new();
+            while let Some((prefix,suffix))=rest.split_once('[') {
+                let Some((label,tail))=suffix.split_once(']') else {break;};
+                filter.push_str(prefix);
+                if label.is_empty(){filter.push_str("[]");}
+                rest=tail;
+            }
+            filter.push_str(rest);
+            if !filter.trim().is_empty(){vf_flags.push(filter);}
+        }
+        if (frame_output || mp4_output && remux_inputs) && !video_copy {
+            if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
+            if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
+        }
+        let mut decoded=mp4::mux::DecodedConcat::new(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some()),!strip_audio && muxer==Some("wav"));
+        let mut remux=mp4::mux::Remux{composition,concat:concat.then_some(&mut decoded),rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+        // Cutting a graph first materializes its decoded frames as AVC. Let the
+        // packet slicer handle keyframes, partial samples, and edit lists.
+        let graph_movie;
+        let sources=if remux_inputs && (concat && inputs.len()>1 || composition.is_some() && (ss_opt.is_some() || end.is_some())){
+            let opts=mp4::mux::Remux{concat:remux.concat.as_deref_mut(),frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
+            let opts=if concat{mp4::mux::Remux{start:None,end:None,strip_audio:false,strip_video:false,..opts}}else{opts};
+            graph_movie=match mp4::mux::remux(&sources,opts,0){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
+            remux.composition=None;
+            remux.input_times=&[InputTime{start:None,to:None,duration:None,loops:0}];
+            &graph_movie[..]
+        }else{&sources[..]};
+        let output=if muxer==Some("wav") && !remux_inputs && inputs.len()==1 && fc_flag.is_empty() {
+            match ffmpeg_wave::Input::parse(format.unwrap_or(""),bytes).map_err(str::to_owned).and_then(|input|input.map(|a|a.render(input_times[0],&remux)).transpose()){
+                Ok(data)=>data, Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
+            }
+        } else if frame_output && (inputs.len()==1 && supported || remux_inputs) {
+            let seek=input_times[0];
+            let limit=fs.max_input_bytes();
+            let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
+                let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
+                if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                    return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
-                match fs.stat(&out_full) {
-                    Ok(_) => return err_out(&format!("File '{out_rel}' already exists. Exiting.\n"), 1),
-                    Err(reason) if !reason.starts_with("ENOENT:") => return err_out(&format!("ffmpeg: {reason}\n"),1),
-                    Err(_) => {}
+                let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
+                let input=&sources[0];
+                let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
+                if no_video {Ok((64,64,10))}
+                else if let MediaInput::Images(seq)=input {
+                    let input_cut=seek.start.is_some() || seek.end().is_some();
+                    if input_cut || shortest || ss_opt.is_some() || end.is_some(){
+                        let movie=mp4::mux::input_slice(input,seek,None,limit)?;
+                        let end=if input_cut{end}else{Some(end.unwrap_or(seq.template_duration()).min(seq.template_duration()))};
+                        mp4::render_video(&movie,y4m::Options{end,..opts},&maps,sequence,emit)
+                    }else{seq.render(opts,emit)}
+                }
+                else if still_input {frame_output::render_still(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit)}
+                    else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
+                    mp4::mux::input_slice(input,seek,seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
+                }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
+                    mp4::mux::input_slice(input,InputTime{start:Some(start),to:end,..InputTime::default()},end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
+                } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit)}
+                    else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
+                    else{Ok((64,64,10))}
+            });
+            match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+        } else if (mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null"))) && remux_inputs {
+            match mp4::mux::remux(sources,remux,0){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+        } else {None};
+        if let Some(output)=output {
+            if muxer==Some("null"){return ok_out("");}
+            if stdout {
+                return ok_out(&crate::vfs::bytes_to_stream_string(&output));
+            }
+            return match write_ffmpeg_output(fs,&out_full,&output) {
+                Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
+            };
+        }
+    }
+    let InputTime{start:input_ss,to:input_to,duration:input_duration,..}=input_times[0];
+    let ss_opt=ss_opt.or(input_ss);
+    let to_opt=to_opt.or(input_to);
+    let t_opt=t_opt.or(input_duration);
+    let mut doc = MediaDoc::default_video();
+    let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
+    for (source_idx,inp) in inputs.iter().enumerate() {
+        if let Some(lavfi_doc) = parse_lavfi_input_doc(inp) {
+            if parsed_input_docs.is_empty() {
+                doc = lavfi_doc.clone();
+            } else if doc.codec_type == "video" && lavfi_doc.codec_type == "audio" {
+                doc.has_audio = true;
+                doc.sample_rate = lavfi_doc.sample_rate;
+                doc.channels = lavfi_doc.channels;
+            } else {
+                doc = lavfi_doc.clone();
+            }
+            parsed_input_docs.push(lavfi_doc);
+        } else if let Some(rest) = inp.strip_prefix("concat:") {
+            let mut total_frames = 0u32;
+            let mut total_dur = 0.0f64;
+            for p in rest.split('|') {
+                let f = resolve_posix_path(cwd, p);
+                if let Ok(b) = fs.read_file(&f) {
+                    let sub = MediaDoc::parse(&b, &f);
+                    doc.width = sub.width;
+                    doc.height = sub.height;
+                    doc.fps = sub.fps;
+                    total_frames += sub.nb_frames;
+                    total_dur += sub.duration;
                 }
             }
-            let ext=out_lower.rsplit_once('.').map(|(_,ext)|ext);
-            let sequence=if ext.and_then(|f|frame_output::image_format(f,true)).is_some() && !matches!(output_format,Some("null"|"hls"|"dash")) {
-                match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-            }else{None};
-            let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null" || output_format==Some("null"){Some("null")}else{match output_format {
-                Some(name) => media_format::by_name(name),
-                None => media_format::by_filename(&out_rel),
-            }};
-            let y4m_output = muxer == Some("y4m");
-            let named=output_format.map(str::to_ascii_lowercase);
-            let image_name=if sequence.is_some(){ext}else{named.as_deref().or(ext)};
-            let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
-            let frame_output=y4m_output || image_format.is_some();
-            let audio_output = muxer == Some("aac");
-            let mp4_output = matches!(muxer, Some("mp4" | "mov"));
-            let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-            if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
-                let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
-                let concat=fc_flag.contains("concat=");
-                let chain = !fc_flag.is_empty() && !concat && composition.is_none();
-                let source=&inputs[0];
-                let input_format=input_formats[0];
-                let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
-                let start=ss_opt.unwrap_or(0.).max(0.);
-                let end=to_opt.or_else(||t_opt.map(|t|start+t));
-                let limit=fs.max_input_bytes();
-                let mut remaining=limit;
-                let mut sources=Vec::new();
-                for (i,path) in inputs.iter().enumerate(){
-                    let explicit=input_formats[i];
-                    let input=if explicit==Some("lavfi"){
-                        MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg","tif","tiff","webp"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
-                        Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
-                    }{
-                        let (number,fps)=image_options[i];
-                        match frame_output::ImageSequence::read(fs,cwd,path,pattern,number,fps.unwrap_or(25.),remaining){
-                            Ok(seq)=>MediaInput::Images(seq),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
-                        }
-                    }else{
-                        let data=if media_stdin(path){crate::vfs::stream_string_to_bytes(stdin)}else{
-                            let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{break};b
-                        };
-                        let Some(id)=media_format::detect(&data,path,explicit)else{break};
-                        MediaInput::Bytes(id,data)
-                    };
-                    let size=match &input {MediaInput::Bytes(_,b)=>b.len(),MediaInput::Images(seq)=>seq.frames.iter().map(|im|im.pixels.len()*4+size_of::<png_pixels::Raster>()).sum()};
-                    let Some(left)=remaining.checked_sub(size)else{return err_out("ffmpeg: input byte limit exceeded\n",1)};
-                    remaining=left;
-                    let supported=input.remuxable();
-                    sources.push(input);
-                    if !supported{break;}
-                }
-                let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),_=>(None,&[][..])};
-                let supported=sources.first().is_some_and(MediaInput::remuxable);
-                let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
-                let still_input=format==Some("image2") && supported;
-                let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable);
-                if !fc_flag.is_empty() && remux_inputs {
-                    maps.clear();
-                    strip_video=false; strip_audio=false; strip_subtitles=false; rotation=None;
-                    if concat || composition.is_some(){shortest=false;}
-                    if concat {
-                        let disabled=|option:&str| fc_flag.match_indices("concat=").any(|(i,_)|{
-                            let args=fc_flag[i+7..].split([';','[']).next().unwrap_or("");
-                            let word=|c:char|c.is_ascii_alphanumeric()||c=='_';
-                            args.match_indices(option).any(|(j,_)|!args[..j].ends_with(word) && !args[j+option.len()..].starts_with(word))
-                        });
-                        strip_audio=disabled("a=0");strip_video=disabled("v=0");
+            doc.nb_frames = total_frames.max(1);
+            doc.duration = if total_dur > 0.0 {
+                total_dur
+            } else {
+                (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
+            };
+            parsed_input_docs.push(doc.clone());
+        } else if inp.contains('%') {
+            let mut count = 0u32;
+            let mut idx = 1usize;
+            while idx <= 100 {
+                let Some(name) = format_printf_num(inp, idx, Some('0')) else { return err_out("ffmpeg: image sequence filename is too long\n", 1); };
+                let candidate = resolve_posix_path(cwd, &name);
+                if let Ok(b) = fs.read_file(&candidate) {
+                    if idx == 1 {
+                        let im = read_image_meta(&b, &candidate);
+                        doc.width = im.w;
+                        doc.height = im.h;
                     }
-                }
-                if chain && remux_inputs {
-                    // The portable graph muxes all inputs first, then appends its
-                    // unlabelled chain after any explicit video filters.
-                    let mut rest=fc_flag.as_str();
-                    let mut filter=String::new();
-                    while let Some((prefix,suffix))=rest.split_once('[') {
-                        let Some((label,tail))=suffix.split_once(']') else {break;};
-                        filter.push_str(prefix);
-                        if label.is_empty(){filter.push_str("[]");}
-                        rest=tail;
-                    }
-                    filter.push_str(rest);
-                    if !filter.trim().is_empty(){vf_flags.push(filter);}
-                }
-                if (frame_output || mp4_output && remux_inputs) && !video_copy {
-                    if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
-                    if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
-                }
-                let mut decoded=mp4::mux::DecodedConcat::new(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some()),!strip_audio && muxer==Some("wav"));
-                let mut remux=mp4::mux::Remux{composition,concat:concat.then_some(&mut decoded),rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                // Cutting a graph first materializes its decoded frames as AVC. Let the
-                // packet slicer handle keyframes, partial samples, and edit lists.
-                let graph_movie;
-                let sources=if remux_inputs && (concat && inputs.len()>1 || composition.is_some() && (ss_opt.is_some() || end.is_some())){
-                    let opts=mp4::mux::Remux{concat:remux.concat.as_deref_mut(),frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
-                    let opts=if concat{mp4::mux::Remux{start:None,end:None,strip_audio:false,strip_video:false,..opts}}else{opts};
-                    graph_movie=match mp4::mux::remux(&sources,opts,0){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
-                    remux.composition=None;
-                    remux.input_times=&[InputTime{start:None,to:None,duration:None,loops:0}];
-                    &graph_movie[..]
-                }else{&sources[..]};
-                let output=if muxer==Some("wav") && !remux_inputs && inputs.len()==1 && fc_flag.is_empty() {
-                    match ffmpeg_wave::Input::parse(format.unwrap_or(""),bytes).map_err(str::to_owned).and_then(|input|input.map(|a|a.render(input_times[0],&remux)).transpose()){
-                        Ok(data)=>data, Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
-                    }
-                } else if frame_output && (inputs.len()==1 && supported || remux_inputs) {
-                    let seek=input_times[0];
-                    let limit=fs.max_input_bytes();
-                    let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
-                        let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
-                            return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
-                        }
-                        let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
-                        let input=&sources[0];
-                        let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
-                        if no_video {Ok((64,64,10))}
-                        else if let MediaInput::Images(seq)=input {
-                            let input_cut=seek.start.is_some() || seek.end().is_some();
-                            if input_cut || shortest || ss_opt.is_some() || end.is_some(){
-                                let movie=mp4::mux::input_slice(input,seek,None,limit)?;
-                                let end=if input_cut{end}else{Some(end.unwrap_or(seq.template_duration()).min(seq.template_duration()))};
-                                mp4::render_video(&movie,y4m::Options{end,..opts},&maps,sequence,emit)
-                            }else{seq.render(opts,emit)}
-                        }
-                        else if still_input {frame_output::render_still(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit)}
-                            else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
-                            mp4::mux::input_slice(input,seek,seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
-                        }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
-                            mp4::mux::input_slice(input,InputTime{start:Some(start),to:end,..InputTime::default()},end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
-                        } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit)}
-                            else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
-                            else{Ok((64,64,10))}
-                    });
-                    match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null"))) && remux_inputs {
-                    match mp4::mux::remux(sources,remux,0){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else {None};
-                if let Some(output)=output {
-                    if muxer==Some("null"){return ok_out("");}
-                    if stdout {
-                        return ok_out(&crate::vfs::bytes_to_stream_string(&output));
-                    }
-                    return match write_ffmpeg_output(fs,&out_full,&output) {
-                        Ok(()) => ok_out(""), Err(reason) => err_out(&format!("ffmpeg: {reason}\n"),1),
-                    };
+                    count += 1;
+                    idx += 1;
+                } else {
+                    break;
                 }
             }
-            let InputTime{start:input_ss,to:input_to,duration:input_duration,..}=input_times[0];
-            let ss_opt=ss_opt.or(input_ss);
-            let to_opt=to_opt.or(input_to);
-            let t_opt=t_opt.or(input_duration);
-            let mut doc = MediaDoc::default_video();
-            let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
-            for (source_idx,inp) in inputs.iter().enumerate() {
-                if let Some(lavfi_doc) = parse_lavfi_input_doc(inp) {
-                    if parsed_input_docs.is_empty() {
-                        doc = lavfi_doc.clone();
-                    } else if doc.codec_type == "video" && lavfi_doc.codec_type == "audio" {
-                        doc.has_audio = true;
-                        doc.sample_rate = lavfi_doc.sample_rate;
-                        doc.channels = lavfi_doc.channels;
-                    } else {
-                        doc = lavfi_doc.clone();
-                    }
-                    parsed_input_docs.push(lavfi_doc);
-                } else if let Some(rest) = inp.strip_prefix("concat:") {
+            doc.nb_frames = count.max(1);
+            if let Some(fr) = image_options[source_idx].1 {
+                doc.fps = fr.round() as u32;
+            }
+            doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
+            parsed_input_docs.push(doc.clone());
+        } else {
+            let full_in = resolve_posix_path(cwd, inp);
+            if let Ok(b) = fs.read_file(&full_in) {
+                let text = String::from_utf8_lossy(&b);
+                if fmt_flag == "concat" || text.starts_with("ffconcat") {
                     let mut total_frames = 0u32;
                     let mut total_dur = 0.0f64;
-                    for p in rest.split('|') {
-                        let f = resolve_posix_path(cwd, p);
-                        if let Ok(b) = fs.read_file(&f) {
-                            let sub = MediaDoc::parse(&b, &f);
-                            doc.width = sub.width;
-                            doc.height = sub.height;
-                            doc.fps = sub.fps;
-                            total_frames += sub.nb_frames;
-                            total_dur += sub.duration;
+                    for line in text.lines() {
+                        let t = line.trim();
+                        if let Some(r) = t.strip_prefix("file ") {
+                            let p = r.trim().trim_matches('\'').trim_matches('"');
+                            let pf = resolve_posix_path(cwd, p);
+                            if let Ok(pb) = fs.read_file(&pf) {
+                                let sub = MediaDoc::parse(&pb, &pf);
+                                doc.width = sub.width;
+                                doc.height = sub.height;
+                                doc.fps = sub.fps;
+                                total_frames += sub.nb_frames;
+                                total_dur += sub.duration;
+                            }
                         }
                     }
                     doc.nb_frames = total_frames.max(1);
@@ -4921,8494 +5006,8463 @@ fn cmd_media_doc(
                         (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
                     };
                     parsed_input_docs.push(doc.clone());
-                } else if inp.contains('%') {
-                    let mut count = 0u32;
-                    let mut idx = 1usize;
-                    while idx <= 100 {
-                        let Some(name) = format_printf_num(inp, idx, Some('0')) else { return err_out("ffmpeg: image sequence filename is too long\n", 1); };
-                        let candidate = resolve_posix_path(cwd, &name);
-                        if let Ok(b) = fs.read_file(&candidate) {
-                            if idx == 1 {
-                                let im = read_image_meta(&b, &candidate);
-                                doc.width = im.w;
-                                doc.height = im.h;
-                            }
-                            count += 1;
-                            idx += 1;
-                        } else {
-                            break;
+                } else if full_in.ends_with(".srt") {
+                    doc.subtitles = text.to_string();
+                } else if full_in.ends_with(".ffmeta") || text.starts_with(";FFMETADATA1") {
+                    let mut cid = 0usize;
+                    let mut in_chap = false;
+                    for line in text.lines() {
+                        if line.trim() == "[CHAPTER]" {
+                            in_chap = true;
+                        } else if in_chap
+                            && let Some(t) = line.trim().strip_prefix("title=")
+                        {
+                            doc.chapters.push((cid, t.to_string()));
+                            cid += 1;
+                        } else if !in_chap
+                            && let Some(t) = line.trim().strip_prefix("title=")
+                        {
+                            doc.title = t.to_string();
                         }
                     }
-                    doc.nb_frames = count.max(1);
-                    if let Some(fr) = image_options[source_idx].1 {
-                        doc.fps = fr.round() as u32;
-                    }
-                    doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
-                    parsed_input_docs.push(doc.clone());
+                } else if parsed_input_docs.is_empty() {
+                    let parsed = MediaDoc::parse(&b, &full_in);
+                    doc = parsed.clone();
+                    parsed_input_docs.push(parsed);
                 } else {
-                    let full_in = resolve_posix_path(cwd, inp);
-                    if let Ok(b) = fs.read_file(&full_in) {
-                        let text = String::from_utf8_lossy(&b);
-                        if fmt_flag == "concat" || text.starts_with("ffconcat") {
-                            let mut total_frames = 0u32;
-                            let mut total_dur = 0.0f64;
-                            for line in text.lines() {
-                                let t = line.trim();
-                                if let Some(r) = t.strip_prefix("file ") {
-                                    let p = r.trim().trim_matches('\'').trim_matches('"');
-                                    let pf = resolve_posix_path(cwd, p);
-                                    if let Ok(pb) = fs.read_file(&pf) {
-                                        let sub = MediaDoc::parse(&pb, &pf);
-                                        doc.width = sub.width;
-                                        doc.height = sub.height;
-                                        doc.fps = sub.fps;
-                                        total_frames += sub.nb_frames;
-                                        total_dur += sub.duration;
-                                    }
-                                }
-                            }
-                            doc.nb_frames = total_frames.max(1);
-                            doc.duration = if total_dur > 0.0 {
-                                total_dur
-                            } else {
-                                (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
-                            };
-                            parsed_input_docs.push(doc.clone());
-                        } else if full_in.ends_with(".srt") {
-                            doc.subtitles = text.to_string();
-                        } else if full_in.ends_with(".ffmeta") || text.starts_with(";FFMETADATA1") {
-                            let mut cid = 0usize;
-                            let mut in_chap = false;
-                            for line in text.lines() {
-                                if line.trim() == "[CHAPTER]" {
-                                    in_chap = true;
-                                } else if in_chap
-                                    && let Some(t) = line.trim().strip_prefix("title=")
-                                {
-                                    doc.chapters.push((cid, t.to_string()));
-                                    cid += 1;
-                                } else if !in_chap
-                                    && let Some(t) = line.trim().strip_prefix("title=")
-                                {
-                                    doc.title = t.to_string();
-                                }
-                            }
-                        } else if parsed_input_docs.is_empty() {
-                            let parsed = MediaDoc::parse(&b, &full_in);
-                            doc = parsed.clone();
-                            parsed_input_docs.push(parsed);
-                        } else {
-                            let sub = MediaDoc::parse(&b, &full_in);
-                            if doc.codec_type == "video" && sub.codec_type == "audio" {
-                                doc.has_audio = true;
-                                doc.sample_rate = sub.sample_rate;
-                                doc.channels = sub.channels;
-                            } else if doc.codec_type == "audio" && sub.codec_type == "video" {
-                                let sr = doc.sample_rate;
-                                let ch = doc.channels;
-                                doc = sub.clone();
-                                doc.has_audio = true;
-                                doc.sample_rate = sr;
-                                doc.channels = ch;
-                            }
-                            parsed_input_docs.push(sub);
-                        }
-                    } else if inp != "-" && inp != "pipe:0" {
-                        if fs.is_dir(&full_in) {
-                            return err_out(
-                                &format!(
-                                    "ffmpeg: EISDIR: illegal operation on a directory, readFile '{full_in}'\n"
-                                ),
-                                1,
-                            );
-                        }
-                        return err_out(
-                            &format!(
-                                "ffmpeg: ENOENT: no such file or directory, readFile '{full_in}'\n"
-                            ),
-                            1,
-                        );
+                    let sub = MediaDoc::parse(&b, &full_in);
+                    if doc.codec_type == "video" && sub.codec_type == "audio" {
+                        doc.has_audio = true;
+                        doc.sample_rate = sub.sample_rate;
+                        doc.channels = sub.channels;
+                    } else if doc.codec_type == "audio" && sub.codec_type == "video" {
+                        let sr = doc.sample_rate;
+                        let ch = doc.channels;
+                        doc = sub.clone();
+                        doc.has_audio = true;
+                        doc.sample_rate = sr;
+                        doc.channels = ch;
                     }
+                    parsed_input_docs.push(sub);
                 }
-            }
-            if output_format == Some("null") || out_rel == "/dev/null" {
-                return ok_out("");
-            }
-            if muxer.is_none() && !out_lower.ends_with(".mpd") && !out_lower.ends_with(".m3u") && !out_lower.ends_with(".m3u8") {
-                let fmt_desc = output_format.unwrap_or(&out_rel);
-                return err_out(
-                    &format!(
-                        "ffmpeg: Unable to find a suitable output format for '{fmt_desc}' (format AST not registered)\n"
-                    ),
-                    1,
-                );
-            }
-            if !fc_flag.is_empty() {
-                if parsed_input_docs.len() >= 2 {
-                    let d0 = &parsed_input_docs[0];
-                    let d1 = &parsed_input_docs[1];
-                    if fc_flag.contains("vstack") {
-                        doc.width = d0.width.max(d1.width);
-                        doc.height = parsed_input_docs.iter().map(|d| d.height).sum();
-                    } else if fc_flag.contains("hstack") {
-                        doc.width = parsed_input_docs.iter().map(|d| d.width).sum();
-                        doc.height = d0.height.max(d1.height);
-                    } else if fc_flag.contains("concat") {
-                        doc.width = d0.width;
-                        doc.height = d0.height;
-                        doc.fps = d0.fps;
-                        doc.nb_frames = parsed_input_docs.iter().map(|d| d.nb_frames).sum();
-                        doc.duration = parsed_input_docs.iter().map(|d| d.duration).sum();
-                    }
-                }
-                for stage in fc_flag.split(';') {
-                    apply_vf_chain_to_doc(&mut doc, stage);
-                }
-            }
-            for vf_chain in &vf_flags {
-                apply_vf_chain_to_doc(&mut doc, vf_chain);
-            }
-            if let Some((sw, sh)) = size_opt {
-                doc.width = sw;
-                doc.height = sh;
-            }
-            if let Some(sr) = ar_opt {
-                doc.sample_rate = sr;
-            }
-            if let Some(ch) = ac_opt {
-                doc.channels = ch;
-            }
-            if let Some(fr) = output_fps {
-                doc.fps = fr.round() as u32;
-                doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
-            }
-            if let Some(dur) = t_opt {
-                let _ = ss_opt;
-                doc.duration = dur;
-                doc.nb_frames = ((doc.fps as f64) * dur).round().max(1.0) as u32;
-            } else if let Some(to_val) = to_opt {
-                let start = ss_opt.unwrap_or(0.0);
-                let dur = (to_val - start).max(0.05);
-                doc.duration = dur;
-                doc.nb_frames = ((doc.fps as f64) * dur).round().max(1.0) as u32;
-            } else if let Some(ss_val) = ss_opt
-                && ss_val > 0.0
-                && ss_val < doc.duration
-            {
-                doc.duration = (doc.duration - ss_val).max(0.05);
-                doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
-            }
-            if let Some(vf_cnt) = vframes_opt {
-                doc.nb_frames = vf_cnt.max(1);
-                doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
-            }
-            if strip_audio {
-                doc.has_audio = false;
-            }
-            if strip_video {
-                doc.codec_type = "audio".to_string();
-            }
-            if let Some(t) = meta_title {
-                doc.title = t.clone();
-                doc.tags.insert("title".to_string(), t);
-            }
-            for (k, v) in meta_tags {
-                doc.tags.insert(k, v);
-            }
-            if out_lower.ends_with(".ffmeta") || fmt_flag == "ffmetadata" {
-                let mut ffmeta = String::from(";FFMETADATA1\n");
-                if !doc.title.is_empty() && !doc.tags.contains_key("title") {
-                    ffmeta.push_str(&format!("title={}\n", doc.title));
-                }
-                for (k, v) in &doc.tags {
-                    ffmeta.push_str(&format!("{k}={v}\n"));
-                }
-                for (cid, ctitle) in &doc.chapters {
-                    ffmeta.push_str(&format!(
-                        "[CHAPTER]\nTIMEBASE=1/1000\nSTART={}\nEND={}\ntitle={ctitle}\n",
-                        cid * 1000,
-                        (cid + 1) * 1000
-                    ));
-                }
-                let _ = fs.write_file(&out_full, ffmeta.as_bytes());
-                return ok_out("");
-            }
-            if out_lower.ends_with(".mpd") || fmt_flag == "dash" {
-                let mpd = format!(
-                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" mediaPresentationDuration=\"PT{:.1}S\">\n  <Period>\n    <AdaptationSet mimeType=\"video/mp4\" width=\"{}\" height=\"{}\"/>\n  </Period>\n</MPD>\n",
-                    doc.duration, doc.width, doc.height
-                );
-                let _ = fs.write_file(&out_full, mpd.as_bytes());
-                return ok_out("");
-            }
-            if out_lower.ends_with(".vtt") {
-                let vtt = format!("WEBVTT\n\n{}", doc.subtitles.replace(',', "."));
-                let _ = fs.write_file(&out_full, vtt.as_bytes());
-                return ok_out("");
-            }
-            if out_lower.ends_with(".srt") {
-                let _ = fs.write_file(&out_full, doc.subtitles.as_bytes());
-                return ok_out("");
-            }
-            if out_lower.ends_with(".png") {
-                let im = ImageMeta {
-                    fmt: "PNG".to_string(),
-                    w: doc.width,
-                    h: doc.height,
-                    cs: "sRGB".to_string(),
-                    exif: BTreeMap::new(),
-                };
-                let bytes = write_image_bytes(&im);
-                if out_rel.contains('%') {
-                    for idx in 1..=(doc.nb_frames as usize) {
-                        let Some(name) = format_printf_num(&out_rel, idx, Some('0')) else { return err_out("ffmpeg: image sequence filename is too long\n", 1); };
-                        let p = resolve_posix_path(cwd, &name);
-                        let _ = fs.write_file(&p, &bytes);
-                    }
-                } else {
-                    let _ = fs.write_file(&out_full, &bytes);
-                }
-                return ok_out("");
-            }
-            if out_lower.ends_with(".wav") {
-                doc.codec_type = "audio".to_string();
-                doc.codec_name = "pcm_s16le".to_string();
-                doc.format_name = "wav".to_string();
-            } else if out_lower.ends_with(".gif") {
-                doc.codec_name = "gif".to_string();
-                doc.format_name = "gif".to_string();
-            } else {
-                doc.codec_name = "h264".to_string();
-                doc.format_name = "mp4".to_string();
-            }
-            let is_m3u8 = fmt_flag == "hls" || out_lower.ends_with(".m3u8");
-            let _ = fs.write_file(&out_full, &doc.serialize(is_m3u8));
-            ok_out("")
-        }
-        "ffprobe" => {
-            if args.is_empty() {
-                return err_out(
-                    "Simple multimedia streams analyzer\nusage: ffprobe [OPTIONS] INPUT_FILE\n",
-                    1,
-                );
-            }
-            for arg in args {
-                if let Some(intro) = format_ffmpeg_introspection(arg, "ffprobe") {
-                    return ok_out(&intro);
-                }
-            }
-            let quiet = args
-                .windows(2)
-                .any(|w| (w[0] == "-v" || w[0] == "-loglevel") && w[1] == "quiet");
-            let ffprobe_err = |msg: &str| -> BuiltinOutcome {
-                if quiet {
-                    err_out("", 1)
-                } else {
-                    err_out(&format!("ffprobe: {msg}\n"), 1)
-                }
-            };
-            let mut audio_options = true;
-            let mut explicit_format = None;
-            let mut requested = std::collections::BTreeSet::new();
-            let mut entry_filter = None;
-            let mut sections = BTreeMap::new();
-            let mut of_fmt = "default".to_string();
-            let mut in_arg: Option<String> = None;
-            let mut show_entries = String::new();
-            let mut select_streams: Option<String> = None;
-            let mut count_frames = false;
-            let mut count_packets = false;
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-print_format" | "-of" => {
-                        let Some(v) = args.get(i + 1) else {
-                            return ffprobe_err(&format!("Missing value for {}", args[i]));
-                        };
-                        of_fmt = v.clone();
-                        i += 2;
-                    }
-                    "-show_entries" => {
-                        let Some(v) = args.get(i + 1) else {
-                            return ffprobe_err(&format!("Missing value for {}", args[i]));
-                        };
-                        show_entries = v.clone();
-                        entry_filter = Some(v.as_str());
-                        for entry in v.split(':') {
-                            let mut parts = entry.split('=');
-                            let section = parts.next().unwrap();
-                            audio_options &= matches!(section, "stream" | "format" | "stream_tags" | "format_tags");
-                            sections.insert(section, parts.next());
-                        }
-                        i += 2;
-                    }
-                    "-select_streams" => {
-                        let Some(v) = args.get(i + 1) else {
-                            return ffprobe_err(&format!("Missing value for {}", args[i]));
-                        };
-                        audio_options &= matches!(v.as_str(), "0" | "a" | "a:0");
-                        select_streams = Some(v.to_ascii_lowercase());
-                        i += 2;
-                    }
-                    "-i" => {
-                        let Some(v) = args.get(i + 1) else {
-                            return ffprobe_err(&format!("Missing value for {}", args[i]));
-                        };
-                        if in_arg.is_some() {
-                            return ffprobe_err("Expected one input");
-                        }
-                        in_arg = Some(v.clone());
-                        i += 2;
-                    }
-                    "-v" | "-loglevel" | "-f" => {
-                        if i + 1 >= args.len() {
-                            return ffprobe_err(&format!("Missing value for {}", args[i]));
-                        }
-                        if args[i]=="-f" { explicit_format=Some(args[i+1].as_str()); }
-                        audio_options &= args[i] == "-v" && matches!(args[i+1].as_str(), "quiet" | "error" | "warning" | "info");
-                        i += 2;
-                    }
-                    "-hide_banner" | "-show_format" | "-show_streams" | "-show_packets"
-                    | "-show_frames" | "-show_chapters" | "-show_programs" => {
-                        if let Some(section) = args[i].strip_prefix("-show_") {
-                            let section = section.strip_suffix('s').unwrap_or(section);
-                            requested.insert(section);
-                            if matches!(section, "stream" | "format") { sections.insert(section, None); }
-                            else { audio_options = false; }
-                        } else { audio_options = false; }
-                        i += 1;
-                    }
-                    "-count_frames" => {
-                        count_frames = true;
-                        i += 1;
-                    }
-                    "-count_packets" => {
-                        count_packets = true;
-                        i += 1;
-                    }
-                    a if a.starts_with('-') && a != "-" => {
-                        return ffprobe_err(&format!("Unknown option {a}"));
-                    }
-                    a => {
-                        if in_arg.is_some() {
-                            return ffprobe_err("Expected one input");
-                        }
-                        in_arg = Some(a.to_string());
-                        i += 1;
-                    }
-                }
-            }
-            let Some(name) = in_arg.as_deref() else {
-                return ffprobe_err("must specify an input file");
-            };
-            let mut fmt_parts = of_fmt.split(':');
-            let head = fmt_parts.next().unwrap_or("default");
-            let mut params: Vec<&str> = fmt_parts.collect();
-            let writer = if let Some((w, rest)) = head.split_once('=') {
-                params.insert(0, rest);
-                w.to_ascii_lowercase()
-            } else {
-                head.to_ascii_lowercase()
-            };
-            if !matches!(writer.as_str(), "json" | "compact" | "csv" | "default" | "flat") {
-                return ffprobe_err(&format!("Unknown output format {writer}"));
-            }
-            audio_options &= head == writer;
-            let mut settings = BTreeMap::new();
-            for param in params {
-                let mut parts = param.split('=');
-                let k = parts.next().unwrap();
-                if let Some(v) = parts.next() {
-                    settings.insert(k, v);
-                    audio_options &= !matches!(k, "compact" | "c");
-                } else {
-                    audio_options = false;
-                    settings.insert(param,"1");
-                }
-                if param.is_empty() {
-                    continue;
-                }
-                let key = param.split('=').next().unwrap_or("");
-                if !matches!(
-                    key,
-                    "c" | "compact"
-                        | "nokey"
-                        | "nk"
-                        | "noprint_wrappers"
-                        | "nw"
-                        | "print_section"
-                        | "p"
-                        | "item_sep"
-                        | "s"
-                ) {
-                    return ffprobe_err(&format!("Unsupported writer option {key}"));
-                }
-            }
-            let from_stdin = media_stdin(name);
-            let (raw_bytes, path_str) = if from_stdin {
-                (crate::vfs::stream_string_to_bytes(stdin), "pipe:0".to_string())
-            } else {
-                let full = resolve_posix_path(cwd, name);
-                if fs.is_dir(&full) {
-                    return ffprobe_err(&format!(
-                        "EISDIR: illegal operation on a directory, openReadFile '{full}'"
-                    ));
-                }
-                match fs.read_file(&full) {
-                    Ok(b) => (b, full),
-                    Err(_) => {
-                        return ffprobe_err(&format!(
-                            "ENOENT: no such file or directory, openReadFile '{full}'"
-                        ));
-                    }
-                }
-            };
-            if raw_bytes.is_empty() && !from_stdin && explicit_format.is_none_or(str::is_empty) {
-                return ffprobe_err(&format!("EINVAL: invalid argument, read '{path_str}'"));
-            }
-            let Some(container) = media_format::detect(&raw_bytes, name, explicit_format) else {
-                return ffprobe_err(&match explicit_format {
-                    Some(f) => format!("Unknown input format: '{f}' (AST not registered)"),
-                    None => format!("{name}: Invalid data found when processing input or format AST not registered"),
-                });
-            };
-            let real_mp4=matches!(container,"mp4" | "mov") && !raw_bytes.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
-            if container == "wav" {
-                if !raw_bytes.starts_with(b"RIFF") || raw_bytes.get(8..12) != Some(b"WAVE") {
-                    return ffprobe_err("Invalid WAV file: missing RIFF WAVE signature");
-                }
-                if audio_options && !count_frames && !count_packets && let Ok(info) = probe_wav_info(&raw_bytes) {
-                    return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
-                }
-            }
-            let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
-            let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
-            if gif || still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
-                let records=requested.contains("packet") || requested.contains("frame");
-                let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
-                    writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
-                if real_mp4 {
-                    return match mp4::report(&raw_bytes,name,opts) {
-                        Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
-                    };
-                }
-                let clip = if gif {
-                    media_probe::Clip::gif(&raw_bytes,records,fs.max_input_bytes())
-                } else if still {
-                    media_probe::Clip::still(&raw_bytes, fs.max_input_bytes())
-                } else if matches!(container,"srt" | "webvtt") {
-                    media_probe::Clip::subtitles(&raw_bytes,container=="webvtt",records,fs.max_input_bytes())
-                } else if container == "aac" {
-                    Ok(media_probe::Clip::adts(&raw_bytes, records))
-                } else { media_probe::Clip::y4m(&raw_bytes) };
-                return match clip.and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
-                    Ok(output)=>ok_out(&output), Err(reason)=>ffprobe_err(reason),
-                };
-            }
-            let doc = MediaDoc::parse(&raw_bytes, &path_str);
-            let dur_val = if doc.duration > 0.0 {
-                doc.duration
-            } else {
-                (doc.nb_frames.max(1) as f64) / (doc.fps.max(1) as f64)
-            };
-            let want_video = match select_streams.as_deref() {
-                Some("a") | Some("a:0") | Some("1") => false,
-                _ => doc.codec_type == "video",
-            };
-            let want_audio = match select_streams.as_deref() {
-                Some("v") | Some("v:0") => false,
-                Some("0") => doc.codec_type == "audio",
-                _ => doc.codec_type == "audio" || doc.has_audio,
-            };
-            let video_field = |f: &str| -> Option<String> {
-                match f.trim() {
-                    "index" => Some("0".to_string()),
-                    "codec_name" => Some(doc.codec_name.clone()),
-                    "codec_type" => Some("video".to_string()),
-                    "width" => Some(doc.width.to_string()),
-                    "height" => Some(doc.height.to_string()),
-                    "nb_frames" | "nb_read_frames" | "nb_read_packets" => {
-                        Some(doc.nb_frames.to_string())
-                    }
-                    "r_frame_rate" | "avg_frame_rate" => Some(format!("{}/1", doc.fps)),
-                    "duration" => Some(format!("{dur_val:.6}")),
-                    _ => None,
-                }
-            };
-            let audio_field = |f: &str| -> Option<String> {
-                let a_codec = if doc.codec_type == "audio" {
-                    doc.codec_name.clone()
-                } else {
-                    "aac".to_string()
-                };
-                let a_idx = if doc.codec_type == "video" { "1" } else { "0" };
-                match f.trim() {
-                    "index" => Some(a_idx.to_string()),
-                    "codec_name" => Some(a_codec),
-                    "codec_type" => Some("audio".to_string()),
-                    "sample_rate" => Some(doc.sample_rate.to_string()),
-                    "channels" => Some(doc.channels.to_string()),
-                    "duration" => Some(format!("{dur_val:.6}")),
-                    "nb_frames" | "nb_read_frames" | "nb_read_packets" => {
-                        Some(doc.nb_frames.to_string())
-                    }
-                    _ => None,
-                }
-            };
-            let format_field = |f: &str| -> Option<String> {
-                match f.trim() {
-                    "filename" => Some(in_arg.clone().unwrap_or_else(|| path_str.clone())),
-                    "nb_streams" => Some(
-                        if doc.codec_type == "video" && doc.has_audio {
-                            "2".to_string()
-                        } else {
-                            "1".to_string()
-                        },
-                    ),
-                    "format_name" => Some(doc.format_name.clone()),
-                    "duration" => Some(format!("{dur_val:.6}")),
-                    "size" => Some(raw_bytes.len().to_string()),
-                    "title" | "tag:title" => Some(doc.title.clone()),
-                    s if s.starts_with("tag:") => doc.tags.get(&s[4..]).cloned(),
-                    _ => None,
-                }
-            };
-            if of_fmt.starts_with("default") && !show_entries.is_empty() {
-                let nokey = of_fmt.contains("nokey=1") || of_fmt.contains("nk=1");
-                let nowrappers = of_fmt.contains("noprint_wrappers=1") || of_fmt.contains("nw=1");
-                let mut lines: Vec<String> = Vec::new();
-                for sec in show_entries.split(':') {
-                    if let Some((sec_name, fields)) = sec.split_once('=') {
-                        let sec_lower = sec_name.trim().to_ascii_lowercase();
-                        if sec_lower == "stream" {
-                            if want_video {
-                                if !nowrappers {
-                                    lines.push("[STREAM]".to_string());
-                                }
-                                for f in fields.split(',') {
-                                    if let Some(v) = video_field(f) {
-                                        lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
-                                    }
-                                }
-                                if !nowrappers {
-                                    lines.push("[/STREAM]".to_string());
-                                }
-                            }
-                            if want_audio {
-                                if !nowrappers {
-                                    lines.push("[STREAM]".to_string());
-                                }
-                                for f in fields.split(',') {
-                                    if let Some(v) = audio_field(f) {
-                                        lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
-                                    }
-                                }
-                                if !nowrappers {
-                                    lines.push("[/STREAM]".to_string());
-                                }
-                            }
-                        } else if sec_lower == "format" || sec_lower == "format_tags" {
-                            if !nowrappers {
-                                lines.push("[FORMAT]".to_string());
-                            }
-                            for f in fields.split(',') {
-                                if let Some(v) = format_field(f) {
-                                    lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
-                                }
-                            }
-                            if !nowrappers {
-                                lines.push("[/FORMAT]".to_string());
-                            }
-                        }
-                    }
-                }
-                if lines.is_empty() {
-                    lines.push(doc.nb_frames.to_string());
-                }
-                return ok_out(&format!("{}\n", lines.join("\n")));
-            }
-            if of_fmt.starts_with("default=noprint_wrappers=1:nokey=1") {
-                return ok_out(&format!("{}\n", doc.nb_frames));
-            }
-            if of_fmt == "flat" && !show_entries.is_empty() {
-                let mut lines: Vec<String> = Vec::new();
-                let fmt_flat_val = |k: &str, v: &str| -> String {
-                    if matches!(k, "width" | "height" | "channels" | "index") {
-                        v.to_string()
-                    } else {
-                        format!("\"{v}\"")
-                    }
-                };
-                for sec in show_entries.split(':') {
-                    if let Some((sec_name, fields)) = sec.split_once('=') {
-                        let sec_lower = sec_name.trim().to_ascii_lowercase();
-                        if sec_lower == "stream" {
-                            if want_video {
-                                for f in fields.split(',') {
-                                    let ft = f.trim();
-                                    if let Some(v) = video_field(ft) {
-                                        lines.push(format!("streams.stream.0.{ft}={}", fmt_flat_val(ft, &v)));
-                                    }
-                                }
-                            }
-                            if want_audio {
-                                let a_idx = if doc.codec_type == "video" { 1 } else { 0 };
-                                for f in fields.split(',') {
-                                    let ft = f.trim();
-                                    if let Some(v) = audio_field(ft) {
-                                        lines.push(format!("streams.stream.{a_idx}.{ft}={}", fmt_flat_val(ft, &v)));
-                                    }
-                                }
-                            }
-                        } else if sec_lower == "format" || sec_lower == "format_tags" {
-                            for f in fields.split(',') {
-                                let ft = f.trim();
-                                if let Some(v) = format_field(ft) {
-                                    lines.push(format!("format.{ft}={}", fmt_flat_val(ft, &v)));
-                                }
-                            }
-                        }
-                    }
-                }
-                return ok_out(&format!("{}\n", lines.join("\n")));
-            }
-            if of_fmt == "flat" {
-                return ok_out(&format!(
-                    "streams.stream.0.codec_type=\"{}\"\nstreams.stream.0.codec_name=\"{}\"\nstreams.stream.0.width={}\nstreams.stream.0.height={}\nstreams.stream.0.nb_frames=\"{}\"\nstreams.stream.0.sample_rate=\"{}\"\nstreams.stream.0.channels={}\nformat.format_name=\"{}\"\nformat.duration=\"{dur_val:.6}\"\nformat.tags.title=\"{}\"\n",
-                    doc.codec_type,
-                    doc.codec_name,
-                    doc.width,
-                    doc.height,
-                    doc.nb_frames,
-                    doc.sample_rate,
-                    doc.channels,
-                    doc.format_name,
-                    doc.title
-                ));
-            }
-            if of_fmt.starts_with("compact") {
-                let no_key = of_fmt.contains("nk=1") || of_fmt.contains("nokey=1");
-                let no_sec = of_fmt.contains("p=0") || of_fmt.contains("print_section=0");
-                let mut out = String::new();
-                let fields: Vec<&str> = if let Some(s) = show_entries.strip_prefix("stream=") {
-                    s.split(':').next().unwrap_or(s).split(',').collect()
-                } else {
-                    vec!["codec_type", "codec_name", "width", "height"]
-                };
-                if want_video {
-                    let mut parts = Vec::new();
-                    if !no_sec {
-                        parts.push("stream".to_string());
-                    }
-                    for f in &fields {
-                        if let Some(v) = video_field(f) {
-                            parts.push(if no_key { v } else { format!("{}={v}", f.trim()) });
-                        }
-                    }
-                    out.push_str(&parts.join("|"));
-                    out.push('\n');
-                }
-                if want_audio {
-                    let mut parts = Vec::new();
-                    if !no_sec {
-                        parts.push("stream".to_string());
-                    }
-                    for f in &fields {
-                        if let Some(v) = audio_field(f) {
-                            parts.push(if no_key { v } else { format!("{}={v}", f.trim()) });
-                        }
-                    }
-                    out.push_str(&parts.join("|"));
-                    out.push('\n');
-                }
-                return ok_out(&out);
-            }
-            if of_fmt == "csv=p=0" || of_fmt == "csv" {
-                let print_sec = of_fmt == "csv";
-                if !show_entries.is_empty() {
-                    let mut out = String::new();
-                    for sec in show_entries.split(':') {
-                        if let Some((sec_name, fields_spec)) = sec.split_once('=') {
-                            let sec_lower = sec_name.trim().to_ascii_lowercase();
-                            if sec_lower == "stream" {
-                                if want_video {
-                                    let mut vals = Vec::new();
-                                    if print_sec {
-                                        vals.push("stream".to_string());
-                                    }
-                                    for f in fields_spec.split(',') {
-                                        if let Some(v) = video_field(f) {
-                                            vals.push(v);
-                                        }
-                                    }
-                                    if !vals.is_empty() {
-                                        out.push_str(&format!("{}\n", vals.join(",")));
-                                    }
-                                }
-                                if want_audio {
-                                    let mut vals = Vec::new();
-                                    if print_sec {
-                                        vals.push("stream".to_string());
-                                    }
-                                    for f in fields_spec.split(',') {
-                                        if let Some(v) = audio_field(f) {
-                                            vals.push(v);
-                                        }
-                                    }
-                                    if !vals.is_empty() {
-                                        out.push_str(&format!("{}\n", vals.join(",")));
-                                    }
-                                }
-                            } else if sec_lower == "format" || sec_lower == "format_tags" {
-                                let mut vals = Vec::new();
-                                if print_sec {
-                                    vals.push("format".to_string());
-                                }
-                                for f in fields_spec.split(',') {
-                                    if let Some(v) = format_field(f) {
-                                        vals.push(v);
-                                    }
-                                }
-                                if !vals.is_empty() {
-                                    out.push_str(&format!("{}\n", vals.join(",")));
-                                }
-                            }
-                        }
-                    }
-                    return ok_out(&out);
-                }
-                if of_fmt == "csv" {
-                    return ok_out(&format!(
-                        "stream,0,{},{},{},{},{},{}\n",
-                        doc.codec_name,
-                        doc.codec_type,
-                        doc.width,
-                        doc.height,
-                        doc.sample_rate,
-                        doc.channels
-                    ));
-                }
-            }
-            if of_fmt == "default" {
-                return ok_out(&format!(
-                    "[STREAM]\ncodec_name={}\ncodec_type={}\nwidth={}\nheight={}\nsample_rate={}\nchannels={}\n[/STREAM]\n[FORMAT]\nformat_name={}\n[/FORMAT]\n",
-                    doc.codec_name,
-                    doc.codec_type,
-                    doc.width,
-                    doc.height,
-                    doc.sample_rate,
-                    doc.channels,
-                    doc.format_name
-                ));
-            }
-            let chaps_json: Vec<String> = doc
-                .chapters
-                .iter()
-                .map(|(id, t)| format!("{{\"id\":{id},\"tags\":{{\"title\":\"{t}\"}}}}"))
-                .collect();
-            let read_frames_extra = if count_frames {
-                format!(",\"nb_read_frames\":\"{}\"", doc.nb_frames)
-            } else {
-                String::new()
-            };
-            let read_packets_extra = if count_packets {
-                format!(",\"nb_read_packets\":\"{}\"", doc.nb_frames)
-            } else {
-                String::new()
-            };
-            let mut stream_objs = Vec::new();
-            if want_video {
-                stream_objs.push(format!(
-                    "{{\"index\":0,\"codec_type\":\"video\",\"codec_name\":\"{}\",\"width\":{},\"height\":{},\"r_frame_rate\":\"{}/1\",\"nb_frames\":\"{}\",\"duration\":\"{dur_val:.6}\"{read_frames_extra}{read_packets_extra}}}",
-                    doc.codec_name, doc.width, doc.height, doc.fps, doc.nb_frames
-                ));
-            }
-            if want_audio {
-                let a_codec = if doc.codec_type == "audio" {
-                    doc.codec_name.as_str()
-                } else {
-                    "aac"
-                };
-                let a_idx = if doc.codec_type == "video" { 1 } else { 0 };
-                stream_objs.push(format!(
-                    "{{\"index\":{a_idx},\"codec_type\":\"audio\",\"codec_name\":\"{a_codec}\",\"sample_rate\":\"{}\",\"channels\":{},\"duration\":\"{dur_val:.6}\"{read_frames_extra}{read_packets_extra}}}",
-                    doc.sample_rate, doc.channels
-                ));
-            }
-            let stream_json = stream_objs.join(",");
-            let esc_json = |s: &str| -> String {
-                s.replace('\\', "\\\\").replace('"', "\\\"")
-            };
-            let mut tags_map = BTreeMap::new();
-            tags_map.insert("title".to_string(), doc.title.clone());
-            for (k, v) in &doc.tags {
-                tags_map.insert(k.clone(), v.clone());
-            }
-            let tags_entries: Vec<String> = tags_map
-                .iter()
-                .map(|(k, v)| format!("\"{}\":\"{}\"", esc_json(k), esc_json(v)))
-                .collect();
-            let tags_json = format!("{{{}}}", tags_entries.join(","));
-            ok_out(&format!(
-                "{{\"streams\":[{stream_json}],\"format\":{{\"format_name\":\"{}\",\"duration\":\"{dur_val:.6}\",\"tags\":{tags_json}}},\"chapters\":[{}]}}\n",
-                doc.format_name,
-                chaps_json.join(",")
-            ))
-        }
-        "soffice" | "libreoffice" => {
-            let mut outdir = cwd.to_string();
-            let mut convert_to: Option<String> = None;
-            let mut cat_mode = false;
-            let mut files: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                let arg = args[i].as_str();
-                if arg == "--" {
-                    for f in &args[i + 1..] {
-                        files.push(f.clone());
-                    }
-                    break;
-                }
-                if arg == "--help" || arg == "-h" || arg == "-help" || arg == "-?" {
-                    return ok_out(
-                        "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
+            } else if inp != "-" && inp != "pipe:0" {
+                if fs.is_dir(&full_in) {
+                    return err_out(
+                        &format!(
+                            "ffmpeg: EISDIR: illegal operation on a directory, readFile '{full_in}'\n"
+                        ),
+                        1,
                     );
                 }
-                if arg == "--version" || arg == "-version" {
-                    return ok_out("LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n");
-                }
-                if arg == "--cat" || arg == "-cat" {
-                    cat_mode = true;
-                    i += 1;
-                    continue;
-                }
-                let opt = arg
-                    .strip_prefix("--")
-                    .or_else(|| arg.strip_prefix('-'))
-                    .unwrap_or("");
-                let (opt_name, eq_val) = match opt.split_once('=') {
-                    Some((n, v)) => (n, Some(v)),
-                    None => (opt, None),
+                return err_out(
+                    &format!(
+                        "ffmpeg: ENOENT: no such file or directory, readFile '{full_in}'\n"
+                    ),
+                    1,
+                );
+            }
+        }
+    }
+    if output_format == Some("null") || out_rel == "/dev/null" {
+        return ok_out("");
+    }
+    if muxer.is_none() && !out_lower.ends_with(".mpd") && !out_lower.ends_with(".m3u") && !out_lower.ends_with(".m3u8") {
+        let fmt_desc = output_format.unwrap_or(&out_rel);
+        return err_out(
+            &format!(
+                "ffmpeg: Unable to find a suitable output format for '{fmt_desc}' (format AST not registered)\n"
+            ),
+            1,
+        );
+    }
+    if !fc_flag.is_empty() {
+        if parsed_input_docs.len() >= 2 {
+            let d0 = &parsed_input_docs[0];
+            let d1 = &parsed_input_docs[1];
+            if fc_flag.contains("vstack") {
+                doc.width = d0.width.max(d1.width);
+                doc.height = parsed_input_docs.iter().map(|d| d.height).sum();
+            } else if fc_flag.contains("hstack") {
+                doc.width = parsed_input_docs.iter().map(|d| d.width).sum();
+                doc.height = d0.height.max(d1.height);
+            } else if fc_flag.contains("concat") {
+                doc.width = d0.width;
+                doc.height = d0.height;
+                doc.fps = d0.fps;
+                doc.nb_frames = parsed_input_docs.iter().map(|d| d.nb_frames).sum();
+                doc.duration = parsed_input_docs.iter().map(|d| d.duration).sum();
+            }
+        }
+        for stage in fc_flag.split(';') {
+            apply_vf_chain_to_doc(&mut doc, stage);
+        }
+    }
+    for vf_chain in &vf_flags {
+        apply_vf_chain_to_doc(&mut doc, vf_chain);
+    }
+    if let Some((sw, sh)) = size_opt {
+        doc.width = sw;
+        doc.height = sh;
+    }
+    if let Some(sr) = ar_opt {
+        doc.sample_rate = sr;
+    }
+    if let Some(ch) = ac_opt {
+        doc.channels = ch;
+    }
+    if let Some(fr) = output_fps {
+        doc.fps = fr.round() as u32;
+        doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
+    }
+    if let Some(dur) = t_opt {
+        let _ = ss_opt;
+        doc.duration = dur;
+        doc.nb_frames = ((doc.fps as f64) * dur).round().max(1.0) as u32;
+    } else if let Some(to_val) = to_opt {
+        let start = ss_opt.unwrap_or(0.0);
+        let dur = (to_val - start).max(0.05);
+        doc.duration = dur;
+        doc.nb_frames = ((doc.fps as f64) * dur).round().max(1.0) as u32;
+    } else if let Some(ss_val) = ss_opt
+        && ss_val > 0.0
+        && ss_val < doc.duration
+    {
+        doc.duration = (doc.duration - ss_val).max(0.05);
+        doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
+    }
+    if let Some(vf_cnt) = vframes_opt {
+        doc.nb_frames = vf_cnt.max(1);
+        doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
+    }
+    if strip_audio {
+        doc.has_audio = false;
+    }
+    if strip_video {
+        doc.codec_type = "audio".to_string();
+    }
+    if let Some(t) = meta_title {
+        doc.title = t.clone();
+        doc.tags.insert("title".to_string(), t);
+    }
+    for (k, v) in meta_tags {
+        doc.tags.insert(k, v);
+    }
+    if out_lower.ends_with(".ffmeta") || fmt_flag == "ffmetadata" {
+        let mut ffmeta = String::from(";FFMETADATA1\n");
+        if !doc.title.is_empty() && !doc.tags.contains_key("title") {
+            ffmeta.push_str(&format!("title={}\n", doc.title));
+        }
+        for (k, v) in &doc.tags {
+            ffmeta.push_str(&format!("{k}={v}\n"));
+        }
+        for (cid, ctitle) in &doc.chapters {
+            ffmeta.push_str(&format!(
+                "[CHAPTER]\nTIMEBASE=1/1000\nSTART={}\nEND={}\ntitle={ctitle}\n",
+                cid * 1000,
+                (cid + 1) * 1000
+            ));
+        }
+        let _ = fs.write_file(&out_full, ffmeta.as_bytes());
+        return ok_out("");
+    }
+    if out_lower.ends_with(".mpd") || fmt_flag == "dash" {
+        let mpd = format!(
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" mediaPresentationDuration=\"PT{:.1}S\">\n  <Period>\n    <AdaptationSet mimeType=\"video/mp4\" width=\"{}\" height=\"{}\"/>\n  </Period>\n</MPD>\n",
+            doc.duration, doc.width, doc.height
+        );
+        let _ = fs.write_file(&out_full, mpd.as_bytes());
+        return ok_out("");
+    }
+    if out_lower.ends_with(".vtt") {
+        let vtt = format!("WEBVTT\n\n{}", doc.subtitles.replace(',', "."));
+        let _ = fs.write_file(&out_full, vtt.as_bytes());
+        return ok_out("");
+    }
+    if out_lower.ends_with(".srt") {
+        let _ = fs.write_file(&out_full, doc.subtitles.as_bytes());
+        return ok_out("");
+    }
+    if out_lower.ends_with(".png") {
+        let im = ImageMeta {
+            fmt: "PNG".to_string(),
+            w: doc.width,
+            h: doc.height,
+            cs: "sRGB".to_string(),
+            exif: BTreeMap::new(),
+        };
+        let bytes = write_image_bytes(&im);
+        if out_rel.contains('%') {
+            for idx in 1..=(doc.nb_frames as usize) {
+                let Some(name) = format_printf_num(&out_rel, idx, Some('0')) else { return err_out("ffmpeg: image sequence filename is too long\n", 1); };
+                let p = resolve_posix_path(cwd, &name);
+                let _ = fs.write_file(&p, &bytes);
+            }
+        } else {
+            let _ = fs.write_file(&out_full, &bytes);
+        }
+        return ok_out("");
+    }
+    if out_lower.ends_with(".wav") {
+        doc.codec_type = "audio".to_string();
+        doc.codec_name = "pcm_s16le".to_string();
+        doc.format_name = "wav".to_string();
+    } else if out_lower.ends_with(".gif") {
+        doc.codec_name = "gif".to_string();
+        doc.format_name = "gif".to_string();
+    } else {
+        doc.codec_name = "h264".to_string();
+        doc.format_name = "mp4".to_string();
+    }
+    let is_m3u8 = fmt_flag == "hls" || out_lower.ends_with(".m3u8");
+    let _ = fs.write_file(&out_full, &doc.serialize(is_m3u8));
+    ok_out("")
+}
+
+fn cmd_ffprobe(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.is_empty() {
+        return err_out(
+            "Simple multimedia streams analyzer\nusage: ffprobe [OPTIONS] INPUT_FILE\n",
+            1,
+        );
+    }
+    for arg in args {
+        if let Some(intro) = format_ffmpeg_introspection(arg, "ffprobe") {
+            return ok_out(&intro);
+        }
+    }
+    let quiet = args
+        .windows(2)
+        .any(|w| (w[0] == "-v" || w[0] == "-loglevel") && w[1] == "quiet");
+    let ffprobe_err = |msg: &str| -> BuiltinOutcome {
+        if quiet {
+            err_out("", 1)
+        } else {
+            err_out(&format!("ffprobe: {msg}\n"), 1)
+        }
+    };
+    let mut audio_options = true;
+    let mut explicit_format = None;
+    let mut requested = std::collections::BTreeSet::new();
+    let mut entry_filter = None;
+    let mut sections = BTreeMap::new();
+    let mut of_fmt = "default".to_string();
+    let mut in_arg: Option<String> = None;
+    let mut show_entries = String::new();
+    let mut select_streams: Option<String> = None;
+    let mut count_frames = false;
+    let mut count_packets = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-print_format" | "-of" => {
+                let Some(v) = args.get(i + 1) else {
+                    return ffprobe_err(&format!("Missing value for {}", args[i]));
                 };
-                if matches!(
-                    opt_name,
-                    "convert-to" | "outdir" | "infilter" | "pidfile" | "language"
-                ) {
-                    let val = if let Some(v) = eq_val {
-                        if v.is_empty() {
-                            return err_out(&format!("Error: {arg} requires a value\n"), 1);
-                        }
-                        i += 1;
-                        v.to_string()
-                    } else {
-                        let next = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
-                        if next.is_empty() || next.starts_with('-') {
-                            return err_out(&format!("Error: {arg} requires a value\n"), 1);
-                        }
-                        i += 2;
-                        next.to_string()
-                    };
-                    if opt_name == "convert-to" {
-                        convert_to = Some(val);
-                    } else if opt_name == "outdir" {
-                        outdir = resolve_posix_path(cwd, &val);
-                    }
-                } else if arg.starts_with('-') {
-                    i += 1;
+                of_fmt = v.clone();
+                i += 2;
+            }
+            "-show_entries" => {
+                let Some(v) = args.get(i + 1) else {
+                    return ffprobe_err(&format!("Missing value for {}", args[i]));
+                };
+                show_entries = v.clone();
+                entry_filter = Some(v.as_str());
+                for entry in v.split(':') {
+                    let mut parts = entry.split('=');
+                    let section = parts.next().unwrap();
+                    audio_options &= matches!(section, "stream" | "format" | "stream_tags" | "format_tags");
+                    sections.insert(section, parts.next());
+                }
+                i += 2;
+            }
+            "-select_streams" => {
+                let Some(v) = args.get(i + 1) else {
+                    return ffprobe_err(&format!("Missing value for {}", args[i]));
+                };
+                audio_options &= matches!(v.as_str(), "0" | "a" | "a:0");
+                select_streams = Some(v.to_ascii_lowercase());
+                i += 2;
+            }
+            "-i" => {
+                let Some(v) = args.get(i + 1) else {
+                    return ffprobe_err(&format!("Missing value for {}", args[i]));
+                };
+                if in_arg.is_some() {
+                    return ffprobe_err("Expected one input");
+                }
+                in_arg = Some(v.clone());
+                i += 2;
+            }
+            "-v" | "-loglevel" | "-f" => {
+                if i + 1 >= args.len() {
+                    return ffprobe_err(&format!("Missing value for {}", args[i]));
+                }
+                if args[i]=="-f" { explicit_format=Some(args[i+1].as_str()); }
+                audio_options &= args[i] == "-v" && matches!(args[i+1].as_str(), "quiet" | "error" | "warning" | "info");
+                i += 2;
+            }
+            "-hide_banner" | "-show_format" | "-show_streams" | "-show_packets"
+            | "-show_frames" | "-show_chapters" | "-show_programs" => {
+                if let Some(section) = args[i].strip_prefix("-show_") {
+                    let section = section.strip_suffix('s').unwrap_or(section);
+                    requested.insert(section);
+                    if matches!(section, "stream" | "format") { sections.insert(section, None); }
+                    else { audio_options = false; }
+                } else { audio_options = false; }
+                i += 1;
+            }
+            "-count_frames" => {
+                count_frames = true;
+                i += 1;
+            }
+            "-count_packets" => {
+                count_packets = true;
+                i += 1;
+            }
+            a if a.starts_with('-') && a != "-" => {
+                return ffprobe_err(&format!("Unknown option {a}"));
+            }
+            a => {
+                if in_arg.is_some() {
+                    return ffprobe_err("Expected one input");
+                }
+                in_arg = Some(a.to_string());
+                i += 1;
+            }
+        }
+    }
+    let Some(name) = in_arg.as_deref() else {
+        return ffprobe_err("must specify an input file");
+    };
+    let mut fmt_parts = of_fmt.split(':');
+    let head = fmt_parts.next().unwrap_or("default");
+    let mut params: Vec<&str> = fmt_parts.collect();
+    let writer = if let Some((w, rest)) = head.split_once('=') {
+        params.insert(0, rest);
+        w.to_ascii_lowercase()
+    } else {
+        head.to_ascii_lowercase()
+    };
+    if !matches!(writer.as_str(), "json" | "compact" | "csv" | "default" | "flat") {
+        return ffprobe_err(&format!("Unknown output format {writer}"));
+    }
+    audio_options &= head == writer;
+    let mut settings = BTreeMap::new();
+    for param in params {
+        let mut parts = param.split('=');
+        let k = parts.next().unwrap();
+        if let Some(v) = parts.next() {
+            settings.insert(k, v);
+            audio_options &= !matches!(k, "compact" | "c");
+        } else {
+            audio_options = false;
+            settings.insert(param,"1");
+        }
+        if param.is_empty() {
+            continue;
+        }
+        let key = param.split('=').next().unwrap_or("");
+        if !matches!(
+            key,
+            "c" | "compact"
+                | "nokey"
+                | "nk"
+                | "noprint_wrappers"
+                | "nw"
+                | "print_section"
+                | "p"
+                | "item_sep"
+                | "s"
+        ) {
+            return ffprobe_err(&format!("Unsupported writer option {key}"));
+        }
+    }
+    let from_stdin = media_stdin(name);
+    let (raw_bytes, path_str) = if from_stdin {
+        (crate::vfs::stream_string_to_bytes(stdin), "pipe:0".to_string())
+    } else {
+        let full = resolve_posix_path(cwd, name);
+        if fs.is_dir(&full) {
+            return ffprobe_err(&format!(
+                "EISDIR: illegal operation on a directory, openReadFile '{full}'"
+            ));
+        }
+        match fs.read_file(&full) {
+            Ok(b) => (b, full),
+            Err(_) => {
+                return ffprobe_err(&format!(
+                    "ENOENT: no such file or directory, openReadFile '{full}'"
+                ));
+            }
+        }
+    };
+    if raw_bytes.is_empty() && !from_stdin && explicit_format.is_none_or(str::is_empty) {
+        return ffprobe_err(&format!("EINVAL: invalid argument, read '{path_str}'"));
+    }
+    let Some(container) = media_format::detect(&raw_bytes, name, explicit_format) else {
+        return ffprobe_err(&match explicit_format {
+            Some(f) => format!("Unknown input format: '{f}' (AST not registered)"),
+            None => format!("{name}: Invalid data found when processing input or format AST not registered"),
+        });
+    };
+    let real_mp4=matches!(container,"mp4" | "mov") && !raw_bytes.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+    if container == "wav" {
+        if !raw_bytes.starts_with(b"RIFF") || raw_bytes.get(8..12) != Some(b"WAVE") {
+            return ffprobe_err("Invalid WAV file: missing RIFF WAVE signature");
+        }
+        if audio_options && !count_frames && !count_packets && let Ok(info) = probe_wav_info(&raw_bytes) {
+            return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
+        }
+    }
+    let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
+    let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
+    if gif || still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
+        let records=requested.contains("packet") || requested.contains("frame");
+        let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
+            writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+        if real_mp4 {
+            return match mp4::report(&raw_bytes,name,opts) {
+                Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
+            };
+        }
+        let clip = if gif {
+            media_probe::Clip::gif(&raw_bytes,records,fs.max_input_bytes())
+        } else if still {
+            media_probe::Clip::still(&raw_bytes, fs.max_input_bytes())
+        } else if matches!(container,"srt" | "webvtt") {
+            media_probe::Clip::subtitles(&raw_bytes,container=="webvtt",records,fs.max_input_bytes())
+        } else if container == "aac" {
+            Ok(media_probe::Clip::adts(&raw_bytes, records))
+        } else { media_probe::Clip::y4m(&raw_bytes) };
+        return match clip.and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
+            Ok(output)=>ok_out(&output), Err(reason)=>ffprobe_err(reason),
+        };
+    }
+    let doc = MediaDoc::parse(&raw_bytes, &path_str);
+    let dur_val = if doc.duration > 0.0 {
+        doc.duration
+    } else {
+        (doc.nb_frames.max(1) as f64) / (doc.fps.max(1) as f64)
+    };
+    let want_video = match select_streams.as_deref() {
+        Some("a") | Some("a:0") | Some("1") => false,
+        _ => doc.codec_type == "video",
+    };
+    let want_audio = match select_streams.as_deref() {
+        Some("v") | Some("v:0") => false,
+        Some("0") => doc.codec_type == "audio",
+        _ => doc.codec_type == "audio" || doc.has_audio,
+    };
+    let video_field = |f: &str| -> Option<String> {
+        match f.trim() {
+            "index" => Some("0".to_string()),
+            "codec_name" => Some(doc.codec_name.clone()),
+            "codec_type" => Some("video".to_string()),
+            "width" => Some(doc.width.to_string()),
+            "height" => Some(doc.height.to_string()),
+            "nb_frames" | "nb_read_frames" | "nb_read_packets" => {
+                Some(doc.nb_frames.to_string())
+            }
+            "r_frame_rate" | "avg_frame_rate" => Some(format!("{}/1", doc.fps)),
+            "duration" => Some(format!("{dur_val:.6}")),
+            _ => None,
+        }
+    };
+    let audio_field = |f: &str| -> Option<String> {
+        let a_codec = if doc.codec_type == "audio" {
+            doc.codec_name.clone()
+        } else {
+            "aac".to_string()
+        };
+        let a_idx = if doc.codec_type == "video" { "1" } else { "0" };
+        match f.trim() {
+            "index" => Some(a_idx.to_string()),
+            "codec_name" => Some(a_codec),
+            "codec_type" => Some("audio".to_string()),
+            "sample_rate" => Some(doc.sample_rate.to_string()),
+            "channels" => Some(doc.channels.to_string()),
+            "duration" => Some(format!("{dur_val:.6}")),
+            "nb_frames" | "nb_read_frames" | "nb_read_packets" => {
+                Some(doc.nb_frames.to_string())
+            }
+            _ => None,
+        }
+    };
+    let format_field = |f: &str| -> Option<String> {
+        match f.trim() {
+            "filename" => Some(in_arg.clone().unwrap_or_else(|| path_str.clone())),
+            "nb_streams" => Some(
+                if doc.codec_type == "video" && doc.has_audio {
+                    "2".to_string()
                 } else {
-                    files.push(arg.to_string());
-                    i += 1;
-                }
-            }
-            if cat_mode && convert_to.is_none() && !files.is_empty() {
-                let mut out = String::new();
-                for f in &files {
-                    let full = resolve_posix_path(cwd, f);
-                    let bytes = match fs.read_file(&full) {
-                        Ok(b) => b,
-                        Err(_) => {
-                            return err_out(
-                                &format!("Error: source file could not be loaded: {f}\n"),
-                                1,
-                            )
+                    "1".to_string()
+                },
+            ),
+            "format_name" => Some(doc.format_name.clone()),
+            "duration" => Some(format!("{dur_val:.6}")),
+            "size" => Some(raw_bytes.len().to_string()),
+            "title" | "tag:title" => Some(doc.title.clone()),
+            s if s.starts_with("tag:") => doc.tags.get(&s[4..]).cloned(),
+            _ => None,
+        }
+    };
+    if of_fmt.starts_with("default") && !show_entries.is_empty() {
+        let nokey = of_fmt.contains("nokey=1") || of_fmt.contains("nk=1");
+        let nowrappers = of_fmt.contains("noprint_wrappers=1") || of_fmt.contains("nw=1");
+        let mut lines: Vec<String> = Vec::new();
+        for sec in show_entries.split(':') {
+            if let Some((sec_name, fields)) = sec.split_once('=') {
+                let sec_lower = sec_name.trim().to_ascii_lowercase();
+                if sec_lower == "stream" {
+                    if want_video {
+                        if !nowrappers {
+                            lines.push("[STREAM]".to_string());
                         }
-                    };
-                    let (paras, _) = match read_office_source(&full, &bytes, fs) { Ok(v) => v, Err(e) => return err_out(e, 1) };
-                    for p in paras {
-                        out.push_str(&p);
-                        out.push('\n');
+                        for f in fields.split(',') {
+                            if let Some(v) = video_field(f) {
+                                lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
+                            }
+                        }
+                        if !nowrappers {
+                            lines.push("[/STREAM]".to_string());
+                        }
+                    }
+                    if want_audio {
+                        if !nowrappers {
+                            lines.push("[STREAM]".to_string());
+                        }
+                        for f in fields.split(',') {
+                            if let Some(v) = audio_field(f) {
+                                lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
+                            }
+                        }
+                        if !nowrappers {
+                            lines.push("[/STREAM]".to_string());
+                        }
+                    }
+                } else if sec_lower == "format" || sec_lower == "format_tags" {
+                    if !nowrappers {
+                        lines.push("[FORMAT]".to_string());
+                    }
+                    for f in fields.split(',') {
+                        if let Some(v) = format_field(f) {
+                            lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
+                        }
+                    }
+                    if !nowrappers {
+                        lines.push("[/FORMAT]".to_string());
                     }
                 }
-                return ok_out(&out);
             }
-            let conv_spec = match convert_to {
-                Some(s) if !files.is_empty() => s,
-                _ => {
+        }
+        if lines.is_empty() {
+            lines.push(doc.nb_frames.to_string());
+        }
+        return ok_out(&format!("{}\n", lines.join("\n")));
+    }
+    if of_fmt.starts_with("default=noprint_wrappers=1:nokey=1") {
+        return ok_out(&format!("{}\n", doc.nb_frames));
+    }
+    if of_fmt == "flat" && !show_entries.is_empty() {
+        let mut lines: Vec<String> = Vec::new();
+        let fmt_flat_val = |k: &str, v: &str| -> String {
+            if matches!(k, "width" | "height" | "channels" | "index") {
+                v.to_string()
+            } else {
+                format!("\"{v}\"")
+            }
+        };
+        for sec in show_entries.split(':') {
+            if let Some((sec_name, fields)) = sec.split_once('=') {
+                let sec_lower = sec_name.trim().to_ascii_lowercase();
+                if sec_lower == "stream" {
+                    if want_video {
+                        for f in fields.split(',') {
+                            let ft = f.trim();
+                            if let Some(v) = video_field(ft) {
+                                lines.push(format!("streams.stream.0.{ft}={}", fmt_flat_val(ft, &v)));
+                            }
+                        }
+                    }
+                    if want_audio {
+                        let a_idx = if doc.codec_type == "video" { 1 } else { 0 };
+                        for f in fields.split(',') {
+                            let ft = f.trim();
+                            if let Some(v) = audio_field(ft) {
+                                lines.push(format!("streams.stream.{a_idx}.{ft}={}", fmt_flat_val(ft, &v)));
+                            }
+                        }
+                    }
+                } else if sec_lower == "format" || sec_lower == "format_tags" {
+                    for f in fields.split(',') {
+                        let ft = f.trim();
+                        if let Some(v) = format_field(ft) {
+                            lines.push(format!("format.{ft}={}", fmt_flat_val(ft, &v)));
+                        }
+                    }
+                }
+            }
+        }
+        return ok_out(&format!("{}\n", lines.join("\n")));
+    }
+    if of_fmt == "flat" {
+        return ok_out(&format!(
+            "streams.stream.0.codec_type=\"{}\"\nstreams.stream.0.codec_name=\"{}\"\nstreams.stream.0.width={}\nstreams.stream.0.height={}\nstreams.stream.0.nb_frames=\"{}\"\nstreams.stream.0.sample_rate=\"{}\"\nstreams.stream.0.channels={}\nformat.format_name=\"{}\"\nformat.duration=\"{dur_val:.6}\"\nformat.tags.title=\"{}\"\n",
+            doc.codec_type,
+            doc.codec_name,
+            doc.width,
+            doc.height,
+            doc.nb_frames,
+            doc.sample_rate,
+            doc.channels,
+            doc.format_name,
+            doc.title
+        ));
+    }
+    if of_fmt.starts_with("compact") {
+        let no_key = of_fmt.contains("nk=1") || of_fmt.contains("nokey=1");
+        let no_sec = of_fmt.contains("p=0") || of_fmt.contains("print_section=0");
+        let mut out = String::new();
+        let fields: Vec<&str> = if let Some(s) = show_entries.strip_prefix("stream=") {
+            s.split(':').next().unwrap_or(s).split(',').collect()
+        } else {
+            vec!["codec_type", "codec_name", "width", "height"]
+        };
+        if want_video {
+            let mut parts = Vec::new();
+            if !no_sec {
+                parts.push("stream".to_string());
+            }
+            for f in &fields {
+                if let Some(v) = video_field(f) {
+                    parts.push(if no_key { v } else { format!("{}={v}", f.trim()) });
+                }
+            }
+            out.push_str(&parts.join("|"));
+            out.push('\n');
+        }
+        if want_audio {
+            let mut parts = Vec::new();
+            if !no_sec {
+                parts.push("stream".to_string());
+            }
+            for f in &fields {
+                if let Some(v) = audio_field(f) {
+                    parts.push(if no_key { v } else { format!("{}={v}", f.trim()) });
+                }
+            }
+            out.push_str(&parts.join("|"));
+            out.push('\n');
+        }
+        return ok_out(&out);
+    }
+    if of_fmt == "csv=p=0" || of_fmt == "csv" {
+        let print_sec = of_fmt == "csv";
+        if !show_entries.is_empty() {
+            let mut out = String::new();
+            for sec in show_entries.split(':') {
+                if let Some((sec_name, fields_spec)) = sec.split_once('=') {
+                    let sec_lower = sec_name.trim().to_ascii_lowercase();
+                    if sec_lower == "stream" {
+                        if want_video {
+                            let mut vals = Vec::new();
+                            if print_sec {
+                                vals.push("stream".to_string());
+                            }
+                            for f in fields_spec.split(',') {
+                                if let Some(v) = video_field(f) {
+                                    vals.push(v);
+                                }
+                            }
+                            if !vals.is_empty() {
+                                out.push_str(&format!("{}\n", vals.join(",")));
+                            }
+                        }
+                        if want_audio {
+                            let mut vals = Vec::new();
+                            if print_sec {
+                                vals.push("stream".to_string());
+                            }
+                            for f in fields_spec.split(',') {
+                                if let Some(v) = audio_field(f) {
+                                    vals.push(v);
+                                }
+                            }
+                            if !vals.is_empty() {
+                                out.push_str(&format!("{}\n", vals.join(",")));
+                            }
+                        }
+                    } else if sec_lower == "format" || sec_lower == "format_tags" {
+                        let mut vals = Vec::new();
+                        if print_sec {
+                            vals.push("format".to_string());
+                        }
+                        for f in fields_spec.split(',') {
+                            if let Some(v) = format_field(f) {
+                                vals.push(v);
+                            }
+                        }
+                        if !vals.is_empty() {
+                            out.push_str(&format!("{}\n", vals.join(",")));
+                        }
+                    }
+                }
+            }
+            return ok_out(&out);
+        }
+        if of_fmt == "csv" {
+            return ok_out(&format!(
+                "stream,0,{},{},{},{},{},{}\n",
+                doc.codec_name,
+                doc.codec_type,
+                doc.width,
+                doc.height,
+                doc.sample_rate,
+                doc.channels
+            ));
+        }
+    }
+    if of_fmt == "default" {
+        return ok_out(&format!(
+            "[STREAM]\ncodec_name={}\ncodec_type={}\nwidth={}\nheight={}\nsample_rate={}\nchannels={}\n[/STREAM]\n[FORMAT]\nformat_name={}\n[/FORMAT]\n",
+            doc.codec_name,
+            doc.codec_type,
+            doc.width,
+            doc.height,
+            doc.sample_rate,
+            doc.channels,
+            doc.format_name
+        ));
+    }
+    let chaps_json: Vec<String> = doc
+        .chapters
+        .iter()
+        .map(|(id, t)| format!("{{\"id\":{id},\"tags\":{{\"title\":\"{t}\"}}}}"))
+        .collect();
+    let read_frames_extra = if count_frames {
+        format!(",\"nb_read_frames\":\"{}\"", doc.nb_frames)
+    } else {
+        String::new()
+    };
+    let read_packets_extra = if count_packets {
+        format!(",\"nb_read_packets\":\"{}\"", doc.nb_frames)
+    } else {
+        String::new()
+    };
+    let mut stream_objs = Vec::new();
+    if want_video {
+        stream_objs.push(format!(
+            "{{\"index\":0,\"codec_type\":\"video\",\"codec_name\":\"{}\",\"width\":{},\"height\":{},\"r_frame_rate\":\"{}/1\",\"nb_frames\":\"{}\",\"duration\":\"{dur_val:.6}\"{read_frames_extra}{read_packets_extra}}}",
+            doc.codec_name, doc.width, doc.height, doc.fps, doc.nb_frames
+        ));
+    }
+    if want_audio {
+        let a_codec = if doc.codec_type == "audio" {
+            doc.codec_name.as_str()
+        } else {
+            "aac"
+        };
+        let a_idx = if doc.codec_type == "video" { 1 } else { 0 };
+        stream_objs.push(format!(
+            "{{\"index\":{a_idx},\"codec_type\":\"audio\",\"codec_name\":\"{a_codec}\",\"sample_rate\":\"{}\",\"channels\":{},\"duration\":\"{dur_val:.6}\"{read_frames_extra}{read_packets_extra}}}",
+            doc.sample_rate, doc.channels
+        ));
+    }
+    let stream_json = stream_objs.join(",");
+    let esc_json = |s: &str| -> String {
+        s.replace('\\', "\\\\").replace('"', "\\\"")
+    };
+    let mut tags_map = BTreeMap::new();
+    tags_map.insert("title".to_string(), doc.title.clone());
+    for (k, v) in &doc.tags {
+        tags_map.insert(k.clone(), v.clone());
+    }
+    let tags_entries: Vec<String> = tags_map
+        .iter()
+        .map(|(k, v)| format!("\"{}\":\"{}\"", esc_json(k), esc_json(v)))
+        .collect();
+    let tags_json = format!("{{{}}}", tags_entries.join(","));
+    ok_out(&format!(
+        "{{\"streams\":[{stream_json}],\"format\":{{\"format_name\":\"{}\",\"duration\":\"{dur_val:.6}\",\"tags\":{tags_json}}},\"chapters\":[{}]}}\n",
+        doc.format_name,
+        chaps_json.join(",")
+    ))
+}
+
+fn cmd_soffice(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut outdir = cwd.to_string();
+    let mut convert_to: Option<String> = None;
+    let mut cat_mode = false;
+    let mut files: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = args[i].as_str();
+        if arg == "--" {
+            for f in &args[i + 1..] {
+                files.push(f.clone());
+            }
+            break;
+        }
+        if arg == "--help" || arg == "-h" || arg == "-help" || arg == "-?" {
+            return ok_out(
+                "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
+            );
+        }
+        if arg == "--version" || arg == "-version" {
+            return ok_out("LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n");
+        }
+        if arg == "--cat" || arg == "-cat" {
+            cat_mode = true;
+            i += 1;
+            continue;
+        }
+        let opt = arg
+            .strip_prefix("--")
+            .or_else(|| arg.strip_prefix('-'))
+            .unwrap_or("");
+        let (opt_name, eq_val) = match opt.split_once('=') {
+            Some((n, v)) => (n, Some(v)),
+            None => (opt, None),
+        };
+        if matches!(
+            opt_name,
+            "convert-to" | "outdir" | "infilter" | "pidfile" | "language"
+        ) {
+            let val = if let Some(v) = eq_val {
+                if v.is_empty() {
+                    return err_out(&format!("Error: {arg} requires a value\n"), 1);
+                }
+                i += 1;
+                v.to_string()
+            } else {
+                let next = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                if next.is_empty() || next.starts_with('-') {
+                    return err_out(&format!("Error: {arg} requires a value\n"), 1);
+                }
+                i += 2;
+                next.to_string()
+            };
+            if opt_name == "convert-to" {
+                convert_to = Some(val);
+            } else if opt_name == "outdir" {
+                outdir = resolve_posix_path(cwd, &val);
+            }
+        } else if arg.starts_with('-') {
+            i += 1;
+        } else {
+            files.push(arg.to_string());
+            i += 1;
+        }
+    }
+    if cat_mode && convert_to.is_none() && !files.is_empty() {
+        let mut out = String::new();
+        for f in &files {
+            let full = resolve_posix_path(cwd, f);
+            let bytes = match fs.read_file(&full) {
+                Ok(b) => b,
+                Err(_) => {
                     return err_out(
-                        "Error: --convert-to and at least one input file are required\n",
+                        &format!("Error: source file could not be loaded: {f}\n"),
                         1,
                     )
                 }
             };
-            let _ = fs.mkdir_all(&outdir);
-            let first_colon = conv_spec.find(':');
-            let second_colon = first_colon.and_then(|fc| conv_spec[fc + 1..].find(':').map(|sc| fc + 1 + sc));
-            let target_ext = match first_colon {
-                Some(fc) => conv_spec[..fc].to_ascii_lowercase(),
-                None => conv_spec.to_ascii_lowercase(),
-            };
-            let filter_name_raw = match (first_colon, second_colon) {
-                (Some(fc), Some(sc)) => Some(&conv_spec[fc + 1..sc]),
-                (Some(fc), None) => Some(&conv_spec[fc + 1..]),
-                _ => None,
-            };
-            let filter_opts = second_colon.map(|sc| &conv_spec[sc + 1..]);
-            let mut stdout_msg = String::new();
-            for f in &files {
-                let full = resolve_posix_path(cwd, f);
-                let bytes = match fs.read_file(&full) {
-                    Ok(b) => b,
-                    Err(_) => {
-                        return err_out(
-                            &format!("Error: source file could not be loaded: {f}\n"),
-                            1,
-                        )
-                    }
+            let (paras, _) = match read_office_source(&full, &bytes, fs) { Ok(v) => v, Err(e) => return err_out(e, 1) };
+            for p in paras {
+                out.push_str(&p);
+                out.push('\n');
+            }
+        }
+        return ok_out(&out);
+    }
+    let conv_spec = match convert_to {
+        Some(s) if !files.is_empty() => s,
+        _ => {
+            return err_out(
+                "Error: --convert-to and at least one input file are required\n",
+                1,
+            )
+        }
+    };
+    let _ = fs.mkdir_all(&outdir);
+    let first_colon = conv_spec.find(':');
+    let second_colon = first_colon.and_then(|fc| conv_spec[fc + 1..].find(':').map(|sc| fc + 1 + sc));
+    let target_ext = match first_colon {
+        Some(fc) => conv_spec[..fc].to_ascii_lowercase(),
+        None => conv_spec.to_ascii_lowercase(),
+    };
+    let filter_name_raw = match (first_colon, second_colon) {
+        (Some(fc), Some(sc)) => Some(&conv_spec[fc + 1..sc]),
+        (Some(fc), None) => Some(&conv_spec[fc + 1..]),
+        _ => None,
+    };
+    let filter_opts = second_colon.map(|sc| &conv_spec[sc + 1..]);
+    let mut stdout_msg = String::new();
+    for f in &files {
+        let full = resolve_posix_path(cwd, f);
+        let bytes = match fs.read_file(&full) {
+            Ok(b) => b,
+            Err(_) => {
+                return err_out(
+                    &format!("Error: source file could not be loaded: {f}\n"),
+                    1,
+                )
+            }
+        };
+        let fname = f.rsplit('/').next().unwrap_or(f);
+        let stem = fname
+            .rsplit_once('.')
+            .map(|(s, _)| s)
+            .unwrap_or(fname);
+        let lower_in = fname.to_ascii_lowercase();
+        let dest = format!("{}/{stem}.{target_ext}", outdir.trim_end_matches('/'));
+        let default_filter = if target_ext == "pdf" {
+            if lower_in.ends_with(".xlsx") || lower_in.ends_with(".csv") || lower_in.ends_with(".ods") {
+                "calc_pdf_Export".to_string()
+            } else if lower_in.ends_with(".pptx") || lower_in.ends_with(".odp") {
+                "impress_pdf_Export".to_string()
+            } else {
+                "writer_pdf_Export".to_string()
+            }
+        } else if target_ext == "csv" {
+            "Text - txt - csv (StarCalc)".to_string()
+        } else {
+            format!("{target_ext}_Export")
+        };
+        let filter_name = match filter_name_raw {
+            Some(s) if !s.is_empty() => s.to_string(),
+            _ => default_filter,
+        };
+        let (paras, mut rows_opt) = match read_office_source(&full, &bytes, fs) { Ok(v) => v, Err(e) => return err_out(e, 1) };
+        let source = String::from_utf8_lossy(&bytes);
+        let Some(blocks) = office::blocks(&source,&lower_in,&paras,rows_opt.as_deref()) else {
+            return err_out("Error: conversion failed: document exceeds nesting limit\n",1);
+        };
+        let input_ext = lower_in.rsplit('.').next().unwrap_or("");
+        if matches!(target_ext.as_str(),"xlsx"|"csv") && matches!(input_ext,"html"|"htm") {
+            let mut rows=Vec::new();
+            for b in &blocks { if let office::Block::Table(t)=b { rows.extend(t.iter().cloned()); } }
+            if rows.is_empty() { rows.extend(blocks.iter().map(|b|vec![match b {office::Block::Text(t,_)=>t.clone(),_=>String::new()}])); }
+            rows_opt=Some(rows);
+        }
+        if rows_opt.is_none() && matches!(target_ext.as_str(),"xlsx"|"csv") && !matches!(input_ext,"rtf"|"docx"|"odt"|"odp"|"pptx"|"pdf") {
+            let delim=if source.contains('\t') {'\t'} else {','};
+            rows_opt=Some(match office::delimited(&source,delim){Ok(rows)=>rows, Err(e)=>return err_out(e,1)});
+        }
+        match target_ext.as_str() {
+            "pdf" if !matches!(input_ext,"pdf"|"pptx"|"odp"|"docx"|"odt"|"ods") => {
+                let Some(pdf) = pdf_reader::render_office(blocks, stem, filter_opts, fs.max_input_bytes()) else {
+                    return err_out("Error: conversion failed: PDF exceeds resource limits\n", 1);
                 };
-                let fname = f.rsplit('/').next().unwrap_or(f);
-                let stem = fname
-                    .rsplit_once('.')
-                    .map(|(s, _)| s)
-                    .unwrap_or(fname);
-                let lower_in = fname.to_ascii_lowercase();
-                let dest = format!("{}/{stem}.{target_ext}", outdir.trim_end_matches('/'));
-                let default_filter = if target_ext == "pdf" {
-                    if lower_in.ends_with(".xlsx") || lower_in.ends_with(".csv") || lower_in.ends_with(".ods") {
-                        "calc_pdf_Export".to_string()
-                    } else if lower_in.ends_with(".pptx") || lower_in.ends_with(".odp") {
-                        "impress_pdf_Export".to_string()
-                    } else {
-                        "writer_pdf_Export".to_string()
-                    }
-                } else if target_ext == "csv" {
-                    "Text - txt - csv (StarCalc)".to_string()
+                if fs.write_file(&dest, &pdf).is_err() { return err_out("Error: conversion failed: cannot write PDF\n", 1); }
+            }
+            "pdf" => {
+                let mut pdf = if full.to_ascii_lowercase().ends_with(".pdf") {
+                    PdfDoc::parse(&bytes)
                 } else {
-                    format!("{target_ext}_Export")
+                    let mut d = PdfDoc::new();
+                    let body = paras.join("\n");
+                    d.pages.push(PdfPage {
+                        rot: 0,
+                        text: body.clone(),
+                        html: format!("<p>{}</p>", html_escape_str(&body)),
+                        images: Vec::new(),
+                        urls: Vec::new(),
+                    });
+                    d
                 };
-                let filter_name = match filter_name_raw {
-                    Some(s) if !s.is_empty() => s.to_string(),
-                    _ => default_filter,
-                };
-                let (paras, mut rows_opt) = match read_office_source(&full, &bytes, fs) { Ok(v) => v, Err(e) => return err_out(e, 1) };
-                let source = String::from_utf8_lossy(&bytes);
-                let Some(blocks) = office::blocks(&source,&lower_in,&paras,rows_opt.as_deref()) else {
-                    return err_out("Error: conversion failed: document exceeds nesting limit\n",1);
-                };
-                let input_ext = lower_in.rsplit('.').next().unwrap_or("");
-                if matches!(target_ext.as_str(),"xlsx"|"csv") && matches!(input_ext,"html"|"htm") {
-                    let mut rows=Vec::new();
-                    for b in &blocks { if let office::Block::Table(t)=b { rows.extend(t.iter().cloned()); } }
-                    if rows.is_empty() { rows.extend(blocks.iter().map(|b|vec![match b {office::Block::Text(t,_)=>t.clone(),_=>String::new()}])); }
-                    rows_opt=Some(rows);
+                pdf.version = "1.7".to_string();
+                if conv_spec.contains("\"value\":16") || conv_spec.contains("\"value\": 16")
+                {
+                    pdf.version = "1.6".to_string();
+                } else if conv_spec.contains("\"value\":15") {
+                    pdf.version = "1.5".to_string();
+                } else if conv_spec.contains("\"value\":14") {
+                    pdf.version = "1.4".to_string();
                 }
-                if rows_opt.is_none() && matches!(target_ext.as_str(),"xlsx"|"csv") && !matches!(input_ext,"rtf"|"docx"|"odt"|"odp"|"pptx"|"pdf") {
-                    let delim=if source.contains('\t') {'\t'} else {','};
-                    rows_opt=Some(match office::delimited(&source,delim){Ok(rows)=>rows, Err(e)=>return err_out(e,1)});
-                }
-                match target_ext.as_str() {
-                    "pdf" if !matches!(input_ext,"pdf"|"pptx"|"odp"|"docx"|"odt"|"ods") => {
-                        let Some(pdf) = pdf_reader::render_office(blocks, stem, filter_opts, fs.max_input_bytes()) else {
-                            return err_out("Error: conversion failed: PDF exceeds resource limits\n", 1);
-                        };
-                        if fs.write_file(&dest, &pdf).is_err() { return err_out("Error: conversion failed: cannot write PDF\n", 1); }
-                    }
-                    "pdf" => {
-                        let mut pdf = if full.to_ascii_lowercase().ends_with(".pdf") {
-                            PdfDoc::parse(&bytes)
-                        } else {
-                            let mut d = PdfDoc::new();
-                            let body = paras.join("\n");
-                            d.pages.push(PdfPage {
-                                rot: 0,
-                                text: body.clone(),
-                                html: format!("<p>{}</p>", html_escape_str(&body)),
-                                images: Vec::new(),
-                                urls: Vec::new(),
-                            });
-                            d
-                        };
-                        pdf.version = "1.7".to_string();
-                        if conv_spec.contains("\"value\":16") || conv_spec.contains("\"value\": 16")
-                        {
-                            pdf.version = "1.6".to_string();
-                        } else if conv_spec.contains("\"value\":15") {
-                            pdf.version = "1.5".to_string();
-                        } else if conv_spec.contains("\"value\":14") {
-                            pdf.version = "1.4".to_string();
-                        }
-                        if let Some(pr_idx) = conv_spec.find("\"PageRange\"") {
-                            let after = &conv_spec[pr_idx..];
-                            if let Some(v_idx) = after.find("\"value\":\"") {
-                                let r = &after[v_idx + 9..];
-                                if let Some(end_q) = r.find('"') {
-                                    let range_str = &r[..end_q];
-                                    let sel = parse_qpdf_page_spec(range_str, pdf.pages.len());
-                                    let mut new_pages = Vec::new();
-                                    for pno in sel {
-                                        if let Some(pg) = pdf.pages.get(pno - 1) {
-                                            new_pages.push(pg.clone());
-                                        }
-                                    }
-                                    if !new_pages.is_empty() {
-                                        pdf.pages = new_pages;
-                                    }
+                if let Some(pr_idx) = conv_spec.find("\"PageRange\"") {
+                    let after = &conv_spec[pr_idx..];
+                    if let Some(v_idx) = after.find("\"value\":\"") {
+                        let r = &after[v_idx + 9..];
+                        if let Some(end_q) = r.find('"') {
+                            let range_str = &r[..end_q];
+                            let sel = parse_qpdf_page_spec(range_str, pdf.pages.len());
+                            let mut new_pages = Vec::new();
+                            for pno in sel {
+                                if let Some(pg) = pdf.pages.get(pno - 1) {
+                                    new_pages.push(pg.clone());
                                 }
                             }
-                        }
-                        let _ = fs.write_file(&dest, &pdf.serialize());
-                    }
-                    "docx" => {
-                        let Some(doc) = office::docx(&blocks, fs.max_input_bytes()) else { return err_out("Error: conversion failed: document exceeds byte limit\n",1); };
-                        if fs.write_file(&dest,&doc).is_err() { return err_out("Error: conversion failed: cannot write document\n",1); }
-                    }
-                    "xlsx" | "csv" if matches!(input_ext,"rtf"|"docx"|"odt"|"odp") => {
-                        let _=fs.write_file(&dest, office::text(&blocks).as_bytes());
-                    }
-                    "xlsx" => {
-                        let rows = rows_opt.unwrap_or_else(|| paras.iter().map(|p| vec![p.clone()]).collect());
-                        let Some(book) = office::xlsx(&rows, fs.max_input_bytes()) else { return err_out("Error: conversion failed: workbook exceeds byte limit\n",1); };
-                        if fs.write_file(&dest,&book).is_err() { return err_out("Error: conversion failed: cannot write workbook\n",1); }
-                    }
-                    "csv" => {
-                        let mut delim = ',';
-                        let mut quote = '"';
-                        let mut quote_all = false;
-                        if let Some(fopts) = filter_opts {
-                            let fparts: Vec<&str> = fopts.split(',').collect();
-                            if let Some(first_num) = fparts.first()
-                                && let Ok(code) = first_num.parse::<u8>()
-                                && code > 0
-                            {
-                                delim = code as char;
+                            if !new_pages.is_empty() {
+                                pdf.pages = new_pages;
                             }
-                            if let Some(second_num) = fparts.get(1)
-                                && let Ok(code) = second_num.parse::<u8>()
-                                && code > 0
-                            {
-                                quote = code as char;
-                            }
-                            quote_all = fparts.get(6) == Some(&"true") || fopts.ends_with(",true");
                         }
-                        let rows = rows_opt.unwrap_or_else(|| paras.iter().map(|p| vec![p.clone()]).collect());
-                        let mut csv_out = String::new();
-                        let q_str = quote.to_string();
-                        let qq_str = format!("{quote}{quote}");
-                        for r in rows {
-                            let formatted_cells: Vec<String> = r
-                                .into_iter()
-                                .map(|c| {
-                                    let must_quote = quote_all
-                                        || c.contains(delim)
-                                        || c.contains(quote)
-                                        || c.contains('\n')
-                                        || c.contains('\r');
-                                    if must_quote {
-                                        let escaped = c.replace(&q_str, &qq_str);
-                                        format!("{quote}{escaped}{quote}")
-                                    } else {
-                                        c
-                                    }
-                                })
-                                .collect();
-                            let d_str = delim.to_string();
-                            csv_out.push_str(&formatted_cells.join(&d_str));
-                            csv_out.push('\n');
-                        }
-                        let _ = fs.write_file(&dest, csv_out.as_bytes());
                     }
-                    "html" => { let _=fs.write_file(&dest, office::html(&blocks,stem).as_bytes()); }
-                    "txt" if !matches!(input_ext,"html"|"htm"|"md"|"rtf"|"docx"|"odt"|"ods"|"odp"|"pptx"|"pdf"|"csv"|"xlsx") => { let _=fs.write_file(&dest,&bytes); }
-                    "txt" | "ods" | "odt" => { let _=fs.write_file(&dest,office::text(&blocks).as_bytes()); }
-                    "png" => {
-                        let im = ImageMeta {
-                            fmt: "PNG".to_string(),
-                            w: 612,
-                            h: 792,
-                            cs: "sRGB".to_string(),
-                            exif: BTreeMap::new(),
-                        };
-                        let _ = fs.write_file(&dest, &write_image_bytes(&im));
-                    }
-                    _ => {}
                 }
-                stdout_msg.push_str(&format!("convert {f} -> {dest} using filter : {filter_name}\n"));
+                let _ = fs.write_file(&dest, &pdf.serialize());
             }
-            ok_out(&stdout_msg)
+            "docx" => {
+                let Some(doc) = office::docx(&blocks, fs.max_input_bytes()) else { return err_out("Error: conversion failed: document exceeds byte limit\n",1); };
+                if fs.write_file(&dest,&doc).is_err() { return err_out("Error: conversion failed: cannot write document\n",1); }
+            }
+            "xlsx" | "csv" if matches!(input_ext,"rtf"|"docx"|"odt"|"odp") => {
+                let _=fs.write_file(&dest, office::text(&blocks).as_bytes());
+            }
+            "xlsx" => {
+                let rows = rows_opt.unwrap_or_else(|| paras.iter().map(|p| vec![p.clone()]).collect());
+                let Some(book) = office::xlsx(&rows, fs.max_input_bytes()) else { return err_out("Error: conversion failed: workbook exceeds byte limit\n",1); };
+                if fs.write_file(&dest,&book).is_err() { return err_out("Error: conversion failed: cannot write workbook\n",1); }
+            }
+            "csv" => {
+                let mut delim = ',';
+                let mut quote = '"';
+                let mut quote_all = false;
+                if let Some(fopts) = filter_opts {
+                    let fparts: Vec<&str> = fopts.split(',').collect();
+                    if let Some(first_num) = fparts.first()
+                        && let Ok(code) = first_num.parse::<u8>()
+                        && code > 0
+                    {
+                        delim = code as char;
+                    }
+                    if let Some(second_num) = fparts.get(1)
+                        && let Ok(code) = second_num.parse::<u8>()
+                        && code > 0
+                    {
+                        quote = code as char;
+                    }
+                    quote_all = fparts.get(6) == Some(&"true") || fopts.ends_with(",true");
+                }
+                let rows = rows_opt.unwrap_or_else(|| paras.iter().map(|p| vec![p.clone()]).collect());
+                let mut csv_out = String::new();
+                let q_str = quote.to_string();
+                let qq_str = format!("{quote}{quote}");
+                for r in rows {
+                    let formatted_cells: Vec<String> = r
+                        .into_iter()
+                        .map(|c| {
+                            let must_quote = quote_all
+                                || c.contains(delim)
+                                || c.contains(quote)
+                                || c.contains('\n')
+                                || c.contains('\r');
+                            if must_quote {
+                                let escaped = c.replace(&q_str, &qq_str);
+                                format!("{quote}{escaped}{quote}")
+                            } else {
+                                c
+                            }
+                        })
+                        .collect();
+                    let d_str = delim.to_string();
+                    csv_out.push_str(&formatted_cells.join(&d_str));
+                    csv_out.push('\n');
+                }
+                let _ = fs.write_file(&dest, csv_out.as_bytes());
+            }
+            "html" => { let _=fs.write_file(&dest, office::html(&blocks,stem).as_bytes()); }
+            "txt" if !matches!(input_ext,"html"|"htm"|"md"|"rtf"|"docx"|"odt"|"ods"|"odp"|"pptx"|"pdf"|"csv"|"xlsx") => { let _=fs.write_file(&dest,&bytes); }
+            "txt" | "ods" | "odt" => { let _=fs.write_file(&dest,office::text(&blocks).as_bytes()); }
+            "png" => {
+                let im = ImageMeta {
+                    fmt: "PNG".to_string(),
+                    w: 612,
+                    h: 792,
+                    cs: "sRGB".to_string(),
+                    exif: BTreeMap::new(),
+                };
+                let _ = fs.write_file(&dest, &write_image_bytes(&im));
+            }
+            _ => {}
         }
-        "wkhtmltopdf" => wkhtmltopdf::wkhtmltopdf(args, stdin, cwd, fs, false),
-        "pdfunite" => {
-            let mut pos: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                let a = &args[i];
-                if a == "-v" || a == "--version" {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: "pdfunite version 24.08.0\n".to_string(),
-                        exit_code: 0,
-                    };
-                }
-                if matches!(a.as_str(), "-h" | "-help" | "--help" | "-?") {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n".to_string(),
-                        exit_code: 0,
-                    };
-                }
-                if a == "--" {
-                    pos.extend(args[i + 1..].iter().cloned());
-                    break;
-                }
-                if a.starts_with('-') {
+        stdout_msg.push_str(&format!("convert {f} -> {dest} using filter : {filter_name}\n"));
+    }
+    ok_out(&stdout_msg)
+}
+
+fn cmd_pdfunite(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut pos: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-v" || a == "--version" {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "pdfunite version 24.08.0\n".to_string(),
+                exit_code: 0,
+            };
+        }
+        if matches!(a.as_str(), "-h" | "-help" | "--help" | "-?") {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n".to_string(),
+                exit_code: 0,
+            };
+        }
+        if a == "--" {
+            pos.extend(args[i + 1..].iter().cloned());
+            break;
+        }
+        if a.starts_with('-') {
+            return err_out(
+                "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+                99,
+            );
+        }
+        pos.push(a.clone());
+        i += 1;
+    }
+    if pos.len() < 3 {
+        return err_out(
+            "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+            99,
+        );
+    }
+    let sources = &pos[..pos.len()-1];
+    let destination = pos.last().unwrap();
+    let mut inputs = BTreeMap::new();
+    let mut remaining = fs.max_input_bytes();
+    for src in sources {
+        if inputs.contains_key(src) { continue; }
+        let full = resolve_posix_path(cwd, src);
+        let Ok(b) = fs.read_file(&full) else {
+            return err_out(
+                &format!(
+                    "I/O Error: Couldn't open file '{src}': No such file or directory.\nSyntax Error: Could not merge damaged documents ('{src}')\n"
+                ),
+                255,
+            );
+        };
+        if !b.starts_with(b"%PDF-") {
+            return err_out(
+                &format!("Syntax Error: Could not merge damaged documents ('{src}')\n"),
+                255,
+            );
+        }
+        let Some(left) = remaining.checked_sub(b.len()) else {
+            return err_out("pdfunite: input byte limit exceeded\n", 255);
+        };
+        remaining = left;
+        inputs.insert(src, b);
+    }
+    if !inputs.values().any(|bytes| is_legacy_pdf(bytes)) {
+        let mut output = pdf_reader::PageOutput::new(crate::budget::ShellLimits::default().max_output_bytes);
+        for src in sources {
+            let damaged = || err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"), 255);
+            let Ok(mut source) = pdf_reader::PageSource::open(&inputs[src],"") else { return damaged() };
+            if output.append(&mut source, None).is_none() { return damaged(); }
+        }
+        return match output.finish() {
+            Some(bytes) => write_copied_pdf(fs, cwd, destination, &bytes, 255),
+            None => err_out("pdfunite: output byte limit exceeded\n", 255),
+        };
+    }
+    let mut out_doc = PdfDoc::new();
+    for (idx, src) in sources.iter().enumerate() {
+        let b = &inputs[src];
+        let mut sub = PdfDoc::parse(b);
+        if !is_legacy_pdf(b) {
+            let source = pdf_reader::attachments::CopyAttachments {path:src.to_string(),prefix:String::new(),password:String::new()};
+            if source.visit(b,|key,name,data|{
+                sub.attachments.push((key,name,String::new(),data.to_vec()));
+                Ok(())
+            }).is_err(){return err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"),255);}
+        }
+        if sub.encrypted.is_some() {
+            return err_out(
+                &format!("Unimplemented Feature: Could not merge encrypted files ('{src}')\n"),
+                255,
+            );
+        }
+        let page_offset = out_doc.pages.len();
+        if idx == 0 {
+            out_doc.version = sub.version.clone();
+            out_doc.title = sub.title.clone();
+            out_doc.author = sub.author.clone();
+            out_doc.page_w = sub.page_w;
+            out_doc.page_h = sub.page_h;
+            out_doc.info = sub.info.clone();
+            out_doc.exif = sub.exif.clone();
+        }
+        for (pno, media) in &sub.page_media {
+            out_doc.page_media.insert(page_offset + pno, *media);
+        }
+        for (bt, bl, bp) in &sub.bookmarks {
+            let shifted = bp.parse::<usize>().unwrap_or(1) + page_offset;
+            out_doc.bookmarks.push((bt.clone(), bl.clone(), shifted.to_string()));
+        }
+        for (ni, st, pf, sy) in &sub.page_labels {
+            let shifted = ni.parse::<usize>().unwrap_or(1) + page_offset;
+            out_doc.page_labels.push((shifted.to_string(), st.clone(), pf.clone(), sy.clone()));
+        }
+        for att in &sub.attachments {
+            if !out_doc.attachments.iter().any(|x| x.0 == att.0) {
+                out_doc.attachments.push(att.clone());
+            }
+        }
+        out_doc.pages.extend(sub.pages);
+    }
+    write_copied_pdf(fs, cwd, destination, &out_doc.serialize(), 255)
+}
+
+fn cmd_pdfseparate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut first_p = 1usize;
+    let mut last_p: Option<usize> = None;
+    let mut pos: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-v" | "--version" => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdfseparate version 24.08.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            "-h" | "-help" | "--help" | "-?" => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            "--" => {
+                pos.extend(args[i + 1..].iter().cloned());
+                break;
+            }
+            "-f" => {
+                let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
                     return err_out(
-                        "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+                        "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
                         99,
                     );
+                };
+                first_p = v.max(1);
+                i += 2;
+            }
+            "-l" => {
+                let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                    return err_out(
+                        "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
+                        99,
+                    );
+                };
+                if v > 0 {
+                    last_p = Some(v);
+                } else {
+                    last_p = None;
                 }
-                pos.push(a.clone());
+                i += 2;
+            }
+            a if !a.starts_with('-') => {
+                pos.push(a.to_string());
                 i += 1;
             }
-            if pos.len() < 3 {
+            _ => {
                 return err_out(
-                    "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+                    "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
                     99,
                 );
             }
-            let sources = &pos[..pos.len()-1];
-            let destination = pos.last().unwrap();
-            let mut inputs = BTreeMap::new();
-            let mut remaining = fs.max_input_bytes();
-            for src in sources {
-                if inputs.contains_key(src) { continue; }
-                let full = resolve_posix_path(cwd, src);
-                let Ok(b) = fs.read_file(&full) else {
-                    return err_out(
-                        &format!(
-                            "I/O Error: Couldn't open file '{src}': No such file or directory.\nSyntax Error: Could not merge damaged documents ('{src}')\n"
-                        ),
-                        255,
-                    );
-                };
-                if !b.starts_with(b"%PDF-") {
-                    return err_out(
-                        &format!("Syntax Error: Could not merge damaged documents ('{src}')\n"),
-                        255,
-                    );
-                }
-                let Some(left) = remaining.checked_sub(b.len()) else {
-                    return err_out("pdfunite: input byte limit exceeded\n", 255);
-                };
-                remaining = left;
-                inputs.insert(src, b);
-            }
-            if !inputs.values().any(|bytes| is_legacy_pdf(bytes)) {
-                let mut output = pdf_reader::PageOutput::new(crate::budget::ShellLimits::default().max_output_bytes);
-                for src in sources {
-                    let damaged = || err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"), 255);
-                    let Ok(mut source) = pdf_reader::PageSource::open(&inputs[src],"") else { return damaged() };
-                    if output.append(&mut source, None).is_none() { return damaged(); }
-                }
-                return match output.finish() {
-                    Some(bytes) => write_copied_pdf(fs, cwd, destination, &bytes, 255),
-                    None => err_out("pdfunite: output byte limit exceeded\n", 255),
-                };
-            }
-            let mut out_doc = PdfDoc::new();
-            for (idx, src) in sources.iter().enumerate() {
-                let b = &inputs[src];
-                let mut sub = PdfDoc::parse(b);
-                if !is_legacy_pdf(b) {
-                    let source = pdf_reader::attachments::CopyAttachments {path:src.to_string(),prefix:String::new(),password:String::new()};
-                    if source.visit(b,|key,name,data|{
-                        sub.attachments.push((key,name,String::new(),data.to_vec()));
-                        Ok(())
-                    }).is_err(){return err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"),255);}
-                }
-                if sub.encrypted.is_some() {
-                    return err_out(
-                        &format!("Unimplemented Feature: Could not merge encrypted files ('{src}')\n"),
-                        255,
-                    );
-                }
-                let page_offset = out_doc.pages.len();
-                if idx == 0 {
-                    out_doc.version = sub.version.clone();
-                    out_doc.title = sub.title.clone();
-                    out_doc.author = sub.author.clone();
-                    out_doc.page_w = sub.page_w;
-                    out_doc.page_h = sub.page_h;
-                    out_doc.info = sub.info.clone();
-                    out_doc.exif = sub.exif.clone();
-                }
-                for (pno, media) in &sub.page_media {
-                    out_doc.page_media.insert(page_offset + pno, *media);
-                }
-                for (bt, bl, bp) in &sub.bookmarks {
-                    let shifted = bp.parse::<usize>().unwrap_or(1) + page_offset;
-                    out_doc.bookmarks.push((bt.clone(), bl.clone(), shifted.to_string()));
-                }
-                for (ni, st, pf, sy) in &sub.page_labels {
-                    let shifted = ni.parse::<usize>().unwrap_or(1) + page_offset;
-                    out_doc.page_labels.push((shifted.to_string(), st.clone(), pf.clone(), sy.clone()));
-                }
-                for att in &sub.attachments {
-                    if !out_doc.attachments.iter().any(|x| x.0 == att.0) {
-                        out_doc.attachments.push(att.clone());
-                    }
-                }
-                out_doc.pages.extend(sub.pages);
-            }
-            write_copied_pdf(fs, cwd, destination, &out_doc.serialize(), 255)
         }
-        "pdfseparate" => {
-            let mut first_p = 1usize;
-            let mut last_p: Option<usize> = None;
-            let mut pos: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-v" | "--version" => {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "pdfseparate version 24.08.0\n".to_string(),
-                            exit_code: 0,
-                        };
-                    }
-                    "-h" | "-help" | "--help" | "-?" => {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n".to_string(),
-                            exit_code: 0,
-                        };
-                    }
-                    "--" => {
-                        pos.extend(args[i + 1..].iter().cloned());
-                        break;
-                    }
-                    "-f" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out(
-                                "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
-                                99,
-                            );
-                        };
-                        first_p = v.max(1);
-                        i += 2;
-                    }
-                    "-l" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out(
-                                "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
-                                99,
-                            );
-                        };
-                        if v > 0 {
-                            last_p = Some(v);
-                        } else {
-                            last_p = None;
-                        }
-                        i += 2;
-                    }
-                    a if !a.starts_with('-') => {
-                        pos.push(a.to_string());
-                        i += 1;
-                    }
-                    _ => {
-                        return err_out(
-                            "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
-                            99,
-                        );
-                    }
-                }
+    }
+    if pos.len() != 2 {
+        return err_out("Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n", 99);
+    }
+    let src = resolve_posix_path(cwd, &pos[0]);
+    let pat = &pos[1];
+    let Ok(b) = fs.read_file(&src) else {
+        return err_out(
+            &format!(
+                "I/O Error: Couldn't open file '{}': No such file or directory.\nSyntax Error: Could not extract page(s) from damaged file ('{}')\n",
+                pos[0], pos[0]
+            ),
+            99,
+        );
+    };
+    if !b.starts_with(b"%PDF-") {
+        return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
+    }
+    let mut source = pdf_reader::PageSource::open(&b,"").ok();
+    let legacy = if source.is_none() && is_legacy_pdf(&b) { Some(PdfDoc::parse(&b)) } else { None };
+    let damaged = || err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
+    let total = match (&source, &legacy) {
+        (Some(s), _) => s.len(),
+        (_, Some(doc)) => doc.pages.len(),
+        _ => return damaged(),
+    };
+    let end_p = last_p.map(|lp| total.min(lp)).unwrap_or(total);
+    if first_p > total || last_p.is_some_and(|lp| lp > total || first_p > lp) {
+        return err_out(
+            &format!(
+                "Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"
+            ),
+            99,
+        );
+    }
+    let count = end_p - first_p + 1;
+    if count > 1 && filename_number_spec(pat).is_none() {
+        return err_out(&format!("Error: '{pat}' must contain '%d' if more than one page should be extracted\n"), 99);
+    }
+    let mut outputs = Vec::new();
+    let mut remaining = crate::budget::ShellLimits::default().max_output_bytes;
+    for pno in first_p..=end_p {
+        let bytes = if let Some(s) = &mut source {
+            let mut output = pdf_reader::PageOutput::new(remaining);
+            let Some(bytes) = output.append(s, Some(pno - 1)).and_then(|()| output.finish()) else { return damaged() };
+            bytes
+        } else if let Some(doc) = &legacy {
+            let pg = &doc.pages[pno - 1];
+            let mut single = PdfDoc::new();
+            single.version = doc.version.clone();
+            single.title = doc.title.clone();
+            single.author = doc.author.clone();
+            single.page_w = doc.page_w;
+            single.page_h = doc.page_h;
+            if let Some(m) = doc.page_media.get(&pno) {
+                single.page_media.insert(1, *m);
             }
-            if pos.len() != 2 {
-                return err_out("Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n", 99);
-            }
-            let src = resolve_posix_path(cwd, &pos[0]);
-            let pat = &pos[1];
-            let Ok(b) = fs.read_file(&src) else {
-                return err_out(
-                    &format!(
-                        "I/O Error: Couldn't open file '{}': No such file or directory.\nSyntax Error: Could not extract page(s) from damaged file ('{}')\n",
-                        pos[0], pos[0]
-                    ),
-                    99,
-                );
-            };
-            if !b.starts_with(b"%PDF-") {
-                return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
-            }
-            let mut source = pdf_reader::PageSource::open(&b,"").ok();
-            let legacy = if source.is_none() && is_legacy_pdf(&b) { Some(PdfDoc::parse(&b)) } else { None };
-            let damaged = || err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
-            let total = match (&source, &legacy) {
-                (Some(s), _) => s.len(),
-                (_, Some(doc)) => doc.pages.len(),
-                _ => return damaged(),
-            };
-            let end_p = last_p.map(|lp| total.min(lp)).unwrap_or(total);
-            if first_p > total || last_p.is_some_and(|lp| lp > total || first_p > lp) {
-                return err_out(
-                    &format!(
-                        "Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"
-                    ),
-                    99,
-                );
-            }
-            let count = end_p - first_p + 1;
-            if count > 1 && filename_number_spec(pat).is_none() {
-                return err_out(&format!("Error: '{pat}' must contain '%d' if more than one page should be extracted\n"), 99);
-            }
-            let mut outputs = Vec::new();
-            let mut remaining = crate::budget::ShellLimits::default().max_output_bytes;
-            for pno in first_p..=end_p {
-                let bytes = if let Some(s) = &mut source {
-                    let mut output = pdf_reader::PageOutput::new(remaining);
-                    let Some(bytes) = output.append(s, Some(pno - 1)).and_then(|()| output.finish()) else { return damaged() };
-                    bytes
-                } else if let Some(doc) = &legacy {
-                    let pg = &doc.pages[pno - 1];
-                    let mut single = PdfDoc::new();
-                    single.version = doc.version.clone();
-                    single.title = doc.title.clone();
-                    single.author = doc.author.clone();
-                    single.page_w = doc.page_w;
-                    single.page_h = doc.page_h;
-                    if let Some(m) = doc.page_media.get(&pno) {
-                        single.page_media.insert(1, *m);
-                    }
-                    single.pages.push(pg.clone());
-                    single.serialize()
-                } else { return damaged() };
-                let Some(left) = remaining.checked_sub(bytes.len()) else {
-                    return err_out("pdfseparate: output byte limit exceeded\n", 99);
-                };
-                remaining = left;
-                let Some(name) = format_printf_num(pat, pno, Some(' ')) else { return err_out("shell: line 1: internal error\n", 1); };
-                outputs.push((name, bytes));
-            }
-            for (name, bytes) in outputs {
-                let result = write_copied_pdf(fs, cwd, &name, &bytes, 99);
-                if result.exit_code != 0 { return result; }
-            }
-            ok_out("")
-        }
-        "qpdf" => {
-            let (args, input_remaining) = match qpdf_argfiles::expand(args, cwd, fs) {
-                Ok(expanded) => expanded,
-                Err(e) => return err_out(&e, 2),
-            };
-            let publish = |operand: &str, bytes: &[u8]| {
-                let path = resolve_posix_path(cwd, operand);
-                fs.mkdir(&crate::vfs::dirname_posix_path(&path), true, 0o755)
-                    .map_err(|(code, _)| code)
-                    .and_then(|()| fs.replace_file_entry(&path, bytes, fs.generation()))
-                    .map_err(|error| {
-                        let code = error.split(':').next().unwrap_or(&error);
-                        let reason = if code == "ENOENT" { "No such file or directory" } else { code };
-                        err_out(&format!("qpdf: open {operand}: {reason}\n"), 2)
-                    })
-            };
-            let mut password: Option<String> = None;
-            let mut empty_input = false;
-            let mut replace_input = false;
-            let mut check_mode = false;
-            let mut show_npages = false;
-            let mut show_enc = false;
-            let mut is_enc = false;
-            let mut req_pw = false;
-            let mut show_lin = false;
-            let mut show_xref = false;
-            let mut show_pages = false;
-            let mut with_images = false;
-            let mut show_object: Option<String> = None;
-            let mut raw_stream_data = false;
-            let mut filtered_stream_data = false;
-            let mut json_version: Option<u32> = None;
-            let mut json_keys: Vec<String> = Vec::new();
-            let mut json_objects: Vec<Option<(usize,usize)>> = Vec::new();
-            let mut json_stream_prefix = None;
-            let mut json_stream_data = "none".to_string();
-            let mut json_input = false;
-            let mut update_from_json = Vec::new();
-            let mut list_att = false;
-            let mut show_att: Option<String> = None;
-            let mut remove_atts: Vec<String> = Vec::new();
-            let mut add_atts = Vec::new();
-            let mut copy_atts = Vec::new();
-            let mut encryption = None;
-            let mut qdf_mode = false;
-            let mut uncompress = false;
-            let mut normalize_content = None;
-            let mut externalize_inline=false;
-            let mut ii_min_bytes=1024;
-            let mut collate_group: Option<usize> = None;
-            let mut edits = pdf_reader::PageEdits::default();
-            let mut pos_files: Vec<String> = Vec::new();
+            single.pages.push(pg.clone());
+            single.serialize()
+        } else { return damaged() };
+        let Some(left) = remaining.checked_sub(bytes.len()) else {
+            return err_out("pdfseparate: output byte limit exceeded\n", 99);
+        };
+        remaining = left;
+        let Some(name) = format_printf_num(pat, pno, Some(' ')) else { return err_out("shell: line 1: internal error\n", 1); };
+        outputs.push((name, bytes));
+    }
+    for (name, bytes) in outputs {
+        let result = write_copied_pdf(fs, cwd, &name, &bytes, 99);
+        if result.exit_code != 0 { return result; }
+    }
+    ok_out("")
+}
 
-            let mut i = 0usize;
-            while i < args.len() {
-                let a = args[i].as_str();
-                if matches!(a,"--help"|"-h"){return ok_out("Usage: qpdf [options] infile [outfile]\n")}
-                if a=="--version"{return ok_out("qpdf version 11.9.1 (@poe-code/pdf-ast)\n")}
-                if let Some(mode) = a.strip_prefix("--normalize-content=") {
-                    normalize_content = Some(match mode {
-                        "y" => true, "n" => false,
-                        _ => return err_out(&format!("qpdf: invalid normalize-content value {mode}\n"),2),
-                    });
-                    i += 1;
-                    continue;
+fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let (args, input_remaining) = match qpdf_argfiles::expand(args, cwd, fs) {
+        Ok(expanded) => expanded,
+        Err(e) => return err_out(&e, 2),
+    };
+    let publish = |operand: &str, bytes: &[u8]| {
+        let path = resolve_posix_path(cwd, operand);
+        fs.mkdir(&crate::vfs::dirname_posix_path(&path), true, 0o755)
+            .map_err(|(code, _)| code)
+            .and_then(|()| fs.replace_file_entry(&path, bytes, fs.generation()))
+            .map_err(|error| {
+                let code = error.split(':').next().unwrap_or(&error);
+                let reason = if code == "ENOENT" { "No such file or directory" } else { code };
+                err_out(&format!("qpdf: open {operand}: {reason}\n"), 2)
+            })
+    };
+    let mut password: Option<String> = None;
+    let mut empty_input = false;
+    let mut replace_input = false;
+    let mut check_mode = false;
+    let mut show_npages = false;
+    let mut show_enc = false;
+    let mut is_enc = false;
+    let mut req_pw = false;
+    let mut show_lin = false;
+    let mut show_xref = false;
+    let mut show_pages = false;
+    let mut with_images = false;
+    let mut show_object: Option<String> = None;
+    let mut raw_stream_data = false;
+    let mut filtered_stream_data = false;
+    let mut json_version: Option<u32> = None;
+    let mut json_keys: Vec<String> = Vec::new();
+    let mut json_objects: Vec<Option<(usize,usize)>> = Vec::new();
+    let mut json_stream_prefix = None;
+    let mut json_stream_data = "none".to_string();
+    let mut json_input = false;
+    let mut update_from_json = Vec::new();
+    let mut list_att = false;
+    let mut show_att: Option<String> = None;
+    let mut remove_atts: Vec<String> = Vec::new();
+    let mut add_atts = Vec::new();
+    let mut copy_atts = Vec::new();
+    let mut encryption = None;
+    let mut qdf_mode = false;
+    let mut uncompress = false;
+    let mut normalize_content = None;
+    let mut externalize_inline=false;
+    let mut ii_min_bytes=1024;
+    let mut collate_group: Option<usize> = None;
+    let mut edits = pdf_reader::PageEdits::default();
+    let mut pos_files: Vec<String> = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = args[i].as_str();
+        if matches!(a,"--help"|"-h"){return ok_out("Usage: qpdf [options] infile [outfile]\n")}
+        if a=="--version"{return ok_out("qpdf version 11.9.1 (@poe-code/pdf-ast)\n")}
+        if let Some(mode) = a.strip_prefix("--normalize-content=") {
+            normalize_content = Some(match mode {
+                "y" => true, "n" => false,
+                _ => return err_out(&format!("qpdf: invalid normalize-content value {mode}\n"),2),
+            });
+            i += 1;
+            continue;
+        }
+        if let Some(mode) = a.strip_prefix("--compress-streams=") {
+            uncompress = match mode {
+                "y" => false, "n" => true,
+                _ => return err_out(&format!("qpdf: invalid compress-streams value {mode}\n"),2),
+            };
+            i += 1;
+            continue;
+        }
+        if let Some(mode) = a.strip_prefix("--stream-data=") {
+            match mode {
+                "uncompress" => uncompress = true,
+                "compress" | "preserve" => uncompress = false,
+                _ => {}
+            }
+            i += 1;
+            continue;
+        }
+        if let Some(mode) = a.strip_prefix("--object-streams=") {
+            edits.generate_object_streams = match mode {
+                "generate" => true,
+                "preserve" | "disable" => false,
+                _ => return err_out(&format!("qpdf: invalid object-streams mode {mode}\n"),2),
+            };
+            i += 1;
+            continue;
+        }
+        if a == "--empty" {
+            empty_input = true;
+            i += 1;
+            continue;
+        }
+        if a == "--replace-input" {
+            replace_input = true;
+            i += 1;
+            continue;
+        }
+        if let Some(pw) = a.strip_prefix("--password=") {
+            password = Some(pw.to_string());
+            i += 1;
+            continue;
+        }
+        if a == "--check" {
+            check_mode = true;
+            i += 1;
+            continue;
+        }
+        if a == "--show-npages" || a == "--npages" {
+            show_npages = true;
+            i += 1;
+            continue;
+        }
+        if a == "--show-encryption" {
+            show_enc = true;
+            i += 1;
+            continue;
+        }
+        if a == "--is-encrypted" {
+            is_enc = true;
+            i += 1;
+            continue;
+        }
+        if a == "--requires-password" {
+            req_pw = true;
+            i += 1;
+            continue;
+        }
+        if a == "--show-linearization" || a == "--check-linearization" {
+            show_lin = true;
+            i += 1;
+            continue;
+        }
+        if a == "--show-xref" {
+            show_xref = true;
+            i += 1;
+            continue;
+        }
+        if a == "--show-pages" {
+            show_pages = true;
+            i += 1;
+            continue;
+        }
+        if a == "--with-images" {
+            with_images = true;
+            i += 1;
+            continue;
+        }
+        if let Some(obj) = a.strip_prefix("--show-object=") {
+            show_object = Some(obj.to_string());
+            i += 1;
+            continue;
+        }
+        if a == "--raw-stream-data" {
+            raw_stream_data = true;
+            i += 1;
+            continue;
+        }
+        if a == "--filtered-stream-data" {
+            filtered_stream_data = true;
+            i += 1;
+            continue;
+        }
+        if a == "--json" || a.starts_with("--json=") {
+            json_version = Some(match a.strip_prefix("--json=").unwrap_or("latest") {
+                "latest" | "2" => 2, "1" => 1,
+                v => return err_out(&format!("qpdf: invalid json version {v}\n"),2),
+            });
+            i += 1;
+            continue;
+        }
+        if let Some(k) = a.strip_prefix("--json-key=") {
+            if !matches!(k,"qpdf"|"objects"|"objectinfo"|"pages"|"pagelabels"|"outlines"|"acroform"|"attachments"|"encrypt") {
+                return err_out(&format!("qpdf: invalid json-key {k}\n"),2);
+            }
+            json_keys.push(k.to_string());
+            i += 1;
+            continue;
+        }
+        if let Some(o) = a.strip_prefix("--json-object=") {
+            let selector = if o == "trailer" { None } else {
+                let (n,g) = o.split_once(',').unwrap_or((o,"0"));
+                let number = |s: &str| s.bytes().all(|b| b.is_ascii_digit()).then(|| s.parse::<usize>().ok()).flatten();
+                match (number(n),number(g)) {
+                    (Some(n @ 1..=2147483647),Some(g @ 0..=65535)) => Some((n,g)),
+                    _ => return err_out("qpdf: invalid json-object selector\n",2),
                 }
-                if let Some(mode) = a.strip_prefix("--compress-streams=") {
-                    uncompress = match mode {
-                        "y" => false, "n" => true,
-                        _ => return err_out(&format!("qpdf: invalid compress-streams value {mode}\n"),2),
-                    };
-                    i += 1;
-                    continue;
-                }
-                if let Some(mode) = a.strip_prefix("--stream-data=") {
-                    match mode {
-                        "uncompress" => uncompress = true,
-                        "compress" | "preserve" => uncompress = false,
-                        _ => {}
-                    }
-                    i += 1;
-                    continue;
-                }
-                if let Some(mode) = a.strip_prefix("--object-streams=") {
-                    edits.generate_object_streams = match mode {
-                        "generate" => true,
-                        "preserve" | "disable" => false,
-                        _ => return err_out(&format!("qpdf: invalid object-streams mode {mode}\n"),2),
-                    };
-                    i += 1;
-                    continue;
-                }
-                if a == "--empty" {
-                    empty_input = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--replace-input" {
-                    replace_input = true;
-                    i += 1;
-                    continue;
-                }
-                if let Some(pw) = a.strip_prefix("--password=") {
-                    password = Some(pw.to_string());
-                    i += 1;
-                    continue;
-                }
-                if a == "--check" {
-                    check_mode = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--show-npages" || a == "--npages" {
-                    show_npages = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--show-encryption" {
-                    show_enc = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--is-encrypted" {
-                    is_enc = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--requires-password" {
-                    req_pw = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--show-linearization" || a == "--check-linearization" {
-                    show_lin = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--show-xref" {
-                    show_xref = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--show-pages" {
-                    show_pages = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--with-images" {
-                    with_images = true;
-                    i += 1;
-                    continue;
-                }
-                if let Some(obj) = a.strip_prefix("--show-object=") {
-                    show_object = Some(obj.to_string());
-                    i += 1;
-                    continue;
-                }
-                if a == "--raw-stream-data" {
-                    raw_stream_data = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--filtered-stream-data" {
-                    filtered_stream_data = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--json" || a.starts_with("--json=") {
-                    json_version = Some(match a.strip_prefix("--json=").unwrap_or("latest") {
-                        "latest" | "2" => 2, "1" => 1,
-                        v => return err_out(&format!("qpdf: invalid json version {v}\n"),2),
-                    });
-                    i += 1;
-                    continue;
-                }
-                if let Some(k) = a.strip_prefix("--json-key=") {
-                    if !matches!(k,"qpdf"|"objects"|"objectinfo"|"pages"|"pagelabels"|"outlines"|"acroform"|"attachments"|"encrypt") {
-                        return err_out(&format!("qpdf: invalid json-key {k}\n"),2);
-                    }
-                    json_keys.push(k.to_string());
-                    i += 1;
-                    continue;
-                }
-                if let Some(o) = a.strip_prefix("--json-object=") {
-                    let selector = if o == "trailer" { None } else {
-                        let (n,g) = o.split_once(',').unwrap_or((o,"0"));
-                        let number = |s: &str| s.bytes().all(|b| b.is_ascii_digit()).then(|| s.parse::<usize>().ok()).flatten();
-                        match (number(n),number(g)) {
-                            (Some(n @ 1..=2147483647),Some(g @ 0..=65535)) => Some((n,g)),
-                            _ => return err_out("qpdf: invalid json-object selector\n",2),
-                        }
-                    };
-                    json_objects.push(selector);
-                    i += 1;
-                    continue;
-                }
-                if let Some(m) = a.strip_prefix("--json-stream-data=") {
-                    if !matches!(m,"none"|"inline"|"file") {
-                        return err_out(&format!("qpdf: invalid json-stream-data mode {m}\n"),2);
-                    }
-                    json_stream_data = m.to_string();
-                    i += 1;
-                    continue;
-                }
-                if let Some(p) = a.strip_prefix("--json-stream-prefix=") {
-                    json_stream_prefix = Some(p.to_owned());
-                    i += 1;
-                    continue;
-                }
-                if a == "--json-input" {
-                    json_input = true;
-                    i += 1;
-                    continue;
-                }
-                if let Some(uf) = a.strip_prefix("--update-from-json=") {
-                    update_from_json.push(uf);
-                    i += 1;
-                    continue;
-                }
-                if a == "--list-attachments" {
-                    list_att = true;
-                    i += 1;
-                    continue;
-                }
-                if let Some(key) = a.strip_prefix("--show-attachment=") {
-                    show_att = Some(key.to_string());
-                    i += 1;
-                    continue;
-                }
-                if let Some(key) = a.strip_prefix("--remove-attachment=") {
-                    remove_atts.push(key.to_string());
-                    i += 1;
-                    continue;
-                }
-                if a == "--add-attachment" || a.starts_with("--add-attachment=") {
-                    let att_file = if let Some(path) = a.strip_prefix("--add-attachment=") { path.to_owned() } else {
-                        i += 1;
-                        args.get(i).cloned().unwrap_or_default()
-                    };
-                    let mut key = att_file.rsplit('/').next().unwrap_or(&att_file).to_string();
-                    if key.is_empty() {key = "attachment".into();}
-                    let mut fname = key.clone();
-                    let mut description = String::new();
-                    let mut replace = false;
-                    i += 1;
-                    while i < args.len() && args[i] != "--" {
-                        if let Some(k) = args[i].strip_prefix("--key=") {
-                            if !k.is_empty() {key = k.to_owned();}
-                        } else if let Some(d) = args[i].strip_prefix("--description=") {
-                            description = d.to_owned();
-                        } else if let Some(f) = args[i].strip_prefix("--filename=") {
-                            fname = f.to_string();
-                        } else if args[i] == "--replace" {
-                            replace = true;
-                        }
-                        i += 1;
-                    }
-                    if i < args.len() && args[i] == "--" {
-                        i += 1;
-                    }
-                    add_atts.push(pdf_reader::attachments::AddAttachment {path:att_file, key, filename:fname, description, replace});
-                    continue;
-                }
-                if a == "--copy-attachments-from" || a.starts_with("--copy-attachments-from=") {
-                    let src_pdf = if let Some(path) = a.strip_prefix("--copy-attachments-from=") {path.to_owned()} else {
-                        i += 1;
-                        args.get(i).cloned().unwrap_or_default()
-                    };
-                    let mut source = pdf_reader::attachments::CopyAttachments {path:src_pdf, prefix:String::new(), password:String::new()};
-                    i += 1;
-                    while i < args.len() && args[i] != "--" {
-                        if let Some(p) = args[i].strip_prefix("--prefix=") {
-                            source.prefix = p.to_string();
-                        } else if let Some(p) = args[i].strip_prefix("--password=") {
-                            source.password = p.to_string();
-                        }
-                        i += 1;
-                    }
-                    if i < args.len() && args[i] == "--" {
-                        i += 1;
-                    }
-                    copy_atts.push(source);
-                    continue;
-                }
-                if a == "--split-pages" {
-                    edits.split_pages = Some(1);
-                    i += 1;
-                    continue;
-                }
-                if let Some(sp) = a.strip_prefix("--split-pages=") {
-                    edits.split_pages = Some((qpdf_decimal(sp).unwrap_or(1.) as usize).max(1));
-                    i += 1;
-                    continue;
-                }
-                if a == "--encrypt" {
-                    let user = args.get(i+1).map_or("", String::as_str);
-                    let owner = args.get(i+2).map_or("", String::as_str);
-                    // The production command writes revision 6 for every requested key length.
-                    let mut permissions = -1028i32; // all enabled except document assembly
-                    i += 4;
-                    while i < args.len() && args[i] != "--" {
-                        permissions &= !match args[i].as_str() {
-                            "--print=none" => 4, "--modify=none" => 8, "--extract=n" => 16, "--annotate=n" => 32, _ => 0,
-                        };
-                        i += 1;
-                    }
-                    encryption = Some((user,owner,permissions));
-                    if i < args.len() && args[i] == "--" {
-                        i += 1;
-                    }
-                    continue;
-                }
-                if a == "--decrypt" {
-                    edits.decrypt = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--linearize" {
-                    edits.linearize = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "--qdf" {
-                    qdf_mode = true;
-                    uncompress = true;
-                    i += 1;
-                    continue;
-                }
-                if let Some(rot_spec) = a.strip_prefix("--rotate=") {
-                    edits.rotations.push(rot_spec);
-                    i += 1;
-                    continue;
-                }
-                if a == "--generate-appearances" {
-                    edits.generate_appearances=true;i+=1;continue;
-                }
-                if a=="--externalize-inline-images" {externalize_inline=true;i+=1;continue;}
-                if let Some(s)=a.strip_prefix("--ii-min-bytes="){
-                    if let Some(n) = qpdf_decimal(s).filter(|n| n.is_finite() && *n >= 0.) {
-                        ii_min_bytes = n as u64;
-                    }
-                    i+=1;continue;
-                }
-                if a == "--remove-unreferenced-resources" || a.starts_with("--remove-unreferenced-resources=") {
-                    edits.prune_resources = match a.split_once('=').map_or("yes", |(_,m)|m) {
-                        "yes"|"auto"=>true,"no"=>false,
-                        m=>return err_out(&format!("qpdf: invalid remove-unreferenced-resources mode {m}\n"),2),
-                    };
-                    i+=1;continue;
-                }
-                if a == "--flatten-annotations" || a.starts_with("--flatten-annotations=") {
-                    edits.flatten_annotations=Some(a.split_once('=').map_or("all",|(_,m)|m));i+=1;continue;
-                }
-                if a == "--flatten-rotation" {
-                    edits.flatten_rotation = true;
-                    i += 1;
-                    continue;
-                }
-                if matches!(a, "--overlay" | "--underlay") || a.starts_with("--overlay=") || a.starts_with("--underlay=")
-                {
-                    let path = if let Some((_, p)) = a.split_once('=') {
-                        p
-                    } else {
-                        i += 1;
-                        args.get(i).map_or("", String::as_str)
-                    };
-                    let mut spec = pdf_reader::Layer {
-                        overlay: a.starts_with("--overlay"),
-                        path,
-                        from: "1-z",
-                        to: "1-z",
-                        repeat: "",
-                        password: None,
-                    };
-                    i += 1;
-                    while i < args.len() && args[i] != "--" {
-                        if let Some((key, v)) = args[i].split_once('=') {
-                            match key {
-                                "--from" => spec.from = v,
-                                "--to" => spec.to = v,
-                                "--repeat" => spec.repeat = v,
-                                "--password" => spec.password = Some(v),
-                                _ => (),
-                            }
-                        }
-                        i += 1;
-                    }
-                    if i < args.len() {
-                        i += 1;
-                    }
-                    edits.layers.push(spec);
-                    continue;
-                }
-                if a == "--collate" {
-                    collate_group = Some(1);
-                    i += 1;
-                    continue;
-                }
-                if let Some(cg) = a.strip_prefix("--collate=") {
-                    collate_group = Some((qpdf_decimal(cg).unwrap_or(1.) as usize).max(1));
-                    i += 1;
-                    continue;
-                }
-                if a == "--pages" {
-                    i += 1;
-                    while i < args.len() && args[i] != "--" {
-                        if args[i].starts_with("--password=") {
-                            i += 1;
-                            continue;
-                        }
-                        let src_f = args[i].clone();
-                        let mut rng = "1-z".to_string();
-                        let mut j = i + 1;
-                        let source_password = args.get(j).and_then(|s| s.strip_prefix("--password="));
-                        if source_password.is_some() {
-                            j += 1;
-                        }
-                        let next_is_range = j < args.len()
-                            && args[j] != "--"
-                            && args[j] != "."
-                            && !args[j].ends_with(".pdf");
-                        if next_is_range {
-                            rng = args[j].clone();
-                            i = j + 1;
-                        } else {
-                            i = j;
-                        }
-                        edits.selections.push((src_f, rng, source_password));
-                    }
-                    if i < args.len() && args[i] == "--" {
-                        i += 1;
-                    }
-                    continue;
-                }
-                if a == "--set-page-labels" {
-                    i += 1;
-                    while i < args.len() && args[i] != "--" {
-                        edits.label_specs.push(args[i].as_str());
-                        i += 1;
-                    }
-                    if i < args.len() && args[i] == "--" {
-                        i += 1;
-                    }
-                    continue;
-                }
-                match a {
-                    "--remove-page-labels" => edits.page_labels = true,
-                    "--remove-info" => edits.info = true,
-                    "--remove-metadata" => edits.metadata = true,
-                    "--remove-structure" => edits.structure = true,
-                    "--remove-acroform" => edits.acroform = true,
-                    _ => {}
-                }
-                if !a.starts_with('-') || a == "-" {
-                    pos_files.push(a.to_string());
+            };
+            json_objects.push(selector);
+            i += 1;
+            continue;
+        }
+        if let Some(m) = a.strip_prefix("--json-stream-data=") {
+            if !matches!(m,"none"|"inline"|"file") {
+                return err_out(&format!("qpdf: invalid json-stream-data mode {m}\n"),2);
+            }
+            json_stream_data = m.to_string();
+            i += 1;
+            continue;
+        }
+        if let Some(p) = a.strip_prefix("--json-stream-prefix=") {
+            json_stream_prefix = Some(p.to_owned());
+            i += 1;
+            continue;
+        }
+        if a == "--json-input" {
+            json_input = true;
+            i += 1;
+            continue;
+        }
+        if let Some(uf) = a.strip_prefix("--update-from-json=") {
+            update_from_json.push(uf);
+            i += 1;
+            continue;
+        }
+        if a == "--list-attachments" {
+            list_att = true;
+            i += 1;
+            continue;
+        }
+        if let Some(key) = a.strip_prefix("--show-attachment=") {
+            show_att = Some(key.to_string());
+            i += 1;
+            continue;
+        }
+        if let Some(key) = a.strip_prefix("--remove-attachment=") {
+            remove_atts.push(key.to_string());
+            i += 1;
+            continue;
+        }
+        if a == "--add-attachment" || a.starts_with("--add-attachment=") {
+            let att_file = if let Some(path) = a.strip_prefix("--add-attachment=") { path.to_owned() } else {
+                i += 1;
+                args.get(i).cloned().unwrap_or_default()
+            };
+            let mut key = att_file.rsplit('/').next().unwrap_or(&att_file).to_string();
+            if key.is_empty() {key = "attachment".into();}
+            let mut fname = key.clone();
+            let mut description = String::new();
+            let mut replace = false;
+            i += 1;
+            while i < args.len() && args[i] != "--" {
+                if let Some(k) = args[i].strip_prefix("--key=") {
+                    if !k.is_empty() {key = k.to_owned();}
+                } else if let Some(d) = args[i].strip_prefix("--description=") {
+                    description = d.to_owned();
+                } else if let Some(f) = args[i].strip_prefix("--filename=") {
+                    fname = f.to_string();
+                } else if args[i] == "--replace" {
+                    replace = true;
                 }
                 i += 1;
             }
-
-            edits.inline_images=externalize_inline.then_some((ii_min_bytes,!uncompress));
-            edits.normalize_content = normalize_content.unwrap_or(qdf_mode || uncompress);
-
-            let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
-                else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
-            let load_input = |path_arg: &str| -> Result<PdfDoc, BuiltinOutcome> {
-                if path_arg == "-" {
-                    let b = crate::vfs::stream_string_to_bytes(stdin);
-                    return Ok(PdfDoc::parse(&b));
+            if i < args.len() && args[i] == "--" {
+                i += 1;
+            }
+            add_atts.push(pdf_reader::attachments::AddAttachment {path:att_file, key, filename:fname, description, replace});
+            continue;
+        }
+        if a == "--copy-attachments-from" || a.starts_with("--copy-attachments-from=") {
+            let src_pdf = if let Some(path) = a.strip_prefix("--copy-attachments-from=") {path.to_owned()} else {
+                i += 1;
+                args.get(i).cloned().unwrap_or_default()
+            };
+            let mut source = pdf_reader::attachments::CopyAttachments {path:src_pdf, prefix:String::new(), password:String::new()};
+            i += 1;
+            while i < args.len() && args[i] != "--" {
+                if let Some(p) = args[i].strip_prefix("--prefix=") {
+                    source.prefix = p.to_string();
+                } else if let Some(p) = args[i].strip_prefix("--password=") {
+                    source.password = p.to_string();
                 }
-                let full = resolve_posix_path(cwd, path_arg);
-                let Ok(b) = fs.read_file(&full) else {
-                    return Err(err_out(&format!("qpdf: cannot open {path_arg}\n"), 2));
+                i += 1;
+            }
+            if i < args.len() && args[i] == "--" {
+                i += 1;
+            }
+            copy_atts.push(source);
+            continue;
+        }
+        if a == "--split-pages" {
+            edits.split_pages = Some(1);
+            i += 1;
+            continue;
+        }
+        if let Some(sp) = a.strip_prefix("--split-pages=") {
+            edits.split_pages = Some((qpdf_decimal(sp).unwrap_or(1.) as usize).max(1));
+            i += 1;
+            continue;
+        }
+        if a == "--encrypt" {
+            let user = args.get(i+1).map_or("", String::as_str);
+            let owner = args.get(i+2).map_or("", String::as_str);
+            // The production command writes revision 6 for every requested key length.
+            let mut permissions = -1028i32; // all enabled except document assembly
+            i += 4;
+            while i < args.len() && args[i] != "--" {
+                permissions &= !match args[i].as_str() {
+                    "--print=none" => 4, "--modify=none" => 8, "--extract=n" => 16, "--annotate=n" => 32, _ => 0,
                 };
-                if pdf_reader::header_version(&b).is_none() {
-                    return Err(err_out(
-                        &format!("qpdf: {path_arg}: Invalid PDF header: missing %PDF- signature\n"),
-                        2,
+                i += 1;
+            }
+            encryption = Some((user,owner,permissions));
+            if i < args.len() && args[i] == "--" {
+                i += 1;
+            }
+            continue;
+        }
+        if a == "--decrypt" {
+            edits.decrypt = true;
+            i += 1;
+            continue;
+        }
+        if a == "--linearize" {
+            edits.linearize = true;
+            i += 1;
+            continue;
+        }
+        if a == "--qdf" {
+            qdf_mode = true;
+            uncompress = true;
+            i += 1;
+            continue;
+        }
+        if let Some(rot_spec) = a.strip_prefix("--rotate=") {
+            edits.rotations.push(rot_spec);
+            i += 1;
+            continue;
+        }
+        if a == "--generate-appearances" {
+            edits.generate_appearances=true;i+=1;continue;
+        }
+        if a=="--externalize-inline-images" {externalize_inline=true;i+=1;continue;}
+        if let Some(s)=a.strip_prefix("--ii-min-bytes="){
+            if let Some(n) = qpdf_decimal(s).filter(|n| n.is_finite() && *n >= 0.) {
+                ii_min_bytes = n as u64;
+            }
+            i+=1;continue;
+        }
+        if a == "--remove-unreferenced-resources" || a.starts_with("--remove-unreferenced-resources=") {
+            edits.prune_resources = match a.split_once('=').map_or("yes", |(_,m)|m) {
+                "yes"|"auto"=>true,"no"=>false,
+                m=>return err_out(&format!("qpdf: invalid remove-unreferenced-resources mode {m}\n"),2),
+            };
+            i+=1;continue;
+        }
+        if a == "--flatten-annotations" || a.starts_with("--flatten-annotations=") {
+            edits.flatten_annotations=Some(a.split_once('=').map_or("all",|(_,m)|m));i+=1;continue;
+        }
+        if a == "--flatten-rotation" {
+            edits.flatten_rotation = true;
+            i += 1;
+            continue;
+        }
+        if matches!(a, "--overlay" | "--underlay") || a.starts_with("--overlay=") || a.starts_with("--underlay=")
+        {
+            let path = if let Some((_, p)) = a.split_once('=') {
+                p
+            } else {
+                i += 1;
+                args.get(i).map_or("", String::as_str)
+            };
+            let mut spec = pdf_reader::Layer {
+                overlay: a.starts_with("--overlay"),
+                path,
+                from: "1-z",
+                to: "1-z",
+                repeat: "",
+                password: None,
+            };
+            i += 1;
+            while i < args.len() && args[i] != "--" {
+                if let Some((key, v)) = args[i].split_once('=') {
+                    match key {
+                        "--from" => spec.from = v,
+                        "--to" => spec.to = v,
+                        "--repeat" => spec.repeat = v,
+                        "--password" => spec.password = Some(v),
+                        _ => (),
+                    }
+                }
+                i += 1;
+            }
+            if i < args.len() {
+                i += 1;
+            }
+            edits.layers.push(spec);
+            continue;
+        }
+        if a == "--collate" {
+            collate_group = Some(1);
+            i += 1;
+            continue;
+        }
+        if let Some(cg) = a.strip_prefix("--collate=") {
+            collate_group = Some((qpdf_decimal(cg).unwrap_or(1.) as usize).max(1));
+            i += 1;
+            continue;
+        }
+        if a == "--pages" {
+            i += 1;
+            while i < args.len() && args[i] != "--" {
+                if args[i].starts_with("--password=") {
+                    i += 1;
+                    continue;
+                }
+                let src_f = args[i].clone();
+                let mut rng = "1-z".to_string();
+                let mut j = i + 1;
+                let source_password = args.get(j).and_then(|s| s.strip_prefix("--password="));
+                if source_password.is_some() {
+                    j += 1;
+                }
+                let next_is_range = j < args.len()
+                    && args[j] != "--"
+                    && args[j] != "."
+                    && !args[j].ends_with(".pdf");
+                if next_is_range {
+                    rng = args[j].clone();
+                    i = j + 1;
+                } else {
+                    i = j;
+                }
+                edits.selections.push((src_f, rng, source_password));
+            }
+            if i < args.len() && args[i] == "--" {
+                i += 1;
+            }
+            continue;
+        }
+        if a == "--set-page-labels" {
+            i += 1;
+            while i < args.len() && args[i] != "--" {
+                edits.label_specs.push(args[i].as_str());
+                i += 1;
+            }
+            if i < args.len() && args[i] == "--" {
+                i += 1;
+            }
+            continue;
+        }
+        match a {
+            "--remove-page-labels" => edits.page_labels = true,
+            "--remove-info" => edits.info = true,
+            "--remove-metadata" => edits.metadata = true,
+            "--remove-structure" => edits.structure = true,
+            "--remove-acroform" => edits.acroform = true,
+            _ => {}
+        }
+        if !a.starts_with('-') || a == "-" {
+            pos_files.push(a.to_string());
+        }
+        i += 1;
+    }
+
+    edits.inline_images=externalize_inline.then_some((ii_min_bytes,!uncompress));
+    edits.normalize_content = normalize_content.unwrap_or(qdf_mode || uncompress);
+
+    let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
+        else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
+    let load_input = |path_arg: &str| -> Result<PdfDoc, BuiltinOutcome> {
+        if path_arg == "-" {
+            let b = crate::vfs::stream_string_to_bytes(stdin);
+            return Ok(PdfDoc::parse(&b));
+        }
+        let full = resolve_posix_path(cwd, path_arg);
+        let Ok(b) = fs.read_file(&full) else {
+            return Err(err_out(&format!("qpdf: cannot open {path_arg}\n"), 2));
+        };
+        if pdf_reader::header_version(&b).is_none() {
+            return Err(err_out(
+                &format!("qpdf: {path_arg}: Invalid PDF header: missing %PDF- signature\n"),
+                2,
+            ));
+        }
+        Ok(PdfDoc::parse(&b))
+    };
+
+    let primary_arg = if empty_input {
+        None
+    } else {
+        pos_files.first().cloned()
+    };
+
+    if input_remaining < fs.shell_limits().max_input_bytes {
+        let mut remaining = input_remaining;
+        let mut seen = std::collections::BTreeSet::new();
+        for path in primary_arg.iter().map(String::as_str)
+            .chain(update_from_json.iter().copied())
+            .chain(edits.selections.iter().map(|s| s.0.as_str()))
+            .chain(add_atts.iter().map(|a| a.path.as_str()))
+            .chain(copy_atts.iter().map(|a| a.path.as_str()))
+            .chain(edits.layers.iter().map(|l| l.path)) {
+            if path.is_empty() || path == "." || !seen.insert(path) { continue; }
+            let size = if path == "-" {
+                crate::vfs::stream_byte_len(stdin)
+            } else {
+                fs.stat(&resolve_posix_path(cwd, path)).map_or(0, |s| s.size)
+            };
+            // The JS PDF reader reports a command failure if an operand
+            // exceeds the budget remaining after argument-file reads.
+            let Some(left) = remaining.checked_sub(size) else {
+                return err_out("shell: line 1: internal error\n", 1);
+            };
+            remaining = left;
+        }
+    }
+    if is_enc || req_pw {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let bytes = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) }
+            else { match fs.read_file(&resolve_posix_path(cwd,f)) {
+                Ok(data) => data, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
+            }};
+        if is_legacy_pdf(&bytes) {
+            let Some(key) = PdfDoc::parse(&bytes).encrypted else {return err_out("",2)};
+            return if !is_enc && password.as_ref().is_some_and(|p| key.is_empty() || p == &key) {err_out("",3)} else {ok_out("")};
+        }
+        // The compatibility predicates deliberately recognize a literal
+        // marker, including in malformed files, before opening a PDF.
+        if !bytes.windows(8).any(|s| s == b"/Encrypt") { return err_out("",2); }
+        if !is_enc && let Some(pw) = password.as_deref() && pdf_reader::accepts_password(&bytes,pw).is_some() { return err_out("",3); }
+        return ok_out("");
+    }
+    let original = || if empty_input {pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes)}else{primary_arg.as_deref().and_then(read)};
+    let mut rebuilt=if json_input && !empty_input || !update_from_json.is_empty(){
+        let name=primary_arg.as_deref().unwrap_or("empty");
+        let Some(mut bytes)=original()else{return if primary_arg.is_none(){err_out("qpdf: an input file is required\n",2)}else{err_out(&format!("qpdf: cannot open {name}\n"),2)}};
+        let limits=fs.shell_limits();
+        let mut seen=std::collections::BTreeSet::new();seen.insert(name.to_string());
+        let mut left=input_remaining;
+        if !empty_input{let Some(n)=left.checked_sub(bytes.len())else{return err_out("qpdf: input byte limit exceeded\n",2)};left=n;}
+        let mut acquire=|path:&str|->Result<Option<Vec<u8>>,String>{
+            let b=read(path);if let Some(b)=&b && seen.insert(path.to_string()){left=left.checked_sub(b.len()).ok_or("input byte limit exceeded")?;}
+            Ok(b)
+        };
+        if json_input && !empty_input{
+            let mut graph=pdf_reader::JsonDocument::default();
+            bytes=match graph.apply(&bytes,&mut acquire,limits.max_output_bytes).and_then(|()|graph.save(limits.max_output_bytes)){
+                Ok(b)=>b,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
+            };
+        }
+        if !update_from_json.is_empty(){
+            if pdf_reader::header_version(&bytes).is_none(){return err_out(&format!("qpdf: {name}: Invalid PDF header: missing %PDF- signature\n"),2)}
+            let mut graph=match pdf_reader::JsonDocument::from_pdf(&bytes,password.as_deref().unwrap_or("")){
+                Ok(g)=>g,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
+            };
+            for path in update_from_json{
+                let source=match acquire(path){
+                    Ok(Some(b))=>b,Ok(None)=>return err_out(&format!("qpdf: cannot open {path}\n"),2),
+                    Err(e)=>return err_out(&format!("qpdf: {e}\n"),2)
+                };
+                if let Err(e)=graph.apply(&source,&mut acquire,limits.max_output_bytes){return err_out(&format!("qpdf: {path}: {e}\n"),2)}
+            }
+            bytes=match graph.save(limits.max_output_bytes){Ok(b)=>b,Err(_)=>return err_out("shell: line 1: internal error\n",1)};
+        }
+        Some(bytes)
+    }else{None};
+    let base_is_input=rebuilt.is_none();
+    let mut primary=||rebuilt.take().or_else(original);
+    if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
+        let input = primary_arg.as_deref().unwrap_or("empty");
+        let bytes=primary();
+        if let Some(bytes) = bytes {
+            let source = pdf_reader::PageSource::open(&bytes,password.as_deref().unwrap_or(""));
+            if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) {
+                return err_out(&format!("qpdf: {input}: {e}\n"),2);
+            }
+            if let Ok(mut source) = source {
+            let out = if show_lin || check_mode { source.qpdf_summary(input,check_mode,show_lin) }
+                else if show_pages {source.qpdf_pages(with_images)}
+                else if show_npages {source.qpdf_summary(input,false,false)}
+                else if show_enc { Some(source.encryption_description()) }
+                else if show_xref {source.qpdf_xref()}
+                else if let Some(spec) = &show_object {
+                    let number = qpdf_decimal(spec).unwrap_or(0.) as usize;
+                    source.qpdf_object(number,raw_stream_data,filtered_stream_data)
+                } else {
+                    match source.qpdf_attachments(show_att.as_deref()) {
+                        Some(None) => return err_out(&format!("qpdf: attachment {} not found\n",show_att.as_deref().unwrap_or("")),2),
+                        result => result.flatten(),
+                    }
+                };
+            return match out { Some(out)=>ok_out(&out), None=>err_out(&format!("qpdf: {input}: invalid PDF object or stream\n"),2) };
+            }
+        }
+    }
+    if show_enc {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let doc = match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        };
+        if let Some(ref enc_pw) = doc.encrypted {
+            let supplied = password.as_deref().unwrap_or("");
+            if !enc_pw.is_empty() && supplied != enc_pw {
+                return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
+            }
+            return ok_out("R = 6\nV = 5\nLength = 256\nprint: allowed\nmodify: allowed\nextract for accessibility: allowed\n");
+        }
+        return ok_out("File is not encrypted\n");
+    }
+    if show_lin {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let doc = match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        };
+        if doc.linearized {
+            return ok_out(&format!("{f}: linearized\nno linearization errors\n"));
+        }
+        return ok_out(&format!("{f}: not linearized\n"));
+    }
+    if show_npages || check_mode {
+        let f = primary_arg.as_deref().unwrap_or("empty");
+        let doc = if empty_input { PdfDoc {version:"1.7".into(), ..PdfDoc::new()} } else {
+            if primary_arg.is_none() { return err_out("qpdf: an input file is required\n",2); }
+            match load_input(f) { Ok(d) => d, Err(e) => return e }
+        };
+        if !check_mode { return ok_out(&format!("{}\n",doc.pages.len())); }
+        if let Some(ref enc_pw) = doc.encrypted {
+            let supplied = password.as_deref().unwrap_or("");
+            if !enc_pw.is_empty() && supplied != enc_pw {
+                return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
+            }
+        }
+        let lines = vec![
+            format!("checking {f}"),
+            format!("PDF Version: {}", doc.version),
+            if doc.encrypted.is_some() {
+                "File is encrypted".to_string()
+            } else {
+                "File is not encrypted".to_string()
+            },
+            if doc.pages.is_empty() { "File is empty".to_string() } else if doc.linearized {
+                "File is linearized".to_string()
+            } else {
+                "File is not linearized".to_string()
+            },
+            "No syntax or stream encoding errors found; the file may still contain".to_string(),
+            "errors that qpdf cannot detect".to_string(),
+        ];
+        return ok_out(&format!("{}\n", lines.join("\n")));
+    }
+    if show_xref {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let doc = match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        };
+        let mut lines = vec![
+            "1/0: uncompressed; offset = 15".to_string(),
+            "2/0: uncompressed; offset = 64".to_string(),
+        ];
+        for p in 0..doc.pages.len() {
+            let obj_id = 3 + p * 2;
+            lines.push(format!("{obj_id}/0: uncompressed; offset = {}", 120 + p * 120));
+            lines.push(format!("{}/0: uncompressed; offset = {}", obj_id + 1, 180 + p * 120));
+        }
+        return ok_out(&format!("{}\n", lines.join("\n")));
+    }
+    if show_pages {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let doc = match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        };
+        let mut lines = Vec::new();
+        for (p, pg) in doc.pages.iter().enumerate() {
+            let content_obj = 4 + p * 4;
+            let page_obj = 5 + p * 4;
+            lines.push(format!("page {}: {page_obj} 0 R", p + 1));
+            if with_images {
+                lines.push("  images:".to_string());
+                for (im_idx, (w, h, _)) in pg.images.iter().enumerate() {
+                    let im_obj = 8 + p * 4 + im_idx;
+                    lines.push(format!("    /Im{}: {im_obj} 0 R ({w} x {h})", im_idx + 1));
+                }
+            }
+            lines.push("  content:".to_string());
+            lines.push(format!("    {content_obj} 0 R"));
+        }
+        return ok_out(&format!("{}\n", lines.join("\n")));
+    }
+    if let Some(ref obj_spec) = show_object {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let doc = match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        };
+        let obj_num: usize = obj_spec
+            .split([',', ' '])
+            .next()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
+        if obj_num == 1 {
+            return ok_out("<< /Type /Catalog /Pages 2 0 R >>\n");
+        }
+        if obj_num == 2 {
+            let kids: Vec<String> = (0..doc.pages.len())
+                .map(|p| format!("{} 0 R", 5 + p * 4))
+                .collect();
+            return ok_out(&format!("<< /Type /Pages /Count {} /Kids [ {} ] >>\n", doc.pages.len(), kids.join(" ")));
+        }
+        if obj_num == 3 {
+            return ok_out(&format!("<< /Producer (@poe-code/pdf-ast) /Title ({}) /Creator (wkhtmltopdf (pdf-ast-static)) >>\n", doc.title));
+        }
+        if obj_num >= 4 {
+            let rem = obj_num - 4;
+            let page_idx = rem / 4;
+            let slot = rem % 4;
+            if let Some(pg) = doc.pages.get(page_idx) {
+                if slot == 0 {
+                    let stream_str = format!("BT /F1 12 Tf 72 720 Td ({}) Tj ET\n", pg.text);
+                    if raw_stream_data || filtered_stream_data {
+                        return ok_out(&stream_str);
+                    }
+                    return ok_out(&format!("<< /Filter /FlateDecode /Length {} >>\n", stream_str.len()));
+                } else if slot == 1 {
+                    let (pw, ph) = doc
+                        .page_media
+                        .get(&(page_idx + 1))
+                        .map(|(w, h, _)| (*w, *h))
+                        .unwrap_or((doc.page_w, doc.page_h));
+                    return ok_out(&format!(
+                        "<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 {pw} {ph} ] /Rotate {} /Contents {} 0 R >>\n",
+                        pg.rot,
+                        obj_num - 1
                     ));
                 }
-                Ok(PdfDoc::parse(&b))
+            }
+        }
+        return ok_out("null\n");
+    }
+    if list_att || show_att.is_some() {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let bytes = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) }
+            else { match fs.read_file(&resolve_posix_path(cwd,f)) {
+                Ok(b) => b, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
+            }};
+        let show = show_att.as_deref();
+        if pdf_reader::header_version(&bytes).is_none() { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
+        let doc = PdfDoc::parse(&bytes);
+        let mut out = String::new();
+        for (k, fname, _, data) in doc.attachments {
+            if let Some(key) = show {
+                if k == key || fname == key { return ok_out(&crate::vfs::bytes_to_stream_string(&data)); }
+            } else { out.push_str(&format!("{k} -> {fname}\n")); }
+        }
+        if show.is_none() { return ok_out(&out); }
+        return err_out(&format!("qpdf: attachment {} not found\n", show.unwrap()), 2);
+    }
+    if let Some(jv) = json_version {
+        let out_file = if !empty_input && pos_files.len() >= 2 {
+            Some(pos_files[1].clone())
+        } else if empty_input && !pos_files.is_empty() {
+            Some(pos_files[0].clone())
+        } else {
+            None
+        };
+        let input=match primary(){Some(bytes)=>bytes,None=>return if let Some(name)=&primary_arg{err_out(&format!("qpdf: cannot open {name}\n"),2)}else{err_out("qpdf: an input file is required\n",2)}};
+        if pdf_reader::header_version(&input).is_none() {
+            return err_out(&format!("qpdf: {}: Invalid PDF header: missing %PDF- signature\n",primary_arg.as_deref().unwrap_or("empty")),2);
+        }
+        let source = pdf_reader::PageSource::open(&input,password.as_deref().unwrap_or(""));
+        if let Err(e) = source && !is_legacy_pdf(&input) {
+            return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2);
+        }
+        for k in &json_keys {
+            if jv == 1 && k == "qpdf" {return err_out("qpdf: json-key=qpdf is not valid for json=1\n",2);}
+            if jv == 2 && matches!(k.as_str(),"objects"|"objectinfo") {
+                return err_out(&format!("qpdf: json-key={k} is only valid for json=1\n"),2);
+            }
+        }
+        let stream_prefix = json_stream_prefix.or_else(|| out_file.as_ref().filter(|of| *of != "-").map(|of| format!("{of}-"))).unwrap_or_default();
+        if json_stream_data == "file" && stream_prefix.is_empty() {
+            return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
+        }
+        if let Ok(mut source) = source {
+            let (json,files) = match source.qpdf_json(jv,edits.inline_images,json_keys.iter().any(|k| k == "pages"),
+                &json_objects,&json_stream_data,(&stream_prefix,out_file.as_deref()),fs.shell_limits().max_output_bytes) {
+                Ok(result) => result,
+                Err(e) => return err_out(e,1),
             };
+            let destination = out_file.as_deref().filter(|of| *of != "-");
+            let mut published = false;
+            for (name,data) in files {
+                let bytes = if destination == Some(&name) {
+                    published = true;
+                    json.as_bytes()
+                } else { &data };
+                if let Err(e) = publish(&name,bytes) { return e; }
+            }
+            if let Some(of) = destination {
+                if !published && let Err(e) = publish(of,json.as_bytes()) { return e; }
+                return ok_out("");
+            }
+            return ok_out(&json);
+        }
+        let doc = PdfDoc::parse(&input);
+        let esc_json = |s: &str| -> String {
+            let mut out = String::new();
+            for ch in s.chars() {
+                match ch {
+                    '"' => out.push_str("\\\""),
+                    '\\' => out.push_str("\\\\"),
+                    '\n' => out.push_str("\\n"),
+                    '\r' => out.push_str("\\r"),
+                    '\t' => out.push_str("\\t"),
+                    c => out.push(c),
+                }
+            }
+            out
+        };
+        let include_obj = |id: usize| -> bool {
+            if json_objects.is_empty() {
+                return true;
+            }
+            json_objects.contains(&Some((id,0)))
+        };
+        let keep_objs = json_keys.is_empty() || json_keys.iter().any(|k| k == "objects" || k == "qpdf");
+        let mut obj_entries: Vec<String> = Vec::new();
+        if keep_objs {
+            if include_obj(1) {
+                obj_entries.push("      \"obj:1 0 R\": {\n        \"value\": {\n          \"/Type\": \"/Catalog\",\n          \"/Pages\": \"2 0 R\"\n        }\n      }".to_string());
+            }
+            if include_obj(2) {
+                let kids: Vec<String> = (0..doc.pages.len()).map(|p| format!("\"{} 0 R\"", 5 + p * 4)).collect();
+                obj_entries.push(format!(
+                    "      \"obj:2 0 R\": {{\n        \"value\": {{\n          \"/Type\": \"/Pages\",\n          \"/Count\": {},\n          \"/Kids\": [ {} ]\n        }}\n      }}",
+                    doc.pages.len(),
+                    kids.join(", ")
+                ));
+            }
+            if include_obj(3) {
+                obj_entries.push(format!(
+                    "      \"obj:3 0 R\": {{\n        \"value\": {{\n          \"/Producer\": \"u:@poe-code/pdf-ast\",\n          \"/Title\": \"u:{}\"\n        }}\n      }}",
+                    esc_json(&doc.title)
+                ));
+            }
+            for (p, pg) in doc.pages.iter().enumerate() {
+                let content_obj = 4 + p * 4;
+                let page_obj = 5 + p * 4;
+                let (pw, ph) = doc
+                    .page_media
+                    .get(&(p + 1))
+                    .map(|(w, h, _)| (*w, *h))
+                    .unwrap_or((doc.page_w, doc.page_h));
+                if include_obj(content_obj) {
+                    let raw_str = pg.text.clone();
+                    let mut stream_fields = vec![format!("          \"dict\": {{ \"/Filter\": \"/FlateDecode\", \"/Length\": {} }}", raw_str.len())];
+                    if json_stream_data == "inline" {
+                        let b64 = base64_encode(raw_str.as_bytes());
+                        stream_fields.push(format!("          \"data\": \"{b64}\""));
+                    } else if json_stream_data == "file" {
+                        let sf_rel = format!("{stream_prefix}{content_obj}");
+                        if let Err(e) = publish(&sf_rel, raw_str.as_bytes()) { return e; }
+                        stream_fields.push(format!("          \"datafile\": \"{}\"", esc_json(&sf_rel)));
+                    }
+                    obj_entries.push(format!(
+                        "      \"obj:{content_obj} 0 R\": {{\n        \"stream\": {{\n{}\n        }}\n      }}",
+                        stream_fields.join(",\n")
+                    ));
+                }
+                if include_obj(page_obj) {
+                    obj_entries.push(format!(
+                        "      \"obj:{page_obj} 0 R\": {{\n        \"value\": {{\n          \"/Type\": \"/Page\",\n          \"/Parent\": \"2 0 R\",\n          \"/MediaBox\": [ 0, 0, {pw}, {ph} ],\n          \"/Rotate\": {},\n          \"/Contents\": \"{content_obj} 0 R\"\n        }}\n      }}",
+                        pg.rot
+                    ));
+                }
+            }
+            obj_entries.push(format!(
+                "      \"trailer\": {{\n        \"value\": {{\n          \"/Root\": \"1 0 R\",\n          \"/Info\": \"3 0 R\",\n          \"/Size\": {}\n        }}\n      }}",
+                4 + doc.pages.len() * 4
+            ));
+        }
+        let objs_block = if obj_entries.is_empty() {
+            "    {}".to_string()
+        } else {
+            format!("    {{\n{}\n    }}", obj_entries.join(",\n"))
+        };
+        let max_obj = 3 + doc.pages.len() * 4;
+        let rendered = format!(
+            "{{\n  \"version\": {jv},\n  \"qpdf\": [\n    {{\n      \"jsonversion\": {jv},\n      \"pdfversion\": \"{}\",\n      \"maxobjectid\": {max_obj}\n    }},\n{objs_block}\n  ]\n}}\n",
+            doc.version
+        );
+        if let Some(of) = out_file
+            && of != "-"
+        {
+            if let Err(e) = publish(&of, rendered.as_bytes()) { return e; }
+            return ok_out("");
+        }
+        return ok_out(&rendered);
+    }
 
-            let primary_arg = if empty_input {
-                None
-            } else {
-                pos_files.first().cloned()
-            };
-
-            if input_remaining < fs.shell_limits().max_input_bytes {
-                let mut remaining = input_remaining;
+    let out_arg = pos_files.get(usize::from(!replace_input && !empty_input)).cloned();
+    edits.password=password.as_deref().unwrap_or("");
+    if let Some(dst_arg) = out_arg.as_deref() {
+        let input = primary();
+        if let Some(bytes) = input && pdf_reader::header_version(&bytes).is_some() && !is_legacy_pdf(&bytes) {
+            let limit = fs.shell_limits().max_output_bytes;
+            if !edits.layers.is_empty() {
+                let mut remaining = fs.shell_limits().max_input_bytes;
                 let mut seen = std::collections::BTreeSet::new();
-                for path in primary_arg.iter().map(String::as_str)
-                    .chain(update_from_json.iter().copied())
+                for name in primary_arg
+                    .iter()
+                    .map(String::as_str)
                     .chain(edits.selections.iter().map(|s| s.0.as_str()))
                     .chain(add_atts.iter().map(|a| a.path.as_str()))
                     .chain(copy_atts.iter().map(|a| a.path.as_str()))
-                    .chain(edits.layers.iter().map(|l| l.path)) {
-                    if path.is_empty() || path == "." || !seen.insert(path) { continue; }
-                    let size = if path == "-" {
+                    .chain(edits.layers.iter().map(|l| l.path))
+                {
+                    if name == "." || !seen.insert(name) {
+                        continue;
+                    }
+                    let size = if Some(name) == primary_arg.as_deref() {
+                        bytes.len()
+                    } else if name == "-" {
                         crate::vfs::stream_byte_len(stdin)
                     } else {
-                        fs.stat(&resolve_posix_path(cwd, path)).map_or(0, |s| s.size)
+                        fs.stat(&resolve_posix_path(cwd, name)).map_or(0, |st| st.size)
                     };
-                    // The JS PDF reader reports a command failure if an operand
-                    // exceeds the budget remaining after argument-file reads.
                     let Some(left) = remaining.checked_sub(size) else {
-                        return err_out("shell: line 1: internal error\n", 1);
+                        return err_out("qpdf: input byte limit exceeded\n", 2);
                     };
                     remaining = left;
                 }
             }
-            if is_enc || req_pw {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let bytes = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) }
-                    else { match fs.read_file(&resolve_posix_path(cwd,f)) {
-                        Ok(data) => data, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
-                    }};
-                if is_legacy_pdf(&bytes) {
-                    let Some(key) = PdfDoc::parse(&bytes).encrypted else {return err_out("",2)};
-                    return if !is_enc && password.as_ref().is_some_and(|p| key.is_empty() || p == &key) {err_out("",3)} else {ok_out("")};
+            let selected = if edits.selections.is_empty() { Some(bytes) } else {
+                match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),base_is_input,&edits,collate_group,read,&fs.shell_limits()) {
+                    Ok(bytes) => bytes,
+                    Err(e) if e == "invalid page selection" => return err_out("shell: line 1: internal error\n",1),
+                    Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
                 }
-                // The compatibility predicates deliberately recognize a literal
-                // marker, including in malformed files, before opening a PDF.
-                if !bytes.windows(8).any(|s| s == b"/Encrypt") { return err_out("",2); }
-                if !is_enc && let Some(pw) = password.as_deref() && pdf_reader::accepts_password(&bytes,pw).is_some() { return err_out("",3); }
-                return ok_out("");
-            }
-            let original = || if empty_input {pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes)}else{primary_arg.as_deref().and_then(read)};
-            let mut rebuilt=if json_input && !empty_input || !update_from_json.is_empty(){
-                let name=primary_arg.as_deref().unwrap_or("empty");
-                let Some(mut bytes)=original()else{return if primary_arg.is_none(){err_out("qpdf: an input file is required\n",2)}else{err_out(&format!("qpdf: cannot open {name}\n"),2)}};
-                let limits=fs.shell_limits();
-                let mut seen=std::collections::BTreeSet::new();seen.insert(name.to_string());
-                let mut left=input_remaining;
-                if !empty_input{let Some(n)=left.checked_sub(bytes.len())else{return err_out("qpdf: input byte limit exceeded\n",2)};left=n;}
-                let mut acquire=|path:&str|->Result<Option<Vec<u8>>,String>{
-                    let b=read(path);if let Some(b)=&b && seen.insert(path.to_string()){left=left.checked_sub(b.len()).ok_or("input byte limit exceeded")?;}
-                    Ok(b)
-                };
-                if json_input && !empty_input{
-                    let mut graph=pdf_reader::JsonDocument::default();
-                    bytes=match graph.apply(&bytes,&mut acquire,limits.max_output_bytes).and_then(|()|graph.save(limits.max_output_bytes)){
-                        Ok(b)=>b,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
-                    };
-                }
-                if !update_from_json.is_empty(){
-                    if pdf_reader::header_version(&bytes).is_none(){return err_out(&format!("qpdf: {name}: Invalid PDF header: missing %PDF- signature\n"),2)}
-                    let mut graph=match pdf_reader::JsonDocument::from_pdf(&bytes,password.as_deref().unwrap_or("")){
-                        Ok(g)=>g,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
-                    };
-                    for path in update_from_json{
-                        let source=match acquire(path){
-                            Ok(Some(b))=>b,Ok(None)=>return err_out(&format!("qpdf: cannot open {path}\n"),2),
-                            Err(e)=>return err_out(&format!("qpdf: {e}\n"),2)
-                        };
-                        if let Err(e)=graph.apply(&source,&mut acquire,limits.max_output_bytes){return err_out(&format!("qpdf: {path}: {e}\n"),2)}
-                    }
-                    bytes=match graph.save(limits.max_output_bytes){Ok(b)=>b,Err(_)=>return err_out("shell: line 1: internal error\n",1)};
-                }
-                Some(bytes)
-            }else{None};
-            let base_is_input=rebuilt.is_none();
-            let mut primary=||rebuilt.take().or_else(original);
-            if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
-                let input = primary_arg.as_deref().unwrap_or("empty");
-                let bytes=primary();
-                if let Some(bytes) = bytes {
-                    let source = pdf_reader::PageSource::open(&bytes,password.as_deref().unwrap_or(""));
-                    if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) {
-                        return err_out(&format!("qpdf: {input}: {e}\n"),2);
-                    }
-                    if let Ok(mut source) = source {
-                    let out = if show_lin || check_mode { source.qpdf_summary(input,check_mode,show_lin) }
-                        else if show_pages {source.qpdf_pages(with_images)}
-                        else if show_npages {source.qpdf_summary(input,false,false)}
-                        else if show_enc { Some(source.encryption_description()) }
-                        else if show_xref {source.qpdf_xref()}
-                        else if let Some(spec) = &show_object {
-                            let number = qpdf_decimal(spec).unwrap_or(0.) as usize;
-                            source.qpdf_object(number,raw_stream_data,filtered_stream_data)
-                        } else {
-                            match source.qpdf_attachments(show_att.as_deref()) {
-                                Some(None) => return err_out(&format!("qpdf: attachment {} not found\n",show_att.as_deref().unwrap_or("")),2),
-                                result => result.flatten(),
-                            }
-                        };
-                    return match out { Some(out)=>ok_out(&out), None=>err_out(&format!("qpdf: {input}: invalid PDF object or stream\n"),2) };
-                    }
-                }
-            }
-            if show_enc {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                if let Some(ref enc_pw) = doc.encrypted {
-                    let supplied = password.as_deref().unwrap_or("");
-                    if !enc_pw.is_empty() && supplied != enc_pw {
-                        return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
-                    }
-                    return ok_out("R = 6\nV = 5\nLength = 256\nprint: allowed\nmodify: allowed\nextract for accessibility: allowed\n");
-                }
-                return ok_out("File is not encrypted\n");
-            }
-            if show_lin {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                if doc.linearized {
-                    return ok_out(&format!("{f}: linearized\nno linearization errors\n"));
-                }
-                return ok_out(&format!("{f}: not linearized\n"));
-            }
-            if show_npages || check_mode {
-                let f = primary_arg.as_deref().unwrap_or("empty");
-                let doc = if empty_input { PdfDoc {version:"1.7".into(), ..PdfDoc::new()} } else {
-                    if primary_arg.is_none() { return err_out("qpdf: an input file is required\n",2); }
-                    match load_input(f) { Ok(d) => d, Err(e) => return e }
-                };
-                if !check_mode { return ok_out(&format!("{}\n",doc.pages.len())); }
-                if let Some(ref enc_pw) = doc.encrypted {
-                    let supplied = password.as_deref().unwrap_or("");
-                    if !enc_pw.is_empty() && supplied != enc_pw {
-                        return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
-                    }
-                }
-                let lines = vec![
-                    format!("checking {f}"),
-                    format!("PDF Version: {}", doc.version),
-                    if doc.encrypted.is_some() {
-                        "File is encrypted".to_string()
-                    } else {
-                        "File is not encrypted".to_string()
-                    },
-                    if doc.pages.is_empty() { "File is empty".to_string() } else if doc.linearized {
-                        "File is linearized".to_string()
-                    } else {
-                        "File is not linearized".to_string()
-                    },
-                    "No syntax or stream encoding errors found; the file may still contain".to_string(),
-                    "errors that qpdf cannot detect".to_string(),
-                ];
-                return ok_out(&format!("{}\n", lines.join("\n")));
-            }
-            if show_xref {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                let mut lines = vec![
-                    "1/0: uncompressed; offset = 15".to_string(),
-                    "2/0: uncompressed; offset = 64".to_string(),
-                ];
-                for p in 0..doc.pages.len() {
-                    let obj_id = 3 + p * 2;
-                    lines.push(format!("{obj_id}/0: uncompressed; offset = {}", 120 + p * 120));
-                    lines.push(format!("{}/0: uncompressed; offset = {}", obj_id + 1, 180 + p * 120));
-                }
-                return ok_out(&format!("{}\n", lines.join("\n")));
-            }
-            if show_pages {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                let mut lines = Vec::new();
-                for (p, pg) in doc.pages.iter().enumerate() {
-                    let content_obj = 4 + p * 4;
-                    let page_obj = 5 + p * 4;
-                    lines.push(format!("page {}: {page_obj} 0 R", p + 1));
-                    if with_images {
-                        lines.push("  images:".to_string());
-                        for (im_idx, (w, h, _)) in pg.images.iter().enumerate() {
-                            let im_obj = 8 + p * 4 + im_idx;
-                            lines.push(format!("    /Im{}: {im_obj} 0 R ({w} x {h})", im_idx + 1));
-                        }
-                    }
-                    lines.push("  content:".to_string());
-                    lines.push(format!("    {content_obj} 0 R"));
-                }
-                return ok_out(&format!("{}\n", lines.join("\n")));
-            }
-            if let Some(ref obj_spec) = show_object {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                let obj_num: usize = obj_spec
-                    .split([',', ' '])
-                    .next()
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(0);
-                if obj_num == 1 {
-                    return ok_out("<< /Type /Catalog /Pages 2 0 R >>\n");
-                }
-                if obj_num == 2 {
-                    let kids: Vec<String> = (0..doc.pages.len())
-                        .map(|p| format!("{} 0 R", 5 + p * 4))
-                        .collect();
-                    return ok_out(&format!("<< /Type /Pages /Count {} /Kids [ {} ] >>\n", doc.pages.len(), kids.join(" ")));
-                }
-                if obj_num == 3 {
-                    return ok_out(&format!("<< /Producer (@poe-code/pdf-ast) /Title ({}) /Creator (wkhtmltopdf (pdf-ast-static)) >>\n", doc.title));
-                }
-                if obj_num >= 4 {
-                    let rem = obj_num - 4;
-                    let page_idx = rem / 4;
-                    let slot = rem % 4;
-                    if let Some(pg) = doc.pages.get(page_idx) {
-                        if slot == 0 {
-                            let stream_str = format!("BT /F1 12 Tf 72 720 Td ({}) Tj ET\n", pg.text);
-                            if raw_stream_data || filtered_stream_data {
-                                return ok_out(&stream_str);
-                            }
-                            return ok_out(&format!("<< /Filter /FlateDecode /Length {} >>\n", stream_str.len()));
-                        } else if slot == 1 {
-                            let (pw, ph) = doc
-                                .page_media
-                                .get(&(page_idx + 1))
-                                .map(|(w, h, _)| (*w, *h))
-                                .unwrap_or((doc.page_w, doc.page_h));
-                            return ok_out(&format!(
-                                "<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 {pw} {ph} ] /Rotate {} /Contents {} 0 R >>\n",
-                                pg.rot,
-                                obj_num - 1
-                            ));
-                        }
-                    }
-                }
-                return ok_out("null\n");
-            }
-            if list_att || show_att.is_some() {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let bytes = if f == "-" { crate::vfs::stream_string_to_bytes(stdin) }
-                    else { match fs.read_file(&resolve_posix_path(cwd,f)) {
-                        Ok(b) => b, Err(_) => return err_out(&format!("qpdf: cannot open {f}\n"),2),
-                    }};
-                let show = show_att.as_deref();
-                if pdf_reader::header_version(&bytes).is_none() { return err_out(&format!("qpdf: {f}: Invalid PDF header: missing %PDF- signature\n"), 2); }
-                let doc = PdfDoc::parse(&bytes);
-                let mut out = String::new();
-                for (k, fname, _, data) in doc.attachments {
-                    if let Some(key) = show {
-                        if k == key || fname == key { return ok_out(&crate::vfs::bytes_to_stream_string(&data)); }
-                    } else { out.push_str(&format!("{k} -> {fname}\n")); }
-                }
-                if show.is_none() { return ok_out(&out); }
-                return err_out(&format!("qpdf: attachment {} not found\n", show.unwrap()), 2);
-            }
-            if let Some(jv) = json_version {
-                let out_file = if !empty_input && pos_files.len() >= 2 {
-                    Some(pos_files[1].clone())
-                } else if empty_input && !pos_files.is_empty() {
-                    Some(pos_files[0].clone())
-                } else {
-                    None
-                };
-                let input=match primary(){Some(bytes)=>bytes,None=>return if let Some(name)=&primary_arg{err_out(&format!("qpdf: cannot open {name}\n"),2)}else{err_out("qpdf: an input file is required\n",2)}};
-                if pdf_reader::header_version(&input).is_none() {
-                    return err_out(&format!("qpdf: {}: Invalid PDF header: missing %PDF- signature\n",primary_arg.as_deref().unwrap_or("empty")),2);
-                }
-                let source = pdf_reader::PageSource::open(&input,password.as_deref().unwrap_or(""));
-                if let Err(e) = source && !is_legacy_pdf(&input) {
-                    return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2);
-                }
-                for k in &json_keys {
-                    if jv == 1 && k == "qpdf" {return err_out("qpdf: json-key=qpdf is not valid for json=1\n",2);}
-                    if jv == 2 && matches!(k.as_str(),"objects"|"objectinfo") {
-                        return err_out(&format!("qpdf: json-key={k} is only valid for json=1\n"),2);
-                    }
-                }
-                let stream_prefix = json_stream_prefix.or_else(|| out_file.as_ref().filter(|of| *of != "-").map(|of| format!("{of}-"))).unwrap_or_default();
-                if json_stream_data == "file" && stream_prefix.is_empty() {
-                    return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
-                }
-                if let Ok(mut source) = source {
-                    let (json,files) = match source.qpdf_json(jv,edits.inline_images,json_keys.iter().any(|k| k == "pages"),
-                        &json_objects,&json_stream_data,(&stream_prefix,out_file.as_deref()),fs.shell_limits().max_output_bytes) {
-                        Ok(result) => result,
-                        Err(e) => return err_out(e,1),
-                    };
-                    let destination = out_file.as_deref().filter(|of| *of != "-");
-                    let mut published = false;
-                    for (name,data) in files {
-                        let bytes = if destination == Some(&name) {
-                            published = true;
-                            json.as_bytes()
-                        } else { &data };
-                        if let Err(e) = publish(&name,bytes) { return e; }
-                    }
-                    if let Some(of) = destination {
-                        if !published && let Err(e) = publish(of,json.as_bytes()) { return e; }
-                        return ok_out("");
-                    }
-                    return ok_out(&json);
-                }
-                let doc = PdfDoc::parse(&input);
-                let esc_json = |s: &str| -> String {
-                    let mut out = String::new();
-                    for ch in s.chars() {
-                        match ch {
-                            '"' => out.push_str("\\\""),
-                            '\\' => out.push_str("\\\\"),
-                            '\n' => out.push_str("\\n"),
-                            '\r' => out.push_str("\\r"),
-                            '\t' => out.push_str("\\t"),
-                            c => out.push(c),
-                        }
-                    }
-                    out
-                };
-                let include_obj = |id: usize| -> bool {
-                    if json_objects.is_empty() {
-                        return true;
-                    }
-                    json_objects.contains(&Some((id,0)))
-                };
-                let keep_objs = json_keys.is_empty() || json_keys.iter().any(|k| k == "objects" || k == "qpdf");
-                let mut obj_entries: Vec<String> = Vec::new();
-                if keep_objs {
-                    if include_obj(1) {
-                        obj_entries.push("      \"obj:1 0 R\": {\n        \"value\": {\n          \"/Type\": \"/Catalog\",\n          \"/Pages\": \"2 0 R\"\n        }\n      }".to_string());
-                    }
-                    if include_obj(2) {
-                        let kids: Vec<String> = (0..doc.pages.len()).map(|p| format!("\"{} 0 R\"", 5 + p * 4)).collect();
-                        obj_entries.push(format!(
-                            "      \"obj:2 0 R\": {{\n        \"value\": {{\n          \"/Type\": \"/Pages\",\n          \"/Count\": {},\n          \"/Kids\": [ {} ]\n        }}\n      }}",
-                            doc.pages.len(),
-                            kids.join(", ")
-                        ));
-                    }
-                    if include_obj(3) {
-                        obj_entries.push(format!(
-                            "      \"obj:3 0 R\": {{\n        \"value\": {{\n          \"/Producer\": \"u:@poe-code/pdf-ast\",\n          \"/Title\": \"u:{}\"\n        }}\n      }}",
-                            esc_json(&doc.title)
-                        ));
-                    }
-                    for (p, pg) in doc.pages.iter().enumerate() {
-                        let content_obj = 4 + p * 4;
-                        let page_obj = 5 + p * 4;
-                        let (pw, ph) = doc
-                            .page_media
-                            .get(&(p + 1))
-                            .map(|(w, h, _)| (*w, *h))
-                            .unwrap_or((doc.page_w, doc.page_h));
-                        if include_obj(content_obj) {
-                            let raw_str = pg.text.clone();
-                            let mut stream_fields = vec![format!("          \"dict\": {{ \"/Filter\": \"/FlateDecode\", \"/Length\": {} }}", raw_str.len())];
-                            if json_stream_data == "inline" {
-                                let b64 = base64_encode(raw_str.as_bytes());
-                                stream_fields.push(format!("          \"data\": \"{b64}\""));
-                            } else if json_stream_data == "file" {
-                                let sf_rel = format!("{stream_prefix}{content_obj}");
-                                if let Err(e) = publish(&sf_rel, raw_str.as_bytes()) { return e; }
-                                stream_fields.push(format!("          \"datafile\": \"{}\"", esc_json(&sf_rel)));
-                            }
-                            obj_entries.push(format!(
-                                "      \"obj:{content_obj} 0 R\": {{\n        \"stream\": {{\n{}\n        }}\n      }}",
-                                stream_fields.join(",\n")
-                            ));
-                        }
-                        if include_obj(page_obj) {
-                            obj_entries.push(format!(
-                                "      \"obj:{page_obj} 0 R\": {{\n        \"value\": {{\n          \"/Type\": \"/Page\",\n          \"/Parent\": \"2 0 R\",\n          \"/MediaBox\": [ 0, 0, {pw}, {ph} ],\n          \"/Rotate\": {},\n          \"/Contents\": \"{content_obj} 0 R\"\n        }}\n      }}",
-                                pg.rot
-                            ));
-                        }
-                    }
-                    obj_entries.push(format!(
-                        "      \"trailer\": {{\n        \"value\": {{\n          \"/Root\": \"1 0 R\",\n          \"/Info\": \"3 0 R\",\n          \"/Size\": {}\n        }}\n      }}",
-                        4 + doc.pages.len() * 4
-                    ));
-                }
-                let objs_block = if obj_entries.is_empty() {
-                    "    {}".to_string()
-                } else {
-                    format!("    {{\n{}\n    }}", obj_entries.join(",\n"))
-                };
-                let max_obj = 3 + doc.pages.len() * 4;
-                let rendered = format!(
-                    "{{\n  \"version\": {jv},\n  \"qpdf\": [\n    {{\n      \"jsonversion\": {jv},\n      \"pdfversion\": \"{}\",\n      \"maxobjectid\": {max_obj}\n    }},\n{objs_block}\n  ]\n}}\n",
-                    doc.version
-                );
-                if let Some(of) = out_file
-                    && of != "-"
-                {
-                    if let Err(e) = publish(&of, rendered.as_bytes()) { return e; }
-                    return ok_out("");
-                }
-                return ok_out(&rendered);
-            }
-
-            let out_arg = pos_files.get(usize::from(!replace_input && !empty_input)).cloned();
-            edits.password=password.as_deref().unwrap_or("");
-            if let Some(dst_arg) = out_arg.as_deref() {
-                let input = primary();
-                if let Some(bytes) = input && pdf_reader::header_version(&bytes).is_some() && !is_legacy_pdf(&bytes) {
-                    let limit = fs.shell_limits().max_output_bytes;
-                    if !edits.layers.is_empty() {
-                        let mut remaining = fs.shell_limits().max_input_bytes;
-                        let mut seen = std::collections::BTreeSet::new();
-                        for name in primary_arg
-                            .iter()
-                            .map(String::as_str)
-                            .chain(edits.selections.iter().map(|s| s.0.as_str()))
-                            .chain(add_atts.iter().map(|a| a.path.as_str()))
-                            .chain(copy_atts.iter().map(|a| a.path.as_str()))
-                            .chain(edits.layers.iter().map(|l| l.path))
-                        {
-                            if name == "." || !seen.insert(name) {
-                                continue;
-                            }
-                            let size = if Some(name) == primary_arg.as_deref() {
-                                bytes.len()
-                            } else if name == "-" {
-                                crate::vfs::stream_byte_len(stdin)
-                            } else {
-                                fs.stat(&resolve_posix_path(cwd, name)).map_or(0, |st| st.size)
-                            };
-                            let Some(left) = remaining.checked_sub(size) else {
-                                return err_out("qpdf: input byte limit exceeded\n", 2);
-                            };
-                            remaining = left;
-                        }
-                    }
-                    let selected = if edits.selections.is_empty() { Some(bytes) } else {
-                        match pdf_reader::PageOutput::select(&bytes,primary_arg.as_deref(),base_is_input,&edits,collate_group,read,&fs.shell_limits()) {
-                            Ok(bytes) => bytes,
-                            Err(e) if e == "invalid page selection" => return err_out("shell: line 1: internal error\n",1),
-                            Err(e) => return err_out(&format!("qpdf: {e}\n"),2)
-                        }
-                    };
-                    if let Some(bytes) = selected {
-                        if !replace_input && dst_arg != "-" && primary_arg.as_deref() == Some(dst_arg) {
-                            return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
-                        }
-                        let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
-                            .map_err(|e| if matches!(e.as_str(), "invalid inline-image minimum size" | "invalid page rotation" | "invalid page label" | "invalid PDF resource stream" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
-                                else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
-                                else {err_out(&format!("qpdf: {e}\n"),2)});
-                        if let Some(group) = edits.split_pages {
-                            let edited = edits.inline_images.is_some() || edits.prune_resources || edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
-                                || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
-                            let graph;
-                            let data = if edited {
-                                graph = match rewrite() { Ok(v) => v, Err(e) => return e };
-                                &graph
-                            } else { &bytes };
-                            let mut source = match pdf_reader::PageSource::open(data,edits.password) {
-                                Ok(source)=>source,
-                                Err(e)=>return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2),
-                            };
-                            let count = source.len();
-                            let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
-                                return err_out("shell: line 1: internal error\n",1);
-                            };
-                            let mut outputs = vec![];
-                            let mut remaining = limit;
-                            for start in (0..count).step_by(group) {
-                                let end = start.saturating_add(group).min(count);
-                                let Some(name) = format_qpdf_split_name(dst_arg,count,group,start+1,end) else {
-                                    return err_out("qpdf: filename width limit exceeded\n",2);
-                                };
-                                let Some(part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,remaining) else {
-                                    return err_out("qpdf: could not copy pages within output limits\n",2);
-                                };
-                                remaining -= part.len();
-                                outputs.push((name,part));
-                            }
-                            for (name,part) in outputs { if let Err(e) = publish(&name,&part) { return e; } }
-                            return ok_out("");
-                        }
-                        let mut output = match rewrite() { Ok(v) => v, Err(e) => return e };
-                        if let Some((user,owner,mask)) = encryption && !edits.decrypt {
-                            output = match pdf_reader::encrypt_document(&output,user,owner,mask,limit) {
-                                Ok(v) => v, Err(e) => return err_out(&format!("qpdf: {e}\n"),2),
-                            };
-                        }
-                        if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
-                        return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
-                    }
-                }
-            }
-
-            if let Some(group_sz) = edits.split_pages {
-                let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: an input file is required\n", 2);
-                };
-                let doc = match load_input(f) {
-                    Ok(d) => d,
-                    Err(e) => return e,
-                };
-                let Some(pat) = out_arg.as_deref() else { return err_out("qpdf: an output file is required\n",2); };
-                if !replace_input && pat != "-" && pat == f {
+            };
+            if let Some(bytes) = selected {
+                if !replace_input && dst_arg != "-" && primary_arg.as_deref() == Some(dst_arg) {
                     return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
                 }
-                let total = doc.pages.len();
-                let mut start = 1usize;
-                while start <= total {
-                    let end = start.saturating_add(group_sz - 1).min(total);
-                    let mut sub = PdfDoc::new();
-                    sub.version = doc.version.clone();
-                    sub.title = doc.title.clone();
-                    sub.author = doc.author.clone();
-                    sub.page_w = doc.page_w;
-                    sub.page_h = doc.page_h;
-                    sub.pages = doc.pages[(start - 1)..end].to_vec();
-                    let Some(fname) = format_qpdf_split_name(pat, total, group_sz, start, end) else { return err_out("qpdf: filename width limit exceeded\n", 2); };
-                    if let Err(e) = publish(&fname, &sub.serialize()) { return e; }
-                    start = end + 1;
+                let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
+                    .map_err(|e| if matches!(e.as_str(), "invalid inline-image minimum size" | "invalid page rotation" | "invalid page label" | "invalid PDF resource stream" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
+                        else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
+                        else {err_out(&format!("qpdf: {e}\n"),2)});
+                if let Some(group) = edits.split_pages {
+                    let edited = edits.inline_images.is_some() || edits.prune_resources || edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
+                        || !remove_atts.is_empty() || !add_atts.is_empty() || !copy_atts.is_empty();
+                    let graph;
+                    let data = if edited {
+                        graph = match rewrite() { Ok(v) => v, Err(e) => return e };
+                        &graph
+                    } else { &bytes };
+                    let mut source = match pdf_reader::PageSource::open(data,edits.password) {
+                        Ok(source)=>source,
+                        Err(e)=>return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2),
+                    };
+                    let count = source.len();
+                    let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
+                        return err_out("shell: line 1: internal error\n",1);
+                    };
+                    let mut outputs = vec![];
+                    let mut remaining = limit;
+                    for start in (0..count).step_by(group) {
+                        let end = start.saturating_add(group).min(count);
+                        let Some(name) = format_qpdf_split_name(dst_arg,count,group,start+1,end) else {
+                            return err_out("qpdf: filename width limit exceeded\n",2);
+                        };
+                        let Some(part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,remaining) else {
+                            return err_out("qpdf: could not copy pages within output limits\n",2);
+                        };
+                        remaining -= part.len();
+                        outputs.push((name,part));
+                    }
+                    for (name,part) in outputs { if let Err(e) = publish(&name,&part) { return e; } }
+                    return ok_out("");
                 }
-                return ok_out("");
+                let mut output = match rewrite() { Ok(v) => v, Err(e) => return e };
+                if let Some((user,owner,mask)) = encryption && !edits.decrypt {
+                    output = match pdf_reader::encrypt_document(&output,user,owner,mask,limit) {
+                        Ok(v) => v, Err(e) => return err_out(&format!("qpdf: {e}\n"),2),
+                    };
+                }
+                if dst_arg == "-" {return ok_out(&crate::vfs::bytes_to_stream_string(&output));}
+                return publish(dst_arg, &output).map_or_else(|e| e, |()| ok_out(""));
             }
+        }
+    }
 
-            let mut doc = if empty_input {
-                PdfDoc::new()
-            } else if let Some(f) = primary_arg.as_deref() {
-                match load_input(f) {
+    if let Some(group_sz) = edits.split_pages {
+        let Some(f) = primary_arg.as_deref() else {
+            return err_out("qpdf: an input file is required\n", 2);
+        };
+        let doc = match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        };
+        let Some(pat) = out_arg.as_deref() else { return err_out("qpdf: an output file is required\n",2); };
+        if !replace_input && pat != "-" && pat == f {
+            return err_out("qpdf: output file may not be the same as the input file (use --replace-input)\n",2);
+        }
+        let total = doc.pages.len();
+        let mut start = 1usize;
+        while start <= total {
+            let end = start.saturating_add(group_sz - 1).min(total);
+            let mut sub = PdfDoc::new();
+            sub.version = doc.version.clone();
+            sub.title = doc.title.clone();
+            sub.author = doc.author.clone();
+            sub.page_w = doc.page_w;
+            sub.page_h = doc.page_h;
+            sub.pages = doc.pages[(start - 1)..end].to_vec();
+            let Some(fname) = format_qpdf_split_name(pat, total, group_sz, start, end) else { return err_out("qpdf: filename width limit exceeded\n", 2); };
+            if let Err(e) = publish(&fname, &sub.serialize()) { return e; }
+            start = end + 1;
+        }
+        return ok_out("");
+    }
+
+    let mut doc = if empty_input {
+        PdfDoc::new()
+    } else if let Some(f) = primary_arg.as_deref() {
+        match load_input(f) {
+            Ok(d) => d,
+            Err(e) => return e,
+        }
+    } else {
+        return err_out("qpdf: an input file is required\n", 2);
+    };
+    let Some(dst_arg) = out_arg else {
+        return err_out("qpdf: an output file is required\n", 2);
+    };
+    if !replace_input
+        && !empty_input
+        && dst_arg != "-"
+        && primary_arg.as_deref() == Some(dst_arg.as_str())
+    {
+        return err_out(
+            "qpdf: output file may not be the same as the input file (use --replace-input)\n",
+            2,
+        );
+    }
+
+    if let Some(ref enc_pw) = doc.encrypted {
+        let supplied = password.as_deref().unwrap_or("");
+        if !enc_pw.is_empty() && supplied != enc_pw {
+            let f = primary_arg.as_deref().unwrap_or("input");
+            return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
+        }
+    }
+
+    if !edits.selections.is_empty() {
+        let mut groups: Vec<Vec<PdfPage>> = Vec::new();
+        for (sf, rng, _) in &edits.selections {
+            let sdoc = if sf == "." {
+                doc.clone()
+            } else {
+                match load_input(sf) {
                     Ok(d) => d,
                     Err(e) => return e,
                 }
-            } else {
-                return err_out("qpdf: an input file is required\n", 2);
             };
-            let Some(dst_arg) = out_arg else {
-                return err_out("qpdf: an output file is required\n", 2);
-            };
-            if !replace_input
-                && !empty_input
-                && dst_arg != "-"
-                && primary_arg.as_deref() == Some(dst_arg.as_str())
-            {
-                return err_out(
-                    "qpdf: output file may not be the same as the input file (use --replace-input)\n",
-                    2,
-                );
+            if doc.title.is_empty() && !sdoc.title.is_empty() {
+                doc.title = sdoc.title.clone();
             }
-
-            if let Some(ref enc_pw) = doc.encrypted {
-                let supplied = password.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
-                    let f = primary_arg.as_deref().unwrap_or("input");
-                    return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
+            let mut group_pages = Vec::new();
+            for pno in parse_qpdf_page_spec(rng, sdoc.pages.len()) {
+                if let Some(pg) = sdoc.pages.get(pno - 1) {
+                    group_pages.push(pg.clone());
                 }
             }
-
-            if !edits.selections.is_empty() {
-                let mut groups: Vec<Vec<PdfPage>> = Vec::new();
-                for (sf, rng, _) in &edits.selections {
-                    let sdoc = if sf == "." {
-                        doc.clone()
-                    } else {
-                        match load_input(sf) {
-                            Ok(d) => d,
-                            Err(e) => return e,
-                        }
-                    };
-                    if doc.title.is_empty() && !sdoc.title.is_empty() {
-                        doc.title = sdoc.title.clone();
-                    }
-                    let mut group_pages = Vec::new();
-                    for pno in parse_qpdf_page_spec(rng, sdoc.pages.len()) {
-                        if let Some(pg) = sdoc.pages.get(pno - 1) {
-                            group_pages.push(pg.clone());
-                        }
-                    }
-                    groups.push(group_pages);
-                }
-                let mut new_pages = Vec::new();
-                if let Some(cg) = collate_group {
-                    let mut offsets = vec![0usize; groups.len()];
-                    loop {
-                        let mut any = false;
-                        for (gi, g) in groups.iter().enumerate() {
-                            let start = offsets[gi];
-                            if start < g.len() {
-                                any = true;
-                                let end = (start + cg).min(g.len());
-                                new_pages.extend_from_slice(&g[start..end]);
-                                offsets[gi] = end;
-                            }
-                        }
-                        if !any {
-                            break;
-                        }
-                    }
-                } else {
-                    for g in groups {
-                        new_pages.extend(g);
+            groups.push(group_pages);
+        }
+        let mut new_pages = Vec::new();
+        if let Some(cg) = collate_group {
+            let mut offsets = vec![0usize; groups.len()];
+            loop {
+                let mut any = false;
+                for (gi, g) in groups.iter().enumerate() {
+                    let start = offsets[gi];
+                    if start < g.len() {
+                        any = true;
+                        let end = (start + cg).min(g.len());
+                        new_pages.extend_from_slice(&g[start..end]);
+                        offsets[gi] = end;
                     }
                 }
-                doc.pages = new_pages;
-            }
-
-            let Some(rotations) = pdf_reader::rotations(&edits.rotations, doc.pages.len()) else {
-                return err_out("shell: line 1: internal error\n",1);
-            };
-            for (pg, edit) in doc.pages.iter_mut().zip(rotations) {
-                if let Some(rotation) = edit { pg.rot = rotation.apply(f64::from(pg.rot)); }
-            }
-
-            if edits.flatten_rotation {
-                for (idx, pg) in doc.pages.iter_mut().enumerate() {
-                    if pg.rot == 90 || pg.rot == 270 {
-                        let pno = idx + 1;
-                        let (w, h, crop) = doc
-                            .page_media
-                            .get(&pno)
-                            .copied()
-                            .unwrap_or((doc.page_w, doc.page_h, None));
-                        doc.page_media.insert(pno, (h, w, crop));
-                    }
-                    pg.rot = 0;
+                if !any {
+                    break;
                 }
             }
-
-            for spec in &edits.layers {
-                let odoc = if spec.path == "." {
-                    doc.clone()
-                } else {
-                    match load_input(spec.path) {
-                        Ok(d) => d,
-                        Err(e) => return e,
-                    }
-                };
-                let to_pages = parse_qpdf_page_spec(spec.to, doc.pages.len());
-                let from_pages = parse_qpdf_page_spec(spec.from, odoc.pages.len());
-                let rep_pages = if spec.repeat.is_empty() {
-                    Vec::new()
-                } else {
-                    parse_qpdf_page_spec(spec.repeat, from_pages.len())
-                };
-                if !from_pages.is_empty() {
-                    for (idx, dst_pno) in to_pages.into_iter().enumerate() {
-                        let src_pno = if idx < from_pages.len() {
-                            from_pages[idx]
-                        } else if !rep_pages.is_empty() {
-                            let r_idx = (idx - from_pages.len()) % rep_pages.len();
-                            from_pages[rep_pages[r_idx] - 1]
-                        } else {
-                            *from_pages.last().unwrap()
-                        };
-                        if let Some(src_pg) = odoc.pages.get(src_pno - 1)
-                            && let Some(dst_pg) = doc.pages.get_mut(dst_pno - 1)
-                        {
-                            if spec.overlay {
-                                dst_pg.text = format!("{}\n{}", dst_pg.text, src_pg.text);
-                            } else {
-                                dst_pg.text = format!("{}\n{}", src_pg.text, dst_pg.text);
-                            }
-                        }
-                    }
-                }
-            }
-
-            for key in &remove_atts {
-                doc.attachments.retain(|(k, fname, _, _)| k != key && fname != key);
-            }
-            for pdf_reader::attachments::AddAttachment {path:att_p,key,filename:fname,replace,..} in add_atts {
-                let afull = resolve_posix_path(cwd, &att_p);
-                let Ok(ab) = fs.read_file(&afull) else {
-                    return err_out(&format!("qpdf: {att_p}: No such file or directory\n"), 2);
-                };
-                if let Some(pos) = doc.attachments.iter().position(|(k, _, _, _)| k == &key) {
-                    if !replace {
-                        return err_out(&format!("qpdf: attachment key {key} already exists (use --replace)\n"), 2);
-                    }
-                    doc.attachments.remove(pos);
-                }
-                doc.attachments.push((key, fname, String::new(), ab));
-            }
-            for source in copy_atts {
-                let bytes = if source.path == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
-                    else { fs.read_file(&resolve_posix_path(cwd, &source.path)).ok() };
-                let Some(bytes) = bytes else {
-                    return err_out(&format!("qpdf: cannot open {}\n", source.path), 2);
-                };
-                if is_legacy_pdf(&bytes) {
-                    let src = PdfDoc::parse(&bytes);
-                    if src.encrypted.as_ref().is_some_and(|pw| pw != &source.password) {
-                        return err_out("shell: line 1: internal error\n",1);
-                    }
-                    for (k, fname, mime, data) in src.attachments {
-                        let key = format!("{}{k}", source.prefix);
-                        doc.attachments.retain(|(ek, _, _, _)| ek != &key);
-                        doc.attachments.push((key, fname, mime, data));
-                    }
-                } else if let Err(e) = source.visit(&bytes, |key, filename, data| {
-                    if doc.attachments.iter().any(|(k,_,_,_)| k == &key) {
-                        return Err(format!("duplicate attachment key {key}"));
-                    }
-                    doc.attachments.push((key, filename, String::new(), data.to_vec()));
-                    Ok(())
-                }) {
-                    return if e == pdf_reader::attachments::INVALID_SOURCE {err_out("shell: line 1: internal error\n",1)}
-                        else {err_out(&format!("qpdf: {e}\n"),2)};
-                }
-            }
-
-            if edits.page_labels {
-                doc.page_labels.clear();
-            }
-            if !edits.label_specs.is_empty() {
-                doc.page_labels.clear();
-                for spec in &edits.label_specs {
-                    if let Some((pno_s, rest)) = spec.split_once(':') {
-                        let pno = pno_s.parse::<usize>().unwrap_or(1).to_string();
-                        let mut style_code = "D";
-                        let mut start_num = "1".to_string();
-                        let mut prefix = String::new();
-                        let parts: Vec<&str> = rest.split('/').collect();
-                        if let Some(first) = parts.first()
-                            && matches!(*first, "D" | "r" | "R" | "a" | "A" | "n" | "none")
-                        {
-                            style_code = first;
-                        }
-                        for (t_idx, token) in parts.iter().enumerate().skip(1) {
-                            if let Some(st) = token.strip_prefix("st=") {
-                                start_num = st.to_string();
-                            } else if let Some(pr) = token.strip_prefix("pr=") {
-                                prefix = pr.to_string();
-                            } else if t_idx == 1 && token.chars().all(|c| c.is_ascii_digit()) && !token.is_empty() {
-                                start_num = token.to_string();
-                            } else if !token.is_empty() {
-                                prefix = token.to_string();
-                            }
-                        }
-                        let pdftk_style = match style_code {
-                            "D" => "DecimalArabicNumerals",
-                            "R" => "UppercaseRomanNumerals",
-                            "r" => "LowercaseRomanNumerals",
-                            "A" => "UppercaseLetters",
-                            "a" => "LowercaseLetters",
-                            _ => "NoNumber",
-                        };
-                        doc.page_labels.push((pno, start_num, prefix, pdftk_style.to_string()));
-                    }
-                }
-            }
-
-            if edits.info {
-                doc.title.clear();
-                doc.author.clear();
-                doc.info.clear();
-            }
-            if edits.metadata {
-                doc.exif.clear();
-            }
-            if encryption.is_some() && !edits.decrypt {
-                return err_out("qpdf: cannot encrypt a nonstandard PDF output\n",2);
-            }
-            if edits.decrypt {
-                doc.encrypted = None;
-            }
-            if edits.linearize {
-                doc.linearized = true;
-            }
-            let serialized = doc.serialize();
-            if dst_arg == "-" {
-                ok_out(&crate::vfs::bytes_to_stream_string(&serialized))
-            } else {
-                publish(&dst_arg, &serialized).map_or_else(|e| e, |()| ok_out(""))
+        } else {
+            for g in groups {
+                new_pages.extend(g);
             }
         }
-        "pdftk" => {
-            if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h" || a == "-help") {
-                return ok_out("Usage: pdftk <input PDF files | [handle]=filename ...> [<operation> <operation arguments>] [output <output filename>] [flatten]\n");
+        doc.pages = new_pages;
+    }
+
+    let Some(rotations) = pdf_reader::rotations(&edits.rotations, doc.pages.len()) else {
+        return err_out("shell: line 1: internal error\n",1);
+    };
+    for (pg, edit) in doc.pages.iter_mut().zip(rotations) {
+        if let Some(rotation) = edit { pg.rot = rotation.apply(f64::from(pg.rot)); }
+    }
+
+    if edits.flatten_rotation {
+        for (idx, pg) in doc.pages.iter_mut().enumerate() {
+            if pg.rot == 90 || pg.rot == 270 {
+                let pno = idx + 1;
+                let (w, h, crop) = doc
+                    .page_media
+                    .get(&pno)
+                    .copied()
+                    .unwrap_or((doc.page_w, doc.page_h, None));
+                doc.page_media.insert(pno, (h, w, crop));
             }
-            if args.iter().any(|a| a == "--version" || a == "-v" || a == "-version") {
-                return ok_out("pdftk port to Java 3.3.3 (safe-bash @poe-code/pdf-ast)\n");
+            pg.rot = 0;
+        }
+    }
+
+    for spec in &edits.layers {
+        let odoc = if spec.path == "." {
+            doc.clone()
+        } else {
+            match load_input(spec.path) {
+                Ok(d) => d,
+                Err(e) => return e,
             }
-            let ops = [
-                "cat",
-                "shuffle",
-                "burst",
-                "dump_data",
-                "dump_data_utf8",
-                "dump_data_fields",
-                "dump_data_fields_utf8",
-                "dump_data_annots",
-                "dump_data_annots_utf8",
-                "update_info",
-                "update_info_utf8",
-                "attach_files",
-                "unpack_files",
-                "background",
-                "multibackground",
-                "stamp",
-                "multistamp",
-                "fill_form",
-                "generate_fdf",
-                "flatten",
-                "rotate",
-            ];
-            let mut handles: BTreeMap<String, PdfDoc> = BTreeMap::new();
-            let mut inputs = BTreeMap::new();
-            let mut input_order = Vec::new();
-            let mut source_sizes=BTreeMap::new();
-            let mut auto = 65;
-            let mut passwords = BTreeMap::new();
-            let mut default_password = "";
-            let operation=|s:&str| ops.iter().copied().find(|name|s.eq_ignore_ascii_case(name));
-            let keyword=|s:&str| operation(s).is_some() || s.eq_ignore_ascii_case("input_pw") || s.eq_ignore_ascii_case("output");
-            for pos in args.iter().enumerate().filter_map(|(i,x)|x.eq_ignore_ascii_case("input_pw").then_some(i)) {
-                for arg in args[pos+1..].iter().take_while(|x| !keyword(x)) {
-                    if let Some((handle,pw)) = arg.split_once('=') { passwords.insert(handle,pw); }
-                    else {default_password = arg;}
-                }
-            }
-            let mut op = String::new();
-            let mut op_idx = args.len();
-            let mut i = 0usize;
-            while i < args.len() {
-                let a = args[i].as_str();
-                if let Some(name)=operation(a) {
-                    op = name.to_owned();
-                    op_idx = i;
-                    break;
-                }
-                if a.eq_ignore_ascii_case("output") {
-                    op = "passthrough".to_string();
-                    op_idx = i;
-                    break;
-                }
-                if a.eq_ignore_ascii_case("input_pw") {
-                    i += 1;
-                    while i < args.len() && !keyword(&args[i]) {
-                        i += 1;
-                    }
-                    continue;
-                }
-                let (handle,path) = match a.split_once('=') {
-                    Some((h,path)) if !h.is_empty() => (h.to_owned(),path),
-                    _ => {
-                        let h = char::from_u32(auto).unwrap_or('?').to_string();
-                        auto += 1;
-                        (h,a)
-                    }
-                };
-                let bytes = if path == "-" {
-                    crate::vfs::stream_string_to_bytes(stdin)
+        };
+        let to_pages = parse_qpdf_page_spec(spec.to, doc.pages.len());
+        let from_pages = parse_qpdf_page_spec(spec.from, odoc.pages.len());
+        let rep_pages = if spec.repeat.is_empty() {
+            Vec::new()
+        } else {
+            parse_qpdf_page_spec(spec.repeat, from_pages.len())
+        };
+        if !from_pages.is_empty() {
+            for (idx, dst_pno) in to_pages.into_iter().enumerate() {
+                let src_pno = if idx < from_pages.len() {
+                    from_pages[idx]
+                } else if !rep_pages.is_empty() {
+                    let r_idx = (idx - from_pages.len()) % rep_pages.len();
+                    from_pages[rep_pages[r_idx] - 1]
                 } else {
-                    let Ok(b) = fs.read_file(&resolve_posix_path(cwd,path)) else {
-                        return err_out(&format!("Error: Unable to find file '{path}'\n"),1);
-                    };
-                    b
+                    *from_pages.last().unwrap()
                 };
-                if !bytes.starts_with(b"%PDF-") {
-                    return err_out(&format!("Error: Failed to open PDF '{path}': Invalid PDF header: missing %PDF- signature\n"),1);
+                if let Some(src_pg) = odoc.pages.get(src_pno - 1)
+                    && let Some(dst_pg) = doc.pages.get_mut(dst_pno - 1)
+                {
+                    if spec.overlay {
+                        dst_pg.text = format!("{}\n{}", dst_pg.text, src_pg.text);
+                    } else {
+                        dst_pg.text = format!("{}\n{}", src_pg.text, dst_pg.text);
+                    }
                 }
-                let pw = passwords.get(handle.as_str()).copied().unwrap_or(default_password);
-                let doc = match pdf_reader::read(&bytes,pw) {
-                    Ok((doc,_)) => doc,
-                    Err(e @ (pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) => return err_out(&format!("Error: Failed to open PDF '{path}': {e}\n"),1),
-                    Err(_) => PdfDoc::parse(&bytes),
+            }
+        }
+    }
+
+    for key in &remove_atts {
+        doc.attachments.retain(|(k, fname, _, _)| k != key && fname != key);
+    }
+    for pdf_reader::attachments::AddAttachment {path:att_p,key,filename:fname,replace,..} in add_atts {
+        let afull = resolve_posix_path(cwd, &att_p);
+        let Ok(ab) = fs.read_file(&afull) else {
+            return err_out(&format!("qpdf: {att_p}: No such file or directory\n"), 2);
+        };
+        if let Some(pos) = doc.attachments.iter().position(|(k, _, _, _)| k == &key) {
+            if !replace {
+                return err_out(&format!("qpdf: attachment key {key} already exists (use --replace)\n"), 2);
+            }
+            doc.attachments.remove(pos);
+        }
+        doc.attachments.push((key, fname, String::new(), ab));
+    }
+    for source in copy_atts {
+        let bytes = if source.path == "-" { Some(crate::vfs::stream_string_to_bytes(stdin)) }
+            else { fs.read_file(&resolve_posix_path(cwd, &source.path)).ok() };
+        let Some(bytes) = bytes else {
+            return err_out(&format!("qpdf: cannot open {}\n", source.path), 2);
+        };
+        if is_legacy_pdf(&bytes) {
+            let src = PdfDoc::parse(&bytes);
+            if src.encrypted.as_ref().is_some_and(|pw| pw != &source.password) {
+                return err_out("shell: line 1: internal error\n",1);
+            }
+            for (k, fname, mime, data) in src.attachments {
+                let key = format!("{}{k}", source.prefix);
+                doc.attachments.retain(|(ek, _, _, _)| ek != &key);
+                doc.attachments.push((key, fname, mime, data));
+            }
+        } else if let Err(e) = source.visit(&bytes, |key, filename, data| {
+            if doc.attachments.iter().any(|(k,_,_,_)| k == &key) {
+                return Err(format!("duplicate attachment key {key}"));
+            }
+            doc.attachments.push((key, filename, String::new(), data.to_vec()));
+            Ok(())
+        }) {
+            return if e == pdf_reader::attachments::INVALID_SOURCE {err_out("shell: line 1: internal error\n",1)}
+                else {err_out(&format!("qpdf: {e}\n"),2)};
+        }
+    }
+
+    if edits.page_labels {
+        doc.page_labels.clear();
+    }
+    if !edits.label_specs.is_empty() {
+        doc.page_labels.clear();
+        for spec in &edits.label_specs {
+            if let Some((pno_s, rest)) = spec.split_once(':') {
+                let pno = pno_s.parse::<usize>().unwrap_or(1).to_string();
+                let mut style_code = "D";
+                let mut start_num = "1".to_string();
+                let mut prefix = String::new();
+                let parts: Vec<&str> = rest.split('/').collect();
+                if let Some(first) = parts.first()
+                    && matches!(*first, "D" | "r" | "R" | "a" | "A" | "n" | "none")
+                {
+                    style_code = first;
+                }
+                for (t_idx, token) in parts.iter().enumerate().skip(1) {
+                    if let Some(st) = token.strip_prefix("st=") {
+                        start_num = st.to_string();
+                    } else if let Some(pr) = token.strip_prefix("pr=") {
+                        prefix = pr.to_string();
+                    } else if t_idx == 1 && token.chars().all(|c| c.is_ascii_digit()) && !token.is_empty() {
+                        start_num = token.to_string();
+                    } else if !token.is_empty() {
+                        prefix = token.to_string();
+                    }
+                }
+                let pdftk_style = match style_code {
+                    "D" => "DecimalArabicNumerals",
+                    "R" => "UppercaseRomanNumerals",
+                    "r" => "LowercaseRomanNumerals",
+                    "A" => "UppercaseLetters",
+                    "a" => "LowercaseLetters",
+                    _ => "NoNumber",
                 };
-                handles.insert(handle.clone(),doc);
-                source_sizes.insert(path,bytes.len());
-                inputs.insert(handle.clone(),(bytes,pw));
-                input_order.push(handle);
+                doc.page_labels.push((pno, start_num, prefix, pdftk_style.to_string()));
+            }
+        }
+    }
+
+    if edits.info {
+        doc.title.clear();
+        doc.author.clear();
+        doc.info.clear();
+    }
+    if edits.metadata {
+        doc.exif.clear();
+    }
+    if encryption.is_some() && !edits.decrypt {
+        return err_out("qpdf: cannot encrypt a nonstandard PDF output\n",2);
+    }
+    if edits.decrypt {
+        doc.encrypted = None;
+    }
+    if edits.linearize {
+        doc.linearized = true;
+    }
+    let serialized = doc.serialize();
+    if dst_arg == "-" {
+        ok_out(&crate::vfs::bytes_to_stream_string(&serialized))
+    } else {
+        publish(&dst_arg, &serialized).map_or_else(|e| e, |()| ok_out(""))
+    }
+}
+
+fn cmd_pdftk(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h" || a == "-help") {
+        return ok_out("Usage: pdftk <input PDF files | [handle]=filename ...> [<operation> <operation arguments>] [output <output filename>] [flatten]\n");
+    }
+    if args.iter().any(|a| a == "--version" || a == "-v" || a == "-version") {
+        return ok_out("pdftk port to Java 3.3.3 (safe-bash @poe-code/pdf-ast)\n");
+    }
+    let ops = [
+        "cat",
+        "shuffle",
+        "burst",
+        "dump_data",
+        "dump_data_utf8",
+        "dump_data_fields",
+        "dump_data_fields_utf8",
+        "dump_data_annots",
+        "dump_data_annots_utf8",
+        "update_info",
+        "update_info_utf8",
+        "attach_files",
+        "unpack_files",
+        "background",
+        "multibackground",
+        "stamp",
+        "multistamp",
+        "fill_form",
+        "generate_fdf",
+        "flatten",
+        "rotate",
+    ];
+    let mut handles: BTreeMap<String, PdfDoc> = BTreeMap::new();
+    let mut inputs = BTreeMap::new();
+    let mut input_order = Vec::new();
+    let mut source_sizes=BTreeMap::new();
+    let mut auto = 65;
+    let mut passwords = BTreeMap::new();
+    let mut default_password = "";
+    let operation=|s:&str| ops.iter().copied().find(|name|s.eq_ignore_ascii_case(name));
+    let keyword=|s:&str| operation(s).is_some() || s.eq_ignore_ascii_case("input_pw") || s.eq_ignore_ascii_case("output");
+    for pos in args.iter().enumerate().filter_map(|(i,x)|x.eq_ignore_ascii_case("input_pw").then_some(i)) {
+        for arg in args[pos+1..].iter().take_while(|x| !keyword(x)) {
+            if let Some((handle,pw)) = arg.split_once('=') { passwords.insert(handle,pw); }
+            else {default_password = arg;}
+        }
+    }
+    let mut op = String::new();
+    let mut op_idx = args.len();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = args[i].as_str();
+        if let Some(name)=operation(a) {
+            op = name.to_owned();
+            op_idx = i;
+            break;
+        }
+        if a.eq_ignore_ascii_case("output") {
+            op = "passthrough".to_string();
+            op_idx = i;
+            break;
+        }
+        if a.eq_ignore_ascii_case("input_pw") {
+            i += 1;
+            while i < args.len() && !keyword(&args[i]) {
                 i += 1;
             }
-            if input_order.is_empty() {
-                return err_out("Error: No input PDF files specified.\n", 1);
+            continue;
+        }
+        let (handle,path) = match a.split_once('=') {
+            Some((h,path)) if !h.is_empty() => (h.to_owned(),path),
+            _ => {
+                let h = char::from_u32(auto).unwrap_or('?').to_string();
+                auto += 1;
+                (h,a)
             }
-            if op.is_empty() {
-                op = "cat".to_string();
-            }
-
-            let format_dump = |doc: &PdfDoc, utf8: bool| -> String {
-                let mut out = String::new();
-                let fields = doc.info.iter().map(|(k, v)| (k.as_str(), v.as_str()));
-                let standard = ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"];
-                let mut emitted = std::collections::BTreeSet::new();
-                for (k, v) in standard.into_iter().filter_map(|key| {
-                    match key {
-                        "Title" if !doc.title.is_empty() => Some((key, doc.title.as_str())),
-                        "Author" if !doc.author.is_empty() => Some((key, doc.author.as_str())),
-                        _ => fields.clone().find(|(k, _)| *k == key),
-                    }
-                }).chain(fields.clone()) {
-                    if !v.is_empty() && emitted.insert(k) {
-                        out.push_str(&format!(
-                            "InfoBegin\nInfoKey: {}\nInfoValue: {}\n",
-                            encode_pdftk_text(k, utf8), encode_pdftk_text(v, utf8)
-                        ));
-                    }
-                }
-                out.push_str(&format!("PdfID0: {}\n", doc.pdf_id0));
-                out.push_str(&format!("PdfID1: {}\n", doc.pdf_id1));
-                out.push_str(&format!("NumberOfPages: {}\n", doc.pages.len()));
-                for (t, l, p) in &doc.bookmarks {
-                    out.push_str(&format!(
-                        "BookmarkBegin\nBookmarkTitle: {}\nBookmarkLevel: {l}\nBookmarkPageNumber: {p}\n",
-                        encode_pdftk_text(t, utf8)
-                    ));
-                }
-                for (idx, pg) in doc.pages.iter().enumerate() {
-                    let pno = idx + 1;
-                    let (pw, ph, crop_opt) = doc
-                        .page_media
-                        .get(&pno)
-                        .copied()
-                        .unwrap_or((doc.page_w, doc.page_h, None));
-                    let [x0,y0,x1,y1]=doc.direct_media.get(&pno).copied().unwrap_or([0.,0.,pw.abs(),ph.abs()]);
-                    out.push_str(&format!(
-                        "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: {x0} {y0} {x1} {y1}\nPageMediaDimensions: {aw} {ah}\n",
-                        pg.rot, aw=pw.abs(),ah=ph.abs()
-                    ));
-                    if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
-                        out.push_str(&format!(
-                            "PageMediaCropBox: {cx0} {cy0} {cx1} {cy1}\nPageMediaCropRect: {cx0} {cy0} {cx1} {cy1}\n"
-                        ));
-                    }
-                }
-                for (ni, st, pf, sy) in &doc.page_labels {
-                    out.push_str(&format!("PageLabelBegin\nPageLabelNewIndex: {ni}\nPageLabelStart: {st}\n"));
-                    if !pf.is_empty() {
-                        out.push_str(&format!("PageLabelPrefix: {}\n", encode_pdftk_text(pf, utf8)));
-                    }
-                    out.push_str(&format!("PageLabelNumStyle: {sy}\n"));
-                }
-                out
+        };
+        let bytes = if path == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
+        } else {
+            let Ok(b) = fs.read_file(&resolve_posix_path(cwd,path)) else {
+                return err_out(&format!("Error: Unable to find file '{path}'\n"),1);
             };
+            b
+        };
+        if !bytes.starts_with(b"%PDF-") {
+            return err_out(&format!("Error: Failed to open PDF '{path}': Invalid PDF header: missing %PDF- signature\n"),1);
+        }
+        let pw = passwords.get(handle.as_str()).copied().unwrap_or(default_password);
+        let doc = match pdf_reader::read(&bytes,pw) {
+            Ok((doc,_)) => doc,
+            Err(e @ (pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) => return err_out(&format!("Error: Failed to open PDF '{path}': {e}\n"),1),
+            Err(_) => PdfDoc::parse(&bytes),
+        };
+        handles.insert(handle.clone(),doc);
+        source_sizes.insert(path,bytes.len());
+        inputs.insert(handle.clone(),(bytes,pw));
+        input_order.push(handle);
+        i += 1;
+    }
+    if input_order.is_empty() {
+        return err_out("Error: No input PDF files specified.\n", 1);
+    }
+    if op.is_empty() {
+        op = "cat".to_string();
+    }
 
-            let (mut user,mut owner) = (None,None);
-            let mut grants = 0;
-            let mut keep_final_id=false;
-            let mut replacement_font=None;
-            let mut flatten=false;
-            let mut compress_streams=None;
-            let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
-            let mut operands=Vec::new();
-            let mut tail=args.get(op_idx+1..).unwrap_or_default().iter().peekable();
-            let mut output=if op=="passthrough" {tail.next().map(String::as_str)} else {None};
-            while let Some(arg) = tail.next() {
-                match arg.to_ascii_lowercase().as_str() {
-                    "output" => output=tail.next().map(String::as_str),
-                    "keep_first_id" => (),
-                    "keep_final_id" => keep_final_id=true,
-                    "flatten" => flatten=true,
-                    "replacement_font" => replacement_font=tail.next().map(String::as_str).filter(|s|!s.is_empty()),
-                    "drop_xfa" => drop_xfa=true,
-                    "drop_xmp" => drop_xmp=true,
-                    "need_appearances" => need_appearances=true,
-                    "compress"|"uncompress" if matches!(op.as_str(),"burst"|"flatten"|"fill_form"|"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
-                        compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
-                    }
-                    "user_pw" => user = tail.next().map(String::as_str),
-                    "owner_pw" => owner = tail.next().map(String::as_str),
-                    "allow" => while let Some(grant) = tail.peek() {
-                        grants |= match grant.to_ascii_lowercase().as_str() {
-                            "printing" => 4|2048, "degradedprinting" => 4, "copycontents" => 16,
-                            "modifycontents" => 8|1024, "assembly" => 1024,
-                            "modifyannotations" => 32|256, "fillin" => 256, "screenreaders" => 512,
-                            "allfeatures" => 4|8|16|32|256|512|1024|2048, _ => break,
-                        };
-                        tail.next();
-                    },
-                    "encrypt_128bit" | "encrypt_40bit" | "dont_ask" | "do_ask" | "verbose" => (),
-                    _ => operands.push(arg.clone()),
-                }
+    let format_dump = |doc: &PdfDoc, utf8: bool| -> String {
+        let mut out = String::new();
+        let fields = doc.info.iter().map(|(k, v)| (k.as_str(), v.as_str()));
+        let standard = ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"];
+        let mut emitted = std::collections::BTreeSet::new();
+        for (k, v) in standard.into_iter().filter_map(|key| {
+            match key {
+                "Title" if !doc.title.is_empty() => Some((key, doc.title.as_str())),
+                "Author" if !doc.author.is_empty() => Some((key, doc.author.as_str())),
+                _ => fields.clone().find(|(k, _)| *k == key),
             }
-
-            let limit = fs.shell_limits().max_output_bytes;
-            let primary_handle=&input_order[0];
-            let id_handle=if keep_final_id {input_order.last().unwrap_or(primary_handle)} else {primary_handle};
-            // An edit of the primary PDF already carries its (possibly updated) ID.
-            // Assembly creates a new trailer, so copy the chosen input ID explicitly.
-            let trailer_id=if id_handle!=primary_handle || matches!(op.as_str(),"cat"|"shuffle") {
-                handles[id_handle].trailer_id.as_deref()
-            } else {None};
-            let flatten_forms=op=="flatten" || flatten && matches!(op.as_str(),"burst"|"passthrough"|"fill_form"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground");
-            let need_appearances=need_appearances && !flatten;
-            let output_edits=pdf_reader::PageEdits {flatten_forms,trailer_id,compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
-            let write_pdftk_output = |mut bytes: Vec<u8>| -> BuiltinOutcome {
-                let of=output.filter(|s|!s.is_empty()).unwrap_or("-");
-                if user.is_some_and(|s|!s.is_empty()) || owner.is_some_and(|s|!s.is_empty()) {
-                    if is_legacy_pdf(&bytes) {
-                        return err_out("Error: Cannot encrypt a nonstandard PDF output\n",1);
-                    }
-                    let mask = !0xfff | 192 | if grants==0 {4|32|256|512|2048} else {grants};
-                    bytes = match pdf_reader::encrypt_document(&bytes,user.unwrap_or(""),owner.or(user).unwrap_or("owner"),mask,limit) {
-                        Ok(bytes) => bytes,
-                        Err(e) => return err_out(&format!("Error: {e}\n"),1),
-                    };
-                }
-                if of == "-" {ok_out(&crate::vfs::bytes_to_stream_string(&bytes))}
-                else {write_copied_pdf(fs,cwd,of,&bytes,1)}
-            };
-
-            let primary = handles[&input_order[0]].clone();
-            match op.as_str() {
-                "fill_form" => {
-                    let path=operands.first().map_or("-",String::as_str);
-                    let data=if path=="-"{crate::vfs::stream_string_to_bytes(stdin)}else{
-                        let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{return err_out(&format!("Error: Unable to open form data file '{path}'\n"),1)};
-                        b
-                    };
-                    source_sizes.insert(path,data.len());
-                    if source_sizes.values().try_fold(fs.max_input_bytes(),|n,&size|n.checked_sub(size)).is_none(){
-                        return err_out("pdftk: input byte limit exceeded\n",1);
-                    }
-                    let (bytes,password)=&inputs[primary_handle];
-                    let edits=pdf_reader::PageEdits{form_data:Some(&data),replacement_font,password,..output_edits};
-                    match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
-                        Ok(bytes)=>write_pdftk_output(bytes),Err(e)=>err_out(&format!("Error: {e}\n"),1)
-                    }
-                }
-                "passthrough" | "flatten" => {
-                    let (bytes,password) = &inputs[&input_order[0]];
-                    let bytes = if !is_legacy_pdf(bytes) {
-                        let edits = pdf_reader::PageEdits {password,..output_edits};
-                        match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
-                            Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                        }
-                    } else {primary.serialize()};
-                    write_pdftk_output(bytes)
-                }
-                "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" | "generate_fdf" | "dump_data_annots" | "dump_data_annots_utf8" => {
-                    let utf8 = op.ends_with("_utf8");
-                    let report = if op.starts_with("dump_data_fields") || op=="generate_fdf" {
-                        let (bytes,password)=&inputs[&input_order[0]];
-                        match pdf_reader::field_report(bytes,password,&op,limit){
-                            Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                        }
-                    } else if op.starts_with("dump_data_annots") {
-                        let mut report=format!("PdfID0: {}\nPdfID1: {}\nNumberOfPages: {}\n",primary.pdf_id0,primary.pdf_id1,primary.pages.len());
-                        let (bytes,password)=&inputs[&input_order[0]];
-                        if !is_legacy_pdf(bytes) && let Err(e)=pdf_reader::PageSource::open(bytes,password).and_then(|mut s|s.annotation_report(utf8,limit,&mut report)){return err_out(&format!("Error: {e}\n"),1);}
-                        report
-                    } else {format_dump(&primary,utf8)};
-                    if let Some(path)=output.filter(|s|!s.is_empty() && *s!="-") {
-                        write_copied_pdf(fs,cwd,path,report.as_bytes(),1)
-                    }else{ok_out(&report)}
-                }
-                "update_info" | "update_info_utf8" => {
-                    let info_src=operands.first().map_or("-",String::as_str);
-                    let txt = if info_src == "-" {
-                        stdin.to_string()
-                    } else {
-                        let info_full = resolve_posix_path(cwd, info_src);
-                        if fs.is_dir(&info_full) {
-                            return err_out(&format!("Error: Unable to open info file '{info_src}'\n"), 1);
-                        }
-                        let Ok(ib) = fs.read_file(&info_full) else {
-                            return err_out(&format!("Error: Unable to open info file '{info_src}'\n"), 1);
-                        };
-                        String::from_utf8_lossy(&ib).to_string()
-                    };
-                    let update=pdf_reader::Updates::parse(&txt);
-                    let (bytes,password)=&inputs[&input_order[0]];
-                    let out=if is_legacy_pdf(bytes) {
-                        let mut doc=primary;
-                        update.apply_legacy(&mut doc);
-                        doc.serialize()
-                    } else {
-                        let edits=pdf_reader::PageEdits {password,update:Some(&update),..output_edits};
-                        match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
-                            Ok(bytes)=>bytes,
-                            Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                        }
-                    };
-                    write_pdftk_output(out)
-                }
-                "burst" => {
-                    let pat=output.unwrap_or("pg_%04d.pdf");
-                    let pat_full=resolve_posix_path(cwd,pat);
-                    let burst_dir = pat_full
-                        .rsplit_once('/')
-                        .map(|(d, _)| if d.is_empty() { "/" } else { d })
-                        .unwrap_or(cwd);
-                    let _ = fs.mkdir_all(burst_dir);
-                    let doc_data_p = format!("{}/doc_data.txt", burst_dir.trim_end_matches('/'));
-                    let (bytes,password) = &inputs[&input_order[0]];
-                    let mut source = if is_legacy_pdf(bytes) {None} else {
-                        match pdf_reader::PageSource::open(bytes,password) {
-                            Ok(source) => Some(source), Err(e) => return err_out(&format!("Error: {e}\n"),1),
-                        }
-                    };
-                    let count = primary.pages.len();
-                    let start = if filename_number_spec(pat).is_none() {count.saturating_sub(1)} else {0};
-                    for idx in start..count {
-                        let Some(name) = format_printf_num(pat,idx+1,None) else { return err_out("pdftk: filename width limit exceeded\n",1); };
-                        if name == "-" || resolve_posix_path(cwd,&name)==doc_data_p {continue;}
-                        let bytes = if let Some(source) = &mut source {
-                            let mut page = pdf_reader::PageOutput::new(limit);
-                            let Some(bytes) = page.append(source,Some(idx)).and_then(|()|page.finish()) else {
-                                return err_out("Error: Could not copy PDF page\n",1);
-                            };
-                            if flatten_forms || compress_streams.is_some(){
-                                let edits=pdf_reader::PageEdits{flatten_forms,compress_streams,..Default::default()};
-                                match pdf_reader::rewrite(&bytes,&edits,&[],&[],&[],|_|None,limit){
-                                    Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1)
-                                }
-                            }else{bytes}
-                        } else {
-                            let mut single = PdfDoc::new();
-                            single.version = primary.version.clone();
-                            single.title = primary.title.clone();
-                            single.author = primary.author.clone();
-                            single.page_w = primary.page_w;
-                            single.page_h = primary.page_h;
-                            single.pages.push(primary.pages[idx].clone());
-                            single.serialize()
-                        };
-                        let r = write_copied_pdf(fs,cwd,&name,&bytes,1);
-                        if r.exit_code!=0 {return r;}
-                    }
-                    write_copied_pdf(fs,cwd,&doc_data_p,format_dump(&primary,false).as_bytes(),1)
-                }
-                "attach_files" => {
-                    let mut operands=operands.iter();
-                    let mut paths=Vec::new();
-                    let mut page=None;
-                    while let Some(arg)=operands.next() {
-                        if arg.eq_ignore_ascii_case("to_page") {
-                            page=operands.next().map(|s| {
-                                if s.eq_ignore_ascii_case("end") {return usize::MAX;}
-                                let s=s.trim_start().strip_prefix('+').unwrap_or(s.trim_start());
-                                let digits=s.bytes().take_while(u8::is_ascii_digit).count();
-                                if digits==0 {0} else {s[..digits].parse::<usize>().unwrap_or(usize::MAX).saturating_sub(1)}
-                            });
-                        } else {paths.push(arg.clone());}
-                    }
-                    let read=|path:&str| if path=="-" {Some(crate::vfs::stream_string_to_bytes(stdin))} else {fs.read_file(&resolve_posix_path(cwd,path)).ok()};
-                    let (bytes,password)=&inputs[&input_order[0]];
-                    let out=if is_legacy_pdf(bytes) {
-                        let mut doc=primary;
-                        for path in paths {
-                            if let Some(data)=read(&path) {
-                                let name=path.rsplit('/').next().unwrap_or(&path).to_owned();
-                                doc.attachments.push((name.clone(),name,String::new(),data));
-                            }
-                        }
-                        doc.serialize()
-                    } else {
-                        let edits=pdf_reader::PageEdits { password, append_files:Some(&paths), attachment_page:page, ..output_edits };
-                        match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],read,limit) {
-                            Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                        }
-                    };
-                    write_pdftk_output(out)
-                }
-                "unpack_files" => {
-                    let directory=output.unwrap_or(".");
-                    let clean = directory.strip_suffix('/').unwrap_or(directory);
-                    let local = clean=="." || clean.is_empty();
-                    let out_dir = if local {cwd.to_owned()} else {resolve_posix_path(cwd,clean)};
-                    let (bytes,password) = &inputs[&input_order[0]];
-                    let files = if is_legacy_pdf(bytes) {
-                        let mut files = Vec::new();
-                        for (_,name,_,bytes) in primary.attachments {
-                            let Some(leaf) = pdftk_attachment_leaf(&name) else {
-                                return err_out("Error: Invalid embedded attachment filename\n",1);
-                            };
-                            files.push((leaf.to_owned(),bytes));
-                        }
-                        files
-                    } else {
-                        let Ok(mut source) = pdf_reader::PageSource::open(bytes,password) else {
-                            return err_out("Error: Invalid attachment source\n",1);
-                        };
-                        let Some(files) = source.read_attachments(true) else {
-                            return err_out("Error: Invalid embedded attachment\n",1);
-                        };
-                        files
-                    };
-                    let _ = fs.mkdir_all(&out_dir);
-                    for (name,bytes) in files {
-                        if name=="-" && local {continue;}
-                        let r = write_copied_pdf(fs,&out_dir,&name,&bytes,1);
-                        if r.exit_code!=0 {return r;}
-                    }
-                    ok_out("")
-                }
-                "stamp" | "multistamp" | "background" | "multibackground" => {
-                    let is_multi = op == "multistamp" || op == "multibackground";
-                    let is_stamp = op == "stamp" || op == "multistamp";
-                    let path=operands.first().map_or("-",String::as_str);
-                    let stamp=if path=="-" {crate::vfs::stream_string_to_bytes(stdin)} else {
-                        let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) else {return err_out(&format!("Error: Unable to open '{path}'\n"),1);};
-                        bytes
-                    };
-                    if !stamp.windows(5).take(1024).any(|w|w==b"%PDF-") {return err_out("shell: line 1: internal error\n",1);}
-                    let (bytes,password)=&inputs[primary_handle];
-                    if !is_legacy_pdf(bytes) && !is_legacy_pdf(&stamp) {
-                        let edits=pdf_reader::PageEdits{password,stamp:Some((&stamp,is_multi,is_stamp)),..output_edits};
-                        return match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
-                            Ok(bytes)=>write_pdftk_output(bytes),
-                            Err(e) if e=="PDF output byte limit exceeded"=>err_out(&format!("Error: {e}\n"),1),
-                            Err(_)=>err_out("shell: line 1: internal error\n",1),
-                        };
-                    }
-                    let mut doc=primary;
-                    let sdoc=PdfDoc::parse(&stamp);
-                    if !sdoc.pages.is_empty() {
-                        for (p_idx, pg) in doc.pages.iter_mut().enumerate() {
-                            let spg = if is_multi {
-                                sdoc.pages.get(p_idx).unwrap_or_else(|| sdoc.pages.last().unwrap())
-                            } else {
-                                &sdoc.pages[0]
-                            };
-                            if is_stamp {
-                                pg.text = format!("{}\n{}", pg.text, spg.text);
-                            } else {
-                                pg.text = format!("{}\n{}", spg.text, pg.text);
-                            }
-                        }
-                    }
-                    write_pdftk_output(doc.serialize())
-                }
-                "cat" | "shuffle" | "rotate" => {
-                    let specs=&operands;
-                    let mut handle_keys: Vec<String> = handles.keys().cloned().collect();
-                    handle_keys.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
-
-                    let eval_spec = |sp:&str| pdf_reader::pdftk_selection(sp,&handle_keys,&handles,&input_order[0]);
-                    if op=="rotate" {
-                        let mut rotations=vec![None;primary.pages.len()];
-                        for (_,n,r) in specs.iter().flat_map(|s|eval_spec(s)) {
-                            if r.is_some() && let Some(slot)=rotations.get_mut(n-1){*slot=r;}
-                        }
-                        let (bytes,password)=&inputs[&input_order[0]];
-                        let out=if is_legacy_pdf(bytes) {
-                            let mut doc=primary;
-                            for (p,r) in doc.pages.iter_mut().zip(rotations){if let Some(r)=r{p.rot=r.apply(f64::from(p.rot));}}
-                            doc.serialize()
-                        }else{
-                            let edits=pdf_reader::PageEdits {password,page_rotations:&rotations,..output_edits};
-                            match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
-                                Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                            }
-                        };
-                        return write_pdftk_output(out);
-                    }
-                    let mut out_doc = PdfDoc::new();
-                    out_doc.version = primary.version.clone();
-                    out_doc.title = primary.title.clone();
-                    out_doc.author = primary.author.clone();
-                    out_doc.page_w = primary.page_w;
-                    out_doc.page_h = primary.page_h;
-                    out_doc.info = primary.info.clone();
-                    let mut chosen = Vec::new();
-                    if specs.is_empty() {
-                        for hk in &input_order {
-                            let d = &handles[hk];
-                            if out_doc.title.is_empty() {
-                                out_doc.title = d.title.clone();
-                            }
-                            for pno in 1..=d.pages.len() {
-                                chosen.push((hk.clone(), pno, None));
-                            }
-                        }
-                    } else if op == "shuffle" {
-                        let lists: Vec<_> =
-                            specs.iter().map(|s| eval_spec(s)).collect();
-                        let max_len = lists.iter().map(|l| l.len()).max().unwrap_or(0);
-                        for idx in 0..max_len {
-                            for l in &lists {
-                                if let Some(item) = l.get(idx) {
-                                    chosen.push(item.clone());
-                                }
-                            }
-                        }
-                    } else {
-                        for s in specs {
-                            chosen.extend(eval_spec(s));
-                        }
-                    }
-                    if inputs.values().all(|(b,_)| !is_legacy_pdf(b))
-                    {
-                        let bytes = match pdf_reader::PageOutput::assemble_pdftk(&inputs,&input_order[0],&chosen,&handles,fs.shell_limits().max_output_bytes) {
-                            Ok(bytes) => bytes,
-                            Err(e) => return err_out(&format!("Error: {e}\n"),1),
-                        };
-                        let bytes=if flatten_forms || trailer_id.is_some() || drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
-                            match pdf_reader::rewrite(&bytes,&output_edits,&[],&[],&[],|_|None,limit) {
-                                Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
-                            }
-                        } else {bytes};
-                        return write_pdftk_output(bytes);
-                    }
-                    for (new_idx0, (hk, old_pno, rotation)) in chosen.iter().enumerate() {
-                        let new_pno = new_idx0 + 1;
-                        if let Some(src_doc) = handles.get(hk) {
-                            if let Some(m) = src_doc.page_media.get(old_pno) {
-                                out_doc.page_media.insert(new_pno, *m);
-                            }
-                            for (bt, bl, bp) in &src_doc.bookmarks {
-                                if bp.parse::<usize>().ok() == Some(*old_pno) {
-                                    out_doc.bookmarks.push((bt.clone(), bl.clone(), new_pno.to_string()));
-                                }
-                            }
-                            if let Some(mut pg) = src_doc.pages.get(old_pno - 1).cloned() {
-                                if let Some(rot) = rotation { pg.rot = rot.apply(f64::from(pg.rot)); }
-                                out_doc.pages.push(pg);
-                            }
-                        }
-                    }
-                    write_pdftk_output(out_doc.serialize())
-                }
-                _ => ok_out(""),
+        }).chain(fields.clone()) {
+            if !v.is_empty() && emitted.insert(k) {
+                out.push_str(&format!(
+                    "InfoBegin\nInfoKey: {}\nInfoValue: {}\n",
+                    encode_pdftk_text(k, utf8), encode_pdftk_text(v, utf8)
+                ));
             }
         }
-        "pdfdetach" => {
-            let mut list_mode = false;
-            let mut save_all = false;
-            let mut save_idx = 0.0;
-            let mut save_file = "";
-            let mut dest = "";
-            let mut password = "";
-            let mut pdf_file = None;
-            let mut args = args.iter().map(String::as_str);
-            while let Some(arg) = args.next() {
-                match arg {
-                    "-v" | "--version" => return ok_out("pdfdetach version 24.08.0\n"),
-                    "-h" | "-help" | "--help" | "-?" => return ok_out("Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n"),
-                    "-list" => list_mode = true,
-                    "-saveall" => save_all = true,
-                    "-save" => {
-                        let text = args.next().unwrap_or("").trim_start_matches(|c: char| c.is_whitespace() && c != '\u{85}' || c == '\u{feff}');
-                        let sign = usize::from(text.starts_with(['+', '-']));
-                        let digits = text[sign..].bytes().take_while(u8::is_ascii_digit).count();
-                        save_idx = text[..sign + digits].parse::<f64>().unwrap_or(0.0);
-                    }
-                    "-savefile" => save_file = args.next().unwrap_or(""),
-                    "-o" => dest = args.next().unwrap_or(""),
-                    "-upw" | "-opw" => password = args.next().unwrap_or(""),
-                    "-enc" => {
-                        let enc = args.next().unwrap_or("");
-                        if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
-                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
-                        }
-                    }
-                    a if a == "-" || !a.starts_with('-') => { pdf_file.get_or_insert(a); }
-                    _ => {}
-                }
+        out.push_str(&format!("PdfID0: {}\n", doc.pdf_id0));
+        out.push_str(&format!("PdfID1: {}\n", doc.pdf_id1));
+        out.push_str(&format!("NumberOfPages: {}\n", doc.pages.len()));
+        for (t, l, p) in &doc.bookmarks {
+            out.push_str(&format!(
+                "BookmarkBegin\nBookmarkTitle: {}\nBookmarkLevel: {l}\nBookmarkPageNumber: {p}\n",
+                encode_pdftk_text(t, utf8)
+            ));
+        }
+        for (idx, pg) in doc.pages.iter().enumerate() {
+            let pno = idx + 1;
+            let (pw, ph, crop_opt) = doc
+                .page_media
+                .get(&pno)
+                .copied()
+                .unwrap_or((doc.page_w, doc.page_h, None));
+            let [x0,y0,x1,y1]=doc.direct_media.get(&pno).copied().unwrap_or([0.,0.,pw.abs(),ph.abs()]);
+            out.push_str(&format!(
+                "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: {x0} {y0} {x1} {y1}\nPageMediaDimensions: {aw} {ah}\n",
+                pg.rot, aw=pw.abs(),ah=ph.abs()
+            ));
+            if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
+                out.push_str(&format!(
+                    "PageMediaCropBox: {cx0} {cy0} {cx1} {cy1}\nPageMediaCropRect: {cx0} {cy0} {cx1} {cy1}\n"
+                ));
             }
-            let Some(f) = pdf_file.filter(|f| !f.is_empty()) else {
-                return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
-            };
-            if f == "-" && stdin.is_empty() { return err_out("I/O Error: Couldn't open file '-'\n", 1); }
-            let b = if f == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd,f)) else {
-                    return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
+        }
+        for (ni, st, pf, sy) in &doc.page_labels {
+            out.push_str(&format!("PageLabelBegin\nPageLabelNewIndex: {ni}\nPageLabelStart: {st}\n"));
+            if !pf.is_empty() {
+                out.push_str(&format!("PageLabelPrefix: {}\n", encode_pdftk_text(pf, utf8)));
+            }
+            out.push_str(&format!("PageLabelNumStyle: {sy}\n"));
+        }
+        out
+    };
+
+    let (mut user,mut owner) = (None,None);
+    let mut grants = 0;
+    let mut keep_final_id=false;
+    let mut replacement_font=None;
+    let mut flatten=false;
+    let mut compress_streams=None;
+    let (mut drop_xfa,mut drop_xmp,mut need_appearances)=(false,false,false);
+    let mut operands=Vec::new();
+    let mut tail=args.get(op_idx+1..).unwrap_or_default().iter().peekable();
+    let mut output=if op=="passthrough" {tail.next().map(String::as_str)} else {None};
+    while let Some(arg) = tail.next() {
+        match arg.to_ascii_lowercase().as_str() {
+            "output" => output=tail.next().map(String::as_str),
+            "keep_first_id" => (),
+            "keep_final_id" => keep_final_id=true,
+            "flatten" => flatten=true,
+            "replacement_font" => replacement_font=tail.next().map(String::as_str).filter(|s|!s.is_empty()),
+            "drop_xfa" => drop_xfa=true,
+            "drop_xmp" => drop_xmp=true,
+            "need_appearances" => need_appearances=true,
+            "compress"|"uncompress" if matches!(op.as_str(),"burst"|"flatten"|"fill_form"|"update_info"|"update_info_utf8"|"passthrough"|"rotate"|"attach_files"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground")=>{
+                compress_streams=Some(compress_streams.unwrap_or(true) && arg.eq_ignore_ascii_case("compress"));
+            }
+            "user_pw" => user = tail.next().map(String::as_str),
+            "owner_pw" => owner = tail.next().map(String::as_str),
+            "allow" => while let Some(grant) = tail.peek() {
+                grants |= match grant.to_ascii_lowercase().as_str() {
+                    "printing" => 4|2048, "degradedprinting" => 4, "copycontents" => 16,
+                    "modifycontents" => 8|1024, "assembly" => 1024,
+                    "modifyannotations" => 32|256, "fillin" => 256, "screenreaders" => 512,
+                    "allfeatures" => 4|8|16|32|256|512|1024|2048, _ => break,
                 };
-                bytes
-            };
-            if !b.starts_with(b"%PDF-") {
-                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
+                tail.next();
+            },
+            "encrypt_128bit" | "encrypt_40bit" | "dont_ask" | "do_ask" | "verbose" => (),
+            _ => operands.push(arg.clone()),
+        }
+    }
+
+    let limit = fs.shell_limits().max_output_bytes;
+    let primary_handle=&input_order[0];
+    let id_handle=if keep_final_id {input_order.last().unwrap_or(primary_handle)} else {primary_handle};
+    // An edit of the primary PDF already carries its (possibly updated) ID.
+    // Assembly creates a new trailer, so copy the chosen input ID explicitly.
+    let trailer_id=if id_handle!=primary_handle || matches!(op.as_str(),"cat"|"shuffle") {
+        handles[id_handle].trailer_id.as_deref()
+    } else {None};
+    let flatten_forms=op=="flatten" || flatten && matches!(op.as_str(),"burst"|"passthrough"|"fill_form"|"cat"|"shuffle"|"stamp"|"multistamp"|"background"|"multibackground");
+    let need_appearances=need_appearances && !flatten;
+    let output_edits=pdf_reader::PageEdits {flatten_forms,trailer_id,compress_streams,drop_xfa,metadata:drop_xmp,need_appearances,..Default::default()};
+    let write_pdftk_output = |mut bytes: Vec<u8>| -> BuiltinOutcome {
+        let of=output.filter(|s|!s.is_empty()).unwrap_or("-");
+        if user.is_some_and(|s|!s.is_empty()) || owner.is_some_and(|s|!s.is_empty()) {
+            if is_legacy_pdf(&bytes) {
+                return err_out("Error: Cannot encrypt a nonstandard PDF output\n",1);
             }
-            let source = pdf_reader::PageSource::open(&b,password);
-            let attachments = if let Ok(mut source) = source {
-                let Some(files) = source.read_attachments(false) else {
-                    return err_out("PDF Error: Invalid embedded file stream\n", 1);
+            let mask = !0xfff | 192 | if grants==0 {4|32|256|512|2048} else {grants};
+            bytes = match pdf_reader::encrypt_document(&bytes,user.unwrap_or(""),owner.or(user).unwrap_or("owner"),mask,limit) {
+                Ok(bytes) => bytes,
+                Err(e) => return err_out(&format!("Error: {e}\n"),1),
+            };
+        }
+        if of == "-" {ok_out(&crate::vfs::bytes_to_stream_string(&bytes))}
+        else {write_copied_pdf(fs,cwd,of,&bytes,1)}
+    };
+
+    let primary = handles[&input_order[0]].clone();
+    match op.as_str() {
+        "fill_form" => {
+            let path=operands.first().map_or("-",String::as_str);
+            let data=if path=="-"{crate::vfs::stream_string_to_bytes(stdin)}else{
+                let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{return err_out(&format!("Error: Unable to open form data file '{path}'\n"),1)};
+                b
+            };
+            source_sizes.insert(path,data.len());
+            if source_sizes.values().try_fold(fs.max_input_bytes(),|n,&size|n.checked_sub(size)).is_none(){
+                return err_out("pdftk: input byte limit exceeded\n",1);
+            }
+            let (bytes,password)=&inputs[primary_handle];
+            let edits=pdf_reader::PageEdits{form_data:Some(&data),replacement_font,password,..output_edits};
+            match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
+                Ok(bytes)=>write_pdftk_output(bytes),Err(e)=>err_out(&format!("Error: {e}\n"),1)
+            }
+        }
+        "passthrough" | "flatten" => {
+            let (bytes,password) = &inputs[&input_order[0]];
+            let bytes = if !is_legacy_pdf(bytes) {
+                let edits = pdf_reader::PageEdits {password,..output_edits};
+                match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
+                    Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                }
+            } else {primary.serialize()};
+            write_pdftk_output(bytes)
+        }
+        "dump_data" | "dump_data_utf8" | "dump_data_fields" | "dump_data_fields_utf8" | "generate_fdf" | "dump_data_annots" | "dump_data_annots_utf8" => {
+            let utf8 = op.ends_with("_utf8");
+            let report = if op.starts_with("dump_data_fields") || op=="generate_fdf" {
+                let (bytes,password)=&inputs[&input_order[0]];
+                match pdf_reader::field_report(bytes,password,&op,limit){
+                    Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                }
+            } else if op.starts_with("dump_data_annots") {
+                let mut report=format!("PdfID0: {}\nPdfID1: {}\nNumberOfPages: {}\n",primary.pdf_id0,primary.pdf_id1,primary.pages.len());
+                let (bytes,password)=&inputs[&input_order[0]];
+                if !is_legacy_pdf(bytes) && let Err(e)=pdf_reader::PageSource::open(bytes,password).and_then(|mut s|s.annotation_report(utf8,limit,&mut report)){return err_out(&format!("Error: {e}\n"),1);}
+                report
+            } else {format_dump(&primary,utf8)};
+            if let Some(path)=output.filter(|s|!s.is_empty() && *s!="-") {
+                write_copied_pdf(fs,cwd,path,report.as_bytes(),1)
+            }else{ok_out(&report)}
+        }
+        "update_info" | "update_info_utf8" => {
+            let info_src=operands.first().map_or("-",String::as_str);
+            let txt = if info_src == "-" {
+                stdin.to_string()
+            } else {
+                let info_full = resolve_posix_path(cwd, info_src);
+                if fs.is_dir(&info_full) {
+                    return err_out(&format!("Error: Unable to open info file '{info_src}'\n"), 1);
+                }
+                let Ok(ib) = fs.read_file(&info_full) else {
+                    return err_out(&format!("Error: Unable to open info file '{info_src}'\n"), 1);
+                };
+                String::from_utf8_lossy(&ib).to_string()
+            };
+            let update=pdf_reader::Updates::parse(&txt);
+            let (bytes,password)=&inputs[&input_order[0]];
+            let out=if is_legacy_pdf(bytes) {
+                let mut doc=primary;
+                update.apply_legacy(&mut doc);
+                doc.serialize()
+            } else {
+                let edits=pdf_reader::PageEdits {password,update:Some(&update),..output_edits};
+                match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit) {
+                    Ok(bytes)=>bytes,
+                    Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                }
+            };
+            write_pdftk_output(out)
+        }
+        "burst" => {
+            let pat=output.unwrap_or("pg_%04d.pdf");
+            let pat_full=resolve_posix_path(cwd,pat);
+            let burst_dir = pat_full
+                .rsplit_once('/')
+                .map(|(d, _)| if d.is_empty() { "/" } else { d })
+                .unwrap_or(cwd);
+            let _ = fs.mkdir_all(burst_dir);
+            let doc_data_p = format!("{}/doc_data.txt", burst_dir.trim_end_matches('/'));
+            let (bytes,password) = &inputs[&input_order[0]];
+            let mut source = if is_legacy_pdf(bytes) {None} else {
+                match pdf_reader::PageSource::open(bytes,password) {
+                    Ok(source) => Some(source), Err(e) => return err_out(&format!("Error: {e}\n"),1),
+                }
+            };
+            let count = primary.pages.len();
+            let start = if filename_number_spec(pat).is_none() {count.saturating_sub(1)} else {0};
+            for idx in start..count {
+                let Some(name) = format_printf_num(pat,idx+1,None) else { return err_out("pdftk: filename width limit exceeded\n",1); };
+                if name == "-" || resolve_posix_path(cwd,&name)==doc_data_p {continue;}
+                let bytes = if let Some(source) = &mut source {
+                    let mut page = pdf_reader::PageOutput::new(limit);
+                    let Some(bytes) = page.append(source,Some(idx)).and_then(|()|page.finish()) else {
+                        return err_out("Error: Could not copy PDF page\n",1);
+                    };
+                    if flatten_forms || compress_streams.is_some(){
+                        let edits=pdf_reader::PageEdits{flatten_forms,compress_streams,..Default::default()};
+                        match pdf_reader::rewrite(&bytes,&edits,&[],&[],&[],|_|None,limit){
+                            Ok(v)=>v,Err(e)=>return err_out(&format!("Error: {e}\n"),1)
+                        }
+                    }else{bytes}
+                } else {
+                    let mut single = PdfDoc::new();
+                    single.version = primary.version.clone();
+                    single.title = primary.title.clone();
+                    single.author = primary.author.clone();
+                    single.page_w = primary.page_w;
+                    single.page_h = primary.page_h;
+                    single.pages.push(primary.pages[idx].clone());
+                    single.serialize()
+                };
+                let r = write_copied_pdf(fs,cwd,&name,&bytes,1);
+                if r.exit_code!=0 {return r;}
+            }
+            write_copied_pdf(fs,cwd,&doc_data_p,format_dump(&primary,false).as_bytes(),1)
+        }
+        "attach_files" => {
+            let mut operands=operands.iter();
+            let mut paths=Vec::new();
+            let mut page=None;
+            while let Some(arg)=operands.next() {
+                if arg.eq_ignore_ascii_case("to_page") {
+                    page=operands.next().map(|s| {
+                        if s.eq_ignore_ascii_case("end") {return usize::MAX;}
+                        let s=s.trim_start().strip_prefix('+').unwrap_or(s.trim_start());
+                        let digits=s.bytes().take_while(u8::is_ascii_digit).count();
+                        if digits==0 {0} else {s[..digits].parse::<usize>().unwrap_or(usize::MAX).saturating_sub(1)}
+                    });
+                } else {paths.push(arg.clone());}
+            }
+            let read=|path:&str| if path=="-" {Some(crate::vfs::stream_string_to_bytes(stdin))} else {fs.read_file(&resolve_posix_path(cwd,path)).ok()};
+            let (bytes,password)=&inputs[&input_order[0]];
+            let out=if is_legacy_pdf(bytes) {
+                let mut doc=primary;
+                for path in paths {
+                    if let Some(data)=read(&path) {
+                        let name=path.rsplit('/').next().unwrap_or(&path).to_owned();
+                        doc.attachments.push((name.clone(),name,String::new(),data));
+                    }
+                }
+                doc.serialize()
+            } else {
+                let edits=pdf_reader::PageEdits { password, append_files:Some(&paths), attachment_page:page, ..output_edits };
+                match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],read,limit) {
+                    Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                }
+            };
+            write_pdftk_output(out)
+        }
+        "unpack_files" => {
+            let directory=output.unwrap_or(".");
+            let clean = directory.strip_suffix('/').unwrap_or(directory);
+            let local = clean=="." || clean.is_empty();
+            let out_dir = if local {cwd.to_owned()} else {resolve_posix_path(cwd,clean)};
+            let (bytes,password) = &inputs[&input_order[0]];
+            let files = if is_legacy_pdf(bytes) {
+                let mut files = Vec::new();
+                for (_,name,_,bytes) in primary.attachments {
+                    let Some(leaf) = pdftk_attachment_leaf(&name) else {
+                        return err_out("Error: Invalid embedded attachment filename\n",1);
+                    };
+                    files.push((leaf.to_owned(),bytes));
+                }
+                files
+            } else {
+                let Ok(mut source) = pdf_reader::PageSource::open(bytes,password) else {
+                    return err_out("Error: Invalid attachment source\n",1);
+                };
+                let Some(files) = source.read_attachments(true) else {
+                    return err_out("Error: Invalid embedded attachment\n",1);
                 };
                 files
-            } else if let Err(e @ (pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED)) = source {
-                return err_out(&format!("PDF Error: {e}\n"), 1);
-            } else {
-                let doc = PdfDoc::parse(&b);
-                if let Some(ref required) = doc.encrypted
-                    && !required.is_empty() && password != required {
-                    return err_out("PDF Error: Invalid PDF password\n", 1);
-                }
-                doc.attachments.into_iter().map(|(_,name,_,data)|(name,data)).collect()
             };
-            if list_mode || (!save_all && save_idx == 0.0 && save_file.is_empty()) {
-                let mut out = format!("{} embedded files\n", attachments.len());
-                for (i, (name,_)) in attachments.iter().enumerate() {
-                    out.push_str(&format!("{}: {name}\n", i+1));
-                }
-                return ok_out(&out);
-            }
-            let directory = dest.ends_with('/') || !dest.is_empty() && fs.is_dir(&resolve_posix_path(cwd,dest));
-            let mut outputs = Vec::new();
-            for (i,(name,bytes)) in attachments.into_iter().enumerate() {
-                let selected = if save_idx > 0.0 { (i + 1) as f64 == save_idx }
-                    else if !save_file.is_empty() { name == save_file } else { save_all };
-                if !selected { continue; }
-                let path = if !dest.is_empty() && !directory && (save_idx > 0.0 || !save_file.is_empty()) {
-                    dest.to_string()
-                } else {
-                    let leaf = name.rsplit(['/', '\\']).next().unwrap_or("");
-                    if matches!(leaf, "" | "." | "..") || leaf.contains('\0') {
-                        return err_out("PDF Error: Invalid embedded attachment filename\n", 1);
-                    }
-                    if dest.is_empty() { leaf.into() } else { format!("{}/{leaf}",dest.trim_end_matches('/')) }
-                };
-                outputs.push((path,bytes));
-            }
-            if outputs.is_empty() {
-                if save_idx > 0.0 { return err_out(&format!("Error: Invalid file index {}\n", mcp_protocol_rust::numbers::format(save_idx)),1); }
-                if !save_file.is_empty() { return err_out(&format!("Error: Embedded file '{save_file}' not found\n"),1); }
-            }
-            for (path, bytes) in outputs {
-                if !write_regular_output(fs,cwd,&path,&bytes) {
-                    return err_out(&format!("I/O Error: Error saving embedded file as '{path}'\n"), 2);
-                }
+            let _ = fs.mkdir_all(&out_dir);
+            for (name,bytes) in files {
+                if name=="-" && local {continue;}
+                let r = write_copied_pdf(fs,&out_dir,&name,&bytes,1);
+                if r.exit_code!=0 {return r;}
             }
             ok_out("")
         }
-        "pdfinfo" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return ok_out("pdfinfo version 26.09.90 (@poe-code/pdf-ast)\n");
+        "stamp" | "multistamp" | "background" | "multibackground" => {
+            let is_multi = op == "multistamp" || op == "multibackground";
+            let is_stamp = op == "stamp" || op == "multistamp";
+            let path=operands.first().map_or("-",String::as_str);
+            let stamp=if path=="-" {crate::vfs::stream_string_to_bytes(stdin)} else {
+                let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) else {return err_out(&format!("Error: Unable to open '{path}'\n"),1);};
+                bytes
+            };
+            if !stamp.windows(5).take(1024).any(|w|w==b"%PDF-") {return err_out("shell: line 1: internal error\n",1);}
+            let (bytes,password)=&inputs[primary_handle];
+            if !is_legacy_pdf(bytes) && !is_legacy_pdf(&stamp) {
+                let edits=pdf_reader::PageEdits{password,stamp:Some((&stamp,is_multi,is_stamp)),..output_edits};
+                return match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
+                    Ok(bytes)=>write_pdftk_output(bytes),
+                    Err(e) if e=="PDF output byte limit exceeded"=>err_out(&format!("Error: {e}\n"),1),
+                    Err(_)=>err_out("shell: line 1: internal error\n",1),
+                };
             }
-            if args
-                .iter()
-                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+            let mut doc=primary;
+            let sdoc=PdfDoc::parse(&stamp);
+            if !sdoc.pages.is_empty() {
+                for (p_idx, pg) in doc.pages.iter_mut().enumerate() {
+                    let spg = if is_multi {
+                        sdoc.pages.get(p_idx).unwrap_or_else(|| sdoc.pages.last().unwrap())
+                    } else {
+                        &sdoc.pages[0]
+                    };
+                    if is_stamp {
+                        pg.text = format!("{}\n{}", pg.text, spg.text);
+                    } else {
+                        pg.text = format!("{}\n{}", spg.text, pg.text);
+                    }
+                }
+            }
+            write_pdftk_output(doc.serialize())
+        }
+        "cat" | "shuffle" | "rotate" => {
+            let specs=&operands;
+            let mut handle_keys: Vec<String> = handles.keys().cloned().collect();
+            handle_keys.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
+
+            let eval_spec = |sp:&str| pdf_reader::pdftk_selection(sp,&handle_keys,&handles,&input_order[0]);
+            if op=="rotate" {
+                let mut rotations=vec![None;primary.pages.len()];
+                for (_,n,r) in specs.iter().flat_map(|s|eval_spec(s)) {
+                    if r.is_some() && let Some(slot)=rotations.get_mut(n-1){*slot=r;}
+                }
+                let (bytes,password)=&inputs[&input_order[0]];
+                let out=if is_legacy_pdf(bytes) {
+                    let mut doc=primary;
+                    for (p,r) in doc.pages.iter_mut().zip(rotations){if let Some(r)=r{p.rot=r.apply(f64::from(p.rot));}}
+                    doc.serialize()
+                }else{
+                    let edits=pdf_reader::PageEdits {password,page_rotations:&rotations,..output_edits};
+                    match pdf_reader::rewrite(bytes,&edits,&[],&[],&[],|_|None,limit){
+                        Ok(bytes)=>bytes, Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                    }
+                };
+                return write_pdftk_output(out);
+            }
+            let mut out_doc = PdfDoc::new();
+            out_doc.version = primary.version.clone();
+            out_doc.title = primary.title.clone();
+            out_doc.author = primary.author.clone();
+            out_doc.page_w = primary.page_w;
+            out_doc.page_h = primary.page_h;
+            out_doc.info = primary.info.clone();
+            let mut chosen = Vec::new();
+            if specs.is_empty() {
+                for hk in &input_order {
+                    let d = &handles[hk];
+                    if out_doc.title.is_empty() {
+                        out_doc.title = d.title.clone();
+                    }
+                    for pno in 1..=d.pages.len() {
+                        chosen.push((hk.clone(), pno, None));
+                    }
+                }
+            } else if op == "shuffle" {
+                let lists: Vec<_> =
+                    specs.iter().map(|s| eval_spec(s)).collect();
+                let max_len = lists.iter().map(|l| l.len()).max().unwrap_or(0);
+                for idx in 0..max_len {
+                    for l in &lists {
+                        if let Some(item) = l.get(idx) {
+                            chosen.push(item.clone());
+                        }
+                    }
+                }
+            } else {
+                for s in specs {
+                    chosen.extend(eval_spec(s));
+                }
+            }
+            if inputs.values().all(|(b,_)| !is_legacy_pdf(b))
             {
-                return ok_out("Usage: pdfinfo [options] [PDF-file]\n  -f <int>       : first page to examine\n  -l <int>       : last page to examine\n  -box           : print the page bounding boxes\n  -meta          : print the document metadata (XML)\n  -custom        : print custom and standard metadata\n  -js            : print all JavaScript in the PDF\n  -struct        : print the logical document structure\n  -struct-text   : print logical structure and text\n  -isodates      : print the dates in ISO-8601 format\n  -rawdates      : print the undecoded date strings\n  -dests         : print all named destinations in the PDF\n  -url           : print all URLs in the PDF\n  -upw <string>  : user password\n  -opw <string>  : owner password\n");
+                let bytes = match pdf_reader::PageOutput::assemble_pdftk(&inputs,&input_order[0],&chosen,&handles,fs.shell_limits().max_output_bytes) {
+                    Ok(bytes) => bytes,
+                    Err(e) => return err_out(&format!("Error: {e}\n"),1),
+                };
+                let bytes=if flatten_forms || trailer_id.is_some() || drop_xfa || drop_xmp || need_appearances || compress_streams.is_some() {
+                    match pdf_reader::rewrite(&bytes,&output_edits,&[],&[],&[],|_|None,limit) {
+                        Ok(bytes)=>bytes,Err(e)=>return err_out(&format!("Error: {e}\n"),1),
+                    }
+                } else {bytes};
+                return write_pdftk_output(bytes);
             }
-            if args.iter().any(|a| a == "-listenc") {
-                return ok_out("Available encodings are:\nASCII7\nLatin1\nUTF-8\nUCS-2\nSymbol\nZapfDingbats\n");
-            }
-            let mut show_box = false;
-            let mut show_url = false;
-            let mut show_meta = false;
-            let mut show_js = false;
-            let mut show_struct = false;
-            let mut show_struct_text = false;
-            let mut show_dests = false;
-            let mut show_custom = false;
-            let mut date_mode = "normal";
-            let mut first_p: Option<usize> = None;
-            let mut last_p: Option<usize> = None;
-            let mut pw_opt: Option<String> = None;
-            let mut files: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-box" => show_box = true,
-                    "-url" => show_url = true,
-                    "-meta" => show_meta = true,
-                    "-js" => show_js = true,
-                    "-struct" => show_struct = true,
-                    "-struct-text" => {
-                        show_struct = true;
-                        show_struct_text = true;
+            for (new_idx0, (hk, old_pno, rotation)) in chosen.iter().enumerate() {
+                let new_pno = new_idx0 + 1;
+                if let Some(src_doc) = handles.get(hk) {
+                    if let Some(m) = src_doc.page_media.get(old_pno) {
+                        out_doc.page_media.insert(new_pno, *m);
                     }
-                    "-dests" => show_dests = true,
-                    "-custom" => show_custom = true,
-                    "-isodates" => date_mode = "iso",
-                    "-rawdates" => date_mode = "raw",
-                    "-f" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("Invalid -f page number\n", 99);
-                        };
-                        first_p = Some(v);
-                        i += 1;
-                    }
-                    "-l" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("Invalid -l page number\n", 99);
-                        };
-                        last_p = Some(v);
-                        i += 1;
-                    }
-                    "-upw" | "-opw" => {
-                        if let Some(v) = args.get(i + 1) {
-                            pw_opt = Some(v.clone());
-                            i += 1;
+                    for (bt, bl, bp) in &src_doc.bookmarks {
+                        if bp.parse::<usize>().ok() == Some(*old_pno) {
+                            out_doc.bookmarks.push((bt.clone(), bl.clone(), new_pno.to_string()));
                         }
                     }
-                    "-enc" => {
-                        let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
-                        if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
-                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
-                        }
-                        i += 1;
+                    if let Some(mut pg) = src_doc.pages.get(old_pno - 1).cloned() {
+                        if let Some(rot) = rotation { pg.rot = rot.apply(f64::from(pg.rot)); }
+                        out_doc.pages.push(pg);
                     }
-                    a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
-                    a => return err_out(&format!("Command Line Error: Unknown option '{a}'\n"), 99),
+                }
+            }
+            write_pdftk_output(out_doc.serialize())
+        }
+        _ => ok_out(""),
+    }
+}
+
+fn cmd_pdfdetach(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut list_mode = false;
+    let mut save_all = false;
+    let mut save_idx = 0.0;
+    let mut save_file = "";
+    let mut dest = "";
+    let mut password = "";
+    let mut pdf_file = None;
+    let mut args = args.iter().map(String::as_str);
+    while let Some(arg) = args.next() {
+        match arg {
+            "-v" | "--version" => return ok_out("pdfdetach version 24.08.0\n"),
+            "-h" | "-help" | "--help" | "-?" => return ok_out("Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n"),
+            "-list" => list_mode = true,
+            "-saveall" => save_all = true,
+            "-save" => {
+                let text = args.next().unwrap_or("").trim_start_matches(|c: char| c.is_whitespace() && c != '\u{85}' || c == '\u{feff}');
+                let sign = usize::from(text.starts_with(['+', '-']));
+                let digits = text[sign..].bytes().take_while(u8::is_ascii_digit).count();
+                save_idx = text[..sign + digits].parse::<f64>().unwrap_or(0.0);
+            }
+            "-savefile" => save_file = args.next().unwrap_or(""),
+            "-o" => dest = args.next().unwrap_or(""),
+            "-upw" | "-opw" => password = args.next().unwrap_or(""),
+            "-enc" => {
+                let enc = args.next().unwrap_or("");
+                if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                    return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                }
+            }
+            a if a == "-" || !a.starts_with('-') => { pdf_file.get_or_insert(a); }
+            _ => {}
+        }
+    }
+    let Some(f) = pdf_file.filter(|f| !f.is_empty()) else {
+        return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
+    };
+    if f == "-" && stdin.is_empty() { return err_out("I/O Error: Couldn't open file '-'\n", 1); }
+    let b = if f == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd,f)) else {
+            return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
+        };
+        bytes
+    };
+    if !b.starts_with(b"%PDF-") {
+        return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
+    }
+    let source = pdf_reader::PageSource::open(&b,password);
+    let attachments = if let Ok(mut source) = source {
+        let Some(files) = source.read_attachments(false) else {
+            return err_out("PDF Error: Invalid embedded file stream\n", 1);
+        };
+        files
+    } else if let Err(e @ (pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED)) = source {
+        return err_out(&format!("PDF Error: {e}\n"), 1);
+    } else {
+        let doc = PdfDoc::parse(&b);
+        if let Some(ref required) = doc.encrypted
+            && !required.is_empty() && password != required {
+            return err_out("PDF Error: Invalid PDF password\n", 1);
+        }
+        doc.attachments.into_iter().map(|(_,name,_,data)|(name,data)).collect()
+    };
+    if list_mode || (!save_all && save_idx == 0.0 && save_file.is_empty()) {
+        let mut out = format!("{} embedded files\n", attachments.len());
+        for (i, (name,_)) in attachments.iter().enumerate() {
+            out.push_str(&format!("{}: {name}\n", i+1));
+        }
+        return ok_out(&out);
+    }
+    let directory = dest.ends_with('/') || !dest.is_empty() && fs.is_dir(&resolve_posix_path(cwd,dest));
+    let mut outputs = Vec::new();
+    for (i,(name,bytes)) in attachments.into_iter().enumerate() {
+        let selected = if save_idx > 0.0 { (i + 1) as f64 == save_idx }
+            else if !save_file.is_empty() { name == save_file } else { save_all };
+        if !selected { continue; }
+        let path = if !dest.is_empty() && !directory && (save_idx > 0.0 || !save_file.is_empty()) {
+            dest.to_string()
+        } else {
+            let leaf = name.rsplit(['/', '\\']).next().unwrap_or("");
+            if matches!(leaf, "" | "." | "..") || leaf.contains('\0') {
+                return err_out("PDF Error: Invalid embedded attachment filename\n", 1);
+            }
+            if dest.is_empty() { leaf.into() } else { format!("{}/{leaf}",dest.trim_end_matches('/')) }
+        };
+        outputs.push((path,bytes));
+    }
+    if outputs.is_empty() {
+        if save_idx > 0.0 { return err_out(&format!("Error: Invalid file index {}\n", mcp_protocol_rust::numbers::format(save_idx)),1); }
+        if !save_file.is_empty() { return err_out(&format!("Error: Embedded file '{save_file}' not found\n"),1); }
+    }
+    for (path, bytes) in outputs {
+        if !write_regular_output(fs,cwd,&path,&bytes) {
+            return err_out(&format!("I/O Error: Error saving embedded file as '{path}'\n"), 2);
+        }
+    }
+    ok_out("")
+}
+
+fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.iter().any(|a| a == "-v" || a == "--version") {
+        return ok_out("pdfinfo version 26.09.90 (@poe-code/pdf-ast)\n");
+    }
+    if args
+        .iter()
+        .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+    {
+        return ok_out("Usage: pdfinfo [options] [PDF-file]\n  -f <int>       : first page to examine\n  -l <int>       : last page to examine\n  -box           : print the page bounding boxes\n  -meta          : print the document metadata (XML)\n  -custom        : print custom and standard metadata\n  -js            : print all JavaScript in the PDF\n  -struct        : print the logical document structure\n  -struct-text   : print logical structure and text\n  -isodates      : print the dates in ISO-8601 format\n  -rawdates      : print the undecoded date strings\n  -dests         : print all named destinations in the PDF\n  -url           : print all URLs in the PDF\n  -upw <string>  : user password\n  -opw <string>  : owner password\n");
+    }
+    if args.iter().any(|a| a == "-listenc") {
+        return ok_out("Available encodings are:\nASCII7\nLatin1\nUTF-8\nUCS-2\nSymbol\nZapfDingbats\n");
+    }
+    let mut show_box = false;
+    let mut show_url = false;
+    let mut show_meta = false;
+    let mut show_js = false;
+    let mut show_struct = false;
+    let mut show_struct_text = false;
+    let mut show_dests = false;
+    let mut show_custom = false;
+    let mut date_mode = "normal";
+    let mut first_p: Option<usize> = None;
+    let mut last_p: Option<usize> = None;
+    let mut pw_opt: Option<String> = None;
+    let mut files: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-box" => show_box = true,
+            "-url" => show_url = true,
+            "-meta" => show_meta = true,
+            "-js" => show_js = true,
+            "-struct" => show_struct = true,
+            "-struct-text" => {
+                show_struct = true;
+                show_struct_text = true;
+            }
+            "-dests" => show_dests = true,
+            "-custom" => show_custom = true,
+            "-isodates" => date_mode = "iso",
+            "-rawdates" => date_mode = "raw",
+            "-f" => {
+                let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                    return err_out("Invalid -f page number\n", 99);
+                };
+                first_p = Some(v);
+                i += 1;
+            }
+            "-l" => {
+                let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                    return err_out("Invalid -l page number\n", 99);
+                };
+                last_p = Some(v);
+                i += 1;
+            }
+            "-upw" | "-opw" => {
+                if let Some(v) = args.get(i + 1) {
+                    pw_opt = Some(v.clone());
+                    i += 1;
+                }
+            }
+            "-enc" => {
+                let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                    return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
                 }
                 i += 1;
             }
-            if files.len() > 1 {
-                return err_out("Usage: pdfinfo [options] [PDF-file]\n", 99);
-            }
-            let target_file = files.first().map(|s| s.as_str()).unwrap_or("-");
-            let b = if target_file == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let full = resolve_posix_path(cwd, target_file);
-                let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(
-                        &format!("I/O Error: Couldn't open file '{target_file}': No such file or directory.\n"),
-                        1,
-                    );
-                };
-                bytes
-            };
-            if b.is_empty() {
-                return err_out("Syntax Error: Document stream is empty\n", 1);
-            }
-            if !b.starts_with(b"%PDF-") {
-                return err_out("Syntax Error: Invalid PDF header: missing %PDF- signature\n", 1);
-            }
-            let supplied = pw_opt.as_deref().unwrap_or("");
-            let (doc, encryption) = match pdf_reader::read(&b,supplied) {
-                Ok((doc,security)) => (doc,security.map(|s| s.poppler_description())),
-                Err(pdf_reader::PASSWORD) => return err_out("Command Line Error: Incorrect password\n",1),
-                Err(_) => {
-                    let doc = PdfDoc::parse(&b);
-                    if doc.encrypted.as_deref().is_some_and(|p| !p.is_empty() && p != supplied) {
-                        return err_out("Command Line Error: Incorrect password\n",1);
-                    }
-                    let info = doc.encrypted.as_ref().map(|_| "yes (print:yes copy:yes change:yes addNotes:yes algorithm:AES-256)".to_owned());
-                    (doc,info)
-                }
-            };
-            let page_count = doc.pages.len().max(1);
-            let fp = first_p.unwrap_or(1).max(1);
-            let lp = last_p.map(|v| if v == 0 { page_count } else { page_count.min(v) }).unwrap_or(1);
-            if fp > page_count || (last_p.is_some() && fp > lp) {
-                return err_out(
-                    &format!(
-                        "Command Line Error: Wrong page range given: the first page ({fp}) can not be after the last page ({lp}).\n"
-                    ),
-                    99,
-                );
-            }
-            if show_url {
-                let mut u_out = String::from("Page  Type          URL\n");
-                let last = if last_p.is_none() { page_count } else { lp };
-                if let Ok(mut source) = pdf_reader::PageSource::open(&b,supplied) {
-                    return if source.write_urls(fp,last.min(source.len()),&mut u_out,fs.shell_limits().max_output_bytes).is_some() {
-                        ok_out(&u_out)
-                    } else { err_out("PDF URL output limit exceeded\n",1) };
-                }
-                for (p_idx, pg) in doc.pages.iter().enumerate().take(last).skip(fp-1) {
-                    for u in &pg.urls {
-                        u_out.push_str(&format!("{:4}  {:<13} {u}\n", p_idx + 1, "Annotation"));
-                    }
-                }
-                return ok_out(&u_out);
-            }
-            let get_info_val = |key: &str| -> Option<String> {
-                doc.exif
-                    .get(key)
-                    .cloned()
-                    .or_else(|| {
-                        doc.info
-                            .iter()
-                            .find(|(k, _)| k.eq_ignore_ascii_case(key))
-                            .map(|(_, v)| v.clone())
-                    })
-            };
-            let mut out = String::new();
-            if !doc.title.is_empty() {
-                out.push_str(&format!("{:<17}{}\n", "Title:", doc.title));
-            }
-            if let Some(v) = get_info_val("Subject")
-                && !v.is_empty()
-            {
-                out.push_str(&format!("{:<17}{v}\n", "Subject:"));
-            }
-            if let Some(v) = get_info_val("Keywords")
-                && !v.is_empty()
-            {
-                out.push_str(&format!("{:<17}{v}\n", "Keywords:"));
-            }
-            if !doc.author.is_empty() {
-                out.push_str(&format!("{:<17}{}\n", "Author:", doc.author));
-            }
-            if let Some(v) = get_info_val("Creator")
-                && !v.is_empty()
-            {
-                out.push_str(&format!("{:<17}{v}\n", "Creator:"));
-            }
-            if let Some(v) = get_info_val("Producer")
-                && !v.is_empty()
-            {
-                out.push_str(&format!("{:<17}{v}\n", "Producer:"));
-            }
-            if let Some(v) = get_info_val("CreationDate")
-                && !v.is_empty()
-            {
-                out.push_str(&format!("{:<17}{}\n", "CreationDate:", format_pdf_date(&v, date_mode)));
-            }
-            if let Some(v) = get_info_val("ModDate")
-                && !v.is_empty()
-            {
-                out.push_str(&format!("{:<17}{}\n", "ModDate:", format_pdf_date(&v, date_mode)));
-            }
-            let std_keys = [
-                "title",
-                "author",
-                "subject",
-                "keywords",
-                "creator",
-                "producer",
-                "creationdate",
-                "moddate",
-                "trapped",
-            ];
-            let mut custom_map: BTreeMap<String, String> = BTreeMap::new();
-            for (k, v) in &doc.info {
-                if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
-                    custom_map.insert(k.clone(), v.clone());
-                }
-            }
-            for (k, v) in &doc.exif {
-                if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
-                    custom_map.insert(k.clone(), v.clone());
-                }
-            }
-            if show_custom {
-                for (k, v) in &custom_map {
-                    out.push_str(&format!("{:<17}{v}\n", format!("{k}:")));
-                }
-            }
-            out.push_str(&format!(
-                "{:<17}{}\n",
-                "Custom Metadata:",
-                if custom_map.is_empty() { "no" } else { "yes" }
-            ));
-            out.push_str(&format!("{:<17}no\n", "Metadata Stream:"));
-            out.push_str(&format!("{:<17}no\n", "Tagged:"));
-            out.push_str(&format!("{:<17}no\n", "UserProperties:"));
-            out.push_str(&format!("{:<17}no\n", "Suspects:"));
-            out.push_str(&format!("{:<17}none\n", "Form:"));
-            out.push_str(&format!("{:<17}no\n", "JavaScript:"));
-            let total_pages = doc.pages.len().max(1);
-            out.push_str(&format!("{:<17}{total_pages}\n", "Pages:"));
-            out.push_str(&format!(
-                "{:<17}{}\n",
-                "Encrypted:",
-                encryption.as_deref().unwrap_or("no")
-            ));
-            let fmt_pt = |n: f64| -> String {
-                let r = (n * 100.0).round() / 100.0;
-                if (r - r.round()).abs() < 1e-9 {
-                    format!("{}", r.round() as i64)
-                } else {
-                    format!("{r}")
-                }
-            };
-            let multi_page = first_p.is_some() || last_p.is_some();
-            let start_p = first_p.unwrap_or(1).max(1);
-            let end_p = last_p.unwrap_or(if multi_page { start_p } else { 1 }).min(total_pages);
-            for pno in start_p..=end_p {
-                let (pw, ph, crop_opt) = doc
-                    .page_media
-                    .get(&pno)
-                    .copied()
-                    .unwrap_or((doc.page_w, doc.page_h, None));
-                let (eff_w, eff_h) = if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
-                    ((cx1 - cx0).abs(), (cy1 - cy0).abs())
-                } else {
-                    (pw, ph)
-                };
-                let paper = paper_size_label(eff_w, eff_h);
-                let rot = doc.pages.get(pno - 1).map(|p| p.rot).unwrap_or(0);
-                if multi_page {
-                    out.push_str(&format!(
-                        "{:<17}{} x {} pts{paper}\n",
-                        format!("Page {pno:4} size:"),
-                        fmt_pt(eff_w),
-                        fmt_pt(eff_h)
-                    ));
-                    out.push_str(&format!("{:<17}{rot}\n", format!("Page {pno:4} rot:")));
-                } else {
-                    out.push_str(&format!(
-                        "{:<17}{} x {} pts{paper}\n",
-                        "Page size:",
-                        fmt_pt(eff_w),
-                        fmt_pt(eff_h)
-                    ));
-                    out.push_str(&format!("{:<17}{rot}\n", "Page rot:"));
-                }
-                if show_box {
-                    let mb = format!("{:8.2} {:8.2} {:8.2} {:8.2}", 0.0, 0.0, pw, ph);
-                    let cb = if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
-                        format!("{cx0:8.2} {cy0:8.2} {cx1:8.2} {cy1:8.2}")
-                    } else {
-                        mb.clone()
-                    };
-                    let pfx = if multi_page {
-                        format!("Page {pno:4} ")
-                    } else {
-                        String::new()
-                    };
-                    out.push_str(&format!("{:<17}{mb}\n", format!("{pfx}MediaBox:")));
-                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}CropBox:")));
-                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}BleedBox:")));
-                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}TrimBox:")));
-                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}ArtBox:")));
-                }
-            }
-            out.push_str(&format!("{:<17}{} bytes\n", "File size:", b.len()));
-            out.push_str(&format!("{:<17}{}\n", "Optimized:", if doc.linearized { "yes" } else { "no" }));
-            out.push_str(&format!("{:<17}{}\n", "PDF version:", doc.version));
-            let _ = (show_meta, show_js, show_struct, show_struct_text, show_dests);
-            if show_url {
-                out.push_str("\nPage  Type          URL\n");
-                for (p_idx, pg) in doc.pages.iter().enumerate() {
-                    for u in &pg.urls {
-                        out.push_str(&format!("{:<5} {:<13} {u}\n", p_idx + 1, "Annotation"));
-                    }
-                }
-            }
-            ok_out(&out)
+            a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
+            a => return err_out(&format!("Command Line Error: Unknown option '{a}'\n"), 99),
         }
-        "pdffonts" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return ok_out("pdffonts version 24.08.0\n");
+        i += 1;
+    }
+    if files.len() > 1 {
+        return err_out("Usage: pdfinfo [options] [PDF-file]\n", 99);
+    }
+    let target_file = files.first().map(|s| s.as_str()).unwrap_or("-");
+    let b = if target_file == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let full = resolve_posix_path(cwd, target_file);
+        let Ok(bytes) = fs.read_file(&full) else {
+            return err_out(
+                &format!("I/O Error: Couldn't open file '{target_file}': No such file or directory.\n"),
+                1,
+            );
+        };
+        bytes
+    };
+    if b.is_empty() {
+        return err_out("Syntax Error: Document stream is empty\n", 1);
+    }
+    if !b.starts_with(b"%PDF-") {
+        return err_out("Syntax Error: Invalid PDF header: missing %PDF- signature\n", 1);
+    }
+    let supplied = pw_opt.as_deref().unwrap_or("");
+    let (doc, encryption) = match pdf_reader::read(&b,supplied) {
+        Ok((doc,security)) => (doc,security.map(|s| s.poppler_description())),
+        Err(pdf_reader::PASSWORD) => return err_out("Command Line Error: Incorrect password\n",1),
+        Err(_) => {
+            let doc = PdfDoc::parse(&b);
+            if doc.encrypted.as_deref().is_some_and(|p| !p.is_empty() && p != supplied) {
+                return err_out("Command Line Error: Incorrect password\n",1);
             }
-            if args
-                .iter()
-                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
-            {
-                return ok_out("Usage: pdffonts [options] <PDF-file>\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n");
+            let info = doc.encrypted.as_ref().map(|_| "yes (print:yes copy:yes change:yes addNotes:yes algorithm:AES-256)".to_owned());
+            (doc,info)
+        }
+    };
+    let page_count = doc.pages.len().max(1);
+    let fp = first_p.unwrap_or(1).max(1);
+    let lp = last_p.map(|v| if v == 0 { page_count } else { page_count.min(v) }).unwrap_or(1);
+    if fp > page_count || (last_p.is_some() && fp > lp) {
+        return err_out(
+            &format!(
+                "Command Line Error: Wrong page range given: the first page ({fp}) can not be after the last page ({lp}).\n"
+            ),
+            99,
+        );
+    }
+    if show_url {
+        let mut u_out = String::from("Page  Type          URL\n");
+        let last = if last_p.is_none() { page_count } else { lp };
+        if let Ok(mut source) = pdf_reader::PageSource::open(&b,supplied) {
+            return if source.write_urls(fp,last.min(source.len()),&mut u_out,fs.shell_limits().max_output_bytes).is_some() {
+                ok_out(&u_out)
+            } else { err_out("PDF URL output limit exceeded\n",1) };
+        }
+        for (p_idx, pg) in doc.pages.iter().enumerate().take(last).skip(fp-1) {
+            for u in &pg.urls {
+                u_out.push_str(&format!("{:4}  {:<13} {u}\n", p_idx + 1, "Annotation"));
             }
-            let mut show_subst = false;
-            let mut show_loc = false;
-            let mut show_loc_ps = false;
-            let mut first_p = 1usize;
-            let mut last_p = 0usize;
-            let mut pw_opt: Option<String> = None;
-            let mut files: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-subst" => show_subst = true,
-                    "-loc" => show_loc = true,
-                    "-locPS" => show_loc_ps = true,
-                    "-f" | "-l" => {
-                        let is_first = args[i] == "-f";
-                        let raw = args.get(i+1).map(|s|s.trim_start()).unwrap_or("");
-                        let raw = raw.strip_prefix('+').unwrap_or(raw);
-                        let digits = raw.bytes().take_while(u8::is_ascii_digit).count();
-                        let v = if digits == 0 { 0 } else { raw[..digits].parse().unwrap_or(usize::MAX) };
-                        if is_first { first_p = v.max(1); } else { last_p = v; }
-                        i += 1;
-                    }
-                    "-upw" | "-opw" => {
-                        if let Some(v) = args.get(i + 1) {
-                            pw_opt = Some(v.clone());
-                            i += 1;
-                        }
-                    }
-                    a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
-                    _ => {}
-                }
+        }
+        return ok_out(&u_out);
+    }
+    let get_info_val = |key: &str| -> Option<String> {
+        doc.exif
+            .get(key)
+            .cloned()
+            .or_else(|| {
+                doc.info
+                    .iter()
+                    .find(|(k, _)| k.eq_ignore_ascii_case(key))
+                    .map(|(_, v)| v.clone())
+            })
+    };
+    let mut out = String::new();
+    if !doc.title.is_empty() {
+        out.push_str(&format!("{:<17}{}\n", "Title:", doc.title));
+    }
+    if let Some(v) = get_info_val("Subject")
+        && !v.is_empty()
+    {
+        out.push_str(&format!("{:<17}{v}\n", "Subject:"));
+    }
+    if let Some(v) = get_info_val("Keywords")
+        && !v.is_empty()
+    {
+        out.push_str(&format!("{:<17}{v}\n", "Keywords:"));
+    }
+    if !doc.author.is_empty() {
+        out.push_str(&format!("{:<17}{}\n", "Author:", doc.author));
+    }
+    if let Some(v) = get_info_val("Creator")
+        && !v.is_empty()
+    {
+        out.push_str(&format!("{:<17}{v}\n", "Creator:"));
+    }
+    if let Some(v) = get_info_val("Producer")
+        && !v.is_empty()
+    {
+        out.push_str(&format!("{:<17}{v}\n", "Producer:"));
+    }
+    if let Some(v) = get_info_val("CreationDate")
+        && !v.is_empty()
+    {
+        out.push_str(&format!("{:<17}{}\n", "CreationDate:", format_pdf_date(&v, date_mode)));
+    }
+    if let Some(v) = get_info_val("ModDate")
+        && !v.is_empty()
+    {
+        out.push_str(&format!("{:<17}{}\n", "ModDate:", format_pdf_date(&v, date_mode)));
+    }
+    let std_keys = [
+        "title",
+        "author",
+        "subject",
+        "keywords",
+        "creator",
+        "producer",
+        "creationdate",
+        "moddate",
+        "trapped",
+    ];
+    let mut custom_map: BTreeMap<String, String> = BTreeMap::new();
+    for (k, v) in &doc.info {
+        if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
+            custom_map.insert(k.clone(), v.clone());
+        }
+    }
+    for (k, v) in &doc.exif {
+        if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
+            custom_map.insert(k.clone(), v.clone());
+        }
+    }
+    if show_custom {
+        for (k, v) in &custom_map {
+            out.push_str(&format!("{:<17}{v}\n", format!("{k}:")));
+        }
+    }
+    out.push_str(&format!(
+        "{:<17}{}\n",
+        "Custom Metadata:",
+        if custom_map.is_empty() { "no" } else { "yes" }
+    ));
+    out.push_str(&format!("{:<17}no\n", "Metadata Stream:"));
+    out.push_str(&format!("{:<17}no\n", "Tagged:"));
+    out.push_str(&format!("{:<17}no\n", "UserProperties:"));
+    out.push_str(&format!("{:<17}no\n", "Suspects:"));
+    out.push_str(&format!("{:<17}none\n", "Form:"));
+    out.push_str(&format!("{:<17}no\n", "JavaScript:"));
+    let total_pages = doc.pages.len().max(1);
+    out.push_str(&format!("{:<17}{total_pages}\n", "Pages:"));
+    out.push_str(&format!(
+        "{:<17}{}\n",
+        "Encrypted:",
+        encryption.as_deref().unwrap_or("no")
+    ));
+    let fmt_pt = |n: f64| -> String {
+        let r = (n * 100.0).round() / 100.0;
+        if (r - r.round()).abs() < 1e-9 {
+            format!("{}", r.round() as i64)
+        } else {
+            format!("{r}")
+        }
+    };
+    let multi_page = first_p.is_some() || last_p.is_some();
+    let start_p = first_p.unwrap_or(1).max(1);
+    let end_p = last_p.unwrap_or(if multi_page { start_p } else { 1 }).min(total_pages);
+    for pno in start_p..=end_p {
+        let (pw, ph, crop_opt) = doc
+            .page_media
+            .get(&pno)
+            .copied()
+            .unwrap_or((doc.page_w, doc.page_h, None));
+        let (eff_w, eff_h) = if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
+            ((cx1 - cx0).abs(), (cy1 - cy0).abs())
+        } else {
+            (pw, ph)
+        };
+        let paper = paper_size_label(eff_w, eff_h);
+        let rot = doc.pages.get(pno - 1).map(|p| p.rot).unwrap_or(0);
+        if multi_page {
+            out.push_str(&format!(
+                "{:<17}{} x {} pts{paper}\n",
+                format!("Page {pno:4} size:"),
+                fmt_pt(eff_w),
+                fmt_pt(eff_h)
+            ));
+            out.push_str(&format!("{:<17}{rot}\n", format!("Page {pno:4} rot:")));
+        } else {
+            out.push_str(&format!(
+                "{:<17}{} x {} pts{paper}\n",
+                "Page size:",
+                fmt_pt(eff_w),
+                fmt_pt(eff_h)
+            ));
+            out.push_str(&format!("{:<17}{rot}\n", "Page rot:"));
+        }
+        if show_box {
+            let mb = format!("{:8.2} {:8.2} {:8.2} {:8.2}", 0.0, 0.0, pw, ph);
+            let cb = if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
+                format!("{cx0:8.2} {cy0:8.2} {cx1:8.2} {cy1:8.2}")
+            } else {
+                mb.clone()
+            };
+            let pfx = if multi_page {
+                format!("Page {pno:4} ")
+            } else {
+                String::new()
+            };
+            out.push_str(&format!("{:<17}{mb}\n", format!("{pfx}MediaBox:")));
+            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}CropBox:")));
+            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}BleedBox:")));
+            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}TrimBox:")));
+            out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}ArtBox:")));
+        }
+    }
+    out.push_str(&format!("{:<17}{} bytes\n", "File size:", b.len()));
+    out.push_str(&format!("{:<17}{}\n", "Optimized:", if doc.linearized { "yes" } else { "no" }));
+    out.push_str(&format!("{:<17}{}\n", "PDF version:", doc.version));
+    let _ = (show_meta, show_js, show_struct, show_struct_text, show_dests);
+    if show_url {
+        out.push_str("\nPage  Type          URL\n");
+        for (p_idx, pg) in doc.pages.iter().enumerate() {
+            for u in &pg.urls {
+                out.push_str(&format!("{:<5} {:<13} {u}\n", p_idx + 1, "Annotation"));
+            }
+        }
+    }
+    ok_out(&out)
+}
+
+fn cmd_pdffonts(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.iter().any(|a| a == "-v" || a == "--version") {
+        return ok_out("pdffonts version 24.08.0\n");
+    }
+    if args
+        .iter()
+        .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+    {
+        return ok_out("Usage: pdffonts [options] <PDF-file>\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n");
+    }
+    let mut show_subst = false;
+    let mut show_loc = false;
+    let mut show_loc_ps = false;
+    let mut first_p = 1usize;
+    let mut last_p = 0usize;
+    let mut pw_opt: Option<String> = None;
+    let mut files: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-subst" => show_subst = true,
+            "-loc" => show_loc = true,
+            "-locPS" => show_loc_ps = true,
+            "-f" | "-l" => {
+                let is_first = args[i] == "-f";
+                let raw = args.get(i+1).map(|s|s.trim_start()).unwrap_or("");
+                let raw = raw.strip_prefix('+').unwrap_or(raw);
+                let digits = raw.bytes().take_while(u8::is_ascii_digit).count();
+                let v = if digits == 0 { 0 } else { raw[..digits].parse().unwrap_or(usize::MAX) };
+                if is_first { first_p = v.max(1); } else { last_p = v; }
                 i += 1;
             }
-            if files.is_empty() {
-                return err_out("Usage: pdffonts [options] <PDF-file>\n", 99);
-            }
-            let b = if files[0] == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let full = resolve_posix_path(cwd, &files[0]);
-                let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(&format!("I/O Error: Couldn't open file '{}'\n", files[0]), 1);
-                };
-                bytes
-            };
-            if !b.starts_with(b"%PDF-") {
-                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
-            }
-            let source = pdf_reader::PageSource::open(&b,"").ok();
-            let mut has_text = false;
-            let page_count = if let Some(src) = &source {
-                src.len()
-            } else {
-                let doc = PdfDoc::parse(&b);
-                if let Some(ref password) = doc.encrypted
-                    && !password.is_empty() && pw_opt.as_deref() != Some(password) {
-                    return err_out("PDF Error: Invalid PDF password\n", 1);
-                }
-                has_text = doc.pages.iter().any(|p| !p.text.trim().is_empty());
-                doc.pages.len().max(1)
-            };
-            let end_p = if last_p > 0 { page_count.min(last_p) } else { page_count };
-            if first_p > page_count || (last_p > 0 && first_p > end_p) {
-                return err_out(
-                    &format!(
-                        "Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"
-                    ),
-                    99,
-                );
-            }
-            let mut out = String::from(if show_subst {
-                "name                                 object ID substitute font                      substitute font file\n------------------------------------ --------- ------------------------------------ ------------------------------------\n"
-            } else if show_loc || show_loc_ps {
-                "name                                 type              encoding         emb sub uni object ID location\n------------------------------------ ----------------- ---------------- --- --- --- --------- --------\n"
-            } else {
-                "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\n"
-            });
-            if let Some(mut src) = source {
-                let Some(rows) = src.font_rows(first_p, end_p, show_loc || show_loc_ps, show_loc_ps, show_subst) else {
-                    return err_out("PDF Error: PDF font resource limit exceeded\n", 1);
-                };
-                out.push_str(&rows);
-            } else if has_text {
-                // Older internally generated documents have no PDF resource dictionaries.
-                if show_subst {
-                    out.push_str("Helvetica                                 6  0 Nimbus Sans                          /usr/share/fonts/type1/urw-base35/NimbusSans.t1\n");
-                } else if show_loc || show_loc_ps {
-                    let loc = if show_loc_ps { "Substitute (Helvetica)" } else { "Substitute" };
-                    out.push_str(&format!("Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"));
-                } else {
-                    out.push_str("Helvetica                            Type 1            WinAnsi          no  no  no       4  0\n");
+            "-upw" | "-opw" => {
+                if let Some(v) = args.get(i + 1) {
+                    pw_opt = Some(v.clone());
+                    i += 1;
                 }
             }
-            ok_out(&out)
+            a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
+            _ => {}
         }
-        "pdftotext" => {
-            let mut password = "";
-            let mut first_p = 1usize;
-            let mut last_p = 0usize;
-            let mut last_p_explicit = false;
-            let mut bbox_mode = false;
-            let mut bbox_layout = false;
-            let mut tsv_mode = false;
-            let mut htmlmeta = false;
-            let mut rejoin = true;
-            let mut urls_mode = false;
-            let mut layout = false;
-            let mut raw = false;
-            let mut page_break = true;
-            let mut eol_mode = "unix";
-            let mut invalid_eol_warn = false;
-            let mut colspacing = 0.7;
-            let mut invalid_colspacing = false;
-            let mut quiet = false;
-            let mut listenc = false;
-            let mut version = false;
-            let mut help = false;
-            let mut pos: Vec<String> = Vec::new();
-            let mut after_dd = false;
-            let mut i = 0usize;
-            while i < args.len() {
-                let a = args[i].as_str();
-                if after_dd {
-                    pos.push(a.to_string());
-                    i += 1;
-                    continue;
+        i += 1;
+    }
+    if files.is_empty() {
+        return err_out("Usage: pdffonts [options] <PDF-file>\n", 99);
+    }
+    let b = if files[0] == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let full = resolve_posix_path(cwd, &files[0]);
+        let Ok(bytes) = fs.read_file(&full) else {
+            return err_out(&format!("I/O Error: Couldn't open file '{}'\n", files[0]), 1);
+        };
+        bytes
+    };
+    if !b.starts_with(b"%PDF-") {
+        return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
+    }
+    let source = pdf_reader::PageSource::open(&b,"").ok();
+    let mut has_text = false;
+    let page_count = if let Some(src) = &source {
+        src.len()
+    } else {
+        let doc = PdfDoc::parse(&b);
+        if let Some(ref password) = doc.encrypted
+            && !password.is_empty() && pw_opt.as_deref() != Some(password) {
+            return err_out("PDF Error: Invalid PDF password\n", 1);
+        }
+        has_text = doc.pages.iter().any(|p| !p.text.trim().is_empty());
+        doc.pages.len().max(1)
+    };
+    let end_p = if last_p > 0 { page_count.min(last_p) } else { page_count };
+    if first_p > page_count || (last_p > 0 && first_p > end_p) {
+        return err_out(
+            &format!(
+                "Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"
+            ),
+            99,
+        );
+    }
+    let mut out = String::from(if show_subst {
+        "name                                 object ID substitute font                      substitute font file\n------------------------------------ --------- ------------------------------------ ------------------------------------\n"
+    } else if show_loc || show_loc_ps {
+        "name                                 type              encoding         emb sub uni object ID location\n------------------------------------ ----------------- ---------------- --- --- --- --------- --------\n"
+    } else {
+        "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\n"
+    });
+    if let Some(mut src) = source {
+        let Some(rows) = src.font_rows(first_p, end_p, show_loc || show_loc_ps, show_loc_ps, show_subst) else {
+            return err_out("PDF Error: PDF font resource limit exceeded\n", 1);
+        };
+        out.push_str(&rows);
+    } else if has_text {
+        // Older internally generated documents have no PDF resource dictionaries.
+        if show_subst {
+            out.push_str("Helvetica                                 6  0 Nimbus Sans                          /usr/share/fonts/type1/urw-base35/NimbusSans.t1\n");
+        } else if show_loc || show_loc_ps {
+            let loc = if show_loc_ps { "Substitute (Helvetica)" } else { "Substitute" };
+            out.push_str(&format!("Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"));
+        } else {
+            out.push_str("Helvetica                            Type 1            WinAnsi          no  no  no       4  0\n");
+        }
+    }
+    ok_out(&out)
+}
+
+fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut password = "";
+    let mut first_p = 1usize;
+    let mut last_p = 0usize;
+    let mut last_p_explicit = false;
+    let mut bbox_mode = false;
+    let mut bbox_layout = false;
+    let mut tsv_mode = false;
+    let mut htmlmeta = false;
+    let mut rejoin = true;
+    let mut urls_mode = false;
+    let mut layout = false;
+    let mut raw = false;
+    let mut page_break = true;
+    let mut eol_mode = "unix";
+    let mut invalid_eol_warn = false;
+    let mut colspacing = 0.7;
+    let mut invalid_colspacing = false;
+    let mut quiet = false;
+    let mut listenc = false;
+    let mut version = false;
+    let mut help = false;
+    let mut pos: Vec<String> = Vec::new();
+    let mut after_dd = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = args[i].as_str();
+        if after_dd {
+            pos.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            after_dd = true;
+            i += 1;
+            continue;
+        }
+        match a {
+            "-f" => {
+                if i + 1 >= args.len() {
+                    return err_out("Invalid -f page number\n", 99);
                 }
-                if a == "--" {
-                    after_dd = true;
-                    i += 1;
-                    continue;
+                if let Ok(v) = args[i + 1].parse::<usize>() {
+                    first_p = v.max(1);
+                } else {
+                    return err_out("Invalid -f page number\n", 99);
                 }
-                match a {
-                    "-f" => {
-                        if i + 1 >= args.len() {
-                            return err_out("Invalid -f page number\n", 99);
-                        }
-                        if let Ok(v) = args[i + 1].parse::<usize>() {
-                            first_p = v.max(1);
-                        } else {
-                            return err_out("Invalid -f page number\n", 99);
-                        }
-                        i += 2;
+                i += 2;
+            }
+            "-l" => {
+                if i + 1 >= args.len() {
+                    return err_out("Invalid -l page number\n", 99);
+                }
+                if let Ok(v) = args[i + 1].parse::<usize>() {
+                    last_p = v;
+                    last_p_explicit = true;
+                } else {
+                    return err_out("Invalid -l page number\n", 99);
+                }
+                i += 2;
+            }
+            "-r" => {
+                if i + 1 >= args.len() || args[i + 1].parse::<f64>().map(|v| v <= 0.0).unwrap_or(true) {
+                    return err_out("Invalid -r resolution\n", 99);
+                }
+                i += 2;
+            }
+            "-x" | "-y" | "-W" | "-H" => {
+                if i + 1 >= args.len() || args[i + 1].parse::<f64>().is_err() {
+                    return err_out(&format!("Command Line Error: Invalid numeric argument for {a}\n"), 99);
+                }
+                i += 2;
+            }
+            "-upw" | "-opw" if i + 1 < args.len() => { password = &args[i+1]; i += 2; }
+            "-fixed" | "-linespacing" if i + 1 < args.len() => {
+                i += 2;
+            }
+            "-colspacing" => {
+                let v = args.get(i + 1).and_then(|s| s.parse::<f64>().ok());
+                if let Some(value) = v.filter(|x| *x > 0.0 && *x <= 10.) {
+                    colspacing = value;
+                } else {
+                    invalid_colspacing = true;
+                }
+                i += 2;
+            }
+            "-enc" => {
+                let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                if !matches!(enc, "ASCII7" | "Latin1" | "UTF-8" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                    return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                }
+                i += 2;
+            }
+            "-eol" => {
+                let v = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                match v {
+                    "unix" => eol_mode = "unix",
+                    "dos" => eol_mode = "dos",
+                    "mac" => eol_mode = "mac",
+                    _ => invalid_eol_warn = true,
+                }
+                i += 2;
+            }
+            "-remove-hyphens" => {
+                if let Some(nxt) = args.get(i + 1) && !nxt.starts_with('-') {
+                    rejoin = nxt != "no";
+                    if !matches!(nxt.as_str(), "yes" | "no" | "auto") {
+                        return err_out("Bad '-remove-hyphens' value on command line\n", 99);
                     }
-                    "-l" => {
-                        if i + 1 >= args.len() {
-                            return err_out("Invalid -l page number\n", 99);
-                        }
-                        if let Ok(v) = args[i + 1].parse::<usize>() {
-                            last_p = v;
-                            last_p_explicit = true;
-                        } else {
-                            return err_out("Invalid -l page number\n", 99);
-                        }
-                        i += 2;
-                    }
-                    "-r" => {
-                        if i + 1 >= args.len() || args[i + 1].parse::<f64>().map(|v| v <= 0.0).unwrap_or(true) {
-                            return err_out("Invalid -r resolution\n", 99);
-                        }
-                        i += 2;
-                    }
-                    "-x" | "-y" | "-W" | "-H" => {
-                        if i + 1 >= args.len() || args[i + 1].parse::<f64>().is_err() {
-                            return err_out(&format!("Command Line Error: Invalid numeric argument for {a}\n"), 99);
-                        }
-                        i += 2;
-                    }
-                    "-upw" | "-opw" if i + 1 < args.len() => { password = &args[i+1]; i += 2; }
-                    "-fixed" | "-linespacing" if i + 1 < args.len() => {
-                        i += 2;
-                    }
-                    "-colspacing" => {
-                        let v = args.get(i + 1).and_then(|s| s.parse::<f64>().ok());
-                        if let Some(value) = v.filter(|x| *x > 0.0 && *x <= 10.) {
-                            colspacing = value;
-                        } else {
-                            invalid_colspacing = true;
-                        }
-                        i += 2;
-                    }
-                    "-enc" => {
-                        let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
-                        if !matches!(enc, "ASCII7" | "Latin1" | "UTF-8" | "UCS-2" | "Symbol" | "ZapfDingbats") {
-                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
-                        }
-                        i += 2;
-                    }
-                    "-eol" => {
-                        let v = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
-                        match v {
-                            "unix" => eol_mode = "unix",
-                            "dos" => eol_mode = "dos",
-                            "mac" => eol_mode = "mac",
-                            _ => invalid_eol_warn = true,
-                        }
-                        i += 2;
-                    }
-                    "-remove-hyphens" => {
-                        if let Some(nxt) = args.get(i + 1) && !nxt.starts_with('-') {
-                            rejoin = nxt != "no";
-                            if !matches!(nxt.as_str(), "yes" | "no" | "auto") {
-                                return err_out("Bad '-remove-hyphens' value on command line\n", 99);
-                            }
-                            i += 2;
-                        } else {
-                            rejoin = true; i += 1;
-                        }
-                    }
-                    "-bbox" => {
-                        bbox_mode = true;
-                        i += 1;
-                    }
-                    "-bbox-layout" => {
-                        bbox_mode = true;
-                        bbox_layout = true;
-                        i += 1;
-                    }
-                    "-tsv" => {
-                        tsv_mode = true;
-                        i += 1;
-                    }
-                    "-htmlmeta" => {
-                        htmlmeta = true;
-                        i += 1;
-                    }
-                    "-urls" => {
-                        urls_mode = true;
-                        i += 1;
-                    }
-                    "-q" => {
-                        quiet = true;
-                        i += 1;
-                    }
-                    "-listenc" => {
-                        listenc = true;
-                        i += 1;
-                    }
-                    "-v" | "--version" => {
-                        version = true;
-                        i += 1;
-                    }
-                    "-h" | "-help" | "--help" | "-?" => {
-                        help = true;
-                        i += 1;
-                    }
-                    "-layout" | "-table" | "-lineprinter" => {
-                        layout = true;
-                        i += 1;
-                    }
-                    "-raw" => {
-                        raw = true;
-                        i += 1;
-                    }
-                    "-nopgbrk" => {
-                        page_break = false;
-                        i += 1;
-                    }
-                    "-nodiag" | "-cropbox" | "-clip" => {
-                        i += 1;
-                    }
-                    _ if a.starts_with('-') && a != "-" => {
-                        return err_out(&format!("Command Line Error: Unknown option '{a}'\n"), 99);
-                    }
-                    _ => {
-                        pos.push(a.to_string());
-                        i += 1;
-                    }
+                    i += 2;
+                } else {
+                    rejoin = true; i += 1;
                 }
             }
-            let warn_prefix = if invalid_eol_warn { "Bad '-eol' value on command line\n" } else { "" };
-            if invalid_colspacing {
-                return err_out(&format!("{warn_prefix}Command Line Error: Invalid column spacing\n"), 99);
+            "-bbox" => {
+                bbox_mode = true;
+                i += 1;
             }
-            if urls_mode && (htmlmeta || bbox_mode || tsv_mode) {
-                return err_out(&format!("{warn_prefix}Command Line Error: '-urls' is not supported with HTML or TSV output\n"), 99);
+            "-bbox-layout" => {
+                bbox_mode = true;
+                bbox_layout = true;
+                i += 1;
             }
-            if pos.len() > 2 {
-                return err_out(if quiet { warn_prefix.to_string() } else { format!("{warn_prefix}Usage: pdftotext [options] [PDF-file [text-file]]\n") }.as_str(), 99);
+            "-tsv" => {
+                tsv_mode = true;
+                i += 1;
             }
-            if listenc {
-                return BuiltinOutcome {
-                    stdout: "Available encodings are:\nASCII7\nLatin1\nUTF-8\nUCS-2\nSymbol\nZapfDingbats\n".to_string(),
-                    stderr: warn_prefix.to_string(),
-                    exit_code: 0,
-                };
+            "-htmlmeta" => {
+                htmlmeta = true;
+                i += 1;
             }
-            if version {
-                return BuiltinOutcome {
-                    stdout: "pdftotext version 26.09.90 (@poe-code/pdf-ast)\n".to_string(),
-                    stderr: warn_prefix.to_string(),
-                    exit_code: 0,
-                };
+            "-urls" => {
+                urls_mode = true;
+                i += 1;
             }
-            if help {
-                return BuiltinOutcome {
-                    stdout: "Usage: pdftotext [options] [PDF-file [text-file]]\n  -f <int>          : first page to convert\n  -l <int>          : last page to convert\n  -r <fp>           : resolution, in DPI (default is 72)\n  -x <int>          : x-coordinate of the crop area top left corner\n  -y <int>          : y-coordinate of the crop area top left corner\n  -W <int>          : width of crop area in pixels\n  -H <int>          : height of crop area in pixels\n  -layout           : maintain original physical layout\n  -raw              : keep strings in content stream order\n  -bbox             : output bounding box for each word and page size to html\n  -bbox-layout      : like -bbox but with extra layout bounding box data\n  -tsv              : output bounding box for each word and page size to tsv\n  -htmlmeta         : generate a simple HTML file, including the meta information\n  -nopgbrk          : don't insert page breaks between pages\n  -eol <string>     : output end-of-line convention (unix, dos, or mac)\n  -upw <string>     : user password\n  -opw <string>     : owner password\n".to_string(),
-                    stderr: warn_prefix.to_string(),
-                    exit_code: 0,
-                };
+            "-q" => {
+                quiet = true;
+                i += 1;
             }
-            let in_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
-            let raw_bytes = if in_arg == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let full = resolve_posix_path(cwd, in_arg);
-                match fs.read_file(&full) {
-                    Ok(b) => b,
-                    Err(_) => {
-                        let msg = if quiet {
-                            String::new()
-                        } else {
-                            format!("{warn_prefix}I/O Error: Couldn't open file '{in_arg}': No such file or directory.\n")
-                        };
-                        return err_out(&msg, 1);
-                    }
-                }
-            };
-            if raw_bytes.is_empty() {
+            "-listenc" => {
+                listenc = true;
+                i += 1;
+            }
+            "-v" | "--version" => {
+                version = true;
+                i += 1;
+            }
+            "-h" | "-help" | "--help" | "-?" => {
+                help = true;
+                i += 1;
+            }
+            "-layout" | "-table" | "-lineprinter" => {
+                layout = true;
+                i += 1;
+            }
+            "-raw" => {
+                raw = true;
+                i += 1;
+            }
+            "-nopgbrk" => {
+                page_break = false;
+                i += 1;
+            }
+            "-nodiag" | "-cropbox" | "-clip" => {
+                i += 1;
+            }
+            _ if a.starts_with('-') && a != "-" => {
+                return err_out(&format!("Command Line Error: Unknown option '{a}'\n"), 99);
+            }
+            _ => {
+                pos.push(a.to_string());
+                i += 1;
+            }
+        }
+    }
+    let warn_prefix = if invalid_eol_warn { "Bad '-eol' value on command line\n" } else { "" };
+    if invalid_colspacing {
+        return err_out(&format!("{warn_prefix}Command Line Error: Invalid column spacing\n"), 99);
+    }
+    if urls_mode && (htmlmeta || bbox_mode || tsv_mode) {
+        return err_out(&format!("{warn_prefix}Command Line Error: '-urls' is not supported with HTML or TSV output\n"), 99);
+    }
+    if pos.len() > 2 {
+        return err_out(if quiet { warn_prefix.to_string() } else { format!("{warn_prefix}Usage: pdftotext [options] [PDF-file [text-file]]\n") }.as_str(), 99);
+    }
+    if listenc {
+        return BuiltinOutcome {
+            stdout: "Available encodings are:\nASCII7\nLatin1\nUTF-8\nUCS-2\nSymbol\nZapfDingbats\n".to_string(),
+            stderr: warn_prefix.to_string(),
+            exit_code: 0,
+        };
+    }
+    if version {
+        return BuiltinOutcome {
+            stdout: "pdftotext version 26.09.90 (@poe-code/pdf-ast)\n".to_string(),
+            stderr: warn_prefix.to_string(),
+            exit_code: 0,
+        };
+    }
+    if help {
+        return BuiltinOutcome {
+            stdout: "Usage: pdftotext [options] [PDF-file [text-file]]\n  -f <int>          : first page to convert\n  -l <int>          : last page to convert\n  -r <fp>           : resolution, in DPI (default is 72)\n  -x <int>          : x-coordinate of the crop area top left corner\n  -y <int>          : y-coordinate of the crop area top left corner\n  -W <int>          : width of crop area in pixels\n  -H <int>          : height of crop area in pixels\n  -layout           : maintain original physical layout\n  -raw              : keep strings in content stream order\n  -bbox             : output bounding box for each word and page size to html\n  -bbox-layout      : like -bbox but with extra layout bounding box data\n  -tsv              : output bounding box for each word and page size to tsv\n  -htmlmeta         : generate a simple HTML file, including the meta information\n  -nopgbrk          : don't insert page breaks between pages\n  -eol <string>     : output end-of-line convention (unix, dos, or mac)\n  -upw <string>     : user password\n  -opw <string>     : owner password\n".to_string(),
+            stderr: warn_prefix.to_string(),
+            exit_code: 0,
+        };
+    }
+    let in_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
+    let raw_bytes = if in_arg == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let full = resolve_posix_path(cwd, in_arg);
+        match fs.read_file(&full) {
+            Ok(b) => b,
+            Err(_) => {
                 let msg = if quiet {
                     String::new()
                 } else {
-                    format!("{warn_prefix}Syntax Error: Document stream is empty\n")
+                    format!("{warn_prefix}I/O Error: Couldn't open file '{in_arg}': No such file or directory.\n")
                 };
                 return err_out(&msg, 1);
             }
-            if !raw_bytes.starts_with(b"%PDF-") {
-                let msg = if quiet {
-                    String::new()
-                } else {
-                    format!("{warn_prefix}Syntax Error: Invalid PDF header: missing %PDF- signature\n")
-                };
-                return err_out(&msg, 1);
+        }
+    };
+    if raw_bytes.is_empty() {
+        let msg = if quiet {
+            String::new()
+        } else {
+            format!("{warn_prefix}Syntax Error: Document stream is empty\n")
+        };
+        return err_out(&msg, 1);
+    }
+    if !raw_bytes.starts_with(b"%PDF-") {
+        let msg = if quiet {
+            String::new()
+        } else {
+            format!("{warn_prefix}Syntax Error: Invalid PDF header: missing %PDF- signature\n")
+        };
+        return err_out(&msg, 1);
+    }
+    let doc = match pdf_reader::read(&raw_bytes,password) {
+        Ok((doc,_)) => doc,
+        Err(pdf_reader::PASSWORD) => return err_out(if quiet {""} else {"Command Line Error: Incorrect password\n"},1),
+        Err(_) => PdfDoc::parse(&raw_bytes),
+    };
+    let page_count = doc.pages.len().max(1);
+    let end_p = if !last_p_explicit || last_p == 0 || last_p > page_count {
+        page_count
+    } else {
+        last_p
+    };
+    if first_p > page_count || first_p > end_p {
+        let msg = if quiet {
+            String::new()
+        } else {
+            format!("{warn_prefix}Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n")
+        };
+        return err_out(&msg, 99);
+    }
+    let mut selected_pages: Vec<(usize, &PdfPage)> = Vec::new();
+    for pno in first_p..=end_p {
+        if let Some(pg) = doc.pages.get(pno - 1) {
+            selected_pages.push((pno, pg));
+        }
+    }
+    let mut rendered = if bbox_mode {
+        let mut pages_xml = String::new();
+        for (_pno, pg) in &selected_pages {
+            pages_xml.push_str(&format!("  <page width=\"{:.6}\" height=\"{:.6}\">\n", doc.page_w, doc.page_h));
+            if bbox_layout {
+                pages_xml.push_str("    <flow>\n      <block xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n        <line xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n");
             }
-            let doc = match pdf_reader::read(&raw_bytes,password) {
-                Ok((doc,_)) => doc,
-                Err(pdf_reader::PASSWORD) => return err_out(if quiet {""} else {"Command Line Error: Incorrect password\n"},1),
-                Err(_) => PdfDoc::parse(&raw_bytes),
-            };
-            let page_count = doc.pages.len().max(1);
-            let end_p = if !last_p_explicit || last_p == 0 || last_p > page_count {
-                page_count
-            } else {
-                last_p
-            };
-            if first_p > page_count || first_p > end_p {
-                let msg = if quiet {
-                    String::new()
-                } else {
-                    format!("{warn_prefix}Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n")
-                };
-                return err_out(&msg, 99);
+            for w in pg.text.split_whitespace() {
+                pages_xml.push_str(&format!(
+                    "          <word xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"50.000000\" yMax=\"12.000000\">{}</word>\n",
+                    html_escape_str(w)
+                ));
             }
-            let mut selected_pages: Vec<(usize, &PdfPage)> = Vec::new();
-            for pno in first_p..=end_p {
-                if let Some(pg) = doc.pages.get(pno - 1) {
-                    selected_pages.push((pno, pg));
-                }
+            if bbox_layout {
+                pages_xml.push_str("        </line>\n      </block>\n    </flow>\n");
             }
-            let mut rendered = if bbox_mode {
-                let mut pages_xml = String::new();
-                for (_pno, pg) in &selected_pages {
-                    pages_xml.push_str(&format!("  <page width=\"{:.6}\" height=\"{:.6}\">\n", doc.page_w, doc.page_h));
-                    if bbox_layout {
-                        pages_xml.push_str("    <flow>\n      <block xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n        <line xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n");
-                    }
-                    for w in pg.text.split_whitespace() {
-                        pages_xml.push_str(&format!(
-                            "          <word xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"50.000000\" yMax=\"12.000000\">{}</word>\n",
-                            html_escape_str(w)
-                        ));
-                    }
-                    if bbox_layout {
-                        pages_xml.push_str("        </line>\n      </block>\n    </flow>\n");
-                    }
-                    pages_xml.push_str("  </page>\n");
-                }
-                let author_meta = if doc.author.is_empty() {
-                    String::new()
-                } else {
-                    format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
-                };
-                format!(
-                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<doc>\n{pages_xml}</doc>\n</body>\n</html>\n",
-                    html_escape_str(&doc.title)
-                )
-            } else if tsv_mode {
-                let mut tsv = String::from(
-                    "level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n",
-                );
-                for (pno, pg) in &selected_pages {
+            pages_xml.push_str("  </page>\n");
+        }
+        let author_meta = if doc.author.is_empty() {
+            String::new()
+        } else {
+            format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
+        };
+        format!(
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<doc>\n{pages_xml}</doc>\n</body>\n</html>\n",
+            html_escape_str(&doc.title)
+        )
+    } else if tsv_mode {
+        let mut tsv = String::from(
+            "level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n",
+        );
+        for (pno, pg) in &selected_pages {
+            tsv.push_str(&format!(
+                "1\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t{:.6}\t{:.6}\t-1\t###PAGE###\n",
+                doc.page_w, doc.page_h
+            ));
+            let non_empty_lines: Vec<&str> = pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+            if !non_empty_lines.is_empty() {
+                tsv.push_str(&format!(
+                    "3\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###FLOW###\n"
+                ));
+                for (lidx, line_str) in non_empty_lines.iter().enumerate() {
                     tsv.push_str(&format!(
-                        "1\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t{:.6}\t{:.6}\t-1\t###PAGE###\n",
-                        doc.page_w, doc.page_h
+                        "4\t{pno}\t0\t0\t{lidx}\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###LINE###\n"
                     ));
-                    let non_empty_lines: Vec<&str> = pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
-                    if !non_empty_lines.is_empty() {
+                    for (widx, w) in line_str.split_whitespace().enumerate() {
                         tsv.push_str(&format!(
-                            "3\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###FLOW###\n"
+                            "5\t{pno}\t0\t0\t{lidx}\t{widx}\t0.00\t0.00\t50.00\t12.00\t100\t{w}\n"
                         ));
-                        for (lidx, line_str) in non_empty_lines.iter().enumerate() {
-                            tsv.push_str(&format!(
-                                "4\t{pno}\t0\t0\t{lidx}\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###LINE###\n"
-                            ));
-                            for (widx, w) in line_str.split_whitespace().enumerate() {
-                                tsv.push_str(&format!(
-                                    "5\t{pno}\t0\t0\t{lidx}\t{widx}\t0.00\t0.00\t50.00\t12.00\t100\t{w}\n"
-                                ));
-                            }
-                        }
                     }
-                }
-                if htmlmeta {
-                    let author_meta = if doc.author.is_empty() {
-                        String::new()
-                    } else {
-                        format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
-                    };
-                    format!(
-                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
-                        html_escape_str(&doc.title),
-                        html_escape_str(&tsv)
-                    )
-                } else {
-                    tsv
-                }
-            } else {
-                let mut plain = String::new();
-                let mut source = (urls_mode || raw || !layout).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
-                for (pno, pg) in &selected_pages {
-                    let mut t = if layout && !raw {
-                        pg.text.replace("\n\n", "\n")
-                    } else {
-                        let width = doc.page_media.get(pno).map_or(doc.page_w, |m|m.0).abs();
-                        source.as_mut().and_then(|s| s.plain_text(*pno,(!raw).then_some(colspacing),width,!raw && rejoin)).unwrap_or_else(|| pg.text.clone())
-                    };
-                    if urls_mode {
-                        let mut extra = Vec::new();
-                        let links;
-                        let urls = if let Some(source) = &mut source {
-                            let Some(found) = source.page_links(*pno, fs.shell_limits().max_input_bytes) else {return err_out("PDF link limit exceeded\n",1)};
-                            links = found.into_iter().map(|(_,uri)|uri).collect::<Vec<_>>();
-                            &links
-                        } else {&pg.urls};
-                        for u in urls {
-                            if !t.contains(u) && !extra.contains(u) {
-                                extra.push(u.clone());
-                            }
-                        }
-                        if !extra.is_empty() {
-                            if !t.is_empty() && !t.ends_with('\n') {
-                                t.push('\n');
-                            }
-                            t.push_str(&extra.join("\n"));
-                            t.push('\n');
-                        }
-                    }
-                    if !raw && !t.is_empty() {
-                        if !t.ends_with('\n') {
-                            t.push('\n');
-                        }
-                        if !layout {
-                            t.push('\n');
-                        }
-                    }
-                    plain.push_str(&t);
-                    if page_break {
-                        plain.push('\x0c');
-                    }
-                }
-                if eol_mode == "dos" {
-                    plain = plain.replace('\n', "\r\n");
-                } else if eol_mode == "mac" {
-                    plain = plain.replace('\n', "\r");
-                }
-                if htmlmeta {
-                    let author_meta = if doc.author.is_empty() {
-                        String::new()
-                    } else {
-                        format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
-                    };
-                    format!(
-                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
-                        html_escape_str(&doc.title),
-                        html_escape_str(&plain)
-                    )
-                } else {
-                    plain
-                }
-            };
-            if (bbox_mode || tsv_mode) && eol_mode == "dos" {
-                rendered = rendered.replace('\n', "\r\n");
-            }
-            let out_target = if pos.len() >= 2 {
-                pos[1].clone()
-            } else if in_arg != "-" {
-                let ext = if bbox_mode || htmlmeta {
-                    ".html"
-                } else if tsv_mode {
-                    ".tsv"
-                } else {
-                    ".txt"
-                };
-                let stem = if in_arg.to_ascii_lowercase().ends_with(".pdf") {
-                    &in_arg[..in_arg.len() - 4]
-                } else {
-                    in_arg
-                };
-                format!("{stem}{ext}")
-            } else {
-                "-".to_string()
-            };
-            if out_target == "-" {
-                BuiltinOutcome {
-                    stdout: rendered,
-                    stderr: warn_prefix.to_string(),
-                    exit_code: 0,
-                }
-            } else {
-                let dst = resolve_posix_path(cwd, &out_target);
-                let _ = fs.write_file(&dst, rendered.as_bytes());
-                BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: warn_prefix.to_string(),
-                    exit_code: 0,
                 }
             }
         }
-        "pdftohtml" => {
-            let mut xml_mode = false;
-            let mut to_stdout = false;
-            let mut ignore_images = false;
-            let mut data_urls = false;
-            let mut first_p = 1.0;
-            let mut last_p = 0.0;
-            let mut zoom = 1.0f64;
-            let mut image_fmt = "png";
-            let mut pos: Vec<String> = Vec::new();
-            let mut after_dd = false;
-            let mut i = 0usize;
-            while i < args.len() {
-                let a = args[i].as_str();
-                if after_dd {
-                    pos.push(a.to_string());
-                    i += 1;
-                    continue;
+        if htmlmeta {
+            let author_meta = if doc.author.is_empty() {
+                String::new()
+            } else {
+                format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
+            };
+            format!(
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
+                html_escape_str(&doc.title),
+                html_escape_str(&tsv)
+            )
+        } else {
+            tsv
+        }
+    } else {
+        let mut plain = String::new();
+        let mut source = (urls_mode || raw || !layout).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
+        for (pno, pg) in &selected_pages {
+            let mut t = if layout && !raw {
+                pg.text.replace("\n\n", "\n")
+            } else {
+                let width = doc.page_media.get(pno).map_or(doc.page_w, |m|m.0).abs();
+                source.as_mut().and_then(|s| s.plain_text(*pno,(!raw).then_some(colspacing),width,!raw && rejoin)).unwrap_or_else(|| pg.text.clone())
+            };
+            if urls_mode {
+                let mut extra = Vec::new();
+                let links;
+                let urls = if let Some(source) = &mut source {
+                    let Some(found) = source.page_links(*pno, fs.shell_limits().max_input_bytes) else {return err_out("PDF link limit exceeded\n",1)};
+                    links = found.into_iter().map(|(_,uri)|uri).collect::<Vec<_>>();
+                    &links
+                } else {&pg.urls};
+                for u in urls {
+                    if !t.contains(u) && !extra.contains(u) {
+                        extra.push(u.clone());
+                    }
                 }
-                if a == "--" {
-                    after_dd = true;
-                    i += 1;
-                    continue;
+                if !extra.is_empty() {
+                    if !t.is_empty() && !t.ends_with('\n') {
+                        t.push('\n');
+                    }
+                    t.push_str(&extra.join("\n"));
+                    t.push('\n');
                 }
-                if a == "-v" || a == "--version" {
-                    return ok_out("pdftohtml version 24.08.0\n");
+            }
+            if !raw && !t.is_empty() {
+                if !t.ends_with('\n') {
+                    t.push('\n');
                 }
-                if a == "-h" || a == "-help" || a == "--help" || a == "-?" {
-                    return ok_out("Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n");
+                if !layout {
+                    t.push('\n');
                 }
-                match a {
-                    "-xml" => xml_mode = true,
-                    "-stdout" => to_stdout = true,
-                    "-i" => ignore_images = true,
-                    "-dataurls" => data_urls = true,
-                    "-f" => {
-                        i += 1;
-                        first_p = args.get(i).map_or(1.0, |s| js_number(s, 0.0).max(1.0));
+            }
+            plain.push_str(&t);
+            if page_break {
+                plain.push('\x0c');
+            }
+        }
+        if eol_mode == "dos" {
+            plain = plain.replace('\n', "\r\n");
+        } else if eol_mode == "mac" {
+            plain = plain.replace('\n', "\r");
+        }
+        if htmlmeta {
+            let author_meta = if doc.author.is_empty() {
+                String::new()
+            } else {
+                format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
+            };
+            format!(
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
+                html_escape_str(&doc.title),
+                html_escape_str(&plain)
+            )
+        } else {
+            plain
+        }
+    };
+    if (bbox_mode || tsv_mode) && eol_mode == "dos" {
+        rendered = rendered.replace('\n', "\r\n");
+    }
+    let out_target = if pos.len() >= 2 {
+        pos[1].clone()
+    } else if in_arg != "-" {
+        let ext = if bbox_mode || htmlmeta {
+            ".html"
+        } else if tsv_mode {
+            ".tsv"
+        } else {
+            ".txt"
+        };
+        let stem = if in_arg.to_ascii_lowercase().ends_with(".pdf") {
+            &in_arg[..in_arg.len() - 4]
+        } else {
+            in_arg
+        };
+        format!("{stem}{ext}")
+    } else {
+        "-".to_string()
+    };
+    if out_target == "-" {
+        BuiltinOutcome {
+            stdout: rendered,
+            stderr: warn_prefix.to_string(),
+            exit_code: 0,
+        }
+    } else {
+        let dst = resolve_posix_path(cwd, &out_target);
+        let _ = fs.write_file(&dst, rendered.as_bytes());
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr: warn_prefix.to_string(),
+            exit_code: 0,
+        }
+    }
+}
+
+fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut xml_mode = false;
+    let mut to_stdout = false;
+    let mut ignore_images = false;
+    let mut data_urls = false;
+    let mut first_p = 1.0;
+    let mut last_p = 0.0;
+    let mut zoom = 1.0f64;
+    let mut image_fmt = "png";
+    let mut pos: Vec<String> = Vec::new();
+    let mut after_dd = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = args[i].as_str();
+        if after_dd {
+            pos.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            after_dd = true;
+            i += 1;
+            continue;
+        }
+        if a == "-v" || a == "--version" {
+            return ok_out("pdftohtml version 24.08.0\n");
+        }
+        if a == "-h" || a == "-help" || a == "--help" || a == "-?" {
+            return ok_out("Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n");
+        }
+        match a {
+            "-xml" => xml_mode = true,
+            "-stdout" => to_stdout = true,
+            "-i" => ignore_images = true,
+            "-dataurls" => data_urls = true,
+            "-f" => {
+                i += 1;
+                first_p = args.get(i).map_or(1.0, |s| js_number(s, 0.0).max(1.0));
+            }
+            "-l" => {
+                i += 1;
+                last_p = args.get(i).map_or(0.0, |s| js_number(s, 0.0).max(0.0));
+            }
+            "-zoom" => {
+                i += 1;
+                if let Some(z) = args.get(i).map(|s| parse_float_prefix(s)) && z.is_finite() && z > 0.0 {
+                    zoom = z;
+                }
+            }
+            "-fmt" => {
+                i += 1;
+                let fv = args.get(i).map(|s| s.to_ascii_lowercase()).unwrap_or_default();
+                if fv == "png" {
+                    image_fmt = "png";
+                } else if fv == "jpg" || fv == "jpeg" {
+                    image_fmt = "jpg";
+                } else {
+                    return err_out(&format!("Command Line Error: Invalid image format '{fv}'\n"), 99);
+                }
+            }
+            "-enc" => {
+                i += 1;
+                let enc = args.get(i).map(|s| s.as_str()).unwrap_or("");
+                if !matches!(enc, "ASCII7" | "Latin1" | "UTF-8" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                    return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                }
+            }
+            "-upw" | "-opw" => {
+                i += 1;
+            }
+            "-s" | "-noframes" | "-c" | "-p" | "-q" | "-hidden" | "-nomerge" | "-nodrm" => {}
+            _ if !a.starts_with('-') || a == "-" => {
+                pos.push(a.to_string());
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    let input_path = pos.first().map_or("-", String::as_str);
+    if input_path.is_empty() { return err_out("Usage: pdftohtml [options] <PDF-file> [<html-file>]\n", 99); }
+    let explicit_out = pos.get(1).map(String::as_str).filter(|s| !s.is_empty());
+    let stdout_output = to_stdout || explicit_out == Some("-") || (input_path == "-" && explicit_out.is_none());
+    let default_ext = if xml_mode { ".xml" } else { ".html" };
+    let input_stem = if input_path.to_ascii_lowercase().ends_with(".pdf") {
+        &input_path[..input_path.len() - 4]
+    } else {
+        input_path
+    };
+    let out_path = match explicit_out {
+        Some(eo) => {
+            if eo.ends_with(".html") || eo.ends_with(".xml") {
+                eo.to_string()
+            } else {
+                format!("{eo}{default_ext}")
+            }
+        }
+        None => format!("{input_stem}{default_ext}"),
+    };
+    let image_dir = match out_path.rfind('/') {
+        Some(idx) => &out_path[..=idx],
+        None => "",
+    };
+    let raw_bytes = if input_path == "-" {
+        let b = crate::vfs::stream_string_to_bytes(stdin);
+        if b.is_empty() {
+            return err_out("I/O Error: Couldn't open file '-'\n", 1);
+        }
+        b
+    } else {
+        let full = resolve_posix_path(cwd, input_path);
+        if fs.is_dir(&full) {
+            return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1);
+        }
+        match fs.read_file(&full) {
+            Ok(b) => b,
+            Err(_) => return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1),
+        }
+    };
+    if !raw_bytes.starts_with(b"%PDF-") {
+        return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
+    }
+    let doc = PdfDoc::parse(&raw_bytes);
+    let total_pages = doc.pages.len().max(1) as f64;
+    let end_p = if last_p > 0.0 { total_pages.min(last_p) } else { total_pages };
+    if first_p > end_p {
+        return err_out(&format!("Command Line Error: Wrong page range given: the first page ({}) can not be after the last page ({}).\n",
+            mcp_protocol_rust::numbers::format(first_p), mcp_protocol_rust::numbers::format(end_p)), 99);
+    }
+    let (first_p, end_p) = (first_p.ceil() as usize, end_p.floor() as usize);
+    let mut source = pdf_reader::PageSource::open(&raw_bytes,"").ok();
+    let dimensions = |pno| {
+        let (w, h, _) = doc.page_media.get(&pno).copied().unwrap_or((doc.page_w, doc.page_h, None));
+        (w.abs(), h.abs())
+    };
+    let mut image_files = Vec::new();
+    let limit = fs.shell_limits().max_output_bytes;
+    let mut remaining = limit;
+    let mut page_content = |pno: usize| -> Result<_, &'static str> {
+        let mut fonts = vec![("Helvetica".to_string(), (12.0 * zoom).round() as i64)];
+        let mut markup = Vec::new();
+        if !ignore_images {
+            let mut idx = 0;
+            let mut emit = |w: usize, h: usize, bytes: Vec<u8>| -> Option<()> {
+                idx += 1;
+                let name = format!("page{pno}_{idx}.{image_fmt}");
+                let src = if data_urls {
+                    remaining = remaining.checked_sub(bytes.len().div_ceil(3).checked_mul(4)?)?;
+                    let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
+                    format!("data:{mime};base64,{}", base64_encode(&bytes))
+                } else {
+                    if !stdout_output {
+                        remaining = remaining.checked_sub(bytes.len())?;
+                        image_files.push((format!("{image_dir}{name}"), bytes));
                     }
-                    "-l" => {
-                        i += 1;
-                        last_p = args.get(i).map_or(0.0, |s| js_number(s, 0.0).max(0.0));
-                    }
-                    "-zoom" => {
-                        i += 1;
-                        if let Some(z) = args.get(i).map(|s| parse_float_prefix(s)) && z.is_finite() && z > 0.0 {
-                            zoom = z;
-                        }
-                    }
-                    "-fmt" => {
-                        i += 1;
-                        let fv = args.get(i).map(|s| s.to_ascii_lowercase()).unwrap_or_default();
-                        if fv == "png" {
-                            image_fmt = "png";
-                        } else if fv == "jpg" || fv == "jpeg" {
-                            image_fmt = "jpg";
-                        } else {
-                            return err_out(&format!("Command Line Error: Invalid image format '{fv}'\n"), 99);
-                        }
-                    }
-                    "-enc" => {
-                        i += 1;
-                        let enc = args.get(i).map(|s| s.as_str()).unwrap_or("");
-                        if !matches!(enc, "ASCII7" | "Latin1" | "UTF-8" | "UCS-2" | "Symbol" | "ZapfDingbats") {
-                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
-                        }
-                    }
-                    "-upw" | "-opw" => {
-                        i += 1;
-                    }
-                    "-s" | "-noframes" | "-c" | "-p" | "-q" | "-hidden" | "-nomerge" | "-nodrm" => {}
-                    _ if !a.starts_with('-') || a == "-" => {
-                        pos.push(a.to_string());
-                    }
-                    _ => {}
+                    name
+                };
+                markup.push(if xml_mode {
+                    format!(r#"    <image top="0" left="0" width="{w}" height="{h}" src="{src}"/>"#)
+                } else {
+                    format!(r#"  <img src="{src}" width="{w}" height="{h}"/>"#)
+                });
+                Some(())
+            };
+            if let Some(source) = source.as_mut() {
+                source.images(pno, fs.max_input_bytes(), true, |im| {
+                    let bytes = if image_fmt == "jpg" {
+                        jpeg::encode(jpeg::Input::Pdf {width:im.width, height:im.height, pixels:&im.pixels},limit).ok()?
+                    } else { im.encode("PNG")? };
+                    emit(im.width,im.height,bytes)
+                }).ok_or("PDF Error: Invalid or oversized PDF image\n")?;
+            } else if let Some(pg) = doc.pages.get(pno-1) {
+                for &(w,h,_) in &pg.images {
+                    let im = ImageMeta { fmt: if image_fmt=="jpg" {"JPEG"} else {"PNG"}.into(), w,h,cs:"sRGB".into(),exif:BTreeMap::new() };
+                    emit(w as usize,h as usize,write_image_bytes(&im)).ok_or("PDF image limit exceeded\n")?;
+                }
+            }
+        }
+        if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7))) {
+            let links = source.as_mut().and_then(|s| s.page_links(pno, fs.shell_limits().max_input_bytes)).ok_or("PDF link limit exceeded\n")?;
+            let height = dimensions(pno).1;
+            let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
+            for run in layout {
+                let [x0, y0, x1, y1] = run.bounds;
+                let left = (x0 * zoom).round().max(0.) as i64;
+                let top = ((height - y1) * zoom).round().max(0.) as i64;
+                let width = ((x1 - x0) * zoom).round().max(1.) as i64;
+                let height = ((y1 - y0) * zoom).round().max(1.) as i64;
+                let style = run.family.to_ascii_lowercase();
+                let mut inner = html_escape_str(&run.text);
+                if style.contains("italic") || style.contains("oblique") { inner = format!("<i>{inner}</i>"); }
+                if style.contains("bold") { inner = format!("<b>{inner}</b>"); }
+                if let Some((_,uri)) = links.iter().find(|([a,b,c,d],_)|
+                    x1.min(a.max(*c)) > x0.max(a.min(*c)) && y1.min(b.max(*d)) > y0.max(b.min(*d))) {
+                    inner = format!(r#"<a href="{}">{inner}</a>"#,html_escape_str(uri));
+                }
+                markup.push(if xml_mode {
+                    let key = (run.family.to_string(), (run.size * zoom).round().max(1.) as i64);
+                    let id = font_ids.entry(key.clone()).or_insert_with(|| { fonts.push(key); fonts.len()-1 });
+                    format!(r#"    <text top="{top}" left="{left}" width="{width}" height="{height}" font="{id}">{inner}</text>"#)
+                } else {
+                    format!(r#"  <p style="position:absolute;top:{top}pt;left:{left}pt;margin:0;">{inner}</p>"#)
+                });
+            }
+        } else if let Some(pg) = doc.pages.get(pno - 1) {
+            for (i, line) in pg.text.lines().map(str::trim).filter(|s| !s.is_empty()).enumerate() {
+                let mut inner = html_escape_str(line);
+                if i == 0 && let Some(url) = pg.urls.first() {
+                    inner = format!(r#"<a href="{}">{inner}</a>"#, html_escape_str(url));
+                }
+                let top = 50 + i * 20;
+                markup.push(if xml_mode {
+                    format!(r#"    <text top="{top}" left="50" width="200" height="20" font="0">{inner}</text>"#)
+                } else {
+                    format!(r#"  <p style="position:absolute;top:{top}pt;left:50pt;margin:0;">{inner}</p>"#)
+                });
+            }
+        }
+        Ok((fonts, markup))
+    };
+    let mut lines = if xml_mode {
+        let mut lines = vec![
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".to_string(),
+            "<!DOCTYPE pdf2xml SYSTEM \"pdf2xml.dtd\">".to_string(),
+            "<pdf2xml producer=\"@poe-code/pdf-ast\" version=\"24.08.0\">".to_string(),
+        ];
+        for pno in first_p..=end_p {
+            let (pw, ph) = dimensions(pno);
+            let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
+            let (fonts, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
+            lines.push(format!(
+                "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
+            ));
+            for (id, (family, size)) in fonts.iter().enumerate() {
+                lines.push(format!(r##"    <fontspec id="{id}" size="{size}" family="{}" color="#000000"/>"##, html_escape_str(family)));
+            }
+            lines.extend(markup);
+            lines.push("  </page>".to_string());
+        }
+        lines
+    } else {
+        let title = if doc.title.is_empty() {
+            html_escape_str(input_path)
+        } else {
+            html_escape_str(&doc.title)
+        };
+        let mut lines = vec![
+            "<!DOCTYPE html>".to_string(),
+            "<html>".to_string(),
+            format!("<head><meta charset=\"utf-8\"/><title>{title}</title></head>"),
+            "<body>".to_string(),
+        ];
+        for pno in first_p..=end_p {
+            let (pw, ph) = dimensions(pno);
+            let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
+            let (_, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
+            lines.push(format!(
+                "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
+            ));
+            lines.extend(markup);
+            lines.push("</div>".to_string());
+        }
+        lines
+    };
+    let mut depth = 0usize;
+    let mut outline_budget = limit;
+    let mut add_line = |indent: usize, text: &str| {
+        let indent = if xml_mode { 2 * indent } else { 0 };
+        outline_budget = outline_budget.checked_sub(indent + text.len() + 1)?;
+        lines.push(format!("{}{text}", " ".repeat(indent)));
+        Some(())
+    };
+    let outline = doc.bookmarks.iter().map(Some).chain(std::iter::once(None)).try_for_each(|item| {
+        let level = item.map_or(0, |(_, level, _)| level.parse::<usize>().unwrap_or(1).clamp(1, depth+1));
+        if depth == 0 {
+            if item.is_none() { return Some(()); }
+            add_line(1, if xml_mode { "<outline>" } else { "<hr/>\n<a name=\"outline\"></a><h1>Document Outline</h1>\n<ul>" })?;
+        } else if level > depth {
+            add_line(level, if xml_mode { "<outline>" } else { "<ul>" })?;
+        } else {
+            if !xml_mode { add_line(0, "</li>")?; }
+            for at in (level+1..=depth).rev() {
+                add_line(at, if xml_mode { "</outline>" } else if at > 1 { "</ul>\n</li>" } else { "</ul>" })?;
+            }
+        }
+        depth = level;
+        if let Some((title, _, page)) = item {
+            let title = html_escape_str(title);
+            let line = if xml_mode { format!(r#"<item page="{page}">{title}</item>"#) } else { format!(r##"<li><a href="#page{page}">{title}</a>"##) };
+            add_line(depth+1,&line)?;
+        }
+        Some(())
+    });
+    if outline.is_none() { return err_out("PDF outline limit exceeded\n",1); }
+    lines.push(if xml_mode { "</pdf2xml>" } else { "</body>\n</html>" }.into());
+    let rendered = format!("{}\n",lines.join("\n"));
+    if stdout_output {
+        ok_out(&rendered)
+    } else {
+        image_files.push((out_path,rendered.into_bytes()));
+        for (name, bytes) in image_files {
+            let path=resolve_posix_path(cwd,&name);
+            if fs.publish_file(&path,&bytes,&[],fs.generation()).is_err() {
+                return err_out(&format!("I/O Error: Couldn't open html file '{name}'\n"),0);
+            }
+        }
+        ok_out("")
+    }
+}
+
+fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let is_cairo = cmd == "pdftocairo";
+    let mut ext = if is_cairo { "png" } else { "ppm" };
+    let mut fmt = if is_cairo { "PNG" } else { "PPM" };
+    let mut explicit_container = is_cairo;
+    let mut singlefile = false;
+    let mut first_p = 1usize;
+    let mut last_p: Option<usize> = None;
+    let mut odd_only = false;
+    let mut even_only = false;
+    let mut quiet = false;
+    let mut sep = "-".to_string();
+    let mut force_num = false;
+    let mut set_pageno: Option<usize> = None;
+    let mut progress = false;
+    let mut dpi_x = 150.0f64;
+    let mut dpi_y = 150.0f64;
+    let mut scale_to: Option<i64> = None;
+    let mut scale_to_x: Option<i64> = None;
+    let mut scale_to_y: Option<i64> = None;
+    let mut crop_x = 0.;
+    let mut crop_y = 0.;
+    let mut cropbox = false;
+    let mut transparent = false;
+    let mut antialias = true;
+    let mut text_aa = true;
+    let mut color_mode = "rgb";
+    let mut crop_w: Option<f64> = None;
+    let mut crop_h: Option<f64> = None;
+    let mut pw_opt: Option<String> = None;
+    let mut pos: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = args[i].as_str();
+        if arg == "--" {
+            for rest_arg in &args[i + 1..] {
+                pos.push(rest_arg.clone());
+            }
+            break;
+        }
+        let is_val_flag = matches!(
+            arg,
+            "-r" | "-rx"
+                | "-ry"
+                | "-scale-to"
+                | "-scale-to-x"
+                | "-scale-to-y"
+                | "-f"
+                | "-l"
+                | "-x"
+                | "-y"
+                | "-W"
+                | "-H"
+                | "-sz"
+                | "-sep"
+                | "-setpageno"
+                | "-defaultgray"
+                | "-defaultrgb"
+                | "-defaultcmyk"
+                | "-upw"
+                | "-opw"
+                | "-tiffcompression"
+                | "-aa"
+                | "-aaVector"
+                | "-thinlinemode"
+                | "-freetype"
+                | "-jpegopt"
+        ) || (is_cairo
+            && matches!(arg, "-icc" | "-paper" | "-paperw" | "-paperh"));
+        if is_val_flag {
+            let Some(val) = args.get(i + 1) else {
+                return err_out(&format!("Missing value for '{arg}'\n"), 99);
+            };
+            let is_int_flag = matches!(
+                arg,
+                "-scale-to"
+                    | "-scale-to-x"
+                    | "-scale-to-y"
+                    | "-f"
+                    | "-l"
+                    | "-x"
+                    | "-y"
+                    | "-W"
+                    | "-H"
+                    | "-sz"
+                    | "-setpageno"
+            );
+            let is_res_flag = matches!(arg, "-r" | "-rx" | "-ry");
+            if is_int_flag {
+                let unsigned = val.strip_prefix(['+', '-']).unwrap_or(val.as_str());
+                if unsigned.is_empty() || !unsigned.chars().all(|c| c.is_ascii_digit()) {
+                    return err_out(&format!("Bad '{arg}' value on command line\n"), 99);
+                }
+            } else if is_res_flag {
+                let unsigned = val.strip_prefix(['+', '-']).unwrap_or(val.as_str());
+                let valid_res = !unsigned.is_empty()
+                    && unsigned
+                        .chars()
+                        .all(|c| "0123456789.eE+-".contains(c))
+                    && val.parse::<f64>().map(|v| v.is_finite()).unwrap_or(false);
+                if !valid_res {
+                    return err_out(&format!("Bad '{arg}' value on command line\n"), 99);
+                }
+            }
+        }
+        if arg == "-v" || arg == "--version" {
+            return ok_out(&format!("{cmd} version 24.08.0\n"));
+        }
+        if arg == "-h" || arg == "-help" || arg == "--help" || arg == "-?" {
+            if is_cairo {
+                return ok_out("Usage: pdftocairo [options] <PDF-file> [<output-file>]\n  -png / -jpeg / -tiff / -ps / -eps / -pdf / -svg\n");
+            }
+            return ok_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox\n");
+        }
+        match arg {
+            "-png" => {
+                ext = "png";
+                fmt = "PNG";
+                explicit_container = true;
+            }
+            "-jpeg" | "-jpg" | "-jpegcmyk" => {
+                ext = "jpg";
+                fmt = "JPEG";
+                explicit_container = true;
+            }
+            "-tiff" => {
+                ext = "tif";
+                fmt = "TIFF";
+                explicit_container = true;
+            }
+            "-ppm" => {
+                ext = "ppm";
+                fmt = "PPM";
+            }
+            "-gray" => {
+                color_mode = "gray";
+                if !explicit_container && ext == "ppm" {
+                    ext = "pgm";
+                    fmt = "PGM";
+                }
+            }
+            "-mono" => {
+                color_mode = "mono";
+                if !explicit_container && ext == "ppm" {
+                    ext = "pbm";
+                    fmt = "PBM";
+                }
+            }
+            "-svg" => {
+                ext = "svg";
+                fmt = "SVG";
+                explicit_container = true;
+            }
+            "-eps" => {
+                ext = "eps";
+                fmt = "EPS";
+                explicit_container = true;
+            }
+            "-ps" => {
+                ext = "ps";
+                fmt = "PS";
+                explicit_container = true;
+            }
+            "-pdf" => {
+                ext = "pdf";
+                fmt = "PDF";
+                explicit_container = true;
+            }
+            "-singlefile" => singlefile = true,
+            "-odd" | "-o" => odd_only = true,
+            "-even" | "-e" => even_only = true,
+            "-forcenum" => force_num = true,
+            "-progress" => progress = true,
+            "-q" => quiet = true,
+            "-f" => {
+                let v = args[i + 1].parse::<isize>().unwrap_or(1);
+                first_p = v.max(1) as usize;
+                i += 1;
+            }
+            "-l" => {
+                let v = args[i + 1].parse::<isize>().unwrap_or(0).max(0) as usize;
+                if v > 0 {
+                    last_p = Some(v);
                 }
                 i += 1;
             }
-            let input_path = pos.first().map_or("-", String::as_str);
-            if input_path.is_empty() { return err_out("Usage: pdftohtml [options] <PDF-file> [<html-file>]\n", 99); }
-            let explicit_out = pos.get(1).map(String::as_str).filter(|s| !s.is_empty());
-            let stdout_output = to_stdout || explicit_out == Some("-") || (input_path == "-" && explicit_out.is_none());
-            let default_ext = if xml_mode { ".xml" } else { ".html" };
-            let input_stem = if input_path.to_ascii_lowercase().ends_with(".pdf") {
-                &input_path[..input_path.len() - 4]
-            } else {
-                input_path
-            };
-            let out_path = match explicit_out {
-                Some(eo) => {
-                    if eo.ends_with(".html") || eo.ends_with(".xml") {
-                        eo.to_string()
+            "-r" => {
+                let v = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                dpi_x = v;
+                dpi_y = v;
+                i += 1;
+            }
+            "-rx" => {
+                dpi_x = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                i += 1;
+            }
+            "-ry" => {
+                dpi_y = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                i += 1;
+            }
+            "-scale-to" => {
+                scale_to = args[i + 1].parse::<i64>().ok();
+                i += 1;
+            }
+            "-scale-to-x" => {
+                scale_to_x = args[i + 1].parse::<i64>().ok();
+                i += 1;
+            }
+            "-scale-to-y" => {
+                scale_to_y = args[i + 1].parse::<i64>().ok();
+                i += 1;
+            }
+            "-W" => {
+                crop_w = args[i + 1].parse::<f64>().ok();
+                i += 1;
+            }
+            "-H" => {
+                crop_h = args[i + 1].parse::<f64>().ok();
+                i += 1;
+            }
+            "-sz" => {
+                if let Ok(v) = args[i + 1].parse::<f64>() {
+                    crop_w = Some(v);
+                    crop_h = Some(v);
+                }
+                i += 1;
+            }
+            "-tiffcompression" => {
+                let comp = args[i + 1].to_ascii_lowercase();
+                if !matches!(comp.as_str(), "none" | "packbits" | "deflate" | "lzw" | "jpeg") {
+                    return err_out(
+                        if quiet { "" } else { "Bad '-tiffcompression' value on command line\n" },
+                        99,
+                    );
+                }
+                i += 1;
+            }
+            "-aa" | "-aaVector" => {
+                let v = args[i + 1].to_ascii_lowercase();
+                if v != "yes" && v != "no" {
+                    let msg = if quiet {
+                        String::new()
                     } else {
-                        format!("{eo}{default_ext}")
-                    }
-                }
-                None => format!("{input_stem}{default_ext}"),
-            };
-            let image_dir = match out_path.rfind('/') {
-                Some(idx) => &out_path[..=idx],
-                None => "",
-            };
-            let raw_bytes = if input_path == "-" {
-                let b = crate::vfs::stream_string_to_bytes(stdin);
-                if b.is_empty() {
-                    return err_out("I/O Error: Couldn't open file '-'\n", 1);
-                }
-                b
-            } else {
-                let full = resolve_posix_path(cwd, input_path);
-                if fs.is_dir(&full) {
-                    return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1);
-                }
-                match fs.read_file(&full) {
-                    Ok(b) => b,
-                    Err(_) => return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1),
-                }
-            };
-            if !raw_bytes.starts_with(b"%PDF-") {
-                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
-            }
-            let doc = PdfDoc::parse(&raw_bytes);
-            let total_pages = doc.pages.len().max(1) as f64;
-            let end_p = if last_p > 0.0 { total_pages.min(last_p) } else { total_pages };
-            if first_p > end_p {
-                return err_out(&format!("Command Line Error: Wrong page range given: the first page ({}) can not be after the last page ({}).\n",
-                    mcp_protocol_rust::numbers::format(first_p), mcp_protocol_rust::numbers::format(end_p)), 99);
-            }
-            let (first_p, end_p) = (first_p.ceil() as usize, end_p.floor() as usize);
-            let mut source = pdf_reader::PageSource::open(&raw_bytes,"").ok();
-            let dimensions = |pno| {
-                let (w, h, _) = doc.page_media.get(&pno).copied().unwrap_or((doc.page_w, doc.page_h, None));
-                (w.abs(), h.abs())
-            };
-            let mut image_files = Vec::new();
-            let limit = fs.shell_limits().max_output_bytes;
-            let mut remaining = limit;
-            let mut page_content = |pno: usize| -> Result<_, &'static str> {
-                let mut fonts = vec![("Helvetica".to_string(), (12.0 * zoom).round() as i64)];
-                let mut markup = Vec::new();
-                if !ignore_images {
-                    let mut idx = 0;
-                    let mut emit = |w: usize, h: usize, bytes: Vec<u8>| -> Option<()> {
-                        idx += 1;
-                        let name = format!("page{pno}_{idx}.{image_fmt}");
-                        let src = if data_urls {
-                            remaining = remaining.checked_sub(bytes.len().div_ceil(3).checked_mul(4)?)?;
-                            let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
-                            format!("data:{mime};base64,{}", base64_encode(&bytes))
-                        } else {
-                            if !stdout_output {
-                                remaining = remaining.checked_sub(bytes.len())?;
-                                image_files.push((format!("{image_dir}{name}"), bytes));
-                            }
-                            name
-                        };
-                        markup.push(if xml_mode {
-                            format!(r#"    <image top="0" left="0" width="{w}" height="{h}" src="{src}"/>"#)
-                        } else {
-                            format!(r#"  <img src="{src}" width="{w}" height="{h}"/>"#)
-                        });
-                        Some(())
+                        format!("Bad '{arg}' value on command line\n")
                     };
-                    if let Some(source) = source.as_mut() {
-                        source.images(pno, fs.max_input_bytes(), true, |im| {
-                            let bytes = if image_fmt == "jpg" {
-                                jpeg::encode(jpeg::Input::Pdf {width:im.width, height:im.height, pixels:&im.pixels},limit).ok()?
-                            } else { im.encode("PNG")? };
-                            emit(im.width,im.height,bytes)
-                        }).ok_or("PDF Error: Invalid or oversized PDF image\n")?;
-                    } else if let Some(pg) = doc.pages.get(pno-1) {
-                        for &(w,h,_) in &pg.images {
-                            let im = ImageMeta { fmt: if image_fmt=="jpg" {"JPEG"} else {"PNG"}.into(), w,h,cs:"sRGB".into(),exif:BTreeMap::new() };
-                            emit(w as usize,h as usize,write_image_bytes(&im)).ok_or("PDF image limit exceeded\n")?;
-                        }
-                    }
+                    return err_out(&msg, 99);
                 }
-                if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7))) {
-                    let links = source.as_mut().and_then(|s| s.page_links(pno, fs.shell_limits().max_input_bytes)).ok_or("PDF link limit exceeded\n")?;
-                    let height = dimensions(pno).1;
-                    let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
-                    for run in layout {
-                        let [x0, y0, x1, y1] = run.bounds;
-                        let left = (x0 * zoom).round().max(0.) as i64;
-                        let top = ((height - y1) * zoom).round().max(0.) as i64;
-                        let width = ((x1 - x0) * zoom).round().max(1.) as i64;
-                        let height = ((y1 - y0) * zoom).round().max(1.) as i64;
-                        let style = run.family.to_ascii_lowercase();
-                        let mut inner = html_escape_str(&run.text);
-                        if style.contains("italic") || style.contains("oblique") { inner = format!("<i>{inner}</i>"); }
-                        if style.contains("bold") { inner = format!("<b>{inner}</b>"); }
-                        if let Some((_,uri)) = links.iter().find(|([a,b,c,d],_)|
-                            x1.min(a.max(*c)) > x0.max(a.min(*c)) && y1.min(b.max(*d)) > y0.max(b.min(*d))) {
-                            inner = format!(r#"<a href="{}">{inner}</a>"#,html_escape_str(uri));
-                        }
-                        markup.push(if xml_mode {
-                            let key = (run.family.to_string(), (run.size * zoom).round().max(1.) as i64);
-                            let id = font_ids.entry(key.clone()).or_insert_with(|| { fonts.push(key); fonts.len()-1 });
-                            format!(r#"    <text top="{top}" left="{left}" width="{width}" height="{height}" font="{id}">{inner}</text>"#)
-                        } else {
-                            format!(r#"  <p style="position:absolute;top:{top}pt;left:{left}pt;margin:0;">{inner}</p>"#)
-                        });
-                    }
-                } else if let Some(pg) = doc.pages.get(pno - 1) {
-                    for (i, line) in pg.text.lines().map(str::trim).filter(|s| !s.is_empty()).enumerate() {
-                        let mut inner = html_escape_str(line);
-                        if i == 0 && let Some(url) = pg.urls.first() {
-                            inner = format!(r#"<a href="{}">{inner}</a>"#, html_escape_str(url));
-                        }
-                        let top = 50 + i * 20;
-                        markup.push(if xml_mode {
-                            format!(r#"    <text top="{top}" left="50" width="200" height="20" font="0">{inner}</text>"#)
-                        } else {
-                            format!(r#"  <p style="position:absolute;top:{top}pt;left:50pt;margin:0;">{inner}</p>"#)
-                        });
-                    }
+                if arg == "-aaVector" { antialias = v == "yes"; } else { text_aa = v == "yes"; }
+                i += 1;
+            }
+            "-thinlinemode" => {
+                let v = args[i + 1].to_ascii_lowercase();
+                if !matches!(v.as_str(), "none" | "solid" | "shape") {
+                    return err_out(
+                        if quiet { "" } else { "Bad '-thinlinemode' value on command line\n" },
+                        99,
+                    );
                 }
-                Ok((fonts, markup))
-            };
-            let mut lines = if xml_mode {
-                let mut lines = vec![
-                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".to_string(),
-                    "<!DOCTYPE pdf2xml SYSTEM \"pdf2xml.dtd\">".to_string(),
-                    "<pdf2xml producer=\"@poe-code/pdf-ast\" version=\"24.08.0\">".to_string(),
-                ];
-                for pno in first_p..=end_p {
-                    let (pw, ph) = dimensions(pno);
-                    let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
-                    let (fonts, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
-                    lines.push(format!(
-                        "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
-                    ));
-                    for (id, (family, size)) in fonts.iter().enumerate() {
-                        lines.push(format!(r##"    <fontspec id="{id}" size="{size}" family="{}" color="#000000"/>"##, html_escape_str(family)));
-                    }
-                    lines.extend(markup);
-                    lines.push("  </page>".to_string());
+                i += 1;
+            }
+            "-antialias" if is_cairo => {
+                let v = args
+                    .get(i + 1)
+                    .map(|s| s.to_ascii_lowercase())
+                    .unwrap_or_default();
+                if !matches!(
+                    v.as_str(),
+                    "default" | "none" | "gray" | "subpixel" | "fast" | "good" | "best"
+                ) {
+                    return err_out(
+                        if quiet { "" } else { "Bad '-antialias' value on command line\n" },
+                        99,
+                    );
                 }
-                lines
-            } else {
-                let title = if doc.title.is_empty() {
-                    html_escape_str(input_path)
-                } else {
-                    html_escape_str(&doc.title)
+                antialias = v != "none";
+                text_aa = antialias;
+                i += 1;
+            }
+            "-x" | "-y" => {
+                let v = args[i+1].parse().unwrap_or(0.);
+                if arg == "-x" {crop_x = v;} else {crop_y = v;}
+                i += 1;
+            }
+            "-jpegopt" | "-paper" | "-paperw" | "-paperh" | "-icc"
+            | "-freetype" | "-defaultgray" | "-defaultrgb" | "-defaultcmyk" => {
+                i += 1;
+            }
+            "-sep" => {
+                sep = args[i + 1].clone();
+                i += 1;
+            }
+            "-setpageno" => {
+                set_pageno = args[i + 1].parse::<usize>().ok();
+                i += 1;
+            }
+            "-upw" | "-opw" => {
+                pw_opt = Some(args[i + 1].clone());
+                i += 1;
+            }
+            "-cropbox" => cropbox = true,
+            "-transp" => transparent = true,
+            "-hide-annotations" | "-overprint" | "-level2"
+            | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink"
+            | "-nocenter" | "-duplex" => {}
+            a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
+            a => {
+                return err_out(&format!("Unknown option '{a}'\n"), 99);
+            }
+        }
+        i += 1;
+    }
+    if !is_cairo && pos.len() > 2 {
+        return err_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n", 99);
+    }
+    let src_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
+    let prefix_arg = pos.get(1).map(|s| s.as_str());
+    let b = if src_arg == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let full = resolve_posix_path(cwd, src_arg);
+        if fs.is_dir(&full) {
+            return err_out(
+                if quiet { String::new() } else { format!("I/O Error: Couldn't open file '{src_arg}'\n") }.as_str(),
+                1,
+            );
+        }
+        let Ok(bytes) = fs.read_file(&full) else {
+            return err_out(
+                if quiet { String::new() } else { format!("I/O Error: Couldn't open file '{src_arg}'\n") }.as_str(),
+                1,
+            );
+        };
+        bytes
+    };
+    if b.is_empty() && !(is_cairo && matches!(fmt, "PDF" | "PS" | "EPS")) {
+        return err_out(
+            if quiet { "" } else { "Syntax Error: Document stream is empty\n" },
+            1,
+        );
+    }
+    if !b.starts_with(b"%PDF-") {
+        return err_out(
+            if quiet { "" } else { "PDF Error: Invalid PDF header: missing %PDF- signature\n" },
+            1,
+        );
+    }
+    let doc = PdfDoc::parse(&b);
+    if let Some(ref enc_pw) = doc.encrypted {
+        let supplied = pw_opt.as_deref().unwrap_or("");
+        if !enc_pw.is_empty() && supplied != enc_pw {
+            return err_out(
+                if quiet { "" } else { "PDF Error: Invalid PDF password\n" },
+                1,
+            );
+        }
+    }
+    let total = doc.pages.len().max(1);
+    let end_p = last_p.unwrap_or(total).min(total);
+    if first_p > total || first_p > end_p {
+        let msg = if quiet {
+            String::new()
+        } else {
+            format!("Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n")
+        };
+        return err_out(&msg, 99);
+    }
+    if matches!(fmt, "SVG" | "EPS" | "PS" | "PDF") {
+        let pfx = prefix_arg.unwrap_or("out");
+        let dst_rel = if pfx.ends_with(&format!(".{ext}")) {
+            pfx.to_string()
+        } else {
+            format!("{pfx}.{ext}")
+        };
+        if fmt == "SVG" {
+            let txt = doc.pages.get(first_p - 1).map(|p| p.text.clone()).unwrap_or_default();
+            let svg = format!(
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\" viewBox=\"0 0 {} {}\"><text x=\"20\" y=\"40\">{}</text></svg>\n",
+                doc.page_w as i64,
+                doc.page_h as i64,
+                doc.page_w as i64,
+                doc.page_h as i64,
+                html_escape_str(&txt)
+            );
+            if pfx == "-" {
+                return ok_out(&svg);
+            }
+            let dst = resolve_posix_path(cwd, &dst_rel);
+            let _ = fs.write_file(&dst, svg.as_bytes());
+            return ok_out("");
+        }
+        if fmt == "EPS" || fmt == "PS" {
+            let eps = format!(
+                "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 {} {}\n%%EndComments\n",
+                doc.page_w as i64, doc.page_h as i64
+            );
+            if pfx == "-" {
+                return ok_out(&eps);
+            }
+            let dst = resolve_posix_path(cwd, &dst_rel);
+            let _ = fs.write_file(&dst, eps.as_bytes());
+            return ok_out("");
+        }
+        if fmt == "PDF" {
+            let mut sub = doc.clone();
+            sub.pages = doc.pages[(first_p - 1)..end_p].to_vec();
+            let ser = sub.serialize();
+            if pfx == "-" {
+                return ok_out(&crate::vfs::bytes_to_stream_string(&ser));
+            }
+            let dst = resolve_posix_path(cwd, &dst_rel);
+            let _ = fs.write_file(&dst, &ser);
+            return ok_out("");
+        }
+    }
+
+    let compute_dims = |pno: usize| -> (u32, u32) {
+        let (mut pw, mut ph, _) = doc
+            .page_media
+            .get(&pno)
+            .copied()
+            .unwrap_or((doc.page_w, doc.page_h, None));
+        let rot = doc.pages.get(pno - 1).map(|p| p.rot).unwrap_or(0);
+        if rot == 90 || rot == 270 {
+            std::mem::swap(&mut pw, &mut ph);
+        }
+        let mut w = ((pw * dpi_x) / 72.0).round().max(1.0);
+        let mut h = ((ph * dpi_y) / 72.0).round().max(1.0);
+        let sx = scale_to_x.or(scale_to);
+        let sy = scale_to_y.or(scale_to);
+        if let (Some(tx), Some(ty)) = (sx, sy) {
+            if tx > 0 && ty > 0 {
+                let ratio = ((tx as f64) / w).min((ty as f64) / h);
+                w = (w * ratio).round().max(1.0);
+                h = (h * ratio).round().max(1.0);
+            } else if tx > 0 && ty < 0 {
+                let ratio = (tx as f64) / w;
+                w = tx as f64;
+                h = (h * ratio).round().max(1.0);
+            } else if ty > 0 && tx < 0 {
+                let ratio = (ty as f64) / h;
+                h = ty as f64;
+                w = (w * ratio).round().max(1.0);
+            }
+        } else if let Some(tx) = sx
+            && tx > 0
+        {
+            let ratio = (tx as f64) / w;
+            w = tx as f64;
+            h = (h * ratio).round().max(1.0);
+        } else if let Some(ty) = sy
+            && ty > 0
+        {
+            let ratio = (ty as f64) / h;
+            h = ty as f64;
+            w = (w * ratio).round().max(1.0);
+        }
+        if let Some(cw) = crop_w
+            && cw > 0.0
+        {
+            w = cw.round().min(w).max(1.0);
+        }
+        if let Some(ch) = crop_h
+            && ch > 0.0
+        {
+            h = ch.round().min(h).max(1.0);
+        }
+        (w as u32, h as u32)
+    };
+
+    let mut selected_pages: Vec<usize> = Vec::new();
+    for pno in first_p..=end_p {
+        if odd_only && pno % 2 == 0 {
+            continue;
+        }
+        if even_only && pno % 2 == 1 {
+            continue;
+        }
+        selected_pages.push(pno);
+        if singlefile {
+            break;
+        }
+    }
+    let options = pdf_reader::RasterOptions {
+        format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
+        scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
+        crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
+    };
+    let mut source = if matches!(fmt, "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,"").ok() } else { None };
+    let mut render = |pno| {
+        if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
+        let (w, h) = compute_dims(pno);
+        Some(write_image_bytes(&ImageMeta {
+            fmt: fmt.to_string(), w, h,
+            cs: if matches!(fmt, "PGM" | "PBM") { "Gray".into() } else { "sRGB".into() },
+            exif: BTreeMap::new(),
+        }))
+    };
+    if prefix_arg.is_none() || prefix_arg == Some("-") {
+        let mut bytes = Vec::new();
+        let mut status = ok_out("");
+        for pno in selected_pages {
+            let Some(page) = render(pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
+            if page.len() > fs.max_input_bytes().saturating_sub(bytes.len()) { return err_out("PDF raster output exceeds byte limit\n",1); }
+            bytes.extend(page);
+            if progress && !quiet { status.stderr.push_str(&format!("{pno} {end_p} -\n")); }
+        }
+        status.stdout = crate::vfs::bytes_to_stream_string(&bytes);
+        return status;
+    }
+    let pfx_rel = prefix_arg.unwrap();
+    let pfx_full = resolve_posix_path(cwd, pfx_rel);
+    let digits = total.to_string().len();
+    let mut stderr_progress = String::new();
+    for pno in &selected_pages {
+        let Some(bytes) = render(*pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
+        let (rel_dst, dst) = if singlefile && !force_num {
+            (format!("{pfx_rel}.{ext}"), format!("{pfx_full}.{ext}"))
+        } else {
+            let out_num = set_pageno.map(|base| base + *pno - first_p).unwrap_or(*pno);
+            let width = digits.max(out_num.to_string().len());
+            let num_str = format!("{out_num:0width$}", width = width);
+            (
+                format!("{pfx_rel}{sep}{num_str}.{ext}"),
+                format!("{pfx_full}{sep}{num_str}.{ext}"),
+            )
+        };
+        let _ = fs.write_file(&dst, &bytes);
+        if progress && !quiet {
+            stderr_progress.push_str(&format!("{pno} {end_p} {rel_dst}\n"));
+        }
+    }
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr: stderr_progress,
+        exit_code: 0,
+    }
+}
+
+fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.iter().any(|a| a == "-v" || a == "--version") {
+        return ok_out("pdfimages version 24.08.0\n");
+    }
+    if args
+        .iter()
+        .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+    {
+        return ok_out("Usage: pdfimages [options] <PDF-file> <image-root>\n       pdfimages -list [options] <PDF-file>\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n");
+    }
+    let mut list_mode = false;
+    let mut page_nums = false;
+    let mut unique = false;
+    let (mut min_width, mut min_height) = (0,0);
+    let mut print_names = false;
+    let mut png_mode = false;
+    let mut tiff_mode = false;
+    let mut jpeg_mode = false;
+    let mut all_mode = false;
+    let mut first_p: Option<usize> = None;
+    let mut last_p: Option<usize> = None;
+    let mut pw_opt: Option<String> = None;
+    let mut pos: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-list" => list_mode = true,
+            "-p" => page_nums = true,
+            "-print-filenames" => print_names = true,
+            "-png" => png_mode = true,
+            "-tiff" => tiff_mode = true,
+            "-j" => jpeg_mode = true,
+            "-all" => all_mode = true,
+            "-u" => unique=true, "-q" => {},
+            "-jp2" | "-jbig2" | "-ccitt" => {}
+            "-f" => {
+                let Some(raw) = args.get(i + 1) else {
+                    return err_out("Missing value for '-f'\n", 99);
                 };
-                let mut lines = vec![
-                    "<!DOCTYPE html>".to_string(),
-                    "<html>".to_string(),
-                    format!("<head><meta charset=\"utf-8\"/><title>{title}</title></head>"),
-                    "<body>".to_string(),
-                ];
-                for pno in first_p..=end_p {
-                    let (pw, ph) = dimensions(pno);
-                    let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
-                    let (_, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
-                    lines.push(format!(
-                        "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
-                    ));
-                    lines.extend(markup);
-                    lines.push("</div>".to_string());
-                }
-                lines
-            };
-            let mut depth = 0usize;
-            let mut outline_budget = limit;
-            let mut add_line = |indent: usize, text: &str| {
-                let indent = if xml_mode { 2 * indent } else { 0 };
-                outline_budget = outline_budget.checked_sub(indent + text.len() + 1)?;
-                lines.push(format!("{}{text}", " ".repeat(indent)));
-                Some(())
-            };
-            let outline = doc.bookmarks.iter().map(Some).chain(std::iter::once(None)).try_for_each(|item| {
-                let level = item.map_or(0, |(_, level, _)| level.parse::<usize>().unwrap_or(1).clamp(1, depth+1));
-                if depth == 0 {
-                    if item.is_none() { return Some(()); }
-                    add_line(1, if xml_mode { "<outline>" } else { "<hr/>\n<a name=\"outline\"></a><h1>Document Outline</h1>\n<ul>" })?;
-                } else if level > depth {
-                    add_line(level, if xml_mode { "<outline>" } else { "<ul>" })?;
+                let Ok(v) = raw.parse::<isize>() else {
+                    return err_out("Bad '-f' value on command line\n", 99);
+                };
+                first_p = Some(v.max(1) as usize);
+                i += 1;
+            }
+            "-l" => {
+                let Some(raw) = args.get(i + 1) else {
+                    return err_out("Missing value for '-l'\n", 99);
+                };
+                let Ok(v) = raw.parse::<isize>() else {
+                    return err_out("Bad '-l' value on command line\n", 99);
+                };
+                if v > 0 {
+                    last_p = Some(v as usize);
                 } else {
-                    if !xml_mode { add_line(0, "</li>")?; }
-                    for at in (level+1..=depth).rev() {
-                        add_line(at, if xml_mode { "</outline>" } else if at > 1 { "</ul>\n</li>" } else { "</ul>" })?;
+                    last_p = None;
+                }
+                i += 1;
+            }
+            "-min-width" | "-min-height" => {
+                let flag = args[i].as_str();
+                let Some(raw) = args.get(i + 1) else {
+                    return err_out(&format!("Missing value for '{flag}'\n"), 99);
+                };
+                let Ok(value)=raw.parse::<isize>() else {return err_out(&format!("Bad '{flag}' value on command line\n"),99);};
+                if flag=="-min-width" {min_width=value.max(0) as usize;} else {min_height=value.max(0) as usize;}
+                i += 1;
+            }
+            "-upw" | "-opw" => {
+                let flag = args[i].as_str();
+                let Some(v) = args.get(i + 1) else {
+                    return err_out(&format!("Missing value for '{flag}'\n"), 99);
+                };
+                pw_opt = Some(v.clone());
+                i += 1;
+            }
+            a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
+            a => return err_out(&format!("Unknown option '{a}'\n"), 99),
+        }
+        i += 1;
+    }
+    if pos.is_empty() || pos.len() != (if list_mode { 1 } else { 2 }) {
+        return err_out(
+            if list_mode {
+                "Usage: pdfimages -list [options] <PDF-file>\n"
+            } else {
+                "Usage: pdfimages [options] <PDF-file> <image-root>\n"
+            },
+            99,
+        );
+    }
+    let b = if pos[0] == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let full = resolve_posix_path(cwd, &pos[0]);
+        let Ok(bytes) = fs.read_file(&full) else {
+            return err_out(&format!("I/O Error: Couldn't open file '{}'\n", pos[0]), 1);
+        };
+        bytes
+    };
+    if b.is_empty() {
+        return err_out("Syntax Error: Document stream is empty\n", 1);
+    }
+    if !b.starts_with(b"%PDF-") {
+        return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
+    }
+    let doc = PdfDoc::parse(&b);
+    if let Some(ref enc_pw) = doc.encrypted {
+        let supplied = pw_opt.as_deref().unwrap_or("");
+        if !enc_pw.is_empty() && supplied != enc_pw {
+            return err_out("PDF Error: Invalid PDF password\n", 1);
+        }
+    }
+    let total_pages = doc.pages.len().max(1);
+    let start_p = first_p.unwrap_or(1);
+    let end_p = last_p.unwrap_or(total_pages).min(total_pages);
+    if start_p > end_p {
+        return err_out(
+            &format!(
+                "Command Line Error: Wrong page range given: the first page ({start_p}) can not be after the last page ({end_p}).\n"
+            ),
+            99,
+        );
+    }
+    if let Ok(mut source) = pdf_reader::PageSource::open(&b,"") {
+        let mut idx = 0;
+        let mut seen = std::collections::BTreeSet::new();
+        let mut out = if list_mode {
+            "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n--------------------------------------------------------------------------------------------\n".to_owned()
+        } else {
+            String::new()
+        };
+        let mut outputs = Vec::new();
+        let mut remaining = fs.shell_limits().max_output_bytes;
+        for page in start_p..=end_p {
+            let done = source.images(page, fs.max_input_bytes(), !list_mode, |im| {
+                let (w, h) = (im.width, im.height);
+                if w < min_width || h < min_height || unique && !seen.insert(im.id) {
+                    return Some(());
+                }
+                if list_mode {
+                    out.push_str(&im.listing(page, idx));
+                } else {
+                    let (ext, format) = if tiff_mode {
+                        ("tif", "TIFF")
+                    } else if png_mode || all_mode {
+                        ("png", "PNG")
+                    } else {
+                        ("ppm", "PPM")
+                    };
+                    let root = &pos[1];
+                    let name = if page_nums {
+                        format!("{root}-{page:03}-{idx:03}.{ext}")
+                    } else {
+                        format!("{root}-{idx:03}.{ext}")
+                    };
+                    let bytes = im.encode(format)?;
+                    remaining = remaining.checked_sub(bytes.len())?;
+                    if print_names {
+                        out.push_str(&name);
+                        out.push('\n');
                     }
+                    outputs.push((name, bytes));
                 }
-                depth = level;
-                if let Some((title, _, page)) = item {
-                    let title = html_escape_str(title);
-                    let line = if xml_mode { format!(r#"<item page="{page}">{title}</item>"#) } else { format!(r##"<li><a href="#page{page}">{title}</a>"##) };
-                    add_line(depth+1,&line)?;
-                }
+                idx += 1;
                 Some(())
             });
-            if outline.is_none() { return err_out("PDF outline limit exceeded\n",1); }
-            lines.push(if xml_mode { "</pdf2xml>" } else { "</body>\n</html>" }.into());
-            let rendered = format!("{}\n",lines.join("\n"));
-            if stdout_output {
-                ok_out(&rendered)
-            } else {
-                image_files.push((out_path,rendered.into_bytes()));
-                for (name, bytes) in image_files {
-                    let path=resolve_posix_path(cwd,&name);
-                    if fs.publish_file(&path,&bytes,&[],fs.generation()).is_err() {
-                        return err_out(&format!("I/O Error: Couldn't open html file '{name}'\n"),0);
-                    }
-                }
-                ok_out("")
+            if done.is_none() {
+                return err_out("PDF Error: Invalid or oversized PDF image\n", 1);
             }
         }
-        "pdftoppm" | "pdftocairo" => {
-            let is_cairo = cmd == "pdftocairo";
-            let mut ext = if is_cairo { "png" } else { "ppm" };
-            let mut fmt = if is_cairo { "PNG" } else { "PPM" };
-            let mut explicit_container = is_cairo;
-            let mut singlefile = false;
-            let mut first_p = 1usize;
-            let mut last_p: Option<usize> = None;
-            let mut odd_only = false;
-            let mut even_only = false;
-            let mut quiet = false;
-            let mut sep = "-".to_string();
-            let mut force_num = false;
-            let mut set_pageno: Option<usize> = None;
-            let mut progress = false;
-            let mut dpi_x = 150.0f64;
-            let mut dpi_y = 150.0f64;
-            let mut scale_to: Option<i64> = None;
-            let mut scale_to_x: Option<i64> = None;
-            let mut scale_to_y: Option<i64> = None;
-            let mut crop_x = 0.;
-            let mut crop_y = 0.;
-            let mut cropbox = false;
-            let mut transparent = false;
-            let mut antialias = true;
-            let mut text_aa = true;
-            let mut color_mode = "rgb";
-            let mut crop_w: Option<f64> = None;
-            let mut crop_h: Option<f64> = None;
-            let mut pw_opt: Option<String> = None;
-            let mut pos: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                let arg = args[i].as_str();
-                if arg == "--" {
-                    for rest_arg in &args[i + 1..] {
-                        pos.push(rest_arg.clone());
-                    }
-                    break;
+        for (name, data) in outputs {
+            let path = resolve_posix_path(cwd, &name);
+            let version = fs.generation();
+            let result = fs.access_path(&path, true).and_then(|entry| {
+                let parent = fs.stat(&crate::vfs::dirname_posix_path(&entry))?;
+                if parent.mode & 0o300 != 0o300 {
+                    return Err("EACCES".into());
                 }
-                let is_val_flag = matches!(
-                    arg,
-                    "-r" | "-rx"
-                        | "-ry"
-                        | "-scale-to"
-                        | "-scale-to-x"
-                        | "-scale-to-y"
-                        | "-f"
-                        | "-l"
-                        | "-x"
-                        | "-y"
-                        | "-W"
-                        | "-H"
-                        | "-sz"
-                        | "-sep"
-                        | "-setpageno"
-                        | "-defaultgray"
-                        | "-defaultrgb"
-                        | "-defaultcmyk"
-                        | "-upw"
-                        | "-opw"
-                        | "-tiffcompression"
-                        | "-aa"
-                        | "-aaVector"
-                        | "-thinlinemode"
-                        | "-freetype"
-                        | "-jpegopt"
-                ) || (is_cairo
-                    && matches!(arg, "-icc" | "-paper" | "-paperw" | "-paperh"));
-                if is_val_flag {
-                    let Some(val) = args.get(i + 1) else {
-                        return err_out(&format!("Missing value for '{arg}'\n"), 99);
-                    };
-                    let is_int_flag = matches!(
-                        arg,
-                        "-scale-to"
-                            | "-scale-to-x"
-                            | "-scale-to-y"
-                            | "-f"
-                            | "-l"
-                            | "-x"
-                            | "-y"
-                            | "-W"
-                            | "-H"
-                            | "-sz"
-                            | "-setpageno"
-                    );
-                    let is_res_flag = matches!(arg, "-r" | "-rx" | "-ry");
-                    if is_int_flag {
-                        let unsigned = val.strip_prefix(['+', '-']).unwrap_or(val.as_str());
-                        if unsigned.is_empty() || !unsigned.chars().all(|c| c.is_ascii_digit()) {
-                            return err_out(&format!("Bad '{arg}' value on command line\n"), 99);
-                        }
-                    } else if is_res_flag {
-                        let unsigned = val.strip_prefix(['+', '-']).unwrap_or(val.as_str());
-                        let valid_res = !unsigned.is_empty()
-                            && unsigned
-                                .chars()
-                                .all(|c| "0123456789.eE+-".contains(c))
-                            && val.parse::<f64>().map(|v| v.is_finite()).unwrap_or(false);
-                        if !valid_res {
-                            return err_out(&format!("Bad '{arg}' value on command line\n"), 99);
-                        }
-                    }
-                }
-                if arg == "-v" || arg == "--version" {
-                    return ok_out(&format!("{cmd} version 24.08.0\n"));
-                }
-                if arg == "-h" || arg == "-help" || arg == "--help" || arg == "-?" {
-                    if is_cairo {
-                        return ok_out("Usage: pdftocairo [options] <PDF-file> [<output-file>]\n  -png / -jpeg / -tiff / -ps / -eps / -pdf / -svg\n");
-                    }
-                    return ok_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox\n");
-                }
-                match arg {
-                    "-png" => {
-                        ext = "png";
-                        fmt = "PNG";
-                        explicit_container = true;
-                    }
-                    "-jpeg" | "-jpg" | "-jpegcmyk" => {
-                        ext = "jpg";
-                        fmt = "JPEG";
-                        explicit_container = true;
-                    }
-                    "-tiff" => {
-                        ext = "tif";
-                        fmt = "TIFF";
-                        explicit_container = true;
-                    }
-                    "-ppm" => {
-                        ext = "ppm";
-                        fmt = "PPM";
-                    }
-                    "-gray" => {
-                        color_mode = "gray";
-                        if !explicit_container && ext == "ppm" {
-                            ext = "pgm";
-                            fmt = "PGM";
-                        }
-                    }
-                    "-mono" => {
-                        color_mode = "mono";
-                        if !explicit_container && ext == "ppm" {
-                            ext = "pbm";
-                            fmt = "PBM";
-                        }
-                    }
-                    "-svg" => {
-                        ext = "svg";
-                        fmt = "SVG";
-                        explicit_container = true;
-                    }
-                    "-eps" => {
-                        ext = "eps";
-                        fmt = "EPS";
-                        explicit_container = true;
-                    }
-                    "-ps" => {
-                        ext = "ps";
-                        fmt = "PS";
-                        explicit_container = true;
-                    }
-                    "-pdf" => {
-                        ext = "pdf";
-                        fmt = "PDF";
-                        explicit_container = true;
-                    }
-                    "-singlefile" => singlefile = true,
-                    "-odd" | "-o" => odd_only = true,
-                    "-even" | "-e" => even_only = true,
-                    "-forcenum" => force_num = true,
-                    "-progress" => progress = true,
-                    "-q" => quiet = true,
-                    "-f" => {
-                        let v = args[i + 1].parse::<isize>().unwrap_or(1);
-                        first_p = v.max(1) as usize;
-                        i += 1;
-                    }
-                    "-l" => {
-                        let v = args[i + 1].parse::<isize>().unwrap_or(0).max(0) as usize;
-                        if v > 0 {
-                            last_p = Some(v);
-                        }
-                        i += 1;
-                    }
-                    "-r" => {
-                        let v = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
-                        dpi_x = v;
-                        dpi_y = v;
-                        i += 1;
-                    }
-                    "-rx" => {
-                        dpi_x = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
-                        i += 1;
-                    }
-                    "-ry" => {
-                        dpi_y = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
-                        i += 1;
-                    }
-                    "-scale-to" => {
-                        scale_to = args[i + 1].parse::<i64>().ok();
-                        i += 1;
-                    }
-                    "-scale-to-x" => {
-                        scale_to_x = args[i + 1].parse::<i64>().ok();
-                        i += 1;
-                    }
-                    "-scale-to-y" => {
-                        scale_to_y = args[i + 1].parse::<i64>().ok();
-                        i += 1;
-                    }
-                    "-W" => {
-                        crop_w = args[i + 1].parse::<f64>().ok();
-                        i += 1;
-                    }
-                    "-H" => {
-                        crop_h = args[i + 1].parse::<f64>().ok();
-                        i += 1;
-                    }
-                    "-sz" => {
-                        if let Ok(v) = args[i + 1].parse::<f64>() {
-                            crop_w = Some(v);
-                            crop_h = Some(v);
-                        }
-                        i += 1;
-                    }
-                    "-tiffcompression" => {
-                        let comp = args[i + 1].to_ascii_lowercase();
-                        if !matches!(comp.as_str(), "none" | "packbits" | "deflate" | "lzw" | "jpeg") {
-                            return err_out(
-                                if quiet { "" } else { "Bad '-tiffcompression' value on command line\n" },
-                                99,
-                            );
-                        }
-                        i += 1;
-                    }
-                    "-aa" | "-aaVector" => {
-                        let v = args[i + 1].to_ascii_lowercase();
-                        if v != "yes" && v != "no" {
-                            let msg = if quiet {
-                                String::new()
-                            } else {
-                                format!("Bad '{arg}' value on command line\n")
-                            };
-                            return err_out(&msg, 99);
-                        }
-                        if arg == "-aaVector" { antialias = v == "yes"; } else { text_aa = v == "yes"; }
-                        i += 1;
-                    }
-                    "-thinlinemode" => {
-                        let v = args[i + 1].to_ascii_lowercase();
-                        if !matches!(v.as_str(), "none" | "solid" | "shape") {
-                            return err_out(
-                                if quiet { "" } else { "Bad '-thinlinemode' value on command line\n" },
-                                99,
-                            );
-                        }
-                        i += 1;
-                    }
-                    "-antialias" if is_cairo => {
-                        let v = args
-                            .get(i + 1)
-                            .map(|s| s.to_ascii_lowercase())
-                            .unwrap_or_default();
-                        if !matches!(
-                            v.as_str(),
-                            "default" | "none" | "gray" | "subpixel" | "fast" | "good" | "best"
-                        ) {
-                            return err_out(
-                                if quiet { "" } else { "Bad '-antialias' value on command line\n" },
-                                99,
-                            );
-                        }
-                        antialias = v != "none";
-                        text_aa = antialias;
-                        i += 1;
-                    }
-                    "-x" | "-y" => {
-                        let v = args[i+1].parse().unwrap_or(0.);
-                        if arg == "-x" {crop_x = v;} else {crop_y = v;}
-                        i += 1;
-                    }
-                    "-jpegopt" | "-paper" | "-paperw" | "-paperh" | "-icc"
-                    | "-freetype" | "-defaultgray" | "-defaultrgb" | "-defaultcmyk" => {
-                        i += 1;
-                    }
-                    "-sep" => {
-                        sep = args[i + 1].clone();
-                        i += 1;
-                    }
-                    "-setpageno" => {
-                        set_pageno = args[i + 1].parse::<usize>().ok();
-                        i += 1;
-                    }
-                    "-upw" | "-opw" => {
-                        pw_opt = Some(args[i + 1].clone());
-                        i += 1;
-                    }
-                    "-cropbox" => cropbox = true,
-                    "-transp" => transparent = true,
-                    "-hide-annotations" | "-overprint" | "-level2"
-                    | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink"
-                    | "-nocenter" | "-duplex" => {}
-                    a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
-                    a => {
-                        return err_out(&format!("Unknown option '{a}'\n"), 99);
-                    }
-                }
-                i += 1;
+                fs.publish_file(&entry, &data, &[], version)
+            });
+            if result.is_err() {
+                return BuiltinOutcome {
+                    stdout: out,
+                    stderr: format!("I/O Error: Couldn't open image file '{name}'\n"),
+                    exit_code: 2,
+                };
             }
-            if !is_cairo && pos.len() > 2 {
-                return err_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n", 99);
-            }
-            let src_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
-            let prefix_arg = pos.get(1).map(|s| s.as_str());
-            let b = if src_arg == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
+        }
+        return ok_out(&out);
+    }
+    let mut all_imgs: Vec<(usize, u32, u32, String)> = Vec::new();
+    for (pidx, pg) in doc.pages.iter().enumerate() {
+        let pno = pidx + 1;
+        if pno < start_p || pno > end_p {
+            continue;
+        }
+        for (w, h, im_fmt) in &pg.images {
+            all_imgs.push((pno, *w, *h, im_fmt.clone()));
+        }
+    }
+    if list_mode {
+        let mut out = String::from(
+            "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n--------------------------------------------------------------------------------------------\n",
+        );
+        for (idx, (pno, w, h, im_fmt)) in all_imgs.iter().enumerate() {
+            let enc = if im_fmt.eq_ignore_ascii_case("JPEG") || im_fmt.eq_ignore_ascii_case("JPG") {
+                "jpeg"
             } else {
-                let full = resolve_posix_path(cwd, src_arg);
-                if fs.is_dir(&full) {
-                    return err_out(
-                        if quiet { String::new() } else { format!("I/O Error: Couldn't open file '{src_arg}'\n") }.as_str(),
-                        1,
-                    );
-                }
-                let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(
-                        if quiet { String::new() } else { format!("I/O Error: Couldn't open file '{src_arg}'\n") }.as_str(),
-                        1,
-                    );
-                };
-                bytes
+                "image"
             };
-            if b.is_empty() && !(is_cairo && matches!(fmt, "PDF" | "PS" | "EPS")) {
-                return err_out(
-                    if quiet { "" } else { "Syntax Error: Document stream is empty\n" },
-                    1,
-                );
-            }
-            if !b.starts_with(b"%PDF-") {
-                return err_out(
-                    if quiet { "" } else { "PDF Error: Invalid PDF header: missing %PDF- signature\n" },
-                    1,
-                );
-            }
-            let doc = PdfDoc::parse(&b);
-            if let Some(ref enc_pw) = doc.encrypted {
-                let supplied = pw_opt.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out(
-                        if quiet { "" } else { "PDF Error: Invalid PDF password\n" },
-                        1,
-                    );
-                }
-            }
-            let total = doc.pages.len().max(1);
-            let end_p = last_p.unwrap_or(total).min(total);
-            if first_p > total || first_p > end_p {
-                let msg = if quiet {
-                    String::new()
-                } else {
-                    format!("Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n")
-                };
-                return err_out(&msg, 99);
-            }
-            if matches!(fmt, "SVG" | "EPS" | "PS" | "PDF") {
-                let pfx = prefix_arg.unwrap_or("out");
-                let dst_rel = if pfx.ends_with(&format!(".{ext}")) {
-                    pfx.to_string()
-                } else {
-                    format!("{pfx}.{ext}")
-                };
-                if fmt == "SVG" {
-                    let txt = doc.pages.get(first_p - 1).map(|p| p.text.clone()).unwrap_or_default();
-                    let svg = format!(
-                        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\" viewBox=\"0 0 {} {}\"><text x=\"20\" y=\"40\">{}</text></svg>\n",
-                        doc.page_w as i64,
-                        doc.page_h as i64,
-                        doc.page_w as i64,
-                        doc.page_h as i64,
-                        html_escape_str(&txt)
-                    );
-                    if pfx == "-" {
-                        return ok_out(&svg);
-                    }
-                    let dst = resolve_posix_path(cwd, &dst_rel);
-                    let _ = fs.write_file(&dst, svg.as_bytes());
-                    return ok_out("");
-                }
-                if fmt == "EPS" || fmt == "PS" {
-                    let eps = format!(
-                        "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 {} {}\n%%EndComments\n",
-                        doc.page_w as i64, doc.page_h as i64
-                    );
-                    if pfx == "-" {
-                        return ok_out(&eps);
-                    }
-                    let dst = resolve_posix_path(cwd, &dst_rel);
-                    let _ = fs.write_file(&dst, eps.as_bytes());
-                    return ok_out("");
-                }
-                if fmt == "PDF" {
-                    let mut sub = doc.clone();
-                    sub.pages = doc.pages[(first_p - 1)..end_p].to_vec();
-                    let ser = sub.serialize();
-                    if pfx == "-" {
-                        return ok_out(&crate::vfs::bytes_to_stream_string(&ser));
-                    }
-                    let dst = resolve_posix_path(cwd, &dst_rel);
-                    let _ = fs.write_file(&dst, &ser);
-                    return ok_out("");
-                }
-            }
+            let obj_id = 5 + idx * 2;
+            out.push_str(&format!(
+                "{pno:4}  {idx:4} image  {w:5} {h:6} rgb     3   8  {enc:<5} no      {obj_id:4}  0    72    72 128B  10%\n"
+            ));
+        }
+        return ok_out(&out);
+    }
+    let prefix = &pos[1];
+    let mut out = String::new();
+    for (idx, (pno, w, h, im_fmt)) in all_imgs.iter().enumerate() {
+        let is_jpg = im_fmt.eq_ignore_ascii_case("JPEG") || im_fmt.eq_ignore_ascii_case("JPG");
+        let (ext, fmt) = if tiff_mode {
+            ("tif", "TIFF")
+        } else if all_mode {
+            if is_jpg { ("jpg", "JPEG") } else { ("png", "PNG") }
+        } else if jpeg_mode && is_jpg {
+            ("jpg", "JPEG")
+        } else if png_mode {
+            ("png", "PNG")
+        } else {
+            ("ppm", "PPM")
+        };
+        let rel_name = if page_nums {
+            format!("{prefix}-{pno:03}-{idx:03}.{ext}")
+        } else {
+            format!("{prefix}-{idx:03}.{ext}")
+        };
+        let full_out = resolve_posix_path(cwd, &rel_name);
+        let im = ImageMeta {
+            fmt: fmt.to_string(),
+            w: *w,
+            h: *h,
+            cs: "sRGB".to_string(),
+            exif: BTreeMap::new(),
+        };
+        let _ = fs.write_file(&full_out, &write_image_bytes(&im));
+        if print_names {
+            out.push_str(&format!("{rel_name}\n"));
+        }
+    }
+    ok_out(&out)
+}
 
-            let compute_dims = |pno: usize| -> (u32, u32) {
-                let (mut pw, mut ph, _) = doc
-                    .page_media
-                    .get(&pno)
-                    .copied()
-                    .unwrap_or((doc.page_w, doc.page_h, None));
-                let rot = doc.pages.get(pno - 1).map(|p| p.rot).unwrap_or(0);
-                if rot == 90 || rot == 270 {
-                    std::mem::swap(&mut pw, &mut ph);
-                }
-                let mut w = ((pw * dpi_x) / 72.0).round().max(1.0);
-                let mut h = ((ph * dpi_y) / 72.0).round().max(1.0);
-                let sx = scale_to_x.or(scale_to);
-                let sy = scale_to_y.or(scale_to);
-                if let (Some(tx), Some(ty)) = (sx, sy) {
-                    if tx > 0 && ty > 0 {
-                        let ratio = ((tx as f64) / w).min((ty as f64) / h);
-                        w = (w * ratio).round().max(1.0);
-                        h = (h * ratio).round().max(1.0);
-                    } else if tx > 0 && ty < 0 {
-                        let ratio = (tx as f64) / w;
-                        w = tx as f64;
-                        h = (h * ratio).round().max(1.0);
-                    } else if ty > 0 && tx < 0 {
-                        let ratio = (ty as f64) / h;
-                        h = ty as f64;
-                        w = (w * ratio).round().max(1.0);
-                    }
-                } else if let Some(tx) = sx
-                    && tx > 0
-                {
-                    let ratio = (tx as f64) / w;
-                    w = tx as f64;
-                    h = (h * ratio).round().max(1.0);
-                } else if let Some(ty) = sy
-                    && ty > 0
-                {
-                    let ratio = (ty as f64) / h;
-                    h = ty as f64;
-                    w = (w * ratio).round().max(1.0);
-                }
-                if let Some(cw) = crop_w
-                    && cw > 0.0
-                {
-                    w = cw.round().min(w).max(1.0);
-                }
-                if let Some(ch) = crop_h
-                    && ch > 0.0
-                {
-                    h = ch.round().min(h).max(1.0);
-                }
-                (w as u32, h as u32)
-            };
-
-            let mut selected_pages: Vec<usize> = Vec::new();
-            for pno in first_p..=end_p {
-                if odd_only && pno % 2 == 0 {
-                    continue;
-                }
-                if even_only && pno % 2 == 1 {
-                    continue;
-                }
-                selected_pages.push(pno);
-                if singlefile {
-                    break;
-                }
-            }
-            let options = pdf_reader::RasterOptions {
-                format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
-                scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
-                crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
-            };
-            let mut source = if matches!(fmt, "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,"").ok() } else { None };
-            let mut render = |pno| {
-                if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
-                let (w, h) = compute_dims(pno);
-                Some(write_image_bytes(&ImageMeta {
-                    fmt: fmt.to_string(), w, h,
-                    cs: if matches!(fmt, "PGM" | "PBM") { "Gray".into() } else { "sRGB".into() },
-                    exif: BTreeMap::new(),
-                }))
-            };
-            if prefix_arg.is_none() || prefix_arg == Some("-") {
-                let mut bytes = Vec::new();
-                let mut status = ok_out("");
-                for pno in selected_pages {
-                    let Some(page) = render(pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
-                    if page.len() > fs.max_input_bytes().saturating_sub(bytes.len()) { return err_out("PDF raster output exceeds byte limit\n",1); }
-                    bytes.extend(page);
-                    if progress && !quiet { status.stderr.push_str(&format!("{pno} {end_p} -\n")); }
-                }
-                status.stdout = crate::vfs::bytes_to_stream_string(&bytes);
-                return status;
-            }
-            let pfx_rel = prefix_arg.unwrap();
-            let pfx_full = resolve_posix_path(cwd, pfx_rel);
-            let digits = total.to_string().len();
-            let mut stderr_progress = String::new();
-            for pno in &selected_pages {
-                let Some(bytes) = render(*pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
-                let (rel_dst, dst) = if singlefile && !force_num {
-                    (format!("{pfx_rel}.{ext}"), format!("{pfx_full}.{ext}"))
-                } else {
-                    let out_num = set_pageno.map(|base| base + *pno - first_p).unwrap_or(*pno);
-                    let width = digits.max(out_num.to_string().len());
-                    let num_str = format!("{out_num:0width$}", width = width);
-                    (
-                        format!("{pfx_rel}{sep}{num_str}.{ext}"),
-                        format!("{pfx_full}{sep}{num_str}.{ext}"),
-                    )
-                };
-                let _ = fs.write_file(&dst, &bytes);
-                if progress && !quiet {
-                    stderr_progress.push_str(&format!("{pno} {end_p} {rel_dst}\n"));
-                }
-            }
-            BuiltinOutcome {
-                stdout: String::new(),
-                stderr: stderr_progress,
-                exit_code: 0,
-            }
+fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if (cmd == "magick" || cmd == "convert")
+        && let Some(first) = args.first()
+        && matches!(
+            first.as_str(),
+            "identify" | "mogrify" | "convert" | "composite" | "montage" | "compare"
+        )
+    {
+        return cmd_media_doc(first, &args[1..], stdin, cwd, fs);
+    }
+    if let Some(list_out) = try_magick_list_option(args) {
+        return list_out;
+    }
+    if cmd!="mogrify" && args.iter().any(|a| a=="-composite") && let Some(r)=magick_composite::run(cmd,args,cwd,fs) { return r; }
+    let is_mogrify = cmd == "mogrify";
+    if !is_mogrify && args.is_empty() {
+        return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
+    }
+    for a in args {
+        if a == "--" {
+            break;
         }
-        "pdfimages" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return ok_out("pdfimages version 24.08.0\n");
-            }
-            if args
-                .iter()
-                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
-            {
-                return ok_out("Usage: pdfimages [options] <PDF-file> <image-root>\n       pdfimages -list [options] <PDF-file>\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n");
-            }
-            let mut list_mode = false;
-            let mut page_nums = false;
-            let mut unique = false;
-            let (mut min_width, mut min_height) = (0,0);
-            let mut print_names = false;
-            let mut png_mode = false;
-            let mut tiff_mode = false;
-            let mut jpeg_mode = false;
-            let mut all_mode = false;
-            let mut first_p: Option<usize> = None;
-            let mut last_p: Option<usize> = None;
-            let mut pw_opt: Option<String> = None;
-            let mut pos: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-list" => list_mode = true,
-                    "-p" => page_nums = true,
-                    "-print-filenames" => print_names = true,
-                    "-png" => png_mode = true,
-                    "-tiff" => tiff_mode = true,
-                    "-j" => jpeg_mode = true,
-                    "-all" => all_mode = true,
-                    "-u" => unique=true, "-q" => {},
-                    "-jp2" | "-jbig2" | "-ccitt" => {}
-                    "-f" => {
-                        let Some(raw) = args.get(i + 1) else {
-                            return err_out("Missing value for '-f'\n", 99);
-                        };
-                        let Ok(v) = raw.parse::<isize>() else {
-                            return err_out("Bad '-f' value on command line\n", 99);
-                        };
-                        first_p = Some(v.max(1) as usize);
-                        i += 1;
-                    }
-                    "-l" => {
-                        let Some(raw) = args.get(i + 1) else {
-                            return err_out("Missing value for '-l'\n", 99);
-                        };
-                        let Ok(v) = raw.parse::<isize>() else {
-                            return err_out("Bad '-l' value on command line\n", 99);
-                        };
-                        if v > 0 {
-                            last_p = Some(v as usize);
-                        } else {
-                            last_p = None;
-                        }
-                        i += 1;
-                    }
-                    "-min-width" | "-min-height" => {
-                        let flag = args[i].as_str();
-                        let Some(raw) = args.get(i + 1) else {
-                            return err_out(&format!("Missing value for '{flag}'\n"), 99);
-                        };
-                        let Ok(value)=raw.parse::<isize>() else {return err_out(&format!("Bad '{flag}' value on command line\n"),99);};
-                        if flag=="-min-width" {min_width=value.max(0) as usize;} else {min_height=value.max(0) as usize;}
-                        i += 1;
-                    }
-                    "-upw" | "-opw" => {
-                        let flag = args[i].as_str();
-                        let Some(v) = args.get(i + 1) else {
-                            return err_out(&format!("Missing value for '{flag}'\n"), 99);
-                        };
-                        pw_opt = Some(v.clone());
-                        i += 1;
-                    }
-                    a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
-                    a => return err_out(&format!("Unknown option '{a}'\n"), 99),
-                }
-                i += 1;
-            }
-            if pos.is_empty() || pos.len() != (if list_mode { 1 } else { 2 }) {
-                return err_out(
-                    if list_mode {
-                        "Usage: pdfimages -list [options] <PDF-file>\n"
-                    } else {
-                        "Usage: pdfimages [options] <PDF-file> <image-root>\n"
-                    },
-                    99,
-                );
-            }
-            let b = if pos[0] == "-" {
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let full = resolve_posix_path(cwd, &pos[0]);
-                let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(&format!("I/O Error: Couldn't open file '{}'\n", pos[0]), 1);
-                };
-                bytes
-            };
-            if b.is_empty() {
-                return err_out("Syntax Error: Document stream is empty\n", 1);
-            }
-            if !b.starts_with(b"%PDF-") {
-                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
-            }
-            let doc = PdfDoc::parse(&b);
-            if let Some(ref enc_pw) = doc.encrypted {
-                let supplied = pw_opt.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("PDF Error: Invalid PDF password\n", 1);
-                }
-            }
-            let total_pages = doc.pages.len().max(1);
-            let start_p = first_p.unwrap_or(1);
-            let end_p = last_p.unwrap_or(total_pages).min(total_pages);
-            if start_p > end_p {
-                return err_out(
-                    &format!(
-                        "Command Line Error: Wrong page range given: the first page ({start_p}) can not be after the last page ({end_p}).\n"
-                    ),
-                    99,
-                );
-            }
-            if let Ok(mut source) = pdf_reader::PageSource::open(&b,"") {
-                let mut idx = 0;
-                let mut seen = std::collections::BTreeSet::new();
-                let mut out = if list_mode {
-                    "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n--------------------------------------------------------------------------------------------\n".to_owned()
-                } else {
-                    String::new()
-                };
-                let mut outputs = Vec::new();
-                let mut remaining = fs.shell_limits().max_output_bytes;
-                for page in start_p..=end_p {
-                    let done = source.images(page, fs.max_input_bytes(), !list_mode, |im| {
-                        let (w, h) = (im.width, im.height);
-                        if w < min_width || h < min_height || unique && !seen.insert(im.id) {
-                            return Some(());
-                        }
-                        if list_mode {
-                            out.push_str(&im.listing(page, idx));
-                        } else {
-                            let (ext, format) = if tiff_mode {
-                                ("tif", "TIFF")
-                            } else if png_mode || all_mode {
-                                ("png", "PNG")
-                            } else {
-                                ("ppm", "PPM")
-                            };
-                            let root = &pos[1];
-                            let name = if page_nums {
-                                format!("{root}-{page:03}-{idx:03}.{ext}")
-                            } else {
-                                format!("{root}-{idx:03}.{ext}")
-                            };
-                            let bytes = im.encode(format)?;
-                            remaining = remaining.checked_sub(bytes.len())?;
-                            if print_names {
-                                out.push_str(&name);
-                                out.push('\n');
-                            }
-                            outputs.push((name, bytes));
-                        }
-                        idx += 1;
-                        Some(())
-                    });
-                    if done.is_none() {
-                        return err_out("PDF Error: Invalid or oversized PDF image\n", 1);
-                    }
-                }
-                for (name, data) in outputs {
-                    let path = resolve_posix_path(cwd, &name);
-                    let version = fs.generation();
-                    let result = fs.access_path(&path, true).and_then(|entry| {
-                        let parent = fs.stat(&crate::vfs::dirname_posix_path(&entry))?;
-                        if parent.mode & 0o300 != 0o300 {
-                            return Err("EACCES".into());
-                        }
-                        fs.publish_file(&entry, &data, &[], version)
-                    });
-                    if result.is_err() {
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: format!("I/O Error: Couldn't open image file '{name}'\n"),
-                            exit_code: 2,
-                        };
-                    }
-                }
-                return ok_out(&out);
-            }
-            let mut all_imgs: Vec<(usize, u32, u32, String)> = Vec::new();
-            for (pidx, pg) in doc.pages.iter().enumerate() {
-                let pno = pidx + 1;
-                if pno < start_p || pno > end_p {
-                    continue;
-                }
-                for (w, h, im_fmt) in &pg.images {
-                    all_imgs.push((pno, *w, *h, im_fmt.clone()));
-                }
-            }
-            if list_mode {
-                let mut out = String::from(
-                    "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n--------------------------------------------------------------------------------------------\n",
-                );
-                for (idx, (pno, w, h, im_fmt)) in all_imgs.iter().enumerate() {
-                    let enc = if im_fmt.eq_ignore_ascii_case("JPEG") || im_fmt.eq_ignore_ascii_case("JPG") {
-                        "jpeg"
-                    } else {
-                        "image"
-                    };
-                    let obj_id = 5 + idx * 2;
-                    out.push_str(&format!(
-                        "{pno:4}  {idx:4} image  {w:5} {h:6} rgb     3   8  {enc:<5} no      {obj_id:4}  0    72    72 128B  10%\n"
-                    ));
-                }
-                return ok_out(&out);
-            }
-            let prefix = &pos[1];
-            let mut out = String::new();
-            for (idx, (pno, w, h, im_fmt)) in all_imgs.iter().enumerate() {
-                let is_jpg = im_fmt.eq_ignore_ascii_case("JPEG") || im_fmt.eq_ignore_ascii_case("JPG");
-                let (ext, fmt) = if tiff_mode {
-                    ("tif", "TIFF")
-                } else if all_mode {
-                    if is_jpg { ("jpg", "JPEG") } else { ("png", "PNG") }
-                } else if jpeg_mode && is_jpg {
-                    ("jpg", "JPEG")
-                } else if png_mode {
-                    ("png", "PNG")
-                } else {
-                    ("ppm", "PPM")
-                };
-                let rel_name = if page_nums {
-                    format!("{prefix}-{pno:03}-{idx:03}.{ext}")
-                } else {
-                    format!("{prefix}-{idx:03}.{ext}")
-                };
-                let full_out = resolve_posix_path(cwd, &rel_name);
-                let im = ImageMeta {
-                    fmt: fmt.to_string(),
-                    w: *w,
-                    h: *h,
-                    cs: "sRGB".to_string(),
-                    exif: BTreeMap::new(),
-                };
-                let _ = fs.write_file(&full_out, &write_image_bytes(&im));
-                if print_names {
-                    out.push_str(&format!("{rel_name}\n"));
-                }
-            }
-            ok_out(&out)
+        if !is_mogrify && (a == "-version" || a == "--version") {
+            return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
         }
-        "magick" | "convert" | "mogrify" => {
-            if (cmd == "magick" || cmd == "convert")
-                && let Some(first) = args.first()
-                && matches!(
-                    first.as_str(),
-                    "identify" | "mogrify" | "convert" | "composite" | "montage" | "compare"
-                )
-            {
-                return cmd_media_doc(first, &args[1..], stdin, cwd, fs);
-            }
-            if let Some(list_out) = try_magick_list_option(args) {
-                return list_out;
-            }
-            if cmd!="mogrify" && args.iter().any(|a| a=="-composite") && let Some(r)=magick_composite::run(cmd,args,cwd,fs) { return r; }
-            let is_mogrify = cmd == "mogrify";
-            if !is_mogrify && args.is_empty() {
+        if a == "-help" || a == "--help" || a == "-h" {
+            if !is_mogrify {
                 return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
             }
-            for a in args {
-                if a == "--" {
-                    break;
-                }
-                if !is_mogrify && (a == "-version" || a == "--version") {
-                    return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
-                }
-                if a == "-help" || a == "--help" || a == "-h" {
-                    if !is_mogrify {
-                        return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
-                    }
-                    return ok_out("");
-                }
-            }
-            let mut size_opt: Option<(u32, u32)> = None;
-            use magick_resize::Kernel;
-            use magick_coordinates::{Geometry,Gravity};
-            let mut gravity=Gravity::parse("northwest");
-            let mut background=[255;4];
-            let mut fill=[0,0,0,255];
-            let mut border_color=[223,223,223,255];
-            let mut fuzz=10.;
-            let mut quality=92.;
-            let mut adjoin=true;
-            let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Modulate([f64;3]), Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
-            let mut ops = Vec::new();
-            let mut stack_steps=Vec::new();
-            let mut kernel = Kernel::Lanczos3;
-            let mut resize_spec: Option<String> = None;
-            let mut crop_opt: Option<(u32, u32)> = None;
-            let mut border_opt: Option<(u32, u32)> = None;
-            let mut extent_opt: Option<(u32, u32)> = None;
-            let mut rot_deg = 0i32;
-            let mut transpose_swaps = 0usize;
-            let mut channels = None;
-            let mut append_mode: Option<bool> = None;
-            let mut mogrify_format: Option<String> = None;
-            let mut mogrify_path: Option<String> = None;
-            let mut canvas = None;
-            let mut has_pseudo_input = false;
-            let mut pos_files: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                let arg = &args[i];
-                let base=magick_stack::input_spec(arg).0;
-                if i + 1 < args.len() && let Some(parsed) = Canvas::parse(base) {
-                    if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
-                    let size=if base.eq_ignore_ascii_case("null:"){(1,1)}else{size_opt.unwrap_or((1,1))};
-                    canvas = Some((match parsed {
-                        Ok(c) => c,
-                        Err(e) => return err_out(&format!("magick: {e}\n"), 1),
-                    },size));
-                    stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size,kernel)));
-                    has_pseudo_input = true;
-                    i += 1;
-                    continue;
-                }
-                match args[i].as_str() {
-                    "-size" if i + 1 < args.len() => {
-                        size_opt=Some(Geometry::canvas_size(&args[i+1]));
-                        i += 2;
-                    }
-                    "-resize" | "-scale" | "-sample" | "-thumbnail" if i + 1 < args.len() => {
-                        ops.push(PixelOp::Resize(&args[i+1], if arg=="-sample" {Kernel::Nearest} else {kernel}));
-                        resize_spec = Some(args[i + 1].clone());
-                        i += 2;
-                    }
-                    "-roll" | "-splice" | "-chop" | "-shave" if i+1<args.len() => {
-                        let g=Geometry::parse(&args[i+1]);
-                        ops.push(match arg.as_str() {
-                            "-roll" => PixelOp::Roll(g),
-                            "-splice" => PixelOp::Splice(g,gravity,background),
-                            "-chop" => PixelOp::Chop(g,gravity),
-                            _ => PixelOp::Shave(g),
-                        });
-                        i+=2;
-                    }
-                    "-crop" if i + 1 < args.len() => {
-                        ops.push(PixelOp::Crop(Geometry::parse(&args[i+1]), gravity));
-                        let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
-                        if let Some((ws, hs)) = s.split_once('x') {
-                            crop_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
-                        }
-                        i += 2;
-                    }
-                    "-border" | "-frame" if i + 1 < args.len() => {
-                        ops.push(PixelOp::Border(Geometry::parse(&args[i+1]),border_color));
-                        let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
-                        if let Some((ws, hs)) = s.split_once('x') {
-                            border_opt = Some((ws.parse().unwrap_or(0), hs.parse().unwrap_or(0)));
-                        } else if let Ok(bw) = s.parse::<u32>() {
-                            border_opt = Some((bw, bw));
-                        }
-                        i += 2;
-                    }
-                    "-extent" if i + 1 < args.len() => {
-                        ops.push(PixelOp::Extent(Geometry::parse(&args[i+1]),gravity,background));
-                        let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
-                        if let Some((ws, hs)) = s.split_once('x') {
-                            extent_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
-                        }
-                        i += 2;
-                    }
-                    "-rotate" if i + 1 < args.len() => {
-                        let angle=args[i+1].parse::<f64>().unwrap_or(f64::NAN);
-                        ops.push(PixelOp::Rotate(angle,background));
-                        rot_deg=(rot_deg+(angle%360.) as i32)%360;
-                        i += 2;
-                    }
-                    "-transpose" | "-transverse" => {
-                        ops.push(if arg=="-transpose" {PixelOp::Flip} else {PixelOp::Flop});
-                        ops.push(PixelOp::Rotate(90.,background));
-                        transpose_swaps += 1;
-                        i += 1;
-                    }
-                    "-filter" if i+1 < args.len() => {kernel=Kernel::parse(&args[i+1]);i+=2;}
-                    "-fuzz" => {
-                        let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;magick_fuzz(&args[i])}else{10.};
-                        fuzz=(value+0.5).floor();i+=1;
-                    }
-                    "-trim" => {ops.push(PixelOp::Trim(fuzz));i+=1;}
-                    "-gamma" => {
-                        let g=if i+1<args.len()-usize::from(!is_mogrify){i+=1;js_number(&args[i],0.)}else{1.};
-                        ops.push(PixelOp::Gamma(g));i+=1;
-                    }
-                    "-auto-orient" => {ops.push(PixelOp::AutoOrient);i+=1;}
-                    "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
-                    "-channel" if i+1<args.len() => { channels=Some(magick_color::channel_mask(&args[i+1]));i+=2; }
-                    "+channel" => { channels=None;i+=1; }
-                    "-negate" | "+negate" => {
-                        ops.push(PixelOp::Negate(channels.unwrap_or([true,true,true,false]),arg=="+negate"));
-                        i += 1;
-                    }
-                    "+clone"|"-clone"|"+duplicate"|"-duplicate"|"+delete"|"-delete"|"+swap"|"-swap"|"-reverse"|"+insert"|"-insert" => {
-                        let mut spec=match arg.as_str(){"+swap"|"-swap"=>"-2,-1","+insert"|"-insert"=>"0",_=>"-1"};
-                        let mut count=1;
-                        let has_value=i+1<args.len()-usize::from(!is_mogrify);
-                        if has_value && matches!(arg.as_str(),"-clone"|"-delete"|"-swap"|"-insert") {
-                            i+=1;spec=&args[i];
-                        } else if has_value && arg=="-duplicate" && args[i+1].as_bytes().first().is_some_and(u8::is_ascii_digit) {
-                            i+=1;
-                            let value=&args[i];
-                            let digits=value.bytes().take_while(u8::is_ascii_digit).count();
-                            count=value[..digits].parse().unwrap_or(usize::MAX);
-                            if let Some((_,s))=value.split_once(',') && !s.is_empty() {spec=s;}
-                        }
-                        stack_steps.push((ops.len(),magick_stack::Step::Edit(arg,spec,count)));
-                        i+=1;
-                    }
-                    "-append" => {
-                        stack_steps.push((ops.len(),magick_stack::Step::Append(true,gravity,background)));
-                        append_mode = Some(true);
-                        i += 1;
-                    }
-                    "+append" => {
-                        stack_steps.push((ops.len(),magick_stack::Step::Append(false,gravity,background)));
-                        append_mode = Some(false);
-                        i += 1;
-                    }
-                    "-format" if is_mogrify && i + 1 < args.len() => {
-                        mogrify_format = Some(args[i + 1].trim_start_matches('.').to_ascii_lowercase());
-                        i += 2;
-                    }
-                    "-path" if is_mogrify && i + 1 < args.len() => {
-                        mogrify_path = Some(args[i + 1].clone());
-                        i += 2;
-                    }
-                    "-colorspace" | "-grayscale" if i + 1 < args.len() => {
-                        let space = args[i + 1].to_ascii_lowercase();
-                        if space.contains("gray") || space.contains("grey") || matches!(space.as_str(), "rec709luma" | "rec601luma") {
-                            ops.push(PixelOp::Gray);
-                        }
-                        i += 2;
-                    }
-                    "-gravity" if i+1 < args.len() => {gravity=Gravity::parse(&args[i+1]);i+=2;}
-                    "-fill" | "-background" | "-bordercolor" => {
-                        let color=if i+1<args.len()-usize::from(!is_mogrify){
-                            i+=1;match parse_color(&args[i]){Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)}
-                        }else{match arg.as_str(){"-fill"=>[0,0,0,255],"-bordercolor"=>[223,223,223,255],_=>[255;4]}};
-                        match arg.as_str(){"-fill"=>fill=color,"-background"=>background=color,_=>border_color=color};
-                        i+=1;
-                    }
-                    "-opaque" | "+opaque" | "-transparent" | "+transparent" => {
-                        let opaque=arg.ends_with("opaque");
-                        let color=if i+1<args.len()-usize::from(!is_mogrify){
-                            i+=1;match parse_color(&args[i]){Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)}
-                        }else if opaque{[0,0,0,255]}else{[255;4]};
-                        ops.push(PixelOp::Replace(color,opaque.then_some(fill),fuzz,arg.starts_with('+')));i+=1;
-                    }
-                    "-modulate" => {
-                        let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{"100"};
-                        let mut parts=spec.split(',');
-                        ops.push(PixelOp::Modulate(std::array::from_fn(|_|parts.next().map_or(100.,|s|js_number(s,0.)))));i+=1;
-                    }
-                    "-tint" | "-colorize" => {
-                        if i+1<args.len()-usize::from(!is_mogrify){i+=1;}
-                        ops.push(PixelOp::Tint(fill));i+=1;
-                    }
-                    "-quality" if i+1<args.len()=>{quality=js_number(&args[i+1],1.);i+=2;}
-                    "-write" | "+write" => {
-                        if i+1<args.len()-usize::from(!is_mogrify) {
-                            i+=1;
-                            stack_steps.push((ops.len(),magick_stack::Step::Write(&args[i],quality,adjoin)));
-                        }
-                        i+=1;
-                    }
-                    "-adjoin" | "+adjoin" => {adjoin=arg=="-adjoin";i+=1;}
-                    "-delay" | "-loop" if i+1<args.len() => {
-                        let n=js_number(&args[i+1],0.);
-                        if arg=="-delay" { delay=Some((n.round().max(0.) % 65536.) as u16); }
-                        else { repeat=Some(((n-1.).trunc().max(0.) % 65536.) as u16); }
-                        i+=2;
-                    }
-                    "-alpha" if i+1<args.len() => {ops.push(PixelOp::Alpha(args[i+1].to_ascii_lowercase(),background));i+=2;}
-                    "-threshold" | "-black-threshold" | "-white-threshold" => {
-                        let has_value=i+1<args.len()-usize::from(!is_mogrify);
-                        let raw=if has_value {i+=1;args[i].as_str()} else {"50%"};
-                        let value=magick_color::threshold_value(raw);
-                        ops.push(if arg=="-threshold" {PixelOp::Threshold(value.round())} else {PixelOp::ClipThreshold(value,arg=="-white-threshold")});
-                        i+=1;
-                    }
-                    "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
-                    "-median" => {
-                        let size=if i+1<args.len()-usize::from(!is_mogrify){
-                            i+=1;js_number(&args[i],0.)
-                        }else{3.};
-                        let r=(size.round()/2.).floor().max(1.) as usize;
-                        ops.push(if size.is_nan(){PixelOp::Clear}else{PixelOp::Morph("median".into(),(r,r))});i+=1;
-                    }
-                    "-morphology" | "-statistic" => {
-                        let end=args.len()-usize::from(!is_mogrify);
-                        let method=if i+1<end{i+=1;args[i].to_ascii_lowercase()}else if arg=="-statistic"{"median".into()}else{"dilate".into()};
-                        i+=1;
-                        let spec=if i<end && (arg=="-statistic" || !args[i].starts_with(['-','+'])){
-                            i+=1;args[i-1].as_str()
-                        }else if arg=="-statistic"{"3x3"}else{""};
-                        if arg=="-morphology" && (method.contains("convolve") || method.contains("correlate")){
-                            match magick_filter::kernel(spec,fs.max_input_bytes()) {
-                                Ok(weights)=>ops.push(PixelOp::Convolve(weights,0.)),
-                                Err(e)=>return err_out(&format!("magick: {e}\n"),1),
-                            }
-                        }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
-                    }
-                    "-contrast" | "+contrast" => {
-                        let slope=if arg=="-contrast"{1.15}else{0.87};
-                        ops.push(PixelOp::Linear(slope,128.*(1.-slope)));i+=1;
-                    }
-                    "-brightness-contrast" | "-sigmoidal-contrast" | "+sigmoidal-contrast" | "-level" | "+level" => {
-                        let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-brightness-contrast"=>"0x0","-level"|"+level"=>"0,100%",_=>"3x50%"}};
-                        ops.push(match arg.as_str(){
-                            "-brightness-contrast"=>{let (slope,offset)=Geometry::parse(spec).brightness_contrast();PixelOp::Linear(slope,offset)}
-                            "-level"|"+level"=>PixelOp::Level(spec,arg=="+level"),
-                            _=>PixelOp::Sigmoid(spec),
-                        });i+=1;
-                    }
-                    "-auto-level" | "-auto-gamma" | "-normalize" | "-equalize" | "-contrast-stretch" | "-linear-stretch" => {
-                        use magick_histogram::Adjustment;
-                        let op=match arg.as_str(){
-                            "-auto-level"=>Adjustment::AutoLevel(channels),
-                            "-auto-gamma"=>Adjustment::AutoGamma,
-                            "-equalize"=>Adjustment::Equalize,
-                            "-normalize"=>Adjustment::Stretch("2%x1%"),
-                            _=>Adjustment::Stretch(if i+1<args.len()-usize::from(!is_mogrify){i+=1;&args[i]}else{"0%x0%"}),
-                        };
-                        ops.push(PixelOp::Histogram(op));i+=1;
-                    }
-                    "-sepia-tone" | "-solarize" | "-posterize" | "-colors" => {
-                        let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-sepia-tone"=>"80%","-solarize"=>"50%",_=>"8"}};
-                        ops.push(match arg.as_str(){
-                            "-sepia-tone"=>{
-                                let n=parse_float_prefix(value);
-                                let strength=if value.ends_with('%'){n}else{n/255.}/100.;
-                                PixelOp::Sepia(if strength.is_nan() || strength==0.{0.8}else{strength.clamp(0.,1.)})
-                            }
-                            "-solarize"=>PixelOp::Solarize(magick_fuzz(value)),
-                            _=>PixelOp::Posterize(js_number(value,0.).round().clamp(2.,256.)),
-                        });i+=1;
-                    }
-                    "-raise" | "+raise" | "-vignette" | "-shadow" => {
-                        let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else if arg=="-shadow"{"80x3+5+5"}else{"4"};
-                        ops.push(match arg.as_str(){
-                            "-shadow"=>PixelOp::Shadow(Geometry::parse(spec),background),
-                            "-vignette"=>PixelOp::Vignette(background),
-                            _=>PixelOp::Raise(Geometry::parse(spec),arg=="-raise"),
-                        });i+=1;
-                    }
-                    "-convolve" | "-edge" | "-canny" | "-emboss" | "-charcoal" | "-sketch" => {
-                        let spec=if i+1<args.len()-usize::from(!is_mogrify) {i+=1;args[i].as_str()}else{"1"};
-                        let charcoal=matches!(arg.as_str(),"-charcoal"|"-sketch");
-                        let weights=match arg.as_str(){
-                            "-convolve"=>match magick_filter::kernel(spec,fs.max_input_bytes()){
-                                Ok(weights)=>weights,Err(e)=>return err_out(&format!("magick: {e}\n"),1),
-                            },
-                            "-emboss"=>vec![-2.,-1.,0.,-1.,1.,1.,0.,1.,2.],
-                            _=>vec![-1.,-1.,-1.,-1.,8.,-1.,-1.,-1.,-1.],
-                        };
-                        if charcoal{ops.push(PixelOp::Blur(1.));}
-                        ops.push(PixelOp::Convolve(weights,if arg=="-emboss"{128.}else{0.}));
-                        if charcoal{ops.push(PixelOp::Negate([true,true,true,false],false));ops.push(PixelOp::Gray);}
-                        i+=1;
-                    }
-                    "-blur" | "-gaussian-blur" | "-sharpen" | "-unsharp" => {
-                        let has_value=i+1<args.len()-usize::from(!is_mogrify);
-                        let g=if has_value{i+=1;args[i].as_str()}else{"0x1"};
-                        let sigma=Geometry::parse(g).sigma();
-                        ops.push(if matches!(arg.as_str(),"-blur"|"-gaussian-blur"){PixelOp::Blur(sigma)}else{PixelOp::Sharpen(sigma)});i+=1;
-                    }
-                    "-depth"
-                    | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
-                    | "-draw" | "-annotate" | "-define"
-                        if i + 1 < args.len() =>
-                    {
-                        i += 2;
-                    }
-                    a if a == "rose:" || a == "logo:" || a == "wizard:" || a == "granite:" => {
-                        if size_opt.is_none() {
-                            size_opt = Some((70, 46));
-                        }
-                        has_pseudo_input = true;
-                        i += 1;
-                    }
-                    a if !a.starts_with('-') && !a.starts_with('+') =>
-                    {
-                        if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
-                        if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size_opt.unwrap_or((1,1)),kernel)));}
-                        pos_files.push(a.to_string());
-                        i += 1;
-                    }
-                    _ => {
-                        i += 1;
-                    }
-                }
-            }
-            let has_writes=stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Write(..)));
-            let use_stack=has_writes || (!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
-                magick_stack::Step::Input(token,_,_)=>magick_stack::tile_pattern(token).is_some() || !matches!(magick_stack::input_spec(token).1,magick_stack::Modifier::None),_=>false,
-            }))) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
-            let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
-                // GIFs decode to four channels even if they did not declare transparency.
-                let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
-                for op in &ops[range] {
-                    if image.width==0 || image.height==0 {
-                        match op {
-                            PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) | PixelOp::Alpha(..) => {}
-                            PixelOp::Crop(..) => return Err("internal error"),
-                            _ => return Err("Invalid stored image dimensions"),
-                        }
-                    }
-                    match op {
-                        PixelOp::Modulate(values)=>{image.modulate(*values);channels=if image.alpha{4}else{3};},
-                        PixelOp::Tint(fill)=>{image.tint(*fill);channels=if image.alpha{4}else{3};},
-                        PixelOp::Replace(target,fill,fuzz,invert)=>image.replace_color(*target,*fill,*fuzz,*invert),
-                        PixelOp::Linear(slope,offset)=>image.linear(*slope,*offset,channels==2),
-                        PixelOp::Sigmoid(spec)=>image.sigmoidal_contrast(spec),
-                        PixelOp::Level(spec,inverse)=>image.level(spec,*inverse),
-                        PixelOp::Histogram(op)=>op.apply(image),
-                        PixelOp::Sepia(strength)=>image.sepia(*strength),
-                        PixelOp::Solarize(threshold)=>for p in &mut image.pixels {for c in &mut p[..3] {if f64::from(*c)>*threshold {*c=255-*c;}}},
-                        PixelOp::Posterize(levels)=>image.posterize(*levels),
-                        PixelOp::Raise(g,raised)=>image.raise(*g,*raised),
-                        PixelOp::Vignette(bg)=>image.vignette(*bg),
-                        PixelOp::Shadow(g,bg)=>image.shadow(*g,*bg,fs.max_input_bytes())?,
-                        PixelOp::Gamma(g)=>image.gamma(*g),
-                        PixelOp::Trim(fuzz)=>image.trim(*fuzz,fs.max_input_bytes())?,
-                        PixelOp::Clear=>image.pixels.fill([0;4]),
-                        PixelOp::Morph(method,radii)=>image.morphology(method,*radii,fs.max_input_bytes())?,
-                        PixelOp::Convolve(weights,bias)=>image.convolve_rgb(weights,*bias,fs.max_input_bytes())?,
-                        PixelOp::Sharpen(sigma)=>image.sharpen(*sigma,image.alpha || matches!(channels,2|4)),
-                        PixelOp::Blur(sigma)=>image.blur(*sigma,image.alpha || matches!(channels,2|4)),
-                        PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
-                        PixelOp::Roll(g) => image.roll(*g),
-                        PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
-                        PixelOp::Chop(g,gravity) => image.chop(*g,*gravity),
-                        PixelOp::Shave(g) => image.shave(*g),
-                        PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
-                        PixelOp::Extent(g,gravity,bg) => {image.extent(*g,*gravity,*bg,fs.max_input_bytes())?;channels=4;},
-                        PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
-                        PixelOp::Rotate(deg,bg) => {if !deg.is_finite() {return Err("Invalid rotation angle");}image.rotate(*deg,*bg,fs.max_input_bytes())?;},
-                        PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
-                        PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
-                        PixelOp::Threshold(value) => image.threshold(*value),
-                        PixelOp::ClipThreshold(value,white) => image.clip_threshold(*value,*white),
-                        PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
-                        PixelOp::Flip => image.orient(4),
-                        PixelOp::Flop => image.orient(2),
-                        PixelOp::AutoOrient => {image.orient(image.orientation.unwrap_or(1));image.orientation=Some(1);},
-                    }
-                }
-                if image.width==0 || image.height==0 {return Err("internal error");}
-                Ok(matches!(channels,2|4))
-            };
-            let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
-                let info=matches!(dest.to_ascii_lowercase().as_str(),"info:"|"info:-");
-                let dest=png_pixels::destination(dest).or_else(||has_writes.then_some(("png",dest)))?;
-                let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
-                let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
-                let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
-                let transform=|image: &mut png_pixels::Raster| {
-                    let channel_alpha=apply_pixels(image,0..ops.len(),gif_input)?;
-                    if dest.0=="png" {image.alpha |= channel_alpha;}
-                    Ok(())
-                };
-                let scene_name=magick_stack::SceneName::parse(dest.1);
-                let split=!adjoin || !matches!(scene_name,magick_stack::SceneName::Literal);
-                if use_stack || split {
-                    let transform=|im:&mut png_pixels::Raster,range:std::ops::Range<usize>,gif| {
-                        let keep_timing=!ops[range.clone()].iter().any(|op| matches!(op,PixelOp::Extent(..)));
-                        let channel_alpha=apply_pixels(im,range,gif)?;
-                        Ok((keep_timing,channel_alpha))
-                    };
-                    let target;
-                    let steps=if is_mogrify {
-                        target=std::iter::once((0,magick_stack::Step::Input(input,(1,1),kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)|magick_stack::Step::Write(..)))).collect::<Vec<_>>();
-                        &target[..]
-                    } else { &stack_steps[..] };
-                    let mut snapshots=magick_stack::Snapshots::default();
-                    let limit=fs.max_input_bytes();
-                    let mut images=match magick_stack::evaluate(steps,ops.len(),transform,limit,|path|fs.read_file(&resolve_posix_path(cwd,path)),&mut snapshots) {
-                        Ok(Some(images))=>images, Ok(None)=>return None,
-                        Err(e)=>{
-                            let saved=snapshots.publish(cwd,fs);
-                            return Some(if saved.exit_code==0 {fail(&e)} else {saved});
-                        }
-                    };
-                    if images.frames.is_empty() {
-                        let saved=snapshots.publish(cwd,fs);
-                        return Some(if saved.exit_code==0 {fail(&format!("no images defined '{}'",dest.1))} else {saved});
-                    }
-                    if info {
-                        let text=images.frames.iter().map(|s|format!("{}x{} sRGB 8-bit\n",s.image.width,s.image.height)).collect::<String>();
-                        let saved=snapshots.publish(cwd,fs);
-                        return Some(if saved.exit_code==0 {ok_out(&text)} else {saved});
-                    }
-                    if split && images.frames.len()>1 {
-                        if let Err(e)=images.stage_split(scene_name,dest,quality,limit,&mut snapshots) {return Some(fail(e));}
-                        return Some(snapshots.publish(cwd,fs));
-                    }
-                    let bytes=if dest.0=="gif" {images.gif(timing,kernel,limit)}
-                        else {images.frames.pop()?.encode(dest.0,quality,limit)};
-                    let bytes=match bytes {Ok(b)=>b,Err(e)=>return Some(fail(e))};
-                    if !has_writes {return Some(png_pixels::Raster::publish_bytes(&bytes,dest.1,cwd,fs));}
-                    if dest.1=="-" {
-                        let saved=snapshots.publish(cwd,fs);
-                        return Some(if saved.exit_code==0 {png_pixels::Raster::publish_bytes(&bytes,"-",cwd,fs)} else {saved});
-                    }
-                    if let Err(e)=snapshots.stage(dest.1.to_owned(),bytes,limit) {return Some(fail(e));}
-                    return Some(snapshots.publish(cwd,fs));
-                }
-                let mut image = if let Some((canvas,size)) = canvas {
-                    match canvas.raster(size,fs.max_input_bytes()) { Ok(im)=>im,Err(e)=>return Some(fail(e)) }
-                } else if gif_input {
-                    if dest.0 == "gif" {
-                        // Extent composites each scene onto a new canvas with default timing.
-                        let inherit_timing = !ops.iter().any(|op| matches!(op,PixelOp::Extent(..)));
-                        match gif::edit_frames(bytes,fs.max_input_bytes(),inherit_timing,timing,transform) {
-                            Ok(Some(data))=>return Some(png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs)),
-                            Ok(None)=>{}, Err(e)=>return Some(fail(e)),
-                        }
-                    }
-                    match gif::decode(bytes,usize::MAX,fs.max_input_bytes(), |_,_| Ok(())) {
-                        Ok(im)=>im,
-                        Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
-                    }
-                } else {
-                    match png_pixels::Raster::input(input,bytes,fs.max_input_bytes()) {
-                        Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
-                    }
-                };
-                if let Err(e)=transform(&mut image){return Some(fail(e));}
-                if dest.0 == "gif" && (delay.is_some() || repeat.is_some()) {
-                    return Some(match gif::encode(image.width,image.height,&image.pixels,timing,fs.max_input_bytes()) {
-                        Ok(data)=>png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs),
-                        Err(e)=>fail(e),
-                    });
-                }
-                Some(image.publish(dest,quality,cwd,fs))
-            };
-            let apply_ops = |meta: &mut ImageMeta| {
-                if let Some(ref rspec) = resize_spec {
-                    let (rw, rh) = apply_magick_resize_geom(meta.w, meta.h, rspec);
-                    meta.w = rw;
-                    meta.h = rh;
-                }
-                if rot_deg.rem_euclid(180) != 0 {
-                    std::mem::swap(&mut meta.w, &mut meta.h);
-                }
-                if transpose_swaps % 2 == 1 {
-                    std::mem::swap(&mut meta.w, &mut meta.h);
-                }
-                if let Some((cw, ch)) = crop_opt {
-                    meta.w = cw;
-                    meta.h = ch;
-                }
-                if let Some((bw, bh)) = border_opt {
-                    meta.w += bw * 2;
-                    meta.h += bh * 2;
-                }
-                if let Some((ew, eh)) = extent_opt {
-                    meta.w = ew;
-                    meta.h = eh;
-                }
-                if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
-                    meta.cs = "Gray".to_string();
-                }
-                if let Some((Canvas::Solid([r, g, b, _]),_)) = canvas {
-                    meta.exif
-                        .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
-                }
-                for op in &ops {
-                    if let PixelOp::Negate(ch,only_gray)=op {
-                        let mut pixel=meta.exif.get("__color").and_then(|c|parse_color(c).ok()).unwrap_or([255;4]);
-                        magick_color::negate(&mut pixel,*ch,*only_gray);
-                        let [r,g,b,_]=pixel;
-                        meta.exif.insert("__color".into(),format!("#{r:02x}{g:02x}{b:02x}"));
-                    }
-                }
-            };
-            if is_mogrify {
-                for f in &pos_files {
-                    let full = resolve_posix_path(cwd, f);
-                    let Ok(bytes) = fs.read_file(&full) else {
-                        return err_out(
-                            &format!("mogrify: unable to open image '{f}': No such file or directory\n"),
-                            1,
-                        );
-                    };
-                    let mut meta = read_image_meta(&bytes, &full);
-                    apply_ops(&mut meta);
-                    let dest = if mogrify_format.is_some() || mogrify_path.is_some() {
-                        let (parent, name)=f.rsplit_once('/').unwrap_or(("",f));
-                        let (stem, extension)=name.rsplit_once('.').unwrap_or((name,"png"));
-                        let extension=mogrify_format.as_deref().unwrap_or(extension);
-                        let dir=mogrify_path.as_deref().unwrap_or(parent).trim_end_matches('/');
-                        if dir.is_empty() {format!("{stem}.{extension}")} else {format!("{dir}/{stem}.{extension}")}
-                    } else { f.clone() };
-                    let dst_full=resolve_posix_path(cwd,&dest);
-                    if mogrify_format.is_some() {
-                        meta.fmt = format_from_path(&dest).to_string();
-                    }
-                    if let Some(out) = raster_output(&full, &bytes, &dest) {
-                        if out.exit_code!=0 {return out;}
-                        continue;
-                    }
-                    let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
-                }
-                return ok_out("");
-            }
-            if pos_files.is_empty() && !has_pseudo_input {
-                let last_arg = args.last().map(|s| s.as_str()).unwrap_or("");
-                return err_out(&format!("magick: no images defined '{last_arg}'\n"), 1);
-            }
-            if pos_files.len() == 1 && !has_pseudo_input {
-                return err_out(&format!("magick: no images defined '{}'\n", pos_files[0]), 1);
-            }
-            if let Some(out_rel) = pos_files.last() {
-                let out_full = resolve_posix_path(cwd, out_rel);
-                if use_stack || canvas.is_some() && pos_files.len()==1 {
-                    if let Some(out)=raster_output("", &[], out_rel) {return out;}
-                } else if !has_pseudo_input && pos_files.len()==2 {
-                    let path=png_pixels::destination(&pos_files[0]).map_or(pos_files[0].as_str(), |(_, path)| path);
-                    if let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) && let Some(out)=raster_output(path,&bytes,out_rel) {return out;}
-                }
-                for in_rel in &pos_files[..pos_files.len() - 1] {
-                    if in_rel != "-" && !in_rel.contains(':') {
-                        let clean_in = magick_stack::input_spec(in_rel).0;
-                        let in_full = resolve_posix_path(cwd, clean_in);
-                        if fs.is_dir(&in_full) || fs.read_file(&in_full).is_err() {
-                            return err_out(&format!("magick: no images defined '{out_rel}'\n"), 1);
-                        }
-                    }
-                }
-                let mut meta = if let Some(vertical) = append_mode
-                    && pos_files.len() >= 2
-                {
-                    let mut total_w = 0u32;
-                    let mut total_h = 0u32;
-                    let mut first_meta: Option<ImageMeta> = None;
-                    for in_rel in &pos_files[..pos_files.len() - 1] {
-                        let in_full = resolve_posix_path(cwd, in_rel);
-                        let im = fs
-                            .read_file(&in_full)
-                            .map(|b| read_image_meta(&b, &in_full))
-                            .unwrap_or_else(|_| read_image_meta(&[], &in_full));
-                        if vertical {
-                            total_w = total_w.max(im.w);
-                            total_h += im.h;
-                        } else {
-                            total_w += im.w;
-                            total_h = total_h.max(im.h);
-                        }
-                        if first_meta.is_none() {
-                            first_meta = Some(im);
-                        }
-                    }
-                    let mut base = first_meta.unwrap_or_else(|| read_image_meta(&[], &out_full));
-                    base.w = total_w.max(1);
-                    base.h = total_h.max(1);
-                    base
-                } else if pos_files.len() >= 2 {
-                    let in_full = resolve_posix_path(cwd, &pos_files[0]);
-                    fs.read_file(&in_full)
-                        .map(|b| read_image_meta(&b, &in_full))
-                        .unwrap_or_else(|_| read_image_meta(&[], &in_full))
-                } else {
-                    let (w, h) = size_opt.unwrap_or(if canvas.is_some() { (1, 1) } else { (32, 32) });
-                    ImageMeta {
-                        fmt: format_from_path(&out_full).to_string(),
-                        w,
-                        h,
-                        cs: "sRGB".to_string(),
-                        exif: BTreeMap::new(),
-                    }
-                };
-                apply_ops(&mut meta);
-                if out_full.to_ascii_lowercase().ends_with(".pdf") {
-                    let mut pdf = PdfDoc::new();
-                    pdf.pages.push(PdfPage {
-                        rot: 0,
-                        text: String::new(),
-                        html: String::new(),
-                        images: vec![(meta.w, meta.h, meta.fmt.clone())],
-                        urls: Vec::new(),
-                    });
-                    let _ = fs.write_file(&out_full, &pdf.serialize());
-                } else {
-                    meta.fmt = format_from_path(&out_full).to_string();
-                    let _ = fs.write_file(&out_full, &write_image_bytes(&meta));
-                }
-            }
-            ok_out("")
+            return ok_out("");
         }
-        "composite" => {
-            if let Some(r)=magick_composite::run(cmd,args,cwd,fs) { return r; }
-            if let Some(list_out) = try_magick_list_option(args) {
-                return list_out;
-            }
-            let mut operands: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-gravity" | "-geometry" | "-compose" | "-background" | "-quality"
-                    | "-define" | "-dissolve" | "-blend" | "-watermark"
-                        if i + 1 < args.len() =>
-                    {
-                        i += 2;
-                    }
-                    a if a.starts_with('-') => {
-                        i += 1;
-                    }
-                    a => {
-                        operands.push(a.to_string());
-                        i += 1;
-                    }
-                }
-            }
-            if operands.len() < 3 {
-                return err_out("composite: missing an image filename\n", 1);
-            }
-            let overlay_rel = &operands[0];
-            let base_rel = &operands[1];
-            let out_rel = operands.last().unwrap();
-            for src_rel in [overlay_rel, base_rel] {
-                if !src_rel.contains(':') {
-                    let src_full = resolve_posix_path(cwd, src_rel);
-                    if fs.read_file(&src_full).is_err() {
-                        return err_out(
-                            &format!("magick: no images defined '{out_rel}'\n"),
-                            1,
-                        );
-                    }
-                }
-            }
-            let base_full = resolve_posix_path(cwd, base_rel);
-            let mut base_meta = fs
-                .read_file(&base_full)
-                .map(|b| read_image_meta(&b, &base_full))
-                .unwrap_or_else(|_| read_image_meta(&[], &base_full));
-            let out_full = resolve_posix_path(cwd, out_rel);
-            base_meta.fmt = format_from_path(&out_full).to_string();
-            base_meta
-                .exif
-                .insert("__COMPOSITE__".to_string(), format!("{overlay_rel}:{}", args.join(",")));
-            let _ = fs.write_file(&out_full, &write_image_bytes(&base_meta));
-            ok_out("")
+    }
+    let mut size_opt: Option<(u32, u32)> = None;
+    use magick_resize::Kernel;
+    use magick_coordinates::{Geometry,Gravity};
+    let mut gravity=Gravity::parse("northwest");
+    let mut background=[255;4];
+    let mut fill=[0,0,0,255];
+    let mut border_color=[223,223,223,255];
+    let mut fuzz=10.;
+    let mut quality=92.;
+    let mut adjoin=true;
+    let (mut delay, mut repeat) = (None, None);
+    enum PixelOp<'a> { Modulate([f64;3]), Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+    let mut ops = Vec::new();
+    let mut stack_steps=Vec::new();
+    let mut kernel = Kernel::Lanczos3;
+    let mut resize_spec: Option<String> = None;
+    let mut crop_opt: Option<(u32, u32)> = None;
+    let mut border_opt: Option<(u32, u32)> = None;
+    let mut extent_opt: Option<(u32, u32)> = None;
+    let mut rot_deg = 0i32;
+    let mut transpose_swaps = 0usize;
+    let mut channels = None;
+    let mut append_mode: Option<bool> = None;
+    let mut mogrify_format: Option<String> = None;
+    let mut mogrify_path: Option<String> = None;
+    let mut canvas = None;
+    let mut has_pseudo_input = false;
+    let mut pos_files: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = &args[i];
+        let base=magick_stack::input_spec(arg).0;
+        if i + 1 < args.len() && let Some(parsed) = Canvas::parse(base) {
+            if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
+            let size=if base.eq_ignore_ascii_case("null:"){(1,1)}else{size_opt.unwrap_or((1,1))};
+            canvas = Some((match parsed {
+                Ok(c) => c,
+                Err(e) => return err_out(&format!("magick: {e}\n"), 1),
+            },size));
+            stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size,kernel)));
+            has_pseudo_input = true;
+            i += 1;
+            continue;
         }
-        "montage" => {
-            if let Some(list_out) = try_magick_list_option(args) {
-                return list_out;
+        match args[i].as_str() {
+            "-size" if i + 1 < args.len() => {
+                size_opt=Some(Geometry::canvas_size(&args[i+1]));
+                i += 2;
             }
-            let mut quality=92.;
-            let mut tile_cols: Option<usize> = None;
-            let mut tile_rows: Option<usize> = None;
-            let mut cell_w: Option<u32> = None;
-            let mut cell_h: Option<u32> = None;
-            let mut pad_x = 2u32;
-            let mut pad_y = 2u32;
-            let mut border_w = 0u32;
-            let mut background = [255;4];
-            let mut border_color = [223,223,223,255];
-            let mut gravity = String::from("northwest");
-            let mut operands: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-tile" if i + 1 < args.len() => {
-                        let t = &args[i + 1];
-                        if let Some((cs, rs)) = t.split_once('x') {
-                            if !cs.is_empty() {
-                                tile_cols = cs.parse().ok();
-                            }
-                            if !rs.is_empty() {
-                                tile_rows = rs.parse().ok();
-                            }
-                        } else {
-                            tile_cols = t.parse().ok();
-                        }
-                        i += 2;
-                    }
-                    "-geometry" | "-thumbnail" if i + 1 < args.len() => {
-                        let g = &args[i + 1];
-                        let mut parts = g.split('+');
-                        let dim_part = parts.next().unwrap_or("");
-                        if let Some(px_s) = parts.next() {
-                            pad_x = px_s.parse().unwrap_or(2);
-                            if let Some(py_s) = parts.next() {
-                                pad_y = py_s.parse().unwrap_or(2);
-                            }
-                        }
-                        let clean_dim = dim_part.trim_end_matches(['!', '^', '>', '<']);
-                        if let Some((ws, hs)) = clean_dim.split_once('x') {
-                            if !ws.is_empty() {
-                                cell_w = ws.parse().ok();
-                            }
-                            if !hs.is_empty() {
-                                cell_h = hs.parse().ok();
-                            }
-                        } else if !clean_dim.is_empty() {
-                            cell_w = clean_dim.parse().ok();
-                        }
-                        i += 2;
-                    }
-                    "-border" | "-frame" if i + 1 < args.len() => {
-                        let b = args[i + 1].split('x').next().unwrap_or("0");
-                        border_w = b.parse().unwrap_or(0);
-                        i += 2;
-                    }
-                    "-background" | "-bordercolor" if i+1 < args.len() => {
-                        let c=match parse_color(&args[i+1]) {Ok(c)=>c,Err(e)=>return err_out(&format!("montage: {e}\n"),1)};
-                        if args[i]=="-background" {background=c;} else {border_color=c;}
-                        i+=2;
-                    }
-                    "-gravity" if i+1 < args.len() => {gravity=args[i+1].to_ascii_lowercase().replace(['-','_',' '],"");i+=2;}
-                    "-quality" if i+1<args.len()=>{quality=js_number(&args[i+1],1.);i+=2;}
-                    "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-mode"
-                        if i + 1 < args.len() => {i+=2;}
-                    a if a.starts_with('-') => {
-                        i += 1;
-                    }
-                    a => {
-                        operands.push(a.to_string());
-                        i += 1;
-                    }
-                }
+            "-resize" | "-scale" | "-sample" | "-thumbnail" if i + 1 < args.len() => {
+                ops.push(PixelOp::Resize(&args[i+1], if arg=="-sample" {Kernel::Nearest} else {kernel}));
+                resize_spec = Some(args[i + 1].clone());
+                i += 2;
             }
-            if operands.len() < 2 {
-                return err_out("montage: missing an image filename\n", 1);
+            "-roll" | "-splice" | "-chop" | "-shave" if i+1<args.len() => {
+                let g=Geometry::parse(&args[i+1]);
+                ops.push(match arg.as_str() {
+                    "-roll" => PixelOp::Roll(g),
+                    "-splice" => PixelOp::Splice(g,gravity,background),
+                    "-chop" => PixelOp::Chop(g,gravity),
+                    _ => PixelOp::Shave(g),
+                });
+                i+=2;
             }
-            let in_paths = &operands[..operands.len() - 1];
-            let out_rel = operands.last().unwrap();
-            let mut thumb_dims = Vec::new();
-            let mut tiles=Vec::new();
-            let limit=fs.max_input_bytes();
-            let mut retained=0;
-            let spec=format!("{}x{}",cell_w.map(|v|v.to_string()).unwrap_or_default(),cell_h.map(|v|v.to_string()).unwrap_or_default());
-            let destination=png_pixels::destination(out_rel);
-            for p in in_paths {
-                let kernel=magick_resize::Kernel::Lanczos3;
-                let base=magick_stack::input_spec(magick_stack::tile_pattern(p).unwrap_or(p)).0;
-                let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
-                let full=resolve_posix_path(cwd,path);
-                if destination.is_some() {
-                    let step=magick_stack::Step::Input(p,(1,1),kernel);
-                    match magick_stack::evaluate(&[(0,step)],0,|im,_,_|{
-                        im.resize(&spec,kernel,limit)?;
-                        Ok((false,false))
-                    },limit,|_|fs.read_file(&full),&mut Default::default()) {
-                        Ok(Some(images)) if images.frames.is_empty()=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1),
-                        Ok(Some(images))=>{
-                            for scene in images.frames {
-                                let image=scene.image;
-                                if image.pixels.len()>limit/4-retained{return err_out("montage: image exceeds memory budget\n",1);}
-                                retained+=image.pixels.len();
-                                thumb_dims.push(((image.width as u32).saturating_add(border_w.saturating_mul(2)),(image.height as u32).saturating_add(border_w.saturating_mul(2))));
-                                tiles.push(image);
-                            }
-                            continue;
-                        }
-                        Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
-                        Ok(None)=>{}
-                    }
+            "-crop" if i + 1 < args.len() => {
+                ops.push(PixelOp::Crop(Geometry::parse(&args[i+1]), gravity));
+                let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
+                if let Some((ws, hs)) = s.split_once('x') {
+                    crop_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
                 }
-                let bytes=if Canvas::parse(base).is_some(){Vec::new()}else{
-                    match fs.read_file(&full){Ok(bytes)=>bytes,Err(_)=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1)}
-                };
-                let meta=read_image_meta(&bytes,&full);
-                let (w,h)=apply_magick_resize_geom(meta.w,meta.h,&spec);
-                thumb_dims.push((w.saturating_add(border_w.saturating_mul(2)),h.saturating_add(border_w.saturating_mul(2))));
+                i += 2;
             }
-            let n = thumb_dims.len();
-            let cols = tile_cols.unwrap_or_else(|| {
-                if let Some(tr) = tile_rows {
-                    n.div_ceil(tr.max(1))
-                } else {
-                    (n as f64).sqrt().ceil() as usize
+            "-border" | "-frame" if i + 1 < args.len() => {
+                ops.push(PixelOp::Border(Geometry::parse(&args[i+1]),border_color));
+                let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
+                if let Some((ws, hs)) = s.split_once('x') {
+                    border_opt = Some((ws.parse().unwrap_or(0), hs.parse().unwrap_or(0)));
+                } else if let Ok(bw) = s.parse::<u32>() {
+                    border_opt = Some((bw, bw));
                 }
-            });
-            let rows = tile_rows.unwrap_or_else(|| n.div_ceil(cols.max(1)));
-            let max_thumb_w = thumb_dims
-                .iter()
-                .map(|(w, _)| *w)
-                .fold(cell_w.unwrap_or(0), u32::max);
-            let max_thumb_h = thumb_dims
-                .iter()
-                .map(|(_, h)| *h)
-                .fold(cell_h.unwrap_or(0), u32::max);
-            let slot_w = max_thumb_w.saturating_add(pad_x.saturating_mul(2));
-            let slot_h = max_thumb_h.saturating_add(pad_y.saturating_mul(2));
-            let canvas_w = cols.saturating_mul(slot_w as usize).max(1);
-            let canvas_h = rows.saturating_mul(slot_h as usize).max(1);
-            if canvas_w.saturating_mul(canvas_h)>limit/4 {return err_out("montage: image exceeds memory budget\n",1);}
-            if tiles.len()==n && let Some(dest)=destination {
-                let mut sheet=png_pixels::Raster {width:canvas_w,height:canvas_h,density:72,orientation:None,gray:false,alpha:background[3]<255 || (border_w>0 && border_color[3]<255),pixels:vec![background;canvas_w*canvas_h]};
-                for (i,(tile,(tw,th))) in tiles.iter().zip(thumb_dims).enumerate() {
-                    if cols==0 || i/cols>=rows {break;}
-                    let dx=max_thumb_w-tw;let dy=max_thumb_h-th;
-                    let ox=match gravity.as_str() {"northwest"|"west"|"southwest"=>0,"northeast"|"east"|"southeast"=>dx,_=>dx/2};
-                    let oy=match gravity.as_str() {"northwest"|"north"|"northeast"=>0,"southwest"|"south"|"southeast"=>dy,_=>dy/2};
-                    let left=(i%cols)*slot_w as usize+(pad_x+ox) as usize;
-                    let top=(i/cols)*slot_h as usize+(pad_y+oy) as usize;
-                    for y in 0..th {for x in 0..tw {
-                        let src=if y>=border_w && y<th-border_w && x>=border_w && x<tw-border_w {
-                            tile.pixels[(y-border_w) as usize*tile.width+(x-border_w) as usize]
-                        }else{border_color};
-                        sheet.alpha |= src[3]<255;
-                        let d=&mut sheet.pixels[(top+y as usize)*canvas_w+left+x as usize];
-                        *d=magick_composite::blend(src,*d,"over",1.,1.);
-                    }}
-                }
-                return sheet.publish(dest,quality,cwd,fs);
+                i += 2;
             }
-            let out_full = resolve_posix_path(cwd, out_rel);
-            let out_meta = ImageMeta {
-                fmt: format_from_path(&out_full).to_string(),
-                w: canvas_w as u32,
-                h: canvas_h as u32,
-                cs: "sRGB".to_string(),
-                exif: BTreeMap::new(),
-            };
-            let _ = fs.write_file(&out_full, &write_image_bytes(&out_meta));
-            ok_out("")
-        }
-        "compare" => {
-            if let Some(list_out) = try_magick_list_option(args) {
-                return list_out;
+            "-extent" if i + 1 < args.len() => {
+                ops.push(PixelOp::Extent(Geometry::parse(&args[i+1]),gravity,background));
+                let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
+                if let Some((ws, hs)) = s.split_once('x') {
+                    extent_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
+                }
+                i += 2;
             }
-            let mut metric = "rmse".to_string();
-            let mut options = magick_compare::Options {
-                fuzz: 0., highlight: [241,0,30,255], lowlight: None, compose_src: false, threshold: None, density: 72, quality:92.,
-            };
-            let mut operands: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-help" | "--help" | "-h" => {
-                        return ok_out("Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n");
-                    }
-                    "-metric" if i + 1 < args.len() => {
-                        metric = args[i + 1].to_ascii_lowercase();
-                        i += 2;
-                    }
-                    "-fuzz" if i + 1 < args.len() => {
-                        let value = &args[i+1];
-                        options.fuzz = magick_fuzz(value);
-                        i+=2;
-                    }
-                    "-highlight-color" | "-lowlight-color" if i + 1 < args.len() => {
-                        let color = match parse_color(&args[i+1]) { Ok(color) => color, Err(e) => return err_out(&format!("compare: {e}\n"), 2) };
-                        if args[i]=="-highlight-color" { options.highlight=color; } else { options.lowlight=Some(color); }
-                        i+=2;
-                    }
-                    "-compose" | "-dissimilarity-threshold" | "-density" | "-quality" | "-format" | "-alpha" | "-channel" if i+1 < args.len() => {
-                        let value=&args[i+1];
-                        match args[i].as_str() {
-                            "-quality" => options.quality=js_number(value,1.),
-                            "-compose" => options.compose_src |= matches!(value.to_ascii_lowercase().as_str(),"src"|"source"|"copy"),
-                            "-density" => options.density=value.split('x').next().and_then(|v|v.parse::<f64>().ok()).unwrap_or(72.).round().max(1.) as u32,
-                            "-dissimilarity-threshold" => options.threshold=Some(value.parse().unwrap_or(f64::NAN)), _=>{}
-                        }
-                        i+=2;
-                    }
-                    a if a.starts_with('-') && a != "-" => {
-                        i += 1;
-                    }
-                    a => {
-                        operands.push(a.to_string());
-                        i += 1;
-                    }
-                }
+            "-rotate" if i + 1 < args.len() => {
+                let angle=args[i+1].parse::<f64>().unwrap_or(f64::NAN);
+                ops.push(PixelOp::Rotate(angle,background));
+                rot_deg=(rot_deg+(angle%360.) as i32)%360;
+                i += 2;
             }
-            if operands.len() < 2 {
-                return err_out("compare: missing an image filename\n", 2);
-            }
-            let load_cmp_img = |spec: &str| -> Result<(ImageMeta, Vec<u8>), String> {
-                let base=magick_stack::tile_operand(spec).0;
-                if let Some(canvas)=Canvas::parse(base) {
-                    let [r,g,b,_]=canvas.map_err(|e|format!("compare: {e}\n"))?.pixel(0,0,1,1);
-                    let mut ex = BTreeMap::new();
-                    ex.insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
-                    let m = ImageMeta {
-                        fmt: "PNG".to_string(),
-                        w: 1,
-                        h: 1,
-                        cs: "sRGB".to_string(),
-                        exif: ex,
-                    };
-                    let bytes = write_image_bytes(&m);
-                    return Ok((m, bytes));
-                }
-                let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
-                let full = resolve_posix_path(cwd,path);
-                match fs.read_file(&full) {
-                    Ok(bytes) => {
-                        if bytes.is_empty() {
-                            return Err(format!("compare: improper image header '{spec}'\n"));
-                        }
-                        Ok((read_image_meta(&bytes, &full), bytes))
-                    }
-                    Err(_) => Err(format!(
-                        "compare: unable to open image '{spec}': No such file or directory\n"
-                    )),
-                }
-            };
-            let (meta_a, bytes_a) = match load_cmp_img(&operands[0]) {
-                Ok(v) => v,
-                Err(e) => return err_out(&e, 2),
-            };
-            let (meta_b, bytes_b) = match load_cmp_img(&operands[1]) {
-                Ok(v) => v,
-                Err(e) => return err_out(&e, 2),
-            };
-            let default_null = "null:".to_string();
-            let out_spec = operands.get(2).unwrap_or(&default_null);
-            let raster = |spec: &str, bytes: &[u8]| -> Result<Option<png_pixels::Raster>,String>{
-                let (base,modifier,tiles)=magick_stack::tile_operand(spec);
-                let limit=fs.max_input_bytes();
-                let mut im=if let magick_stack::Modifier::Pages(pages)=modifier
-                    && png_pixels::still_format(bytes)==Some("gif") {
-                    let mut count=0;
-                    let _=gif::packets(bytes,|_,_|{count+=1;Ok(())});
-                    gif::decode(bytes,magick_stack::first_page(pages,count)+1,limit,|_,_|Ok(()))?
-                }else if let Some(im)=png_pixels::Raster::input(base,bytes,limit)? {im}else{return Ok(None)};
-                modifier.geometry(&mut im,magick_resize::Kernel::Lanczos3,limit)?;
-                im.apply_tiles(&tiles,(1,1),magick_resize::Kernel::Lanczos3,limit)?;
-                Ok(Some(im))
-            };
-            let dest=png_pixels::destination(out_spec);
-            if out_spec.eq_ignore_ascii_case("null:") || dest.is_some() {
-                match (raster(&operands[0], &bytes_a),raster(&operands[1], &bytes_b)) {
-                    (Ok(Some(a)), Ok(Some(b))) => return magick_compare::compare([&a,&b],&metric,&options,dest,cwd,fs),
-                    (Err(e),_) | (_,Err(e)) => return err_out(&format!("compare: improper image header: {e}\n"),2),
-                    _ => {}
-                }
-            }
-            let width = meta_a.w.max(meta_b.w);
-            let height = meta_a.h.max(meta_b.h);
-            let color_a = meta_a.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
-            let color_b = meta_b.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
-            let [ra,ga,ba,_] = parse_color(color_a).unwrap_or([255;4]);
-            let [rb,gb,bb,_] = parse_color(color_b).unwrap_or([255;4]);
-            let max_ch_diff = (ra as i32 - rb as i32)
-                .abs()
-                .max((ga as i32 - gb as i32).abs())
-                .max((ba as i32 - bb as i32).abs()) as f64;
-            let fuzz_abs = options.fuzz;
-            let same_pixels = (bytes_a == bytes_b)
-                || (meta_a.w == meta_b.w
-                    && meta_a.h == meta_b.h
-                    && (!color_a.is_empty() || !color_b.is_empty())
-                    && max_ch_diff <= fuzz_abs);
-            let total_pixels = (width as u64) * (height as u64);
-            let (metric_str, exit_code) = if same_pixels {
-                let s = match metric.as_str() {
-                    "ae" => "0".to_string(),
-                    "psnr" => "inf".to_string(),
-                    "ncc" | "ssim" => "1".to_string(),
-                    "dssim" => "0".to_string(),
-                    _ => "0 (0)".to_string(),
-                };
-                (s, 0)
-            } else {
-                let dr = (ra as f64 - rb as f64).abs();
-                let dg = (ga as f64 - gb as f64).abs();
-                let db = (ba as f64 - bb as f64).abs();
-                let mae_norm = if dr + dg + db > 0.0 {
-                    (dr + dg + db) / (3.0 * 255.0)
-                } else {
-                    1.0
-                };
-                let mse_norm = if dr + dg + db > 0.0 {
-                    (dr * dr + dg * dg + db * db) / (3.0 * 255.0 * 255.0)
-                } else {
-                    1.0
-                };
-                let rmse_norm = mse_norm.sqrt();
-                let pae_norm = if max_ch_diff > 0.0 { max_ch_diff / 255.0 } else { 1.0 };
-                let fmt_num = |n: f64| -> String {
-                    if !n.is_finite() {
-                        return "inf".to_string();
-                    }
-                    if n.abs() < 1e-9 {
-                        return "0".to_string();
-                    }
-                    let s = format!("{n:.6}");
-                    let s = s.trim_end_matches('0').trim_end_matches('.');
-                    if s == "-0" || s.is_empty() { "0".to_string() } else { s.to_string() }
-                };
-                let s = match metric.as_str() {
-                    "ae" => total_pixels.to_string(),
-                    "mae" => format!("{} ({})", fmt_num(mae_norm * 65535.0), fmt_num(mae_norm)),
-                    "mse" => format!("{} ({})", fmt_num(mse_norm * 65535.0), fmt_num(mse_norm)),
-                    "pae" => format!("{} ({})", fmt_num(pae_norm * 65535.0), fmt_num(pae_norm)),
-                    "psnr" => fmt_num(10.0 * (1.0 / mse_norm).log10()),
-                    "ncc" | "ssim" => "0".to_string(),
-                    "dssim" => "0.5".to_string(),
-                    _ => format!("{} ({})", fmt_num(rmse_norm * 65535.0), fmt_num(rmse_norm)),
-                };
-                (s, 1)
-            };
-            if !out_spec.eq_ignore_ascii_case("null:") {
-                let clean_out = out_spec
-                    .split_once(':')
-                    .map(|(_, r)| r)
-                    .unwrap_or(out_spec.as_str());
-                let diff_meta = ImageMeta {
-                    fmt: format_from_path(clean_out).to_string(),
-                    w: width,
-                    h: height,
-                    cs: "sRGB".to_string(),
-                    exif: BTreeMap::new(),
-                };
-                let encoded = write_image_bytes(&diff_meta);
-                if clean_out == "-" {
-                    return BuiltinOutcome {
-                        stdout: crate::vfs::bytes_to_stream_string(&encoded),
-                        stderr: format!("{metric_str}\n"),
-                        exit_code,
-                    };
-                }
-                let out_full = resolve_posix_path(cwd, clean_out);
-                let _ = fs.write_file(&out_full, &encoded);
-            }
-            BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("{metric_str}\n"),
-                exit_code,
-            }
-        }
-        "identify" => {
-            if let Some(list_out) = try_magick_list_option(args) {
-                return list_out;
-            }
-            let mut fmt_opt: Option<String> = None;
-            let mut verbose = false;
-            let mut files: Vec<String> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                let a = args[i].as_str();
-                if a == "-version" || a == "--version" {
-                    return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
-                }
-                if a == "-help" || a == "--help" || a == "-h" {
-                    return ok_out("Usage: identify [-ping] [-verbose] [-format FORMAT] file...\n");
-                }
-                if (a == "-format" || a == "--format") && i + 1 < args.len() {
-                    fmt_opt = Some(args[i + 1].clone());
-                    i += 2;
-                    continue;
-                }
-                if a == "-verbose" || a == "--verbose" {
-                    verbose = true;
-                    i += 1;
-                    continue;
-                }
-                if a == "-ping" || a == "--ping" {
-                    i += 1;
-                    continue;
-                }
-                if !a.starts_with('-') || a == "-" {
-                    files.push(args[i].clone());
-                }
+            "-transpose" | "-transverse" => {
+                ops.push(if arg=="-transpose" {PixelOp::Flip} else {PixelOp::Flop});
+                ops.push(PixelOp::Rotate(90.,background));
+                transpose_swaps += 1;
                 i += 1;
             }
-            if files.is_empty() {
-                return err_out("identify: missing an image filename\n", 1);
+            "-filter" if i+1 < args.len() => {kernel=Kernel::parse(&args[i+1]);i+=2;}
+            "-fuzz" => {
+                let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;magick_fuzz(&args[i])}else{10.};
+                fuzz=(value+0.5).floor();i+=1;
             }
-            let mut out = String::new();
-            let mut err_buf = String::new();
-            let mut exit_code = 0;
-            for f in &files {
-                let operand = identify::operand(f);
-                let full = resolve_posix_path(cwd, operand.0);
-                let data = if operand.0 == "-" { Ok(crate::vfs::stream_string_to_bytes(stdin)) } else { fs.read_file(&full) };
-                let Ok(bytes) = data else {
-                    err_buf.push_str(&format!(
-                        "identify: unable to open image '{f}': No such file or directory\n"
-                    ));
-                    exit_code = 1;
-                    continue;
+            "-trim" => {ops.push(PixelOp::Trim(fuzz));i+=1;}
+            "-gamma" => {
+                let g=if i+1<args.len()-usize::from(!is_mogrify){i+=1;js_number(&args[i],0.)}else{1.};
+                ops.push(PixelOp::Gamma(g));i+=1;
+            }
+            "-auto-orient" => {ops.push(PixelOp::AutoOrient);i+=1;}
+            "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
+            "-channel" if i+1<args.len() => { channels=Some(magick_color::channel_mask(&args[i+1]));i+=2; }
+            "+channel" => { channels=None;i+=1; }
+            "-negate" | "+negate" => {
+                ops.push(PixelOp::Negate(channels.unwrap_or([true,true,true,false]),arg=="+negate"));
+                i += 1;
+            }
+            "+clone"|"-clone"|"+duplicate"|"-duplicate"|"+delete"|"-delete"|"+swap"|"-swap"|"-reverse"|"+insert"|"-insert" => {
+                let mut spec=match arg.as_str(){"+swap"|"-swap"=>"-2,-1","+insert"|"-insert"=>"0",_=>"-1"};
+                let mut count=1;
+                let has_value=i+1<args.len()-usize::from(!is_mogrify);
+                if has_value && matches!(arg.as_str(),"-clone"|"-delete"|"-swap"|"-insert") {
+                    i+=1;spec=&args[i];
+                } else if has_value && arg=="-duplicate" && args[i+1].as_bytes().first().is_some_and(u8::is_ascii_digit) {
+                    i+=1;
+                    let value=&args[i];
+                    let digits=value.bytes().take_while(u8::is_ascii_digit).count();
+                    count=value[..digits].parse().unwrap_or(usize::MAX);
+                    if let Some((_,s))=value.split_once(',') && !s.is_empty() {spec=s;}
+                }
+                stack_steps.push((ops.len(),magick_stack::Step::Edit(arg,spec,count)));
+                i+=1;
+            }
+            "-append" => {
+                stack_steps.push((ops.len(),magick_stack::Step::Append(true,gravity,background)));
+                append_mode = Some(true);
+                i += 1;
+            }
+            "+append" => {
+                stack_steps.push((ops.len(),magick_stack::Step::Append(false,gravity,background)));
+                append_mode = Some(false);
+                i += 1;
+            }
+            "-format" if is_mogrify && i + 1 < args.len() => {
+                mogrify_format = Some(args[i + 1].trim_start_matches('.').to_ascii_lowercase());
+                i += 2;
+            }
+            "-path" if is_mogrify && i + 1 < args.len() => {
+                mogrify_path = Some(args[i + 1].clone());
+                i += 2;
+            }
+            "-colorspace" | "-grayscale" if i + 1 < args.len() => {
+                let space = args[i + 1].to_ascii_lowercase();
+                if space.contains("gray") || space.contains("grey") || matches!(space.as_str(), "rec709luma" | "rec601luma") {
+                    ops.push(PixelOp::Gray);
+                }
+                i += 2;
+            }
+            "-gravity" if i+1 < args.len() => {gravity=Gravity::parse(&args[i+1]);i+=2;}
+            "-fill" | "-background" | "-bordercolor" => {
+                let color=if i+1<args.len()-usize::from(!is_mogrify){
+                    i+=1;match parse_color(&args[i]){Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)}
+                }else{match arg.as_str(){"-fill"=>[0,0,0,255],"-bordercolor"=>[223,223,223,255],_=>[255;4]}};
+                match arg.as_str(){"-fill"=>fill=color,"-background"=>background=color,_=>border_color=color};
+                i+=1;
+            }
+            "-opaque" | "+opaque" | "-transparent" | "+transparent" => {
+                let opaque=arg.ends_with("opaque");
+                let color=if i+1<args.len()-usize::from(!is_mogrify){
+                    i+=1;match parse_color(&args[i]){Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)}
+                }else if opaque{[0,0,0,255]}else{[255;4]};
+                ops.push(PixelOp::Replace(color,opaque.then_some(fill),fuzz,arg.starts_with('+')));i+=1;
+            }
+            "-modulate" => {
+                let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{"100"};
+                let mut parts=spec.split(',');
+                ops.push(PixelOp::Modulate(std::array::from_fn(|_|parts.next().map_or(100.,|s|js_number(s,0.)))));i+=1;
+            }
+            "-tint" | "-colorize" => {
+                if i+1<args.len()-usize::from(!is_mogrify){i+=1;}
+                ops.push(PixelOp::Tint(fill));i+=1;
+            }
+            "-quality" if i+1<args.len()=>{quality=js_number(&args[i+1],1.);i+=2;}
+            "-write" | "+write" => {
+                if i+1<args.len()-usize::from(!is_mogrify) {
+                    i+=1;
+                    stack_steps.push((ops.len(),magick_stack::Step::Write(&args[i],quality,adjoin)));
+                }
+                i+=1;
+            }
+            "-adjoin" | "+adjoin" => {adjoin=arg=="-adjoin";i+=1;}
+            "-delay" | "-loop" if i+1<args.len() => {
+                let n=js_number(&args[i+1],0.);
+                if arg=="-delay" { delay=Some((n.round().max(0.) % 65536.) as u16); }
+                else { repeat=Some(((n-1.).trunc().max(0.) % 65536.) as u16); }
+                i+=2;
+            }
+            "-alpha" if i+1<args.len() => {ops.push(PixelOp::Alpha(args[i+1].to_ascii_lowercase(),background));i+=2;}
+            "-threshold" | "-black-threshold" | "-white-threshold" => {
+                let has_value=i+1<args.len()-usize::from(!is_mogrify);
+                let raw=if has_value {i+=1;args[i].as_str()} else {"50%"};
+                let value=magick_color::threshold_value(raw);
+                ops.push(if arg=="-threshold" {PixelOp::Threshold(value.round())} else {PixelOp::ClipThreshold(value,arg=="-white-threshold")});
+                i+=1;
+            }
+            "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
+            "-median" => {
+                let size=if i+1<args.len()-usize::from(!is_mogrify){
+                    i+=1;js_number(&args[i],0.)
+                }else{3.};
+                let r=(size.round()/2.).floor().max(1.) as usize;
+                ops.push(if size.is_nan(){PixelOp::Clear}else{PixelOp::Morph("median".into(),(r,r))});i+=1;
+            }
+            "-morphology" | "-statistic" => {
+                let end=args.len()-usize::from(!is_mogrify);
+                let method=if i+1<end{i+=1;args[i].to_ascii_lowercase()}else if arg=="-statistic"{"median".into()}else{"dilate".into()};
+                i+=1;
+                let spec=if i<end && (arg=="-statistic" || !args[i].starts_with(['-','+'])){
+                    i+=1;args[i-1].as_str()
+                }else if arg=="-statistic"{"3x3"}else{""};
+                if arg=="-morphology" && (method.contains("convolve") || method.contains("correlate")){
+                    match magick_filter::kernel(spec,fs.max_input_bytes()) {
+                        Ok(weights)=>ops.push(PixelOp::Convolve(weights,0.)),
+                        Err(e)=>return err_out(&format!("magick: {e}\n"),1),
+                    }
+                }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
+            }
+            "-contrast" | "+contrast" => {
+                let slope=if arg=="-contrast"{1.15}else{0.87};
+                ops.push(PixelOp::Linear(slope,128.*(1.-slope)));i+=1;
+            }
+            "-brightness-contrast" | "-sigmoidal-contrast" | "+sigmoidal-contrast" | "-level" | "+level" => {
+                let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-brightness-contrast"=>"0x0","-level"|"+level"=>"0,100%",_=>"3x50%"}};
+                ops.push(match arg.as_str(){
+                    "-brightness-contrast"=>{let (slope,offset)=Geometry::parse(spec).brightness_contrast();PixelOp::Linear(slope,offset)}
+                    "-level"|"+level"=>PixelOp::Level(spec,arg=="+level"),
+                    _=>PixelOp::Sigmoid(spec),
+                });i+=1;
+            }
+            "-auto-level" | "-auto-gamma" | "-normalize" | "-equalize" | "-contrast-stretch" | "-linear-stretch" => {
+                use magick_histogram::Adjustment;
+                let op=match arg.as_str(){
+                    "-auto-level"=>Adjustment::AutoLevel(channels),
+                    "-auto-gamma"=>Adjustment::AutoGamma,
+                    "-equalize"=>Adjustment::Equalize,
+                    "-normalize"=>Adjustment::Stretch("2%x1%"),
+                    _=>Adjustment::Stretch(if i+1<args.len()-usize::from(!is_mogrify){i+=1;&args[i]}else{"0%x0%"}),
                 };
-                let (meta, depth, channels, dpi) = match inspect_raster(&bytes, &full, fs.max_input_bytes()) {
-                    Ok(info) => info,
+                ops.push(PixelOp::Histogram(op));i+=1;
+            }
+            "-sepia-tone" | "-solarize" | "-posterize" | "-colors" => {
+                let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-sepia-tone"=>"80%","-solarize"=>"50%",_=>"8"}};
+                ops.push(match arg.as_str(){
+                    "-sepia-tone"=>{
+                        let n=parse_float_prefix(value);
+                        let strength=if value.ends_with('%'){n}else{n/255.}/100.;
+                        PixelOp::Sepia(if strength.is_nan() || strength==0.{0.8}else{strength.clamp(0.,1.)})
+                    }
+                    "-solarize"=>PixelOp::Solarize(magick_fuzz(value)),
+                    _=>PixelOp::Posterize(js_number(value,0.).round().clamp(2.,256.)),
+                });i+=1;
+            }
+            "-raise" | "+raise" | "-vignette" | "-shadow" => {
+                let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else if arg=="-shadow"{"80x3+5+5"}else{"4"};
+                ops.push(match arg.as_str(){
+                    "-shadow"=>PixelOp::Shadow(Geometry::parse(spec),background),
+                    "-vignette"=>PixelOp::Vignette(background),
+                    _=>PixelOp::Raise(Geometry::parse(spec),arg=="-raise"),
+                });i+=1;
+            }
+            "-convolve" | "-edge" | "-canny" | "-emboss" | "-charcoal" | "-sketch" => {
+                let spec=if i+1<args.len()-usize::from(!is_mogrify) {i+=1;args[i].as_str()}else{"1"};
+                let charcoal=matches!(arg.as_str(),"-charcoal"|"-sketch");
+                let weights=match arg.as_str(){
+                    "-convolve"=>match magick_filter::kernel(spec,fs.max_input_bytes()){
+                        Ok(weights)=>weights,Err(e)=>return err_out(&format!("magick: {e}\n"),1),
+                    },
+                    "-emboss"=>vec![-2.,-1.,0.,-1.,1.,1.,0.,1.,2.],
+                    _=>vec![-1.,-1.,-1.,-1.,8.,-1.,-1.,-1.,-1.],
+                };
+                if charcoal{ops.push(PixelOp::Blur(1.));}
+                ops.push(PixelOp::Convolve(weights,if arg=="-emboss"{128.}else{0.}));
+                if charcoal{ops.push(PixelOp::Negate([true,true,true,false],false));ops.push(PixelOp::Gray);}
+                i+=1;
+            }
+            "-blur" | "-gaussian-blur" | "-sharpen" | "-unsharp" => {
+                let has_value=i+1<args.len()-usize::from(!is_mogrify);
+                let g=if has_value{i+=1;args[i].as_str()}else{"0x1"};
+                let sigma=Geometry::parse(g).sigma();
+                ops.push(if matches!(arg.as_str(),"-blur"|"-gaussian-blur"){PixelOp::Blur(sigma)}else{PixelOp::Sharpen(sigma)});i+=1;
+            }
+            "-depth"
+            | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
+            | "-draw" | "-annotate" | "-define"
+                if i + 1 < args.len() =>
+            {
+                i += 2;
+            }
+            a if a == "rose:" || a == "logo:" || a == "wizard:" || a == "granite:" => {
+                if size_opt.is_none() {
+                    size_opt = Some((70, 46));
+                }
+                has_pseudo_input = true;
+                i += 1;
+            }
+            a if !a.starts_with('-') && !a.starts_with('+') =>
+            {
+                if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
+                if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size_opt.unwrap_or((1,1)),kernel)));}
+                pos_files.push(a.to_string());
+                i += 1;
+            }
+            _ => {
+                i += 1;
+            }
+        }
+    }
+    let has_writes=stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Write(..)));
+    let use_stack=has_writes || (!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
+        magick_stack::Step::Input(token,_,_)=>magick_stack::tile_pattern(token).is_some() || !matches!(magick_stack::input_spec(token).1,magick_stack::Modifier::None),_=>false,
+    }))) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
+    let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
+        // GIFs decode to four channels even if they did not declare transparency.
+        let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
+        for op in &ops[range] {
+            if image.width==0 || image.height==0 {
+                match op {
+                    PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) | PixelOp::Alpha(..) => {}
+                    PixelOp::Crop(..) => return Err("internal error"),
+                    _ => return Err("Invalid stored image dimensions"),
+                }
+            }
+            match op {
+                PixelOp::Modulate(values)=>{image.modulate(*values);channels=if image.alpha{4}else{3};},
+                PixelOp::Tint(fill)=>{image.tint(*fill);channels=if image.alpha{4}else{3};},
+                PixelOp::Replace(target,fill,fuzz,invert)=>image.replace_color(*target,*fill,*fuzz,*invert),
+                PixelOp::Linear(slope,offset)=>image.linear(*slope,*offset,channels==2),
+                PixelOp::Sigmoid(spec)=>image.sigmoidal_contrast(spec),
+                PixelOp::Level(spec,inverse)=>image.level(spec,*inverse),
+                PixelOp::Histogram(op)=>op.apply(image),
+                PixelOp::Sepia(strength)=>image.sepia(*strength),
+                PixelOp::Solarize(threshold)=>for p in &mut image.pixels {for c in &mut p[..3] {if f64::from(*c)>*threshold {*c=255-*c;}}},
+                PixelOp::Posterize(levels)=>image.posterize(*levels),
+                PixelOp::Raise(g,raised)=>image.raise(*g,*raised),
+                PixelOp::Vignette(bg)=>image.vignette(*bg),
+                PixelOp::Shadow(g,bg)=>image.shadow(*g,*bg,fs.max_input_bytes())?,
+                PixelOp::Gamma(g)=>image.gamma(*g),
+                PixelOp::Trim(fuzz)=>image.trim(*fuzz,fs.max_input_bytes())?,
+                PixelOp::Clear=>image.pixels.fill([0;4]),
+                PixelOp::Morph(method,radii)=>image.morphology(method,*radii,fs.max_input_bytes())?,
+                PixelOp::Convolve(weights,bias)=>image.convolve_rgb(weights,*bias,fs.max_input_bytes())?,
+                PixelOp::Sharpen(sigma)=>image.sharpen(*sigma,image.alpha || matches!(channels,2|4)),
+                PixelOp::Blur(sigma)=>image.blur(*sigma,image.alpha || matches!(channels,2|4)),
+                PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
+                PixelOp::Roll(g) => image.roll(*g),
+                PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
+                PixelOp::Chop(g,gravity) => image.chop(*g,*gravity),
+                PixelOp::Shave(g) => image.shave(*g),
+                PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
+                PixelOp::Extent(g,gravity,bg) => {image.extent(*g,*gravity,*bg,fs.max_input_bytes())?;channels=4;},
+                PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
+                PixelOp::Rotate(deg,bg) => {if !deg.is_finite() {return Err("Invalid rotation angle");}image.rotate(*deg,*bg,fs.max_input_bytes())?;},
+                PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
+                PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
+                PixelOp::Threshold(value) => image.threshold(*value),
+                PixelOp::ClipThreshold(value,white) => image.clip_threshold(*value,*white),
+                PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
+                PixelOp::Flip => image.orient(4),
+                PixelOp::Flop => image.orient(2),
+                PixelOp::AutoOrient => {image.orient(image.orientation.unwrap_or(1));image.orientation=Some(1);},
+            }
+        }
+        if image.width==0 || image.height==0 {return Err("internal error");}
+        Ok(matches!(channels,2|4))
+    };
+    let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
+        let info=matches!(dest.to_ascii_lowercase().as_str(),"info:"|"info:-");
+        let dest=png_pixels::destination(dest).or_else(||has_writes.then_some(("png",dest)))?;
+        let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
+        let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
+        let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
+        let transform=|image: &mut png_pixels::Raster| {
+            let channel_alpha=apply_pixels(image,0..ops.len(),gif_input)?;
+            if dest.0=="png" {image.alpha |= channel_alpha;}
+            Ok(())
+        };
+        let scene_name=magick_stack::SceneName::parse(dest.1);
+        let split=!adjoin || !matches!(scene_name,magick_stack::SceneName::Literal);
+        if use_stack || split {
+            let transform=|im:&mut png_pixels::Raster,range:std::ops::Range<usize>,gif| {
+                let keep_timing=!ops[range.clone()].iter().any(|op| matches!(op,PixelOp::Extent(..)));
+                let channel_alpha=apply_pixels(im,range,gif)?;
+                Ok((keep_timing,channel_alpha))
+            };
+            let target;
+            let steps=if is_mogrify {
+                target=std::iter::once((0,magick_stack::Step::Input(input,(1,1),kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)|magick_stack::Step::Write(..)))).collect::<Vec<_>>();
+                &target[..]
+            } else { &stack_steps[..] };
+            let mut snapshots=magick_stack::Snapshots::default();
+            let limit=fs.max_input_bytes();
+            let mut images=match magick_stack::evaluate(steps,ops.len(),transform,limit,|path|fs.read_file(&resolve_posix_path(cwd,path)),&mut snapshots) {
+                Ok(Some(images))=>images, Ok(None)=>return None,
+                Err(e)=>{
+                    let saved=snapshots.publish(cwd,fs);
+                    return Some(if saved.exit_code==0 {fail(&e)} else {saved});
+                }
+            };
+            if images.frames.is_empty() {
+                let saved=snapshots.publish(cwd,fs);
+                return Some(if saved.exit_code==0 {fail(&format!("no images defined '{}'",dest.1))} else {saved});
+            }
+            if info {
+                let text=images.frames.iter().map(|s|format!("{}x{} sRGB 8-bit\n",s.image.width,s.image.height)).collect::<String>();
+                let saved=snapshots.publish(cwd,fs);
+                return Some(if saved.exit_code==0 {ok_out(&text)} else {saved});
+            }
+            if split && images.frames.len()>1 {
+                if let Err(e)=images.stage_split(scene_name,dest,quality,limit,&mut snapshots) {return Some(fail(e));}
+                return Some(snapshots.publish(cwd,fs));
+            }
+            let bytes=if dest.0=="gif" {images.gif(timing,kernel,limit)}
+                else {images.frames.pop()?.encode(dest.0,quality,limit)};
+            let bytes=match bytes {Ok(b)=>b,Err(e)=>return Some(fail(e))};
+            if !has_writes {return Some(png_pixels::Raster::publish_bytes(&bytes,dest.1,cwd,fs));}
+            if dest.1=="-" {
+                let saved=snapshots.publish(cwd,fs);
+                return Some(if saved.exit_code==0 {png_pixels::Raster::publish_bytes(&bytes,"-",cwd,fs)} else {saved});
+            }
+            if let Err(e)=snapshots.stage(dest.1.to_owned(),bytes,limit) {return Some(fail(e));}
+            return Some(snapshots.publish(cwd,fs));
+        }
+        let mut image = if let Some((canvas,size)) = canvas {
+            match canvas.raster(size,fs.max_input_bytes()) { Ok(im)=>im,Err(e)=>return Some(fail(e)) }
+        } else if gif_input {
+            if dest.0 == "gif" {
+                // Extent composites each scene onto a new canvas with default timing.
+                let inherit_timing = !ops.iter().any(|op| matches!(op,PixelOp::Extent(..)));
+                match gif::edit_frames(bytes,fs.max_input_bytes(),inherit_timing,timing,transform) {
+                    Ok(Some(data))=>return Some(png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs)),
+                    Ok(None)=>{}, Err(e)=>return Some(fail(e)),
+                }
+            }
+            match gif::decode(bytes,usize::MAX,fs.max_input_bytes(), |_,_| Ok(())) {
+                Ok(im)=>im,
+                Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
+            }
+        } else {
+            match png_pixels::Raster::input(input,bytes,fs.max_input_bytes()) {
+                Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
+            }
+        };
+        if let Err(e)=transform(&mut image){return Some(fail(e));}
+        if dest.0 == "gif" && (delay.is_some() || repeat.is_some()) {
+            return Some(match gif::encode(image.width,image.height,&image.pixels,timing,fs.max_input_bytes()) {
+                Ok(data)=>png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs),
+                Err(e)=>fail(e),
+            });
+        }
+        Some(image.publish(dest,quality,cwd,fs))
+    };
+    let apply_ops = |meta: &mut ImageMeta| {
+        if let Some(ref rspec) = resize_spec {
+            let (rw, rh) = apply_magick_resize_geom(meta.w, meta.h, rspec);
+            meta.w = rw;
+            meta.h = rh;
+        }
+        if rot_deg.rem_euclid(180) != 0 {
+            std::mem::swap(&mut meta.w, &mut meta.h);
+        }
+        if transpose_swaps % 2 == 1 {
+            std::mem::swap(&mut meta.w, &mut meta.h);
+        }
+        if let Some((cw, ch)) = crop_opt {
+            meta.w = cw;
+            meta.h = ch;
+        }
+        if let Some((bw, bh)) = border_opt {
+            meta.w += bw * 2;
+            meta.h += bh * 2;
+        }
+        if let Some((ew, eh)) = extent_opt {
+            meta.w = ew;
+            meta.h = eh;
+        }
+        if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
+            meta.cs = "Gray".to_string();
+        }
+        if let Some((Canvas::Solid([r, g, b, _]),_)) = canvas {
+            meta.exif
+                .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
+        }
+        for op in &ops {
+            if let PixelOp::Negate(ch,only_gray)=op {
+                let mut pixel=meta.exif.get("__color").and_then(|c|parse_color(c).ok()).unwrap_or([255;4]);
+                magick_color::negate(&mut pixel,*ch,*only_gray);
+                let [r,g,b,_]=pixel;
+                meta.exif.insert("__color".into(),format!("#{r:02x}{g:02x}{b:02x}"));
+            }
+        }
+    };
+    if is_mogrify {
+        for f in &pos_files {
+            let full = resolve_posix_path(cwd, f);
+            let Ok(bytes) = fs.read_file(&full) else {
+                return err_out(
+                    &format!("mogrify: unable to open image '{f}': No such file or directory\n"),
+                    1,
+                );
+            };
+            let mut meta = read_image_meta(&bytes, &full);
+            apply_ops(&mut meta);
+            let dest = if mogrify_format.is_some() || mogrify_path.is_some() {
+                let (parent, name)=f.rsplit_once('/').unwrap_or(("",f));
+                let (stem, extension)=name.rsplit_once('.').unwrap_or((name,"png"));
+                let extension=mogrify_format.as_deref().unwrap_or(extension);
+                let dir=mogrify_path.as_deref().unwrap_or(parent).trim_end_matches('/');
+                if dir.is_empty() {format!("{stem}.{extension}")} else {format!("{dir}/{stem}.{extension}")}
+            } else { f.clone() };
+            let dst_full=resolve_posix_path(cwd,&dest);
+            if mogrify_format.is_some() {
+                meta.fmt = format_from_path(&dest).to_string();
+            }
+            if let Some(out) = raster_output(&full, &bytes, &dest) {
+                if out.exit_code!=0 {return out;}
+                continue;
+            }
+            let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
+        }
+        return ok_out("");
+    }
+    if pos_files.is_empty() && !has_pseudo_input {
+        let last_arg = args.last().map(|s| s.as_str()).unwrap_or("");
+        return err_out(&format!("magick: no images defined '{last_arg}'\n"), 1);
+    }
+    if pos_files.len() == 1 && !has_pseudo_input {
+        return err_out(&format!("magick: no images defined '{}'\n", pos_files[0]), 1);
+    }
+    if let Some(out_rel) = pos_files.last() {
+        let out_full = resolve_posix_path(cwd, out_rel);
+        if use_stack || canvas.is_some() && pos_files.len()==1 {
+            if let Some(out)=raster_output("", &[], out_rel) {return out;}
+        } else if !has_pseudo_input && pos_files.len()==2 {
+            let path=png_pixels::destination(&pos_files[0]).map_or(pos_files[0].as_str(), |(_, path)| path);
+            if let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) && let Some(out)=raster_output(path,&bytes,out_rel) {return out;}
+        }
+        for in_rel in &pos_files[..pos_files.len() - 1] {
+            if in_rel != "-" && !in_rel.contains(':') {
+                let clean_in = magick_stack::input_spec(in_rel).0;
+                let in_full = resolve_posix_path(cwd, clean_in);
+                if fs.is_dir(&in_full) || fs.read_file(&in_full).is_err() {
+                    return err_out(&format!("magick: no images defined '{out_rel}'\n"), 1);
+                }
+            }
+        }
+        let mut meta = if let Some(vertical) = append_mode
+            && pos_files.len() >= 2
+        {
+            let mut total_w = 0u32;
+            let mut total_h = 0u32;
+            let mut first_meta: Option<ImageMeta> = None;
+            for in_rel in &pos_files[..pos_files.len() - 1] {
+                let in_full = resolve_posix_path(cwd, in_rel);
+                let im = fs
+                    .read_file(&in_full)
+                    .map(|b| read_image_meta(&b, &in_full))
+                    .unwrap_or_else(|_| read_image_meta(&[], &in_full));
+                if vertical {
+                    total_w = total_w.max(im.w);
+                    total_h += im.h;
+                } else {
+                    total_w += im.w;
+                    total_h = total_h.max(im.h);
+                }
+                if first_meta.is_none() {
+                    first_meta = Some(im);
+                }
+            }
+            let mut base = first_meta.unwrap_or_else(|| read_image_meta(&[], &out_full));
+            base.w = total_w.max(1);
+            base.h = total_h.max(1);
+            base
+        } else if pos_files.len() >= 2 {
+            let in_full = resolve_posix_path(cwd, &pos_files[0]);
+            fs.read_file(&in_full)
+                .map(|b| read_image_meta(&b, &in_full))
+                .unwrap_or_else(|_| read_image_meta(&[], &in_full))
+        } else {
+            let (w, h) = size_opt.unwrap_or(if canvas.is_some() { (1, 1) } else { (32, 32) });
+            ImageMeta {
+                fmt: format_from_path(&out_full).to_string(),
+                w,
+                h,
+                cs: "sRGB".to_string(),
+                exif: BTreeMap::new(),
+            }
+        };
+        apply_ops(&mut meta);
+        if out_full.to_ascii_lowercase().ends_with(".pdf") {
+            let mut pdf = PdfDoc::new();
+            pdf.pages.push(PdfPage {
+                rot: 0,
+                text: String::new(),
+                html: String::new(),
+                images: vec![(meta.w, meta.h, meta.fmt.clone())],
+                urls: Vec::new(),
+            });
+            let _ = fs.write_file(&out_full, &pdf.serialize());
+        } else {
+            meta.fmt = format_from_path(&out_full).to_string();
+            let _ = fs.write_file(&out_full, &write_image_bytes(&meta));
+        }
+    }
+    ok_out("")
+}
+
+fn cmd_composite(cmd: &str, args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if let Some(r)=magick_composite::run(cmd,args,cwd,fs) { return r; }
+    if let Some(list_out) = try_magick_list_option(args) {
+        return list_out;
+    }
+    let mut operands: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-gravity" | "-geometry" | "-compose" | "-background" | "-quality"
+            | "-define" | "-dissolve" | "-blend" | "-watermark"
+                if i + 1 < args.len() =>
+            {
+                i += 2;
+            }
+            a if a.starts_with('-') => {
+                i += 1;
+            }
+            a => {
+                operands.push(a.to_string());
+                i += 1;
+            }
+        }
+    }
+    if operands.len() < 3 {
+        return err_out("composite: missing an image filename\n", 1);
+    }
+    let overlay_rel = &operands[0];
+    let base_rel = &operands[1];
+    let out_rel = operands.last().unwrap();
+    for src_rel in [overlay_rel, base_rel] {
+        if !src_rel.contains(':') {
+            let src_full = resolve_posix_path(cwd, src_rel);
+            if fs.read_file(&src_full).is_err() {
+                return err_out(
+                    &format!("magick: no images defined '{out_rel}'\n"),
+                    1,
+                );
+            }
+        }
+    }
+    let base_full = resolve_posix_path(cwd, base_rel);
+    let mut base_meta = fs
+        .read_file(&base_full)
+        .map(|b| read_image_meta(&b, &base_full))
+        .unwrap_or_else(|_| read_image_meta(&[], &base_full));
+    let out_full = resolve_posix_path(cwd, out_rel);
+    base_meta.fmt = format_from_path(&out_full).to_string();
+    base_meta
+        .exif
+        .insert("__COMPOSITE__".to_string(), format!("{overlay_rel}:{}", args.join(",")));
+    let _ = fs.write_file(&out_full, &write_image_bytes(&base_meta));
+    ok_out("")
+}
+
+fn cmd_montage(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if let Some(list_out) = try_magick_list_option(args) {
+        return list_out;
+    }
+    let mut quality=92.;
+    let mut tile_cols: Option<usize> = None;
+    let mut tile_rows: Option<usize> = None;
+    let mut cell_w: Option<u32> = None;
+    let mut cell_h: Option<u32> = None;
+    let mut pad_x = 2u32;
+    let mut pad_y = 2u32;
+    let mut border_w = 0u32;
+    let mut background = [255;4];
+    let mut border_color = [223,223,223,255];
+    let mut gravity = String::from("northwest");
+    let mut operands: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-tile" if i + 1 < args.len() => {
+                let t = &args[i + 1];
+                if let Some((cs, rs)) = t.split_once('x') {
+                    if !cs.is_empty() {
+                        tile_cols = cs.parse().ok();
+                    }
+                    if !rs.is_empty() {
+                        tile_rows = rs.parse().ok();
+                    }
+                } else {
+                    tile_cols = t.parse().ok();
+                }
+                i += 2;
+            }
+            "-geometry" | "-thumbnail" if i + 1 < args.len() => {
+                let g = &args[i + 1];
+                let mut parts = g.split('+');
+                let dim_part = parts.next().unwrap_or("");
+                if let Some(px_s) = parts.next() {
+                    pad_x = px_s.parse().unwrap_or(2);
+                    if let Some(py_s) = parts.next() {
+                        pad_y = py_s.parse().unwrap_or(2);
+                    }
+                }
+                let clean_dim = dim_part.trim_end_matches(['!', '^', '>', '<']);
+                if let Some((ws, hs)) = clean_dim.split_once('x') {
+                    if !ws.is_empty() {
+                        cell_w = ws.parse().ok();
+                    }
+                    if !hs.is_empty() {
+                        cell_h = hs.parse().ok();
+                    }
+                } else if !clean_dim.is_empty() {
+                    cell_w = clean_dim.parse().ok();
+                }
+                i += 2;
+            }
+            "-border" | "-frame" if i + 1 < args.len() => {
+                let b = args[i + 1].split('x').next().unwrap_or("0");
+                border_w = b.parse().unwrap_or(0);
+                i += 2;
+            }
+            "-background" | "-bordercolor" if i+1 < args.len() => {
+                let c=match parse_color(&args[i+1]) {Ok(c)=>c,Err(e)=>return err_out(&format!("montage: {e}\n"),1)};
+                if args[i]=="-background" {background=c;} else {border_color=c;}
+                i+=2;
+            }
+            "-gravity" if i+1 < args.len() => {gravity=args[i+1].to_ascii_lowercase().replace(['-','_',' '],"");i+=2;}
+            "-quality" if i+1<args.len()=>{quality=js_number(&args[i+1],1.);i+=2;}
+            "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-mode"
+                if i + 1 < args.len() => {i+=2;}
+            a if a.starts_with('-') => {
+                i += 1;
+            }
+            a => {
+                operands.push(a.to_string());
+                i += 1;
+            }
+        }
+    }
+    if operands.len() < 2 {
+        return err_out("montage: missing an image filename\n", 1);
+    }
+    let in_paths = &operands[..operands.len() - 1];
+    let out_rel = operands.last().unwrap();
+    let mut thumb_dims = Vec::new();
+    let mut tiles=Vec::new();
+    let limit=fs.max_input_bytes();
+    let mut retained=0;
+    let spec=format!("{}x{}",cell_w.map(|v|v.to_string()).unwrap_or_default(),cell_h.map(|v|v.to_string()).unwrap_or_default());
+    let destination=png_pixels::destination(out_rel);
+    for p in in_paths {
+        let kernel=magick_resize::Kernel::Lanczos3;
+        let base=magick_stack::input_spec(magick_stack::tile_pattern(p).unwrap_or(p)).0;
+        let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
+        let full=resolve_posix_path(cwd,path);
+        if destination.is_some() {
+            let step=magick_stack::Step::Input(p,(1,1),kernel);
+            match magick_stack::evaluate(&[(0,step)],0,|im,_,_|{
+                im.resize(&spec,kernel,limit)?;
+                Ok((false,false))
+            },limit,|_|fs.read_file(&full),&mut Default::default()) {
+                Ok(Some(images)) if images.frames.is_empty()=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1),
+                Ok(Some(images))=>{
+                    for scene in images.frames {
+                        let image=scene.image;
+                        if image.pixels.len()>limit/4-retained{return err_out("montage: image exceeds memory budget\n",1);}
+                        retained+=image.pixels.len();
+                        thumb_dims.push(((image.width as u32).saturating_add(border_w.saturating_mul(2)),(image.height as u32).saturating_add(border_w.saturating_mul(2))));
+                        tiles.push(image);
+                    }
+                    continue;
+                }
+                Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
+                Ok(None)=>{}
+            }
+        }
+        let bytes=if Canvas::parse(base).is_some(){Vec::new()}else{
+            match fs.read_file(&full){Ok(bytes)=>bytes,Err(_)=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1)}
+        };
+        let meta=read_image_meta(&bytes,&full);
+        let (w,h)=apply_magick_resize_geom(meta.w,meta.h,&spec);
+        thumb_dims.push((w.saturating_add(border_w.saturating_mul(2)),h.saturating_add(border_w.saturating_mul(2))));
+    }
+    let n = thumb_dims.len();
+    let cols = tile_cols.unwrap_or_else(|| {
+        if let Some(tr) = tile_rows {
+            n.div_ceil(tr.max(1))
+        } else {
+            (n as f64).sqrt().ceil() as usize
+        }
+    });
+    let rows = tile_rows.unwrap_or_else(|| n.div_ceil(cols.max(1)));
+    let max_thumb_w = thumb_dims
+        .iter()
+        .map(|(w, _)| *w)
+        .fold(cell_w.unwrap_or(0), u32::max);
+    let max_thumb_h = thumb_dims
+        .iter()
+        .map(|(_, h)| *h)
+        .fold(cell_h.unwrap_or(0), u32::max);
+    let slot_w = max_thumb_w.saturating_add(pad_x.saturating_mul(2));
+    let slot_h = max_thumb_h.saturating_add(pad_y.saturating_mul(2));
+    let canvas_w = cols.saturating_mul(slot_w as usize).max(1);
+    let canvas_h = rows.saturating_mul(slot_h as usize).max(1);
+    if canvas_w.saturating_mul(canvas_h)>limit/4 {return err_out("montage: image exceeds memory budget\n",1);}
+    if tiles.len()==n && let Some(dest)=destination {
+        let mut sheet=png_pixels::Raster {width:canvas_w,height:canvas_h,density:72,orientation:None,gray:false,alpha:background[3]<255 || (border_w>0 && border_color[3]<255),pixels:vec![background;canvas_w*canvas_h]};
+        for (i,(tile,(tw,th))) in tiles.iter().zip(thumb_dims).enumerate() {
+            if cols==0 || i/cols>=rows {break;}
+            let dx=max_thumb_w-tw;let dy=max_thumb_h-th;
+            let ox=match gravity.as_str() {"northwest"|"west"|"southwest"=>0,"northeast"|"east"|"southeast"=>dx,_=>dx/2};
+            let oy=match gravity.as_str() {"northwest"|"north"|"northeast"=>0,"southwest"|"south"|"southeast"=>dy,_=>dy/2};
+            let left=(i%cols)*slot_w as usize+(pad_x+ox) as usize;
+            let top=(i/cols)*slot_h as usize+(pad_y+oy) as usize;
+            for y in 0..th {for x in 0..tw {
+                let src=if y>=border_w && y<th-border_w && x>=border_w && x<tw-border_w {
+                    tile.pixels[(y-border_w) as usize*tile.width+(x-border_w) as usize]
+                }else{border_color};
+                sheet.alpha |= src[3]<255;
+                let d=&mut sheet.pixels[(top+y as usize)*canvas_w+left+x as usize];
+                *d=magick_composite::blend(src,*d,"over",1.,1.);
+            }}
+        }
+        return sheet.publish(dest,quality,cwd,fs);
+    }
+    let out_full = resolve_posix_path(cwd, out_rel);
+    let out_meta = ImageMeta {
+        fmt: format_from_path(&out_full).to_string(),
+        w: canvas_w as u32,
+        h: canvas_h as u32,
+        cs: "sRGB".to_string(),
+        exif: BTreeMap::new(),
+    };
+    let _ = fs.write_file(&out_full, &write_image_bytes(&out_meta));
+    ok_out("")
+}
+
+fn cmd_compare(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if let Some(list_out) = try_magick_list_option(args) {
+        return list_out;
+    }
+    let mut metric = "rmse".to_string();
+    let mut options = magick_compare::Options {
+        fuzz: 0., highlight: [241,0,30,255], lowlight: None, compose_src: false, threshold: None, density: 72, quality:92.,
+    };
+    let mut operands: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-help" | "--help" | "-h" => {
+                return ok_out("Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n");
+            }
+            "-metric" if i + 1 < args.len() => {
+                metric = args[i + 1].to_ascii_lowercase();
+                i += 2;
+            }
+            "-fuzz" if i + 1 < args.len() => {
+                let value = &args[i+1];
+                options.fuzz = magick_fuzz(value);
+                i+=2;
+            }
+            "-highlight-color" | "-lowlight-color" if i + 1 < args.len() => {
+                let color = match parse_color(&args[i+1]) { Ok(color) => color, Err(e) => return err_out(&format!("compare: {e}\n"), 2) };
+                if args[i]=="-highlight-color" { options.highlight=color; } else { options.lowlight=Some(color); }
+                i+=2;
+            }
+            "-compose" | "-dissimilarity-threshold" | "-density" | "-quality" | "-format" | "-alpha" | "-channel" if i+1 < args.len() => {
+                let value=&args[i+1];
+                match args[i].as_str() {
+                    "-quality" => options.quality=js_number(value,1.),
+                    "-compose" => options.compose_src |= matches!(value.to_ascii_lowercase().as_str(),"src"|"source"|"copy"),
+                    "-density" => options.density=value.split('x').next().and_then(|v|v.parse::<f64>().ok()).unwrap_or(72.).round().max(1.) as u32,
+                    "-dissimilarity-threshold" => options.threshold=Some(value.parse().unwrap_or(f64::NAN)), _=>{}
+                }
+                i+=2;
+            }
+            a if a.starts_with('-') && a != "-" => {
+                i += 1;
+            }
+            a => {
+                operands.push(a.to_string());
+                i += 1;
+            }
+        }
+    }
+    if operands.len() < 2 {
+        return err_out("compare: missing an image filename\n", 2);
+    }
+    let load_cmp_img = |spec: &str| -> Result<(ImageMeta, Vec<u8>), String> {
+        let base=magick_stack::tile_operand(spec).0;
+        if let Some(canvas)=Canvas::parse(base) {
+            let [r,g,b,_]=canvas.map_err(|e|format!("compare: {e}\n"))?.pixel(0,0,1,1);
+            let mut ex = BTreeMap::new();
+            ex.insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
+            let m = ImageMeta {
+                fmt: "PNG".to_string(),
+                w: 1,
+                h: 1,
+                cs: "sRGB".to_string(),
+                exif: ex,
+            };
+            let bytes = write_image_bytes(&m);
+            return Ok((m, bytes));
+        }
+        let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
+        let full = resolve_posix_path(cwd,path);
+        match fs.read_file(&full) {
+            Ok(bytes) => {
+                if bytes.is_empty() {
+                    return Err(format!("compare: improper image header '{spec}'\n"));
+                }
+                Ok((read_image_meta(&bytes, &full), bytes))
+            }
+            Err(_) => Err(format!(
+                "compare: unable to open image '{spec}': No such file or directory\n"
+            )),
+        }
+    };
+    let (meta_a, bytes_a) = match load_cmp_img(&operands[0]) {
+        Ok(v) => v,
+        Err(e) => return err_out(&e, 2),
+    };
+    let (meta_b, bytes_b) = match load_cmp_img(&operands[1]) {
+        Ok(v) => v,
+        Err(e) => return err_out(&e, 2),
+    };
+    let default_null = "null:".to_string();
+    let out_spec = operands.get(2).unwrap_or(&default_null);
+    let raster = |spec: &str, bytes: &[u8]| -> Result<Option<png_pixels::Raster>,String>{
+        let (base,modifier,tiles)=magick_stack::tile_operand(spec);
+        let limit=fs.max_input_bytes();
+        let mut im=if let magick_stack::Modifier::Pages(pages)=modifier
+            && png_pixels::still_format(bytes)==Some("gif") {
+            let mut count=0;
+            let _=gif::packets(bytes,|_,_|{count+=1;Ok(())});
+            gif::decode(bytes,magick_stack::first_page(pages,count)+1,limit,|_,_|Ok(()))?
+        }else if let Some(im)=png_pixels::Raster::input(base,bytes,limit)? {im}else{return Ok(None)};
+        modifier.geometry(&mut im,magick_resize::Kernel::Lanczos3,limit)?;
+        im.apply_tiles(&tiles,(1,1),magick_resize::Kernel::Lanczos3,limit)?;
+        Ok(Some(im))
+    };
+    let dest=png_pixels::destination(out_spec);
+    if out_spec.eq_ignore_ascii_case("null:") || dest.is_some() {
+        match (raster(&operands[0], &bytes_a),raster(&operands[1], &bytes_b)) {
+            (Ok(Some(a)), Ok(Some(b))) => return magick_compare::compare([&a,&b],&metric,&options,dest,cwd,fs),
+            (Err(e),_) | (_,Err(e)) => return err_out(&format!("compare: improper image header: {e}\n"),2),
+            _ => {}
+        }
+    }
+    let width = meta_a.w.max(meta_b.w);
+    let height = meta_a.h.max(meta_b.h);
+    let color_a = meta_a.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
+    let color_b = meta_b.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
+    let [ra,ga,ba,_] = parse_color(color_a).unwrap_or([255;4]);
+    let [rb,gb,bb,_] = parse_color(color_b).unwrap_or([255;4]);
+    let max_ch_diff = (ra as i32 - rb as i32)
+        .abs()
+        .max((ga as i32 - gb as i32).abs())
+        .max((ba as i32 - bb as i32).abs()) as f64;
+    let fuzz_abs = options.fuzz;
+    let same_pixels = (bytes_a == bytes_b)
+        || (meta_a.w == meta_b.w
+            && meta_a.h == meta_b.h
+            && (!color_a.is_empty() || !color_b.is_empty())
+            && max_ch_diff <= fuzz_abs);
+    let total_pixels = (width as u64) * (height as u64);
+    let (metric_str, exit_code) = if same_pixels {
+        let s = match metric.as_str() {
+            "ae" => "0".to_string(),
+            "psnr" => "inf".to_string(),
+            "ncc" | "ssim" => "1".to_string(),
+            "dssim" => "0".to_string(),
+            _ => "0 (0)".to_string(),
+        };
+        (s, 0)
+    } else {
+        let dr = (ra as f64 - rb as f64).abs();
+        let dg = (ga as f64 - gb as f64).abs();
+        let db = (ba as f64 - bb as f64).abs();
+        let mae_norm = if dr + dg + db > 0.0 {
+            (dr + dg + db) / (3.0 * 255.0)
+        } else {
+            1.0
+        };
+        let mse_norm = if dr + dg + db > 0.0 {
+            (dr * dr + dg * dg + db * db) / (3.0 * 255.0 * 255.0)
+        } else {
+            1.0
+        };
+        let rmse_norm = mse_norm.sqrt();
+        let pae_norm = if max_ch_diff > 0.0 { max_ch_diff / 255.0 } else { 1.0 };
+        let fmt_num = |n: f64| -> String {
+            if !n.is_finite() {
+                return "inf".to_string();
+            }
+            if n.abs() < 1e-9 {
+                return "0".to_string();
+            }
+            let s = format!("{n:.6}");
+            let s = s.trim_end_matches('0').trim_end_matches('.');
+            if s == "-0" || s.is_empty() { "0".to_string() } else { s.to_string() }
+        };
+        let s = match metric.as_str() {
+            "ae" => total_pixels.to_string(),
+            "mae" => format!("{} ({})", fmt_num(mae_norm * 65535.0), fmt_num(mae_norm)),
+            "mse" => format!("{} ({})", fmt_num(mse_norm * 65535.0), fmt_num(mse_norm)),
+            "pae" => format!("{} ({})", fmt_num(pae_norm * 65535.0), fmt_num(pae_norm)),
+            "psnr" => fmt_num(10.0 * (1.0 / mse_norm).log10()),
+            "ncc" | "ssim" => "0".to_string(),
+            "dssim" => "0.5".to_string(),
+            _ => format!("{} ({})", fmt_num(rmse_norm * 65535.0), fmt_num(rmse_norm)),
+        };
+        (s, 1)
+    };
+    if !out_spec.eq_ignore_ascii_case("null:") {
+        let clean_out = out_spec
+            .split_once(':')
+            .map(|(_, r)| r)
+            .unwrap_or(out_spec.as_str());
+        let diff_meta = ImageMeta {
+            fmt: format_from_path(clean_out).to_string(),
+            w: width,
+            h: height,
+            cs: "sRGB".to_string(),
+            exif: BTreeMap::new(),
+        };
+        let encoded = write_image_bytes(&diff_meta);
+        if clean_out == "-" {
+            return BuiltinOutcome {
+                stdout: crate::vfs::bytes_to_stream_string(&encoded),
+                stderr: format!("{metric_str}\n"),
+                exit_code,
+            };
+        }
+        let out_full = resolve_posix_path(cwd, clean_out);
+        let _ = fs.write_file(&out_full, &encoded);
+    }
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr: format!("{metric_str}\n"),
+        exit_code,
+    }
+}
+
+fn cmd_identify(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if let Some(list_out) = try_magick_list_option(args) {
+        return list_out;
+    }
+    let mut fmt_opt: Option<String> = None;
+    let mut verbose = false;
+    let mut files: Vec<String> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = args[i].as_str();
+        if a == "-version" || a == "--version" {
+            return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
+        }
+        if a == "-help" || a == "--help" || a == "-h" {
+            return ok_out("Usage: identify [-ping] [-verbose] [-format FORMAT] file...\n");
+        }
+        if (a == "-format" || a == "--format") && i + 1 < args.len() {
+            fmt_opt = Some(args[i + 1].clone());
+            i += 2;
+            continue;
+        }
+        if a == "-verbose" || a == "--verbose" {
+            verbose = true;
+            i += 1;
+            continue;
+        }
+        if a == "-ping" || a == "--ping" {
+            i += 1;
+            continue;
+        }
+        if !a.starts_with('-') || a == "-" {
+            files.push(args[i].clone());
+        }
+        i += 1;
+    }
+    if files.is_empty() {
+        return err_out("identify: missing an image filename\n", 1);
+    }
+    let mut out = String::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
+    for f in &files {
+        let operand = identify::operand(f);
+        let full = resolve_posix_path(cwd, operand.0);
+        let data = if operand.0 == "-" { Ok(crate::vfs::stream_string_to_bytes(stdin)) } else { fs.read_file(&full) };
+        let Ok(bytes) = data else {
+            err_buf.push_str(&format!(
+                "identify: unable to open image '{f}': No such file or directory\n"
+            ));
+            exit_code = 1;
+            continue;
+        };
+        let (meta, depth, channels, dpi) = match inspect_raster(&bytes, &full, fs.max_input_bytes()) {
+            Ok(info) => info,
+            Err(reason) => {
+                err_buf.push_str(&format!("identify: improper image header '{f}': {reason}\n"));
+                exit_code = 1;
+                continue;
+            }
+        };
+        let display_depth = if depth < 8 { 1 } else { depth };
+        let space = if depth == 16 && matches!(meta.fmt.as_str(),"PNG" | "TIFF") { "sRGB" } else { &meta.cs };
+        if let Some(ref fmt_str) = fmt_opt {
+            if let Err(e) = identify::format(fmt_str, operand, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
+                return err_out(&format!("identify: {e}\n"), 1);
+            }
+        } else if verbose {
+            let details = if png_pixels::still_format(&bytes).is_some() {
+                match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
+                    Ok(image) => {
+                        let alpha = if meta.has_alpha(channels) { "True" } else { "False" };
+                        format!("  Channels: {channels}\n  Alpha: {alpha}\n  Filesize: {}B\n  Entropy: {:.4}\n", bytes.len(), image.entropy())
+                    }
                     Err(reason) => {
                         err_buf.push_str(&format!("identify: improper image header '{f}': {reason}\n"));
                         exit_code = 1;
                         continue;
                     }
-                };
-                let display_depth = if depth < 8 { 1 } else { depth };
-                let space = if depth == 16 && matches!(meta.fmt.as_str(),"PNG" | "TIFF") { "sRGB" } else { &meta.cs };
-                if let Some(ref fmt_str) = fmt_opt {
-                    if let Err(e) = identify::format(fmt_str, operand, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
-                        return err_out(&format!("identify: {e}\n"), 1);
-                    }
-                } else if verbose {
-                    let details = if png_pixels::still_format(&bytes).is_some() {
-                        match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
-                            Ok(image) => {
-                                let alpha = if meta.has_alpha(channels) { "True" } else { "False" };
-                                format!("  Channels: {channels}\n  Alpha: {alpha}\n  Filesize: {}B\n  Entropy: {:.4}\n", bytes.len(), image.entropy())
-                            }
-                            Err(reason) => {
-                                err_buf.push_str(&format!("identify: improper image header '{f}': {reason}\n"));
-                                exit_code = 1;
-                                continue;
-                            }
-                        }
-                    } else { format!("  Filesize: {}B\n", bytes.len()) };
-                    out.push_str(&format!(
-                        "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: {dpi}x{dpi}\n  Colorspace: {}\n  Depth: {display_depth}-bit\n{details}",
-                        meta.fmt, meta.w, meta.h, space
-                    ));
-                } else {
-                    out.push_str(&format!(
-                        "{f} {} {}x{} {}x{}+0+0 {display_depth}-bit {} {}B 0.000u 0:00.000\n",
-                        meta.fmt, meta.w, meta.h, meta.w, meta.h, space, bytes.len()
-                    ));
                 }
+            } else { format!("  Filesize: {}B\n", bytes.len()) };
+            out.push_str(&format!(
+                "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: {dpi}x{dpi}\n  Colorspace: {}\n  Depth: {display_depth}-bit\n{details}",
+                meta.fmt, meta.w, meta.h, space
+            ));
+        } else {
+            out.push_str(&format!(
+                "{f} {} {}x{} {}x{}+0+0 {display_depth}-bit {} {}B 0.000u 0:00.000\n",
+                meta.fmt, meta.w, meta.h, meta.w, meta.h, space, bytes.len()
+            ));
+        }
+    }
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
+}
+
+fn cmd_sips(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.is_empty() {
+        return err_out(
+            "sips: no arguments specified. Try 'sips --help' for help.\n",
+            1,
+        );
+    }
+    let mut get_props: Vec<String> = Vec::new();
+    let mut one_line = false;
+    let mut has_mod = false;
+    let mut verify_mode = false;
+    let mut out_path: Option<String> = None;
+    let mut files: Vec<String> = Vec::new();
+    let mut ops: Vec<(&str, String, String)> = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-h" | "--help" => {
+                return ok_out(
+                    "sips - scriptable image processing system\nUsage: sips [options] file ...\n  -g, --getProperty <key>\n  -s, --setProperty <key> <value>\n  -Z, --resampleHeightWidthMax <size>\n  -z, --resampleHeightWidth <height> <width>\n  --resampleWidth <width>\n  --resampleHeight <height>\n  -c, --cropToHeightWidth <height> <width>\n  --cropOffset <offsetY> <offsetX>\n  -p, --padToHeightWidth <height> <width>\n  --padColor <hexColor>\n  -r, --rotate <degrees>\n  -f, --flip horizontal|vertical\n  -o, --out <file-or-directory>\n",
+                );
             }
-            BuiltinOutcome {
-                stdout: out,
-                stderr: err_buf,
-                exit_code,
+            "-v" | "--version" => {
+                return ok_out("sips 10.4.4\n");
+            }
+            "-H" | "--helpProperties" => {
+                return ok_out(
+                    "pixelWidth\npixelHeight\ntypeIdentifier\nformat\nformatOptions\ndpiWidth\ndpiHeight\nsamplesPerPixel\nbitsPerSample\nhasAlpha\nspace\nall\nallxml\n",
+                );
+            }
+            "--formats" => {
+                return ok_out(
+                    "Supported Formats:\n-------------------------------------------\ncom.adobe.pdf                pdf   Writable\ncom.compuserve.gif           gif   Writable\ncom.microsoft.bmp            bmp   Writable\norg.webmproject.webp         webp  Writable\npublic.avif                  avif  Writable\npublic.heic                  heic  Writable\npublic.heif                  heif  Writable\npublic.jpeg                  jpeg  Writable\npublic.png                   png   Writable\npublic.tiff                  tiff  Writable\n",
+                );
+            }
+            "--verify" => {
+                verify_mode = true;
+                i += 1;
+            }
+            "-1" | "--oneLine" => {
+                one_line = true;
+                i += 1;
+            }
+            "-g" | "--getProperty" => {
+                if i + 1 >= args.len() {
+                    return err_out("sips: missing argument for -g\n", 1);
+                }
+                get_props.push(args[i + 1].clone());
+                i += 2;
+            }
+            "-d" | "--deleteProperty" => {
+                if i + 1 >= args.len() {
+                    return err_out("sips: missing argument for -d\n", 1);
+                }
+                has_mod = true;
+                ops.push(("d", args[i + 1].clone(), String::new()));
+                i += 2;
+            }
+            "-z" | "--resampleHeightWidth" => {
+                let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
+                    return err_out("sips: invalid dimensions for -z\n", 1);
+                }
+                has_mod = true;
+                ops.push(("z", args[i + 1].clone(), args[i + 2].clone()));
+                i += 3;
+            }
+            "-Z" | "--resampleHeightWidthMax" => {
+                let max_dim = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                if !max_dim.is_finite() || max_dim <= 0.0 {
+                    return err_out("sips: invalid size for -Z\n", 1);
+                }
+                has_mod = true;
+                ops.push(("Z", args[i + 1].clone(), String::new()));
+                i += 2;
+            }
+            "--resampleWidth" => {
+                let w = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                if !w.is_finite() || w <= 0.0 {
+                    return err_out("sips: invalid width for --resampleWidth\n", 1);
+                }
+                has_mod = true;
+                ops.push(("rw", args[i + 1].clone(), String::new()));
+                i += 2;
+            }
+            "--resampleHeight" => {
+                let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                if !h.is_finite() || h <= 0.0 {
+                    return err_out("sips: invalid height for --resampleHeight\n", 1);
+                }
+                has_mod = true;
+                ops.push(("rh", args[i + 1].clone(), String::new()));
+                i += 2;
+            }
+            "-r" | "--rotate" => {
+                if i + 1 >= args.len()
+                    || args[i + 1]
+                        .parse::<f64>()
+                        .map(|v| !v.is_finite())
+                        .unwrap_or(true)
+                {
+                    return err_out("sips: invalid degrees for -r\n", 1);
+                }
+                has_mod = true;
+                ops.push(("r", args[i + 1].clone(), String::new()));
+                i += 2;
+            }
+            "-f" | "--flip" => {
+                let dir = args
+                    .get(i + 1)
+                    .map(|s| s.to_ascii_lowercase())
+                    .unwrap_or_default();
+                if dir != "horizontal" && dir != "vertical" {
+                    return err_out(
+                        "sips: flip direction must be 'horizontal' or 'vertical'\n",
+                        1,
+                    );
+                }
+                has_mod = true;
+                ops.push(("f", dir, String::new()));
+                i += 2;
+            }
+            "-c" | "--cropToHeightWidth" => {
+                let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
+                    return err_out("sips: invalid dimensions for -c\n", 1);
+                }
+                has_mod = true;
+                ops.push(("c", args[i + 1].clone(), args[i + 2].clone()));
+                i += 3;
+            }
+            "--cropOffset" => {
+                let oy = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(f64::NAN);
+                let ox = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(f64::NAN);
+                if !oy.is_finite() || !ox.is_finite() {
+                    return err_out("sips: invalid offset for --cropOffset\n", 1);
+                }
+                ops.push(("offset", args[i+1].clone(), args[i+2].clone()));
+                i += 3;
+            }
+            "-p" | "--padToHeightWidth" => {
+                let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
+                    return err_out("sips: invalid dimensions for -p\n", 1);
+                }
+                has_mod = true;
+                ops.push(("p", args[i + 1].clone(), args[i + 2].clone()));
+                i += 3;
+            }
+            "--padColor" => {
+                ops.push(("color", args.get(i+1).cloned().unwrap_or_else(|| "000000".into()), String::new()));
+                i += 2;
+            }
+            "-s" | "--setProperty" => {
+                if i + 2 >= args.len() {
+                    return err_out("sips: missing argument for -s\n", 1);
+                }
+                if args[i + 1] == "format" {
+                    let lower = args[i + 2].trim().to_ascii_lowercase();
+                    if !matches!(
+                        lower.as_str(),
+                        "png"
+                            | "public.png"
+                            | "jpeg"
+                            | "jpg"
+                            | "public.jpeg"
+                            | "webp"
+                            | "org.webmproject.webp"
+                            | "heic"
+                            | "public.heic"
+                            | "heif"
+                            | "public.heif"
+                            | "avif"
+                            | "public.avif"
+                            | "gif"
+                            | "com.compuserve.gif"
+                            | "ppm"
+                            | "public.ppm"
+                            | "pgm"
+                            | "pbm"
+                            | "public.pbm"
+                            | "bmp"
+                            | "com.microsoft.bmp"
+                            | "tiff"
+                            | "tif"
+                            | "public.tiff"
+                            | "pdf"
+                            | "com.adobe.pdf"
+                    ) {
+                        return err_out(
+                            &format!("Error:Unsupported format: {}\n", args[i + 2]),
+                            1,
+                        );
+                    }
+                }
+                has_mod = true;
+                ops.push(("s", args[i + 1].clone(), args[i + 2].clone()));
+                i += 3;
+            }
+            "--deleteColorManagementProperties"
+            | "--optimizeColorForSharing"
+            | "-i"
+            | "--addIcon"
+            | "--repair"
+            | "--debug" => {
+                if args[i] == "--deleteColorManagementProperties" {
+                    ops.push(("s", "profile".into(), "sRGB IEC61966-2.1".into()));
+                }
+                has_mod = true;
+                i += 1;
+            }
+            "-x" | "--extractProfile" => {
+                if i + 1 >= args.len() {
+                    return err_out(&format!("sips: missing argument for {}\n", args[i]), 1);
+                }
+                verify_mode = true;
+                i += 2;
+            }
+            "-m" | "--matchTo" | "-e" | "--embedProfile" | "-E"
+            | "--embedProfileIfNone" | "--deleteTag" => {
+                if i + 1 >= args.len() {
+                    return err_out(&format!("sips: missing argument for {}\n", args[i]), 1);
+                }
+                has_mod = true;
+                i += 2;
+            }
+            "-M" | "--matchToWithIntent" | "-X" | "--extractTag" | "--copyTag"
+            | "--loadTag" => {
+                if i + 2 >= args.len() {
+                    return err_out(&format!("sips: missing arguments for {}\n", args[i]), 1);
+                }
+                has_mod = true;
+                i += 3;
+            }
+            "--out" | "-o" => {
+                if i + 1 >= args.len() {
+                    return err_out("sips: missing argument for --out\n", 1);
+                }
+                out_path = Some(args[i + 1].clone());
+                i += 2;
+            }
+            a if !a.starts_with('-') => {
+                files.push(a.to_string());
+                i += 1;
+            }
+            a => {
+                return err_out(&format!("sips: unknown option: {a}\n"), 1);
             }
         }
-        "sips" => {
-            if args.is_empty() {
+    }
+    if files.is_empty() {
+        return err_out("sips: no input files specified\n", 1);
+    }
+    if !get_props.is_empty() && (has_mod || out_path.is_some()) {
+        return err_out(
+            "Error 6: cannot get properties and modify file in the same invocation\nTry 'sips --help' for help using this tool\n",
+            6,
+        );
+    }
+    let type_id_for_fmt = |fmt_lower: &str| -> String {
+        match fmt_lower {
+            "webp" => "org.webmproject.webp".to_string(),
+            "gif" => "com.compuserve.gif".to_string(),
+            "bmp" => "com.microsoft.bmp".to_string(),
+            "pdf" => "com.adobe.pdf".to_string(),
+            "ppm" | "pgm" | "pbm" => "public.pbm".to_string(),
+            other => format!("public.{other}"),
+        }
+    };
+    if !has_mod && out_path.is_none() {
+        let mut out = String::new();
+        let mut err_out_str = String::new();
+        for f in &files {
+            let full = resolve_posix_path(cwd, f);
+            if !fs.exists(&full) {
+                err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
+                continue;
+            }
+            let bytes = fs.read_file(&full).unwrap_or_default();
+            let ((meta, depth, channels, dpi), props) = match inspect_raster(&bytes, &full, fs.max_input_bytes())
+                .and_then(|info| Ok((info, sips_properties::read(&bytes)?))) {
+                Ok(pair) => pair,
+                Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
+            };
+            if get_props.is_empty() {
+                if verify_mode { out.push_str(f); out.push('\n'); }
+                continue;
+            }
+            let fmt_lower = meta.fmt.to_ascii_lowercase();
+            let xml = get_props.iter().any(|p| p == "allxml");
+            let mut expanded_props = Vec::new();
+            for p in &get_props {
+                if xml || p == "all" {
+                    expanded_props.extend(["pixelWidth", "pixelHeight", "typeIdentifier", "format",
+                        "formatOptions", "dpiWidth", "dpiHeight", "samplesPerPixel", "bitsPerSample",
+                        "hasAlpha", "space"]);
+                    if xml {
+                        expanded_props.push("path");
+                        break;
+                    }
+                } else {
+                    expanded_props.push(p.as_str());
+                }
+            }
+            let mut kvs = Vec::new();
+            for p in expanded_props {
+                let val = if let Some((_, value)) = props.get(p).filter(|_| !xml || !matches!(p, "hasAlpha" | "path")) {
+                    value.clone().unwrap_or_else(|| match (xml, p) {
+                        (false, _) => "<nil>".into(),
+                        (true, "dpiWidth" | "dpiHeight") => dpi.to_string(),
+                        (true, "pixelWidth" | "pixelHeight" | "samplesPerPixel" | "bitsPerSample") => "0".into(),
+                        _ => String::new(),
+                    })
+                } else { match p {
+                    "path" => f.to_string(),
+                    "pixelWidth" => meta.w.to_string(),
+                    "pixelHeight" => meta.h.to_string(),
+                    "format" => fmt_lower.clone(),
+                    "typeIdentifier" => type_id_for_fmt(&fmt_lower),
+                    "formatOptions" => "default".to_string(),
+                    "dpiWidth" | "dpiHeight" => meta.exif.get(p).cloned().unwrap_or_else(|| format!("{dpi}.000")),
+                    "samplesPerPixel" => channels.to_string(),
+                    "bitsPerSample" => (if depth < 8 { 1 } else { depth }).to_string(),
+                    "hasAlpha" => if meta.has_alpha(channels) { "yes" } else { "no" }.into(),
+                    "space" => match meta.cs.as_str() { "CMYK" => "CMYK", "Gray" if !(matches!(meta.fmt.as_str(),"PNG" | "TIFF") && depth == 16) => "Gray", _ => "RGB" }.into(),
+                    other => meta
+                        .exif
+                        .get(other)
+                        .cloned()
+                        .unwrap_or_else(|| "<nil>".to_string()),
+                }};
+                kvs.push((p, val));
+            }
+            if xml {
+                out.push_str(concat!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
+                    "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n",
+                    "<plist version=\"1.0\">\n<dict>\n"));
+                for (k, v) in kvs {
+                    out.push_str(&format!("  <key>{k}</key>\n  "));
+                    match k {
+                        "pixelWidth" | "pixelHeight" | "samplesPerPixel" | "bitsPerSample" =>
+                            out.push_str(&format!("<integer>{v}</integer>\n")),
+                        "dpiWidth" | "dpiHeight" => {
+                            let n = v.parse::<f64>().unwrap_or(f64::NAN);
+                            let dpi = if n.fract() == 0. { n.to_string() } else { format!("{n:.3}") };
+                            out.push_str(&format!("<real>{dpi}</real>\n"));
+                        }
+                        "hasAlpha" => out.push_str(if v == "yes" { "<true/>\n" } else { "<false/>\n" }),
+                        _ => out.push_str(&format!("<string>{}</string>\n", html_escape_str(&v).replace('\'', "&apos;"))),
+                    }
+                }
+                out.push_str("</dict>\n</plist>\n");
+            } else if one_line {
+                out.push_str(f);
+                out.push('|');
+                for (k, v) in kvs {
+                    out.push_str(&format!("{k}: {v}|"));
+                }
+                out.push('\n');
+            } else {
+                out.push_str(&format!("{f}\n"));
+                for (k, v) in kvs {
+                    out.push_str(&format!("  {k}: {v}\n"));
+                }
+            }
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err_out_str.clone(),
+            exit_code: if err_out_str.is_empty() { 0 } else { 1 },
+        };
+    }
+    let mut out = String::new();
+    let mut err_out_str = String::new();
+    for f in &files {
+        let in_full = resolve_posix_path(cwd, f);
+        if !fs.exists(&in_full) {
+            err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
+            continue;
+        }
+        let bytes = fs.read_file(&in_full).unwrap_or_default();
+        let mut meta = match inspect_raster(&bytes, &in_full, fs.max_input_bytes()) {
+            Ok((meta, ..)) => meta,
+            Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
+        };
+        for (op, a1, a2) in &ops {
+            match *op {
+                "z" | "c" | "p" => {
+                    meta.h = a1.parse().unwrap_or(meta.h);
+                    meta.w = a2.parse().unwrap_or(meta.w);
+                }
+                "Z" => {
+                    let max_d: f64 = a1.parse().unwrap_or(meta.w as f64);
+                    let w = meta.w.max(1) as f64;
+                    let h = meta.h.max(1) as f64;
+                    if w >= h {
+                        meta.w = max_d.round() as u32;
+                        meta.h = (h * max_d / w).round().max(1.0) as u32;
+                    } else {
+                        meta.h = max_d.round() as u32;
+                        meta.w = (w * max_d / h).round().max(1.0) as u32;
+                    }
+                }
+                "rw" => {
+                    let nw: f64 = a1.parse().unwrap_or(meta.w as f64);
+                    let w = meta.w.max(1) as f64;
+                    let h = meta.h.max(1) as f64;
+                    meta.h = (h * nw / w).round().max(1.0) as u32;
+                    meta.w = nw.round() as u32;
+                }
+                "rh" => {
+                    let nh: f64 = a1.parse().unwrap_or(meta.h as f64);
+                    let w = meta.w.max(1) as f64;
+                    let h = meta.h.max(1) as f64;
+                    meta.w = (w * nh / h).round().max(1.0) as u32;
+                    meta.h = nh.round() as u32;
+                }
+                "r" => {
+                    let deg: i32 = a1.parse().unwrap_or(0);
+                    if deg.rem_euclid(180) != 0 {
+                        std::mem::swap(&mut meta.w, &mut meta.h);
+                    }
+                }
+                "s" => {
+                    if a1 == "format" {
+                        let norm_fmt = match a2.trim().to_ascii_lowercase().as_str() {
+                            "png" | "public.png" => Some("PNG"),
+                            "jpeg" | "jpg" | "public.jpeg" => Some("JPEG"),
+                            "webp" | "org.webmproject.webp" => Some("WEBP"),
+                            "gif" | "com.compuserve.gif" => Some("GIF"),
+                            "bmp" | "com.microsoft.bmp" => Some("BMP"),
+                            "tiff" | "tif" | "public.tiff" => Some("TIFF"),
+                            "ppm" => Some("PPM"),
+                            "pgm" => Some("PGM"),
+                            "pbm" | "public.pbm" => Some("PBM"),
+                            "pdf" | "com.adobe.pdf" => Some("PDF"),
+                            "heic" | "public.heic" => Some("HEIC"),
+                            "heif" | "public.heif" => Some("HEIF"),
+                            "avif" | "public.avif" => Some("AVIF"),
+                            _ => None,
+                        };
+                        if let Some(nf) = norm_fmt {
+                            meta.fmt = nf.to_string();
+                        } else {
+                            return err_out(&format!("Error:Unsupported format: {a2}\n"), 1);
+                        }
+                    } else if a1 == "dpiWidth" || a1 == "dpiHeight" {
+                        if let Ok(num) = a2.parse::<f64>()
+                            && num > 0.0
+                        {
+                            meta.exif.insert(a1.clone(), format!("{num:.3}"));
+                        }
+                    } else if a1 != "formatOptions" {
+                        meta.exif.insert(a1.clone(), a2.clone());
+                    }
+                }
+                "d" => {
+                    meta.exif.remove(a1);
+                }
+                _ => {}
+            }
+        }
+        let target_format = ops.iter().any(|(op, key, _)| *op == "s" && key == "format");
+        let dst = if let Some(opath) = &out_path {
+            if files.len() > 1 || opath.ends_with('/') || fs.is_dir(&resolve_posix_path(cwd, opath)) {
+                let mut name = f.rsplit('/').next().unwrap_or(f).to_string();
+                if target_format {
+                    let stem = name.rfind('.').filter(|&i| i > 0).map_or(name.as_str(), |i| &name[..i]);
+                    let ext = match meta.fmt.as_str() { "JPEG" => "jpg".into(), "TIFF" => "tif".into(), fmt => fmt.to_ascii_lowercase() };
+                    name = format!("{stem}.{ext}");
+                }
+                format!("{}/{name}", opath.trim_end_matches('/'))
+            } else { opath.clone() }
+        } else { f.clone() };
+        let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF" | "HEIC" | "HEIF" | "AVIF") && png_pixels::still_format(&bytes).is_some() {
+            match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
+                Ok(encoded) => encoded,
+                Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
+            }
+        } else { write_image_bytes(&meta) };
+        match fs.write_file(&resolve_posix_path(cwd, &dst), &encoded) {
+            Ok(()) => out.push_str(&format!("{f}\n  {dst}\n")),
+            Err(reason) => err_out_str.push_str(&format!("Error: {f}: {reason}\n")),
+        }
+    }
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_out_str.clone(),
+        exit_code: if err_out_str.is_empty() { 0 } else { 1 },
+    }
+}
+
+fn cmd_exiftool(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.len() == 1 && (args[0] == "-ver" || args[0] == "--version") {
+        return ok_out("13.59\n");
+    }
+    if args.len() == 1 && matches!(args[0].as_str(), "--help" | "-help" | "-?") {
+        return ok_out(include_str!("help/exiftool.txt"));
+    }
+    let expanded_args = match exiftool_argfiles::expand(args, cwd, fs) {
+        Ok(args) => args,
+        Err(e) => return err_out(&format!("Error: {e}\n"), 1),
+    };
+    let known = |name: &str| EXIF_TAGS.iter().copied().find(|t| t.eq_ignore_ascii_case(name));
+    let (mut json_mode, mut bin_mode, mut tab_mode, mut csv_mode, mut xml_mode) = (false, false, false, false, false);
+    let (mut group, mut short) = (0, 0usize);
+    let (mut value_conv, mut overwrite_orig, mut in_place) = (false, false, false);
+    let (mut numeric_size, mut missing) = (false, false);
+    let mut print_fmt = None;
+    let mut updates = Vec::new();
+    let mut requested_tags = Vec::new();
+    let (mut duplicates, mut quote_scalars) = (false, false);
+    let mut files = Vec::new();
+    let mut out_path = None;
+    let mut tags_from_file = None;
+    let mut literal = false;
+    let mut parsed = expanded_args.iter();
+    while let Some(a) = parsed.next() {
+        if literal || !a.starts_with('-') || a == "-" { files.push(a.clone()); continue; }
+        if a == "--" { literal = true; continue; }
+        let option = a.to_ascii_lowercase();
+        match option.as_str() {
+            "-config" | "-charset" | "-api" | "-p" | "-o" | "-tagsfromfile" => {
+                if option == "-tagsfromfile" && tags_from_file.is_some() { return err_out("Error: Multiple tagsFromFile sources are not yet supported\n", 1); }
+                let Some(value) = parsed.next() else { return err_out(&format!("Error: Missing argument for {a}\n"), 1); };
+                match option.as_str() {
+                    "-config" if !value.is_empty() => return err_out("Error: User configuration modules are not supported\n", 1),
+                    "-charset" if !value.eq_ignore_ascii_case("filename=utf8") => return err_out("Error: Only UTF-8 filename charset is currently supported\n", 1),
+                    "-api" if !value.eq_ignore_ascii_case("structformat=jsonq") => return err_out("Error: API option not yet supported\n", 1),
+                    "-api" => quote_scalars = true,
+                    "-p" => print_fmt = Some(value.clone()),
+                    "-o" => out_path = Some(value.clone()),
+                    "-tagsfromfile" if value == "-" || value.contains('%') => return err_out("Error: tagsFromFile stdin and path templates are not yet supported\n", 1),
+                    "-tagsfromfile" => tags_from_file = Some(value.clone()),
+                    _ => {}
+                }
+            }
+            "-j" | "-json" => json_mode = true, "-b" => bin_mode = true, "-csv" => csv_mode = true,
+            "-x" => xml_mode = true, _ if a == "-T" => tab_mode = true,
+            _ if a == "-G1" => group = 1, _ if a == "-G4" => group = 4,
+            "-s" | "-ss" | "-sss" | "-s1" | "-s2" | "-s3" => {
+                short = if a == "-S" || option == "-s2" {2} else if option == "-s1" {1}
+                    else if option == "-s3" {3} else {(short + a.len() - 1).min(3)};
+            }
+            "-overwrite_original" | "-overwrite_original_in_place" => { overwrite_orig = true; in_place = option.ends_with("_in_place"); }
+            "-f" => missing = true, "-n" => numeric_size = true, "-a" => duplicates = true,
+            "-if" | "-stay_open" | "-@" | "-common_args" => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
+            _ if option.starts_with("-execute") => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
+            _ => {
+                let (raw, value) = a[1..].split_once('=').map_or((&a[1..], None), |(k,v)| (k,Some(v)));
+                let name = raw.strip_suffix(['+','-']).unwrap_or(raw);
+                let operation = &raw[name.len()..];
+                let selector = name.strip_suffix('#').unwrap_or(name);
+                if let Some(v) = value {
+                    updates.push((format!("{}{operation}", known(selector).unwrap_or(selector)), v.to_owned()));
+                } else if let Some(tag) = known(selector).or_else(|| (selector == "MissingTag").then_some(selector)) {
+                    value_conv |= selector != name;
+                    numeric_size |= selector != name && tag == "FileSize";
+                    requested_tags.push(tag.to_owned());
+                } else { return err_out(&format!("Error: ExifTool option/tag not yet supported: {a}\n"), 1); }
+            }
+        }
+    }
+    let (s3_mode, s2_mode, group_mode) = (short == 3, short == 2, group == 1);
+    if tags_from_file.is_some() && !updates.is_empty() {
+        return err_out("Error: Combining tagsFromFile with assignments is not yet supported\n", 1);
+    }
+    let writing_mode = !updates.is_empty() || tags_from_file.is_some();
+    if files.is_empty() {
+        return err_out("Error: No file specified\n", 1);
+    }
+    if files.iter().filter(|f| f.as_str() == "-").count() > 1 {
+        return err_out("Error: Repeated stdin operands are not supported\n", 1);
+    }
+    if files.iter().any(|f| f == "-") && writing_mode {
+        return err_out("Error: Writing stdin metadata is not yet supported\n", 1);
+    }
+    if out_path.is_some() && (files.len() != 1 || !writing_mode) {
+        return err_out("Error: -o requires a single file with tag assignments in this profile\n", 1);
+    }
+    if json_mode && bin_mode {
+        return err_out("Error: JSON binary policy not yet supported\n", 1);
+    }
+    if csv_mode && (json_mode || bin_mode || writing_mode) {
+        return err_out("Error: CSV combined output/import policy not yet supported\n", 1);
+    }
+    if csv_mode && value_conv { return err_out("Error: CSV ValueConv-qualified headers not yet supported\n", 1); }
+    if group == 4 && (!json_mode || writing_mode) { return err_out("Error: Group-family qualification outside JSON not yet supported\n", 1); }
+    if group == 1 && (json_mode || csv_mode || bin_mode || xml_mode || tab_mode || print_fmt.is_some() || writing_mode) {
+        return err_out("Error: -G1 requires text extraction in this profile\n", 1);
+    }
+    let mode_count = [json_mode, csv_mode, bin_mode, xml_mode, tab_mode, print_fmt.is_some()]
+        .into_iter()
+        .filter(|x| *x)
+        .count();
+    if mode_count > 1 {
+        return err_out("Error: Conflicting ExifTool output modes\n", 1);
+    }
+    if (xml_mode || tab_mode || print_fmt.is_some()) && writing_mode {
+        return err_out("Error: Presentation modes require extraction\n", 1);
+    }
+    let mut substitutions = Vec::new();
+    let template_prefix = if let Some(template) = &print_fmt {
+        let mut parts = template.split('$');
+        let prefix = parts.next().unwrap_or("");
+        for suffix in parts {
+            let (name, literal) = suffix.split_at(suffix.bytes().take_while(u8::is_ascii_alphabetic).count());
+            let Some(tag) = known(name) else { return err_out("Error: Only literal $Tag template substitutions are supported\n", 1); };
+            substitutions.push((tag, literal));
+        }
+        Some(prefix)
+    } else { None };
+    if let [(key, value)] = updates.as_slice()
+        && let Some(error) = exiftool_shift_error(key, value)
+    {
+        return err_out(&format!("Warning: {error}\nNothing to do.\n"), 1);
+    }
+    let acquire = |path: &str| {
+        let (entry, stat) = fs.inspect_command_entry(path, false, "lstat").map_err(|e| {
+            if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { "File not found".to_owned() } else { e }
+        })?;
+        if stat.kind != crate::vfs::VfsEntryKind::File || stat.mode & 0o170000 != 0o100000 {
+            return Err("Only regular VFS files are admitted".into());
+        }
+        if stat.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, readStream '{path}'")); }
+        let bytes = fs.read_file(&entry)?;
+        Ok((stat, bytes))
+    };
+    let mut tags_from_file_err = None;
+    if let Some(ref src_tag_file) = tags_from_file {
+        let src_full = resolve_posix_path(cwd, src_tag_file);
+        match acquire(&src_full) {
+            Err(e) => tags_from_file_err = Some(e),
+            Ok((_, src_bytes)) if src_bytes.is_empty() => tags_from_file_err = Some("Not a PNG file".into()),
+            Ok((_, src_bytes)) => {
+                let mut src_tags = BTreeMap::new();
+                let mut order = Vec::new();
+                let mut collect = |k: &str, v: String| {
+                    if src_tags.insert(k.to_owned(), v).is_none() {order.push(k.to_owned());}
+                };
+                if src_full.to_ascii_lowercase().ends_with(".pdf")
+                    || src_bytes.starts_with(b"%PDF-")
+                {
+                    let pdf = PdfDoc::parse(&src_bytes);
+                    if !pdf.title.is_empty() {
+                        collect("Title", pdf.title);
+                    }
+                    if !pdf.author.is_empty() {
+                        collect("Author", pdf.author);
+                    }
+                    for (k, v) in pdf.info {
+                        collect(&k, v);
+                    }
+                    for (k, v) in pdf.exif {
+                        collect(&k, v);
+                    }
+                } else if exiftool_png::candidate(&src_bytes) {
+                    if let Err(e) = exiftool_png::inspect(&src_bytes, |k,v,_| collect(k,v)) { tags_from_file_err = Some(e.into()); }
+                } else {
+                    let src_meta = read_image_meta(&src_bytes, &src_full);
+                    for (k, v) in src_meta.exif {
+                        if !k.starts_with("__") {
+                            collect(&k, v);
+                        }
+                    }
+                }
+                for k in if requested_tags.is_empty() { &order } else { &requested_tags } {
+                    if let Some(v) = src_tags.get(k) { updates.push((k.clone(), v.clone())); }
+                }
+            }
+        }
+    }
+    if writing_mode {
+        let mut created = 0usize;
+        let mut serial = 0usize;
+        let mut create = |path: &str, bytes: &[u8]| -> Result<(), String> {
+            if path == "/" { return Err("EISDIR: illegal operation on a directory, capabilitiesFor '/'".into()); }
+            let parent = crate::vfs::dirname_posix_path(path);
+            let not_found = |e: &str| e.starts_with("ENOENT:") || e.ends_with("(os error 2)");
+            let (_, st) = fs.inspect_command_entry(&parent, true, "stat")
+                .map_err(|e| if not_found(&e) { "File not found".into() } else { e })?;
+            serial += 1;
+            if st.kind != crate::vfs::VfsEntryKind::Directory || st.mode & 0o300 != 0o300 {
+                let mut stage = format!("{}/.exiftool-{serial}", parent.trim_end_matches('/'));
+                if st.kind != crate::vfs::VfsEntryKind::Directory { return Err(format!("ENOTDIR: not a directory '{stage}'")); }
+                while fs.lstat(&stage).is_ok() {
+                    serial += 1;
+                    stage = format!("{}/.exiftool-{serial}", parent.trim_end_matches('/'));
+                }
+                return Err(format!("EACCES: permission denied, createStagedFile '{stage}'"));
+            }
+            let entry = fs.access_path(path, false)?;
+            fs.create_file(&entry, bytes, 0o666).map_err(|e| {
+                if e.starts_with("EEXIST:") { format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'") }
+                else { e }
+            })
+        };
+        let mut updated = 0usize;
+        let mut unchanged = 0usize;
+        let mut err_out = String::new();
+        for f in &files {
+            let full = resolve_posix_path(cwd, f);
+            let (original, data) = match acquire(&full) {
+                Ok(file) => file,
+                Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
+            };
+            if data.is_empty() {
+                err_out.push_str(&format!("Error: File is empty - {f}\n"));
+                continue;
+            }
+            let extension = f.rsplit('.').next().unwrap_or("").to_ascii_uppercase();
+            if matches!(extension.as_str(), "DOCX" | "PPTX" | "XLSX") {
+                err_out.push_str(&format!("Error: Writing of {extension} files is not yet supported - {f}\n"));
+                continue;
+            }
+            let is_pdf = extension == "PDF" || data.starts_with(b"%PDF-");
+            if is_pdf && updates.iter().any(|(k, _)| k.eq_ignore_ascii_case("all")) {
+                err_out.push_str(&format!(
+                    "Error: PDF parser/writer not yet supported; metadata deletion retains historical revisions and never guarantees redaction - {f}\n"
+                ));
+                continue;
+            }
+            if !is_pdf && !data.starts_with(b"\xff\xd8") && !(data.len() >= 8 && data.starts_with(b"\x89PNG")) {
+                err_out.push_str(&format!("Error: Format writer not yet supported - {f}\n")); continue;
+            }
+            if let Some(src_err) = &tags_from_file_err {
+                err_out.push_str(&format!("Error: {src_err} - {f}\n")); continue;
+            }
+            let copied;
+            let updates = if tags_from_file.is_some() && (is_pdf || exiftool_png::candidate(&data)) {
+                copied = updates.iter().filter(|(k, _)| if is_pdf { pdf_reader::INFO_TAGS.contains(&k.as_str()) } else { exiftool_png::writable(k) }).cloned().collect::<Vec<_>>();
+                &copied
+            } else { &updates };
+            let edited = if !is_pdf && exiftool_png::candidate(&data) {
+                exiftool_png::edit(&data, updates, fs)
+            } else if is_pdf && data.split(|&b| b == b'\n').nth(1) != Some(b"%%SAFE_PDF_V2%%") {
+                pdf_reader::edit_info(&data, updates, tags_from_file.is_some()).map(|suffix| [data.as_slice(), &suffix].concat())
+            } else {
+                let mut edited = data.clone();
+                for (k, v) in updates {
+                    let k = k.trim_end_matches(['+', '-']);
+                    edited.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
+                }
+                Ok(edited)
+            };
+            let edited = match edited {
+                Ok(bytes) if out_path.is_none() && bytes == data && !updates.iter().any(|(k,v)| !v.is_empty() && !k.ends_with(['+', '-'])) => {
+                    unchanged += 1;
+                    continue;
+                }
+                Ok(bytes) => bytes,
+                Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
+            };
+            if out_path.is_none() {
+                if original.mode & 0o200 == 0 {
+                    err_out.push_str(&format!("Error: EACCES: permission denied, access '{full}' - {f}\n")); continue;
+                }
+                if !in_place && original.nlink != Some(1) {
+                    err_out.push_str(&format!("Error: VFS hardlink replacement is not yet supported - {f}\n")); continue;
+                }
+            }
+            if !overwrite_orig && out_path.is_none() {
+                let orig_path = format!("{full}_original");
+                match fs.lstat(&orig_path) {
+                    Ok(_) => {}
+                    Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
+                        if let Err(e) = create(&orig_path, &data) {
+                            err_out.push_str(&format!("Error: {e} - {f}\n")); continue;
+                        }
+                    }
+                    Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
+                }
+            }
+            if let Some(path) = &out_path {
+                if path == "-" || path.contains('\0') {
+                    err_out.push_str(&format!("Error: Invalid or unsupported ExifTool file path - {f}\n")); continue;
+                }
+                match create(&resolve_posix_path(cwd, path), &edited) {
+                    Ok(()) => created += 1,
+                    Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
+                }
+            } else {
+                match fs.commit_file_edit(&full, &original, &data, &edited, in_place) {
+                    Ok(()) => updated += 1,
+                    Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
+                }
+            }
+        }
+        let mut stdout_str = if updated > 0 || unchanged > 0 {
+            format!("{updated:>5} image files updated\n")
+        } else {
+            String::new()
+        };
+        if created > 0 { stdout_str.push_str(&format!("{created:>5} image files created\n")); }
+        if unchanged > 0 { stdout_str.push_str(&format!("{unchanged:>5} image files unchanged\n")); }
+        return BuiltinOutcome {
+            stdout: stdout_str,
+            stderr: err_out.clone(),
+            exit_code: if err_out.is_empty() { 0 } else { 1 },
+        };
+    }
+    let read_all_tags = |f: &str, data: &[u8]| {
+        let full = resolve_posix_path(cwd, f);
+        let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut order = Vec::new();
+        let mut store = |name: &str, value: String, raw: Option<&[u8]>| {
+            let values = map.entry(name.to_owned()).or_default();
+            if values.is_empty() { order.push(name.to_owned()); }
+            if !duplicates && group != 4 { values.clear(); }
+            values.push(if bin_mode {
+                crate::vfs::bytes_to_stream_string(raw.unwrap_or(value.as_bytes()))
+            } else { value });
+        };
+        let mut insert = |name: &str, value: String| store(name, value, None);
+        if f != "-" {
+            let (dir, name) = f.rsplit_once('/').unwrap_or((".", f));
+            insert("FileName", name.to_owned());
+            insert("Directory", if dir.is_empty() { "/" } else { dir }.to_owned());
+        }
+        let size = data.len();
+        insert("FileSize", if bin_mode || numeric_size { size.to_string() }
+            else if size < 1000 { format!("{size} bytes") }
+            else {
+                let exp = (size.ilog10() as usize / 3).min(5);
+                let scaled = size as f64 / 1000f64.powi(exp as i32);
+                let places = 2usize.saturating_sub(scaled.log10().floor() as usize);
+                // toPrecision rounds exact decimal ties upward; Rust formatting uses ties-to-even.
+                let halfway = (scaled * (1 << places) as f64).fract() == 0.5;
+                let display = if halfway { scaled.next_up() } else { scaled };
+                let rounded = format!("{display:.places$}");
+                let number = if places == 0 { &rounded } else { rounded.trim_end_matches('0').trim_end_matches('.') };
+                format!("{number} {}", ["kB", "MB", "GB", "TB", "PB"][exp - 1])
+            });
+        if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
+            let pdf = PdfDoc::parse(data);
+            insert("FileTypeExtension", "pdf".into());
+            insert("PDFVersion", pdf.version);
+            insert("PageCount", pdf.pages.len().to_string());
+            let mut info: BTreeMap<_,_> = pdf.info.into_iter().collect();
+            if !pdf.title.is_empty() { info.insert("Title".into(), pdf.title); }
+            if !pdf.author.is_empty() { info.insert("Author".into(), pdf.author); }
+            info.extend(pdf.exif);
+            for &name in pdf_reader::INFO_TAGS {
+                if let Some(value) = info.remove(name) && !value.is_empty() { insert(name, value); }
+            }
+        } else if exiftool_png::candidate(data) {
+            insert("FileTypeExtension", "png".into());
+            exiftool_png::inspect(data, store)?;
+        } else {
+            let im = read_image_meta(data, &full);
+            let ext = if im.fmt == "JPEG" { "jpg".into() } else { im.fmt.to_ascii_lowercase() };
+            insert("FileTypeExtension", ext);
+            insert("ImageWidth", im.w.to_string());
+            insert("ImageHeight", im.h.to_string());
+            insert("BitDepth", "8".into());
+            insert("ColorType", "RGB".into());
+            let mime = format!("image/{}", im.fmt.to_ascii_lowercase());
+            insert("FileType", im.fmt);
+            insert("MIMEType", mime);
+            insert("ImageSize", format!("{}x{}", im.w, im.h));
+            for (k, v) in im.exif {
+                if !k.starts_with("__") { insert(&k, v); }
+            }
+        }
+        Ok::<_, &str>((map, order))
+    };
+    let mut records = Vec::new();
+    let mut read_err_buf = String::new();
+    for f in files {
+        let data = if f == "-" { Ok(crate::vfs::stream_string_to_bytes(stdin)) }
+            else { acquire(&resolve_posix_path(cwd, &f)).map(|(_, bytes)| bytes) };
+        match data {
+            Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
+            Ok(bytes) if bytes.is_empty() => read_err_buf.push_str(&format!("Error: File is empty - {f}\n")),
+            Ok(bytes) => match read_all_tags(&f, &bytes) {
+                Ok((tags, order)) => records.push((f, tags, order)),
+                Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
+            }
+        }
+    }
+    let finalize_exif_out = |stdout: String| BuiltinOutcome {
+        stdout, stderr: read_err_buf.clone(), exit_code: i32::from(!read_err_buf.is_empty()),
+    };
+    if let Some(prefix) = template_prefix {
+        let mut out = String::new();
+        for (_, map, _) in &records {
+            out.push_str(prefix);
+            for &(tag, literal) in &substitutions {
+                exif_printable(&mut out, map.get(tag).and_then(|vs| vs.last()).map(String::as_str).unwrap_or("-"));
+                out.push_str(literal);
+            }
+            out.push('\n');
+        }
+        return finalize_exif_out(out);
+    }
+    if json_mode {
+        let items = records.iter().map(|(file, map, order)| {
+            let keys = if requested_tags.is_empty() { order } else { &requested_tags };
+            exiftool_json::record(file, map, keys, group == 4, missing, quote_scalars)
+        }).collect::<Vec<_>>();
+        return finalize_exif_out(format!("[{}]\n", items.join(",\n")));
+    }
+    if csv_mode {
+        let mut hdr = vec!["SourceFile".to_string()];
+        for t in &requested_tags {
+            hdr.push(t.clone());
+        }
+        let mut out = format!("{}\n", hdr.join(","));
+        for (f, map, _) in &records {
+            let mut row = vec![f.clone()];
+            for t in &requested_tags {
+                row.push(map.get(t).and_then(|v| v.last()).cloned().unwrap_or_else(|| "-".to_string()));
+            }
+            out.push_str(&format!("{}\n", row.join(",")));
+        }
+        return finalize_exif_out(if records.is_empty() && !read_err_buf.is_empty() { String::new() } else { out });
+    }
+    if xml_mode {
+        let mut out = String::from("<?xml version='1.0' encoding='UTF-8'?>\n<rdf:RDF>\n");
+        for (_, map, _) in &records {
+            for (k, values) in map {
+                let v = values.last().unwrap();
+                out.push_str(&format!("  <PNG:{k}>{}</PNG:{k}>\n", html_escape_str(v)));
+            }
+        }
+        out.push_str("</rdf:RDF>\n");
+        return finalize_exif_out(out);
+    }
+    if tab_mode {
+        let mut lines = Vec::new();
+        for (_, map, order) in &records {
+            let mut vals = Vec::new();
+            let keys = if requested_tags.is_empty() { order } else { &requested_tags };
+            for rt in keys {
+                let values = map.get(rt);
+                let first = values.and_then(|v| v.first()).map_or("-", String::as_str);
+                let repeat = if requested_tags.is_empty() { values.map_or(1, Vec::len) } else { 1 };
+                for _ in 0..repeat {
+                    let mut value = String::new();
+                    exif_printable(&mut value, first);
+                    vals.push(value);
+                }
+            }
+            lines.push(vals.join("\t"));
+        }
+        return finalize_exif_out(if lines.is_empty() { String::new() } else { format!("{}\n", lines.join("\n")) });
+    }
+    let mut out = String::new();
+    for (_, map, order) in &records {
+        let keys = if requested_tags.is_empty() { order } else { &requested_tags };
+        for absent in [false, true] {
+            if absent && (!missing || bin_mode) { break; }
+            for k in keys {
+                let value = map.get(k);
+                if value.is_none() != absent { continue; }
+                for value in value.into_iter().flatten().map(String::as_str).chain(absent.then_some("-")) {
+                    if bin_mode { out.push_str(value); continue; }
+                    if group_mode && !absent {
+                        let group = match k.as_str() {
+                            "FileName" | "Directory" | "FileSize" => "System",
+                            "FileTypeExtension" => "File",
+                            _ => map.get("FileType").and_then(|v| v.last()).map_or("PDF", String::as_str),
+                        };
+                        out.push_str(&format!("{:<16}", format!("[{group}]")));
+                    }
+                    if s2_mode { out.push_str(&format!("{k}: ")); }
+                    else if !s3_mode { out.push_str(&format!("{k:<32}: ")); }
+                    exif_printable(&mut out, value);
+                    out.push('\n');
+                }
+            }
+        }
+    }
+    finalize_exif_out(out)
+}
+
+fn cmd_diffpdf(cmd: &str, args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut mode = "text";
+    let mut files: Vec<String> = Vec::new();
+    let mut positional = false;
+    for arg in args {
+        if !positional && arg == "--" {
+            positional = true;
+            continue;
+        }
+        if !positional && (arg == "--text" || arg == "--layout") {
+            mode = if arg == "--text" { "text" } else { "layout" };
+            continue;
+        }
+        if !positional && arg == "--help" {
+            return ok_out("Usage: diffpdf [--text|--layout] OLD.pdf NEW.pdf\nExit 0: equal, 1: different, 2: invalid invocation.\n");
+        }
+        if !positional && arg.starts_with('-') {
+            return err_out(&format!("diffpdf: unsupported option {arg}\n"), 2);
+        }
+        files.push(arg.clone());
+    }
+    if files.len() != 2 {
+        return err_out("diffpdf: expected two PDF files\n", 2);
+    }
+    let mut docs: Vec<PdfDoc> = Vec::new();
+    for f in &files {
+        let full = resolve_posix_path(cwd, f);
+        let Ok(bytes) = fs.read_file(&full) else {
+            if fs.is_dir(&full) {
                 return err_out(
-                    "sips: no arguments specified. Try 'sips --help' for help.\n",
+                    &format!("{cmd}: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
                     1,
                 );
             }
-            let mut get_props: Vec<String> = Vec::new();
-            let mut one_line = false;
-            let mut has_mod = false;
-            let mut verify_mode = false;
-            let mut out_path: Option<String> = None;
-            let mut files: Vec<String> = Vec::new();
-            let mut ops: Vec<(&str, String, String)> = Vec::new();
-            let mut i = 0usize;
-            while i < args.len() {
-                match args[i].as_str() {
-                    "-h" | "--help" => {
-                        return ok_out(
-                            "sips - scriptable image processing system\nUsage: sips [options] file ...\n  -g, --getProperty <key>\n  -s, --setProperty <key> <value>\n  -Z, --resampleHeightWidthMax <size>\n  -z, --resampleHeightWidth <height> <width>\n  --resampleWidth <width>\n  --resampleHeight <height>\n  -c, --cropToHeightWidth <height> <width>\n  --cropOffset <offsetY> <offsetX>\n  -p, --padToHeightWidth <height> <width>\n  --padColor <hexColor>\n  -r, --rotate <degrees>\n  -f, --flip horizontal|vertical\n  -o, --out <file-or-directory>\n",
-                        );
-                    }
-                    "-v" | "--version" => {
-                        return ok_out("sips 10.4.4\n");
-                    }
-                    "-H" | "--helpProperties" => {
-                        return ok_out(
-                            "pixelWidth\npixelHeight\ntypeIdentifier\nformat\nformatOptions\ndpiWidth\ndpiHeight\nsamplesPerPixel\nbitsPerSample\nhasAlpha\nspace\nall\nallxml\n",
-                        );
-                    }
-                    "--formats" => {
-                        return ok_out(
-                            "Supported Formats:\n-------------------------------------------\ncom.adobe.pdf                pdf   Writable\ncom.compuserve.gif           gif   Writable\ncom.microsoft.bmp            bmp   Writable\norg.webmproject.webp         webp  Writable\npublic.avif                  avif  Writable\npublic.heic                  heic  Writable\npublic.heif                  heif  Writable\npublic.jpeg                  jpeg  Writable\npublic.png                   png   Writable\npublic.tiff                  tiff  Writable\n",
-                        );
-                    }
-                    "--verify" => {
-                        verify_mode = true;
-                        i += 1;
-                    }
-                    "-1" | "--oneLine" => {
-                        one_line = true;
-                        i += 1;
-                    }
-                    "-g" | "--getProperty" => {
-                        if i + 1 >= args.len() {
-                            return err_out("sips: missing argument for -g\n", 1);
-                        }
-                        get_props.push(args[i + 1].clone());
-                        i += 2;
-                    }
-                    "-d" | "--deleteProperty" => {
-                        if i + 1 >= args.len() {
-                            return err_out("sips: missing argument for -d\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("d", args[i + 1].clone(), String::new()));
-                        i += 2;
-                    }
-                    "-z" | "--resampleHeightWidth" => {
-                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
-                            return err_out("sips: invalid dimensions for -z\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("z", args[i + 1].clone(), args[i + 2].clone()));
-                        i += 3;
-                    }
-                    "-Z" | "--resampleHeightWidthMax" => {
-                        let max_dim = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        if !max_dim.is_finite() || max_dim <= 0.0 {
-                            return err_out("sips: invalid size for -Z\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("Z", args[i + 1].clone(), String::new()));
-                        i += 2;
-                    }
-                    "--resampleWidth" => {
-                        let w = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        if !w.is_finite() || w <= 0.0 {
-                            return err_out("sips: invalid width for --resampleWidth\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("rw", args[i + 1].clone(), String::new()));
-                        i += 2;
-                    }
-                    "--resampleHeight" => {
-                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        if !h.is_finite() || h <= 0.0 {
-                            return err_out("sips: invalid height for --resampleHeight\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("rh", args[i + 1].clone(), String::new()));
-                        i += 2;
-                    }
-                    "-r" | "--rotate" => {
-                        if i + 1 >= args.len()
-                            || args[i + 1]
-                                .parse::<f64>()
-                                .map(|v| !v.is_finite())
-                                .unwrap_or(true)
-                        {
-                            return err_out("sips: invalid degrees for -r\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("r", args[i + 1].clone(), String::new()));
-                        i += 2;
-                    }
-                    "-f" | "--flip" => {
-                        let dir = args
-                            .get(i + 1)
-                            .map(|s| s.to_ascii_lowercase())
-                            .unwrap_or_default();
-                        if dir != "horizontal" && dir != "vertical" {
-                            return err_out(
-                                "sips: flip direction must be 'horizontal' or 'vertical'\n",
-                                1,
-                            );
-                        }
-                        has_mod = true;
-                        ops.push(("f", dir, String::new()));
-                        i += 2;
-                    }
-                    "-c" | "--cropToHeightWidth" => {
-                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
-                            return err_out("sips: invalid dimensions for -c\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("c", args[i + 1].clone(), args[i + 2].clone()));
-                        i += 3;
-                    }
-                    "--cropOffset" => {
-                        let oy = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(f64::NAN);
-                        let ox = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(f64::NAN);
-                        if !oy.is_finite() || !ox.is_finite() {
-                            return err_out("sips: invalid offset for --cropOffset\n", 1);
-                        }
-                        ops.push(("offset", args[i+1].clone(), args[i+2].clone()));
-                        i += 3;
-                    }
-                    "-p" | "--padToHeightWidth" => {
-                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                        if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
-                            return err_out("sips: invalid dimensions for -p\n", 1);
-                        }
-                        has_mod = true;
-                        ops.push(("p", args[i + 1].clone(), args[i + 2].clone()));
-                        i += 3;
-                    }
-                    "--padColor" => {
-                        ops.push(("color", args.get(i+1).cloned().unwrap_or_else(|| "000000".into()), String::new()));
-                        i += 2;
-                    }
-                    "-s" | "--setProperty" => {
-                        if i + 2 >= args.len() {
-                            return err_out("sips: missing argument for -s\n", 1);
-                        }
-                        if args[i + 1] == "format" {
-                            let lower = args[i + 2].trim().to_ascii_lowercase();
-                            if !matches!(
-                                lower.as_str(),
-                                "png"
-                                    | "public.png"
-                                    | "jpeg"
-                                    | "jpg"
-                                    | "public.jpeg"
-                                    | "webp"
-                                    | "org.webmproject.webp"
-                                    | "heic"
-                                    | "public.heic"
-                                    | "heif"
-                                    | "public.heif"
-                                    | "avif"
-                                    | "public.avif"
-                                    | "gif"
-                                    | "com.compuserve.gif"
-                                    | "ppm"
-                                    | "public.ppm"
-                                    | "pgm"
-                                    | "pbm"
-                                    | "public.pbm"
-                                    | "bmp"
-                                    | "com.microsoft.bmp"
-                                    | "tiff"
-                                    | "tif"
-                                    | "public.tiff"
-                                    | "pdf"
-                                    | "com.adobe.pdf"
-                            ) {
-                                return err_out(
-                                    &format!("Error:Unsupported format: {}\n", args[i + 2]),
-                                    1,
-                                );
-                            }
-                        }
-                        has_mod = true;
-                        ops.push(("s", args[i + 1].clone(), args[i + 2].clone()));
-                        i += 3;
-                    }
-                    "--deleteColorManagementProperties"
-                    | "--optimizeColorForSharing"
-                    | "-i"
-                    | "--addIcon"
-                    | "--repair"
-                    | "--debug" => {
-                        if args[i] == "--deleteColorManagementProperties" {
-                            ops.push(("s", "profile".into(), "sRGB IEC61966-2.1".into()));
-                        }
-                        has_mod = true;
-                        i += 1;
-                    }
-                    "-x" | "--extractProfile" => {
-                        if i + 1 >= args.len() {
-                            return err_out(&format!("sips: missing argument for {}\n", args[i]), 1);
-                        }
-                        verify_mode = true;
-                        i += 2;
-                    }
-                    "-m" | "--matchTo" | "-e" | "--embedProfile" | "-E"
-                    | "--embedProfileIfNone" | "--deleteTag" => {
-                        if i + 1 >= args.len() {
-                            return err_out(&format!("sips: missing argument for {}\n", args[i]), 1);
-                        }
-                        has_mod = true;
-                        i += 2;
-                    }
-                    "-M" | "--matchToWithIntent" | "-X" | "--extractTag" | "--copyTag"
-                    | "--loadTag" => {
-                        if i + 2 >= args.len() {
-                            return err_out(&format!("sips: missing arguments for {}\n", args[i]), 1);
-                        }
-                        has_mod = true;
-                        i += 3;
-                    }
-                    "--out" | "-o" => {
-                        if i + 1 >= args.len() {
-                            return err_out("sips: missing argument for --out\n", 1);
-                        }
-                        out_path = Some(args[i + 1].clone());
-                        i += 2;
-                    }
-                    a if !a.starts_with('-') => {
-                        files.push(a.to_string());
-                        i += 1;
-                    }
-                    a => {
-                        return err_out(&format!("sips: unknown option: {a}\n"), 1);
-                    }
-                }
-            }
-            if files.is_empty() {
-                return err_out("sips: no input files specified\n", 1);
-            }
-            if !get_props.is_empty() && (has_mod || out_path.is_some()) {
-                return err_out(
-                    "Error 6: cannot get properties and modify file in the same invocation\nTry 'sips --help' for help using this tool\n",
-                    6,
-                );
-            }
-            let type_id_for_fmt = |fmt_lower: &str| -> String {
-                match fmt_lower {
-                    "webp" => "org.webmproject.webp".to_string(),
-                    "gif" => "com.compuserve.gif".to_string(),
-                    "bmp" => "com.microsoft.bmp".to_string(),
-                    "pdf" => "com.adobe.pdf".to_string(),
-                    "ppm" | "pgm" | "pbm" => "public.pbm".to_string(),
-                    other => format!("public.{other}"),
-                }
-            };
-            if !has_mod && out_path.is_none() {
-                let mut out = String::new();
-                let mut err_out_str = String::new();
-                for f in &files {
-                    let full = resolve_posix_path(cwd, f);
-                    if !fs.exists(&full) {
-                        err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
-                        continue;
-                    }
-                    let bytes = fs.read_file(&full).unwrap_or_default();
-                    let ((meta, depth, channels, dpi), props) = match inspect_raster(&bytes, &full, fs.max_input_bytes())
-                        .and_then(|info| Ok((info, sips_properties::read(&bytes)?))) {
-                        Ok(pair) => pair,
-                        Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
-                    };
-                    if get_props.is_empty() {
-                        if verify_mode { out.push_str(f); out.push('\n'); }
-                        continue;
-                    }
-                    let fmt_lower = meta.fmt.to_ascii_lowercase();
-                    let xml = get_props.iter().any(|p| p == "allxml");
-                    let mut expanded_props = Vec::new();
-                    for p in &get_props {
-                        if xml || p == "all" {
-                            expanded_props.extend(["pixelWidth", "pixelHeight", "typeIdentifier", "format",
-                                "formatOptions", "dpiWidth", "dpiHeight", "samplesPerPixel", "bitsPerSample",
-                                "hasAlpha", "space"]);
-                            if xml {
-                                expanded_props.push("path");
-                                break;
-                            }
-                        } else {
-                            expanded_props.push(p.as_str());
-                        }
-                    }
-                    let mut kvs = Vec::new();
-                    for p in expanded_props {
-                        let val = if let Some((_, value)) = props.get(p).filter(|_| !xml || !matches!(p, "hasAlpha" | "path")) {
-                            value.clone().unwrap_or_else(|| match (xml, p) {
-                                (false, _) => "<nil>".into(),
-                                (true, "dpiWidth" | "dpiHeight") => dpi.to_string(),
-                                (true, "pixelWidth" | "pixelHeight" | "samplesPerPixel" | "bitsPerSample") => "0".into(),
-                                _ => String::new(),
-                            })
-                        } else { match p {
-                            "path" => f.to_string(),
-                            "pixelWidth" => meta.w.to_string(),
-                            "pixelHeight" => meta.h.to_string(),
-                            "format" => fmt_lower.clone(),
-                            "typeIdentifier" => type_id_for_fmt(&fmt_lower),
-                            "formatOptions" => "default".to_string(),
-                            "dpiWidth" | "dpiHeight" => meta.exif.get(p).cloned().unwrap_or_else(|| format!("{dpi}.000")),
-                            "samplesPerPixel" => channels.to_string(),
-                            "bitsPerSample" => (if depth < 8 { 1 } else { depth }).to_string(),
-                            "hasAlpha" => if meta.has_alpha(channels) { "yes" } else { "no" }.into(),
-                            "space" => match meta.cs.as_str() { "CMYK" => "CMYK", "Gray" if !(matches!(meta.fmt.as_str(),"PNG" | "TIFF") && depth == 16) => "Gray", _ => "RGB" }.into(),
-                            other => meta
-                                .exif
-                                .get(other)
-                                .cloned()
-                                .unwrap_or_else(|| "<nil>".to_string()),
-                        }};
-                        kvs.push((p, val));
-                    }
-                    if xml {
-                        out.push_str(concat!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
-                            "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n",
-                            "<plist version=\"1.0\">\n<dict>\n"));
-                        for (k, v) in kvs {
-                            out.push_str(&format!("  <key>{k}</key>\n  "));
-                            match k {
-                                "pixelWidth" | "pixelHeight" | "samplesPerPixel" | "bitsPerSample" =>
-                                    out.push_str(&format!("<integer>{v}</integer>\n")),
-                                "dpiWidth" | "dpiHeight" => {
-                                    let n = v.parse::<f64>().unwrap_or(f64::NAN);
-                                    let dpi = if n.fract() == 0. { n.to_string() } else { format!("{n:.3}") };
-                                    out.push_str(&format!("<real>{dpi}</real>\n"));
-                                }
-                                "hasAlpha" => out.push_str(if v == "yes" { "<true/>\n" } else { "<false/>\n" }),
-                                _ => out.push_str(&format!("<string>{}</string>\n", html_escape_str(&v).replace('\'', "&apos;"))),
-                            }
-                        }
-                        out.push_str("</dict>\n</plist>\n");
-                    } else if one_line {
-                        out.push_str(f);
-                        out.push('|');
-                        for (k, v) in kvs {
-                            out.push_str(&format!("{k}: {v}|"));
-                        }
-                        out.push('\n');
-                    } else {
-                        out.push_str(&format!("{f}\n"));
-                        for (k, v) in kvs {
-                            out.push_str(&format!("  {k}: {v}\n"));
-                        }
-                    }
-                }
-                return BuiltinOutcome {
-                    stdout: out,
-                    stderr: err_out_str.clone(),
-                    exit_code: if err_out_str.is_empty() { 0 } else { 1 },
-                };
-            }
-            let mut out = String::new();
-            let mut err_out_str = String::new();
-            for f in &files {
-                let in_full = resolve_posix_path(cwd, f);
-                if !fs.exists(&in_full) {
-                    err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
-                    continue;
-                }
-                let bytes = fs.read_file(&in_full).unwrap_or_default();
-                let mut meta = match inspect_raster(&bytes, &in_full, fs.max_input_bytes()) {
-                    Ok((meta, ..)) => meta,
-                    Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
-                };
-                for (op, a1, a2) in &ops {
-                    match *op {
-                        "z" | "c" | "p" => {
-                            meta.h = a1.parse().unwrap_or(meta.h);
-                            meta.w = a2.parse().unwrap_or(meta.w);
-                        }
-                        "Z" => {
-                            let max_d: f64 = a1.parse().unwrap_or(meta.w as f64);
-                            let w = meta.w.max(1) as f64;
-                            let h = meta.h.max(1) as f64;
-                            if w >= h {
-                                meta.w = max_d.round() as u32;
-                                meta.h = (h * max_d / w).round().max(1.0) as u32;
-                            } else {
-                                meta.h = max_d.round() as u32;
-                                meta.w = (w * max_d / h).round().max(1.0) as u32;
-                            }
-                        }
-                        "rw" => {
-                            let nw: f64 = a1.parse().unwrap_or(meta.w as f64);
-                            let w = meta.w.max(1) as f64;
-                            let h = meta.h.max(1) as f64;
-                            meta.h = (h * nw / w).round().max(1.0) as u32;
-                            meta.w = nw.round() as u32;
-                        }
-                        "rh" => {
-                            let nh: f64 = a1.parse().unwrap_or(meta.h as f64);
-                            let w = meta.w.max(1) as f64;
-                            let h = meta.h.max(1) as f64;
-                            meta.w = (w * nh / h).round().max(1.0) as u32;
-                            meta.h = nh.round() as u32;
-                        }
-                        "r" => {
-                            let deg: i32 = a1.parse().unwrap_or(0);
-                            if deg.rem_euclid(180) != 0 {
-                                std::mem::swap(&mut meta.w, &mut meta.h);
-                            }
-                        }
-                        "s" => {
-                            if a1 == "format" {
-                                let norm_fmt = match a2.trim().to_ascii_lowercase().as_str() {
-                                    "png" | "public.png" => Some("PNG"),
-                                    "jpeg" | "jpg" | "public.jpeg" => Some("JPEG"),
-                                    "webp" | "org.webmproject.webp" => Some("WEBP"),
-                                    "gif" | "com.compuserve.gif" => Some("GIF"),
-                                    "bmp" | "com.microsoft.bmp" => Some("BMP"),
-                                    "tiff" | "tif" | "public.tiff" => Some("TIFF"),
-                                    "ppm" => Some("PPM"),
-                                    "pgm" => Some("PGM"),
-                                    "pbm" | "public.pbm" => Some("PBM"),
-                                    "pdf" | "com.adobe.pdf" => Some("PDF"),
-                                    "heic" | "public.heic" => Some("HEIC"),
-                                    "heif" | "public.heif" => Some("HEIF"),
-                                    "avif" | "public.avif" => Some("AVIF"),
-                                    _ => None,
-                                };
-                                if let Some(nf) = norm_fmt {
-                                    meta.fmt = nf.to_string();
-                                } else {
-                                    return err_out(&format!("Error:Unsupported format: {a2}\n"), 1);
-                                }
-                            } else if a1 == "dpiWidth" || a1 == "dpiHeight" {
-                                if let Ok(num) = a2.parse::<f64>()
-                                    && num > 0.0
-                                {
-                                    meta.exif.insert(a1.clone(), format!("{num:.3}"));
-                                }
-                            } else if a1 != "formatOptions" {
-                                meta.exif.insert(a1.clone(), a2.clone());
-                            }
-                        }
-                        "d" => {
-                            meta.exif.remove(a1);
-                        }
-                        _ => {}
-                    }
-                }
-                let target_format = ops.iter().any(|(op, key, _)| *op == "s" && key == "format");
-                let dst = if let Some(opath) = &out_path {
-                    if files.len() > 1 || opath.ends_with('/') || fs.is_dir(&resolve_posix_path(cwd, opath)) {
-                        let mut name = f.rsplit('/').next().unwrap_or(f).to_string();
-                        if target_format {
-                            let stem = name.rfind('.').filter(|&i| i > 0).map_or(name.as_str(), |i| &name[..i]);
-                            let ext = match meta.fmt.as_str() { "JPEG" => "jpg".into(), "TIFF" => "tif".into(), fmt => fmt.to_ascii_lowercase() };
-                            name = format!("{stem}.{ext}");
-                        }
-                        format!("{}/{name}", opath.trim_end_matches('/'))
-                    } else { opath.clone() }
-                } else { f.clone() };
-                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF" | "HEIC" | "HEIF" | "AVIF") && png_pixels::still_format(&bytes).is_some() {
-                    match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
-                        Ok(encoded) => encoded,
-                        Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
-                    }
-                } else { write_image_bytes(&meta) };
-                match fs.write_file(&resolve_posix_path(cwd, &dst), &encoded) {
-                    Ok(()) => out.push_str(&format!("{f}\n  {dst}\n")),
-                    Err(reason) => err_out_str.push_str(&format!("Error: {f}: {reason}\n")),
-                }
-            }
-            BuiltinOutcome {
-                stdout: out,
-                stderr: err_out_str.clone(),
-                exit_code: if err_out_str.is_empty() { 0 } else { 1 },
-            }
+            return err_out(
+                &format!("{cmd}: ENOENT: no such file or directory, readFile '{full}'\n"),
+                1,
+            );
+        };
+        if !bytes.starts_with(b"%PDF-") {
+            return err_out(
+                &format!("diffpdf: {f}: Invalid PDF header: missing %PDF- signature\n"),
+                2,
+            );
         }
-        "exiftool" => {
-            if args.len() == 1 && (args[0] == "-ver" || args[0] == "--version") {
-                return ok_out("13.59\n");
-            }
-            if args.len() == 1 && matches!(args[0].as_str(), "--help" | "-help" | "-?") {
-                return ok_out(include_str!("help/exiftool.txt"));
-            }
-            let expanded_args = match exiftool_argfiles::expand(args, cwd, fs) {
-                Ok(args) => args,
-                Err(e) => return err_out(&format!("Error: {e}\n"), 1),
-            };
-            let known = |name: &str| EXIF_TAGS.iter().copied().find(|t| t.eq_ignore_ascii_case(name));
-            let (mut json_mode, mut bin_mode, mut tab_mode, mut csv_mode, mut xml_mode) = (false, false, false, false, false);
-            let (mut group, mut short) = (0, 0usize);
-            let (mut value_conv, mut overwrite_orig, mut in_place) = (false, false, false);
-            let (mut numeric_size, mut missing) = (false, false);
-            let mut print_fmt = None;
-            let mut updates = Vec::new();
-            let mut requested_tags = Vec::new();
-            let (mut duplicates, mut quote_scalars) = (false, false);
-            let mut files = Vec::new();
-            let mut out_path = None;
-            let mut tags_from_file = None;
-            let mut literal = false;
-            let mut parsed = expanded_args.iter();
-            while let Some(a) = parsed.next() {
-                if literal || !a.starts_with('-') || a == "-" { files.push(a.clone()); continue; }
-                if a == "--" { literal = true; continue; }
-                let option = a.to_ascii_lowercase();
-                match option.as_str() {
-                    "-config" | "-charset" | "-api" | "-p" | "-o" | "-tagsfromfile" => {
-                        if option == "-tagsfromfile" && tags_from_file.is_some() { return err_out("Error: Multiple tagsFromFile sources are not yet supported\n", 1); }
-                        let Some(value) = parsed.next() else { return err_out(&format!("Error: Missing argument for {a}\n"), 1); };
-                        match option.as_str() {
-                            "-config" if !value.is_empty() => return err_out("Error: User configuration modules are not supported\n", 1),
-                            "-charset" if !value.eq_ignore_ascii_case("filename=utf8") => return err_out("Error: Only UTF-8 filename charset is currently supported\n", 1),
-                            "-api" if !value.eq_ignore_ascii_case("structformat=jsonq") => return err_out("Error: API option not yet supported\n", 1),
-                            "-api" => quote_scalars = true,
-                            "-p" => print_fmt = Some(value.clone()),
-                            "-o" => out_path = Some(value.clone()),
-                            "-tagsfromfile" if value == "-" || value.contains('%') => return err_out("Error: tagsFromFile stdin and path templates are not yet supported\n", 1),
-                            "-tagsfromfile" => tags_from_file = Some(value.clone()),
-                            _ => {}
-                        }
-                    }
-                    "-j" | "-json" => json_mode = true, "-b" => bin_mode = true, "-csv" => csv_mode = true,
-                    "-x" => xml_mode = true, _ if a == "-T" => tab_mode = true,
-                    _ if a == "-G1" => group = 1, _ if a == "-G4" => group = 4,
-                    "-s" | "-ss" | "-sss" | "-s1" | "-s2" | "-s3" => {
-                        short = if a == "-S" || option == "-s2" {2} else if option == "-s1" {1}
-                            else if option == "-s3" {3} else {(short + a.len() - 1).min(3)};
-                    }
-                    "-overwrite_original" | "-overwrite_original_in_place" => { overwrite_orig = true; in_place = option.ends_with("_in_place"); }
-                    "-f" => missing = true, "-n" => numeric_size = true, "-a" => duplicates = true,
-                    "-if" | "-stay_open" | "-@" | "-common_args" => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
-                    _ if option.starts_with("-execute") => return err_out(&format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {a}\n"), 1),
-                    _ => {
-                        let (raw, value) = a[1..].split_once('=').map_or((&a[1..], None), |(k,v)| (k,Some(v)));
-                        let name = raw.strip_suffix(['+','-']).unwrap_or(raw);
-                        let operation = &raw[name.len()..];
-                        let selector = name.strip_suffix('#').unwrap_or(name);
-                        if let Some(v) = value {
-                            updates.push((format!("{}{operation}", known(selector).unwrap_or(selector)), v.to_owned()));
-                        } else if let Some(tag) = known(selector).or_else(|| (selector == "MissingTag").then_some(selector)) {
-                            value_conv |= selector != name;
-                            numeric_size |= selector != name && tag == "FileSize";
-                            requested_tags.push(tag.to_owned());
-                        } else { return err_out(&format!("Error: ExifTool option/tag not yet supported: {a}\n"), 1); }
-                    }
-                }
-            }
-            let (s3_mode, s2_mode, group_mode) = (short == 3, short == 2, group == 1);
-            if tags_from_file.is_some() && !updates.is_empty() {
-                return err_out("Error: Combining tagsFromFile with assignments is not yet supported\n", 1);
-            }
-            let writing_mode = !updates.is_empty() || tags_from_file.is_some();
-            if files.is_empty() {
-                return err_out("Error: No file specified\n", 1);
-            }
-            if files.iter().filter(|f| f.as_str() == "-").count() > 1 {
-                return err_out("Error: Repeated stdin operands are not supported\n", 1);
-            }
-            if files.iter().any(|f| f == "-") && writing_mode {
-                return err_out("Error: Writing stdin metadata is not yet supported\n", 1);
-            }
-            if out_path.is_some() && (files.len() != 1 || !writing_mode) {
-                return err_out("Error: -o requires a single file with tag assignments in this profile\n", 1);
-            }
-            if json_mode && bin_mode {
-                return err_out("Error: JSON binary policy not yet supported\n", 1);
-            }
-            if csv_mode && (json_mode || bin_mode || writing_mode) {
-                return err_out("Error: CSV combined output/import policy not yet supported\n", 1);
-            }
-            if csv_mode && value_conv { return err_out("Error: CSV ValueConv-qualified headers not yet supported\n", 1); }
-            if group == 4 && (!json_mode || writing_mode) { return err_out("Error: Group-family qualification outside JSON not yet supported\n", 1); }
-            if group == 1 && (json_mode || csv_mode || bin_mode || xml_mode || tab_mode || print_fmt.is_some() || writing_mode) {
-                return err_out("Error: -G1 requires text extraction in this profile\n", 1);
-            }
-            let mode_count = [json_mode, csv_mode, bin_mode, xml_mode, tab_mode, print_fmt.is_some()]
-                .into_iter()
-                .filter(|x| *x)
-                .count();
-            if mode_count > 1 {
-                return err_out("Error: Conflicting ExifTool output modes\n", 1);
-            }
-            if (xml_mode || tab_mode || print_fmt.is_some()) && writing_mode {
-                return err_out("Error: Presentation modes require extraction\n", 1);
-            }
-            let mut substitutions = Vec::new();
-            let template_prefix = if let Some(template) = &print_fmt {
-                let mut parts = template.split('$');
-                let prefix = parts.next().unwrap_or("");
-                for suffix in parts {
-                    let (name, literal) = suffix.split_at(suffix.bytes().take_while(u8::is_ascii_alphabetic).count());
-                    let Some(tag) = known(name) else { return err_out("Error: Only literal $Tag template substitutions are supported\n", 1); };
-                    substitutions.push((tag, literal));
-                }
-                Some(prefix)
-            } else { None };
-            if let [(key, value)] = updates.as_slice()
-                && let Some(error) = exiftool_shift_error(key, value)
-            {
-                return err_out(&format!("Warning: {error}\nNothing to do.\n"), 1);
-            }
-            let acquire = |path: &str| {
-                let (entry, stat) = fs.inspect_command_entry(path, false, "lstat").map_err(|e| {
-                    if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") { "File not found".to_owned() } else { e }
-                })?;
-                if stat.kind != crate::vfs::VfsEntryKind::File || stat.mode & 0o170000 != 0o100000 {
-                    return Err("Only regular VFS files are admitted".into());
-                }
-                if stat.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, readStream '{path}'")); }
-                let bytes = fs.read_file(&entry)?;
-                Ok((stat, bytes))
-            };
-            let mut tags_from_file_err = None;
-            if let Some(ref src_tag_file) = tags_from_file {
-                let src_full = resolve_posix_path(cwd, src_tag_file);
-                match acquire(&src_full) {
-                    Err(e) => tags_from_file_err = Some(e),
-                    Ok((_, src_bytes)) if src_bytes.is_empty() => tags_from_file_err = Some("Not a PNG file".into()),
-                    Ok((_, src_bytes)) => {
-                        let mut src_tags = BTreeMap::new();
-                        let mut order = Vec::new();
-                        let mut collect = |k: &str, v: String| {
-                            if src_tags.insert(k.to_owned(), v).is_none() {order.push(k.to_owned());}
-                        };
-                        if src_full.to_ascii_lowercase().ends_with(".pdf")
-                            || src_bytes.starts_with(b"%PDF-")
-                        {
-                            let pdf = PdfDoc::parse(&src_bytes);
-                            if !pdf.title.is_empty() {
-                                collect("Title", pdf.title);
-                            }
-                            if !pdf.author.is_empty() {
-                                collect("Author", pdf.author);
-                            }
-                            for (k, v) in pdf.info {
-                                collect(&k, v);
-                            }
-                            for (k, v) in pdf.exif {
-                                collect(&k, v);
-                            }
-                        } else if exiftool_png::candidate(&src_bytes) {
-                            if let Err(e) = exiftool_png::inspect(&src_bytes, |k,v,_| collect(k,v)) { tags_from_file_err = Some(e.into()); }
-                        } else {
-                            let src_meta = read_image_meta(&src_bytes, &src_full);
-                            for (k, v) in src_meta.exif {
-                                if !k.starts_with("__") {
-                                    collect(&k, v);
-                                }
-                            }
-                        }
-                        for k in if requested_tags.is_empty() { &order } else { &requested_tags } {
-                            if let Some(v) = src_tags.get(k) { updates.push((k.clone(), v.clone())); }
-                        }
-                    }
-                }
-            }
-            if writing_mode {
-                let mut created = 0usize;
-                let mut serial = 0usize;
-                let mut create = |path: &str, bytes: &[u8]| -> Result<(), String> {
-                    if path == "/" { return Err("EISDIR: illegal operation on a directory, capabilitiesFor '/'".into()); }
-                    let parent = crate::vfs::dirname_posix_path(path);
-                    let not_found = |e: &str| e.starts_with("ENOENT:") || e.ends_with("(os error 2)");
-                    let (_, st) = fs.inspect_command_entry(&parent, true, "stat")
-                        .map_err(|e| if not_found(&e) { "File not found".into() } else { e })?;
-                    serial += 1;
-                    if st.kind != crate::vfs::VfsEntryKind::Directory || st.mode & 0o300 != 0o300 {
-                        let mut stage = format!("{}/.exiftool-{serial}", parent.trim_end_matches('/'));
-                        if st.kind != crate::vfs::VfsEntryKind::Directory { return Err(format!("ENOTDIR: not a directory '{stage}'")); }
-                        while fs.lstat(&stage).is_ok() {
-                            serial += 1;
-                            stage = format!("{}/.exiftool-{serial}", parent.trim_end_matches('/'));
-                        }
-                        return Err(format!("EACCES: permission denied, createStagedFile '{stage}'"));
-                    }
-                    let entry = fs.access_path(path, false)?;
-                    fs.create_file(&entry, bytes, 0o666).map_err(|e| {
-                        if e.starts_with("EEXIST:") { format!("EAGAIN: resource temporarily unavailable, fileStaging '{path}'") }
-                        else { e }
-                    })
-                };
-                let mut updated = 0usize;
-                let mut unchanged = 0usize;
-                let mut err_out = String::new();
-                for f in &files {
-                    let full = resolve_posix_path(cwd, f);
-                    let (original, data) = match acquire(&full) {
-                        Ok(file) => file,
-                        Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
-                    };
-                    if data.is_empty() {
-                        err_out.push_str(&format!("Error: File is empty - {f}\n"));
-                        continue;
-                    }
-                    let extension = f.rsplit('.').next().unwrap_or("").to_ascii_uppercase();
-                    if matches!(extension.as_str(), "DOCX" | "PPTX" | "XLSX") {
-                        err_out.push_str(&format!("Error: Writing of {extension} files is not yet supported - {f}\n"));
-                        continue;
-                    }
-                    let is_pdf = extension == "PDF" || data.starts_with(b"%PDF-");
-                    if is_pdf && updates.iter().any(|(k, _)| k.eq_ignore_ascii_case("all")) {
-                        err_out.push_str(&format!(
-                            "Error: PDF parser/writer not yet supported; metadata deletion retains historical revisions and never guarantees redaction - {f}\n"
-                        ));
-                        continue;
-                    }
-                    if !is_pdf && !data.starts_with(b"\xff\xd8") && !(data.len() >= 8 && data.starts_with(b"\x89PNG")) {
-                        err_out.push_str(&format!("Error: Format writer not yet supported - {f}\n")); continue;
-                    }
-                    if let Some(src_err) = &tags_from_file_err {
-                        err_out.push_str(&format!("Error: {src_err} - {f}\n")); continue;
-                    }
-                    let copied;
-                    let updates = if tags_from_file.is_some() && (is_pdf || exiftool_png::candidate(&data)) {
-                        copied = updates.iter().filter(|(k, _)| if is_pdf { pdf_reader::INFO_TAGS.contains(&k.as_str()) } else { exiftool_png::writable(k) }).cloned().collect::<Vec<_>>();
-                        &copied
-                    } else { &updates };
-                    let edited = if !is_pdf && exiftool_png::candidate(&data) {
-                        exiftool_png::edit(&data, updates, fs)
-                    } else if is_pdf && data.split(|&b| b == b'\n').nth(1) != Some(b"%%SAFE_PDF_V2%%") {
-                        pdf_reader::edit_info(&data, updates, tags_from_file.is_some()).map(|suffix| [data.as_slice(), &suffix].concat())
-                    } else {
-                        let mut edited = data.clone();
-                        for (k, v) in updates {
-                            let k = k.trim_end_matches(['+', '-']);
-                            edited.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
-                        }
-                        Ok(edited)
-                    };
-                    let edited = match edited {
-                        Ok(bytes) if out_path.is_none() && bytes == data && !updates.iter().any(|(k,v)| !v.is_empty() && !k.ends_with(['+', '-'])) => {
-                            unchanged += 1;
-                            continue;
-                        }
-                        Ok(bytes) => bytes,
-                        Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
-                    };
-                    if out_path.is_none() {
-                        if original.mode & 0o200 == 0 {
-                            err_out.push_str(&format!("Error: EACCES: permission denied, access '{full}' - {f}\n")); continue;
-                        }
-                        if !in_place && original.nlink != Some(1) {
-                            err_out.push_str(&format!("Error: VFS hardlink replacement is not yet supported - {f}\n")); continue;
-                        }
-                    }
-                    if !overwrite_orig && out_path.is_none() {
-                        let orig_path = format!("{full}_original");
-                        match fs.lstat(&orig_path) {
-                            Ok(_) => {}
-                            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
-                                if let Err(e) = create(&orig_path, &data) {
-                                    err_out.push_str(&format!("Error: {e} - {f}\n")); continue;
-                                }
-                            }
-                            Err(e) => { err_out.push_str(&format!("Error: {e} - {f}\n")); continue; }
-                        }
-                    }
-                    if let Some(path) = &out_path {
-                        if path == "-" || path.contains('\0') {
-                            err_out.push_str(&format!("Error: Invalid or unsupported ExifTool file path - {f}\n")); continue;
-                        }
-                        match create(&resolve_posix_path(cwd, path), &edited) {
-                            Ok(()) => created += 1,
-                            Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
-                        }
-                    } else {
-                        match fs.commit_file_edit(&full, &original, &data, &edited, in_place) {
-                            Ok(()) => updated += 1,
-                            Err(e) => err_out.push_str(&format!("Error: {e} - {f}\n")),
-                        }
-                    }
-                }
-                let mut stdout_str = if updated > 0 || unchanged > 0 {
-                    format!("{updated:>5} image files updated\n")
-                } else {
-                    String::new()
-                };
-                if created > 0 { stdout_str.push_str(&format!("{created:>5} image files created\n")); }
-                if unchanged > 0 { stdout_str.push_str(&format!("{unchanged:>5} image files unchanged\n")); }
-                return BuiltinOutcome {
-                    stdout: stdout_str,
-                    stderr: err_out.clone(),
-                    exit_code: if err_out.is_empty() { 0 } else { 1 },
-                };
-            }
-            let read_all_tags = |f: &str, data: &[u8]| {
-                let full = resolve_posix_path(cwd, f);
-                let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
-                let mut order = Vec::new();
-                let mut store = |name: &str, value: String, raw: Option<&[u8]>| {
-                    let values = map.entry(name.to_owned()).or_default();
-                    if values.is_empty() { order.push(name.to_owned()); }
-                    if !duplicates && group != 4 { values.clear(); }
-                    values.push(if bin_mode {
-                        crate::vfs::bytes_to_stream_string(raw.unwrap_or(value.as_bytes()))
-                    } else { value });
-                };
-                let mut insert = |name: &str, value: String| store(name, value, None);
-                if f != "-" {
-                    let (dir, name) = f.rsplit_once('/').unwrap_or((".", f));
-                    insert("FileName", name.to_owned());
-                    insert("Directory", if dir.is_empty() { "/" } else { dir }.to_owned());
-                }
-                let size = data.len();
-                insert("FileSize", if bin_mode || numeric_size { size.to_string() }
-                    else if size < 1000 { format!("{size} bytes") }
-                    else {
-                        let exp = (size.ilog10() as usize / 3).min(5);
-                        let scaled = size as f64 / 1000f64.powi(exp as i32);
-                        let places = 2usize.saturating_sub(scaled.log10().floor() as usize);
-                        // toPrecision rounds exact decimal ties upward; Rust formatting uses ties-to-even.
-                        let halfway = (scaled * (1 << places) as f64).fract() == 0.5;
-                        let display = if halfway { scaled.next_up() } else { scaled };
-                        let rounded = format!("{display:.places$}");
-                        let number = if places == 0 { &rounded } else { rounded.trim_end_matches('0').trim_end_matches('.') };
-                        format!("{number} {}", ["kB", "MB", "GB", "TB", "PB"][exp - 1])
-                    });
-                if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
-                    let pdf = PdfDoc::parse(data);
-                    insert("FileTypeExtension", "pdf".into());
-                    insert("PDFVersion", pdf.version);
-                    insert("PageCount", pdf.pages.len().to_string());
-                    let mut info: BTreeMap<_,_> = pdf.info.into_iter().collect();
-                    if !pdf.title.is_empty() { info.insert("Title".into(), pdf.title); }
-                    if !pdf.author.is_empty() { info.insert("Author".into(), pdf.author); }
-                    info.extend(pdf.exif);
-                    for &name in pdf_reader::INFO_TAGS {
-                        if let Some(value) = info.remove(name) && !value.is_empty() { insert(name, value); }
-                    }
-                } else if exiftool_png::candidate(data) {
-                    insert("FileTypeExtension", "png".into());
-                    exiftool_png::inspect(data, store)?;
-                } else {
-                    let im = read_image_meta(data, &full);
-                    let ext = if im.fmt == "JPEG" { "jpg".into() } else { im.fmt.to_ascii_lowercase() };
-                    insert("FileTypeExtension", ext);
-                    insert("ImageWidth", im.w.to_string());
-                    insert("ImageHeight", im.h.to_string());
-                    insert("BitDepth", "8".into());
-                    insert("ColorType", "RGB".into());
-                    let mime = format!("image/{}", im.fmt.to_ascii_lowercase());
-                    insert("FileType", im.fmt);
-                    insert("MIMEType", mime);
-                    insert("ImageSize", format!("{}x{}", im.w, im.h));
-                    for (k, v) in im.exif {
-                        if !k.starts_with("__") { insert(&k, v); }
-                    }
-                }
-                Ok::<_, &str>((map, order))
-            };
-            let mut records = Vec::new();
-            let mut read_err_buf = String::new();
-            for f in files {
-                let data = if f == "-" { Ok(crate::vfs::stream_string_to_bytes(stdin)) }
-                    else { acquire(&resolve_posix_path(cwd, &f)).map(|(_, bytes)| bytes) };
-                match data {
-                    Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
-                    Ok(bytes) if bytes.is_empty() => read_err_buf.push_str(&format!("Error: File is empty - {f}\n")),
-                    Ok(bytes) => match read_all_tags(&f, &bytes) {
-                        Ok((tags, order)) => records.push((f, tags, order)),
-                        Err(e) => read_err_buf.push_str(&format!("Error: {e} - {f}\n")),
-                    }
-                }
-            }
-            let finalize_exif_out = |stdout: String| BuiltinOutcome {
-                stdout, stderr: read_err_buf.clone(), exit_code: i32::from(!read_err_buf.is_empty()),
-            };
-            if let Some(prefix) = template_prefix {
-                let mut out = String::new();
-                for (_, map, _) in &records {
-                    out.push_str(prefix);
-                    for &(tag, literal) in &substitutions {
-                        exif_printable(&mut out, map.get(tag).and_then(|vs| vs.last()).map(String::as_str).unwrap_or("-"));
-                        out.push_str(literal);
-                    }
-                    out.push('\n');
-                }
-                return finalize_exif_out(out);
-            }
-            if json_mode {
-                let items = records.iter().map(|(file, map, order)| {
-                    let keys = if requested_tags.is_empty() { order } else { &requested_tags };
-                    exiftool_json::record(file, map, keys, group == 4, missing, quote_scalars)
-                }).collect::<Vec<_>>();
-                return finalize_exif_out(format!("[{}]\n", items.join(",\n")));
-            }
-            if csv_mode {
-                let mut hdr = vec!["SourceFile".to_string()];
-                for t in &requested_tags {
-                    hdr.push(t.clone());
-                }
-                let mut out = format!("{}\n", hdr.join(","));
-                for (f, map, _) in &records {
-                    let mut row = vec![f.clone()];
-                    for t in &requested_tags {
-                        row.push(map.get(t).and_then(|v| v.last()).cloned().unwrap_or_else(|| "-".to_string()));
-                    }
-                    out.push_str(&format!("{}\n", row.join(",")));
-                }
-                return finalize_exif_out(if records.is_empty() && !read_err_buf.is_empty() { String::new() } else { out });
-            }
-            if xml_mode {
-                let mut out = String::from("<?xml version='1.0' encoding='UTF-8'?>\n<rdf:RDF>\n");
-                for (_, map, _) in &records {
-                    for (k, values) in map {
-                        let v = values.last().unwrap();
-                        out.push_str(&format!("  <PNG:{k}>{}</PNG:{k}>\n", html_escape_str(v)));
-                    }
-                }
-                out.push_str("</rdf:RDF>\n");
-                return finalize_exif_out(out);
-            }
-            if tab_mode {
-                let mut lines = Vec::new();
-                for (_, map, order) in &records {
-                    let mut vals = Vec::new();
-                    let keys = if requested_tags.is_empty() { order } else { &requested_tags };
-                    for rt in keys {
-                        let values = map.get(rt);
-                        let first = values.and_then(|v| v.first()).map_or("-", String::as_str);
-                        let repeat = if requested_tags.is_empty() { values.map_or(1, Vec::len) } else { 1 };
-                        for _ in 0..repeat {
-                            let mut value = String::new();
-                            exif_printable(&mut value, first);
-                            vals.push(value);
-                        }
-                    }
-                    lines.push(vals.join("\t"));
-                }
-                return finalize_exif_out(if lines.is_empty() { String::new() } else { format!("{}\n", lines.join("\n")) });
-            }
-            let mut out = String::new();
-            for (_, map, order) in &records {
-                let keys = if requested_tags.is_empty() { order } else { &requested_tags };
-                for absent in [false, true] {
-                    if absent && (!missing || bin_mode) { break; }
-                    for k in keys {
-                        let value = map.get(k);
-                        if value.is_none() != absent { continue; }
-                        for value in value.into_iter().flatten().map(String::as_str).chain(absent.then_some("-")) {
-                            if bin_mode { out.push_str(value); continue; }
-                            if group_mode && !absent {
-                                let group = match k.as_str() {
-                                    "FileName" | "Directory" | "FileSize" => "System",
-                                    "FileTypeExtension" => "File",
-                                    _ => map.get("FileType").and_then(|v| v.last()).map_or("PDF", String::as_str),
-                                };
-                                out.push_str(&format!("{:<16}", format!("[{group}]")));
-                            }
-                            if s2_mode { out.push_str(&format!("{k}: ")); }
-                            else if !s3_mode { out.push_str(&format!("{k:<32}: ")); }
-                            exif_printable(&mut out, value);
-                            out.push('\n');
-                        }
-                    }
-                }
-            }
-            finalize_exif_out(out)
+        docs.push(PdfDoc::parse(&bytes));
+    }
+    let a = &docs[0];
+    let b = &docs[1];
+    let max_p = a.pages.len().max(b.pages.len());
+    let mut changed = false;
+    let mut out = String::new();
+    let page_sig = |doc: &PdfDoc, idx: usize| -> Option<String> {
+        let pg = doc.pages.get(idx)?;
+        let lines: Vec<&str> = pg
+            .text
+            .lines()
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty())
+            .collect();
+        if mode == "text" {
+            Some(format!("{lines:?}"))
+        } else {
+            let (pw, ph) = doc
+                .page_media
+                .get(&(idx + 1))
+                .map(|(w, h, _)| (*w, *h))
+                .unwrap_or((doc.page_w, doc.page_h));
+            Some(format!(
+                "{:.2}:{:.2}:{}:{lines:?}:{:?}",
+                pw, ph, pg.rot, pg.images
+            ))
         }
-        "diffpdf" | "pdfdiff" => {
-            let mut mode = "text";
-            let mut files: Vec<String> = Vec::new();
-            let mut positional = false;
-            for arg in args {
-                if !positional && arg == "--" {
-                    positional = true;
-                    continue;
-                }
-                if !positional && (arg == "--text" || arg == "--layout") {
-                    mode = if arg == "--text" { "text" } else { "layout" };
-                    continue;
-                }
-                if !positional && arg == "--help" {
-                    return ok_out("Usage: diffpdf [--text|--layout] OLD.pdf NEW.pdf\nExit 0: equal, 1: different, 2: invalid invocation.\n");
-                }
-                if !positional && arg.starts_with('-') {
-                    return err_out(&format!("diffpdf: unsupported option {arg}\n"), 2);
-                }
-                files.push(arg.clone());
-            }
-            if files.len() != 2 {
-                return err_out("diffpdf: expected two PDF files\n", 2);
-            }
-            let mut docs: Vec<PdfDoc> = Vec::new();
-            for f in &files {
-                let full = resolve_posix_path(cwd, f);
-                let Ok(bytes) = fs.read_file(&full) else {
-                    if fs.is_dir(&full) {
-                        return err_out(
-                            &format!("{cmd}: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
-                            1,
-                        );
-                    }
-                    return err_out(
-                        &format!("{cmd}: ENOENT: no such file or directory, readFile '{full}'\n"),
-                        1,
-                    );
-                };
-                if !bytes.starts_with(b"%PDF-") {
-                    return err_out(
-                        &format!("diffpdf: {f}: Invalid PDF header: missing %PDF- signature\n"),
-                        2,
-                    );
-                }
-                docs.push(PdfDoc::parse(&bytes));
-            }
-            let a = &docs[0];
-            let b = &docs[1];
-            let max_p = a.pages.len().max(b.pages.len());
-            let mut changed = false;
-            let mut out = String::new();
-            let page_sig = |doc: &PdfDoc, idx: usize| -> Option<String> {
-                let pg = doc.pages.get(idx)?;
-                let lines: Vec<&str> = pg
-                    .text
-                    .lines()
-                    .map(|l| l.trim())
-                    .filter(|l| !l.is_empty())
-                    .collect();
-                if mode == "text" {
-                    Some(format!("{lines:?}"))
-                } else {
-                    let (pw, ph) = doc
-                        .page_media
-                        .get(&(idx + 1))
-                        .map(|(w, h, _)| (*w, *h))
-                        .unwrap_or((doc.page_w, doc.page_h));
-                    Some(format!(
-                        "{:.2}:{:.2}:{}:{lines:?}:{:?}",
-                        pw, ph, pg.rot, pg.images
-                    ))
-                }
-            };
-            for idx in 0..max_p {
-                if page_sig(a, idx) != page_sig(b, idx) {
-                    changed = true;
-                    out.push_str(&format!("Page {} differs ({mode})\n", idx + 1));
-                }
-            }
-            BuiltinOutcome {
-                stdout: out,
-                stderr: String::new(),
-                exit_code: if changed { 1 } else { 0 },
-            }
+    };
+    for idx in 0..max_p {
+        if page_sig(a, idx) != page_sig(b, idx) {
+            changed = true;
+            out.push_str(&format!("Page {} differs ({mode})\n", idx + 1));
         }
-        "svgo" => {
-            let mut input_opt: Option<String> = None;
-            let mut literal_opt: Option<String> = None;
-            let mut outfile_opt: Option<String> = None;
-            let mut precision = 3usize;
-            let mut indent = 2usize;
-            let mut pretty = false;
-            let mut multipass = false;
-            let mut end = false;
-            let mut i = 0usize;
-            while i < args.len() {
-                let arg = args[i].as_str();
-                if !end && arg == "--" {
-                    end = true;
-                    i += 1;
-                    continue;
-                }
-                if !end && (arg == "--help" || arg == "-h") {
-                    return ok_out("Usage: svgo [INPUT|-] [-i INPUT] [-s STRING] [-o OUTPUT|-]\n            [--multipass] [-p PRECISION] [--pretty] [--indent N] [-q|--quiet]\nFile input is optimized in place unless -o is supplied. Stdin and strings default to stdout.\n");
-                }
-                if !end && matches!(arg, "--multipass" | "--pretty" | "-q" | "--quiet") {
-                    if arg == "--multipass" {
-                        multipass = true;
-                    }
-                    if arg == "--pretty" {
-                        pretty = true;
-                    }
-                    i += 1;
-                    continue;
-                }
-                if !end && arg != "-" && arg.starts_with('-') {
-                    if !matches!(
-                        arg,
-                        "-i" | "--input" | "-s" | "--string" | "-o" | "--output" | "-p" | "--precision" | "--indent"
-                    ) {
-                        return err_out(&format!("svgo: unknown option: {arg}\n"), 1);
-                    }
-                    if i + 1 >= args.len() {
-                        return err_out(&format!("svgo: missing value for {arg}\n"), 1);
-                    }
-                    i += 1;
-                    let val = &args[i];
-                    if arg == "-i" || arg == "--input" {
-                        if input_opt.is_some() {
-                            return err_out("svgo: multiple inputs\n", 1);
-                        }
-                        input_opt = Some(val.clone());
-                    } else if arg == "-s" || arg == "--string" {
-                        if literal_opt.is_some() {
-                            return err_out("svgo: multiple strings\n", 1);
-                        }
-                        literal_opt = Some(val.clone());
-                    } else if arg == "-o" || arg == "--output" {
-                        outfile_opt = Some(val.clone());
-                    } else {
-                        let max_v = if arg == "--indent" { 16usize } else { 15usize };
-                        let Ok(n) = val.trim().parse::<usize>() else {
-                            return err_out(&format!("svgo: invalid {arg}\n"), 1);
-                        };
-                        if n > max_v {
-                            return err_out(&format!("svgo: invalid {arg}\n"), 1);
-                        }
-                        if arg == "--indent" {
-                            indent = n;
-                        } else {
-                            precision = n;
-                        }
-                    }
-                } else {
-                    if input_opt.is_some() {
-                        return err_out("svgo: multiple inputs\n", 1);
-                    }
-                    input_opt = Some(arg.to_string());
-                }
-                i += 1;
-            }
-            if input_opt.is_some() && literal_opt.is_some() {
-                return err_out("svgo: choose input or string\n", 1);
-            }
-            let source = if let Some(ref lit) = literal_opt {
-                lit.clone()
-            } else if let Some(ref inp) = input_opt && inp != "-" {
-                let full = resolve_posix_path(cwd, inp);
-                if fs.is_dir(&full) {
-                    return err_out(
-                        &format!("svgo: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
-                        1,
-                    );
-                }
-                let Ok(b) = fs.read_file(&full) else {
-                    return err_out(
-                        &format!("svgo: ENOENT: no such file or directory, readFile '{full}'\n"),
-                        1,
-                    );
-                };
-                String::from_utf8_lossy(&b).to_string()
-            } else {
-                stdin.to_string()
-            };
-            let mut result = source;
-            let passes = if multipass { 10 } else { 1 };
-            for _ in 0..passes {
-                match optimize_svg_str(&result, precision, false, indent) {
-                    Ok(next) => {
-                        if next == result {
-                            break;
-                        }
-                        result = next;
-                    }
-                    Err(e) => return err_out(&format!("svgo: {e}\n"), 1),
-                }
-            }
-            if pretty {
-                match optimize_svg_str(&result, precision, true, indent) {
-                    Ok(next) => result = next,
-                    Err(e) => return err_out(&format!("svgo: {e}\n"), 1),
-                }
-            }
-            let target = outfile_opt.unwrap_or_else(|| {
-                if literal_opt.is_some() {
-                    "-".to_string()
-                } else {
-                    input_opt.unwrap_or_else(|| "-".to_string())
-                }
-            });
-            if target == "-" {
-                ok_out(&result)
-            } else {
-                let full = resolve_posix_path(cwd, &target);
-                let _ = fs.write_file(&full, result.as_bytes());
-                ok_out("")
-            }
+    }
+    BuiltinOutcome {
+        stdout: out,
+        stderr: String::new(),
+        exit_code: if changed { 1 } else { 0 },
+    }
+}
+
+fn cmd_svgo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut input_opt: Option<String> = None;
+    let mut literal_opt: Option<String> = None;
+    let mut outfile_opt: Option<String> = None;
+    let mut precision = 3usize;
+    let mut indent = 2usize;
+    let mut pretty = false;
+    let mut multipass = false;
+    let mut end = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = args[i].as_str();
+        if !end && arg == "--" {
+            end = true;
+            i += 1;
+            continue;
         }
-        "rsvg-convert" => {
-            let mut format = "png".to_string();
-            let mut output_opt: Option<String> = None;
-            let mut input_opt: Option<String> = None;
-            let mut positional = false;
-            let mut i = 0usize;
-            while i < args.len() {
-                let arg = args[i].as_str();
-                if !positional && arg == "--" {
-                    positional = true;
-                    i += 1;
-                    continue;
-                }
-                if !positional && arg == "--help" {
-                    return ok_out("Usage: rsvg-convert [-f pdf|png] [-o OUTPUT] [INPUT]\n");
-                }
-                if !positional && (arg == "-f" || arg == "--format") {
-                    i += 1;
-                    format = args.get(i).cloned().unwrap_or_default();
-                    i += 1;
-                    continue;
-                }
-                if !positional && (arg == "-o" || arg == "--output") {
-                    i += 1;
-                    let Some(o) = args.get(i) else {
-                        return err_out("rsvg-convert: missing output path\n", 1);
-                    };
-                    output_opt = Some(o.clone());
-                    i += 1;
-                    continue;
-                }
-                if !positional && arg.starts_with('-') && arg != "-" {
-                    return err_out(&format!("rsvg-convert: unsupported option {arg}\n"), 1);
-                }
+        if !end && (arg == "--help" || arg == "-h") {
+            return ok_out("Usage: svgo [INPUT|-] [-i INPUT] [-s STRING] [-o OUTPUT|-]\n            [--multipass] [-p PRECISION] [--pretty] [--indent N] [-q|--quiet]\nFile input is optimized in place unless -o is supplied. Stdin and strings default to stdout.\n");
+        }
+        if !end && matches!(arg, "--multipass" | "--pretty" | "-q" | "--quiet") {
+            if arg == "--multipass" {
+                multipass = true;
+            }
+            if arg == "--pretty" {
+                pretty = true;
+            }
+            i += 1;
+            continue;
+        }
+        if !end && arg != "-" && arg.starts_with('-') {
+            if !matches!(
+                arg,
+                "-i" | "--input" | "-s" | "--string" | "-o" | "--output" | "-p" | "--precision" | "--indent"
+            ) {
+                return err_out(&format!("svgo: unknown option: {arg}\n"), 1);
+            }
+            if i + 1 >= args.len() {
+                return err_out(&format!("svgo: missing value for {arg}\n"), 1);
+            }
+            i += 1;
+            let val = &args[i];
+            if arg == "-i" || arg == "--input" {
                 if input_opt.is_some() {
-                    return err_out("rsvg-convert: expected at most one input\n", 1);
+                    return err_out("svgo: multiple inputs\n", 1);
                 }
-                input_opt = Some(arg.to_string());
-                i += 1;
-            }
-            if format != "pdf" && format != "png" {
-                return err_out(&format!("rsvg-convert: unsupported format {format}\n"), 1);
-            }
-            let src = if let Some(ref inp) = input_opt && inp != "-" {
-                let full = resolve_posix_path(cwd, inp);
-                let Ok(b) = fs.read_file(&full) else {
-                    if fs.is_dir(&full) {
-                        return err_out(
-                            &format!("rsvg-convert: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
-                            1,
-                        );
-                    }
-                    return err_out(
-                        &format!("rsvg-convert: ENOENT: no such file or directory, readFile '{full}'\n"),
-                        1,
-                    );
+                input_opt = Some(val.clone());
+            } else if arg == "-s" || arg == "--string" {
+                if literal_opt.is_some() {
+                    return err_out("svgo: multiple strings\n", 1);
+                }
+                literal_opt = Some(val.clone());
+            } else if arg == "-o" || arg == "--output" {
+                outfile_opt = Some(val.clone());
+            } else {
+                let max_v = if arg == "--indent" { 16usize } else { 15usize };
+                let Ok(n) = val.trim().parse::<usize>() else {
+                    return err_out(&format!("svgo: invalid {arg}\n"), 1);
                 };
-                String::from_utf8_lossy(&b).to_string()
-            } else {
-                stdin.to_string()
-            };
-            let rendered = match pdf_reader::render_svg(&src, &format, fs.max_input_bytes()) {
-                Ok(bytes) => bytes,
-                Err(e) => return err_out(&format!("rsvg-convert: {e}\n"), 1),
-            };
-            if let Some(ref out_p) = output_opt && out_p != "-" {
-                let full = resolve_posix_path(cwd, out_p);
-                let _ = fs.write_file(&full, &rendered);
-                ok_out("")
-            } else {
-                ok_out(&crate::vfs::bytes_to_stream_string(&rendered))
-            }
-        }
-        "soxi" => {
-            if args.iter().any(|a| a == "--help" || a == "-h") {
-                return ok_out("Usage: soxi [-t|-r|-c|-s|-d|-D|-b|-B|-a] FILE...\n");
-            }
-            run_audio_info("soxi", args, stdin, cwd, fs)
-        }
-        "sox" => {
-            if args.iter().any(|a| a == "--help" || a == "-h") {
-                return ok_out("Usage: sox [FORMAT] INPUT... [FORMAT] OUTPUT [trim|pad|norm|gain -n|rate|channels|remix|fade|reverse|stat|stats|synth ...]\n       sox --i [-t|-r|-c|-s|-d|-D|-b|-B|-a] FILE\nFORMAT: -r RATE -c CHANNELS -b BITS -e ENCODING; -n is the null device. PCM processing reads and writes WAV.\n");
-            }
-            if args.first().map(|s| s.as_str()) == Some("--i") {
-                return run_audio_info("sox", &args[1..], stdin, cwd, fs);
-            }
-            #[derive(Default, Clone)]
-            struct SoxFmt {
-                rate: Option<u32>,
-                channels: Option<usize>,
-                bits: Option<u32>,
-                encoding: Option<String>,
-                ftype: Option<String>,
-            }
-            impl SoxFmt {
-                fn is_empty(&self) -> bool {
-                    self.rate.is_none()
-                        && self.channels.is_none()
-                        && self.bits.is_none()
-                        && self.encoding.is_none()
-                        && self.ftype.is_none()
+                if n > max_v {
+                    return err_out(&format!("svgo: invalid {arg}\n"), 1);
+                }
+                if arg == "--indent" {
+                    indent = n;
+                } else {
+                    precision = n;
                 }
             }
-            let is_effect = |s: &str| {
-                matches!(
-                    s,
-                    "trim"
-                        | "pad"
-                        | "norm"
-                        | "gain"
-                        | "rate"
-                        | "channels"
-                        | "remix"
-                        | "fade"
-                        | "reverse"
-                        | "stat"
-                        | "stats"
-                        | "synth"
-                )
-            };
-            let mut files: Vec<(String, SoxFmt)> = Vec::new();
-            let mut pending = SoxFmt::default();
-            let mut index = 0usize;
-            while index < args.len() {
-                let arg = args[index].as_str();
-                if is_effect(arg) {
+        } else {
+            if input_opt.is_some() {
+                return err_out("svgo: multiple inputs\n", 1);
+            }
+            input_opt = Some(arg.to_string());
+        }
+        i += 1;
+    }
+    if input_opt.is_some() && literal_opt.is_some() {
+        return err_out("svgo: choose input or string\n", 1);
+    }
+    let source = if let Some(ref lit) = literal_opt {
+        lit.clone()
+    } else if let Some(ref inp) = input_opt && inp != "-" {
+        let full = resolve_posix_path(cwd, inp);
+        if fs.is_dir(&full) {
+            return err_out(
+                &format!("svgo: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                1,
+            );
+        }
+        let Ok(b) = fs.read_file(&full) else {
+            return err_out(
+                &format!("svgo: ENOENT: no such file or directory, readFile '{full}'\n"),
+                1,
+            );
+        };
+        String::from_utf8_lossy(&b).to_string()
+    } else {
+        stdin.to_string()
+    };
+    let mut result = source;
+    let passes = if multipass { 10 } else { 1 };
+    for _ in 0..passes {
+        match optimize_svg_str(&result, precision, false, indent) {
+            Ok(next) => {
+                if next == result {
                     break;
                 }
-                if matches!(arg, "-r" | "-c" | "-b" | "-e" | "-t") {
-                    index += 1;
-                    let Some(val) = args.get(index) else {
-                        return err_out(&format!("sox: Missing {arg}\n"), 1);
-                    };
-                    if arg == "-e" {
-                        pending.encoding = Some(val.clone());
-                    } else if arg == "-t" {
-                        if val != "wav" {
-                            return err_out("sox: Only WAV PCM format is supported\n", 1);
-                        }
-                        pending.ftype = Some("wav".to_string());
-                    } else {
-                        let Ok(num) = sox_numeric(Some(val), arg) else {
-                            return err_out(&format!("sox: Invalid {arg}: {val}\n"), 1);
-                        };
-                        if num.fract() != 0.0 || num < 1.0 {
-                            return err_out(&format!("sox: Invalid {arg}\n"), 1);
-                        }
-                        let n = num as u32;
-                        if arg == "-r" {
-                            pending.rate = Some(n);
-                        } else if arg == "-c" {
-                            if n > 64 {
-                                return err_out("sox: Channel limit exceeded\n", 1);
-                            }
-                            pending.channels = Some(n as usize);
-                        } else {
-                            pending.bits = Some(n);
-                        }
-                    }
-                } else {
-                    if arg.starts_with('-') && arg != "-" && arg != "-n" {
-                        return err_out(&format!("sox: Unknown option {arg}\n"), 1);
-                    }
-                    files.push((arg.to_string(), pending));
-                    pending = SoxFmt::default();
+                result = next;
+            }
+            Err(e) => return err_out(&format!("svgo: {e}\n"), 1),
+        }
+    }
+    if pretty {
+        match optimize_svg_str(&result, precision, true, indent) {
+            Ok(next) => result = next,
+            Err(e) => return err_out(&format!("svgo: {e}\n"), 1),
+        }
+    }
+    let target = outfile_opt.unwrap_or_else(|| {
+        if literal_opt.is_some() {
+            "-".to_string()
+        } else {
+            input_opt.unwrap_or_else(|| "-".to_string())
+        }
+    });
+    if target == "-" {
+        ok_out(&result)
+    } else {
+        let full = resolve_posix_path(cwd, &target);
+        let _ = fs.write_file(&full, result.as_bytes());
+        ok_out("")
+    }
+}
+
+fn cmd_rsvg_convert(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut format = "png".to_string();
+    let mut output_opt: Option<String> = None;
+    let mut input_opt: Option<String> = None;
+    let mut positional = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = args[i].as_str();
+        if !positional && arg == "--" {
+            positional = true;
+            i += 1;
+            continue;
+        }
+        if !positional && arg == "--help" {
+            return ok_out("Usage: rsvg-convert [-f pdf|png] [-o OUTPUT] [INPUT]\n");
+        }
+        if !positional && (arg == "-f" || arg == "--format") {
+            i += 1;
+            format = args.get(i).cloned().unwrap_or_default();
+            i += 1;
+            continue;
+        }
+        if !positional && (arg == "-o" || arg == "--output") {
+            i += 1;
+            let Some(o) = args.get(i) else {
+                return err_out("rsvg-convert: missing output path\n", 1);
+            };
+            output_opt = Some(o.clone());
+            i += 1;
+            continue;
+        }
+        if !positional && arg.starts_with('-') && arg != "-" {
+            return err_out(&format!("rsvg-convert: unsupported option {arg}\n"), 1);
+        }
+        if input_opt.is_some() {
+            return err_out("rsvg-convert: expected at most one input\n", 1);
+        }
+        input_opt = Some(arg.to_string());
+        i += 1;
+    }
+    if format != "pdf" && format != "png" {
+        return err_out(&format!("rsvg-convert: unsupported format {format}\n"), 1);
+    }
+    let src = if let Some(ref inp) = input_opt && inp != "-" {
+        let full = resolve_posix_path(cwd, inp);
+        let Ok(b) = fs.read_file(&full) else {
+            if fs.is_dir(&full) {
+                return err_out(
+                    &format!("rsvg-convert: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                    1,
+                );
+            }
+            return err_out(
+                &format!("rsvg-convert: ENOENT: no such file or directory, readFile '{full}'\n"),
+                1,
+            );
+        };
+        String::from_utf8_lossy(&b).to_string()
+    } else {
+        stdin.to_string()
+    };
+    let rendered = match pdf_reader::render_svg(&src, &format, fs.max_input_bytes()) {
+        Ok(bytes) => bytes,
+        Err(e) => return err_out(&format!("rsvg-convert: {e}\n"), 1),
+    };
+    if let Some(ref out_p) = output_opt && out_p != "-" {
+        let full = resolve_posix_path(cwd, out_p);
+        let _ = fs.write_file(&full, &rendered);
+        ok_out("")
+    } else {
+        ok_out(&crate::vfs::bytes_to_stream_string(&rendered))
+    }
+}
+
+fn cmd_soxi(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        return ok_out("Usage: soxi [-t|-r|-c|-s|-d|-D|-b|-B|-a] FILE...\n");
+    }
+    run_audio_info("soxi", args, stdin, cwd, fs)
+}
+
+fn cmd_sox(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        return ok_out("Usage: sox [FORMAT] INPUT... [FORMAT] OUTPUT [trim|pad|norm|gain -n|rate|channels|remix|fade|reverse|stat|stats|synth ...]\n       sox --i [-t|-r|-c|-s|-d|-D|-b|-B|-a] FILE\nFORMAT: -r RATE -c CHANNELS -b BITS -e ENCODING; -n is the null device. PCM processing reads and writes WAV.\n");
+    }
+    if args.first().map(|s| s.as_str()) == Some("--i") {
+        return run_audio_info("sox", &args[1..], stdin, cwd, fs);
+    }
+    #[derive(Default, Clone)]
+    struct SoxFmt {
+        rate: Option<u32>,
+        channels: Option<usize>,
+        bits: Option<u32>,
+        encoding: Option<String>,
+        ftype: Option<String>,
+    }
+    impl SoxFmt {
+        fn is_empty(&self) -> bool {
+            self.rate.is_none()
+                && self.channels.is_none()
+                && self.bits.is_none()
+                && self.encoding.is_none()
+                && self.ftype.is_none()
+        }
+    }
+    let is_effect = |s: &str| {
+        matches!(
+            s,
+            "trim"
+                | "pad"
+                | "norm"
+                | "gain"
+                | "rate"
+                | "channels"
+                | "remix"
+                | "fade"
+                | "reverse"
+                | "stat"
+                | "stats"
+                | "synth"
+        )
+    };
+    let mut files: Vec<(String, SoxFmt)> = Vec::new();
+    let mut pending = SoxFmt::default();
+    let mut index = 0usize;
+    while index < args.len() {
+        let arg = args[index].as_str();
+        if is_effect(arg) {
+            break;
+        }
+        if matches!(arg, "-r" | "-c" | "-b" | "-e" | "-t") {
+            index += 1;
+            let Some(val) = args.get(index) else {
+                return err_out(&format!("sox: Missing {arg}\n"), 1);
+            };
+            if arg == "-e" {
+                pending.encoding = Some(val.clone());
+            } else if arg == "-t" {
+                if val != "wav" {
+                    return err_out("sox: Only WAV PCM format is supported\n", 1);
                 }
-                index += 1;
-            }
-            if !pending.is_empty() {
-                return err_out("sox: Format options require a file\n", 1);
-            }
-            if files.len() < 2 || files.len() > 65 {
-                return err_out("sox: Expected input and output files\n", 1);
-            }
-            let output = files.pop().unwrap();
-            let mut buffers: Vec<PcmAudio> = Vec::new();
-            for (inp_name, inp_opts) in &files {
-                if inp_name == "-n" {
-                    if files.len() != 1 {
-                        return err_out("sox: Null input must stand alone\n", 1);
-                    }
-                    continue;
-                }
-                let data = if inp_name == "-" {
-                    crate::vfs::stream_string_to_bytes(stdin)
-                } else {
-                    let full = resolve_posix_path(cwd, inp_name);
-                    if fs.is_dir(&full) {
-                        return err_out(
-                            &format!("sox: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
-                            1,
-                        );
-                    }
-                    let Ok(b) = fs.read_file(&full) else {
-                        return err_out(
-                            &format!("sox: ENOENT: no such file or directory, readFile '{full}'\n"),
-                            1,
-                        );
-                    };
-                    b
+                pending.ftype = Some("wav".to_string());
+            } else {
+                let Ok(num) = sox_numeric(Some(val), arg) else {
+                    return err_out(&format!("sox: Invalid {arg}: {val}\n"), 1);
                 };
-                let (mut pcm, info) = match decode_wav_pcm(&data) {
+                if num.fract() != 0.0 || num < 1.0 {
+                    return err_out(&format!("sox: Invalid {arg}\n"), 1);
+                }
+                let n = num as u32;
+                if arg == "-r" {
+                    pending.rate = Some(n);
+                } else if arg == "-c" {
+                    if n > 64 {
+                        return err_out("sox: Channel limit exceeded\n", 1);
+                    }
+                    pending.channels = Some(n as usize);
+                } else {
+                    pending.bits = Some(n);
+                }
+            }
+        } else {
+            if arg.starts_with('-') && arg != "-" && arg != "-n" {
+                return err_out(&format!("sox: Unknown option {arg}\n"), 1);
+            }
+            files.push((arg.to_string(), pending));
+            pending = SoxFmt::default();
+        }
+        index += 1;
+    }
+    if !pending.is_empty() {
+        return err_out("sox: Format options require a file\n", 1);
+    }
+    if files.len() < 2 || files.len() > 65 {
+        return err_out("sox: Expected input and output files\n", 1);
+    }
+    let output = files.pop().unwrap();
+    let mut buffers: Vec<PcmAudio> = Vec::new();
+    for (inp_name, inp_opts) in &files {
+        if inp_name == "-n" {
+            if files.len() != 1 {
+                return err_out("sox: Null input must stand alone\n", 1);
+            }
+            continue;
+        }
+        let data = if inp_name == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
+        } else {
+            let full = resolve_posix_path(cwd, inp_name);
+            if fs.is_dir(&full) {
+                return err_out(
+                    &format!("sox: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                    1,
+                );
+            }
+            let Ok(b) = fs.read_file(&full) else {
+                return err_out(
+                    &format!("sox: ENOENT: no such file or directory, readFile '{full}'\n"),
+                    1,
+                );
+            };
+            b
+        };
+        let (mut pcm, info) = match decode_wav_pcm(&data) {
+            Ok(v) => v,
+            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+        };
+        if let Some(ref enc) = inp_opts.encoding {
+            let actual = if info.codec == "pcm_float" {
+                "floating-point"
+            } else if info.bits_per_sample == 8 {
+                "unsigned-integer"
+            } else {
+                "signed-integer"
+            };
+            if enc != actual {
+                return err_out("sox: Input encoding override disagrees with WAV header\n", 1);
+            }
+        }
+        if let Some(r) = inp_opts.rate {
+            pcm.sample_rate = r;
+        }
+        if let Some(ch) = inp_opts.channels && ch != pcm.channels.len() {
+            return err_out("sox: Input channel override disagrees with WAV header\n", 1);
+        }
+        if let Some(b) = inp_opts.bits && b != info.bits_per_sample {
+            return err_out("sox: Input precision override disagrees with WAV header\n", 1);
+        }
+        buffers.push(pcm);
+    }
+    let null_opts = if files.first().map(|f| f.0.as_str()) == Some("-n") {
+        files[0].1.clone()
+    } else {
+        SoxFmt::default()
+    };
+    let out_opts = SoxFmt {
+        rate: output.1.rate.or(null_opts.rate),
+        channels: output.1.channels.or(null_opts.channels),
+        bits: output.1.bits.or(null_opts.bits),
+        encoding: output.1.encoding.clone().or(null_opts.encoding),
+        ftype: output.1.ftype.clone().or(null_opts.ftype),
+    };
+    let mut pcm = if buffers.is_empty() {
+        PcmAudio {
+            sample_rate: out_opts.rate.unwrap_or(48000),
+            channels: vec![Vec::new(); out_opts.channels.unwrap_or(1)],
+        }
+    } else {
+        let first_sr = buffers[0].sample_rate;
+        let first_ch = buffers[0].channels.len();
+        if buffers.iter().any(|b| b.sample_rate != first_sr || b.channels.len() != first_ch) {
+            return err_out("sox: Concatenation requires matching sample rates and channels\n", 1);
+        }
+        let mut chs = vec![Vec::new(); first_ch];
+        for b in buffers {
+            for (ci, cvec) in b.channels.into_iter().enumerate() {
+                chs[ci].extend(cvec);
+            }
+        }
+        PcmAudio {
+            sample_rate: first_sr,
+            channels: chs,
+        }
+    };
+    let eff_args = &args[index..];
+    let mut ei = 0usize;
+    let mut stderr = String::new();
+    while ei < eff_args.len() {
+        let eff = eff_args[ei].as_str();
+        let is_opt = |idx: usize| idx < eff_args.len() && !is_effect(&eff_args[idx]);
+        match eff {
+            "trim" => {
+                ei += 1;
+                let start = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
                     Ok(v) => v,
                     Err(e) => return err_out(&format!("sox: {e}\n"), 1),
                 };
-                if let Some(ref enc) = inp_opts.encoding {
-                    let actual = if info.codec == "pcm_float" {
-                        "floating-point"
-                    } else if info.bits_per_sample == 8 {
-                        "unsigned-integer"
-                    } else {
-                        "signed-integer"
-                    };
-                    if enc != actual {
-                        return err_out("sox: Input encoding override disagrees with WAV header\n", 1);
+                let dur = if is_opt(ei + 1) {
+                    ei += 1;
+                    match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                        Ok(v) => Some(v),
+                        Err(e) => return err_out(&format!("sox: {e}\n"), 1),
                     }
+                } else {
+                    None
+                };
+                let st_idx = js_math_round(start * (pcm.sample_rate as f64)) as usize;
+                let end_idx = dur.map(|d| st_idx + js_math_round(d * (pcm.sample_rate as f64)) as usize);
+                for ch in &mut pcm.channels {
+                    let s = st_idx.min(ch.len());
+                    let e = end_idx.unwrap_or(ch.len()).min(ch.len()).max(s);
+                    *ch = ch[s..e].to_vec();
                 }
-                if let Some(r) = inp_opts.rate {
-                    pcm.sample_rate = r;
-                }
-                if let Some(ch) = inp_opts.channels && ch != pcm.channels.len() {
-                    return err_out("sox: Input channel override disagrees with WAV header\n", 1);
-                }
-                if let Some(b) = inp_opts.bits && b != info.bits_per_sample {
-                    return err_out("sox: Input precision override disagrees with WAV header\n", 1);
-                }
-                buffers.push(pcm);
             }
-            let null_opts = if files.first().map(|f| f.0.as_str()) == Some("-n") {
-                files[0].1.clone()
-            } else {
-                SoxFmt::default()
-            };
-            let out_opts = SoxFmt {
-                rate: output.1.rate.or(null_opts.rate),
-                channels: output.1.channels.or(null_opts.channels),
-                bits: output.1.bits.or(null_opts.bits),
-                encoding: output.1.encoding.clone().or(null_opts.encoding),
-                ftype: output.1.ftype.clone().or(null_opts.ftype),
-            };
-            let mut pcm = if buffers.is_empty() {
-                PcmAudio {
-                    sample_rate: out_opts.rate.unwrap_or(48000),
-                    channels: vec![Vec::new(); out_opts.channels.unwrap_or(1)],
-                }
-            } else {
-                let first_sr = buffers[0].sample_rate;
-                let first_ch = buffers[0].channels.len();
-                if buffers.iter().any(|b| b.sample_rate != first_sr || b.channels.len() != first_ch) {
-                    return err_out("sox: Concatenation requires matching sample rates and channels\n", 1);
-                }
-                let mut chs = vec![Vec::new(); first_ch];
-                for b in buffers {
-                    for (ci, cvec) in b.channels.into_iter().enumerate() {
-                        chs[ci].extend(cvec);
-                    }
-                }
-                PcmAudio {
-                    sample_rate: first_sr,
-                    channels: chs,
-                }
-            };
-            let eff_args = &args[index..];
-            let mut ei = 0usize;
-            let mut stderr = String::new();
-            while ei < eff_args.len() {
-                let eff = eff_args[ei].as_str();
-                let is_opt = |idx: usize| idx < eff_args.len() && !is_effect(&eff_args[idx]);
-                match eff {
-                    "trim" => {
-                        ei += 1;
-                        let start = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                            Ok(v) => v,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        let dur = if is_opt(ei + 1) {
-                            ei += 1;
-                            match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                                Ok(v) => Some(v),
-                                Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                            }
-                        } else {
-                            None
-                        };
-                        let st_idx = js_math_round(start * (pcm.sample_rate as f64)) as usize;
-                        let end_idx = dur.map(|d| st_idx + js_math_round(d * (pcm.sample_rate as f64)) as usize);
-                        for ch in &mut pcm.channels {
-                            let s = st_idx.min(ch.len());
-                            let e = end_idx.unwrap_or(ch.len()).min(ch.len()).max(s);
-                            *ch = ch[s..e].to_vec();
-                        }
-                    }
-                    "pad" => {
-                        ei += 1;
-                        let lead = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                            Ok(v) => v,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        let trail = if is_opt(ei + 1) {
-                            ei += 1;
-                            match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                                Ok(v) => v,
-                                Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                            }
-                        } else {
-                            0.0
-                        };
-                        let lead_n = js_math_round(lead * (pcm.sample_rate as f64)) as usize;
-                        let trail_n = js_math_round(trail * (pcm.sample_rate as f64)) as usize;
-                        for ch in &mut pcm.channels {
-                            let mut out = vec![0.0f64; lead_n + ch.len() + trail_n];
-                            out[lead_n..lead_n + ch.len()].copy_from_slice(ch);
-                            *ch = out;
-                        }
-                    }
-                    "norm" | "gain" => {
-                        if eff == "gain" {
-                            ei += 1;
-                            if eff_args.get(ei).map(|s| s.as_str()) != Some("-n") {
-                                return err_out("sox: Only gain -n is supported\n", 1);
-                            }
-                        }
-                        let target_db = if is_opt(ei + 1) {
-                            ei += 1;
-                            match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "gain") {
-                                Ok(v) => v,
-                                Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                            }
-                        } else {
-                            0.0
-                        };
-                        let (peak, _, _, _, _, _) = sox_stats(&pcm);
-                        let gain = if peak > 0.0 {
-                            10f64.powf(target_db / 20.0) / peak
-                        } else {
-                            1.0
-                        };
-                        for ch in &mut pcm.channels {
-                            for v in ch.iter_mut() {
-                                *v *= gain;
-                            }
-                        }
-                    }
-                    "rate" => {
-                        ei += 1;
-                        let r = match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "sample rate") {
-                            Ok(v) if v.fract() == 0.0 && v > 0.0 => v as u32,
-                            Ok(_) => return err_out("sox: Invalid sample rate\n", 1),
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        pcm = sox_resample(&pcm, r);
-                    }
-                    "channels" => {
-                        ei += 1;
-                        let cnt = match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "channels") {
-                            Ok(v) if v.fract() == 0.0 && v >= 1.0 && v <= 64.0 => v as usize,
-                            Ok(_) => return err_out("sox: Audio sample limit exceeded\n", 1),
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        pcm = match sox_remix(&pcm, cnt, None) {
-                            Ok(p) => p,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                    }
-                    "remix" => {
-                        let mut matrix: Vec<Vec<f64>> = Vec::new();
-                        while is_opt(ei + 1) {
-                            ei += 1;
-                            let spec = &eff_args[ei];
-                            let list: Vec<&str> = spec.split(',').collect();
-                            let mut row = vec![0.0f64; pcm.channels.len()];
-                            for item in &list {
-                                let ch_num = match sox_numeric(Some(item), "channel") {
-                                    Ok(v) => v,
-                                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                                };
-                                if ch_num == 0.0 && list.len() == 1 {
-                                    continue;
-                                }
-                                if ch_num.fract() != 0.0 || ch_num < 1.0 || (ch_num as usize) > row.len() {
-                                    return err_out("sox: Invalid remix channel\n", 1);
-                                }
-                                row[(ch_num as usize) - 1] = 1.0 / (list.len() as f64);
-                            }
-                            matrix.push(row);
-                        }
-                        if matrix.is_empty() {
-                            return err_out("sox: Audio sample limit exceeded\n", 1);
-                        }
-                        let mlen = matrix.len();
-                        pcm = match sox_remix(&pcm, mlen, Some(matrix)) {
-                            Ok(p) => p,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                    }
-                    "reverse" => {
-                        for ch in &mut pcm.channels {
-                            ch.reverse();
-                        }
-                    }
-                    "fade" => {
-                        let mut shape = "l";
-                        if let Some(nx) = eff_args.get(ei + 1).map(|s| s.as_str())
-                            && matches!(nx, "q" | "h" | "t" | "l" | "p")
-                        {
-                            ei += 1;
-                            shape = nx;
-                        }
-                        ei += 1;
-                        let fade_in = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                            Ok(v) => v,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        let cur_frames = pcm.channels.first().map(|c| c.len()).unwrap_or(0);
-                        let has_stop = is_opt(ei + 1);
-                        let stop = if has_stop {
-                            ei += 1;
-                            match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                                Ok(v) => v,
-                                Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                            }
-                        } else {
-                            (cur_frames as f64) / (pcm.sample_rate as f64)
-                        };
-                        let fade_out = if is_opt(ei + 1) {
-                            ei += 1;
-                            match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                                Ok(v) => v,
-                                Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                            }
-                        } else if has_stop {
-                            fade_in
-                        } else {
-                            0.0
-                        };
-                        if stop > 0.0 {
-                            let target_len = js_math_round(stop * (pcm.sample_rate as f64)) as usize;
-                            for ch in &mut pcm.channels {
-                                ch.resize(target_len, 0.0);
-                            }
-                        }
-                        let lead = js_math_round(fade_in * (pcm.sample_rate as f64)) as usize;
-                        let trail = js_math_round(fade_out * (pcm.sample_rate as f64)) as usize;
-                        let length = pcm.channels.first().map(|c| c.len()).unwrap_or(0);
-                        let curve = |v: f64| -> f64 {
-                            match shape {
-                                "q" => (v * std::f64::consts::PI / 2.0).sin(),
-                                "h" => (1.0 - (v * std::f64::consts::PI).cos()) / 2.0,
-                                "p" => (1.0 + 9.0 * v).log10(),
-                                "t" => 10f64.powf(5.0 * (v - 1.0)),
-                                _ => v,
-                            }
-                        };
-                        for ch in &mut pcm.channels {
-                            for (idx, val) in ch.iter_mut().enumerate() {
-                                let c_in = curve(if lead > 0 { ((idx as f64) / (lead as f64)).min(1.0) } else { 1.0 });
-                                let c_out = curve(if trail > 0 { (((length - 1 - idx) as f64) / (trail as f64)).min(1.0) } else { 1.0 });
-                                *val *= c_in * c_out;
-                            }
-                        }
-                    }
-                    "synth" => {
-                        ei += 1;
-                        let dur = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
-                            Ok(v) => v,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        ei += 1;
-                        let kind = eff_args.get(ei).map(|s| s.as_str()).unwrap_or("");
-                        ei += 1;
-                        let freq = match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "frequency") {
-                            Ok(v) => v,
-                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-                        };
-                        if freq < 0.0 || freq > (pcm.sample_rate as f64) / 2.0 {
-                            return err_out("sox: Frequency exceeds Nyquist limit\n", 1);
-                        }
-                        if !matches!(kind, "sine" | "square" | "triangle" | "sawtooth") {
-                            return err_out("sox: Unsupported synth waveform\n", 1);
-                        }
-                        let length = js_math_round(dur * (pcm.sample_rate as f64)) as usize;
-                        let wave: Vec<f64> = (0..length)
-                            .map(|idx| {
-                                let phase = (idx as f64) * freq / (pcm.sample_rate as f64);
-                                match kind {
-                                    "sine" => (2.0 * std::f64::consts::PI * phase).sin(),
-                                    "square" => if phase % 1.0 < 0.5 { 1.0 } else { -1.0 },
-                                    "triangle" => 1.0 - 4.0 * (js_math_round(phase) - phase).abs(),
-                                    _ => 2.0 * (phase - (phase + 0.5).floor()),
-                                }
-                            })
-                            .collect();
-                        for ch in &mut pcm.channels {
-                            *ch = wave.clone();
-                        }
-                    }
-                    "stat" | "stats" => {
-                        let frames = pcm.channels.first().map(|c| c.len()).unwrap_or(0);
-                        let (peak, rms, peak_db, rms_db, dc, crest) = sox_stats(&pcm);
-                        let len_s = (frames as f64) / (pcm.sample_rate as f64);
-                        if eff == "stat" {
-                            stderr.push_str(&format!(
-                                "Samples read:      {}\nLength (seconds): {:.6}\nMaximum amplitude: {:.6}\nRMS amplitude:     {:.6}\nMean amplitude:    {:.6}\n",
-                                frames * pcm.channels.len(),
-                                len_s,
-                                peak,
-                                rms,
-                                dc
-                            ));
-                        } else {
-                            let fmt_db = |v: f64| if v == f64::NEG_INFINITY { "-Infinity".to_string() } else { format!("{v:.2}") };
-                            stderr.push_str(&format!(
-                                "DC offset   {:.6}\nPk lev dB   {}\nRMS lev dB  {}\nCrest factor {:.2}\nNum samples {}\nLength s    {:.6}\n",
-                                dc,
-                                fmt_db(peak_db),
-                                fmt_db(rms_db),
-                                crest,
-                                frames,
-                                len_s
-                            ));
-                        }
-                    }
-                    _ => return err_out(&format!("sox: Unsupported effect {eff}\n"), 1),
-                }
+            "pad" => {
                 ei += 1;
+                let lead = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                };
+                let trail = if is_opt(ei + 1) {
+                    ei += 1;
+                    match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                        Ok(v) => v,
+                        Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                    }
+                } else {
+                    0.0
+                };
+                let lead_n = js_math_round(lead * (pcm.sample_rate as f64)) as usize;
+                let trail_n = js_math_round(trail * (pcm.sample_rate as f64)) as usize;
+                for ch in &mut pcm.channels {
+                    let mut out = vec![0.0f64; lead_n + ch.len() + trail_n];
+                    out[lead_n..lead_n + ch.len()].copy_from_slice(ch);
+                    *ch = out;
+                }
             }
-            if let Some(r) = out_opts.rate && r != pcm.sample_rate {
+            "norm" | "gain" => {
+                if eff == "gain" {
+                    ei += 1;
+                    if eff_args.get(ei).map(|s| s.as_str()) != Some("-n") {
+                        return err_out("sox: Only gain -n is supported\n", 1);
+                    }
+                }
+                let target_db = if is_opt(ei + 1) {
+                    ei += 1;
+                    match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "gain") {
+                        Ok(v) => v,
+                        Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                    }
+                } else {
+                    0.0
+                };
+                let (peak, _, _, _, _, _) = sox_stats(&pcm);
+                let gain = if peak > 0.0 {
+                    10f64.powf(target_db / 20.0) / peak
+                } else {
+                    1.0
+                };
+                for ch in &mut pcm.channels {
+                    for v in ch.iter_mut() {
+                        *v *= gain;
+                    }
+                }
+            }
+            "rate" => {
+                ei += 1;
+                let r = match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "sample rate") {
+                    Ok(v) if v.fract() == 0.0 && v > 0.0 => v as u32,
+                    Ok(_) => return err_out("sox: Invalid sample rate\n", 1),
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                };
                 pcm = sox_resample(&pcm, r);
             }
-            if let Some(ch) = out_opts.channels && ch != pcm.channels.len() {
-                pcm = match sox_remix(&pcm, ch, None) {
+            "channels" => {
+                ei += 1;
+                let cnt = match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "channels") {
+                    Ok(v) if v.fract() == 0.0 && v >= 1.0 && v <= 64.0 => v as usize,
+                    Ok(_) => return err_out("sox: Audio sample limit exceeded\n", 1),
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                };
+                pcm = match sox_remix(&pcm, cnt, None) {
                     Ok(p) => p,
                     Err(e) => return err_out(&format!("sox: {e}\n"), 1),
                 };
             }
-            let floating = out_opts.encoding.as_deref() == Some("floating-point");
-            let bits = out_opts.bits.unwrap_or(if floating {
-                32
-            } else if out_opts.encoding.as_deref() == Some("unsigned-integer") {
-                8
-            } else {
-                16
-            });
-            if let Some(ref enc) = out_opts.encoding {
-                if !matches!(enc.as_str(), "signed-integer" | "unsigned-integer" | "floating-point") {
-                    return err_out("sox: Unsupported encoding\n", 1);
-                }
-                if (enc == "unsigned-integer" && bits != 8) || (enc == "signed-integer" && bits == 8) {
-                    return err_out("sox: WAV uses unsigned 8-bit and signed 16/24/32-bit PCM\n", 1);
-                }
-            }
-            let wav_bytes = match encode_wav_pcm(&pcm, bits, floating) {
-                Ok(b) => b,
-                Err(e) => return err_out(&format!("sox: {e}\n"), 1),
-            };
-            let mut stdout = String::new();
-            if output.0 == "-" {
-                stdout = crate::vfs::bytes_to_stream_string(&wav_bytes);
-            } else if output.0 != "-n" {
-                if out_opts.ftype.as_deref() != Some("wav") && !output.0.to_ascii_lowercase().ends_with(".wav") {
-                    return err_out("sox: Output must be WAV (.wav)\n", 1);
-                }
-                let full = resolve_posix_path(cwd, &output.0);
-                let _ = fs.write_file(&full, &wav_bytes);
-            }
-            BuiltinOutcome {
-                stdout,
-                stderr,
-                exit_code: 0,
-            }
-        }
-        "qrencode" => {
-            const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read virtual file (- for stdin)\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
-            let parse_uint = |val: &str, min: usize, max: usize| -> Result<usize, String> {
-                if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
-                    return Err(format!("Invalid number: {val}"));
-                }
-                let n = val.parse::<usize>().map_err(|_| format!("Number out of range: {val}"))?;
-                if n < min || n > max {
-                    return Err(format!("Number out of range: {val}"));
-                }
-                Ok(n)
-            };
-            let parse_color = |val: &str| -> Result<[u8; 4], String> {
-                if (val.len() != 6 && val.len() != 8) || !val.bytes().all(|b| b.is_ascii_hexdigit()) {
-                    return Err("Colors must be RRGGBB or RRGGBBAA".to_string());
-                }
-                let r = u8::from_str_radix(&val[0..2], 16).unwrap();
-                let g = u8::from_str_radix(&val[2..4], 16).unwrap();
-                let b = u8::from_str_radix(&val[4..6], 16).unwrap();
-                let a = if val.len() == 8 { u8::from_str_radix(&val[6..8], 16).unwrap() } else { 255 };
-                Ok([r, g, b, a])
-            };
-            let mut output_opt: Option<String> = None;
-            let mut input_opt: Option<String> = None;
-            let mut operand_opt: Option<String> = None;
-            let mut rtype = "PNG".to_string();
-            let mut size = 3usize;
-            let mut dpi = 72;
-            let mut margin_opt: Option<usize> = None;
-            let mut level = 0usize; // L=0, M=1, Q=2, H=3
-            let mut version = 0usize;
-            let mut byte_mode = false;
-            let mut kanji = false;
-            let mut ignorecase = false;
-            let mut structured = false;
-            let mut micro = false;
-            let mut strict = false;
-            let mut fg = [0u8, 0, 0, 255];
-            let mut bg = [255u8, 255, 255, 255];
-            let mut help = false;
-            let mut end = false;
-            let mut i = 0usize;
-            while i < args.len() {
-                let arg = args[i].as_str();
-                if !end && arg == "--" {
-                    end = true;
-                    i += 1;
-                    continue;
-                }
-                if end || !arg.starts_with('-') || arg == "-" {
-                    if operand_opt.is_some() {
-                        return err_out("qrencode: Only one input string is accepted\n", 1);
-                    }
-                    operand_opt = Some(arg.to_string());
-                    i += 1;
-                    continue;
-                }
-                let is_long = arg.starts_with("--");
-                let eq = arg.find('=');
-                let raw_name = if is_long {
-                    match eq {
-                        Some(pos) => &arg[2..pos],
-                        None => &arg[2..],
-                    }
-                } else {
-                    &arg[1..2]
-                };
-                let key = match raw_name {
-                    "output" => "o",
-                    "read-from" => "r",
-                    "type" => "t",
-                    "size" => "s",
-                    "margin" => "m",
-                    "dpi" => "d",
-                    "level" => "l",
-                    "symversion" => "v",
-                    "structured" => "S",
-                    "kanji" => "k",
-                    "casesensitive" => "c",
-                    "ignorecase" => "i",
-                    "8bit" => "8",
-                    "micro" => "M",
-                    "help" => "h",
-                    other => other,
-                };
-                let mut attached: Option<String> = if is_long {
-                    eq.map(|pos| arg[pos + 1..].to_string())
-                } else if arg.len() > 2 {
-                    Some(arg[2..].to_string())
-                } else {
-                    None
-                };
-                if !matches!(key, "o" | "r" | "t" | "s" | "m" | "d" | "l" | "v" | "foreground" | "background") {
-                    if attached.is_some() {
-                        return err_out(&format!("qrencode: Unexpected option value: {arg}\n"), 1);
-                    }
-                    match key {
-                        "h" => help = true,
-                        "8" => byte_mode = true,
-                        "k" => kanji = true,
-                        "i" => ignorecase = true,
-                        "c" => ignorecase = false,
-                        "S" => structured = true,
-                        "M" => micro = true,
-                        "strict-version" => strict = true,
-                        _ => return err_out(&format!("qrencode: Unknown option: {arg}\n"), 1),
-                    }
-                    i += 1;
-                    continue;
-                }
-                if attached.is_none() {
-                    i += 1;
-                    let Some(nx) = args.get(i) else {
-                        return err_out(&format!("qrencode: Missing value for {arg}\n"), 1);
-                    };
-                    attached = Some(nx.clone());
-                }
-                let val = attached.unwrap();
-                match key {
-                    "o" => output_opt = Some(val),
-                    "r" => input_opt = Some(val),
-                    "t" => {
-                        if !matches!(
-                            val.as_str(),
-                            "PNG" | "PNG32" | "SVG" | "EPS" | "ASCII" | "ASCIIi" | "UTF8" | "UTF8i" | "ANSI" | "ANSI256" | "ANSIUTF8"
-                        ) {
-                            return err_out("qrencode: Unsupported output type\n", 1);
+            "remix" => {
+                let mut matrix: Vec<Vec<f64>> = Vec::new();
+                while is_opt(ei + 1) {
+                    ei += 1;
+                    let spec = &eff_args[ei];
+                    let list: Vec<&str> = spec.split(',').collect();
+                    let mut row = vec![0.0f64; pcm.channels.len()];
+                    for item in &list {
+                        let ch_num = match sox_numeric(Some(item), "channel") {
+                            Ok(v) => v,
+                            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                        };
+                        if ch_num == 0.0 && list.len() == 1 {
+                            continue;
                         }
-                        rtype = val;
-                    }
-                    "s" => match parse_uint(&val, 1, 0x7fffffff) {
-                        Ok(v) => size = v,
-                        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-                    },
-                    "m" => match parse_uint(&val, 0, 0x7fffffff) {
-                        Ok(v) => margin_opt = Some(v),
-                        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-                    },
-                    "d" => match parse_uint(&val, 1, 109093169) {
-                        Ok(v) => dpi = v as u32,
-                        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-                    },
-                    "v" => if val == "auto" {
-                        version = 0;
-                    } else {
-                        match parse_uint(&val, 0, 40) {
-                            Ok(v) => version = v,
-                            Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+                        if ch_num.fract() != 0.0 || ch_num < 1.0 || (ch_num as usize) > row.len() {
+                            return err_out("sox: Invalid remix channel\n", 1);
                         }
-                    },
-                    "l" => match val.as_str() {
-                        "L" => level = 0,
-                        "M" => level = 1,
-                        "Q" => level = 2,
-                        "H" => level = 3,
-                        _ => return err_out("qrencode: Invalid error correction level\n", 1),
-                    },
-                    "foreground" => match parse_color(&val) {
-                        Ok(c) => fg = c,
-                        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-                    },
-                    "background" => match parse_color(&val) {
-                        Ok(c) => bg = c,
-                        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-                    },
-                    _ => {}
+                        row[(ch_num as usize) - 1] = 1.0 / (list.len() as f64);
+                    }
+                    matrix.push(row);
                 }
-                i += 1;
-            }
-            if help {
-                return ok_out(QR_HELP);
-            }
-            if micro && (version > 4 || level == 3 || structured) {
-                return err_out("qrencode: Unsupported Micro QR version, level, or structured append\n", 1);
-            }
-            if structured && (version == 0 || output_opt.as_deref().unwrap_or("-") == "-") {
-                return err_out("qrencode: Structured append requires a version and output filename\n", 1);
-            }
-            if input_opt.is_some() && operand_opt.is_some() {
-                return err_out("qrencode: Choose a file or an input string\n", 1);
-            }
-            let input_limit = if structured { 113_424usize } else { 7089usize };
-            let mut data = if let Some(op) = operand_opt {
-                if op.len() > input_limit {
-                    return err_out("qrencode: Input exceeds byte limit\n", 1);
+                if matrix.is_empty() {
+                    return err_out("sox: Audio sample limit exceeded\n", 1);
                 }
-                crate::vfs::stream_string_to_bytes(&op)
-            } else if let Some(ref inp) = input_opt && inp != "-" {
-                let full = resolve_posix_path(cwd, inp);
-                if fs.is_dir(&full) {
-                    return err_out(
-                        &format!(
-                            "qrencode: EISDIR: illegal operation on a directory, readStream '{full}'\n"
-                        ),
-                        1,
-                    );
-                }
-                let Ok(b) = fs.read_file(&full) else {
-                    return err_out(
-                        &format!("qrencode: ENOENT: no such file or directory, stat '{full}'\n"),
-                        1,
-                    );
+                let mlen = matrix.len();
+                pcm = match sox_remix(&pcm, mlen, Some(matrix)) {
+                    Ok(p) => p,
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
                 };
-                b
-            } else {
-                crate::vfs::stream_string_to_bytes(stdin)
-            };
-            if data.len() > input_limit {
-                return err_out("qrencode: Input exceeds byte limit\n", 1);
             }
-            if ignorecase && !byte_mode {
-                let mut idx = 0usize;
-                while idx < data.len() {
-                    if kanji && qr_kanji_value(&data, idx) >= 0 {
-                        idx += 2;
-                        continue;
-                    }
-                    if data[idx].is_ascii_lowercase() {
-                        data[idx] -= 32;
-                    }
-                    idx += 1;
+            "reverse" => {
+                for ch in &mut pcm.channels {
+                    ch.reverse();
                 }
             }
-            let opts = QrEncodeOpts {
-                version,
-                level,
-                byte_mode,
-                kanji,
-                micro,
-                strict,
-                append: None,
-            };
-            let syms = match qr_encode_symbols(&data, opts, structured) {
-                Ok(s) => s,
-                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
-            };
-            let margin = margin_opt.unwrap_or(if micro { 2 } else { 4 });
-            let mut stdout_bytes = Vec::new();
-            for (idx, sym) in syms.iter().enumerate() {
-                let n = sym.len();
-                let width = n.saturating_add(margin.saturating_mul(2));
-                let pixels = width.saturating_mul(size);
-                let raster = rtype == "PNG" || rtype == "PNG32";
-                let vector = rtype == "SVG" || rtype == "EPS";
-                let estimate = if raster {
-                    pixels.saturating_mul(pixels).saturating_mul(24).saturating_add(1_048_576)
-                } else if vector {
-                    n.saturating_mul(n).saturating_mul(240).saturating_add(4096)
-                } else {
-                    width.saturating_mul(width).saturating_mul(48).saturating_add(4096)
+            "fade" => {
+                let mut shape = "l";
+                if let Some(nx) = eff_args.get(ei + 1).map(|s| s.as_str())
+                    && matches!(nx, "q" | "h" | "t" | "l" | "p")
+                {
+                    ei += 1;
+                    shape = nx;
+                }
+                ei += 1;
+                let fade_in = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
                 };
-                let max_mem = (64 * 1024 * 1024usize)
-                    .saturating_sub(data.len().saturating_mul(64))
-                    .saturating_sub(n.saturating_mul(n).saturating_mul(16));
-                if pixels > 0x7fff_ffff || estimate > max_mem {
-                    return err_out("qrencode: QR output exceeds memory budget\n", 1);
-                }
-                let rendered = qr_render(sym, &rtype, size, margin, dpi, fg, bg);
-                if let Some(ref out_p) = output_opt && out_p != "-" {
-                    let mut name = out_p.clone();
-                    if structured {
-                        let dot = name.rfind('.');
-                        let slash = name.rfind('/');
-                        let has_ext = match (dot, slash) {
-                            (Some(d), Some(s)) => d > s,
-                            (Some(_), None) => true,
-                            _ => false,
-                        };
-                        let (stem, suffix) = if has_ext {
-                            let d = dot.unwrap();
-                            (name[..d].to_string(), name[d..].to_string())
-                        } else {
-                            (name.clone(), format!(".{}", rtype.to_ascii_lowercase()))
-                        };
-                        name = format!("{stem}-{:02}{suffix}", idx + 1);
-                    }
-                    let full = resolve_posix_path(cwd, &name);
-                    if let Err(error) = fs.write_file(&full, &rendered) {
-                        let message = match error.split_once(':').map(|(code,_)| code) {
-                            Some("EISDIR") => format!("EISDIR: illegal operation on a directory, writeFile '{full}'"),
-                            Some("ENOTDIR") => format!("ENOTDIR: not a directory, writeFile '{full}'"),
-                            _ => error,
-                        };
-                        return err_out(&format!("qrencode: {message}\n"), 1);
+                let cur_frames = pcm.channels.first().map(|c| c.len()).unwrap_or(0);
+                let has_stop = is_opt(ei + 1);
+                let stop = if has_stop {
+                    ei += 1;
+                    match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                        Ok(v) => v,
+                        Err(e) => return err_out(&format!("sox: {e}\n"), 1),
                     }
                 } else {
-                    stdout_bytes.extend_from_slice(&rendered);
+                    (cur_frames as f64) / (pcm.sample_rate as f64)
+                };
+                let fade_out = if is_opt(ei + 1) {
+                    ei += 1;
+                    match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                        Ok(v) => v,
+                        Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                    }
+                } else if has_stop {
+                    fade_in
+                } else {
+                    0.0
+                };
+                if stop > 0.0 {
+                    let target_len = js_math_round(stop * (pcm.sample_rate as f64)) as usize;
+                    for ch in &mut pcm.channels {
+                        ch.resize(target_len, 0.0);
+                    }
+                }
+                let lead = js_math_round(fade_in * (pcm.sample_rate as f64)) as usize;
+                let trail = js_math_round(fade_out * (pcm.sample_rate as f64)) as usize;
+                let length = pcm.channels.first().map(|c| c.len()).unwrap_or(0);
+                let curve = |v: f64| -> f64 {
+                    match shape {
+                        "q" => (v * std::f64::consts::PI / 2.0).sin(),
+                        "h" => (1.0 - (v * std::f64::consts::PI).cos()) / 2.0,
+                        "p" => (1.0 + 9.0 * v).log10(),
+                        "t" => 10f64.powf(5.0 * (v - 1.0)),
+                        _ => v,
+                    }
+                };
+                for ch in &mut pcm.channels {
+                    for (idx, val) in ch.iter_mut().enumerate() {
+                        let c_in = curve(if lead > 0 { ((idx as f64) / (lead as f64)).min(1.0) } else { 1.0 });
+                        let c_out = curve(if trail > 0 { (((length - 1 - idx) as f64) / (trail as f64)).min(1.0) } else { 1.0 });
+                        *val *= c_in * c_out;
+                    }
                 }
             }
-            ok_out(&crate::vfs::bytes_to_stream_string(&stdout_bytes))
+            "synth" => {
+                ei += 1;
+                let dur = match sox_seconds(eff_args.get(ei).map(|s| s.as_str()), pcm.sample_rate) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                };
+                ei += 1;
+                let kind = eff_args.get(ei).map(|s| s.as_str()).unwrap_or("");
+                ei += 1;
+                let freq = match sox_numeric(eff_args.get(ei).map(|s| s.as_str()), "frequency") {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+                };
+                if freq < 0.0 || freq > (pcm.sample_rate as f64) / 2.0 {
+                    return err_out("sox: Frequency exceeds Nyquist limit\n", 1);
+                }
+                if !matches!(kind, "sine" | "square" | "triangle" | "sawtooth") {
+                    return err_out("sox: Unsupported synth waveform\n", 1);
+                }
+                let length = js_math_round(dur * (pcm.sample_rate as f64)) as usize;
+                let wave: Vec<f64> = (0..length)
+                    .map(|idx| {
+                        let phase = (idx as f64) * freq / (pcm.sample_rate as f64);
+                        match kind {
+                            "sine" => (2.0 * std::f64::consts::PI * phase).sin(),
+                            "square" => if phase % 1.0 < 0.5 { 1.0 } else { -1.0 },
+                            "triangle" => 1.0 - 4.0 * (js_math_round(phase) - phase).abs(),
+                            _ => 2.0 * (phase - (phase + 0.5).floor()),
+                        }
+                    })
+                    .collect();
+                for ch in &mut pcm.channels {
+                    *ch = wave.clone();
+                }
+            }
+            "stat" | "stats" => {
+                let frames = pcm.channels.first().map(|c| c.len()).unwrap_or(0);
+                let (peak, rms, peak_db, rms_db, dc, crest) = sox_stats(&pcm);
+                let len_s = (frames as f64) / (pcm.sample_rate as f64);
+                if eff == "stat" {
+                    stderr.push_str(&format!(
+                        "Samples read:      {}\nLength (seconds): {:.6}\nMaximum amplitude: {:.6}\nRMS amplitude:     {:.6}\nMean amplitude:    {:.6}\n",
+                        frames * pcm.channels.len(),
+                        len_s,
+                        peak,
+                        rms,
+                        dc
+                    ));
+                } else {
+                    let fmt_db = |v: f64| if v == f64::NEG_INFINITY { "-Infinity".to_string() } else { format!("{v:.2}") };
+                    stderr.push_str(&format!(
+                        "DC offset   {:.6}\nPk lev dB   {}\nRMS lev dB  {}\nCrest factor {:.2}\nNum samples {}\nLength s    {:.6}\n",
+                        dc,
+                        fmt_db(peak_db),
+                        fmt_db(rms_db),
+                        crest,
+                        frames,
+                        len_s
+                    ));
+                }
+            }
+            _ => return err_out(&format!("sox: Unsupported effect {eff}\n"), 1),
         }
-        _ => ok_out(""),
+        ei += 1;
     }
+    if let Some(r) = out_opts.rate && r != pcm.sample_rate {
+        pcm = sox_resample(&pcm, r);
+    }
+    if let Some(ch) = out_opts.channels && ch != pcm.channels.len() {
+        pcm = match sox_remix(&pcm, ch, None) {
+            Ok(p) => p,
+            Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+        };
+    }
+    let floating = out_opts.encoding.as_deref() == Some("floating-point");
+    let bits = out_opts.bits.unwrap_or(if floating {
+        32
+    } else if out_opts.encoding.as_deref() == Some("unsigned-integer") {
+        8
+    } else {
+        16
+    });
+    if let Some(ref enc) = out_opts.encoding {
+        if !matches!(enc.as_str(), "signed-integer" | "unsigned-integer" | "floating-point") {
+            return err_out("sox: Unsupported encoding\n", 1);
+        }
+        if (enc == "unsigned-integer" && bits != 8) || (enc == "signed-integer" && bits == 8) {
+            return err_out("sox: WAV uses unsigned 8-bit and signed 16/24/32-bit PCM\n", 1);
+        }
+    }
+    let wav_bytes = match encode_wav_pcm(&pcm, bits, floating) {
+        Ok(b) => b,
+        Err(e) => return err_out(&format!("sox: {e}\n"), 1),
+    };
+    let mut stdout = String::new();
+    if output.0 == "-" {
+        stdout = crate::vfs::bytes_to_stream_string(&wav_bytes);
+    } else if output.0 != "-n" {
+        if out_opts.ftype.as_deref() != Some("wav") && !output.0.to_ascii_lowercase().ends_with(".wav") {
+            return err_out("sox: Output must be WAV (.wav)\n", 1);
+        }
+        let full = resolve_posix_path(cwd, &output.0);
+        let _ = fs.write_file(&full, &wav_bytes);
+    }
+    BuiltinOutcome {
+        stdout,
+        stderr,
+        exit_code: 0,
+    }
+}
+
+fn cmd_qrencode(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    const QR_HELP: &str = "Usage: qrencode [OPTION]... [STRING]\nGenerate QR codes from a string, stdin, or a virtual file.\n  -o, --output FILE       Virtual output file (- for stdout)\n  -r, --read-from FILE    Read virtual file (- for stdin)\n  -t, --type TYPE         PNG, PNG32, SVG, EPS, ASCII, ASCIIi,\n                         UTF8, UTF8i, ANSI, ANSI256, ANSIUTF8\n  -s, --size N            Module pixel size (default 3)\n  -m, --margin N          Quiet zone (default 4, Micro QR 2)\n  -l, --level L|M|Q|H     Error correction (default L)\n  -v, --symversion N      Minimum version (0 auto, QR 1..40, Micro 1..4)\n  -d, --dpi N            PNG resolution (default 72)\n  -8, --8bit             Encode raw bytes\n  -k, --kanji            Interpret Shift-JIS pairs as Kanji\n  -i, --ignorecase       Fold ASCII lowercase to uppercase\n  -S, --structured       Structured append (requires -v and -o)\n  -M, --micro            Generate Micro QR\n      --strict-version   Fail instead of increasing version\n      --foreground=RRGGBB[AA]  Foreground color\n      --background=RRGGBB[AA]  Background color\n  -h, --help             Show help\n";
+    let parse_uint = |val: &str, min: usize, max: usize| -> Result<usize, String> {
+        if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(format!("Invalid number: {val}"));
+        }
+        let n = val.parse::<usize>().map_err(|_| format!("Number out of range: {val}"))?;
+        if n < min || n > max {
+            return Err(format!("Number out of range: {val}"));
+        }
+        Ok(n)
+    };
+    let parse_color = |val: &str| -> Result<[u8; 4], String> {
+        if (val.len() != 6 && val.len() != 8) || !val.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err("Colors must be RRGGBB or RRGGBBAA".to_string());
+        }
+        let r = u8::from_str_radix(&val[0..2], 16).unwrap();
+        let g = u8::from_str_radix(&val[2..4], 16).unwrap();
+        let b = u8::from_str_radix(&val[4..6], 16).unwrap();
+        let a = if val.len() == 8 { u8::from_str_radix(&val[6..8], 16).unwrap() } else { 255 };
+        Ok([r, g, b, a])
+    };
+    let mut output_opt: Option<String> = None;
+    let mut input_opt: Option<String> = None;
+    let mut operand_opt: Option<String> = None;
+    let mut rtype = "PNG".to_string();
+    let mut size = 3usize;
+    let mut dpi = 72;
+    let mut margin_opt: Option<usize> = None;
+    let mut level = 0usize; // L=0, M=1, Q=2, H=3
+    let mut version = 0usize;
+    let mut byte_mode = false;
+    let mut kanji = false;
+    let mut ignorecase = false;
+    let mut structured = false;
+    let mut micro = false;
+    let mut strict = false;
+    let mut fg = [0u8, 0, 0, 255];
+    let mut bg = [255u8, 255, 255, 255];
+    let mut help = false;
+    let mut end = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = args[i].as_str();
+        if !end && arg == "--" {
+            end = true;
+            i += 1;
+            continue;
+        }
+        if end || !arg.starts_with('-') || arg == "-" {
+            if operand_opt.is_some() {
+                return err_out("qrencode: Only one input string is accepted\n", 1);
+            }
+            operand_opt = Some(arg.to_string());
+            i += 1;
+            continue;
+        }
+        let is_long = arg.starts_with("--");
+        let eq = arg.find('=');
+        let raw_name = if is_long {
+            match eq {
+                Some(pos) => &arg[2..pos],
+                None => &arg[2..],
+            }
+        } else {
+            &arg[1..2]
+        };
+        let key = match raw_name {
+            "output" => "o",
+            "read-from" => "r",
+            "type" => "t",
+            "size" => "s",
+            "margin" => "m",
+            "dpi" => "d",
+            "level" => "l",
+            "symversion" => "v",
+            "structured" => "S",
+            "kanji" => "k",
+            "casesensitive" => "c",
+            "ignorecase" => "i",
+            "8bit" => "8",
+            "micro" => "M",
+            "help" => "h",
+            other => other,
+        };
+        let mut attached: Option<String> = if is_long {
+            eq.map(|pos| arg[pos + 1..].to_string())
+        } else if arg.len() > 2 {
+            Some(arg[2..].to_string())
+        } else {
+            None
+        };
+        if !matches!(key, "o" | "r" | "t" | "s" | "m" | "d" | "l" | "v" | "foreground" | "background") {
+            if attached.is_some() {
+                return err_out(&format!("qrencode: Unexpected option value: {arg}\n"), 1);
+            }
+            match key {
+                "h" => help = true,
+                "8" => byte_mode = true,
+                "k" => kanji = true,
+                "i" => ignorecase = true,
+                "c" => ignorecase = false,
+                "S" => structured = true,
+                "M" => micro = true,
+                "strict-version" => strict = true,
+                _ => return err_out(&format!("qrencode: Unknown option: {arg}\n"), 1),
+            }
+            i += 1;
+            continue;
+        }
+        if attached.is_none() {
+            i += 1;
+            let Some(nx) = args.get(i) else {
+                return err_out(&format!("qrencode: Missing value for {arg}\n"), 1);
+            };
+            attached = Some(nx.clone());
+        }
+        let val = attached.unwrap();
+        match key {
+            "o" => output_opt = Some(val),
+            "r" => input_opt = Some(val),
+            "t" => {
+                if !matches!(
+                    val.as_str(),
+                    "PNG" | "PNG32" | "SVG" | "EPS" | "ASCII" | "ASCIIi" | "UTF8" | "UTF8i" | "ANSI" | "ANSI256" | "ANSIUTF8"
+                ) {
+                    return err_out("qrencode: Unsupported output type\n", 1);
+                }
+                rtype = val;
+            }
+            "s" => match parse_uint(&val, 1, 0x7fffffff) {
+                Ok(v) => size = v,
+                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+            },
+            "m" => match parse_uint(&val, 0, 0x7fffffff) {
+                Ok(v) => margin_opt = Some(v),
+                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+            },
+            "d" => match parse_uint(&val, 1, 109093169) {
+                Ok(v) => dpi = v as u32,
+                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+            },
+            "v" => if val == "auto" {
+                version = 0;
+            } else {
+                match parse_uint(&val, 0, 40) {
+                    Ok(v) => version = v,
+                    Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+                }
+            },
+            "l" => match val.as_str() {
+                "L" => level = 0,
+                "M" => level = 1,
+                "Q" => level = 2,
+                "H" => level = 3,
+                _ => return err_out("qrencode: Invalid error correction level\n", 1),
+            },
+            "foreground" => match parse_color(&val) {
+                Ok(c) => fg = c,
+                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+            },
+            "background" => match parse_color(&val) {
+                Ok(c) => bg = c,
+                Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+            },
+            _ => {}
+        }
+        i += 1;
+    }
+    if help {
+        return ok_out(QR_HELP);
+    }
+    if micro && (version > 4 || level == 3 || structured) {
+        return err_out("qrencode: Unsupported Micro QR version, level, or structured append\n", 1);
+    }
+    if structured && (version == 0 || output_opt.as_deref().unwrap_or("-") == "-") {
+        return err_out("qrencode: Structured append requires a version and output filename\n", 1);
+    }
+    if input_opt.is_some() && operand_opt.is_some() {
+        return err_out("qrencode: Choose a file or an input string\n", 1);
+    }
+    let input_limit = if structured { 113_424usize } else { 7089usize };
+    let mut data = if let Some(op) = operand_opt {
+        if op.len() > input_limit {
+            return err_out("qrencode: Input exceeds byte limit\n", 1);
+        }
+        crate::vfs::stream_string_to_bytes(&op)
+    } else if let Some(ref inp) = input_opt && inp != "-" {
+        let full = resolve_posix_path(cwd, inp);
+        if fs.is_dir(&full) {
+            return err_out(
+                &format!(
+                    "qrencode: EISDIR: illegal operation on a directory, readStream '{full}'\n"
+                ),
+                1,
+            );
+        }
+        let Ok(b) = fs.read_file(&full) else {
+            return err_out(
+                &format!("qrencode: ENOENT: no such file or directory, stat '{full}'\n"),
+                1,
+            );
+        };
+        b
+    } else {
+        crate::vfs::stream_string_to_bytes(stdin)
+    };
+    if data.len() > input_limit {
+        return err_out("qrencode: Input exceeds byte limit\n", 1);
+    }
+    if ignorecase && !byte_mode {
+        let mut idx = 0usize;
+        while idx < data.len() {
+            if kanji && qr_kanji_value(&data, idx) >= 0 {
+                idx += 2;
+                continue;
+            }
+            if data[idx].is_ascii_lowercase() {
+                data[idx] -= 32;
+            }
+            idx += 1;
+        }
+    }
+    let opts = QrEncodeOpts {
+        version,
+        level,
+        byte_mode,
+        kanji,
+        micro,
+        strict,
+        append: None,
+    };
+    let syms = match qr_encode_symbols(&data, opts, structured) {
+        Ok(s) => s,
+        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
+    };
+    let margin = margin_opt.unwrap_or(if micro { 2 } else { 4 });
+    let mut stdout_bytes = Vec::new();
+    for (idx, sym) in syms.iter().enumerate() {
+        let n = sym.len();
+        let width = n.saturating_add(margin.saturating_mul(2));
+        let pixels = width.saturating_mul(size);
+        let raster = rtype == "PNG" || rtype == "PNG32";
+        let vector = rtype == "SVG" || rtype == "EPS";
+        let estimate = if raster {
+            pixels.saturating_mul(pixels).saturating_mul(24).saturating_add(1_048_576)
+        } else if vector {
+            n.saturating_mul(n).saturating_mul(240).saturating_add(4096)
+        } else {
+            width.saturating_mul(width).saturating_mul(48).saturating_add(4096)
+        };
+        let max_mem = (64 * 1024 * 1024usize)
+            .saturating_sub(data.len().saturating_mul(64))
+            .saturating_sub(n.saturating_mul(n).saturating_mul(16));
+        if pixels > 0x7fff_ffff || estimate > max_mem {
+            return err_out("qrencode: QR output exceeds memory budget\n", 1);
+        }
+        let rendered = qr_render(sym, &rtype, size, margin, dpi, fg, bg);
+        if let Some(ref out_p) = output_opt && out_p != "-" {
+            let mut name = out_p.clone();
+            if structured {
+                let dot = name.rfind('.');
+                let slash = name.rfind('/');
+                let has_ext = match (dot, slash) {
+                    (Some(d), Some(s)) => d > s,
+                    (Some(_), None) => true,
+                    _ => false,
+                };
+                let (stem, suffix) = if has_ext {
+                    let d = dot.unwrap();
+                    (name[..d].to_string(), name[d..].to_string())
+                } else {
+                    (name.clone(), format!(".{}", rtype.to_ascii_lowercase()))
+                };
+                name = format!("{stem}-{:02}{suffix}", idx + 1);
+            }
+            let full = resolve_posix_path(cwd, &name);
+            if let Err(error) = fs.write_file(&full, &rendered) {
+                let message = match error.split_once(':').map(|(code,_)| code) {
+                    Some("EISDIR") => format!("EISDIR: illegal operation on a directory, writeFile '{full}'"),
+                    Some("ENOTDIR") => format!("ENOTDIR: not a directory, writeFile '{full}'"),
+                    _ => error,
+                };
+                return err_out(&format!("qrencode: {message}\n"), 1);
+            }
+        } else {
+            stdout_bytes.extend_from_slice(&rendered);
+        }
+    }
+    ok_out(&crate::vfs::bytes_to_stream_string(&stdout_bytes))
 }
 
 

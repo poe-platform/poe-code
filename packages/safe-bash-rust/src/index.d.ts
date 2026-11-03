@@ -1,4 +1,4 @@
-import type { ShellSessionState, ShellSessionHooks, ShellExecOptions } from "@poe-platform/safe-bash";
+import type { FileSystem, ShellSessionState, ShellSessionHooks, ShellExecOptions } from "@poe-platform/safe-bash";
 
 export interface RustWasmFileInit {
   readonly content: string | Uint8Array;
@@ -22,6 +22,9 @@ export interface RustWasmBashOptions {
   readonly profile?: "warm-memory-fastpath" | "overlay-cow-fs" | "strict-budgets-mount-dev";
   readonly ShellLimitError?: unknown;
 }
+
+type RustWasmFileSystem = WasmFileSystem | FileSystem;
+export type RustWasmExecOptions = Omit<ShellExecOptions, "fs"> & { readonly fs?: RustWasmFileSystem };
 
 export interface RustWasmExecResult {
   readonly state?: ShellSessionState;
@@ -137,10 +140,12 @@ export class RustWasmBash {
   readdir(dirPath: string): string[];
   setEnv(key: string, value: string): void;
   execSync(script: string, stdin?: string | Uint8Array): RustWasmExecResult;
-  exec(script: string, options?: ShellExecOptions): Promise<RustWasmExecResult>;
+  exec(script: string, options?: RustWasmExecOptions): Promise<RustWasmExecResult>;
+  registerFileSystem(scheme: string, factory: (options: Readonly<Record<string, unknown>>) => RustWasmFileSystem | Promise<RustWasmFileSystem>): void;
+  createFileSystem(scheme: string, options?: Readonly<Record<string, unknown>>): Promise<RustWasmFileSystem>;
   createSession(initialState?: ShellSessionState): {
     state: ShellSessionState | undefined;
-    exec(script: string, options?: ShellExecOptions): Promise<RustWasmExecResult>;
+    exec(script: string, options?: RustWasmExecOptions): Promise<RustWasmExecResult>;
     dispose(): Promise<void>;
   };
   dispose(): void;

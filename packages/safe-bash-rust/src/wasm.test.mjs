@@ -8699,3 +8699,21 @@ test("mdq reports regex group, class and repetition errors at their query positi
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq atomic groups and possessive repeats discard only their own alternatives", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["abc", "(?>ab|a)c"], ["abc", "(?>a|ab)c"], ["aaa", "a++a"],
+      ["aaa", "a{1,2}+a"], ["abb", "(a(b)?)++b"], ["abb", "(?>(ab|a))b"],
+      ["abc", "(?>(?>ab|a)|abc)c"], ["aab", "(?:a*+a|aa)b"],
+      ["abc", "(?=(?>ab|a))(?>ab)c"], ["baa", "a?+a"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: !s/" + pattern + "/[$0:$1]/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

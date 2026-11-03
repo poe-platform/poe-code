@@ -720,6 +720,7 @@ enum RxAtom {
 
 #[derive(Debug, Clone)]
 enum RxGroup {
+    Atomic,
     Capture(Option<String>),
     Plain,
     Assertion { behind: bool, positive: bool },
@@ -1219,6 +1220,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         }
                     }
 
+                    ['?', '>', ..] if mdq => { idx += 2; RxGroup::Atomic }
                     ['?', ':', ..] => { idx += 2; RxGroup::Plain }
                     ['?', '=' | '!', ..] | ['?', '<', '=' | '!', ..] if rg => return Err("unsupported ERE lookaround".into()),
                     ['?', c @ ('=' | '!'), ..] if assertions => {
@@ -1369,6 +1371,16 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 parsed.requires_vm = true;
                 idx += 1;
             }
+            else if mdq && idx != before_quantifier && chars.get(idx) == Some(&'+') {
+                idx += 1;
+                let repeated = RxToken { atom, case, min, max, lazy };
+                atom = parsed.close_group(vec![vec![repeated]], RxGroup::Atomic);
+                min = 1;
+                max = Some(1);
+            }
+            if mdq && idx != before_quantifier && matches!(chars.get(idx), Some('*' | '+' | '?')) {
+                return Err(RxParseError::at(idx, "Target of repeat operator is invalid"));
+            }
             if jq && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) { return Err("nested quantifier is not supported".into()); }
             let stacked = rg && idx != before_quantifier && matches!(chars.get(idx), Some('*' | '+' | '?' | '{'));
             if rg && parsed.bounded_error.is_none() {
@@ -1496,8 +1508,8 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
 #[derive(Clone)]
 enum RxOp {
     Atom(RxToken),
-    Assert { behind: bool, positive: bool, width: Option<usize>, after: usize },
-    AssertEnd,
+    Probe { behind: bool, positive: bool, width: Option<usize>, after: usize },
+    ProbeEnd { consume: bool },
     Split(usize),
     Jump(usize),
     Open {
@@ -1552,6 +1564,7 @@ struct CompileFrame {
     split: Option<usize>,
     jumps: Vec<usize>,
     close: Option<usize>,
+    consume: bool,
     repeat: Option<usize>,
 }
 
@@ -1577,8 +1590,12 @@ impl RxProgram {
                 });
                 if let RxAtom::Group { index, width, kind, .. } = tok.atom {
                     let open = ops.len();
+                    // An atomic group commits to the first successful path just like
+                    // a positive lookahead, but also consumes the matched input.
+                    let consume = matches!(kind, RxGroup::Atomic);
                     match kind {
-                        RxGroup::Assertion { behind, positive } => ops.push(RxOp::Assert {
+                        RxGroup::Atomic => ops.push(RxOp::Probe { behind: false, positive: true, width: Some(0), after: 0 }),
+                        RxGroup::Assertion { behind, positive } => ops.push(RxOp::Probe {
                             behind, positive, width: if behind { width } else { Some(0) }, after: 0,
                         }),
                         RxGroup::Capture(name) => {
@@ -1591,7 +1608,7 @@ impl RxProgram {
                     }
                     frames.push(CompileFrame {
                         branches: std::mem::take(&mut parsed.groups[index]).into_iter(),
-                        close: (ops.len() > open).then_some(open), repeat, ..Default::default()
+                        close: (ops.len() > open).then_some(open), consume, repeat, ..Default::default()
                     });
                     continue;
                 }
@@ -1619,7 +1636,7 @@ impl RxProgram {
                     let end = ops.len();
                     let close = match &mut ops[open] {
                         RxOp::Open { slot, until } => { *until = program.groups; RxOp::Close(*slot) }
-                        RxOp::Assert { after, .. } => { *after = end + 1; RxOp::AssertEnd }
+                        RxOp::Probe { after, .. } => { *after = end + 1; RxOp::ProbeEnd { consume: frame.consume } }
                         _ => unreachable!(),
                     };
                     ops.push(close);
@@ -1676,7 +1693,7 @@ impl RxProgram {
                 };
                 state.pc += 1;
                 match op {
-                    RxOp::Assert { behind, positive, width, after } => {
+                    RxOp::Probe { behind, positive, width, after } => {
                         let pos = state.pos;
                         let origin = match width {
                             Some(w) if *w > pos => {
@@ -1696,14 +1713,14 @@ impl RxProgram {
                         });
                         state = probe;
                     }
-                    RxOp::AssertEnd => {
+                    RxOp::ProbeEnd { consume } => {
                         let frame = assertions.last().unwrap();
                         if frame.end.is_some_and(|end| state.pos != end) || (self.nonempty && state.pos == frame.origin) { break; }
                         let frame = assertions.pop().unwrap();
                         seen = frame.seen;
                         pending.truncate(frame.pending_base);
                         if !frame.positive { break; }
-                        state = RxMatch { caps: state.caps, ..frame.resume };
+                        state = RxMatch { pos: if *consume {state.pos} else {frame.resume.pos}, caps: state.caps, ..frame.resume };
                     }
                     RxOp::Jump(dest) => state.pc = *dest,
                     RxOp::Open { slot, until } if !state.caps.is_empty() => {

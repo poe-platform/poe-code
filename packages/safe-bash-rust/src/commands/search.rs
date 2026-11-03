@@ -5804,16 +5804,12 @@ fn parse_fd_size_spec(spec: &str) -> Option<(char, f64)> {
 }
 
 fn parse_fd_type_char(s: &str) -> Option<char> {
-    match s.trim() {
+    match s {
         "f" | "file" => Some('f'),
         "d" | "dir" | "directory" => Some('d'),
         "l" | "symlink" => Some('l'),
         "x" | "executable" => Some('x'),
         "e" | "empty" => Some('e'),
-        "s" | "socket" => Some('s'),
-        "p" | "pipe" | "fifo" => Some('p'),
-        "c" | "char-device" => Some('c'),
-        "b" | "block-device" => Some('b'),
         _ => None,
     }
 }
@@ -5891,7 +5887,7 @@ where
     let mut max_depth: Option<usize> = None;
     let mut max_results: Option<usize> = None;
     let mut excludes: Vec<String> = Vec::new();
-    let mut sizes: Vec<(char, f64)> = Vec::new();
+    let mut size_specs = Vec::new();
     let mut changed_within = None;
     let mut changed_before = None;
     let mut show_hidden = false;
@@ -5926,355 +5922,94 @@ where
         exit_code: 2,
     };
 
-    let parse_non_neg = |val: &str| -> Option<usize> {
-        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
-            None
-        } else {
-            val.parse::<usize>().ok()
+    let mut help = false;
+    let mut version = false;
+    let mut argv = args.iter();
+    while let Some(arg) = argv.next() {
+        if arg == "--" { operands.extend(argv.cloned()); break; }
+        if arg == "-" || !arg.starts_with('-') { operands.push(arg.clone()); continue; }
+        let long = arg.starts_with("--");
+        let mut flags = &arg[if long { 2 } else { 1 }..];
+        while !flags.is_empty() {
+            let (flag, inline) = if long {
+                let option = flags;
+                flags = "";
+                option.split_once('=').map_or((option, None), |(k, v)| (k, Some(v)))
+            } else {
+                let n = flags.chars().next().unwrap().len_utf8();
+                let (short, rest) = flags.split_at(n);
+                flags = rest;
+                (match short {
+                    "c" => "color", "C" => "base-directory", "H" => "hidden", "I" => "no-ignore",
+                    "u" => "unrestricted", "L" => "follow", "g" => "glob", "F" => "fixed-strings",
+                    "s" => "case-sensitive", "i" => "ignore-case", "p" => "full-path", "a" => "absolute-path",
+                    "0" => "print0", "q" => "quiet", "l" => "list-details", "d" => "max-depth",
+                    "e" => "extension", "t" => "type", "E" => "exclude", "S" => "size", "1" => "one",
+                    "h" => "help", "V" => "version", "x" => "exec", "X" => "exec-batch", other => other,
+                }, None)
+            };
+            if matches!(flag, "exec" | "exec-batch") {
+                if has_exec { return usage_err("execution modes cannot be combined"); }
+                has_exec = true;
+                exec_batch = flag == "exec-batch";
+                exec_cmd.extend(argv.by_ref().take_while(|arg| arg.as_str() != ";").cloned());
+                if exec_cmd.is_empty() { return usage_err("execution command is required"); }
+                break;
+            }
+            let takes_value = matches!(flag, "search-path" | "ignore-file" | "path-separator" | "and" | "extension" |
+                "type" | "exclude" | "max-depth" | "min-depth" | "exact-depth" | "max-results" | "size" |
+                "changed-within" | "changed-before" | "format" | "color" | "base-directory");
+            let value = if takes_value {
+                if let Some(value) = inline { value }
+                else if !flags.is_empty() { std::mem::take(&mut flags) }
+                else if let Some(value) = argv.next().filter(|v| !v.is_empty()) { value }
+                else { return usage_err(&format!("option --{flag} requires a value")); }
+            } else if inline.is_some() { return usage_err(&format!("option --{flag} does not take a value")); }
+            else { "" };
+            match flag {
+                "help" => help = true, "version" => version = true,
+                "hidden" => show_hidden = true, "no-ignore" => respect_ignore = false,
+                "no-ignore-vcs" => no_ignore_vcs = true, "no-ignore-parent" => no_ignore_parent = true,
+                "unrestricted" => { unrestricted += 1; respect_ignore = false; show_hidden |= unrestricted >= 2; }
+                "follow" => follow = true, "prune" => prune = true,
+                "glob" => mode = FdMode::Glob, "fixed-strings" => mode = FdMode::Fixed,
+                "ignore-case" => case_override = Some(true), "case-sensitive" => case_override = Some(false),
+                "full-path" => full_path = true, "absolute-path" => absolute_path = true,
+                "strip-cwd-prefix" => strip_cwd_prefix = true, "print0" => print0 = true,
+                "quiet" | "has-results" => quiet = true, "list-details" => list_details = true,
+                "one" => max_results = Some(1),
+                "max-depth" | "min-depth" | "exact-depth" | "max-results" => {
+                    let Some(count) = value.parse::<u64>().ok().filter(|n|
+                        *n < (1 << 53) && value.bytes().all(|b| b.is_ascii_digit())) else {
+                        return usage_err(&format!("invalid count '{value}'"));
+                    };
+                    let count = usize::try_from(count).unwrap_or(usize::MAX);
+                    if flag == "max-results" {
+                        if count == 0 { return usage_err("--max-results must be greater than zero"); }
+                        max_results = Some(count);
+                    } else {
+                        if flag != "min-depth" { max_depth = Some(count); }
+                        if flag != "max-depth" { min_depth = count; }
+                    }
+                }
+                "type" => match parse_fd_type_char(value) {
+                    Some(kind) => types.push(kind), None => return usage_err(&format!("invalid file type '{value}'")),
+                },
+                "color" => if !matches!(value, "never" | "auto" | "always") { return usage_err("invalid color mode"); },
+                "size" => size_specs.push(value),
+                "extension" => extensions.push(value.strip_prefix('.').unwrap_or(value).to_lowercase()),
+                "exclude" => excludes.push(value.to_owned()), "and" => and_patterns.push(value.to_owned()),
+                "search-path" => search_paths.push(value.to_owned()), "ignore-file" => custom_ignore_files.push(value.to_owned()),
+                "format" => format_tpl = Some(value.to_owned()), "path-separator" => path_separator = Some(value.to_owned()),
+                "base-directory" => base_dir = Some(value.to_owned()),
+                "changed-within" => changed_within = Some(value), "changed-before" => changed_before = Some(value),
+                _ => return usage_err(&format!("unrecognized option '--{flag}'")),
+            }
         }
-    };
+    }
 
-    let mut i = 0usize;
-    let mut end_of_opts = false;
-    while i < args.len() {
-        let a = &args[i];
-        if !end_of_opts && a == "--" {
-            end_of_opts = true;
-            i += 1;
-            continue;
-        }
-        if !end_of_opts && (a == "-x" || a == "--exec" || a == "-X" || a == "--exec-batch") {
-            if has_exec {
-                return usage_err("execution modes cannot be combined");
-            }
-            has_exec = true;
-            exec_batch = a == "-X" || a == "--exec-batch";
-            i += 1;
-            while i < args.len() && args[i] != ";" {
-                exec_cmd.push(args[i].clone());
-                i += 1;
-            }
-            if exec_cmd.is_empty() {
-                return usage_err("execution command is required");
-            }
-            if i < args.len() && args[i] == ";" {
-                i += 1;
-            }
-            continue;
-        }
-        if !end_of_opts && a.starts_with("--") && a.len() > 2 {
-            let (opt_name, inline_val) = match a.split_once('=') {
-                Some((k, v)) => (k, Some(v)),
-                None => (a.as_str(), None),
-            };
-            let take_val = |inline: Option<&str>, idx: &mut usize| -> Option<String> {
-                if let Some(v) = inline {
-                    if v.is_empty() {
-                        None
-                    } else {
-                        Some(v.to_string())
-                    }
-                } else if *idx + 1 < args.len() {
-                    *idx += 1;
-                    if args[*idx].is_empty() {
-                        None
-                    } else {
-                        Some(args[*idx].clone())
-                    }
-                } else {
-                    None
-                }
-            };
-            match opt_name {
-                "--help" | "--version" => {
-                    if inline_val.is_some() {
-                        return usage_err(&format!("option {opt_name} does not take a value"));
-                    }
-                    if opt_name == "--version" {
-                        return ok_out("fd (safe-bash)\n");
-                    }
-                    return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n");
-                }
-                "--hidden"
-                | "--no-ignore"
-                | "--no-ignore-vcs"
-                | "--no-ignore-parent"
-                | "--strip-cwd-prefix"
-                | "--unrestricted"
-                | "--follow"
-                | "--glob"
-                | "--fixed-strings"
-                | "--ignore-case"
-                | "--case-sensitive"
-                | "--full-path"
-                | "--absolute-path"
-                | "--print0"
-                | "--quiet"
-                | "--has-results"
-                | "--prune"
-                | "--list-details" => {
-                    if inline_val.is_some() {
-                        return usage_err(&format!("option {opt_name} does not take a value"));
-                    }
-                    match opt_name {
-                        "--hidden" => show_hidden = true,
-                        "--no-ignore" => respect_ignore = false,
-                        "--no-ignore-vcs" => no_ignore_vcs = true,
-                        "--no-ignore-parent" => no_ignore_parent = true,
-                        "--strip-cwd-prefix" => strip_cwd_prefix = true,
-                        "--unrestricted" => {
-                            unrestricted += 1;
-                            respect_ignore = false;
-                            if unrestricted >= 2 {
-                                show_hidden = true;
-                            }
-                        }
-                        "--follow" => follow = true,
-                        "--glob" => mode = FdMode::Glob,
-                        "--fixed-strings" => mode = FdMode::Fixed,
-                        "--ignore-case" => case_override = Some(true),
-                        "--case-sensitive" => case_override = Some(false),
-                        "--full-path" => full_path = true,
-                        "--absolute-path" => absolute_path = true,
-                        "--print0" => print0 = true,
-                        "--quiet" | "--has-results" => quiet = true,
-                        "--prune" => prune = true,
-                        "--list-details" => list_details = true,
-                        _ => {}
-                    }
-                }
-                "--extension" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --extension requires a value");
-                    };
-                    extensions.push(v.trim_start_matches('.').to_ascii_lowercase());
-                }
-                "--type" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --type requires a value");
-                    };
-                    let Some(c) = parse_fd_type_char(&v) else {
-                        return usage_err(&format!("invalid file type '{v}'"));
-                    };
-                    types.push(c);
-                }
-                "--ignore-file" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --ignore-file requires a value");
-                    };
-                    custom_ignore_files.push(v);
-                }
-                "--path-separator" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --path-separator requires a value");
-                    };
-                    path_separator = Some(v);
-                }
-                "--changed-within" | "--change-newer-than" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --changed-within requires a value");
-                    };
-                    changed_within = Some(v);
-                }
-                "--changed-before" | "--change-older-than" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --changed-before requires a value");
-                    };
-                    changed_before = Some(v);
-                }
-                "--max-depth" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --max-depth requires a value");
-                    };
-                    let Some(d) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid count '{v}'"));
-                    };
-                    max_depth = Some(d);
-                }
-                "--min-depth" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --min-depth requires a value");
-                    };
-                    let Some(d) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid count '{v}'"));
-                    };
-                    min_depth = d;
-                }
-                "--exact-depth" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --exact-depth requires a value");
-                    };
-                    let Some(d) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid count '{v}'"));
-                    };
-                    min_depth = d;
-                    max_depth = Some(d);
-                }
-                "--max-results" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --max-results requires a value");
-                    };
-                    let Some(n) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid count '{v}'"));
-                    };
-                    if n == 0 {
-                        return usage_err("--max-results must be greater than zero");
-                    }
-                    max_results = Some(n);
-                }
-                "--exclude" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --exclude requires a value");
-                    };
-                    excludes.push(v);
-                }
-                "--size" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --size requires a value");
-                    };
-                    let Some(sz) = parse_fd_size_spec(&v) else {
-                        return usage_err(&format!("invalid size '{v}'"));
-                    };
-                    sizes.push(sz);
-                }
-                "--format" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --format requires a value");
-                    };
-                    format_tpl = Some(v);
-                }
-                "--search-path" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --search-path requires a value");
-                    };
-                    search_paths.push(v);
-                }
-                "--base-directory" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --base-directory requires a value");
-                    };
-                    base_dir = Some(v);
-                }
-                "--and" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --and requires a value");
-                    };
-                    and_patterns.push(v);
-                }
-                "--color" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --color requires a value");
-                    };
-                    if !matches!(v.as_str(), "never" | "auto" | "always") {
-                        return usage_err("invalid color mode");
-                    }
-                }
-                "--threads" => {
-                    let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("option --threads requires a value");
-                    };
-                    let Some(n) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid count '{v}'"));
-                    };
-                    if n == 0 {
-                        return usage_err("--threads must be greater than zero");
-                    }
-                }
-                _ => return usage_err(&format!("unrecognized option '{opt_name}'")),
-            }
-            i += 1;
-            continue;
-        }
-        if !end_of_opts && a.starts_with('-') && a.len() > 1 {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut ci = 0usize;
-            while ci < chars.len() {
-                match chars[ci] {
-                    'h' => {
-                        return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n");
-                    }
-                    'V' => {
-                        return ok_out("fd (safe-bash)\n");
-                    }
-                    'H' => show_hidden = true,
-                    'I' => respect_ignore = false,
-                    'u' => {
-                        unrestricted += 1;
-                        respect_ignore = false;
-                        if unrestricted >= 2 {
-                            show_hidden = true;
-                        }
-                    }
-                    'L' => follow = true,
-                    'g' => mode = FdMode::Glob,
-                    'F' => mode = FdMode::Fixed,
-                    'i' => case_override = Some(true),
-                    's' => case_override = Some(false),
-                    'p' => full_path = true,
-                    'a' => absolute_path = true,
-                    '0' => print0 = true,
-                    'q' => quiet = true,
-                    'l' => list_details = true,
-                    '1' => max_results = Some(1),
-                    'e' | 't' | 'd' | 'E' | 'S' | 'C' | 'c' | 'j' => {
-                        let flag = chars[ci];
-                        let val = if ci + 1 < chars.len() {
-                            let rest: String = chars[ci + 1..].iter().collect();
-                            rest.strip_prefix('=').unwrap_or(&rest).to_string()
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            args[i].clone()
-                        } else {
-                            return usage_err(&format!("missing argument for -{flag}"));
-                        };
-                        match flag {
-                            'e' => extensions.push(val.trim_start_matches('.').to_ascii_lowercase()),
-                            't' => {
-                                let Some(c) = parse_fd_type_char(&val) else {
-                                    return usage_err(&format!("invalid file type '{val}'"));
-                                };
-                                types.push(c);
-                            }
-                            'd' => {
-                                let Some(d) = parse_non_neg(&val) else {
-                                    return usage_err(&format!("invalid count '{val}'"));
-                                };
-                                max_depth = Some(d);
-                            }
-                            'E' => excludes.push(val),
-                            'S' => {
-                                let Some(sz) = parse_fd_size_spec(&val) else {
-                                    return usage_err(&format!("invalid size '{val}'"));
-                                };
-                                sizes.push(sz);
-                            }
-                            'C' => base_dir = Some(val),
-                            'c' => {
-                                if !matches!(val.as_str(), "never" | "auto" | "always") {
-                                    return usage_err("invalid color mode");
-                                }
-                            }
-                            'j' => {
-                                let Some(n) = parse_non_neg(&val) else {
-                                    return usage_err(&format!("invalid count '{val}'"));
-                                };
-                                if n == 0 {
-                                    return usage_err("threads must be greater than zero");
-                                }
-                            }
-                            _ => {}
-                        }
-                        break;
-                    }
-                    other => return usage_err(&format!("unrecognized option '--{other}'")),
-                }
-                ci += 1;
-            }
-            i += 1;
-            continue;
-        }
-        operands.push(a.clone());
-        i += 1;
+    if !search_paths.is_empty() && operands.len() > 1 {
+        return usage_err("search-path cannot be combined with positional roots");
     }
 
     if has_exec && (format_tpl.is_some() || list_details) {
@@ -6286,13 +6021,16 @@ where
             return usage_err("batch execution accepts only one placeholder");
         }
     }
-    if !search_paths.is_empty() && operands.len() > 1 {
-        return usage_err("search-path cannot be combined with positional roots");
+    if version { return ok_out("fd (safe-bash)\n"); }
+    if help { return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n"); }
+    let mut sizes = Vec::new();
+    for value in size_specs {
+        let Some(size) = parse_fd_size_spec(value) else { return usage_err(&format!("invalid size '{value}'")); };
+        sizes.push(size);
     }
-
     let mut now = None;
-    let mut cutoff = |spec: String| {
-        parse_fd_time_ms(&spec, *now.get_or_insert_with(crate::vfs::now_ms))
+    let mut cutoff = |spec: &str| {
+        parse_fd_time_ms(spec, *now.get_or_insert_with(crate::vfs::now_ms))
             .ok_or_else(|| usage_err(&format!("invalid time '{spec}'")))
     };
     let changed_within_ms = match changed_within.map(&mut cutoff).transpose() {
@@ -6584,7 +6322,6 @@ fn walk_fd(
                 if !ordinary.is_empty() || wants_exec {
                     let ord_ok = ordinary.iter().any(|&t| match t {
                         'f' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) != 0o020000,
-                        'c' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000,
                         'd' => st.kind == VfsEntryKind::Directory,
                         'l' => st.kind == VfsEntryKind::Symlink,
                         _ => false,
@@ -6636,7 +6373,7 @@ fn walk_fd(
             }
 
             if matches && !cfg.extensions.is_empty() {
-                let lower = base.to_ascii_lowercase();
+                let lower = base.to_lowercase();
                 matches = cfg
                     .extensions
                     .iter()
@@ -7683,6 +7420,30 @@ mod tests {
         let result = try_run_search_command("fd", &args(&["-1"]), "", &mut "/work".to_owned(),
             &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
         assert_eq!(result.stdout, "😀\n");
+    }
+
+    #[test]
+    fn fd_aliases_share_operand_parsing_and_validate_flags_before_help() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w").unwrap();
+        for name in ["a.txt", "b.c"] { fs.write_file(&format!("/w/{name}"), b"").unwrap(); }
+        for (argv, stdout, error) in [
+            (vec!["--one"], "a.txt\n", ""), (vec!["--format="], "\n\n", ""),
+            (vec!["-S", "bad", "-V"], "fd (safe-bash)\n", ""),
+            (vec!["--threads", "1"], "", "unrecognized option '--threads'"),
+            (vec!["--help", "-j"], "", "unrecognized option '--j'"),
+            (vec!["--unknown="], "", "option --unknown does not take a value"),
+            (vec!["--change-older-than", "@0"], "", "unrecognized option '--change-older-than'"),
+            (vec!["-tc"], "", "invalid file type 'c'"), (vec!["-t", " f "], "", "invalid file type ' f '"),
+            (vec!["--max-depth=4294967296"], "a.txt\nb.c\n", ""),
+            (vec!["--max-depth=9007199254740992"], "", "invalid count '9007199254740992'"),
+            (vec!["-d=2"], "", "invalid count '=2'"), (vec!["-e"], "", "option --extension requires a value"),
+        ] {
+            let r = try_run_search_command("fd", &args(&argv), "", &mut "/w".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            let stderr = if error.is_empty() { String::new() } else { format!("fd: {error}\n") };
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (if error.is_empty() { 0 } else { 2 }, stdout, stderr), "{argv:?}");
+        }
     }
 
     #[test]

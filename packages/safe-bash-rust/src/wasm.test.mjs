@@ -2810,6 +2810,14 @@ test("invalid environment entries reject construction and execution before hooks
   } finally { bash.dispose(); }
 });
 
+test("fd accepts safe integer depth limits and bundled exec flags in Wasm", async () => {
+  const bash = new RustWasmBash({ cwd: "/w", files: { "/w/a.Ä": "", "/w/sub/b.ä": "" } });
+  try {
+    const result = await bash.exec("fd --max-depth=4294967296 -e ä -Ix echo '{}' ';'");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "./a.Ä\n./sub/b.ä\n", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("filesystem factory registration preserves the live native filesystem with a companion configured", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const bash = new RustWasmBash({ cwd: "/", companionFactory() {

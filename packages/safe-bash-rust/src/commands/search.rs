@@ -40,9 +40,6 @@ pub(super) fn try_run_search_command_with_input<F>(
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
-    let mut capture = |words: &[String], stdin: &mut String, cwd: &mut String, env: &mut BTreeMap<String, String>| {
-        exec_sub(words, stdin, cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
-    };
     let stdin = &mut *input.text;
     match cmd {
         "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
@@ -55,7 +52,9 @@ where
         )),
         "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, write, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env, ChildIo::Inherit { stderr_before: "" }))),
-        "fd" => Some(cmd_fd(args, cwd, env, fs, &mut capture)),
+        "fd" => Some(cmd_fd(args, cwd, fs, write, &mut |words, cwd| {
+            exec_sub(words, &mut String::new(), cwd, env, ChildIo::Inherit { stderr_before: "" })
+        })),
         "xargs" => Some(cmd_xargs(args, input, cwd, env, fs, &mut exec_sub)),
         "which" => Some(cmd_which(args, cwd, env, fs)),
         _ => None,
@@ -5885,12 +5884,12 @@ struct FdConfig {
 fn cmd_fd<F>(
     args: &[String],
     cwd: &mut String,
-    env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut CommandWriter<'_>,
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String) -> ChildRun,
 {
     let mut extensions: Vec<String> = Vec::new();
     let mut types: Vec<char> = Vec::new();
@@ -6424,21 +6423,88 @@ where
         }
     }
 
-    let mut err = String::new();
-    let mut root_failed = false;
-    let mut results: Vec<(String, bool, bool)> = Vec::new();
+    let format_entry_display = |raw_disp: &str, prefix_cwd: bool| -> String {
+        let mut disp = raw_disp.to_string();
+        if strip_cwd_prefix && prefix_cwd && disp.starts_with("./") {
+            disp = disp[2..].to_string();
+        } else if !strip_cwd_prefix
+            && prefix_cwd
+            && (has_exec || print0 || list_details)
+            && !disp.starts_with('/')
+            && !disp.starts_with("./")
+            && !disp.starts_with("../")
+        {
+            disp = format!("./{disp}");
+        }
+        if let Some(ref psep) = path_separator {
+            disp = disp.replace('/', psep);
+        }
+        disp
+    };
+
+    let mut sub_cwd = effective_cwd.clone();
+    let mut invoke = |paths: &[String], result: &mut BuiltinOutcome| {
+        let mut words = Vec::new();
+        let mut substituted = false;
+        if list_details {
+            words.extend(["ls".to_owned(), "-ld".to_owned()]);
+        } else {
+            for word in &exec_cmd {
+                if has_fd_placeholder(word) {
+                    substituted = true;
+                    words.extend(paths.iter().map(|p| format_fd_template(word, p)));
+                } else { words.push(format_fd_template(word, "")); }
+            }
+        }
+        if !substituted { words.extend_from_slice(paths); }
+        let run = exec_sub(&words, &mut sub_cwd);
+        let stopped = run.is_err();
+        let child = run.unwrap_or_else(std::convert::identity);
+        result.stdout.push_str(&child.stdout);
+        result.stderr.push_str(&child.stderr);
+        if child.exit_code != 0 { result.exit_code = 1; }
+        stopped
+    };
+
+    let mut result = ok_out("");
+    let mut pending = Vec::new();
+    let mut found = 0;
+    let mut stopped = false;
+    let mut visit = |entry: Result<(&str, bool, bool), String>| -> bool {
+        match entry {
+            Err(e) => {
+                result.exit_code = 1;
+                stopped = !write(2, &format!("fd: {e}\n"), &mut result);
+            }
+            Ok((item, is_dir, prefix_cwd)) => {
+                found += 1;
+                if quiet { return true; }
+                let mut disp = format_entry_display(item, prefix_cwd);
+                if exec_batch || list_details { pending.push(disp); }
+                else if has_exec { stopped = invoke(std::slice::from_ref(&disp), &mut result); }
+                else {
+                    let dir_sep = path_separator.as_deref().unwrap_or("/");
+                    if let Some(fmt) = &format_tpl { disp = format_fd_template(fmt, &disp); }
+                    else if is_dir && !disp.ends_with(dir_sep) { disp.push_str(dir_sep); }
+                    disp.push(if print0 { '\0' } else { '\n' });
+                    stopped = !write(1, &disp, &mut result);
+                }
+                if cfg.max_results.is_some_and(|max| found >= max) { return true; }
+            }
+        }
+        stopped
+    };
+
     for r in &roots {
         let full = resolve_posix_path(&effective_cwd, r);
         match fs.stat(&full) {
             Ok(st) if st.kind == VfsEntryKind::Directory => {}
             Ok(_) => {
-                err.push_str(&format!("fd: {r}: not a directory\n"));
-                root_failed = true;
+                if visit(Err(format!("search path '{r}' is not a directory"))) { break; }
                 continue;
             }
             Err(e) => {
-                err.push_str(&format!("fd: {r}: {e}\n"));
-                root_failed = true;
+                if visit(Err(e)) { break; }
                 continue;
             }
         }
@@ -6481,7 +6547,7 @@ where
             r.trim_end_matches('/')
         };
         let prefix_cwd = r == "." || r.starts_with("./");
-        walk_fd(
+        if walk_fd(
             label,
             "",
             &full,
@@ -6491,161 +6557,13 @@ where
             &init_rules,
             fs,
             &mut std::collections::BTreeSet::new(),
-            &mut results,
-        );
+            &mut visit,
+        ) { break; }
     }
 
-    if let Some(max_r) = cfg.max_results {
-        results.truncate(max_r);
-    }
-
-    if quiet {
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: err,
-            exit_code: if root_failed || results.is_empty() { 1 } else { 0 },
-        };
-    }
-
-    let format_entry_display = |raw_disp: &str, prefix_cwd: bool| -> String {
-        let mut disp = raw_disp.to_string();
-        if strip_cwd_prefix && prefix_cwd && disp.starts_with("./") {
-            disp = disp[2..].to_string();
-        } else if !strip_cwd_prefix
-            && prefix_cwd
-            && (has_exec || print0 || list_details)
-            && !disp.starts_with('/')
-            && !disp.starts_with("./")
-            && !disp.starts_with("../")
-        {
-            disp = format!("./{disp}");
-        }
-        if let Some(ref psep) = path_separator {
-            disp = disp.replace('/', psep);
-        }
-        disp
-    };
-
-    let mut sub_cwd = effective_cwd.clone();
-
-    if list_details {
-        if results.is_empty() {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: err,
-                exit_code: if root_failed { 1 } else { 0 },
-            };
-        }
-        let mut ls_cmd = vec!["ls".to_string(), "-ld".to_string()];
-        for (item, _, prefix_cwd) in &results {
-            ls_cmd.push(format_entry_display(item, *prefix_cwd));
-        }
-        let res = exec_sub(&ls_cmd, &mut String::new(), &mut sub_cwd, env);
-        err.push_str(&res.stderr);
-        return BuiltinOutcome {
-            stdout: res.stdout,
-            stderr: err,
-            exit_code: if root_failed {
-                1
-            } else {
-                res.exit_code
-            },
-        };
-    }
-
-    if has_exec {
-        if results.is_empty() {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: err,
-                exit_code: if root_failed { 1 } else { 0 },
-            };
-        }
-        if exec_batch {
-            let mut cmd_words: Vec<String> = Vec::new();
-            let any_ph = exec_cmd.iter().any(|w| has_fd_placeholder(w));
-            if any_ph {
-                for w in &exec_cmd {
-                    if has_fd_placeholder(w) {
-                        for (item, _, prefix_cwd) in &results {
-                            let disp = format_entry_display(item, *prefix_cwd);
-                            cmd_words.push(format_fd_template(w, &disp));
-                        }
-                    } else {
-                        cmd_words.push(format_fd_template(w, ""));
-                    }
-                }
-            } else {
-                for w in &exec_cmd {
-                    cmd_words.push(format_fd_template(w, ""));
-                }
-                for (item, _, prefix_cwd) in &results {
-                    cmd_words.push(format_entry_display(item, *prefix_cwd));
-                }
-            }
-            let res = exec_sub(&cmd_words, &mut String::new(), &mut sub_cwd, env);
-            err.push_str(&res.stderr);
-            return BuiltinOutcome {
-                stdout: res.stdout,
-                stderr: err,
-                exit_code: if root_failed || res.exit_code != 0 {
-                    if res.exit_code != 0 { res.exit_code } else { 1 }
-                } else {
-                    0
-                },
-            };
-        } else {
-            let mut out = String::new();
-            let mut code = if root_failed { 1 } else { 0 };
-            let any_ph = exec_cmd.iter().any(|w| has_fd_placeholder(w));
-            for (item, _, prefix_cwd) in &results {
-                let disp = format_entry_display(item, *prefix_cwd);
-                let mut cmd_words: Vec<String> = Vec::new();
-                if any_ph {
-                    for w in &exec_cmd {
-                        cmd_words.push(format_fd_template(w, &disp));
-                    }
-                } else {
-                    for w in &exec_cmd {
-                        cmd_words.push(format_fd_template(w, ""));
-                    }
-                    cmd_words.push(disp);
-                }
-                let res = exec_sub(&cmd_words, &mut String::new(), &mut sub_cwd, env);
-                out.push_str(&res.stdout);
-                err.push_str(&res.stderr);
-                if res.exit_code != 0 {
-                    code = res.exit_code;
-                }
-            }
-            return BuiltinOutcome {
-                stdout: out,
-                stderr: err,
-                exit_code: code,
-            };
-        }
-    }
-
-    let sep = if print0 { '\0' } else { '\n' };
-    let dir_sep = path_separator.as_deref().unwrap_or("/");
-    let mut out = String::new();
-    for (item, is_dir, prefix_cwd) in results {
-        let disp = format_entry_display(&item, prefix_cwd);
-        if let Some(fmt) = &format_tpl {
-            out.push_str(&format_fd_template(fmt, &disp));
-        } else {
-            out.push_str(&disp);
-            if is_dir && !disp.ends_with(dir_sep) {
-                out.push_str(dir_sep);
-            }
-        }
-        out.push(sep);
-    }
-    BuiltinOutcome {
-        stdout: out,
-        stderr: err,
-        exit_code: if root_failed { 1 } else { 0 },
-    }
+    if quiet && !stopped { result.exit_code = i32::from(found == 0); }
+    if !stopped && !pending.is_empty() { invoke(&pending, &mut result); }
+    result
 }
 
 fn match_fd_single_pattern(pat: &str, subj: &str, cfg: &FdConfig) -> bool {
@@ -6678,31 +6596,21 @@ fn walk_fd(
     ignore_rules: &[String],
     fs: &dyn SafeBashFs,
     ancestors: &mut std::collections::BTreeSet<String>,
-    out: &mut Vec<(String, bool, bool)>,
-) {
+    visit: &mut dyn FnMut(Result<(&str, bool, bool), String>) -> bool,
+) -> bool {
     if let Some(max_d) = cfg.max_depth {
         if depth > max_d {
-            return;
+            return false;
         }
     }
-    if let Some(max_r) = cfg.max_results {
-        if out.len() >= max_r {
-            return;
-        }
-    }
-
-    let st_opt = if cfg.follow || depth == 0 {
-        fs.stat(full).or_else(|_| fs.lstat(full)).ok()
-    } else {
-        fs.lstat(full).ok()
-    };
-    let Some(st) = st_opt else {
-        return;
-    };
+    let st = if cfg.follow || depth == 0 {
+        fs.stat(full).or_else(|e| if e.starts_with("ENOENT:") { fs.lstat(full) } else { Err(e) })
+    } else { fs.lstat(full) };
+    let st = match st { Ok(st) => st, Err(e) => return visit(Err(e)) };
     let is_dir = st.kind == VfsEntryKind::Directory;
     let canonical = if cfg.follow && is_dir {
-        let Ok(path) = fs.access_path(full, true) else { return; };
-        if ancestors.contains(&path) { return; }
+        let Ok(path) = fs.access_path(full, true) else { return false; };
+        if ancestors.contains(&path) { return false; }
         Some(path)
     } else { None };
 
@@ -6710,7 +6618,7 @@ fn walk_fd(
     if depth > 0 {
         let base = basename_posix_path(disp);
         if !cfg.show_hidden && base.starts_with('.') {
-            return;
+            return false;
         }
         if cfg.excludes.iter().any(|ex| {
             let ex_clean = ex.trim_end_matches('/');
@@ -6720,10 +6628,10 @@ fn walk_fd(
                 || glob_match(ex_clean, rel)
                 || glob_match(ex, disp)
         }) {
-            return;
+            return false;
         }
         if cfg.respect_ignore && is_ignored_by_rules(&base, is_dir, ignore_rules) {
-            return;
+            return false;
         }
 
         if depth >= cfg.min_depth {
@@ -6830,24 +6738,19 @@ fn walk_fd(
 
             if matches {
                 matched_here = true;
-                let item = if cfg.absolute_path {
-                    full.to_string()
-                } else {
-                    disp.to_string()
-                };
-                out.push((item, is_dir, prefix_cwd));
+                if visit(Ok((if cfg.absolute_path { full } else { disp }, is_dir, prefix_cwd))) { return true; }
             }
         }
     }
 
     if cfg.prune && matched_here {
-        return;
+        return false;
     }
 
     if is_dir {
         if let Some(max_d) = cfg.max_depth {
             if depth >= max_d {
-                return;
+                return false;
             }
         }
         let mut local_rules: Vec<String> = ignore_rules.to_vec();
@@ -6867,41 +6770,46 @@ fn walk_fd(
                 }
             }
         }
-        if let Ok(entries) = fs.read_dir(full) {
-            if let Some(path) = &canonical { ancestors.insert(path.clone()); }
-            for e in entries {
-                if !cfg.show_hidden && e.starts_with('.') {
-                    continue;
-                }
-                let child_disp = if disp.is_empty() {
-                    e.clone()
-                } else if disp == "/" {
-                    format!("/{e}")
-                } else {
-                    format!("{disp}/{e}")
-                };
-                let child_rel = if rel.is_empty() {
-                    e.clone()
-                } else {
-                    format!("{rel}/{e}")
-                };
-                let child_full = format!("{}/{e}", full.trim_end_matches('/'));
-                walk_fd(
-                    &child_disp,
-                    &child_rel,
-                    &child_full,
-                    depth + 1,
-                    prefix_cwd,
-                    cfg,
-                    &local_rules,
-                    fs,
-                    ancestors,
-                    out,
-                );
+        let entries = match fs.read_dir(full) {
+            Err(e) => return visit(Err(if e.starts_with("ENOENT:") {
+                format!("ENOENT: no such file or directory, realpath '{full}'")
+            } else { e })),
+            Ok(entries) => entries,
+        };
+        if let Some(path) = &canonical { ancestors.insert(path.clone()); }
+        for e in entries {
+            if !cfg.show_hidden && e.starts_with('.') {
+                continue;
             }
-            if let Some(path) = canonical { ancestors.remove(&path); }
+            let child_disp = if disp.is_empty() {
+                e.clone()
+            } else if disp == "/" {
+                format!("/{e}")
+            } else {
+                format!("{disp}/{e}")
+            };
+            let child_rel = if rel.is_empty() {
+                e.clone()
+            } else {
+                format!("{rel}/{e}")
+            };
+            let child_full = format!("{}/{e}", full.trim_end_matches('/'));
+            if walk_fd(
+                &child_disp,
+                &child_rel,
+                &child_full,
+                depth + 1,
+                prefix_cwd,
+                cfg,
+                &local_rules,
+                fs,
+                ancestors,
+                visit,
+            ) { return true; }
         }
+        if let Some(path) = canonical { ancestors.remove(&path); }
     }
+    false
 }
 
 fn xargs_display(value: &str) -> String {

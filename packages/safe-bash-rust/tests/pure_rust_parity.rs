@@ -209,6 +209,23 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 }
 
 #[test]
+fn fd_executes_matches_during_traversal_and_stops_at_the_result_limit() {
+    for (script, code, stdout, stderr) in [
+        ("fd -I -x sh -c 'printf x; printf y >&2; printf z' 2>&1", 0, "xyzxyz", ""),
+        ("fd -I -x sh -c 'echo \"$0\"; if test -d \"$0\"; then rm -r \"$0\"; fi' {}", 1, "./tree\n", "fd: ENOENT: no such file or directory, realpath '/work/tree'\n"),
+        ("fd -I -x sh -c 'exit 42'", 1, "", ""),
+        ("fd -I -X sh -c 'exit 42'", 1, "", ""),
+        ("fd -I -tf -1 --search-path tree --search-path missing", 0, "tree/file\n", ""),
+        ("fd -I -tf -q --search-path missing --search-path tree", 0, "", "fd: ENOENT: no such file or directory, stat '/work/missing'\n"),
+    ] {
+        let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+        fs.write_file("/work/tree/file", b"ok").unwrap();
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+    }
+}
+
+#[test]
 fn find_writes_each_action_to_the_inherited_descriptors() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     for (script, stdout, stderr) in [

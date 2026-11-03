@@ -85,8 +85,9 @@ it("MP4 muxing yields tracks under frozen clocks and preserves output", async ()
   try {
     const work = muxMp4Steps(sources);
     let turns = 0;
-    let timerFired = false;
-    setTimeout(() => { timerFired = true; }, 0);
+    let turnRan = false;
+    // A zero-delay timer need not mature before this small job finishes yielding.
+    setImmediate(() => { turnRan = true; });
     let step = work.next();
     while (!step.done) {
       await yieldTurn();
@@ -94,7 +95,7 @@ it("MP4 muxing yields tracks under frozen clocks and preserves output", async ()
       step = work.next();
     }
     assert.ok(turns > 1);
-    assert.ok(timerFired);
+    assert.ok(turnRan);
     assert.deepEqual(step.value, muxMp4(sources));
   } finally { mock.restoreAll(); }
 });

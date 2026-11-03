@@ -8717,3 +8717,22 @@ test("mdq atomic groups and possessive repeats discard only their own alternativ
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq scoped regex flags control case, anchors, whitespace and greed", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["ς ſ ß İ ı", "(?i:Σ|S|i)"], ["AaA", "(?i:a)(?-i:a)"], ["ÄäÄ", "(?i)(?-i:Ä)ä"],
+      ["a\nb", "(?s)a.b"], ["a\nb", "(?m)^b$"], ["ab", "(?x) a [ b ]"],
+      ["ab", "(?x)a # part\nb"], ["a b", "(?x)a\\ b"], ["a\u00a0b", "(?x)a\u00a0b"],
+      ["aaaa", "(?U)a+"], ["aaaa", "(?U:a+?)"], ["abc", "(?i-i)a"],
+      ["αa", "(?-u)."], ["abc", "(?mR)a"], ["abc", "(?q)a"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: !s/" + pattern + "/X/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

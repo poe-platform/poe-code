@@ -28333,25 +28333,7 @@ enum MdqMatcher {
 }
 
 fn mdq_match_literal(needle: &str, exact_case: bool, start_anchor: bool, end_anchor: bool, target: &str) -> bool {
-    let fold = |text: &str| {
-        let mut folded = String::new();
-        for c in text.chars() {
-            let mut lower = c.to_lowercase();
-            let first = lower.next().unwrap();
-            if c == 'ı' || lower.next().is_some() {
-                folded.push(c);
-            } else {
-                let mut upper = first.to_uppercase();
-                let candidate = upper.next().unwrap();
-                if upper.next().is_some() {
-                    folded.push(first);
-                } else {
-                    folded.extend(candidate.to_lowercase());
-                }
-            }
-        }
-        folded
-    };
+    let fold = |text: &str| text.chars().map(super::search::mdq_fold).collect::<String>();
     let folded;
     let (hay_cmp, ndl_cmp) = if exact_case { (target, needle) } else {
         folded = (fold(target), fold(needle));

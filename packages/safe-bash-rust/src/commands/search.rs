@@ -748,7 +748,7 @@ fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Opti
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum RxCase { Sensitive, Ascii, Unicode }
+enum RxCase { Sensitive, Ascii, Unicode, Mdq }
 
 #[derive(Debug, Clone)]
 struct RxToken {
@@ -968,6 +968,8 @@ struct RxFlags {
     icase: bool,
     multiline: bool,
     dotall: bool,
+    extended: bool,
+    ungreedy: bool,
 }
 
 enum RxDialect<'a> { Auto, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'a str) }
@@ -993,7 +995,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
     let rg = matches!(dialect, RxDialect::Rg { .. });
     let mut mode = match dialect {
         RxDialect::Rg { flags, .. } => flags,
-        RxDialect::Jq(f) => RxFlags { icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']) },
+        RxDialect::Jq(f) => RxFlags { icase: f.contains('i'), multiline: false, dotall: f.contains(['m', 'p']), ..Default::default() },
         _ => RxFlags::default(),
     };
     let allow_newline = !rg || mode.multiline;
@@ -1027,12 +1029,23 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
     let mut closed = [false; 9];
     let mut rg_names = std::collections::BTreeSet::new();
 
+    let skip = |at: &mut usize, mode: RxFlags| {
+        if mode.extended {
+            loop {
+                while chars.get(*at).is_some_and(|c| matches!(c, ' ' | '\n' | '\t' | '\r' | '\x0b' | '\x0c')) { *at += 1; }
+                if chars.get(*at) != Some(&'#') { break; }
+                while chars.get(*at).is_some_and(|c| *c != '\n') { *at += 1; }
+            }
+        }
+    };
     while idx < chars.len() {
+        skip(&mut idx, mode);
+        if idx == chars.len() { break; }
         let mut atom = match chars[idx] {
-            '^' if (rg || jq) && mode.multiline => { idx += 1; RxAtom::LineBegin }
+            '^' if (mdq || rg || jq) && mode.multiline => { idx += 1; RxAtom::LineBegin }
             '^' if mdq || rg || jq || out.is_empty() => { idx += 1; RxAtom::Begin }
             '$' if (mdq || rg) && !mode.multiline => { idx += 1; RxAtom::End }
-            '$' if rg || jq => { idx += 1; RxAtom::NewlineEnd { multiline: mode.multiline } }
+            '$' if mdq || rg || jq => { idx += 1; RxAtom::NewlineEnd { multiline: mode.multiline } }
             '$' if matches!(chars.get(idx + 1), None | Some('|') | Some(')')) => { idx += 1; RxAtom::End }
             '.' => {
                 idx += 1;
@@ -1078,6 +1091,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             ')' if jq && groups.is_empty() => return Err("unmatched ')' in regular expression".into()),
             '[' => {
                 idx += 1;
+                skip(&mut idx, mode);
                 let mut negate = false;
                 if idx < chars.len() && chars[idx] == '^' {
                     negate = true;
@@ -1102,7 +1116,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     })
                 };
                 let mut first = true;
-                while idx < chars.len() && (first || chars[idx] != ']') {
+                loop {
+                    skip(&mut idx, mode);
+                    if idx == chars.len() || !first && chars[idx] == ']' { break; }
                     first = false;
                     if chars[idx..].starts_with(&['[', ':']) {
                         if let Some(end) = chars[idx + 2..].windows(2).position(|w| w == [':', ']']) {
@@ -1156,8 +1172,11 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         continue;
                     }
                     let lo = scalar(&mut idx)?;
+                    skip(&mut idx, mode);
                     let hi = if chars.get(idx) == Some(&'-') && chars.get(idx + 1).is_some_and(|c| *c != ']') {
                         idx += 1;
+                        skip(&mut idx, mode);
+                        if idx == chars.len() { return Err(RxParseError::at(idx, "Invalid character class")); }
                         if rg && (bracket_shorthand(&chars[idx..]).is_some() || chars[idx..].starts_with(&['[', ':'])) {
                             return Err("invalid ERE character range".into());
                         }
@@ -1195,7 +1214,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 idx += 1;
                 let outer_mode = mode;
                 let kind = match &chars[idx..] {
-                    ['?', 'i' | 'm' | 's' | '-', ..] if rg || jq => {
+                    ['?', flag, ..] if (rg || jq) && "ims-".contains(*flag) || mdq && (flag.is_ascii_alphabetic() || *flag == '-') && *flag != 'P' => {
+                        let start = idx - 1;
                         parsed.requires_vm = true;
                         idx += 1;
                         let mut enabled = true;
@@ -1203,10 +1223,15 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         while let Some(&flag) = chars.get(idx) {
                             match flag {
                                 ')' | ':' => break,
-                                '-' if enabled => { enabled = false; changed = false; idx += 1; continue; }
+                                '-' if enabled || mdq => { enabled = false; if !mdq { changed = false; } idx += 1; continue; }
                                 'i' => mode.icase = enabled,
                                 'm' => mode.multiline = enabled,
                                 's' => mode.dotall = enabled,
+                                'x' if mdq => mode.extended = enabled,
+                                'U' if mdq => mode.ungreedy = enabled,
+                                'u' if mdq && enabled => {}
+                                'u' if mdq => return Err(RxParseError::at(idx, "Disabling Unicode not supported")),
+                                _ if mdq => return Err(RxParseError::at(start + 2, &format!("Unknown group flag: {}", chars[start..=idx].iter().collect::<String>()))),
                                 _ => return Err("unsupported inline regular expression flag".into()),
                             }
                             changed = true;
@@ -1277,10 +1302,11 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         parsed.requires_vm |= matches!(atom, RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
         parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true, .. } | RxAtom::Space(_) | RxAtom::Word(true)
             | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
-        let case = if !mode.icase { RxCase::Sensitive } else if rg { RxCase::Ascii } else { RxCase::Unicode };
+        skip(&mut idx, mode);
+        let case = if !mode.icase { RxCase::Sensitive } else if rg { RxCase::Ascii } else if mdq { RxCase::Mdq } else { RxCase::Unicode };
         let mut min = 1usize;
         let mut max = Some(1usize);
-        let mut lazy = false;
+        let mut lazy = mode.ungreedy;
         if matches!(
             atom,
             RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
@@ -1367,7 +1393,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 return Err(RxParseError::at(before_quantifier, "Target of repeat operator is invalid"));
             }
             if idx < chars.len() && chars[idx] == '?' && idx != before_quantifier {
-                lazy = true;
+                lazy = !lazy;
                 parsed.requires_vm = true;
                 idx += 1;
             }
@@ -1460,6 +1486,15 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
     width
 }
 
+pub(super) fn mdq_fold(c: char) -> char {
+    let mut lower = c.to_lowercase();
+    let first = lower.next().unwrap();
+    if c == 'ı' || lower.next().is_some() { return c; }
+    let mut upper = first.to_uppercase();
+    let candidate = upper.next().unwrap();
+    if upper.next().is_some() { first } else { candidate.to_lowercase().next().unwrap() }
+}
+
 fn folded_in_range(mut folded: impl Iterator<Item = char>, lo: char, hi: char) -> bool {
     folded.next().is_some_and(|first| first >= lo && (first < hi || first == hi && folded.next().is_none()))
 }
@@ -1469,7 +1504,9 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
     match &token.atom {
         RxAtom::Any { newline, nul } => (*newline || ch != '\n') && (*nul || ch != '\0'),
         RxAtom::Char(expected) => {
-            if token.case == RxCase::Unicode {
+            if token.case == RxCase::Mdq {
+                ch == *expected || mdq_fold(ch) == mdq_fold(*expected)
+            } else if token.case == RxCase::Unicode {
                 ch == *expected || ch.to_lowercase().eq(expected.to_lowercase())
             } else if ignore_case {
                 ch.to_ascii_lowercase() == expected.to_ascii_lowercase()
@@ -1485,6 +1522,9 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
             let inside = chars.iter().any(|&(s, e)| {
                 let range = s..=e;
                 range.contains(&ch)
+                    || token.case == RxCase::Mdq && (range.contains(&mdq_fold(ch))
+                        || ch != 'ı' && ch.to_uppercase().count() == 1 && range.contains(&ch.to_uppercase().next().unwrap())
+                        || ch.to_lowercase().count() == 1 && range.contains(&ch.to_lowercase().next().unwrap()))
                     || token.case == RxCase::Unicode && (folded_in_range(ch.to_lowercase(), s, e)
                         || folded_in_range(ch.to_uppercase(), s, e))
                     || ignore_case
@@ -1831,7 +1871,9 @@ impl RxProgram {
                             let ok = if let Some((lo, hi)) = reference {
                                 let left = &hay[lo..hi];
                                 let right = &hay[end..end + width];
-                                if tok.case == RxCase::Unicode && left.iter().chain(right).any(|&(_, c)| !c.is_ascii()) {
+                                if tok.case == RxCase::Mdq {
+                                    left.iter().zip(right).all(|(&(_, a), &(_, b))| mdq_fold(a) == mdq_fold(b))
+                                } else if tok.case == RxCase::Unicode && left.iter().chain(right).any(|&(_, c)| !c.is_ascii()) {
                                     let lower = |chars: &[(usize, char)]| chars.iter().map(|&(_, c)| c).collect::<String>().to_lowercase();
                                     lower(left) == lower(right)
                                 } else {
@@ -2413,7 +2455,7 @@ fn cmd_grep(
             normalized = expr;
             &normalized
         };
-        let flags = RxFlags { icase: ignore_case, multiline: false, dotall: false };
+        let flags = RxFlags { icase: ignore_case, multiline: false, dotall: false, ..Default::default() };
         let branches = match parse_rx_branches(pat, fixed_strings, RxDialect::Rg { flags, dot_nul: text || null_data }) {
             Ok(parsed) => parsed,
             Err(message) => return BuiltinOutcome { stdout: String::new(), stderr: format!("{invoked_as}: {}\n", message.message), exit_code: 2 },
@@ -3241,7 +3283,7 @@ fn cmd_rg(
         }
     }
 
-    let flags = RxFlags { icase: ignore_case, multiline, dotall: multiline_dotall };
+    let flags = RxFlags { icase: ignore_case, multiline, dotall: multiline_dotall, ..Default::default() };
     let mut parsed = Vec::with_capacity(patterns.len());
     let mut cross_line = false;
     let mut bounded_error = None;

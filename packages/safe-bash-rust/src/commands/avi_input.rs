@@ -1,5 +1,6 @@
 use super::super::structured::JVal;
 use super::media_probe::{self, Codec, Packet, ProbeOptions, StreamInfo};
+use super::mp4::h264::{annex_b, nals};
 
 // RIFF chunks exclude their alignment byte from the declared size. LISTs
 // bound their own children, independently of the enclosing file's length.
@@ -71,34 +72,6 @@ fn stream_index(tag: &[u8]) -> Option<usize> {
     }
 }
 
-fn start_code(bytes: &[u8]) -> Option<(usize, usize)> {
-    let pos = bytes.windows(3).position(|s| s == [0, 0, 1])?;
-    Some((
-        if pos > 0 && bytes[pos - 1] == 0 {
-            pos - 1
-        } else {
-            pos
-        },
-        pos + 3,
-    ))
-}
-pub(super) fn annex_b(bytes: &[u8]) -> bool {
-    bytes.len() >= 4 && (bytes.starts_with(&[0, 0, 1]) || bytes.starts_with(&[0, 0, 0, 1]))
-}
-pub(super) fn nals(mut bytes: &[u8]) -> impl Iterator<Item = &[u8]> {
-    let mut start = start_code(bytes);
-    std::iter::from_fn(move || {
-        loop {
-            let (_, off) = start?;
-            bytes = &bytes[off..];
-            start = start_code(bytes);
-            let end = start.map_or(bytes.len(), |(pos, _)| pos);
-            if end != 0 {
-                return Some(&bytes[..end]);
-            }
-        }
-    })
-}
 fn video_packet(mut bytes: &[u8]) -> (u64, bool) {
     let original = bytes.len() as u64;
     if annex_b(bytes) {

@@ -1,20 +1,23 @@
 // H.264 sequence parameters use MSB-first bits and unsigned/signed Exp-Golomb codes.
-struct Bits<'a> {
+struct Bits<'a, const PAD: bool> {
     bytes: &'a [u8],
     at: usize,
 }
-impl Bits<'_> {
+impl<const PAD: bool> Bits<'_, PAD> {
     fn read(&mut self, n: u32) -> Option<u32> {
-        let mut v = 0;
-        for _ in 0..n {
-            v = v << 1 | u32::from((self.bytes.get(self.at / 8)? >> (7 - self.at % 8)) & 1);
+        let mut v = 0u32;
+        for i in 0..n {
+            let Some(&byte) = self.bytes.get(self.at / 8) else {
+                return PAD.then(|| v.checked_shl(n - i).unwrap_or(0));
+            };
+            v = v << 1 | u32::from((byte >> (7 - self.at % 8)) & 1);
             self.at += 1;
         }
         Some(v)
     }
     fn ue(&mut self) -> Option<u32> {
         let mut n = 0;
-        while self.read(1)? == 0 {
+        while self.read(1)? == 0 && (!PAD || self.at / 8 < self.bytes.len()) {
             n += 1;
             if n > 31 {
                 return None;
@@ -44,6 +47,7 @@ pub(super) struct Sequence {
     pub width: u32,
     pub height: u32,
     pub sar: (u32, u32),
+    pub fps: Option<f64>,
     pub pix_fmt: &'static str,
     pub profile: String,
     id: u32,
@@ -60,12 +64,13 @@ impl Sequence {
         if config.get(5)? & 31 == 0 {
             return None;
         }
-        Self::parse(config.get(8..8 + usize::from(super::u16_at(config, 6)))?)
+        Self::parse::<false>(config.get(8..8 + usize::from(super::u16_at(config, 6)))?)
     }
 
-    pub(super) fn parse(nal: &[u8]) -> Option<Self> {
+    // The document probe zero-fills missing SPS fields; decoding requires complete parameters.
+    pub(super) fn parse<const PAD: bool>(nal: &[u8]) -> Option<Self> {
         let rbsp = rbsp(nal);
-        let mut b = Bits {
+        let mut b = Bits::<PAD> {
             bytes: &rbsp,
             at: if rbsp.first()? & 31 == 7 { 8 } else { 0 },
         };
@@ -154,7 +159,8 @@ impl Sequence {
                 .max(1),
         )
         .ok()?;
-        let sar = if b.read(1)? != 0 && b.read(1)? != 0 {
+        let vui = b.read(1)? != 0;
+        let sar = if vui && b.read(1)? != 0 {
             match b.read(8)? {
                 255 => (b.read(16)?.max(1), b.read(16)?.max(1)),
                 i => [
@@ -183,6 +189,30 @@ impl Sequence {
         } else {
             (1, 1)
         };
+        let fps = (|| {
+            if !vui {
+                return None;
+            }
+            if b.read(1)? != 0 {
+                b.read(1)?;
+            }
+            if b.read(1)? != 0 {
+                b.read(4)?;
+                if b.read(1)? != 0 {
+                    b.read(24)?;
+                }
+            }
+            if b.read(1)? != 0 {
+                b.ue()?;
+                b.ue()?;
+            }
+            if b.read(1)? == 0 {
+                return None;
+            }
+            let units = b.read(32)?;
+            let scale = b.read(32)?;
+            (units != 0 && scale != 0).then(|| f64::from(scale) / (2. * f64::from(units)))
+        })();
         let pix_fmt = match (chroma, depth > 0) {
             (0, _) => "gray",
             (2, true) => "yuv422p10le",
@@ -207,6 +237,7 @@ impl Sequence {
             width,
             height,
             sar,
+            fps,
             pix_fmt,
             profile,
             id,
@@ -258,7 +289,7 @@ impl Pcm {
                 return None;
             }
             let raw = rbsp(&n[1..]);
-            let mut b = Bits { bytes: &raw, at: 0 };
+            let mut b = Bits::<false> { bytes: &raw, at: 0 };
             let id = b.ue()?;
             if b.ue()? != seq.id || b.read(1)? != 0 || b.read(1)? != 0 || b.ue()? != 0 {
                 return None;
@@ -320,7 +351,7 @@ impl Pcm {
                 return Err(invalid);
             }
             let raw = rbsp(&nal[1..]);
-            let mut b = Bits { bytes: &raw, at: 0 };
+            let mut b = Bits::<false> { bytes: &raw, at: 0 };
             let mut slice_error = invalid;
             let complete = (|| {
                 let Some(first_mb) = b.ue() else {
@@ -636,6 +667,34 @@ pub(super) fn encode_slice(
     Ok(sample)
 }
 
+fn start_code(bytes: &[u8]) -> Option<(usize, usize)> {
+    let pos = bytes.windows(3).position(|s| s == [0, 0, 1])?;
+    Some((
+        if pos > 0 && bytes[pos - 1] == 0 {
+            pos - 1
+        } else {
+            pos
+        },
+        pos + 3,
+    ))
+}
+pub(in super::super) fn annex_b(bytes: &[u8]) -> bool {
+    bytes.len() >= 4 && (bytes.starts_with(&[0, 0, 1]) || bytes.starts_with(&[0, 0, 0, 1]))
+}
+pub(in super::super) fn nals(mut bytes: &[u8]) -> impl Iterator<Item = &[u8]> {
+    let mut start = start_code(bytes);
+    std::iter::from_fn(move || {
+        loop {
+            let (_, off) = start?;
+            bytes = &bytes[off..];
+            start = start_code(bytes);
+            let end = start.map_or(bytes.len(), |(pos, _)| pos);
+            if end != 0 {
+                return Some(&bytes[..end]);
+            }
+        }
+    })
+}
 fn parameter_sets(config: &[u8]) -> (Vec<&[u8]>, Vec<&[u8]>) {
     let mut bytes = config.get(6..).unwrap_or_default();
     fn take<'a>(bytes: &mut &'a [u8], n: usize) -> Vec<&'a [u8]> {
@@ -711,11 +770,11 @@ mod tests {
         let nal = [
             0x67, 0x7a, 0, 0x28, 0xb6, 0xce, 0x8b, 0xd2, 0x4b, 0xff, 0, 12, 0, 11, 4,
         ];
-        let s = Sequence::parse(&nal).unwrap();
+        let s = Sequence::parse::<false>(&nal).unwrap();
         assert_eq!(
             (s.width, s.height, s.sar, s.pix_fmt, s.profile.as_str()),
             (28, 14, (12, 11), "yuv422p10le", "High 4:2:2")
         );
-        assert!(Sequence::parse(&nal[..6]).is_none());
+        assert!(Sequence::parse::<false>(&nal[..6]).is_none());
     }
 }

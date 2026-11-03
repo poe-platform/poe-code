@@ -216,9 +216,9 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
         let direct = t.extra.len() >= 7 && t.extra[0] == 1;
         let video = matches!(t.info.codec, Codec::Video { .. });
         for (p, body) in t.packets.iter().zip(t.bodies) {
-            let data = if video && avi_input::annex_b(body) {
+            let data = if video && h264::annex_b(body) {
                 let mut payload = Vec::new();
-                for nal in avi_input::nals(body) {
+                for nal in h264::nals(body) {
                     match nal[0] & 31 {
                         kind @ (7 | 8) => {
                             sets[usize::from(kind - 7)] = body;
@@ -264,7 +264,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
                 let mut config = Vec::new();
                 let avcc = if direct {
                     t.extra
-                } else if let Some(sps) = avi_input::nals(sets[0]).find(|n| n[0] & 31 == 7) {
+                } else if let Some(sps) = h264::nals(sets[0]).find(|n| n[0] & 31 == 7) {
                     config.extend_from_slice(&[
                         1,
                         sps.get(1).copied().unwrap_or(66),
@@ -275,9 +275,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
                     for (i, source) in sets.into_iter().enumerate() {
                         let at = config.len();
                         config.push(0);
-                        for nal in
-                            avi_input::nals(source).filter(|n| usize::from(n[0] & 31) == 7 + i)
-                        {
+                        for nal in h264::nals(source).filter(|n| usize::from(n[0] & 31) == 7 + i) {
                             budget = budget
                                 .checked_sub(2 + nal.len())
                                 .ok_or("output byte limit exceeded")?;

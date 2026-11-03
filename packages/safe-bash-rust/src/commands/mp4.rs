@@ -1,5 +1,7 @@
 #[path = "h264.rs"]
-mod h264;
+pub(super) mod h264;
+#[path = "mpegts_input.rs"]
+pub(super) mod mpegts_input;
 #[path = "flv_input.rs"]
 pub(super) mod flv_input;
 #[path = "mkv_input.rs"]

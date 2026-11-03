@@ -5438,10 +5438,15 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     }
     let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
     let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
-    if gif || still || real_mp4 || matches!(container, "avi" | "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
+    if gif || still || real_mp4 || matches!(container, "mpegts" | "avi" | "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
         let records=requested.contains("packet") || requested.contains("frame");
         let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
             writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+        if container == "mpegts" {
+            return match mp4::mpegts_input::report(&raw_bytes, name, fs.max_input_bytes(), opts) {
+                Ok(output) => ok_out(&output), Err(reason) => ffprobe_err(reason),
+            };
+        }
         if container == "avi" {
             return match avi_input::report(&raw_bytes, name, fs.max_input_bytes(), opts) {
                 Ok(output) => ok_out(&output), Err(reason) => ffprobe_err(reason),
@@ -13601,6 +13606,23 @@ mod media_unit_tests {
         fs.write_file("/clip.avi", &bytes).unwrap();
         let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
         assert_eq!(r.stderr, "ffmpeg: Invalid H.264 pixel limit\n");
+    }
+
+    #[test]
+    fn ffprobe_reads_transport_stream_pes_packets_and_m2ts_framing() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i", "av.mp4", "-c", "copy", "out.ts"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code, 0);
+        let ts = fs.read_file("/out.ts").unwrap();
+        let mut m2ts = Vec::new();
+        for pkt in ts.chunks_exact(188) {m2ts.extend_from_slice(&[0;4]);m2ts.extend_from_slice(pkt);}
+        fs.write_file("/out.m2ts", &m2ts).unwrap();
+        for name in ["out.ts", "out.m2ts"] {
+            let args = media_args(&["-show_entries","stream=codec_name,width,height,duration_ts,nb_frames","-of","csv=p=0",name]);
+            let r = cmd_media_doc("ffprobe",&args,"","/",&fs);
+            assert_eq!(r.stdout, "h264,6,4,67500,3\naac,33792,33\n");
+        }
     }
 
     #[test]

@@ -4840,6 +4840,12 @@ fn parse_signed_count_strict(raw: &str, err_msg: &str) -> Result<(i8, usize), St
     Ok((op, count))
 }
 
+struct FindExecBatch {
+    words: Vec<String>,
+    prefix_len: usize,
+    path_bytes: usize,
+}
+
 struct FindParseContext<'a> {
     args: &'a [String],
     idx: usize,
@@ -4853,7 +4859,7 @@ struct FindParseContext<'a> {
     explicit_action: bool,
     deletes: bool,
     prunes: bool,
-    exec_batches: Vec<(Vec<String>, Vec<String>)>,
+    exec_batches: Vec<FindExecBatch>,
 }
 
 impl<'a> FindParseContext<'a> {
@@ -5124,8 +5130,8 @@ impl<'a> FindParseContext<'a> {
                         ));
                     }
                     let b_idx = self.exec_batches.len();
-                    self.exec_batches
-                        .push((cmd_words[..cmd_words.len() - 1].to_vec(), Vec::new()));
+                    cmd_words.pop();
+                    self.exec_batches.push(FindExecBatch { prefix_len: cmd_words.len(), words: cmd_words, path_bytes: 0 });
                     FindPred::Exec {
                         cmd: Vec::new(),
                         batch_idx: Some(b_idx),
@@ -5154,11 +5160,27 @@ where
     env: &'a mut BTreeMap<String, String>,
     fs: &'a dyn SafeBashFs,
     exec_sub: &'a mut F,
-    exec_batches: &'a mut Vec<(Vec<String>, Vec<String>)>,
+    exec_batches: Vec<FindExecBatch>,
     out: &'a mut String,
     err: &'a mut String,
     exit_code: &'a mut i32,
     quit: &'a mut bool,
+}
+
+impl<F> FindEvalState<'_, F>
+where
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
+    fn flush_batch(&mut self, index: usize) {
+        let batch = &mut self.exec_batches[index];
+        if batch.words.len() == batch.prefix_len { return; }
+        let res = (self.exec_sub)(&batch.words, self.cwd, self.env);
+        self.out.push_str(&res.stdout);
+        self.err.push_str(&res.stderr);
+        if res.exit_code != 0 { *self.exit_code = 1; }
+        batch.words.truncate(batch.prefix_len);
+        batch.path_bytes = 0;
+    }
 }
 
 struct FindEntry<'a> {
@@ -5299,9 +5321,14 @@ where
         }
         FindPred::Exec { cmd, batch_idx } => {
             if let Some(b_idx) = batch_idx {
-                if let Some((_, pending)) = state.exec_batches.get_mut(*b_idx) {
-                    pending.push(disp_path.to_string());
+                let size = stream_byte_len(disp_path) + 1;
+                let batch = &state.exec_batches[*b_idx];
+                if batch.words.len() - batch.prefix_len >= 1000 || batch.path_bytes + size > 65536 {
+                    state.flush_batch(*b_idx);
                 }
+                let batch = &mut state.exec_batches[*b_idx];
+                batch.words.push(disp_path.to_owned());
+                batch.path_bytes += size;
                 true
             } else {
                 let cmd_args: Vec<String> =
@@ -5452,7 +5479,7 @@ where
     let min_depth = pctx.min_depth;
     let depth_first = pctx.depth_first;
     let explicit_action = pctx.explicit_action;
-    let mut exec_batches = pctx.exec_batches;
+    let exec_batches = pctx.exec_batches;
 
     let mut out = String::new();
     let mut err = String::new();
@@ -5475,7 +5502,7 @@ where
         env,
         fs,
         exec_sub,
-        exec_batches: &mut exec_batches,
+        exec_batches,
         out: &mut out,
         err: &mut err,
         exit_code: &mut exit_code,
@@ -5505,18 +5532,7 @@ where
         );
     }
 
-    for (cmd_prefix, pending) in exec_batches {
-        if !pending.is_empty() {
-            let mut cmd_args = cmd_prefix;
-            cmd_args.extend(pending);
-            let res = (exec_sub)(&cmd_args, cwd, env);
-            out.push_str(&res.stdout);
-            err.push_str(&res.stderr);
-            if res.exit_code != 0 {
-                exit_code = 1;
-            }
-        }
-    }
+    for i in 0..state.exec_batches.len() { state.flush_batch(i); }
 
     BuiltinOutcome {
         stdout: out,
@@ -7715,6 +7731,24 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn find_flushes_exec_batches_at_the_path_count_and_byte_boundaries() {
+        let fs = MemoryVfs::new();
+        for (path, count, first) in [("a".to_owned(), 1001, 1000), ("é".repeat(63) + "x", 513, 512)] {
+            fs.write_file(&format!("/{path}"), b"").unwrap();
+            let mut words = vec![path; count];
+            words.extend(args(&["-exec", "process", "{}", "+"]));
+            let mut batches = Vec::new();
+            let result = try_run_search_command("find", &words, "", &mut "/".into(), &mut BTreeMap::new(), &fs,
+                |argv, _, _, _| {
+                    batches.push(argv.len() - 1);
+                    BuiltinOutcome { stdout: format!("{}\n", argv.len() - 1), stderr: String::new(), exit_code: i32::from(batches.len() == 1) }
+                }).unwrap();
+            assert_eq!(batches, [first, 1]);
+            assert_eq!((result.exit_code, result.stdout), (1, format!("{first}\n1\n")));
+        }
     }
 
     #[test]

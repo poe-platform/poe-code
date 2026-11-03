@@ -188,22 +188,48 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
     .collect()
 }
 
-impl Clip {
-    fn stream(&self, count_frames: bool, count_packets: bool) -> Row {
-        let (start, ticks) = match self.track {
-            Track::Video { packets: VideoPackets::Gif(_), .. } => (0., self.ticks as f64),
-            Track::Subtitle { first_pts, .. } => (first_pts as f64, self.ticks as f64),
-            _ => (0., self.count as f64 * self.ticks as f64),
-        };
-        let duration = ticks / f64::from(self.timescale);
-        let rate = if self.count == 0 || ticks == 0. || !matches!(self.track, Track::Video { .. }) {
+#[derive(Clone, Copy)]
+pub(super) enum Codec {
+    Video {
+        tag: &'static [u8; 4],
+        width: u32,
+        height: u32,
+    },
+    Aac {
+        rate: u32,
+        channels: u8,
+        profile: bool,
+    },
+    Subtitle {
+        webvtt: bool,
+    },
+}
+
+pub(super) struct StreamInfo {
+    pub codec: Codec,
+    pub scale: u32,
+    pub start: i64,
+    pub ticks: u64,
+    pub count: usize,
+    pub payload_bytes: u64,
+    pub has_cts: bool,
+}
+
+impl StreamInfo {
+    pub(super) fn stream(&self, index: usize, (count_frames, count_packets): (bool, bool)) -> Row {
+        let (start, ticks) = (self.start as f64, self.ticks as f64);
+        let duration = ticks / f64::from(self.scale);
+        let rate = if self.count == 0 || ticks == 0. || !matches!(self.codec, Codec::Video { .. }) {
             "0/0".into()
         } else {
-            ratio(self.timescale as u64 * self.count as u64, ticks as u64, '/')
+            ratio(self.scale as u64 * self.count as u64, ticks as u64, '/')
         };
-        let mut row = vec![("index", Number(0., None)), ("id", Str("0x1".into()))];
-        match self.track {
-            Track::Subtitle { webvtt, .. } => {
+        let mut row = vec![
+            ("index", Number(index as f64, None)),
+            ("id", Str(format!("0x{:x}", index + 1))),
+        ];
+        match self.codec {
+            Codec::Subtitle { webvtt, .. } => {
                 let (name, long, tag, code) = if self.count != 0 {
                     ("mov_text", "3GPP Timed Text subtitle", "tx3g", "0x74783367")
                 } else if webvtt {
@@ -219,11 +245,12 @@ impl Clip {
                     ("codec_tag", Str(code.into())),
                 ]);
             }
-            Track::Video {
+            Codec::Video {
                 tag, width, height, ..
             } => {
                 let fourcc = std::str::from_utf8(tag).unwrap();
                 let (name, long) = match tag {
+                    b"avc1" => ("h264", "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"),
                     b"mjpe" => ("mjpeg", "Motion JPEG"),
                     b"webp" => ("webp", "WebP image"),
                     b"gif " => ("gif", "GIF (Graphics Interchange Format)"),
@@ -243,44 +270,77 @@ impl Clip {
                     ("width", Number(width.into(), None)),
                     ("height", Number(height.into(), None)),
                 ]);
-                if width!=0 {row.push(("coded_width",Number(f64::from(width.div_ceil(16))*16., None)));}
-                if height!=0 {row.push(("coded_height",Number(f64::from(height.div_ceil(16))*16., None)));}
-                row.extend([("has_b_frames",Number(0., None)),("sample_aspect_ratio",Str("1:1".into()))]);
-                if width!=0 && height!=0 {row.push(("display_aspect_ratio",Str(ratio(width.into(),height.into(),':'))));}
+                if width != 0 {
+                    row.push((
+                        "coded_width",
+                        Number(f64::from(width.div_ceil(16)) * 16., None),
+                    ));
+                }
+                if height != 0 {
+                    row.push((
+                        "coded_height",
+                        Number(f64::from(height.div_ceil(16)) * 16., None),
+                    ));
+                }
+                row.extend([
+                    ("has_b_frames", Number(f64::from(self.has_cts), None)),
+                    ("sample_aspect_ratio", Str("1:1".into())),
+                ]);
+                if width != 0 && height != 0 {
+                    row.push((
+                        "display_aspect_ratio",
+                        Str(ratio(width.into(), height.into(), ':')),
+                    ));
+                }
                 row.extend([
                     (
                         "pix_fmt",
-                        Str(match tag { b"gif "=>"rgb8", b"raw "=>"yuv420p", _=>"rgb24" }.into()),
+                        Str(match tag {
+                            b"gif " => "rgb8",
+                            b"raw " | b"avc1" => "yuv420p",
+                            _ => "rgb24",
+                        }
+                        .into()),
                     ),
                     ("color_range", Str("tv".into())),
                     ("color_space", Str("bt709".into())),
                 ])
             }
-            Track::Aac { channels, .. } => row.extend([
-                ("codec_name", Str("aac".into())),
-                ("codec_long_name", Str("AAC (Advanced Audio Coding)".into())),
-                ("profile", Str("LC".into())),
-                ("codec_type", Str("audio".into())),
-                ("codec_tag_string", Str("mp4a".into())),
-                ("codec_tag", Str("0x6d703461".into())),
-                ("sample_fmt", Str("fltp".into())),
-                ("sample_rate", Str(self.timescale.to_string())),
-                ("channels", Number(channels.into(), None)),
-                (
-                    "channel_layout",
-                    Str(if channels == 1 { "mono" } else { "stereo" }.into()),
-                ),
-                ("bits_per_sample", Number(16., None)),
-            ]),
+            Codec::Aac {
+                channels,
+                rate,
+                profile,
+            } => {
+                row.extend([
+                    ("codec_name", Str("aac".into())),
+                    ("codec_long_name", Str("AAC (Advanced Audio Coding)".into())),
+                ]);
+                if profile {
+                    row.push(("profile", Str("LC".into())));
+                }
+                row.extend([
+                    ("codec_type", Str("audio".into())),
+                    ("codec_tag_string", Str("mp4a".into())),
+                    ("codec_tag", Str("0x6d703461".into())),
+                    ("sample_fmt", Str("fltp".into())),
+                    ("sample_rate", Str(rate.to_string())),
+                    ("channels", Number(channels.into(), None)),
+                    (
+                        "channel_layout",
+                        Str(if channels == 1 { "mono" } else { "stereo" }.into()),
+                    ),
+                    ("bits_per_sample", Number(16., None)),
+                ]);
+            }
         }
         row.extend([
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
-            ("time_base", Str(format!("1/{}", self.timescale))),
+            ("time_base", Str(format!("1/{}", self.scale))),
             ("start_pts", Number(start, None)),
             (
                 "start_time",
-                Str(format!("{:.6}", start / f64::from(self.timescale))),
+                Str(format!("{:.6}", start / f64::from(self.scale))),
             ),
             ("duration_ts", Number(ticks, None)),
             ("duration", Str(format!("{duration:.6}"))),
@@ -306,6 +366,39 @@ impl Clip {
         }
         row
     }
+}
+
+impl Clip {
+    fn info(&self) -> StreamInfo {
+        let codec = match self.track {
+            Track::Video {
+                tag, width, height, ..
+            } => Codec::Video { tag, width, height },
+            Track::Subtitle { webvtt, .. } => Codec::Subtitle { webvtt },
+            Track::Aac { channels, .. } => Codec::Aac {
+                rate: self.timescale,
+                channels,
+                profile: true,
+            },
+        };
+        let (start, ticks) = match self.track {
+            Track::Video {
+                packets: VideoPackets::Gif(_),
+                ..
+            } => (0, self.ticks),
+            Track::Subtitle { first_pts, .. } => (first_pts, self.ticks),
+            _ => (0, self.count as u64 * self.ticks),
+        };
+        StreamInfo {
+            codec,
+            scale: self.timescale,
+            start,
+            ticks,
+            count: self.count,
+            payload_bytes: self.payload_bytes,
+            has_cts: false,
+        }
+    }
 
     fn format(&self, filename: &str, bytes: usize) -> Row {
         let duration = self.duration;
@@ -314,93 +407,156 @@ impl Clip {
             Track::Subtitle { .. } => ("srt", "SubRip subtitle"),
             Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
             Track::Video { tag: b"raw ", .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
-            Track::Video { tag: b"gif ", .. } => ("gif","CompuServe Graphics Interchange Format (GIF)"),
+            Track::Video { tag: b"gif ", .. } => {
+                ("gif", "CompuServe Graphics Interchange Format (GIF)")
+            }
             Track::Video { .. } => ("image2", "image2 sequence"),
         };
         format_row(filename, bytes, (name, long_name), 1, duration, vec![])
     }
 
     fn record(&self, i: usize, frame: bool) -> Row {
-        let default_pts = i as f64 * self.ticks as f64;
-        let (pts, ticks, size, pos, kind) = match &self.track {
+        let default_pts = (i as u64 * self.ticks) as i64;
+        let (pts, ticks, size, pos) = match &self.track {
             Track::Subtitle { records, .. } => {
                 let (pts, dur, size, pos) = records[i];
-                (pts as f64, dur as f64, size as u64, pos as u64, "subtitle")
+                (pts, dur as u64, size as u64, pos as u64)
             }
             Track::Aac { ends, .. } => {
                 let pos = if i == 0 { 0 } else { ends[i - 1] };
                 (
                     default_pts,
-                    self.ticks as f64,
+                    self.ticks,
                     (ends[i] - pos) as u64,
                     pos as u64,
-                    "audio",
                 )
             }
-            Track::Video { packets: VideoPackets::Gif(ends), .. } => {
-                let (pts,pos)=if i==0 {(0,0)} else {ends[i-1]};
-                let (end,offset)=ends[i];
-                (pts as f64,(end-pts) as f64,(offset-pos) as u64,pos as u64,"video")
+            Track::Video {
+                packets: VideoPackets::Gif(ends),
+                ..
+            } => {
+                let (pts, pos) = if i == 0 { (0, 0) } else { ends[i - 1] };
+                let (end, offset) = ends[i];
+                (
+                    pts as i64,
+                    end - pts,
+                    (offset - pos) as u64,
+                    pos as u64,
+                )
             }
-            Track::Video { packets: VideoPackets::Fixed(frame_size), .. } => (
+            Track::Video {
+                packets: VideoPackets::Fixed(frame_size),
+                ..
+            } => (
                 default_pts,
-                self.ticks as f64,
+                self.ticks,
                 *frame_size,
                 i as u64 * frame_size,
-                "video",
             ),
         };
-        let key = i==0 || !matches!(self.track,Track::Video {packets: VideoPackets::Gif(_), ..});
-        let time = || Str(format!("{:.6}", pts / f64::from(self.timescale)));
-        let duration = Str(format!("{:.6}", ticks / f64::from(self.timescale)));
+        let key = i == 0
+            || !matches!(
+                self.track,
+                Track::Video {
+                    packets: VideoPackets::Gif(_),
+                    ..
+                }
+            );
+        self.info().codec.record(
+            0,
+            self.timescale,
+            Packet {
+                pts,
+                dts: pts,
+                ticks,
+                size,
+                pos,
+                key,
+            },
+            frame,
+        )
+    }
+}
+
+pub(super) struct Packet {
+    pub pts: i64,
+    pub dts: i64,
+    pub ticks: u64,
+    pub size: u64,
+    pub pos: u64,
+    pub key: bool,
+}
+impl Codec {
+    pub(super) fn record(self, index: usize, scale: u32, p: Packet, frame: bool) -> Row {
+        let Packet {
+            pts,
+            dts,
+            ticks,
+            size,
+            pos,
+            key,
+        } = p;
+        let (pts, dts, ticks) = (pts as f64, dts as f64, ticks as f64);
+        let kind = match self {
+            Self::Aac { .. } => "audio",
+            Self::Video { .. } => "video",
+            Self::Subtitle { .. } => "subtitle",
+        };
+        let time = |t| Str(format!("{:.6}", t / f64::from(scale)));
+        let duration = Str(format!("{:.6}", ticks / f64::from(scale)));
         if frame {
             let mut row = vec![
                 ("media_type", Str(kind.into())),
-                ("stream_index", Number(0., None)),
+                ("stream_index", Number(index as f64, None)),
                 ("key_frame", Number(f64::from(key), None)),
                 ("pts", Number(pts, None)),
-                ("pts_time", time()),
-                ("pkt_dts", Number(pts, None)),
-                ("pkt_dts_time", time()),
+                ("pts_time", time(pts)),
+                ("pkt_dts", Number(dts, None)),
+                ("pkt_dts_time", time(dts)),
                 ("best_effort_timestamp", Number(pts, None)),
-                ("best_effort_timestamp_time", time()),
+                ("best_effort_timestamp_time", time(pts)),
                 ("pkt_duration", Number(ticks, None)),
                 ("pkt_duration_time", duration),
                 ("pkt_size", Str(size.to_string())),
             ];
-            match self.track {
-                Track::Subtitle { .. } => {}
-                Track::Aac { channels, .. } => row.extend([
+            match self {
+                Codec::Subtitle { .. } => {}
+                Codec::Aac { channels, .. } => row.extend([
                     ("sample_fmt", Str("fltp".into())),
-                    ("nb_samples", Number(1024., None)),
+                    ("nb_samples", Number(ticks, None)),
                     ("channels", Number(channels.into(), None)),
                 ]),
-                Track::Video {
+                Codec::Video {
                     tag, width, height, ..
                 } => row.extend([
                     ("width", Number(width.into(), None)),
                     ("height", Number(height.into(), None)),
                     (
                         "pix_fmt",
-                        Str(match tag { b"gif "=>"rgb8", b"raw "=>"yuv420p", _=>"rgb24" }.into()),
+                        Str(match tag {
+                            b"gif " => "rgb8",
+                            b"raw " | b"avc1" => "yuv420p",
+                            _ => "rgb24",
+                        }
+                        .into()),
                     ),
-                    ("pict_type", Str(if key {"I"} else {"P"}.into())),
+                    ("pict_type", Str(if key { "I" } else { "P" }.into())),
                 ]),
             }
             row
         } else {
             vec![
                 ("codec_type", Str(kind.into())),
-                ("stream_index", Number(0., None)),
+                ("stream_index", Number(index as f64, None)),
                 ("pts", Number(pts, None)),
-                ("pts_time", time()),
-                ("dts", Number(pts, None)),
-                ("dts_time", time()),
+                ("pts_time", time(pts)),
+                ("dts", Number(dts, None)),
+                ("dts_time", time(dts)),
                 ("duration", Number(ticks, None)),
                 ("duration_time", duration),
                 ("size", Str(size.to_string())),
                 ("pos", Str(pos.to_string())),
-                ("flags", Str(if key {"K_"} else {"__"}.into())),
+                ("flags", Str(if key { "K_" } else { "__" }.into())),
             ]
         }
     }
@@ -471,7 +627,7 @@ impl Clip {
                     0,
                 ) =>
             {
-                Box::new(std::iter::once(self.stream(counts.0, counts.1)))
+                Box::new(std::iter::once(self.info().stream(0, counts)))
             }
             "format" => Box::new(std::iter::once(self.format(filename, bytes))),
             _ => Box::new(std::iter::empty()),

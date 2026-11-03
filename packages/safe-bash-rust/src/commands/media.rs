@@ -5425,10 +5425,16 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     }
     let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
     let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
-    if gif || still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
+    if gif || still || real_mp4 || matches!(container, "flv" | "aac" | "y4m" | "srt" | "webvtt") {
         let records=requested.contains("packet") || requested.contains("frame");
         let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
             writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+        if container == "flv" {
+            return match mp4::flv_input::report(&raw_bytes, name, opts) {
+                Ok(output) => ok_out(&output),
+                Err(reason) => ffprobe_err(reason),
+            };
+        }
         if real_mp4 {
             return match mp4::report(&raw_bytes,name,opts) {
                 Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
@@ -13482,6 +13488,17 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffprobe_reads_both_flv_tracks_from_their_tags() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "av.mp4", "-c", "copy", "clip.flv"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        let r = cmd_media_doc("ffprobe", &media_args(&["-show_entries", "stream=codec_name,width,height,nb_frames,duration_ts",
+            "-of", "csv=p=0", "clip.flv"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "h264,6,4,533,3\naac,759,33\n", ""));
     }
 
     #[test]

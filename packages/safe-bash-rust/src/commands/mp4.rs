@@ -1,5 +1,7 @@
 #[path = "h264.rs"]
 mod h264;
+#[path = "flv_input.rs"]
+pub(super) mod flv_input;
 #[path = "mp4_mux.rs"]
 pub(super) mod mux;
 
@@ -351,8 +353,14 @@ fn decoder_config(payload: &[u8]) -> (u8, Option<&[u8]>) {
 }
 fn esds(payload: &[u8]) -> AudioConfig {
     let (indication, asc) = decoder_config(payload);
+    let (object, rate, channels) = audio_config(asc.unwrap_or_default());
+    AudioConfig { indication, object, rate, channels: channels.into() }
+}
+
+fn audio_config(asc: &[u8]) -> (u8, u32, u8) {
+    let asc = if asc.len() < 2 { &[0x12, 0x10] } else { asc };
     let mut bits = 0u64;
-    for (i, &b) in asc.filter(|a| a.len() >= 2).unwrap_or(&[0x12, 0x10]).iter().take(6).enumerate() {
+    for (i, &b) in asc.iter().take(6).enumerate() {
         bits |= u64::from(b) << (56 - i * 8)
     }
     let mut take = |n: u32| {
@@ -370,14 +378,9 @@ fn esds(payload: &[u8]) -> AudioConfig {
     };
     let channels = match take(4) {
         0 => 2,
-        v => v as u16,
+        v => v as u8,
     };
-    AudioConfig {
-        indication,
-        object,
-        rate,
-        channels,
-    }
+    (object, rate, channels)
 }
 
 struct Track<'a> {

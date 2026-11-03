@@ -5347,7 +5347,7 @@ fn parse_yq_input_docs_with_meta(
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return Ok(vec![(xml::to_json(xml::parse(input).map_err(|e| format!("bad xml input: {e}"))?, use_plus_xml), single_meta())]);
+        return Ok(vec![(xml::to_json(xml::parse(input, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
@@ -14748,25 +14748,6 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 }
 
-fn extract_xml_decl_attr(src: &str, attr_name: &str) -> Option<String> {
-    let trimmed = src.trim_start();
-    if !trimmed.starts_with("<?xml") {
-        return None;
-    }
-    let end = trimmed.find("?>")?;
-    let decl = &trimmed[..end];
-    let pos = decl.find(attr_name)?;
-    let after = decl[pos + attr_name.len()..].trim_start();
-    let after_eq = after.strip_prefix('=')?.trim_start();
-    let q = after_eq.chars().next()?;
-    if q != '"' && q != '\'' {
-        return None;
-    }
-    let rest = &after_eq[q.len_utf8()..];
-    let close = rest.find(q)?;
-    Some(rest[..close].to_string())
-}
-
 fn find_tag_close_gt(s: &str) -> Option<usize> {
     let mut in_q: Option<char> = None;
     for (idx, ch) in s.char_indices() {
@@ -14953,13 +14934,13 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
         };
 
-        let mut dom = match xml::parse(&text) {
+        let doc = match xml::parse(&text, Some("UTF-8")) {
             Ok(d) => d,
             Err(e) => {
                 if recover && e != "XML resource limit exceeded" {
                     let recovered = parse_html_dom(&text);
                     if recovered.iter().any(|n| matches!(n, HtmlNode::Element(_))) {
-                        recovered
+                        xml::Document { nodes: recovered, ..Default::default() }
                     } else {
                         result.stderr.push_str(&format!("xmllint: {e}\n"));
                         result.exit_code = 1;
@@ -14973,6 +14954,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
         };
 
+        let mut dom = doc.nodes;
         apply_xml_transforms(&mut dom, noblanks, nocdata, false);
 
         if noout && xpath.is_none() {
@@ -15002,15 +14984,12 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             out
         } else {
-            let orig_version = extract_xml_decl_attr(&text, "version").unwrap_or_else(|| "1.0".to_string());
-            let orig_encoding = extract_xml_decl_attr(&text, "encoding");
-            let orig_standalone = extract_xml_decl_attr(&text, "standalone");
-            let eff_encoding = encoding.clone().or(orig_encoding);
-            let mut decl = format!("<?xml version=\"{orig_version}\"");
+            let eff_encoding = encoding.clone().or(doc.encoding);
+            let mut decl = String::from("<?xml version=\"1.0\"");
             if let Some(ref enc) = eff_encoding {
                 decl.push_str(&format!(" encoding=\"{enc}\""));
             }
-            if let Some(ref sa) = orig_standalone {
+            if let Some(ref sa) = doc.standalone {
                 decl.push_str(&format!(" standalone=\"{sa}\""));
             }
             decl.push_str("?>\n");

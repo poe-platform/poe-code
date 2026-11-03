@@ -8985,6 +8985,8 @@ test("XML commands share strict parsing and preserve their own JSON mapping", as
       ' <not:bound/>', '<r p:k="1"/>', '<r a:x="1" b:x="2" xmlns:a="u" xmlns:b="u"/>',
       '<r xmlns:xml="wrong"/>', '<r xmlns:p="1"><t xmlns:p="2"><p:t/></t><p:t/></r>',
       '<r><e xmlns:p="u"/><p:t/></r>',
+      '<?xml version="1.0" encoding="UTF-16"?><r/>', ' <?xml version="1.0"?><r/>',
+      '<?xml version="1.0" standalone="no" encoding="utf-8"?><r/>', '<r><?XML?></r>',
       '<r>&nbsp;</r>', '<r>&#xD800;</r>', '<r a="&#00000000000000065;"/>', '<r / >', '<r /x>',
     ]) {
       for (const store of [fs, rs.fs]) await store.writeFile("/xml", Buffer.from(xml));

@@ -105,8 +105,8 @@ impl Bytes<'_> {
             self.chunk = if self.xml {
                 let text = std::str::from_utf8(&bytes)
                     .map_err(|_| (1, "XML input must be UTF-8".to_string()))?;
-                let dom = super::xml::parse(text).map_err(|e| (1, e))?;
-                let mut json = super::xml::to_json(dom, false).to_json_string(true, false, 0);
+                let dom = super::xml::parse(text, Some("UTF-8")).map_err(|e| (1, e))?;
+                let mut json = super::xml::to_json(dom.nodes, false).to_json_string(true, false, 0);
                 json.push('\n');
                 Cow::Owned(json.into_bytes())
             } else {

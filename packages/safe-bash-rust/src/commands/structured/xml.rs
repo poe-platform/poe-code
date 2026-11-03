@@ -79,7 +79,53 @@ fn decode(mut s: &str, attr: bool) -> Result<String, &'static str> {
     }
 }
 
-pub(super) fn parse(src: &str) -> Result<Vec<HtmlNode>, String> {
+#[derive(Default)]
+pub(super) struct Document {
+    pub nodes: Vec<HtmlNode>,
+    pub encoding: Option<String>,
+    pub standalone: Option<String>,
+}
+
+fn declaration_field<'a>(s: &mut &'a str, key: &str) -> Option<&'a str> {
+    let rest = s.trim_start_matches(space);
+    if rest.len() == s.len() {
+        return None;
+    }
+    let rest = rest
+        .strip_prefix(key)?
+        .trim_start_matches(space)
+        .strip_prefix('=')?
+        .trim_start_matches(space);
+    let q = rest.chars().next().filter(|c| matches!(c, '\'' | '"'))?;
+    let (value, tail) = rest[1..].split_once(q)?;
+    *s = tail;
+    Some(value)
+}
+
+fn declaration(
+    mut body: &str,
+    expected_encoding: Option<&str>,
+) -> Option<(Option<String>, Option<String>)> {
+    if declaration_field(&mut body, "version")? != "1.0" {
+        return None;
+    }
+    let encoding = declaration_field(&mut body, "encoding");
+    if let Some(enc) = encoding
+        && (!["utf-8", "utf-16", "utf-16le", "utf-16be"]
+            .iter()
+            .any(|e| enc.eq_ignore_ascii_case(e))
+            || expected_encoding.is_some_and(|e| !enc.eq_ignore_ascii_case(e)))
+    {
+        return None;
+    }
+    let standalone = declaration_field(&mut body, "standalone");
+    if !matches!(standalone, None | Some("yes" | "no")) || !body.trim_matches(space).is_empty() {
+        return None;
+    }
+    Some((encoding.map(str::to_owned), standalone.map(str::to_owned)))
+}
+
+pub(super) fn parse(src: &str, expected_encoding: Option<&str>) -> Result<Document, String> {
     let src = src.strip_prefix('\u{feff}').unwrap_or(src);
     if !src.chars().all(valid) {
         return Err("Invalid XML: invalid character".into());
@@ -91,7 +137,7 @@ pub(super) fn parse(src: &str) -> Result<Vec<HtmlNode>, String> {
     } else {
         src
     };
-    document(src).map_err(|e| {
+    document(src, expected_encoding).map_err(|e| {
         if e == "XML resource limit exceeded" {
             e.into()
         } else {
@@ -100,8 +146,9 @@ pub(super) fn parse(src: &str) -> Result<Vec<HtmlNode>, String> {
     })
 }
 
-fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
-    let mut roots = Vec::new();
+fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'static str> {
+    let size = s.len();
+    let mut doc = Document::default();
     let mut stack: Vec<HtmlElement> = Vec::new();
     let mut has_root = false;
     const XML: &str = "http://www.w3.org/XML/1998/namespace";
@@ -127,11 +174,17 @@ fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
         } else if s.starts_with("<!") {
             return Err("DTD and entity declarations are forbidden");
         } else if let Some(mut rest) = s.strip_prefix("<?") {
-            name(&mut rest)?;
+            let target = name(&mut rest)?;
             let (body, tail) = rest
                 .split_once("?>")
                 .ok_or("unterminated processing instruction")?;
-            if !body.is_empty() && !body.starts_with(space) {
+            if target.eq_ignore_ascii_case("xml") {
+                if s.len() != size || target != "xml" {
+                    return Err("unsupported XML declaration");
+                }
+                (doc.encoding, doc.standalone) =
+                    declaration(body, expected_encoding).ok_or("unsupported XML declaration")?;
+            } else if !body.is_empty() && !body.starts_with(space) {
                 return Err("invalid processing instruction");
             }
             s = tail;
@@ -262,13 +315,13 @@ fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
         if let Some(parent) = stack.last_mut() {
             parent.children.push(node);
         } else {
-            roots.push(node);
+            doc.nodes.push(node);
         }
     }
     if !has_root || !stack.is_empty() {
         return Err("incomplete document");
     }
-    Ok(roots)
+    Ok(doc)
 }
 
 pub(super) fn to_json(nodes: Vec<HtmlNode>, plus: bool) -> JVal {

@@ -3677,16 +3677,19 @@ fn cmd_rev(
         let mut pending = Vec::new();
         let mut chunk = Vec::new();
         if !from_stdin {
-            let path = resolve_posix_path(cwd, &f);
-            if fs.is_dir(&path) {
-                stderr.push_str(&format!("rev: EISDIR: illegal operation on a directory '{path}'\n"));
-                code = 1;
-                continue;
-            }
-            match fs.read_file(&path) {
+            let path = absolute_operand(cwd, &f);
+            let bytes = fs.inspect_command_entry(&path, true, "stat")
+                .map_err(|e| stream_file_error(e, "stat", &path))
+                .and_then(|(entry, stat)| {
+                    if stat.kind == crate::vfs::VfsEntryKind::Directory {
+                        return Err(format!("EISDIR: illegal operation on a directory '{path}'"));
+                    }
+                    fs.read_file(&entry).map_err(|e| stream_file_error(e, "readStream", &path))
+                });
+            match bytes {
                 Ok(bytes) => chunk = bytes,
-                Err(_) => {
-                    stderr.push_str(&format!("rev: ENOENT: no such file or directory, stat '{path}'\n"));
+                Err(error) => {
+                    stderr.push_str(&format!("rev: {error}\n"));
                     code = 1;
                     continue;
                 }

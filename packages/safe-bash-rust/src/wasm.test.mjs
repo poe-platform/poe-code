@@ -386,6 +386,21 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("rev reports named file errors and continues with later files", async () => {
+  const bash = new RustWasmBash({
+    files: { "/denied": { content: "private", mode: 0o200 }, "/ok": "ab" },
+    symlinks: { "/alias": "/denied", "/loop": "/loop" },
+  });
+  try {
+    const r = await bash.exec("rev /alias /loop /ok/sub '' /ok");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "ba",
+      "rev: EACCES: permission denied, readStream '/alias'\n" +
+      "rev: ELOOP: too many symbolic links encountered '/loop'\n" +
+      "rev: ENOTDIR: not a directory, stat '/ok/sub'\n" +
+      "rev: ENOENT: no such file or directory ''\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("rev stops reading a shared descriptor after an invalid UTF-8 record", async () => {
   const bytes = new Uint8Array(65540).fill(97);
   bytes.set([98, 99, 255, 10]);

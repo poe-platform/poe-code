@@ -7996,7 +7996,7 @@ fn parse_epoch_ns(s: &str) -> Option<(i64, u32)> {
     }
 }
 
-fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, u32, i64), String> {
+pub(super) fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, u32, i64), String> {
     let s = spec.trim();
     if let Some((sec, ns)) = parse_epoch_ns(s) {
         return Ok((sec, ns, default_tz_offset));

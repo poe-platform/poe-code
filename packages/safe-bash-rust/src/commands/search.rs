@@ -5822,37 +5822,33 @@ fn parse_fd_type_char(s: &str) -> Option<char> {
     }
 }
 
-fn parse_fd_time_ms(spec: &str) -> Option<u64> {
-    let s = spec.trim();
-    if let Some(epoch_str) = s.strip_prefix('@') {
-        if epoch_str.is_empty() || !epoch_str.chars().all(|c| c.is_ascii_digit()) {
-            return None;
-        }
-        return epoch_str.parse::<u64>().ok().map(|sec| sec * 1000);
+fn parse_fd_time_ms(spec: &str, now: f64) -> Option<f64> {
+    if let Some(epoch) = spec.strip_prefix('@') {
+        let ms = super::js_number(epoch, 0.0) * 1000.0;
+        return ms.is_finite().then_some(ms);
     }
-    let num_len = s.chars().take_while(|c| c.is_ascii_digit()).count();
-    if num_len > 0 && num_len < s.len() {
-        let n = s[..num_len].parse::<u64>().ok()?;
-        let unit = s[num_len..].trim();
-        let dur_ms = match unit {
-            "s" | "sec" | "secs" | "second" | "seconds" => n * 1000,
-            "m" | "min" | "mins" | "minute" | "minutes" => n * 60_000,
-            "h" | "hr" | "hrs" | "hour" | "hours" => n * 3_600_000,
-            "d" | "day" | "days" => n * 86_400_000,
-            "w" | "week" | "weeks" => n * 7 * 86_400_000,
-            _ => return None,
+    let count = spec.bytes().take_while(|b| b.is_ascii_digit() || *b == b'.').count();
+    let (number, rest) = spec.split_at(count);
+    if number.starts_with(|c: char| c.is_ascii_digit()) && !number.ends_with('.') {
+        let multiplier = match rest.trim_start().to_ascii_lowercase().as_str() {
+            "ms" => Some(1.0),
+            "s" | "sec" | "second" | "seconds" => Some(1_000.0),
+            "m" | "min" | "minute" | "minutes" => Some(60_000.0),
+            "h" | "hour" | "hours" => Some(3_600_000.0),
+            "d" | "day" | "days" => Some(86_400_000.0),
+            "w" | "week" | "weeks" => Some(604_800_000.0),
+            _ => None,
         };
-        let now_ms = crate::vfs::now_ms() as u64;
-        return Some(now_ms.saturating_sub(dur_ms));
-    }
-    if s.len() >= 10 && s.as_bytes().get(4) == Some(&b'-') && s.as_bytes().get(7) == Some(&b'-') {
-        let y = s[0..4].parse::<i64>().ok()?;
-        let m = s[5..7].parse::<u32>().ok()?;
-        let d = s[8..10].parse::<u32>().ok()?;
-        if (1..=12).contains(&m) && (1..=31).contains(&d) {
-            let days = (y - 1970) * 365 + ((y - 1969) / 4) + ((m as i64 - 1) * 30) + (d as i64 - 1);
-            return Some((days.max(0) as u64) * 86_400_000);
+        if let Some(scale) = multiplier {
+            return Some(now - number.parse::<f64>().ok()? * scale);
         }
+    }
+    let date = spec.trim();
+    if date.get(..4).is_some_and(|year| year.bytes().all(|b| b.is_ascii_digit()))
+        && date.as_bytes().get(4) == Some(&b'-')
+    {
+        let (sec, ns, _) = super::coreutils::parse_absolute_date_spec(date, 0).ok()?;
+        return Some((sec * 1000 + i64::from(ns / 1_000_000)) as f64);
     }
     None
 }
@@ -5865,8 +5861,8 @@ struct FdConfig {
     max_results: Option<usize>,
     excludes: Vec<String>,
     sizes: Vec<(char, usize)>,
-    changed_within_ms: Option<u64>,
-    changed_before_ms: Option<u64>,
+    changed_within_ms: Option<f64>,
+    changed_before_ms: Option<f64>,
     show_hidden: bool,
     respect_ignore: bool,
     no_ignore_vcs: bool,
@@ -5898,8 +5894,8 @@ where
     let mut max_results: Option<usize> = None;
     let mut excludes: Vec<String> = Vec::new();
     let mut sizes: Vec<(char, usize)> = Vec::new();
-    let mut changed_within_ms: Option<u64> = None;
-    let mut changed_before_ms: Option<u64> = None;
+    let mut changed_within = None;
+    let mut changed_before = None;
     let mut show_hidden = false;
     let mut respect_ignore = true;
     let mut no_ignore_vcs = false;
@@ -6081,19 +6077,13 @@ where
                     let Some(v) = take_val(inline_val, &mut i) else {
                         return usage_err("option --changed-within requires a value");
                     };
-                    let Some(ms) = parse_fd_time_ms(&v) else {
-                        return usage_err(&format!("invalid time '{v}'"));
-                    };
-                    changed_within_ms = Some(ms);
+                    changed_within = Some(v);
                 }
                 "--changed-before" | "--change-older-than" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
                         return usage_err("option --changed-before requires a value");
                     };
-                    let Some(ms) = parse_fd_time_ms(&v) else {
-                        return usage_err(&format!("invalid time '{v}'"));
-                    };
-                    changed_before_ms = Some(ms);
+                    changed_before = Some(v);
                 }
                 "--max-depth" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
@@ -6302,6 +6292,20 @@ where
     if !search_paths.is_empty() && operands.len() > 1 {
         return usage_err("search-path cannot be combined with positional roots");
     }
+
+    let mut now = None;
+    let mut cutoff = |spec: String| {
+        parse_fd_time_ms(&spec, *now.get_or_insert_with(crate::vfs::now_ms))
+            .ok_or_else(|| usage_err(&format!("invalid time '{spec}'")))
+    };
+    let changed_within_ms = match changed_within.map(&mut cutoff).transpose() {
+        Ok(value) => value,
+        Err(error) => return error,
+    };
+    let changed_before_ms = match changed_before.map(cutoff).transpose() {
+        Ok(value) => value,
+        Err(error) => return error,
+    };
 
     let raw_pattern = if !operands.is_empty() {
         Some(operands.remove(0))
@@ -6689,12 +6693,12 @@ fn walk_fd(
             }
 
             if matches && let Some(min_ms) = cfg.changed_within_ms {
-                if st.mtime_ms < min_ms as f64 {
+                if st.mtime_ms <= min_ms {
                     matches = false;
                 }
             }
             if matches && let Some(max_ms) = cfg.changed_before_ms {
-                if st.mtime_ms > max_ms as f64 {
+                if st.mtime_ms >= max_ms {
                     matches = false;
                 }
             }
@@ -7657,6 +7661,28 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn fd_compares_modification_times_at_exclusive_cutoffs() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work").unwrap();
+        fs.write_file("/work/needle", b"").unwrap();
+        fs.set_mtime("/work/needle", 1000).unwrap();
+        for (flag, spec, code, output) in [
+            ("--changed-before", "@1", 0, ""),
+            ("--changed-within", "@1", 0, ""),
+            ("--changed-before", "@1.001", 0, "needle\n"),
+            ("--changed-within", "@-0.5", 0, "needle\n"),
+            ("--changed-before", "1970-01-01T01:00:01.001+01:00", 0, "needle\n"),
+            ("--changed-before", "999999999999999999999999weeks", 0, ""),
+            ("--changed-before", "1.25 MS", 0, "needle\n"),
+            ("--changed-before", "1hrs", 2, ""),
+        ] {
+            let result = try_run_search_command("fd", &args(&[flag, spec, "needle"]), "",
+                &mut "/work".to_owned(), &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str()), (code, output), "{flag} {spec}: {}", result.stderr);
+        }
     }
 
     #[test]

@@ -1,4 +1,5 @@
 use super::{JVal, SafeBashFs, jq_json::Parser, read_jq_file};
+use crate::vfs::ChunkReader;
 use std::borrow::Cow;
 
 #[derive(Default)]
@@ -59,11 +60,44 @@ struct Bytes<'a> {
     cwd: &'a str,
     fs: &'a dyn SafeBashFs,
     chunk: Cow<'a, [u8]>,
+    raw_lines: Option<ChunkReader<'a>>,
     at: usize,
     name: Option<String>,
     line: usize,
     more_newlines: Option<bool>,
     nul_prefix: Option<std::vec::IntoIter<u8>>,
+}
+
+// A raw value may join file tails, but each file decodes its own bytes.
+fn raw_file<'a>(fs: &'a dyn SafeBashFs, path: String, shell_text: bool) -> Result<ChunkReader<'a>, String> {
+    let opened = fs.access_path(&path, true).and_then(|entry| fs.open_chunks(&entry));
+    let read_error = move |e| {
+        let e = super::super::coreutils::stream_file_error(e, "readStream", &path);
+        if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }
+    };
+    let mut next = opened.map_err(&read_error)?;
+    let mut chunk = Vec::new();
+    let mut at = 0;
+    let mut eof = false;
+    let limit = fs.shell_limits().max_memory_bytes;
+    Ok(Box::new(move |line| {
+        line.clear();
+        while !eof {
+            if at == chunk.len() {
+                next(&mut chunk).map_err(&read_error)?;
+                at = 0;
+                if chunk.is_empty() { eof = true; break; }
+            }
+            let rest = &chunk[at..];
+            let newline = rest.iter().position(|b| *b == b'\n');
+            let count = newline.map_or(rest.len(), |n| n + 1);
+            if count > limit.saturating_sub(line.len()) { return Err(fs.limit_error("maxMemoryBytes", limit)); }
+            line.extend_from_slice(&rest[..count]);
+            at += count;
+            if newline.is_some() { break; }
+        }
+        Ok(())
+    }))
 }
 
 impl Bytes<'_> {
@@ -112,6 +146,13 @@ impl Bytes<'_> {
 
     fn peek(&mut self) -> Result<Option<u8>, (i32, String)> {
         while self.at == self.chunk.len() {
+            if let Some(next) = &mut self.raw_lines {
+                next(self.chunk.to_mut()).map_err(|e| (2, e))?;
+                self.at = 0;
+                self.more_newlines = None;
+                if !self.chunk.is_empty() { break; }
+                self.raw_lines = None;
+            }
             let Some(path) = self.files.next() else {
                 return Ok(None);
             };
@@ -145,6 +186,10 @@ impl Bytes<'_> {
                 }
                 Source::Json(_) | Source::ShellJson(_) => {
                     let full = crate::vfs::path::absolute_operand(self.cwd, &path);
+                    if self.raw {
+                        self.raw_lines = Some(raw_file(self.fs, full, shell_text).map_err(|e| (2, e))?);
+                        continue;
+                    }
                     Cow::Owned(read_jq_file(self.fs, &full, self.single_chunk).map_err(|e| (2, if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }))?)
                 }
             };
@@ -173,10 +218,12 @@ impl Values<'_> {
     fn value(&mut self, warnings: &mut String, remaining: &mut usize) -> Result<Option<JVal>, (i32, String)> {
         if self.raw {
             let mut line = String::new();
+            let limit = self.bytes.fs.shell_limits().max_memory_bytes;
             while self.bytes.peek()?.is_some() {
                 let b = &mut self.bytes;
                 let rest = &b.chunk[b.at..];
-                let newline = rest.iter().position(|&byte| byte == b'\n');
+                let newline = if b.raw_lines.is_some() { rest.ends_with(b"\n").then(|| rest.len() - 1) }
+                    else { rest.iter().position(|&byte| byte == b'\n') };
                 let end = newline.map_or(rest.len(), |n| n + usize::from(self.slurp));
                 let mut text = &rest[..end];
                 // The raw reader decodes each line or file tail in 64 KiB
@@ -186,9 +233,11 @@ impl Values<'_> {
                     while lead > 65533 && text[lead] & 0xc0 == 0x80 { lead -= 1; }
                     let n = if lead + super::jq_json::utf8_width(text[lead]) > 65536 { lead } else { 65536 };
                     super::jq_json::push_utf8(&mut line, &text[..n]);
+                    if line.len() > limit { return Err((5, b.fs.limit_error("maxMemoryBytes", limit))); }
                     text = &text[n..];
                 }
                 super::jq_json::push_utf8(&mut line, text);
+                if line.len() > limit { return Err((5, b.fs.limit_error("maxMemoryBytes", limit))); }
                 b.at += newline.map_or(rest.len(), |n| n + 1);
                 if newline.is_some() {
                     b.line += 1;
@@ -316,6 +365,7 @@ pub(super) fn files<'a>(
             cwd,
             fs,
             chunk: Cow::Borrowed(&[]),
+            raw_lines: None,
             at: 0,
             name: None,
             line: 0,

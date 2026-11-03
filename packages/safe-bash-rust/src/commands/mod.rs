@@ -952,6 +952,9 @@ where
     if cmd == "xq" {
         return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
     }
+    if cmd == "ffmpeg" {
+        return Ok(Some(archive::cmd_ffmpeg(args, CommandInput { text: stdin, file }, cwd, fs)));
+    }
     if cmd == "ffprobe" {
         return Ok(Some(archive::cmd_ffprobe(args, CommandInput { text: stdin, file }, cwd, fs)));
     }

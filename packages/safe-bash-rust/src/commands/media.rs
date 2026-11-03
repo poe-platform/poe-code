@@ -4510,6 +4510,13 @@ fn media_stdin(name: &str) -> bool {
     matches!(name, "-" | "pipe:" | "pipe:0" | "/dev/stdin" | "/dev/fd/0")
 }
 
+fn read_media_stdin(stdin: &mut super::CommandInput) -> Result<Vec<u8>, String> {
+    if let Some(source) = stdin.file { source.admit_bounded_read()?; }
+    let mut bytes = Vec::new();
+    stdin.append_bytes(&mut bytes)?;
+    Ok(bytes)
+}
+
 fn write_ffmpeg_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
     let parent = crate::vfs::dirname_posix_path(path);
     if !fs.is_dir(&parent) {
@@ -4549,7 +4556,7 @@ fn cmd_media_doc(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     match cmd {
-        "ffmpeg" => cmd_ffmpeg(args, stdin, cwd, fs),
+        "ffmpeg" => cmd_ffmpeg(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs),
         "ffprobe" => cmd_ffprobe(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs),
         "soffice" | "libreoffice" => cmd_soffice(args, cwd, fs),
         "wkhtmltopdf" => wkhtmltopdf::wkhtmltopdf(args, stdin, cwd, fs, false),
@@ -4581,7 +4588,7 @@ fn cmd_media_doc(
     }
 }
 
-fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.is_empty() {
         return err_out(&format_ffmpeg_introspection("-h", "ffmpeg").unwrap_or_default(), 1);
     }
@@ -4781,6 +4788,19 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let audio_output = muxer == Some("aac");
     let mp4_output = matches!(muxer, Some("mp4" | "mov"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
+    let mut read_input = |path: &str, explicit: Option<&str>| {
+        let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
+            let full = resolve_posix_path(cwd, path);
+            fs.read_file(&full).map_err(|e| format!("{}, readFile '{full}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)))
+        }.map_err(|e| err_out(&format!("ffmpeg: {e}\n"), 1))?;
+        let format = if explicit == Some("concat") { Some("concat") } else { media_format::detect(&bytes, path, explicit) };
+        let id = format.ok_or_else(|| match explicit {
+            Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
+            None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
+        })?;
+        Ok::<_, BuiltinOutcome>((id, bytes))
+    };
+    let mut sources = Vec::new();
     if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
         let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
         let concat=fc_flag.contains("concat=");
@@ -4792,7 +4812,6 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         let end=to_opt.or_else(||t_opt.map(|t|start+t));
         let limit=fs.max_input_bytes();
         let mut remaining=limit;
-        let mut sources=Vec::new();
         for (i,path) in inputs.iter().enumerate(){
             let explicit=input_formats[i];
             let input=if explicit==Some("lavfi"){
@@ -4804,12 +4823,11 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 match frame_output::ImageSequence::read(fs,cwd,path,pattern,number,fps.unwrap_or(25.),remaining){
                     Ok(seq)=>MediaInput::Images(seq),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                 }
+            }else if path.starts_with("concat:") || path.contains('%') {
+                break;
             }else{
-                let data=if media_stdin(path){crate::vfs::stream_string_to_bytes(stdin)}else{
-                    let Ok(b)=fs.read_file(&resolve_posix_path(cwd,path))else{break};b
-                };
-                let Some(id)=media_format::detect(&data,path,explicit)else{break};
-                MediaInput::Bytes(id,data)
+                let (id, data) = match read_input(path, explicit) { Ok(pair) => pair, Err(e) => return e };
+                MediaInput::Bytes(id, data)
             };
             let size=match &input {MediaInput::Bytes(_,b)=>b.len(),MediaInput::Images(seq)=>seq.frames.iter().map(|im|im.pixels.len()*4+size_of::<png_pixels::Raster>()).sum()};
             let Some(left)=remaining.checked_sub(size)else{return err_out("ffmpeg: input byte limit exceeded\n",1)};
@@ -4920,7 +4938,9 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let t_opt=t_opt.or(input_duration);
     let mut doc = MediaDoc::default_video();
     let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
+    let mut loaded = sources.into_iter();
     for (source_idx,inp) in inputs.iter().enumerate() {
+        let prior = loaded.next();
         if let Some(lavfi_doc) = parse_lavfi_input_doc(inp) {
             if parsed_input_docs.is_empty() {
                 doc = lavfi_doc.clone();
@@ -4935,16 +4955,15 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         } else if let Some(rest) = inp.strip_prefix("concat:") {
             let mut total_frames = 0u32;
             let mut total_dur = 0.0f64;
-            for p in rest.split('|') {
+            for p in rest.split('|').map(str::trim).filter(|p| !p.is_empty()) {
                 let f = resolve_posix_path(cwd, p);
-                if let Ok(b) = fs.read_file(&f) {
-                    let sub = MediaDoc::parse(&b, &f);
-                    doc.width = sub.width;
-                    doc.height = sub.height;
-                    doc.fps = sub.fps;
-                    total_frames += sub.nb_frames;
-                    total_dur += sub.duration;
-                }
+                let (_, b) = match read_input(p, None) { Ok(pair) => pair, Err(e) => return e };
+                let sub = MediaDoc::parse(&b, &f);
+                doc.width = sub.width;
+                doc.height = sub.height;
+                doc.fps = sub.fps;
+                total_frames += sub.nb_frames;
+                total_dur += sub.duration;
             }
             doc.nb_frames = total_frames.max(1);
             doc.duration = if total_dur > 0.0 {
@@ -4979,87 +4998,76 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             parsed_input_docs.push(doc.clone());
         } else {
             let full_in = resolve_posix_path(cwd, inp);
-            if let Ok(b) = fs.read_file(&full_in) {
-                let text = String::from_utf8_lossy(&b);
-                if fmt_flag == "concat" || text.starts_with("ffconcat") {
-                    let mut total_frames = 0u32;
-                    let mut total_dur = 0.0f64;
-                    for line in text.lines() {
-                        let t = line.trim();
-                        if let Some(r) = t.strip_prefix("file ") {
-                            let p = r.trim().trim_matches('\'').trim_matches('"');
-                            let pf = resolve_posix_path(cwd, p);
-                            if let Ok(pb) = fs.read_file(&pf) {
-                                let sub = MediaDoc::parse(&pb, &pf);
-                                doc.width = sub.width;
-                                doc.height = sub.height;
-                                doc.fps = sub.fps;
-                                total_frames += sub.nb_frames;
-                                total_dur += sub.duration;
-                            }
-                        }
+            let (format, b) = if let Some(MediaInput::Bytes(id, bytes)) = prior { (id, bytes) } else {
+                match read_input(inp, input_formats[source_idx]) { Ok(pair) => pair, Err(e) => return e }
+            };
+            let text = String::from_utf8_lossy(&b);
+            if format == "concat" {
+                let base = if inp == "-" { cwd.to_owned() } else { crate::vfs::dirname_posix_path(&full_in) };
+                let mut has_inputs = false;
+                let mut total_frames = 0u32;
+                let mut total_dur = 0.0f64;
+                for line in text.lines() {
+                    let t = line.trim();
+                    if let Some(r) = t.strip_prefix("file ") {
+                        let p = r.trim().trim_matches('\'').trim_matches('"');
+                        let pf = resolve_posix_path(&base, p);
+                        let (_, pb) = match read_input(&pf, None) { Ok(pair) => pair, Err(e) => return e };
+                        let sub = MediaDoc::parse(&pb, &pf);
+                        has_inputs = true;
+                        doc.width = sub.width;
+                        doc.height = sub.height;
+                        doc.fps = sub.fps;
+                        total_frames += sub.nb_frames;
+                        total_dur += sub.duration;
                     }
-                    doc.nb_frames = total_frames.max(1);
-                    doc.duration = if total_dur > 0.0 {
-                        total_dur
-                    } else {
-                        (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
-                    };
-                    parsed_input_docs.push(doc.clone());
-                } else if full_in.ends_with(".srt") {
-                    doc.subtitles = text.to_string();
-                } else if full_in.ends_with(".ffmeta") || text.starts_with(";FFMETADATA1") {
-                    let mut cid = 0usize;
-                    let mut in_chap = false;
-                    for line in text.lines() {
-                        if line.trim() == "[CHAPTER]" {
-                            in_chap = true;
-                        } else if in_chap
-                            && let Some(t) = line.trim().strip_prefix("title=")
-                        {
-                            doc.chapters.push((cid, t.to_string()));
-                            cid += 1;
-                        } else if !in_chap
-                            && let Some(t) = line.trim().strip_prefix("title=")
-                        {
-                            doc.title = t.to_string();
-                        }
-                    }
-                } else if parsed_input_docs.is_empty() {
-                    let parsed = MediaDoc::parse(&b, &full_in);
-                    doc = parsed.clone();
-                    parsed_input_docs.push(parsed);
+                }
+                if !has_inputs { return err_out("ffmpeg: concatMp4 requires at least one input MediaDocument\n", 1); }
+                doc.nb_frames = total_frames.max(1);
+                doc.duration = if total_dur > 0.0 {
+                    total_dur
                 } else {
-                    let sub = MediaDoc::parse(&b, &full_in);
-                    if doc.codec_type == "video" && sub.codec_type == "audio" {
-                        doc.has_audio = true;
-                        doc.sample_rate = sub.sample_rate;
-                        doc.channels = sub.channels;
-                    } else if doc.codec_type == "audio" && sub.codec_type == "video" {
-                        let sr = doc.sample_rate;
-                        let ch = doc.channels;
-                        doc = sub.clone();
-                        doc.has_audio = true;
-                        doc.sample_rate = sr;
-                        doc.channels = ch;
+                    (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
+                };
+                parsed_input_docs.push(doc.clone());
+            } else if format == "srt" {
+                doc.subtitles = text.to_string();
+            } else if full_in.ends_with(".ffmeta") || text.starts_with(";FFMETADATA1") {
+                let mut cid = 0usize;
+                let mut in_chap = false;
+                for line in text.lines() {
+                    if line.trim() == "[CHAPTER]" {
+                        in_chap = true;
+                    } else if in_chap
+                        && let Some(t) = line.trim().strip_prefix("title=")
+                    {
+                        doc.chapters.push((cid, t.to_string()));
+                        cid += 1;
+                    } else if !in_chap
+                        && let Some(t) = line.trim().strip_prefix("title=")
+                    {
+                        doc.title = t.to_string();
                     }
-                    parsed_input_docs.push(sub);
                 }
-            } else if inp != "-" && inp != "pipe:0" {
-                if fs.is_dir(&full_in) {
-                    return err_out(
-                        &format!(
-                            "ffmpeg: EISDIR: illegal operation on a directory, readFile '{full_in}'\n"
-                        ),
-                        1,
-                    );
+            } else if parsed_input_docs.is_empty() {
+                let parsed = MediaDoc::parse(&b, &full_in);
+                doc = parsed.clone();
+                parsed_input_docs.push(parsed);
+            } else {
+                let sub = MediaDoc::parse(&b, &full_in);
+                if doc.codec_type == "video" && sub.codec_type == "audio" {
+                    doc.has_audio = true;
+                    doc.sample_rate = sub.sample_rate;
+                    doc.channels = sub.channels;
+                } else if doc.codec_type == "audio" && sub.codec_type == "video" {
+                    let sr = doc.sample_rate;
+                    let ch = doc.channels;
+                    doc = sub.clone();
+                    doc.has_audio = true;
+                    doc.sample_rate = sr;
+                    doc.channels = ch;
                 }
-                return err_out(
-                    &format!(
-                        "ffmpeg: ENOENT: no such file or directory, readFile '{full_in}'\n"
-                    ),
-                    1,
-                );
+                parsed_input_docs.push(sub);
             }
         }
     }
@@ -5379,11 +5387,7 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     }
     let from_stdin = media_stdin(name);
     let (raw_bytes, path_str) = if from_stdin {
-        let mut bytes = Vec::new();
-        if let Some(source) = stdin.file && let Err(error) = source.admit_bounded_read() {
-            return ffprobe_err(&error);
-        }
-        if let Err(error) = stdin.append_bytes(&mut bytes) { return ffprobe_err(&error); }
+        let bytes = match read_media_stdin(&mut stdin) { Ok(bytes) => bytes, Err(error) => return ffprobe_err(&error) };
         (bytes, "pipe:0".to_string())
     } else {
         let full = resolve_posix_path(cwd, name);
@@ -13478,6 +13482,24 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffmpeg_pulls_only_from_selected_pipe_operands_in_order() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for script in ["ffmpeg -filters >/dev/null", "ffmpeg -i missing -i - -f null - 2>/dev/null",
+            "ffmpeg -i 'concat:missing|-' -f null - 2>/dev/null", "printf bad >unknown; ffmpeg -i unknown -i - -f null - 2>/dev/null"] {
+            let result = shell.exec_with_stream(&format!("{script}; cat"), [Err("source failed".into())].into_iter()).unwrap();
+            assert_eq!((result.exit_code, result.stderr.as_str()), (1, "cat: source failed\n"), "{script}");
+        }
+        for (script, data, error) in [
+            ("ffmpeg -i /dev/stdin -f null -", "invalid", "ffmpeg: /dev/stdin: Unsupported input format (AST not registered)\n"),
+            ("ffmpeg -i - out.mkv", "invalid", "ffmpeg: -: Unsupported input format (AST not registered)\n"),
+            ("ffmpeg -i pipe:0 -i - -f null -", "WEBVTT\n", "ffmpeg: -: Unsupported input format (AST not registered)\n"),
+        ] {
+            let result = shell.exec_with_stream(&format!("{script}; cat"), [Ok(data.as_bytes().to_vec())].into_iter()).unwrap();
+            assert_eq!((result.stdout.as_str(), result.stderr.as_str()), ("", error), "{script}");
+        }
     }
 
     #[test]

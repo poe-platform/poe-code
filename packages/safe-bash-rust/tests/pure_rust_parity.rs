@@ -177,6 +177,38 @@ fn merged_descriptors_emit_in_command_order() {
 }
 
 #[test]
+fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    for (script, expected, err) in [
+        ("env sh -c 'printf x; printf y >&2; printf z' 2>&1", "xyz", ""),
+        ("timeout 1 sh -c 'printf x; printf y >&2; printf z' >&2", "", "xyz"),
+        ("env sh -c 'printf x; printf y >&3; printf z' 3>&1 2>&1", "xyz", ""),
+        ("env sh -c 'printf x; printf y >&2; printf z' 2>&1 | tr y Y", "xYz", ""),
+        ("env sh -c 'printf x; cat /f >&2; printf z' >/f; cat /f", "xz", "x"),
+        ("env sh -c 'printf x >&2; printf y' 3>&1 1>&2 2>&3", "x", "y"),
+        ("env -v sh -c 'printf x; printf y >&2; printf z' 2>&1", "executing: sh\n   arg[0]= 'sh'\n   arg[1]= '-c'\n   arg[2]= 'printf x; printf y >&2; printf z'\nxyz", ""),
+    ] {
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, err), "{script}");
+    }
+    let stopped = shell.exec("env -v touch /should-not-run 2>&-; echo rc=$?; test ! -e /should-not-run").unwrap();
+    assert_eq!((stopped.exit_code, stopped.stdout.as_str(), stopped.stderr.as_str()), (0, "rc=1\n", ""));
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 1, ..Default::default() });
+    assert!(shell.exec("env -v touch /quota").unwrap_err().contains("maxOutputBytes"));
+    assert!(!fs.exists("/quota"));
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 54, ..Default::default() });
+    for redirects in ["", " 2>&1", " 2>/f"] {
+        assert_eq!(shell.exec(&format!("env -v printf x{redirects}")).unwrap().exit_code, 0);
+    }
+    for limit in [2, 3] {
+        shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, ..Default::default() });
+        let result = shell.exec("env sh -c 'printf x; printf y >&2; printf z' 2>&1");
+        if limit == 3 { assert_eq!(result.unwrap().stdout, "xyz"); }
+        else { assert!(result.unwrap_err().contains("maxOutputBytes")); }
+    }
+}
+
+#[test]
 fn op_run_masks_writes_to_a_saved_copy_of_its_stdout() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     let result = shell.exec(r#"op vault create V >/dev/null

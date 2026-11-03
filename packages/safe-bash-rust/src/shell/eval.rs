@@ -1,6 +1,6 @@
 use crate::backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
 use crate::budget::ExecutionBudget;
-use crate::commands::{CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
+use crate::commands::{ChildIo, CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
     path_targets, resolve_physical_path, try_run_builtin,
@@ -4954,7 +4954,7 @@ impl<'a> EvalState<'a> {
             self.cwd,
             self.env,
             fs_ref,
-            |sub_words, sub_stdin, sub_cwd, sub_env| {
+            |sub_words, sub_stdin, sub_cwd, sub_env, io| {
                 let mut fd_table = inherited_targets.clone();
                 // op masks the child's returned output. Saved copies of a public
                 // stream must go through that boundary too.
@@ -4967,8 +4967,10 @@ impl<'a> EvalState<'a> {
                         }
                     }
                 }
-                fd_table.insert(1, FdTarget::Stdout);
-                fd_table.insert(2, FdTarget::Stderr);
+                if matches!(io, ChildIo::Capture) {
+                    fd_table.insert(1, FdTarget::Stdout);
+                    fd_table.insert(2, FdTarget::Stderr);
+                }
                 let mut sub_eval = EvalState {
                     cwd: sub_cwd,
                     env: sub_env,
@@ -5045,6 +5047,17 @@ impl<'a> EvalState<'a> {
                     *writable = false;
                     unread.borrow_mut().clone_from(sub_stdin);
                 }
+                let mut prefix = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                if let ChildIo::Inherit { stderr_before } = io && !stderr_before.is_empty() {
+                    let target = sub_eval.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
+                    if target == FdTarget::Closed { prefix.exit_code = 1; return prefix; }
+                    sub_eval.write_to_fd_target(&target, stderr_before, 0, &mut prefix);
+                    if prefix.exit_code != 0 { return prefix; }
+                    if let Err(e) = sub_eval.account_forwarded_output(&prefix.stdout, &prefix.stderr, (0, 0)) {
+                        sub_err = Some(e);
+                        return prefix;
+                    }
+                }
                 if let Err(e) = sub_eval.budget.enter_substitution() {
                     sub_err = Some(EvalError::Budget(e));
                     return BuiltinOutcome {
@@ -5080,6 +5093,8 @@ impl<'a> EvalState<'a> {
                 {
                     out.stderr = stripped.to_string();
                 }
+                out.stdout.insert_str(0, &prefix.stdout);
+                out.stderr.insert_str(0, &prefix.stderr);
                 out
             },
         ) {

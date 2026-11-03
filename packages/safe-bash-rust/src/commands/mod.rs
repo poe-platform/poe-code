@@ -786,7 +786,16 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
-        |words, input, cwd, env| exec_sub(words, input, cwd, env))
+        |words, input, cwd, env, io| {
+            let mut out = exec_sub(words, input, cwd, env);
+            if let ChildIo::Inherit { stderr_before } = io { out.stderr.insert_str(0, stderr_before); }
+            out
+        })
+}
+
+pub(crate) enum ChildIo<'a> {
+    Capture,
+    Inherit { stderr_before: &'a str },
 }
 
 pub(crate) fn try_run_command_with_input<F>(
@@ -799,15 +808,19 @@ pub(crate) fn try_run_command_with_input<F>(
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> BuiltinOutcome,
 {
     let CommandInput { text: stdin, file } = input;
     if cmd == "env" {
-        return Some(run_env_command(args, stdin, cwd, env, fs, exec_sub));
+        return Some(run_env_command(args, stdin, cwd, env, fs, |words, input, cwd, env, stderr_before| {
+            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before })
+        }));
     }
 
     if cmd == "timeout" {
-        return Some(run_timeout_command(args, stdin, cwd, env, exec_sub));
+        return Some(run_timeout_command(args, stdin, cwd, env, |words, input, cwd, env| {
+            exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before: "" })
+        }));
     }
 
     if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
@@ -826,12 +839,13 @@ where
         return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 });
     }
     let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
-        exec_sub(words, &mut input.to_owned(), cwd, env)
+        exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
-    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, exec_sub) {
+    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs,
+        |words, input, cwd, env| exec_sub(words, input, cwd, env, ChildIo::Capture)) {
         return Some(res);
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {
@@ -1031,7 +1045,7 @@ fn run_env_command<F>(
     mut exec_sub: F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, &str) -> BuiltinOutcome,
 {
     if args.first().map(|s| s.as_str()) == Some("--help") {
         return BuiltinOutcome {
@@ -1193,11 +1207,7 @@ where
                 debug_stderr.push_str(&format!("   arg[{idx}]= '{op}'\n"));
             }
         }
-        let mut out = exec_sub(&parsed.operands[offset..], stdin, &mut exec_cwd, &mut sub_env);
-        if !debug_stderr.is_empty() {
-            out.stderr = format!("{debug_stderr}{}", out.stderr);
-        }
-        return out;
+        return exec_sub(&parsed.operands[offset..], stdin, &mut exec_cwd, &mut sub_env, &debug_stderr);
     }
 
     let sep = if parsed.null_sep { "\0" } else { "\n" };
@@ -1797,7 +1807,7 @@ mod tests {
             &mut cwd,
             &mut env,
             &vfs,
-            |_, _, _, _| unreachable!(),
+            |_, _, _, _, _| unreachable!(),
         );
         assert_eq!(bad_unset.exit_code, 125);
         assert_eq!(
@@ -1811,7 +1821,7 @@ mod tests {
             &mut cwd,
             &mut env,
             &vfs,
-            |_, _, _, _| unreachable!(),
+            |_, _, _, _, _| unreachable!(),
         );
         assert_eq!(null_cmd.exit_code, 125);
         assert_eq!(
@@ -1825,7 +1835,7 @@ mod tests {
             &mut cwd,
             &mut env,
             &vfs,
-            |_, _, _, _| unreachable!(),
+            |_, _, _, _, _| unreachable!(),
         );
         assert_eq!(enotdir.exit_code, 125);
         assert_eq!(
@@ -1847,9 +1857,9 @@ mod tests {
             &mut cwd,
             &mut env,
             &vfs,
-            |words, _, c, e| BuiltinOutcome {
+            |words, _, c, e, prefix| BuiltinOutcome {
                 stdout: format!("{}:{}:{}\n", words.join(" "), c, e.get("FOO").unwrap()),
-                stderr: String::new(),
+                stderr: prefix.into(),
                 exit_code: 0,
             },
         );

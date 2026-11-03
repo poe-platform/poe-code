@@ -9124,3 +9124,21 @@ test("xmllint compiles XPath paths and predicates before opening XML operands", 
     }
   } finally { rs.dispose(); }
 });
+
+test("XPath resolves query prefixes at the root and matches expanded names at each node", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const xml = '<r xmlns:a="one" xmlns:b="one" xml:lang="en"><a:t id="0" b:k="1">a<![CDATA[b]]>c</a:t><b:t/><q xmlns:a="two" xmlns="one"><a:t/><t/><z:t xmlns:z="one"/></q></r>';
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+    for (const q of ["//a:t", "//b:t", "//t", "count(//@*)", "/r/@*", "//a:t/@a:k",
+      "//a:t[namespace-uri()='one']", "namespace-uri(//@xml:lang)", "//a:q/a:t",
+      "//x:t", "count(//missing/x:t)", "/r/@xmlns", "//a:t/@*[local-name()='k']",
+      "//a:t/@*[last()]/..", "//a:t/text()[2]", "//a:t[count(1)]", "//missing[count(1)]"]) {
+      const cmd = "xmllint --xpath '" + q.replaceAll("'", "'\\''") + "' doc";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], q);
+    }
+  } finally { rs.dispose(); }
+});

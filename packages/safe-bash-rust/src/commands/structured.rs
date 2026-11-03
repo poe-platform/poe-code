@@ -15163,11 +15163,11 @@ fn serialize_xml_pretty(
     out
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 enum XPathItem<'a> {
     Document(&'a [XmlNode]),
-    Node(Vec<&'a XmlElement>),
-    Attr(&'a (String,String)),
+    Node(&'a XmlElement, &'a str),
+    Attr(&'a (String,String), &'a str),
     Text(&'a String),
     Cdata(&'a String),
 }
@@ -15286,47 +15286,82 @@ impl XPathVal<'_> {
     }
 }
 
-struct XPathDocument<'a> {
-    program: &'a [xpath::Query<'a>],
-    roots: &'a [XmlNode],
-    namespaces: BTreeMap<String,String>,
-    // Selections borrow the completed DOM. Equal spellings at different
-    // addresses are distinct nodes, even when their text is empty.
-    order: std::collections::HashMap<usize,usize>,
+struct XPathEntry<'a> {
+    item: XPathItem<'a>,
+    parent: usize,
+    end: usize, // exclusive end of this subtree in document order
 }
 
-impl XPathDocument<'_> {
-    fn index(&mut self, nodes: &[XmlNode]) {
+struct XPathDocument<'a> {
+    program: &'a [xpath::Query<'a>],
+    namespaces: BTreeMap<&'a str, &'a str>,
+    entries: Vec<XPathEntry<'a>>,
+}
+
+impl<'a> XPathDocument<'a> {
+    fn add(&mut self, parent: usize, item: XPathItem<'a>) -> usize {
+        let index = self.entries.len();
+        self.entries.push(XPathEntry { item, parent, end: index + 1 });
+        index
+    }
+
+    fn index(&mut self, parent: usize, nodes: &'a [XmlNode], scope: &mut BTreeMap<&'a str, &'a str>) {
         for node in nodes {
             match node {
                 XmlNode::Element(el) => {
-                    self.order.insert(std::ptr::from_ref(el).addr(),self.order.len());
-                    for attr in &el.attrs {
-                        self.order.insert(std::ptr::from_ref(attr).addr(),self.order.len());
-                        if attr.0 == "xmlns" { self.namespaces.insert(String::new(),attr.1.clone()); }
-                        else if let Some(prefix) = attr.0.strip_prefix("xmlns:") { self.namespaces.insert(prefix.into(),attr.1.clone()); }
+                    let mut changes = Vec::new();
+                    for (name, uri) in &el.attrs {
+                        if let Some(prefix) = xml_binding(name) {
+                            changes.push((prefix, scope.insert(prefix, uri)));
+                        }
                     }
-                    self.index(&el.children);
+                    if parent == 0 { self.namespaces = scope.clone(); }
+                    let prefix = el.tag.split_once(':').map_or("", |(p, _)| p);
+                    let id = self.add(parent, XPathItem::Node(el, scope.get(prefix).copied().unwrap_or("")));
+                    for attr in &el.attrs {
+                        if xml_binding(&attr.0).is_none() {
+                            let uri = attr.0.split_once(':').and_then(|(p, _)| scope.get(p)).copied().unwrap_or("");
+                            self.add(id, XPathItem::Attr(attr, uri));
+                        }
+                    }
+                    self.index(id, &el.children, scope);
+                    self.entries[id].end = self.entries.len();
+                    for (prefix, previous) in changes.into_iter().rev() {
+                        if let Some(uri) = previous { scope.insert(prefix, uri); }
+                        else { scope.remove(prefix); }
+                    }
                 }
-                XmlNode::Text(t) | XmlNode::Cdata(t) => { self.order.insert(std::ptr::from_ref(t).addr(),self.order.len()); }
+                XmlNode::Text(t) => { self.add(parent, XPathItem::Text(t)); }
+                XmlNode::Cdata(t) => { self.add(parent, XPathItem::Cdata(t)); }
                 XmlNode::Markup(_) => {}
             }
         }
     }
-    fn position(&self, item: &XPathItem) -> usize {
-        let address = match item {
-            XPathItem::Document(_) => return 0,
-            XPathItem::Node(chain) => std::ptr::from_ref(*chain.last().unwrap()).addr(),
-            XPathItem::Attr(attr) => std::ptr::from_ref(*attr).addr(),
-            XPathItem::Text(t) | XPathItem::Cdata(t) => std::ptr::from_ref(*t).addr(),
-        };
-        1 + self.order[&address]
+}
+
+fn xml_binding(name: &str) -> Option<&str> {
+    if name == "xmlns" { Some("") } else { name.strip_prefix("xmlns:") }
+}
+
+impl<'a> XPathItem<'a> {
+    fn name(self) -> (&'a str, &'a str) {
+        match self {
+            Self::Node(el, uri) => (&el.tag, uri),
+            Self::Attr(attr, uri) => (&attr.0, uri),
+            _ => ("", ""),
+        }
     }
 }
+
 fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutcome {
-    let mut doc = XPathDocument { program, roots: dom, namespaces: BTreeMap::from([("xml".into(),"http://www.w3.org/XML/1998/namespace".into())]), order: Default::default() };
-    doc.index(dom);
-    let val = eval_xpath_query(&doc,None,1,1,&program[0]);
+    let mut doc = XPathDocument { program, namespaces: BTreeMap::new(), entries: Vec::new() };
+    doc.add(0, XPathItem::Document(dom));
+    doc.index(0, dom, &mut BTreeMap::from([("xml", "http://www.w3.org/XML/1998/namespace")]));
+    doc.entries[0].end = doc.entries.len();
+    let val = match eval_xpath_query(&doc,0,1,1,&program[0]) {
+        Ok(val) => val,
+        Err(message) => return err_out(&format!("xmllint: {message}\n"), 10),
+    };
     match val {
         XPathVal::NodeSet(items) => {
             if items.is_empty() {
@@ -15345,12 +15380,10 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutco
                         text.push('\n');
                         out.push(text);
                     }
-                    XPathItem::Node(chain) => {
-                        if let Some(el) = chain.last() {
-                            out.push(serialize_xml_pretty(el, false, 0, true, xml::Escaping::Unicode));
-                        }
+                    XPathItem::Node(el, _) => {
+                        out.push(serialize_xml_pretty(el, false, 0, true, xml::Escaping::Unicode));
                     }
-                    XPathItem::Attr((k, v)) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
+                    XPathItem::Attr((k, v), _) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
                     XPathItem::Text(t) => out.push(xml::Escaping::Unicode.escape(t,false)),
                     XPathItem::Cdata(t) => out.push(format!("<![CDATA[{t}]]>")),
                 }
@@ -15370,12 +15403,10 @@ fn xpath_item_string_value(item: &XPathItem) -> String {
             buf
         }
         XPathItem::Text(t) | XPathItem::Cdata(t) => (*t).clone(),
-        XPathItem::Attr((_, v)) => v.clone(),
-        XPathItem::Node(chain) => {
+        XPathItem::Attr((_, v), _) => v.clone(),
+        XPathItem::Node(el, _) => {
             let mut buf = String::new();
-            if let Some(el) = chain.last() {
-                visit_xml_text(&el.children, true, &mut |s,_| buf.push_str(s));
-            }
+            visit_xml_text(&el.children, true, &mut |s,_| buf.push_str(s));
             buf
         }
     }
@@ -15387,8 +15418,7 @@ fn compare_xpath_vals(lhs: &XPathVal, op: &str, rhs: &XPathVal) -> bool {
         return items.iter().any(|it| {
             let mut l_str = xpath_item_string_value(it);
             if l_str.is_empty()
-                && let XPathItem::Node(chain) = it
-                && let Some(el) = chain.last()
+                && let XPathItem::Node(el, _) = it
                 && el.attrs.iter().any(|(_, av)| av.contains(&r_str))
             {
                 l_str = r_str.clone();
@@ -15443,27 +15473,27 @@ fn compare_xpath_scalars(a: &str, op: &str, b: &str, force_num: bool) -> bool {
     }
 }
 
-fn eval_xpath_query<'a>(doc: &XPathDocument<'a>, ctx: Option<&[&'a XmlElement]>, pos: usize, last: usize, query: &xpath::Query) -> XPathVal<'a> {
+fn eval_xpath_query<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, query: &xpath::Query) -> Result<XPathVal<'a>, String> {
     match query {
         xpath::Query::Expression(ops) => eval_xpath_expr(doc,ctx,pos,last,ops),
         xpath::Query::Paths(paths) => {
             let mut out = Vec::new();
-            for path in paths { out.extend(eval_xpath_path_ctx(doc,ctx,path)); }
-            out.sort_by_cached_key(|item| doc.position(item));
-            out.dedup_by_key(|item| doc.position(item));
-            XPathVal::NodeSet(out)
+            for path in paths { out.extend(eval_xpath_path_ctx(doc,ctx,path)?); }
+            out.sort_unstable();
+            out.dedup();
+            Ok(XPathVal::NodeSet(out.into_iter().map(|i| doc.entries[i].item).collect()))
         }
     }
 }
 
-fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: Option<&[&'a XmlElement]>, pos: usize, last: usize, ops: &[xpath::Op]) -> XPathVal<'a> {
+fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, ops: &[xpath::Op]) -> Result<XPathVal<'a>, String> {
     use xpath::Op;
     let mut stack: Vec<XPathVal> = Vec::new();
     for op in ops {
         let value = match *op {
             Op::Text(s) => XPathVal::Str(s.into()),
             Op::Number(n) => XPathVal::Num(n),
-            Op::Select(i) => eval_xpath_query(doc,ctx,pos,last,&doc.program[i]),
+            Op::Select(i) => eval_xpath_query(doc,ctx,pos,last,&doc.program[i])?,
             Op::Negate => XPathVal::Num(-stack.pop().unwrap().to_num_val()),
             Op::Binary(op) => {
                 let rhs = stack.pop().unwrap(); let lhs = stack.pop().unwrap();
@@ -15477,21 +15507,21 @@ fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: Option<&[&'a XmlElement]>, 
             }
             Op::Call(name,count) => {
                 let start = stack.len()-count;
-                let result = xpath_call(doc,ctx,pos,last,name,&stack[start..]);
+                let result = xpath_call(doc,ctx,pos,last,name,&stack[start..])?;
                 stack.truncate(start); result
             }
         };
         stack.push(value);
     }
-    stack.pop().unwrap()
+    Ok(stack.pop().unwrap())
 }
 
-fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx_chain: Option<&[&'a XmlElement]>, pos: usize, last: usize, fname: &str, args: &[XPathVal<'a>]) -> XPathVal<'a> {
+fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, fname: &str, args: &[XPathVal<'a>]) -> Result<XPathVal<'a>, String> {
     let context;
     let first = if let Some(arg)=args.first() { arg } else {
-        context=XPathVal::NodeSet(vec![if let Some(chain)=ctx_chain { XPathItem::Node(chain.to_vec()) } else {XPathItem::Document(doc.roots)}]); &context
+        context=XPathVal::NodeSet(vec![doc.entries[ctx].item]); &context
     };
-    match fname {
+    Ok(match fname {
             "position" => XPathVal::Num(pos as f64),
             "last" => XPathVal::Num(last as f64),
             "true" => XPathVal::Bool(true),
@@ -15505,7 +15535,7 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx_chain: Option<&[&'a XmlElement]>,
             "round" => XPathVal::Num((first.to_num_val() + 0.5).floor()),
             "count" => match first {
                 XPathVal::NodeSet(items) => XPathVal::Num(items.len() as f64),
-                _ => XPathVal::Num(0.0),
+                _ => return Err("XPath function requires a node-set".into()),
             },
             "sum" => match first {
                 XPathVal::NodeSet(items) => {
@@ -15515,7 +15545,7 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx_chain: Option<&[&'a XmlElement]>,
                         .sum();
                     XPathVal::Num(total)
                 }
-                other => XPathVal::Num(other.to_num_val()),
+                _ => return Err("XPath function requires a node-set".into()),
             },
             "concat" => {
                 let mut buf = String::new();
@@ -15546,13 +15576,13 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx_chain: Option<&[&'a XmlElement]>,
                 let st: Vec<char> = first.to_string_val().chars().collect();
                 let start_num = args[1].to_num_val();
                 if start_num.is_nan() {
-                    return XPathVal::Str(String::new());
+                    return Ok(XPathVal::Str(String::new()));
                 }
                 let start_1 = (start_num + 0.5).floor() as isize;
                 let end_1 = if args.len() >= 3 {
                     let len_num = args[2].to_num_val();
                     if len_num.is_nan() {
-                        return XPathVal::Str(String::new());
+                        return Ok(XPathVal::Str(String::new()));
                     }
                     start_1.saturating_add((len_num + 0.5).floor() as isize)
                 } else {
@@ -15597,65 +15627,16 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx_chain: Option<&[&'a XmlElement]>,
                 XPathVal::Str(out)
             }
             "name" | "local-name" | "namespace-uri" => {
-                let target_qname = if args.is_empty() {
-                    ctx_chain.and_then(|c| c.last()).map(|e| e.tag.clone())
-                } else {
-                    match first {
-                        XPathVal::NodeSet(items) => items.first().and_then(|it| match it {
-                            XPathItem::Node(c) => c.last().map(|e| e.tag.clone()),
-                            XPathItem::Attr((k, _)) => Some(k.clone()),
-                            XPathItem::Document(_) | XPathItem::Text(_) | XPathItem::Cdata(_) => None,
-                        }),
-                        _ => None,
-                    }
-                };
-                let Some(qname) = target_qname else {
-                    return XPathVal::Str(String::new());
-                };
-                match fname {
-                    "name" => XPathVal::Str(qname),
-                    "local-name" => {
-                        let ln = qname.split_once(':').map(|(_, l)| l).unwrap_or(&qname);
-                        XPathVal::Str(ln.to_string())
-                    }
-                    "namespace-uri" => {
-                        let prefix = qname.split_once(':').map(|(p, _)| p).unwrap_or("");
-                        XPathVal::Str(doc.namespaces.get(prefix).cloned().unwrap_or_default())
-                    }
-                    _ => XPathVal::Str(String::new()),
-                }
+                let XPathVal::NodeSet(items) = first else { return Err("XPath function requires a node-set".into()); };
+                let (name, uri) = items.first().map_or(("", ""), |item| item.name());
+                XPathVal::Str(match fname {
+                    "namespace-uri" => uri,
+                    "local-name" => name.split_once(':').map_or(name, |(_, local)| local),
+                    _ => name,
+                }.into())
             }
         _ => unreachable!("validated XPath function"),
-    }
-}
-
-fn select_xpath_elements<'a>(
-    doc: &XPathDocument<'a>,
-    parent: &mut Vec<&'a XmlElement>,
-    descend: bool,
-    tag: &str,
-    predicates: &[Vec<xpath::Op>],
-    out: &mut Vec<Vec<&'a XmlElement>>,
-) {
-    let children = parent.last().map_or(doc.roots, |el| el.children.as_slice());
-    let mut siblings = Vec::new();
-    for child in children {
-        if let XmlNode::Element(el) = child && (tag == "*" || el.tag == tag) {
-            parent.push(el);
-            siblings.push(parent.clone());
-            parent.pop();
-        }
-    }
-    out.extend(filter_xpath_chains(doc, siblings, predicates));
-    if descend {
-        for child in children {
-            if let XmlNode::Element(el) = child {
-                parent.push(el);
-                select_xpath_elements(doc,parent,true,tag,predicates,out);
-                parent.pop();
-            }
-        }
-    }
+    })
 }
 
 fn visit_xml_text<'a>(nodes: &'a [XmlNode], descend: bool, visit: &mut impl FnMut(&'a String,bool)) {
@@ -15669,102 +15650,84 @@ fn visit_xml_text<'a>(nodes: &'a [XmlNode], descend: bool, visit: &mut impl FnMu
     }
 }
 
-fn push_xpath_text<'a>(nodes: &'a [XmlNode], descend: bool, items: &mut Vec<XPathItem<'a>>) {
-    visit_xml_text(nodes,descend,&mut |s,cdata| items.push(if cdata { XPathItem::Cdata(s) } else { XPathItem::Text(s) }));
-}
-
-fn eval_xpath_path_ctx<'a>(
-    doc: &XPathDocument<'a>,
-    ctx_chain: Option<&[&'a XmlElement]>,
-    path: &xpath::Path,
-) -> Vec<XPathItem<'a>> {
+fn eval_xpath_path_ctx(doc: &XPathDocument, ctx: usize, path: &xpath::Path) -> Result<Vec<usize>, String> {
     use xpath::AxisTest;
-    let mut current = if !path.absolute && let Some(chain) = ctx_chain {
-        vec![XPathItem::Node(chain.to_vec())]
-    } else { vec![XPathItem::Document(doc.roots)] };
+    let mut current = vec![if path.absolute { 0 } else { ctx }];
     for step in &path.steps {
-        let desc = step.descendant;
-        let mut next_items: Vec<XPathItem> = Vec::new();
-        if matches!(step.test,AxisTest::Parent) {
-            for item in &current {
-                if let XPathItem::Node(chain) = item
-                {
-                    next_items.push(if chain.len() == 1 { XPathItem::Document(doc.roots) }
-                        else { XPathItem::Node(chain[..chain.len()-1].to_vec()) });
-                }
-            }
-            current = next_items;
-            continue;
-        }
-        if matches!(step.test,AxisTest::This) {
-            continue;
-        }
-        for item in &current {
-            let mut chain = match item {
-                XPathItem::Document(_) => Vec::new(),
-                XPathItem::Node(chain) => chain.clone(),
-                _ => continue,
-            };
-            if let AxisTest::Attribute(attr_name) = step.test {
-                let mut collect = |el: &'a XmlElement| {
-                    if let Some(attr) = el.attrs.iter().find(|(k,_)| k == attr_name) {
-                        next_items.push(XPathItem::Attr(attr));
+        let name = match step.test { AxisTest::Element(n) | AxisTest::Attribute(n) => n, _ => "" };
+        let (local, uri) = if let Some((prefix, local)) = name.split_once(':') {
+            (local, *doc.namespaces.get(prefix).ok_or_else(|| format!("undefined XPath namespace prefix: {prefix}"))?)
+        } else { (name, "") };
+        let mut next = Vec::new();
+        let mut visited_end = 0;
+        for id in current {
+            let end = if step.descendant { doc.entries[id].end } else { id + 1 };
+            for parent in id.max(visited_end)..end {
+                let entry = &doc.entries[parent];
+                if parent != id && matches!(entry.item, XPathItem::Attr(..)) { continue; }
+                let mut matched = Vec::new();
+                match step.test {
+                    AxisTest::Parent if parent != 0 => matched.push(entry.parent),
+                    AxisTest::Parent => {}
+                    AxisTest::This => matched.push(parent),
+                    _ => {
+                        let mut child = parent + 1;
+                        while child < entry.end {
+                            let node = &doc.entries[child];
+                            if matches!((&step.test, node.item),
+                                (AxisTest::Element(_), XPathItem::Node(..)) |
+                                (AxisTest::Attribute(_), XPathItem::Attr(..)) |
+                                (AxisTest::Text, XPathItem::Text(_) | XPathItem::Cdata(_))) {
+                                let (qname, ns) = node.item.name();
+                                if name == "*" || (ns == uri && qname.split_once(':').map_or(qname, |(_, l)| l) == local) {
+                                    matched.push(child);
+                                }
+                            }
+                            child = node.end;
+                        }
                     }
-                };
-                if let Some(el) = chain.last() { collect(el); }
-                if desc {
-                    let mut children = Vec::new();
-                    select_xpath_elements(doc,&mut chain,true,"*",&[],&mut children);
-                    for child in children { collect(child.last().unwrap()); }
                 }
-            } else if matches!(step.test,AxisTest::Text) {
-                let children = chain.last().map_or(doc.roots,|el| el.children.as_slice());
-                push_xpath_text(children,desc,&mut next_items);
-            } else if let AxisTest::Element(tag) = step.test {
-                let mut children = Vec::new();
-                select_xpath_elements(doc, &mut chain, desc, tag, &step.predicates, &mut children);
-                next_items.extend(children.into_iter().map(XPathItem::Node));
+                next.extend(filter_xpath_items(doc, matched, &step.predicates)?);
             }
+            visited_end = visited_end.max(end);
         }
-        current = next_items;
+        next.sort_unstable();
+        next.dedup();
+        current = next;
     }
-    current
+    Ok(current)
 }
 
-fn filter_xpath_chains<'a>(
-    doc: &XPathDocument<'a>,
-    mut chains: Vec<Vec<&'a XmlElement>>,
-    preds: &[Vec<xpath::Op>],
-) -> Vec<Vec<&'a XmlElement>> {
+fn filter_xpath_items(doc: &XPathDocument, mut items: Vec<usize>, preds: &[Vec<xpath::Op>]) -> Result<Vec<usize>, String> {
     for pred in preds {
         if matches!(pred.as_slice(), [xpath::Op::Call("last",0)]) {
-            chains = chains.pop().into_iter().collect();
+            items = items.pop().into_iter().collect();
             continue;
         }
         if let [xpath::Op::Number(n)] = pred.as_slice() {
             let idx1 = *n as usize;
-            chains = if *n == idx1 as f64 && idx1 >= 1 && idx1 <= chains.len() {
-                vec![chains.swap_remove(idx1 - 1)]
+            items = if *n == idx1 as f64 && idx1 >= 1 && idx1 <= items.len() {
+                vec![items.swap_remove(idx1 - 1)]
             } else {
                 Vec::new()
             };
             continue;
         }
-        let total = chains.len();
+        let total = items.len();
         let mut next = Vec::new();
-        for (idx, chain) in chains.into_iter().enumerate() {
-            let val = eval_xpath_expr(doc, Some(&chain), idx + 1, total, pred);
+        for (idx, item) in items.into_iter().enumerate() {
+            let val = eval_xpath_expr(doc, item, idx + 1, total, pred)?;
             let keep = match val {
                 XPathVal::Num(n) => n == (idx + 1) as f64,
                 other => other.to_bool_val(),
             };
             if keep {
-                next.push(chain);
+                next.push(item);
             }
         }
-        chains = next;
+        items = next;
     }
-    chains
+    Ok(items)
 }
 
 #[derive(Default, Clone)]

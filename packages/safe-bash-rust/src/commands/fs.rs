@@ -2032,6 +2032,7 @@ fn cmd_touch(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut no_create = false;
+    let mut follow = true;
     let mut only_atime = false;
     let mut only_mtime = false;
     let mut has_r = false;
@@ -2136,6 +2137,7 @@ fn cmd_touch(
             continue;
         }
         if a == "--no-dereference" {
+            follow = false;
             i += 1;
             continue;
         }
@@ -2150,7 +2152,8 @@ fn cmd_touch(
                     'c' => no_create = true,
                     'a' => only_atime = true,
                     'm' => only_mtime = true,
-                    'f' | 'h' => {}
+                    'f' => {}
+                    'h' => follow = false,
                     'r' => {
                         has_r = true;
                         let rest: String = chars[j + 1..].iter().collect();
@@ -2223,9 +2226,10 @@ fn cmd_touch(
         return err_out("touch: cannot specify times from more than one source\n", 1);
     }
     if let Some(ref rf) = ref_file {
-        let rp = resolve_posix_path(cwd, rf);
-        match fs.stat(&rp) {
-            Ok(st) => {
+        let rp = absolute_operand(cwd, rf);
+        let syscall = if follow { "stat" } else { "lstat" };
+        match fs.inspect_command_entry(&rp, follow, syscall) {
+            Ok((_, st)) => {
                 if !has_d && !has_t {
                     ref_mtime = Some(st.mtime_ms);
                     ref_atime = Some(st.atime_ms);
@@ -2233,7 +2237,7 @@ fn cmd_touch(
             }
             Err(e) => {
                 return err_out(
-                    &format!("touch: {e}\n"),
+                    &format!("touch: {}\n", copy_error(&e, syscall, &rp)),
                     1,
                 );
             }
@@ -2241,8 +2245,22 @@ fn cmd_touch(
     }
     let touch_a = !only_mtime || only_atime;
     let touch_m = !only_atime || only_mtime;
+    if !follow {
+        for a in &operands {
+            let path = absolute_operand(cwd, a);
+            if fs.inspect_command_entry(&path, false, "lstat").is_ok_and(|(_, st)| st.kind == VfsEntryKind::Symlink) {
+                return err_out(&format!("touch: ENOTSUP: symlink timestamps are unavailable, touch '{path}'\n"), 1);
+            }
+        }
+    }
     for a in &operands {
-        let p = resolve_posix_path(cwd, a);
+        let p = if follow { resolve_posix_path(cwd, a) } else {
+            let path = absolute_operand(cwd, a);
+            match fs.access_path(&path, false) {
+                Ok(p) => p,
+                Err(e) => return err_out(&format!("touch: {}\n", copy_error(&e, "lstat", &path)), 1),
+            }
+        };
         if !fs.exists(&p) {
             if !no_create {
                 let _ = fs.write_file(&p, &[]);
@@ -6912,6 +6930,27 @@ mod tests {
         assert_eq!(fs.read_file("/dst/a~").unwrap(), b"KEEP");
         let st = fs.stat("/dst/a").unwrap();
         assert_eq!((st.mode & 0o777, st.size), (0o200, 0));
+    }
+
+    #[test]
+    fn touch_no_dereference_checks_all_operands_before_changing_timestamps() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/w/file", b"keep").unwrap();
+        fs.set_mtime("/w/file", 12000).unwrap();
+        fs.symlink("file", "/w/link").unwrap();
+        fs.symlink("absent", "/w/dangling").unwrap();
+        let touch = |argv: &[&str]| try_run_fs_command("touch", &args(argv), "", "/w", &BTreeMap::new(), &fs).unwrap();
+        for (flag, path) in [("-h", "link"), ("--no-dereference", "dangling"), ("-ch", "link")] {
+            let r = touch(&[flag, "-t", "200101010000", "before", path, "after"]);
+            assert_eq!(r.exit_code, 1);
+            assert_eq!(r.stderr, format!("touch: ENOTSUP: symlink timestamps are unavailable, touch '/w/{path}'\n"));
+            assert_eq!(fs.stat("/w/file").unwrap().mtime_ms, 12000.0);
+            for name in ["/w/before", "/w/after", "/w/absent"] { assert!(!fs.exists(name)); }
+        }
+        assert_eq!(touch(&["-h", "-r", "link", "copy"]).exit_code, 0);
+        assert_eq!(fs.stat("/w/copy").unwrap().mtime_ms, fs.lstat("/w/link").unwrap().mtime_ms);
+        assert_eq!(touch(&["-h", "-r", "missing", "copy"]).stderr,
+            "touch: ENOENT: no such file or directory, lstat '/w/missing'\n");
     }
 
     #[test]

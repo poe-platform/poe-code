@@ -28162,6 +28162,17 @@ fn mdq_heading(line: &str) -> Option<(usize, &str)> {
     Some((level, if before.is_empty() || before.ends_with([' ', '\t']) { before.trim_end_matches([' ', '\t']) } else { title }))
 }
 
+fn mdq_thematic_break(line: &str) -> bool {
+    let at = line.trim_start_matches(' ');
+    if line.len() - at.len() > 3 { return false; }
+    let Some(marker @ (b'-' | b'*' | b'_')) = at.bytes().next() else { return false; };
+    let mut count = 0;
+    for b in at.bytes() {
+        if b == marker { count += 1; } else if !matches!(b, b' ' | b'\t') { return false; }
+    }
+    count >= 3
+}
+
 fn mdq_setext(line: &str) -> Option<usize> {
     let at = line.trim_start_matches(' ');
     if line.len() - at.len() > 3 { return None; }
@@ -28254,6 +28265,11 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             i += 1;
             continue;
         }
+        if mdq_thematic_break(line) {
+            blocks.push(MdqBlock { kind: "break".into(), ..MdqBlock::default() });
+            i += 1;
+            continue;
+        }
         if trimmed.starts_with('>') {
             let mut q_lines = Vec::new();
             while i < lines.len() && lines[i].trim().starts_with('>') {
@@ -28337,6 +28353,7 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             }
             let nl = lines[i].trim();
             if nl.is_empty()
+                || mdq_thematic_break(lines[i])
                 || mdq_heading(lines[i]).is_some()
                 || mdq_fence(lines[i]).is_some()
                 || nl.starts_with('>')
@@ -28867,7 +28884,11 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
     Vec::new()
 }
 
-fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
+fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut bool) -> String {
+    if b.kind == "break" {
+        return if std::mem::replace(previous_break, true) { String::new() } else { "   -----\n".into() };
+    }
+    *previous_break = false;
     match b.kind.as_str() {
         "document" | "section" => {
             let mut out = String::new();
@@ -28877,11 +28898,13 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
                 out.push('\n');
             }
             for child in &b.children {
+                let rendered = mdq_render_block_md(child, link_format, previous_break);
+                if rendered.is_empty() { continue; }
                 if !out.is_empty() {
                     if !out.ends_with('\n') { out.push('\n'); }
                     if !out.ends_with("\n\n") { out.push('\n'); }
                 }
-                out.push_str(&mdq_render_block_md(child, link_format));
+                out.push_str(&rendered);
             }
             out
         }
@@ -28981,6 +29004,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
 
 fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
     match b.kind.as_str() {
+        "break" => JVal::Object(vec![("thematic_break".into(), JVal::Null)]),
         "document" => JVal::Object(vec![("document".into(), JVal::Array(b.children.iter().map(mdq_block_to_jval).collect()))]),
         "section" => {
             let body: Vec<JVal> = b.children.iter().map(mdq_block_to_jval).collect();
@@ -30005,12 +30029,13 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         };
     }
     let mut stdout = String::new();
+    let mut previous_break = false;
     for (i, b) in current.iter().enumerate() {
         if i != 0 {
             if breaks && !stdout.ends_with('\n') { stdout.push('\n'); }
-            stdout.push_str(if breaks { "\n   -----\n\n" } else { "\n" });
+            stdout.push_str(if breaks && !previous_break { "\n   -----\n\n" } else { "\n" });
         }
-        stdout.push_str(&mdq_render_block_md(b, &link_format));
+        stdout.push_str(&mdq_render_block_md(b, &link_format, &mut previous_break));
     }
     BuiltinOutcome {
         stdout,

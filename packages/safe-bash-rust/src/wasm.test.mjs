@@ -8135,3 +8135,20 @@ test("mdq retains ragged tables and normalizes column widths only for selection"
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq distinguishes thematic breaks from underlined headings and front matter", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["---\nx: y\n...\n", "Title\n---\nfirst\n * * *\n__ _\nlast\n--\n",
+      "---\nyaml\n---\n\n  -\t-  -\n___\n\n# Section\n\nend\n",
+      "---no\nstill text\n\n    ***\n", "# A\n***\n# B\n***\n"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const flags of ["", "-o plain", "-o json", "'P:'", "'#'"]) {
+        const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+      }
+    }
+  } finally { rs.dispose(); }
+});

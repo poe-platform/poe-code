@@ -30152,8 +30152,10 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if output_fmt == "json" {
         let items: Vec<JVal> = current.iter().map(mdq_block_to_jval).collect();
         let root = JVal::Object(vec![("items".to_string(), JVal::Array(items))]);
+        let mut stdout = String::new();
+        JsonFormat { indent: "", strings: JsonStrings::JavaScript, color: false, sort_keys: false }.write(&root, 0, &mut stdout);
         return BuiltinOutcome {
-            stdout: root.to_json_string(true, false, 0),
+            stdout,
             stderr: String::new(),
             exit_code: if matched { 0 } else { 1 },
         };

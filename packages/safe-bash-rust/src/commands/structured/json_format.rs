@@ -3,6 +3,7 @@ use super::JVal;
 #[derive(Clone, Copy)]
 pub(super) enum JsonStrings {
     Plain,
+    JavaScript,
     Jq,
     Ascii,
 }
@@ -21,7 +22,7 @@ impl JsonStrings {
                 '\x08' if !matches!(self, Self::Plain) => out.push_str("\\b"),
                 '\x0c' if !matches!(self, Self::Plain) => out.push_str("\\f"),
                 c if c < ' '
-                    || (c == '\x7f' && !matches!(self, Self::Plain))
+                    || (c == '\x7f' && matches!(self, Self::Jq | Self::Ascii))
                     || (!c.is_ascii() && matches!(self, Self::Ascii)) =>
                 {
                     for unit in c.encode_utf16(&mut [0; 2]) {

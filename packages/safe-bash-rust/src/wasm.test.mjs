@@ -8342,3 +8342,13 @@ test("mdq decodes Markdown character references in text and fence info, once", a
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq serializes controls with JavaScript JSON string escaping", async () => {
+  const paragraph = "a\b\f\u007fz";
+  const rs = new RustWasmBash({ files: { "/input": paragraph } });
+  try {
+    const result = await rs.exec("mdq -o json </input");
+    assert.equal(result.stdout, JSON.stringify({ items: [{ document: [{ paragraph }] }] }));
+    assert.equal(result.exitCode, 0, result.stderr);
+  } finally { rs.dispose(); }
+});

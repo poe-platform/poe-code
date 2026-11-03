@@ -15256,23 +15256,8 @@ impl XPathVal<'_> {
         match self {
             XPathVal::Num(n) => *n,
             XPathVal::Bool(b) => if *b { 1.0 } else { 0.0 },
-            XPathVal::Str(s) => {
-                let t = s.trim();
-                if t.is_empty() {
-                    f64::NAN
-                } else {
-                    t.parse::<f64>().unwrap_or(f64::NAN)
-                }
-            }
-            XPathVal::NodeSet(_) => {
-                let st = self.to_string_val();
-                let t = st.trim();
-                if t.is_empty() {
-                    f64::NAN
-                } else {
-                    t.parse::<f64>().unwrap_or(f64::NAN)
-                }
-            }
+            XPathVal::Str(s) => xpath_number(s),
+            XPathVal::NodeSet(_) => xpath_number(&self.to_string_val()),
         }
     }
 
@@ -15412,64 +15397,43 @@ fn xpath_item_string_value(item: &XPathItem) -> String {
     }
 }
 
-fn compare_xpath_vals(lhs: &XPathVal, op: &str, rhs: &XPathVal) -> bool {
-    if let XPathVal::NodeSet(items) = lhs {
-        let r_str = rhs.to_string_val();
-        return items.iter().any(|it| {
-            let mut l_str = xpath_item_string_value(it);
-            if l_str.is_empty()
-                && let XPathItem::Node(el, _) = it
-                && el.attrs.iter().any(|(_, av)| av.contains(&r_str))
-            {
-                l_str = r_str.clone();
-            }
-            compare_xpath_scalars(&l_str, op, &r_str, matches!(rhs, XPathVal::Num(_)))
-        });
-    }
-    if let XPathVal::NodeSet(items) = rhs {
-        let l_str = lhs.to_string_val();
-        return items.iter().any(|it| {
-            let r_str = xpath_item_string_value(it);
-            compare_xpath_scalars(&l_str, op, &r_str, matches!(lhs, XPathVal::Num(_)))
-        });
-    }
-    compare_xpath_scalars(
-        &lhs.to_string_val(),
-        op,
-        &rhs.to_string_val(),
-        matches!(lhs, XPathVal::Num(_)) || matches!(rhs, XPathVal::Num(_)),
-    )
+fn xpath_space(c: char) -> bool {
+    matches!(c, ' ' | '\t' | '\r' | '\n')
 }
 
-fn compare_xpath_scalars(a: &str, op: &str, b: &str, force_num: bool) -> bool {
-    if force_num || matches!(op, ">" | "<" | ">=" | "<=") {
-        if let (Ok(na), Ok(nb)) = (a.trim().parse::<f64>(), b.trim().parse::<f64>()) {
-            return match op {
-                "=" => na == nb,
-                "!=" => na != nb,
-                ">=" => na >= nb,
-                "<=" => na <= nb,
-                ">" => na > nb,
-                "<" => na < nb,
-                _ => false,
-            };
-        }
+fn xpath_number(text: &str) -> f64 {
+    let text = text.trim_matches(xpath_space);
+    // Rust also accepts a leading plus, infinity and NaN spellings.
+    if text.starts_with('+') || !text.bytes().any(|b| b.is_ascii_digit()) {
+        return f64::NAN;
     }
-    if let (Ok(na), Ok(nb)) = (a.trim().parse::<f64>(), b.trim().parse::<f64>()) {
-        return match op {
-            "=" => na == nb,
-            "!=" => na != nb,
-            _ => false,
-        };
+    text.parse().unwrap_or(f64::NAN)
+}
+
+fn compare_xpath_vals(lhs: &XPathVal, op: &str, rhs: &XPathVal) -> bool {
+    let equality = matches!(op, "=" | "!=");
+    if equality && (matches!(lhs, XPathVal::Bool(_)) || matches!(rhs, XPathVal::Bool(_))) {
+        return (lhs.to_bool_val() == rhs.to_bool_val()) == (op == "=");
     }
+    if let XPathVal::NodeSet(items) = lhs {
+        return items.iter().any(|it| compare_xpath_vals(&XPathVal::Str(xpath_item_string_value(it)), op, rhs));
+    }
+    if let XPathVal::NodeSet(items) = rhs {
+        return items.iter().any(|it| compare_xpath_vals(lhs, op, &XPathVal::Str(xpath_item_string_value(it))));
+    }
+    if equality && let (XPathVal::Str(a), XPathVal::Str(b)) = (lhs, rhs) {
+        return (a == b) == (op == "=");
+    }
+    let a = lhs.to_num_val();
+    let b = rhs.to_num_val();
     match op {
         "=" => a == b,
         "!=" => a != b,
-        ">=" => a >= b,
+        "<" => a < b,
         "<=" => a <= b,
         ">" => a > b,
-        "<" => a < b,
-        _ => false,
+        ">=" => a >= b,
+        _ => unreachable!("validated XPath comparison"),
     }
 }
 
@@ -15541,8 +15505,7 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
                 XPathVal::NodeSet(items) => {
                     let total: f64 = items
                         .iter()
-                        .filter_map(|it| xpath_item_string_value(it).trim().parse::<f64>().ok())
-                        .sum();
+                        .fold(0.0, |sum, it| sum + xpath_number(&xpath_item_string_value(it)));
                     XPathVal::Num(total)
                 }
                 _ => return Err("XPath function requires a node-set".into()),
@@ -15556,7 +15519,7 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
             }
             "normalize-space" => {
                 let st = first.to_string_val();
-                XPathVal::Str(st.split_whitespace().collect::<Vec<_>>().join(" "))
+                XPathVal::Str(st.split(xpath_space).filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" "))
             }
             "string-length" => {
                 let st = first.to_string_val();

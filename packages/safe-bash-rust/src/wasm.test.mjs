@@ -9142,3 +9142,20 @@ test("XPath resolves query prefixes at the root and matches expanded names at ea
     }
   } finally { rs.dispose(); }
 });
+
+test("XPath comparisons preserve operand types and compare every node value", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const xml = '<r><a>1</a><a>3</a><b>2</b><b>3</b><v k="attr"/><n>+2</n></r>';
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+    for (const q of ['boolean(//a = //b)', 'boolean(//v = "attr")', '"01" = "1"', 'true() = //a',
+      'false() = //missing', '"q" >= "attr"', 'true() < //b', 'sum(//missing)', 'sum(//n)',
+      'number("+1")', 'number("Infinity")', 'number(" 1 ")', 'normalize-space(" 1 ")']) {
+      const cmd = "xmllint --xpath '" + q + "' doc";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], q);
+    }
+  } finally { rs.dispose(); }
+});

@@ -5409,9 +5409,6 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
 }
 
 fn cmd_expr(args: &[String]) -> BuiltinOutcome {
-    if args.is_empty() {
-        return err_out("expr: missing operand\n", 2);
-    }
     if args.len() == 1 && args[0] == "--help" {
         return ok_out("Usage: expr EXPRESSION\nTokens: | & < <= = == != >= > + - * / % :\nPrefixes: + TOKEN, length STRING, index STRING CHARS, substr STRING POS LENGTH, match STRING REGEXP\nGroup with ( EXPRESSION ). Each token is a separate argument.\nMatching uses bounded provider-driven BRE.\nProfiles depend on the provider: built-in portable non-NUL ASCII; Node C/POSIX byte or C.UTF-8 scalar.\n");
     }
@@ -5423,12 +5420,12 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
         pos = 1;
     }
     if pos >= args.len() {
-        return err_out("expr: missing operand\n", 2);
+        return err_out("expr: missing operand\nTry 'expr --help' for more information.\n", 2);
     }
     match eval_expr_or(args, &mut pos, true) {
         Ok(res) => {
             if pos != args.len() {
-                return err_out("expr: syntax error\n", 2);
+                return err_out(&format!("expr: syntax error: unexpected argument {}\n", expr_quote(&args[pos])), 2);
             }
             let truthy = is_expr_truthy(&res);
             BuiltinOutcome {
@@ -5439,6 +5436,22 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
         }
         Err((msg, code)) => err_out(&msg, code),
     }
+}
+
+fn expr_quote(value: &str) -> String {
+    use std::fmt::Write;
+    let mut out = String::from("'");
+    for byte in value.bytes() {
+        match byte {
+            b'\'' => out.push_str("\\'"),
+            b'\\' => out.push_str("\\\\"),
+            7..=13 => { out.push('\\'); out.push(b"abtnvfr"[usize::from(byte - 7)] as char); }
+            32..=126 => out.push(char::from(byte)),
+            _ => write!(out, "\\{byte:03o}").unwrap(),
+        }
+    }
+    out.push('\'');
+    out
 }
 
 fn is_expr_truthy(v: &str) -> bool {
@@ -5464,9 +5477,6 @@ fn eval_expr_or(args: &[String], pos: &mut usize, active: bool) -> Result<String
     let mut left = eval_expr_and(args, pos, active)?;
     while *pos < args.len() && args[*pos] == "|" {
         *pos += 1;
-        if *pos >= args.len() {
-            return Err(("expr: syntax error: missing argument after '|'\n".to_string(), 2));
-        }
         let left_truth = active && is_expr_truthy(&left);
         let right = eval_expr_and(args, pos, active && !left_truth)?;
         if active && !left_truth {
@@ -5484,9 +5494,6 @@ fn eval_expr_and(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     let mut left = eval_expr_cmp(args, pos, active)?;
     while *pos < args.len() && args[*pos] == "&" {
         *pos += 1;
-        if *pos >= args.len() {
-            return Err(("expr: syntax error: missing argument after '&'\n".to_string(), 2));
-        }
         let left_truth = active && is_expr_truthy(&left);
         let right = eval_expr_cmp(args, pos, active && left_truth)?;
         if active && !(left_truth && is_expr_truthy(&right)) {
@@ -5501,9 +5508,6 @@ fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     while *pos < args.len() && matches!(args[*pos].as_str(), "=" | "==" | "!=" | "<" | "<=" | ">" | ">=") {
         let op = args[*pos].clone();
         *pos += 1;
-        if *pos >= args.len() {
-            return Err((format!("expr: syntax error: missing argument after '{op}'\n"), 2));
-        }
         let right = eval_expr_add(args, pos, active)?;
         if active {
             let res = if let (Some(a), Some(b)) = (parse_expr_int(&left), parse_expr_int(&right)) {
@@ -5538,9 +5542,6 @@ fn eval_expr_add(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     while *pos < args.len() && matches!(args[*pos].as_str(), "+" | "-") {
         let op = args[*pos].clone();
         *pos += 1;
-        if *pos >= args.len() {
-            return Err((format!("expr: syntax error: missing argument after '{op}'\n"), 2));
-        }
         let right = eval_expr_mul(args, pos, active)?;
         if active {
             let Some(a) = parse_expr_int(&left) else {
@@ -5560,9 +5561,6 @@ fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     while *pos < args.len() && matches!(args[*pos].as_str(), "*" | "/" | "%") {
         let op = args[*pos].clone();
         *pos += 1;
-        if *pos >= args.len() {
-            return Err((format!("expr: syntax error: missing argument after '{op}'\n"), 2));
-        }
         let right = eval_expr_match(args, pos, active)?;
         if active {
             let Some(a) = parse_expr_int(&left) else {
@@ -5612,9 +5610,6 @@ fn eval_expr_match(args: &[String], pos: &mut usize, active: bool) -> Result<Str
     let mut left = eval_expr_primary(args, pos, active)?;
     while *pos < args.len() && args[*pos] == ":" {
         *pos += 1;
-        if *pos >= args.len() {
-            return Err(("expr: syntax error: missing argument after ':'\n".to_string(), 2));
-        }
         let right = eval_expr_primary(args, pos, active)?;
         if active {
             left = eval_expr_colon(&left, &right);
@@ -5625,7 +5620,7 @@ fn eval_expr_match(args: &[String], pos: &mut usize, active: bool) -> Result<Str
 
 fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
     if *pos >= args.len() {
-        return Err(("expr: syntax error\n".to_string(), 2));
+        return Err((format!("expr: syntax error: missing argument after {}\n", expr_quote(&args[*pos - 1])), 2));
     }
     let tok = &args[*pos];
     if tok == ")" {
@@ -5634,8 +5629,11 @@ fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<S
     if tok == "(" {
         *pos += 1;
         let val = eval_expr_or(args, pos, active)?;
-        if *pos >= args.len() || args[*pos] != ")" {
-            return Err(("expr: syntax error\n".to_string(), 2));
+        if *pos == args.len() {
+            return Err((format!("expr: syntax error: expecting ')' after {}\n", expr_quote(&args[*pos - 1])), 2));
+        }
+        if args[*pos] != ")" {
+            return Err((format!("expr: syntax error: expecting ')' instead of {}\n", expr_quote(&args[*pos])), 2));
         }
         *pos += 1;
         return Ok(val);
@@ -21539,6 +21537,22 @@ mod tests {
         assert_eq!(cmd_sleep(&args(&["--", "-0.5"]), &mut env).exit_code, 1);
         assert_eq!(cmd_sleep(&args(&["0.05", "0.15s"]), &mut env).exit_code, 0);
         assert_eq!(cmd_sleep(&args(&["0x1p-4"]), &mut env).exit_code, 0);
+    }
+
+    #[test]
+    fn expr_syntax_errors_identify_the_operand() {
+        for (tokens, detail) in [
+            (&[][..], "missing operand\nTry 'expr --help' for more information."),
+            (&["--"], "missing operand\nTry 'expr --help' for more information."),
+            (&["index", "a"], "syntax error: missing argument after 'a'"),
+            (&["(", "1"], "syntax error: expecting ')' after '1'"),
+            (&["(", "a", "b"], "syntax error: expecting ')' instead of 'b'"),
+            (&["1", "x'é\n"], r"syntax error: unexpected argument 'x\'\303\251\n'"),
+        ] {
+            let result = cmd_expr(&args(tokens));
+            assert_eq!(result.exit_code, 2);
+            assert_eq!(result.stderr, format!("expr: {detail}\n"));
+        }
     }
 
     #[test]

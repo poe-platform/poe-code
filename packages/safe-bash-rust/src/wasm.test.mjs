@@ -9447,3 +9447,23 @@ test("XML byte streams remove the UTF-8 signature before XML normalization", asy
     }
   } finally { rs.dispose(); }
 });
+
+test("oversized here-strings fail during descriptor setup even when nobody reads them", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const limit = { limits: { maxInputBytes: 4 } };
+    const error = "shell: line 1: EFBIG: file too large, read\n";
+    for (const [cmd, code, stdout, stderr] of [
+      ["{ xmllint --noout; cat; } <<<'<r/>'", 1, "", error],
+      ["true <<<1234", 1, "", error],
+      ["wc -c <<<1234", 1, "", error],
+      ["wc -c <<<123", 0, "4\n", ""],
+      ["printf x 2>&1 <<<1234", 1, error, ""],
+      ["exec 3<<<1234; echo $?", 0, "1\n", error],
+      ["printf x 3<<<1234", 0, "x", ""],
+    ]) {
+      const r = await rs.exec(cmd, limit);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

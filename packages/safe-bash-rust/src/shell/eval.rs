@@ -1579,7 +1579,7 @@ impl<'a> EvalState<'a> {
                 self.budget.enter_recursion().map_err(EvalError::Budget)?;
                 let prev_iso = std::mem::replace(&mut self.isolated_inline_input, true);
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    match self.setup_redirects(redirects, stdin) {
+                    match self.setup_redirects(redirects, stdin, true) {
                         Ok(r) => {
                             self.isolated_inline_input = prev_iso;
                             r
@@ -1637,7 +1637,7 @@ impl<'a> EvalState<'a> {
             }
             CommandNode::Group { body, redirects } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -1665,7 +1665,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -1729,7 +1729,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -1846,7 +1846,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2067,7 +2067,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2188,7 +2188,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2294,7 +2294,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2381,7 +2381,7 @@ impl<'a> EvalState<'a> {
                     self.current_line = *line;
                 }
                 let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    self.setup_redirects(redirects, stdin, true)?;
                 if let Some(err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     return Ok(err_out);
@@ -3069,7 +3069,7 @@ impl<'a> EvalState<'a> {
         let mut expanded_words = Vec::new();
         if is_double_bracket {
             let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
-                match self.setup_redirects(&simple.redirects, stdin) {
+                match self.setup_redirects(&simple.redirects, stdin, true) {
                     Ok(r) => r,
                     Err(e) => {
                         if synced_fd0 {
@@ -3284,7 +3284,7 @@ impl<'a> EvalState<'a> {
         // Handle permanent FD changes via `exec` with no command words
         if expanded_words.len() == 1 && expanded_words[0] == "exec" {
             let (saved_fds, saved_in, local_stdin, use_local, _dup_fd, redir_err) =
-                self.setup_redirects(&simple.redirects, stdin)?;
+                self.setup_redirects(&simple.redirects, stdin, true)?;
             if let Some(err_out) = redir_err {
                 self.restore_redirects(saved_fds, saved_in);
                 return Ok(err_out);
@@ -3408,9 +3408,14 @@ impl<'a> EvalState<'a> {
             for binding in temp_saved.iter_mut().rev() { binding.exchange(self.env); }
         }
 
+        // Single builtin here-strings may use a direct string operation rather than
+        // opening a byte source. Status builtins still prepare the redirect.
+        let prepare_here_string = simple.redirects.len() != 1 || expanded_words.first()
+            .is_none_or(|name| !Self::is_shell_builtin_name(name) || self.functions.contains_key(name)
+                || matches!(name.as_str(), ":" | "true" | "false"));
         let prev_iso = std::mem::replace(&mut self.isolated_inline_input, is_external_inline);
         let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-            match self.setup_redirects(&simple.redirects, stdin) {
+            match self.setup_redirects(&simple.redirects, stdin, prepare_here_string) {
                 Ok(res) => {
                     self.isolated_inline_input = prev_iso;
                     self.redirect_assignments.clear();
@@ -9362,6 +9367,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         redirects: &[Redirect],
         default_stdin: &str,
+        prepare_here_string: bool,
     ) -> Result<
         (
             SavedFds,
@@ -9485,10 +9491,35 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, content);
                     }
                 }
-                RedirectKind::HereString(fd) => {
-                    let val = match self.expand_word_to_string(&r.target) {
-                        Ok(v) => v,
+                RedirectKind::HereString(fd) | RedirectKind::HereDoc { fd, .. } => {
+                    let expansion = match &r.kind {
+                        RedirectKind::HereDoc { quoted: true, .. } => Ok(r.target.clone()),
+                        RedirectKind::HereDoc { doc_line, .. } => self.expand_heredoc_body(&r.target, (*doc_line + self.callback_line_offset).max(1)),
+                        _ => self.expand_word_to_string(&r.target).map(|mut value| { value.push('\n'); value }),
+                    };
+                    let content = match expansion {
+                        Ok(value) => value,
                         Err(EvalError::Syntax(msg)) => {
+                            if let Some(diag) = msg.strip_prefix("__heredoc_diag__") {
+                                let mut err_out = BuiltinOutcome {
+                                    stdout: std::mem::take(&mut self.pending_stdout),
+                                    stderr: format!(
+                                        "{}{diag}",
+                                        std::mem::take(&mut self.pending_stderr)
+                                    ),
+                                    exit_code: 1,
+                                };
+                                self.route_outcome(&mut err_out);
+                                self.last_exit = 1;
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
                             let is_param_err = msg.starts_with("__param_err__");
                             let is_nounset = msg.starts_with("__nounset__");
                             let clean = msg
@@ -9530,108 +9561,7 @@ impl<'a> EvalState<'a> {
                         }
                         Err(e) => return Err(e),
                     };
-                    let content = format!("{val}\n");
-                    if self.budget.limits.max_expansion_bytes > 0
-                        && stream_string_to_bytes(&content).len()
-                            > self.budget.limits.max_expansion_bytes
-                    {
-                        return Err(EvalError::Budget(format!(
-                            "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
-                            self.budget.limits.max_expansion_bytes
-                        )));
-                    }
-                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
-                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
-                    self.fd_table.remove(fd);
-                    self.in_fd_aliases.remove(fd);
-                    if *fd == 0 {
-                        local_stdin = content;
-                        use_local = true;
-                        dup_fd = None;
-                    } else {
-                        if !saved_in.iter().any(|(f, _)| f == fd) {
-                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
-                        }
-                        self.in_fds.insert(*fd, Rc::new(content.into()));
-                    }
-                }
-                RedirectKind::HereDoc {
-                    fd,
-                    quoted,
-                    doc_line,
-                    ..
-                } => {
-                    let eff_doc_line = (*doc_line + self.callback_line_offset).max(1);
-                    let content = if *quoted {
-                        r.target.clone()
-                    } else {
-                        match self.expand_heredoc_body(&r.target, eff_doc_line) {
-                            Ok(v) => v,
-                            Err(EvalError::Syntax(msg)) => {
-                                if let Some(diag) = msg.strip_prefix("__heredoc_diag__") {
-                                    let mut err_out = BuiltinOutcome {
-                                        stdout: std::mem::take(&mut self.pending_stdout),
-                                        stderr: format!(
-                                            "{}{diag}",
-                                            std::mem::take(&mut self.pending_stderr)
-                                        ),
-                                        exit_code: 1,
-                                    };
-                                    self.route_outcome(&mut err_out);
-                                    self.last_exit = 1;
-                                    return Ok((
-                                        (saved_fd_table, saved_aliases),
-                                        saved_in,
-                                        local_stdin,
-                                        use_local,
-                                        dup_fd,
-                                        Some(err_out),
-                                    ));
-                                }
-                                let is_param_err = msg.starts_with("__param_err__");
-                                let is_nounset = msg.starts_with("__nounset__");
-                                let clean = msg
-                                    .strip_prefix("__param_err__")
-                                    .or_else(|| msg.strip_prefix("__nounset__"))
-                                    .unwrap_or(&msg);
-                                let prefix = self.diag_prefix();
-                                let in_subshell = self
-                                    .env
-                                    .get("BASH_SUBSHELL")
-                                    .and_then(|v| v.parse::<u32>().ok())
-                                    .unwrap_or(0)
-                                    > 0;
-                                let code = if is_param_err && !in_subshell { 127 } else { 1 };
-                                let mut err_out = BuiltinOutcome {
-                                    stdout: std::mem::take(&mut self.pending_stdout),
-                                    stderr: format!(
-                                        "{}{prefix}{clean}\n",
-                                        std::mem::take(&mut self.pending_stderr)
-                                    ),
-                                    exit_code: code,
-                                };
-                                self.route_outcome(&mut err_out);
-                                self.last_exit = code;
-                                if is_nounset
-                                    || (is_param_err && !self.isolated_inline_input)
-                                    || (self.errexit && !self.in_condition)
-                                {
-                                    self.exit_requested = Some(code);
-                                }
-                                return Ok((
-                                    (saved_fd_table, saved_aliases),
-     saved_in,
-                                    local_stdin,
-                                    use_local,
-                                    dup_fd,
-                                    Some(err_out),
-                                ));
-                            }
-                            Err(e) => return Err(e),
-                        }
-                    };
-                    let size = crate::vfs::stream_byte_len(&content);
+                    let size = stream_byte_len(&content);
                     if self.budget.limits.max_expansion_bytes > 0 && size > self.budget.limits.max_expansion_bytes
                     {
                         return Err(EvalError::Budget(format!(
@@ -9639,7 +9569,8 @@ impl<'a> EvalState<'a> {
                             self.budget.limits.max_expansion_bytes
                         )));
                     }
-                    if size > self.budget.limits.max_input_bytes {
+                    if size > self.budget.limits.max_input_bytes
+                        && (prepare_here_string || matches!(r.kind, RedirectKind::HereDoc { .. })) {
                         let mut error = BuiltinOutcome {
                             stdout: std::mem::take(&mut self.pending_stdout),
                             stderr: format!("{}{}EFBIG: file too large, read\n", std::mem::take(&mut self.pending_stderr), self.diag_prefix()),
@@ -15072,7 +15003,7 @@ mod tests {
         let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &custom, false);
         let redirect = Redirect { kind: RedirectKind::Out(1), target: "/log".into() };
         let (_, _, local_input, redirected, _, error) =
-            state.setup_redirects(&[redirect], "still on descriptor zero").unwrap();
+            state.setup_redirects(&[redirect], "still on descriptor zero", true).unwrap();
         assert!(error.is_none() && !redirected && local_input.is_empty());
     }
 

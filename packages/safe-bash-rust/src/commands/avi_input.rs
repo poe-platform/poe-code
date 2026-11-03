@@ -82,21 +82,32 @@ fn start_code(bytes: &[u8]) -> Option<(usize, usize)> {
         pos + 3,
     ))
 }
-fn video_packet(mut bytes: &[u8]) -> (u64, bool) {
-    let original = bytes.len() as u64;
-    if bytes.len() >= 4 && (bytes.starts_with(&[0, 0, 1]) || bytes.starts_with(&[0, 0, 0, 1])) {
-        let mut start = start_code(bytes);
-        let (mut size, mut key) = (0, false);
-        while let Some((_, off)) = start {
+pub(super) fn annex_b(bytes: &[u8]) -> bool {
+    bytes.len() >= 4 && (bytes.starts_with(&[0, 0, 1]) || bytes.starts_with(&[0, 0, 0, 1]))
+}
+pub(super) fn nals(mut bytes: &[u8]) -> impl Iterator<Item = &[u8]> {
+    let mut start = start_code(bytes);
+    std::iter::from_fn(move || {
+        loop {
+            let (_, off) = start?;
             bytes = &bytes[off..];
             start = start_code(bytes);
             let end = start.map_or(bytes.len(), |(pos, _)| pos);
-            if let Some(&h) = bytes[..end].first() {
-                let kind = h & 31;
-                if !matches!(kind, 7..=9) {
-                    size += 4 + end as u64;
-                    key |= kind == 5;
-                }
+            if end != 0 {
+                return Some(&bytes[..end]);
+            }
+        }
+    })
+}
+fn video_packet(mut bytes: &[u8]) -> (u64, bool) {
+    let original = bytes.len() as u64;
+    if annex_b(bytes) {
+        let (mut size, mut key) = (0, false);
+        for nal in nals(bytes) {
+            let kind = nal[0] & 31;
+            if !matches!(kind, 7..=9) {
+                size += 4 + nal.len() as u64;
+                key |= kind == 5;
             }
         }
         return (if size == 0 { original } else { size }, key);
@@ -117,6 +128,8 @@ fn video_packet(mut bytes: &[u8]) -> (u64, bool) {
 enum Header<'a> {
     Video {
         handler: &'a [u8],
+        extra: &'a [u8],
+        fps: f64,
         width: Option<i64>,
         height: Option<u32>,
         tick: u32,
@@ -129,16 +142,25 @@ enum Header<'a> {
     },
     Other,
 }
-struct Track {
-    info: StreamInfo,
-    packets: Vec<Packet>,
+pub(super) struct Track<'a> {
+    pub info: StreamInfo,
+    pub packets: Vec<Packet>,
+    pub bodies: Vec<&'a [u8]>,
+    pub extra: &'a [u8],
+    pub fps: f64,
     tick: u32,
     mpeg4: bool,
     ordinal: usize,
     chunks: usize,
 }
-impl Track {
-    fn add(&mut self, c: Chunk<'_>, records: bool, budget: &mut usize) -> Result<(), &'static str> {
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum Read {
+    Summary,
+    Packets,
+    Payloads,
+}
+impl<'a> Track<'a> {
+    fn add(&mut self, c: Chunk<'a>, mode: Read, budget: &mut usize) -> Result<(), &'static str> {
         let video = matches!(self.info.codec, Codec::Video { .. });
         let mut key = self.chunks == 0 || matches!(&c.tag[2..], b"wb" | b"db");
         self.chunks += 1;
@@ -167,7 +189,13 @@ impl Track {
                 size -= n;
             }
         }
-        if records {
+        if mode == Read::Payloads {
+            *budget = budget
+                .checked_sub(size_of::<&[u8]>())
+                .ok_or("sample index exceeds memory budget")?;
+            self.bodies.push(c.body);
+        }
+        if mode != Read::Summary {
             *budget = budget
                 .checked_sub(size_of::<Packet>())
                 .ok_or("sample index exceeds memory budget")?;
@@ -189,15 +217,18 @@ impl Track {
     }
 }
 
-pub(super) fn report(
-    bytes: &[u8],
-    name: &str,
-    limit: usize,
-    opts: ProbeOptions<'_>,
-) -> Result<String, &'static str> {
+pub(super) fn check_header(bytes: &[u8]) -> Result<(), &'static str> {
     if !bytes.starts_with(b"RIFF") || bytes.get(8..12) != Some(b"AVI ") {
         return Err("Invalid AVI file: missing RIFF AVI header");
     }
+    Ok(())
+}
+pub(super) fn parse(
+    bytes: &[u8],
+    limit: usize,
+    mode: Read,
+) -> Result<Vec<Option<Track<'_>>>, &'static str> {
+    check_header(bytes)?;
     let data = &bytes[12..];
     let mut chunks = Chunks::new(data, limit);
     let (mut width, mut height) = (320i64, 240u32);
@@ -224,6 +255,8 @@ pub(super) fn report(
                 streams.push(match &c.rest[..4] {
                     b"vids" => Header::Video {
                         handler: &c.rest[4..8],
+                        extra: &[],
+                        fps,
                         width: None,
                         height: None,
                         tick: (90000. / fps.max(1.)).round().max(1.) as u32,
@@ -240,10 +273,14 @@ pub(super) fn report(
             b"strf" => match streams.last_mut() {
                 Some(Header::Video {
                     handler,
+                    extra,
                     width: w,
                     height: h,
                     ..
                 }) if c.size >= 40 => {
+                    if c.size > 40 {
+                        *extra = c.body.get(40..).unwrap_or_default();
+                    }
                     let sw = word(c.rest, 4)? as i32;
                     let sh = word(c.rest, 8)? as i32;
                     *w = Some(if sw == 0 { width } else { sw.into() });
@@ -284,12 +321,17 @@ pub(super) fn report(
         .into_iter()
         .enumerate()
         .map(|(i, h)| {
+            let (extra, fps) = match &h {
+                Header::Video { extra, fps, .. } => (*extra, *fps),
+                _ => (&[][..], 0.),
+            };
             let (codec, scale, tick, kind, mpeg4) = match h {
                 Header::Video {
                     handler,
                     width: w,
                     height: h,
                     tick,
+                    ..
                 } => {
                     let mjpeg = handler.eq_ignore_ascii_case(b"MJPG")
                         || handler.eq_ignore_ascii_case(b"JPEG");
@@ -348,6 +390,9 @@ pub(super) fn report(
                     has_cts: false,
                 },
                 packets: vec![],
+                bodies: vec![],
+                extra,
+                fps,
                 tick,
                 mpeg4,
                 ordinal,
@@ -355,16 +400,34 @@ pub(super) fn report(
             })
         })
         .collect();
-    let records = opts.show.contains("packet") || opts.show.contains("frame");
     let mut chunks = Chunks::new(data, limit);
     while let Some(c) = chunks.next()? {
         if let Some(t) = stream_index(c.tag)
             .and_then(|i| tracks.get_mut(i))
             .and_then(Option::as_mut)
         {
-            t.add(c, records, &mut budget)?;
+            t.add(c, mode, &mut budget)?;
         }
     }
+    Ok(tracks)
+}
+
+pub(super) fn report(
+    bytes: &[u8],
+    name: &str,
+    limit: usize,
+    opts: ProbeOptions<'_>,
+) -> Result<String, &'static str> {
+    let records = opts.show.contains("packet") || opts.show.contains("frame");
+    let tracks = parse(
+        bytes,
+        limit,
+        if records {
+            Read::Packets
+        } else {
+            Read::Summary
+        },
+    )?;
     let tracks = tracks.iter().flatten();
     let (counts, select) = (opts.counts, opts.select);
     media_probe::report(opts, |section| match section {

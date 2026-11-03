@@ -392,6 +392,7 @@ fn audio_config(asc: &[u8]) -> (u8, u32, u8) {
 enum Original<'a> {
     #[default]
     None,
+    Avi,
     Flv(&'a [u8]),
     Matroska(&'a mkv_input::Track<'a>),
 }
@@ -404,7 +405,7 @@ impl<'a> Original<'a> {
     }
     fn timestamps(&self, video: bool) -> Box<dyn Iterator<Item = u64> + '_> {
         match self {
-            Self::None => Box::new(std::iter::empty()),
+            Self::None | Self::Avi => Box::new(std::iter::empty()),
             Self::Flv(tags) => Box::new(flv_input::timestamps(tags, video).map(u64::from)),
             Self::Matroska(t) => Box::new(t.blocks.iter().map(|b| b.dts as u64)),
         }

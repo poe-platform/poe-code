@@ -263,3 +263,165 @@ pub(super) fn write(tracks: &[Track<'_>], seconds: f64, audio: &Options) -> Resu
     })?;
     Ok(out.bytes)
 }
+
+pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
+    use super::super::super::{avi_input, media_probe::Codec};
+    use super::{
+        MATRIX, Sample, VideoCodec, audio_sample_entry, audio_specific_config, video_entry,
+    };
+    use std::borrow::Cow;
+
+    let mut budget = limit;
+    let mut tracks = Vec::new();
+    for t in avi_input::parse(bytes, limit, avi_input::Read::Payloads)?
+        .into_iter()
+        .flatten()
+    {
+        budget = budget
+            .checked_sub(
+                t.info
+                    .count
+                    .saturating_mul(size_of::<Sample>())
+                    .saturating_add(size_of::<Track>()),
+            )
+            .ok_or("sample index exceeds memory budget")?;
+        let mut samples = Vec::with_capacity(t.info.count);
+        // A packet replaces only the types of parameter sets it contains.
+        let mut sets = [t.extra, t.extra];
+        let direct = t.extra.len() >= 7 && t.extra[0] == 1;
+        let video = matches!(t.info.codec, Codec::Video { .. });
+        for (p, body) in t.packets.iter().zip(t.bodies) {
+            let data = if video && avi_input::annex_b(body) {
+                let mut payload = Vec::new();
+                for nal in avi_input::nals(body) {
+                    match nal[0] & 31 {
+                        kind @ (7 | 8) => {
+                            sets[usize::from(kind - 7)] = body;
+                            continue;
+                        }
+                        9 => continue,
+                        _ => (),
+                    }
+                    budget = budget
+                        .checked_sub(4 + nal.len())
+                        .ok_or("output byte limit exceeded")?;
+                    payload.extend_from_slice(&(nal.len() as u32).to_be_bytes());
+                    payload.extend_from_slice(nal);
+                }
+                if payload.is_empty() {
+                    Cow::Borrowed(body)
+                } else {
+                    Cow::Owned(payload)
+                }
+            } else {
+                Cow::Borrowed(&body[body.len() - p.size as usize..])
+            };
+            samples.push(Sample {
+                data,
+                duration: p.ticks as u32,
+                cts: 0,
+                key: p.key,
+                description: 1,
+            });
+        }
+        let (kind, handler, name, width, height, stsd) = match t.info.codec {
+            Codec::Video { tag, width, height } => {
+                let w = width.unwrap_or(320) as u32;
+                let h = height.unwrap_or(240) as u32;
+                let mut config = Vec::new();
+                let codec = if tag != b"avc1" {
+                    VideoCodec::Still(tag)
+                } else if direct {
+                    VideoCodec::Config(t.extra)
+                } else if let Some(sps) = avi_input::nals(sets[0]).find(|n| n[0] & 31 == 7) {
+                    config.extend_from_slice(&[
+                        1,
+                        sps.get(1).copied().unwrap_or(66),
+                        sps.get(2).copied().unwrap_or(192),
+                        sps.get(3).copied().unwrap_or(31),
+                        255,
+                    ]);
+                    for (i, source) in sets.into_iter().enumerate() {
+                        let at = config.len();
+                        config.push(0);
+                        for nal in
+                            avi_input::nals(source).filter(|n| usize::from(n[0] & 31) == 7 + i)
+                        {
+                            budget = budget
+                                .checked_sub(2 + nal.len())
+                                .ok_or("output byte limit exceeded")?;
+                            config[at] = config[at].wrapping_add(1);
+                            config.extend_from_slice(&(nal.len() as u16).to_be_bytes());
+                            config.extend_from_slice(nal);
+                        }
+                        if i == 0 {
+                            config[at] = 0xe0 | (config[at] & 31);
+                        }
+                    }
+                    VideoCodec::Config(&config)
+                } else {
+                    VideoCodec::Avc(t.fps.round().max(1.) as u32)
+                };
+                (
+                    "video",
+                    *b"vide",
+                    b"VideoHandler".as_slice(),
+                    w,
+                    h,
+                    video_entry(w as usize, h as usize, codec)?,
+                )
+            }
+            Codec::Audio {
+                tag,
+                rate,
+                channels,
+                bits,
+                ..
+            } => (
+                "audio",
+                *b"soun",
+                b"SoundHandler".as_slice(),
+                0,
+                0,
+                audio_sample_entry(
+                    tag,
+                    rate,
+                    channels,
+                    bits,
+                    &audio_specific_config(rate, channels, 2),
+                ),
+            ),
+            Codec::Subtitle { .. } => unreachable!(),
+        };
+        let ticks = t.info.ticks;
+        tracks.push(Track {
+            id: t.info.id as u32,
+            scale: t.info.scale,
+            media_ticks: ticks as u32,
+            movie_ticks: (ticks / f64::from(t.info.scale) * 1000.).round() as u32,
+            samples,
+            first_dts: 0,
+            fragment_sample_size: None,
+            stsd: stsd.into(),
+            edits: vec![],
+            kind,
+            handler,
+            name,
+            width,
+            height,
+            volume: if video { 0 } else { 256 },
+            enabled: true,
+            language: 0x55c4,
+            matrix: MATRIX,
+        });
+    }
+    super::write(
+        &tracks,
+        1000,
+        b"isom\0\0\x02\0isomiso2avc1mp41",
+        &Default::default(),
+        &[],
+        false,
+        limit,
+    )
+}

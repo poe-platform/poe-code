@@ -1788,7 +1788,7 @@ fn materialize<'a>(
             || seek.loops > 0
                 && matches!(
                     format,
-                    "mp4" | "mov" | "flv" | "mkv" | "webm" | "aac" | "image2" | "lavfi"
+                    "mp4" | "mov" | "avi" | "flv" | "mkv" | "webm" | "aac" | "image2" | "lavfi"
                 ))
             && !audio
             && !matches!(format, "wav" | "y4m" | "gif")
@@ -1805,6 +1805,8 @@ fn materialize<'a>(
             let doc = super::mkv_input::parse(input, limit)?;
             bytes = Cow::Owned(mkv::as_mp4(&doc, limit)?);
             matroska = Some(doc);
+        } else if format == "avi" {
+            bytes = Cow::Owned(avi::as_mp4(input, opts.limit.saturating_sub(admitted))?);
         } else if format == "flv" {
             bytes = Cow::Owned(flv_as_mp4(input, opts.limit.saturating_sub(admitted))?);
         } else if sliced && let MediaInput::Images(seq) = source {
@@ -1994,6 +1996,15 @@ fn read_sources<'a>(
             let tags = super::flv_input::tag_bytes(bytes)?;
             for track in &mut tracks {
                 track.original = Original::Flv(tags);
+            }
+        }
+        if matches!(source, MediaInput::Bytes("avi", _))
+            && seek.start.is_none() && seek.end().is_none() && seek.loops == 0
+        {
+            for (t, (_, trak)) in tracks.iter_mut().zip(atoms(moov).filter(|(k, _)| *k == b"trak")) {
+                t.original = Original::Avi;
+                // Empty video chunks extend a sample but do not increase AVI's track duration.
+                t.duration = super::header_time(super::child(super::child(trak, b"mdia"), b"mdhd"), t.scale).1;
             }
         }
         if let Some(doc) = &data.matroska {
@@ -2537,7 +2548,7 @@ pub(in super::super) fn remux(
                 Streams::Aac { rate, channels, .. } => (*rate, usize::from(*channels), 1.),
                 Streams::Mp4(t) => {
                     let (track, trak) = &t[i];
-                    if let Some(t) = track.original.matroska()
+                    if matches!(track.original, Original::Avi | Original::Matroska(_))
                         && track.tag == b"sowt"
                         && !audio.clear_samples
                     {
@@ -2546,7 +2557,7 @@ pub(in super::super) fn remux(
                             let packets = || cut_packets(track, bytes.len(), range).3;
                             let size = packets().map(|s| s.size as usize).sum();
                             let mut out = ffmpeg_wave::pcm_header(
-                                t.sample_rate.unwrap_or(track.scale),
+                                track.original.matroska().and_then(|t| t.sample_rate).unwrap_or(track.scale),
                                 usize::from(track.channels()),
                                 size,
                                 opts.limit,

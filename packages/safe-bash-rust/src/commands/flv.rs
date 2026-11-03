@@ -87,8 +87,8 @@ pub(super) fn write(
         };
         let channels = options.channels.unwrap_or(channels);
         let fallback = audio_specific_config(options.rate.unwrap_or(rate), channels, 2);
-        // An FLV input describes its audio rate and channel count but has no ES descriptor.
-        let config = if !matches!(source_tags[1], super::Original::Flv(_)) {
+        // AVI and FLV input tracks have channel and rate fields but no ES descriptor.
+        let config = if !matches!(source_tags[1], super::Original::Flv(_) | super::Original::Avi) {
             decoder_config(child(entry.get(offset..).unwrap_or_default(), b"esds"))
                 .1
                 .unwrap_or(&fallback)

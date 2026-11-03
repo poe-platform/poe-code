@@ -4540,7 +4540,7 @@ impl MediaInput {
             Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
             Self::Bytes("image2",b)=>png_pixels::still_format(b).is_some(),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
+            Self::Images(_) | Self::Bytes("avi"|"mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4801,6 +4801,9 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
             None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
         })?;
+        if id == "avi" {
+            avi_input::check_header(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
+        }
         if id == "flv" {
             mp4::flv_input::tag_bytes(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
         }
@@ -4904,7 +4907,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             let limit=fs.max_input_bytes();
             let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
                 let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                if inputs.len()>1 || matches!(format,Some("avi"|"wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                     return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
                 let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13540,6 +13543,21 @@ mod media_unit_tests {
                 assert_eq!(r.stderr, "ffmpeg: H.264 packet decode failed (-1094995529)\n");
             }
         }
+    }
+
+    #[test]
+    fn ffmpeg_converts_avi_input_packets_and_rejects_invalid_headers() {
+        let fs = MemoryVfs::new();
+        let args = media_args(&["-y", "-i", "clip.avi", "-c", "copy", "out.mp4"]);
+        fs.write_file("/clip.avi", include_bytes!("../../tests/fixtures/av.avi")).unwrap();
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())),
+            "9c4938cd04f8dd1919fa292343182383adae702683cc7917b90e1f01c956f323");
+        fs.write_file("/clip.avi", b"RIFF").unwrap();
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 1);
+        assert_eq!(r.stderr, "ffmpeg: Invalid AVI file: missing RIFF AVI header\n");
     }
 
     #[test]

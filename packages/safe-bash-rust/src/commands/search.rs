@@ -2,7 +2,7 @@ mod expr_bre;
 mod mdq_classes;
 mod mdq_class;
 pub(super) use expr_bre::expr_match;
-use super::{ChildIo, ChildRun, CommandInput};
+use super::{ChildIo, ChildRun, CommandInput, CommandWriter};
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
@@ -22,10 +22,11 @@ pub fn try_run_search_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_search_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
+    try_run_search_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write,
         |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn try_run_search_command_with_input<F>(
     cmd: &str,
     args: &[String],
@@ -33,6 +34,7 @@ pub(super) fn try_run_search_command_with_input<F>(
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut CommandWriter<'_>,
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
@@ -52,7 +54,7 @@ where
             cmd == "fgrep",
         )),
         "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
-        "find" => Some(cmd_find(args, cwd, env, fs, &mut |words, cwd, env| capture(words, stdin, cwd, env))),
+        "find" => Some(cmd_find(args, cwd, env, fs, write, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env, ChildIo::Inherit { stderr_before: "" }))),
         "fd" => Some(cmd_fd(args, cwd, env, fs, &mut capture)),
         "xargs" => Some(cmd_xargs(args, input, cwd, env, fs, &mut exec_sub)),
         "which" => Some(cmd_which(args, cwd, env, fs)),
@@ -5157,32 +5159,56 @@ impl<'a> FindParseContext<'a> {
 
 struct FindEvalState<'a, F>
 where
-    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> ChildRun,
 {
     cwd: &'a mut String,
     env: &'a mut BTreeMap<String, String>,
     fs: &'a dyn SafeBashFs,
     exec_sub: &'a mut F,
     exec_batches: Vec<FindExecBatch>,
-    out: &'a mut String,
-    err: &'a mut String,
-    exit_code: &'a mut i32,
-    quit: &'a mut bool,
+    write: &'a mut CommandWriter<'a>,
+    result: BuiltinOutcome,
+    quit: bool,
+    stopped: bool,
 }
 
 impl<F> FindEvalState<'_, F>
 where
-    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> ChildRun,
 {
+    fn emit(&mut self, fd: u32, data: &str) {
+        if !(self.write)(fd, data, &mut self.result) {
+            self.quit = true;
+            self.stopped = true;
+        }
+    }
+
+    fn collect_child(&mut self, run: ChildRun) -> i32 {
+        let out = run.unwrap_or_else(|err| {
+            self.quit = true;
+            self.stopped = true;
+            self.result.exit_code = err.exit_code;
+            err
+        });
+        self.result.stdout.push_str(&out.stdout);
+        self.result.stderr.push_str(&out.stderr);
+        out.exit_code
+    }
+
+    fn print_path(&mut self, path: &str, null: bool) {
+        let mut line = String::new();
+        if null { line.push_str(path); line.push('\0'); }
+        else { super::fs::write_display_name(&mut line, path, false); line.push('\n'); }
+        self.emit(1, &line);
+    }
+
     fn flush_batch(&mut self, index: usize) {
         let batch = &mut self.exec_batches[index];
         if batch.words.len() == batch.prefix_len { return; }
         let res = (self.exec_sub)(&batch.words, self.cwd, self.env);
-        self.out.push_str(&res.stdout);
-        self.err.push_str(&res.stderr);
-        if res.exit_code != 0 { *self.exit_code = 1; }
         batch.words.truncate(batch.prefix_len);
         batch.path_bytes = 0;
+        if self.collect_child(res) != 0 { self.result.exit_code = 1; }
     }
 }
 
@@ -5204,7 +5230,7 @@ fn eval_find_pred<F>(
     state: &mut FindEvalState<'_, F>,
 ) -> Result<bool, String>
 where
-    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> ChildRun,
 {
     let disp_path = entry.display;
     let full_path = entry.path;
@@ -5289,7 +5315,7 @@ where
             true
         }
         FindPred::Quit => {
-            *state.quit = true;
+            state.quit = true;
             true
         }
         FindPred::Delete => {
@@ -5300,26 +5326,20 @@ where
             let directory = entry.stat.kind == VfsEntryKind::Directory && !entry.symlink;
             if let Err(e) = state.fs.remove_one(full_path, directory) {
                 let op = if directory { "rmdir" } else { "rm" };
-                state.err.push_str(&format!("find: {e}, {op} '{full_path}'\n"));
-                *state.exit_code = 1;
+                state.emit(2, &format!("find: {e}, {op} '{full_path}'\n"));
+                state.result.exit_code = 1;
                 return Ok(false);
             }
             true
         }
         FindPred::Print { null_delim } => {
-            if *null_delim {
-                state.out.push_str(disp_path);
-                state.out.push('\0');
-            } else {
-                super::fs::write_display_name(state.out, disp_path, false);
-                state.out.push('\n');
-            }
+            state.print_path(disp_path, *null_delim);
             true
         }
         FindPred::Printf(fmt) => {
             let rendered =
                 render_find_printf(fmt, disp_path, entry.root, entry.relative, Some(st), entry.depth);
-            state.out.push_str(&rendered);
+            state.emit(1, &rendered);
             true
         }
         FindPred::Exec { cmd, batch_idx } => {
@@ -5337,24 +5357,22 @@ where
                 let cmd_args: Vec<String> =
                     cmd.iter().map(|w| w.replace("{}", disp_path)).collect();
                 let res = (state.exec_sub)(&cmd_args, state.cwd, state.env);
-                state.out.push_str(&res.stdout);
-                state.err.push_str(&res.stderr);
-                res.exit_code == 0
+                state.collect_child(res) == 0
             }
         }
         FindPred::Group(inner) => eval_find_pred(inner, entry, pruned, state)?,
         FindPred::Not(inner) => !eval_find_pred(inner, entry, pruned, state)?,
         FindPred::And(a, b) => {
-            eval_find_pred(a, entry, pruned, state)? && !*state.quit
+            eval_find_pred(a, entry, pruned, state)? && !state.quit
                 && eval_find_pred(b, entry, pruned, state)?
         }
         FindPred::Or(a, b) => {
-            eval_find_pred(a, entry, pruned, state)? || (!*state.quit
+            eval_find_pred(a, entry, pruned, state)? || (!state.quit
                 && eval_find_pred(b, entry, pruned, state)?)
         }
         FindPred::Comma(a, b) => {
             let _ = eval_find_pred(a, entry, pruned, state)?;
-            if *state.quit {
+            if state.quit {
                 return Ok(false);
             }
             eval_find_pred(b, entry, pruned, state)?
@@ -5367,10 +5385,11 @@ fn cmd_find<F>(
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut CommandWriter<'_>,
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> ChildRun,
 {
     let mut follow_mode = FindFollowMode::Never;
     let mut debug_tree = false;
@@ -5484,10 +5503,10 @@ where
     let explicit_action = pctx.explicit_action;
     let exec_batches = pctx.exec_batches;
 
-    let mut out = String::new();
-    let mut err = String::new();
-    let mut exit_code = 0;
-    let mut quit = false;
+    let mut state = FindEvalState {
+        cwd, env, fs, exec_sub, exec_batches, write,
+        result: ok_out(""), quit: false, stopped: false,
+    };
 
     if debug_tree {
         let rendered_tree = if explicit_action {
@@ -5495,25 +5514,13 @@ where
         } else {
             format!("AND({tree}, implicit -print)")
         };
-        err.push_str(&format!(
+        state.emit(2, &format!(
             "find: virtual expression tree (evaluation order; no optimizer)\n{rendered_tree}\n"
         ));
     }
 
-    let mut state = FindEvalState {
-        cwd,
-        env,
-        fs,
-        exec_sub,
-        exec_batches,
-        out: &mut out,
-        err: &mut err,
-        exit_code: &mut exit_code,
-        quit: &mut quit,
-    };
-
     for r in &roots {
-        if *state.quit {
+        if state.quit {
             break;
         }
         let full = if r.is_empty() || r.starts_with('/') { r.clone() } else { format!("{}/{r}", state.cwd.trim_end_matches('/')) };
@@ -5535,13 +5542,11 @@ where
         );
     }
 
-    for i in 0..state.exec_batches.len() { state.flush_batch(i); }
-
-    BuiltinOutcome {
-        stdout: out,
-        stderr: err,
-        exit_code,
+    for i in 0..state.exec_batches.len() {
+        if state.stopped { break; }
+        state.flush_batch(i);
     }
+    state.result
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -5560,9 +5565,9 @@ fn walk_find<F>(
     ancestors: &mut std::collections::BTreeSet<String>,
     state: &mut FindEvalState<'_, F>,
 ) where
-    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> ChildRun,
 {
-    if *state.quit {
+    if state.quit {
         return;
     }
     if let Some(max_d) = max_depth {
@@ -5586,8 +5591,8 @@ fn walk_find<F>(
     let (mut physical, mut st) = match inspect(false) {
         Ok(entry) => entry,
         Err(e) => {
-            state.err.push_str(&report(e, "lstat"));
-            *state.exit_code = 1;
+            state.emit(2, &report(e, "lstat"));
+            state.result.exit_code = 1;
             return;
         }
     };
@@ -5598,8 +5603,8 @@ fn walk_find<F>(
             Ok(entry) => (physical, st) = entry,
             Err(e) if e.starts_with("ENOENT:") => {}
             Err(e) => {
-                state.err.push_str(&report(e, "stat"));
-                *state.exit_code = 1;
+                state.emit(2, &report(e, "stat"));
+                state.result.exit_code = 1;
                 return;
             }
         }
@@ -5613,12 +5618,12 @@ fn walk_find<F>(
         };
         match result {
             Ok(ok) => {
-                if ok && !explicit_action { super::fs::write_display_name(state.out, disp, false); state.out.push('\n'); }
+                if ok && !explicit_action { state.print_path(disp, false); }
                 true
             }
             Err(e) => {
-                state.err.push_str(&report(e, "readdir"));
-                *state.exit_code = 1;
+                state.emit(2, &report(e, "readdir"));
+                state.result.exit_code = 1;
                 false
             }
         }
@@ -5626,7 +5631,7 @@ fn walk_find<F>(
     let mut pruned = false;
     if !depth_first && depth >= min_depth {
         if !evaluate(&mut pruned, state) { return; }
-        if *state.quit {
+        if state.quit {
             return;
         }
     }
@@ -5636,23 +5641,23 @@ fn walk_find<F>(
         && max_depth.map(|max_d| depth < max_d).unwrap_or(true);
     if can_descend {
         if ancestors.contains(&physical) {
-            state.err.push_str(&format!(
+            state.emit(2, &format!(
                 "find: ELOOP: too many symbolic links encountered '{full}'\n"
             ));
-            *state.exit_code = 1;
+            state.result.exit_code = 1;
             return;
         }
         ancestors.insert(physical.clone());
         let parent = disp.trim_end_matches('/');
         match state.fs.read_dir(&physical) {
             Err(e) => {
-                state.err.push_str(&report(e, "readdir"));
-                *state.exit_code = 1;
+                state.emit(2, &report(e, "readdir"));
+                state.result.exit_code = 1;
                 ancestors.remove(&physical);
                 return;
             }
             Ok(entries) => for e in entries {
-                if *state.quit {
+                if state.quit {
                     break;
                 }
                 let child_disp = format!("{parent}/{e}");
@@ -5682,7 +5687,7 @@ fn walk_find<F>(
         ancestors.remove(&physical);
     }
 
-    if depth_first && depth >= min_depth && !*state.quit {
+    if depth_first && depth >= min_depth && !state.quit {
         evaluate(&mut pruned, state);
     }
 }

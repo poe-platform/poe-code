@@ -785,7 +785,7 @@ pub fn try_run_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs,
+    try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut capture_write,
         |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
 }
 
@@ -805,6 +805,14 @@ impl ChildIo<'_> {
 // example because the preceding xargs trace failed to write.
 type ChildRun = Result<BuiltinOutcome, BuiltinOutcome>;
 
+type CommandWriter<'a> = dyn FnMut(u32, &str, &mut BuiltinOutcome) -> bool + 'a;
+
+fn capture_write(fd: u32, data: &str, out: &mut BuiltinOutcome) -> bool {
+    if fd == 1 { out.stdout.push_str(data); } else { out.stderr.push_str(data); }
+    true
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn try_run_command_with_input<F>(
     cmd: &str,
     args: &[String],
@@ -812,6 +820,7 @@ pub(crate) fn try_run_command_with_input<F>(
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut CommandWriter<'_>,
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
@@ -851,7 +860,7 @@ where
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
-    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, exec_sub) {
+    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write, exec_sub) {
         return Some(res);
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {

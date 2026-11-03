@@ -119,6 +119,80 @@ pub struct CallerFrame {
     pub routine: String,
 }
 
+struct FdWriter<'a> {
+    fs: &'a dyn SafeBashFs,
+    budget: &'a ExecutionBudget,
+    provided_devices: bool,
+}
+
+impl FdWriter<'_> {
+    fn write(&self, target: &FdTarget, data: &str, charged: usize, out: &mut BuiltinOutcome) {
+        if data.is_empty() {
+            return;
+        }
+        match target {
+            FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
+            FdTarget::Stderr => out.stderr.push_str(data),
+            FdTarget::SavedStdout { data: saved, .. } | FdTarget::SavedStderr(saved) => {
+                if self.budget.add_output_bytes(stream_byte_len(data) - charged).is_ok() {
+                    saved.borrow_mut().push_str(data);
+                }
+            }
+            FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
+                // There is no filesystem write, but the command emitted these bytes.
+                let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
+            }
+            FdTarget::File { path, file, offset } => {
+                let bytes = stream_string_to_bytes(data);
+                let result = match file {
+                    Some(file) => self.budget.tick_fs_op()
+                        .and_then(|_| self.budget.add_output_bytes(bytes.len() - charged))
+                        .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
+                    None => self.fs.write_redirect_path(path, &bytes, true, crate::vfs::RedirectCharge(charged)),
+                };
+                match result {
+                    Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
+                    Err(e) => {
+                        out.stderr.push_str(&format!("{path}: {e}\n"));
+                        out.exit_code = 1;
+                    }
+                }
+            }
+            FdTarget::InputFile { writable: false, .. } => {
+                out.stderr.push_str("Bad file descriptor\n");
+                out.exit_code = 1;
+            }
+            FdTarget::InputFile { path, unread, file, position, writable: true } => {
+                let mut pos = position.get();
+                pos.consume(stream_byte_len(&unread.borrow()));
+                let cur_off = pos.offset;
+                let write_bytes = stream_string_to_bytes(data);
+                let Some(file) = file else {
+                    if let Err(e) = self.fs.write_redirect_path(path, &write_bytes, false, crate::vfs::RedirectCharge(charged)) {
+                        out.stderr.push_str(&format!("{path}: {e}\n"));
+                        out.exit_code = 1;
+                    }
+                    return;
+                };
+                let end_off = cur_off + write_bytes.len();
+                if let Err(e) = self.budget.tick_fs_op()
+                    .and_then(|_| self.budget.add_output_bytes(write_bytes.len() - charged))
+                    .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
+                {
+                    out.stderr.push_str(&format!("{path}: {e}\n"));
+                    out.exit_code = 1;
+                    return;
+                }
+                pos.replace_tail(&mut unread.borrow_mut(), &[]);
+                pos.offset = end_off;
+                pos.revision = None;
+                position.set(pos);
+            }
+            FdTarget::Closed => {}
+        }
+    }
+}
+
 pub struct EvalState<'a> {
     pub cwd: &'a mut String,
     pub env: &'a mut BTreeMap<String, String>,
@@ -1992,7 +2066,7 @@ impl<'a> EvalState<'a> {
                     prompt.push_str(self.env.get("PS3").map_or("#? ", String::as_str));
                     let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
                     let mut emitted = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
-                    self.write_to_fd_target(&fd2, &prompt, 0, &mut emitted);
+                    self.fd_writer().write(&fd2, &prompt, 0, &mut emitted);
                     self.budget.check_exceeded().map_err(EvalError::Budget)?;
                     stdout.push_str(&emitted.stdout);
                     stderr.push_str(&emitted.stderr);
@@ -4951,6 +5025,8 @@ impl<'a> EvalState<'a> {
         let inherited_targets = &self.fd_table;
         let inherited_inputs = &self.in_fds;
         let inherited_aliases = &self.in_fd_aliases;
+        let writer = self.fd_writer();
+        let charged = &self.forwarded_output;
         if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
@@ -4958,6 +5034,26 @@ impl<'a> EvalState<'a> {
             self.cwd,
             self.env,
             fs_ref,
+            &mut |fd, data, out| {
+                if data.is_empty() { return true; }
+                let target = inherited_targets.get(&fd).unwrap_or(if fd == 1 { &FdTarget::Stdout } else { &FdTarget::Stderr });
+                if matches!(target, FdTarget::Closed | FdTarget::InputFile { writable: false, .. }) {
+                    if fd != 2 { out.stderr.push_str(&format!("{effective_cmd}: Bad file descriptor\n")); }
+                    out.exit_code = 1;
+                    return false;
+                }
+                if matches!(target, FdTarget::Stdout | FdTarget::PipeStdout { .. } | FdTarget::Stderr) {
+                    let n = stream_byte_len(data);
+                    if budget_ref.add_output_bytes(n).is_err() { out.exit_code = 1; return false; }
+                    let (a, b) = charged.get();
+                    charged.set(if matches!(target, FdTarget::Stderr) { (a, b + n) } else { (a + n, b) });
+                }
+                let prior = std::mem::take(&mut out.exit_code);
+                writer.write(target, data, 0, out);
+                if out.exit_code != 0 || budget_ref.check_exceeded().is_err() { out.exit_code = 1; return false; }
+                out.exit_code = prior;
+                true
+            },
             |sub_words, sub_stdin, sub_cwd, sub_env, io| {
                 let mut fd_table = inherited_targets.clone();
                 // op masks the child's returned output. Saved copies of a public
@@ -5055,7 +5151,7 @@ impl<'a> EvalState<'a> {
                 if let ChildIo::Inherit { stderr_before } = io && !stderr_before.is_empty() {
                     let target = sub_eval.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
                     if target == FdTarget::Closed { prefix.exit_code = 1; return Err(prefix); }
-                    sub_eval.write_to_fd_target(&target, stderr_before, 0, &mut prefix);
+                    sub_eval.fd_writer().write(&target, stderr_before, 0, &mut prefix);
                     if prefix.exit_code != 0 { return Err(prefix); }
                     if let Err(e) = sub_eval.account_forwarded_output(&prefix.stdout, &prefix.stderr, (0, 0)) {
                         sub_err = Some(e);
@@ -9592,7 +9688,7 @@ impl<'a> EvalState<'a> {
                     stderr: String::new(),
                     exit_code: 0,
                 };
-                self.write_to_fd_target(&fd2, &msg, 0, &mut dummy);
+                self.fd_writer().write(&fd2, &msg, 0, &mut dummy);
                 self.pending_stdout.push_str(&dummy.stdout);
                 self.pending_stderr.push_str(&dummy.stderr);
             }
@@ -10153,75 +10249,13 @@ impl<'a> EvalState<'a> {
                 FdTarget::Stderr => forwarded.1 += credit,
                 _ => {}
             }
-            self.write_to_fd_target(fd, data, credit, out);
+            self.fd_writer().write(fd, data, credit, out);
         }
         self.forwarded_output.set(forwarded);
     }
 
-    fn write_to_fd_target(&mut self, target: &FdTarget, data: &str, charged: usize, out: &mut BuiltinOutcome) {
-        if data.is_empty() {
-            return;
-        }
-        match target {
-            FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
-            FdTarget::Stderr => out.stderr.push_str(data),
-            FdTarget::SavedStdout { data: saved, .. } | FdTarget::SavedStderr(saved) => {
-                if self.budget.add_output_bytes(stream_byte_len(data) - charged).is_ok() {
-                    saved.borrow_mut().push_str(data);
-                }
-            }
-            FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if self.is_default_null(path) => {
-                // There is no filesystem write, but the command emitted these bytes.
-                let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
-            }
-            FdTarget::File { path, file, offset } => {
-                let bytes = stream_string_to_bytes(data);
-                let result = match file {
-                    Some(file) => self.budget.tick_fs_op()
-                        .and_then(|_| self.budget.add_output_bytes(bytes.len() - charged))
-                        .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
-                    None => self.fs.write_redirect_path(path, &bytes, true, crate::vfs::RedirectCharge(charged)),
-                };
-                match result {
-                    Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
-                    Err(e) => {
-                        out.stderr.push_str(&format!("{path}: {e}\n"));
-                        out.exit_code = 1;
-                    }
-                }
-            }
-            FdTarget::InputFile { writable: false, .. } => {
-                out.stderr.push_str("Bad file descriptor\n");
-                out.exit_code = 1;
-            }
-            FdTarget::InputFile { path, unread, file, position, writable: true } => {
-                let mut pos = position.get();
-                pos.consume(stream_byte_len(&unread.borrow()));
-                let cur_off = pos.offset;
-                let write_bytes = stream_string_to_bytes(data);
-                let Some(file) = file else {
-                    if let Err(e) = self.fs.write_redirect_path(path, &write_bytes, false, crate::vfs::RedirectCharge(charged)) {
-                        out.stderr.push_str(&format!("{path}: {e}\n"));
-                        out.exit_code = 1;
-                    }
-                    return;
-                };
-                let end_off = cur_off + write_bytes.len();
-                if let Err(e) = self.budget.tick_fs_op()
-                    .and_then(|_| self.budget.add_output_bytes(write_bytes.len() - charged))
-                    .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
-                {
-                    out.stderr.push_str(&format!("{path}: {e}\n"));
-                    out.exit_code = 1;
-                    return;
-                }
-                pos.replace_tail(&mut unread.borrow_mut(), &[]);
-                pos.offset = end_off;
-                pos.revision = None;
-                position.set(pos);
-            }
-            FdTarget::Closed => {}
-        }
+    fn fd_writer(&self) -> FdWriter<'a> {
+        FdWriter { fs: self.fs, budget: self.budget, provided_devices: self.provided_devices }
     }
 
     fn expand_arith_text(&mut self, text: &str) -> Result<String, EvalError> {
@@ -10406,7 +10440,7 @@ impl<'a> EvalState<'a> {
                             stderr: String::new(),
                             exit_code: 0,
                         };
-                        self.write_to_fd_target(&fd2, &diag, 0, &mut dummy);
+                        self.fd_writer().write(&fd2, &diag, 0, &mut dummy);
                         self.pending_stdout.push_str(&dummy.stdout);
                         self.pending_stderr.push_str(&dummy.stderr);
                         self.last_exit = 2;
@@ -11970,7 +12004,7 @@ impl<'a> EvalState<'a> {
                 stderr: String::new(),
                 exit_code: 0,
             };
-            self.write_to_fd_target(&fd2, &out.stderr, stream_byte_len(&out.stderr), &mut dummy);
+            self.fd_writer().write(&fd2, &out.stderr, stream_byte_len(&out.stderr), &mut dummy);
             self.pending_forwarded.0 += stream_byte_len(&dummy.stdout);
             self.pending_forwarded.1 += stream_byte_len(&dummy.stderr);
             self.pending_stdout.push_str(&dummy.stdout);
@@ -11994,7 +12028,7 @@ impl<'a> EvalState<'a> {
                 stderr: String::new(),
                 exit_code: 0,
             };
-            self.write_to_fd_target(&fd2, &msg, 0, &mut dummy);
+            self.fd_writer().write(&fd2, &msg, 0, &mut dummy);
             self.pending_stdout.push_str(&dummy.stdout);
             self.pending_stderr.push_str(&dummy.stderr);
             raw.replace('\0', "")

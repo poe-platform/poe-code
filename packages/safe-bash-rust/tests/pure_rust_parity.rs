@@ -209,6 +209,29 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 }
 
 #[test]
+fn find_writes_each_action_to_the_inherited_descriptors() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    for (script, stdout, stderr) in [
+        ("find . -maxdepth 0 -printf A -exec sh -c 'printf x; printf y >&2; printf z' \\; -printf B 2>&1", "AxyzB", ""),
+        ("find . -maxdepth 0 -printf A -exec sh -c 'cat /out >&2; printf z' sh {} + >/out; cat /out", "Az", "A"),
+        ("find . -maxdepth 0 -printf '' -exec touch /empty \\; 1>&-; test -e /empty", "", ""),
+        ("find . -maxdepth 0 -print -exec touch /closed \\; 1>&-; test ! -e /closed", "", "find: Bad file descriptor\n"),
+    ] {
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
+    }
+    for (limit, pass) in [(5, true), (4, false)] {
+        shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, ..Default::default() });
+        let result = shell.exec("find . -maxdepth 0 -printf A -exec sh -c 'printf x; printf y >&2; printf z' \\; -printf B 2>&1");
+        if pass { assert_eq!(result.unwrap().stdout, "AxyzB"); }
+        else { assert!(result.unwrap_err().contains("maxOutputBytes")); }
+    }
+    shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: 1, ..Default::default() });
+    assert!(shell.exec("find . -maxdepth 0 -printf xx -exec touch /ran \\;").unwrap_err().contains("maxOutputBytes"));
+    assert!(!fs.exists("/ran"));
+}
+
+#[test]
 fn env_shebang_lookup_reports_its_own_errors_before_redirection() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.mkdir_all("/bin").unwrap();

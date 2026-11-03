@@ -8066,3 +8066,17 @@ test("mdq keeps the document root distinct from a list of selected blocks", asyn
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq builds sections from ATX and Setext headings, including empty titles", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const input = "\uFEFF# Parent ###\r\n\r\nchild title\r\n  ---\r\n\r\ntext\r\n\r\n#\r\n\r\nSibling\r\n=====\r\n\r\n###\tA#\r\n\r\nend\r\n";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+    for (const flags of ["", "-o json", "'#'", "'#{2}'", "'# Parent | P:'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

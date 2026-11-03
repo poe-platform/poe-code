@@ -28127,14 +28127,38 @@ fn mdq_strip_inline(s: &str) -> String {
     out
 }
 
+fn mdq_heading(line: &str) -> Option<(usize, &str)> {
+    let at = line.trim_start_matches(' ');
+    if line.len() - at.len() > 3 { return None; }
+    let level = at.bytes().take_while(|&b| b == b'#').count();
+    if !(1..=6).contains(&level) { return None; }
+    let rest = &at[level..];
+    if !rest.is_empty() && !rest.starts_with([' ', '\t']) { return None; }
+    let title = rest.trim_matches([' ', '\t']);
+    let before = title.trim_end_matches('#');
+    Some((level, if before.is_empty() || before.ends_with([' ', '\t']) { before.trim_end_matches([' ', '\t']) } else { title }))
+}
+
+fn mdq_setext(line: &str) -> Option<usize> {
+    let at = line.trim_start_matches(' ');
+    if line.len() - at.len() > 3 { return None; }
+    let marker = at.trim_end_matches([' ', '\t']);
+    match marker.as_bytes().first()? {
+        b'=' if marker.bytes().all(|b| b == b'=') => Some(1),
+        b'-' if marker.bytes().all(|b| b == b'-') => Some(2),
+        _ => None,
+    }
+}
+
 fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
-    let lines: Vec<&str> = input.lines().collect();
+    let mut lines: Vec<&str> = input.lines().collect();
     let mut blocks = Vec::new();
     let mut i = 0usize;
     while i < lines.len() && lines[i].trim().is_empty() {
         i += 1;
     }
     if i < lines.len() {
+        lines[i] = lines[i].strip_prefix('\u{feff}').unwrap_or(lines[i]);
         let first_trimmed = lines[i].trim_end();
         if first_trimmed == "---" || first_trimmed == "+++" {
             let marker = first_trimmed;
@@ -28217,26 +28241,10 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             });
             continue;
         }
-        if trimmed.starts_with('#') {
-            let hashes = trimmed.chars().take_while(|&c| c == '#').count();
-            if (1..=6).contains(&hashes) && trimmed[hashes..].starts_with(' ') {
-                let title = trimmed[hashes..].trim().to_string();
-                blocks.push(MdqBlock {
-                    kind: "heading_raw".to_string(),
-                    level: hashes,
-                    title,
-                    text: String::new(),
-                    lang: String::new(),
-                    ordered: false,
-                    checked: None,
-                    url: String::new(),
-                    children: Vec::new(),
-                    table_aligns: Vec::new(),
-                    table_rows: Vec::new(),
-                });
-                i += 1;
-                continue;
-            }
+        if let Some((level, title)) = mdq_heading(line) {
+            blocks.push(MdqBlock { kind: "heading_raw".into(), level, title: title.into(), ..MdqBlock::default() });
+            i += 1;
+            continue;
         }
         if trimmed.starts_with('>') {
             let mut q_lines = Vec::new();
@@ -28330,11 +28338,17 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             continue;
         }
         let mut p_lines = vec![trimmed];
+        let mut heading_level = None;
         i += 1;
         while i < lines.len() {
+            if let Some(level) = mdq_setext(lines[i]) {
+                heading_level = Some(level);
+                i += 1;
+                break;
+            }
             let nl = lines[i].trim();
             if nl.is_empty()
-                || nl.starts_with('#')
+                || mdq_heading(lines[i]).is_some()
                 || nl.starts_with("```")
                 || nl.starts_with('>')
                 || nl.starts_with("- ")
@@ -28346,18 +28360,11 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             p_lines.push(nl);
             i += 1;
         }
-        blocks.push(MdqBlock {
-            kind: "paragraph".to_string(),
-            level: 0,
-            title: String::new(),
-            text: p_lines.join(" "),
-            lang: String::new(),
-            ordered: false,
-            checked: None,
-            url: String::new(),
-            children: Vec::new(),
-            table_aligns: Vec::new(),
-            table_rows: Vec::new(),
+        let text = p_lines.join("\n");
+        blocks.push(if let Some(level) = heading_level {
+            MdqBlock { kind: "heading_raw".into(), level, title: text, ..MdqBlock::default() }
+        } else {
+            MdqBlock { kind: "paragraph".into(), text, ..MdqBlock::default() }
         });
     }
     fn build_sections(flat: &[MdqBlock]) -> Vec<MdqBlock> {

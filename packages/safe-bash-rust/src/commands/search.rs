@@ -719,6 +719,7 @@ enum RxAtom {
     Class { negate: bool, chars: Vec<(char, char)> },
     Group { index: usize, width: Option<usize>, nullable: bool, kind: RxGroup },
     Backref(usize),
+    CaptureSet(usize),
     Begin,
     LineBegin,
     End,
@@ -733,6 +734,8 @@ enum RxAtom {
 
 #[derive(Debug, Clone)]
 enum RxGroup {
+    Conditional,
+    ConditionTest,
     Atomic,
     Capture(Option<String>),
     Plain,
@@ -960,9 +963,9 @@ struct ParsedRegex {
 impl ParsedRegex {
     fn close_group(&mut self, branches: RxBranches, kind: RxGroup) -> RxAtom {
         let index = self.groups.len();
-        let width = rx_fixed_width(&branches);
+        let width = if matches!(kind, RxGroup::Conditional) { None } else { rx_fixed_width(&branches) };
         let nullable = branches.iter().any(|seq| seq.iter().all(|tok| tok.min == 0 || matches!(tok.atom,
-            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_)
+            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::CaptureSet(_) | RxAtom::WordBoundary(_)
             | RxAtom::WordStart | RxAtom::WordEnd | RxAtom::Group { nullable: true, .. })));
         self.groups.push(branches);
         RxAtom::Group { index, width, nullable, kind }
@@ -1065,7 +1068,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
     let mut numbered_refs = Vec::new();
     let mut numeric_ref = |index: f64| {
         numbered_refs.push(index);
-        RxAtom::Backref((index as usize).saturating_sub(1))
+        (index as usize).saturating_sub(1)
     };
 
     let skip = |at: &mut usize, mode: RxFlags| {
@@ -1120,7 +1123,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         while chars.get(idx).is_some_and(char::is_ascii_digit) { idx += 1; }
                         let index = super::js_number(&chars[start..idx].iter().collect::<String>(), 0.);
                         if nc == '0' && index != 0.0 { return Err(RxParseError::at(start, "Invalid back reference")); }
-                        numeric_ref(index)
+                        RxAtom::Backref(numeric_ref(index))
                     }
                     'k' | 'g' if mdq => {
                         let error_at = idx;
@@ -1135,8 +1138,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         idx += len + 1;
                         let number = super::js_number(&name, 0.0);
                         if !name.is_empty() && number.fract() == 0.0 {
-                            numeric_ref(if name.starts_with('-') { group_count as f64 + number + 1.0 }
-                                else if name.starts_with('+') { group_count as f64 + number } else { number })
+                            RxAtom::Backref(numeric_ref(if name.starts_with('-') { group_count as f64 + number + 1.0 }
+                                else if name.starts_with('+') { group_count as f64 + number } else { number }))
                         } else {
                             let slot = mdq_names.get(&name).ok_or_else(|| RxParseError::at(error_at,
                                 &format!("Invalid group name in back reference: {name}")))?;
@@ -1155,7 +1158,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
             '\\' if rg => return Err("invalid ERE: trailing backslash".into()),
             ')' if mdq && groups.is_empty() => return Err(RxParseError::at(idx, "General parsing error: end of string not reached")),
-            '*' | '+' | '?' if mdq && (idx == 0 || chars[idx] == '*' || chars[idx - 1] == '|') => return Err(RxParseError::at(idx, "Target of repeat operator is invalid")),
+            '*' | '+' | '?' if mdq && (idx == 0 || chars[idx] == '*' || chars[idx - 1] == '|'
+                || out.is_empty() && groups.last().is_some_and(|(_, _, kind, _, _)| matches!(kind, RxGroup::ConditionTest))) => return Err(RxParseError::at(idx, "Target of repeat operator is invalid")),
             ')' if rg && groups.is_empty() => return Err("invalid ERE: unmatched ')'".into()),
             c @ ('*' | '+' | '?' | '{') if rg => return Err(format!("invalid ERE: unexpected quantifier '{c}'").into()),
             '\\' if jq => return Err("trailing backslash in regular expression".into()),
@@ -1285,6 +1289,27 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     chars: ranges,
                 }
             }
+            '(' if mdq && chars[idx..].starts_with(&['(', '?', '(']) => {
+                idx += 3;
+                groups.push((std::mem::take(&mut out), std::mem::take(&mut alts), RxGroup::Conditional, None, mode));
+                let end = chars[idx..].iter().position(|&c| c == ')').map_or(chars.len(), |n| idx+n);
+                let token: String = chars[idx..end].iter().collect();
+                let name = token.strip_prefix('<').and_then(|s| s.strip_suffix('>'))
+                    .or_else(|| token.strip_prefix('\'').and_then(|s| s.strip_suffix('\''))).unwrap_or(&token);
+                let slot = if !name.is_empty() && name.bytes().all(|c| c.is_ascii_digit()) {
+                    Some(numeric_ref(super::js_number(name, 0.)))
+                } else { mdq_names.get(name).copied() };
+                if let Some(slot) = slot {
+                    if end == chars.len() { return Err(RxParseError::at(end+1, "Opening parenthesis without closing parenthesis")); }
+                    alts.push(vec![RxToken { atom: RxAtom::CaptureSet(slot), case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false }]);
+                    idx = end + 1;
+                } else if name != token {
+                    return Err(RxParseError::at(idx, &format!("Invalid group name in back reference: {name}")));
+                } else {
+                    groups.push((Vec::new(), Vec::new(), RxGroup::ConditionTest, None, mode));
+                }
+                continue;
+            }
             '(' if mdq && chars[idx..].starts_with(&['(', '?', 'P', '=']) => {
                 idx += 4;
                 let Some(len) = chars[idx..].iter().position(|&c| c == ')') else {
@@ -1383,7 +1408,17 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 if let Some(entry) = slot.and_then(|i| closed.get_mut(i)) { *entry = true; }
                 parsed.requires_vm |= out.is_empty();
                 alts.push(std::mem::replace(&mut out, outer));
-                parsed.close_group(std::mem::replace(&mut alts, outer_alts), kind)
+                let mut branches = std::mem::replace(&mut alts, outer_alts);
+                if matches!(kind, RxGroup::ConditionTest) {
+                    let atom = parsed.close_group(branches, RxGroup::Plain);
+                    alts.push(vec![RxToken { atom, case: RxCase::Sensitive, min: 1, max: Some(1), lazy: false }]);
+                    continue;
+                }
+                if matches!(kind, RxGroup::Conditional) {
+                    if branches.len() > 3 { return Err(RxParseError::at(idx, "Opening parenthesis without closing parenthesis")); }
+                    branches.resize_with(3, Vec::new);
+                }
+                parsed.close_group(branches, kind)
             }
             c => {
                 idx += 1;
@@ -1391,7 +1426,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
         };
 
-        parsed.requires_vm |= matches!(atom, RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
+        parsed.requires_vm |= matches!(atom, RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::CaptureSet(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
         parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true, .. } | RxAtom::Space(_) | RxAtom::Word(true)
             | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
         skip(&mut idx, mode);
@@ -1401,7 +1436,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         let mut lazy = mode.ungreedy;
         if matches!(
             atom,
-            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
+            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::CaptureSet(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
         ) {
             if rg && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) {
                 return Err("invalid ERE: assertion cannot be quantified".into());
@@ -1570,7 +1605,7 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
         for tok in seq {
             let n = match &tok.atom {
                 RxAtom::Backref(_) => return None,
-                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
+                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::CaptureSet(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
                 | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
                 RxAtom::Group { width, .. } => (*width)?,
                 _ => 1,
@@ -1637,7 +1672,7 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
         | RxAtom::LineBegin
         | RxAtom::NewlineEnd { .. }
         | RxAtom::End
-        | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_)
+        | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::CaptureSet(_) | RxAtom::WordBoundary(_)
         | RxAtom::WordStart
         | RxAtom::WordEnd => false,
     }
@@ -1648,6 +1683,7 @@ enum RxOp {
     Atom(RxToken),
     Probe { behind: bool, positive: bool, width: Option<usize>, after: usize },
     ProbeEnd { consume: bool },
+    Condition { yes: usize, no: usize },
     Split(usize),
     Jump(usize),
     Open {
@@ -1690,6 +1726,7 @@ struct AssertionFrame {
     last_origin: usize,
     end: Option<usize>,
     positive: bool,
+    otherwise: Option<usize>,
     pending_base: usize,
     seen: std::collections::HashSet<(usize, usize, Vec<(usize, usize)>, Vec<Option<(usize, usize)>>)>,
 }
@@ -1704,6 +1741,7 @@ struct CompileFrame {
     jumps: Vec<usize>,
     close: Option<usize>,
     consume: bool,
+    condition: Option<usize>,
     repeat: Option<usize>,
 }
 
@@ -1732,7 +1770,10 @@ impl RxProgram {
                     // An atomic group commits to the first successful path just like
                     // a positive lookahead, but also consumes the matched input.
                     let consume = matches!(kind, RxGroup::Atomic);
+                    let condition = matches!(kind, RxGroup::Conditional).then_some(open);
                     match kind {
+                        RxGroup::ConditionTest => unreachable!(),
+                        RxGroup::Conditional => ops.push(RxOp::Condition { yes: 0, no: 0 }),
                         RxGroup::Atomic => ops.push(RxOp::Probe { behind: false, positive: true, width: Some(0), after: 0 }),
                         RxGroup::Assertion { behind, positive } => ops.push(RxOp::Probe {
                             behind, positive, width: if behind { width } else { Some(0) }, after: 0,
@@ -1747,11 +1788,11 @@ impl RxProgram {
                     }
                     frames.push(CompileFrame {
                         branches: std::mem::take(&mut parsed.groups[index]).into_iter(),
-                        close: (ops.len() > open).then_some(open), consume, repeat, ..Default::default()
+                        close: (ops.len() > open && condition.is_none()).then_some(open), consume, condition, repeat, ..Default::default()
                     });
                     continue;
                 }
-                program.backrefs |= matches!(tok.atom, RxAtom::Backref(_));
+                program.backrefs |= matches!(tok.atom, RxAtom::Backref(_) | RxAtom::CaptureSet(_));
                 if repeat.is_some() { tok.min = 1; tok.max = Some(1); }
                 ops.push(RxOp::Atom(tok));
                 repeat
@@ -1762,7 +1803,22 @@ impl RxProgram {
                     ops[split] = RxOp::Split(ops.len());
                 }
                 if let Some(seq) = frame.branches.next() {
-                    if frame.branches.len() != 0 {
+                    if let Some(open) = frame.condition {
+                        match frame.branches.len() {
+                            1 => {
+                                ops.push(RxOp::ProbeEnd { consume: true });
+                                let dest = ops.len();
+                                if let RxOp::Condition { yes, .. } = &mut ops[open] { *yes = dest; }
+                            }
+                            0 => {
+                                frame.jumps.push(ops.len());
+                                ops.push(RxOp::Jump(0));
+                                let dest = ops.len();
+                                if let RxOp::Condition { no, .. } = &mut ops[open] { *no = dest; }
+                            }
+                            _ => {}
+                        }
+                    } else if frame.branches.len() != 0 {
                         frame.split = Some(ops.len());
                         ops.push(RxOp::Split(0));
                     }
@@ -1833,23 +1889,28 @@ impl RxProgram {
                 };
                 state.pc += 1;
                 match op {
-                    RxOp::Probe { behind, positive, width, after } => {
+                    RxOp::Probe { .. } | RxOp::Condition { .. } => {
+                        let (behind, positive, width, after, otherwise) = match *op {
+                            RxOp::Probe { behind, positive, width, after } => (behind, positive, width, after, None),
+                            RxOp::Condition { yes, no } => (false, true, Some(0), yes, Some(no)),
+                            _ => unreachable!(),
+                        };
                         let pos = state.pos;
                         let origin = match width {
-                            Some(w) if *w > pos => {
-                                if *positive { break; }
-                                state.pc = *after;
+                            Some(w) if w > pos => {
+                                if positive { break; }
+                                state.pc = after;
                                 continue;
                             }
                             Some(w) => pos - w,
                             None => 0,
                         };
                         let body = state.pc;
-                        state.pc = *after;
+                        state.pc = after;
                         let probe = RxMatch { pc: body, start: state.start, pos: origin, caps: state.caps.clone(), repeats: Vec::new() };
                         assertions.push(AssertionFrame {
                             resume: state, body, origin, last_origin: if width.is_some() { origin } else { pos },
-                            end: behind.then_some(pos), positive: *positive, pending_base: pending.len(), seen: std::mem::take(&mut seen),
+                            end: behind.then_some(pos), positive, otherwise, pending_base: pending.len(), seen: std::mem::take(&mut seen),
                         });
                         state = probe;
                     }
@@ -1948,6 +2009,10 @@ impl RxProgram {
                         }
                     }
                     RxOp::Atom(tok) => {
+                        if let RxAtom::CaptureSet(slot) = tok.atom {
+                            if state.caps.get(slot).is_none_or(Option::is_none) { break; }
+                            continue;
+                        }
                         if let RxAtom::MdqPosition(kind) = tok.atom
                             && let RxSearch::Mdq { continuation, trailing_start } = search {
                             match kind {
@@ -2038,6 +2103,11 @@ impl RxProgram {
                 }
                 let frame = assertions.pop().unwrap();
                 seen = frame.seen;
+                if let Some(dest) = frame.otherwise {
+                    state = frame.resume;
+                    state.pc = dest;
+                    continue 'search;
+                }
                 if !frame.positive {
                     state = frame.resume;
                     continue 'search;

@@ -8811,3 +8811,22 @@ test("mdq resolves Unicode binary properties, categories and script aliases", as
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq regex conditionals select one branch and retain captures from the condition", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["ab", "(a)?(?(1)b|c)"], ["c", "(a)?(?(1)b|c)"], ["ac", "(a)(?(1)b|c)"],
+      ["ab", "(?<n>a)(?(<n>)b|c)"], ["c", "(?<n>a)?(?(n)b|c)"],
+      ["ab", "(?(a)b|c)"], ["a", "(?((?=a))a|b)"], ["a", "(a)(?(1))"],
+      ["abc", "(?((a))(b)|(c))"], ["a", "(?(0)a|b)"], ["a", "(?(2)a|b)"],
+      ["a", "(?(<missing>)a|b)"], ["a", "(?(?=a)a|b)"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: !s/" + pattern + "/[$0:$1:$2]/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

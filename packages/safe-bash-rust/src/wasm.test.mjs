@@ -386,6 +386,20 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("rev stops reading a shared descriptor after an invalid UTF-8 record", async () => {
+  const bytes = new Uint8Array(65540).fill(97);
+  bytes.set([98, 99, 255, 10]);
+  bytes[65536] = 90;
+  const prefix = "x".repeat(65535);
+  const bash = new RustWasmBash({ env: { LC_ALL: "C.UTF-8" }, files: { "/bad": bytes, "/valid": prefix + "é\nab" } });
+  try {
+    const valid = await bash.exec("rev </valid");
+    assert.deepEqual([valid.exitCode, valid.stdout, valid.stderr], [0, "é" + prefix + "\nba", ""]);
+    const r = await bash.exec("{ rev; head -c1; } </bad");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "cb\nZ", "rev: stdin: Illegal byte sequence\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("cat, head and tail advance the shared stdin cursor only when they read", async () => {
   const bash = new RustWasmBash();
   try {

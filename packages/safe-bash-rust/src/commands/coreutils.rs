@@ -3650,93 +3650,77 @@ fn cmd_rev(
         );
     }
 
-    let targets: Vec<String> = if files.is_empty() {
-        vec!["-".to_string()]
-    } else {
-        files.clone()
-    };
-    let literal_dash = !files.is_empty();
-    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut out_bytes = Vec::new();
     let mut stderr = String::new();
     let mut code = 0;
-
-    for f in &targets {
-        let bytes = if f == "-" && !literal_dash {
-            let mut bytes = Vec::new();
-            if let Err(error) = stdin.append_bytes(&mut bytes) {
-                stderr.push_str(&format!("rev: {error}\n"));
-                code = 1;
-                bytes.truncate(bytes.iter().rposition(|&b| b == b'\n').map_or(0, |i| i + 1));
+    let mut reverse = |record: &[u8], terminated: bool| {
+        if utf8 {
+            let valid = std::str::from_utf8(record);
+            let text = valid.unwrap_or_else(|e| std::str::from_utf8(&record[..e.valid_up_to()]).unwrap());
+            for ch in text.chars().rev() {
+                out_bytes.extend_from_slice(ch.encode_utf8(&mut [0; 4]).as_bytes());
             }
-            bytes
+            if valid.is_err() {
+                if !text.is_empty() { out_bytes.push(b'\n'); }
+                return false;
+            }
         } else {
-            let p = resolve_posix_path(cwd, f);
-            if fs.is_dir(&p) {
-                stderr.push_str(&format!(
-                    "rev: EISDIR: illegal operation on a directory '{p}'\n"
-                ));
+            out_bytes.extend(record.iter().rev());
+        }
+        if terminated { out_bytes.push(b'\n'); }
+        true
+    };
+
+    let from_stdin = files.is_empty();
+    if from_stdin { files.push("stdin".into()); }
+    for f in files {
+        let mut pending = Vec::new();
+        let mut chunk = Vec::new();
+        if !from_stdin {
+            let path = resolve_posix_path(cwd, &f);
+            if fs.is_dir(&path) {
+                stderr.push_str(&format!("rev: EISDIR: illegal operation on a directory '{path}'\n"));
                 code = 1;
                 continue;
             }
-            match fs.read_file(&p) {
-                Ok(b) => b,
+            match fs.read_file(&path) {
+                Ok(bytes) => chunk = bytes,
                 Err(_) => {
-                    stderr.push_str(&format!(
-                        "rev: ENOENT: no such file or directory, stat '{p}'\n"
-                    ));
+                    stderr.push_str(&format!("rev: ENOENT: no such file or directory, stat '{path}'\n"));
                     code = 1;
                     continue;
                 }
             }
-        };
-        if bytes.is_empty() {
-            continue;
         }
-        let mut pos = 0usize;
-        while pos < bytes.len() {
-            let (rec, terminated) = match bytes[pos..].iter().position(|&b| b == b'\n') {
-                Some(nl_off) => {
-                    let r = &bytes[pos..pos + nl_off];
-                    pos += nl_off + 1;
-                    (r, true)
-                }
-                None => {
-                    let r = &bytes[pos..];
-                    pos = bytes.len();
-                    (r, false)
-                }
-            };
-            if !utf8 {
-                for &b in rec.iter().rev() {
-                    out_bytes.push(b);
-                }
-                if terminated {
-                    out_bytes.push(b'\n');
-                }
-            } else {
-                let valid_len = match std::str::from_utf8(rec) {
-                    Ok(_) => rec.len(),
-                    Err(e) => e.valid_up_to(),
-                };
-                if valid_len > 0 || valid_len == rec.len() {
-                    let valid_str = std::str::from_utf8(&rec[..valid_len]).unwrap_or("");
-                    let rev_str: String = valid_str.chars().rev().collect();
-                    out_bytes.extend_from_slice(rev_str.as_bytes());
-                    if terminated || valid_len != rec.len() {
-                        out_bytes.push(b'\n');
-                    }
-                }
-                if valid_len != rec.len() {
-                    let label = if f == "-" && files.is_empty() {
-                        "stdin"
-                    } else {
-                        f.as_str()
+        let mut valid = true;
+        loop {
+            if from_stdin && let Err(error) = stdin.next_stdin_chunk(&mut chunk) {
+                stderr.push_str(&format!("rev: {error}\n"));
+                code = 1;
+                break;
+            }
+            for part in chunk.split_inclusive(|&b| b == b'\n') {
+                if let Some(record) = part.strip_suffix(b"\n") {
+                    valid = if pending.is_empty() { reverse(record, true) } else {
+                        pending.extend_from_slice(record);
+                        let valid = reverse(&pending, true);
+                        pending.clear();
+                        valid
                     };
-                    stderr.push_str(&format!("rev: {label}: Illegal byte sequence\n"));
-                    code = 1;
-                    break;
+                    if !valid { break; }
+                } else {
+                    pending.extend_from_slice(part);
                 }
             }
+            if !valid { break; }
+            if chunk.is_empty() || !from_stdin {
+                if !pending.is_empty() { valid = reverse(&pending, false); }
+                break;
+            }
+        }
+        if !valid {
+            stderr.push_str(&format!("rev: {f}: Illegal byte sequence\n"));
+            code = 1;
         }
     }
 

@@ -8792,3 +8792,22 @@ test("mdq decodes regex character escapes and pinpoints invalid escapes", async 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq resolves Unicode binary properties, categories and script aliases", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["αβ", "\\p{greek}+"], ["猫", "\\p{sc=Hani}"], ["α", "\\p{SCRIPT=Grek}"],
+      ["a", "\\p{Ll}"], ["a", "\\pL"], ["A", "(?i)\\p{Ll}"], ["1", "[\\PL]"],
+      ["𐐀", "\\p{Uppercase_Letter}"], ["ー", "\\p{scx=Hira}"], ["🦕", "\\p{Emoji}"],
+      ["\u0378", "\\P{Assigned}"], ["é", "\\P{ascii}"], ["A", "\\p{gc=Lu}"],
+      ["a", "\\p{NotAThing}"], ["a", "[\\p{greek}a]"], ["a", "\\p{sc}"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: /" + pattern + "/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

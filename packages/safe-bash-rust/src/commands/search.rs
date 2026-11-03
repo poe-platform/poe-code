@@ -1,5 +1,6 @@
 mod expr_bre;
 mod mdq_classes;
+mod mdq_class;
 pub(super) use expr_bre::expr_match;
 use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
@@ -725,7 +726,7 @@ enum RxAtom {
     WordBoundary(bool),
     MdqBoundary(char),
     MdqPosition(char),
-    MdqShorthand(&'static [u32], bool),
+    MdqClass(std::borrow::Cow<'static, [u32]>, bool),
     WordStart,
     WordEnd,
 }
@@ -933,13 +934,6 @@ pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> 
     })
 }
 
-fn mdq_shorthand(c: char) -> Option<&'static [u32]> {
-    Some(match c.to_ascii_lowercase() {
-        'w' => mdq_classes::WORD, 's' => mdq_classes::SPACE, 'd' => mdq_classes::DIGIT,
-        'h' => mdq_classes::HEX, _ => return None,
-    })
-}
-
 fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
     let ['\\', c, ..] = chars else { return None };
     Some(match c {
@@ -1099,8 +1093,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             '\\' if idx + 1 < chars.len() => {
                 let nc = chars[idx + 1];
                 idx += 2;
-                match nc {
-                    c @ ('d' | 'D' | 'w' | 'W' | 's' | 'S' | 'h' | 'H') if mdq => RxAtom::MdqShorthand(mdq_shorthand(c).unwrap(), c.is_ascii_uppercase()),
+                if mdq && let Some((edges, invert)) = mdq_class::escape(nc, &chars, &mut idx, mode.icase)? {
+                    RxAtom::MdqClass(edges, invert)
+                } else { match nc {
                     c @ ('b' | 'B' | '<' | '>') if mdq => RxAtom::MdqBoundary(c),
                     'd' => RxAtom::Digit(false),
                     'D' => RxAtom::Digit(true),
@@ -1154,9 +1149,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         if jq && !closed[slot] { return Err("pattern references an undefined or open capture group".into()); }
                         RxAtom::Backref(slot)
                     }
-                    other if mdq && !matches!(other, 'p' | 'P') => RxAtom::Char(mdq_escaped(other, &chars, &mut idx)?),
+                    other if mdq => RxAtom::Char(mdq_escaped(other, &chars, &mut idx)?),
                     other => RxAtom::Char(other),
-                }
+                }}
             }
             '\\' if rg => return Err("invalid ERE: trailing backslash".into()),
             ')' if mdq && groups.is_empty() => return Err(RxParseError::at(idx, "General parsing error: end of string not reached")),
@@ -1221,9 +1216,10 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         return Err("collating and equivalence classes are not supported".into());
                     }
                     if chars[idx..].starts_with(&['\\', 'n']) { parsed.cross_line = true; }
-                    if mdq && let ['\\', c, ..] = chars[idx..] && let Some(edges) = mdq_shorthand(c) {
+                    if mdq && let ['\\', c, ..] = chars[idx..] {
+                        let mut after = idx + 2;
+                        if let Some((edges, mut inside)) = mdq_class::escape(c, &chars, &mut after, mode.icase)? {
                         let mut start = 0;
-                        let mut inside = c.is_ascii_uppercase();
                         for end in edges.iter().copied().chain([0x110000]) {
                             if inside && start < end {
                                 let lo = char::from_u32(start).unwrap_or('\u{e000}');
@@ -1233,8 +1229,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                             start = end;
                             inside = !inside;
                         }
-                        idx += 2;
+                        idx = after;
                         continue;
+                        }
                     }
                     if let Some(class) = bracket_shorthand(&chars[idx..]) {
                         parsed.requires_vm |= matches!(chars[idx + 1], 'S' | 'W' | 'D');
@@ -1615,7 +1612,7 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
                 ch == *expected
             }
         }
-        RxAtom::MdqShorthand(edges, invert) => (edges.partition_point(|&edge| edge <= ch as u32) % 2 == 1) ^ invert,
+        RxAtom::MdqClass(edges, invert) => (edges.partition_point(|&edge| edge <= ch as u32) % 2 == 1) ^ invert,
         RxAtom::Digit(inv) => ch.is_ascii_digit() ^ inv,
         RxAtom::Word(inv) => is_word_char(ch) ^ inv,
         RxAtom::Space(inv) => ch.is_ascii_whitespace() ^ inv,

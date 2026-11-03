@@ -3375,33 +3375,28 @@ fn cmd_rg(
     }
     let mut read_patterns_from_stdin = false;
     if !list_files_only {
+        let pattern_error = |message: String| BuiltinOutcome {
+            stdout: String::new(), stderr: if no_messages { String::new() } else { format!("rg: {message}\n") }, exit_code: 2,
+        };
         for pf in &pattern_files {
-            if pf == "-" {
+            let bytes = if pf == "-" {
                 read_patterns_from_stdin = true;
                 let mut bytes = Vec::new();
                 if let Err(e) = stdin.read_stdin(|chunk| { bytes.extend_from_slice(chunk); true }) {
-                    return BuiltinOutcome { stdout: String::new(), stderr: format!("rg: {e}\n"), exit_code: 2 };
+                    return pattern_error(e);
                 }
-                for line in bytes_to_stream_string(&bytes).lines() {
-                    if !line.is_empty() {
-                        patterns.push(line.to_string());
-                    }
-                }
+                bytes
             } else {
                 let resolved = resolve_posix_path(cwd, pf);
-                let Ok(bytes) = fs.read_file(&resolved) else {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("rg: ENOENT: no such file or directory, readFile '{resolved}'\n"),
-                        exit_code: if no_messages { 2 } else { 2 },
-                    };
-                };
-                for line in String::from_utf8_lossy(&bytes).lines() {
-                    if !line.is_empty() {
-                        patterns.push(line.to_string());
-                    }
+                match fs.read_file(&resolved) {
+                    Ok(bytes) => bytes,
+                    Err(e) => return pattern_error(search_fs_error(&e, "readFile", &resolved)),
                 }
-            }
+            };
+            let Ok(text) = std::str::from_utf8(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes)) else {
+                return pattern_error(format!("pattern file '{pf}' is not UTF-8"));
+            };
+            patterns.extend(text.split_terminator('\n').map(|line| line.strip_suffix('\r').unwrap_or(line).to_owned()));
         }
     }
     if !use_ignore_files {
@@ -7288,6 +7283,24 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn rg_pattern_files_and_stdin_use_strict_utf8_and_preserve_blank_patterns() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/rows", b"alpha\nbeta\n").unwrap();
+        for (bytes, output, code) in [
+            (b"".as_slice(), "", 1), (b"\n", "alpha\nbeta\n", 0),
+            (b"none\n\n", "alpha\nbeta\n", 0), ("\u{feff}alpha\r".as_bytes(), "alpha\n", 0),
+            (b"\xff", "", 2),
+        ] {
+            fs.write_file("/patterns", bytes).unwrap();
+            for file in ["/patterns", "-"] {
+                let r = shell.exec_with_stream(&format!("rg -f {file} /rows"), std::iter::once(Ok(bytes.to_vec()))).unwrap();
+                assert_eq!((r.exit_code, r.stdout.as_str()), (code, output), "{file}: {bytes:?}");
+                assert_eq!(r.stderr, if code == 2 { format!("rg: pattern file '{file}' is not UTF-8\n") } else { String::new() });
+            }
+        }
     }
 
     #[test]

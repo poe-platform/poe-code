@@ -12,7 +12,7 @@ use std::ops::ControlFlow;
 mod jq_index;
 mod jq_input;
 mod jq_json;
-mod xml;
+pub(super) mod xml;
 mod xpath;
 use xml::{Element as XmlElement, Node as XmlNode};
 mod jq_number;

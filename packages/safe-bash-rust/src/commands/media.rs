@@ -4825,8 +4825,9 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
             None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
         })?;
-        if id == "hls" {
-            return streaming_input::hls(&bytes, &resolve_posix_path(cwd,path), fs)
+        if matches!(id, "hls" | "dash") {
+            return streaming_input::read(id, &bytes, &resolve_posix_path(cwd,path), fs)
+                .map(|(kind, data, _)| (kind, data))
                 .map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1));
         }
         if id == "mpegts" {
@@ -13693,6 +13694,18 @@ mod media_unit_tests {
             let r = cmd_media_doc("ffprobe",&args,"","/",&fs);
             assert_eq!(r.stdout, "h264,6,4,67500,3\naac,33792,33\n");
         }
+    }
+
+    #[test]
+    fn ffmpeg_rejoins_dash_audio_and_video_representations() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i", "av.mp4", "-c", "copy", "streams/list.mpd"]);
+        assert_eq!(cmd_media_doc("ffmpeg", &args, "", "/", &fs).exit_code, 0);
+        let args = media_args(&["-i", "streams/list.mpd", "-c", "copy", "copy.mp4"]);
+        let result = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/copy.mp4").unwrap())), "4d95bb88547f6ec16bff0d20007f9b45a3357ff2f82c48ef58dc3cbccaa0d406");
     }
 
     #[test]

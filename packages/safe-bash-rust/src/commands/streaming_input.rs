@@ -18,13 +18,10 @@ fn attribute<'a>(mut text: &'a str, name: &str) -> Option<&'a str> {
     value
 }
 
-pub(super) fn hls(
-    bytes: &[u8],
-    path: &str,
-    fs: &dyn SafeBashFs,
-) -> Result<(&'static str, Vec<u8>), String> {
-    let limit = fs.max_input_bytes();
-    let text = String::from_utf8_lossy(bytes);
+#[path = "dash_input.rs"]
+mod dash;
+
+fn hls(text: &str, limit: usize) -> Result<(Vec<(Option<&str>, &str)>, f64), String> {
     let mut segments = Vec::new();
     let mut init = None;
     let mut seconds = 0.;
@@ -61,6 +58,17 @@ pub(super) fn hls(
     if segments.is_empty() || !seconds.is_finite() {
         return Err("Invalid or empty HLS media playlist".into());
     }
+    Ok((segments, seconds))
+}
+
+pub(super) fn read(
+    id: &str,
+    bytes: &[u8],
+    path: &str,
+    fs: &dyn SafeBashFs,
+) -> Result<(&'static str, Vec<u8>, f64), String> {
+    let text = String::from_utf8_lossy(bytes);
+    let limit = fs.max_input_bytes();
     let dir = dirname_posix_path(path);
     let mut remaining = limit.saturating_sub(bytes.len());
     let mut read = |uri: &str| -> Result<Vec<u8>, String> {
@@ -79,6 +87,38 @@ pub(super) fn hls(
             .ok_or("input byte limit exceeded")?;
         Ok(data)
     };
+    if id == "hls" {
+        let (segments, duration) = hls(&text, limit)?;
+        let (kind, data) = sequence(segments, &mut read, limit)?;
+        return Ok((kind, data, duration));
+    }
+    let (sequences, duration) = dash::parse(&text, limit)?;
+    let mut tracks = Vec::new();
+    for rep in sequences {
+        let (kind, data) = sequence(
+            rep.media
+                .iter()
+                .map(|uri| (rep.init.as_deref(), uri.as_str())),
+            &mut read,
+            limit,
+        )?;
+        tracks.push(MediaInput::Bytes(kind, data));
+    }
+    let (kind, data) = if tracks.len() == 1
+        && let Some(MediaInput::Bytes(kind, data)) = tracks.pop()
+    {
+        (kind, data)
+    } else {
+        ("mp4", mp4::mux::assemble_segments(&tracks, false, limit)?)
+    };
+    Ok((kind, data, duration))
+}
+
+fn sequence<'a>(
+    segments: impl IntoIterator<Item = (Option<&'a str>, &'a str)>,
+    mut read: impl FnMut(&str) -> Result<Vec<u8>, String>,
+    limit: usize,
+) -> Result<(&'static str, Vec<u8>), String> {
     let mut inputs = Vec::new();
     let mut active = None;
     for (init, uri) in segments {
@@ -109,5 +149,5 @@ pub(super) fn hls(
     {
         return Ok((id, data));
     }
-    Ok(("mp4", mp4::mux::join_segments(&inputs, limit)?))
+    Ok(("mp4", mp4::mux::assemble_segments(&inputs, true, limit)?))
 }

@@ -2,7 +2,7 @@ use super::JsonStrings;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
-pub(super) enum Node {
+pub(in crate::commands) enum Node {
     // The string uses the UTF-8 replacement character for an isolated leading low surrogate.
     Text(String, Option<u16>),
     Cdata(String),
@@ -11,7 +11,7 @@ pub(super) enum Node {
 }
 
 #[derive(Clone, Debug)]
-pub(super) struct Element {
+pub(in crate::commands) struct Element {
     pub tag: String,
     pub attrs: Vec<(String, String)>,
     pub children: Vec<Node>,
@@ -131,7 +131,7 @@ fn decode(mut s: &str, attr: bool, warnings: &mut Warnings<'_>) -> Result<String
 }
 
 #[derive(Default)]
-pub(super) struct Document {
+pub(in crate::commands) struct Document {
     pub nodes: Vec<Node>,
     pub encoding: Option<String>,
     pub standalone: Option<String>,
@@ -673,7 +673,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub(super) fn parse(
+pub(in crate::commands) fn parse(
     src: &str,
     expected_encoding: Option<&str>,
     warnings: Warnings<'_>,

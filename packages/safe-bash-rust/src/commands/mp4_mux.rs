@@ -1751,11 +1751,11 @@ impl<'a> Remux<'a> {
     }
 }
 
-pub(in super::super) fn join_segments(inputs: &[MediaInput], limit: usize) -> Result<Vec<u8>,String> {
+pub(in super::super) fn assemble_segments(inputs: &[MediaInput], concatenate: bool, limit: usize) -> Result<Vec<u8>,String> {
     let metadata = BTreeMap::new();
     let mut concat = DecodedConcat::new(false, false);
     concat.align_durations = false;
-    remux(inputs, Remux {concat:Some(&mut concat), ..Remux::passthrough(&metadata, limit)}, 0, &mut Vec::new())
+    remux(inputs, Remux {concat:concatenate.then_some(&mut concat), ..Remux::passthrough(&metadata, limit)}, 0, &mut Vec::new())
 }
 
 fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {

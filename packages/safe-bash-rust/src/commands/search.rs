@@ -1000,6 +1000,33 @@ impl RxParseError {
     fn at(offset: usize, message: &str) -> Self { Self { message: message.into(), offset: Some(offset) } }
 }
 
+fn mdq_escaped(c: char, chars: &[char], at: &mut usize) -> Result<char, RxParseError> {
+    Ok(match c {
+        'a' => '\x07', 'b' => '\x08', 'e' => '\x1b', 'f' => '\x0c',
+        'n' => '\n', 'r' => '\r', 't' => '\t', 'v' => '\x0b',
+        'x' | 'u' | 'U' => {
+            let offset = *at;
+            let braced = chars.get(*at) == Some(&'{');
+            if braced { *at += 1; }
+            let start = *at;
+            let width = match c { 'x' => 2, 'u' => 4, _ => 8 };
+            let mut value = 0u32;
+            while let Some(digit) = chars.get(*at).and_then(|c| c.to_digit(16)) {
+                if !braced && *at - start == width { break; }
+                value = value.saturating_mul(16).saturating_add(digit);
+                *at += 1;
+            }
+            if *at == start || if braced { chars.get(*at) != Some(&'}') } else { *at - start != width } {
+                return Err(RxParseError::at(offset, "Invalid hex escape"));
+            }
+            if braced { *at += 1; }
+            char::from_u32(value).ok_or_else(|| RxParseError::at(offset, "Invalid hex escape"))?
+        }
+        _ if c.is_ascii_alphabetic() => return Err(RxParseError::at(*at - 2, &format!("Invalid escape: \\{c}"))),
+        _ => c,
+    })
+}
+
 fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, RxParseError> {
     let jq = matches!(dialect, RxDialect::Jq(_));
     let mdq = matches!(dialect, RxDialect::Mdq);
@@ -1127,6 +1154,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         if jq && !closed[slot] { return Err("pattern references an undefined or open capture group".into()); }
                         RxAtom::Backref(slot)
                     }
+                    other if mdq && !matches!(other, 'p' | 'P') => RxAtom::Char(mdq_escaped(other, &chars, &mut idx)?),
                     other => RxAtom::Char(other),
                 }
             }
@@ -1148,7 +1176,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 }
                 parsed.cross_line |= negate;
                 let mut ranges = Vec::new();
-                let scalar = |idx: &mut usize| -> Result<char, String> {
+                let scalar = |idx: &mut usize| -> Result<char, RxParseError> {
                     let c = chars[*idx];
                     *idx += 1;
                     if c != '\\' { return Ok(c); }
@@ -1157,6 +1185,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         return if jq { Err("trailing backslash in regular expression".into()) } else { Ok('\\') };
                     };
                     *idx += 1;
+                    if mdq && !matches!(esc, 'p' | 'P') { return mdq_escaped(esc, &chars, idx); }
                     if esc == 'n' && !allow_newline { return Err("unsupported ERE '\\n' escape without --multiline (-U)".into()); }
                     Ok(match esc {
                         'n' => '\n', 'r' => '\r', 't' => '\t',

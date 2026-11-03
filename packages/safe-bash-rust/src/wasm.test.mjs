@@ -8774,3 +8774,21 @@ test("mdq distinguishes match start, search continuation and end-of-input anchor
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq decodes regex character escapes and pinpoints invalid escapes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["abc", "\\x61"], ["猫", "\\u732b"], ["😀", "[\\U0001F600]"], ["β", "[\\u{3b1}-\\x{3b3}]"],
+      ["\u0008", "[\\b]"], ["\u001b", "\\e"], ["a", "\\x"], ["a", "[\\u12]"],
+      ["a", "\\x{D800}"], ["a", "\\x{110000}"], ["a", "\\Q"], ["a", "[\\R]"],
+      ["a", "\\u{000000000000061}"], ["a", "\\x{zz}"],
+    ]) {
+      await fs.writeFile("/in", Buffer.from(input)); await rs.fs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: /" + pattern + "/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

@@ -8926,3 +8926,13 @@ test("mdq shares the input byte limit across file operands and stdin", async () 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq reports invalid Markdown before compiling the selector", async () => {
+  const bash = new RustWasmBash({files: {"/doc": "[^a]: one\n\n[^a]: two\n"}});
+  try {
+    for (const query of ["?", "P: /[/"]) {
+      const r = await bash.exec("mdq '" + query + "' /doc");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "", "Markdown parse error:\nfound multiple definitions for link/image/footnote: a\n\n"]);
+    }
+  } finally { bash.dispose(); }
+});

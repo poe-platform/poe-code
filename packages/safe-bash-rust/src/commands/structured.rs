@@ -29838,12 +29838,12 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if !files.is_empty() { md_input.push(b'\n'); }
     }
     let md_input = String::from_utf8(md_input).expect("all input sources validated");
+    let mut definitions = MdqDefinitions::default();
+    let children = match mdq_blocks::parse(&mut definitions, &md_input) { Ok(b) => b, Err(e) => return err_out(&e,1) };
     let stages = match parse_mdq_query(&selector_str) {
         Ok(stages) => stages,
         Err(error) => return error,
     };
-    let mut definitions = MdqDefinitions::default();
-    let children = match mdq_blocks::parse(&mut definitions, &md_input) { Ok(b) => b, Err(e) => return err_out(&e,1) };
     let defs = &definitions;
     let mut current = vec![MdqBlock { kind: "document".into(), children, ..MdqBlock::default() }];
     for stage in &stages {

@@ -4550,7 +4550,7 @@ fn cmd_media_doc(
 ) -> BuiltinOutcome {
     match cmd {
         "ffmpeg" => cmd_ffmpeg(args, stdin, cwd, fs),
-        "ffprobe" => cmd_ffprobe(args, stdin, cwd, fs),
+        "ffprobe" => cmd_ffprobe(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs),
         "soffice" | "libreoffice" => cmd_soffice(args, cwd, fs),
         "wkhtmltopdf" => wkhtmltopdf::wkhtmltopdf(args, stdin, cwd, fs, false),
         "pdfunite" => cmd_pdfunite(args, cwd, fs),
@@ -5218,7 +5218,7 @@ fn cmd_ffmpeg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     ok_out("")
 }
 
-fn cmd_ffprobe(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.is_empty() {
         return err_out(
             "Simple multimedia streams analyzer\nusage: ffprobe [OPTIONS] INPUT_FILE\n",
@@ -5379,7 +5379,12 @@ fn cmd_ffprobe(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
     let from_stdin = media_stdin(name);
     let (raw_bytes, path_str) = if from_stdin {
-        (crate::vfs::stream_string_to_bytes(stdin), "pipe:0".to_string())
+        let mut bytes = Vec::new();
+        if let Some(source) = stdin.file && let Err(error) = source.admit_bounded_read() {
+            return ffprobe_err(&error);
+        }
+        if let Err(error) = stdin.append_bytes(&mut bytes) { return ffprobe_err(&error); }
+        (bytes, "pipe:0".to_string())
     } else {
         let full = resolve_posix_path(cwd, name);
         if fs.is_dir(&full) {
@@ -13473,6 +13478,21 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffprobe_reads_stdin_only_for_a_pipe_operand() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for script in ["ffprobe -version >/dev/null", "ffprobe missing 2>/dev/null"] {
+            let result = shell.exec_with_stream(&format!("{script}; cat"), [Err("source failed".into())].into_iter()).unwrap();
+            assert_eq!((result.exit_code, result.stderr.as_str()), (1, "cat: source failed\n"), "{script}");
+        }
+        let result = shell.exec_with_stream("ffprobe -; cat", [Ok(b"invalid".to_vec())].into_iter()).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
+            (0, "", "ffprobe: -: Invalid data found when processing input or format AST not registered\n"));
+        shell.set_limits(crate::budget::ShellLimits { max_input_bytes: 5, ..Default::default() });
+        let error = shell.exec_with_stream("ffprobe -v quiet -", [Ok(b"abcdef".to_vec())].into_iter()).unwrap_err();
+        assert!(error.contains("maxInputBytes"), "{error}");
     }
 
     #[test]

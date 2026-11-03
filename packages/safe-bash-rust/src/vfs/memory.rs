@@ -885,7 +885,16 @@ impl SafeBashFs for MemoryVfs {
         let entry = if exclusive { Self::mutation_entry(&state, path)? } else {
             Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?
         };
-        if state.devices.entry(&entry).is_some_and(|name| !name.is_empty()) { return Ok(None); }
+        if let Some(name) = state.devices.entry(&entry).filter(|name| !name.is_empty()) {
+            if matches!(access, super::RedirectAccess::Read | super::RedirectAccess::ReadWrite)
+                && matches!(name, "zero" | "random" | "urandom")
+            {
+                return Ok(Some(std::rc::Rc::new(descriptor::DeviceInput {
+                    random: name != "zero", writable: access == super::RedirectAccess::ReadWrite,
+                })));
+            }
+            return Ok(None);
+        }
         if exclusive && (state.nodes.contains_key(&entry) || state.devices.entry(&entry).is_some()) {
             return Err("EEXIST: file already exists".into());
         }

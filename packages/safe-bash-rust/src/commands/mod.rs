@@ -74,6 +74,19 @@ impl FileCommandInput<'_> {
     pub(crate) fn materialize(&self, text: &mut String) -> Result<(), String> {
         let mut pos = self.position.get();
         if pos.stopped { text.clear(); return Ok(()); }
+        if self.handle.is_stream() {
+            let mut bytes = Vec::new();
+            self.read(text, usize::MAX, |chunk, _| {
+                bytes.extend_from_slice(chunk);
+                Ok((true, chunk.len()))
+            })?;
+            let mut pos = self.position.get();
+            pos.remaining = bytes.len();
+            pos.buffered = bytes.len();
+            self.position.set(pos);
+            *text = crate::vfs::bytes_to_stream_string(&bytes);
+            return Ok(());
+        }
         let revision = self.handle.revision();
         if revision.is_some() && revision == pos.revision { return Ok(()); }
         pos.consume(crate::vfs::stream_byte_len(text));
@@ -107,7 +120,15 @@ impl FileCommandInput<'_> {
                     let available = limit.saturating_sub(pos.pulled);
                     let size = maximum.min(65536).min(limit.max(1)).min(available.saturating_add(1));
                     self.budget.tick_fs_op()?;
-                    bytes = self.handle.read_at(pos.offset, size)?;
+                    bytes = self.handle.read_at(pos.offset, size).map_err(|error| {
+                        if self.handle.is_stream() {
+                            pos.stopped = true;
+                            if error.starts_with("EIO:") {
+                                return format!("EIO: input/output error, read '{}'", self.path);
+                            }
+                        }
+                        error
+                    })?;
                     start = 0;
                     pos.offset += bytes.len();
                     if bytes.len() > available {

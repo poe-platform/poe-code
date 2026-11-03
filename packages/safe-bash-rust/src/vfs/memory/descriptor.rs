@@ -27,6 +27,26 @@ impl crate::vfs::FileReadHandle for RetainedDirectory {
     }
 }
 
+#[derive(Debug)]
+pub(super) struct DeviceInput {
+    pub(super) random: bool,
+    pub(super) writable: bool,
+}
+
+impl crate::vfs::OpenRedirectFile for DeviceInput {
+    fn is_stream(&self) -> bool { true }
+
+    fn read_at(&self, _: usize, limit: usize) -> Result<Vec<u8>, String> {
+        let mut bytes = vec![0; limit.min(65536)];
+        if self.random { fill_random(&mut bytes)?; }
+        Ok(bytes)
+    }
+
+    fn write_at(&self, _: Option<usize>, _: &[u8]) -> Result<(), String> {
+        if self.writable { Ok(()) } else { Err("EBADF: bad file descriptor".into()) }
+    }
+}
+
 /// Keeps the inode and its bytes charged to the filesystem after its last name disappears.
 pub(crate) struct RetainedFile {
     pub(super) fs: MemoryVfs,

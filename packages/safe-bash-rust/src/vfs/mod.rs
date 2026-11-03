@@ -116,8 +116,10 @@ impl FsError {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RedirectAccess { Read, Truncate, Append, Exclusive, ReadWrite }
 
-/// An opened regular file. Its operations use the same object even if its name is replaced.
+/// An open descriptor. Its operations use the same object even if its name is replaced.
 pub trait OpenRedirectFile: std::fmt::Debug {
+    /// Stream reads cannot be repeated at an earlier offset.
+    fn is_stream(&self) -> bool { false }
     /// None means changes outside this shell cannot be tracked.
     fn revision(&self) -> Option<u64> { None }
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;

@@ -60,6 +60,27 @@ test("head and tail accept safe counts larger than Wasm memory", async () => {
   } finally { bash.dispose(); }
 });
 
+test("redirected devices read on demand and share the input quota across descriptor copies", async t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  const requests = [];
+  t.mock.method(globalThis.crypto, "getRandomValues", bytes => {
+    requests.push(bytes.length);
+    bytes.fill(requests.length);
+    return bytes;
+  });
+  const limits = { maxInputBytes: 4 };
+  try {
+    const unused = await bash.exec("echo ok </dev/random", { limits });
+    assert.deepEqual([unused.exitCode, unused.stdout, unused.stderr, requests], [0, "ok\n", "", []]);
+    const shared = await bash.exec("{ head -c1 <&3; head -c2 <&3; } 3</dev/urandom", { limits });
+    assert.deepEqual([shared.exitCode, [...shared.stdoutBytes], shared.stderr, requests], [0, [1, 2, 2], "", [1, 2]]);
+    const eof = await bash.exec("cat </dev/zero", { limits });
+    assert.deepEqual([eof.exitCode, [...eof.stdoutBytes], eof.stderr],
+      [1, [0, 0, 0, 0], "cat: EFBIG: file too large, read '/dev/zero'\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("tail starting at a record skips across device chunks and reads to EOF or a limit", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

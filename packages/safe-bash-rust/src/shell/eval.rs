@@ -84,6 +84,7 @@ impl PrefixBinding {
 pub enum FdTarget {
     Stdout,
     PipeStdout { peer_retired: bool },
+    SavedStdout { data: Rc<RefCell<String>>, pipe_peer_retired: Option<bool> },
     Stderr,
     File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>> },
     InputFile {
@@ -499,11 +500,27 @@ impl<'a> EvalState<'a> {
             Some(
                 FdTarget::Stdout
                     | FdTarget::PipeStdout { .. }
+                    | FdTarget::SavedStdout { .. }
                     | FdTarget::Stderr
                     | FdTarget::File { .. }
                     | FdTarget::InputFile { writable: true, .. }
             )
         )
+    }
+
+    // Redirecting fd 1 creates a new stdout for returned command results. Other
+    // descriptors still pointing at the old stdout must bypass that capture.
+    fn redirect_child_stdout(&mut self, target: FdTarget, saved: &mut Option<Rc<RefCell<String>>>) {
+        for (&fd, dest) in &mut self.fd_table {
+            if fd == 1 { continue; }
+            let pipe_peer_retired = match dest {
+                FdTarget::Stdout => None,
+                FdTarget::PipeStdout { peer_retired } => Some(*peer_retired),
+                _ => continue,
+            };
+            *dest = FdTarget::SavedStdout { data: saved.get_or_insert_with(Rc::default).clone(), pipe_peer_retired };
+        }
+        self.fd_table.insert(1, target);
     }
 
     fn enter_body_stdio(&mut self) -> (Option<FdTarget>, Option<FdTarget>) {
@@ -1404,6 +1421,7 @@ impl<'a> EvalState<'a> {
         self.retire_notified_jobs();
         let mut cur_stdin = String::new();
         let mut combined_stderr = String::new();
+        let mut saved_stdout = None;
         let mut stage_codes = Vec::with_capacity(pipe.commands.len());
 
         if !self.in_trap {
@@ -1477,7 +1495,7 @@ impl<'a> EvalState<'a> {
                                 .is_some_and(|w| matches!(w.as_str(), "true" | "false" | ":"))
                     )
                 });
-                sub.fd_table.insert(1, FdTarget::PipeStdout { peer_retired });
+                sub.redirect_child_stdout(FdTarget::PipeStdout { peer_retired }, &mut saved_stdout);
                 sub.env.insert("\0pipe_fd__1".to_string(), "1".to_string());
                 sub.in_pipeline_producer = true;
             }
@@ -1508,6 +1526,13 @@ impl<'a> EvalState<'a> {
         }
         self.in_condition = prev_cond;
 
+        if let Some(saved) = saved_stdout {
+            let mut data = saved.take();
+            let (out, err) = self.forwarded_output.get();
+            self.forwarded_output.set((out + stream_byte_len(&data), err));
+            data.push_str(&cur_stdin);
+            cur_stdin = data;
+        }
         self.set_pipestatus(&stage_codes);
 
         let mut final_code = if self.pipefail {
@@ -8385,7 +8410,7 @@ impl<'a> EvalState<'a> {
                             exit_code: 0,
                         });
                     }
-                    Some(FdTarget::PipeStdout { peer_retired }) => {
+                    Some(FdTarget::PipeStdout { peer_retired } | FdTarget::SavedStdout { pipe_peer_retired: Some(peer_retired), .. }) => {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
@@ -8440,7 +8465,7 @@ impl<'a> EvalState<'a> {
             if effective_timeout.is_some_and(|t| t > 0.0) {
                 match self.fd_table.get(&fd_num) {
                     Some(FdTarget::File { path, .. }) if !self.is_default_null(path) => {}
-                    Some(FdTarget::PipeStdout { peer_retired }) => {
+                    Some(FdTarget::PipeStdout { peer_retired } | FdTarget::SavedStdout { pipe_peer_retired: Some(peer_retired), .. }) => {
                         timed_out = !*peer_retired;
                     }
                     _ => {
@@ -9938,7 +9963,7 @@ impl<'a> EvalState<'a> {
                                     .get(&src_fd)
                                     .cloned()
                                     .unwrap_or(FdTarget::Closed);
-                                if matches!(inherited, FdTarget::PipeStdout { .. }) {
+                                if matches!(inherited, FdTarget::PipeStdout { .. } | FdTarget::SavedStdout { pipe_peer_retired: Some(_), .. }) {
                                     self.env.insert(format!("\0pipe_fd__{fd}"), "1".to_string());
                                 } else {
                                     self.env.remove(&format!("\0pipe_fd__{fd}"));
@@ -10121,6 +10146,11 @@ impl<'a> EvalState<'a> {
         match target {
             FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
+            FdTarget::SavedStdout { data: saved, .. } => {
+                if self.budget.add_output_bytes(stream_byte_len(data) - charged).is_ok() {
+                    saved.borrow_mut().push_str(data);
+                }
+            }
             FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if self.is_default_null(path) => {
                 // There is no filesystem write, but the command emitted these bytes.
                 let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
@@ -11876,7 +11906,8 @@ impl<'a> EvalState<'a> {
             "\0set_errexit".to_string(),
             if sub.errexit { "1" } else { "0" }.to_string(),
         );
-        sub.fd_table.insert(1, FdTarget::Stdout);
+        let mut saved_stdout = None;
+        sub.redirect_child_stdout(FdTarget::Stdout, &mut saved_stdout);
         let res = sub.eval_script_units(cmd_str, &mut sub_in);
         if !sub_in.is_empty() {
             self.in_fds.insert(0, Rc::new(sub_in.into()));
@@ -11908,6 +11939,11 @@ impl<'a> EvalState<'a> {
         }
         sub.run_exit_trap_if_needed(&mut out);
         sub.account_forwarded_output(&out.stdout, &out.stderr, sub.forwarded_output.take())?;
+        if let Some(saved) = saved_stdout {
+            let data = saved.take();
+            self.pending_forwarded.0 += stream_byte_len(&data);
+            self.pending_stdout.push_str(&data);
+        }
         if !out.stderr.is_empty() {
             let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
             let mut dummy = BuiltinOutcome {

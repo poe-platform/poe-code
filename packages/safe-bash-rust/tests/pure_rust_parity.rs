@@ -54,6 +54,27 @@ fn version_flags_follow_each_command_provider() {
 }
 
 #[test]
+fn saved_stdout_bypasses_pipeline_and_substitution_capture() {
+    for (script, expected, bytes) in [
+        ("exec 2>&1; printf a >&2 | tr a z", "a", 1),
+        ("exec 3>&1; { printf a >&3; printf b; } | tr ab yz | tr z q", "aq", 4),
+        ("shopt -s lastpipe; exec 2>&1; printf a >&2 | tr a z", "a", 1),
+        ("exec 3>&1; v=$(printf a >&3; printf b); printf '[%s]' \"$v\"", "a[b]", 5),
+        ("exec 2>&1; v=$(printf a >&2; printf b); printf '[%s]' \"$v\"", "a[b]", 5),
+    ] {
+        let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+        shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: bytes, ..Default::default() });
+        let result = shell.exec(script).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, expected, ""), "{script}");
+        if bytes > 1 {
+            let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: bytes - 1, ..Default::default() });
+            assert!(shell.exec(script).unwrap_err().contains("maxOutputBytes"), "{script}");
+        }
+    }
+}
+
+#[test]
 fn redirected_pipeline_writes_before_the_next_command() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     let result = shell.exec("(printf A | cat; cat output >&2; printf B) > output").unwrap();

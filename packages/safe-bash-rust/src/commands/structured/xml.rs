@@ -1,5 +1,20 @@
-use super::{HtmlElement, HtmlNode, JVal};
+use super::JVal;
 use std::collections::{HashMap, HashSet};
+
+#[derive(Clone, Debug)]
+pub(super) enum Node {
+    Text(String),
+    Cdata(String),
+    Markup(String),
+    Element(Element),
+}
+
+#[derive(Clone, Debug)]
+pub(super) struct Element {
+    pub tag: String,
+    pub attrs: Vec<(String, String)>,
+    pub children: Vec<Node>,
+}
 
 fn space(c: char) -> bool {
     matches!(c, ' ' | '\t' | '\n' | '\r')
@@ -103,7 +118,7 @@ fn decode(mut s: &str, attr: bool, warnings: &mut Warnings<'_>) -> Result<String
 
 #[derive(Default)]
 pub(super) struct Document {
-    pub nodes: Vec<HtmlNode>,
+    pub nodes: Vec<Node>,
     pub encoding: Option<String>,
     pub standalone: Option<String>,
 }
@@ -179,7 +194,7 @@ fn document(
 ) -> Result<Document, &'static str> {
     let size = s.len();
     let mut doc = Document::default();
-    let mut stack: Vec<HtmlElement> = Vec::new();
+    let mut stack: Vec<Element> = Vec::new();
     let mut has_root = false;
     const XML: &str = "http://www.w3.org/XML/1998/namespace";
     const XMLNS: &str = "http://www.w3.org/2000/xmlns/";
@@ -193,14 +208,14 @@ fn document(
                 return Err("malformed comment");
             }
             s = tail;
-            continue;
+            Node::Markup(format!("<!--{comment}-->"))
         } else if let Some(rest) = s.strip_prefix("<![CDATA[") {
             if stack.is_empty() {
                 return Err("CDATA outside root");
             }
             let (body, tail) = rest.split_once("]]>").ok_or("unterminated CDATA")?;
             s = tail;
-            HtmlNode::Text(body.into())
+            Node::Cdata(body.into())
         } else if s.starts_with("<!") {
             return Err("DTD and entity declarations are forbidden");
         } else if let Some(mut rest) = s.strip_prefix("<?") {
@@ -214,11 +229,19 @@ fn document(
                 }
                 (doc.encoding, doc.standalone) =
                     declaration(body, expected_encoding).ok_or("unsupported XML declaration")?;
-            } else if !body.is_empty() && !body.starts_with(space) {
+                s = tail;
+                continue;
+            }
+            if !body.is_empty() && !body.starts_with(space) {
                 return Err("invalid processing instruction");
             }
             s = tail;
-            continue;
+            let data = body.trim_start_matches(space);
+            Node::Markup(if data.is_empty() {
+                format!("<?{target}?>")
+            } else {
+                format!("<?{target} {data}?>")
+            })
         } else if let Some(mut rest) = s.strip_prefix("</") {
             let end = name(&mut rest)?;
             rest = rest.trim_start_matches(space);
@@ -235,7 +258,7 @@ fn document(
             let Some(el) = closed else {
                 continue;
             };
-            HtmlNode::Element(el)
+            Node::Element(el)
         } else if let Some(rest) = s.strip_prefix('<') {
             s = rest;
             let tag = name(&mut s)?;
@@ -315,7 +338,7 @@ fn document(
             if stack.len() >= 512 {
                 return Err("XML resource limit exceeded");
             }
-            let el = HtmlElement {
+            let el = Element {
                 tag: tag.into(),
                 attrs,
                 children: Vec::new(),
@@ -333,7 +356,7 @@ fn document(
                 }
             }
             if empty {
-                HtmlNode::Element(el)
+                Node::Element(el)
             } else {
                 stack.push(el);
                 continue;
@@ -344,16 +367,19 @@ fn document(
             if text.contains("]]>") {
                 return Err("CDATA terminator in text");
             }
-            if stack.is_empty() && !text.chars().all(space) {
-                return Err("text outside the root");
+            if stack.is_empty() {
+                if !text.chars().all(space) {
+                    return Err("text outside the root");
+                }
+                continue;
             }
             let decoded = decode(text, false, &mut warnings)?;
             if decoded.is_empty() {
                 continue;
             }
-            HtmlNode::Text(decoded)
+            Node::Text(decoded)
         };
-        if matches!(&node, HtmlNode::Element(_)) {
+        if matches!(&node, Node::Element(_)) {
             for prefix in declarations.drain(scope_starts.pop().unwrap()..) {
                 let bindings = namespaces.get_mut(prefix).unwrap();
                 bindings.pop();
@@ -375,17 +401,17 @@ fn document(
         repair(&mut warnings, "incomplete document")?;
         while let Some(el) = stack.pop() {
             if let Some(parent) = stack.last_mut() {
-                parent.children.push(HtmlNode::Element(el));
+                parent.children.push(Node::Element(el));
             } else {
-                doc.nodes.push(HtmlNode::Element(el));
+                doc.nodes.push(Node::Element(el));
             }
         }
     }
     Ok(doc)
 }
 
-pub(super) fn to_json(nodes: Vec<HtmlNode>, plus: bool) -> JVal {
-    fn element(el: HtmlElement, plus: bool) -> (String, JVal) {
+pub(super) fn to_json(nodes: Vec<Node>, plus: bool) -> JVal {
+    fn element(el: Element, plus: bool) -> (String, JVal) {
         let prefix = if plus { "+@" } else { "@" };
         let mut fields: Vec<_> = el
             .attrs
@@ -396,8 +422,9 @@ pub(super) fn to_json(nodes: Vec<HtmlNode>, plus: bool) -> JVal {
         let mut text = String::new();
         for child in el.children {
             match child {
-                HtmlNode::Text(s) => text.push_str(&s),
-                HtmlNode::Element(child) => {
+                Node::Text(s) | Node::Cdata(s) => text.push_str(&s),
+                Node::Markup(_) => {}
+                Node::Element(child) => {
                     let (key, value) = element(child, plus);
                     if let Some(&i) = children.get(&key) {
                         let old = &mut fields[i].1;
@@ -436,7 +463,7 @@ pub(super) fn to_json(nodes: Vec<HtmlNode>, plus: bool) -> JVal {
         nodes
             .into_iter()
             .filter_map(|n| match n {
-                HtmlNode::Element(el) => Some(element(el, plus)),
+                Node::Element(el) => Some(element(el, plus)),
                 _ => None,
             })
             .collect(),

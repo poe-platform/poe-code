@@ -13,6 +13,7 @@ mod jq_index;
 mod jq_input;
 mod jq_json;
 mod xml;
+use xml::{Element as XmlElement, Node as XmlNode};
 mod jq_number;
 mod jq_parser;
 mod mdq_blocks;
@@ -14787,7 +14788,7 @@ fn find_tag_close_gt(s: &str) -> Option<usize> {
 }
 
 fn apply_xml_transforms(
-    nodes: &mut Vec<HtmlNode>,
+    nodes: &mut Vec<XmlNode>,
     noblanks: bool,
     nocdata: bool,
     preserve_space: bool,
@@ -14796,14 +14797,14 @@ fn apply_xml_transforms(
         return;
     }
     if nocdata {
-        let mut merged: Vec<HtmlNode> = Vec::with_capacity(nodes.len());
+        let mut merged: Vec<XmlNode> = Vec::with_capacity(nodes.len());
         for node in nodes.drain(..) {
             match node {
-                HtmlNode::Text(t) => {
-                    if let Some(HtmlNode::Text(prev)) = merged.last_mut() {
+                XmlNode::Text(t) | XmlNode::Cdata(t) => {
+                    if let Some(XmlNode::Text(prev)) = merged.last_mut() {
                         prev.push_str(&t);
                     } else {
-                        merged.push(HtmlNode::Text(t));
+                        merged.push(XmlNode::Text(t));
                     }
                 }
                 other => merged.push(other),
@@ -14812,14 +14813,14 @@ fn apply_xml_transforms(
         *nodes = merged;
     }
     let total_len = nodes.len();
-    let mut kept: Vec<HtmlNode> = Vec::with_capacity(total_len);
+    let mut kept: Vec<XmlNode> = Vec::with_capacity(total_len);
     let mut mixed = false;
     for (idx, node) in nodes.drain(..).enumerate() {
         match node {
-            HtmlNode::Element(mut el) => {
+            XmlNode::Element(mut el) => {
                 let mut child_preserve = preserve_space;
                 for (k, v) in &el.attrs {
-                    if k == "xml:space" || k == "space" {
+                    if k == "xml:space" {
                         if v == "preserve" {
                             child_preserve = true;
                         } else if v == "default" {
@@ -14828,9 +14829,9 @@ fn apply_xml_transforms(
                     }
                 }
                 apply_xml_transforms(&mut el.children, noblanks, nocdata, child_preserve);
-                kept.push(HtmlNode::Element(el));
+                kept.push(XmlNode::Element(el));
             }
-            HtmlNode::Text(t) => {
+            XmlNode::Text(t) => {
                 let is_blank = t.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n'));
                 if noblanks
                     && !preserve_space
@@ -14841,8 +14842,9 @@ fn apply_xml_transforms(
                     continue;
                 }
                 mixed = true;
-                kept.push(HtmlNode::Text(t));
+                kept.push(XmlNode::Text(t));
             }
+            n => { mixed |= matches!(n,XmlNode::Cdata(_)); kept.push(n); }
         }
     }
     *nodes = kept;
@@ -14943,7 +14945,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         };
         let stderr: String = warnings.into_iter().map(|msg| format!("xmllint: {msg} (recovered)\n")).collect();
         let mut dom = doc.nodes;
-        apply_xml_transforms(&mut dom, noblanks, nocdata, false);
+        apply_xml_transforms(&mut dom, noblanks || (format_xml && !c14n && xpath.is_none()), nocdata, false);
 
         if noout && xpath.is_none() {
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
@@ -14960,13 +14962,11 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let in_scope = BTreeMap::new();
             let rendered_ns = BTreeMap::new();
             for n in &dom {
-                if let HtmlNode::Element(el) = n {
-                    out.push_str(&serialize_xml_c14n_with_scope(
-                        el,
-                        exc_c14n,
-                        &in_scope,
-                        &rendered_ns,
-                    ));
+                if !out.is_empty() { out.push('\n'); }
+                match n {
+                    XmlNode::Element(el) => out.push_str(&serialize_xml_c14n_with_scope(el, exc_c14n, &in_scope, &rendered_ns)),
+                    XmlNode::Markup(markup) => out.push_str(markup),
+                    _ => {}
                 }
             }
             out
@@ -14982,16 +14982,13 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             decl.push_str("?>\n");
             let mut out = decl;
             for n in &dom {
-                if let HtmlNode::Element(el) = n {
-                    out.push_str(&serialize_xml_pretty(
-                        el,
-                        format_xml,
-                        0,
-                        false,
-                        if eff_encoding.is_some() { xml::Escaping::Unicode } else { xml::Escaping::Ascii },
-                    ));
-                    out.push('\n');
+                match n {
+                    XmlNode::Element(el) => out.push_str(&serialize_xml_pretty(el, format_xml, 0, false,
+                        if eff_encoding.is_some() { xml::Escaping::Unicode } else { xml::Escaping::Ascii })),
+                    XmlNode::Markup(markup) => out.push_str(markup),
+                    _ => continue,
                 }
+                out.push('\n');
             }
             out
         };
@@ -15028,7 +15025,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 }
 
 fn serialize_xml_c14n_with_scope(
-    el: &HtmlElement,
+    el: &XmlElement,
     exclusive: bool,
     in_scope_ns: &BTreeMap<String, String>,
     rendered_ns: &BTreeMap<String, String>,
@@ -15093,10 +15090,11 @@ fn serialize_xml_c14n_with_scope(
     out.push('>');
     for c in &el.children {
         match c {
-            HtmlNode::Text(t) => {
+            XmlNode::Markup(m) => out.push_str(m),
+            XmlNode::Text(t) | XmlNode::Cdata(t) => {
                 out.push_str(&xml::Escaping::Canonical.escape(t, false));
             }
-            HtmlNode::Element(child_el) => {
+            XmlNode::Element(child_el) => {
                 out.push_str(&serialize_xml_c14n_with_scope(
                     child_el,
                     exclusive,
@@ -15113,7 +15111,7 @@ fn serialize_xml_c14n_with_scope(
 }
 
 fn serialize_xml_pretty(
-    el: &HtmlElement,
+    el: &XmlElement,
     format_xml: bool,
     indent: usize,
     inline_ctx: bool,
@@ -15145,51 +15143,21 @@ fn serialize_xml_pretty(
         return out;
     }
     out.push('>');
-    let mut preserve_space = false;
-    for (k, v) in &el.attrs {
-        if (k == "xml:space" || k == "space") && v == "preserve" {
-            preserve_space = true;
+    let mixed = inline_ctx || el.children.iter().any(|n| matches!(n,XmlNode::Text(_) | XmlNode::Cdata(_)));
+    let indent_children = format_xml && !mixed;
+    for c in &el.children {
+        if indent_children { out.push('\n'); }
+        match c {
+            XmlNode::Text(t) => out.push_str(&escaping.escape(t,false)),
+            XmlNode::Cdata(t) => { out.push_str("<![CDATA["); out.push_str(t); out.push_str("]]>"); }
+            XmlNode::Markup(m) => {
+                if indent_children { out.push_str(&"  ".repeat(indent + 1)); }
+                out.push_str(m);
+            }
+            XmlNode::Element(child) => out.push_str(&serialize_xml_pretty(child,format_xml,indent+1,mixed,escaping)),
         }
     }
-    let has_elem_child = el.children.iter().any(|c| matches!(c, HtmlNode::Element(_)));
-    let has_nonblank_text = el.children.iter().any(|c| match c {
-        HtmlNode::Text(t) => !t.chars().all(|ch| matches!(ch, ' ' | '\t' | '\r' | '\n')),
-        _ => false,
-    });
-    let mixed = preserve_space || (has_elem_child && has_nonblank_text);
-    if format_xml && !inline_ctx && !mixed && has_elem_child {
-        out.push('\n');
-        for c in &el.children {
-            if let HtmlNode::Element(child_el) = c {
-                out.push_str(&serialize_xml_pretty(
-                    child_el,
-                    true,
-                    indent + 1,
-                    false,
-                    escaping,
-                ));
-                out.push('\n');
-            }
-        }
-        out.push_str(&pad);
-    } else {
-        for c in &el.children {
-            match c {
-                HtmlNode::Text(t) => {
-                    out.push_str(&escaping.escape(t, false));
-                }
-                HtmlNode::Element(child_el) => {
-                    out.push_str(&serialize_xml_pretty(
-                        child_el,
-                        format_xml,
-                        indent + 1,
-                        true,
-                        escaping,
-                    ));
-                }
-            }
-        }
-    }
+    if indent_children { out.push('\n'); out.push_str(&pad); }
     out.push_str("</");
     out.push_str(&el.tag);
     out.push('>');
@@ -15198,9 +15166,10 @@ fn serialize_xml_pretty(
 
 #[derive(Clone, Debug)]
 enum XPathItem {
-    Node(Vec<HtmlElement>),
+    Node(Vec<XmlElement>),
     Attr(String, String),
     Text(String),
+    Cdata(String),
 }
 
 #[derive(Clone, Debug)]
@@ -15317,9 +15286,9 @@ impl XPathVal {
     }
 }
 
-fn collect_xml_namespaces(nodes: &[HtmlNode], ns_map: &mut BTreeMap<String, String>) {
+fn collect_xml_namespaces(nodes: &[XmlNode], ns_map: &mut BTreeMap<String, String>) {
     for n in nodes {
-        if let HtmlNode::Element(el) = n {
+        if let XmlNode::Element(el) = n {
             for (k, v) in &el.attrs {
                 if k == "xmlns" {
                     ns_map.insert(String::new(), v.clone());
@@ -15332,7 +15301,7 @@ fn collect_xml_namespaces(nodes: &[HtmlNode], ns_map: &mut BTreeMap<String, Stri
     }
 }
 
-fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
+fn eval_xmllint_xpath(dom: &[XmlNode], xp: &str) -> BuiltinOutcome {
     let mut ns_map = BTreeMap::new();
     ns_map.insert("xml".to_string(), "http://www.w3.org/XML/1998/namespace".to_string());
     collect_xml_namespaces(dom, &mut ns_map);
@@ -15353,6 +15322,7 @@ fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
                     }
                     XPathItem::Attr(k, v) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
                     XPathItem::Text(t) => out.push(xml::Escaping::Unicode.escape(t,false)),
+                    XPathItem::Cdata(t) => out.push(format!("<![CDATA[{t}]]>")),
                 }
             }
             ok_out(&format!("{}\n", out.join("\n")))
@@ -15364,12 +15334,12 @@ fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
 
 fn xpath_item_string_value(item: &XPathItem) -> String {
     match item {
-        XPathItem::Text(t) => t.clone(),
+        XPathItem::Text(t) | XPathItem::Cdata(t) => t.clone(),
         XPathItem::Attr(_, v) => v.clone(),
         XPathItem::Node(chain) => {
             let mut buf = String::new();
             if let Some(el) = chain.last() {
-                collect_html_text_concat(&el.children, &mut buf);
+                visit_xml_text(&el.children, true, &mut |s,_| buf.push_str(s));
             }
             buf
         }
@@ -15621,8 +15591,8 @@ fn compare_xpath_scalars(a: &str, op: &str, b: &str, force_num: bool) -> bool {
 }
 
 fn eval_xpath_expr(
-    dom: &[HtmlNode],
-    ctx_chain: Option<&[HtmlElement]>,
+    dom: &[XmlNode],
+    ctx_chain: Option<&[XmlElement]>,
     pos: usize,
     last: usize,
     ns_map: &BTreeMap<String, String>,
@@ -15682,7 +15652,7 @@ fn eval_xpath_expr(
                         let root_items: Vec<XPathItem> = dom
                             .iter()
                             .filter_map(|n| match n {
-                                HtmlNode::Element(el) => Some(XPathItem::Node(vec![el.clone()])),
+                                XmlNode::Element(el) => Some(XPathItem::Node(vec![el.clone()])),
                                 _ => None,
                             })
                             .collect();
@@ -15803,7 +15773,7 @@ fn eval_xpath_expr(
                         XPathVal::NodeSet(items) => items.first().and_then(|it| match it {
                             XPathItem::Node(c) => c.last().map(|e| e.tag.clone()),
                             XPathItem::Attr(k, _) => Some(k.clone()),
-                            XPathItem::Text(_) => None,
+                            XPathItem::Text(_) | XPathItem::Cdata(_) => None,
                         }),
                         _ => None,
                     }
@@ -15831,8 +15801,8 @@ fn eval_xpath_expr(
 }
 
 fn eval_xpath_union_ctx(
-    dom: &[HtmlNode],
-    ctx_chain: Option<&[HtmlElement]>,
+    dom: &[XmlNode],
+    ctx_chain: Option<&[XmlElement]>,
     ns_map: &BTreeMap<String, String>,
     expr: &str,
 ) -> Vec<XPathItem> {
@@ -15932,13 +15902,13 @@ fn parse_xpath_steps(path: &str) -> Vec<(bool, String)> {
 }
 
 fn collect_descendant_chains(
-    nodes: &[HtmlNode],
-    prefix: &[HtmlElement],
+    nodes: &[XmlNode],
+    prefix: &[XmlElement],
     tag_test: &str,
-    out: &mut Vec<Vec<HtmlElement>>,
+    out: &mut Vec<Vec<XmlElement>>,
 ) {
     for n in nodes {
-        if let HtmlNode::Element(el) = n {
+        if let XmlNode::Element(el) = n {
             let mut chain = prefix.to_vec();
             chain.push(el.clone());
             if tag_test == "*" || el.tag == tag_test {
@@ -15949,9 +15919,24 @@ fn collect_descendant_chains(
     }
 }
 
+fn visit_xml_text(nodes: &[XmlNode], descend: bool, visit: &mut impl FnMut(&str,bool)) {
+    for node in nodes {
+        match node {
+            XmlNode::Text(t) => visit(t,false),
+            XmlNode::Cdata(t) => visit(t,true),
+            XmlNode::Element(el) if descend => visit_xml_text(&el.children,true,visit),
+            _ => {}
+        }
+    }
+}
+
+fn push_xpath_text(nodes: &[XmlNode], descend: bool, items: &mut Vec<XPathItem>) {
+    visit_xml_text(nodes,descend,&mut |s,cdata| items.push(if cdata { XPathItem::Cdata(s.into()) } else { XPathItem::Text(s.into()) }));
+}
+
 fn eval_xpath_path_ctx(
-    dom: &[HtmlNode],
-    ctx_chain: Option<&[HtmlElement]>,
+    dom: &[XmlNode],
+    ctx_chain: Option<&[XmlElement]>,
     ns_map: &BTreeMap<String, String>,
     path: &str,
 ) -> Vec<XPathItem> {
@@ -15969,9 +15954,7 @@ fn eval_xpath_path_ctx(
         let (base_test, preds) = split_xpath_predicates(raw_seg);
         if step_idx == 0 && !is_relative {
             if *desc && base_test == "text()" {
-                let mut texts = Vec::new();
-                collect_html_text_nodes(dom, &mut texts);
-                current = texts.into_iter().map(XPathItem::Text).collect();
+                push_xpath_text(dom,true,&mut current);
             } else if *desc {
                 if let Some(attr_name) = base_test.strip_prefix('@') {
                     let mut chains = Vec::new();
@@ -15994,7 +15977,7 @@ fn eval_xpath_path_ctx(
             } else {
                 let mut chains = Vec::new();
                 for n in dom {
-                    if let HtmlNode::Element(el) = n
+                    if let XmlNode::Element(el) = n
                         && (base_test == "*" || el.tag == base_test)
                     {
                         chains.push(vec![el.clone()]);
@@ -16037,19 +16020,7 @@ fn eval_xpath_path_ctx(
                 if let XPathItem::Node(chain) = item
                     && let Some(el) = chain.last()
                 {
-                    if *desc {
-                        let mut texts = Vec::new();
-                        collect_html_text_nodes(&el.children, &mut texts);
-                        for t in texts {
-                            next_items.push(XPathItem::Text(t));
-                        }
-                    } else {
-                        for c in &el.children {
-                            if let HtmlNode::Text(t) = c {
-                                next_items.push(XPathItem::Text(t.clone()));
-                            }
-                        }
-                    }
+                    push_xpath_text(&el.children,*desc,&mut next_items);
                 }
             }
             current = next_items;
@@ -16064,7 +16035,7 @@ fn eval_xpath_path_ctx(
                     collect_descendant_chains(&el.children, chain, &base_test, &mut sub_chains);
                 } else {
                     for c in &el.children {
-                        if let HtmlNode::Element(child_el) = c
+                        if let XmlNode::Element(child_el) = c
                             && (base_test == "*" || child_el.tag == base_test)
                         {
                             let mut nc = chain.clone();
@@ -16127,11 +16098,11 @@ fn split_xpath_predicates(seg: &str) -> (String, Vec<String>) {
 }
 
 fn filter_xpath_chains(
-    dom: &[HtmlNode],
+    dom: &[XmlNode],
     ns_map: &BTreeMap<String, String>,
-    mut chains: Vec<Vec<HtmlElement>>,
+    mut chains: Vec<Vec<XmlElement>>,
     preds: &[String],
-) -> Vec<Vec<HtmlElement>> {
+) -> Vec<Vec<XmlElement>> {
     for pred in preds {
         let p = pred.trim();
         if p == "last()" {

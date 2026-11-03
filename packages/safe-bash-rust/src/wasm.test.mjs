@@ -9057,3 +9057,24 @@ test("xmllint writes the requested document encoding and keeps XPath and canonic
     assert.deepEqual(Buffer.from(await rs.fs.readFile("/result")), Buffer.from(await fs.readFile("/result")));
   } finally { rs.dispose(); }
 });
+
+test("xmllint preserves comments, processing instructions, and CDATA through serialization and XPath", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const xml of [
+      '<?before x?>\n<!--p-->\n<r/>\n<!--epilog-->\n<?after?>',
+      '<r>a<!-- c -->b<?pi    hi  ?>c<![CDATA[<é>]]></r>',
+      '<r><a/><!--c--><?pi data?><b/></r>', '<r><![CDATA[ ]]><a/> </r>', '<r><![CDATA[]]></r>',
+    ]) {
+      for (const store of [fs, rs.fs]) await store.writeFile("/xml", Buffer.from(xml));
+      for (const args of ["", "--format", "--c14n", "--nocdata", "--format --noblanks --nocdata",
+        "--xpath '//r'", "--xpath '//r/text()'", "--xpath 'string(/*)'", "--xpath 'count(//text())'"]) {
+        const cmd = "xmllint " + args + " /xml";
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + xml);
+      }
+    }
+  } finally { rs.dispose(); }
+});

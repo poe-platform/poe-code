@@ -8664,3 +8664,21 @@ test("mdq lookaround assertions preserve their captures without consuming their 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq Unicode regex shorthands agree inside classes and at word boundaries", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["猫", "^\\w+$"], ["١𑁦", "^[\\d]+$"], ["a1F", "^[\\h]+$"], ["xyz", "^\\H+$"],
+      ["\u200c\u0301\u203f", "^[\\w]+$"], ["x猫y", "\\B猫\\B"], ["𐐀!", "\\b𐐀\\b"],
+      ["β!", "\\<β\\>"], ["α\u00a0β", "α[\\s]β"], ["Ⅷ", "^\\D$"],
+      ["१२", "^[^\\D]+$"], ["g9", "^[\\Ha-f]+$"], ["猫", "^[^\\W]$"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq 'P: /" + pattern + "/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern + " on " + input);
+    }
+  } finally { rs.dispose(); }
+});

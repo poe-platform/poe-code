@@ -1,4 +1,5 @@
 mod expr_bre;
+mod mdq_classes;
 pub(super) use expr_bre::expr_match;
 use super::CommandInput;
 use crate::shell::builtins::BuiltinOutcome;
@@ -711,6 +712,8 @@ enum RxAtom {
     End,
     NewlineEnd { multiline: bool },
     WordBoundary(bool),
+    MdqBoundary(char),
+    MdqShorthand(&'static [u32], bool),
     WordStart,
     WordEnd,
 }
@@ -726,6 +729,12 @@ fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Opti
     let before_word = pos > 0 && is_word_char(hay[pos - 1].1);
     let after_word = pos < hay.len() && is_word_char(hay[pos].1);
     match atom {
+        RxAtom::MdqBoundary(kind) => {
+            let word = |&(_, c): &(usize, char)| mdq_classes::WORD.partition_point(|&edge| edge <= c as u32) % 2 == 1;
+            let before = pos.checked_sub(1).and_then(|i| hay.get(i)).is_some_and(word);
+            let after = hay.get(pos).is_some_and(word);
+            Some(match kind { 'b' => before != after, 'B' => before == after, '<' => !before && after, _ => before && !after })
+        }
         RxAtom::Begin => Some(pos == 0),
         RxAtom::LineBegin => Some(pos == 0 || hay[pos - 1].1 == '\n'),
         RxAtom::End => Some(pos == hay.len()),
@@ -911,6 +920,13 @@ pub(super) fn posix_class_ranges(name: &str) -> Option<&'static [(char, char)]> 
     })
 }
 
+fn mdq_shorthand(c: char) -> Option<&'static [u32]> {
+    Some(match c.to_ascii_lowercase() {
+        'w' => mdq_classes::WORD, 's' => mdq_classes::SPACE, 'd' => mdq_classes::DIGIT,
+        'h' => mdq_classes::HEX, _ => return None,
+    })
+}
+
 fn bracket_shorthand(chars: &[char]) -> Option<&'static [(char, char)]> {
     let ['\\', c, ..] = chars else { return None };
     Some(match c {
@@ -939,7 +955,7 @@ impl ParsedRegex {
         let index = self.groups.len();
         let width = rx_fixed_width(&branches);
         let nullable = branches.iter().any(|seq| seq.iter().all(|tok| tok.min == 0 || matches!(tok.atom,
-            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary(_)
+            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_)
             | RxAtom::WordStart | RxAtom::WordEnd | RxAtom::Group { nullable: true, .. })));
         self.groups.push(branches);
         RxAtom::Group { index, width, nullable, kind }
@@ -957,7 +973,8 @@ enum RxDialect<'a> { Auto, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'
 
 fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, String> {
     let jq = matches!(dialect, RxDialect::Jq(_));
-    let assertions = jq || matches!(dialect, RxDialect::Mdq);
+    let mdq = matches!(dialect, RxDialect::Mdq);
+    let assertions = jq || mdq;
     let rg = matches!(dialect, RxDialect::Rg { .. });
     let mut mode = match dialect {
         RxDialect::Rg { flags, .. } => flags,
@@ -1010,6 +1027,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                 let nc = chars[idx + 1];
                 idx += 2;
                 match nc {
+                    c @ ('d' | 'D' | 'w' | 'W' | 's' | 'S' | 'h' | 'H') if mdq => RxAtom::MdqShorthand(mdq_shorthand(c).unwrap(), c.is_ascii_uppercase()),
+                    c @ ('b' | 'B' | '<' | '>') if mdq => RxAtom::MdqBoundary(c),
                     'd' => RxAtom::Digit(false),
                     'D' => RxAtom::Digit(true),
                     'w' => RxAtom::Word(false),
@@ -1091,6 +1110,21 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         return Err("collating and equivalence classes are not supported".into());
                     }
                     if chars[idx..].starts_with(&['\\', 'n']) { parsed.cross_line = true; }
+                    if mdq && let ['\\', c, ..] = chars[idx..] && let Some(edges) = mdq_shorthand(c) {
+                        let mut start = 0;
+                        let mut inside = c.is_ascii_uppercase();
+                        for end in edges.iter().copied().chain([0x110000]) {
+                            if inside && start < end {
+                                let lo = char::from_u32(start).unwrap_or('\u{e000}');
+                                let hi = char::from_u32(end - 1).unwrap_or('\u{d7ff}');
+                                if lo <= hi { ranges.push((lo, hi)); }
+                            }
+                            start = end;
+                            inside = !inside;
+                        }
+                        idx += 2;
+                        continue;
+                    }
                     if let Some(class) = bracket_shorthand(&chars[idx..]) {
                         parsed.requires_vm |= matches!(chars[idx + 1], 'S' | 'W' | 'D');
                         parsed.cross_line |= matches!(chars[idx + 1], 's' | 'S' | 'W' | 'D');
@@ -1220,7 +1254,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
         };
 
-        parsed.requires_vm |= matches!(atom, RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
+        parsed.requires_vm |= matches!(atom, RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
         parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true, .. } | RxAtom::Space(_) | RxAtom::Word(true)
             | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
         let case = if !mode.icase { RxCase::Sensitive } else if rg { RxCase::Ascii } else { RxCase::Unicode };
@@ -1229,7 +1263,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         let mut lazy = false;
         if matches!(
             atom,
-            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
+            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
         ) {
             if rg && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) {
                 return Err("invalid ERE: assertion cannot be quantified".into());
@@ -1359,7 +1393,7 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
         for tok in seq {
             let n = match &tok.atom {
                 RxAtom::Backref(_) => return None,
-                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
+                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
                 | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
                 RxAtom::Group { width, .. } => (*width)?,
                 _ => 1,
@@ -1390,6 +1424,7 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
                 ch == *expected
             }
         }
+        RxAtom::MdqShorthand(edges, invert) => (edges.partition_point(|&edge| edge <= ch as u32) % 2 == 1) ^ invert,
         RxAtom::Digit(inv) => ch.is_ascii_digit() ^ inv,
         RxAtom::Word(inv) => is_word_char(ch) ^ inv,
         RxAtom::Space(inv) => ch.is_ascii_whitespace() ^ inv,
@@ -1411,7 +1446,7 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
         | RxAtom::LineBegin
         | RxAtom::NewlineEnd { .. }
         | RxAtom::End
-        | RxAtom::WordBoundary(_)
+        | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_)
         | RxAtom::WordStart
         | RxAtom::WordEnd => false,
     }

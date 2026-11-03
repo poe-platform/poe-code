@@ -171,11 +171,11 @@ impl<'a> Header<'a> {
         }
     }
 }
-struct Block<'a> {
-    dts: i64,
-    ticks: f64,
-    data: &'a [u8],
-    key: bool,
+pub(super) struct Block<'a> {
+    pub dts: i64,
+    pub ticks: f64,
+    pub data: &'a [u8],
+    pub key: bool,
 }
 struct Movie<'a> {
     headers: BTreeMap<u64, Header<'a>>,
@@ -296,15 +296,17 @@ impl<'a> Movie<'a> {
         Ok(())
     }
 }
-struct Track<'a> {
-    info: StreamInfo,
-    blocks: Vec<Block<'a>>,
+pub(super) struct Track<'a> {
+    pub sample_rate: Option<u32>,
+    pub private: &'a [u8],
+    pub info: StreamInfo,
+    pub blocks: Vec<Block<'a>>,
     wrap: bool,
     kind: &'static str,
     ordinal: usize,
 }
-impl Track<'_> {
-    fn packets(&self) -> impl Iterator<Item = Packet> + '_ {
+impl<'a> Track<'a> {
+    pub(super) fn packets(&self) -> impl Iterator<Item = (Packet, &'a [u8])> + '_ {
         let (mut pos, mut cursor) = (0, 0);
         self.blocks.iter().flat_map(move |b| {
             let mut dts = b.dts;
@@ -337,10 +339,21 @@ impl Track<'_> {
                 key: self.wrap || b.key,
             };
             pos += size;
-            gap.into_iter().chain(std::iter::once(p))
+            gap.into_iter()
+                .map(|p| (p, &[][..]))
+                .chain(std::iter::once((p, b.data)))
         })
     }
 }
+pub(in super::super) fn webm_header(bytes: &[u8]) -> bool {
+    elements(bytes, true)
+        .next()
+        .filter(|(k, _)| *k == 0x1a45dfa3)
+        .is_some_and(|(_, header)| {
+            elements(header, true).any(|(k, v)| k == 0x4282 && string(v) == "webm")
+        })
+}
+
 pub(in super::super) fn check_header(bytes: &[u8]) -> Result<(), &'static str> {
     if !bytes.starts_with(&[0x1a, 0x45, 0xdf, 0xa3]) {
         return Err("Invalid Matroska/WebM file: missing EBML header signature");
@@ -348,12 +361,12 @@ pub(in super::super) fn check_header(bytes: &[u8]) -> Result<(), &'static str> {
     Ok(())
 }
 
-pub(in super::super) fn report(
-    bytes: &[u8],
-    name: &str,
-    limit: usize,
-    opts: ProbeOptions<'_>,
-) -> Result<String, &'static str> {
+pub(super) struct Document<'a> {
+    pub tracks: Vec<Track<'a>>,
+    pub tags: Vec<(&'static str, String)>,
+    pub duration: f64,
+}
+pub(super) fn parse(bytes: &[u8], limit: usize) -> Result<Document<'_>, &'static str> {
     check_header(bytes)?;
     let mut movie = Movie {
         headers: BTreeMap::new(),
@@ -409,6 +422,17 @@ pub(in super::super) fn report(
                 b.data.len() < 2 || usize::from(super::u16_at(b.data, 0)) != b.data.len() - 2
             });
         let mut t = Track {
+            sample_rate: match codec {
+                Codec::Audio { rate, .. }
+                    if h.rate.is_some()
+                        || h.codec.contains("A_OPUS")
+                        || h.codec.contains("A_AAC") && h.private.len() >= 2 =>
+                {
+                    Some(rate)
+                }
+                _ => None,
+            },
+            private: h.private,
             info: StreamInfo {
                 codec,
                 profile,
@@ -432,7 +456,7 @@ pub(in super::super) fn report(
             ordinal: ordinals[k],
         };
         let (mut start, mut count, mut ticks, mut payload) = (0, 0, 0., 0);
-        for p in t.packets() {
+        for (p, _) in t.packets() {
             if count == 0 {
                 start = p.pts;
             }
@@ -465,14 +489,32 @@ pub(in super::super) fn report(
             }
         });
         if let Some(v) = value.filter(|v| !v.is_empty()) {
-            tags.push((key.into(), JVal::Str(v)));
+            tags.push((key, v));
         }
     }
+    Ok(Document {
+        tracks,
+        tags,
+        duration,
+    })
+}
+pub(in super::super) fn report(
+    bytes: &[u8],
+    name: &str,
+    limit: usize,
+    opts: ProbeOptions<'_>,
+) -> Result<String, &'static str> {
+    let Document {
+        tracks,
+        tags,
+        duration,
+        ..
+    } = parse(bytes, limit)?;
     let (select, counts) = (opts.select, opts.counts);
     media_probe::report(opts, |section| match section {
         "packet" | "frame" => Box::new(tracks.iter().enumerate().flat_map(move |(i, t)| {
             t.packets()
-                .map(move |p| t.info.codec.record(i, scale, p, section == "frame"))
+                .map(move |(p, _)| t.info.codec.record(i, t.info.scale, p, section == "frame"))
         })),
         "stream" => Box::new(
             tracks
@@ -487,7 +529,9 @@ pub(in super::super) fn report(
             ("matroska,webm", "Matroska / WebM"),
             tracks.len(),
             duration,
-            tags.clone(),
+            tags.iter()
+                .map(|(k, v)| ((*k).into(), JVal::Str(v.clone())))
+                .collect(),
         ))),
         _ => Box::new(std::iter::empty()),
     })

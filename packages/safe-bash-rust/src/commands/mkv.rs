@@ -71,7 +71,7 @@ pub(super) fn write(
     webm: bool,
     metadata: &BTreeMap<String, String>,
     audio: &Options,
-    source_tags: &[&[u8]],
+    source_tags: &[super::Original<'_>],
 ) -> Result<Vec<u8>> {
     let mut out = Ebml {
         bytes: Vec::new(),
@@ -87,6 +87,10 @@ pub(super) fn write(
         let (fourcc, entry) = atoms(t.stsd.get(8..).unwrap_or_default())
             .next()
             .unwrap_or((b"    ", &[]));
+        let original = match source_tags[i] {
+            super::Original::Matroska(t) => Some(t),
+            _ => None,
+        };
         let mut channels = 2;
         let mut timescale = t.scale;
         entries.group(0xae, |w| {
@@ -114,6 +118,7 @@ pub(super) fn write(
                 ("video", b"hvc1" | b"hev1") => b"V_MPEGH/ISO/HEVC",
                 ("video", _) => b"V_MPEG4/ISO/AVC",
                 ("audio", _) if audio.clear_samples => b"A_AAC",
+                ("audio", b"vorb") => b"A_VORBIS",
                 ("audio", b"Opus") => b"A_OPUS",
                 ("audio", b"fLaC") => b"A_FLAC",
                 ("audio", b".mp3") => b"A_MPEG/L3",
@@ -124,7 +129,17 @@ pub(super) fn write(
             };
             w.element(0x86, codec)?;
             let lang = [10, 5, 0].map(|shift| ((t.language >> shift) & 31) as u8 + 96);
-            w.element(0x22b59c, &lang)?;
+            w.element(
+                0x22b59c,
+                original.map_or(lang.as_slice(), |t| t.info.language.as_bytes()),
+            )?;
+            if !matches!(codec, b"A_AAC" | b"V_MPEG4/ISO/AVC")
+                && t.kind != "subtitle"
+                && let Some(o) = original
+                && !o.private.is_empty()
+            {
+                w.element(0x63a2, o.private)?;
+            }
             if t.kind == "video" {
                 if codec == b"V_MPEG4/ISO/AVC" {
                     let avcc = child(entry.get(78..).unwrap_or_default(), b"avcC");
@@ -148,16 +163,23 @@ pub(super) fn write(
                         (r, u32::from(c))
                     })
                     .unwrap_or_else(|| (u32_at(entry, 24) >> 16, u32::from(u16_at(entry, 16))));
-                let rate = audio.rate.unwrap_or(rate);
+                let rate = audio
+                    .rate
+                    .unwrap_or(original.map_or(rate, |t| t.sample_rate.unwrap_or(t.info.scale)));
                 channels = audio.channels.unwrap_or(ch);
                 if audio.clear_samples {
                     timescale = rate;
                 }
                 if codec == b"A_AAC" {
-                    let fallback = audio_specific_config(rate, channels, 2);
+                    let fallback = audio_specific_config(
+                        original.map_or(rate, |o| audio.rate.or(o.sample_rate).unwrap_or(44100)),
+                        channels,
+                        2,
+                    );
                     w.element(
                         0x63a2,
-                        if audio.clear_samples || !source_tags[i].is_empty() {
+                        if audio.clear_samples || matches!(source_tags[i], super::Original::Flv(_))
+                        {
                             &fallback
                         } else {
                             asc.unwrap_or(&fallback)
@@ -172,16 +194,16 @@ pub(super) fn write(
             }
             Ok(())
         })?;
-        let mut sample = |pts: f64, ticks: u32, data, key| -> Result<()> {
+        let mut sample = |pts: f64, ticks: f64, data, key| -> Result<()> {
             if blocks.len() >= audio.limit / size_of::<Block>() {
                 return Err("sample index exceeds memory budget");
             }
             let scale = f64::from(timescale.max(1));
             let ms = (pts / scale * 1000.).round() as u64;
-            duration = duration.max(((pts + f64::from(ticks)) / scale * 1000.).round() as u64);
+            duration = duration.max(((pts + ticks) / scale * 1000.).round() as u64);
             blocks.push(Block {
                 ms,
-                duration: ((f64::from(ticks) / scale * 1000.).round() as u64).max(1),
+                duration: ((ticks / scale * 1000.).round() as u64).max(1),
                 track: i,
                 key,
                 data,
@@ -189,15 +211,22 @@ pub(super) fn write(
             Ok(())
         };
         if t.kind == "audio" && audio.clear_samples {
-            sample(0., 1024, super::super::super::adts::silent(channels), true)?;
+            sample(0., 1024., super::super::super::adts::silent(channels), true)?;
+        } else if let Some(o) = original {
+            for b in o.blocks.iter().take(if t.kind == "video" {
+                t.samples.len()
+            } else {
+                o.blocks.len()
+            }) {
+                sample(b.dts as f64, b.ticks, b.data, b.key)?;
+            }
         } else {
             let mut dts = t.first_dts;
-            let mut source_ms =
-                super::super::flv_input::timestamps(source_tags[i], t.kind == "video");
+            let mut source_ms = source_tags[i].timestamps(t.kind == "video");
             for s in &t.samples {
                 sample(
-                    source_ms.next().map_or(dts as f64, f64::from) + s.cts as f64,
-                    s.duration,
+                    source_ms.next().map_or(dts as f64, |n| n as f64) + s.cts as f64,
+                    s.duration.into(),
                     s.data.as_ref(),
                     s.key,
                 )?;
@@ -285,4 +314,147 @@ pub(super) fn write(
         Ok(())
     })?;
     Ok(out.bytes)
+}
+
+pub(super) fn as_mp4(
+    movie: &super::super::mkv_input::Document<'_>,
+    limit: usize,
+) -> Result<Vec<u8>> {
+    use super::super::super::media_probe::Codec;
+    use super::{MATRIX, Sample, VideoCodec, audio_sample_entry, subtitle_entry, video_entry};
+    use std::borrow::Cow;
+
+    let mut remaining = limit;
+    let mut tracks = Vec::with_capacity(movie.tracks.len());
+    for t in &movie.tracks {
+        let info = &t.info;
+        remaining = remaining
+            .checked_sub(
+                info.count
+                    .saturating_mul(size_of::<Sample>())
+                    .saturating_add(size_of::<Track>()),
+            )
+            .ok_or("sample index exceeds memory budget")?;
+        let (kind, handler, name, stsd, width, height) = match info.codec {
+            Codec::Video { tag, width, height } => {
+                let (w, h) = (width.unwrap_or(320), height.unwrap_or(240));
+                let codec = if tag != b"avc1" {
+                    VideoCodec::Still(tag)
+                } else if t.private.len() >= 7 {
+                    VideoCodec::Config(t.private)
+                } else {
+                    VideoCodec::Avc(30)
+                };
+                (
+                    "video",
+                    *b"vide",
+                    b"VideoHandler".as_slice(),
+                    video_entry(w as usize, h as usize, codec)?,
+                    w,
+                    h,
+                )
+            }
+            Codec::Audio {
+                tag,
+                channels,
+                bits,
+                ..
+            } => {
+                let rate = t.sample_rate.unwrap_or(44100);
+                let fallback = audio_specific_config(rate, channels, 2);
+                (
+                    "audio",
+                    *b"soun",
+                    b"SoundHandler".as_slice(),
+                    audio_sample_entry(
+                        tag,
+                        rate,
+                        channels,
+                        bits,
+                        if t.private.is_empty() {
+                            &fallback
+                        } else {
+                            t.private
+                        },
+                    ),
+                    0,
+                    0,
+                )
+            }
+            Codec::Subtitle { .. } => (
+                "subtitle",
+                *b"sbtl",
+                b"SubtitleHandler".as_slice(),
+                subtitle_entry(),
+                0,
+                0,
+            ),
+        };
+        let language = info
+            .language
+            .to_lowercase()
+            .encode_utf16()
+            .chain(std::iter::repeat(u16::from(b'u')))
+            .take(3)
+            .fold(0, |n, c| (n << 5) | c.saturating_sub(96).clamp(1, 26));
+        let mut samples = Vec::with_capacity(info.count);
+        for (p, data) in t.packets() {
+            let data = if p.size > data.len() as u64 {
+                remaining = remaining
+                    .checked_sub(p.size as usize)
+                    .ok_or("sample index exceeds memory budget")?;
+                let mut v = Vec::with_capacity(p.size as usize);
+                v.extend_from_slice(&(data.len() as u16).to_be_bytes());
+                v.extend_from_slice(data);
+                Cow::Owned(v)
+            } else {
+                Cow::Borrowed(data)
+            };
+            samples.push(Sample {
+                data,
+                duration: p.ticks.round() as u32,
+                cts: 0,
+                key: p.key,
+                description: 1,
+            });
+        }
+        let ticks = if info.count == 0 {
+            info.ticks
+        } else {
+            info.sample_ticks
+        };
+        tracks.push(Track {
+            id: info.id as u32,
+            scale: info.scale,
+            media_ticks: ticks as u32,
+            movie_ticks: (ticks / f64::from(info.scale) * 1000.).round() as u32,
+            samples,
+            first_dts: info.start as u64,
+            fragment_sample_size: None,
+            stsd: stsd.into(),
+            edits: vec![],
+            kind,
+            handler,
+            name,
+            width,
+            height,
+            volume: if kind == "audio" { 256 } else { 0 },
+            enabled: true,
+            language,
+            matrix: MATRIX,
+        });
+    }
+    super::write(
+        &tracks,
+        1000,
+        b"isom\0\0\x02\0isomiso2avc1mp41",
+        &movie
+            .tags
+            .iter()
+            .map(|(k, v)| ((*k).into(), v.clone()))
+            .collect(),
+        &[],
+        false,
+        limit,
+    )
 }

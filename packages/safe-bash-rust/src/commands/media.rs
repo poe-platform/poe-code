@@ -4538,7 +4538,7 @@ impl MediaInput {
             Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
             Self::Bytes("image2",b)=>png_pixels::still_format(b).is_some(),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
+            Self::Images(_) | Self::Bytes("mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4880,7 +4880,8 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
         }
         let mut decoded=mp4::mux::DecodedConcat::new(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some()),!strip_audio && muxer==Some("wav"));
-        let mut remux=mp4::mux::Remux{composition,concat:concat.then_some(&mut decoded),rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+        let output_container=if muxer==Some("mkv") && matches!(format,Some("mkv"|"webm")) && mp4::mkv_input::webm_header(bytes) {"webm"}else{muxer.unwrap_or("")};
+        let mut remux=mp4::mux::Remux{composition,concat:concat.then_some(&mut decoded),rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:output_container,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
         // Cutting a graph first materializes its decoded frames as AVC. Let the
         // packet slicer handle keyframes, partial samples, and edit lists.
         let graph_movie;
@@ -4901,7 +4902,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             let limit=fs.max_input_bytes();
             let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
                 let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif"|"flv")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                     return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
                 let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13541,6 +13542,68 @@ mod media_unit_tests {
             let bytes = fs.read_file(&format!("/{dst}")).unwrap();
             assert_eq!(hex_enc(&sha256_bytes(&bytes)), expected, "{dst}");
         }
+    }
+
+    #[test]
+    fn ffmpeg_remuxes_matroska_input_tracks() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4"))
+            .unwrap();
+        let r = cmd_media_doc(
+            "ffmpeg",
+            &media_args(&["-i", "av.mp4", "-c", "copy", "clip.mkv"]),
+            "",
+            "/",
+            &fs,
+        );
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        for (flags, dst, digest) in [
+            (
+                "-c copy",
+                "out.mp4",
+                "efaa4493317d68546f95b58bbc17096a79f5c3e7905839d205fae6950e6cfcc6",
+            ),
+            (
+                "-c copy",
+                "out.flv",
+                "a5f66d489a0c2b1ac7ad2114e811076903836d46881d77bfccc44a8e8ea24416",
+            ),
+            (
+                "-c copy",
+                "out.y4m",
+                "eb4ebcc962ed654a081dd282c60dfd23a77f1c49fad8d1a2130843eac017a0f5",
+            ),
+            (
+                "-frames:v 1",
+                "out.mkv",
+                "8d12b9b981abe08b0e15909f66c13a7cce7e4323c04914269e63dde9f59f23ce",
+            ),
+        ] {
+            let args = format!("-i clip.mkv {flags} {dst}")
+                .split_whitespace()
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(
+                hex_enc(&sha256_bytes(&fs.read_file(&format!("/{dst}")).unwrap())),
+                digest,
+                "{dst}"
+            );
+        }
+    }
+
+    #[test]
+    fn matroska_subtitle_export_keeps_cue_text_and_gaps() {
+        let fs = MemoryVfs::new();
+        let text =
+            "1\n00:00:01,000 --> 00:00:01,750\nfirst\n\n2\n00:00:03,000 --> 00:00:03,500\nsecond\n";
+        fs.write_file("/a.srt", text.as_bytes()).unwrap();
+        for (src, dst) in [("a.srt", "s.mkv"), ("s.mkv", "out.srt")] {
+            let r = cmd_media_doc("ffmpeg", &media_args(&["-i", src, dst]), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        }
+        assert_eq!(fs.read_file("/out.srt").unwrap(), text.as_bytes());
     }
 
     #[test]

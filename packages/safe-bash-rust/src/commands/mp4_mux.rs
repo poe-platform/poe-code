@@ -1,4 +1,5 @@
 use super::super::adts::{Frames, Options, RATES};
+use super::Original;
 use super::{
     super::{
         InputTime, MediaInput, gif::Animation,
@@ -148,24 +149,59 @@ fn audio_specific_config(scale: u32, channels: u32, object: u8) -> [u8; 2] {
     asc.to_be_bytes()
 }
 fn audio_entry(scale: u32, channels: u32, object: u8) -> Vec<u8> {
+    audio_sample_entry(
+        b"mp4a",
+        scale,
+        channels,
+        16,
+        &audio_specific_config(scale, channels, object),
+    )
+}
+fn audio_sample_entry(tag: &[u8; 4], scale: u32, channels: u32, bits: u32, asc: &[u8]) -> Vec<u8> {
     let mut out = Vec::new();
     words(&mut out, &[0, 1]);
-    atom(&mut out, b"mp4a", |b| {
+    atom(&mut out, tag, |b| {
         words(
             b,
-            &[0, 1, 0, 0, (channels << 16) | 16, 0, scale.min(65535) << 16],
+            &[
+                0,
+                1,
+                0,
+                0,
+                (channels << 16) | bits,
+                0,
+                scale.min(65535) << 16,
+            ],
         );
+        if tag != b"mp4a" {
+            return;
+        }
+        let len = asc.len() as u8;
         atom(b, b"esds", |b| {
             words(b, &[0]);
-            b.extend_from_slice(&[3, 25, 0, 1, 0, 4, 17, 0x40, 0x15, 0, 0, 0]);
+            b.extend_from_slice(&[
+                3,
+                len.wrapping_add(23),
+                0,
+                1,
+                0,
+                4,
+                len.wrapping_add(15),
+                0x40,
+                0x15,
+                0,
+                0,
+                0,
+            ]);
             words(b, &[128000, 128000]);
-            b.extend_from_slice(&[5, 2]);
-            b.extend_from_slice(&audio_specific_config(scale, channels, object));
+            b.extend_from_slice(&[5, len]);
+            b.extend_from_slice(asc);
             b.extend_from_slice(&[6, 1, 2]);
         });
     });
     out
 }
+
 impl Track<'_> {
     fn trak(&self, b: &mut Vec<u8>, fragmented: bool, offsets: &mut usize) {
         let samples = if fragmented { &[][..] } else { &self.samples };
@@ -1066,6 +1102,20 @@ fn adts_track<'a>(
     })
 }
 
+fn subtitle_entry() -> Vec<u8> {
+    let mut stsd = Vec::new();
+    words(&mut stsd, &[0, 1]);
+    atom(&mut stsd, b"tx3g", |b| {
+        words(b, &[0, 1, 0]);
+        b.extend_from_slice(&[1, 255, 0, 0, 0, 255]); // justification and background color
+        words(b, &[0, 0, 0, 0x00010010, 0xffffffff]); // text box and default style
+        atom(b, b"ftab", |b| {
+            b.extend_from_slice(b"\0\x01\0\x01\x05Serif")
+        });
+    });
+    stsd
+}
+
 fn subtitle_track(
     text: &str,
     raw: bool,
@@ -1107,16 +1157,6 @@ fn subtitle_track(
     let ticks = ticks as u32;
     let movie_ticks =
         (f64::from(ticks.saturating_sub(skip)) * f64::from(movie_scale) / 1000.).round() as u32;
-    let mut stsd = Vec::new();
-    words(&mut stsd, &[0, 1]);
-    atom(&mut stsd, b"tx3g", |b| {
-        words(b, &[0, 1, 0]);
-        b.extend_from_slice(&[1, 255, 0, 0, 0, 255]); // justification and background color
-        words(b, &[0, 0, 0, 0x00010010, 0xffffffff]); // text box and default style
-        atom(b, b"ftab", |b| {
-            b.extend_from_slice(b"\0\x01\0\x01\x05Serif")
-        });
-    });
     Ok(Track {
         id: 1,
         samples,
@@ -1125,7 +1165,7 @@ fn subtitle_track(
         movie_ticks,
         first_dts,
         fragment_sample_size: None,
-        stsd: stsd.into(),
+        stsd: subtitle_entry().into(),
         edits: if skip > 0 {
             vec![[movie_ticks, skip, 65536]]
         } else {
@@ -1526,7 +1566,13 @@ impl Streams<'_> {
     }
     fn seconds(&self, i: usize) -> f64 {
         match self {
-            Self::Mp4(v) => v[i].0.duration as f64 / f64::from(v[i].0.scale),
+            Self::Mp4(v) => {
+                v[i].0
+                    .original
+                    .matroska()
+                    .map_or(v[i].0.duration as f64, |t| t.info.ticks)
+                    / f64::from(v[i].0.scale)
+            }
             Self::Aac { rate, count, .. } => *count as f64 * 1024. / f64::from(*rate),
             Self::Y4m(v) => v.seconds(),
             Self::Wave(w) => w.ticks as f64 / f64::from(w.wav.rate),
@@ -1709,10 +1755,15 @@ fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
     )
 }
 
+pub(super) struct InputBytes<'a> {
+    pub bytes: Cow<'a, [u8]>,
+    matroska: Option<super::mkv_input::Document<'a>>,
+}
+
 fn materialize<'a>(
     inputs: &'a [MediaInput],
     opts: &Remux<'_>,
-) -> Result<Vec<Cow<'a, [u8]>>, String> {
+) -> Result<Vec<InputBytes<'a>>, String> {
     let sliced =
         opts.composition.is_none() && (opts.start.is_some() || opts.end.is_some() || opts.shortest);
     let mut materialized = Vec::new();
@@ -1729,9 +1780,14 @@ fn materialize<'a>(
                 Some(b"sine" | b"anullsrc")
             );
         let mut bytes = Cow::Borrowed(input);
+        let mut matroska = None;
         if (seek.start.is_some()
             || seek.end().is_some()
-            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "flv" | "aac" | "image2" | "lavfi"))
+            || seek.loops > 0
+                && matches!(
+                    format,
+                    "mp4" | "mov" | "flv" | "mkv" | "webm" | "aac" | "image2" | "lavfi"
+                ))
             && !audio
             && !matches!(format, "wav" | "y4m" | "gif")
             && (!matches!(source, MediaInput::Bytes("image2", _)) || seek.loops > 0)
@@ -1742,6 +1798,11 @@ fn materialize<'a>(
                 seek.generation_end(opts.source_end),
                 opts.limit.saturating_sub(admitted),
             )?);
+        } else if matches!(format, "mkv" | "webm") {
+            let limit = opts.limit.saturating_sub(admitted);
+            let doc = super::mkv_input::parse(input, limit)?;
+            bytes = Cow::Owned(mkv::as_mp4(&doc, limit)?);
+            matroska = Some(doc);
         } else if format == "flv" {
             bytes = Cow::Owned(flv_as_mp4(input, opts.limit.saturating_sub(admitted))?);
         } else if sliced && let MediaInput::Images(seq) = source {
@@ -1778,7 +1839,7 @@ fn materialize<'a>(
         if admitted > opts.limit {
             return Err("input byte limit exceeded".into());
         }
-        materialized.push(bytes);
+        materialized.push(InputBytes { bytes, matroska });
     }
     Ok(materialized)
 }
@@ -1787,14 +1848,14 @@ type Source<'a> = (&'a [u8], &'a [u8], Streams<'a>);
 
 fn read_sources<'a>(
     inputs: &'a [MediaInput],
-    materialized: &'a [Cow<'_, [u8]>],
+    materialized: &'a [InputBytes<'a>],
     opts: &Remux<'_>,
 ) -> Result<Vec<Source<'a>>, String> {
     use super::atoms;
     let mut sources = Vec::new();
     let mut remaining=opts.limit;
     for (j, (source, data)) in inputs.iter().zip(materialized).enumerate() {
-        let format = if matches!(data, Cow::Owned(_)) {
+        let format = if matches!(data.bytes, Cow::Owned(_)) {
             "mp4"
         } else {
             match source {
@@ -1806,7 +1867,7 @@ fn read_sources<'a>(
             }
         };
         let seek = opts.input_times.get(j).copied().unwrap_or_default();
-        let input = data.as_ref();
+        let input = data.bytes.as_ref();
         if format=="gif" {
             sources.push((input,&[][..],Streams::Gif(Animation::read(input,seek,&mut remaining)?)));
             continue;
@@ -1929,7 +1990,15 @@ fn read_sources<'a>(
         {
             // FLV timestamps can have gaps even when every audio packet lasts 23 ms.
             let tags = super::flv_input::tag_bytes(bytes)?;
-            for track in &mut tracks { track.flv_tags = Some(tags); }
+            for track in &mut tracks {
+                track.original = Original::Flv(tags);
+            }
+        }
+        if let Some(doc) = &data.matroska {
+            for (track, original) in tracks.iter_mut().zip(&doc.tracks) {
+                track.original = Original::Matroska(original);
+                track.duration = original.info.ticks.round() as u64;
+            }
         }
         let boxes = atoms(moov).filter_map(|(k, v)| (k == b"trak").then_some(v));
         sources.push((
@@ -2420,6 +2489,7 @@ pub(in super::super) fn remux(
     if opts.format == "ffmetadata" {
         return super::ffmetadata(
             &inputs[..sources.len()],
+            &data,
             !opts.maps.is_empty(),
             opts.metadata,
             opts.limit,
@@ -2465,9 +2535,32 @@ pub(in super::super) fn remux(
                 Streams::Aac { rate, channels, .. } => (*rate, usize::from(*channels), 1.),
                 Streams::Mp4(t) => {
                     let (track, trak) = &t[i];
+                    if let Some(t) = track.original.matroska()
+                        && track.tag == b"sowt"
+                        && !audio.clear_samples
+                    {
+                        let (_, _, _, mut samples) = cut_packets(track, bytes.len(), range);
+                        if samples.next().is_some() {
+                            let packets = || cut_packets(track, bytes.len(), range).3;
+                            let size = packets().map(|s| s.size as usize).sum();
+                            let mut out = ffmpeg_wave::pcm_header(
+                                t.sample_rate.unwrap_or(track.scale),
+                                usize::from(track.channels()),
+                                size,
+                                opts.limit,
+                            )?;
+                            for s in packets() {
+                                out.extend_from_slice(&bytes[s.offset..s.offset + s.size as usize]);
+                            }
+                            return Ok(out);
+                        }
+                    }
                     let tk = child(trak, b"tkhd");
                     (
-                        track.audio_rate().unwrap_or(track.scale),
+                        track.original.matroska().map_or_else(
+                            || track.audio_rate().unwrap_or(track.scale),
+                            |t| t.sample_rate.unwrap_or(track.scale),
+                        ),
                         usize::from(track.channels()),
                         f64::from(u16_at(tk, if tk.first() == Some(&1) { 48 } else { 36 }) as i16)
                             / 256.,
@@ -2551,11 +2644,25 @@ pub(in super::super) fn remux(
         for (j, i) in selected {
             match &sources[j].2 {
                 Streams::Mp4(v) if v[i].0.kind == "subtitle" => {
+                    if let Some(track) = v[i].0.original.matroska()
+                        && range.is_none()
+                    {
+                        let scale = f64::from(track.info.scale);
+                        for b in &track.blocks {
+                            writer.cue(
+                                (b.dts as f64 / scale * 1000.).round() as i64,
+                                ((b.dts as f64 + b.ticks) / scale * 1000.).round() as i64,
+                                &String::from_utf8_lossy(b.data),
+                            )?;
+                        }
+                        break;
+                    }
                     v[i].0.write_subtitles(
                         sources[j].0,
                         &mut writer,
                         range,
-                        matches!(data[j], Cow::Owned(_)) || opts.concat.as_deref().is_some_and(|c| c.joined),
+                        matches!(data[j].bytes, Cow::Owned(_))
+                            || opts.concat.as_deref().is_some_and(|c| c.joined),
                     )?
                 }
                 Streams::Captions(text) => {
@@ -2826,12 +2933,21 @@ pub(in super::super) fn remux(
         {
             samples.truncate(n.max(1) as usize);
         }
-        let mut ticks = samples.iter().map(|s| u64::from(s.duration)).sum::<u64>();
-        if !sliced && samples.is_empty() {
-            ticks = t.duration
-        }
+        let ticks = if !sliced && samples.is_empty() {
+            t.original
+                .matroska()
+                .map_or(t.duration as f64, |m| m.info.ticks)
+        } else if let Some(m) = t.original.matroska() {
+            m.packets()
+                .skip(first)
+                .take(samples.len())
+                .map(|(p, _)| p.ticks.min(end.saturating_sub(p.dts as u64) as f64))
+                .sum()
+        } else {
+            samples.iter().map(|s| f64::from(s.duration)).sum()
+        };
         let movie_ticks = if edits.is_empty() {
-            (ticks as f64 * f64::from(scale) / f64::from(t.scale)).round() as u32
+            (ticks * f64::from(scale) / f64::from(t.scale)).round() as u32
         } else {
             edits.iter().map(|r| u64::from(r[0])).sum::<u64>() as u32
         };
@@ -3154,12 +3270,13 @@ pub(in super::super) fn remux(
         } else {
             presentation_duration(sources, &selected, scale, range)
         };
-        let mut source_tags=vec![&[][..];tracks.len()];
+        let mut source_tags = vec![Original::None; tracks.len()];
         if range.is_none() && opts.concat.is_none() && opts.composition.is_none() && loops == 0 {
             for (tags,&(j,i)) in source_tags.iter_mut().zip(&selected) {
                 if sources[j].2.kind(i)=="video" && !opts.video_filters.is_empty() {continue;}
-                if let Streams::Mp4(tracks)=&sources[j].2
-                    && let Some(original)=tracks[i].0.flv_tags { *tags=original; }
+                if let Streams::Mp4(tracks)=&sources[j].2 {
+                    *tags=tracks[i].0.original;
+                }
             }
         }
         if opts.format=="flv" {
@@ -3167,7 +3284,7 @@ pub(in super::super) fn remux(
             if selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
                 return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
             }
-            let tags=["video","audio"].map(|kind|tracks.iter().position(|t|t.kind==kind).map_or(&[][..],|i|source_tags[i]));
+            let tags=["video","audio"].map(|kind|tracks.iter().position(|t|t.kind==kind).map_or(Original::None,|i|source_tags[i]));
             return flv::write(&tracks,duration,&audio,tags).map_err(str::to_owned);
         }
         return mkv::write(&tracks,duration,opts.format=="webm",&metadata,&audio,&source_tags).map_err(str::to_owned);

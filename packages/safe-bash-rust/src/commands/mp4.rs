@@ -385,6 +385,29 @@ fn audio_config(asc: &[u8]) -> (u8, u32, u8) {
     (object, rate, channels)
 }
 
+#[derive(Clone, Copy, Default)]
+enum Original<'a> {
+    #[default]
+    None,
+    Flv(&'a [u8]),
+    Matroska(&'a mkv_input::Track<'a>),
+}
+impl<'a> Original<'a> {
+    fn matroska(self) -> Option<&'a mkv_input::Track<'a>> {
+        match self {
+            Self::Matroska(track) => Some(track),
+            _ => None,
+        }
+    }
+    fn timestamps(&self, video: bool) -> Box<dyn Iterator<Item = u64> + '_> {
+        match self {
+            Self::None => Box::new(std::iter::empty()),
+            Self::Flv(tags) => Box::new(flv_input::timestamps(tags, video).map(u64::from)),
+            Self::Matroska(t) => Box::new(t.blocks.iter().map(|b| b.dts as u64)),
+        }
+    }
+}
+
 struct Track<'a> {
     index: usize,
     id: u32,
@@ -406,7 +429,7 @@ struct Track<'a> {
     stats: Stats,
     runs: Vec<Run<'a>>,
     tables: Tables<'a>,
-    flv_tags: Option<&'a [u8]>,
+    original: Original<'a>,
 }
 fn header_time(b: &[u8], fallback: u32) -> (u32, u64) {
     if b.len() < 20 {
@@ -686,15 +709,17 @@ impl<'a> Track<'a> {
             stats,
             runs,
             tables,
-            flv_tags: None,
+            original: Original::None,
         })
     }
     fn time(&self, ticks: f64) -> String {
         format!("{:.6}", ticks / f64::from(self.scale))
     }
     fn samples(&self, input_size: usize) -> impl Iterator<Item = Sample> + '_ {
-        let mut timestamps = self.flv_tags.map(|tags| flv_input::timestamps(tags, self.kind == "video"));
+        let mut timestamps = match self.original {Original::Flv(tags)=>Some(flv_input::timestamps(tags, self.kind=="video")), _=>None};
+        let mut blocks=self.original.matroska().map(|t|t.packets());
         self.tables.samples(input_size).map(move |mut s| {
+            if let Some((p,_))=blocks.as_mut().and_then(Iterator::next) {s.dts=p.dts as u64;s.pts=p.pts.into();s.key=p.key;}
             if let Some(dts) = timestamps.as_mut().and_then(Iterator::next) {
                 s.pts += i128::from(dts) - i128::from(s.dts);
                 s.dts = dts.into();
@@ -1296,8 +1321,9 @@ pub(super) fn media_doc(input: &[u8]) -> Option<super::MediaDoc> {
     Some(doc)
 }
 
-pub(super) fn ffmetadata(
+fn ffmetadata(
     inputs: &[super::MediaInput],
+    materialized: &[mux::InputBytes<'_>],
     mapped: bool,
     overrides: &std::collections::BTreeMap<String, String>,
     limit: usize,
@@ -1307,7 +1333,8 @@ pub(super) fn ffmetadata(
     let mut chapter_text = String::new();
     for (i,source) in inputs.iter().enumerate(){
         let input=match source{
-            super::MediaInput::Bytes("mp4"|"mov",b)=>b,
+            super::MediaInput::Bytes("mp4"|"mov",b)=>b.as_slice(),
+            super::MediaInput::Bytes("mkv"|"webm",_)=>materialized[i].bytes.as_ref(),
             super::MediaInput::Bytes("y4m",b)=>{super::y4m::Stream::parse(b)?;continue;}
             super::MediaInput::Bytes("wav",b)=>{super::ffmpeg_wave::Wave::read(b)?;continue;}
             super::MediaInput::Bytes("lavfi",_) | super::MediaInput::Images(_)=>{

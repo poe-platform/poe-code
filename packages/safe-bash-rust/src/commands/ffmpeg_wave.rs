@@ -316,14 +316,28 @@ pub(super) fn pcm16(
     frames: usize,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
+    let size = frames
+        .checked_mul(out_ch)
+        .and_then(|n| n.checked_mul(2))
+        .ok_or("audio output exceeds memory budget")?;
+    let mut out = pcm_header(target_rate, out_ch, size, limit)?;
+    out.resize(44 + size, 0);
+    Ok(out)
+}
+
+pub(super) fn pcm_header(
+    target_rate: u32,
+    out_ch: usize,
+    size: usize,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
     let align = out_ch
         .checked_mul(2)
         .filter(|&a| a > 0 && a <= u16::MAX.into())
         .ok_or("invalid audio channel count")?;
-    let size = frames
-        .checked_mul(align)
-        .filter(|&s| s <= limit.saturating_sub(44) && s <= u32::MAX as usize - 36)
-        .ok_or("audio output exceeds memory budget")?;
+    if limit < 44 || size > limit - 44 || size > u32::MAX as usize - 36 {
+        return Err("audio output exceeds memory budget".into());
+    }
     let byte_rate = target_rate
         .checked_mul(align as u32)
         .ok_or("invalid audio sample rate")?;
@@ -337,6 +351,5 @@ pub(super) fn pcm16(
     out.extend_from_slice(&(align as u16).to_le_bytes());
     out.extend_from_slice(b"\x10\0data");
     out.extend_from_slice(&(size as u32).to_le_bytes());
-    out.resize(44 + size, 0);
     Ok(out)
 }

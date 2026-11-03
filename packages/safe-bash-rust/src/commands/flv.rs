@@ -5,7 +5,7 @@ pub(super) fn write(
     tracks: &[Track<'_>],
     duration: f64,
     options: &super::Options,
-    source_tags: [&[u8]; 2],
+    source_tags: [super::Original<'_>; 2],
 ) -> Result<Vec<u8>, &'static str> {
     let limit = options.limit;
     let video = tracks.iter().find(|t| t.kind == "video");
@@ -47,13 +47,13 @@ pub(super) fn write(
         };
         tag(9, 0, &[0x17, 0, 0, 0, 0], config)?;
         let mut dts = t.first_dts;
-        let mut source_ms = super::super::flv_input::timestamps(source_tags[0], true);
+        let mut source_ms = source_tags[0].timestamps(true);
         for s in &t.samples {
             let offset = (s.cts as f64 / f64::from(t.scale) * 1000. + 0.5).floor() as i64;
             let [_, a, b, c] = (offset as i32).to_be_bytes();
             tag(
                 9,
-                source_ms.next().unwrap_or_else(|| ms(dts, t.scale)),
+                ms(source_ms.next().unwrap_or(dts), t.scale),
                 &[if s.key { 0x17 } else { 0x27 }, 1, a, b, c],
                 &s.data,
             )?;
@@ -88,9 +88,13 @@ pub(super) fn write(
         let channels = options.channels.unwrap_or(channels);
         let fallback = audio_specific_config(options.rate.unwrap_or(rate), channels, 2);
         // An FLV input describes its audio rate and channel count but has no ES descriptor.
-        let config = if source_tags[1].is_empty() {
-            decoder_config(child(entry.get(offset..).unwrap_or_default(), b"esds")).1.unwrap_or(&fallback)
-        } else { &fallback };
+        let config = if !matches!(source_tags[1], super::Original::Flv(_)) {
+            decoder_config(child(entry.get(offset..).unwrap_or_default(), b"esds"))
+                .1
+                .unwrap_or(&fallback)
+        } else {
+            &fallback
+        };
         tag(8, 0, &[0xaf, 0], config)?;
         if options.clear_samples || t.samples.is_empty() {
             tag(
@@ -101,11 +105,11 @@ pub(super) fn write(
             )?;
         } else {
             let mut dts = t.first_dts;
-            let mut source_ms = super::super::flv_input::timestamps(source_tags[1], false);
+            let mut source_ms = source_tags[1].timestamps(false);
             for s in &t.samples {
                 tag(
                     8,
-                    source_ms.next().unwrap_or_else(|| ms(dts, t.scale)),
+                    ms(source_ms.next().unwrap_or(dts), t.scale),
                     &[0xaf, 1],
                     &s.data,
                 )?;

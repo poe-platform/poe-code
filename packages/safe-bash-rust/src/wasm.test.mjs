@@ -8982,6 +8982,9 @@ test("XML commands share strict parsing and preserve their own JSON mapping", as
       '<r a="1" A="2"><?pi > text?>after<t/><t/></r>',
       '\ufeff<r a="one\r\ntwo\tthree&#9;">a\rb<![CDATA[&]]><!--skip--></r>',
       '<r a="1" a="2"/>', '<r a=b/>', '<r a/>', '<r a="1"b="2"/>', '<r a="<"/>',
+      ' <not:bound/>', '<r p:k="1"/>', '<r a:x="1" b:x="2" xmlns:a="u" xmlns:b="u"/>',
+      '<r xmlns:xml="wrong"/>', '<r xmlns:p="1"><t xmlns:p="2"><p:t/></t><p:t/></r>',
+      '<r><e xmlns:p="u"/><p:t/></r>',
       '<r>&nbsp;</r>', '<r>&#xD800;</r>', '<r a="&#00000000000000065;"/>', '<r / >', '<r /x>',
     ]) {
       for (const store of [fs, rs.fs]) await store.writeFile("/xml", Buffer.from(xml));

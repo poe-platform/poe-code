@@ -104,6 +104,11 @@ fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
     let mut roots = Vec::new();
     let mut stack: Vec<HtmlElement> = Vec::new();
     let mut has_root = false;
+    const XML: &str = "http://www.w3.org/XML/1998/namespace";
+    const XMLNS: &str = "http://www.w3.org/2000/xmlns/";
+    let mut namespaces = HashMap::from([("xml", vec![XML.to_owned()])]);
+    let mut declarations = Vec::new();
+    let mut scope_starts = Vec::new();
     while !s.is_empty() {
         let node = if let Some(rest) = s.strip_prefix("<!--") {
             let (comment, tail) = rest.split_once("-->").ok_or("malformed comment")?;
@@ -147,6 +152,7 @@ fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
             let tag = name(&mut s)?;
             let mut attrs = Vec::new();
             let mut names = HashSet::new();
+            scope_starts.push(declarations.len());
             loop {
                 let rest = s.trim_start_matches(space);
                 if rest.starts_with(['/', '>']) {
@@ -175,8 +181,40 @@ fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
                 if value.contains('<') {
                     return Err("less-than in attribute");
                 }
-                attrs.push((key.into(), decode(value, true)?));
+                let value = decode(value, true)?;
+                if key == "xmlns" || key.starts_with("xmlns:") {
+                    let prefix = key.strip_prefix("xmlns:").unwrap_or("");
+                    if prefix == "xmlns"
+                        || value == XMLNS
+                        || (prefix == "xml") != (value == XML)
+                        || (!prefix.is_empty() && value.is_empty())
+                    {
+                        return Err("invalid namespace binding");
+                    }
+                    namespaces.entry(prefix).or_default().push(value.clone());
+                    declarations.push(prefix);
+                }
+                attrs.push((key.to_owned(), value));
                 s = tail;
+            }
+            let mut expanded = HashSet::new();
+            for (key, _) in &attrs {
+                if let Some((prefix, local)) = key.split_once(':')
+                    && prefix != "xmlns"
+                {
+                    let uri = namespaces
+                        .get(prefix)
+                        .and_then(|bindings| bindings.last())
+                        .ok_or("unbound attribute prefix")?;
+                    if !expanded.insert((uri.as_str(), local)) {
+                        return Err("duplicate expanded attribute");
+                    }
+                }
+            }
+            if let Some((prefix, _)) = tag.split_once(':')
+                && !namespaces.contains_key(prefix)
+            {
+                return Err("unbound element prefix");
             }
             if stack.is_empty() {
                 if has_root {
@@ -212,6 +250,15 @@ fn document(mut s: &str) -> Result<Vec<HtmlNode>, &'static str> {
             }
             HtmlNode::Text(decode(text, false)?)
         };
+        if matches!(&node, HtmlNode::Element(_)) {
+            for prefix in declarations.drain(scope_starts.pop().unwrap()..) {
+                let bindings = namespaces.get_mut(prefix).unwrap();
+                bindings.pop();
+                if bindings.is_empty() {
+                    namespaces.remove(prefix);
+                }
+            }
+        }
         if let Some(parent) = stack.last_mut() {
             parent.children.push(node);
         } else {

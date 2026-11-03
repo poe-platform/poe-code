@@ -16,7 +16,7 @@ const operators = [
 async function fixture(width = 53, height = 37) {
     return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => Math.floor(i / 4) % width < width / 2 ? (i % 4 === 3 ? 255 : 0) : (i % 4 === 3 ? 128 : 200)), { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
-it.each(["buffered", "retained"])("draw color floodfill preserves enclosed white detail (%s)", async mode => {
+it.each(["buffered", "retained"].flatMap(mode => ["color", "alpha"].map(primitive => ({ mode, primitive }))))("draw $primitive floodfill preserves enclosed white detail ($mode)", async ({ mode, primitive }) => {
     const pixels = new Uint8Array(7 * 7 * 4).fill(255);
     for (let y = 2; y <= 4; y++) for (let x = 2; x <= 4; x++) {
         if (x === 3 && y === 3) continue;
@@ -25,11 +25,12 @@ it.each(["buffered", "retained"])("draw color floodfill preserves enclosed white
     const bytes = await sharp(pixels, { raw: { width: 7, height: 7, channels: 4 } }).png().toBuffer();
     const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
     await fs.writeFile("/input.png", bytes);
-    const result = await runConvertCli(["input.png", "-alpha", "set", "-fill", "none", "-draw", "color 0,0 floodfill", "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    const result = await runConvertCli(["input.png", "-alpha", "set", "-fill", "none", "-draw", `${primitive} 0,0 floodfill`, "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
     expect(result.exitCode, result.stderr).toBe(0);
     const image = decodeImage(mode === "buffered" ? files.get("out.png")! : await fs.readFile("/out.png"));
     for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) {
         const offset = (y * 7 + x) * 4;
+        if (primitive === "alpha") expect(image.data.slice(offset, offset + 3)).toEqual(pixels.slice(offset, offset + 3));
         if (x < 2 || x > 4 || y < 2 || y > 4) expect(image.data[offset + 3]).toBe(0);
         else expect(image.data.slice(offset, offset + 4)).toEqual(pixels.slice(offset, offset + 4));
     }
@@ -110,4 +111,34 @@ it("preserves disconnected regions and ignores alpha when matching across cached
         pixels[offset] = 255; pixels[offset + 3] = 255;
     }
     expect(actual.data).toEqual(pixels);
+});
+
+it.each(["buffered", "retained"].flatMap(mode => [
+    { fuzz: "0%", pixels: [100,100,100,255, 101,100,100,255, 100,100,100,255], alpha: [64,255,255] },
+    { fuzz: "5%", pixels: [100,100,100,255, 130,100,100,255, 140,100,100,255], alpha: [64,64,255] },
+    { fuzz: "0%", pixels: [100,100,100,255, 100,100,100,128, 100,100,100,255], alpha: [64,128,255] },
+    { fuzz: "36%", pixels: [100,100,100,255, 100,100,100,128, 100,100,100,255], alpha: [64,64,64] },
+    { fuzz: "0%", pixels: [0,0,0,0, 255,255,255,0, 100,100,100,255], alpha: [64,64,255] },
+    { fuzz: "2%", pixels: [100,100,100,128, 120,100,100,128, 140,100,100,128], alpha: [64,64,128] },
+    { fuzz: "32768", pixels: [100,100,100,255, 100,100,100,128, 100,100,100,255], alpha: [64,64,64] }
+].map(test => ({ mode, ...test }))))("matches native alpha floodfill vectors ($mode, $fuzz, $pixels)", async ({ mode, fuzz, pixels, alpha }) => {
+    const bytes = await sharp(Uint8Array.from(pixels), { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", bytes);
+    const result = await runConvertCli(["input.png", "-fuzz", fuzz, "-fill", "#abcdef40", "-draw", "alpha 0,0 floodfill", "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode, result.stderr).toBe(0);
+    const image = decodeImage(mode === "buffered" ? files.get("out.png")! : await fs.readFile("/out.png"));
+    expect([...image.data]).toEqual(pixels.map((value, i) => i % 4 === 3 ? alpha[Math.floor(i / 4)] : value));
+});
+
+it.each(["buffered", "retained"])("alpha floodfill uses four-connected pixels and exact matching by default (%s)", async mode => {
+    const pixels = Uint8Array.from([255,255,255,255, 254,255,255,255, 0,0,0,255, 255,255,255,255]);
+    const bytes = await sharp(pixels, { raw: { width: 2, height: 2, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", bytes);
+    const result = await runConvertCli(["input.png", "-fill", "none", "-draw", "alpha 0,0 floodfill", "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode, result.stderr).toBe(0);
+    const image = decodeImage(mode === "buffered" ? files.get("out.png")! : await fs.readFile("/out.png"));
+    pixels[3] = 0;
+    expect(image.data).toEqual(pixels);
 });

@@ -383,6 +383,22 @@ test("factor reads byte tokens and quotes invalid values from stdin and argv", a
   } finally { bash.dispose(); }
 });
 
+test("numfmt preserves completed fields, header terminators and blank separators", async () => {
+  const bash = new RustWasmBash({ env: { LC_ALL: "C" } });
+  try {
+    for (const [cmd, stdin, code, stdout, stderr] of [
+      ["--field=2", "tag  x\n", 2, "tag ", "numfmt: invalid number: 'x'\n"],
+      ["-d, --field=2", "tag,x,tail\n", 2, "tag,", "numfmt: invalid number: 'x'\n"],
+      ["-z", "15\n20\nno\n31\0", 0, "15 20 no 31\0", ""],
+      ["--header", "header\0lost\n31\0lost\n", 0, "header31\n", ""],
+      ["", "\n", 2, "", "numfmt: invalid number: ''\n"],
+    ]) {
+      const r = await bash.exec("numfmt " + cmd, { stdin });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("numfmt stops pulling on conversion failure and keeps records split across chunks", async () => {
   const bash = new RustWasmBash({ files: {
     "/bad": "2\nwrong\n" + "x".repeat(65528) + "Z",

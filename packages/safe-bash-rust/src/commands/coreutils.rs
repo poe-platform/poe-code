@@ -7590,112 +7590,50 @@ fn cmd_numfmt(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
     let mut had_invalid = false;
 
     let mut emit = |item: &str, has_term: bool| {
+        let (mut rest, nul) = item.split_once('\0').map_or((item, false), |(text, _)| (text, true));
         if from_stdin && header_lines != 0 {
             header_lines -= 1;
-            out.push_str(item);
-            if has_term {
-                out.push(sep_char);
-            }
+            out.push_str(rest);
+            if has_term && !nul { out.push(sep_char); }
             return true;
         }
-        let mut line_aborted = false;
-        let formatted = if let Some(ref delim) = delimiter {
-            let mut parts: Vec<String> = item.split(delim.as_str()).map(|s| s.to_string()).collect();
-            for (idx0, part) in parts.iter_mut().enumerate() {
-                if field_selected(idx0 + 1) {
-                    match convert_field(part) {
-                        Ok(conv) => *part = conv,
-                        Err(msg) => {
-                            had_invalid = true;
-                            if invalid_mode != "ignore" {
-                                err.push_str(&msg);
-                            }
-                            if invalid_mode == "abort" {
-                                line_aborted = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            parts.join(delim)
-        } else {
-            let mut tokens: Vec<(String, String)> = Vec::new();
-            let mut chars = item.char_indices().peekable();
-            while chars.peek().is_some() {
-                let ws_start = chars.peek().unwrap().0;
-                let mut ws_end = ws_start;
-                while let Some(&(idx, ch)) = chars.peek() {
-                    if ch == ' ' || ch == '\t' {
-                        ws_end = idx + ch.len_utf8();
-                        chars.next();
-                    } else {
-                        break;
-                    }
-                }
-                let tok_start = ws_end;
-                let mut tok_end = tok_start;
-                while let Some(&(idx, ch)) = chars.peek() {
-                    if ch != ' ' && ch != '\t' {
-                        tok_end = idx + ch.len_utf8();
-                        chars.next();
-                    } else {
-                        break;
-                    }
-                }
-                tokens.push((
-                    item[ws_start..ws_end].to_string(),
-                    item[tok_start..tok_end].to_string(),
-                ));
-            }
-            if tokens.is_empty() {
-                String::new()
+        let mut field = 1;
+        loop {
+            let (end, separator) = if let Some(delim) = delimiter.as_deref() {
+                let delim = if delim.is_empty() { "\0" } else { delim };
+                (rest.find(delim).unwrap_or(rest.len()), delim)
             } else {
-                let mut rebuilt = String::new();
-                for (idx0, (ws, tok)) in tokens.into_iter().enumerate() {
-                    let f_idx = idx0 + 1;
-                    if field_selected(f_idx) {
-                        let full_field = format!("{ws}{tok}");
-                        match convert_field(&tok) {
-                            Ok(conv) => {
-                                if padding.is_none() && (!ws.is_empty() || f_idx > 1) {
-                                    let target_w = full_field.len();
-                                    let sep_prefix = if f_idx > 1 { " " } else { "" };
-                                    let pad_w = target_w.saturating_sub(sep_prefix.len());
-                                    if pad_w > conv.len() {
-                                        rebuilt.push_str(&format!("{sep_prefix}{conv:>pad_w$}"));
-                                    } else {
-                                        rebuilt.push_str(&format!("{sep_prefix}{conv}"));
-                                    }
-                                } else {
-                                    if f_idx > 1 && !ws.is_empty() {
-                                        rebuilt.push(' ');
-                                    }
-                                    rebuilt.push_str(&conv);
-                                }
-                            }
-                            Err(msg) => {
-                                had_invalid = true;
-                                if invalid_mode != "ignore" {
-                                    err.push_str(&msg);
-                                }
-                                if invalid_mode == "abort" {
-                                    line_aborted = true;
-                                    break;
-                                }
-                                rebuilt.push_str(&full_field);
-                            }
+                let token = rest.trim_start_matches([' ', '\t', '\n']);
+                let width = token.find([' ', '\t', '\n']).unwrap_or(token.len());
+                (rest.len() - token.len() + width, " ")
+            };
+            let text = &rest[..end];
+            if field_selected(field) {
+                let token = text.trim_start_matches([' ', '\t']);
+                match convert_field(token) {
+                    Ok(value) => {
+                        if padding.is_none() && delimiter.is_none() && (token.len() != text.len() || field > 1) {
+                            let width = text.len();
+                            out.push_str(&format!("{value:>width$}"));
+                        } else {
+                            out.push_str(&value);
                         }
-                    } else {
-                        rebuilt.push_str(&ws);
-                        rebuilt.push_str(&tok);
+                    }
+                    Err(msg) => {
+                        had_invalid = true;
+                        if invalid_mode != "ignore" { err.push_str(&msg); }
+                        if invalid_mode == "abort" { return false; }
+                        out.push_str(text);
                     }
                 }
-                rebuilt
+            } else {
+                out.push_str(text);
             }
-        };
-        if line_aborted { return false; }
-        out.push_str(&formatted);
+            if end == rest.len() { break; }
+            out.push_str(separator);
+            rest = &rest[end + separator.len()..];
+            field += 1;
+        }
         if has_term { out.push(sep_char); }
         true
     };

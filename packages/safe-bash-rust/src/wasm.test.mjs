@@ -9722,3 +9722,17 @@ test("xmllint canonicalizes deep namespace changes and restores sibling bindings
     }
   } finally { sh.dispose(); }
 });
+
+test("XPath traverses deep document text and restores namespace bindings for later siblings", async () => {
+  const depth = 8000, xml = '<r xmlns:p="urn:outer">' + '<n>'.repeat(depth) +
+    '<p:x>alpha<![CDATA[beta]]></p:x><a xmlns:p="urn:inner"><p:x>wrong</p:x></a><p:x>omega</p:x>' +
+    '</n>'.repeat(depth) + '</r>';
+  const sh = new RustWasmBash({files: {"/doc": xml}});
+  try {
+    for (const [query, expected] of [["count(//n)", String(depth)], ["count(//p:x)", "2"], ["string(/r)", "alphabetawrongomega"]]) {
+      const r = await sh.exec("xmllint --xpath '" + query + "' /doc");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected + "\n", ""], query);
+    }
+    await assert.rejects(sh.exec("xmllint --xpath '//n' /doc >/dev/null", {limits: {maxOutputBytes: 1000}}), /maxOutputBytes/);
+  } finally { sh.dispose(); }
+});

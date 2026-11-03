@@ -15004,7 +15004,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         apply_xml_transforms(&mut dom, noblanks || (format_xml && !c14n && xpath.is_none()), nocdata, false);
 
         let rendered = if let Some(xp) = &xpath {
-            let mut res = eval_xmllint_xpath(&dom, xp);
+            let mut res = eval_xmllint_xpath(&dom, xp, fs);
             if res.exit_code != 0 {
                 res.stderr.insert_str(0, &stderr);
                 return res;
@@ -15064,7 +15064,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut warnings = Vec::new();
         let tree = if noout && xpath.is_none() { xml::TreeMode::Discard }
-            else if xpath.is_some() || format_xml && !c14n { xml::TreeMode::DepthLimited }
+            else if format_xml && !c14n && xpath.is_none() { xml::TreeMode::DepthLimited }
             else { xml::TreeMode::Retain };
         let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), tree);
         let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
@@ -15335,11 +15335,21 @@ impl<'a> XPathDocument<'a> {
         index
     }
 
-    fn index(&mut self, parent: usize, nodes: &'a [XmlNode], scope: &mut BTreeMap<&'a str, &'a str>) {
-        for node in nodes {
+    fn index(&mut self, nodes: &'a [XmlNode]) {
+        let mut scope = BTreeMap::from([("xml", "http://www.w3.org/XML/1998/namespace")]);
+        let mut changes = Vec::new();
+        let mut frames = vec![(0, nodes.iter(), 0)];
+        while let Some((id, children, start)) = frames.last_mut() {
+            let parent = *id;
+            let Some(node) = children.next() else {
+                self.entries[parent].end = self.entries.len();
+                restore_xml_bindings(&mut scope, &mut changes, *start);
+                frames.pop();
+                continue;
+            };
             match node {
                 XmlNode::Element(el) => {
-                    let mut changes = Vec::new();
+                    let start = changes.len();
                     for (name, uri) in &el.attrs {
                         if let Some(prefix) = xml_binding(name) {
                             changes.push((prefix, scope.insert(prefix, uri)));
@@ -15354,12 +15364,7 @@ impl<'a> XPathDocument<'a> {
                             self.add(id, XPathItem::Attr(attr, uri));
                         }
                     }
-                    self.index(id, &el.children, scope);
-                    self.entries[id].end = self.entries.len();
-                    for (prefix, previous) in changes.into_iter().rev() {
-                        if let Some(uri) = previous { scope.insert(prefix, uri); }
-                        else { scope.remove(prefix); }
-                    }
+                    frames.push((id, el.children.iter(), start));
                 }
                 XmlNode::Text(t, _) => { self.add(parent, XPathItem::Text(t)); }
                 XmlNode::Cdata(t) => { self.add(parent, XPathItem::Cdata(t)); }
@@ -15384,11 +15389,10 @@ impl<'a> XPathItem<'a> {
     }
 }
 
-fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutcome {
+fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query], fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut doc = XPathDocument { program, namespaces: BTreeMap::new(), entries: Vec::new(), requested: Cell::new(None), returned: Cell::new(None) };
     doc.add(0, XPathItem::Document(dom));
-    doc.index(0, dom, &mut BTreeMap::from([("xml", "http://www.w3.org/XML/1998/namespace")]));
-    doc.entries[0].end = doc.entries.len();
+    doc.index(dom);
     let val = match doc.evaluate() {
         Ok(val) => val,
         Err(message) => return err_out(&format!("xmllint: {message}\n"), 10),
@@ -15398,9 +15402,10 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutco
             if items.is_empty() {
                 return err_out("xmllint: XPath set is empty\n", 11);
             }
-            let mut out = Vec::new();
+            let mut out = String::new();
+            let limit = fs.shell_limits().max_output_bytes;
             for item in &items {
-                match item {
+                let text = match item {
                     XPathItem::Document(nodes) => {
                         let mut text = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
                         for node in *nodes {
@@ -15409,18 +15414,23 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutco
                             }
                         }
                         text.push('\n');
-                        out.push(text);
+                        text
                     }
                     XPathItem::Node(el, _) => {
-                        out.push(serialize_xml_pretty(el, false, xml::Escaping::Unicode));
+                        serialize_xml_pretty(el, false, xml::Escaping::Unicode)
                     }
-                    XPathItem::Attr((k, v), _) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
-                    XPathItem::Text(t) => out.push(xml::Escaping::Unicode.escape(t,false)),
-                    XPathItem::Cdata(t) => out.push(format!("<![CDATA[{t}]]>")),
-                    XPathItem::Markup(m) => out.push((*m).into()),
+                    XPathItem::Attr((k, v), _) => format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true)),
+                    XPathItem::Text(t) => xml::Escaping::Unicode.escape(t,false),
+                    XPathItem::Cdata(t) => format!("<![CDATA[{t}]]>"),
+                    XPathItem::Markup(m) => (*m).into(),
+                };
+                if text.len() >= limit - out.len() {
+                    return err_out(&fs.limit_error("maxOutputBytes", limit), 5);
                 }
+                out.push_str(&text);
+                out.push('\n');
             }
-            ok_out(&format!("{}\n", out.join("\n")))
+            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
         }
         XPathVal::Num(n) => ok_out(&format!("{}\n", format_xpath_scalar_num(n))),
         scalar => ok_out(&format!("{}\n", scalar.to_string_val())),
@@ -15428,21 +15438,24 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutco
 }
 
 fn xpath_item_string_value(item: &XPathItem) -> String {
-    match item {
-        XPathItem::Document(nodes) => {
-            let mut buf = String::new();
-            visit_xml_text(nodes,true,&mut |s,_| buf.push_str(s));
-            buf
-        }
-        XPathItem::Text(t) | XPathItem::Cdata(t) => (*t).clone(),
-        XPathItem::Attr((_, v), _) => v.clone(),
-        XPathItem::Markup(_) => String::new(),
-        XPathItem::Node(el, _) => {
-            let mut buf = String::new();
-            visit_xml_text(&el.children, true, &mut |s,_| buf.push_str(s));
-            buf
+    let nodes = match item {
+        XPathItem::Document(nodes) => *nodes,
+        XPathItem::Node(el, _) => &el.children,
+        XPathItem::Text(t) | XPathItem::Cdata(t) => return (*t).clone(),
+        XPathItem::Attr((_, v), _) => return v.clone(),
+        XPathItem::Markup(_) => return String::new(),
+    };
+    let mut buf = String::new();
+    let mut stack = vec![nodes.iter()];
+    while let Some(children) = stack.last_mut() {
+        match children.next() {
+            Some(XmlNode::Text(t, _) | XmlNode::Cdata(t)) => buf.push_str(t),
+            Some(XmlNode::Element(el)) => stack.push(el.children.iter()),
+            Some(XmlNode::Markup(_)) => {}
+            None => { stack.pop(); }
         }
     }
+    buf
 }
 
 fn xpath_round(n: f64) -> f64 {
@@ -15635,17 +15648,6 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
             }
         _ => unreachable!("validated XPath function"),
     })
-}
-
-fn visit_xml_text<'a>(nodes: &'a [XmlNode], descend: bool, visit: &mut impl FnMut(&'a String,bool)) {
-    for node in nodes {
-        match node {
-            XmlNode::Text(t, _) => visit(t,false),
-            XmlNode::Cdata(t) => visit(t,true),
-            XmlNode::Element(el) if descend => visit_xml_text(&el.children,true,visit),
-            _ => {}
-        }
-    }
 }
 
 async fn eval_xpath_path_ctx(doc: &XPathDocument<'_>, ctx: usize, path: &xpath::Path<'_>) -> Result<Vec<usize>, String> {

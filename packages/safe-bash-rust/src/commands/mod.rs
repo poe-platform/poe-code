@@ -62,7 +62,7 @@ impl FileInputPosition {
     }
 }
 
-pub(crate) type StdinChunks = dyn Iterator<Item = Result<Vec<u8>, String>>;
+pub(crate) type StdinChunks = dyn FnMut(&crate::budget::ExecutionBudget) -> Option<Result<Vec<u8>, String>>;
 
 #[derive(Clone, Copy)]
 pub(crate) enum InputSource<'a> {
@@ -167,7 +167,7 @@ impl FileCommandInput<'_> {
                             let _suspended = suspend_execution_clock();
                             start = 0;
                             bytes.clear();
-                            match source.borrow_mut().next() {
+                            match source.borrow_mut()(self.budget) {
                                 Some(Ok(chunk)) => {
                                     pos.pulled = pos.pulled.saturating_add(chunk.len());
                                     if pos.bounded_reads && pos.pulled > limit {

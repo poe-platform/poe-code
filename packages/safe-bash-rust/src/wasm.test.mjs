@@ -627,11 +627,12 @@ test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd
   const table = x.__indirect_function_table;
   try {
     const slot = table.grow(1);
-    for (const [source, chunks, expected, pulls, stderr = ""] of [
+    for (const [source, chunks, expected, pulls, stderr = "", code = 0] of [
       ["echo ok", [], [111,107,10], 0],
       ["echo ready > /flag; { head -c1 <&3; head -c1; } 3<&0", [[255,0,1]], [255,0], 1],
       ["cat; cat", [[], [97]], [97], 3],
       ["cat; cat", [[255], new Error("producer failed"), [98]], [255], 2, "cat: producer failed\n"],
+      ["echo before >/started; mapfile lines; echo late >/after", [null], [], 1, "Execution aborted: cancelled", -124],
     ]) {
       const id = x.safe_bash_fork_session(root);
       let count = 0, seenId, observed;
@@ -640,6 +641,7 @@ test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd
         if (source.includes("/flag")) observed = bash.execSync("cat /flag").stdout;
         const chunk = chunks[count++];
         if (chunk === undefined) return 0;
+        if (chunk === null) return -2;
         const bytes = chunk instanceof Error ? new TextEncoder().encode(chunk.message) : chunk;
         const p = x.safe_bash_alloc(bytes.length);
         new Uint8Array(x.memory.buffer, p, bytes.length).set(bytes);
@@ -650,7 +652,7 @@ test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd
       } } }).exports.next);
       const script = bash._allocBytes(new TextEncoder().encode(source));
       try {
-        assert.equal(x.safe_bash_exec_stream(id, script.ptr, script.len, slot), 0);
+        assert.equal(x.safe_bash_exec_stream(id, script.ptr, script.len, slot), code);
         const p = x.safe_bash_output_ptr(id);
         const len = new DataView(x.memory.buffer).getUint32(p + 4, true);
         assert.deepEqual([...new Uint8Array(x.memory.buffer, p + 16, len)], expected);
@@ -658,6 +660,11 @@ test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd
         assert.equal(new TextDecoder().decode(new Uint8Array(x.memory.buffer, p + 16 + len, errorLen)), stderr);
         assert.equal(count, pulls);
         if (pulls) assert.equal(seenId, id);
+        if (code === -124) {
+          assert.equal(bash.execSync("cat /started").stdout, "before\n");
+          assert.equal(bash.execSync("test -e /after").exitCode, 1);
+          assert.equal(bash.execSync("echo still runnable").stdout, "still runnable\n");
+        }
         if (source.includes("/flag")) assert.equal(observed, "ready\n");
       } finally { bash._freeBytes(script); x.safe_bash_destroy_session(id); }
     }

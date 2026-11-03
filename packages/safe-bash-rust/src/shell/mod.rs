@@ -163,20 +163,20 @@ impl Shell {
     pub fn exec_with_stream(
         &mut self,
         script: &str,
-        chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static,
+        mut chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static,
     ) -> Result<ExecOutput, String> {
-        if self.backend.mode == BackendMode::TypeScriptOnly {
-            return Err("Streamed stdin requires the native backend".into());
-        }
-        self.exec_input(script, ExecOptions::default(), Some(eval::FdTarget::input_stream(chunks)))
+        self.exec_input(script, ExecOptions::default(), Some(eval::FdTarget::input_stream(move |_| chunks.next())))
     }
 
-    fn exec_input(
+    pub(crate) fn exec_input(
         &mut self,
         script: &str,
         options: ExecOptions,
         stream: Option<eval::FdTarget>,
     ) -> Result<ExecOutput, String> {
+        if stream.is_some() && self.backend.mode == BackendMode::TypeScriptOnly {
+            return Err("Streamed stdin requires the native backend".into());
+        }
         if let Some(override_cwd) = options.cwd.as_deref() {
             self.cwd = normalize_posix_path(override_cwd);
         }

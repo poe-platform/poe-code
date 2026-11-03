@@ -945,7 +945,7 @@ pub unsafe extern "C" fn safe_bash_exec(
     }))
 }
 
-/// `next` returns 0 for EOF, 1 for a chunk, or -1 for a UTF-8 diagnostic.
+/// `next` returns 0 for EOF, 1 for a chunk, -1 for a UTF-8 diagnostic, or -2 to cancel.
 /// For a nonempty payload it transfers exactly `len` bytes allocated by safe_bash_alloc.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_exec_stream(
@@ -953,14 +953,18 @@ pub unsafe extern "C" fn safe_bash_exec_stream(
     next: unsafe extern "C" fn(u32, *mut *mut u8, *mut usize) -> i32,
 ) -> i32 {
     let script = unsafe { str_from_raw(script_ptr, script_len) };
-    exec_session(id, |shell| shell.exec_with_stream(script, std::iter::from_fn(move || {
+    let input = crate::shell::eval::FdTarget::input_stream(move |budget| {
         let mut ptr = std::ptr::null_mut();
         let mut len = 0;
         let status = unsafe { next(id, &mut ptr, &mut len) };
         if status == 0 { return None; }
+        if status == -2 {
+            return Some(Err(budget.record_exceeded("Execution aborted: cancelled".into())));
+        }
         let bytes = if len == 0 { Vec::new() } else { unsafe { Vec::from_raw_parts(ptr, len, len) } };
         Some(if status == 1 { Ok(bytes) } else { Err(String::from_utf8_lossy(&bytes).into_owned()) })
-    })))
+    });
+    exec_session(id, |shell| shell.exec_input(script, ExecOptions::default(), Some(input)))
 }
 
 fn exec_session(id: u32, run: impl FnOnce(&mut Shell) -> Result<crate::shell::ExecOutput, String>) -> i32 {

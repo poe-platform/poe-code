@@ -28819,17 +28819,6 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
             Some(())
         });
     }
-    if let Some(rest) = sel.strip_prefix("</>") {
-        let m = rest.trim();
-        return mdq_select_blocks(nodes, |b| {
-            if b.kind != "html" {
-                return None;
-            }
-            let new_text = mdq_match_and_replace(m, &b.text, false)?;
-            b.text = new_text;
-            Some(())
-        });
-    }
     if sel.starts_with("- ") || sel == "-" || sel.starts_with("1.") {
         let want_ordered = sel.starts_with("1.");
         let mut rest = if want_ordered {
@@ -28885,36 +28874,50 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
             Some(())
         });
     }
-    if (sel.starts_with("![") || sel.starts_with('['))
-        && let is_img = sel.starts_with("![")
-        && let prefix_len = if is_img { 2 } else { 1 }
-        && let Some((disp_m, url_part)) = sel[prefix_len..].split_once("](")
-    {
-        let url_m = url_part.strip_suffix(')').unwrap_or(url_part);
-        let mut links = Vec::new();
-        let kind = if is_img { "image" } else { "link" };
-        let mut add_link = |display: &str, url: &str| {
-            if let (Some(title), Some(url)) = (
-                mdq_match_and_replace(disp_m, display, true),
+    let inline = if let Some(matcher) = sel.strip_prefix("</>") {
+        Some(("html", matcher, ""))
+    } else {
+        let (kind, rest) = if let Some(rest) = sel.strip_prefix("![") { ("image", Some(rest)) }
+            else { ("link", sel.strip_prefix('[')) };
+        rest.and_then(|r| r.strip_suffix(')')?.split_once("](")).map(|(display, url)| (kind, display, url))
+    };
+    if let Some((kind, matcher, url_m)) = inline {
+        let mut selected = Vec::new();
+        let mut emit = |found: &str, text: &str, url: &str| {
+            if found != kind { return; }
+            if found == "html" {
+                if let Some(text) = mdq_match_and_replace(matcher, text, false) {
+                    selected.push(MdqBlock { kind: found.into(), text, ..MdqBlock::default() });
+                }
+            } else if let (Some(title), Some(url)) = (
+                mdq_match_and_replace(matcher, text, true),
                 mdq_match_and_replace(url_m, url, false),
             ) {
-                links.push(MdqBlock { kind: kind.into(), title, url, ..MdqBlock::default() });
+                selected.push(MdqBlock { kind: found.into(), title, url, ..MdqBlock::default() });
             }
         };
         let mut pending = nodes;
         pending.reverse();
         while let Some(b) = pending.pop() {
             pending.extend(b.children.into_iter().rev());
-            if b.kind == kind {
-                add_link(&b.title, &b.url);
-                continue;
-            }
-            let paragraph = (b.kind == "paragraph").then_some(&b.text);
+            if b.kind == "html" { emit("html", &b.text, ""); continue; }
+            if b.kind == kind && kind != "html" { emit(kind, &b.title, &b.url); continue; }
+            let paragraph = match b.kind.as_str() {
+                "paragraph" => Some(&b.text),
+                "link" if kind == "html" => Some(&b.title),
+                _ => None,
+            };
             for src in paragraph.into_iter().chain(b.table_rows.iter().flatten()) {
                 let bytes = src.as_bytes();
                 let ticks = mdq_backtick_runs(bytes);
                 let mut k = 0usize;
+                let mut destination = None;
                 while k < bytes.len() {
+                    if let Some((close, end)) = destination && k == close {
+                        destination = None;
+                        k = end + 1;
+                        continue;
+                    }
                     if bytes[k] == b'\\' && bytes.get(k + 1).is_some_and(u8::is_ascii_punctuation) {
                         k += 2;
                         continue;
@@ -28925,6 +28928,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                         continue;
                     }
                     if bytes[k] == b'<' && let Some(n) = mdq_inline_html_len(&src[k..]) {
+                        emit("html", &src[k..k + n], "");
                         k += n;
                         continue;
                     }
@@ -28934,11 +28938,14 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                         if let Some(close) = src[begin..].find(']').map(|n| begin + n)
                             && bytes.get(close + 1) == Some(&b'(')
                             && let Some(end) = src[close + 2..].find(')').map(|n| close + 2 + n) {
-                            if image == is_img {
-                                let url = src[close + 2..end].trim().trim_start_matches('<').trim_end_matches('>');
-                                add_link(&src[begin..close], url);
+                            let url = src[close + 2..end].trim().trim_start_matches('<').trim_end_matches('>');
+                            emit(if image { "image" } else { "link" }, &src[begin..close], url);
+                            if kind == "html" && !image {
+                                destination = Some((close, end));
+                                k = begin;
+                            } else {
+                                k = end + 1;
                             }
-                            k = end + 1;
                             continue;
                         }
                     }
@@ -28946,7 +28953,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                 }
             }
         }
-        return links;
+        return selected;
     }
     if let Some(rest) = sel.strip_prefix(":-:") {
         if let Some((col_m, cell_m)) = rest.split_once(":-:") {

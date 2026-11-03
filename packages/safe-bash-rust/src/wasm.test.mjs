@@ -8272,3 +8272,23 @@ test("mdq keeps raw HTML blocks through their CommonMark terminators", async () 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq selects HTML nodes in document order and skips literal markup", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const tick = String.fromCharCode(96);
+    const text = ["# <i>title</i>", "", "text <span data-x='>'>word</span> " + tick + "<code>" + tick + " \\<x>",
+      "", "<div", "class='block'>", "raw <span>", "", "| c |", "| - |", "| <b>yes</b> |",
+      "", "[<q>link</q>](/target) ![<x>alt](/image)",
+      "", "more <!--a--> <?instruction?> <![CDATA[x]]> <!DOCTYPE html> <bad a=>",
+      "", "~~~", "<hidden>", "~~~"].join("\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["'</>'", "-o json '</>'", "-o plain '</> span'", "'</> | </> /span/'",
+      "-o json '</> !s/span/mark/'", "'</> hidden'", "-o json '[]() | </>'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

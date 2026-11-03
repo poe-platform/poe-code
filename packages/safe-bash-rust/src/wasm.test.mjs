@@ -9873,6 +9873,27 @@ test("jq decodes shell bytes once and emits UTF-8 from files, filters and variab
   } finally { sh.dispose(); }
 });
 
+test("jq charges one read for a direct memory JSON operand and admits its bytes before that charge", async () => {
+  for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const sh = new RustWasmBash({files: {"/f": "12\n"}, profile});
+    try {
+      const cost = profile === "warm-memory-fastpath" ? 1 : 2;
+      for (const path of ["/f", "/absent"]) {
+        const cmd = `jq -c . ${path}`;
+        await assert.rejects(sh.exec(cmd, {limits: {maxFileSystemOperations: cost - 1}}), /maxFileSystemOperations/);
+        const r = await sh.exec(cmd, {limits: {maxFileSystemOperations: cost}});
+        assert.deepEqual([r.exitCode, r.stdout, r.stderr], path === "/f" ? [0, "12\n", ""] :
+          [2, "", "jq: ENOENT: no such file or directory, readStream '/absent'\n"]);
+      }
+      if (cost === 1) {
+        await sh.fs.utimes("/f", 1, 1);
+        await assert.rejects(sh.exec("jq -n 'first(inputs)' /f", {limits: {maxFileSystemOperations: 0, maxInputBytes: 2}}), /maxInputBytes/);
+        assert.notEqual((await sh.fs.stat("/f")).atimeMs, 1);
+      }
+    } finally { sh.dispose(); }
+  }
+});
+
 test("jq admits a single memory file when its JSON input is first requested", async () => {
   const files = {"/f": "12\n34\n"};
   for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {

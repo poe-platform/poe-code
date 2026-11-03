@@ -676,10 +676,12 @@ fn read_xml_operand(
 }
 
 fn read_jq_file(fs: &dyn SafeBashFs, path: &str, single_chunk: bool) -> Result<Vec<u8>, String> {
-    fs.access_path(path, true).and_then(|entry| {
-        if single_chunk && path != "/dev" && !path.starts_with("/dev/") { fs.read_single_chunk_input(&entry, None) }
-        else { fs.read_file(&entry) }
-    }).map_err(|e| super::coreutils::stream_file_error(e, "readStream", path))
+    let read = if single_chunk && path != "/dev" && !path.starts_with("/dev/") {
+        fs.read_single_chunk_input(path, None)
+    } else {
+        fs.access_path(path, true).and_then(|entry| fs.read_file(&entry))
+    };
+    read.map_err(|e| super::coreutils::stream_file_error(e, "readStream", path))
 }
 
 fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {

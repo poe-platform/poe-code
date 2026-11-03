@@ -813,6 +813,52 @@ impl MemoryVfs {
         }
         Ok(())
     }
+
+    fn read_bytes(&self, path: &str, budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> {
+        let norm = normalize_posix_path(path);
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message);
+        let device = resolved.as_ref().ok().and_then(|entry| guard.devices.entry(entry));
+        if matches!(device, None | Some("full")) && let Ok(entry) = &resolved && let Some(&MemoryNode::File { ino }) = guard.nodes.get(entry) {
+            let file = guard.files.get_mut(&ino).unwrap();
+            if file.mode & 0o400 != 0 {
+                file.atime_ms = super::now_ms();
+                if let Some(budget) = budget {
+                    if file.data.len() > budget.limits.max_input_bytes {
+                        return Err(budget.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", budget.limits.max_input_bytes)));
+                    }
+                    budget.tick_fs_op()?;
+                }
+                return Ok(file.data.clone());
+            }
+        }
+        if let Some(budget) = budget { budget.tick_fs_op()?; }
+        if device == Some("") {
+            return Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"));
+        }
+        if device == Some("null") {
+            return Ok(Vec::new());
+        }
+        if device == Some("zero") {
+            return Ok(vec![0u8; 65536]);
+        }
+        if matches!(device, Some("urandom" | "random")) {
+            drop(guard);
+            let mut buf = vec![0u8; 4096];
+            fill_random(&mut buf)?;
+            return Ok(buf);
+        }
+        match guard.nodes.get(&resolved?) {
+            Some(MemoryNode::File { .. }) => Err("EACCES: permission denied".into()),
+            Some(MemoryNode::Directory { .. }) => {
+                Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"))
+            }
+            Some(MemoryNode::Symlink { .. }) => {
+                Err(format!("ELOOP: unresolved symlink '{norm}'"))
+            }
+            None => Err(format!("ENOENT: no such file or directory, open '{norm}'")),
+        }
+    }
 }
 
 impl SafeBashFs for MemoryVfs {
@@ -873,46 +919,16 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        self.read_single_chunk_input(path, None)
+        self.read_bytes(path, None)
     }
 
     fn read_single_chunk_input(&self, path: &str, budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> {
-        let norm = normalize_posix_path(path);
-        let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-        let device = guard.devices.entry(&resolved);
-        if device == Some("") {
-            return Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"));
-        }
-        if device == Some("null") {
-            return Ok(Vec::new());
-        }
-        if device == Some("zero") {
-            return Ok(vec![0u8; 65536]);
-        }
-        if matches!(device, Some("urandom" | "random")) {
-            drop(guard);
-            let mut buf = vec![0u8; 4096];
-            fill_random(&mut buf)?;
-            return Ok(buf);
-        }
-        match guard.nodes.get(&resolved) {
-            Some(&MemoryNode::File { ino }) => {
-                let file = guard.files.get_mut(&ino).unwrap();
-                if file.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
-                if let Some(budget) = budget && file.data.len() > budget.limits.max_input_bytes {
-                    return Err(budget.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", budget.limits.max_input_bytes)));
-                }
-                file.atime_ms = super::now_ms();
-                Ok(file.data.clone())
+        match self.access_path(path, true) {
+            Ok(entry) => self.read_bytes(&entry, budget),
+            Err(e) => {
+                if let Some(budget) = budget { budget.tick_fs_op()?; }
+                Err(e)
             }
-            Some(MemoryNode::Directory { .. }) => {
-                Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"))
-            }
-            Some(MemoryNode::Symlink { .. }) => {
-                Err(format!("ELOOP: unresolved symlink '{norm}'"))
-            }
-            None => Err(format!("ENOENT: no such file or directory, open '{norm}'")),
         }
     }
 

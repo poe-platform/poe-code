@@ -353,6 +353,9 @@ fn decoder_config(payload: &[u8]) -> (u8, Option<&[u8]>) {
     }
     (indication, None)
 }
+fn audio_entry_format(tag:&[u8;4])->bool {
+    matches!(tag, b"mp4a" | b"Opus" | b"fLaC" | b"alac" | b"ac-3" | b"ec-3" | b"sowt" | b"twos" | b"lpcm" | b".mp3" | b"ulaw" | b"alaw")
+}
 fn esds(payload: &[u8]) -> AudioConfig {
     let (indication, asc) = decoder_config(payload);
     let (object, rate, channels) = audio_config(asc.unwrap_or_default());
@@ -493,9 +496,7 @@ impl<'a> Track<'a> {
             .unwrap_or((if kind == "video" { b"avc1" } else { b"mp4a" }, &[]));
         // An unknown audio FourCC is opaque: the track still has a timescale,
         // but its bytes do not declare a QuickTime audio sample entry.
-        let entry = if kind == "audio" && !matches!(tag,
-            b"mp4a" | b"Opus" | b"fLaC" | b"alac" | b"ac-3" | b"ec-3" |
-            b"sowt" | b"twos" | b"lpcm" | b".mp3" | b"ulaw" | b"alaw") {
+        let entry = if kind == "audio" && !audio_entry_format(tag) {
             &[][..]
         } else { entry };
         let mut sequence = None;

@@ -4789,7 +4789,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
     let frame_output=y4m_output || image_format.is_some();
     let audio_output = muxer == Some("aac");
-    let movie_output = matches!(muxer, Some("mp4" | "mov" | "flv" | "mkv" | "webm"));
+    let movie_output = matches!(muxer, Some("avi" | "mp4" | "mov" | "flv" | "mkv" | "webm"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
     let mut read_input = |path: &str, explicit: Option<&str>| {
         let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
@@ -13508,6 +13508,15 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffmpeg_writes_avi_streams_and_packet_index() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c","copy","clip.avi"]),"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(fs.read_file("/clip.avi").unwrap().as_slice(),include_bytes!("../../tests/fixtures/av.avi"));
     }
 
     #[test]

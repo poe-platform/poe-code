@@ -377,11 +377,11 @@ fn video_entry(w: usize, h: usize, codec: VideoCodec<'_>) -> Result<Vec<u8>, &'s
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum VideoEncoding { Mp4, Fragmented, Flv, Matroska }
+enum VideoEncoding { Mp4, Fragmented, PreserveConfig, Matroska }
 
 impl Remux<'_> {
     fn video_encoding(&self) -> VideoEncoding {
-        if self.format == "flv" { VideoEncoding::Flv } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
+        if matches!(self.format,"flv"|"avi") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
     }
 }
 
@@ -413,7 +413,7 @@ fn encode_video(
             if samples.is_empty() {
                 track.width = im.width as u32;
                 track.height = im.height as u32;
-                if encoding != VideoEncoding::Flv {
+                if encoding != VideoEncoding::PreserveConfig {
                     track.stsd = video_entry(
                         im.width,
                         im.height,
@@ -446,7 +446,7 @@ fn encode_video(
                 return Err("output byte limit exceeded");
             }
             let duration = (duration * f64::from(track.scale)).round().max(1.) as u32;
-            if matches!(encoding, VideoEncoding::Flv|VideoEncoding::Matroska) {
+            if matches!(encoding, VideoEncoding::PreserveConfig|VideoEncoding::Matroska) {
                 let dts = (frame.pts * f64::from(track.scale)).round() as u64;
                 if let Some(prior) = samples.last_mut() {
                     prior.duration = dts.saturating_sub(last_dts) as u32;
@@ -1187,6 +1187,8 @@ fn subtitle_track(
 // final packet of shorter tracks at each boundary before the next copy starts.
 #[path = "mp4_concat.rs"]
 mod concat;
+#[path = "avi.rs"]
+mod avi;
 #[path = "flv.rs"]
 mod flv;
 #[path = "mkv.rs"]
@@ -2705,7 +2707,7 @@ pub(in super::super) fn remux(
                 (source.seconds(i) * f64::from(ts)).round() as u64,
                 scale,
             )?;
-            if opts.format == "flv" {
+            if matches!(opts.format,"avi"|"flv") {
                 t.stsd = match source {
                     Streams::GeneratedVideo(v) => video_entry(v.width as usize, v.height as usize, VideoCodec::Avc(v.fps.round().max(1.) as u32))?,
                     _ => Vec::new(),
@@ -3099,7 +3101,7 @@ pub(in super::super) fn remux(
         }
         tracks.push(track);
     }
-    if audio.clear_samples && !matches!(opts.format,"flv"|"mkv"|"webm") {
+    if audio.clear_samples && !matches!(opts.format,"avi"|"flv"|"mkv"|"webm") {
         for (track, &(j, i)) in tracks.iter_mut().zip(&selected) {
             if track.kind != "audio" {
                 continue;
@@ -3262,7 +3264,7 @@ pub(in super::super) fn remux(
     {
         metadata.insert("date".into(), year.clone());
     }
-    if matches!(opts.format,"flv"|"mkv"|"webm") {
+    if matches!(opts.format,"avi"|"flv"|"mkv"|"webm") {
         let duration = if let Some(sequence) = &composed && matches!(opts.composition, Some(Composition::Fade { .. })) {
             sequence.frames.iter().map(|(_, dur)| dur).sum()
         } else if sources.len() > 1 && opts.concat.is_some() {
@@ -3270,6 +3272,11 @@ pub(in super::super) fn remux(
         } else {
             presentation_duration(sources, &selected, scale, range)
         };
+        // Numbered images release the template MP4 backing their codec description.
+        if matches!(opts.format,"flv"|"avi") && selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
+            return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
+        }
+        if opts.format=="avi" {return avi::write(&tracks,duration,&audio).map_err(str::to_owned);}
         let mut source_tags = vec![Original::None; tracks.len()];
         if range.is_none() && opts.concat.is_none() && opts.composition.is_none() && loops == 0 {
             for (tags,&(j,i)) in source_tags.iter_mut().zip(&selected) {
@@ -3280,10 +3287,6 @@ pub(in super::super) fn remux(
             }
         }
         if opts.format=="flv" {
-            // Numbered images release the template MP4 backing their codec description.
-            if selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
-                return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
-            }
             let tags=["video","audio"].map(|kind|tracks.iter().position(|t|t.kind==kind).map_or(Original::None,|i|source_tags[i]));
             return flv::write(&tracks,duration,&audio,tags).map_err(str::to_owned);
         }

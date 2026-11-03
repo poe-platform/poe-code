@@ -8906,3 +8906,23 @@ test("mdq rejects invalid UTF-8 at the input being read and preserves valid Unic
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq shares the input byte limit across file operands and stdin", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const vfs of [fs, rs.fs]) {
+      await vfs.writeFile("/a", Buffer.from("a".repeat(65535) + "😀"));
+      await vfs.writeFile("/b", Buffer.from("é"));
+    }
+    for (const cmd of ["mdq '' /a /b", "mdq '' /a - - </b", "mdq '' - /a - </b"]) {
+      for (const shell of [js, rs]) {
+        await assert.rejects(shell.exec(cmd, { limits: { maxInputBytes: 65540 } }), /maxInputBytes/);
+        const r = await shell.exec(cmd, { limits: { maxInputBytes: 65541 } });
+        assert.equal(r.exitCode, 0, r.stderr);
+        assert.ok(r.stdout.includes("😀") && r.stdout.includes("é"));
+      }
+    }
+  } finally { rs.dispose(); }
+});

@@ -29790,7 +29790,9 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if seen.contains("[no]-br") {
         return mdq_argument_error("invalid argument '--[no]-br'; use '--br' or '--no-br'.", 1, None);
     }
-    let mut md_input = String::new();
+    let limit = fs.max_input_bytes();
+    let mut remaining = limit;
+    let mut md_input = Vec::new();
     let mut used_stdin = false;
     let sources = files.iter().map(String::as_str).chain(files.is_empty().then_some("-"));
     for f in sources {
@@ -29802,27 +29804,40 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             err_out(&format!("{kind} while reading {source}\n"), 1)
         };
         if !stdin_source || !used_stdin {
-            let bytes = if stdin_source {
-                used_stdin = true;
-                crate::vfs::stream_string_to_bytes(stdin)
-            } else {
-                let full = resolve_posix_path(cwd, f);
-                if fs.is_dir(&full) { return failure("is a directory"); }
-                match fs.read_file(&full) {
-                    Ok(bytes) => bytes,
-                    Err(e) => return failure(match e.split(':').next() {
-                        Some("ENOENT") => "entity not found",
-                        Some("EACCES") => "permission denied",
-                        Some("EISDIR") => "is a directory",
-                        _ => "other error",
-                    }),
+            let mut valid = md_input.len();
+            let mut append = |chunk: &[u8]| {
+                remaining = remaining.checked_sub(chunk.len())
+                    .ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+                md_input.extend_from_slice(chunk);
+                match std::str::from_utf8(&md_input[valid..]) {
+                    Ok(_) => valid = md_input.len(),
+                    Err(e) if e.error_len().is_none() => valid += e.valid_up_to(),
+                    Err(_) => return Err("invalid data".into()),
                 }
+                Ok(true)
             };
-            let Ok(text) = std::str::from_utf8(&bytes) else { return failure("invalid data"); };
-            md_input.push_str(text);
+            let read = if stdin_source {
+                used_stdin = true;
+                append(&crate::vfs::stream_string_to_bytes(stdin)).map(|_| ())
+            } else {
+                let path = resolve_posix_path(cwd, f);
+                if fs.is_dir(&path) { return failure("is a directory"); }
+                fs.read_chunks(&path, &mut append)
+            };
+            if let Err(e) = read {
+                return failure(match e.split(':').next() {
+                    Some("ENOENT") => "entity not found",
+                    Some("EACCES") => "permission denied",
+                    Some("EISDIR") => "is a directory",
+                    Some("invalid data") => "invalid data",
+                    _ => "other error",
+                });
+            }
+            if valid != md_input.len() { return failure("invalid data"); }
         }
-        if !files.is_empty() { md_input.push('\n'); }
+        if !files.is_empty() { md_input.push(b'\n'); }
     }
+    let md_input = String::from_utf8(md_input).expect("all input sources validated");
     let stages = match parse_mdq_query(&selector_str) {
         Ok(stages) => stages,
         Err(error) => return error,

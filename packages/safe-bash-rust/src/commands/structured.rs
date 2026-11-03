@@ -28184,6 +28184,30 @@ fn mdq_setext(line: &str) -> Option<usize> {
     }
 }
 
+fn mdq_pipe_row(line: &str) -> Option<Vec<String>> {
+    if !line.contains('|') { return None; }
+    let line = line.trim();
+    let mut cells = Vec::new();
+    let mut cell = String::new();
+    let mut chars = line.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\\' && chars.next_if_eq(&'|').is_some() { cell.push('|'); }
+        else if c == '|' { cells.push(cell.trim().to_string()); cell.clear(); }
+        else { cell.push(c); }
+    }
+    if cells.is_empty() { return None; }
+    if !line.ends_with('|') || !cell.trim().is_empty() { cells.push(cell.trim().to_string()); }
+    if line.starts_with('|') { cells.remove(0); }
+    Some(cells)
+}
+
+fn mdq_interrupts_paragraph(line: &str) -> bool {
+    let at = line.trim_start_matches(' ');
+    line.len() - at.len() <= 3 && (mdq_thematic_break(line) || mdq_heading(line).is_some()
+        || mdq_fence(line).is_some() || at.starts_with('>') || at.starts_with("- ")
+        || at.starts_with("* ") || at.starts_with("+ ") || at.starts_with("1. ") || at.starts_with("1) "))
+}
+
 fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
     let mut lines: Vec<&str> = input.lines().collect();
     let mut blocks = Vec::new();
@@ -28286,25 +28310,25 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             });
             continue;
         }
-        if trimmed.starts_with("|") && i + 1 < lines.len() && lines[i + 1].trim().starts_with('|') && lines[i + 1].contains('-') {
-            let parse_row = |r: &str| -> Vec<String> {
-                let s = r.trim().strip_prefix('|').unwrap_or(r.trim());
-                let s = s.strip_suffix('|').unwrap_or(s);
-                s.split('|').map(|c| c.trim().to_string()).collect()
-            };
-            let head = parse_row(lines[i]);
-            let sep = parse_row(lines[i + 1]);
-            let aligns: Vec<String> = sep.iter().map(|c| {
-                let t = c.trim();
-                if t.starts_with(':') && t.ends_with(':') { "center".to_string() }
-                else if t.starts_with(':') { "left".to_string() }
-                else if t.ends_with(':') { "right".to_string() }
-                else { "none".to_string() }
-            }).collect();
+        if let Some(delimiter) = lines.get(i + 1).and_then(|l| mdq_pipe_row(l))
+            && let Some(head) = mdq_pipe_row(line)
+            && delimiter.len() == head.len()
+            && let Some(aligns) = delimiter.iter().map(|cell| {
+                let left = cell.starts_with(':');
+                let right = cell.ends_with(':');
+                let body = cell.strip_prefix(':').unwrap_or(cell);
+                let body = body.strip_suffix(':').unwrap_or(body);
+                (!body.is_empty() && body.bytes().all(|b| b == b'-')).then(|| match (left, right) {
+                    (true, true) => "center", (true, false) => "left", (false, true) => "right", _ => "none"
+                }.to_string())
+            }).collect::<Option<Vec<_>>>()
+            && !mdq_interrupts_paragraph(line)
+        {
             let mut rows = vec![head];
             i += 2;
-            while i < lines.len() && lines[i].trim().starts_with('|') {
-                rows.push(parse_row(lines[i]));
+            while i < lines.len() && !mdq_interrupts_paragraph(lines[i])
+                && let Some(row) = mdq_pipe_row(lines[i]) {
+                rows.push(row);
                 i += 1;
             }
             blocks.push(MdqBlock {
@@ -28352,15 +28376,7 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
                 break;
             }
             let nl = lines[i].trim();
-            if nl.is_empty()
-                || mdq_thematic_break(lines[i])
-                || mdq_heading(lines[i]).is_some()
-                || mdq_fence(lines[i]).is_some()
-                || nl.starts_with('>')
-                || nl.starts_with("- ")
-                || nl.starts_with("* ")
-                || nl.starts_with('|')
-            {
+            if nl.is_empty() || mdq_interrupts_paragraph(lines[i]) {
                 break;
             }
             p_lines.push(nl);

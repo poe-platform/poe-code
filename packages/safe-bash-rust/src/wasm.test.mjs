@@ -8152,3 +8152,20 @@ test("mdq distinguishes thematic breaks from underlined headings and front matte
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq recognizes tables by their delimiter row and respects escaped pipes", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["one | two\n:- | -:\na\\|b | c\n# next | heading",
+      "| a\\|b | c |\n| - | - |\nleft | right\\|", "| a | b |\n| - | wrong |",
+      "| a |\n| - | - |", "first\n| a | b |\n| - | - |", "one\\|two\n-|-"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const flags of text.startsWith("one\\|") ? ["':-: * :-:'"] : ["", "-o json", "'P:'", "':-: * :-:'"]) {
+        const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+      }
+    }
+  } finally { rs.dispose(); }
+});

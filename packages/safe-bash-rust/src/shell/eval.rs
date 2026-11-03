@@ -10082,21 +10082,23 @@ impl<'a> EvalState<'a> {
         match target {
             FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
+            FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if self.is_default_null(path) => {
+                // There is no filesystem write, but the command emitted these bytes.
+                let _ = self.budget.add_output_bytes(stream_byte_len(data));
+            }
             FdTarget::File { path, file, offset } => {
-                if !self.is_default_null(path) {
-                    let bytes = stream_string_to_bytes(data);
-                    let result = match file {
-                        Some(file) => self.budget.tick_fs_op()
-                            .and_then(|_| self.budget.add_output_bytes(bytes.len()))
-                            .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
-                        None => self.fs.append_file(path, &bytes),
-                    };
-                    match result {
-                        Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
-                        Err(e) => {
-                            out.stderr.push_str(&format!("{path}: {e}\n"));
-                            out.exit_code = 1;
-                        }
+                let bytes = stream_string_to_bytes(data);
+                let result = match file {
+                    Some(file) => self.budget.tick_fs_op()
+                        .and_then(|_| self.budget.add_output_bytes(bytes.len()))
+                        .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
+                    None => self.fs.append_file(path, &bytes),
+                };
+                match result {
+                    Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
+                    Err(e) => {
+                        out.stderr.push_str(&format!("{path}: {e}\n"));
+                        out.exit_code = 1;
                     }
                 }
             }
@@ -10105,32 +10107,30 @@ impl<'a> EvalState<'a> {
                 out.exit_code = 1;
             }
             FdTarget::InputFile { path, unread, file, position, writable: true } => {
-                if !self.is_default_null(path) {
-                    let mut pos = position.get();
-                    pos.consume(stream_byte_len(&unread.borrow()));
-                    let cur_off = pos.offset;
-                    let write_bytes = stream_string_to_bytes(data);
-                    let Some(file) = file else {
-                        if let Err(e) = self.fs.write_file(path, &write_bytes) {
-                            out.stderr.push_str(&format!("{path}: {e}\n"));
-                            out.exit_code = 1;
-                        }
-                        return;
-                    };
-                    let end_off = cur_off + write_bytes.len();
-                    if let Err(e) = self.budget.tick_fs_op()
-                        .and_then(|_| self.budget.add_output_bytes(write_bytes.len()))
-                        .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
-                    {
+                let mut pos = position.get();
+                pos.consume(stream_byte_len(&unread.borrow()));
+                let cur_off = pos.offset;
+                let write_bytes = stream_string_to_bytes(data);
+                let Some(file) = file else {
+                    if let Err(e) = self.fs.write_file(path, &write_bytes) {
                         out.stderr.push_str(&format!("{path}: {e}\n"));
                         out.exit_code = 1;
-                        return;
                     }
-                    pos.replace_tail(&mut unread.borrow_mut(), &[]);
-                    pos.offset = end_off;
-                    pos.revision = None;
-                    position.set(pos);
+                    return;
+                };
+                let end_off = cur_off + write_bytes.len();
+                if let Err(e) = self.budget.tick_fs_op()
+                    .and_then(|_| self.budget.add_output_bytes(write_bytes.len()))
+                    .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
+                {
+                    out.stderr.push_str(&format!("{path}: {e}\n"));
+                    out.exit_code = 1;
+                    return;
                 }
+                pos.replace_tail(&mut unread.borrow_mut(), &[]);
+                pos.offset = end_off;
+                pos.revision = None;
+                position.set(pos);
             }
             FdTarget::Closed => {}
         }

@@ -9757,3 +9757,16 @@ test("xmllint formats deep XML up to the encoded output budget before publishing
     await assert.rejects(sh.exec("xmllint --format /doc >/dev/null", {limits: {maxOutputBytes: 100}}), /maxOutputBytes/);
   } finally { sh.dispose(); }
 });
+
+test("writes to the default null device consume the output quota before the next command", async () => {
+  const sh = new RustWasmBash({files: {"/two": Uint8Array.of(0xff, 0x61)}});
+  try {
+    for (const script of ["cat /two >/dev/null", "exec 3<>/dev/null; cat /two >&3", "{ printf ab >&2; } 2>/dev/null"]) {
+      const ok = await sh.exec(script, {limits: {maxOutputBytes: 2}});
+      assert.deepEqual([ok.exitCode, ok.stdout, ok.stderr], [0, "", ""], script);
+      await assert.rejects(sh.exec(script + "; touch /later", {limits: {maxOutputBytes: 1}}), /maxOutputBytes/, script);
+      await assert.rejects(sh.fs.stat("/later"), {code: "ENOENT"});
+    }
+    await assert.rejects(sh.exec("printf a >/dev/null; printf b >>/dev/null", {limits: {maxOutputBytes: 1}}), /maxOutputBytes/);
+  } finally { sh.dispose(); }
+});

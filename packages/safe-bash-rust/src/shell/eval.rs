@@ -168,8 +168,8 @@ pub struct EvalState<'a> {
     pub pending_out_procsubs: Vec<(String, String)>,
     // Bytes from completed nested stages that are forwarded to the current output.
     // A pipe consumer and a command substitution each capture a separate stream.
-    forwarded_output: Rc<Cell<usize>>,
-    pending_forwarded: usize,
+    forwarded_output: Rc<Cell<(usize, usize)>>,
+    pending_forwarded: (usize, usize),
     pub pending_stdout: String,
     pub pending_stderr: String,
     pub exit_requested: Option<i32>,
@@ -276,7 +276,7 @@ impl<'a> EvalState<'a> {
             retained_prefix_vars: Vec::new(),
             pending_out_procsubs: Vec::new(),
             forwarded_output: Rc::default(),
-            pending_forwarded: 0,
+            pending_forwarded: (0, 0),
             pending_stdout: String::new(),
             pending_stderr: String::new(),
             exit_requested: None,
@@ -427,7 +427,7 @@ impl<'a> EvalState<'a> {
             retained_prefix_vars: Vec::new(),
             pending_out_procsubs: Vec::new(),
             forwarded_output: self.forwarded_output.clone(),
-            pending_forwarded: 0,
+            pending_forwarded: (0, 0),
             pending_stdout: String::new(),
             pending_stderr: String::new(),
             exit_requested: None,
@@ -1499,7 +1499,8 @@ impl<'a> EvalState<'a> {
             sub.run_exit_trap_if_needed(&mut stage_out);
             if !is_last {
                 // The next stage consumes stdout. Only stderr flows out of the pipeline.
-                self.forwarded_output.set(self.forwarded_output.get() - stream_byte_len(&stage_out.stdout));
+                let (stdout, stderr) = self.forwarded_output.get();
+                self.forwarded_output.set((stdout - stream_byte_len(&stage_out.stdout), stderr));
             }
             combined_stderr.push_str(&stage_out.stderr);
             stage_codes.push(stage_out.exit_code);
@@ -1536,13 +1537,20 @@ impl<'a> EvalState<'a> {
         })
     }
 
+    fn account_forwarded_output(&self, stdout: &str, stderr: &str, charged: (usize, usize)) -> Result<(), EvalError> {
+        let (out, err) = (stream_byte_len(stdout), stream_byte_len(stderr));
+        self.budget.add_output_bytes(out.saturating_sub(charged.0) + err.saturating_sub(charged.1))
+            .map_err(EvalError::Budget)?;
+        let (prior_out, prior_err) = self.forwarded_output.get();
+        self.forwarded_output.set((prior_out + out, prior_err + err));
+        Ok(())
+    }
+
     fn take_pending_output(&mut self) -> Result<(String, String), EvalError> {
         let stdout = std::mem::take(&mut self.pending_stdout);
         let stderr = std::mem::take(&mut self.pending_stderr);
-        let bytes = stream_byte_len(&stdout) + stream_byte_len(&stderr);
-        self.budget.add_output_bytes(bytes - std::mem::take(&mut self.pending_forwarded))
-            .map_err(EvalError::Budget)?;
-        self.forwarded_output.set(self.forwarded_output.get() + bytes);
+        let charged = std::mem::take(&mut self.pending_forwarded);
+        self.account_forwarded_output(&stdout, &stderr, charged)?;
         Ok((stdout, stderr))
     }
 
@@ -1552,13 +1560,11 @@ impl<'a> EvalState<'a> {
         stdin: &mut String,
         standalone: Option<bool>,
     ) -> Result<BuiltinOutcome, EvalError> {
-        let outer = self.forwarded_output.replace(0);
+        let outer = self.forwarded_output.take();
         let res = self.eval_command_node(node, stdin, standalone);
         let forwarded = self.forwarded_output.replace(outer);
         let out = res?;
-        let bytes = stream_byte_len(&out.stdout) + stream_byte_len(&out.stderr);
-        self.budget.add_output_bytes(bytes.saturating_sub(forwarded)).map_err(EvalError::Budget)?;
-        self.forwarded_output.set(outer + bytes);
+        self.account_forwarded_output(&out.stdout, &out.stderr, forwarded)?;
         Ok(out)
     }
 
@@ -4994,7 +5000,7 @@ impl<'a> EvalState<'a> {
                     retained_prefix_vars: Vec::new(),
                     pending_out_procsubs: Vec::new(),
                     forwarded_output: self.forwarded_output.clone(),
-                    pending_forwarded: 0,
+                    pending_forwarded: (0, 0),
                     pending_stdout: String::new(),
                     pending_stderr: String::new(),
                     exit_requested: None,
@@ -9542,7 +9548,7 @@ impl<'a> EvalState<'a> {
                     stderr: String::new(),
                     exit_code: 0,
                 };
-                self.write_to_fd_target(&fd2, &msg, &mut dummy);
+                self.write_to_fd_target(&fd2, &msg, 0, &mut dummy);
                 self.pending_stdout.push_str(&dummy.stdout);
                 self.pending_stderr.push_str(&dummy.stderr);
             }
@@ -10094,11 +10100,21 @@ impl<'a> EvalState<'a> {
         let fd1 = self.fd_table.get(&1).cloned().unwrap_or(FdTarget::Stdout);
         let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
 
-        self.write_to_fd_target(&fd1, &raw_out, out);
-        self.write_to_fd_target(&fd2, &raw_err, out);
+        let (out_credit, err_credit) = self.forwarded_output.take();
+        let mut forwarded = (0, 0);
+        for (fd, data, credit) in [(&fd1, &raw_out, out_credit), (&fd2, &raw_err, err_credit)] {
+            let credit = if credit == 0 { 0 } else { credit.min(stream_byte_len(data)) };
+            match fd {
+                FdTarget::Stdout | FdTarget::PipeStdout { .. } => forwarded.0 += credit,
+                FdTarget::Stderr => forwarded.1 += credit,
+                _ => {}
+            }
+            self.write_to_fd_target(fd, data, credit, out);
+        }
+        self.forwarded_output.set(forwarded);
     }
 
-    fn write_to_fd_target(&mut self, target: &FdTarget, data: &str, out: &mut BuiltinOutcome) {
+    fn write_to_fd_target(&mut self, target: &FdTarget, data: &str, charged: usize, out: &mut BuiltinOutcome) {
         if data.is_empty() {
             return;
         }
@@ -10107,13 +10123,13 @@ impl<'a> EvalState<'a> {
             FdTarget::Stderr => out.stderr.push_str(data),
             FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if self.is_default_null(path) => {
                 // There is no filesystem write, but the command emitted these bytes.
-                let _ = self.budget.add_output_bytes(stream_byte_len(data));
+                let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
             }
             FdTarget::File { path, file, offset } => {
                 let bytes = stream_string_to_bytes(data);
                 let result = match file {
                     Some(file) => self.budget.tick_fs_op()
-                        .and_then(|_| self.budget.add_output_bytes(bytes.len()))
+                        .and_then(|_| self.budget.add_output_bytes(bytes.len() - charged))
                         .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
                     None => self.fs.append_file(path, &bytes),
                 };
@@ -10143,7 +10159,7 @@ impl<'a> EvalState<'a> {
                 };
                 let end_off = cur_off + write_bytes.len();
                 if let Err(e) = self.budget.tick_fs_op()
-                    .and_then(|_| self.budget.add_output_bytes(write_bytes.len()))
+                    .and_then(|_| self.budget.add_output_bytes(write_bytes.len() - charged))
                     .and_then(|_| file.write_at(Some(cur_off), &write_bytes))
                 {
                     out.stderr.push_str(&format!("{path}: {e}\n"));
@@ -10341,7 +10357,7 @@ impl<'a> EvalState<'a> {
                             stderr: String::new(),
                             exit_code: 0,
                         };
-                        self.write_to_fd_target(&fd2, &diag, &mut dummy);
+                        self.write_to_fd_target(&fd2, &diag, 0, &mut dummy);
                         self.pending_stdout.push_str(&dummy.stdout);
                         self.pending_stderr.push_str(&dummy.stderr);
                         self.last_exit = 2;
@@ -11891,8 +11907,7 @@ impl<'a> EvalState<'a> {
             out.exit_code = code;
         }
         sub.run_exit_trap_if_needed(&mut out);
-        let bytes = stream_byte_len(&out.stdout) + stream_byte_len(&out.stderr);
-        self.budget.add_output_bytes(bytes.saturating_sub(sub.forwarded_output.get())).map_err(EvalError::Budget)?;
+        sub.account_forwarded_output(&out.stdout, &out.stderr, sub.forwarded_output.take())?;
         if !out.stderr.is_empty() {
             let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
             let mut dummy = BuiltinOutcome {
@@ -11900,8 +11915,9 @@ impl<'a> EvalState<'a> {
                 stderr: String::new(),
                 exit_code: 0,
             };
-            self.write_to_fd_target(&fd2, &out.stderr, &mut dummy);
-            self.pending_forwarded += stream_byte_len(&dummy.stdout) + stream_byte_len(&dummy.stderr);
+            self.write_to_fd_target(&fd2, &out.stderr, stream_byte_len(&out.stderr), &mut dummy);
+            self.pending_forwarded.0 += stream_byte_len(&dummy.stdout);
+            self.pending_forwarded.1 += stream_byte_len(&dummy.stderr);
             self.pending_stdout.push_str(&dummy.stdout);
             self.pending_stderr.push_str(&dummy.stderr);
         }
@@ -11923,7 +11939,7 @@ impl<'a> EvalState<'a> {
                 stderr: String::new(),
                 exit_code: 0,
             };
-            self.write_to_fd_target(&fd2, &msg, &mut dummy);
+            self.write_to_fd_target(&fd2, &msg, 0, &mut dummy);
             self.pending_stdout.push_str(&dummy.stdout);
             self.pending_stderr.push_str(&dummy.stderr);
             raw.replace('\0', "")

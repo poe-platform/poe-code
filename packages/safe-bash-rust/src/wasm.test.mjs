@@ -9821,3 +9821,23 @@ test("shells forward nested command output without spending its quota again", as
     }
   } finally { sh.dispose(); }
 });
+
+test("redirecting a nested command preserves the quota for each output stream", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [script, limit, stdout, stderr, file] of [
+      ["env sh -c 'printf a; printf bc >&2' >/dest", 3, "", "bc", "a"],
+      ["env sh -c 'printf a; printf bc >&2' 2>/dest", 3, "a", "", "bc"],
+      ["exec 3<>/dest; env sh -c 'printf a; printf bc >&2' >&3 2>&3", 3, "", "", "abc"],
+      ["env sh -c 'printf ab' >/dev/null; printf c", 3, "c", "", ""],
+      ["{ [[ $(printf a >&2) ]] 2>/dev/null; printf z; }", 2, "z", "", ""],
+    ]) {
+      await sh.fs.writeFile("/dest", Buffer.alloc(0));
+      const r = await sh.exec(script, {limits: {maxOutputBytes: limit}});
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, stderr], script);
+      assert.equal(Buffer.from(await sh.fs.readFile("/dest")).toString(), file, script);
+      await assert.rejects(sh.exec(script + "; touch /later", {limits: {maxOutputBytes: limit - 1}}), /maxOutputBytes/, script);
+      await assert.rejects(sh.fs.stat("/later"), {code: "ENOENT"});
+    }
+  } finally { sh.dispose(); }
+});

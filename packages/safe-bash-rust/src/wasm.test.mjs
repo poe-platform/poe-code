@@ -3379,6 +3379,39 @@ test("ffmpeg and ffprobe list the production media registry and codecs", async (
   } finally { wasm.dispose(); }
 });
 
+test("memory inode revisions match TypeScript through writes, links and chmod", async () => {
+  const { MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const wasm = new RustWasmBash({ forceNative: true });
+  async function exercise(fs) {
+    await fs.mkdir("/dir");
+    const stamps = [];
+    async function record(path) { stamps.push((await fs.lstat(path)).revision); }
+    await record("/dir");
+    await fs.writeFile("/dir/file", new Uint8Array([1]));
+    await record("/dir"); await record("/dir/file");
+    await fs.readFile("/dir/file"); await record("/dir/file");
+    await fs.writeFile("/dir/file", new Uint8Array([2])); await record("/dir/file");
+    await fs.chmod("/dir/file", 0o640); await record("/dir/file");
+    await fs.symlink("file", "/dir/link"); await record("/dir/link");
+    await fs.rename("/dir/link", "/dir/moved"); await record("/dir/moved");
+    await fs.chmod("/dir", 0o755); await record("/dir");
+    const fd = await fs.open("/dir/file", {access: "readwrite"});
+    try {
+      await fs.link("/dir/file", "/alias");
+      await fd.write(Uint8Array.of(3), 0); await record("/alias");
+      await fd.truncate(0); await record("/dir/file");
+      await fs.unlink("/alias"); await fs.unlink("/dir/file");
+      stamps.push((await fd.stat()).revision);
+    } finally { await fd.close(); }
+    return stamps;
+  }
+  try {
+    const expected = await exercise(new MemoryFileSystem());
+    assert.ok(expected.every(Number.isSafeInteger));
+    assert.deepEqual(await exercise(wasm.fs), expected);
+  } finally { wasm.dispose(); }
+});
+
 test("cancelled and guarded chmod calls cannot silently change Wasm permissions", async () => {
   const bash = new RustWasmBash({ files: { "/private": { content: "data", mode: 0o600 } } });
   try {

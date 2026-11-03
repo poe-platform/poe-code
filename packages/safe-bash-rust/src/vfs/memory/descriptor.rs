@@ -98,6 +98,7 @@ impl RetainedFile {
         let state = self.fs.state.read().unwrap();
         let file = &state.files[&self.ino];
         FileStat {
+            revision: Some(file.revision),
             nlink: Some(usize::from(file.linked) + state.extra_links.get(&self.ino).map_or(0, |g| g.extra)),
             uid: Some(0), gid: Some(0), io_block_size: Some(65536), filesystem_type: Some("memory"),
             identity: Some(EntryIdentity::Memory(self.fs.id, self.ino)),
@@ -161,7 +162,7 @@ impl RetainedFile {
         }
         file.publication = None;
         file.mtime_ms = crate::vfs::now_ms();
-        file.ctime_ms = file.mtime_ms;
+        file.status_changed(file.mtime_ms);
         state.total_bytes = total;
         self.fs.bump_generation();
         Ok(())

@@ -57,6 +57,7 @@ impl EntryIdentity {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FileStat {
+    pub revision: Option<u64>,
     pub nlink: Option<usize>,
     pub uid: Option<u32>,
     pub gid: Option<u32>,
@@ -329,6 +330,7 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if self.is_dir(&norm) {
             return Ok(FileStat {
+                revision: None,
                 nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
@@ -342,6 +344,7 @@ pub trait SafeBashFs: Send + Sync {
         }
         if let Ok(data) = self.read_file(&norm) {
             return Ok(FileStat {
+                revision: None,
                 nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,
@@ -360,6 +363,7 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if let Ok(target) = self.readlink(&norm) {
             return Ok(FileStat {
+                revision: None,
                 nlink: None, uid: None, gid: None, io_block_size: None, filesystem_type: None,
                 identity: None,
                 allocated_bytes: None,

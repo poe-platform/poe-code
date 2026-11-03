@@ -38,6 +38,7 @@ export interface RustWasmExecResult {
 }
 
 export interface WasmFileStat {
+  readonly revision?: number;
   readonly uid?: number;
   readonly gid?: number;
   readonly allocatedBytes?: number;

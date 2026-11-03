@@ -13,6 +13,7 @@ use std::sync::{Arc, RwLock};
 enum MemoryNode {
     File { ino: u64 },
     Directory {
+        revision: u64,
         retained: std::sync::Weak<std::sync::Mutex<DirectoryReadState>>,
         ino: u64,
         mode: u32,
@@ -27,6 +28,7 @@ enum MemoryNode {
         mode: u32,
         atime_ms: f64,
         mtime_ms: f64,
+        revision: Arc<AtomicU64>,
         ctime_bits: Arc<AtomicU64>,
         birthtime_ms: f64,
     },
@@ -34,22 +36,23 @@ enum MemoryNode {
 
 impl MemoryNode {
     fn directory(ino: u64, mode: u32, now: f64) -> Self {
-        Self::Directory { retained: Default::default(), ino, mode, atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now }
+        Self::Directory { revision: 0, retained: Default::default(), ino, mode, atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now }
     }
 
     fn status_changed(&mut self, files: &mut HashMap<u64, MemoryFile>, now: f64) {
         match self {
-            Self::File { ino } => files.get_mut(ino).unwrap().ctime_ms = now,
-            Self::Directory { ctime_ms, .. } => *ctime_ms = now,
-            Self::Symlink { ctime_bits, .. } => ctime_bits.store(now.to_bits(), Ordering::Relaxed),
+            Self::File { ino } => files.get_mut(ino).unwrap().status_changed(now),
+            Self::Directory { ctime_ms, revision, .. } => { *ctime_ms = now; *revision += 1; }
+            Self::Symlink { ctime_bits, revision, .. } => { ctime_bits.store(now.to_bits(), Ordering::Relaxed); revision.fetch_add(1, Ordering::Relaxed); }
         }
     }
 
     fn detach_directory_reads(&self) {
-        if let Self::Directory { retained, mode, atime_ms, mtime_ms, ctime_ms, .. } = self
+        if let Self::Directory { retained, mode, atime_ms, mtime_ms, ctime_ms, revision, .. } = self
             && let Some(handle) = retained.upgrade() {
             let mut state = handle.lock().unwrap();
             state.path = None;
+            state.stat.revision = Some(*revision);
             state.stat.mode = *mode;
             state.stat.atime_ms = *atime_ms;
             state.stat.mtime_ms = *mtime_ms;
@@ -65,6 +68,7 @@ impl MemoryNode {
 
 #[derive(Debug)]
 struct MemoryFile {
+    revision: u64,
     data: Vec<u8>,
     publication: Option<u64>,
     mode: u32,
@@ -77,6 +81,7 @@ struct MemoryFile {
 }
 
 impl MemoryFile {
+    fn status_changed(&mut self, now: f64) { self.ctime_ms = now; self.revision += 1; }
     fn set_times(&mut self, (accessed, modified): (Option<f64>, Option<f64>)) {
         if let Some(t) = accessed { self.atime_ms = t; }
         if let Some(t) = modified { self.mtime_ms = t; }
@@ -208,7 +213,8 @@ impl MemoryState {
     }
 
     fn directory_changed(&mut self, path: &str, now: f64) {
-        if let Some(MemoryNode::Directory { mtime_ms, ctime_ms, .. }) = self.nodes.get_mut(path) {
+        if let Some(MemoryNode::Directory { mtime_ms, ctime_ms, revision, .. }) = self.nodes.get_mut(path) {
+            *revision += 1;
             *mtime_ms = now;
             *ctime_ms = now;
         }
@@ -217,7 +223,7 @@ impl MemoryState {
     fn insert_new_file(&mut self, path: String, data: Vec<u8>, mode: u32, publication: Option<u64>) -> u64 {
         let ino = self.allocate_ino();
         let now = super::now_ms();
-        self.files.insert(ino, MemoryFile { data, publication, mode, atime_ms: now, mtime_ms: now,
+        self.files.insert(ino, MemoryFile { revision: 0, data, publication, mode, atime_ms: now, mtime_ms: now,
             ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
         self.parent_changed(&path, now);
         self.nodes.insert(path, MemoryNode::File { ino });
@@ -409,7 +415,7 @@ impl MemoryVfs {
 
     fn resolved_metadata(&self, state: &MemoryState, resolved: &str) -> Option<FileStat> {
         let device = state.devices.entry(resolved);
-        let (kind, size, mode, atime_ms, mtime_ms, ctime, birth, ino) = if let Some(name) = device {
+        let (kind, size, mode, atime_ms, mtime_ms, ctime, birth, ino, revision) = if let Some(name) = device {
             let ino = match name { "" if state.devices == Devices::Null => 2, "null" if state.devices == Devices::Null => 1, "" => 1, "null" => 2, "random" => 3, "urandom" => 4, "zero" => 5, "full" => 6, _ => unreachable!() };
             let (kind, mode) = if name.is_empty() {
                 (VfsEntryKind::Directory, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 })
@@ -418,20 +424,21 @@ impl MemoryVfs {
                 let MemoryNode::Directory { birthtime_ms, .. } = &state.nodes["/"] else { unreachable!() };
                 *birthtime_ms
             } else { 0.0 };
-            (kind, 0, mode, created, created, created, created, ino)
+            (kind, 0, mode, created, created, created, created, ino, None)
         } else {
             match state.nodes.get(resolved) {
                 Some(MemoryNode::File { ino }) => {
                     let file = &state.files[ino];
-                    (VfsEntryKind::File, file.data.len(), file.mode, file.atime_ms, file.mtime_ms, file.ctime_ms, file.birthtime_ms, *ino)
+                    (VfsEntryKind::File, file.data.len(), file.mode, file.atime_ms, file.mtime_ms, file.ctime_ms, file.birthtime_ms, *ino, Some(file.revision))
                 }
-                Some(MemoryNode::Directory { ino, mode, atime_ms, mtime_ms, ctime_ms, birthtime_ms, .. }) => (VfsEntryKind::Directory, 0, *mode, *atime_ms, *mtime_ms, *ctime_ms, *birthtime_ms, *ino),
-                Some(MemoryNode::Symlink { ino, target, mode, atime_ms, mtime_ms, ctime_bits, birthtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *atime_ms, *mtime_ms, f64::from_bits(ctime_bits.load(Ordering::Relaxed)), *birthtime_ms, *ino),
+                Some(MemoryNode::Directory { ino, mode, atime_ms, mtime_ms, ctime_ms, birthtime_ms, revision, .. }) => (VfsEntryKind::Directory, 0, *mode, *atime_ms, *mtime_ms, *ctime_ms, *birthtime_ms, *ino, Some(*revision)),
+                Some(MemoryNode::Symlink { ino, target, mode, atime_ms, mtime_ms, ctime_bits, birthtime_ms, revision }) => (VfsEntryKind::Symlink, target.len(), *mode, *atime_ms, *mtime_ms, f64::from_bits(ctime_bits.load(Ordering::Relaxed)), *birthtime_ms, *ino, Some(revision.load(Ordering::Relaxed))),
                 None => return None,
             }
         };
         let default_device = device.is_some() && state.devices == Devices::Null;
         Some(FileStat {
+            revision,
             uid: (state.devices != Devices::Mounted).then_some(0), gid: (state.devices != Devices::Mounted).then_some(0),
             io_block_size: device.is_none().then_some(65536), filesystem_type: device.is_none().then_some("memory"),
             nlink: (state.devices != Devices::Mounted).then(|| if device.is_some() { 1 } else if kind == VfsEntryKind::Directory {
@@ -519,7 +526,7 @@ impl MemoryVfs {
             }
             file.publication = publication;
             file.mtime_ms = super::now_ms();
-            file.ctime_ms = file.mtime_ms;
+            file.status_changed(file.mtime_ms);
         } else {
             let mut contents = Vec::new();
             contents.try_reserve_exact(new_len).map_err(|_| "ENOSPC: insufficient memory")?;
@@ -672,7 +679,7 @@ impl MemoryVfs {
             upper.parent_changed(parent, now);
             let ino = upper.allocate_ino();
             upper.insert_directory(parent.to_owned(), MemoryNode::Directory {
-                retained: Default::default(), ino, mode: if parent == path { st.mode } else { mode },
+                revision: 0, retained: Default::default(), ino, mode: if parent == path { st.mode } else { mode },
                 atime_ms: if parent == path { st.atime_ms } else { previous_atime },
                 mtime_ms: if parent == path { st.mtime_ms } else { now },
                 ctime_ms: now, birthtime_ms: now,
@@ -875,7 +882,7 @@ impl SafeBashFs for MemoryVfs {
         if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
         let ino = state.allocate_ino();
         let now = super::now_ms();
-        state.files.insert(ino, MemoryFile { data: Vec::new(), publication: None, mode: 0o100600,
+        state.files.insert(ino, MemoryFile { revision: 0, data: Vec::new(), publication: None, mode: 0o100600,
             atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now, opens: 1, linked: false });
         Ok(std::rc::Rc::new(RetainedFile { fs: self.clone(), ino, access: super::RedirectAccess::ReadWrite }))
     }
@@ -1383,7 +1390,7 @@ impl SafeBashFs for MemoryVfs {
                 ino,
                 target: Arc::from(target),
                 mode: 0o120777,
-                atime_ms: now, mtime_ms: now, birthtime_ms: now, ctime_bits: Arc::new(AtomicU64::new(now.to_bits())),
+                atime_ms: now, mtime_ms: now, birthtime_ms: now, revision: Arc::default(), ctime_bits: Arc::new(AtomicU64::new(now.to_bits())),
             },
         );
         self.bump_generation();
@@ -1412,14 +1419,16 @@ impl SafeBashFs for MemoryVfs {
                 let ino = *ino;
                 let file = guard.files.get_mut(&ino).unwrap();
                 file.publication = None;
-                file.ctime_ms = super::now_ms();
+                file.status_changed(super::now_ms());
                 file.mode = 0o100000 | (mode & 0o7777);
             }
-            Some(MemoryNode::Directory { mode: m, ctime_ms, .. }) => {
+            Some(MemoryNode::Directory { mode: m, ctime_ms, revision, .. }) => {
+                *revision += 1;
                 *ctime_ms = super::now_ms();
                 *m = 0o040000 | (mode & 0o7777);
             }
-            Some(MemoryNode::Symlink { mode: m, ctime_bits, .. }) => {
+            Some(MemoryNode::Symlink { mode: m, ctime_bits, revision, .. }) => {
+                revision.fetch_add(1, Ordering::Relaxed);
                 ctime_bits.store(super::now_ms().to_bits(), Ordering::Relaxed);
                 *m = 0o120000 | (mode & 0o7777);
             }
@@ -1441,11 +1450,12 @@ impl SafeBashFs for MemoryVfs {
                 let ino = *ino;
                 let file = guard.files.get_mut(&ino).unwrap();
                 file.publication = None;
-                file.ctime_ms = super::now_ms();
+                file.status_changed(super::now_ms());
                 if let Some(value) = atime_ms { file.atime_ms = value; }
                 if let Some(value) = mtime_ms { file.mtime_ms = value; }
             }
-            Some(MemoryNode::Directory { atime_ms: a, mtime_ms: m, ctime_ms, .. }) => {
+            Some(MemoryNode::Directory { atime_ms: a, mtime_ms: m, ctime_ms, revision, .. }) => {
+                *revision += 1;
                 *ctime_ms = super::now_ms();
                 if let Some(value) = atime_ms { *a = value; }
                 if let Some(value) = mtime_ms { *m = value; }
@@ -1549,7 +1559,7 @@ impl SafeBashFs for MemoryVfs {
                 let now = super::now_ms();
                 let ino = guard.allocate_ino();
                 guard.nodes.insert(norm.clone(), MemoryNode::Symlink { ino,
-                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, atime_ms: now, mtime_ms: now, birthtime_ms: now, ctime_bits: Arc::new(AtomicU64::new(now.to_bits())) });
+                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, atime_ms: now, mtime_ms: now, birthtime_ms: now, revision: Arc::default(), ctime_bits: Arc::new(AtomicU64::new(now.to_bits())) });
             }
             if let Some(group) = entry.link_group { groups.insert(group, guard.nodes[&norm].clone()); }
         }

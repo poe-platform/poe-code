@@ -1069,12 +1069,14 @@ export class RustWasmBash extends WasmShell {
     const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
     const fields = view.getUint32(44, true);
     const allocatedBytes = view.getFloat64(60, true), ioBlockSize = view.getFloat64(68, true);
-    const ino = len >= 92 ? Number(view.getBigUint64(84, true)) : undefined;
+    const revision = fields & 16 ? Number(view.getBigUint64(len - 8, true)) : undefined;
+    const identityLength = len - (fields & 16 ? 8 : 0);
+    const ino = identityLength >= 92 ? Number(view.getBigUint64(84, true)) : undefined;
     let identityScope;
     if (Number.isSafeInteger(ino)) {
       // Memory filesystems report dev 0. Keep their identity scopes distinct,
       // including synthetic device mounts and logical overlay directories.
-      const key = len >= 100 ? view.getBigUint64(92, true) : ~view.getBigUint64(76, true);
+      const key = identityLength >= 100 ? view.getBigUint64(92, true) : ~view.getBigUint64(76, true);
       identityScope = this.#identityScopes.get(key)?.deref();
       if (!identityScope) {
         identityScope = Symbol("Wasm filesystem identity");
@@ -1083,6 +1085,7 @@ export class RustWasmBash extends WasmShell {
       }
     }
     return {
+      ...(Number.isSafeInteger(revision) ? {revision} : {}),
       ...(fields & 1 ? {uid: view.getUint32(48, true)} : {}),
       ...(fields & 2 ? {gid: view.getUint32(52, true)} : {}),
       ...(fields & 4 ? {nlink: view.getUint32(56, true)} : {}),

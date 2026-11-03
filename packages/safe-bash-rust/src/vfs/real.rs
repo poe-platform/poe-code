@@ -174,6 +174,7 @@ impl RealVfs {
             time.duration_since(UNIX_EPOCH).map(millis).unwrap_or_else(|e| -millis(e.duration()))
         };
         Ok(FileStat {
+            revision: None,
             nlink, uid, gid, io_block_size, filesystem_type: None,
             identity,
             allocated_bytes,

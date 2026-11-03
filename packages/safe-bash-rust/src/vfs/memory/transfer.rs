@@ -177,7 +177,7 @@ impl MemoryVfs {
                         new_path,
                         MemoryNode::Symlink {
                             target: target.clone(),
-                            ctime_bits: Arc::new(AtomicU64::new(now.to_bits())), birthtime_ms: now,
+                            revision: Arc::default(), ctime_bits: Arc::new(AtomicU64::new(now.to_bits())), birthtime_ms: now,
                             ino,
                             mode: *mode,
                             atime_ms: *atime_ms,
@@ -199,7 +199,7 @@ impl MemoryVfs {
                     staged.insert_directory(
                         new_path,
                         MemoryNode::Directory {
-                            retained: Default::default(), ino,
+                            revision: 0, retained: Default::default(), ino,
                             ctime_ms: now, birthtime_ms: now,
                             mode: *mode,
                             atime_ms: *atime_ms,

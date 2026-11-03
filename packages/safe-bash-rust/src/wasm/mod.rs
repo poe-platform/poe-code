@@ -693,7 +693,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         VfsEntryKind::Directory => 1,
         VfsEntryKind::Symlink => 2,
     };
-    let mut buf = Vec::with_capacity(100);
+    let mut buf = Vec::with_capacity(108);
     buf.extend_from_slice(&kind_code.to_le_bytes());
     buf.extend_from_slice(&(st.size as u32).to_le_bytes());
     buf.extend_from_slice(&st.mode.to_le_bytes());
@@ -702,7 +702,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
     buf.extend_from_slice(&st.ctime_ms.unwrap_or(f64::NAN).to_le_bytes());
     buf.extend_from_slice(&st.birthtime_ms.unwrap_or(f64::NAN).to_le_bytes());
     let fields = u32::from(st.uid.is_some()) | (u32::from(st.gid.is_some()) << 1)
-        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type == Some("memory")) << 3);
+        | (u32::from(st.nlink.is_some()) << 2) | (u32::from(st.filesystem_type == Some("memory")) << 3) | (u32::from(st.revision.is_some()) << 4);
     buf.extend_from_slice(&fields.to_le_bytes());
     buf.extend_from_slice(&st.uid.unwrap_or(0).to_le_bytes());
     buf.extend_from_slice(&st.gid.unwrap_or(0).to_le_bytes());
@@ -715,6 +715,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         buf.extend_from_slice(&ino.to_le_bytes());
         if let Some(EntryIdentity::OverlayDirectory { scope, .. }) = st.identity { buf.extend_from_slice(&scope.to_le_bytes()); }
     }
+    if let Some(revision) = st.revision { buf.extend_from_slice(&revision.to_le_bytes()); }
     buf
 }
 

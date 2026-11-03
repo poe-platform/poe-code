@@ -73,7 +73,6 @@ Returns a fluent builder:
 Compatibility wrapper that builds a session with:
 
 - `openaiResponsesPlugin()`
-- `geminiPlugin({ apiKey, baseUrl, reasoningEffort: "high" })` uses Gemini's native API, including tool calls, images and signed conversation history. The default URL is `https://generativelanguage.googleapis.com/v1beta`; set `baseUrl` for a proxy. Host runs can use `GEMINI_API_KEY` or `GOOGLE_API_KEY`; custom filesystems require an explicit key. Configured agents use the `gemini` plugin name.
 - `openaiChatCompletionsPlugin()`
 - `systemPromptPlugin()`
 - `filesPlugin()`
@@ -81,6 +80,8 @@ Compatibility wrapper that builds a session with:
 - `webPlugin()`
 
 Use the builder API when you need memory, policy, compaction, skills, scratchpad, audit logging, or custom plugins.
+
+`geminiPlugin({ apiKey, baseUrl, reasoningEffort: "high" })` uses Gemini's native API, including tool calls, images and signed conversation history. The default URL is `https://generativelanguage.googleapis.com/v1beta`; set `baseUrl` for a proxy. Host runs can use `GEMINI_API_KEY` or `GOOGLE_API_KEY`; custom filesystems require an explicit key. Configured agents use the `gemini` plugin name. Transient HTTP rejections retry up to twice, respecting `Retry-After` and cancellation.
 
 ## Run options
 
@@ -134,6 +135,7 @@ The `poe-agent` CLI has a separate `--resume-thread-id` flow backed by `createAg
 
 - `openai-responses`
 - `openai-chat-completions`
+- `gemini`
 - `system-prompt`
 - `files`
 - `shell`

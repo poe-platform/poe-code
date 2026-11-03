@@ -31,6 +31,53 @@ for (const [name, sdk] of [
   ["Rust", rust],
   ["TypeScript", typescript]
 ]) {
+  test(`${name}: Gemini retries transient rejections but bounds retries and honors cancellation`, async () => {
+    for (const status of [429, 503]) {
+      let attempts = 0;
+      const model = await sdk
+        .geminiPlugin({ apiKey: "test" })
+        .providers[0].createModel("gemini-4-argon", {
+          options: {},
+          fetch: async () =>
+            ++attempts < 3
+              ? new Response("busy", { status, headers: { "retry-after": "0" } })
+              : response([
+                  { candidates: [{ content: { parts: [{ text: "done" }] }, finishReason: "STOP" }] }
+                ])
+        });
+      assert.equal(
+        (await collect((await model.complete(request)).events)).at(-1).reason,
+        "end_turn"
+      );
+      assert.equal(attempts, 3);
+    }
+    let attempts = 0;
+    const model = await sdk
+      .geminiPlugin({ apiKey: "test" })
+      .providers[0].createModel("gemini-4-argon", {
+        options: {},
+        fetch: async () => {
+          attempts++;
+          return new Response("busy", { status: 429, headers: { "retry-after": "0" } });
+        }
+      });
+    await assert.rejects(() => model.complete(request), /429/);
+    assert.equal(attempts, 3);
+    const abort = new AbortController();
+    const cancelled = await sdk
+      .geminiPlugin({ apiKey: "test" })
+      .providers[0].createModel("gemini-4-argon", {
+        options: {},
+        fetch: async () => {
+          queueMicrotask(() => abort.abort(new Error("cancelled")));
+          return new Response("busy", { status: 429, headers: { "retry-after": "30" } });
+        }
+      });
+    await assert.rejects(
+      () => cancelled.complete({ ...request, signal: abort.signal }),
+      /cancelled/
+    );
+  });
   test(`${name}: Gemini is available through SDK and plugin config`, () => {
     assert.equal(typeof sdk.geminiPlugin, "function");
     const [plugin] = sdk.resolvePluginsFromConfig([
@@ -178,7 +225,7 @@ for (const [name, sdk] of [
         /terminal/
       ],
       [() => response([{ promptFeedback: { blockReason: "SAFETY" } }]), /SAFETY/],
-      [() => new Response('{"error":{"message":"unavailable"}}', { status: 503 }), /503/],
+      [() => new Response('{"error":{"message":"invalid"}}', { status: 400 }), /400/],
       [() => response([{ error: { message: "upstream failure" } }]), /upstream failure/]
     ]) {
       const model = await sdk

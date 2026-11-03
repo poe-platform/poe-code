@@ -112,15 +112,49 @@ export function geminiPlugin(input: GeminiPluginOptions = {}): AgentPlugin {
                       }
                     : {})
                 };
-                const response = await ctx.fetch(url, {
-                  method: "POST",
-                  headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
-                  body: JSON.stringify(body),
-                  signal: request.signal
-                });
-                if (!response.ok)
-                  throw new Error(`Gemini HTTP ${response.status}: ${await response.text()}`);
-                return { events: streamEvents(response) };
+                for (let attempt = 0; ; attempt++) {
+                  request.signal.throwIfAborted();
+                  const response = await ctx.fetch(url, {
+                    method: "POST",
+                    headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+                    body: JSON.stringify(body),
+                    signal: request.signal
+                  });
+                  if (response.ok) return { events: streamEvents(response) };
+                  const error = new Error(
+                    `Gemini HTTP ${response.status}: ${await response.text()}`
+                  );
+                  if (
+                    attempt >= 2 ||
+                    !([408, 409, 429].includes(response.status) || response.status >= 500)
+                  )
+                    throw error;
+                  const retryAfter = response.headers.get("retry-after");
+                  const backoff = 500 * 2 ** attempt;
+                  const requestedDelay =
+                    retryAfter === null
+                      ? backoff
+                      : Number.isFinite(Number(retryAfter))
+                        ? Number(retryAfter) * 1000
+                        : Date.parse(retryAfter) - Date.now();
+                  const delay =
+                    requestedDelay >= 0 && requestedDelay <= 60_000 ? requestedDelay : backoff;
+                  await new Promise<void>((resolve, reject) => {
+                    if (request.signal.aborted) {
+                      reject(request.signal.reason);
+                      return;
+                    }
+                    const onAbort = () => {
+                      clearTimeout(timer);
+                      reject(request.signal.reason);
+                    };
+                    const timer = setTimeout(() => {
+                      request.signal.removeEventListener("abort", onAbort);
+                      resolve();
+                    }, delay);
+                    request.signal.addEventListener("abort", onAbort, { once: true });
+                  });
+                }
               }
             };
           }

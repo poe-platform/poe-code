@@ -9261,3 +9261,19 @@ test("xmllint walks each input path component before following dot-dot", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("nested XPath paths preserve their predicate contexts without a native call stack limit", async () => {
+  const rs = new RustWasmBash({ files: { "/doc": "<r><a/><a/><a/></r>" } });
+  try {
+    const predicate = ".[".repeat(512) + "true()" + "]".repeat(512);
+    for (const [path, file, code, output] of [
+      ["//a[" + predicate + " and position()=2]", "/doc", 0, "1\n"],
+      ["//missing[" + predicate + "]", "/doc", 0, "0\n"],
+      [".[" + predicate + "]", "/missing", 1, ""],
+    ]) {
+      const result = await rs.exec("xmllint --xpath 'count(" + path + ")' " + file);
+      assert.deepEqual([result.exitCode, result.stdout], [code, output]);
+      assert.equal(result.stderr, code ? "xmllint: ENOENT: no such file or directory, readStream '/missing'\n" : "");
+    }
+  } finally { rs.dispose(); }
+});

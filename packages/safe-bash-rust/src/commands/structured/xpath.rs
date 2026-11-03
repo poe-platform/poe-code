@@ -29,25 +29,51 @@ pub(super) enum Query<'s> {
     Paths(Vec<Path<'s>>),
 }
 
-pub(super) fn compile(source: &str) -> Result<Vec<Query<'_>>, String> {
-    let mut result = vec![Query::Paths(vec![])];
-    let mut pending = vec![(0, vec![source], 0)];
-    while let Some((index, sources, depth)) = pending.pop() {
-        if depth > 128 {
-            return Err("maxDepth limit exceeded".into());
+// All parser slices borrow the original query. A bracket's address identifies
+// its matching span in every slice, without rescanning nested predicate bodies.
+type Brackets = std::collections::HashMap<*const u8, usize>;
+fn bracket_spans(source: &str) -> Brackets {
+    let mut spans = Brackets::new();
+    let mut opens = Vec::new();
+    let mut quote = 0;
+    for (i, b) in source.bytes().enumerate() {
+        if quote != 0 {
+            if b == quote {
+                quote = 0;
+            }
+        } else {
+            match b {
+                b'\'' | b'"' => quote = b,
+                b'[' => opens.push(i),
+                b']' => {
+                    if let Some(open) = opens.pop() {
+                        spans.insert(source[open..].as_ptr(), i - open);
+                    }
+                }
+                _ => {}
+            }
         }
+    }
+    spans
+}
+
+pub(super) fn compile(source: &str) -> Result<Vec<Query<'_>>, String> {
+    let spans = bracket_spans(source);
+    let mut result = vec![Query::Paths(vec![])];
+    let mut pending = vec![(0, vec![source])];
+    while let Some((index, sources)) = pending.pop() {
         // Compile sibling paths left to right before visiting paths nested inside them.
         for (offset, source) in sources.into_iter().enumerate() {
             let first = result.len();
             let mut children = Vec::new();
-            result[index + offset] = query(source, &mut |path| {
+            result[index + offset] = query(source, &spans, &mut |path| {
                 let i = first + children.len();
                 children.push(path);
                 i
             })?;
             if !children.is_empty() {
                 result.resize_with(first + children.len(), || Query::Paths(Vec::new()));
-                pending.push((first, children, depth + 1));
+                pending.push((first, children));
             }
         }
     }
@@ -103,7 +129,11 @@ impl<'a> Cursor<'a> {
     }
 }
 
-fn query<'a>(s: &'a str, link: &mut impl FnMut(&'a str) -> usize) -> Result<Query<'a>, String> {
+fn query<'a>(
+    s: &'a str,
+    spans: &Brackets,
+    link: &mut impl FnMut(&'a str) -> usize,
+) -> Result<Query<'a>, String> {
     let mut c = Cursor {
         s,
         i: 0,
@@ -122,7 +152,7 @@ fn query<'a>(s: &'a str, link: &mut impl FnMut(&'a str) -> usize) -> Result<Quer
         _ => false,
     };
     if expr {
-        return Ok(Query::Expression(expression(s, link)?));
+        return Ok(Query::Expression(expression(s, spans, link)?));
     }
     c.i = first;
     let mut paths = vec![];
@@ -175,31 +205,17 @@ fn query<'a>(s: &'a str, link: &mut impl FnMut(&'a str) -> usize) -> Result<Quer
             c.skip();
             let mut predicates = vec![];
             while c.take(b'[') {
+                let open = c.i - 1;
                 c.skip();
                 let begin = c.i;
-                let mut quote = 0;
-                let mut depth = 0;
-                while c.i < s.len() {
-                    let b = c.byte();
-                    if quote != 0 {
-                        if b == quote {
-                            quote = 0;
-                        }
-                    } else {
-                        match b {
-                            b'"' | b'\'' => quote = b,
-                            b'[' => depth += 1,
-                            b']' if depth == 0 => break,
-                            b']' => depth -= 1,
-                            _ => {}
-                        }
-                    }
-                    c.i += 1;
-                }
+                c.i = spans
+                    .get(&s[open..].as_ptr())
+                    .map_or(s.len(), |span| open + span)
+                    .min(s.len());
                 if c.i == s.len() {
                     return Err(c.error());
                 }
-                predicates.push(expression(&s[begin..c.i], link)?);
+                predicates.push(expression(&s[begin..c.i], spans, link)?);
                 c.i += 1;
                 c.skip();
             }
@@ -257,6 +273,7 @@ fn arity(name: &str) -> Option<std::ops::RangeInclusive<usize>> {
 }
 fn expression<'a>(
     s: &'a str,
+    spans: &Brackets,
     link: &mut impl FnMut(&'a str) -> usize,
 ) -> Result<Vec<Op<'a>>, String> {
     let mut c = Cursor {
@@ -364,6 +381,13 @@ fn expression<'a>(
                 } else if matches!(ch, b'\'' | b'"') {
                     quote = ch;
                 } else if ch == b'[' {
+                    if brackets == 0
+                        && let Some(&span) = spans.get(&s[c.i..].as_ptr())
+                        && span < s.len() - c.i
+                    {
+                        c.i += span + 1;
+                        continue;
+                    }
                     brackets += 1;
                 } else if ch == b']' {
                     brackets -= 1;

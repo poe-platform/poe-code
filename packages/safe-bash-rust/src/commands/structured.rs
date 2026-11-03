@@ -14933,7 +14933,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
     let xpath = match xpath.as_deref().map(xpath::compile).transpose() {
         Ok(query) => query,
-        Err(e) => return err_out(&format!("xmllint: {e}\n"), if e == "maxDepth limit exceeded" {5} else {10}),
+        Err(e) => return err_out(&format!("xmllint: {e}\n"), 10),
     };
     let render = |text: &str| {
         let mut warnings = Vec::new();
@@ -15228,9 +15228,38 @@ struct XPathDocument<'a> {
     program: &'a [xpath::Query<'a>],
     namespaces: BTreeMap<&'a str, &'a str>,
     entries: Vec<XPathEntry<'a>>,
+    requested: Cell<Option<(usize, usize, usize, usize)>>,
+    returned: Cell<Option<XPathVal<'a>>>,
 }
 
 impl<'a> XPathDocument<'a> {
+    // Nested selections suspend their caller. Poll one query frame at a time so
+    // a predicate inside a predicate never grows the native or Wasm call stack.
+    fn evaluate(&self) -> Result<XPathVal<'a>, String> {
+        use std::task::{Context, Poll, Waker};
+        let mut cx = Context::from_waker(Waker::noop());
+        let mut frames = vec![Box::pin(eval_xpath_query(self, 0, 1, 1, &self.program[0]))];
+        loop {
+            match frames.last_mut().unwrap().as_mut().poll(&mut cx) {
+                Poll::Ready(result) => {
+                    frames.pop();
+                    let value = result?;
+                    if frames.is_empty() { return Ok(value); }
+                    self.returned.set(Some(value));
+                }
+                Poll::Pending => {
+                    let (query, node, pos, last) = self.requested.take().expect("suspended XPath selection");
+                    frames.push(Box::pin(eval_xpath_query(self, node, pos, last, &self.program[query])));
+                }
+            }
+        }
+    }
+
+    async fn select(&self, query: usize, node: usize, pos: usize, last: usize) -> XPathVal<'a> {
+        self.requested.set(Some((query, node, pos, last)));
+        std::future::poll_fn(|_| self.returned.take().map_or(std::task::Poll::Pending, std::task::Poll::Ready)).await
+    }
+
     fn add(&mut self, parent: usize, item: XPathItem<'a>) -> usize {
         let index = self.entries.len();
         self.entries.push(XPathEntry { item, parent, end: index + 1 });
@@ -15287,11 +15316,11 @@ impl<'a> XPathItem<'a> {
 }
 
 fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutcome {
-    let mut doc = XPathDocument { program, namespaces: BTreeMap::new(), entries: Vec::new() };
+    let mut doc = XPathDocument { program, namespaces: BTreeMap::new(), entries: Vec::new(), requested: Cell::new(None), returned: Cell::new(None) };
     doc.add(0, XPathItem::Document(dom));
     doc.index(0, dom, &mut BTreeMap::from([("xml", "http://www.w3.org/XML/1998/namespace")]));
     doc.entries[0].end = doc.entries.len();
-    let val = match eval_xpath_query(&doc,0,1,1,&program[0]) {
+    let val = match doc.evaluate() {
         Ok(val) => val,
         Err(message) => return err_out(&format!("xmllint: {message}\n"), 10),
     };
@@ -15391,12 +15420,12 @@ fn compare_xpath_vals(lhs: &XPathVal, op: &str, rhs: &XPathVal) -> bool {
     }
 }
 
-fn eval_xpath_query<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, query: &xpath::Query) -> Result<XPathVal<'a>, String> {
+async fn eval_xpath_query<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, query: &xpath::Query<'_>) -> Result<XPathVal<'a>, String> {
     match query {
-        xpath::Query::Expression(ops) => eval_xpath_expr(doc,ctx,pos,last,ops),
+        xpath::Query::Expression(ops) => eval_xpath_expr(doc,ctx,pos,last,ops).await,
         xpath::Query::Paths(paths) => {
             let mut out = Vec::new();
-            for path in paths { out.extend(eval_xpath_path_ctx(doc,ctx,path)?); }
+            for path in paths { out.extend(eval_xpath_path_ctx(doc,ctx,path).await?); }
             out.sort_unstable();
             out.dedup();
             Ok(XPathVal::NodeSet(out.into_iter().map(|i| doc.entries[i].item).collect()))
@@ -15404,14 +15433,14 @@ fn eval_xpath_query<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: u
     }
 }
 
-fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, ops: &[xpath::Op]) -> Result<XPathVal<'a>, String> {
+async fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, ops: &[xpath::Op<'_>]) -> Result<XPathVal<'a>, String> {
     use xpath::Op;
     let mut stack: Vec<XPathVal> = Vec::new();
     for op in ops {
         let value = match *op {
             Op::Text(s) => XPathVal::Str(s.into()),
             Op::Number(n) => XPathVal::Num(n),
-            Op::Select(i) => eval_xpath_query(doc,ctx,pos,last,&doc.program[i])?,
+            Op::Select(i) => doc.select(i,ctx,pos,last).await,
             Op::Negate => XPathVal::Num(-stack.pop().unwrap().to_num_val()),
             Op::Binary(op) => {
                 let rhs = stack.pop().unwrap(); let lhs = stack.pop().unwrap();
@@ -15550,7 +15579,7 @@ fn visit_xml_text<'a>(nodes: &'a [XmlNode], descend: bool, visit: &mut impl FnMu
     }
 }
 
-fn eval_xpath_path_ctx(doc: &XPathDocument, ctx: usize, path: &xpath::Path) -> Result<Vec<usize>, String> {
+async fn eval_xpath_path_ctx(doc: &XPathDocument<'_>, ctx: usize, path: &xpath::Path<'_>) -> Result<Vec<usize>, String> {
     use xpath::AxisTest;
     let mut current = vec![if path.absolute { 0 } else { ctx }];
     for step in &path.steps {
@@ -15587,7 +15616,7 @@ fn eval_xpath_path_ctx(doc: &XPathDocument, ctx: usize, path: &xpath::Path) -> R
                         }
                     }
                 }
-                next.extend(filter_xpath_items(doc, matched, &step.predicates)?);
+                next.extend(filter_xpath_items(doc, matched, &step.predicates).await?);
             }
             visited_end = visited_end.max(end);
         }
@@ -15598,7 +15627,7 @@ fn eval_xpath_path_ctx(doc: &XPathDocument, ctx: usize, path: &xpath::Path) -> R
     Ok(current)
 }
 
-fn filter_xpath_items(doc: &XPathDocument, mut items: Vec<usize>, preds: &[Vec<xpath::Op>]) -> Result<Vec<usize>, String> {
+async fn filter_xpath_items(doc: &XPathDocument<'_>, mut items: Vec<usize>, preds: &[Vec<xpath::Op<'_>>]) -> Result<Vec<usize>, String> {
     for pred in preds {
         if matches!(pred.as_slice(), [xpath::Op::Call("last",0)]) {
             items = items.pop().into_iter().collect();
@@ -15616,7 +15645,7 @@ fn filter_xpath_items(doc: &XPathDocument, mut items: Vec<usize>, preds: &[Vec<x
         let total = items.len();
         let mut next = Vec::new();
         for (idx, item) in items.into_iter().enumerate() {
-            let val = eval_xpath_expr(doc, item, idx + 1, total, pred)?;
+            let val = eval_xpath_expr(doc, item, idx + 1, total, pred).await?;
             let keep = match val {
                 XPathVal::Num(n) => n == (idx + 1) as f64,
                 other => other.to_bool_val(),

@@ -14,6 +14,7 @@ mod jq_input;
 mod jq_json;
 mod jq_number;
 mod jq_parser;
+mod mdq_blocks;
 mod mdq_emphasis;
 mod mdq_links;
 mod mdq_order;
@@ -28309,17 +28310,6 @@ fn mdq_fence(line: &str) -> Option<(usize, u8, usize, &str)> {
     (width >= 3 && (marker != b'`' || !info.as_bytes().contains(&marker))).then_some((indent, marker, width, info))
 }
 
-// Removing only part of a leading tab leaves spaces up to its tab stop.
-fn mdq_code_indent(line: &str, columns: usize) -> (usize, String) {
-    let (mut offset, mut col) = (0, 0);
-    for byte in line.bytes() {
-        if col >= columns { break; }
-        match byte { b' ' => col += 1, b'\t' => col += 4 - col % 4, _ => break }
-        offset += 1;
-    }
-    (col, " ".repeat(col.saturating_sub(columns)) + &line[offset..])
-}
-
 fn mdq_heading(line: &str) -> Option<(usize, &str)> {
     let at = line.trim_start_matches(' ');
     if line.len() - at.len() > 3 { return None; }
@@ -28391,223 +28381,6 @@ fn mdq_interrupts_paragraph(line: &str) -> bool {
     line.len() - at.len() <= 3 && (mdq_thematic_break(line) || mdq_heading(line).is_some()
         || mdq_fence(line).is_some() || mdq_html_block_end(line, true).is_some() || at.starts_with('>')
         || mdq_list_marker(line).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1))))
-}
-
-fn parse_mdq_markdown(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
-    let mut lines: Vec<&str> = input.lines().collect();
-    let mut blocks = Vec::new();
-    let mut i = 0usize;
-    while i < lines.len() && lines[i].trim().is_empty() {
-        i += 1;
-    }
-    if i < lines.len() {
-        lines[i] = lines[i].strip_prefix('\u{feff}').unwrap_or(lines[i]);
-        let first_trimmed = lines[i].trim_end();
-        if first_trimmed == "---" || first_trimmed == "+++" {
-            let marker = first_trimmed;
-            let variant = if marker == "---" { "yaml" } else { "toml" };
-            let mut j = i + 1;
-            while j < lines.len() && lines[j].trim_end() != marker {
-                j += 1;
-            }
-            if j < lines.len() {
-                let fm_body = lines[i + 1..j].join("\n");
-                blocks.push(MdqBlock {
-                    kind: "frontmatter".to_string(),
-                    text: fm_body,
-                    lang: variant.to_string(),
-                    ..MdqBlock::default()
-                });
-                i = j + 1;
-            }
-        }
-    }
-    while i < lines.len() {
-        let line = lines[i];
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            i += 1;
-            continue;
-        }
-        if line.starts_with("    ") || line.trim_start_matches(' ').starts_with('\t') {
-            let mut code = Vec::new();
-            while i < lines.len() {
-                let (indent, body) = mdq_code_indent(lines[i], 4);
-                if indent < 4 && !body.is_empty() { break; }
-                code.push(body);
-                i += 1;
-            }
-            while code.last().is_some_and(|l| l.trim().is_empty()) { code.pop(); }
-            blocks.push(MdqBlock { kind: "code".into(), text: code.join("\n"), ..MdqBlock::default() });
-            continue;
-        }
-        if let Some((indent, marker, width, info)) = mdq_fence(line) {
-            let decoded = mdq_decode_syntax(info);
-            let info = decoded.trim();
-            let (lang, metadata) = info.split_once([' ', '\t']).unwrap_or((info, ""));
-            let mut code = Vec::new();
-            i += 1;
-            while i < lines.len() {
-                let next = lines[i];
-                i += 1;
-                if mdq_fence(next).is_some_and(|(_, m, n, tail)| m == marker && n >= width && tail.is_empty()) { break; }
-                code.push(mdq_code_indent(next, indent).1);
-            }
-            blocks.push(MdqBlock { kind: "code".into(), text: code.join("\n"), lang: lang.into(),
-                metadata: metadata.trim_start().into(), ..MdqBlock::default() });
-            continue;
-        }
-        if let Some(ends) = mdq_html_block_end(line, false) {
-            let start = i;
-            loop {
-                let current = lines[i];
-                i += 1;
-                if i == lines.len() || if ends.is_empty() { lines[i].trim_matches([' ', '\t']).is_empty() }
-                    else { let lower = current.to_ascii_lowercase(); ends.iter().any(|end| lower.contains(end)) }
-                { break; }
-            }
-            let mut text = lines[start..i].join("\n");
-            text.truncate(text.trim_end().len());
-            blocks.push(MdqBlock { kind: "html".into(), text, ..MdqBlock::default() });
-            continue;
-        }
-        if let Some((level, title)) = mdq_heading(line) {
-            blocks.push(MdqBlock { kind: "heading_raw".into(), level, title: title.into(), ..MdqBlock::default() });
-            i += 1;
-            continue;
-        }
-        if mdq_thematic_break(line) {
-            blocks.push(MdqBlock { kind: "break".into(), ..MdqBlock::default() });
-            i += 1;
-            continue;
-        }
-        if trimmed.starts_with('>') {
-            let mut q_lines = Vec::new();
-            while i < lines.len() && lines[i].trim().starts_with('>') {
-                let ql = lines[i].trim().strip_prefix('>').unwrap_or("").trim_start();
-                q_lines.push(ql);
-                i += 1;
-            }
-            let inner = parse_mdq_markdown(defs, &q_lines.join("\n"));
-            blocks.push(MdqBlock {
-                kind: "quote".to_string(),
-                children: inner,
-                ..MdqBlock::default()
-            });
-            continue;
-        }
-        if let Some(delimiter) = lines.get(i + 1).and_then(|l| mdq_pipe_row(l))
-            && let Some(head) = mdq_pipe_row(line)
-            && delimiter.len() == head.len()
-            && let Some(aligns) = delimiter.iter().map(|cell| {
-                let left = cell.starts_with(':');
-                let right = cell.ends_with(':');
-                let body = cell.strip_prefix(':').unwrap_or(cell);
-                let body = body.strip_suffix(':').unwrap_or(body);
-                (!body.is_empty() && body.bytes().all(|b| b == b'-')).then(|| match (left, right) {
-                    (true, true) => "center", (true, false) => "left", (false, true) => "right", _ => "none"
-                }.to_string())
-            }).collect::<Option<Vec<_>>>()
-            && !mdq_interrupts_paragraph(line)
-        {
-            let mut rows = vec![head];
-            i += 2;
-            while i < lines.len() && !mdq_interrupts_paragraph(lines[i])
-                && let Some(row) = mdq_pipe_row(lines[i]) {
-                rows.push(row);
-                i += 1;
-            }
-            blocks.push(MdqBlock {
-                kind: "table".to_string(),
-                table_aligns: aligns,
-                table_rows: rows,
-                ..MdqBlock::default()
-            });
-            continue;
-        }
-        if let Some((marker, start, _)) = mdq_list_marker(line) {
-            let mut items = Vec::new();
-            while let Some((m, _, text)) = lines.get(i).and_then(|l| mdq_list_marker(l)) {
-                if m != marker || mdq_thematic_break(lines[i]) { break; }
-                let (checked, body) = match text.as_bytes() {
-                    [b'[', state @ (b' ' | b'x' | b'X'), b']', b' ' | b'\t', ..] =>
-                        (Some(*state != b' '), text[3..].trim_start()),
-                    _ => (None, text),
-                };
-                let body = mdq_links::extract(body, defs);
-                let children = if body.is_empty() { Vec::new() } else {
-                    vec![MdqBlock { kind: "paragraph".into(), text: body.trim_end().into(), ..MdqBlock::default() }]
-                };
-                items.push(MdqBlock {
-                    kind: "list_item".into(), index: start.map(|n| n + items.len()), checked, children,
-                    ..MdqBlock::default()
-                });
-                i += 1;
-                while i < lines.len() && lines[i].trim().is_empty() { i += 1; }
-            }
-            blocks.push(MdqBlock { kind: "list".into(), children: items, ..MdqBlock::default() });
-            continue;
-        }
-        let mut p_lines = vec![line.trim_start_matches([' ', '\t'])];
-        let mut heading_level = None;
-        i += 1;
-        while i < lines.len() {
-            if let Some(level) = mdq_setext(lines[i]) {
-                heading_level = Some(level);
-                i += 1;
-                break;
-            }
-            let nl = lines[i].trim_start_matches([' ', '\t']);
-            if nl.is_empty() || mdq_interrupts_paragraph(lines[i]) {
-                break;
-            }
-            p_lines.push(nl);
-            i += 1;
-        }
-        let paragraph = p_lines.join("\n");
-        let text = mdq_links::extract(paragraph.trim_end_matches([' ', '\t']), defs);
-        if text.is_empty() {
-            if heading_level.is_some() { i -= 1; }
-            continue;
-        }
-        let text = text.to_string();
-        blocks.push(if let Some(level) = heading_level {
-            MdqBlock { kind: "heading_raw".into(), level, title: text, ..MdqBlock::default() }
-        } else {
-            MdqBlock { kind: "paragraph".into(), text, ..MdqBlock::default() }
-        });
-    }
-    fn build_sections(flat: &[MdqBlock]) -> Vec<MdqBlock> {
-        let mut out = Vec::new();
-        let mut idx = 0usize;
-        while idx < flat.len() {
-            if flat[idx].kind == "heading_raw" {
-                let lvl = flat[idx].level;
-                let title = flat[idx].title.clone();
-                idx += 1;
-                let start = idx;
-                while idx < flat.len() {
-                    if flat[idx].kind == "heading_raw" && flat[idx].level <= lvl {
-                        break;
-                    }
-                    idx += 1;
-                }
-                let children = build_sections(&flat[start..idx]);
-                out.push(MdqBlock {
-                    kind: "section".to_string(),
-                    level: lvl,
-                    title,
-                    children,
-                    ..MdqBlock::default()
-                });
-            } else {
-                out.push(flat[idx].clone());
-                idx += 1;
-            }
-        }
-        out
-    }
-    build_sections(&blocks)
 }
 
 fn mdq_match_text(pat_raw: &str, target: &str) -> bool {
@@ -30256,7 +30029,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         Err(error) => return error,
     };
     let mut definitions = MdqDefinitions::new();
-    let children = parse_mdq_markdown(&mut definitions, &md_input);
+    let children = mdq_blocks::parse(&mut definitions, &md_input);
     let defs = &definitions;
     let mut current = vec![MdqBlock { kind: "document".into(), children, ..MdqBlock::default() }];
     for stage in &stages {

@@ -8508,3 +8508,19 @@ test("mdq flattens image descriptions and renders or selects images inside links
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq tracks open list items and quotes when lines continue, nest or leave a container", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = [">>> first", "> second", "third", "", "- # A", "  body", "  - [x] child",
+      "    lazy line", "", "        indented", "", "2) ordered", "   > inner", "   >   continued", "",
+      ">\t\tcode", "", "- <div>", "- ***", "", "- ```txt", "  contents", "  ```", "after"].join("\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["-o json", "", "-o plain", "-o json '#'", "-o json '- [x]'", "-o json '>'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

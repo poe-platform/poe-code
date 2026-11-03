@@ -338,53 +338,59 @@ fn number(text: &str) -> Option<JVal> {
     }
 }
 
-fn string(bytes: &[u8]) -> Result<String, &'static str> {
-    let text = String::from_utf8_lossy(bytes);
-    if !bytes.iter().any(|b| *b == b'\\' || *b < 32) {
-        return Ok(text.into_owned());
+pub(super) fn utf8_width(first: u8) -> usize {
+    match first { 0xc2..=0xdf => 2, 0xe0..=0xef => 3, 0xf0..=0xf4 => 4, _ => 1 }
+}
+
+// jq replaces an invalid scalar as one unit. A truncated leading byte
+// consumes the remainder of the segment, even when it contains non-continuations.
+pub(super) fn push_utf8(out: &mut String, mut bytes: &[u8]) {
+    loop {
+        match std::str::from_utf8(bytes) {
+            Ok(text) => { out.push_str(text); return; }
+            Err(error) => {
+                let (valid, rest) = bytes.split_at(error.valid_up_to());
+                out.push_str(std::str::from_utf8(valid).unwrap());
+                let width = utf8_width(rest[0]);
+                let used = if rest.len() < width { rest.len() } else {
+                    1 + rest[1..width].iter().take_while(|b| **b & 0xc0 == 0x80).count()
+                };
+                out.push(char::REPLACEMENT_CHARACTER);
+                bytes = &rest[used..];
+            }
+        }
     }
-    fn unit(chars: &mut std::str::Chars<'_>) -> Result<u32, &'static str> {
-        let mut value = 0;
-        for _ in 0..4 {
-            let c = chars.next().ok_or("Invalid \\uXXXX escape")?;
-            value = value * 16
-                + c.to_digit(16)
-                    .ok_or("Invalid characters in \\uXXXX escape")?;
-        }
-        Ok(value)
+}
+
+fn string(mut bytes: &[u8]) -> Result<String, &'static str> {
+    fn unit(bytes: &mut &[u8]) -> Result<u32, &'static str> {
+        let (digits, rest) = bytes.split_at_checked(4).ok_or("Invalid \\uXXXX escape")?;
+        *bytes = rest;
+        digits.iter().try_fold(0, |n, &b| (b as char).to_digit(16).map(|digit| n * 16 + digit)
+            .ok_or("Invalid characters in \\uXXXX escape"))
     }
-    let mut out = String::new();
-    let mut chars = text.chars();
-    while let Some(c) = chars.next() {
-        if c < ' ' {
-            return Err(
-                "Invalid string: control characters from U+0000 through U+001F must be escaped",
-            );
+    let mut out = String::with_capacity(bytes.len());
+    while let Some(at) = bytes.iter().position(|&b| b == b'\\' || b < 32) {
+        if bytes[at] != b'\\' {
+            return Err("Invalid string: control characters from U+0000 through U+001F must be escaped");
         }
-        if c != '\\' {
-            out.push(c);
-            continue;
-        }
-        if chars.as_str().starts_with('u') {
-            chars.next();
-            let high = unit(&mut chars)?;
+        push_utf8(&mut out, &bytes[..at]);
+        let (&escape, rest) = bytes[at + 1..].split_first().ok_or("Invalid escape")?;
+        bytes = rest;
+        if escape == b'u' {
+            let high = unit(&mut bytes)?;
             let point = if (0xd800..=0xdbff).contains(&high) {
                 let pair = "Invalid \\uXXXX\\uXXXX surrogate pair escape";
-                if chars.next() != Some('\\') || chars.next() != Some('u') {
-                    return Err(pair);
-                }
-                let low = unit(&mut chars).map_err(|_| pair)?;
-                if !(0xdc00..=0xdfff).contains(&low) {
-                    return Err(pair);
-                }
+                bytes = bytes.strip_prefix(b"\\u").ok_or(pair)?;
+                let low = unit(&mut bytes).map_err(|_| pair)?;
+                if !(0xdc00..=0xdfff).contains(&low) { return Err(pair); }
                 0x10000 + ((high - 0xd800) << 10) + low - 0xdc00
-            } else {
-                high
-            };
+            } else { high };
             out.push(char::from_u32(point).unwrap_or(char::REPLACEMENT_CHARACTER));
         } else {
-            out.push(super::json_escape(&mut chars).ok_or("Invalid escape")?);
+            out.push(super::json_escape(&mut std::iter::once(escape as char)).ok_or("Invalid escape")?);
         }
     }
+    push_utf8(&mut out, bytes);
     Ok(out)
 }

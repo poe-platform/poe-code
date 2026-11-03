@@ -141,16 +141,31 @@ struct Values<'a> {
 impl Values<'_> {
     fn value(&mut self, warnings: &mut String, remaining: &mut usize) -> Result<Option<JVal>, (i32, String)> {
         if self.raw {
-            let mut line = Vec::new();
-            while let Some(b) = self.bytes.peek()? {
-                self.bytes.advance(b);
-                if !self.slurp && b == b'\n' {
-                    break;
+            let mut line = String::new();
+            while self.bytes.peek()?.is_some() {
+                let b = &mut self.bytes;
+                let rest = &b.chunk[b.at..];
+                let newline = rest.iter().position(|&byte| byte == b'\n');
+                let end = newline.map_or(rest.len(), |n| n + usize::from(self.slurp));
+                let mut text = &rest[..end];
+                // The raw reader decodes each line or file tail in 64 KiB
+                // blocks, carrying a possible code point into the next block.
+                while text.len() > 65536 {
+                    let mut lead = 65536;
+                    while lead > 65533 && text[lead] & 0xc0 == 0x80 { lead -= 1; }
+                    let n = if lead + super::jq_json::utf8_width(text[lead]) > 65536 { lead } else { 65536 };
+                    super::jq_json::push_utf8(&mut line, &text[..n]);
+                    text = &text[n..];
                 }
-                line.push(b);
+                super::jq_json::push_utf8(&mut line, text);
+                b.at += newline.map_or(rest.len(), |n| n + 1);
+                if newline.is_some() {
+                    b.line += 1;
+                    b.more_newlines = None;
+                    if !self.slurp { break; }
+                }
             }
-            // A newline terminates even an empty line. Only EOF suppresses an empty result.
-            return Ok(Some(JVal::Str(String::from_utf8_lossy(&line).into_owned())));
+            return Ok(Some(JVal::Str(line)));
         }
 
         loop {

@@ -9873,6 +9873,31 @@ test("jq decodes shell bytes once and emits UTF-8 from files, filters and variab
   } finally { sh.dispose(); }
 });
 
+test("jq replaces malformed UTF-8 at raw file boundaries and JSON string escape boundaries", async () => {
+  const sh = new RustWasmBash({files: {
+    "/a": Uint8Array.of(97, 0xc3), "/b": Uint8Array.of(0xa9, 10),
+    "/q": Uint8Array.of(34, 0xc3), "/z": Uint8Array.of(0xa9, 34, 10),
+    "/broken": Uint8Array.of(0xed, 0xa0, 0x80, 10, 0xe2, 0xff),
+    "/escaped": Uint8Array.of(34, 0xe2, 97, 92, 110, 0xed, 0xa0, 0x80, 34),
+  }});
+  try {
+    for (const [script, expected] of [
+      ["jq -Rr . /a /b", "a��\n"], ["jq -Rs . /a /b", '"a��\\n"\n'],
+      ["jq -nRc '[inputs]' /a /b", '["a��"]\n'], ["jq -r . /q /z", "é\n"],
+      ["jq -Rr . /broken", "�\n�\n"], ["jq -r . /escaped", "�\n�\n"],
+    ]) {
+      const r = await sh.exec(script);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], script);
+    }
+    const prefix = Buffer.alloc(65534, 97);
+    for (const [tail, suffix] of [[[0xf0, 98, 99, 100], "�cd"], [[0xf0, 0x9f, 0x90, 0x88], "🐈"]]) {
+      await sh.fs.writeFile("/long", Buffer.concat([prefix, Buffer.from(tail)]));
+      const r = await sh.exec("jq -Rr . /long");
+      assert.deepEqual([r.exitCode, r.stdout.slice(65534), r.stderr], [0, suffix + "\n", ""]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("jq charges one read for a direct memory JSON operand and admits its bytes before that charge", async () => {
   for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
     const sh = new RustWasmBash({files: {"/f": "12\n"}, profile});

@@ -9637,3 +9637,17 @@ test("private-use text crosses filesystem, shell source and session boundaries o
     assert.equal(syntax.stderr, "shell: Unsupported shell quoting or special parameter at offset 12\n");
   } finally { sh.dispose(); }
 });
+
+test("parameter lengths and slices count shell bytes only in the byte locale", async () => {
+  const sh = new RustWasmBash({env: {X: "a\ue0ffb"}});
+  try {
+    for (const [env, length, slice] of [
+      [{LANG: "C.UTF-8"}, "3:", [0xee, 0x83, 0xbf]],
+      [{LANG: "C.UTF-8", LC_CTYPE: "C"}, "5:", [0xee]],
+      [{LC_ALL: "POSIX"}, "5:", [0xee]],
+    ]) {
+      const r = await sh.exec('printf "%s:%s" "${#X}" "${X:1:1}"', {env});
+      assert.deepEqual([...r.stdoutBytes], [...Buffer.from(length), ...slice], JSON.stringify(env));
+    }
+  } finally { sh.dispose(); }
+});

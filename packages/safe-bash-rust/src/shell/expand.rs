@@ -1832,11 +1832,9 @@ pub fn expand_parameter_expr(
             return Ok(count.to_string());
         }
         let val = lookup_var(rest, env, last_exit, pos_args);
-        let lc = env.get("LC_ALL").or_else(|| env.get("LANG")).map(|s| s.as_str());
-        if lc == Some("C") || lc == Some("POSIX") {
-            return Ok(val.len().to_string());
-        }
-        return Ok(val.chars().count().to_string());
+        let length = if is_c_locale(env) { crate::vfs::stream_byte_len(&val) }
+            else { crate::vfs::host_text(&val).chars().count() };
+        return Ok(length.to_string());
     }
 
     // Find top-level operator after variable name (respecting [...] subscript)
@@ -2415,8 +2413,7 @@ pub fn expand_parameter_expr(
             }
 
             let val = lookup_var(var, env, last_exit, pos_args);
-            let lc = env.get("LC_ALL").or_else(|| env.get("LANG")).map(|s| s.as_str());
-            if lc == Some("C") || lc == Some("POSIX") {
+            if is_c_locale(env) {
                 let bytes = crate::vfs::stream_string_to_bytes(&val);
                 let total_len = bytes.len();
                 let start = if off < 0 {
@@ -2442,7 +2439,7 @@ pub fn expand_parameter_expr(
                 };
                 return Ok(crate::vfs::bytes_to_stream_string(&bytes[start..end]));
             }
-            let chars: Vec<char> = val.chars().collect();
+            let chars: Vec<char> = crate::vfs::host_text(&val).chars().collect();
             let total_len = chars.len();
             let start = if off < 0 {
                 if total_len as isize + off < 0 {
@@ -2465,7 +2462,8 @@ pub fn expand_parameter_expr(
             } else {
                 total_len
             };
-            return Ok(chars[start..end].iter().collect());
+            let slice: String = chars[start..end].iter().collect();
+            return Ok(match crate::vfs::shell_text(&slice) { std::borrow::Cow::Owned(s) => s, _ => slice });
         }
         return Err(format!("${{{expr}}}: bad substitution"));
     }

@@ -186,13 +186,16 @@ fn is_virtual_executable(full_path: &str) -> bool {
         if let Some(cmd) = full_path.strip_prefix(prefix)
             && !cmd.is_empty()
             && !cmd.contains('/')
-            && is_known_command(cmd)
-            && !is_pure_shell_builtin(cmd)
+            && is_external_command(cmd)
         {
             return true;
         }
     }
     false
+}
+
+pub(crate) fn is_external_command(name: &str) -> bool {
+    is_known_command(name) && !is_pure_shell_builtin(name)
 }
 
 fn is_pure_shell_builtin(name: &str) -> bool {

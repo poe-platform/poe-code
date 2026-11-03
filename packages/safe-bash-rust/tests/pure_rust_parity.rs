@@ -209,6 +209,29 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 }
 
 #[test]
+fn env_shebang_lookup_reports_its_own_errors_before_redirection() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.mkdir_all("/bin").unwrap();
+    for (path, source) in [("/bad", "#!/usr/bin/env helper\n"), ("/bin/helper", "echo ran\n"),
+        ("/nested", "#!/usr/bin/env -S env missing\n"), ("/builtin", "#!/usr/bin/env cd\n"), ("/body", "#!/usr/bin/env sh\nmissing\n")] {
+        fs.write_file(path, source.as_bytes()).unwrap();
+        fs.chmod(path, 0o755).unwrap();
+    }
+    for (command, expected) in [
+        ("/bad", "env: helper: command not found\n"),
+        ("/builtin", "env: cd: command not found\n"),
+        ("/nested", "shell: line 1: missing: command not found\n"),
+        ("/body", "/body: line 2: missing: command not found\n"),
+        ("env missing", "shell: line 1: missing: command not found\n"),
+    ] {
+        let r = shell.exec(command).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (127, expected), "{command}");
+        let r = shell.exec(&format!("{command} 2>&1")).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (127, expected, ""), "{command}");
+    }
+}
+
+#[test]
 fn invoked_children_keep_directory_and_environment_changes_local() {
     for invocation in [
         "find . -maxdepth 0 -exec cd / \\; -exec export CHILD=yes \\;",

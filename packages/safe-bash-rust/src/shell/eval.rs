@@ -40,6 +40,9 @@ const STDIN_STREAM_FD: u32 = u32::MAX;
 type InputCursor = Rc<RefCell<String>>;
 type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DispatchMode { Shell, BypassFunctions, EnvShebang }
+
 struct PrefixBinding {
     name: String,
     values: BTreeMap<String, Option<String>>,
@@ -3688,7 +3691,7 @@ impl<'a> EvalState<'a> {
         };
         let eff_stdin = if use_local { &mut local_stdin } else { &mut *stdin };
         self.retained_prefix_vars.clear();
-        let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, false);
+        let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, DispatchMode::Shell);
         if stashed_outer_stdin {
             *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default().take();
         }
@@ -3780,8 +3783,9 @@ impl<'a> EvalState<'a> {
         &mut self,
         words: &[String],
         stdin: &mut String,
-        bypass_functions: bool,
+        mode: DispatchMode,
     ) -> Result<BuiltinOutcome, EvalError> {
+        let bypass_functions = mode != DispatchMode::Shell;
         let Some(cmd) = words.first() else {
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
@@ -4635,7 +4639,7 @@ impl<'a> EvalState<'a> {
                     self.env.insert("0".to_string(), a0.clone());
                     self.env.insert("\0argv0".to_string(), a0);
                 }
-                let out = self.dispatch_words(&args[exec_idx..], stdin, bypass_functions)?;
+                let out = self.dispatch_words(&args[exec_idx..], stdin, mode)?;
                 self.exit_requested = Some(out.exit_code);
                 return Ok(out);
             }
@@ -4677,7 +4681,7 @@ impl<'a> EvalState<'a> {
                     self.budget.leave_substitution();
                     return Ok(b_out);
                 }
-                let res = self.dispatch_words(&args[idx..], stdin, true);
+                let res = self.dispatch_words(&args[idx..], stdin, DispatchMode::BypassFunctions);
                 self.budget.leave_substitution();
                 return res;
             }
@@ -4745,7 +4749,7 @@ impl<'a> EvalState<'a> {
                 self.budget
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
-                let res = self.dispatch_words(&args[idx..], stdin, true);
+                let res = self.dispatch_words(&args[idx..], stdin, DispatchMode::BypassFunctions);
                 self.budget.leave_substitution();
                 self.env.remove("\0command_default_path__");
                 return res;
@@ -4849,7 +4853,7 @@ impl<'a> EvalState<'a> {
                             .chain(args.iter().cloned())
                             .collect::<Vec<_>>(),
                         stdin,
-                        true,
+                        DispatchMode::BypassFunctions,
                     );
                 }
                 "kill" => {
@@ -5076,7 +5080,15 @@ impl<'a> EvalState<'a> {
                     });
                 }
                 let outer = matches!(io, ChildIo::Inherit { .. }).then(|| sub_eval.forwarded_output.take());
-                let res = sub_eval.dispatch_words(sub_words, sub_stdin, false);
+                let res = if mode == DispatchMode::EnvShebang && let Some(target) = sub_words.first() && !target.contains('/')
+                    && !matches!(target.as_str(), "sh" | "bash" | "zsh")
+                    && !custom_ref.contains_key(target)
+                    && !crate::commands::search::is_external_command(target)
+                {
+                    Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("env: {target}: command not found\n"), exit_code: 127 })
+                } else {
+                    sub_eval.dispatch_words(sub_words, sub_stdin, if mode == DispatchMode::EnvShebang { DispatchMode::BypassFunctions } else { DispatchMode::Shell })
+                };
                 sub_eval.budget.leave_substitution();
                 let mut out = match res {
                     Ok(o) => o,
@@ -5089,11 +5101,6 @@ impl<'a> EvalState<'a> {
                         });
                     }
                 };
-                if out.exit_code == 127
-                    && let Some(stripped) = out.stderr.strip_prefix("shell: line 1: ")
-                {
-                    out.stderr = stripped.to_string();
-                }
                 if let Some((outer_out, outer_err)) = outer {
                     sub_eval.route_outcome(&mut out);
                     let charged = sub_eval.forwarded_output.take();
@@ -6303,21 +6310,10 @@ impl<'a> EvalState<'a> {
                     .insert("\0shebang_loaded_path".to_string(), path.clone());
                 self.env
                     .insert("\0shebang_loaded_source".to_string(), full_src);
-                let res = self.dispatch_words(&words, stdin, true);
+                let res = self.dispatch_words(&words, stdin, DispatchMode::EnvShebang);
                 self.env.remove("\0shebang_loaded_path");
                 self.env.remove("\0shebang_loaded_source");
-                return match res {
-                    Ok(mut o) => {
-                        if o.exit_code == 127
-                            && !o.stderr.starts_with("env: ")
-                            && o.stderr.ends_with(": command not found\n")
-                        {
-                            o.stderr = format!("env: {}", o.stderr);
-                        }
-                        Ok(o)
-                    }
-                    Err(e) => Err(e),
-                };
+                return res;
             }
 
             let shell_match = interpreter
@@ -6380,7 +6376,7 @@ impl<'a> EvalState<'a> {
                 self.budget
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
-                let res = self.dispatch_words(&words, stdin, true);
+                let res = self.dispatch_words(&words, stdin, DispatchMode::BypassFunctions);
                 self.budget.leave_substitution();
                 return res;
             }

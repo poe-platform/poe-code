@@ -4802,6 +4802,9 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         if id == "flv" {
             mp4::flv_input::tag_bytes(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
         }
+        if matches!(id, "mkv" | "webm") {
+            mp4::mkv_input::check_header(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
+        }
         Ok::<_, BuiltinOutcome>((id, bytes))
     };
     let mut sources = Vec::new();
@@ -13538,6 +13541,15 @@ mod media_unit_tests {
             let bytes = fs.read_file(&format!("/{dst}")).unwrap();
             assert_eq!(hex_enc(&sha256_bytes(&bytes)), expected, "{dst}");
         }
+    }
+
+    #[test]
+    fn ffmpeg_rejects_invalid_matroska_before_writing_output() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/clip.webm", &[0x1a, 0x45]).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "clip.webm", "out.mp4"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stderr.as_str()), (1, "ffmpeg: Invalid Matroska/WebM file: missing EBML header signature\n"));
+        assert!(!fs.exists("/out.mp4"));
     }
 
     #[test]

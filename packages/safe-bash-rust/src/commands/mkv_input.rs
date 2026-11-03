@@ -341,15 +341,20 @@ impl Track<'_> {
         })
     }
 }
+pub(in super::super) fn check_header(bytes: &[u8]) -> Result<(), &'static str> {
+    if !bytes.starts_with(&[0x1a, 0x45, 0xdf, 0xa3]) {
+        return Err("Invalid Matroska/WebM file: missing EBML header signature");
+    }
+    Ok(())
+}
+
 pub(in super::super) fn report(
     bytes: &[u8],
     name: &str,
     limit: usize,
     opts: ProbeOptions<'_>,
 ) -> Result<String, &'static str> {
-    if !bytes.starts_with(&[0x1a, 0x45, 0xdf, 0xa3]) {
-        return Err("Invalid Matroska/WebM file: missing EBML header signature");
-    }
+    check_header(bytes)?;
     let mut movie = Movie {
         headers: BTreeMap::new(),
         order: vec![],

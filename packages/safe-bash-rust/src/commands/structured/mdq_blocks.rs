@@ -113,16 +113,16 @@ fn close(stack: &mut Vec<Frame>, keep: usize, defs: &mut MdqDefinitions) {
             && let Some(first) = node.children.first_mut()
             && first.kind == "paragraph"
             && let [b'[', state @ (b' ' | b'x' | b'X'), b']', b' ' | b'\t', ..] =
-                first.text.as_bytes()
+                first.inline.text.as_bytes()
         {
             node.checked = Some(*state != b' ');
-            first.text = first.text[3..].trim_start().to_owned();
+            first.inline.text = first.inline.text[3..].trim_start().to_owned();
         }
         if !matches!(kind, Container::List(_)) {
             node.children = sections(node.children);
         }
         if matches!(kind, Container::Footnote) {
-            defs.notes.insert(node.title, node.children);
+            defs.notes.insert(node.text, node.children);
         } else {
             stack.last_mut().unwrap().node.children.push(node);
         }
@@ -163,14 +163,14 @@ fn finish(
             if let Some(level) = level {
                 MdqBlock {
                     kind: "section".into(),
-                    title: text.into(),
+                    inline: super::MdqContent::source(text.into()),
                     level,
                     ..Default::default()
                 }
             } else {
                 MdqBlock {
                     kind: "paragraph".into(),
-                    text: text.into(),
+                    inline: super::MdqContent::source(text.into()),
                     ..Default::default()
                 }
             }
@@ -232,7 +232,7 @@ fn table(head: &str, line: &str) -> Option<MdqBlock> {
         .collect::<Option<Vec<_>>>()?;
     Some(MdqBlock {
         kind: "table".into(),
-        table_rows: vec![header],
+        table_rows: vec![header.into_iter().map(super::MdqContent::source).collect()],
         table_aligns: aligns,
         ..Default::default()
     })
@@ -355,7 +355,8 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Result<Vec<MdqBlo
             }
             Some(Leaf::Table(b)) if !blank && !mdq_interrupts_paragraph(tail) => {
                 if let Some(row) = mdq_pipe_row(&line.raw_from(offset)) {
-                    b.table_rows.push(row);
+                    b.table_rows
+                        .push(row.into_iter().map(super::MdqContent::source).collect());
                     continue;
                 }
             }
@@ -406,7 +407,7 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Result<Vec<MdqBlo
                 stack.push(Frame {
                     kind: Container::Footnote,
                     node: MdqBlock {
-                        title: label.into(),
+                        text: label.into(),
                         ..Default::default()
                     },
                 });
@@ -482,7 +483,7 @@ pub(super) fn parse(defs: &mut MdqDefinitions, input: &str) -> Result<Vec<MdqBlo
                 let (_, title) = mdq_heading(&raw).unwrap();
                 stack.last_mut().unwrap().node.children.push(MdqBlock {
                     kind: "section".into(),
-                    title: title.into(),
+                    inline: super::MdqContent::source(title.into()),
                     level,
                     ..Default::default()
                 });

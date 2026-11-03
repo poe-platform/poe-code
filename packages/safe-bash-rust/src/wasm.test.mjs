@@ -8858,3 +8858,30 @@ test("mdq ignores inline regex comments and reports unfinished or repeated ones"
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq preserves inline objects across replacements and chained selectors", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, query] of [
+      ["<https://example.com>", "P: !s/^/x/"],
+      ["<https://example.com>", "P: !s/https:/bad url/ | []()"],
+      ["pre [*label*](dest) post", "P: !s/lab/É/ | []()"],
+      ["pre [label](dest) post", "P: !s/e l/X/"],
+      ["[a](url)[b](other)", "P: !s/ab/X/"],
+      ["a [label](dest) b", "P: !s/label//"],
+      ["x ![*alt*](pic)", "P: !s/alt/*x*/"],
+      ["a <b>c", "P: !s/<b>/raw/ | </>"],
+      ["x[^note]y\n\n[^note]: body", "P: /^xnotey$/"],
+      ["aé [é](u) é", "P: !s/é/X/"],
+      ["| head |\n|---|\n| <https://example.com> |", ":-: * :-: !s/^/x/"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input + "\n"));
+      for (const format of ["md", "plain", "json"]) {
+        const cmd = "mdq -o " + format + " '" + query + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], input + " / " + query + " / " + format);
+      }
+    }
+  } finally { rs.dispose(); }
+});

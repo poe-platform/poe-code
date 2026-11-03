@@ -156,63 +156,158 @@ pub(super) fn resolve<'a>(
 
 // Positions follow mdq's byte-based formatting events, even when several
 // matches change length. Match offsets always refer to the original text.
-pub(super) struct Event {
-    start: usize,
-    end: usize,
-    marker: &'static str,
+#[derive(Debug, Clone)]
+pub(super) enum Kind {
+    Mark(&'static str),
+    Code,
+    Html,
+    Note,
+    Link {
+        target: super::MdqTarget,
+        image: bool,
+        children: bool,
+    },
 }
 
-pub(super) fn projection(src: &str) -> (String, Vec<Event>) {
-    let marks = resolve(src, std::iter::empty());
-
-    let literal = BTreeMap::new();
-    let mut text = String::new();
-    let mut events: Vec<Event> = Vec::new();
-    let mut open: Vec<usize> = Vec::new();
-    let gap = |text: &mut String, events: &mut Vec<Event>, input: &str| {
-        let offset = text.len();
-        text.push_str(&super::mdq_render_span(input, true, &literal, 0, |range| {
-            events.push(Event {
-                start: offset + range.start,
-                end: offset + range.end,
-                marker: "`",
-            });
-        }));
-    };
-    let mut at = 0;
-    for (i, run) in marks {
-        gap(&mut text, &mut events, &src[at..i]);
-        for _ in run.closing {
-            events[open.pop().unwrap()].end = text.len();
-        }
-        text.extend(std::iter::repeat_n(
-            src.as_bytes()[i] as char,
-            run.remaining,
-        ));
-        for marker in run.opening.into_iter().rev() {
-            open.push(events.len());
-            events.push(Event {
-                start: text.len(),
-                end: text.len(),
-                marker,
-            });
-        }
-        at = i + run.width;
+impl Kind {
+    fn container(&self) -> bool {
+        matches!(self, Self::Mark(_) | Self::Link { children: true, .. })
     }
-    gap(&mut text, &mut events, &src[at..]);
+}
+
+#[derive(Debug, Clone)]
+pub(super) struct Event {
+    pub start: usize,
+    pub end: usize,
+    pub kind: Kind,
+    // Exclusive end of this item's descendants in the preorder list.
+    pub next: usize,
+}
+
+pub(super) fn projection(src: &str, atoms: super::MdqAtoms<'_>) -> (String, Vec<Event>) {
+    let mut text = String::new();
+    let mut events = Vec::new();
+    flatten(src, atoms, &mut text, &mut events);
     (text, events)
+}
+
+fn flatten(src: &str, atoms: super::MdqAtoms<'_>, text: &mut String, events: &mut Vec<Event>) {
+    use super::MdqInlineAtom::*;
+    let mut marks = resolve(src, atoms.iter().map(|(r, _)| r))
+        .into_iter()
+        .peekable();
+    let mut atoms = atoms.into_iter().peekable();
+    let mut open: Vec<usize> = Vec::new();
+    let mut at = 0;
+    let literal = BTreeMap::new();
+    loop {
+        let i = marks
+            .peek()
+            .map_or(src.len(), |(i, _)| *i)
+            .min(atoms.peek().map_or(src.len(), |(r, _)| r.start));
+        let offset = text.len();
+        text.push_str(&super::mdq_render_span(
+            &src[at..i],
+            true,
+            &literal,
+            0,
+            |range| {
+                events.push(Event {
+                    start: offset + range.start,
+                    end: offset + range.end,
+                    kind: Kind::Code,
+                    next: events.len() + 1,
+                });
+            },
+        ));
+        if let Some((range, atom)) = atoms.next_if(|(r, _)| r.start == i) {
+            let start = text.len();
+            let idx = events.len();
+            let kind = match atom {
+                Html(s) => {
+                    text.push_str(s);
+                    Kind::Html
+                }
+                Footnote(s) => {
+                    text.push_str(s);
+                    Kind::Note
+                }
+                Link {
+                    target,
+                    display,
+                    children,
+                    image,
+                } => {
+                    let nested = !image
+                        && !matches!(
+                            target.auto,
+                            Some(super::mdq_links::Auto::Bracketed | super::mdq_links::Auto::Bare)
+                        )
+                        && !display.is_empty();
+                    events.push(Event {
+                        start,
+                        end: start,
+                        kind: Kind::Link {
+                            target,
+                            image,
+                            children: nested,
+                        },
+                        next: idx + 1,
+                    });
+                    if nested {
+                        flatten(&display, children, text, events);
+                    } else {
+                        text.push_str(&display);
+                    }
+                    events[idx].end = text.len();
+                    events[idx].next = events.len();
+                    at = range.end;
+                    continue;
+                }
+            };
+            events.push(Event {
+                start,
+                end: text.len(),
+                kind,
+                next: idx + 1,
+            });
+            at = range.end;
+        } else if let Some((i, run)) = marks.next() {
+            for _ in run.closing {
+                let n = open.pop().unwrap();
+                events[n].end = text.len();
+                events[n].next = events.len();
+            }
+            text.extend(std::iter::repeat_n(
+                src.as_bytes()[i] as char,
+                run.remaining,
+            ));
+            for marker in run.opening.into_iter().rev() {
+                open.push(events.len());
+                events.push(Event {
+                    start: text.len(),
+                    end: text.len(),
+                    kind: Kind::Mark(marker),
+                    next: 0,
+                });
+            }
+            at = i + run.width;
+        } else {
+            break;
+        }
+    }
 }
 
 pub(super) fn reconstruct(
     text: &str,
     mut events: Vec<Event>,
     ranges: &[(usize, usize, usize)],
-) -> Result<String, String> {
+) -> Result<Vec<Event>, String> {
     for &(start, end, replacement) in ranges {
         let delta = replacement as isize - (end as isize - start as isize);
         let mut atoms = events
             .iter()
-            .filter(|e| e.marker == "`" && e.start < end && e.end >= start);
+            .filter(|e| !matches!(e.kind, Kind::Mark(_)) && e.start < end && e.end >= start);
         if let Some(atom) = atoms.next()
             && (start < atom.start || end > atom.end || atoms.next().is_some())
         {
@@ -249,74 +344,59 @@ pub(super) fn reconstruct(
             true
         });
     }
-    let mut out = String::new();
+    let mut normalized: Vec<Event> = Vec::new();
+    let mut containers = Vec::<usize>::new();
     let mut pos = 0;
-    let formatted = !events.is_empty();
-    // These strings will be parsed again if another selector follows. Quote
-    // literal punctuation and protect the text on each side of a delimiter:
-    // CommonMark otherwise treats a space inserted beside a marker as syntax.
-    let literal = |out: &mut String, start: usize, end: usize| -> Result<(), String> {
-        use std::fmt::Write;
-        let slice = text
-            .get(start..end)
-            .ok_or("internal error: formatting boundary is not a UTF-8 boundary")?;
-        let mut chars = slice.chars().peekable();
-        let mut first = true;
-        while let Some(c) = chars.next() {
-            if formatted
-                && (first || chars.peek().is_none())
-                && (!c.is_control() || matches!(c, '\n' | '\t' | '\r'))
-            {
-                write!(out, "&#{};", c as u32).unwrap();
-            } else {
-                if c.is_ascii_punctuation() {
-                    out.push('\\');
-                }
-                out.push(c);
-            }
-            first = false;
-        }
-        Ok(())
-    };
-    let mut closes = Vec::<(usize, &'static str)>::new();
-    let mut events = events.into_iter().peekable();
+    let mut iter = events.into_iter().peekable();
     loop {
-        let end = closes.last().map_or(text.len(), |c| c.0);
-        if let Some(e) = events.next_if(|e| e.start < end) {
-            if e.end <= pos {
+        let end = containers.last().map_or(text.len(), |&n| normalized[n].end);
+        // Like the JS unflattener, consume spent events before the end check.
+        if iter
+            .peek()
+            .is_some_and(|e| e.end <= containers.last().map_or(0, |&n| normalized[n].start))
+        {
+            iter.next();
+            continue;
+        }
+        if let Some(mut e) = iter.next_if(|e| e.start < end) {
+            pos = pos.max(e.start);
+            e.start = pos;
+            e.end = e.end.min(end);
+            if e.end < pos {
                 continue;
             }
-            let start = pos.max(e.start);
-            literal(&mut out, pos, start)?;
-            pos = start;
-            let stop = e.end.min(end);
-            if e.marker == "`" {
-                let code = text
-                    .get(pos..stop)
-                    .ok_or("internal error: formatting boundary is not a UTF-8 boundary")?;
-                super::mdq_write_inline_code(&mut out, code);
-                pos = stop;
-            } else if stop > pos {
-                out.push_str(e.marker);
-                closes.push((stop, e.marker));
+            if !text.is_char_boundary(pos) || !text.is_char_boundary(e.end) {
+                return Err("internal error: formatting boundary is not a UTF-8 boundary".into());
             }
-        } else {
-            literal(&mut out, pos, end)?;
-            pos = end;
-            if let Some((_, mark)) = closes.pop() {
-                out.push_str(mark);
+            if e.kind.container() {
+                containers.push(normalized.len());
             } else {
-                break;
+                pos = e.end;
             }
+            if let Kind::Link { target, .. } = &mut e.kind
+                && matches!(
+                    target.auto,
+                    Some(super::mdq_links::Auto::Bracketed | super::mdq_links::Auto::Bare)
+                )
+            {
+                target.url = text[e.start..e.end].into();
+            }
+            e.next = normalized.len() + 1;
+            normalized.push(e);
+        } else if let Some(n) = containers.pop() {
+            pos = end;
+            normalized[n].next = normalized.len();
+        } else {
+            break;
         }
     }
-    if events.len() != 0 {
+    if iter.len() != 0 {
         return Err(format!(
             "internal error: failed to unflatten: {} events remaining",
-            events.len()
+            iter.len()
         ));
     }
-    Ok(out)
+    Ok(normalized)
 }
 
 fn punctuation(c: char) -> bool {

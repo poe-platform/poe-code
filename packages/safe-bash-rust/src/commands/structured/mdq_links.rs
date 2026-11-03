@@ -491,15 +491,6 @@ impl<'a> References<'a> {
         }
     }
 
-    pub fn text(&mut self, src: &str, defs: &Definitions) -> String {
-        if !super::mdq_has_links(src) {
-            return super::mdq_text_span(src, false);
-        }
-        let mut text = String::new();
-        super::mdq_inline_parts(defs, src, Some(self), |part, _| text.push_str(part));
-        text
-    }
-
     pub fn note_name(&self, i: usize) -> String {
         if self.renumber_notes {
             (i + 1).to_string()
@@ -542,13 +533,12 @@ impl<'a> References<'a> {
                 Visit::Block(b) => {
                     pending.extend(b.children.iter().rev().map(Visit::Block));
                     let src = match b.kind.as_str() {
-                        "section" => Some(&b.title),
-                        "paragraph" => Some(&b.text),
+                        "section" | "paragraph" => Some(&b.inline),
                         _ => None,
                     };
                     for s in src.into_iter().chain(b.table_rows.iter().flatten()) {
                         pending.extend(
-                            super::mdq_inline_atoms(defs, s, false)
+                            super::mdq_inline_atoms(defs, &s.text, false)
                                 .into_iter()
                                 .rev()
                                 .map(|(_, a)| Visit::Atom(a)),

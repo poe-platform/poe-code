@@ -2797,6 +2797,8 @@ mod adts;
 #[path = "mp4.rs"]
 mod mp4;
 
+#[path = "streaming_input.rs"]
+mod streaming_input;
 #[path = "avi_input.rs"]
 mod avi_input;
 #[path = "media_format.rs"]
@@ -4823,6 +4825,10 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
             None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
         })?;
+        if id == "hls" {
+            return streaming_input::hls(&bytes, &resolve_posix_path(cwd,path), fs)
+                .map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1));
+        }
         if id == "mpegts" {
             mp4::mpegts_input::framing(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1))?;
         }
@@ -13687,6 +13693,44 @@ mod media_unit_tests {
             let r = cmd_media_doc("ffprobe",&args,"","/",&fs);
             assert_eq!(r.stdout, "h264,6,4,67500,3\naac,33792,33\n");
         }
+    }
+
+    #[test]
+    fn ffmpeg_rejoins_hls_segment_files_without_padding_tracks() {
+        for (format, expected) in [
+            ("mpegts", "fc1d255e4dff2651fa455a2fd0bde4e91344acb51c212019b949a4547afe1ba5"),
+            ("fmp4", "dd4e067e8d0709a23ce68853c910b85c812ea96a7e8036a30a4ff662cdbcf798"),
+        ] {
+            let fs = MemoryVfs::new();
+            fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+            let args = media_args(&["-i","av.mp4","-hls_time","0.2","-hls_segment_type",format,"media/list.m3u8"]);
+            assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+            let args = media_args(&["-i","media/list.m3u8","-c","copy","copy.mp4"]);
+            let result = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+            assert_eq!(result.exit_code,0,"{}",result.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/copy.mp4").unwrap())),expected,"{format}");
+        }
+    }
+
+    #[test]
+    fn ffmpeg_keeps_fragment_timestamps_when_hls_uses_a_shared_init() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i","av.mp4","-hls_time","0.2","-hls_segment_type","fmp4","list.m3u8"]);
+        assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+        let mut playlist = String::from("#EXTM3U\n#EXT-X-MAP:URI=\"init.mp4\"\n");
+        for i in 0..3 {
+            let bytes = fs.read_file(&format!("/seg_{i:03}.m4s")).unwrap();
+            let moof = bytes.windows(4).position(|w|w==b"moof").unwrap()-4;
+            if i==0 {fs.write_file("/init.mp4",&bytes[..moof]).unwrap();}
+            fs.write_file(&format!("/part{i}"),&bytes[moof..]).unwrap();
+            playlist.push_str(&format!("#EXTINF:0.25,\npart{i}\n"));
+        }
+        fs.write_file("/segments.m3u8",playlist.as_bytes()).unwrap();
+        let args=media_args(&["-i","segments.m3u8","-c","copy","rejoined.ts"]);
+        let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/rejoined.ts").unwrap())), "28c195337e4be2a125174dc70fe9e6c167820150f13916c3b180b14d227afeac");
     }
 
     #[test]

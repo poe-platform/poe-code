@@ -1717,15 +1717,20 @@ pub(in super::super) fn input_slice(
     source_end: Option<f64>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    remux(
-        std::slice::from_ref(input),
+    let metadata = BTreeMap::new();
+    remux(std::slice::from_ref(input), Remux {start: seek.start, end: seek.end(), source_end,
+        ..Remux::passthrough(&metadata, limit) }, seek.loops, &mut Vec::new())
+}
+
+impl<'a> Remux<'a> {
+    fn passthrough(metadata: &'a BTreeMap<String,String>, limit: usize) -> Self {
         Remux {
             hls: None,
             composition: None,
             concat: None,
-            start: seek.start,
-            end: seek.end(),
-            source_end,
+            start: None,
+            end: None,
+            source_end: None,
             input_times: &[],
             limit,
             rate: None,
@@ -1740,12 +1745,17 @@ pub(in super::super) fn input_slice(
             frames: None,
             format: "mp4",
             fragmented: false,
-            metadata: &BTreeMap::new(),
+            metadata,
             rotation: None,
-        },
-        seek.loops,
-        &mut Vec::new(),
-    )
+        }
+    }
+}
+
+pub(in super::super) fn join_segments(inputs: &[MediaInput], limit: usize) -> Result<Vec<u8>,String> {
+    let metadata = BTreeMap::new();
+    let mut concat = DecodedConcat::new(false, false);
+    concat.align_durations = false;
+    remux(inputs, Remux {concat:Some(&mut concat), ..Remux::passthrough(&metadata, limit)}, 0, &mut Vec::new())
 }
 
 fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
@@ -2539,7 +2549,7 @@ pub(in super::super) fn remux(
     resources: &mut Vec<(String, Vec<u8>)>,
 ) -> Result<Vec<u8>, String> {
     use super::{atoms, child, rows, u16_at, u32_at, wide};
-    if opts.concat.is_some() && inputs.len() > 128 {
+    if opts.concat.as_ref().is_some_and(|c|c.align_durations) && inputs.len() > 128 {
         return Err(format!(
             "Resource limit exceeded for maxConcatInputs: {} exceeds maximum allowed 128",
             inputs.len()
@@ -3377,7 +3387,7 @@ pub(in super::super) fn remux(
             for (tags,&(j,i)) in source_tags.iter_mut().zip(&selected) {
                 if sources[j].2.kind(i)=="video" && !opts.video_filters.is_empty() {continue;}
                 if let Streams::Mp4(tracks)=&sources[j].2 {
-                    *tags=tracks[i].0.original;
+                    *tags=tracks[i].0.packet_origin(sources[j].0.len());
                 }
             }
         }
@@ -3435,7 +3445,7 @@ pub(in super::super) fn remux(
                 && !(t.kind == "audio" && (opts.rate.is_some() || opts.channels.is_some() || !opts.audio_filters.is_empty()))
                 && !(t.kind == "video" && decoded)
                 && let Streams::Mp4(v) = &sources[j].2 {
-                v[i].0.original.timestamps(t.kind == "video").take(t.samples.len()).collect()
+                v[i].0.packet_origin(sources[j].0.len()).timestamps(t.kind == "video").take(t.samples.len()).collect()
             } else { Vec::new() }
         }).collect();
         return hls::segments(hls, tracks, &timestamps, &stream_seconds, stream_duration, decoded, scale, opts.limit, |segment| {

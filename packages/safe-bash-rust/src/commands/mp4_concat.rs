@@ -6,6 +6,7 @@ pub(in super::super::super) struct DecodedConcat {
     pub(super) video: Option<BTreeMap<usize, VideoFrames>>,
     pub(super) audio: BTreeMap<usize, Pcm>,
     pub(super) joined: bool,
+    pub(super) align_durations: bool,
     export_pcm: bool,
 }
 impl DecodedConcat {
@@ -14,6 +15,7 @@ impl DecodedConcat {
             video: video.then(BTreeMap::new),
             audio: BTreeMap::new(),
             joined: false,
+            align_durations: true,
             export_pcm,
         }
     }
@@ -398,7 +400,7 @@ pub(super) fn join<'a>(
             }
             t.samples.append(&mut samples);
         }
-        if j + 1 < sources.len() {
+        if retained.align_durations && j + 1 < sources.len() {
             let boundary = slots
                 .iter()
                 .map(|t| f64::from(t.media_ticks) / f64::from(t.scale))

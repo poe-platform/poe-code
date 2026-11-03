@@ -397,6 +397,7 @@ enum Original<'a> {
     Avi(&'a super::avi_input::Description),
     Transport(&'a mpegts_input::Description),
     Flv(&'a [u8]),
+    Fragmented(&'a Track<'a>, usize),
     Matroska(&'a mkv_input::Track<'a>),
 }
 impl<'a> Original<'a> {
@@ -420,6 +421,7 @@ impl<'a> Original<'a> {
     fn timestamps(&self, video: bool) -> Box<dyn Iterator<Item = u64> + '_> {
         match self {
             Self::None | Self::Avi(_) => Box::new(std::iter::empty()),
+            Self::Fragmented(t, len) => Box::new(t.samples(*len).map(|s|s.dts)),
             Self::Transport(t) => Box::new(t.packets.iter().map(|p|p.dts as u64)),
             Self::Flv(tags) => Box::new(flv_input::timestamps(tags, video).map(u64::from)),
             Self::Matroska(t) => Box::new(t.blocks.iter().map(|b| b.dts as u64)),
@@ -726,6 +728,9 @@ impl<'a> Track<'a> {
     }
     fn time(&self, ticks: f64) -> String {
         format!("{:.6}", ticks / f64::from(self.scale))
+    }
+    fn packet_origin(&self, input_size: usize) -> Original<'_> {
+        if self.runs.is_empty() {self.original} else {Original::Fragmented(self, input_size)}
     }
     fn samples(&self, input_size: usize) -> impl Iterator<Item = Sample> + '_ {
         let mut timestamps = match self.original {Original::Flv(tags)=>Some(flv_input::timestamps(tags, self.kind=="video")), _=>None};

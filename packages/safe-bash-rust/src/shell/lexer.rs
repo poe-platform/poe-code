@@ -536,6 +536,8 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                             current.push(chars[i]);
                             i += 1;
                         }
+                    } else if next == '$' && chars.get(i + 1) == Some(&'$') {
+                        return Err(dollar_error(&chars, i + 1));
                     } else if next == '$' && i + 1 < chars.len() && chars[i + 1] == '(' {
                         read_dollar_paren(&chars, &mut i, &mut current, extglob)?;
                     } else if next == '$' && i + 1 < chars.len() && chars[i + 1] == '{' {
@@ -574,6 +576,7 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                     i += 1;
                 }
             }
+            '$' if chars.get(i + 1) == Some(&'$') => return Err(dollar_error(&chars, i + 1)),
             '$' if i + 1 < chars.len() && chars[i + 1] == '(' => {
                 if in_double_bracket && after_regex_op && regex_bracket {
                     regex_bracket_first = false;
@@ -1138,6 +1141,20 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
     Ok(tokens)
 }
 
+pub(super) fn syntax_token(source: &str) -> &str {
+    let operator = |c: char| matches!(c, ';' | '&' | '|' | '(' | ')' | '<' | '>');
+    if source.starts_with(operator) { return &source[..1]; }
+    let end = source.find(|c: char| c.is_whitespace() || operator(c)).unwrap_or(source.len());
+    if end == 0 { "newline" } else { &source[..end] }
+}
+
+pub(super) const UNSUPPORTED_DOLLAR: &str = "Unsupported shell quoting or special parameter";
+
+pub(super) fn dollar_error(chars: &[char], second: usize) -> String {
+    let offset: usize = chars[..second].iter().map(|c| c.len_utf16()).sum();
+    format!("{UNSUPPORTED_DOLLAR} at offset {offset}")
+}
+
 fn read_dollar_paren(
     chars: &[char],
     i: &mut usize,
@@ -1323,6 +1340,15 @@ fn read_paren_sub_body(
     let inner_body = &out[body_start..out.len() - 1];
     if let Err(err) = crate::shell::parser::parse_script_with_extglob(inner_body, extglob) {
         let clean = err.strip_prefix("__exit127__").unwrap_or(&err);
+        if let Some(offset) = clean.strip_prefix(UNSUPPORTED_DOLLAR)
+            .and_then(|s| s.strip_prefix(" at offset ")).and_then(|s| s.parse::<usize>().ok()) {
+            let mut units = 0;
+            if let Some((pos, _)) = inner_body.char_indices().find(|(_, c)| {
+                let found = units == offset; units += c.len_utf16(); found
+            }) {
+                return Err(format!("__exit127__Syntax error: unexpected `{}`", syntax_token(&inner_body[pos..])));
+            }
+        }
         if clean.contains("unexpected end of file") {
             return Err("__exit127__Syntax error: unexpected `)`".to_string());
         }
@@ -1340,6 +1366,10 @@ fn read_dollar_brace(
     out.push('$');
     out.push('{');
     *i += 2;
+    if chars.get(*i) == Some(&'$') {
+        let offset: usize = chars[..*i].iter().map(|c| c.len_utf16()).sum();
+        return Err(format!("Unsupported parameter expansion at offset {offset}"));
+    }
     if chars.get(*i) == Some(&'!') {
         let mut op = *i + 1;
         while chars.get(op).is_some_and(|c| c.is_ascii_alphanumeric() || *c == '_') {
@@ -1358,6 +1388,9 @@ fn read_dollar_brace(
     let mut in_dq = false;
     while *i < chars.len() && depth > 0 {
         let c = chars[*i];
+        if !in_sq && c == '$' && chars.get(*i + 1) == Some(&'$') {
+            return Err(dollar_error(chars, *i + 1));
+        }
         if in_sq {
             out.push(c);
             *i += 1;

@@ -9548,3 +9548,26 @@ test("xmllint retains recovered low surrogates in their original text node and o
     assert.deepEqual(Buffer.from(r.stdoutBytes), Buffer.from('<?xml version="1.0" encoding="UTF-16LE"?>\n<p><r/>\udeb4text</p>\n', "utf16le"));
   } finally { rs.dispose(); }
 });
+
+test("the shell rejects process-id expansion at the second dollar before running the command", async () => {
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [script, offset, stdout] of [
+      ["echo $$", 6, ""], ['echo "$$"', 7, ""], ["echo 🦊; echo $$", 15, ""],
+      ["echo ok\necho $$", 14, "ok\n"], ['echo "${x:-$$}"', 12, ""],
+    ]) {
+      const r = await rs.exec(script);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [2, stdout, "shell: Unsupported shell quoting or special parameter at offset " + offset + "\n"], script);
+    }
+    for (const [script, status, diagnostic] of [
+      ["echo ${$}", 2, "shell: Unsupported parameter expansion at offset 7\n"],
+      ['echo $(echo "$$")', 127, 'shell: -c: line 1: syntax error near unexpected token `$"\'\nshell: -c: line 1: `echo $(echo "$$")\'\n'],
+      ["cat <<EOF\n$$\nEOF", 1, "shell: line 1: Unsupported shell quoting or special parameter at offset 1\n"],
+    ]) {
+      const r = await rs.exec(script);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [status, "", diagnostic], script);
+    }
+    const literal = await rs.exec("echo '$$' \\$\\$; cat <<'EOF'\n$$\nEOF");
+    assert.deepEqual([literal.exitCode, literal.stdout, literal.stderr], [0, "$$ $$\n$$\n", ""]);
+  } finally { rs.dispose(); }
+});

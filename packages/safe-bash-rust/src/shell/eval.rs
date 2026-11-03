@@ -14,7 +14,7 @@ use crate::shell::expand::{
     sync_array_metadata, sync_getopts_env,
     try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
-use crate::shell::lexer::DupOrigin;
+use crate::shell::lexer::{DupOrigin, UNSUPPORTED_DOLLAR};
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
     SimpleCommand, is_incomplete_shell_unit_with_extglob,
@@ -697,7 +697,12 @@ impl<'a> EvalState<'a> {
             }
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
                 Ok(a) => a,
-                Err(syn_err) => {
+                Err(mut syn_err) => {
+                    if unit_start_line > 0 && let Some((reason, offset)) = syn_err.rsplit_once(" at offset ")
+                        && let Ok(offset) = offset.parse::<usize>() {
+                        let prefix: usize = lines[..unit_start_line].iter().map(|s| s.encode_utf16().count()).sum();
+                        syn_err = format!("{reason} at offset {}", prefix + offset);
+                    }
                     if !executed && self.mapfile_callback_depth == 0 {
                         return Err(EvalError::Syntax(syn_err));
                     }
@@ -10328,6 +10333,10 @@ impl<'a> EvalState<'a> {
                     idx += 1;
                     continue;
                 }
+                if chars[idx + 1] == '$' {
+                    let message = super::lexer::dollar_error(&chars, idx + 1);
+                    return Err(EvalError::Syntax(format!("__heredoc_diag__{prog}: line {document_line}: {message}\n")));
+                }
                 if chars[idx + 1] == '(' && idx + 2 < chars.len() && chars[idx + 2] == '(' {
                     match crate::shell::lexer::find_arithmetic_end(&chars, idx + 3, true) {
                         Ok(Some((expr_end, resume_idx))) => {
@@ -14485,6 +14494,8 @@ fn format_syntax_diagnostic(
 ) -> String {
     let syn_msg = syn_msg.strip_prefix("__exit127__").unwrap_or(syn_msg);
     if let Some(offset) = syn_msg.strip_prefix("Unsupported array-key operator at offset ")
+        .or_else(|| syn_msg.strip_prefix(UNSUPPORTED_DOLLAR)?.strip_prefix(" at offset "))
+        .or_else(|| syn_msg.strip_prefix("Unsupported parameter expansion at offset "))
         && let Ok(offset) = offset.parse::<usize>()
     {
         if syntax_name == "shell: -c" {
@@ -14499,7 +14510,7 @@ fn format_syntax_diagnostic(
             let line = diag_offset + 1 + source[..pos].bytes().filter(|&c| c == b'\n').count();
             let src_line = source[..pos].rsplit('\n').next().unwrap_or("");
             let rest = source[pos..].split('\n').next().unwrap_or("");
-            let token = rest.split_whitespace().next().unwrap_or(rest);
+            let token = super::lexer::syntax_token(rest);
             return format!("{syntax_name}: line {line}: syntax error near unexpected token `{token}'\n{syntax_name}: line {line}: `{src_line}{rest}'\n");
         }
     }
@@ -15497,14 +15508,14 @@ mod tests {
 
         let out = state
             .eval_script_str(
-                "RANDOM=7\nr1=$RANDOM\nr2=$RANDOM\nRANDOM=7\nr3=$RANDOM\n: first second third-arg\nlast1=$_\nlast_after_assign=$_\nf() { echo \"in:$_\"; }\n: before-fn\nf fn-arg\nlast2=$_\necho \"$r1:$r2:$r3|$last1|$last_after_assign|$last2|$$:$BASHPID|$0|${DIRSTACK[0]}|$LINENO\"",
+                "RANDOM=7\nr1=$RANDOM\nr2=$RANDOM\nRANDOM=7\nr3=$RANDOM\n: first second third-arg\nlast1=$_\nlast_after_assign=$_\nf() { echo \"in:$_\"; }\n: before-fn\nf fn-arg\nlast2=$_\necho \"$r1:$r2:$r3|$last1|$last_after_assign|$last2|$BASHPID|$0|${DIRSTACK[0]}|$LINENO\"",
                 "",
             )
             .unwrap();
         assert_eq!(out.exit_code, 0);
         assert_eq!(
             out.stdout,
-            "in:before-fn\n19344:26956:19344|third-arg||fn-arg|1:1|virtual-bash|/|13\n"
+            "in:before-fn\n19344:26956:19344|third-arg||fn-arg|1|virtual-bash|/|13\n"
         );
     }
 

@@ -2253,27 +2253,34 @@ fn cmd_touch(
             }
         }
     }
-    for a in &operands {
-        let p = if follow { resolve_posix_path(cwd, a) } else {
-            let path = absolute_operand(cwd, a);
-            match fs.access_path(&path, false) {
-                Ok(p) => p,
-                Err(e) => return err_out(&format!("touch: {}\n", copy_error(&e, "lstat", &path)), 1),
+    let now = crate::vfs::now_ms();
+    let syscall = if follow { "stat" } else { "lstat" };
+    let touch = |operand: &str| -> Result<(), String> {
+        let path = absolute_operand(cwd, operand);
+        let target = match fs.inspect_command_entry(&path, follow, syscall) {
+            Ok((_, st)) if !follow && st.kind == VfsEntryKind::Symlink =>
+                return Err(format!("ENOTSUP: symlink timestamps are unavailable, touch '{path}'")),
+            Ok((target, _)) => target,
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
+                if no_create { return Ok(()); }
+                let target = fs.access_path(&path, follow).map_err(|e| copy_error(&e, "writeFile", &path))?;
+                fs.create_file(&target, &[], 0o666 & !umask_val).map_err(|e| copy_error(&e, "writeFile", &path))?;
+                if !has_r && !has_t && !has_d { return Ok(()); }
+                target
             }
+            Err(e) => return Err(copy_error(&e, syscall, &path)),
         };
-        if !fs.exists(&p) {
-            if !no_create {
-                let _ = fs.write_file(&p, &[]);
-                let mode = (0o666 & !umask_val) & 0o777;
-                let _ = fs.chmod(&p, mode);
-            } else { continue; }
-        }
-        let now = crate::vfs::now_ms();
-        if let Err(e) = fs.set_times(&p, touch_a.then(|| ref_atime.unwrap_or(now)), touch_m.then(|| ref_mtime.unwrap_or(now))) {
-            return err_out(&format!("touch: {e}\n"), 1);
+        fs.set_times(&target, touch_a.then(|| ref_atime.unwrap_or(now)), touch_m.then(|| ref_mtime.unwrap_or(now)))
+            .map_err(|e| copy_error(&e, "utimes", &path))
+    };
+    let mut result = ok_out("");
+    for operand in &operands {
+        if let Err(e) = touch(operand) {
+            result.exit_code = 1;
+            result.stderr.push_str(&format!("touch: {e}\n"));
         }
     }
-    ok_out("")
+    result
 }
 
 fn civil_to_epoch_days(year: i64, month: i64, day: i64) -> i64 {
@@ -6930,6 +6937,26 @@ mod tests {
         assert_eq!(fs.read_file("/dst/a~").unwrap(), b"KEEP");
         let st = fs.stat("/dst/a").unwrap();
         assert_eq!((st.mode & 0o777, st.size), (0o200, 0));
+    }
+
+    #[test]
+    fn touch_validates_parent_traversal_and_continues_after_failed_creates() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/w/file", b"keep").unwrap();
+        fs.mkdir_all("/w/real/sub").unwrap();
+        fs.symlink("real/sub", "/w/alias").unwrap();
+        let touch = |argv: &[&str]| try_run_fs_command("touch", &args(argv), "", "/w", &BTreeMap::new(), &fs).unwrap();
+        let r = touch(&["absent/../wrong", "file/child", "alias/../created", "after"]);
+        assert_eq!(r.exit_code, 1);
+        assert_eq!(r.stderr, "touch: ENOENT: no such file or directory, writeFile '/w/absent/../wrong'\ntouch: ENOTDIR: not a directory, stat '/w/file/child'\n");
+        assert!(!fs.exists("/w/wrong") && !fs.exists("/w/created") && !fs.exists("/w/absent"));
+        assert!(fs.exists("/w/real/created") && fs.exists("/w/after"));
+        assert_eq!(touch(&["-c", "absent/child"]).exit_code, 0);
+        assert_eq!(touch(&["-c", "file/child"]).exit_code, 1);
+        fs.symlink("new", "/w/dangling").unwrap();
+        assert_eq!(touch(&["dangling"]).exit_code, 0);
+        assert_eq!(fs.readlink("/w/dangling").unwrap(), "new");
+        assert!(fs.exists("/w/new"));
     }
 
     #[test]

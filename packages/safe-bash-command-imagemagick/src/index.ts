@@ -1,3 +1,4 @@
+import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { clutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
@@ -476,6 +477,7 @@ interface MagickState {
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
+  connectedVerbose?: boolean;
 }
 
 function createDefaultState(): MagickState {
@@ -3732,9 +3734,16 @@ function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<v
     }
     return { ...image, data };
 }
+function parseConnectedComponents(tokens: readonly string[], state: MagickState, start: number): number {
+    const value = tokens[start + 1];
+    if (tokens[start] !== "-connected-components") throw new Error(`Unsupported option: ${tokens[start]}`);
+    if (value !== "4" && value !== "8") throw new Error("connected-components: connectivity must be 4 or 8");
+    if (state.alphaFuzz !== 0) throw new Error("connected-components: nonzero fuzz is unsupported");
+    return Number(value);
+}
+
 function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {
     const token = tokens[start];
-    if (token === "-connected-components") throw new Error("Unsupported option: -connected-components");
     if (!["-auto-level", "-auto-gamma", "-normalize", "-contrast-stretch", "-linear-stretch", "-equalize"].includes(token ?? "")) return;
     let end = start;
     const argument = token === "-normalize" ? "2%x1%" : token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
@@ -4093,6 +4102,11 @@ if (t === "-channel") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("connected-components:")) {
+                const [key, value, extra] = defStr.toLowerCase().split("=");
+                if (extra !== undefined || key !== "connected-components:verbose" || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                state.connectedVerbose = value === "true";
+            }
             const m = /^compose:args=(.*)$/i.exec(defStr);
             if (m)
                 state.composeArgs = m[1]!;
@@ -4100,13 +4114,14 @@ if (t === "-channel") {
         else if (t === "-set") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
+            if (k.startsWith("option:connected-components:") || k.startsWith("connected-components:")) throw new Error(`Unsupported connected-components setting: ${k}`);
             if (k === "option:compose:args")
                 state.composeArgs = v;
         } else return undefined;
     return i;
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "" }): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -4136,7 +4151,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const endIdx = depth === 0 ? j - 1 : j;
             const subTokens = tokens.slice(i + 1, endIdx);
             const subState: MagickState = { ...state };
-            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal));
+            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis));
             stack.push(...subResult);
             i = j;
             continue;
@@ -4146,6 +4161,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) { i = setting; }
+        else if (t === "-connected-components" || t === "+connected-components") {
+            const connectivity = parseConnectedComponents(tokens, state, i++);
+            stack = yield* mapSteps(stack, function* (image) {
+                const result = yield* connectedComponentsSteps(image, connectivity, state.connectedVerbose ?? false);
+                analysis.text += result.text;
+                return result.image;
+            });
+        }
         else if (analysisOperation) {
             i = analysisOperation.end;
             stack = yield* mapSteps(stack, function* (image) {
@@ -4730,6 +4753,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
 }
 
 function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    const analysis = { text: "" };
+    const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
+    return { ...result, stdout: analysis.text + result.stdout };
+}
+function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = { text: "" }): Generator<void, ImageMagickCliResult, void> {
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
@@ -4752,7 +4780,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const pipelineTokens = argv.slice(0, -1);
     const state = createDefaultState();
     try {
-        const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, [], stdinBytes, signal));
+        const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, [], stdinBytes, signal, analysis));
         if (stack.length === 0) {
             return {
                 exitCode: 1,
@@ -4762,6 +4790,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
+        if (outLower === "null:") return { exitCode: 0, stdout: "", stderr: "" };
         if (outLower === "info:" || outLower === "info:-") {
             const formatted: string[] = [];
             for (const [idx, im] of stack.entries()) {
@@ -4980,6 +5009,11 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
 }
 
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
+    const analysis = { text: "" };
+    const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
+    return result ? { ...result, stdout: analysis.text + result.stdout } : undefined;
+}
+async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: { text: string }): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
@@ -5105,6 +5139,17 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (pixelOperation) {
             i = pixelOperation.end;
             steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined);
+            continue;
+        }
+        if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
+            const connectivity = parseConnectedComponents(tokens, state, i++), verbose = state.connectedVerbose ?? false;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const result = await connectedComponentsStored(image, backend.storage, connectivity, verbose, signal);
+                if (input.stdout) await writeIdentifyText(input.stdout, result.text, signal);
+                else analysis.text += result.text;
+                return result.image;
+            });
             continue;
         }
         const analysisOperation = operandsOnly ? undefined : parseMagickAnalysisOperation(tokens, state, i);
@@ -5365,6 +5410,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);
+        if (outSpec.toLowerCase() === "null:") { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";
         if (info || lower.startsWith("txt:") || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {

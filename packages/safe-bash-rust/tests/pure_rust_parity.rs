@@ -419,6 +419,24 @@ fn jq_opens_input_variable_and_program_files_in_path_traversal_order() {
 }
 
 #[test]
+fn jq_sequence_warnings_stop_input_at_the_shared_output_limit() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.write_file("/bad", b"\x1e1\n\x1e!\n\x1e!\n").unwrap();
+    fs.write_file("/end", b"\x1e2\n").unwrap();
+    // Two 90-byte warnings follow the prefix "ab". Non-slurp mode has
+    // already published the three bytes of the first JSON sequence result.
+    for (filter, threshold) in [(".", 185), ("-n inputs", 185), ("-s .", 182)] {
+        for limit in [threshold - 1, threshold] {
+            fs.set_times("/end", Some(1.0), Some(1.0)).unwrap();
+            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, ..Default::default() });
+            let script = format!("printf ab; jq --seq -c {filter} /bad /end");
+            assert!(shell.exec(&script).unwrap_err().contains("maxOutputBytes"));
+            assert_eq!(fs.stat("/end").unwrap().atime_ms != 1.0, limit == threshold, "{script}: {limit}");
+        }
+    }
+}
+
+#[test]
 fn xq_enforces_the_output_budget_before_reading_another_document() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.write_file("/doc", "<r>é</r>".as_bytes()).unwrap();

@@ -1032,8 +1032,6 @@ fn cmd_jq_core(
     };
     let drain_xml = null_input && xml_input && !inputs.borrow().reads_input;
 
-    // yq consumes the JSON internally before formatting its own output.
-    let output_limit = if shell_text { fs.remaining_output_bytes() } else { usize::MAX };
     let output_error = || fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes);
     let mut out = String::new();
     let mut stderr = String::new();
@@ -1042,7 +1040,6 @@ fn cmd_jq_core(
     let mut first_null_done = false;
 
     loop {
-        if stderr.len() > output_limit.saturating_sub(out.len()) { return err_out(&output_error(), 5); }
         let input_val = if null_input {
             if first_null_done {
                 break;
@@ -1067,7 +1064,8 @@ fn cmd_jq_core(
             let raw_string = raw_output && matches!(r, JVal::Str(_));
             use std::fmt::Write;
             let start = out.len();
-            let mut sink = json_format::LimitedText { text: &mut out, limit: output_limit.saturating_sub(stderr.len()) };
+            let mut input = inputs.borrow_mut();
+            let mut sink = json_format::LimitedText { text: &mut out, remaining: &mut input.remaining_output };
             let prefix = if seq_mode && !raw_string { "\x1e" } else { "" };
             let suffix = if raw_output0 { "\0" } else if join_output { "" } else { "\n" };
             let result = sink.write_str(prefix).and_then(|()| {
@@ -1106,7 +1104,11 @@ fn cmd_jq_core(
                 let error = value.to_raw_string(true, false);
                 let place = inputs.borrow_mut().location();
                 use std::fmt::Write;
-                writeln!(stderr, "jq: error (at {place}): {}", jq_input::diagnostic(&error, 1000)).unwrap();
+                let mut input = inputs.borrow_mut();
+                let mut sink = json_format::LimitedText { text: &mut stderr, remaining: &mut input.remaining_output };
+                if writeln!(sink, "jq: error (at {place}): {}", jq_input::diagnostic(&error, 1000)).is_err() {
+                    return err_out(&output_error(), 5);
+                }
                 status = code;
             }
         }

@@ -52,12 +52,12 @@ pub(super) struct JsonFormat<'a> {
 
 pub(super) struct LimitedText<'a> {
     pub(super) text: &'a mut String,
-    pub(super) limit: usize,
+    pub(super) remaining: &'a mut usize,
 }
 
 impl Write for LimitedText<'_> {
     fn write_str(&mut self, text: &str) -> fmt::Result {
-        if text.len() > self.limit.saturating_sub(self.text.len()) { return Err(fmt::Error); }
+        *self.remaining = self.remaining.checked_sub(text.len()).ok_or(fmt::Error)?;
         self.text.push_str(text);
         Ok(())
     }

@@ -5,6 +5,7 @@ use std::borrow::Cow;
 pub(super) struct JqInputs<'a> {
     reader: Option<Values<'a>>,
     pub warnings: String,
+    pub remaining_output: usize,
     pub reads_input: bool,
     pub file_error: Option<String>,
 }
@@ -35,7 +36,7 @@ impl JqInputs<'_> {
         let Some(values) = &mut self.reader else {
             return Ok(None);
         };
-        let result = values.pull(&mut self.warnings);
+        let result = values.pull(&mut self.warnings, &mut self.remaining_output);
         if result.is_err() {
             values.done = true;
         }
@@ -138,7 +139,7 @@ struct Values<'a> {
 }
 
 impl Values<'_> {
-    fn value(&mut self, warnings: &mut String) -> Result<Option<JVal>, (i32, String)> {
+    fn value(&mut self, warnings: &mut String, remaining: &mut usize) -> Result<Option<JVal>, (i32, String)> {
         if self.raw {
             let mut line = Vec::new();
             while let Some(b) = self.bytes.peek()? {
@@ -198,17 +199,13 @@ impl Values<'_> {
                             JVal::Array(self.parser.path()),
                         ]));
                     } else if self.sequence {
+                        let suffix = if separator || self.eof { "" } else { " (need RS to resync)" };
                         use std::fmt::Write;
-                        writeln!(
-                            warnings,
-                            "jq: ignoring parse error: {message}{}",
-                            if separator || self.eof {
-                                ""
-                            } else {
-                                " (need RS to resync)"
-                            }
-                        )
-                        .unwrap();
+                        let mut sink = super::json_format::LimitedText { text: warnings, remaining };
+                        writeln!(sink, "jq: ignoring parse error: {message}{suffix}").map_err(|_| {
+                            let fs = self.bytes.fs;
+                            (5, fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes))
+                        })?;
                     } else {
                         return Err((5, format!("parse error: {message}")));
                     }
@@ -226,17 +223,17 @@ impl Values<'_> {
             }
         }
     }
-    fn pull(&mut self, warnings: &mut String) -> Result<Option<JVal>, (i32, String)> {
+    fn pull(&mut self, warnings: &mut String, remaining: &mut usize) -> Result<Option<JVal>, (i32, String)> {
         if self.done {
             return Ok(None);
         }
         if self.slurp {
             self.done = true;
             if self.raw {
-                return self.value(warnings);
+                return self.value(warnings, remaining);
             }
             let mut all = Vec::new();
-            while let Some(v) = self.value(warnings)? {
+            while let Some(v) = self.value(warnings, remaining)? {
                 all.push(v);
             }
             return Ok(Some(JVal::Array(all)));
@@ -244,7 +241,7 @@ impl Values<'_> {
         if self.raw && self.bytes.peek()?.is_none() {
             return Ok(None);
         }
-        self.value(warnings)
+        self.value(warnings, remaining)
     }
 }
 
@@ -262,6 +259,8 @@ pub(super) fn files<'a>(
     if files.is_empty() {
         files.push("-".into());
     }
+    // yq consumes the JSON internally before formatting its own output.
+    let remaining_output = if matches!(&stdin, Source::Json(_)) { usize::MAX } else { fs.remaining_output_bytes() };
     let values = Values {
         bytes: Bytes {
             single_chunk: !raw && files.len() == 1 && matches!(stdin, Source::ShellJson(Some(_))),
@@ -293,6 +292,7 @@ pub(super) fn files<'a>(
         reader: Some(values),
         file_error: None,
         warnings: String::new(),
+        remaining_output,
         reads_input: false,
     }
 }

@@ -9243,3 +9243,21 @@ test("xmllint checks output permissions and path traversal before replacing file
     assert.deepEqual(Buffer.from(await rs.fs.readFile("/hard")), Buffer.from(await fs.readFile("/hard")));
   } finally { rs.dispose(); }
 });
+
+test("xmllint walks each input path component before following dot-dot", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const store of [fs, rs.fs]) {
+      await store.writeFile("/doc", Buffer.from("<r/>"));
+      await store.mkdir("/locked");
+      await store.chmod("/locked", 0o666);
+      await store.symlink("/loop", "/loop");
+    }
+    for (const file of ["missing/../doc", "locked/../doc", "doc/../doc", "doc/", "./doc", "loop", "''"]) {
+      const cmd = "xmllint " + file + " /doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], file);
+    }
+  } finally { rs.dispose(); }
+});

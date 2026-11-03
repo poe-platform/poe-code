@@ -625,7 +625,7 @@ fn read_utf8_source(fs: &dyn SafeBashFs, path: Option<&str>, stdin: &str, bytes:
         Ok(true)
     };
     if let Some(path) = path {
-        if fs.is_dir(path) { return Err("EISDIR".into()); }
+        if fs.is_dir(path) { return Err("EISDIR: illegal operation on a directory".into()); }
         fs.read_chunks(path, &mut append)?;
     } else {
         append(&crate::vfs::stream_string_to_bytes(stdin))?;
@@ -15009,15 +15009,18 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut remaining = fs.max_input_bytes();
     let mut stdin = Some(stdin);
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
-        let path = (file != "-").then(|| resolve_posix_path(cwd, file));
+        let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut bytes = Vec::new();
-        let input = if path.is_none() { stdin.take().unwrap_or_default() } else { "" };
-        let read = read_utf8_source(fs, path.as_deref(), input, &mut bytes, &mut remaining);
+        let read = if let Some(path) = &path {
+            fs.access_path(path, true).and_then(|entry| read_utf8_source(fs, Some(&entry), "", &mut bytes, &mut remaining))
+        } else {
+            read_utf8_source(fs, None, stdin.take().unwrap_or_default(), &mut bytes, &mut remaining)
+        };
         let next = match read {
             Ok(()) => render(std::str::from_utf8(&bytes).expect("validated XML input")),
             Err(e) if e == "invalid data" => err_out("xmllint: XML input must be UTF-8\n", 1),
             Err(e) if e.starts_with("Execution aborted:") => err_out(&e, 5),
-            Err(_) => err_out(&format!("xmllint: {}\n", read_stream_diag(path.as_deref().unwrap_or("-"), fs)), 1),
+            Err(e) => err_out(&format!("xmllint: {}\n", super::coreutils::stream_file_error(e, "readStream", path.as_deref().unwrap_or("-"))), 1),
         };
         result.stdout.push_str(&next.stdout);
         result.stderr.push_str(&next.stderr);

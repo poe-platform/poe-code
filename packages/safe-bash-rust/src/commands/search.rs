@@ -5776,35 +5776,29 @@ fn has_fd_placeholder(s: &str) -> bool {
     count_fd_placeholders(s) > 0
 }
 
-fn parse_fd_size_spec(spec: &str) -> Option<(char, usize)> {
-    let s = spec.trim();
-    if s.is_empty() {
-        return None;
-    }
-    let (op, rest) = if let Some(r) = s.strip_prefix('+') {
-        ('+', r)
-    } else if let Some(r) = s.strip_prefix('-') {
-        ('-', r)
-    } else {
-        ('=', s)
+fn parse_fd_size_spec(spec: &str) -> Option<(char, f64)> {
+    let (op, rest) = match spec.as_bytes().first() {
+        Some(b'+') => ('+', &spec[1..]),
+        Some(b'-') => ('-', &spec[1..]),
+        _ => ('=', spec),
     };
-    let num_len = rest.chars().take_while(|c| c.is_ascii_digit()).count();
-    if num_len == 0 {
-        return None;
-    }
-    let num = rest[..num_len].parse::<usize>().ok()?;
-    let unit = rest[num_len..].to_ascii_lowercase();
-    let mult = match unit.as_str() {
-        "" | "b" => 1usize,
-        "k" | "kb" => 1_000,
-        "ki" | "kib" => 1_024,
-        "m" | "mb" => 1_000_000,
-        "mi" | "mib" => 1_048_576,
-        "g" | "gb" => 1_000_000_000,
-        "gi" | "gib" => 1_073_741_824,
+    let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
+    let count = rest[..digits].parse::<f64>().ok()?;
+    let unit = rest[digits..].to_ascii_lowercase();
+    let (power, base) = match unit.as_bytes() {
+        b"b" => (0, 1.0_f64),
+        [prefix, suffix @ ..] => {
+            let power = b"kmgt".iter().position(|c| c == prefix)? as i32 + 1;
+            let base = match suffix {
+                b"" | b"b" => 1000.0,
+                b"i" | b"ib" => 1024.0,
+                _ => return None,
+            };
+            (power, base)
+        }
         _ => return None,
     };
-    Some((op, num.saturating_mul(mult)))
+    Some((op, count * base.powi(power)))
 }
 
 fn parse_fd_type_char(s: &str) -> Option<char> {
@@ -5860,7 +5854,7 @@ struct FdConfig {
     max_depth: Option<usize>,
     max_results: Option<usize>,
     excludes: Vec<String>,
-    sizes: Vec<(char, usize)>,
+    sizes: Vec<(char, f64)>,
     changed_within_ms: Option<f64>,
     changed_before_ms: Option<f64>,
     show_hidden: bool,
@@ -5893,7 +5887,7 @@ where
     let mut max_depth: Option<usize> = None;
     let mut max_results: Option<usize> = None;
     let mut excludes: Vec<String> = Vec::new();
-    let mut sizes: Vec<(char, usize)> = Vec::new();
+    let mut sizes: Vec<(char, f64)> = Vec::new();
     let mut changed_within = None;
     let mut changed_before = None;
     let mut show_hidden = false;
@@ -6678,11 +6672,12 @@ fn walk_fd(
                 if st.kind != VfsEntryKind::File {
                     matches = false;
                 } else {
+                    let size = st.size as f64;
                     for &(op, target) in &cfg.sizes {
                         let ok = match op {
-                            '+' => st.size >= target,
-                            '-' => st.size <= target,
-                            _ => st.size == target,
+                            '+' => size >= target,
+                            '-' => size <= target,
+                            _ => size == target,
                         };
                         if !ok {
                             matches = false;
@@ -7661,6 +7656,23 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn fd_size_units_do_not_depend_on_pointer_width() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work").unwrap();
+        fs.write_file("/work/needle", &[0; 1024]).unwrap();
+        for (spec, code, output) in [
+            ("1KiB", 0, "needle\n"), ("1KB", 0, ""),
+            ("-1TB", 0, "needle\n"), ("+1Ti", 0, ""),
+            ("-18446744073709551616B", 0, "needle\n"),
+            ("1024", 2, ""), (" 1kib", 2, ""),
+        ] {
+            let result = try_run_search_command("fd", &args(&["-S", spec, "needle"]), "",
+                &mut "/work".to_owned(), &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str()), (code, output), "{spec}: {}", result.stderr);
+        }
     }
 
     #[test]

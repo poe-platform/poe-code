@@ -5425,7 +5425,7 @@ fn parse_yq_input_docs_with_meta(
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return Ok(vec![(xml::to_json(xml::parse(input, None, None, true).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
+        return Ok(vec![(xml::to_json(xml::parse(input, None, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
@@ -14851,60 +14851,59 @@ fn apply_xml_transforms(
     if !noblanks && !nocdata {
         return;
     }
-    if nocdata {
-        let mut merged: Vec<XmlNode> = Vec::with_capacity(nodes.len());
-        for node in nodes.drain(..) {
-            let (text, low) = match node {
-                XmlNode::Text(t, low) => (t, low),
-                XmlNode::Cdata(t) => (t, None),
-                other => { merged.push(other); continue; }
-            };
-            if let Some(XmlNode::Text(prev, _)) = merged.last_mut() {
-                // A recovered low surrogate always follows an empty element.
-                debug_assert!(low.is_none());
-                prev.push_str(&text);
-            } else {
-                merged.push(XmlNode::Text(text, low));
+    let mut pending = vec![(nodes, preserve_space)];
+    while let Some((nodes, preserve_space)) = pending.pop() {
+        if nocdata {
+            let mut merged: Vec<XmlNode> = Vec::with_capacity(nodes.len());
+            for node in nodes.drain(..) {
+                let (text, low) = match node {
+                    XmlNode::Text(t, low) => (t, low),
+                    XmlNode::Cdata(t) => (t, None),
+                    other => { merged.push(other); continue; }
+                };
+                if let Some(XmlNode::Text(prev, _)) = merged.last_mut() {
+                    // A recovered low surrogate always follows an empty element.
+                    debug_assert!(low.is_none());
+                    prev.push_str(&text);
+                } else {
+                    merged.push(XmlNode::Text(text, low));
+                }
             }
+            *nodes = merged;
         }
-        *nodes = merged;
-    }
-    let total_len = nodes.len();
-    let mut kept: Vec<XmlNode> = Vec::with_capacity(total_len);
-    let mut mixed = false;
-    for (idx, node) in nodes.drain(..).enumerate() {
-        match node {
-            XmlNode::Element(mut el) => {
-                let mut child_preserve = preserve_space;
-                for (k, v) in &el.attrs {
-                    if k == "xml:space" {
-                        if v == "preserve" {
-                            child_preserve = true;
-                        } else if v == "default" {
-                            child_preserve = false;
-                        }
+        let total_len = nodes.len();
+        let mut kept: Vec<XmlNode> = Vec::with_capacity(total_len);
+        let mut mixed = false;
+        for (idx, node) in nodes.drain(..).enumerate() {
+            match node {
+                XmlNode::Text(t, low) => {
+                    let is_blank = t.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n'));
+                    if noblanks
+                        && !preserve_space
+                        && !mixed
+                        && is_blank
+                        && (!kept.is_empty() || idx + 1 < total_len)
+                    {
+                        continue;
                     }
+                    mixed = true;
+                    kept.push(XmlNode::Text(t, low));
                 }
-                apply_xml_transforms(&mut el.children, noblanks, nocdata, child_preserve);
-                kept.push(XmlNode::Element(el));
+                n => { mixed |= matches!(n,XmlNode::Cdata(_)); kept.push(n); }
             }
-            XmlNode::Text(t, low) => {
-                let is_blank = t.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n'));
-                if noblanks
-                    && !preserve_space
-                    && !mixed
-                    && is_blank
-                    && (!kept.is_empty() || idx + 1 < total_len)
-                {
-                    continue;
-                }
-                mixed = true;
-                kept.push(XmlNode::Text(t, low));
+        }
+        *nodes = kept;
+        for node in nodes {
+            if let XmlNode::Element(el) = node {
+                let preserve = match el.attrs.iter().find(|(k, _)| k == "xml:space").map(|(_,v)| v.as_str()) {
+                    Some("preserve") => true,
+                    Some("default") => false,
+                    _ => preserve_space,
+                };
+                pending.push((&mut el.children, preserve));
             }
-            n => { mixed |= matches!(n,XmlNode::Cdata(_)); kept.push(n); }
         }
     }
-    *nodes = kept;
 }
 
 pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -15041,7 +15040,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
             let mut out = decl;
             for n in &dom {
                 match n {
-                    XmlNode::Element(el) => out.push_str(&serialize_xml_pretty(el, format_xml, 0, false,
+                    XmlNode::Element(el) => out.push_str(&serialize_xml_pretty(el, format_xml,
                         match eff_encoding.map(String::as_str) {
                             None => xml::Escaping::Ascii,
                             Some("UTF-16" | "UTF-16BE" | "UTF-16LE") => xml::Escaping::Utf16,
@@ -15072,7 +15071,10 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut warnings = Vec::new();
-        let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some());
+        let tree = if noout && xpath.is_none() { xml::TreeMode::Discard }
+            else if xpath.is_some() || c14n || format_xml { xml::TreeMode::DepthLimited }
+            else { xml::TreeMode::Retain };
+        let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), tree);
         let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
         let next = match read_xml_operand(fs, file, &mut stdin, &mut remaining, parser) {
             Ok(doc) => render(doc, warnings),
@@ -15155,57 +15157,56 @@ fn serialize_xml_c14n_with_scope<'a>(
     Ok(())
 }
 
-fn serialize_xml_pretty(
-    el: &XmlElement,
-    format_xml: bool,
-    indent: usize,
-    inline_ctx: bool,
-    escaping: xml::Escaping,
-) -> String {
+fn serialize_xml_pretty(el: &XmlElement, format_xml: bool, escaping: xml::Escaping) -> String {
     let mut out = String::new();
-    let pad = if format_xml && !inline_ctx {
-        "  ".repeat(indent)
-    } else {
-        String::new()
+    let start = |el: &XmlElement, out: &mut String| {
+        out.push('<');
+        out.push_str(&el.tag);
+        for is_ns in [true, false] {
+            for (k, v) in &el.attrs {
+                let attr_is_ns = k == "xmlns" || k.starts_with("xmlns:");
+                if attr_is_ns == is_ns {
+                    out.push(' ');
+                    out.push_str(k);
+                    out.push_str("=\"");
+                    out.push_str(&escaping.escape(v, true));
+                    out.push('"');
+                }
+            }
+        }
+        out.push_str(if el.children.is_empty() { "/>" } else { ">" });
     };
-    out.push_str(&pad);
-    out.push('<');
-    out.push_str(&el.tag);
-    for is_ns in [true, false] {
-        for (k, v) in &el.attrs {
-            let attr_is_ns = k == "xmlns" || k.starts_with("xmlns:");
-            if attr_is_ns == is_ns {
-                out.push(' ');
-                out.push_str(k);
-                out.push_str("=\"");
-                out.push_str(&escaping.escape(v, true));
-                out.push('"');
+    let indent_children = |el: &XmlElement| !el.children.iter().any(|n| matches!(n, XmlNode::Text(..) | XmlNode::Cdata(_)));
+    start(el, &mut out);
+    if el.children.is_empty() { return out; }
+    let mut stack = vec![(el, el.children.iter(), format_xml && indent_children(el))];
+    loop {
+        let depth = stack.len();
+        let Some((el, children, indent)) = stack.last_mut() else { break };
+        let child = children.next();
+        if *indent {
+            out.push('\n');
+            for _ in 0..if child.is_some() { depth } else { depth - 1 } { out.push_str("  "); }
+        }
+        match child {
+            None => {
+                out.push_str("</");
+                out.push_str(&el.tag);
+                out.push('>');
+                stack.pop();
+            }
+            Some(XmlNode::Text(t, low)) => out.push_str(&escaping.text(t, *low)),
+            Some(XmlNode::Cdata(t)) => { out.push_str("<![CDATA["); out.push_str(t); out.push_str("]]>"); }
+            Some(XmlNode::Markup(m)) => out.push_str(m),
+            Some(XmlNode::Element(child)) => {
+                start(child, &mut out);
+                if !child.children.is_empty() {
+                    let indent = *indent && indent_children(child);
+                    stack.push((child, child.children.iter(), indent));
+                }
             }
         }
     }
-    if el.children.is_empty() {
-        out.push_str("/>");
-        return out;
-    }
-    out.push('>');
-    let mixed = inline_ctx || el.children.iter().any(|n| matches!(n,XmlNode::Text(..) | XmlNode::Cdata(_)));
-    let indent_children = format_xml && !mixed;
-    for c in &el.children {
-        if indent_children { out.push('\n'); }
-        match c {
-            XmlNode::Text(t, low) => out.push_str(&escaping.text(t, *low)),
-            XmlNode::Cdata(t) => { out.push_str("<![CDATA["); out.push_str(t); out.push_str("]]>"); }
-            XmlNode::Markup(m) => {
-                if indent_children { out.push_str(&"  ".repeat(indent + 1)); }
-                out.push_str(m);
-            }
-            XmlNode::Element(child) => out.push_str(&serialize_xml_pretty(child,format_xml,indent+1,mixed,escaping)),
-        }
-    }
-    if indent_children { out.push('\n'); out.push_str(&pad); }
-    out.push_str("</");
-    out.push_str(&el.tag);
-    out.push('>');
     out
 }
 
@@ -15393,14 +15394,14 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutco
                         let mut text = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
                         for node in *nodes {
                             if let XmlNode::Element(el) = node {
-                                text.push_str(&serialize_xml_pretty(el,false,0,true,xml::Escaping::Unicode));
+                                text.push_str(&serialize_xml_pretty(el,false,xml::Escaping::Unicode));
                             }
                         }
                         text.push('\n');
                         out.push(text);
                     }
                     XPathItem::Node(el, _) => {
-                        out.push(serialize_xml_pretty(el, false, 0, true, xml::Escaping::Unicode));
+                        out.push(serialize_xml_pretty(el, false, xml::Escaping::Unicode));
                     }
                     XPathItem::Attr((k, v), _) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
                     XPathItem::Text(t) => out.push(xml::Escaping::Unicode.escape(t,false)),

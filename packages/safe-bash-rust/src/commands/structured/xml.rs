@@ -17,6 +17,17 @@ pub(super) struct Element {
     pub children: Vec<Node>,
 }
 
+impl Drop for Element {
+    fn drop(&mut self) {
+        let mut pending = std::mem::take(&mut self.children);
+        while let Some(node) = pending.pop() {
+            if let Node::Element(mut child) = node {
+                pending.append(&mut child.children);
+            }
+        }
+    }
+}
+
 fn space(c: char) -> bool {
     matches!(c, ' ' | '\t' | '\n' | '\r')
 }
@@ -192,10 +203,13 @@ struct StartTag {
     part: TagPart,
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum TreeMode { Discard, Retain, DepthLimited }
+
 pub(super) struct Parser<'a> {
     expected_encoding: Option<&'a str>,
     warnings: Warnings<'a>,
-    retain_nodes: bool,
+    tree: TreeMode,
     first: bool,
     has_root: bool,
     doc: Document,
@@ -216,12 +230,12 @@ impl<'a> Parser<'a> {
     pub fn new(
         expected_encoding: Option<&'a str>,
         warnings: Warnings<'a>,
-        retain_nodes: bool,
+        tree: TreeMode,
     ) -> Self {
         Self {
             expected_encoding,
             warnings,
-            retain_nodes,
+            tree,
             first: true,
             has_root: false,
             doc: Document::default(),
@@ -448,11 +462,11 @@ impl<'a> Parser<'a> {
                         }
                         self.has_root = true;
                     }
-                    // DOM consumers recurse when rendering or dropping a tree.
-                    if self.retain_nodes && self.stack.len() >= 512 {
+                    // Consumers that still recurse must stay within the WASM stack.
+                    if self.tree == TreeMode::DepthLimited && self.stack.len() >= 512 {
                         return Err("XML resource limit exceeded");
                     }
-                    if !self.retain_nodes {
+                    if self.tree == TreeMode::Discard {
                         tag.element.attrs = Vec::new();
                     }
                     if empty {
@@ -633,7 +647,7 @@ impl<'a> Parser<'a> {
                 }
             }
         }
-        if !self.retain_nodes {
+        if self.tree == TreeMode::Discard {
             return;
         }
         if let Some(parent) = self.stack.last_mut() {
@@ -655,7 +669,7 @@ impl<'a> Parser<'a> {
         }
         if !self.stack.is_empty() {
             repair(&mut self.warnings, "incomplete document")?;
-            if !self.retain_nodes {
+            if self.tree == TreeMode::Discard {
                 return Ok(self.doc);
             }
             while let Some(el) = self.stack.pop() {
@@ -674,9 +688,8 @@ pub(super) fn parse(
     src: &str,
     expected_encoding: Option<&str>,
     warnings: Warnings<'_>,
-    retain_nodes: bool,
 ) -> Result<Document, String> {
-    let mut parser = Parser::new(expected_encoding, warnings, retain_nodes);
+    let mut parser = Parser::new(expected_encoding, warnings, TreeMode::DepthLimited);
     let src = src.strip_prefix('\u{feff}').unwrap_or(src);
     if !src.chars().all(valid) {
         return Err(diagnostic("invalid character"));
@@ -693,16 +706,15 @@ pub(super) fn parse(
 }
 
 pub(super) fn to_json(nodes: Vec<Node>, plus: bool) -> JVal {
-    fn element(el: Element, plus: bool) -> (String, JVal) {
+    fn element(mut el: Element, plus: bool) -> (String, JVal) {
         let prefix = if plus { "+@" } else { "@" };
-        let mut fields: Vec<_> = el
-            .attrs
+        let mut fields: Vec<_> = std::mem::take(&mut el.attrs)
             .into_iter()
             .map(|(k, v)| (format!("{prefix}{k}"), JVal::Str(v)))
             .collect();
         let mut children = HashMap::<String, usize>::new();
         let mut text = String::new();
-        for child in el.children {
+        for child in std::mem::take(&mut el.children) {
             match child {
                 Node::Text(s, _) | Node::Cdata(s) => text.push_str(&s),
                 Node::Markup(_) => {}
@@ -739,7 +751,7 @@ pub(super) fn to_json(nodes: Vec<Node>, plus: bool) -> JVal {
             }
             JVal::Object(fields)
         };
-        (el.tag, value)
+        (std::mem::take(&mut el.tag), value)
     }
     JVal::Object(
         nodes

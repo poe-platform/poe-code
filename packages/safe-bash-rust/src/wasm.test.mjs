@@ -9683,3 +9683,26 @@ test("XML and Markdown queries render private-use text once in results and diagn
     }
   } finally { sh.dispose(); }
 });
+
+test("xmllint serializes deep documents and discards the tree after a late parse error", async () => {
+  const depth = 12000, doc = "<r>".repeat(depth) + "leaf" + "</r>".repeat(depth);
+  const sh = new RustWasmBash({files: {"/doc": doc, "/bad": doc + "<extra/>"}});
+  try {
+    const r = await sh.exec("xmllint /doc");
+    assert.deepEqual([r.exitCode, r.stderr], [0, ""]);
+    assert.equal(r.stdout, '<?xml version="1.0"?>\n' + doc + "\n");
+    const bad = await sh.exec("xmllint /bad");
+    assert.deepEqual([bad.exitCode, bad.stdout, bad.stderr], [1, "", "xmllint: Invalid XML: multiple root elements\n"]);
+  } finally { sh.dispose(); }
+});
+
+test("xmllint transforms deeply nested whitespace and CDATA in document order", async () => {
+  const open = "<r>".repeat(2048), close = "</r>".repeat(2048);
+  const body = '<a>  <b/> \n</a><a xml:space="preserve"> <b/> </a><c>x<![CDATA[y]]> z</c>';
+  const sh = new RustWasmBash({files: {"/doc": open + body + close}});
+  try {
+    const r = await sh.exec("xmllint --noblanks --nocdata /doc");
+    assert.deepEqual([r.exitCode, r.stderr], [0, ""]);
+    assert.equal(r.stdout, '<?xml version="1.0"?>\n' + open + '<a><b/></a><a xml:space="preserve"> <b/> </a><c>xy z</c>' + close + "\n");
+  } finally { sh.dispose(); }
+});

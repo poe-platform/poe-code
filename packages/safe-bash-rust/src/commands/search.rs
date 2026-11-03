@@ -43,6 +43,10 @@ where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
     let stdin = &mut *input.text;
+    if matches!(cmd, "grep" | "egrep" | "fgrep" | "rgrep" | "rg") && let Some(file) = input.file
+        && let Err(e) = file.materialize(stdin) {
+        return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {e}\n"), exit_code: 1 });
+    }
     match cmd {
         "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
             cmd,
@@ -6877,6 +6881,9 @@ where
         }
     } else {
         if let Some(source) = file {
+            if let Err(e) = source.materialize(stdin) {
+                return BuiltinOutcome { stdout: out, stderr: format!("{err}xargs: {e}\n"), exit_code: 1 };
+            }
             let mut pos = source.position.get();
             pos.consume(0);
             source.position.set(pos);

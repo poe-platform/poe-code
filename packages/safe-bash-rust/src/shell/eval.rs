@@ -83,6 +83,17 @@ impl PrefixBinding {
     }
 }
 
+#[derive(Clone)]
+pub struct StdinStream(Rc<RefCell<crate::commands::StdinChunks>>);
+
+impl std::fmt::Debug for StdinStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str("StdinStream") }
+}
+impl PartialEq for StdinStream {
+    fn eq(&self, other: &Self) -> bool { Rc::ptr_eq(&self.0, &other.0) }
+}
+impl Eq for StdinStream {}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
@@ -98,14 +109,24 @@ pub enum FdTarget {
         file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>,
         position: Rc<Cell<FileInputPosition>>,
     },
+    InputStream { reader: StdinStream, unread: InputCursor, position: Rc<Cell<FileInputPosition>> },
     Closed,
 }
 
 impl FdTarget {
+    fn cursor(&self) -> Option<&InputCursor> {
+        match self {
+            Self::InputFile { unread, .. } | Self::InputStream { unread, .. } => Some(unread),
+            _ => None,
+        }
+    }
+
     fn file_input<'a>(&'a self, budget: &'a ExecutionBudget) -> Option<FileCommandInput<'a>> {
         match self {
             Self::InputFile { position, unread, path, file: Some(handle), .. } =>
-                Some(FileCommandInput { position, unread, path, handle: handle.as_ref(), budget }),
+                Some(FileCommandInput { position, unread, source: crate::commands::InputSource::File(handle.as_ref(), path), budget }),
+            Self::InputStream { position, unread, reader } =>
+                Some(FileCommandInput { position, unread, source: crate::commands::InputSource::Chunks(reader.0.as_ref()), budget }),
             _ => None,
         }
     }
@@ -158,7 +179,7 @@ impl FdWriter<'_> {
                     }
                 }
             }
-            FdTarget::InputFile { writable: false, .. } => {
+            FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. } => {
                 out.stderr.push_str("Bad file descriptor\n");
                 out.exit_code = 1;
             }
@@ -556,7 +577,7 @@ impl<'a> EvalState<'a> {
         if matches!(self.fd_table.get(&fd), Some(FdTarget::Closed)) {
             return false;
         }
-        if matches!(self.fd_table.get(&fd), Some(FdTarget::InputFile { .. })) {
+        if self.fd_table.get(&fd).and_then(FdTarget::cursor).is_some() {
             return true;
         }
         if self.in_fds.contains_key(&fd) {
@@ -657,8 +678,22 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    /// Run a script with a forward-only source on fd 0. Descriptor copies share its cursor.
+    pub fn eval_script_with_stream(&mut self, script: &str, chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static) -> Result<CommandResult, EvalError> {
+        let saved = self.fd_table.insert(0, FdTarget::InputStream {
+            reader: StdinStream(Rc::new(RefCell::new(chunks))), unread: Rc::default(), position: Rc::default(),
+        });
+        let alias = self.in_fd_aliases.remove(&0);
+        let cursor = self.in_fds.remove(&0);
+        let result = self.eval_script_str(script, "");
+        self.restore_redirects((vec![(0, saved)], vec![(0, alias)]), vec![(0, cursor)]);
+        result
+    }
+
     pub fn eval_script_str(&mut self, script: &str, stdin: &str) -> Result<CommandResult, EvalError> {
-        self.eval_script_timed(script, stdin).0
+        let result = self.eval_script_timed(script, stdin).0;
+        self.budget.check_exceeded().map_err(EvalError::Budget)?;
+        result
     }
 
     pub(crate) fn eval_script_timed(&mut self, script: &str, stdin: &str) -> (Result<CommandResult, EvalError>, u32) {
@@ -1716,6 +1751,7 @@ impl<'a> EvalState<'a> {
                 )
             });
             if !matches!(self.fd_table.get(&0), Some(FdTarget::Closed)) && !redirects_fd0 {
+                let stream = if matches!(self.fd_table.get(&0), Some(FdTarget::InputStream { .. })) { self.fd_table.remove(&0) } else { None };
                 let saved_alias0 = if !self.fd_table.contains_key(&0) {
                     self.in_fd_aliases.remove(&0)
                 } else {
@@ -1724,6 +1760,7 @@ impl<'a> EvalState<'a> {
                 let saved_stream = self.in_fds.remove(&STDIN_STREAM_FD);
                 let mut empty_stdin = String::new();
                 let res = self.eval_command_node(node, &mut empty_stdin, standalone);
+                if let Some(stream) = stream { self.fd_table.insert(0, stream); }
                 if let Some(a0) = saved_alias0 {
                     self.in_fd_aliases.insert(0, a0);
                 }
@@ -3242,7 +3279,7 @@ impl<'a> EvalState<'a> {
         stdin: &mut String,
         standalone: Option<bool>,
     ) -> Result<BuiltinOutcome, EvalError> {
-        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+        if let Some(unread) = self.fd_table.get(&0).and_then(FdTarget::cursor) {
             stdin.clone_from(&unread.borrow());
         }
         if simple.line > 0 {
@@ -3787,7 +3824,7 @@ impl<'a> EvalState<'a> {
             }
         }
 
-        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+        if let Some(unread) = self.fd_table.get(&0).and_then(FdTarget::cursor) {
             unread.borrow_mut().clone_from(if use_local { &local_stdin } else { stdin });
         }
         if let Some(dfd) = dup_fd {
@@ -3795,7 +3832,7 @@ impl<'a> EvalState<'a> {
         }
         self.route_outcome(&mut out);
         self.restore_redirects(saved_fds, saved_in);
-        if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
+        if let Some(unread) = self.fd_table.get(&0).and_then(FdTarget::cursor) {
             stdin.clone_from(&unread.borrow());
         }
 
@@ -5043,7 +5080,7 @@ impl<'a> EvalState<'a> {
             &mut |fd, data, out| {
                 if data.is_empty() { return true; }
                 let target = inherited_targets.get(&fd).unwrap_or(if fd == 1 { &FdTarget::Stdout } else { &FdTarget::Stderr });
-                if matches!(target, FdTarget::Closed | FdTarget::InputFile { writable: false, .. }) {
+                if matches!(target, FdTarget::Closed | FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. }) {
                     if fd != 2 { out.stderr.push_str(&format!("{effective_cmd}: Bad file descriptor\n")); }
                     out.exit_code = 1;
                     return false;
@@ -5148,10 +5185,10 @@ impl<'a> EvalState<'a> {
                     sub_eval.fd_table.remove(&0);
                     sub_eval.in_fds.remove(&0);
                     sub_eval.in_fd_aliases.remove(&0);
-                } else if let Some(FdTarget::InputFile { writable, unread, .. }) = sub_eval.fd_table.get_mut(&0) {
+                } else if let Some(target) = sub_eval.fd_table.get_mut(&0) {
                     // Nested commands receive a byte source for stdin, even when its file is writable.
-                    *writable = false;
-                    unread.borrow_mut().clone_from(sub_stdin);
+                    if let FdTarget::InputFile { writable, .. } = target { *writable = false; }
+                    if let Some(unread) = target.cursor() { unread.borrow_mut().clone_from(sub_stdin); }
                 }
                 let mut prefix = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
                 if let ChildIo::Inherit { stderr_before } = io && !stderr_before.is_empty() {
@@ -8290,6 +8327,9 @@ impl<'a> EvalState<'a> {
     fn read_record(&mut self, fd: u32, stdin: &mut String,
         raw_mode: bool, delimiter: Option<u8>, count: Option<usize>, byte_count: bool,
     ) -> Result<(Vec<u8>, Vec<usize>, bool), String> {
+        if let Some(source) = self.fd_table.get(&fd).and_then(|fd| fd.file_input(self.budget)) {
+            source.admit_bounded_read()?;
+        }
         let budget = self.budget;
         let mut out = Vec::new();
         let mut escaped_offsets = Vec::new();
@@ -8350,7 +8390,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn sync_shared_stdin(&mut self, canon: u32, stdin: &mut String, from_stdin: bool) {
-        let same_file = matches!(self.fd_table.get(&0), Some(FdTarget::InputFile { unread, .. })
+        let same_file = matches!(self.fd_table.get(&0).and_then(FdTarget::cursor), Some(unread)
             if self.in_fds.get(&canon).is_some_and(|source| Rc::ptr_eq(unread, source)));
         if canon >= 3 && canon != STDIN_STREAM_FD && (same_file || self.resolve_in_fd(0) == canon) {
             if from_stdin {
@@ -9019,6 +9059,7 @@ impl<'a> EvalState<'a> {
 
         let mut cb_stdout = String::new();
         let mut cb_stderr = String::new();
+        let stream = matches!(self.fd_table.get(&fd_num), Some(FdTarget::InputStream { .. }));
         let mut total_input_bytes = 0usize;
 
         let mut take_next_record = |this: &mut Self, stdin: &mut String| -> Result<Option<Vec<u8>>, EvalError> {
@@ -9026,7 +9067,7 @@ impl<'a> EvalState<'a> {
             let budget = this.budget;
             let result = this.read_delimited_record(fd_num, stdin, delim_byte, |used, len| {
                 total_input_bytes = total_input_bytes.saturating_add(used);
-                if total_input_bytes > budget.limits.max_input_bytes {
+                if !stream && total_input_bytes > budget.limits.max_input_bytes {
                     return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", budget.limits.max_input_bytes)));
                 }
                 if len > budget.limits.max_output_bytes {
@@ -10004,7 +10045,7 @@ impl<'a> EvalState<'a> {
                                 if *fd != 0 && !saved_in.iter().any(|(f, _)| f == fd) {
                                     saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                 }
-                                if let Some(file @ FdTarget::InputFile { unread, .. }) = self.fd_table.get(&src_fd) {
+                                if let Some(file) = self.fd_table.get(&src_fd) && let Some(unread) = file.cursor() {
                                     self.in_fd_aliases.remove(fd);
                                     if *fd == 0 {
                                         local_stdin.clone_from(&unread.borrow());
@@ -15372,6 +15413,87 @@ mod tests {
                 assert_eq!(res.exit_code, 1, "{redirect} {target}");
                 assert_eq!(res.stderr, format!("shell: line 2: {target}: Permission denied\n"));
             }
+        }
+    }
+
+    #[test]
+    fn root_input_pulls_chunks_on_demand_and_shares_unread_bytes_and_eof() {
+        let fs = crate::vfs::MemoryVfs::new();
+        fs.write_file("/named", b"z").unwrap();
+        let commands = BTreeMap::new();
+        for (script, expected, pulls) in [
+            ("echo ok; cat </named", "ok\nz", 0),
+            ("head -c1", "a", 1),
+            ("cat & wait; head -c1", "a", 1),
+            ("absent-cmd 2>/dev/null; echo $?", "127\n", 0),
+            ("which cat >/dev/null; head -c1", "a", 1),
+            ("(head -c1); head -c1", "ab", 1),
+            ("env head -c1; cat", "ab\ncd", 3),
+            ("head -c1 | cat; cat", "ab\ncd", 3),
+            ("xargs -a /named -n1 sh -c 'head -c1'; cat", "ab\ncd", 3),
+            ("{ read v <&3; echo \"$v\"; head -c1; cat <&3; cat; } 3<&0", "ab\ncd", 3),
+            ("echo pipe | cat; head -c1", "pipe\na", 1),
+            ("cat; cat", "ab\ncd", 3),
+        ] {
+            let mut cwd = "/".to_string();
+            let mut env = BTreeMap::new();
+            let budget = ExecutionBudget::default();
+            let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
+            let reads = Rc::new(Cell::new(0));
+            let count = reads.clone();
+            let mut chunks = [b"ab\nc".to_vec(), b"d".to_vec()].into_iter();
+            let source = std::iter::from_fn(move || {
+                count.set(count.get() + 1);
+                chunks.next().map(Ok)
+            });
+            let r = state.eval_script_with_stream(script, source).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str(), reads.get()), (0, expected, "", pulls), "{script}");
+        }
+    }
+
+    #[test]
+    fn stream_calls_restore_a_redirected_fd_zero_after_close_or_syntax_error() {
+        let fs = crate::vfs::MemoryVfs::new();
+        fs.write_file("/named", b"xyz").unwrap();
+        let commands = BTreeMap::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::default();
+        let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
+        assert_eq!(state.eval_script_str("exec 3</named; exec 0<&3; head -c1", "").unwrap().stdout, "x");
+        let result = state.eval_script_with_stream("head -c1; exec 0<&-", std::iter::once(Ok(vec![b'a']))).unwrap();
+        assert_eq!(result.stdout, "a");
+        assert!(state.eval_script_with_stream("if", std::iter::empty()).is_err());
+        assert_eq!(state.eval_script_str("head -c1; cat <&3", "").unwrap().stdout, "yz");
+    }
+
+    #[test]
+    fn empty_chunks_do_not_end_stdin_and_a_producer_error_retires_it() {
+        let fs = crate::vfs::MemoryVfs::new();
+        let commands = BTreeMap::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::default();
+        let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
+        let chunks = [Ok(vec![]), Ok(vec![0xff, 0]), Err("input failed".into()), Ok(vec![1])];
+        let r = state.eval_script_with_stream("cat; cat", chunks.into_iter()).unwrap();
+        assert_eq!(stream_string_to_bytes(&r.stdout), [0xff, 0]);
+        assert_eq!((r.exit_code, r.stderr.as_str()), (0, "cat: input failed\n"));
+    }
+
+    #[test]
+    fn bounded_cursor_reads_charge_whole_producer_chunks_including_prior_pulls() {
+        let fs = crate::vfs::MemoryVfs::new();
+        let commands = BTreeMap::new();
+        for (script, limited) in [("cat", false), ("head -c0", false), ("head -c1", true), ("tail -c1", false),
+            ("read -n1 v", true), ("cat; head -c1", true), ("head -c-1", false), ("mapfile -t A", false), ("mapfile -t A; head -c1", true)] {
+            let mut cwd = "/".to_string();
+            let mut env = BTreeMap::new();
+            let budget = ExecutionBudget::new(crate::budget::ShellLimits { max_input_bytes: 2, ..Default::default() }, None);
+            let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
+            let result = state.eval_script_with_stream(script, std::iter::once(Ok(b"abcd".to_vec())));
+            if limited { assert!(matches!(result, Err(EvalError::Budget(ref e)) if e.contains("maxInputBytes")), "{script}: {result:?}"); }
+            else { assert_eq!(result.unwrap().exit_code, 0, "{script}"); assert!(budget.check_exceeded().is_ok()); }
         }
     }
 

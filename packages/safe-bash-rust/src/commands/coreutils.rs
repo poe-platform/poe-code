@@ -1015,7 +1015,8 @@ fn run_head_or_tail(
                 copy(chunk, false).map(|(more, _)| more)
             }).and_then(|()| copy(&[], true).map(|_| ()))
         } else if let Some(source) = stdin.file {
-            source.read(stdin.text, maximum, &mut copy)
+            let admission = if prefix && !skip { source.admit_bounded_read() } else { Ok(()) };
+            admission.and_then(|()| source.read(stdin.text, maximum, &mut copy))
         } else {
             let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin.text));
             copy(&bytes[consumed..], true).map(|(_, used)| {

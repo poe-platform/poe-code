@@ -31,6 +31,7 @@ pub struct FileInputPosition {
     pub(crate) offset: usize,
     pulled: usize,
     stopped: bool,
+    bounded_reads: bool,
     pub(crate) remaining: usize,
     pub(crate) buffered: usize,
     pub(crate) revision: Option<u64>,
@@ -61,40 +62,62 @@ impl FileInputPosition {
     }
 }
 
+pub(crate) type StdinChunks = dyn Iterator<Item = Result<Vec<u8>, String>>;
+
+#[derive(Clone, Copy)]
+pub(crate) enum InputSource<'a> {
+    File(&'a dyn crate::vfs::OpenRedirectFile, &'a str),
+    Chunks(&'a RefCell<StdinChunks>),
+}
+
 #[derive(Clone, Copy)]
 pub(crate) struct FileCommandInput<'a> {
     pub(crate) position: &'a Cell<FileInputPosition>,
     pub(crate) unread: &'a RefCell<String>,
-    pub(crate) handle: &'a dyn crate::vfs::OpenRedirectFile,
-    pub(crate) path: &'a str,
+    pub(crate) source: InputSource<'a>,
     pub(crate) budget: &'a crate::budget::ExecutionBudget,
 }
 
 impl FileCommandInput<'_> {
+    pub(crate) fn admit_bounded_read(&self) -> Result<(), String> {
+        if matches!(self.source, InputSource::Chunks(_)) {
+            let mut pos = self.position.get();
+            pos.bounded_reads = true;
+            self.position.set(pos);
+            if pos.pulled > self.budget.limits.max_input_bytes {
+                return Err(self.budget.record_exceeded(crate::budget::ShellLimits::limit_error("maxInputBytes", self.budget.limits.max_input_bytes)));
+            }
+        }
+        Ok(())
+    }
+
     pub(crate) fn materialize(&self, text: &mut String) -> Result<(), String> {
         let mut pos = self.position.get();
-        if pos.stopped { text.clear(); return Ok(()); }
-        if self.handle.is_stream() {
-            let mut bytes = Vec::new();
-            self.read(text, usize::MAX, |chunk, _| {
-                bytes.extend_from_slice(chunk);
-                Ok((true, chunk.len()))
-            })?;
-            let mut pos = self.position.get();
-            pos.remaining = bytes.len();
-            pos.buffered = bytes.len();
-            self.position.set(pos);
-            *text = crate::vfs::bytes_to_stream_string(&bytes);
-            return Ok(());
-        }
-        let revision = self.handle.revision();
+        if pos.stopped { return Ok(()); }
+        let (handle, path) = match self.source {
+            InputSource::File(handle, path) if !handle.is_stream() => (handle, path),
+            _ => {
+                let mut bytes = Vec::new();
+                self.read(text, usize::MAX, |chunk, _| {
+                    bytes.extend_from_slice(chunk);
+                    Ok((true, chunk.len()))
+                })?;
+                let mut pos = self.position.get();
+                pos.remaining = bytes.len();
+                pos.buffered = bytes.len();
+                self.position.set(pos);
+                *text = crate::vfs::bytes_to_stream_string(&bytes);
+                return Ok(());
+            }
+        };
+        let revision = handle.revision();
         if revision.is_some() && revision == pos.revision { return Ok(()); }
         pos.consume(crate::vfs::stream_byte_len(text));
         let available = self.budget.limits.max_input_bytes.saturating_sub(pos.pulled);
         self.budget.tick_fs_op()?;
-        let tail = self.handle.read_at(pos.offset, available.saturating_add(1))?;
+        let tail = handle.read_at(pos.offset, available.saturating_add(1))?;
         if tail.len() > available {
-            return Err(format!("EFBIG: file too large, read '{}'", self.path));
+            return Err(format!("EFBIG: file too large, read '{path}'"));
         }
         pos.replace_tail(text, &tail);
         pos.revision = revision;
@@ -117,26 +140,48 @@ impl FileCommandInput<'_> {
             while maximum != 0 {
                 if start == bytes.len() {
                     if pos.stopped { consume(&[], true)?; break; }
-                    let available = limit.saturating_sub(pos.pulled);
-                    let size = maximum.min(65536).min(limit.max(1)).min(available.saturating_add(1));
-                    self.budget.tick_fs_op()?;
-                    bytes = self.handle.read_at(pos.offset, size).map_err(|error| {
-                        if self.handle.is_stream() {
-                            pos.stopped = true;
-                            if error.starts_with("EIO:") {
-                                return format!("EIO: input/output error, read '{}'", self.path);
+                    let size = maximum.min(65536);
+                    match self.source {
+                        InputSource::File(handle, path) => {
+                            let available = limit.saturating_sub(pos.pulled);
+                            self.budget.tick_fs_op()?;
+                            bytes = handle.read_at(pos.offset, size.min(limit.max(1)).min(available.saturating_add(1))).map_err(|error| {
+                                if handle.is_stream() {
+                                    pos.stopped = true;
+                                    if error.starts_with("EIO:") { return format!("EIO: input/output error, read '{path}'"); }
+                                }
+                                error
+                            })?;
+                            start = 0;
+                            pos.offset += bytes.len();
+                            if bytes.len() > available {
+                                pos.stopped = true;
+                                bytes.clear();
+                                return Err(format!("EFBIG: file too large, read '{path}'"));
+                            }
+                            pos.pulled += bytes.len();
+                            if bytes.is_empty() && handle.is_stream() { pos.stopped = true; }
+                        }
+                        InputSource::Chunks(source) => {
+                            self.budget.check_cancelled()?;
+                            let _suspended = suspend_execution_clock();
+                            start = 0;
+                            bytes.clear();
+                            match source.borrow_mut().next() {
+                                Some(Ok(chunk)) => {
+                                    pos.pulled = pos.pulled.saturating_add(chunk.len());
+                                    if pos.bounded_reads && pos.pulled > limit {
+                                        pos.stopped = true;
+                                        return Err(self.budget.record_exceeded(crate::budget::ShellLimits::limit_error("maxInputBytes", limit)));
+                                    }
+                                    if chunk.is_empty() { continue; }
+                                    bytes = chunk;
+                                }
+                                Some(Err(e)) => { pos.stopped = true; return Err(e); }
+                                None => pos.stopped = true,
                             }
                         }
-                        error
-                    })?;
-                    start = 0;
-                    pos.offset += bytes.len();
-                    if bytes.len() > available {
-                        pos.stopped = true;
-                        bytes.clear();
-                        return Err(format!("EFBIG: file too large, read '{}'", self.path));
                     }
-                    pos.pulled += bytes.len();
                     if bytes.is_empty() { consume(&[], true)?; break; }
                 }
                 let end = bytes.len().min(start.saturating_add(maximum));
@@ -229,7 +274,6 @@ pub(crate) fn with_execution_clock<T>(run: impl FnOnce() -> T) -> (T, u32) {
 
 // Keep the execution's clock and timeout frames on its own stack while a host
 // read is pending. The caller at resume need not be the caller at suspension.
-#[cfg(any(target_arch = "wasm32", test))]
 pub(crate) fn suspend_execution_clock() -> impl Drop {
     struct Resume(Option<Box<VirtualClock>>);
     impl Drop for Resume {
@@ -911,6 +955,10 @@ where
     if cmd == "xmllint" {
         return Ok(Some(structured::cmd_xmllint(args, CommandInput { text: stdin, file }, cwd, fs)));
     }
+    if !search::is_known_command(cmd) { return Ok(None); }
+    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write, &mut exec_sub) {
+        return Ok(Some(res));
+    }
     if let Some(source) = file && let Err(error) = source.materialize(stdin) {
         return Ok(Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 }));
     }
@@ -918,9 +966,6 @@ where
         exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
-        return Ok(Some(res));
-    }
-    if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write, exec_sub) {
         return Ok(Some(res));
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {

@@ -9092,3 +9092,16 @@ test("xmllint returns distinct XPath nodes in document order", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("XPath descendant predicates use sibling positions at each parent", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from("<r><t><t>A</t></t><box><t>B</t><t>C</t></box><t>D</t></r>"));
+    for (const q of ["//t[1]", "//t[last()]", "/r//t[position() > 1][1]", "//*[1]/..", "/r/box/t[1.5]", "string(.)", "/r/../*"]) {
+      const cmd = "xmllint --xpath '" + q + "' doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], q);
+    }
+  } finally { rs.dispose(); }
+});

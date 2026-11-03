@@ -15166,6 +15166,7 @@ fn serialize_xml_pretty(
 
 #[derive(Clone, Debug)]
 enum XPathItem<'a> {
+    Document(&'a [XmlNode]),
     Node(Vec<&'a XmlElement>),
     Attr(&'a (String,String)),
     Text(&'a String),
@@ -15314,11 +15315,12 @@ impl XPathDocument<'_> {
     }
     fn position(&self, item: &XPathItem) -> usize {
         let address = match item {
+            XPathItem::Document(_) => return 0,
             XPathItem::Node(chain) => std::ptr::from_ref(*chain.last().unwrap()).addr(),
             XPathItem::Attr(attr) => std::ptr::from_ref(*attr).addr(),
             XPathItem::Text(t) | XPathItem::Cdata(t) => std::ptr::from_ref(*t).addr(),
         };
-        self.order[&address]
+        1 + self.order[&address]
     }
 }
 fn eval_xmllint_xpath(dom: &[XmlNode], xp: &str) -> BuiltinOutcome {
@@ -15333,6 +15335,16 @@ fn eval_xmllint_xpath(dom: &[XmlNode], xp: &str) -> BuiltinOutcome {
             let mut out = Vec::new();
             for item in &items {
                 match item {
+                    XPathItem::Document(nodes) => {
+                        let mut text = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+                        for node in *nodes {
+                            if let XmlNode::Element(el) = node {
+                                text.push_str(&serialize_xml_pretty(el,false,0,true,xml::Escaping::Unicode));
+                            }
+                        }
+                        text.push('\n');
+                        out.push(text);
+                    }
                     XPathItem::Node(chain) => {
                         if let Some(el) = chain.last() {
                             out.push(serialize_xml_pretty(el, false, 0, true, xml::Escaping::Unicode));
@@ -15352,6 +15364,11 @@ fn eval_xmllint_xpath(dom: &[XmlNode], xp: &str) -> BuiltinOutcome {
 
 fn xpath_item_string_value(item: &XPathItem) -> String {
     match item {
+        XPathItem::Document(nodes) => {
+            let mut buf = String::new();
+            visit_xml_text(nodes,true,&mut |s,_| buf.push_str(s));
+            buf
+        }
         XPathItem::Text(t) | XPathItem::Cdata(t) => (*t).clone(),
         XPathItem::Attr((_, v)) => v.clone(),
         XPathItem::Node(chain) => {
@@ -15666,14 +15683,7 @@ fn eval_xpath_expr<'a>(
                     if let Some(ch) = ctx_chain {
                         XPathVal::NodeSet(vec![XPathItem::Node(ch.to_vec())])
                     } else {
-                        let root_items: Vec<XPathItem> = doc.roots
-                            .iter()
-                            .filter_map(|n| match n {
-                                XmlNode::Element(el) => Some(XPathItem::Node(vec![el])),
-                                _ => None,
-                            })
-                            .collect();
-                        XPathVal::NodeSet(root_items)
+                        XPathVal::NodeSet(vec![XPathItem::Document(doc.roots)])
                     }
                 })
         };
@@ -15790,7 +15800,7 @@ fn eval_xpath_expr<'a>(
                         XPathVal::NodeSet(items) => items.first().and_then(|it| match it {
                             XPathItem::Node(c) => c.last().map(|e| e.tag.clone()),
                             XPathItem::Attr((k, _)) => Some(k.clone()),
-                            XPathItem::Text(_) | XPathItem::Cdata(_) => None,
+                            XPathItem::Document(_) | XPathItem::Text(_) | XPathItem::Cdata(_) => None,
                         }),
                         _ => None,
                     }
@@ -15919,20 +15929,31 @@ fn parse_xpath_steps(path: &str) -> Vec<(bool, String)> {
     steps
 }
 
-fn collect_descendant_chains<'a>(
-    nodes: &'a [XmlNode],
-    prefix: &[&'a XmlElement],
-    tag_test: &str,
+fn select_xpath_elements<'a>(
+    doc: &XPathDocument<'a>,
+    parent: &mut Vec<&'a XmlElement>,
+    descend: bool,
+    tag: &str,
+    predicates: &[String],
     out: &mut Vec<Vec<&'a XmlElement>>,
 ) {
-    for n in nodes {
-        if let XmlNode::Element(el) = n {
-            let mut chain = prefix.to_vec();
-            chain.push(el);
-            if tag_test == "*" || el.tag == tag_test {
-                out.push(chain.clone());
+    let children = parent.last().map_or(doc.roots, |el| el.children.as_slice());
+    let mut siblings = Vec::new();
+    for child in children {
+        if let XmlNode::Element(el) = child && (tag == "*" || el.tag == tag) {
+            parent.push(el);
+            siblings.push(parent.clone());
+            parent.pop();
+        }
+    }
+    out.extend(filter_xpath_chains(doc, siblings, predicates));
+    if descend {
+        for child in children {
+            if let XmlNode::Element(el) = child {
+                parent.push(el);
+                select_xpath_elements(doc,parent,true,tag,predicates,out);
+                parent.pop();
             }
-            collect_descendant_chains(&el.children, &chain, tag_test, out);
         }
     }
 }
@@ -15962,56 +15983,18 @@ fn eval_xpath_path_ctx<'a>(
     if steps.is_empty() {
         return Vec::new();
     }
-    let is_relative = !path.starts_with('/') && ctx_chain.is_some();
-    let mut current: Vec<XPathItem> = Vec::new();
-    if is_relative && let Some(ch) = ctx_chain {
-        current.push(XPathItem::Node(ch.to_vec()));
-    }
-    for (step_idx, (desc, raw_seg)) in steps.iter().enumerate() {
-        let (base_test, preds) = split_xpath_predicates(raw_seg);
-        if step_idx == 0 && !is_relative {
-            if *desc && base_test == "text()" {
-                push_xpath_text(doc.roots,true,&mut current);
-            } else if *desc {
-                if let Some(attr_name) = base_test.strip_prefix('@') {
-                    let mut chains = Vec::new();
-                    collect_descendant_chains(doc.roots, &[], "*", &mut chains);
-                    let mut attrs = Vec::new();
-                    for ch in chains {
-                        if let Some(el) = ch.last()
-                            && let Some(attr) = el.attrs.iter().find(|(k, _)| k == attr_name)
-                        {
-                            attrs.push(XPathItem::Attr(attr));
-                        }
-                    }
-                    current = attrs;
-                } else {
-                    let mut chains = Vec::new();
-                    collect_descendant_chains(doc.roots, &[], &base_test, &mut chains);
-                    let filtered = filter_xpath_chains(doc, chains, &preds);
-                    current = filtered.into_iter().map(XPathItem::Node).collect();
-                }
-            } else {
-                let mut chains = Vec::new();
-                for n in doc.roots {
-                    if let XmlNode::Element(el) = n
-                        && (base_test == "*" || el.tag == base_test)
-                    {
-                        chains.push(vec![el]);
-                    }
-                }
-                let filtered = filter_xpath_chains(doc, chains, &preds);
-                current = filtered.into_iter().map(XPathItem::Node).collect();
-            }
-            continue;
-        }
+    let mut current = if !path.starts_with('/') && let Some(chain) = ctx_chain {
+        vec![XPathItem::Node(chain.to_vec())]
+    } else { vec![XPathItem::Document(doc.roots)] };
+    for (desc,raw_seg) in &steps {
+        let (base_test,preds) = split_xpath_predicates(raw_seg);
         let mut next_items: Vec<XPathItem> = Vec::new();
         if base_test == ".." {
             for item in &current {
                 if let XPathItem::Node(chain) = item
-                    && chain.len() >= 2
                 {
-                    next_items.push(XPathItem::Node(chain[..chain.len() - 1].to_vec()));
+                    next_items.push(if chain.len() == 1 { XPathItem::Document(doc.roots) }
+                        else { XPathItem::Node(chain[..chain.len()-1].to_vec()) });
                 }
             }
             current = next_items;
@@ -16020,49 +16003,31 @@ fn eval_xpath_path_ctx<'a>(
         if base_test == "." {
             continue;
         }
-        if let Some(attr_name) = base_test.strip_prefix('@') {
-            for item in &current {
-                if let XPathItem::Node(chain) = item
-                    && let Some(el) = chain.last()
-                    && let Some(attr) = el.attrs.iter().find(|(k, _)| k == attr_name)
-                {
-                    next_items.push(XPathItem::Attr(attr));
-                }
-            }
-            current = next_items;
-            continue;
-        }
-        if base_test == "text()" {
-            for item in &current {
-                if let XPathItem::Node(chain) = item
-                    && let Some(el) = chain.last()
-                {
-                    push_xpath_text(&el.children,*desc,&mut next_items);
-                }
-            }
-            current = next_items;
-            continue;
-        }
         for item in &current {
-            if let XPathItem::Node(chain) = item
-                && let Some(el) = chain.last()
-            {
-                let mut sub_chains = Vec::new();
-                if *desc {
-                    collect_descendant_chains(&el.children, chain, &base_test, &mut sub_chains);
-                } else {
-                    for c in &el.children {
-                        if let XmlNode::Element(child_el) = c
-                            && (base_test == "*" || child_el.tag == base_test)
-                        {
-                            let mut nc = chain.clone();
-                            nc.push(child_el);
-                            sub_chains.push(nc);
-                        }
+            let mut chain = match item {
+                XPathItem::Document(_) => Vec::new(),
+                XPathItem::Node(chain) => chain.clone(),
+                _ => continue,
+            };
+            if let Some(attr_name) = base_test.strip_prefix('@') {
+                let mut collect = |el: &'a XmlElement| {
+                    if let Some(attr) = el.attrs.iter().find(|(k,_)| k == attr_name) {
+                        next_items.push(XPathItem::Attr(attr));
                     }
+                };
+                if let Some(el) = chain.last() { collect(el); }
+                if *desc {
+                    let mut children = Vec::new();
+                    select_xpath_elements(doc,&mut chain,true,"*",&[],&mut children);
+                    for child in children { collect(child.last().unwrap()); }
                 }
-                let filtered = filter_xpath_chains(doc, sub_chains, &preds);
-                next_items.extend(filtered.into_iter().map(XPathItem::Node));
+            } else if base_test == "text()" {
+                let children = chain.last().map_or(doc.roots,|el| el.children.as_slice());
+                push_xpath_text(children,*desc,&mut next_items);
+            } else {
+                let mut children = Vec::new();
+                select_xpath_elements(doc, &mut chain, *desc, &base_test, &preds, &mut children);
+                next_items.extend(children.into_iter().map(XPathItem::Node));
             }
         }
         current = next_items;
@@ -16138,7 +16103,7 @@ fn filter_xpath_chains<'a>(
         for (idx, chain) in chains.into_iter().enumerate() {
             let val = eval_xpath_expr(doc, Some(&chain), idx + 1, total, p);
             let keep = match val {
-                XPathVal::Num(n) => (n as usize) == idx + 1,
+                XPathVal::Num(n) => n == (idx + 1) as f64,
                 other => other.to_bool_val(),
             };
             if keep {

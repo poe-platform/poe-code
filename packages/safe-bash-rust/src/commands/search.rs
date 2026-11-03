@@ -3941,6 +3941,8 @@ fn run_grep_engine(
     for input in inputs {
         if failed_batch { break; }
         let mut matched_count = 0usize;
+        let mut binary_start = 0;
+        let mut late_binary = None;
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
                 let mut bytes = Vec::new();
@@ -3972,7 +3974,17 @@ fn run_grep_engine(
                     stdin.read_stdin(|chunk| {
                         let base = bytes.len();
                         bytes.extend_from_slice(chunk);
-                        binary |= binary_delimiter && chunk.contains(&0);
+                        if binary_delimiter && !binary && let Some(nul) = chunk.iter().position(|&b| b == 0) {
+                            binary = true;
+                            binary_start = start;
+                            if hits > 0 && display && !cfg.json_output {
+                                // Text from completed records in previous chunks has already been printed.
+                                let consumed = chunk.iter().position(|&b| delimiter(b)).unwrap() + 1;
+                                late_binary = Some((base + nul, base + consumed));
+                                bytes.truncate(start);
+                                return false;
+                            }
+                        }
                         for (i, _) in chunk.iter().enumerate().filter(|(_, b)| delimiter(**b)) {
                             let line = &bytes[start..base + i];
                             start = base + i + 1;
@@ -4146,7 +4158,7 @@ fn run_grep_engine(
                     if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
                     break;
                 }
-                if binary_records && idx > 0 && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) {
+                if binary_records && line_offsets[idx] > binary_start && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) {
                     file_searched = line_offsets[idx];
                     break;
                 }
@@ -4231,7 +4243,7 @@ fn run_grep_engine(
                 }
             }
         }
-        bytes_searched += file_searched;
+        bytes_searched += late_binary.map_or(file_searched, |(_, searched)| searched);
         if cfg.json_output {
             if matched_count == 0 || cfg.quiet { continue; }
             let output_start = out.len();
@@ -4288,25 +4300,12 @@ fn run_grep_engine(
         }
 
         if cfg.quiet { continue; }
-        if let Some(off) = nul_off
-            && is_rg
-            && !cfg.files_with_matches
-            && !cfg.files_without_match
-            && !cfg.count_only
-        {
-            if matched_count > 0 {
-                if show_filename {
-                    if let Some(f) = fname {
-                        out.push_str(&format!(
-                            "{f}: binary file matches (found \"\\0\" byte around offset {off})\n"
-                        ));
-                        continue;
-                    }
-                }
-                out.push_str(&format!(
-                    "binary file matches (found \"\\0\" byte around offset {off})\n"
-                ));
-            }
+        let binary_notice = |out: &mut String, off: usize| {
+            if show_filename && let Some(f) = fname { out.push_str(f); out.push_str(": "); }
+            out.push_str(&format!("binary file matches (found \"\\0\" byte around offset {off})\n"));
+        };
+        if let Some(off) = nul_off && !cfg.files_with_matches && !cfg.files_without_match && !cfg.count_only {
+            if matched_count > 0 { binary_notice(&mut out, off); }
             continue;
         }
 
@@ -4533,6 +4532,7 @@ fn run_grep_engine(
                 emit_text(&mut out, text, matched.is_some(), spans.len(), ending);
             }
         }
+        if let Some((off, _)) = late_binary { binary_notice(&mut out, off); }
     }
 
     if cfg.json_output {
@@ -7336,6 +7336,14 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn rg_keeps_text_printed_before_a_later_binary_chunk() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        let chunks = ["hit\nx\n", "n\0hit\ny\n", "later\n"];
+        let r = shell.exec_with_stream("rg -m2 -n -C1 hit", chunks.map(|c| Ok(c.as_bytes().to_vec())).into_iter()).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "1:hit\n2-x\nbinary file matches (found \"\\0\" byte around offset 7)\n", ""));
     }
 
     #[test]

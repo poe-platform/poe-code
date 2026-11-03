@@ -14,6 +14,7 @@ mod jq_input;
 mod jq_json;
 mod jq_number;
 mod jq_parser;
+mod mdq_emphasis;
 mod mdq_links;
 mod mdq_order;
 use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
@@ -28231,7 +28232,12 @@ fn mdq_decode_syntax(src: &str) -> String {
 }
 
 fn mdq_text_span(s: &str, plain: bool) -> String {
-    if !plain && !s.contains(['\\', '`', '&']) { return s.to_string(); }
+    let marks = if s.contains(['_', '*', '~']) { mdq_emphasis::resolve(s, std::iter::empty()) } else { BTreeMap::new() };
+    mdq_render_span(s, plain, &marks, 0)
+}
+
+fn mdq_render_span(s: &str, plain: bool, marks: &BTreeMap<usize, mdq_emphasis::Marks>, start: usize) -> String {
+    if marks.is_empty() && !s.contains(['\\', '`', '&']) { return s.to_string(); }
     let mut out = String::with_capacity(s.len());
     let bytes = s.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
@@ -28270,7 +28276,12 @@ fn mdq_text_span(s: &str, plain: bool) -> String {
             continue;
         }
         let ch = s[i..].chars().next().unwrap();
-        if !plain || !matches!(ch, '*' | '_' | '~') { out.push(ch); }
+        if matches!(ch, '*' | '_' | '~') && let Some(run) = marks.get(&(i + start)) {
+            run.write(&mut out, ch, plain);
+            i += run.width;
+            continue;
+        }
+        out.push(ch);
         i += ch.len_utf8();
     }
     out
@@ -28911,9 +28922,16 @@ fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: im
 }
 
 fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: impl FnMut(&MdqTarget) -> String, mut emit: impl FnMut(&str, bool)) {
+    if !mdq_has_links(src) {
+        emit(&mdq_text_span(src, plain), true);
+        return;
+    }
+    let mut atoms = Vec::new();
+    mdq_visit_inline_atoms(defs, src, |r, atom| atoms.push((r, atom)));
+    let marks = if src.contains(['_', '*', '~']) { mdq_emphasis::resolve(src, atoms.iter().map(|(r, _)| r)) } else { BTreeMap::new() };
     let mut at = 0;
-    mdq_visit_inline_atoms(defs, src, |range, atom| {
-        if at < range.start { emit(&mdq_text_span(&src[at..range.start], plain), true); }
+    for (range, atom) in atoms {
+        if at < range.start { emit(&mdq_render_span(&src[at..range.start], plain, &marks, at), true); }
         match atom {
             MdqInlineAtom::Html(text) => emit(text, true),
             MdqInlineAtom::Link { image, display, target } => {
@@ -28925,8 +28943,8 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: i
             }
         }
         at = range.end;
-    });
-    if at < src.len() { emit(&mdq_text_span(&src[at..], plain), true); }
+    }
+    if at < src.len() { emit(&mdq_render_span(&src[at..], plain, &marks, at), true); }
 }
 
 fn mdq_has_links(src: &str) -> bool {

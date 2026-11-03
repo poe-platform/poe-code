@@ -8443,3 +8443,20 @@ test("mdq selects and renders bracketed URLs, bare URLs, domains and email addre
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq resolves emphasis delimiters around inline atoms and retains literal marks", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "# *heading* and __strong__\n\n" +
+      "file_name unmatched* and * space.\n\n***three*** _outer **inner**_ ~gone~ ~~~no~~~.\n\n" +
+      "«_é_» *one [link](/u) `x*y` <b>two</b> three* and \\*escaped\\*\n\n" +
+      "***foo** bar* a_b_c __word _in_ word__ ~~strike~~\n\n[**with** *word*](/link)";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-o json", "-o plain", "-l inline", "-o json '[]()'", "'P: ^file_name'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

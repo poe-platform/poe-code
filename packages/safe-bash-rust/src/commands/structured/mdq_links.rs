@@ -196,10 +196,7 @@ pub(super) fn autolink(src: &str, at: usize, in_brackets: bool) -> Option<(&str,
             return None;
         }
         let prev = src[..at].chars().next_back();
-        // CommonMark whitespace is Zs plus TAB, LF, FF and CR.
-        let space = |c: char| {
-            c.is_whitespace() && !matches!(c, '\u{b}' | '\u{85}' | '\u{2028}' | '\u{2029}')
-        };
+        use super::mdq_emphasis::space;
         let scheme = prev
             .is_none_or(|c| space(c) || "*_~(".contains(c))
             .then(|| {

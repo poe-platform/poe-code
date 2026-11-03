@@ -43,20 +43,16 @@ where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
     let stdin = &mut *input.text;
-    if matches!(cmd, "grep" | "egrep" | "fgrep" | "rgrep" | "rg") && let Some(file) = input.file
-        && let Err(e) = file.materialize(stdin) {
-        return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {e}\n"), exit_code: 1 });
-    }
     match cmd {
         "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
             cmd,
             args,
-            stdin,
+            input,
             cwd,
             fs,
             cmd == "fgrep",
         )),
-        "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
+        "rg" => Some(cmd_rg(args, input, cwd, env, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, write, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env, ChildIo::Inherit { stderr_before: "" }))),
         "fd" => Some(cmd_fd(args, cwd, fs, write, &mut |words, cwd| {
             exec_sub(words, &mut String::new(), cwd, env, ChildIo::Inherit { stderr_before: "" })
@@ -2407,7 +2403,7 @@ fn translate_search_pattern(source: &str, extended: bool) -> (String, Option<usi
 fn cmd_grep(
     invoked_as: &str,
     args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     fs: &dyn SafeBashFs,
     default_fixed: bool,
@@ -2589,11 +2585,13 @@ fn cmd_grep(
         pattern_args.push(targets.remove(0));
     }
     let mut raw_patterns: Vec<_> = pattern_args.iter().flat_map(|arg| arg.split('\n').map(stream_string_to_bytes)).collect();
-    let mut read_patterns_from_stdin = false;
     for file in pattern_files {
         let bytes = if file == "-" {
-            read_patterns_from_stdin = true;
-            stream_string_to_bytes(stdin)
+            let mut bytes = Vec::new();
+            if let Err(e) = stdin.read_stdin(|chunk| { bytes.extend_from_slice(chunk); true }) {
+                return error(e);
+            }
+            bytes
         } else {
             match read_search_file(fs, &search_path(cwd, &file), "readStream") {
                 Ok(bytes) => bytes,
@@ -2697,7 +2695,7 @@ fn cmd_grep(
     run_grep_engine(
         rx,
         targets,
-        if read_patterns_from_stdin { "" } else { stdin },
+        stdin,
         cwd,
         fs,
         GrepConfig {
@@ -2748,7 +2746,7 @@ fn cmd_grep(
 
 fn cmd_rg(
     raw_args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -3380,7 +3378,11 @@ fn cmd_rg(
         for pf in &pattern_files {
             if pf == "-" {
                 read_patterns_from_stdin = true;
-                for line in stdin.lines() {
+                let mut bytes = Vec::new();
+                if let Err(e) = stdin.read_stdin(|chunk| { bytes.extend_from_slice(chunk); true }) {
+                    return BuiltinOutcome { stdout: String::new(), stderr: format!("rg: {e}\n"), exit_code: 2 };
+                }
+                for line in bytes_to_stream_string(&bytes).lines() {
                     if !line.is_empty() {
                         patterns.push(line.to_string());
                     }
@@ -3510,11 +3512,11 @@ fn cmd_rg(
         Some(record_rx)
     } else { None };
 
-    let effective_stdin = if read_patterns_from_stdin { "" } else { stdin };
+    if read_patterns_from_stdin { stdin.file = None; }
     run_grep_engine(
         rx,
         targets,
-        effective_stdin,
+        stdin,
         cwd,
         fs,
         GrepConfig {
@@ -3894,7 +3896,7 @@ impl GrepFiles<'_> {
 fn run_grep_engine(
     rx: ZeroRegex,
     targets: Vec<String>,
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     fs: &dyn SafeBashFs,
     cfg: GrepConfig<'_>,
@@ -3914,7 +3916,7 @@ fn run_grep_engine(
     let multiple_files = targets.len() > 1;
     let inputs: Box<dyn Iterator<Item = SearchInput> + '_> = match &cfg.files {
         SearchFiles::Grep(files) => Box::new(files.inputs(&targets, cwd, fs)),
-        SearchFiles::Rg(files) => Box::new(files.inputs(&targets, cwd, fs, !stdin.is_empty())),
+        SearchFiles::Rg(files) => Box::new(files.inputs(&targets, cwd, fs, stdin.file.is_some() || !stdin.text.is_empty())),
     };
 
     let mut out = String::new();
@@ -3935,7 +3937,21 @@ fn run_grep_engine(
     for input in inputs {
         if failed_batch { break; }
         let (fname, content, explicit) = match input {
-            SearchInput::Stdin => (Some(stdin_label), stream_string_to_bytes(stdin), true),
+            SearchInput::Stdin => {
+                let mut bytes = Vec::new();
+                if cfg.max_count != Some(0)
+                    && let Err(e) = stdin.read_stdin(|chunk| { bytes.extend_from_slice(chunk); true })
+                {
+                    had_error = true;
+                    if !cfg.no_messages {
+                        let name = match &cfg.files { SearchFiles::Grep(g) => g.name, SearchFiles::Rg(_) => "rg" };
+                        err.push_str(&format!("{name}: {e}\n"));
+                    }
+                    // A failed pull does not terminate a partial record.
+                    bytes.truncate(bytes.iter().rposition(|&b| b == rec_term as u8).map_or(0, |i| i + 1));
+                }
+                (Some(stdin_label), bytes, true)
+            }
             SearchInput::File(ref label, ref path, explicit) => {
                 let bytes = if let SearchFiles::Grep(files) = &cfg.files {
                     let fast = matches!(cfg.grep_input, GrepInput::PlainLiteral { fast_file: true });

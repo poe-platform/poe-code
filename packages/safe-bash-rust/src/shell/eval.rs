@@ -15433,6 +15433,13 @@ mod tests {
             ("cat & wait; head -c1", "a", 1),
             ("absent-cmd 2>/dev/null; echo $?", "127\n", 0),
             ("which cat >/dev/null; head -c1", "a", 1),
+            ("grep z /named; head -c1", "z\na", 1),
+            ("grep --help >/dev/null; rg --version >/dev/null", "", 0),
+            ("rg --files >/dev/null; rg z /named; head -c1", "z\na", 1),
+            ("grep -m0 ab -; head -c1", "a", 1),
+            ("grep -q z /named -; head -c1", "a", 1),
+            ("grep ab - -; cat", "(standard input):ab\n", 3),
+            ("rg ab - -; cat", "<stdin>:ab\n", 3),
             ("(head -c1); head -c1", "ab", 1),
             ("env head -c1; cat", "ab\ncd", 3),
             ("head -c1 | cat; cat", "ab\ncd", 3),
@@ -15471,6 +15478,23 @@ mod tests {
         assert_eq!(result.stdout, "a");
         assert!(state.eval_script_with_stream("if", std::iter::empty()).is_err());
         assert_eq!(state.eval_script_str("head -c1; cat <&3", "").unwrap().stdout, "yz");
+    }
+
+    #[test]
+    fn search_distinguishes_empty_stdin_from_directory_search_and_keeps_complete_records_on_error() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/named", b"hit\n").unwrap();
+        assert_eq!(shell.exec("rg hit").unwrap().stdout, "named:hit\n");
+        let empty = shell.exec_with_stream("rg hit", std::iter::empty()).unwrap();
+        assert_eq!((empty.exit_code, empty.stdout.as_str()), (1, ""));
+        for cmd in ["grep", "rg"] {
+            for (script, expected) in [(format!("{cmd} hit -"), "hit\n"), (format!("{cmd} -f - /named"), "")] {
+                let chunks = [Ok(b"hit\nhit".to_vec()), Err("read failed".into())];
+                let result = shell.exec_with_stream(&script, chunks.into_iter()).unwrap();
+                assert_eq!((result.exit_code, result.stdout.as_str()), (2, expected), "{script}");
+                assert_eq!(result.stderr, format!("{cmd}: read failed\n"));
+            }
+        }
     }
 
     #[test]

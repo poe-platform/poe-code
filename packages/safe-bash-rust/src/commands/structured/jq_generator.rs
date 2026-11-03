@@ -774,7 +774,7 @@ pub(super) fn describe(scalar: &JVal) -> String {
         color: false,
         sort_keys: false,
     }
-    .write(printable, 0, &mut text);
+    .write(printable, 0, &mut text).unwrap();
     if text.len() >= 15 {
         text = format!("{}...", String::from_utf8_lossy(&text.as_bytes()[..11]));
     }
@@ -796,7 +796,7 @@ fn halt_error(input: &JVal, code: JVal) -> Flow {
                 color: false,
                 sort_keys: false,
             }
-            .write(v, 0, &mut out);
+            .write(v, 0, &mut out).unwrap();
             out.push('\n');
             out
         }

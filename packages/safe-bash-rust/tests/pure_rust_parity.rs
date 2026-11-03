@@ -365,3 +365,18 @@ fn jq_opens_input_variable_and_program_files_in_path_traversal_order() {
         assert_eq!((out.exit_code, out.stderr), (2, format!("jq: {error}\n")), "{script}");
     }
 }
+
+#[test]
+fn xq_enforces_the_output_budget_before_reading_another_document() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.write_file("/doc", "<r>é</r>".as_bytes()).unwrap();
+    fs.write_file("/big", format!("<r>{}</r>", "a".repeat(200)).as_bytes()).unwrap();
+    for (filter, bytes) in [("-r .r", 3), ("-a .r", 9), ("-c .", 11), ("--raw-output0 .r", 3), ("-j .r", 2)] {
+        let script = format!("printf abc; xq {filter} /doc /big");
+        for (limit, expected) in [(bytes + 2, "maxOutputBytes"), (bytes + 3, "maxInputBytes")] {
+            shell.set_limits(safe_bash_rust::ShellLimits { max_output_bytes: limit, max_input_bytes: 24, ..Default::default() });
+            let error = shell.exec(&script).unwrap_err();
+            assert!(error.contains(expected), "{script}: {error}");
+        }
+    }
+}

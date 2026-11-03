@@ -709,8 +709,8 @@ pub(super) fn to_json(nodes: &[Node], plus: bool) -> String {
     while let Some(part) = pending.pop() {
         let el = match part {
             Part::Punctuation(c) => { out.push(c); continue; }
-            Part::Text(s) => { quote.quote(s.trim_matches(xml_json_space), &mut out); continue; }
-            Part::Key(key) => { quote.quote(key, &mut out); out.push(':'); continue; }
+            Part::Text(s) => { quote.quote(s.trim_matches(xml_json_space), &mut out).unwrap(); continue; }
+            Part::Key(key) => { quote.quote(key, &mut out).unwrap(); out.push(':'); continue; }
             Part::Element(el) => el,
         };
         let mut text = String::new();
@@ -729,7 +729,7 @@ pub(super) fn to_json(nodes: &[Node], plus: bool) -> String {
         let trimmed = text.trim_matches(xml_json_space);
         if el.attrs.is_empty() && groups.is_empty() {
             if !plus && trimmed.is_empty() { out.push_str("null"); }
-            else { quote.quote(trimmed, &mut out); }
+            else { quote.quote(trimmed, &mut out).unwrap(); }
             continue;
         }
         out.push('{');
@@ -738,7 +738,7 @@ pub(super) fn to_json(nodes: &[Node], plus: bool) -> String {
             out.push_str(if plus { "\"+@" } else { "\"@" });
             out.push_str(key); // XML names cannot contain JSON string delimiters.
             out.push_str("\":");
-            quote.quote(val, &mut out);
+            quote.quote(val, &mut out).unwrap();
         }
         pending.push(Part::Punctuation('}'));
         if !trimmed.is_empty() {

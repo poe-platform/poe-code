@@ -414,7 +414,7 @@ impl JVal {
     pub fn to_json_string(&self, compact: bool, sort_keys: bool, indent: usize) -> String {
         let mut out = String::new();
         JsonFormat { indent: if compact { "" } else { "  " }, strings: JsonStrings::Plain, color: false, sort_keys }
-            .write(self, indent, &mut out);
+            .write(self, indent, &mut out).unwrap();
         out
     }
 }
@@ -1030,6 +1030,9 @@ fn cmd_jq_core(
     };
     let drain_xml = null_input && xml_input && !inputs.borrow().reads_input;
 
+    // yq consumes the JSON internally before formatting its own output.
+    let output_limit = if shell_text { fs.remaining_output_bytes() } else { usize::MAX };
+    let output_error = || fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes);
     let mut out = String::new();
     let mut stderr = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1037,6 +1040,7 @@ fn cmd_jq_core(
     let mut first_null_done = false;
 
     loop {
+        if stderr.len() > output_limit.saturating_sub(out.len()) { return err_out(&output_error(), 5); }
         let input_val = if null_input {
             if first_null_done {
                 break;
@@ -1059,21 +1063,26 @@ fn cmd_jq_core(
             }
             invocation_last = Some(r.is_truthy());
             let raw_string = raw_output && matches!(r, JVal::Str(_));
-            if seq_mode && !raw_string { out.push('\x1e'); }
-            if raw_string && !ascii_output && let JVal::Str(ref s) = r {
-                out.push_str(s);
-            } else {
-                JsonFormat {
-                    indent: &indent,
-                    strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
-                    color: color && !monochrome && !raw_string,
-                    sort_keys,
-                }.write(&r, 0, &mut out);
-            }
-            if raw_output0 {
-                out.push('\0');
-            } else if !join_output {
-                out.push('\n');
+            use std::fmt::Write;
+            let start = out.len();
+            let mut sink = json_format::LimitedText { text: &mut out, limit: output_limit.saturating_sub(stderr.len()) };
+            let prefix = if seq_mode && !raw_string { "\x1e" } else { "" };
+            let suffix = if raw_output0 { "\0" } else if join_output { "" } else { "\n" };
+            let result = sink.write_str(prefix).and_then(|()| {
+                if raw_string && !ascii_output && let JVal::Str(ref s) = r {
+                    sink.write_str(s)
+                } else {
+                    JsonFormat {
+                        indent: &indent,
+                        strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
+                        color: color && !monochrome && !raw_string,
+                        sort_keys,
+                    }.write(&r, 0, &mut sink)
+                }
+            }).and_then(|()| sink.write_str(suffix));
+            if result.is_err() {
+                out.truncate(start);
+                return Err(JqFault::Halt(5, output_error()));
             }
             Ok(ControlFlow::Continue(()))
         });
@@ -29042,7 +29051,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         let root = JVal::Object(fields);
         let mut stdout = String::new();
-        JsonFormat { indent: "", strings: JsonStrings::JavaScript, color: false, sort_keys: false }.write(&root, 0, &mut stdout);
+        JsonFormat { indent: "", strings: JsonStrings::JavaScript, color: false, sort_keys: false }.write(&root, 0, &mut stdout).unwrap();
         return BuiltinOutcome {
             stdout,
             stderr: String::new(),

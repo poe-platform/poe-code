@@ -8385,3 +8385,21 @@ test("mdq numbers rendered links in order and emits their definitions at the sel
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq resolves document references before selection and preserves their source styles", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "# See [title][Name]\n\n[one][9] [in](/i) [two][9] [NAME][] ![Name] [miss]\n\n" +
+      "[name]: <my path>\n  'a title'\n[9]:\n /nine\n[name]: /ignored\n[unused]: /unused\nbody\n\n" +
+      "ordinary\n[not]: /definition\n\n```\n[code]: /code\n```\n\n" +
+      "- [list]: /nested\n\n[list]\n\n[bad]: /bad \"title\" extra\nkeep";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-o json", "-o plain", "-l inline", "-l keep", "--link-pos=doc", "-l keep -o json",
+      "-o json '[]()'", "-o json '![]()'", "'[](/nine/)'", "'P: ^one'", "-l inline '![]()'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

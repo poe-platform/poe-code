@@ -15,7 +15,7 @@ mod jq_json;
 mod jq_number;
 mod jq_parser;
 mod mdq_links;
-use mdq_links::{References as MdqReferences, Target as MdqTarget};
+use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
@@ -28370,7 +28370,7 @@ fn mdq_interrupts_paragraph(line: &str) -> bool {
         || mdq_list_marker(line).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1))))
 }
 
-fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
+fn parse_mdq_markdown(defs: &mut MdqDefinitions, input: &str) -> Vec<MdqBlock> {
     let mut lines: Vec<&str> = input.lines().collect();
     let mut blocks = Vec::new();
     let mut i = 0usize;
@@ -28465,7 +28465,7 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
                 q_lines.push(ql);
                 i += 1;
             }
-            let inner = parse_mdq_markdown(&q_lines.join("\n"));
+            let inner = parse_mdq_markdown(defs, &q_lines.join("\n"));
             blocks.push(MdqBlock {
                 kind: "quote".to_string(),
                 children: inner,
@@ -28511,6 +28511,7 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
                         (Some(*state != b' '), text[3..].trim_start()),
                     _ => (None, text),
                 };
+                let body = mdq_links::extract(body, defs);
                 let children = if body.is_empty() { Vec::new() } else {
                     vec![MdqBlock { kind: "paragraph".into(), text: body.trim_end().into(), ..MdqBlock::default() }]
                 };
@@ -28540,7 +28541,13 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             p_lines.push(nl);
             i += 1;
         }
-        let text = p_lines.join("\n");
+        let paragraph = p_lines.join("\n");
+        let text = mdq_links::extract(&paragraph, defs);
+        if text.is_empty() {
+            if heading_level.is_some() { i -= 1; }
+            continue;
+        }
+        let text = text.to_string();
         blocks.push(if let Some(level) = heading_level {
             MdqBlock { kind: "heading_raw".into(), level, title: text, ..MdqBlock::default() }
         } else {
@@ -28724,7 +28731,7 @@ fn expand_mdq_replacement(
     out
 }
 
-fn mdq_match_and_replace(pat_raw: &str, target: &str, strip_inline_for_match: bool) -> Option<String> {
+fn mdq_match_and_replace(defs: &MdqDefinitions, pat_raw: &str, target: &str, strip_inline_for_match: bool) -> Option<String> {
     if let Some((rx_str, repl_template)) = parse_mdq_regex_replacement(pat_raw) {
         let (clean_pat, group_names) = parse_jq_regex_groups(&rx_str);
         let rx = ZeroRegex::new(vec![clean_pat.clone()], false, false, false, false);
@@ -28760,7 +28767,7 @@ fn mdq_match_and_replace(pat_raw: &str, target: &str, strip_inline_for_match: bo
         return Some(replaced);
     }
     let check_target = if strip_inline_for_match {
-        mdq_inline_text(target, true)
+        mdq_inline_text(defs, target, true)
     } else {
         target.to_string()
     };
@@ -28771,10 +28778,10 @@ fn mdq_match_and_replace(pat_raw: &str, target: &str, strip_inline_for_match: bo
     }
 }
 
-fn mdq_match_content(b: &mut MdqBlock, matcher: &str) -> bool {
+fn mdq_match_content(defs: &MdqDefinitions, b: &mut MdqBlock, matcher: &str) -> bool {
     let mut hit = false;
     let mut update = |text: &mut String, inline| {
-        if let Some(replaced) = mdq_match_and_replace(matcher, text, inline) {
+        if let Some(replaced) = mdq_match_and_replace(defs, matcher, text, inline) {
             *text = replaced;
             hit = true;
         }
@@ -28787,7 +28794,7 @@ fn mdq_match_content(b: &mut MdqBlock, matcher: &str) -> bool {
         "code" | "frontmatter" | "break" => return false,
         _ => {}
     }
-    for child in &mut b.children { hit |= mdq_match_content(child, matcher); }
+    for child in &mut b.children { hit |= mdq_match_content(defs, child, matcher); }
     hit
 }
 
@@ -28818,7 +28825,7 @@ enum MdqInlineAtom<'a> {
     Link { image: bool, display: &'a str, target: MdqTarget },
 }
 
-fn mdq_visit_inline_atoms<'a>(src: &'a str, mut visit: impl FnMut(std::ops::Range<usize>, MdqInlineAtom<'a>)) {
+fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: impl FnMut(std::ops::Range<usize>, MdqInlineAtom<'a>)) {
     let bytes = src.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut k = 0usize;
@@ -28840,10 +28847,14 @@ fn mdq_visit_inline_atoms<'a>(src: &'a str, mut visit: impl FnMut(std::ops::Rang
         let image = bytes[k..].starts_with(b"![");
         if image || bytes[k] == b'[' {
             let begin = k + if image { 2 } else { 1 };
-            if let Some(close) = src[begin..].find(']').map(|n| begin + n)
-                && bytes.get(close + 1) == Some(&b'(')
-                && let Some((target, used)) = MdqTarget::inline(&src[close + 2..]) {
-                let end = close + 2 + used;
+            if let Some(close) = src[begin..].match_indices(']').find(|(n, _)| {
+                src[begin..begin+n].bytes().rev().take_while(|&b| b == b'\\').count() % 2 == 0
+            }).map(|(n, _)| begin+n) {
+                let tail = &src[close+1..];
+                let parsed = tail.strip_prefix('(').and_then(MdqTarget::inline).map(|(t,n)| (t,n+1))
+                    .or_else(|| mdq_links::reference(tail, &src[begin-1..=close], defs));
+                let Some((target, used)) = parsed else { k += 1; continue; };
+                let end = close + 1 + used;
                 visit(k..end, MdqInlineAtom::Link { image, display: &src[begin..close], target });
                 k = end;
                 continue;
@@ -28853,9 +28864,9 @@ fn mdq_visit_inline_atoms<'a>(src: &'a str, mut visit: impl FnMut(std::ops::Rang
     }
 }
 
-fn mdq_inline_parts(src: &str, plain: bool, mut suffix: impl FnMut(&MdqTarget) -> String, mut emit: impl FnMut(&str, bool)) {
+fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: impl FnMut(&MdqTarget) -> String, mut emit: impl FnMut(&str, bool)) {
     let mut at = 0;
-    mdq_visit_inline_atoms(src, |range, atom| {
+    mdq_visit_inline_atoms(defs, src, |range, atom| {
         if at < range.start { emit(&mdq_text_span(&src[at..range.start], plain), true); }
         match atom {
             MdqInlineAtom::Html(text) => emit(text, true),
@@ -28872,21 +28883,21 @@ fn mdq_inline_parts(src: &str, plain: bool, mut suffix: impl FnMut(&MdqTarget) -
     if at < src.len() { emit(&mdq_text_span(&src[at..], plain), true); }
 }
 
-fn mdq_inline_text(src: &str, plain: bool) -> String {
+fn mdq_inline_text(defs: &MdqDefinitions, src: &str, plain: bool) -> String {
     if !src.contains('[') { return mdq_text_span(src, plain); }
     let mut out = String::new();
-    mdq_inline_parts(src, plain, |t| format!("({t})"), |part, _| out.push_str(part));
+    mdq_inline_parts(defs, src, plain, |t| format!("({t})"), |part, _| out.push_str(part));
     out
 }
 
-fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
+fn mdq_select_one(defs: &MdqDefinitions, nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
     if let MdqSelector::Code(lang_m, code_m) = stage {
         return mdq_select_blocks(nodes, |b| {
             if b.kind != "code" {
                 return None;
             }
-            let new_lang = mdq_match_and_replace(lang_m, &b.lang, false)?;
-            let new_text = mdq_match_and_replace(code_m, &b.text, false)?;
+            let new_lang = mdq_match_and_replace(defs, lang_m, &b.lang, false)?;
+            let new_text = mdq_match_and_replace(defs, code_m, &b.text, false)?;
             b.lang = new_lang;
             b.text = new_text;
             Some(())
@@ -28900,7 +28911,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
             if !lang_m.is_empty() && lang_m != "*" && b.lang != *lang_m {
                 return None;
             }
-            let new_text = mdq_match_and_replace(body_m, &b.text, false)?;
+            let new_text = mdq_match_and_replace(defs, body_m, &b.text, false)?;
             b.text = new_text;
             Some(())
         });
@@ -28933,7 +28944,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
         };
         return mdq_select_blocks(nodes, |b| {
             if b.kind != "section" || b.level < min_l || b.level > max_l { return None; }
-            b.title = mdq_match_and_replace(matcher, &b.title, true)?;
+            b.title = mdq_match_and_replace(defs, matcher, &b.title, true)?;
             Some(())
         });
     }
@@ -28965,11 +28976,11 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                 None => b.checked.is_none(),
             };
             if !matches_task { return None; }
-            mdq_match_content(b, rest).then_some(())
+            mdq_match_content(defs, b, rest).then_some(())
         });
     }
     if let Some(rest) = sel.strip_prefix('>') {
-        return mdq_select_blocks(nodes, |b| (b.kind == "quote" && mdq_match_content(b, rest.trim())).then_some(()));
+        return mdq_select_blocks(nodes, |b| (b.kind == "quote" && mdq_match_content(defs, b, rest.trim())).then_some(()));
     }
     if let Some(rest) = sel.strip_prefix("P:") {
         let m = rest.trim();
@@ -28977,7 +28988,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
             if b.kind != "paragraph" {
                 return None;
             }
-            let new_text = mdq_match_and_replace(m, &b.text, true)?;
+            let new_text = mdq_match_and_replace(defs, m, &b.text, true)?;
             b.text = new_text;
             Some(())
         });
@@ -28994,14 +29005,14 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
         let mut emit = |found: &str, text: &str, target: Option<&MdqTarget>| {
             if found != kind { return; }
             if found == "html" {
-                if let Some(text) = mdq_match_and_replace(matcher, text, false) {
+                if let Some(text) = mdq_match_and_replace(defs, matcher, text, false) {
                     selected.push(MdqBlock { kind: found.into(), text, ..MdqBlock::default() });
                 }
             } else if let Some(target) = target && let (Some(title), Some(url)) = (
-                mdq_match_and_replace(matcher, text, true),
-                mdq_match_and_replace(url_m, &target.url, false),
+                mdq_match_and_replace(defs, matcher, text, true),
+                mdq_match_and_replace(defs, url_m, &target.url, false),
             ) {
-                selected.push(MdqBlock { kind: found.into(), title, target: MdqTarget { url, title: target.title.clone() }, ..MdqBlock::default() });
+                selected.push(MdqBlock { kind: found.into(), title, target: MdqTarget { url, ..target.clone() }, ..MdqBlock::default() });
             }
         };
         let mut pending = nodes;
@@ -29016,12 +29027,12 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                 _ => None,
             };
             for src in paragraph.into_iter().chain(b.table_rows.iter().flatten()) {
-                mdq_visit_inline_atoms(src, |_, atom| match atom {
+                mdq_visit_inline_atoms(defs, src, |_, atom| match atom {
                     MdqInlineAtom::Html(text) => emit("html", text, None),
                     MdqInlineAtom::Link { image, display, target } => {
                         emit(if image { "image" } else { "link" }, display, Some(&target));
                         if kind == "html" && !image {
-                            mdq_visit_inline_atoms(display, |_, inner| {
+                            mdq_visit_inline_atoms(defs, display, |_, inner| {
                                 if let MdqInlineAtom::Html(text) = inner { emit("html", text, None); }
                             });
                         }
@@ -29043,7 +29054,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                     let width = b.table_rows.iter().map(Vec::len).max().unwrap_or(0).max(b.table_aligns.len());
                     for idx in 0..width {
                         let h = head.get(idx).map(String::as_str).unwrap_or("");
-                        if let Some(nh) = mdq_match_and_replace(col_m, h, true) {
+                        if let Some(nh) = mdq_match_and_replace(defs, col_m, h, true) {
                             col_indices.push(idx);
                             new_head.push(nh);
                         }
@@ -29056,7 +29067,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
                             let mut updated_row = r.clone();
                             updated_row.resize_with(width, String::new);
                             for cell in &mut updated_row {
-                                if let Some(nc) = mdq_match_and_replace(cell_m, cell, true) {
+                                if let Some(nc) = mdq_match_and_replace(defs, cell_m, cell, true) {
                                     *cell = nc;
                                     row_matched = true;
                                 }
@@ -29084,7 +29095,7 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
     Vec::new()
 }
 
-fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &mut bool, w: &mut MdqWriter) {
+fn mdq_render_block_md(defs: &MdqDefinitions, b: &MdqBlock, refs: &mut MdqReferences, previous_break: &mut bool, w: &mut MdqWriter) {
     let was_break = std::mem::replace(previous_break, b.kind == "break");
     match b.kind.as_str() {
         "break" if !was_break => w.block(MdqLayout::Plain, |w| w.write("   -----", false)),
@@ -29094,14 +29105,14 @@ fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &
                     w.write(&"#".repeat(b.level), false);
                     if !b.title.is_empty() {
                         w.write(" ", false);
-                        w.write(&refs.text(&b.title), false);
+                        w.write(&refs.text(&b.title, defs), false);
                     }
                 });
             }
-            for child in &b.children { mdq_render_block_md(child, refs, previous_break, w); }
+            for child in &b.children { mdq_render_block_md(defs, child, refs, previous_break, w); }
             if b.kind == "section" && refs.per_section { refs.write_pending(w); }
         }
-        "paragraph" => w.block(MdqLayout::Plain, |w| mdq_inline_parts(&b.text, false, |t| refs.suffix(t), |part, wrap| w.write(part, wrap))),
+        "paragraph" => w.block(MdqLayout::Plain, |w| mdq_inline_parts(defs, &b.text, false, |t| refs.suffix(t), |part, wrap| w.write(part, wrap))),
         "code" => {
             let ticks = b.text.lines().map(|s| s.bytes().take_while(|&c| c == b'`').count()).max().unwrap_or(0);
             let fence = "`".repeat((ticks + 1).max(3));
@@ -29111,7 +29122,7 @@ fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &
         "list" | "quote" => {
             let layout = if b.kind == "quote" { MdqLayout::Quote } else { MdqLayout::Plain };
             w.block(layout, |w| {
-                for child in &b.children { mdq_render_block_md(child, refs, previous_break, w); }
+                for child in &b.children { mdq_render_block_md(defs, child, refs, previous_break, w); }
             });
         }
         "list_item" => {
@@ -29119,12 +29130,12 @@ fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &
             if let Some(checked) = b.checked { marker.push_str(if checked { "[x] " } else { "[ ] " }); }
             w.write(&marker, true);
             w.block(MdqLayout::Indent(marker.len()), |w| {
-                for child in &b.children { mdq_render_block_md(child, refs, previous_break, w); }
+                for child in &b.children { mdq_render_block_md(defs, child, refs, previous_break, w); }
             });
         }
         "link" | "image" => {
             let prefix = if b.kind == "image" { "!" } else { "" };
-            w.write(&format!("{prefix}[{}]{}", mdq_inline_text(&b.title, b.kind == "image"), refs.suffix(&b.target)), false);
+            w.write(&format!("{prefix}[{}]{}", mdq_inline_text(defs, &b.title, b.kind == "image"), refs.suffix(&b.target)), false);
         }
         "frontmatter" => {
             let delim = if b.lang == "toml" { "+++" } else { "---" };
@@ -29135,7 +29146,7 @@ fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &
             if b.table_rows.is_empty() {
                 return;
             }
-            let rows: Vec<Vec<_>> = b.table_rows.iter().map(|row| row.iter().map(|cell| refs.text(cell)).collect()).collect();
+            let rows: Vec<Vec<_>> = b.table_rows.iter().map(|row| row.iter().map(|cell| refs.text(cell, defs)).collect()).collect();
             let mut widths: Vec<_> = b.table_aligns.iter().map(|a| match a.as_str() {
                 "left" | "right" => 2, "center" => 3, _ => 1,
             }).collect();
@@ -29184,13 +29195,13 @@ fn mdq_render_block_md(b: &MdqBlock, refs: &mut MdqReferences, previous_break: &
     }
 }
 
-fn mdq_block_to_jval(b: &MdqBlock, refs: &mut MdqReferences) -> JVal {
+fn mdq_block_to_jval(defs: &MdqDefinitions, b: &MdqBlock, refs: &mut MdqReferences) -> JVal {
     match b.kind.as_str() {
         "break" => JVal::Object(vec![("thematic_break".into(), JVal::Null)]),
-        "document" => JVal::Object(vec![("document".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect()))]),
+        "document" => JVal::Object(vec![("document".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(defs, child, refs)).collect()))]),
         "section" => {
-            let title = refs.text(&b.title);
-            let body: Vec<JVal> = b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect();
+            let title = refs.text(&b.title, defs);
+            let body: Vec<JVal> = b.children.iter().map(|child| mdq_block_to_jval(defs, child, refs)).collect();
             JVal::Object(vec![(
                 "section".to_string(),
                 JVal::Object(vec![
@@ -29200,7 +29211,7 @@ fn mdq_block_to_jval(b: &MdqBlock, refs: &mut MdqReferences) -> JVal {
                 ]),
             )])
         }
-        "paragraph" => JVal::Object(vec![("paragraph".to_string(), JVal::Str(refs.text(&b.text)))]),
+        "paragraph" => JVal::Object(vec![("paragraph".to_string(), JVal::Str(refs.text(&b.text, defs)))]),
         "code" => {
             let mut fields = vec![
                 ("code".to_string(), JVal::Str(b.text.clone())),
@@ -29214,21 +29225,26 @@ fn mdq_block_to_jval(b: &MdqBlock, refs: &mut MdqReferences) -> JVal {
             }
             JVal::Object(vec![("code_block".to_string(), JVal::Object(fields))])
         }
-        "list" => JVal::Object(vec![("list".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect()))]),
+        "list" => JVal::Object(vec![("list".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(defs, child, refs)).collect()))]),
         "list_item" => {
-            let mut fields = vec![("item".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect()))];
+            let mut fields = vec![("item".into(), JVal::Array(b.children.iter().map(|child| mdq_block_to_jval(defs, child, refs)).collect()))];
             if let Some(index) = b.index { fields.push(("index".into(), JVal::Number(index as f64, None))); }
             if let Some(check) = b.checked { fields.push(("checked".into(), JVal::Bool(check))); }
             JVal::Object(fields)
         }
         "quote" => {
-            let body: Vec<JVal> = b.children.iter().map(|child| mdq_block_to_jval(child, refs)).collect();
+            let body: Vec<JVal> = b.children.iter().map(|child| mdq_block_to_jval(defs, child, refs)).collect();
             JVal::Object(vec![("block_quote".to_string(), JVal::Array(body))])
         }
         "link" | "image" => {
             let label = if b.kind == "link" { "display" } else { "alt" };
-            let mut fields = vec![(label.into(), JVal::Str(mdq_inline_text(&b.title, false))), ("url".into(), JVal::Str(b.target.url.clone()))];
+            let mut fields = vec![(label.into(), JVal::Str(mdq_inline_text(defs, &b.title, false))), ("url".into(), JVal::Str(b.target.url.clone()))];
             if !b.target.title.is_empty() { fields.push(("title".into(), JVal::Str(b.target.title.clone()))); }
+            if let Some((key, style)) = &b.target.reference {
+                use mdq_links::Style::*;
+                let (field, value) = match style { Full => ("reference", key.as_str()), Shortcut => ("reference_style", "shortcut"), Collapsed => ("reference_style", "collapsed") };
+                fields.push((field.into(), JVal::Str(value.into())));
+            }
             JVal::Object(vec![(b.kind.clone(), JVal::Object(fields))])
         }
         "frontmatter" => JVal::Object(vec![(
@@ -29247,7 +29263,7 @@ fn mdq_block_to_jval(b: &MdqBlock, refs: &mut MdqReferences) -> JVal {
             let rows = JVal::Array(
                 b.table_rows
                     .iter()
-                    .map(|r| JVal::Array(r.iter().map(|cell| JVal::Str(refs.text(cell))).collect()))
+                    .map(|r| JVal::Array(r.iter().map(|cell| JVal::Str(refs.text(cell, defs))).collect()))
                     .collect(),
             );
             JVal::Object(vec![(
@@ -30140,9 +30156,12 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         Ok(stages) => stages,
         Err(error) => return error,
     };
-    let mut current = vec![MdqBlock { kind: "document".into(), children: parse_mdq_markdown(&md_input), ..MdqBlock::default() }];
+    let mut definitions = MdqDefinitions::new();
+    let children = parse_mdq_markdown(&mut definitions, &md_input);
+    let defs = &definitions;
+    let mut current = vec![MdqBlock { kind: "document".into(), children, ..MdqBlock::default() }];
     for stage in &stages {
-        current = mdq_select_one(current, stage);
+        current = mdq_select_one(defs, current, stage);
     }
     let breaks = breaks_opt.unwrap_or(output_fmt == "markdown" || output_fmt == "md");
     let matched = !current.is_empty();
@@ -30153,15 +30172,18 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             exit_code: if matched { 0 } else { 1 },
         };
     }
-    let mut refs = MdqReferences { numbered: link_format == "never-inline", per_section: section_links, targets: Vec::new(), emitted: 0 };
+    let mut refs = MdqReferences::new(&link_format, section_links);
     if output_fmt == "json" {
-        let items = current.iter().map(|b| mdq_block_to_jval(b, &mut refs)).collect();
+        let items = current.iter().map(|b| mdq_block_to_jval(defs, b, &mut refs)).collect();
         let mut fields = vec![("items".into(), JVal::Array(items))];
         if !refs.targets.is_empty() {
-            let links = refs.targets.into_iter().enumerate().map(|(i, t)| {
+            // Object.entries enumerates array-index properties before other keys.
+            refs.targets.sort_by_key(|(id, _)| id.parse::<u32>().ok()
+                .filter(|i| *i < u32::MAX && i.to_string() == *id).unwrap_or(u32::MAX));
+            let links = refs.targets.into_iter().map(|(id, t)| {
                 let mut value = vec![("url".into(), JVal::Str(t.url))];
                 if !t.title.is_empty() { value.push(("title".into(), JVal::Str(t.title))); }
-                ((i + 1).to_string(), JVal::Object(value))
+                (id, JVal::Object(value))
             }).collect();
             fields.push(("links".into(), JVal::Object(links)));
         }
@@ -30176,25 +30198,25 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if output_fmt == "plain" {
         let mut pieces = Vec::new();
-        fn walk_plain(b: &MdqBlock, out: &mut Vec<String>) {
+        fn walk_plain(defs: &MdqDefinitions, b: &MdqBlock, out: &mut Vec<String>) {
             match b.kind.as_str() {
                 "section" | "paragraph" | "link" | "image" => {
                     let source = if matches!(b.kind.as_str(), "section" | "link" | "image") { &b.title } else { &b.text };
-                    let text = mdq_inline_text(source, true);
+                    let text = mdq_inline_text(defs, source, true);
                     if !text.is_empty() { out.push(text); }
                 }
                 "code" | "frontmatter" | "html" if !b.text.is_empty() => out.push(b.text.clone()),
                 "table" => {
                     for row in &b.table_rows {
-                        out.push(row.iter().map(|cell| mdq_inline_text(cell, true))
+                        out.push(row.iter().map(|cell| mdq_inline_text(defs, cell, true))
                             .filter(|text| !text.is_empty()).collect::<Vec<_>>().join(" "));
                     }
                 }
                 _ => {}
             }
-            for child in &b.children { walk_plain(child, out); }
+            for child in &b.children { walk_plain(defs, child, out); }
         }
-        for b in &current { walk_plain(b, &mut pieces); }
+        for b in &current { walk_plain(defs, b, &mut pieces); }
         let mut stdout = String::new();
         for piece in &pieces {
             let mut blank = true;
@@ -30225,7 +30247,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     for (i, b) in current.iter().enumerate() {
         if i != 0 { separator(&mut writer, &mut previous_break); }
-        mdq_render_block_md(b, &mut refs, &mut previous_break, &mut writer);
+        mdq_render_block_md(defs, b, &mut refs, &mut previous_break, &mut writer);
         if refs.per_section { refs.write_pending(&mut writer); }
     }
     if current.len() > 1 && refs.emitted != refs.targets.len() { separator(&mut writer, &mut previous_break); }

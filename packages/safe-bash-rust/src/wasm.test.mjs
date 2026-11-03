@@ -8572,3 +8572,19 @@ test("mdq maps replacements on visible text back to nested emphasis ranges", asy
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq unquoted literals use Unicode simple case folding", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [heading, selector, matches] of [
+      ["ς", "Σ", true], ["ſ", "s", true], ["İ", "i", false], ["ı", "I", false],
+      ["ß", "SS", false], ["ος", "ΟΣ", true], ["ς", '"Σ"', false],
+    ]) {
+      const src = "# " + heading + "\n";
+      await bash.fs.writeFile("/in", Buffer.from(src));
+      const result = await bash.exec("mdq '# " + selector + "' </in");
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr],
+        matches ? [0, src, ""] : [1, "", ""], selector + " on " + heading);
+    }
+  } finally { bash.dispose(); }
+});

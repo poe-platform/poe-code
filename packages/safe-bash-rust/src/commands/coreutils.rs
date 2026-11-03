@@ -25,16 +25,18 @@ pub fn try_run_coreutil(
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
     try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)
+        .unwrap_or_else(|e| Some(err_out(&format!("shell: line 1: {e}\n"), 1)))
 }
 
 pub(super) fn try_run_coreutil_with_input(
     cmd: &str, args: &[String], input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
-) -> Option<BuiltinOutcome> {
-    if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Some(info); }
-    match coreutil(cmd, args, input, cwd, env, fs) {
+) -> Result<Option<BuiltinOutcome>, String> {
+    if cmd == "envsubst" { return cmd_envsubst(args, input, env).map(Some); }
+    if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
+    Ok(match coreutil(cmd, args, input, cwd, env, fs) {
         Ok(out) => out,
         Err(error) => Some(err_out(&format!("{cmd}: {error}\n"), 1)),
-    }
+    })
 }
 
 fn coreutil(
@@ -50,7 +52,7 @@ fn coreutil(
         "tr" => cmd_tr(args, input),
         "nl" => cmd_nl(args, input, cwd, fs),
         "tac" => cmd_tac(args, input, cwd, fs),
-        "rev" => cmd_rev(args, input.buffered()?, cwd, env, fs),
+        "rev" => cmd_rev(args, input, cwd, env, fs),
         "paste" => cmd_paste(args, input.buffered()?, cwd, fs),
         "join" => cmd_join(args, input.buffered()?, cwd, fs),
         "comm" => cmd_comm(args, input.buffered()?, cwd, fs),
@@ -65,7 +67,6 @@ fn coreutil(
         "basename" => cmd_basename(args),
         "dirname" => cmd_dirname(args),
         "env" | "printenv" => cmd_printenv(args, env),
-        "envsubst" => cmd_envsubst(args, input.buffered()?, env),
         "date" => cmd_date(args, input.buffered()?, cwd, env, fs),
         "cal" | "ncal" => cmd_cal(cmd, args, env),
         "getconf" => cmd_getconf(args, cwd, fs),
@@ -74,14 +75,14 @@ fn coreutil(
         "pathchk" => cmd_pathchk(args, cwd, fs),
         "expr" => cmd_expr(args, env),
         "bc" => cmd_bc(args, input.buffered()?, cwd, fs),
-        "numfmt" => cmd_numfmt(args, input.buffered()?),
+        "numfmt" => cmd_numfmt(args, input),
         "uname" => cmd_uname(args, env, fs),
         "whoami" => cmd_whoami(args, env, fs),
         "hostname" => cmd_hostname(args, cwd, env, fs),
         "nproc" => cmd_nproc(args, env),
         "id" => cmd_id(args, env, fs),
         "sleep" => cmd_sleep(args, env),
-        "factor" => cmd_factor(args, input.buffered()?),
+        "factor" => cmd_factor(args, input),
         "expand" => cmd_expand(args, input, cwd, fs),
         "unexpand" => cmd_unexpand(args, input, cwd, fs),
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
@@ -3607,7 +3608,7 @@ fn cmd_tac(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
 
 fn cmd_rev(
     args: &[String],
-    stdin: &mut String,
+    mut stdin: CommandInput,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -3661,7 +3662,13 @@ fn cmd_rev(
 
     for f in &targets {
         let bytes = if f == "-" && !literal_dash {
-            take_stdin_bytes(stdin)
+            let mut bytes = Vec::new();
+            if let Err(error) = stdin.append_bytes(&mut bytes) {
+                stderr.push_str(&format!("rev: {error}\n"));
+                code = 1;
+                bytes.truncate(bytes.iter().rposition(|&b| b == b'\n').map_or(0, |i| i + 1));
+            }
+            bytes
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
@@ -5310,7 +5317,7 @@ fn extract_envsubst_vars(spec: &str) -> Vec<String> {
     vars
 }
 
-fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) -> BuiltinOutcome {
+fn cmd_envsubst(args: &[String], mut stdin: CommandInput, env: &BTreeMap<String, String>) -> Result<BuiltinOutcome, String> {
     let mut list_vars = false;
     let mut operands = Vec::new();
     let mut end_opts = false;
@@ -5320,28 +5327,28 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
             continue;
         }
         if !end_opts && (a == "-h" || a == "--help") {
-            return ok_out(
+            return Ok(ok_out(
                 "Usage: envsubst [OPTION] [SHELL-FORMAT]\n\nSubstitutes the values of environment variables.\n\nOperation mode:\n  -v, --variables             output the variables occurring in SHELL-FORMAT\n\nInformative output:\n  -h, --help                  display this help and exit\n  -V, --version               output version information and exit\n\nIn normal operation mode, standard input is copied to standard output,\nwith references to environment variables of the form $VARIABLE or ${VARIABLE}\nbeing replaced with the corresponding values.  If a SHELL-FORMAT is given,\nonly those environment variables that are referenced in SHELL-FORMAT are\nsubstituted; otherwise all environment variables references occurring in\nstandard input are substituted.\n",
-            );
+            ));
         }
         if !end_opts && (a == "-V" || a == "--version") {
-            return ok_out("envsubst (Sandbox VFS-ish/GNU gettext-runtime) 0.22.5\n");
+            return Ok(ok_out("envsubst (Sandbox VFS-ish/GNU gettext-runtime) 0.22.5\n"));
         }
         if !end_opts && (a == "-v" || a == "--variables") {
             list_vars = true;
             continue;
         }
         if !end_opts && a.starts_with('-') {
-            return err_out(&format!("envsubst: invalid option '{a}'\n"), 1);
+            return Ok(err_out(&format!("envsubst: invalid option '{a}'\n"), 1));
         }
         operands.push(a.clone());
     }
     if operands.len() > 1 {
-        return err_out("envsubst: too many arguments\n", 1);
+        return Ok(err_out("envsubst: too many arguments\n", 1));
     }
     if list_vars {
         if operands.is_empty() {
-            return err_out("envsubst: missing arguments\n", 1);
+            return Ok(err_out("envsubst: missing arguments\n", 1));
         }
         let vars = extract_envsubst_vars(&operands[0]);
         let mut out = String::new();
@@ -5349,13 +5356,14 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
             out.push_str(&v);
             out.push('\n');
         }
-        return ok_out(&out);
+        return Ok(ok_out(&out));
     }
     let whitelist: Option<BTreeSet<String>> = operands
         .first()
         .map(|sf| extract_envsubst_vars(sf).into_iter().collect());
 
-    let bytes = stdin.as_bytes();
+    let mut bytes = Vec::new();
+    stdin.append_bytes(&mut bytes)?;
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0usize;
     while i < bytes.len() {
@@ -5395,7 +5403,7 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
                 if crate::shell::is_exported_scalar(env, name)
                     && let Some(val) = env.get(name)
                 {
-                    out.extend_from_slice(val.as_bytes());
+                    out.extend_from_slice(&stream_string_to_bytes(val));
                 }
             } else {
                 out.extend_from_slice(&bytes[i..end_idx]);
@@ -5406,7 +5414,7 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
             i += 1;
         }
     }
-    ok_out(&String::from_utf8_lossy(&out))
+    Ok(ok_out(&crate::vfs::bytes_to_stream_string(&out)))
 }
 
 fn cmd_expr(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
@@ -7090,7 +7098,7 @@ fn rfind_top_level_add_sub(s: &str) -> Option<(usize, char)> {
     None
 }
 
-fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
+fn cmd_numfmt(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
     let mut to_mode = "none".to_string();
     let mut from_mode = "none".to_string();
     let mut from_unit: f64 = 1.0;
@@ -7590,7 +7598,11 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
 
     let sep_char = if zero_terminated { '\0' } else { '\n' };
     let from_stdin = operands.is_empty();
+    let mut read_error = None;
     let records: Vec<(String, bool)> = if from_stdin {
+        let mut bytes = Vec::new();
+        read_error = stdin.append_bytes(&mut bytes).err();
+        let stdin = crate::vfs::bytes_to_stream_string(&bytes);
         let mut recs = Vec::new();
         if !stdin.is_empty() {
             let parts: Vec<&str> = stdin.split(sep_char).collect();
@@ -7728,6 +7740,13 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
         if has_term {
             out.push(sep_char);
         }
+    }
+    if let Some(error) = read_error {
+        let reason = match error.split(':').next().unwrap_or("") {
+            "EISDIR" => "Is a directory", "EIO" => "Input/output error", "EBADF" => "Bad file descriptor",
+            "EACCES" => "Permission denied", "EFBIG" => "File too large", _ => &error,
+        };
+        err.push_str(&format!("numfmt: error reading input: {reason}\n"));
     }
     let exit_code = if had_invalid && (invalid_mode == "abort" || invalid_mode == "fail") {
         2
@@ -11559,7 +11578,7 @@ fn factor_u128(mut n: u128) -> Vec<u128> {
     factors
 }
 
-fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
+fn cmd_factor(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
     let mut exponents = false;
     let mut options_ended = false;
     let mut operands: Vec<String> = Vec::new();
@@ -11602,7 +11621,11 @@ fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
     }
 
     let nums: Vec<String> = if operands.is_empty() {
-        stdin.split_whitespace().map(|s| s.to_string()).collect()
+        let mut bytes = Vec::new();
+        if let Err(error) = stdin.append_bytes(&mut bytes) {
+            return err_out(&format!("factor: standard input: {error}\n"), 1);
+        }
+        crate::vfs::bytes_to_stream_string(&bytes).split_whitespace().map(str::to_owned).collect()
     } else {
         operands
     };
@@ -21655,7 +21678,7 @@ mod tests {
         assert_eq!(expr.exit_code, 0);
         assert_eq!(expr.stdout.trim(), "50");
 
-        let factor = cmd_factor(&args(&["360"]), "");
+        let factor = try_run_coreutil("factor", &args(&["360"]), "", "/", &BTreeMap::new(), &vfs).unwrap();
         assert_eq!(factor.exit_code, 0);
         assert_eq!(factor.stdout.trim(), "360: 2 2 2 3 3 5");
     }

@@ -787,6 +787,7 @@ where
 {
     try_run_command_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut capture_write,
         |words, input, cwd, env, io| Ok(io.captured(exec_sub(words, input, cwd, env))))
+        .unwrap_or_else(|e| Some(BuiltinOutcome { stdout: String::new(), stderr: format!("shell: line 1: {e}\n"), exit_code: 1 }))
 }
 
 pub(crate) enum ChildIo<'a> {
@@ -822,57 +823,57 @@ pub(crate) fn try_run_command_with_input<F>(
     fs: &dyn SafeBashFs,
     write: &mut CommandWriter<'_>,
     mut exec_sub: F,
-) -> Option<BuiltinOutcome>
+) -> Result<Option<BuiltinOutcome>, String>
 where
     F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>, ChildIo) -> ChildRun,
 {
     let CommandInput { text: stdin, file } = input;
     if cmd == "env" {
-        return Some(run_env_command(args, stdin, cwd, env, fs, |words, input, cwd, env, stderr_before| {
+        return Ok(Some(run_env_command(args, stdin, cwd, env, fs, |words, input, cwd, env, stderr_before| {
             exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before }).unwrap_or_else(std::convert::identity)
-        }));
+        })));
     }
 
     if cmd == "timeout" {
-        return Some(run_timeout_command(args, stdin, cwd, env, |words, input, cwd, env| {
+        return Ok(Some(run_timeout_command(args, stdin, cwd, env, |words, input, cwd, env| {
             exec_sub(words, input, cwd, env, ChildIo::Inherit { stderr_before: "" }).unwrap_or_else(std::convert::identity)
-        }));
+        })));
     }
 
-    if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
-        return Some(out);
+    if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs)? {
+        return Ok(Some(out));
     }
     if let Some(out) = fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
-        return Some(out);
+        return Ok(Some(out));
     }
     if cmd == "xq" {
-        return Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs));
+        return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
     }
     if cmd == "xmllint" {
-        return Some(structured::cmd_xmllint(args, CommandInput { text: stdin, file }, cwd, fs));
+        return Ok(Some(structured::cmd_xmllint(args, CommandInput { text: stdin, file }, cwd, fs)));
     }
     if let Some(source) = file && let Err(error) = source.materialize(stdin) {
-        return Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 });
+        return Ok(Some(BuiltinOutcome { stdout: String::new(), stderr: format!("{cmd}: {error}\n"), exit_code: 1 }));
     }
     let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
         exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
     };
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
-        return Some(res);
+        return Ok(Some(res));
     }
     if let Some(res) = search::try_run_search_command_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write, exec_sub) {
-        return Some(res);
+        return Ok(Some(res));
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {
-        return Some(res);
+        return Ok(Some(res));
     }
     if let Some(res) = structured::try_run_structured_command(cmd, args, stdin, cwd, env, fs) {
-        return Some(res);
+        return Ok(Some(res));
     }
     if let Some(res) = archive::try_run_archive_command(cmd, args, stdin, cwd, env, fs) {
-        return Some(res);
+        return Ok(Some(res));
     }
-    None
+    Ok(None)
 }
 
 fn timeout_err(msg: &str) -> BuiltinOutcome {

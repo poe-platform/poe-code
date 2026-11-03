@@ -344,6 +344,48 @@ test("text utilities consume stdin once across operands and shell commands", asy
   } finally { bash.dispose(); }
 });
 
+test("utilities leave redirected input for the next command when operands supply their data", async () => {
+  const bash = new RustWasmBash({ files: { "/large": "abcdefghijklmn", "/small": "abc" } });
+  try {
+    for (const [cmd, expected] of [
+      ["rev /small", "cba"], ["factor 15", "15: 3 5\n"],
+      ["envsubst -v '$Z'", "Z\n"], ["numfmt 15", "15\n"],
+    ]) {
+      const r = await bash.exec(`{ ${cmd}; head -c1; } </large`, { limits: { maxInputBytes: 4 } });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected + "a", ""], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("factor, envsubst and numfmt consume their shared stdin once", async () => {
+  const bash = new RustWasmBash({ files: { "/numbers": "15 9\n" } });
+  try {
+    for (const [cmd, expected] of [
+      ["factor", "15: 3 5\n9: 3 3\n"], ["envsubst", "15 9\n"], ["numfmt", "15 9\n"],
+    ]) {
+      for (const script of [`${cmd}; cat`, `{ ${cmd}; cat; } </numbers`]) {
+        const r = await bash.exec(script, { stdin: "15 9\n" });
+        assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], script);
+      }
+    }
+  } finally { bash.dispose(); }
+});
+
+test("text utilities report redirected input errors after the bytes already read", async () => {
+  const bash = new RustWasmBash({ files: { "/large": "15 \n2222222222" } });
+  try {
+    for (const [cmd, expected, error] of [
+      ["rev", " 51\n", "rev: EFBIG: file too large, read '/large'"],
+      ["envsubst", "", "shell: line 2: EFBIG: file too large, read '/large'"],
+      ["factor", "", "factor: standard input: EFBIG: file too large, read '/large'"],
+      ["numfmt", "15 \n", "numfmt: error reading input: File too large"],
+    ]) {
+      const r = await bash.exec(`true\n{ ${cmd}; head -c1; } </large`, { limits: { maxInputBytes: 4 } });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, error + "\n"], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("cat, head and tail advance the shared stdin cursor only when they read", async () => {
   const bash = new RustWasmBash();
   try {

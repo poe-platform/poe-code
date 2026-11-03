@@ -6140,9 +6140,7 @@ where
 
     let format_entry_display = |raw_disp: &str, prefix_cwd: bool| -> String {
         let mut disp = raw_disp.to_string();
-        if strip_cwd_prefix && prefix_cwd && disp.starts_with("./") {
-            disp = disp[2..].to_string();
-        } else if !strip_cwd_prefix
+        if !strip_cwd_prefix
             && prefix_cwd
             && (has_exec || print0 || list_details)
             && !disp.starts_with('/')
@@ -6200,7 +6198,7 @@ where
                 else {
                     let dir_sep = path_separator.as_deref().unwrap_or("/");
                     if let Some(fmt) = &format_tpl { disp = format_fd_template(fmt, &disp); }
-                    else if is_dir && !disp.ends_with(dir_sep) { disp.push_str(dir_sep); }
+                    else if is_dir { disp.push_str(dir_sep); }
                     disp.push(if print0 { '\0' } else { '\n' });
                     stopped = !write(1, &disp, &mut result);
                 }
@@ -6234,14 +6232,8 @@ where
                 }
             }
         }
-        let label = if r == "." {
-            ""
-        } else if r == "/" {
-            "/"
-        } else {
-            r.trim_end_matches('/')
-        };
-        let prefix_cwd = r == "." || r.starts_with("./");
+        let prefix_cwd = r == ".";
+        let label = if prefix_cwd { "" } else { r };
         match walk_fd(
             label,
             "",
@@ -6426,8 +6418,8 @@ fn walk_fd(
             }
             let child_disp = if disp.is_empty() {
                 e.clone()
-            } else if disp == "/" {
-                format!("/{e}")
+            } else if disp.ends_with('/') {
+                format!("{disp}{e}")
             } else {
                 format!("{disp}/{e}")
             };
@@ -7443,6 +7435,23 @@ mod tests {
                 &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
             let stderr = if error.is_empty() { String::new() } else { format!("fd: {error}\n") };
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (if error.is_empty() { 0 } else { 2 }, stdout, stderr), "{argv:?}");
+        }
+    }
+
+    #[test]
+    fn fd_keeps_explicit_root_spelling_and_always_marks_directories() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w/d_").unwrap();
+        fs.write_file("/w/d_/a", b"").unwrap();
+        for (opts, stdout) in [
+            (vec!["--strip-cwd-prefix", "", "./d_"], "./d_/a\n"),
+            (vec!["-0", "--strip-cwd-prefix", "", "./d_"], "./d_/a\0"),
+            (vec!["--format={}", "", "d_//"], "d_//a\n"),
+            (vec!["--path-separator=_"], "d__\nd__a\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&opts), "", &mut "/w".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str()), (0, stdout), "{opts:?}");
         }
     }
 

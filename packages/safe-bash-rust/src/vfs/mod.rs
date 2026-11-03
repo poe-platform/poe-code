@@ -138,6 +138,9 @@ pub trait FileReadHandle: Send + Sync {
     fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String>;
 }
 
+/// Bytes already charged by the shell that produced this redirect's data.
+pub struct RedirectCharge(pub(crate) usize);
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -162,6 +165,11 @@ pub trait SafeBashFs: Send + Sync {
             if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
             Ok(None)
         }
+    }
+
+    /// Write to a path when the filesystem did not supply a retained redirect handle.
+    fn write_redirect_path(&self, path: &str, data: &[u8], append: bool, _charge: RedirectCharge) -> Result<(), String> {
+        if append { self.append_file(path, data) } else { self.write_file(path, data) }
     }
 
     fn open_read_file(&self, _path: &str, _allow_directory: bool) -> Result<Box<dyn FileReadHandle>, String> {

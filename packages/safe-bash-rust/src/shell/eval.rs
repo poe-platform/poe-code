@@ -10131,7 +10131,7 @@ impl<'a> EvalState<'a> {
                     Some(file) => self.budget.tick_fs_op()
                         .and_then(|_| self.budget.add_output_bytes(bytes.len() - charged))
                         .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
-                    None => self.fs.append_file(path, &bytes),
+                    None => self.fs.write_redirect_path(path, &bytes, true, crate::vfs::RedirectCharge(charged)),
                 };
                 match result {
                     Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
@@ -10151,7 +10151,7 @@ impl<'a> EvalState<'a> {
                 let cur_off = pos.offset;
                 let write_bytes = stream_string_to_bytes(data);
                 let Some(file) = file else {
-                    if let Err(e) = self.fs.write_file(path, &write_bytes) {
+                    if let Err(e) = self.fs.write_redirect_path(path, &write_bytes, false, crate::vfs::RedirectCharge(charged)) {
                         out.stderr.push_str(&format!("{path}: {e}\n"));
                         out.exit_code = 1;
                     }

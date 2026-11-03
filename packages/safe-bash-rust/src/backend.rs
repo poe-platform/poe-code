@@ -166,10 +166,7 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        self.budget.limits.check_path(path)?;
-        self.budget.tick_fs_op()?;
-        self.budget.add_output_bytes(data.len())?;
-        self.inner.write_file(&host_text(path), data).map_err(quote_host_text)
+        self.write_redirect_path(path, data, false, crate::vfs::RedirectCharge(0))
     }
 
     fn patch_revision(&self, path: &str) -> Result<(u64, u64), String> {
@@ -217,10 +214,16 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.write_redirect_path(path, data, true, crate::vfs::RedirectCharge(0))
+    }
+
+    fn write_redirect_path(&self, path: &str, data: &[u8], append: bool, charge: crate::vfs::RedirectCharge) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.budget.add_output_bytes(data.len())?;
-        self.inner.append_file(&host_text(path), data).map_err(quote_host_text)
+        self.budget.add_output_bytes(data.len() - charge.0)?;
+        let path = host_text(path);
+        if append { self.inner.append_file(&path, data) } else { self.inner.write_file(&path, data) }
+            .map_err(quote_host_text)
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {

@@ -9841,3 +9841,15 @@ test("redirecting a nested command preserves the quota for each output stream", 
     }
   } finally { sh.dispose(); }
 });
+
+test("path-based writes to mounted devices charge only newly emitted bytes", async () => {
+  const sh = new RustWasmBash({deviceView: "provided"});
+  sh.mountDevices();
+  try {
+    for (const script of ["env sh -c 'printf aa' >/dev/null", "exec 3<>/dev/null; env sh -c 'printf aa' >&3"]) {
+      const r = await sh.exec(script, {limits: {maxOutputBytes: 2}});
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "", ""]);
+      await assert.rejects(sh.exec(script, {limits: {maxOutputBytes: 1}}), /maxOutputBytes/);
+    }
+  } finally { sh.dispose(); }
+});

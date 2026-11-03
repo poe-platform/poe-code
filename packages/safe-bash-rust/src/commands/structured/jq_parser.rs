@@ -1088,8 +1088,9 @@ impl Modules<'_> {
                 return Err("invalid module path".into());
             }
             let mut found = false;
+            let filename = crate::vfs::shell_text(&path);
             for dir in self.dirs {
-                let full = resolve_posix_path(self.cwd, &format!("{dir}/{path}.jq"));
+                let full = resolve_posix_path(self.cwd, &format!("{dir}/{filename}.jq"));
                 if self.active.contains(&full) {
                     return Err(format!("module dependency cycle: {path}").into());
                 }

@@ -1167,6 +1167,19 @@ test("jq reads each module as a program file and only skips missing candidates",
   } finally { sh.dispose(); }
 });
 
+test("jq resolves literal and escaped Unicode module names to the same file", async () => {
+  const sh = new RustWasmBash({ files: {
+    "/lib/a\ue080.jq": "def value: 42;",
+    "/lib/a�.jq": "def value: 99;",
+  } });
+  try {
+    for (const name of ["a\ue080", String.raw`a\ue080`, "a�"]) {
+      const r = await sh.exec(`jq -L/lib -nc 'include "${name}"; value'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, name === "a�" ? "99\n" : "42\n", ""]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("jq compiles nested modules in their own scope before opening inputs", async () => {
   const bash = new RustWasmBash({ files: {
     "/workspace/lib/base.jq": 'def pair($a;$b): [$a,$b]; def tag: "m::tag";',

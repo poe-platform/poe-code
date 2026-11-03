@@ -1355,7 +1355,7 @@ impl<'a> EvalState<'a> {
         }
 
         if pipe.commands.len() == 1 {
-            let res = self.eval_command_node(&pipe.commands[0], stdin, !pipe.negated);
+            let res = self.eval_command_node(&pipe.commands[0], stdin, Some(pipe.negated));
             self.in_condition = prev_cond;
             let mut out = res?;
             let raw_code = out.exit_code;
@@ -1421,7 +1421,7 @@ impl<'a> EvalState<'a> {
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let outer_input = self.fd_table.remove(&0);
-                let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin, false);
+                let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin, None);
                 if let Some(target) = outer_input {
                     self.fd_table.insert(0, target);
                 }
@@ -1470,9 +1470,9 @@ impl<'a> EvalState<'a> {
                 sub.in_pipeline_producer = true;
             }
             let stage_res = if idx == 0 {
-                sub.eval_command_node(cmd_node, stdin, false)
+                sub.eval_command_node(cmd_node, stdin, None)
             } else {
-                sub.eval_command_node(cmd_node, &mut cur_stdin, false)
+                sub.eval_command_node(cmd_node, &mut cur_stdin, None)
             };
             let mut stage_out = match stage_res {
                 Ok(o) => o,
@@ -1530,7 +1530,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         node: &CommandNode,
         stdin: &mut String,
-        standalone: bool,
+        standalone: Option<bool>,
     ) -> Result<BuiltinOutcome, EvalError> {
         if self.async_default_stdin {
             let prev_async = std::mem::replace(&mut self.async_default_stdin, false);
@@ -1580,7 +1580,7 @@ impl<'a> EvalState<'a> {
                 self.budget.enter_recursion().map_err(EvalError::Budget)?;
                 let prev_iso = std::mem::replace(&mut self.isolated_inline_input, true);
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    match self.setup_redirects(redirects, stdin, true) {
+                    match self.setup_redirects(redirects, stdin) {
                         Ok(r) => {
                             self.isolated_inline_input = prev_iso;
                             r
@@ -1638,7 +1638,7 @@ impl<'a> EvalState<'a> {
             }
             CommandNode::Group { body, redirects } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -1666,7 +1666,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -1730,7 +1730,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -1847,7 +1847,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2068,7 +2068,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2189,7 +2189,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2295,7 +2295,7 @@ impl<'a> EvalState<'a> {
                 redirects,
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     if !self.in_condition && !self.in_trap {
@@ -2382,7 +2382,7 @@ impl<'a> EvalState<'a> {
                     self.current_line = *line;
                 }
                 let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin, true)?;
+                    self.setup_redirects(redirects, stdin)?;
                 if let Some(err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     return Ok(err_out);
@@ -3032,21 +3032,29 @@ impl<'a> EvalState<'a> {
         }
         Ok(out)
     }
-    fn try_mapfile_here_string(&mut self, simple: &SimpleCommand) -> Result<bool, EvalError> {
-        let [redirect] = simple.redirects.as_slice() else { return Ok(false) };
-        if !matches!(redirect.kind, RedirectKind::HereString(0)) || !simple.assignments.is_empty()
-            || self.budget.limits.max_expansion_bytes < 65536 || self.budget.limits.max_commands < 1000
-            || self.env.get("\0set_allexport").is_some_and(|v| v == "1")
+    fn direct_builtin_words<'s>(&self, simple: &'s SimpleCommand) -> Option<&'s [String]> {
+        if !simple.assignments.is_empty() || self.budget.limits.max_expansion_bytes < 65536
+            || self.budget.limits.max_commands < 1000
             || self.env.get("\0attr__PIPESTATUS").is_some_and(|a| a.contains('r')) {
-            return Ok(false);
+            return None;
         }
         let mut words = simple.words.as_slice();
-        if let [prefix, rest @ ..] = words
-            && matches!(prefix.as_str(), "builtin" | "command") && !self.functions.contains_key(prefix) {
+        if let [prefix, rest @ ..] = words && matches!(prefix.as_str(), "builtin" | "command") {
+            if self.functions.contains_key(prefix) { return None; }
             words = if rest.first().is_some_and(|s| s == "--") { &rest[1..] } else { rest };
         }
+        if self.functions.contains_key(words.first()?) { return None; }
+        Some(words)
+    }
+
+    fn try_mapfile_here_string(&mut self, simple: &SimpleCommand) -> Result<bool, EvalError> {
+        let [redirect] = simple.redirects.as_slice() else { return Ok(false) };
+        if !matches!(redirect.kind, RedirectKind::HereString(0)) || self.env.get("\0set_allexport").is_some_and(|v| v == "1") {
+            return Ok(false);
+        }
+        let Some(words) = self.direct_builtin_words(simple) else { return Ok(false) };
         if !matches!(words.len(), 2 | 3) || words[1] != "-t"
-            || !matches!(words[0].as_str(), "mapfile" | "readarray") || self.functions.contains_key(&words[0]) {
+            || !matches!(words[0].as_str(), "mapfile" | "readarray") {
             return Ok(false);
         }
         // Production uses the plain array name or MAPFILE, even for a quoted target.
@@ -3094,7 +3102,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         simple: &SimpleCommand,
         stdin: &mut String,
-        standalone: bool,
+        standalone: Option<bool>,
     ) -> Result<BuiltinOutcome, EvalError> {
         if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
             stdin.clone_from(&unread.borrow());
@@ -3119,7 +3127,7 @@ impl<'a> EvalState<'a> {
             return Ok(debug_out);
         }
 
-        if standalone && self.try_mapfile_here_string(simple)? {
+        if standalone == Some(false) && self.try_mapfile_here_string(simple)? {
             return Ok(debug_out);
         }
 
@@ -3130,10 +3138,16 @@ impl<'a> EvalState<'a> {
         } else {
             false
         };
+        let mut print_index = if standalone.is_some()
+            && matches!(simple.redirects.as_slice(), [Redirect { kind: RedirectKind::HereString(_), .. }])
+            && matches!(self.fd_table.get(&1), None | Some(FdTarget::Stdout)) {
+            self.direct_builtin_words(simple).filter(|words| words.len() >= 2 && matches!(words[0].as_str(), "echo" | "printf"))
+                .map(|words| simple.words.len() - words.len())
+        } else { None };
         let mut expanded_words = Vec::new();
         if is_double_bracket {
             let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
-                match self.setup_redirects(&simple.redirects, stdin, true) {
+                match self.setup_redirects(&simple.redirects, stdin) {
                     Ok(r) => r,
                     Err(e) => {
                         if synced_fd0 {
@@ -3301,6 +3315,16 @@ impl<'a> EvalState<'a> {
                 } else {
                     match self.expand_word_to_fields(w) {
                         Ok(fields) => {
+                            if let Some(index) = print_index && idx > index {
+                                let members = (simple.words[index] == "echo" || idx > index + 1) && w.strip_prefix("\"${")
+                                    .and_then(|w| w.strip_suffix("[@]}\"")).is_some_and(is_valid_shell_ident);
+                                let direct = if members {
+                                    fields.iter().all(|s| !s.contains('\0') && stream_byte_len(s) == s.len())
+                                } else {
+                                    fields.len() == 1 && direct_print_word(w, &fields[0], self.env.get("\0set_noglob").is_some_and(|s| s == "1"))
+                                };
+                                if !direct { print_index = None; }
+                            }
                             expanded_words.extend(fields);
                             if expanded_words.len() > self.budget.limits.max_expansion_fields {
                                 if synced_fd0 {
@@ -3345,10 +3369,33 @@ impl<'a> EvalState<'a> {
             *stdin = self.in_fds.remove(&0).unwrap_or_default().take();
         }
 
+        if let Some(index) = print_index {
+            let args = &expanded_words[index + 1..];
+            let available = self.budget.remaining_output_bytes();
+            let output = match expanded_words[index].as_str() {
+                "echo" if args.first().is_none_or(|a| !a.starts_with('-')) && self.env.get("\0shopt_xpg_echo").is_none_or(|s| s != "1")
+                    && args.iter().map(|s| s.len() + 1).sum::<usize>().max(1) <= available => Some(args.join(" ") + "\n"),
+                "printf" => {
+                    let formats = if args.first().is_some_and(|s| s == "--") { &args[1..] } else if args.first().is_some_and(|s| s.starts_with('-')) { &[] } else { args };
+                    formats.split_first().and_then(|(fmt, vals)| super::builtins::format_printf(fmt, vals, self.env, Some(available)))
+                        .filter(|out| out.exit_code == 0).map(|out| out.stdout)
+                }
+                _ => None,
+            };
+            if let Some(stdout) = output {
+                self.env.remove("_");
+                self.env.insert("\0last_arg".into(), expanded_words.last().unwrap().clone());
+                let mut out = debug_out;
+                out.stdout.push_str(&stdout);
+                self.route_outcome(&mut out);
+                return Ok(out);
+            }
+        }
+
         // Handle permanent FD changes via `exec` with no command words
         if expanded_words.len() == 1 && expanded_words[0] == "exec" {
             let (saved_fds, saved_in, local_stdin, use_local, _dup_fd, redir_err) =
-                self.setup_redirects(&simple.redirects, stdin, true)?;
+                self.setup_redirects(&simple.redirects, stdin)?;
             if let Some(err_out) = redir_err {
                 self.restore_redirects(saved_fds, saved_in);
                 return Ok(err_out);
@@ -3472,23 +3519,9 @@ impl<'a> EvalState<'a> {
             for binding in temp_saved.iter_mut().rev() { binding.exchange(self.env); }
         }
 
-        let direct_here = matches!(simple.redirects.as_slice(), [Redirect { kind: RedirectKind::HereString(_), .. }])
-            && simple.assignments.is_empty() && expanded_words.first().is_some_and(|name|
-                simple.words.first() == Some(name) && !self.functions.contains_key(name))
-            && {
-                let offset = usize::from(matches!(expanded_words[0].as_str(), "command" | "builtin"));
-                match expanded_words.get(offset..).unwrap_or_default() {
-                    [name, arg, ..] if simple.words.get(offset) == Some(name) => match name.as_str() {
-                        "echo" => !arg.starts_with('-'),
-                        "printf" => !arg.starts_with('-') || arg == "--",
-                        _ => false,
-                    },
-                    _ => false,
-                }
-            };
         let prev_iso = std::mem::replace(&mut self.isolated_inline_input, is_external_inline);
         let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-            match self.setup_redirects(&simple.redirects, stdin, !direct_here) {
+            match self.setup_redirects(&simple.redirects, stdin) {
                 Ok(res) => {
                     self.isolated_inline_input = prev_iso;
                     self.redirect_assignments.clear();
@@ -3743,7 +3776,7 @@ impl<'a> EvalState<'a> {
             } else {
                 let mut r = match &func_body {
                     CommandNode::Group { body, redirects } if redirects.is_empty() => self.eval_script(body, stdin),
-                    cmd => self.eval_command_node(cmd, stdin, false),
+                    cmd => self.eval_command_node(cmd, stdin, None),
                 };
                 if let Ok(ref mut o) = r {
                     if !fn_dbg_out.stdout.is_empty() || !fn_dbg_out.stderr.is_empty() {
@@ -9440,7 +9473,6 @@ impl<'a> EvalState<'a> {
         &mut self,
         redirects: &[Redirect],
         default_stdin: &str,
-        prepare_here_string: bool,
     ) -> Result<
         (
             SavedFds,
@@ -9642,8 +9674,7 @@ impl<'a> EvalState<'a> {
                             self.budget.limits.max_expansion_bytes
                         )));
                     }
-                    if size > self.budget.limits.max_input_bytes
-                        && (prepare_here_string || matches!(r.kind, RedirectKind::HereDoc { .. })) {
+                    if size > self.budget.limits.max_input_bytes {
                         let mut error = BuiltinOutcome {
                             stdout: std::mem::take(&mut self.pending_stdout),
                             stderr: format!("{}{}EFBIG: file too large, read\n", std::mem::take(&mut self.pending_stderr), self.diag_prefix()),
@@ -14836,6 +14867,44 @@ fn expand_braces(word: &str) -> Vec<String> {
         .unwrap_or_else(|_| vec![word.to_string()])
 }
 
+// Direct printing needs one text value per word. Expansions that run commands,
+// perform arithmetic, split fields, or expand pathnames require normal setup.
+fn direct_print_word(word: &str, value: &str, noglob: bool) -> bool {
+    if word.starts_with('~') || value.contains('\0') || stream_byte_len(value) != value.len() { return false; }
+    let mut quote = None;
+    let mut chars = word.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if quote == Some('\'') {
+            if ch == '\'' { quote = None; }
+            continue;
+        }
+        match ch {
+            '\\' => { chars.next(); }
+            '"' => quote = if quote.is_some() { None } else { Some('"') },
+            '\'' if quote.is_none() => quote = Some('\''),
+            '`' => return false,
+            '$' => {
+                if chars.peek() == Some(&'(') { return false; }
+                if quote.is_none() && chars.peek() == Some(&'\'') { continue; }
+                if quote.is_none() && (value.is_empty() || value.contains([' ', '\t', '\n', '*', '?', '['])) { return false; }
+                let braced = chars.peek() == Some(&'{');
+                if braced { chars.next(); }
+                let mut name = String::new();
+                while let Some(&c) = chars.peek() && (c == '_' || c.is_ascii_alphanumeric()) {
+                    name.push(c); chars.next();
+                }
+                if matches!(name.as_str(), "BASH_SUBSHELL" | "BASHPID" | "RANDOM" | "SECONDS" | "PIPESTATUS" | "LINENO" | "_" | "FUNCNAME" | "DIRSTACK") { return false; }
+                if braced && chars.by_ref().take_while(|&c| c != '}').any(|c| matches!(c, '=' | '?' | '$' | '`' | '[' | '!')) { return false; }
+            }
+            '*' | '?' | '[' if quote.is_none() && !noglob => return false,
+            '{' if quote.is_none() && (word.contains(',') || word.contains("..")) => return false,
+            '<' | '>' if quote.is_none() => return false,
+            _ => {}
+        }
+    }
+    true
+}
+
 fn is_valid_shell_ident(s: &str) -> bool {
     let mut chars = s.chars();
     let Some(first) = chars.next() else {
@@ -15076,7 +15145,7 @@ mod tests {
         let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &custom, false);
         let redirect = Redirect { kind: RedirectKind::Out(1), target: "/log".into() };
         let (_, _, local_input, redirected, _, error) =
-            state.setup_redirects(&[redirect], "still on descriptor zero", true).unwrap();
+            state.setup_redirects(&[redirect], "still on descriptor zero").unwrap();
         assert!(error.is_none() && !redirected && local_input.is_empty());
     }
 

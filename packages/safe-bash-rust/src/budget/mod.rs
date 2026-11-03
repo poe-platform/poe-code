@@ -238,6 +238,10 @@ impl ExecutionBudget {
         Ok(())
     }
 
+    pub(crate) fn remaining_output_bytes(&self) -> usize {
+        self.limits.max_output_bytes.saturating_sub(self.output_bytes.load(Ordering::Relaxed))
+    }
+
     pub fn add_output_bytes(&self, bytes: usize) -> Result<(), String> {
         if bytes == 0 {
             return Ok(());

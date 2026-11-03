@@ -1496,7 +1496,64 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
             exit_code: 1,
         };
     }
-    let val_args = &args[idx + 1..];
+    let BuiltinOutcome { stdout: out, stderr, exit_code } = format_printf(raw_fmt, &args[idx + 1..], env, None).unwrap();
+    if let Some(var) = assign_var {
+        let resolved = resolve_nameref_base(&var, env).to_string();
+        let base = resolved
+            .split_once('[')
+            .map(|(b, _)| b)
+            .unwrap_or(&resolved);
+        if env
+            .get(&format!("\0attr__{base}"))
+            .is_some_and(|a| a.contains('r'))
+        {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{stderr}printf: {base}: readonly variable\n"),
+                exit_code: 1,
+            };
+        }
+        if base != "FUNCNAME" {
+            let truncated = out.split('\0').next().unwrap_or("").to_string();
+            env.insert(resolved.clone(), truncated);
+            if let Some((base, _)) = resolved.split_once('[') {
+                sync_array_metadata(base, env);
+            }
+        }
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code,
+        }
+    } else {
+        BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code,
+        }
+    }
+}
+
+pub(super) fn format_printf(raw_fmt: &str, val_args: &[String], env: &BTreeMap<String, String>, direct_limit: Option<usize>) -> Option<BuiltinOutcome> {
+    if direct_limit.is_some() {
+        if raw_fmt.encode_utf16().count() > 256 { return None; }
+        let mut chars = raw_fmt.chars().peekable();
+        while let Some(ch) = chars.next() {
+            if ch != '\\' { continue; }
+            match chars.next()? {
+                'a' | 'b' | 'e' | 'E' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | '"' | '\'' => {}
+                ch @ ('0'..='7' | 'x') => {
+                    let (base, mut n) = if ch == 'x' { (16, chars.next()?.to_digit(16)?) } else { (8, ch.to_digit(8)?) };
+                    for _ in 0..if base == 16 { 1 } else { 2 } {
+                        let Some(d) = chars.peek().and_then(|c| c.to_digit(base)) else { break };
+                        chars.next(); n = n * base + d;
+                    }
+                    if !(1..128).contains(&(n & 255)) { return None; }
+                }
+                _ => return None,
+            }
+        }
+    }
     let mut out = String::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
@@ -1507,6 +1564,7 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
         let start_arg_i = arg_i;
         let mut offset = 0usize;
         while offset < raw_fmt.len() && !stop_all {
+            if direct_limit.is_some_and(|limit| out.len() > limit) { return None; }
             if !raw_fmt[offset..].starts_with('%') {
                 let next_pct = raw_fmt[offset..]
                     .find('%')
@@ -1592,24 +1650,33 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
             } else {
                 None
             };
+            if direct_limit.is_some() {
+                let spec = &raw_fmt[dir_start + 1..offset];
+                if !spec.bytes().all(|c| c.is_ascii_digit() || matches!(c, b'-' | b'.'))
+                    || width.is_some_and(|w| w > 128) || precision.is_some_and(|p| p > 128)
+                    || spec.split(['-', '.']).any(|digits| !digits.is_empty() && digits.parse::<u32>().is_err()) {
+                    return None;
+                }
+            }
+            let spec_end = offset;
             let mut time_format: Option<String> = None;
             if raw_fmt[offset..].starts_with('(') {
                 offset += 1;
                 let Some(close_rel) = raw_fmt[offset..].find(')') else {
-                    return BuiltinOutcome {
+                    return Some(BuiltinOutcome {
                         stdout: out,
                         stderr: format!("{stderr}printf: invalid time format\n"),
                         exit_code: 1,
-                    };
+                    });
                 };
                 let tf = raw_fmt[offset..offset + close_rel].to_string();
                 offset += close_rel + 1;
                 if !raw_fmt[offset..].starts_with('T') {
-                    return BuiltinOutcome {
+                    return Some(BuiltinOutcome {
                         stdout: out,
                         stderr: format!("{stderr}printf: invalid time format\n"),
                         exit_code: 1,
-                    };
+                    });
                 }
                 time_format = Some(tf);
             } else {
@@ -1624,20 +1691,20 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
 
             let Some(conv) = raw_fmt[offset..].chars().next() else {
                 let preview = &raw_fmt[dir_start..];
-                return BuiltinOutcome {
+                return Some(BuiltinOutcome {
                     stdout: out,
                     stderr: format!("{stderr}printf: invalid format near '{preview}'\n"),
                     exit_code: 1,
-                };
+                });
             };
             offset += conv.len_utf8();
             if !"sbqQcCSdiouxXfFeEgGaAT".contains(conv) {
                 let preview = &raw_fmt[dir_start..];
-                return BuiltinOutcome {
+                return Some(BuiltinOutcome {
                     stdout: out,
                     stderr: format!("{stderr}printf: invalid format near '{preview}'\n"),
                     exit_code: 1,
-                };
+                });
             }
             let supplied_idx = arg_i;
             let raw_arg = val_args.get(arg_i).map(|s| s.as_str()).unwrap_or("");
@@ -1655,6 +1722,20 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
             let space_sign = flags.contains(' ');
             let alt_form = flags.contains('#');
 
+            if direct_limit.is_some() {
+                let direct = spec_end + conv.len_utf8() == offset && match conv {
+                    's' => !zero_pad && !raw_arg.contains('\0') && (precision.is_none() || raw_arg.is_ascii()),
+                    'c' => !zero_pad && raw_arg.as_bytes().first().is_some_and(|&b| b != 0 && b.is_ascii()),
+                    'd' | 'i' | 'u' | 'o' | 'x' | 'X' => {
+                        let arg = val_args.get(supplied_idx).map_or("0", String::as_str);
+                        let digits = if matches!(conv, 'd' | 'i') { arg.strip_prefix(['+', '-']).unwrap_or(arg) } else { arg };
+                        arg.len() <= 15 && !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
+                            && (digits.len() == 1 || !digits.starts_with('0'))
+                    }
+                    _ => false,
+                };
+                if !direct { return None; }
+            }
             let formatted = match conv {
                 's' | 'S' => {
                     let s = if let Some(p) = precision {
@@ -1912,41 +1993,8 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
         }
     }
 
-    if let Some(var) = assign_var {
-        let resolved = resolve_nameref_base(&var, env).to_string();
-        let base = resolved
-            .split_once('[')
-            .map(|(b, _)| b)
-            .unwrap_or(&resolved);
-        if env
-            .get(&format!("\0attr__{base}"))
-            .is_some_and(|a| a.contains('r'))
-        {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("{stderr}printf: {base}: readonly variable\n"),
-                exit_code: 1,
-            };
-        }
-        if base != "FUNCNAME" {
-            let truncated = out.split('\0').next().unwrap_or("").to_string();
-            env.insert(resolved.clone(), truncated);
-            if let Some((base, _)) = resolved.split_once('[') {
-                sync_array_metadata(base, env);
-            }
-        }
-        BuiltinOutcome {
-            stdout: String::new(),
-            stderr,
-            exit_code,
-        }
-    } else {
-        BuiltinOutcome {
-            stdout: out,
-            stderr,
-            exit_code,
-        }
-    }
+    if direct_limit.is_some_and(|limit| out.len() > limit) { return None; }
+    Some(BuiltinOutcome { stdout: out, stderr, exit_code })
 }
 
 fn pad_string(val: &str, width: usize, left_align: bool, zero_pad: bool) -> String {

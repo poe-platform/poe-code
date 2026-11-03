@@ -9501,3 +9501,22 @@ test("mapfile checks a direct here-string in UTF-16 units before replacing its a
     assert.deepEqual([unset.exitCode, unset.stdout, unset.stderr], [1, "", "shell: line 1: unknown: unbound variable\n"]);
   } finally { rs.dispose(); }
 });
+
+test("direct printing skips the here-string operand only when it can write the result", async () => {
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    const error = "shell: line 1: EFBIG: file too large, read\n";
+    for (const [cmd, output] of [
+      ['printf x', 'x'], ['command -- printf "%04d" 7', '0007'], ['printf "%c:%s" A 🦊', 'A:🦊'],
+      ['echo "a b"', 'a b\n'], ['x=(a b); echo "${x[@]}"', 'a b\n'],
+      ['echo "$RANDOM"'], ['echo ~'], ['set -f; echo *', '*\n'], ['printf %q x'], ['printf %b x'], ['printf %d 08'],
+      ['printf "%c" 🦊'], ['printf x $(true)'], ['echo a*'], ['shopt -s xpg_echo; echo a'],
+    ]) {
+      const r = await rs.exec('rm -f /wrote; ' + cmd + ' 1<<<$(touch /wrote; printf 1234)', {limits: {maxInputBytes: 4}});
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], output === undefined ? [1, "", error] : [0, output, ""], cmd);
+      assert.equal((await rs.exec("test -f /wrote")).exitCode, Number(output !== undefined), cmd);
+    }
+    await assert.rejects(rs.exec("rm -f /wrote; echo long <<<$(touch /wrote)", {limits: {maxOutputBytes: 2}}), /maxOutputBytes/);
+    assert.equal((await rs.exec("test -f /wrote")).exitCode, 0);
+  } finally { rs.dispose(); }
+});

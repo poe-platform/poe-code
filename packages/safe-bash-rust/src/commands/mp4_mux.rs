@@ -1843,7 +1843,7 @@ fn materialize<'a>(
             || seek.loops > 0
                 && matches!(
                     format,
-                    "mp4" | "mov" | "avi" | "flv" | "mkv" | "webm" | "aac" | "image2" | "lavfi"
+                    "mp4" | "mov" | "mpegts" | "avi" | "flv" | "mkv" | "webm" | "aac" | "image2" | "lavfi"
                 ))
             && !audio
             && !matches!(format, "wav" | "y4m" | "gif")
@@ -1860,6 +1860,8 @@ fn materialize<'a>(
             let doc = super::mkv_input::parse(input, limit)?;
             bytes = Cow::Owned(mkv::as_mp4(&doc, limit)?);
             matroska = Some(doc);
+        } else if format == "mpegts" {
+            bytes=Cow::Owned(mpegts::as_mp4(input,opts.limit.saturating_sub(admitted))?);
         } else if format == "avi" {
             let (mp4, descriptions) = avi::as_mp4(input, opts.limit.saturating_sub(admitted))?;
             bytes = Cow::Owned(mp4);

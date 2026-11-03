@@ -230,3 +230,98 @@ pub(super) fn write(
     }
     Ok(w.out)
 }
+
+pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
+    use super::super::super::media_probe::Codec;
+    use super::super::mpegts_input::{self, Read};
+    use super::{
+        MATRIX, Sample, VideoCodec, audio_sample_entry, audio_specific_config, video_entry,
+    };
+    let streams = mpegts_input::parse(bytes, limit, Read::Payloads)?;
+    let mut tracks = Vec::new();
+    let mut budget = limit;
+    for s in &streams {
+        let info = &s.info;
+        budget = budget
+            .checked_sub(size_of::<Track>() + s.packets.len().saturating_mul(size_of::<Sample>()))
+            .ok_or("sample index exceeds memory budget")?;
+        let (name, handler, w, h, stsd) = match info.codec {
+            Codec::Video { tag, width, height } => {
+                let w = width.unwrap_or(320) as u32;
+                let h = height.unwrap_or(240);
+                let codec = if tag == b"avc1" {
+                    VideoCodec::Config(&s.config)
+                } else {
+                    VideoCodec::Still(tag)
+                };
+                (
+                    b"VideoHandler".as_slice(),
+                    *b"vide",
+                    w,
+                    h,
+                    video_entry(w as usize, h as usize, codec)?,
+                )
+            }
+            Codec::Audio {
+                tag,
+                rate,
+                channels,
+                bits,
+                ..
+            } => (
+                b"SoundHandler".as_slice(),
+                *b"soun",
+                0,
+                0,
+                audio_sample_entry(
+                    tag,
+                    rate,
+                    channels,
+                    bits,
+                    &audio_specific_config(rate, channels, s.object),
+                ),
+            ),
+            Codec::Subtitle { .. } => unreachable!(),
+        };
+        let samples = s
+            .packets
+            .iter()
+            .map(|p| Sample {
+                data: s.data[p.pos as usize..(p.pos + p.size) as usize].into(),
+                duration: p.ticks as u32,
+                cts: p.pts - p.dts,
+                key: p.key,
+                description: 1,
+            })
+            .collect();
+        tracks.push(Track {
+            id: info.id as u32,
+            scale: info.scale,
+            media_ticks: info.ticks as u32,
+            movie_ticks: (info.ticks / f64::from(info.scale) * 90000.).round() as u32,
+            samples,
+            first_dts: 0,
+            fragment_sample_size: None,
+            stsd: stsd.into(),
+            edits: vec![],
+            kind: s.kind,
+            handler,
+            name,
+            width: w,
+            height: h,
+            volume: if s.kind == "audio" { 256 } else { 0 },
+            enabled: true,
+            language: 0x55c4,
+            matrix: MATRIX,
+        });
+    }
+    super::write(
+        &tracks,
+        90000,
+        b"isom\0\0\x02\0isomiso2avc1mp41",
+        &Default::default(),
+        &[],
+        false,
+        limit,
+    )
+}

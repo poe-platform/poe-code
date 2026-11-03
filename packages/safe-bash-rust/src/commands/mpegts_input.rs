@@ -6,7 +6,7 @@ use super::h264;
 use std::collections::BTreeMap;
 type Result<T> = std::result::Result<T, &'static str>;
 
-fn framing(b: &[u8]) -> Result<(usize, usize)> {
+pub(in super::super) fn framing(b: &[u8]) -> Result<(usize, usize)> {
     for (stride, skip) in [(188, 0), (192, 4)] {
         if b.len() >= stride
             && b[skip] == 0x47
@@ -170,31 +170,47 @@ fn streams(bytes: &[u8], budget: &mut usize) -> Result<Vec<(u8, Stream)>> {
         })
         .collect())
 }
-struct Track {
-    info: StreamInfo,
-    packets: Vec<Packet>,
-    kind: &'static str,
+pub(super) struct Track {
+    pub info: StreamInfo,
+    pub packets: Vec<Packet>,
+    pub data: Vec<u8>,
+    pub config: Vec<u8>,
+    pub object: u8,
+    pub kind: &'static str,
     ordinal: usize,
 }
-pub(in super::super) fn report(
-    bytes: &[u8],
-    name: &str,
-    limit: usize,
-    opts: ProbeOptions<'_>,
-) -> Result<String> {
+#[derive(PartialEq, Clone, Copy)]
+pub(super) enum Read {
+    Summary,
+    Packets,
+    Payloads,
+}
+pub(super) fn parse(bytes: &[u8], limit: usize, mode: Read) -> Result<Vec<Track>> {
     let mut budget = limit;
+    let mut payload_budget = limit;
     let mut tracks = Vec::new();
     let mut ordinals = [0, 0];
-    let records = opts.show.contains("frame") || opts.show.contains("packet");
     for (ty, stream) in streams(bytes, &mut budget)? {
         let mut packets = Vec::new();
+        let mut config = Vec::new();
+        let mut object = 2;
+        let mut data = Vec::new();
+        let mut append = |part: &[u8]| -> Result<()> {
+            if mode == Read::Payloads {
+                payload_budget = payload_budget
+                    .checked_sub(part.len())
+                    .ok_or("input byte limit exceeded")?;
+                data.extend_from_slice(part);
+            }
+            Ok(())
+        };
         let (mut total, mut count, mut start, mut size, mut has_cts) = (0., 0, 0, 0, false);
         let mut push = |pts, dts, ticks: i64, bytes: usize, key| -> Result<()> {
             if count == 0 {
                 start = pts;
             }
             has_cts |= pts != dts;
-            if records {
+            if mode != Read::Summary {
                 budget = budget
                     .checked_sub(size_of::<Packet>())
                     .ok_or("sample index exceeds memory budget")?;
@@ -215,6 +231,7 @@ pub(in super::super) fn report(
         let (codec, scale, profile, kind, ki) = match ty {
             0x1b | 0x24 => {
                 let mut seq = None;
+                let mut sets = [&[][..]; 2];
                 let mut last_ticks = 0;
                 let base = |s: &Pes| if s.dts == 0 { s.pts } else { s.dts };
                 let origin = base(&stream.packets[0]);
@@ -224,14 +241,21 @@ pub(in super::super) fn report(
                     for nal in h264::nals(payload) {
                         match nal[0] & 31 {
                             7 => {
+                                sets[0] = payload;
                                 sps.get_or_insert(nal);
                             }
-                            8 | 9 => (),
+                            8 => sets[1] = payload,
+                            9 => (),
                             t => {
+                                append(&(nal.len() as u32).to_be_bytes())?;
+                                append(nal)?;
                                 n += 4 + nal.len();
                                 key |= t == 5;
                             }
                         }
+                    }
+                    if n == 0 {
+                        append(payload)?;
                     }
                     if let Some(sps) = sps {
                         seq = h264::Sequence::parse::<true>(sps);
@@ -258,6 +282,9 @@ pub(in super::super) fn report(
                 let (w, h, p) = seq.map_or((320, 240, "Baseline".into()), |s| {
                     (s.width, s.height, s.profile)
                 });
+                if mode == Read::Payloads {
+                    config = h264::collected_config(sets, i64::from(w), h, 30., &mut budget)?;
+                }
                 (
                     Codec::Video {
                         tag: if ty == 0x24 { b"hvc1" } else { b"avc1" },
@@ -274,15 +301,18 @@ pub(in super::super) fn report(
                 let mut frames = adts::Frames::new(&stream.data);
                 let mut dts = 0;
                 for f in frames.by_ref() {
+                    append(f)?;
                     push(dts, dts, 1024, f.len(), true)?;
                     dts += 1024;
                 }
                 if dts == 0 {
                     for s in &stream.packets {
+                        append(&stream.data[s.start..s.end])?;
                         push(dts, dts, 1024, s.end - s.start, true)?;
                         dts += 1024;
                     }
                 }
+                object = frames.object;
                 (
                     Codec::Audio {
                         tag: if ty == 0xf { b"mp4a" } else { b".mp3" },
@@ -303,6 +333,9 @@ pub(in super::super) fn report(
         ordinals[ki] += 1;
         tracks.push(Track {
             kind,
+            data,
+            config,
+            object,
             ordinal,
             packets,
             info: StreamInfo {
@@ -320,6 +353,23 @@ pub(in super::super) fn report(
             },
         });
     }
+    Ok(tracks)
+}
+pub(in super::super) fn report(
+    bytes: &[u8],
+    name: &str,
+    limit: usize,
+    opts: ProbeOptions<'_>,
+) -> Result<String> {
+    let tracks = parse(
+        bytes,
+        limit,
+        if opts.show.contains("packet") || opts.show.contains("frame") {
+            Read::Packets
+        } else {
+            Read::Summary
+        },
+    )?;
     let (counts, select) = (opts.counts, opts.select);
     media_probe::report(opts, |section| match section {
         "packet" | "frame" => Box::new(tracks.iter().enumerate().flat_map(move |(i, t)| {

@@ -261,35 +261,11 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, Vec<Descrip
                 desc.width = width.unwrap_or(320);
                 let w = u32::from(desc.width as u16);
                 let h = height.unwrap_or(240) as u32;
-                let mut config = Vec::new();
+                let config;
                 let avcc = if direct {
                     t.extra
-                } else if let Some(sps) = h264::nals(sets[0]).find(|n| n[0] & 31 == 7) {
-                    config.extend_from_slice(&[
-                        1,
-                        sps.get(1).copied().unwrap_or(66),
-                        sps.get(2).copied().unwrap_or(192),
-                        sps.get(3).copied().unwrap_or(31),
-                        255,
-                    ]);
-                    for (i, source) in sets.into_iter().enumerate() {
-                        let at = config.len();
-                        config.push(0);
-                        for nal in h264::nals(source).filter(|n| usize::from(n[0] & 31) == 7 + i) {
-                            budget = budget
-                                .checked_sub(2 + nal.len())
-                                .ok_or("output byte limit exceeded")?;
-                            config[at] = config[at].wrapping_add(1);
-                            config.extend_from_slice(&(nal.len() as u16).to_be_bytes());
-                            config.extend_from_slice(nal);
-                        }
-                        if i == 0 {
-                            config[at] = 0xe0 | (config[at] & 31);
-                        }
-                    }
-                    &config
                 } else {
-                    config = h264::configuration(desc.width, h, t.fps.round().max(1.) as u32)?;
+                    config = h264::collected_config(sets, desc.width, h, t.fps, &mut budget)?;
                     &config
                 };
                 let codec = if tag == b"avc1" {

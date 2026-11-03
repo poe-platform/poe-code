@@ -695,6 +695,42 @@ pub(in super::super) fn nals(mut bytes: &[u8]) -> impl Iterator<Item = &[u8]> {
         }
     })
 }
+pub(super) fn collected_config(
+    sets: [&[u8]; 2],
+    width: i64,
+    height: u32,
+    fps: f64,
+    budget: &mut usize,
+) -> Result<Vec<u8>, &'static str> {
+    let Some(sps) = nals(sets[0]).find(|n| n[0] & 31 == 7) else {
+        return configuration(width, height, fps.round().max(1.) as u32);
+    };
+    let mut config = Vec::new();
+    config.extend_from_slice(&[
+        1,
+        sps.get(1).copied().unwrap_or(66),
+        sps.get(2).copied().unwrap_or(192),
+        sps.get(3).copied().unwrap_or(31),
+        255,
+    ]);
+    for (i, source) in sets.into_iter().enumerate() {
+        let at = config.len();
+        config.push(0);
+        for nal in nals(source).filter(|n| usize::from(n[0] & 31) == 7 + i) {
+            *budget = budget
+                .checked_sub(2 + nal.len())
+                .ok_or("output byte limit exceeded")?;
+            config[at] = config[at].wrapping_add(1);
+            config.extend_from_slice(&(nal.len() as u16).to_be_bytes());
+            config.extend_from_slice(nal);
+        }
+        if i == 0 {
+            config[at] = 0xe0 | (config[at] & 31);
+        }
+    }
+    Ok(config)
+}
+
 fn parameter_sets(config: &[u8]) -> (Vec<&[u8]>, Vec<&[u8]>) {
     let mut bytes = config.get(6..).unwrap_or_default();
     fn take<'a>(bytes: &mut &'a [u8], n: usize) -> Vec<&'a [u8]> {

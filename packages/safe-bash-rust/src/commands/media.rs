@@ -4540,7 +4540,7 @@ impl MediaInput {
             Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
             Self::Bytes("image2",b)=>png_pixels::still_format(b).is_some(),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("avi"|"mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
+            Self::Images(_) | Self::Bytes("mpegts"|"avi"|"mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4801,6 +4801,9 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
             None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
         })?;
+        if id == "mpegts" {
+            mp4::mpegts_input::framing(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1))?;
+        }
         if id == "avi" {
             avi_input::check_header(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
         }
@@ -4907,7 +4910,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             let limit=fs.max_input_bytes();
             let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
                 let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                if inputs.len()>1 || matches!(format,Some("avi"|"wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                if inputs.len()>1 || matches!(format,Some("mpegts"|"avi"|"wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                     return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
                 let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13606,6 +13609,17 @@ mod media_unit_tests {
         fs.write_file("/clip.avi", &bytes).unwrap();
         let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
         assert_eq!(r.stderr, "ffmpeg: Invalid H.264 pixel limit\n");
+    }
+
+    #[test]
+    fn ffmpeg_copies_transport_streams_into_mp4() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        for args in [["-i","av.mp4","-c","copy","out.ts"], ["-i","out.ts","-c","copy","copy.mp4"]] {
+            let r = cmd_media_doc("ffmpeg", &media_args(&args), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        }
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/copy.mp4").unwrap())), "25157f452eb0572942c2da1767c9f0766d9f73555b8144cbcaf3f52c2802af65");
     }
 
     #[test]

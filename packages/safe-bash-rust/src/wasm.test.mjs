@@ -60,6 +60,32 @@ test("head and tail accept safe counts larger than Wasm memory", async () => {
   } finally { bash.dispose(); }
 });
 
+test("join reads only the selected input and keeps emitted rows on failure", async () => {
+  const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n" } });
+  try {
+    const limits = { maxInputBytes: 4 };
+    for (const [script, opts, code, stdout, stderr] of [
+      ["join --header - /g; cat", { stdin: "x\ny\nz" }, 0, "x\n", ""],
+      ["{ join /g /g; head -c1; } </f", { limits }, 0, "1\na", ""],
+      ["{ join -a2 /dev/null -; cat; } </f", { limits }, 0, "a\nb\n", "join: EFBIG: file too large, read '/f'\n"],
+      ["{ join --nocheck-order /dev/null -; head -c1; } </f", { limits }, 1, "", "head: EFBIG: file too large, read '/f'\n"],
+    ]) {
+      const r = await bash.exec(script, opts);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], script);
+    }
+    await assert.rejects(bash.exec("join /g /g", { limits: { maxInputBytes: 3 } }), /maxInputBytes/);
+  } finally { bash.dispose(); }
+});
+
+test("join stops at its output limit before fetching the next input chunk", async () => {
+  const bash = new RustWasmBash({ files: { "/left": "key left\n" + "a\n".repeat(40000), "/right": "key right\n" } });
+  try {
+    await assert.rejects(bash.exec("join --header -a1 --nocheck-order /left /right", {
+      limits: { maxOutputBytes: 2, maxInputBytes: 65546 },
+    }), /maxOutputBytes/);
+  } finally { bash.dispose(); }
+});
+
 test("comm merges readers in order and preserves complete rows on a later read error", async () => {
   const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n", "/blocked": { content: "x", mode: 0o200 } } });
   try {

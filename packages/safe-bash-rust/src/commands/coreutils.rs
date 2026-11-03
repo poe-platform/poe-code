@@ -57,7 +57,7 @@ fn coreutil(
         "tac" => cmd_tac(args, input, cwd, fs),
         "rev" => cmd_rev(args, input, cwd, env, fs),
         "paste" => cmd_paste(args, input, cwd, fs),
-        "join" => cmd_join(args, input.buffered()?, cwd, fs),
+        "join" => cmd_join(args, input, cwd, fs),
         "comm" => cmd_comm(args, input, cwd, fs),
         "getopt" => cmd_getopt(args, env),
         "dos2unix" => cmd_dos2unix(args, input.buffered()?, cwd, fs, false),
@@ -3790,6 +3790,7 @@ struct TableReader<'a> {
 
 impl<'a> TableReader<'a> {
     fn open(name: &str, cwd: &str, fs: &'a dyn SafeBashFs) -> Result<Self, String> {
+        if name == "-" { return Ok(Self::default()); }
         let (path, entry) = record_input_path(name, cwd, fs, true)?;
         let mut reader = None;
         let file: crate::vfs::ChunkReader = Box::new(move |chunk| {
@@ -4070,15 +4071,10 @@ fn cmd_comm(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
         return err_out("comm: EINVAL: comm requires exactly two files\n", 1);
     }
 
-    let mut readers = [TableReader::default(), TableReader::default()];
-    for (index, file) in files.iter().enumerate() {
-        if file != "-" {
-            readers[index] = match TableReader::open(file, cwd, fs) {
-                Ok(reader) => reader,
-                Err(e) => return err_out(&format!("comm: {e}\n"), 1),
-            };
-        }
-    }
+    let mut readers = match files.iter().map(|file| TableReader::open(file, cwd, fs)).collect::<Result<Vec<_>, _>>() {
+        Ok(readers) => readers,
+        Err(e) => return err_out(&format!("comm: {e}\n"), 1),
+    };
     let shared = files[0] == "-" && files[1] == "-";
     let mut available = fs.max_input_bytes();
     let mut next_from = |index: usize| -> Result<Option<Vec<u8>>, String> {
@@ -18639,7 +18635,7 @@ fn compare_join_keys(left: &[u8], right: &[u8], fold: bool) -> std::cmp::Orderin
     left.len().cmp(&right.len())
 }
 
-fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_join(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum OrderMode {
         Default,
@@ -18918,45 +18914,12 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("join: EINVAL: both files cannot be standard input\n", 1);
     }
 
-    let read_file_records = |name: &str| -> Result<Vec<Vec<u8>>, String> {
-        let raw = if name == "-" {
-            crate::vfs::stream_string_to_bytes(stdin)
-        } else {
-            let path = resolve_posix_path(cwd, name);
-            if fs.is_dir(&path) {
-                return Err(format!(
-                    "join: EISDIR: illegal operation on a directory '{path}'\n"
-                ));
-            }
-            fs.read_file(&path)
-                .map_err(|_| format!("join: ENOENT: no such file or directory, stat '{path}'\n"))?
-        };
-        if raw.is_empty() {
-            return Ok(Vec::new());
-        }
-        let mut recs: Vec<Vec<u8>> = Vec::new();
-        let mut start = 0usize;
-        for (idx, &b) in raw.iter().enumerate() {
-            if b == separator {
-                recs.push(raw[start..idx].to_vec());
-                start = idx + 1;
-            }
-        }
-        if start < raw.len() {
-            recs.push(raw[start..].to_vec());
-        }
-        Ok(recs)
+    let mut readers = match files.iter().map(|file| TableReader::open(file, cwd, fs)).collect::<Result<Vec<_>, _>>() {
+        Ok(readers) => readers,
+        Err(e) => return err_out(&format!("join: {e}\n"), 1),
     };
-
-    let raw_rows0 = match read_file_records(&files[0]) {
-        Ok(r) => r,
-        Err(msg) => return err_out(&msg, 1),
-    };
-    let raw_rows1 = match read_file_records(&files[1]) {
-        Ok(r) => r,
-        Err(msg) => return err_out(&msg, 1),
-    };
-    let raw_sources = [raw_rows0, raw_rows1];
+    let mut available = fs.max_input_bytes();
+    let mut record = Vec::new();
 
     #[derive(Clone)]
     struct JoinRow {
@@ -19010,7 +18973,6 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     };
 
-    let mut cursors = [0usize, 0usize];
     let mut prev_keys: [Option<Vec<u8>>; 2] = [None, None];
     let mut order_unpaired = false;
     let mut order_failed = false;
@@ -19023,14 +18985,9 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                            order_warned: &mut [bool; 2],
                            order_failed: &mut bool,
                            stderr: &mut String|
-     -> Result<(), ()> {
+     -> Result<(), String> {
         if order_mode == OrderMode::Check {
-            stderr.push_str(&format!(
-                "join: EINVAL: file {} is not in sorted order\n",
-                file_idx + 1
-            ));
-            *order_failed = true;
-            return Err(());
+            return Err(format!("EINVAL: file {} is not in sorted order", file_idx + 1));
         }
         if !order_warned[file_idx] {
             order_warned[file_idx] = true;
@@ -19048,7 +19005,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                              order_warned: &mut [bool; 2],
                              order_failed: &mut bool,
                              stderr: &mut String|
-     -> Result<(), ()> {
+     -> Result<(), String> {
         if *order_unpaired {
             return Ok(());
         }
@@ -19062,22 +19019,16 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Ok(())
     };
 
-    let next_row = |file_idx: usize,
+    let mut next_row = |file_idx: usize,
                         reset: bool,
-                        cursors: &mut [usize; 2],
-                        prev_keys: &mut [Option<Vec<u8>>; 2],
                         order_unpaired: &bool,
                         order_pending: &mut [bool; 2],
                         order_warned: &mut [bool; 2],
                         order_failed: &mut bool,
                         stderr: &mut String|
-     -> Result<Option<JoinRow>, ()> {
-        let c = cursors[file_idx];
-        if c >= raw_sources[file_idx].len() {
-            return Ok(None);
-        }
-        cursors[file_idx] += 1;
-        let row = split_row(&raw_sources[file_idx][c], file_idx);
+     -> Result<Option<JoinRow>, String> {
+        if !readers[file_idx].next(&mut stdin, separator, &mut record, &mut available, fs)? { return Ok(None); }
+        let row = split_row(&record, file_idx);
         if !reset && order_mode != OrderMode::None && !order_warned[file_idx] {
             let disordered = prev_keys[file_idx]
                 .as_ref()
@@ -19095,279 +19046,193 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut out_bytes: Vec<u8> = Vec::new();
     let out_delim = delimiter.unwrap_or(b' ');
 
-    let r0 = match next_row(
-        0,
-        false,
-        &mut cursors,
-        &mut prev_keys,
-        &order_unpaired,
-        &mut order_pending,
-        &mut order_warned,
-        &mut order_failed,
-        &mut stderr,
-    ) {
-        Ok(v) => v,
-        Err(()) => {
-            return BuiltinOutcome {
-                stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                stderr,
-                exit_code: 1,
-            };
+    let max_output = fs.remaining_output_bytes();
+    let result = (|| -> Result<(), String> {
+        let mut rows = [None, None];
+        for (index, row) in rows.iter_mut().enumerate() {
+            *row = next_row(index, false, &order_unpaired, &mut order_pending, &mut order_warned, &mut order_failed, &mut stderr)?;
         }
-    };
-    let r1 = match next_row(
-        1,
-        false,
-        &mut cursors,
-        &mut prev_keys,
-        &order_unpaired,
-        &mut order_pending,
-        &mut order_warned,
-        &mut order_failed,
-        &mut stderr,
-    ) {
-        Ok(v) => v,
-        Err(()) => {
-            return BuiltinOutcome {
-                stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                stderr,
-                exit_code: 1,
-            };
-        }
-    };
+        let counts = [
+            rows[0].as_ref().map(|r| r.fields.len()).unwrap_or(0),
+            rows[1].as_ref().map(|r| r.fields.len()).unwrap_or(0),
+        ];
 
-    let mut rows: [Option<JoinRow>; 2] = [r0, r1];
-    let counts = [
-        rows[0].as_ref().map(|r| r.fields.len()).unwrap_or(0),
-        rows[1].as_ref().map(|r| r.fields.len()).unwrap_or(0),
-    ];
-
-    let emit_row = |out: &mut Vec<u8>, left: Option<&JoinRow>, right: Option<&JoinRow>| {
-        let pair = [left, right];
-        let key: &[u8] = left
-            .or(right)
-            .map(|r| r.key.as_slice())
-            .unwrap_or(&[]);
-        let mut selected_fields: Vec<&[u8]> = Vec::new();
-        match format {
-            JoinFormat::Explicit(ref specs) => {
-                for &(f_num, col_idx) in specs {
-                    if f_num == 0 {
-                        selected_fields.push(key);
-                    } else {
-                        let val = pair[f_num - 1]
-                            .and_then(|r| r.fields.get(col_idx))
-                            .map(|v| v.as_slice())
-                            .unwrap_or(&[]);
-                        selected_fields.push(val);
-                    }
-                }
-            }
-            JoinFormat::Auto | JoinFormat::Default => {
-                selected_fields.push(key);
-                for file_idx in 0..2 {
-                    let count = if matches!(format, JoinFormat::Auto) {
-                        counts[file_idx]
-                    } else {
-                        pair[file_idx].map(|r| r.fields.len()).unwrap_or(0)
-                    };
-                    for idx in 0..count {
-                        if idx != fields[file_idx] {
-                            let val = pair[file_idx]
-                                .and_then(|r| r.fields.get(idx))
+        let emit_row = |out: &mut Vec<u8>, left: Option<&JoinRow>, right: Option<&JoinRow>| {
+            let pair = [left, right];
+            let key: &[u8] = left
+                .or(right)
+                .map(|r| r.key.as_slice())
+                .unwrap_or(&[]);
+            let mut selected_fields: Vec<&[u8]> = Vec::new();
+            match format {
+                JoinFormat::Explicit(ref specs) => {
+                    for &(f_num, col_idx) in specs {
+                        if f_num == 0 {
+                            selected_fields.push(key);
+                        } else {
+                            let val = pair[f_num - 1]
+                                .and_then(|r| r.fields.get(col_idx))
                                 .map(|v| v.as_slice())
                                 .unwrap_or(&[]);
                             selected_fields.push(val);
                         }
                     }
                 }
+                JoinFormat::Auto | JoinFormat::Default => {
+                    selected_fields.push(key);
+                    for file_idx in 0..2 {
+                        let count = if matches!(format, JoinFormat::Auto) {
+                            counts[file_idx]
+                        } else {
+                            pair[file_idx].map(|r| r.fields.len()).unwrap_or(0)
+                        };
+                        for idx in 0..count {
+                            if idx != fields[file_idx] {
+                                let val = pair[file_idx]
+                                    .and_then(|r| r.fields.get(idx))
+                                    .map(|v| v.as_slice())
+                                    .unwrap_or(&[]);
+                                selected_fields.push(val);
+                            }
+                        }
+                    }
+                }
             }
-        }
-        for (idx, field_bytes) in selected_fields.iter().enumerate() {
-            if idx > 0 {
-                out.push(out_delim);
+            // One separator per field, including the terminating newline or NUL.
+            let mut size = selected_fields.len().max(1);
+            for field in &mut selected_fields {
+                if field.is_empty() { *field = &replacement; }
+                size = size.saturating_add(field.len());
             }
-            if field_bytes.is_empty() {
-                out.extend_from_slice(&replacement);
-            } else {
-                out.extend_from_slice(field_bytes);
+            if size > max_output - out.len() {
+                return Err(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
             }
-        }
-        out.push(separator);
-    };
+            for (idx, field) in selected_fields.into_iter().enumerate() {
+                if idx != 0 { out.push(out_delim); }
+                out.extend_from_slice(field);
+            }
+            out.push(separator);
+            Ok(())
+        };
 
-    if header && (rows[0].is_some() || rows[1].is_some()) {
-        emit_row(&mut out_bytes, rows[0].as_ref(), rows[1].as_ref());
-        for f_idx in 0..2 {
-            if rows[f_idx].is_some() {
-                match next_row(
-                    f_idx,
-                    true,
-                    &mut cursors,
-                    &mut prev_keys,
-                    &order_unpaired,
+        if header && (rows[0].is_some() || rows[1].is_some()) {
+            emit_row(&mut out_bytes, rows[0].as_ref(), rows[1].as_ref())?;
+            for f_idx in 0..2 {
+                if rows[f_idx].is_some() {
+                    rows[f_idx] = next_row(
+                        f_idx,
+                        true,
+                        &order_unpaired,
+                        &mut order_pending,
+                        &mut order_warned,
+                        &mut order_failed,
+                        &mut stderr,
+                    )?;
+                }
+            }
+        }
+
+        while rows[0].is_some() && rows[1].is_some() {
+            let cmp = compare_join_keys(
+                &rows[0].as_ref().unwrap().key,
+                &rows[1].as_ref().unwrap().key,
+                fold,
+            );
+            if cmp != std::cmp::Ordering::Equal {
+                mark_unpaired(
+                    &mut order_unpaired,
                     &mut order_pending,
                     &mut order_warned,
                     &mut order_failed,
                     &mut stderr,
-                ) {
-                    Ok(v) => rows[f_idx] = v,
-                    Err(()) => {
-                        return BuiltinOutcome {
-                            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                            stderr,
-                            exit_code: 1,
-                        };
-                    }
+                )?;
+                let file_idx = if cmp == std::cmp::Ordering::Less { 0 } else { 1 };
+                if unpaired[file_idx] {
+                    emit_row(
+                        &mut out_bytes,
+                        if file_idx == 0 { rows[0].as_ref() } else { None },
+                        if file_idx == 1 { rows[1].as_ref() } else { None },
+                    )?;
                 }
-            }
-        }
-    }
-
-    while rows[0].is_some() && rows[1].is_some() {
-        let cmp = compare_join_keys(
-            &rows[0].as_ref().unwrap().key,
-            &rows[1].as_ref().unwrap().key,
-            fold,
-        );
-        if cmp != std::cmp::Ordering::Equal {
-            if mark_unpaired(
-                &mut order_unpaired,
-                &mut order_pending,
-                &mut order_warned,
-                &mut order_failed,
-                &mut stderr,
-            )
-            .is_err()
-            {
-                return BuiltinOutcome {
-                    stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                    stderr,
-                    exit_code: 1,
-                };
-            }
-            let file_idx = if cmp == std::cmp::Ordering::Less { 0 } else { 1 };
-            if unpaired[file_idx] {
-                emit_row(
-                    &mut out_bytes,
-                    if file_idx == 0 { rows[0].as_ref() } else { None },
-                    if file_idx == 1 { rows[1].as_ref() } else { None },
-                );
-            }
-            match next_row(
-                file_idx,
-                false,
-                &mut cursors,
-                &mut prev_keys,
-                &order_unpaired,
-                &mut order_pending,
-                &mut order_warned,
-                &mut order_failed,
-                &mut stderr,
-            ) {
-                Ok(v) => rows[file_idx] = v,
-                Err(()) => {
-                    return BuiltinOutcome {
-                        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                        stderr,
-                        exit_code: 1,
-                    };
-                }
-            }
-            continue;
-        }
-
-        let key = rows[0].as_ref().unwrap().key.clone();
-        let mut groups: [Vec<JoinRow>; 2] = [Vec::new(), Vec::new()];
-        for file_idx in 0..2 {
-            while rows[file_idx]
-                .as_ref()
-                .is_some_and(|r| compare_join_keys(&r.key, &key, fold) == std::cmp::Ordering::Equal)
-            {
-                groups[file_idx].push(rows[file_idx].take().unwrap());
-                match next_row(
+                rows[file_idx] = next_row(
                     file_idx,
                     false,
-                    &mut cursors,
-                    &mut prev_keys,
                     &order_unpaired,
                     &mut order_pending,
                     &mut order_warned,
                     &mut order_failed,
                     &mut stderr,
-                ) {
-                    Ok(v) => rows[file_idx] = v,
-                    Err(()) => {
-                        return BuiltinOutcome {
-                            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                            stderr,
-                            exit_code: 1,
-                        };
+                )?;
+                continue;
+            }
+
+            let key = rows[0].as_ref().unwrap().key.clone();
+            let mut groups: [Vec<JoinRow>; 2] = [Vec::new(), Vec::new()];
+            for file_idx in 0..2 {
+                while rows[file_idx]
+                    .as_ref()
+                    .is_some_and(|r| compare_join_keys(&r.key, &key, fold) == std::cmp::Ordering::Equal)
+                {
+                    groups[file_idx].push(rows[file_idx].take().unwrap());
+                    rows[file_idx] = next_row(
+                        file_idx,
+                        false,
+                        &order_unpaired,
+                        &mut order_pending,
+                        &mut order_warned,
+                        &mut order_failed,
+                        &mut stderr,
+                    )?;
+                }
+            }
+            if paired {
+                for left in &groups[0] {
+                    for right in &groups[1] {
+                        emit_row(&mut out_bytes, Some(left), Some(right))?;
                     }
                 }
             }
         }
-        if paired {
-            for left in &groups[0] {
-                for right in &groups[1] {
-                    emit_row(&mut out_bytes, Some(left), Some(right));
-                }
-            }
-        }
-    }
 
-    for file_idx in 0..2 {
-        if !unpaired[file_idx] && order_mode == OrderMode::None {
-            continue;
-        }
-        if rows[file_idx].is_some()
-            && mark_unpaired(
-                &mut order_unpaired,
-                &mut order_pending,
-                &mut order_warned,
-                &mut order_failed,
-                &mut stderr,
-            )
-            .is_err()
-        {
-            return BuiltinOutcome {
-                stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                stderr,
-                exit_code: 1,
-            };
-        }
-        while let Some(ref cur) = rows[file_idx] {
-            if unpaired[file_idx] {
-                emit_row(
-                    &mut out_bytes,
-                    if file_idx == 0 { Some(cur) } else { None },
-                    if file_idx == 1 { Some(cur) } else { None },
-                );
+        for file_idx in 0..2 {
+            if !unpaired[file_idx] && order_mode == OrderMode::None {
+                continue;
             }
-            match next_row(
-                file_idx,
-                false,
-                &mut cursors,
-                &mut prev_keys,
-                &order_unpaired,
-                &mut order_pending,
-                &mut order_warned,
-                &mut order_failed,
-                &mut stderr,
-            ) {
-                Ok(v) => rows[file_idx] = v,
-                Err(()) => {
-                    return BuiltinOutcome {
-                        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                        stderr,
-                        exit_code: 1,
-                    };
+            if rows[file_idx].is_some() {
+                mark_unpaired(
+                    &mut order_unpaired,
+                    &mut order_pending,
+                    &mut order_warned,
+                    &mut order_failed,
+                    &mut stderr,
+                )?;
+            }
+            while let Some(ref cur) = rows[file_idx] {
+                if unpaired[file_idx] {
+                    emit_row(
+                        &mut out_bytes,
+                        if file_idx == 0 { Some(cur) } else { None },
+                        if file_idx == 1 { Some(cur) } else { None },
+                    )?;
                 }
+                rows[file_idx] = next_row(
+                    file_idx,
+                    false,
+                    &order_unpaired,
+                    &mut order_pending,
+                    &mut order_warned,
+                    &mut order_failed,
+                    &mut stderr,
+                )?;
             }
         }
-    }
 
-    if order_failed {
+        Ok(())
+    })();
+    if let Err(e) = result {
+        stderr.push_str(&format!("join: {e}\n"));
+        order_failed = true;
+    } else if order_failed {
         stderr.push_str("join: input is not in sorted order\n");
     }
 

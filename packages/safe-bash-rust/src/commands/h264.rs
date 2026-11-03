@@ -636,6 +636,72 @@ pub(super) fn encode_slice(
     Ok(sample)
 }
 
+fn parameter_sets(config: &[u8]) -> (Vec<&[u8]>, Vec<&[u8]>) {
+    let mut bytes = config.get(6..).unwrap_or_default();
+    fn take<'a>(bytes: &mut &'a [u8], n: usize) -> Vec<&'a [u8]> {
+        (0..n)
+            .map(|_| {
+                let size = super::u16_at(bytes, 0) as usize;
+                *bytes = bytes.get(2..).unwrap_or_default();
+                let (nal, rest) = bytes.split_at(size.min(bytes.len()));
+                *bytes = rest;
+                nal
+            })
+            .collect()
+    }
+    let sps = take(
+        &mut bytes,
+        usize::from(config.get(5).copied().unwrap_or(0) & 31),
+    );
+    let (&n, mut rest) = bytes.split_first().unwrap_or((&0, &[]));
+    (sps, take(&mut rest, usize::from(n)))
+}
+pub(super) struct AnnexB<'a> {
+    length: usize,
+    sets: Vec<&'a [u8]>,
+}
+impl<'a> AnnexB<'a> {
+    pub(super) fn new(config: &'a [u8], fallback: &'a [u8]) -> Self {
+        let (mut sps, mut pps) = parameter_sets(config);
+        if sps.is_empty() || pps.is_empty() {
+            let (s, p) = parameter_sets(fallback);
+            if sps.is_empty() {
+                sps = s;
+            }
+            if pps.is_empty() {
+                pps = p;
+            }
+        }
+        sps.extend(pps);
+        Self {
+            length: usize::from(config.get(4).copied().unwrap_or(3) & 3) + 1,
+            sets: sps,
+        }
+    }
+    pub(super) fn parts<'b>(
+        &'b self,
+        mut data: &'b [u8],
+        key: bool,
+    ) -> impl Iterator<Item = &'b [u8]> + Clone {
+        let samples = std::iter::from_fn(move || {
+            let (prefix, rest) = data.split_at_checked(self.length)?;
+            let len = prefix.iter().fold(0usize, |n, &b| n << 8 | usize::from(b));
+            if len == 0 {
+                return None;
+            }
+            let (nal, tail) = rest.split_at_checked(len)?;
+            data = tail;
+            Some(nal)
+        });
+        self.sets
+            .iter()
+            .copied()
+            .take(if key { self.sets.len() } else { 0 })
+            .chain(samples)
+            .flat_map(|nal| [[0, 0, 0, 1].as_slice(), nal])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Sequence;

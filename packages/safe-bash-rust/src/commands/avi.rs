@@ -1,4 +1,4 @@
-use super::super::{atoms, audio_entry_format, esds, h264, u16_at, u32_at};
+use super::super::{atoms, h264};
 use super::{Options, Track};
 
 type Result<T> = std::result::Result<T, &'static str>;
@@ -39,26 +39,6 @@ impl Riff {
             write(r)
         })
     }
-}
-fn parameter_sets(config: &[u8]) -> (Vec<&[u8]>, Vec<&[u8]>) {
-    let mut bytes = config.get(6..).unwrap_or_default();
-    fn take<'a>(bytes: &mut &'a [u8], n: usize) -> Vec<&'a [u8]> {
-        (0..n)
-            .map(|_| {
-                let size = u16_at(bytes, 0) as usize;
-                *bytes = bytes.get(2..).unwrap_or_default();
-                let (nal, rest) = bytes.split_at(size.min(bytes.len()));
-                *bytes = rest;
-                nal
-            })
-            .collect()
-    }
-    let sps = take(
-        &mut bytes,
-        usize::from(config.get(5).copied().unwrap_or(0) & 31),
-    );
-    let (&n, mut rest) = bytes.split_first().unwrap_or((&0, &[]));
-    (sps, take(&mut rest, usize::from(n)))
 }
 pub(super) fn write(
     tracks: &[Track<'_>],
@@ -139,53 +119,8 @@ pub(super) fn write(
                 })?;
             }
             if let Some(t) = sound {
-                let mut rate = 44100;
-                let mut ch = 2;
-                if let Some((tag, entry)) = atoms(t.stsd.get(8..).unwrap_or_default()).next()
-                    && audio_entry_format(tag)
-                    && entry.len() >= 28
-                {
-                    rate = ((u64::from(u32_at(entry, 24)) + 32768) >> 16) as u32;
-                    ch = u32::from(u16_at(entry, 16));
-                    let start = match u16_at(entry, 8) {
-                        1 => 44,
-                        2 => 64,
-                        _ => 28,
-                    };
-                    for (tag, b) in atoms(entry.get(start..).unwrap_or_default()) {
-                        match tag {
-                            b"esds" | b"wave" => {
-                                let payload = if tag == b"wave" {
-                                    let Some((_, v)) = atoms(b).find(|(k, _)| *k == b"esds") else {
-                                        continue;
-                                    };
-                                    v
-                                } else {
-                                    b
-                                };
-                                let cfg = esds(payload);
-                                if cfg.rate != 0 {
-                                    rate = cfg.rate;
-                                }
-                                if cfg.channels != 0 {
-                                    ch = cfg.channels.into();
-                                }
-                            }
-                            b"dOps" => {
-                                rate = match u32_at(b, 4) {
-                                    0 => 48000,
-                                    n => n,
-                                };
-                                if let Some(&channels) = b.get(1).filter(|&&n| n != 0) {
-                                    ch = channels.into();
-                                }
-                            }
-                            _ => (),
-                        }
-                    }
-                }
-                let rate = audio.rate.unwrap_or(rate);
-                let ch = audio.channels.unwrap_or(ch);
+                let (rate, ch) = t.audio_format(44100);
+                let (rate, ch) = (audio.rate.unwrap_or(rate), audio.channels.unwrap_or(ch));
                 let count = if audio.clear_samples {
                     1
                 } else {
@@ -211,39 +146,12 @@ pub(super) fn write(
                     .next()
                     .map_or(&[][..], |(_, v)| v);
                 let config = source.avcc(entry).unwrap_or_default();
-                let length = usize::from(config.get(4).copied().unwrap_or(3) & 3) + 1;
-                let (mut sps, mut pps) = parameter_sets(config);
-                let fallback;
-                if sps.is_empty() || pps.is_empty() {
-                    fallback = h264::configuration(width, h, fps)?;
-                    let (s, p) = parameter_sets(&fallback);
-                    if sps.is_empty() {
-                        sps = s;
-                    }
-                    if pps.is_empty() {
-                        pps = p;
-                    }
-                }
+                let fallback = h264::configuration(width, h, fps)?;
+                let annex = h264::AnnexB::new(config, &fallback);
                 for (i, s) in t.samples.iter().enumerate() {
                     r.chunk(b"00dc", |r| {
-                        if i == 0 || s.key {
-                            for v in sps.iter().chain(&pps) {
-                                r.put(&[0, 0, 0, 1])?;
-                                r.put(v)?;
-                            }
-                        }
-                        let mut data = s.data.as_ref();
-                        while let Some(prefix) = data.get(..length) {
-                            let n = prefix
-                                .iter()
-                                .fold(0usize, |n, &b| (n << 8) | usize::from(b));
-                            data = &data[length..];
-                            if n == 0 || n > data.len() {
-                                break;
-                            }
-                            r.put(&[0, 0, 0, 1])?;
-                            r.put(&data[..n])?;
-                            data = &data[n..];
+                        for bytes in annex.parts(&s.data, i == 0 || s.key) {
+                            r.put(bytes)?;
                         }
                         Ok(())
                     })?;

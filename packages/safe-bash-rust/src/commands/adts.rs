@@ -58,6 +58,22 @@ pub(super) fn silent(channels: u32) -> &'static [u8] {
         &[33, 16, 4, 96, 140, 28]
     }
 }
+pub(super) fn frame_header(data: &[u8], rate: u32, channels: u32) -> Option<[u8; 7]> {
+    if data.len() >= 7 && data[0] == 255 && data[1] & 0xf0 == 0xf0 {
+        return None;
+    }
+    let frequency = RATES.iter().position(|&r| r == rate).unwrap_or(4) as u8;
+    let len = data.len() + 7;
+    Some([
+        255,
+        241,
+        64 | frequency << 2 | ((channels >> 2) & 1) as u8,
+        ((channels & 3) as u8) << 6 | (len >> 11) as u8 & 3,
+        (len >> 3) as u8,
+        (len as u8) << 5 | 31,
+        252,
+    ])
+}
 pub(super) struct Options {
     pub start: f64,
     pub end: Option<f64>,
@@ -84,24 +100,15 @@ impl Options {
         } else {
             self.channels.unwrap_or(channels)
         };
-        let frequency = RATES.iter().position(|&r| r == rate).unwrap_or(4) as u8;
         let mut output = Vec::new();
         let mut append = |data: &[u8]| {
-            let header = data.len() < 7 || data[0] != 255 || data[1] & 0xf0 != 0xf0;
-            let len = data.len() + if header { 7 } else { 0 };
+            let header = frame_header(data, rate, channels);
+            let len = data.len() + if header.is_some() { 7 } else { 0 };
             if len > self.limit - output.len() {
                 return Err("output byte limit exceeded");
             }
-            if header {
-                output.extend_from_slice(&[
-                    255,
-                    241,
-                    64 | frequency << 2 | ((channels >> 2) & 1) as u8,
-                    ((channels & 3) as u8) << 6 | (len >> 11) as u8 & 3,
-                    (len >> 3) as u8,
-                    (len as u8) << 5 | 31,
-                    252,
-                ]);
+            if let Some(header) = header {
+                output.extend_from_slice(&header);
             }
             output.extend_from_slice(data);
             Ok(())

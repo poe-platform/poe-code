@@ -137,6 +137,57 @@ struct Track<'a> {
     handler: [u8; 4],
     name: &'a [u8],
 }
+impl Track<'_> {
+    fn audio_format(&self, default_rate: u32) -> (u32, u32) {
+        use super::{atoms, audio_entry_format, esds, u16_at, u32_at};
+        let mut rate = default_rate;
+        let mut ch = 2;
+        if let Some((tag, entry)) = atoms(self.stsd.get(8..).unwrap_or_default()).next()
+            && audio_entry_format(tag)
+            && entry.len() >= 28
+        {
+            rate = ((u64::from(u32_at(entry, 24)) + 32768) >> 16) as u32;
+            ch = u32::from(u16_at(entry, 16));
+            let start = match u16_at(entry, 8) {
+                1 => 44,
+                2 => 64,
+                _ => 28,
+            };
+            for (tag, b) in atoms(entry.get(start..).unwrap_or_default()) {
+                match tag {
+                    b"esds" | b"wave" => {
+                        let payload = if tag == b"wave" {
+                            let Some((_, v)) = atoms(b).find(|(k, _)| *k == b"esds") else {
+                                continue;
+                            };
+                            v
+                        } else {
+                            b
+                        };
+                        let cfg = esds(payload);
+                        if cfg.rate != 0 {
+                            rate = cfg.rate;
+                        }
+                        if cfg.channels != 0 {
+                            ch = cfg.channels.into();
+                        }
+                    }
+                    b"dOps" => {
+                        rate = match u32_at(b, 4) {
+                            0 => 48000,
+                            n => n,
+                        };
+                        if let Some(&channels) = b.get(1).filter(|&&n| n != 0) {
+                            ch = channels.into();
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
+        (rate, ch)
+    }
+}
 fn audio_specific_config(scale: u32, channels: u32, object: u8) -> [u8; 2] {
     let frequency = RATES
         .iter()
@@ -381,7 +432,7 @@ enum VideoEncoding { Mp4, Fragmented, PreserveConfig, Matroska }
 
 impl Remux<'_> {
     fn video_encoding(&self) -> VideoEncoding {
-        if matches!(self.format,"flv"|"avi") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
+        if matches!(self.format,"flv"|"avi"|"mpegts") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
     }
 }
 
@@ -1189,6 +1240,8 @@ fn subtitle_track(
 mod concat;
 #[path = "avi.rs"]
 mod avi;
+#[path = "mpegts.rs"]
+mod mpegts;
 #[path = "flv.rs"]
 mod flv;
 #[path = "mkv.rs"]
@@ -2717,7 +2770,7 @@ pub(in super::super) fn remux(
                 (source.seconds(i) * f64::from(ts)).round() as u64,
                 scale,
             )?;
-            if matches!(opts.format,"avi"|"flv") {
+            if matches!(opts.format,"mpegts"|"avi"|"flv") {
                 t.stsd = match source {
                     Streams::GeneratedVideo(v) => video_entry(v.width as usize, v.height as usize, VideoCodec::Avc(v.fps.round().max(1.) as u32))?,
                     _ => Vec::new(),
@@ -3111,7 +3164,7 @@ pub(in super::super) fn remux(
         }
         tracks.push(track);
     }
-    if audio.clear_samples && !matches!(opts.format,"avi"|"flv"|"mkv"|"webm") {
+    if audio.clear_samples && !matches!(opts.format,"mpegts"|"avi"|"flv"|"mkv"|"webm") {
         for (track, &(j, i)) in tracks.iter_mut().zip(&selected) {
             if track.kind != "audio" {
                 continue;
@@ -3274,7 +3327,7 @@ pub(in super::super) fn remux(
     {
         metadata.insert("date".into(), year.clone());
     }
-    if matches!(opts.format,"avi"|"flv"|"mkv"|"webm") {
+    if matches!(opts.format,"mpegts"|"avi"|"flv"|"mkv"|"webm") {
         let duration = if let Some(sequence) = &composed && matches!(opts.composition, Some(Composition::Fade { .. })) {
             sequence.frames.iter().map(|(_, dur)| dur).sum()
         } else if sources.len() > 1 && opts.concat.is_some() {
@@ -3283,7 +3336,7 @@ pub(in super::super) fn remux(
             presentation_duration(sources, &selected, scale, range)
         };
         // Numbered images release the template MP4 backing their codec description.
-        if matches!(opts.format,"flv"|"avi") && selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
+        if matches!(opts.format,"flv"|"avi"|"mpegts") && selected.iter().find(|&&(j,i)| sources[j].2.kind(i)=="video").is_some_and(|&(j,_)|matches!(sources[j].2,Streams::Images(_))) {
             return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
         }
         let mut source_tags = vec![Original::None; tracks.len()];
@@ -3295,6 +3348,7 @@ pub(in super::super) fn remux(
                 }
             }
         }
+        if opts.format=="mpegts" {return mpegts::write(&tracks,&audio,&source_tags).map_err(str::to_owned);}
         if opts.format=="avi" {return avi::write(&tracks,duration,&audio,&source_tags).map_err(str::to_owned);}
         if opts.format=="flv" {
             let tags=["video","audio"].map(|kind|tracks.iter().position(|t|t.kind==kind).map_or(Original::None,|i|source_tags[i]));

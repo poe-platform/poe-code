@@ -4789,7 +4789,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
     let frame_output=y4m_output || image_format.is_some();
     let audio_output = muxer == Some("aac");
-    let movie_output = matches!(muxer, Some("avi" | "mp4" | "mov" | "flv" | "mkv" | "webm"));
+    let movie_output = matches!(muxer, Some("mpegts" | "avi" | "mp4" | "mov" | "flv" | "mkv" | "webm"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
     let mut read_input = |path: &str, explicit: Option<&str>| {
         let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
@@ -13584,6 +13584,17 @@ mod media_unit_tests {
         let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
         assert_eq!(r.exit_code, 1);
         assert_eq!(r.stderr, "ffmpeg: Invalid AVI file: missing RIFF AVI header\n");
+    }
+
+    #[test]
+    fn ffmpeg_writes_transport_packets_with_audio_and_video() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i", "av.mp4", "-c", "copy", "out.ts"]);
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        let bytes = fs.read_file("/out.ts").unwrap();
+        assert_eq!(hex_enc(&sha256_bytes(&bytes)), "5eb3a0bde1ba145e9021d948246cb5cecd8773d68c55b93fc7da67dd818c366a");
     }
 
     #[test]

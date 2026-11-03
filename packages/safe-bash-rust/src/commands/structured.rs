@@ -28234,10 +28234,20 @@ fn mdq_decode_syntax(src: &str) -> String {
 
 fn mdq_text_span(s: &str, plain: bool) -> String {
     let marks = if s.contains(['_', '*', '~']) { mdq_emphasis::resolve(s, std::iter::empty()) } else { BTreeMap::new() };
-    mdq_render_span(s, plain, &marks, 0)
+    mdq_render_span(s, plain, &marks, 0, |_| {})
 }
 
-fn mdq_render_span(s: &str, plain: bool, marks: &BTreeMap<usize, mdq_emphasis::Marks>, start: usize) -> String {
+fn mdq_write_inline_code(out: &mut String, text: &str) {
+    let fence = "`".repeat(max_backtick_run(text) + 1);
+    let pad = text.starts_with('`') || text.ends_with('`') || (text.starts_with(' ') && text.ends_with(' ') && !text.trim().is_empty());
+    out.push_str(&fence);
+    if pad { out.push(' '); }
+    out.push_str(text);
+    if pad { out.push(' '); }
+    out.push_str(&fence);
+}
+
+fn mdq_render_span(s: &str, plain: bool, marks: &BTreeMap<usize, mdq_emphasis::Marks>, start: usize, mut code: impl FnMut(std::ops::Range<usize>)) -> String {
     if marks.is_empty() && !s.contains(['\\', '`', '&', '\n']) { return s.to_string(); }
     let mut out = String::with_capacity(s.len());
     let bytes = s.as_bytes();
@@ -28267,14 +28277,11 @@ fn mdq_render_span(s: &str, plain: bool, marks: &BTreeMap<usize, mdq_emphasis::M
                 let text = if content.starts_with(' ') && content.ends_with(' ') && content.bytes().any(|c| c != b' ') {
                     &content[1..content.len() - 1]
                 } else { &content };
-                if plain { out.push_str(text); } else {
-                    let fence = "`".repeat(max_backtick_run(text) + 1);
-                    let pad = text.starts_with('`') || text.ends_with('`') || (text.starts_with(' ') && text.ends_with(' ') && !text.trim().is_empty());
-                    out.push_str(&fence);
-                    if pad { out.push(' '); }
+                if plain {
+                    code(out.len()..out.len() + text.len());
                     out.push_str(text);
-                    if pad { out.push(' '); }
-                    out.push_str(&fence);
+                } else {
+                    mdq_write_inline_code(&mut out, text);
                 }
                 i = close + width;
             } else {
@@ -28492,7 +28499,7 @@ fn mdq_match_and_replace(defs: &MdqDefinitions, matcher: &MdqMatcher, target: &s
     if let MdqMatcher::Regex(rx_str, Some(repl_template)) = matcher {
         let (clean_pat, group_names) = parse_jq_regex_groups(rx_str);
         let rx = ZeroRegex::new(vec![clean_pat.clone()], false, false, false, false);
-        let formatted = if strip_inline_for_match && !target.contains('`') && mdq_inline_atoms(defs, target, false).is_empty() {
+        let formatted = if strip_inline_for_match && mdq_inline_atoms(defs, target, false).is_empty() {
             Some(mdq_emphasis::projection(target))
         } else { None };
         let target = formatted.as_ref().map_or(target, |(text,_)|text.as_str());
@@ -28722,7 +28729,7 @@ fn mdq_emit_atoms(defs: &MdqDefinitions, src: &str, atoms: MdqAtoms<'_>, mut ref
     let marks = if src.contains(['_', '*', '~']) { mdq_emphasis::resolve(src, atoms.iter().map(|(r, _)| r)) } else { BTreeMap::new() };
     let mut at = 0;
     for (range, atom) in atoms {
-        if at < range.start { emit(&mdq_render_span(&src[at..range.start], plain, &marks, at), true); }
+        if at < range.start { emit(&mdq_render_span(&src[at..range.start], plain, &marks, at, |_| {}), true); }
         match atom {
             MdqInlineAtom::Footnote(label) => {
                 if let Some(refs)=refs.as_deref_mut() { emit(&format!("[^{}]", refs.note_id(label, defs)),true); }
@@ -28744,7 +28751,7 @@ fn mdq_emit_atoms(defs: &MdqDefinitions, src: &str, atoms: MdqAtoms<'_>, mut ref
         }
         at = range.end;
     }
-    if at < src.len() { emit(&mdq_render_span(&src[at..], plain, &marks, at), true); }
+    if at < src.len() { emit(&mdq_render_span(&src[at..], plain, &marks, at, |_| {}), true); }
 }
 
 // Selected links retain their source label so substitutions can be rendered again.

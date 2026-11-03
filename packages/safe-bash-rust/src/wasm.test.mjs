@@ -8609,3 +8609,21 @@ test("mdq retains parsed matcher values and delimiters inside selectors", async 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq replacements respect the visible byte ranges of inline code", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [src, selector] of [
+      ["`ab`", "P: !s/^/x/"], ["`ab`", "P: !s/()/x/"], ["a`bc`d", "P: !s/ab/x/"],
+      ["a`bc`d", "P: !s/cd/x/"], ["`ab` and `cd`", "P: !s/b and c/x/"],
+      ["_before **`code`** after_", "P: !s/o/X/"], ["a`bc`d", "P: !s/bc//"],
+      ["a ``  a`b  `` z", "P: !s/a/x/"], ["a `x` z", "P: !s/x/`/"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(src));
+      const cmd = "mdq '" + selector + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + " on " + src);
+    }
+  } finally { rs.dispose(); }
+});

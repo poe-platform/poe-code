@@ -169,9 +169,19 @@ pub(super) fn projection(src: &str) -> (String, Vec<Event>) {
     let mut text = String::new();
     let mut events: Vec<Event> = Vec::new();
     let mut open: Vec<usize> = Vec::new();
+    let gap = |text: &mut String, events: &mut Vec<Event>, input: &str| {
+        let offset = text.len();
+        text.push_str(&super::mdq_render_span(input, true, &literal, 0, |range| {
+            events.push(Event {
+                start: offset + range.start,
+                end: offset + range.end,
+                marker: "`",
+            });
+        }));
+    };
     let mut at = 0;
     for (i, run) in marks {
-        text.push_str(&super::mdq_render_span(&src[at..i], true, &literal, 0));
+        gap(&mut text, &mut events, &src[at..i]);
         for _ in run.closing {
             events[open.pop().unwrap()].end = text.len();
         }
@@ -189,7 +199,7 @@ pub(super) fn projection(src: &str) -> (String, Vec<Event>) {
         }
         at = i + run.width;
     }
-    text.push_str(&super::mdq_render_span(&src[at..], true, &literal, 0));
+    gap(&mut text, &mut events, &src[at..]);
     (text, events)
 }
 
@@ -200,6 +210,14 @@ pub(super) fn reconstruct(
 ) -> Result<String, String> {
     for &(start, end, replacement) in ranges {
         let delta = replacement as isize - (end - start) as isize;
+        let mut atoms = events
+            .iter()
+            .filter(|e| e.marker == "`" && e.start < end && e.end >= start);
+        if let Some(atom) = atoms.next()
+            && (start < atom.start || end > atom.end || atoms.next().is_some())
+        {
+            return Err("replacement crosses atomic boundary".into());
+        }
         events.retain_mut(|e| {
             if e.start < start {
                 if e.end > start {
@@ -272,7 +290,13 @@ pub(super) fn reconstruct(
             literal(&mut out, pos, start)?;
             pos = start;
             let stop = e.end.min(end);
-            if stop > pos {
+            if e.marker == "`" {
+                let code = text
+                    .get(pos..stop)
+                    .ok_or("internal error: formatting boundary is not a UTF-8 boundary")?;
+                super::mdq_write_inline_code(&mut out, code);
+                pos = stop;
+            } else if stop > pos {
                 out.push_str(e.marker);
                 closes.push((stop, e.marker));
             }

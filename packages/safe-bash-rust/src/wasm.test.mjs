@@ -9078,3 +9078,17 @@ test("xmllint preserves comments, processing instructions, and CDATA through ser
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint returns distinct XPath nodes in document order", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from('<r><t a="x">one</t><p><t a="x">one</t></p><t a="x"><![CDATA[one]]></t></r>'));
+    for (const q of ["//t | //t", "count(//t | //t)", "//p | //r", "//t/..", "//t/@a | //t/@a",
+      "//text() | //t/@a | //t", "string(//p | //r)", "//t[last()] | //t[1] | //t"]) {
+      const cmd = "xmllint --xpath '" + q + "' doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], q);
+    }
+  } finally { rs.dispose(); }
+});

@@ -775,6 +775,11 @@ pub(super) fn cmd_xq(args: &[String], stdin: super::CommandInput, cwd: &str, env
     if args.iter().any(|a| crate::vfs::stream_utf8(a).is_err()) {
         return err_out("xq: filters and filenames require valid UTF-8\n", 2);
     }
+    let decoded;
+    let env = if env.values().any(|v| v.contains(crate::vfs::is_stream_byte)) {
+        decoded = env.iter().map(|(k,v)| (k.clone(), crate::vfs::host_text(v).into_owned())).collect();
+        &decoded
+    } else { env };
     utf8_output(cmd_jq_core(args, jq_input::Source::Xml(Some(stdin)), cwd, env, fs, None))
 }
 
@@ -787,7 +792,7 @@ fn cmd_jq_core(
     yq: Option<&YqDocuments<'_>>,
 ) -> BuiltinOutcome {
     let xml_input = matches!(stdin, jq_input::Source::Xml(_));
-    let text_arg = |arg: &String| if xml_input { crate::vfs::host_text(arg).into_owned() } else { arg.clone() };
+    let text_arg = |arg: &str| if xml_input { crate::vfs::host_text(arg).into_owned() } else { arg.to_owned() };
     const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
     let mut raw_output = false;
     let mut raw_output0 = false;
@@ -844,7 +849,7 @@ fn cmd_jq_core(
             if i + 2 >= args.len() {
                 return err_out(&format!("jq: {a} requires an operand\n"), 2);
             }
-            let name = &args[i + 1];
+            let name = text_arg(&args[i + 1]);
             let text = &args[i + 2];
             i += 3;
             let value = match a.as_str() {
@@ -854,7 +859,7 @@ fn cmd_jq_core(
                     Err(_) => return err_out(&format!("jq: invalid JSON for --argjson {name}\n"), 2),
                 },
                 _ => {
-                    if vars.contains_key(name) { continue; }
+                    if vars.contains_key(&name) { continue; }
                     let full = resolve_posix_path(cwd, text);
                     let mut source = jq_input::files(vec![full], jq_input::Source::Json(None), cwd, fs, a == "--rawfile", true, false, false, false);
                     match source.next() {
@@ -942,7 +947,7 @@ fn cmd_jq_core(
                 _ => &a[1..],
             };
             if flags.is_empty() || flags.chars().any(|ch| !"rRjcSsneaCMVh".contains(ch)) {
-                return err_out(&format!("jq: unsupported option {a}\n"), 2);
+                return err_out(&format!("jq: unsupported option {}\n", text_arg(a)), 2);
             }
             for ch in flags.chars() {
                 match ch {
@@ -1000,7 +1005,7 @@ fn cmd_jq_core(
                 Ok(source) => source,
                 Err(_) => return err_out("jq: program file is not valid UTF-8\n", 3),
             },
-            Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
+            Err(_) => return err_out(&format!("jq: {}\n", text_arg(&read_stream_diag(&full, fs))), 2),
         }
     } else {
         filter.unwrap_or_else(|| ".".to_string())
@@ -28661,7 +28666,8 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     let mut i = 0usize;
     while i < args.len() {
-        let a = args[i].as_str();
+        let text = crate::vfs::host_text(&args[i]);
+        let a = text.as_ref();
         if !positional && a == "--" {
             positional = true;
             i += 1;
@@ -28801,6 +28807,8 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     let Some(next) = args.get(i + 1) else {
                         return missing(flag);
                     };
+                    let text = crate::vfs::host_text(next);
+                    let next = text.as_ref();
                     if next == "--" {
                         return missing(flag);
                     }
@@ -28816,7 +28824,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         return unknown(&bad, &seen, has_selector);
                     }
                     i += 1;
-                    next.clone()
+                    text.into_owned()
                 };
                 if seen.contains(flag) {
                     return mdq_argument_error(
@@ -28900,7 +28908,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             selector_str = a.to_string();
             has_selector = true;
         } else {
-            files.push(a.to_string());
+            files.push(args[i].clone());
         }
         i += 1;
     }
@@ -28919,7 +28927,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let stdin_source = f == "-";
         let failure = |kind: &str| {
             let source = if stdin_source { "stdin".into() } else {
-                format!("file {}", JVal::Str(f.into()).to_json_string(true, false, 0))
+                format!("file {}", JVal::Str(crate::vfs::host_text(f).into_owned()).to_json_string(true, false, 0))
             };
             err_out(&format!("{kind} while reading {source}\n"), 1)
         };

@@ -9667,3 +9667,19 @@ test("ls and find escape display names but preserve raw print0 paths", async () 
     }
   } finally { sh.dispose(); }
 });
+
+test("XML and Markdown queries render private-use text once in results and diagnostics", async () => {
+  const n = "\ue0ff", sh = new RustWasmBash({cwd: "/", env: {V: n}, files: {["/" + n]: "<r/>"}});
+  try {
+    for (const [script, code, stdout, stderr] of [
+      ["xq -r env.V " + n, 0, n + "\n", ""],
+      ["xq -c --arg " + n + " val '$ARGS.named' " + n, 0, '{"' + n + '":"val"}\n', ""],
+      ["xq --" + n, 2, "", "jq: unsupported option --" + n + "\n"],
+      ["xq . missing" + n, 2, "", "jq: ENOENT: no such file or directory, readStream '/missing" + n + "'\n"],
+      ["mdq . missing" + n, 1, "", 'entity not found while reading file "missing' + n + '"\n'],
+    ]) {
+      const r = await sh.exec(script);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], script);
+    }
+  } finally { sh.dispose(); }
+});

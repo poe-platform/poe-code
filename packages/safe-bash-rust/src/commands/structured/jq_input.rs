@@ -87,7 +87,7 @@ impl Bytes<'_> {
             self.name = Some(if path == "-" {
                 "<stdin>".into()
             } else {
-                path.clone()
+                if matches!(self.stdin, Source::Xml(_)) { crate::vfs::host_text(&path).into_owned() } else { path.clone() }
             });
             self.at = 0;
             self.line = 0;
@@ -96,7 +96,8 @@ impl Bytes<'_> {
                 Source::Xml(input) => {
                     let full = (path != "-").then(|| crate::vfs::path::absolute_operand(self.cwd, &path));
                     let parser = super::xml::Parser::new(Some("UTF-8"), None, true);
-                    let dom = super::read_xml_operand(self.fs, full.as_deref().map(|p| (p, usize::MAX)), input, &mut self.remaining, parser)?;
+                    let dom = super::read_xml_operand(self.fs, full.as_deref().map(|p| (p, usize::MAX)), input, &mut self.remaining, parser)
+                        .map_err(|(code, msg)| if code == 2 { (code, crate::vfs::host_text(&msg).into_owned()) } else { (code,msg) })?;
                     let mut json = super::xml::to_json(dom.nodes, false).to_json_string(true, false, 0);
                     json.push('\n');
                     Cow::Owned(json.into_bytes())

@@ -1,6 +1,6 @@
 mod expr_bre;
 mod fd_glob;
-use fd_glob::{FdGlob, IgnoreFile};
+use fd_glob::{FdGlob, IgnoreFile, RuleError};
 mod mdq_classes;
 mod mdq_class;
 pub(super) use expr_bre::expr_match;
@@ -6351,7 +6351,7 @@ where
         let path = resolve_posix_path(&effective_cwd, name);
         match IgnoreFile::read(fs, &path, &effective_cwd, 3) {
             Ok(file) => rules.push(file),
-            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
+            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {}\n", error.message()), exit_code: 1 },
         }
     }
     let explicit_rules = rules.len();
@@ -6491,7 +6491,7 @@ where
                 if full == "/" { break; }
                 let dir = if slash == 0 { "/" } else { &full[..slash] };
                 if let Err(e) = IgnoreFile::load(&mut rules, fs, dir, None, cfg.no_ignore_vcs) {
-                    if visit(Err(e)) { break 'roots; }
+                    if visit(Err(e.message())) { break 'roots; }
                     continue 'roots;
                 }
             }
@@ -6504,7 +6504,7 @@ where
             r.trim_end_matches('/')
         };
         let prefix_cwd = r == "." || r.starts_with("./");
-        if walk_fd(
+        match walk_fd(
             label,
             "",
             &full,
@@ -6515,7 +6515,11 @@ where
             fs,
             &mut std::collections::BTreeSet::new(),
             &mut visit,
-        ) { break; }
+        ) {
+            Ok(true) => break,
+            Err(error) => { if visit(Err(error)) { break; } }
+            Ok(false) => {}
+        }
     }
 
     if quiet && !stopped { result.exit_code = i32::from(found == 0); }
@@ -6535,20 +6539,20 @@ fn walk_fd(
     fs: &dyn SafeBashFs,
     ancestors: &mut std::collections::BTreeSet<String>,
     visit: &mut dyn FnMut(Result<(&str, bool, bool), String>) -> bool,
-) -> bool {
+) -> Result<bool, String> {
     if let Some(max_d) = cfg.max_depth {
         if depth > max_d {
-            return false;
+            return Ok(false);
         }
     }
     let st = if cfg.follow || depth == 0 {
         fs.stat(full).or_else(|e| if e.starts_with("ENOENT:") { fs.lstat(full) } else { Err(e) })
     } else { fs.lstat(full) };
-    let st = match st { Ok(st) => st, Err(e) => return visit(Err(e)) };
+    let st = match st { Ok(st) => st, Err(e) => return Ok(visit(Err(e))) };
     let is_dir = st.kind == VfsEntryKind::Directory;
     let canonical = if cfg.follow && is_dir {
-        let Ok(path) = fs.access_path(full, true) else { return false; };
-        if ancestors.contains(&path) { return false; }
+        let Ok(path) = fs.access_path(full, true) else { return Ok(false); };
+        if ancestors.contains(&path) { return Ok(false); }
         Some(path)
     } else { None };
 
@@ -6556,13 +6560,13 @@ fn walk_fd(
     if depth > 0 {
         let base = basename_posix_path(disp);
         if !cfg.show_hidden && base.starts_with('.') {
-            return false;
+            return Ok(false);
         }
         if cfg.excludes.iter().any(|ex| ex.matches(rel, is_dir, true) || ex.matches(&base, is_dir, true)) {
-            return false;
+            return Ok(false);
         }
         if IgnoreFile::ignored(rules, full, is_dir) {
-            return false;
+            return Ok(false);
         }
 
         if depth >= cfg.min_depth {
@@ -6652,29 +6656,29 @@ fn walk_fd(
 
             if matches {
                 matched_here = true;
-                if visit(Ok((if cfg.absolute_path { full } else { disp }, is_dir, prefix_cwd))) { return true; }
+                if visit(Ok((if cfg.absolute_path { full } else { disp }, is_dir, prefix_cwd))) { return Ok(true); }
             }
         }
     }
 
     if cfg.prune && matched_here {
-        return false;
+        return Ok(false);
     }
 
     if is_dir {
         if let Some(max_d) = cfg.max_depth {
             if depth >= max_d {
-                return false;
+                return Ok(false);
             }
         }
         let mut entries = match fs.read_dir(full) {
-            Err(e) => return visit(Err(if e.starts_with("ENOENT:") {
+            Err(e) => return Ok(visit(Err(if e.starts_with("ENOENT:") {
                 format!("ENOENT: no such file or directory, realpath '{full}'")
-            } else { e })),
+            } else { e }))),
             Ok(entries) => entries,
         };
         if cfg.respect_ignore && let Err(error) = IgnoreFile::load(rules, fs, full, (depth > 0).then_some(entries.as_slice()), cfg.no_ignore_vcs) {
-            return visit(Err(error));
+            return match error { RuleError::Read(e) => Ok(visit(Err(e))), RuleError::Pattern(e) => Err(e) };
         }
         let inherited = rules.len();
         entries.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
@@ -6707,12 +6711,12 @@ fn walk_fd(
                 fs,
                 ancestors,
                 visit,
-            ) { return true; }
+            )? { return Ok(true); }
             rules.truncate(inherited);
         }
         if let Some(path) = canonical { ancestors.remove(&path); }
     }
-    false
+    Ok(false)
 }
 
 fn xargs_display(value: &str) -> String {
@@ -7579,6 +7583,17 @@ mod tests {
                 &mut "/work".to_owned(), &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, ""), "{flags}");
         }
+    }
+
+    #[test]
+    fn fd_bad_nested_rule_stops_only_that_root() {
+        let fs = MemoryVfs::new();
+        for dir in ["/w/a", "/w/b", "/w/c", "/v"] { fs.mkdir_all(dir).unwrap(); }
+        for path in ["/w/a/good", "/w/b/bad", "/w/c/later", "/v/second"] { fs.write_file(path, b"").unwrap(); }
+        fs.write_file("/w/b/.ignore", b"x{").unwrap();
+        let r = try_run_search_command("fd", &args(&["-tf", "", ".", "/v"]), "", &mut "/w".to_owned(),
+            &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "a/good\n/v/second\n", "fd: invalid glob: unclosed glob brace\n"));
     }
 
     #[test]

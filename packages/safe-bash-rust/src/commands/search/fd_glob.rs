@@ -67,6 +67,14 @@ impl FdGlob {
     }
 }
 
+pub(super) enum RuleError { Read(String), Pattern(String) }
+
+impl RuleError {
+    pub(super) fn message(self) -> String {
+        match self { Self::Read(e) | Self::Pattern(e) => e }
+    }
+}
+
 pub(super) struct IgnoreFile {
     base: String,
     priority: u8,
@@ -74,8 +82,8 @@ pub(super) struct IgnoreFile {
 }
 
 impl IgnoreFile {
-    pub(super) fn read(fs: &dyn super::SafeBashFs, path: &str, base: &str, priority: u8) -> Result<Self, String> {
-        let bytes = super::read_search_file(fs, path, "readFile")?;
+    pub(super) fn read(fs: &dyn super::SafeBashFs, path: &str, base: &str, priority: u8) -> Result<Self, RuleError> {
+        let bytes = super::read_search_file(fs, path, "readFile").map_err(RuleError::Read)?;
         let text = String::from_utf8_lossy(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes));
         let mut rules = Vec::new();
         for mut line in text.lines() {
@@ -85,7 +93,7 @@ impl IgnoreFile {
                 line = before;
             }
             let (pattern, include) = line.strip_prefix('!').map_or((line, false), |p| (p, true));
-            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, false)?, include)); }
+            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, false).map_err(RuleError::Pattern)?, include)); }
         }
         Ok(Self { base: base.to_owned(), priority, rules })
     }
@@ -111,14 +119,14 @@ impl IgnoreFile {
         decision.is_some_and(|(_, ignored)| ignored)
     }
 
-    pub(super) fn load(files: &mut Vec<Self>, fs: &dyn super::SafeBashFs, dir: &str, entries: Option<&[String]>, no_vcs: bool) -> Result<(), String> {
+    pub(super) fn load(files: &mut Vec<Self>, fs: &dyn super::SafeBashFs, dir: &str, entries: Option<&[String]>, no_vcs: bool) -> Result<(), RuleError> {
         for (priority, name) in [(0, ".gitignore"), (1, ".ignore"), (2, ".fdignore")] {
             if (priority == 0 && no_vcs) || entries.is_some_and(|names| !names.iter().any(|n| n == name)) { continue; }
             let path = format!("{}/{name}", dir.trim_end_matches('/'));
             match Self::read(fs, &path, dir, priority) {
                 Ok(file) if !file.rules.is_empty() => files.push(file),
                 Ok(_) => {}
-                Err(e) if e.starts_with("ENOENT:") || e.starts_with("EISDIR:") => {}
+                Err(RuleError::Read(e)) if e.starts_with("ENOENT:") || e.starts_with("EISDIR:") => {}
                 Err(e) => return Err(e),
             }
         }

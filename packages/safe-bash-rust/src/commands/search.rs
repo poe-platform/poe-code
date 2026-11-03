@@ -5881,6 +5881,9 @@ fn cmd_fd<F>(
 where
     F: FnMut(&[String], &mut String) -> ChildRun,
 {
+    if args.iter().any(|arg| crate::vfs::stream_utf8(arg).is_err()) {
+        return BuiltinOutcome { stdout: String::new(), stderr: "fd: The encoded data was not valid for encoding utf-8\n".into(), exit_code: 1 };
+    }
     let mut extensions: Vec<String> = Vec::new();
     let mut types: Vec<char> = Vec::new();
     let mut min_depth = 1usize;

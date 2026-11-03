@@ -209,6 +209,18 @@ fn env_and_timeout_forward_nested_writes_to_the_inherited_descriptors() {
 }
 
 #[test]
+fn fd_rejects_invalid_argument_bytes_before_help_or_command_effects() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.write_file("/work/ÿ", b"").unwrap();
+    for script in [r"fd --version $'\x80'", r"fd -x sh -c 'touch /invoked' $'\xff'"] {
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "", "fd: The encoded data was not valid for encoding utf-8\n"));
+        assert!(!fs.exists("/invoked"));
+    }
+    assert_eq!(shell.exec(r"fd -F $'\xc3\xbf'").unwrap().stdout, "ÿ\n");
+}
+
+#[test]
 fn fd_executes_matches_during_traversal_and_stops_at_the_result_limit() {
     for (script, code, stdout, stderr) in [
         ("fd -I -x sh -c 'printf x; printf y >&2; printf z' 2>&1", 0, "xyzxyz", ""),

@@ -5465,12 +5465,43 @@ fn is_expr_truthy(v: &str) -> bool {
     true
 }
 
-fn parse_expr_int(v: &str) -> Option<i128> {
+fn parse_expr_int(v: &str) -> Option<(bool, &str)> {
     let rest = v.strip_prefix('-').unwrap_or(v);
     if rest.is_empty() || !rest.bytes().all(|b| b.is_ascii_digit()) {
         return None;
     }
-    v.parse::<i128>().ok()
+    let digits = rest.trim_start_matches('0');
+    Some(if digits.is_empty() { (false, "0") } else { (v.starts_with('-'), digits) })
+}
+
+fn expr_arithmetic(left: &str, op: &str, right: &str) -> Result<String, (String, i32)> {
+    let (Some((neg_a, a)), Some((neg_b, b))) = (parse_expr_int(left), parse_expr_int(right)) else {
+        return Err(("expr: non-integer argument\n".to_string(), 2));
+    };
+    let digits = |s: &str| s.bytes().map(|b| b - b'0').collect::<Vec<_>>();
+    let (a, b) = (digits(a), digits(b));
+    let (negative, magnitude) = match op {
+        "+" | "-" => {
+            let neg_b = neg_b ^ (op == "-");
+            if neg_a == neg_b {
+                (neg_a, big_add(&a, &b))
+            } else if big_cmp(&a, &b).is_lt() {
+                (neg_b, big_sub(&b, &a))
+            } else {
+                (neg_a, big_sub(&a, &b))
+            }
+        }
+        "*" => (neg_a ^ neg_b, big_mul(&a, &b)),
+        "/" | "%" => {
+            if b == [0] {
+                return Err(("expr: division by zero\n".to_string(), 2));
+            }
+            let (quotient, remainder) = big_div_rem(&a, &b);
+            if op == "/" { (neg_a ^ neg_b, quotient) } else { (neg_a, remainder) }
+        }
+        _ => unreachable!(),
+    };
+    Ok(format_big_with_scale(&magnitude, 0, negative))
 }
 
 fn eval_expr_or(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
@@ -5510,26 +5541,20 @@ fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
         *pos += 1;
         let right = eval_expr_add(args, pos, active)?;
         if active {
-            let res = if let (Some(a), Some(b)) = (parse_expr_int(&left), parse_expr_int(&right)) {
-                match op.as_str() {
-                    "=" | "==" => a == b,
-                    "!=" => a != b,
-                    "<" => a < b,
-                    "<=" => a <= b,
-                    ">" => a > b,
-                    ">=" => a >= b,
-                    _ => false,
-                }
+            let order = if let (Some((neg_a, a)), Some((neg_b, b))) = (parse_expr_int(&left), parse_expr_int(&right)) {
+                let magnitude = a.len().cmp(&b.len()).then_with(|| a.cmp(b));
+                neg_b.cmp(&neg_a).then(if neg_a { magnitude.reverse() } else { magnitude })
             } else {
-                match op.as_str() {
-                    "=" | "==" => left == right,
-                    "!=" => left != right,
-                    "<" => left < right,
-                    "<=" => left <= right,
-                    ">" => left > right,
-                    ">=" => left >= right,
-                    _ => false,
-                }
+                left.cmp(&right)
+            };
+            let res = match op.as_str() {
+                "=" | "==" => order.is_eq(),
+                "!=" => !order.is_eq(),
+                "<" => order.is_lt(),
+                "<=" => order.is_le(),
+                ">" => order.is_gt(),
+                ">=" => order.is_ge(),
+                _ => unreachable!(),
             };
             left = if res { "1".to_string() } else { "0".to_string() };
         }
@@ -5544,13 +5569,7 @@ fn eval_expr_add(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
         *pos += 1;
         let right = eval_expr_mul(args, pos, active)?;
         if active {
-            let Some(a) = parse_expr_int(&left) else {
-                return Err(("expr: non-integer argument\n".to_string(), 2));
-            };
-            let Some(b) = parse_expr_int(&right) else {
-                return Err(("expr: non-integer argument\n".to_string(), 2));
-            };
-            left = if op == "+" { (a + b).to_string() } else { (a - b).to_string() };
+            left = expr_arithmetic(&left, &op, &right)?;
         }
     }
     Ok(left)
@@ -5563,28 +5582,7 @@ fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
         *pos += 1;
         let right = eval_expr_match(args, pos, active)?;
         if active {
-            let Some(a) = parse_expr_int(&left) else {
-                return Err(("expr: non-integer argument\n".to_string(), 2));
-            };
-            let Some(b) = parse_expr_int(&right) else {
-                return Err(("expr: non-integer argument\n".to_string(), 2));
-            };
-            left = match op.as_str() {
-                "*" => (a * b).to_string(),
-                "/" => {
-                    if b == 0 {
-                        return Err(("expr: division by zero\n".to_string(), 2));
-                    }
-                    (a / b).to_string()
-                }
-                "%" => {
-                    if b == 0 {
-                        return Err(("expr: division by zero\n".to_string(), 2));
-                    }
-                    (a % b).to_string()
-                }
-                _ => "0".to_string(),
-            };
+            left = expr_arithmetic(&left, &op, &right)?;
         }
     }
     Ok(left)
@@ -5667,13 +5665,17 @@ fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<S
             return Ok(String::new());
         }
         let chars: Vec<char> = s_str.chars().collect();
-        let p = parse_expr_int(&p_str).unwrap_or(0);
-        let l = parse_expr_int(&l_str).unwrap_or(0);
-        let sub: String = if p <= 0 || l <= 0 || (p as usize) > chars.len() {
+        let index = |value: &str| match parse_expr_int(value) {
+            Some((false, digits)) => digits.parse::<usize>().unwrap_or(usize::MAX),
+            _ => 0,
+        };
+        let p = index(&p_str);
+        let l = index(&l_str);
+        let sub: String = if p == 0 || l == 0 || p > chars.len() {
             String::new()
         } else {
-            let p_idx = (p as usize) - 1;
-            let end_idx = p_idx.saturating_add(l as usize).min(chars.len());
+            let p_idx = p - 1;
+            let end_idx = p_idx.saturating_add(l).min(chars.len());
             chars[p_idx..end_idx].iter().collect()
         };
         return Ok(sub);
@@ -21537,6 +21539,28 @@ mod tests {
         assert_eq!(cmd_sleep(&args(&["--", "-0.5"]), &mut env).exit_code, 1);
         assert_eq!(cmd_sleep(&args(&["0.05", "0.15s"]), &mut env).exit_code, 0);
         assert_eq!(cmd_sleep(&args(&["0x1p-4"]), &mut env).exit_code, 0);
+    }
+
+    #[test]
+    fn expr_keeps_large_integers_exact() {
+        let max = "170141183460469231731687303715884105727";
+        let next = "170141183460469231731687303715884105728";
+        let min = "-170141183460469231731687303715884105728";
+        for (tokens, result) in [
+            (&[max, "+", "1"][..], next),
+            (&[min, "/", "-1"], next),
+            (&[min, "%", "-1"], "0"),
+            (&[min, "-", "1"], "-170141183460469231731687303715884105729"),
+            (&[next, "*", "-2"], "-340282366920938463463374607431768211456"),
+            (&["-340282366920938463463374607431768211457", "%", next], "-1"),
+            (&[next, "<", "2"], "0"),
+            (&["substr", "abc", "2", next], "bc"),
+            (&["substr", "abc", next, "2"], ""),
+        ] {
+            let r = cmd_expr(&args(tokens));
+            assert_eq!(r.stdout, format!("{result}\n"), "{tokens:?}: {}", r.stderr);
+            assert_eq!(r.exit_code, i32::from(result == "0" || result.is_empty()));
+        }
     }
 
     #[test]

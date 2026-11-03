@@ -658,21 +658,27 @@ impl<'a> EvalState<'a> {
     }
 
     pub fn eval_script_str(&mut self, script: &str, stdin: &str) -> Result<CommandResult, EvalError> {
-        self.budget
-            .add_source_bytes(script.len())
-            .map_err(EvalError::Budget)?;
-        let mut stdin_buf = stdin.to_string();
-        let mut out = self.eval_script_units(&crate::vfs::shell_text(script), &mut stdin_buf)?;
-        out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
-        self.last_exit = out.exit_code;
-        self.run_exit_trap_if_needed(&mut out);
-        let final_code = out.exit_code;
-        Ok(CommandResult {
-            stdout: out.stdout,
-            stderr: out.stderr,
-            exit_code: self.exit_requested.unwrap_or(final_code),
-            cwd: self.cwd.clone(),
-            env: self.env.clone(),
+        self.eval_script_timed(script, stdin).0
+    }
+
+    pub(crate) fn eval_script_timed(&mut self, script: &str, stdin: &str) -> (Result<CommandResult, EvalError>, u32) {
+        crate::commands::with_execution_clock(|| {
+            self.budget
+                .add_source_bytes(script.len())
+                .map_err(EvalError::Budget)?;
+            let mut stdin_buf = stdin.to_string();
+            let mut out = self.eval_script_units(&crate::vfs::shell_text(script), &mut stdin_buf)?;
+            out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
+            self.last_exit = out.exit_code;
+            self.run_exit_trap_if_needed(&mut out);
+            let final_code = out.exit_code;
+            Ok(CommandResult {
+                stdout: out.stdout,
+                stderr: out.stderr,
+                exit_code: self.exit_requested.unwrap_or(final_code),
+                cwd: self.cwd.clone(),
+                env: self.env.clone(),
+            })
         })
     }
 
@@ -15366,6 +15372,20 @@ mod tests {
                 assert_eq!(res.exit_code, 1, "{redirect} {target}");
                 assert_eq!(res.stderr, format!("shell: line 2: {target}: Permission denied\n"));
             }
+        }
+    }
+
+    #[test]
+    fn independent_evaluators_start_with_their_own_virtual_time() {
+        let fs = crate::vfs::MemoryVfs::new();
+        let commands = BTreeMap::new();
+        for (script, expected) in [("sleep 2; echo $SECONDS", "2\n"), ("echo $SECONDS", "0\n")] {
+            let mut cwd = "/".to_string();
+            let mut env = BTreeMap::new();
+            let budget = ExecutionBudget::default();
+            let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &commands, false);
+            let result = state.eval_script_str(script, "").unwrap();
+            assert_eq!(result.stdout, expected);
         }
     }
 

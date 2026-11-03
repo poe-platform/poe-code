@@ -406,7 +406,7 @@ impl HybridBackend {
             eval.exported_functions.clone_from(&bindings.exported_functions);
             eval.pos_args.clone_from(&bindings.positional);
         }
-        let (eval_res, elapsed_ms) = crate::commands::with_execution_clock(|| eval.eval_script_str(script, stdin));
+        let (eval_res, elapsed_ms) = eval.eval_script_timed(script, stdin);
         *cwd = host_text(eval.cwd).into_owned();
         self.last_elapsed_ms.store(elapsed_ms, Ordering::Relaxed);
         if let Err(exceeded_msg) = budget.check_exceeded() {

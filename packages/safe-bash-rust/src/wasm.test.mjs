@@ -9970,6 +9970,19 @@ test("jq charges one read for a direct memory JSON operand and admits its bytes 
   }
 });
 
+test("jq reports the line reached when a filter stops reading JSON inputs", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const padding of [16381, 16382]) {
+      await sh.fs.writeFile("/a", new TextEncoder().encode("1\n2 " + " ".repeat(padding) + "\n"));
+      const r = await sh.exec("jq -nc 'inputs | select(. == 2) | error' /a");
+      assert.deepEqual([r.exitCode, r.stderr], [5, `jq: error (at /a:${padding === 16381 ? 2 : 1}): 2\n`]);
+      const drained = await sh.exec("jq 'select(. == 2) | error' /a");
+      assert.deepEqual([drained.exitCode, drained.stderr], [5, "jq: error (at /a:2): 2\n"]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("jq admits a single memory file when its JSON input is first requested", async () => {
   const files = {"/f": "12\n34\n"};
   for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {

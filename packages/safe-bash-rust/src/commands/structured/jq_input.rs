@@ -12,16 +12,22 @@ pub(super) struct JqInputs<'a> {
 }
 
 impl JqInputs<'_> {
-    pub fn location(&mut self) -> String {
+    pub fn location(&mut self, null_input: bool) -> String {
         if let Some(v) = &mut self.reader {
             let b = &mut v.bytes;
-            let line = if (b.at > 0 && b.chunk[b.at - 1] != b'\n' && b.has_newline())
-                || (b.at == 0 && b.more_newlines == Some(true))
-            {
-                b.line + 1
-            } else {
-                b.line
-            };
+            let terminated = if b.at == 0 {
+                b.more_newlines == Some(true)
+            } else if b.chunk[b.at - 1] == b'\n' {
+                false
+            } else if null_input && !v.raw {
+                // A null-input invocation can finish without asking for another
+                // JSON value. Only its current 16 KiB parser segment was seen.
+                let prior = &b.chunk[..b.at - 1];
+                let start = prior.iter().rposition(|&c| c == b'\n').map_or(0, |i| i + 1);
+                let remaining = 16383 - (prior.len() - start) % 16384;
+                b.chunk[b.at..].iter().take(remaining).any(|&c| c == b'\n')
+            } else { b.has_newline() };
+            let line = b.line + usize::from(terminated);
             if let Some(name) = &b.name { return format!("{}:{line}", diagnostic(name, usize::MAX)); }
         }
         "<unknown>".into()

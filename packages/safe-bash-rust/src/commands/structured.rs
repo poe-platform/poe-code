@@ -1102,7 +1102,7 @@ fn cmd_jq_core(
             }
             Err(JqFault::Error(code, value)) => {
                 let error = value.to_raw_string(true, false);
-                let place = inputs.borrow_mut().location();
+                let place = inputs.borrow_mut().location(null_input);
                 use std::fmt::Write;
                 let mut input = inputs.borrow_mut();
                 let mut sink = json_format::LimitedText { text: &mut stderr, remaining: &mut input.remaining_output };

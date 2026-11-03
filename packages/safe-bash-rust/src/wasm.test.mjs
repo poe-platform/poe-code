@@ -9786,3 +9786,13 @@ test("xq converts deep XML to raw JSON with ordered groups and mixed content", a
     }
   } finally { sh.dispose(); }
 });
+
+test("output limits stop later list commands and apply to background output", async () => {
+  const sh = new RustWasmBash({files: {"/f": "ab"}});
+  try {
+    for (const script of ["cat /f && touch /later", "cat /f >&2 && touch /later", "cat /f & wait"]) {
+      await assert.rejects(sh.exec(script, {limits: {maxOutputBytes: 1}}), /maxOutputBytes/, script);
+      await assert.rejects(sh.fs.stat("/later"), {code: "ENOENT"});
+    }
+  } finally { sh.dispose(); }
+});

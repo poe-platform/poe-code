@@ -1141,12 +1141,6 @@ impl<'a> EvalState<'a> {
                 }
                 Err(e) => return Err(e),
             };
-            self.budget
-                .record_stdout(stream_byte_len(&out.stdout))
-                .map_err(EvalError::Budget)?;
-            self.budget
-                .record_stderr(stream_byte_len(&out.stderr))
-                .map_err(EvalError::Budget)?;
             if !self.pending_stdout.is_empty() {
                 stdout.push_str(&std::mem::take(&mut self.pending_stdout));
             }
@@ -1366,7 +1360,7 @@ impl<'a> EvalState<'a> {
         }
 
         if pipe.commands.len() == 1 {
-            let res = self.eval_command_node(&pipe.commands[0], stdin, Some(pipe.negated));
+            let res = self.eval_pipeline_stage(&pipe.commands[0], stdin, Some(pipe.negated));
             self.in_condition = prev_cond;
             let mut out = res?;
             let raw_code = out.exit_code;
@@ -1432,7 +1426,7 @@ impl<'a> EvalState<'a> {
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let outer_input = self.fd_table.remove(&0);
-                let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin, None);
+                let stage_res = self.eval_pipeline_stage(cmd_node, &mut cur_stdin, None);
                 if let Some(target) = outer_input {
                     self.fd_table.insert(0, target);
                 }
@@ -1481,9 +1475,9 @@ impl<'a> EvalState<'a> {
                 sub.in_pipeline_producer = true;
             }
             let stage_res = if idx == 0 {
-                sub.eval_command_node(cmd_node, stdin, None)
+                sub.eval_pipeline_stage(cmd_node, stdin, None)
             } else {
-                sub.eval_command_node(cmd_node, &mut cur_stdin, None)
+                sub.eval_pipeline_stage(cmd_node, &mut cur_stdin, None)
             };
             let mut stage_out = match stage_res {
                 Ok(o) => o,
@@ -1496,12 +1490,6 @@ impl<'a> EvalState<'a> {
                 stage_out.exit_code = code;
             }
             sub.run_exit_trap_if_needed(&mut stage_out);
-            if !is_last {
-                if let Err(e) = self.budget.record_stdout(stream_byte_len(&stage_out.stdout)) {
-                    self.in_condition = prev_cond;
-                    return Err(EvalError::Budget(e));
-                }
-            }
             combined_stderr.push_str(&stage_out.stderr);
             stage_codes.push(stage_out.exit_code);
             cur_stdin = stage_out.stdout;
@@ -1535,6 +1523,18 @@ impl<'a> EvalState<'a> {
             stderr: combined_stderr,
             exit_code: final_code,
         })
+    }
+
+    fn eval_pipeline_stage(
+        &mut self,
+        node: &CommandNode,
+        stdin: &mut String,
+        standalone: Option<bool>,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        let out = self.eval_command_node(node, stdin, standalone)?;
+        self.budget.add_output_bytes(stream_byte_len(&out.stdout) + stream_byte_len(&out.stderr))
+            .map_err(EvalError::Budget)?;
+        Ok(out)
     }
 
     fn eval_command_node(

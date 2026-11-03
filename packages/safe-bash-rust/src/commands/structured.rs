@@ -28091,6 +28091,7 @@ struct MdqBlock {
     title: String,
     text: String,
     lang: String,
+    metadata: String,
     ordered: bool,
     checked: Option<bool>,
     url: String,
@@ -28125,6 +28126,28 @@ fn mdq_strip_inline(s: &str) -> String {
         i += 1;
     }
     out
+}
+
+fn mdq_fence(line: &str) -> Option<(usize, u8, usize, &str)> {
+    let at = line.trim_start_matches(' ');
+    let indent = line.len() - at.len();
+    if indent > 3 { return None; }
+    let marker = *at.as_bytes().first()?;
+    if !matches!(marker, b'`' | b'~') { return None; }
+    let width = at.bytes().take_while(|&b| b == marker).count();
+    let info = at[width..].trim_matches([' ', '\t']);
+    (width >= 3 && (marker != b'`' || !info.as_bytes().contains(&marker))).then_some((indent, marker, width, info))
+}
+
+// Removing only part of a leading tab leaves spaces up to its tab stop.
+fn mdq_code_indent(line: &str, columns: usize) -> (usize, String) {
+    let (mut offset, mut col) = (0, 0);
+    for byte in line.bytes() {
+        if col >= columns { break; }
+        match byte { b' ' => col += 1, b'\t' => col += 4 - col % 4, _ => break }
+        offset += 1;
+    }
+    (col, " ".repeat(col.saturating_sub(columns)) + &line[offset..])
 }
 
 fn mdq_heading(line: &str) -> Option<(usize, &str)> {
@@ -28171,16 +28194,9 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
                 let fm_body = lines[i + 1..j].join("\n");
                 blocks.push(MdqBlock {
                     kind: "frontmatter".to_string(),
-                    level: 0,
-                    title: String::new(),
                     text: fm_body,
                     lang: variant.to_string(),
-                    ordered: false,
-                    checked: None,
-                    url: String::new(),
-                    children: Vec::new(),
-                    table_aligns: Vec::new(),
-                    table_rows: Vec::new(),
+                    ..MdqBlock::default()
                 });
                 i = j + 1;
             }
@@ -28193,6 +28209,32 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             i += 1;
             continue;
         }
+        if line.starts_with("    ") || line.trim_start_matches(' ').starts_with('\t') {
+            let mut code = Vec::new();
+            while i < lines.len() {
+                let (indent, body) = mdq_code_indent(lines[i], 4);
+                if indent < 4 && !body.is_empty() { break; }
+                code.push(body);
+                i += 1;
+            }
+            while code.last().is_some_and(|l| l.trim().is_empty()) { code.pop(); }
+            blocks.push(MdqBlock { kind: "code".into(), text: code.join("\n"), ..MdqBlock::default() });
+            continue;
+        }
+        if let Some((indent, marker, width, info)) = mdq_fence(line) {
+            let (lang, metadata) = info.split_once([' ', '\t']).unwrap_or((info, ""));
+            let mut code = Vec::new();
+            i += 1;
+            while i < lines.len() {
+                let next = lines[i];
+                i += 1;
+                if mdq_fence(next).is_some_and(|(_, m, n, tail)| m == marker && n >= width && tail.is_empty()) { break; }
+                code.push(mdq_code_indent(next, indent).1);
+            }
+            blocks.push(MdqBlock { kind: "code".into(), text: code.join("\n"), lang: lang.into(),
+                metadata: metadata.trim_start().into(), ..MdqBlock::default() });
+            continue;
+        }
         if trimmed.starts_with('<')
             && trimmed.ends_with('>')
             && !trimmed.starts_with("<http://")
@@ -28201,44 +28243,10 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
         {
             blocks.push(MdqBlock {
                 kind: "html".to_string(),
-                level: 0,
-                title: String::new(),
                 text: line.trim_end().to_string(),
-                lang: String::new(),
-                ordered: false,
-                checked: None,
-                url: String::new(),
-                children: Vec::new(),
-                table_aligns: Vec::new(),
-                table_rows: Vec::new(),
+                ..MdqBlock::default()
             });
             i += 1;
-            continue;
-        }
-        if trimmed.starts_with("```") {
-            let lang = trimmed.trim_start_matches('`').trim().to_string();
-            i += 1;
-            let mut code_lines = Vec::new();
-            while i < lines.len() && !lines[i].trim().starts_with("```") {
-                code_lines.push(lines[i]);
-                i += 1;
-            }
-            if i < lines.len() {
-                i += 1;
-            }
-            blocks.push(MdqBlock {
-                kind: "code".to_string(),
-                level: 0,
-                title: String::new(),
-                text: code_lines.join("\n"),
-                lang,
-                ordered: false,
-                checked: None,
-                url: String::new(),
-                children: Vec::new(),
-                table_aligns: Vec::new(),
-                table_rows: Vec::new(),
-            });
             continue;
         }
         if let Some((level, title)) = mdq_heading(line) {
@@ -28256,16 +28264,9 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             let inner = parse_mdq_markdown(&q_lines.join("\n"));
             blocks.push(MdqBlock {
                 kind: "quote".to_string(),
-                level: 0,
-                title: String::new(),
                 text: q_lines.join("\n"),
-                lang: String::new(),
-                ordered: false,
-                checked: None,
-                url: String::new(),
                 children: inner,
-                table_aligns: Vec::new(),
-                table_rows: Vec::new(),
+                ..MdqBlock::default()
             });
             continue;
         }
@@ -28291,16 +28292,9 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             }
             blocks.push(MdqBlock {
                 kind: "table".to_string(),
-                level: 0,
-                title: String::new(),
-                text: String::new(),
-                lang: String::new(),
-                ordered: false,
-                checked: None,
-                url: String::new(),
-                children: Vec::new(),
                 table_aligns: aligns,
                 table_rows: rows,
+                ..MdqBlock::default()
             });
             continue;
         }
@@ -28323,16 +28317,10 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             };
             blocks.push(MdqBlock {
                 kind: "list_item".to_string(),
-                level: 0,
-                title: String::new(),
                 text: clean_text,
-                lang: String::new(),
                 ordered,
                 checked,
-                url: String::new(),
-                children: Vec::new(),
-                table_aligns: Vec::new(),
-                table_rows: Vec::new(),
+                ..MdqBlock::default()
             });
             i += 1;
             continue;
@@ -28349,7 +28337,7 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             let nl = lines[i].trim();
             if nl.is_empty()
                 || mdq_heading(lines[i]).is_some()
-                || nl.starts_with("```")
+                || mdq_fence(lines[i]).is_some()
                 || nl.starts_with('>')
                 || nl.starts_with("- ")
                 || nl.starts_with("* ")
@@ -28387,14 +28375,8 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
                     kind: "section".to_string(),
                     level: lvl,
                     title,
-                    text: String::new(),
-                    lang: String::new(),
-                    ordered: false,
-                    checked: None,
-                    url: String::new(),
                     children,
-                    table_aligns: Vec::new(),
-                    table_rows: Vec::new(),
+                    ..MdqBlock::default()
                 });
             } else {
                 out.push(flat[idx].clone());
@@ -28597,73 +28579,13 @@ fn mdq_match_and_replace(pat_raw: &str, target: &str, strip_inline_for_match: bo
     }
 }
 
-fn split_mdq_stages(s: &str) -> Vec<String> {
-    let chars: Vec<char> = s.chars().collect();
-    let mut out = Vec::new();
-    let mut cur = String::new();
-    let mut i = 0usize;
-    let mut in_quote: Option<char> = None;
-    let mut slash_slashes_remaining = 0usize;
-    while i < chars.len() {
-        let c = chars[i];
-        if let Some(q) = in_quote {
-            cur.push(c);
-            if c == '\\' && i + 1 < chars.len() {
-                i += 1;
-                cur.push(chars[i]);
-            } else if c == q {
-                in_quote = None;
-            }
-            i += 1;
-            continue;
-        }
-        if slash_slashes_remaining > 0 {
-            cur.push(c);
-            if c == '\\' && i + 1 < chars.len() {
-                i += 1;
-                cur.push(chars[i]);
-            } else if c == '/' {
-                slash_slashes_remaining -= 1;
-            }
-            i += 1;
-            continue;
-        }
-        if c == '"' || c == '\'' {
-            in_quote = Some(c);
-            cur.push(c);
-            i += 1;
-            continue;
-        }
-        if c == '!' && i + 2 < chars.len() && chars[i + 1] == 's' && chars[i + 2] == '/' {
-            cur.push_str("!s/");
-            slash_slashes_remaining = 2;
-            i += 3;
-            continue;
-        }
-        if c == '/' && (i == 0 || chars[i - 1].is_whitespace()) {
-            cur.push('/');
-            slash_slashes_remaining = 1;
-            i += 1;
-            continue;
-        }
-        if c == '|' {
-            out.push(cur.clone());
-            cur.clear();
-            i += 1;
-            continue;
-        }
-        cur.push(c);
-        i += 1;
-    }
-    out.push(cur);
-    out
+enum MdqSelector {
+    Code(String, String),
+    Frontmatter(String, String),
+    Other(String),
 }
 
-fn mdq_select_one(nodes: &[MdqBlock], sel_raw: &str) -> Vec<MdqBlock> {
-    let sel = sel_raw.trim();
-    if sel.is_empty() {
-        return nodes.to_vec();
-    }
+fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
     let mut all = Vec::new();
     fn collect_recursive(ns: &[MdqBlock], out: &mut Vec<MdqBlock>) {
         for n in ns {
@@ -28673,6 +28595,38 @@ fn mdq_select_one(nodes: &[MdqBlock], sel_raw: &str) -> Vec<MdqBlock> {
     }
     collect_recursive(nodes, &mut all);
 
+    if let MdqSelector::Code(lang_m, code_m) = stage {
+        return all
+            .into_iter()
+            .filter_map(|mut b| {
+                if b.kind != "code" {
+                    return None;
+                }
+                let new_lang = mdq_match_and_replace(lang_m, &b.lang, false)?;
+                let new_text = mdq_match_and_replace(code_m, &b.text, false)?;
+                b.lang = new_lang;
+                b.text = new_text;
+                Some(b)
+            })
+            .collect();
+    }
+    if let MdqSelector::Frontmatter(lang_m, body_m) = stage {
+        return all
+            .into_iter()
+            .filter_map(|mut b| {
+                if b.kind != "frontmatter" {
+                    return None;
+                }
+                if !lang_m.is_empty() && lang_m != "*" && b.lang != *lang_m {
+                    return None;
+                }
+                let new_text = mdq_match_and_replace(body_m, &b.text, false)?;
+                b.text = new_text;
+                Some(b)
+            })
+            .collect();
+    }
+    let MdqSelector::Other(sel) = stage else { unreachable!() };
     if let Some(rest) = sel.strip_prefix('#') {
         let (min_l, max_l, matcher) = if let Some(after_brace) = rest.strip_prefix('{') {
             if let Some(close) = after_brace.find('}') {
@@ -28722,53 +28676,6 @@ fn mdq_select_one(nodes: &[MdqBlock], sel_raw: &str) -> Vec<MdqBlock> {
         }
         select_sections(nodes, min_l, max_l, matcher, &mut out);
         return out;
-    }
-    if let Some(rest) = sel.strip_prefix("```") {
-        let rest_trim = rest.trim();
-        let (lang_m, code_m) = if rest_trim.starts_with("!s/") || rest_trim.starts_with('/') {
-            ("", rest_trim)
-        } else if let Some((l, c)) = rest_trim.split_once(' ') {
-            (l.trim(), c.trim())
-        } else {
-            (rest_trim, "")
-        };
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "code" {
-                    return None;
-                }
-                let new_lang = mdq_match_and_replace(lang_m, &b.lang, false)?;
-                let new_text = mdq_match_and_replace(code_m, &b.text, false)?;
-                b.lang = new_lang;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
-    }
-    if let Some(rest) = sel.strip_prefix("+++") {
-        let rest_trim = rest.trim();
-        let (lang_m, body_m) = if rest_trim.starts_with("!s/") || rest_trim.starts_with('/') {
-            ("", rest_trim)
-        } else if let Some((l, c)) = rest_trim.split_once(' ') {
-            (l.trim(), c.trim())
-        } else {
-            (rest_trim, "")
-        };
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "frontmatter" {
-                    return None;
-                }
-                if !lang_m.is_empty() && lang_m != "*" && b.lang != lang_m {
-                    return None;
-                }
-                let new_text = mdq_match_and_replace(body_m, &b.text, false)?;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
     }
     if let Some(rest) = sel.strip_prefix("</>") {
         let m = rest.trim();
@@ -28886,16 +28793,10 @@ fn mdq_select_one(nodes: &[MdqBlock], sel_raw: &str) -> Vec<MdqBlock> {
                             ) {
                                 links.push(MdqBlock {
                                     kind: if is_img { "image".to_string() } else { "link".to_string() },
-                                    level: 0,
                                     title: new_disp.clone(),
                                     text: new_disp,
-                                    lang: String::new(),
-                                    ordered: false,
-                                    checked: None,
                                     url: new_url,
-                                    children: Vec::new(),
-                                    table_aligns: Vec::new(),
-                                    table_rows: Vec::new(),
+                                    ..MdqBlock::default()
                                 });
                             }
                             k = cb_idx + 2 + cp + 1;
@@ -28948,16 +28849,9 @@ fn mdq_select_one(nodes: &[MdqBlock], sel_raw: &str) -> Vec<MdqBlock> {
                             let new_aligns: Vec<String> = col_indices.iter().map(|&ci| b.table_aligns.get(ci).cloned().unwrap_or_else(|| "none".to_string())).collect();
                             out_tables.push(MdqBlock {
                                 kind: "table".to_string(),
-                                level: 0,
-                                title: String::new(),
-                                text: String::new(),
-                                lang: String::new(),
-                                ordered: false,
-                                checked: None,
-                                url: String::new(),
-                                children: Vec::new(),
                                 table_aligns: new_aligns,
                                 table_rows: new_rows,
+                                ..MdqBlock::default()
                             });
                         }
                     }
@@ -28985,7 +28879,12 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
             out
         }
         "paragraph" => format!("{}\n", b.text),
-        "code" => format!("```{}\n{}\n```\n", b.lang, b.text),
+        "code" => {
+            let ticks = b.text.lines().map(|s| s.bytes().take_while(|&c| c == b'`').count()).max().unwrap_or(0);
+            let fence = "`".repeat((ticks + 1).max(3));
+            let space = if b.metadata.is_empty() { "" } else { " " };
+            format!("{fence}{}{space}{}\n{}\n{fence}\n", b.lang, b.metadata, b.text)
+        }
         "list_item" => {
             let prefix = if b.ordered { "1. " } else { "- " };
             let chk = match b.checked {
@@ -29091,6 +28990,9 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             ];
             if !b.lang.is_empty() {
                 fields.push(("language".to_string(), JVal::Str(b.lang.clone())));
+            }
+            if !b.metadata.is_empty() {
+                fields.push(("metadata".to_string(), JVal::Str(b.metadata.clone())));
             }
             JVal::Object(vec![("code_block".to_string(), JVal::Object(fields))])
         }
@@ -29272,7 +29174,7 @@ fn mdq_query_error(query: &str, at: usize, message: &str, end: Option<usize>) ->
     )
 }
 
-fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
+fn parse_mdq_query(query: &str) -> Result<Vec<MdqSelector>, BuiltinOutcome> {
     let chars: Vec<char> = query.chars().collect();
     let mut at = 0usize;
     let skip = |at: &mut usize| {
@@ -29475,7 +29377,7 @@ fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
         Ok((omitted, text))
     };
 
-    let mut count = 0usize;
+    let mut stages = Vec::new();
     while at < chars.len() {
         skip(&mut at);
         while chars.get(at) == Some(&'|') {
@@ -29486,7 +29388,8 @@ fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
             break;
         }
         let begin = at;
-        let invalid_msg = if count > 0 {
+        let mut stage = None;
+        let invalid_msg = if !stages.is_empty() {
             "expected end of input or selector"
         } else {
             "expected valid query"
@@ -29575,10 +29478,13 @@ fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
             kind = if front { "frontmatter" } else { "code" };
             let lang_at = at;
             let (lang_omitted, lang_text) = parse_string(&mut at, ' ')?;
+            let lang_end = at;
             require_space(&mut at, false)?;
+            let body_at = at;
             parse_string(&mut at, '|')?;
+            let body = chars[body_at..at].iter().collect();
             if front && !lang_omitted && lang_text != "yaml" && lang_text != "toml" {
-                let quoted = JVal::Str(lang_text).to_json_string(true, false, 0);
+                let quoted = JVal::Str(lang_text.clone()).to_json_string(true, false, 0);
                 return Err(mdq_query_error(
                     query,
                     lang_at,
@@ -29586,6 +29492,11 @@ fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
                     Some(at),
                 ));
             }
+            stage = Some(if front {
+                MdqSelector::Frontmatter(lang_text, body)
+            } else {
+                MdqSelector::Code(chars[lang_at..lang_end].iter().collect(), body)
+            });
         } else {
             let rest: String = chars[at..].iter().collect();
             let starts = [
@@ -29622,9 +29533,9 @@ fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
             }
             return Err(mdq_query_error(query, begin, invalid_msg, None));
         }
-        count += 1;
+        stages.push(stage.unwrap_or_else(|| MdqSelector::Other(chars[begin..at].iter().collect::<String>().trim_end().into())));
     }
-    Ok(())
+    Ok(stages)
 }
 
 fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -30015,15 +29926,13 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         }
     }
-    if let Err(err_outcome) = validate_mdq_query(&selector_str) {
-        return err_outcome;
-    }
+    let stages = match parse_mdq_query(&selector_str) {
+        Ok(stages) => stages,
+        Err(error) => return error,
+    };
     let mut current = vec![MdqBlock { kind: "document".into(), children: parse_mdq_markdown(&md_input), ..MdqBlock::default() }];
-    for stage in split_mdq_stages(&selector_str) {
-        let st = stage.trim();
-        if !st.is_empty() {
-            current = mdq_select_one(&current, st);
-        }
+    for stage in &stages {
+        current = mdq_select_one(&current, stage);
     }
     let breaks = breaks_opt.unwrap_or(output_fmt == "markdown" || output_fmt == "md");
     let matched = !current.is_empty();

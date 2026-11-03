@@ -8080,3 +8080,23 @@ test("mdq builds sections from ATX and Setext headings, including empty titles",
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq preserves indented and fenced code without selecting headings inside it", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const fence = String.fromCharCode(96).repeat(3);
+  try {
+    const text = [
+      "# Real", "", "  ~~~~rust title", "    line", "  # hidden", "  ~~~",
+      "  " + fence, "  ~~~~", "", "\t# indented", "", "    x", "",
+      "## After", "", fence + " js", "body", fence + " trailing", fence + fence,
+    ].join("\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-o json", "'#'", "-o json '" + fence + "'",
+      ...["rust", " rust", "rust line", "/ru(st|by)/ line", "!s/rust/rust lang/ line", " !s/line/replaced/"].map(s => "'" + fence + s + "'")]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -9796,3 +9796,28 @@ test("output limits stop later list commands and apply to background output", as
     }
   } finally { sh.dispose(); }
 });
+
+test("shells forward nested command output without spending its quota again", async () => {
+  const sh = new RustWasmBash({files: {"/f": Uint8Array.of(0xff, 0x61), "/script": "cat /f"}});
+  try {
+    for (const [script, limit, channel] of [
+      ["{ { cat /f; }; }", 2, "stdoutBytes"],
+      ["(cat /f) >&2", 2, "stderrBytes"],
+      ["if true; then for i in 1; do cat /f; done; fi", 2, "stdoutBytes"],
+      ["f(){ cat /f; }; f | cat", 4, "stdoutBytes"],
+      ["{ cat /f | cat; } | { cat; }", 6, "stdoutBytes"],
+      ["{ cat /f >&2 | true; }", 2, "stderrBytes"],
+      ["sh -c 'cat /f'", 2, "stdoutBytes"],
+      ["bash /script", 2, "stdoutBytes"],
+      ["f(){ cat /f >/dev/null; cat /f; }; f", 4, "stdoutBytes"],
+      ["{ x=$(printf aa); cat /f; }", 4, "stdoutBytes"],
+      ["{ x=$(cat /f >&2); }", 2, "stderrBytes"],
+    ]) {
+      const r = await sh.exec(script, {limits: {maxOutputBytes: limit}});
+      assert.equal(r.exitCode, 0, script);
+      assert.deepEqual(r[channel], Uint8Array.of(0xff, 0x61), script);
+      await assert.rejects(sh.exec(script + "; touch /later", {limits: {maxOutputBytes: limit - 1}}), /maxOutputBytes/, script);
+      await assert.rejects(sh.fs.stat("/later"), {code: "ENOENT"});
+    }
+  } finally { sh.dispose(); }
+});

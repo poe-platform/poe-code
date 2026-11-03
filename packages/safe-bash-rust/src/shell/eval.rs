@@ -166,6 +166,10 @@ pub struct EvalState<'a> {
     pub in_prefix_assignment: bool,
     pub retained_prefix_vars: Vec<String>,
     pub pending_out_procsubs: Vec<(String, String)>,
+    // Bytes from completed nested stages that are forwarded to the current output.
+    // A pipe consumer and a command substitution each capture a separate stream.
+    forwarded_output: Rc<Cell<usize>>,
+    pending_forwarded: usize,
     pub pending_stdout: String,
     pub pending_stderr: String,
     pub exit_requested: Option<i32>,
@@ -271,6 +275,8 @@ impl<'a> EvalState<'a> {
             in_prefix_assignment: false,
             retained_prefix_vars: Vec::new(),
             pending_out_procsubs: Vec::new(),
+            forwarded_output: Rc::default(),
+            pending_forwarded: 0,
             pending_stdout: String::new(),
             pending_stderr: String::new(),
             exit_requested: None,
@@ -420,6 +426,8 @@ impl<'a> EvalState<'a> {
             in_prefix_assignment: false,
             retained_prefix_vars: Vec::new(),
             pending_out_procsubs: Vec::new(),
+            forwarded_output: self.forwarded_output.clone(),
+            pending_forwarded: 0,
             pending_stdout: String::new(),
             pending_stderr: String::new(),
             exit_requested: None,
@@ -1141,11 +1149,10 @@ impl<'a> EvalState<'a> {
                 }
                 Err(e) => return Err(e),
             };
-            if !self.pending_stdout.is_empty() {
-                stdout.push_str(&std::mem::take(&mut self.pending_stdout));
-            }
-            if !self.pending_stderr.is_empty() {
-                stderr.push_str(&std::mem::take(&mut self.pending_stderr));
+            if !self.pending_stdout.is_empty() || !self.pending_stderr.is_empty() {
+                let (pending_out, pending_err) = self.take_pending_output()?;
+                stdout.push_str(&pending_out);
+                stderr.push_str(&pending_err);
             }
             stdout.push_str(&out.stdout);
             stderr.push_str(&out.stderr);
@@ -1490,6 +1497,10 @@ impl<'a> EvalState<'a> {
                 stage_out.exit_code = code;
             }
             sub.run_exit_trap_if_needed(&mut stage_out);
+            if !is_last {
+                // The next stage consumes stdout. Only stderr flows out of the pipeline.
+                self.forwarded_output.set(self.forwarded_output.get() - stream_byte_len(&stage_out.stdout));
+            }
             combined_stderr.push_str(&stage_out.stderr);
             stage_codes.push(stage_out.exit_code);
             cur_stdin = stage_out.stdout;
@@ -1525,15 +1536,29 @@ impl<'a> EvalState<'a> {
         })
     }
 
+    fn take_pending_output(&mut self) -> Result<(String, String), EvalError> {
+        let stdout = std::mem::take(&mut self.pending_stdout);
+        let stderr = std::mem::take(&mut self.pending_stderr);
+        let bytes = stream_byte_len(&stdout) + stream_byte_len(&stderr);
+        self.budget.add_output_bytes(bytes - std::mem::take(&mut self.pending_forwarded))
+            .map_err(EvalError::Budget)?;
+        self.forwarded_output.set(self.forwarded_output.get() + bytes);
+        Ok((stdout, stderr))
+    }
+
     fn eval_pipeline_stage(
         &mut self,
         node: &CommandNode,
         stdin: &mut String,
         standalone: Option<bool>,
     ) -> Result<BuiltinOutcome, EvalError> {
-        let out = self.eval_command_node(node, stdin, standalone)?;
-        self.budget.add_output_bytes(stream_byte_len(&out.stdout) + stream_byte_len(&out.stderr))
-            .map_err(EvalError::Budget)?;
+        let outer = self.forwarded_output.replace(0);
+        let res = self.eval_command_node(node, stdin, standalone);
+        let forwarded = self.forwarded_output.replace(outer);
+        let out = res?;
+        let bytes = stream_byte_len(&out.stdout) + stream_byte_len(&out.stderr);
+        self.budget.add_output_bytes(bytes.saturating_sub(forwarded)).map_err(EvalError::Budget)?;
+        self.forwarded_output.set(outer + bytes);
         Ok(out)
     }
 
@@ -3184,8 +3209,7 @@ impl<'a> EvalState<'a> {
             }
             let mut out = match db_res {
                 Ok((exit_code, db_stderr)) => {
-                    let mut sub_out = std::mem::take(&mut self.pending_stdout);
-                    let mut sub_err = std::mem::take(&mut self.pending_stderr);
+                    let (mut sub_out, mut sub_err) = self.take_pending_output()?;
                     sub_err.push_str(&db_stderr);
                     if !debug_out.stdout.is_empty() {
                         sub_out = format!("{}{sub_out}", debug_out.stdout);
@@ -4969,8 +4993,10 @@ impl<'a> EvalState<'a> {
                     isolated_inline_input: false,
                     retained_prefix_vars: Vec::new(),
                     pending_out_procsubs: Vec::new(),
-            pending_stdout: String::new(),
-            pending_stderr: String::new(),
+                    forwarded_output: self.forwarded_output.clone(),
+                    pending_forwarded: 0,
+                    pending_stdout: String::new(),
+                    pending_stderr: String::new(),
                     exit_requested: None,
                     return_requested: None,
                     break_count: 0,
@@ -9618,12 +9644,10 @@ impl<'a> EvalState<'a> {
                         Ok(value) => value,
                         Err(EvalError::Syntax(msg)) => {
                             if let Some(diag) = msg.strip_prefix("__heredoc_diag__") {
+                                let (stdout, stderr) = self.take_pending_output()?;
                                 let mut err_out = BuiltinOutcome {
-                                    stdout: std::mem::take(&mut self.pending_stdout),
-                                    stderr: format!(
-                                        "{}{diag}",
-                                        std::mem::take(&mut self.pending_stderr)
-                                    ),
+                                    stdout,
+                                    stderr: format!("{stderr}{diag}"),
                                     exit_code: 1,
                                 };
                                 self.route_outcome(&mut err_out);
@@ -9651,12 +9675,10 @@ impl<'a> EvalState<'a> {
                                 .unwrap_or(0)
                                 > 0;
                             let code = if is_param_err && !in_subshell { 127 } else { 1 };
+                            let (stdout, stderr) = self.take_pending_output()?;
                             let mut err_out = BuiltinOutcome {
-                                stdout: std::mem::take(&mut self.pending_stdout),
-                                stderr: format!(
-                                    "{}{prefix}{clean}\n",
-                                    std::mem::take(&mut self.pending_stderr)
-                                ),
+                                stdout,
+                                stderr: format!("{stderr}{prefix}{clean}\n"),
                                 exit_code: code,
                             };
                             self.route_outcome(&mut err_out);
@@ -9687,9 +9709,10 @@ impl<'a> EvalState<'a> {
                         )));
                     }
                     if size > self.budget.limits.max_input_bytes {
+                        let (stdout, stderr) = self.take_pending_output()?;
                         let mut error = BuiltinOutcome {
-                            stdout: std::mem::take(&mut self.pending_stdout),
-                            stderr: format!("{}{}EFBIG: file too large, read\n", std::mem::take(&mut self.pending_stderr), self.diag_prefix()),
+                            stdout,
+                            stderr: format!("{stderr}{}EFBIG: file too large, read\n", self.diag_prefix()),
                             exit_code: 1,
                         };
                         self.route_outcome(&mut error);
@@ -11820,6 +11843,7 @@ impl<'a> EvalState<'a> {
         let mut sub_in = self.in_fds.remove(&0).unwrap_or_default().take();
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.callback_line_offset = self.current_line.saturating_sub(1);
+        sub.forwarded_output = Rc::default();
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
         let inherit_errexit = self
             .env
@@ -11867,6 +11891,8 @@ impl<'a> EvalState<'a> {
             out.exit_code = code;
         }
         sub.run_exit_trap_if_needed(&mut out);
+        let bytes = stream_byte_len(&out.stdout) + stream_byte_len(&out.stderr);
+        self.budget.add_output_bytes(bytes.saturating_sub(sub.forwarded_output.get())).map_err(EvalError::Budget)?;
         if !out.stderr.is_empty() {
             let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
             let mut dummy = BuiltinOutcome {
@@ -11875,6 +11901,7 @@ impl<'a> EvalState<'a> {
                 exit_code: 0,
             };
             self.write_to_fd_target(&fd2, &out.stderr, &mut dummy);
+            self.pending_forwarded += stream_byte_len(&dummy.stdout) + stream_byte_len(&dummy.stderr);
             self.pending_stdout.push_str(&dummy.stdout);
             self.pending_stderr.push_str(&dummy.stderr);
         }

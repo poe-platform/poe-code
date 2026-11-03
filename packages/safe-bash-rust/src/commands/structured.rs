@@ -350,7 +350,7 @@ pub fn try_run_structured_command(
         "html-to-markdown" => Some(cmd_html_to_markdown(args, stdin, cwd, env, fs)),
         "mmdc" => Some(cmd_mmdc(args, stdin, cwd, fs)),
         "xan" => Some(cmd_xan(args, stdin, cwd, fs)),
-        "xmllint" => Some(cmd_xmllint(args, stdin, cwd, fs)),
+        "xmllint" => Some(utf8_output(cmd_xmllint(args, stdin, cwd, fs))),
         "sqlite3" => Some(cmd_sqlite3(args, stdin, cwd, fs)),
         _ => None,
     }
@@ -608,6 +608,28 @@ fn parse_single_json_strict(input: &str) -> Result<JVal, String> {
         return Err("expected single JSON value".into());
     }
     Ok(vals.into_iter().next().unwrap())
+}
+
+fn read_utf8_source(fs: &dyn SafeBashFs, path: Option<&str>, stdin: &str, bytes: &mut Vec<u8>, remaining: &mut usize) -> Result<(), String> {
+    let mut valid = bytes.len();
+    let mut append = |chunk: &[u8]| {
+        *remaining = remaining.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", fs.max_input_bytes()))?;
+        bytes.extend_from_slice(chunk);
+        match std::str::from_utf8(&bytes[valid..]) {
+            Ok(_) => valid = bytes.len(),
+            Err(e) if e.error_len().is_none() => valid += e.valid_up_to(),
+            Err(_) => return Err("invalid data".into()),
+        }
+        Ok(true)
+    };
+    if let Some(path) = path {
+        if fs.is_dir(path) { return Err("EISDIR".into()); }
+        fs.read_chunks(path, &mut append)?;
+    } else {
+        append(&crate::vfs::stream_string_to_bytes(stdin))?;
+    }
+    if valid != bytes.len() { return Err("invalid data".into()); }
+    Ok(())
 }
 
 fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {
@@ -14910,54 +14932,24 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         return err_out("xmllint: unsupported XPath syntax at offset 0\n", 10);
     }
 
-    if files.is_empty() {
-        files.push("-".to_string());
-    }
-    let mut result = ok_out("");
-    for file in &files {
-        let text = if file == "-" {
-            stdin.to_string()
-        } else {
-            let full = resolve_posix_path(cwd, file);
-            if fs.is_dir(&full) {
-                result.stderr.push_str(&format!("xmllint: {}\n", read_stream_diag(&full, fs)));
-                result.exit_code = 1;
-                continue;
-            }
-            match fs.read_file(&full) {
-                Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
-                Err(_) => {
-                    result.stderr.push_str(&format!("xmllint: {}\n", read_stream_diag(&full, fs)));
-                    result.exit_code = 1;
-                    continue;
-                }
-            }
-        };
-
+    let render = |text: &str| {
         let mut warnings = Vec::new();
-        let doc = match xml::parse(&text, Some("UTF-8"), recover.then_some(&mut warnings)) {
+        let doc = match xml::parse(text, Some("UTF-8"), recover.then_some(&mut warnings)) {
             Ok(doc) => doc,
-            Err(e) => {
-                result.stderr.push_str(&format!("xmllint: {e}\n"));
-                result.exit_code = 1;
-                continue;
-            }
+            Err(e) => return err_out(&format!("xmllint: {e}\n"), 1),
         };
-        for message in warnings {
-            result.stderr.push_str(&format!("xmllint: {message} (recovered)\n"));
-        }
+        let stderr: String = warnings.into_iter().map(|msg| format!("xmllint: {msg} (recovered)\n")).collect();
         let mut dom = doc.nodes;
         apply_xml_transforms(&mut dom, noblanks, nocdata, false);
 
         if noout && xpath.is_none() {
-            continue;
+            return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }
-        let rendered = if let Some(ref xp) = xpath {
-            let res = eval_xmllint_xpath(&dom, xp.trim());
+        let rendered = if let Some(xp) = &xpath {
+            let mut res = eval_xmllint_xpath(&dom, xp.trim());
             if res.exit_code != 0 {
-                result.stderr.push_str(&res.stderr);
-                result.exit_code = res.exit_code;
-                continue;
+                res.stderr.insert_str(0, &stderr);
+                return res;
             }
             res.stdout
         } else if c14n {
@@ -14976,9 +14968,9 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             out
         } else {
-            let eff_encoding = encoding.clone().or(doc.encoding);
+            let eff_encoding = encoding.as_ref().or(doc.encoding.as_ref());
             let mut decl = String::from("<?xml version=\"1.0\"");
-            if let Some(ref enc) = eff_encoding {
+            if let Some(enc) = eff_encoding {
                 decl.push_str(&format!(" encoding=\"{enc}\""));
             }
             if let Some(ref sa) = doc.standalone {
@@ -14993,22 +14985,40 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         format_xml,
                         0,
                         false,
-                        eff_encoding.as_deref(),
+                        eff_encoding.map(String::as_str),
                     ));
                     out.push('\n');
                 }
             }
             out
         };
-        if let Some(ref of) = out_file && of != "-" {
+        if let Some(of) = &out_file && xpath.is_none() {
             let full = resolve_posix_path(cwd, of);
             if let Err(e) = fs.write_file(&full, rendered.as_bytes()) {
-                result.stderr.push_str(&format!("xmllint: {of}: {e}\n"));
-                result.exit_code = 1;
+                return err_out(&format!("{stderr}xmllint: {of}: {e}\n"), 1);
             }
-        } else {
-            result.stdout.push_str(&rendered);
+            return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }
+        BuiltinOutcome { stdout: rendered, stderr, exit_code: 0 }
+    };
+    let mut result = ok_out("");
+    let mut remaining = fs.max_input_bytes();
+    let mut stdin = Some(stdin);
+    for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
+        let path = (file != "-").then(|| resolve_posix_path(cwd, file));
+        let mut bytes = Vec::new();
+        let input = if path.is_none() { stdin.take().unwrap_or_default() } else { "" };
+        let read = read_utf8_source(fs, path.as_deref(), input, &mut bytes, &mut remaining);
+        let next = match read {
+            Ok(()) => render(std::str::from_utf8(&bytes).expect("validated XML input")),
+            Err(e) if e == "invalid data" => err_out("xmllint: XML input must be UTF-8\n", 1),
+            Err(e) if e.starts_with("Execution aborted:") => err_out(&e, 5),
+            Err(_) => err_out(&format!("xmllint: {}\n", read_stream_diag(path.as_deref().unwrap_or("-"), fs)), 1),
+        };
+        result.stdout.push_str(&next.stdout);
+        result.stderr.push_str(&next.stderr);
+        if next.exit_code != 0 { result.exit_code = next.exit_code; }
+        if next.exit_code == 5 { break; }
     }
     result
 }
@@ -29398,26 +29408,9 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             err_out(&format!("{kind} while reading {source}\n"), 1)
         };
         if !stdin_source || !used_stdin {
-            let mut valid = md_input.len();
-            let mut append = |chunk: &[u8]| {
-                remaining = remaining.checked_sub(chunk.len())
-                    .ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
-                md_input.extend_from_slice(chunk);
-                match std::str::from_utf8(&md_input[valid..]) {
-                    Ok(_) => valid = md_input.len(),
-                    Err(e) if e.error_len().is_none() => valid += e.valid_up_to(),
-                    Err(_) => return Err("invalid data".into()),
-                }
-                Ok(true)
-            };
-            let read = if stdin_source {
-                used_stdin = true;
-                append(&crate::vfs::stream_string_to_bytes(stdin)).map(|_| ())
-            } else {
-                let path = resolve_posix_path(cwd, f);
-                if fs.is_dir(&path) { return failure("is a directory"); }
-                fs.read_chunks(&path, &mut append)
-            };
+            let path = (!stdin_source).then(|| resolve_posix_path(cwd, f));
+            used_stdin |= stdin_source;
+            let read = read_utf8_source(fs, path.as_deref(), stdin, &mut md_input, &mut remaining);
             if let Err(e) = read {
                 return failure(match e.split(':').next() {
                     Some("ENOENT") => "entity not found",
@@ -29427,7 +29420,6 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     _ => "other error",
                 });
             }
-            if valid != md_input.len() { return failure("invalid data"); }
         }
         if !files.is_empty() { md_input.push(b'\n'); }
     }

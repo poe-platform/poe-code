@@ -9013,3 +9013,28 @@ test("xmllint recovery reports repairs and rejects malformed attributes and DTDs
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint processes each operand and reads stdin only once", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const store of [fs, rs.fs]) {
+      await store.writeFile("/a", Buffer.from("<a>first</a>"));
+      await store.writeFile("/b", Buffer.from("<b>second</b>"));
+      await store.writeFile("/private", Buffer.from("<c>\uE080🌻</c>"));
+      await store.writeFile("/bad", Uint8Array.of(60,114,62,255,60,47,114,62));
+    }
+    for (const cmd of ["xmllint /a /b", "xmllint /a missing /b", "xmllint --noout /bad /a",
+      "xmllint --xpath 'string(/*)' /bad /private", "xmllint --xpath '//a' /b /a",
+      "xmllint - - /b </a", "xmllint /b - </bad", "xmllint -o saved /a /bad /b"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdoutBytes, b.stderr], [a.exitCode, a.stdoutBytes, a.stderr], cmd);
+    }
+    assert.deepEqual(Buffer.from(await rs.fs.readFile("/saved")), Buffer.from(await fs.readFile("/saved")));
+    for (const sh of [js, rs]) {
+      await assert.rejects(sh.exec("xmllint --noout /a - </b", { limits: { maxInputBytes: 24 } }), /maxInputBytes/);
+      assert.equal((await sh.exec("xmllint --noout /a - </b", { limits: { maxInputBytes: 25 } })).exitCode, 0);
+    }
+  } finally { rs.dispose(); }
+});

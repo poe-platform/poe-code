@@ -377,23 +377,7 @@ pub trait SafeBashFs: Send + Sync {
 
 pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
     if let Ok(s) = std::str::from_utf8(bytes) {
-        // U+E080..U+E0FF represent individual raw bytes internally. Quote
-        // literal occurrences as their UTF-8 bytes so decoding is reversible.
-        if bytes.contains(&0xee) && let Some(start) = s.find(is_stream_byte) {
-            let mut out = String::with_capacity(s.len());
-            out.push_str(&s[..start]);
-            for c in s[start..].chars() {
-                if is_stream_byte(c) {
-                    for b in c.encode_utf8(&mut [0; 4]).bytes() {
-                        out.push(char::from_u32(0xE000 + u32::from(b)).unwrap());
-                    }
-                } else {
-                    out.push(c);
-                }
-            }
-            return out;
-        }
-        return s.to_string();
+        return shell_text(s).into_owned();
     }
     let mut out = String::with_capacity(bytes.len() * 2);
     for &b in bytes {
@@ -406,7 +390,38 @@ pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
     out
 }
 
-fn is_stream_byte(c: char) -> bool {
+/// Quote text entering the byte-preserving shell representation.
+pub(crate) fn shell_text(s: &str) -> std::borrow::Cow<'_, str> {
+    // U+E080..U+E0FF represent individual raw bytes internally. Quote
+    // literal occurrences as their UTF-8 bytes so decoding is reversible.
+    if s.as_bytes().contains(&0xee) && let Some(start) = s.find(is_stream_byte) {
+        let mut out = String::with_capacity(s.len());
+        out.push_str(&s[..start]);
+        for c in s[start..].chars() {
+            if is_stream_byte(c) {
+                for b in c.encode_utf8(&mut [0; 4]).bytes() {
+                    out.push(char::from_u32(0xE000 + u32::from(b)).unwrap());
+                }
+            } else {
+                out.push(c);
+            }
+        }
+        return out.into();
+    }
+    s.into()
+}
+
+/// Project shell bytes onto the UTF-8 filenames supported by the host FS.
+pub(crate) fn host_text(s: &str) -> std::borrow::Cow<'_, str> {
+    stream_utf8(s).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned().into())
+}
+
+pub(crate) fn stream_utf8(s: &str) -> Result<std::borrow::Cow<'_, str>, std::string::FromUtf8Error> {
+    if !s.as_bytes().contains(&0xee) || !s.contains(is_stream_byte) { return Ok(s.into()); }
+    String::from_utf8(stream_string_to_bytes(s)).map(Into::into)
+}
+
+pub(crate) fn is_stream_byte(c: char) -> bool {
     ('\u{e080}'..='\u{e0ff}').contains(&c)
 }
 

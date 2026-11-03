@@ -493,7 +493,7 @@ fn decode_c_escapes_inner(
                 }
                 Some(other) => {
                     out_bytes.push(b'\\');
-                    push_char(&mut out_bytes, other);
+                    if crate::vfs::is_stream_byte(other) { out_bytes.push(other as u8); } else { push_char(&mut out_bytes, other); }
                 }
                 None => out_bytes.push(b'\\'),
             }
@@ -501,7 +501,7 @@ fn decode_c_escapes_inner(
             if c == '\0' && truncate_on_nul {
                 break;
             }
-            push_char(&mut out_bytes, c);
+            if crate::vfs::is_stream_byte(c) { out_bytes.push(c as u8); } else { push_char(&mut out_bytes, c); }
         }
     }
     crate::vfs::bytes_to_stream_string(&out_bytes)

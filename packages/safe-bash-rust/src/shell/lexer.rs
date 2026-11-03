@@ -1150,8 +1150,16 @@ pub(super) fn syntax_token(source: &str) -> &str {
 
 pub(super) const UNSUPPORTED_DOLLAR: &str = "Unsupported shell quoting or special parameter";
 
+fn source_offset(chars: &[char]) -> usize {
+    if chars.iter().any(|&c| crate::vfs::is_stream_byte(c)) {
+        crate::vfs::host_text(&chars.iter().collect::<String>()).encode_utf16().count()
+    } else {
+        chars.iter().map(|c| c.len_utf16()).sum()
+    }
+}
+
 pub(super) fn dollar_error(chars: &[char], second: usize) -> String {
-    let offset: usize = chars[..second].iter().map(|c| c.len_utf16()).sum();
+    let offset = source_offset(&chars[..second]);
     format!("{UNSUPPORTED_DOLLAR} at offset {offset}")
 }
 
@@ -1342,11 +1350,12 @@ fn read_paren_sub_body(
         let clean = err.strip_prefix("__exit127__").unwrap_or(&err);
         if let Some(offset) = clean.strip_prefix(UNSUPPORTED_DOLLAR)
             .and_then(|s| s.strip_prefix(" at offset ")).and_then(|s| s.parse::<usize>().ok()) {
+            let inner_body = crate::vfs::host_text(inner_body);
             let mut units = 0;
             if let Some((pos, _)) = inner_body.char_indices().find(|(_, c)| {
                 let found = units == offset; units += c.len_utf16(); found
             }) {
-                return Err(format!("__exit127__Syntax error: unexpected `{}`", syntax_token(&inner_body[pos..])));
+                return Err(format!("__exit127__Syntax error: unexpected `{}`", crate::vfs::shell_text(syntax_token(&inner_body[pos..]))));
             }
         }
         if clean.contains("unexpected end of file") {
@@ -1367,7 +1376,7 @@ fn read_dollar_brace(
     out.push('{');
     *i += 2;
     if chars.get(*i) == Some(&'$') {
-        let offset: usize = chars[..*i].iter().map(|c| c.len_utf16()).sum();
+        let offset = source_offset(&chars[..*i]);
         return Err(format!("Unsupported parameter expansion at offset {offset}"));
     }
     if chars.get(*i) == Some(&'!') {
@@ -1378,7 +1387,7 @@ fn read_dollar_brace(
         if op > *i + 1 && matches!(chars.get(op..op + 3), Some(['[', '@' | '*', ']'])) {
             op += 3;
             if chars.get(op).is_some_and(|c| !matches!(c, '}' | '@' | '\\')) {
-                let offset: usize = chars[..op].iter().map(|c| c.len_utf16()).sum();
+                let offset = source_offset(&chars[..op]);
                 return Err(format!("Unsupported array-key operator at offset {offset}"));
             }
         }

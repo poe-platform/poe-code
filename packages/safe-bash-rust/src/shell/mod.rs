@@ -71,6 +71,9 @@ impl Shell {
         let mut env = options.env;
         // Internal bindings start with NUL, which cannot occur in an environment name.
         env.retain(|key, _| !key.contains('\0'));
+        for value in env.values_mut() {
+            if let std::borrow::Cow::Owned(quoted) = crate::vfs::shell_text(value) { *value = quoted; }
+        }
         if !env.contains_key("IFS") {
             env.insert("IFS".into(), " \t\n".into());
             env.insert("\0unexported__IFS".into(), "1".into());
@@ -123,7 +126,7 @@ impl Shell {
     pub fn set_cwd(&mut self, cwd: &str) {
         let norm = normalize_posix_path(cwd);
         self.cwd = norm.clone();
-        self.env.insert("PWD".to_string(), norm);
+        self.env.insert("PWD".to_string(), crate::vfs::shell_text(&norm).into_owned());
     }
 
     pub fn set_env(&mut self, key: &str, val: &str) {
@@ -133,7 +136,7 @@ impl Shell {
 
     pub(crate) fn set_binding(&mut self, key: &str, val: &str) {
         self.env.remove(&format!("\0unexported__{key}"));
-        self.env.insert(key.to_string(), val.to_string());
+        self.env.insert(key.to_string(), crate::vfs::shell_text(val).into_owned());
     }
 
     pub fn env(&self) -> &BTreeMap<String, String> {

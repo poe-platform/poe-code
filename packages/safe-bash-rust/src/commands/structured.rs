@@ -772,6 +772,9 @@ pub(crate) fn cmd_jq_with_env(
 }
 
 pub(super) fn cmd_xq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if args.iter().any(|a| crate::vfs::stream_utf8(a).is_err()) {
+        return err_out("xq: filters and filenames require valid UTF-8\n", 2);
+    }
     utf8_output(cmd_jq_core(args, jq_input::Source::Xml(Some(stdin)), cwd, env, fs, None))
 }
 
@@ -783,6 +786,8 @@ fn cmd_jq_core(
     fs: &dyn SafeBashFs,
     yq: Option<&YqDocuments<'_>>,
 ) -> BuiltinOutcome {
+    let xml_input = matches!(stdin, jq_input::Source::Xml(_));
+    let text_arg = |arg: &String| if xml_input { crate::vfs::host_text(arg).into_owned() } else { arg.clone() };
     const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
     let mut raw_output = false;
     let mut raw_output0 = false;
@@ -843,8 +848,8 @@ fn cmd_jq_core(
             let text = &args[i + 2];
             i += 3;
             let value = match a.as_str() {
-                "--arg" => JVal::Str(text.clone()),
-                "--argjson" => match jq_json::Parser::one(text) {
+                "--arg" => JVal::Str(text_arg(text)),
+                "--argjson" => match jq_json::Parser::one(&text_arg(text)) {
                     Ok(parsed) => parsed,
                     Err(_) => return err_out(&format!("jq: invalid JSON for --argjson {name}\n"), 2),
                 },
@@ -964,15 +969,15 @@ fn cmd_jq_core(
             continue;
         }
         if filter.is_none() && program_file.is_none() {
-            filter = Some(a.clone());
+            filter = Some(text_arg(a));
         } else if let Some(is_json_args) = args_mode {
             if is_json_args {
-                match jq_json::Parser::one(a) {
+                match jq_json::Parser::one(&text_arg(a)) {
                     Ok(parsed) => positional_args.push(parsed),
                     Err(_) => return err_out("jq: invalid JSON text passed to --jsonargs\n", 2),
                 }
             } else {
-                positional_args.push(JVal::Str(a.clone()));
+                positional_args.push(JVal::Str(text_arg(a)));
             }
         } else {
             files.push(a.clone());
@@ -1000,7 +1005,6 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    let xml_input = matches!(stdin, jq_input::Source::Xml(_));
     let inputs = Rc::new(RefCell::new(jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors)));
     let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
@@ -14899,7 +14903,8 @@ fn apply_xml_transforms(
 }
 
 pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut xpath: Option<String> = None;
+    let invalid = || err_out("xmllint: XPath and filenames require valid UTF-8\n", 2);
+    let mut xpath = None;
     let mut noout = false;
     let mut format_xml = false;
     let mut c14n = false;
@@ -14929,6 +14934,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                 if i >= args.len() {
                     return err_out(&format!("xmllint: expected value after {a}\n"), 2);
                 }
+                if crate::vfs::stream_utf8(&args[i]).is_err() { return invalid(); }
                 out_file = Some(args[i].clone());
             }
             "--encode" => {
@@ -14936,6 +14942,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                 if i >= args.len() {
                     return err_out("xmllint: expected value after --encode\n", 2);
                 }
+                if crate::vfs::stream_utf8(&args[i]).is_err() { return invalid(); }
                 let upper = args[i].to_ascii_uppercase();
                 let norm = match upper.as_str() {
                     "UTF8" => "UTF-8".to_string(),
@@ -14960,7 +14967,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                 if i >= args.len() {
                     return err_out("xmllint: expected QUERY [FILE|-]\n", 2);
                 }
-                xpath = Some(args[i].clone());
+                xpath = Some(args[i].as_str());
             }
             _ => break,
         }
@@ -14975,9 +14982,11 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         if !literal_files && file.starts_with('-') && file != "-" {
             return err_out("xmllint: expected XML input FILE or -\n", 2);
         }
+        if crate::vfs::stream_utf8(file).is_err() { return invalid(); }
         files.push(file.clone());
         i += 1;
     }
+    let Ok(xpath) = xpath.map(crate::vfs::stream_utf8).transpose() else { return invalid() };
     let xpath = match xpath.as_deref().map(xpath::compile).transpose() {
         Ok(query) => query,
         Err(e) => return err_out(&format!("xmllint: {e}\n"), 10),

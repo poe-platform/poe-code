@@ -585,7 +585,7 @@ impl<'a> EvalState<'a> {
             .add_source_bytes(script.len())
             .map_err(EvalError::Budget)?;
         let mut stdin_buf = stdin.to_string();
-        let mut out = self.eval_script_units(script, &mut stdin_buf)?;
+        let mut out = self.eval_script_units(&crate::vfs::shell_text(script), &mut stdin_buf)?;
         out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
         self.last_exit = out.exit_code;
         self.run_exit_trap_if_needed(&mut out);
@@ -700,7 +700,7 @@ impl<'a> EvalState<'a> {
                 Err(mut syn_err) => {
                     if unit_start_line > 0 && let Some((reason, offset)) = syn_err.rsplit_once(" at offset ")
                         && let Ok(offset) = offset.parse::<usize>() {
-                        let prefix: usize = lines[..unit_start_line].iter().map(|s| s.encode_utf16().count()).sum();
+                        let prefix: usize = lines[..unit_start_line].iter().map(|s| crate::vfs::host_text(s).encode_utf16().count()).sum();
                         syn_err = format!("{reason} at offset {}", prefix + offset);
                     }
                     if !executed && self.mapfile_callback_depth == 0 {
@@ -4180,7 +4180,7 @@ impl<'a> EvalState<'a> {
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
                 let joined = eval_args.join(" ");
-                if let Err(e) = self.budget.add_source_bytes(joined.len()) {
+                if let Err(e) = self.budget.add_source_bytes(stream_byte_len(&joined)) {
                     self.budget.leave_substitution();
                     return Err(EvalError::Budget(e));
                 }
@@ -4390,7 +4390,8 @@ impl<'a> EvalState<'a> {
                                     exit_code: code,
                                 });
                             }
-                            let script_str = String::from_utf8_lossy(&bytes);
+                            let text = String::from_utf8_lossy(&bytes);
+                            let script_str = crate::vfs::shell_text(&text);
                             let saved_pos_ver = self.pos_args_version;
                             let saved_args = if src_args.len() > 1 {
                                 Some(std::mem::replace(&mut self.pos_args, src_args[1..].to_vec()))
@@ -5888,7 +5889,7 @@ impl<'a> EvalState<'a> {
             .collect();
 
         if let Some(cs) = script_source {
-            if let Err(e) = sub.budget.add_source_bytes(cs.len()) {
+            if let Err(e) = sub.budget.add_source_bytes(stream_byte_len(cs.as_str())) {
                 self.budget.leave_substitution();
                 return Err(EvalError::Budget(e));
             }
@@ -6055,7 +6056,7 @@ impl<'a> EvalState<'a> {
         }
         let stripped = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
         match std::str::from_utf8(stripped) {
-            Ok(s) => Ok(s.to_string()),
+            Ok(s) => Ok(crate::vfs::shell_text(s).into_owned()),
             Err(_) => Err(BuiltinOutcome {
                 stdout: String::new(),
                 stderr: format!("{name}: cannot execute binary or non-UTF-8 script\n"),
@@ -14513,6 +14514,7 @@ fn format_syntax_diagnostic(
         if syntax_name == "shell: -c" {
             return format!("shell: {syn_msg}\n");
         }
+        let source = crate::vfs::host_text(source);
         let mut units = 0;
         if let Some((pos, _)) = source.char_indices().find(|(_, c)| {
             let here = units == offset;
@@ -14522,7 +14524,9 @@ fn format_syntax_diagnostic(
             let line = diag_offset + 1 + source[..pos].bytes().filter(|&c| c == b'\n').count();
             let src_line = source[..pos].rsplit('\n').next().unwrap_or("");
             let rest = source[pos..].split('\n').next().unwrap_or("");
-            let token = super::lexer::syntax_token(rest);
+            let token = crate::vfs::shell_text(super::lexer::syntax_token(rest));
+            let src_line = crate::vfs::shell_text(src_line);
+            let rest = crate::vfs::shell_text(rest);
             return format!("{syntax_name}: line {line}: syntax error near unexpected token `{token}'\n{syntax_name}: line {line}: `{src_line}{rest}'\n");
         }
     }

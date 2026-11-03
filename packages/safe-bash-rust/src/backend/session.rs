@@ -1,5 +1,6 @@
 use super::{HybridBackend, ShellBindings, from_jstr, jstr};
 use crate::budget::ShellLimits;
+use crate::vfs::{host_text, shell_text, stream_byte_len};
 use crate::shell::{
     eval::format_function_display,
     parser::{CommandNode, parse_script_with_extglob},
@@ -32,7 +33,7 @@ const SHOPT: &[&str] = &[
 ];
 
 fn string(s: &str) -> Value {
-    Value::String(jstr(s))
+    Value::String(jstr(&host_text(s)))
 }
 fn strings<'a>(items: impl IntoIterator<Item = &'a String>) -> Value {
     Value::Array(items.into_iter().map(|s| string(s)).collect())
@@ -45,11 +46,11 @@ fn entries(v: Option<&Value>) -> impl Iterator<Item = (String, &Value)> {
         Some(Value::Object(pairs)) => pairs.as_slice(),
         _ => &[],
     };
-    pairs.iter().map(|(k, v)| (from_jstr(k), v))
+    pairs.iter().map(|(k, v)| (shell_text(&from_jstr(k)).into_owned(), v))
 }
 fn text(v: &Value) -> Option<String> {
     match v {
-        Value::String(s) => Some(from_jstr(s)),
+        Value::String(s) => Some(shell_text(&from_jstr(s)).into_owned()),
         _ => None,
     }
 }
@@ -133,14 +134,14 @@ impl HybridBackend {
             if assoc && let Some(keys) = keys {
                 for key in keys.split('\x1f') {
                     if let Some(value) = elements.remove(key) {
-                        ordered.push((jstr(key), string(value)));
+                        ordered.push((jstr(&host_text(key)), string(value)));
                     }
                 }
             }
             ordered.extend(
                 elements
                     .into_iter()
-                    .map(|(key, value)| (jstr(key), string(value))),
+                    .map(|(key, value)| (jstr(&host_text(key)), string(value))),
             );
             (
                 name,
@@ -179,7 +180,7 @@ impl HybridBackend {
             },
         ));
         stringify(&object([
-            ("cwd", string(cwd)),
+            ("cwd", Value::String(jstr(cwd))),
             ("status", Value::Number(status.into())),
             (
                 "umask",
@@ -237,7 +238,7 @@ impl HybridBackend {
             .ok_or("Session state needs cwd")?;
         let cwd = crate::vfs::normalize_posix_path(&cwd);
         let positional = list(v.get("positionalParams"));
-        if positional.iter().map(String::len).sum::<usize>() > limits.max_expansion_bytes {
+        if positional.iter().map(|s| stream_byte_len(s)).sum::<usize>() > limits.max_expansion_bytes {
             return Err("Shell limit exceeded: maxExpansionBytes".into());
         }
         let exported: BTreeSet<_> = list(v.get("exported")).into_iter().collect();
@@ -250,7 +251,7 @@ impl HybridBackend {
         env.insert("PWD".into(), cwd.clone());
         let mut alias_bytes = 0;
         for (name, val) in string_entries(v.get("aliases")) {
-            alias_bytes += name.len() + val.len();
+            alias_bytes += stream_byte_len(&name) + stream_byte_len(&val);
             if alias_bytes > limits.max_expansion_bytes {
                 return Err("Shell limit exceeded: maxExpansionBytes".into());
             }
@@ -332,7 +333,7 @@ impl HybridBackend {
         let extglob = env.get("\0shopt_extglob").is_some_and(|v| v == "1");
         let mut functions = BTreeMap::new();
         for (name, src) in string_entries(v.get("functions")) {
-            if src.len() > limits.max_source_bytes {
+            if stream_byte_len(&src) > limits.max_source_bytes {
                 return Err("Shell limit exceeded: maxSourceBytes".into());
             }
             if let Ok(script) = parse_script_with_extglob(&src, extglob)
@@ -353,6 +354,6 @@ impl HybridBackend {
             positional,
             exported_functions: list(v.get("exportedFunctions")).into_iter().collect(),
         };
-        Ok(cwd)
+        Ok(host_text(&cwd).into_owned())
     }
 }

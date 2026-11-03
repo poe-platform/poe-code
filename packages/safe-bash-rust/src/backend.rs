@@ -1,7 +1,7 @@
 mod session;
 use crate::budget::{ExecutionBudget, ShellLimits};
 use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry};
-use crate::vfs::FileStat;
+use crate::vfs::{FileStat, host_text, shell_text};
 use crate::shell::eval::{EvalError, EvalState};
 use crate::shell::parser::CommandNode;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
@@ -85,6 +85,13 @@ struct BudgetedFs<'a> {
     budget: &'a ExecutionBudget,
 }
 
+fn quote_host_text(text: String) -> String {
+    match shell_text(&text) {
+        std::borrow::Cow::Borrowed(_) => text,
+        std::borrow::Cow::Owned(quoted) => quoted,
+    }
+}
+
 impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn shell_limits(&self) -> ShellLimits {
         self.budget.limits.clone()
@@ -101,43 +108,43 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.access_path(path, follow_final)
+        self.inner.access_path(&host_text(path), follow_final).map(quote_host_text).map_err(quote_host_text)
     }
 
     fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, crate::vfs::FileStat), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.inspect_command_entry(path, follow, syscall)
+        self.inner.inspect_command_entry(&host_text(path), follow, syscall).map(|(p, st)| (quote_host_text(p), st)).map_err(quote_host_text)
     }
 
     fn scratch_file(&self, directory: &str) -> Result<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>, String> {
         self.budget.limits.check_path(directory)?;
         self.budget.tick_fs_op()?;
-        self.inner.scratch_file(directory)
+        self.inner.scratch_file(&host_text(directory)).map_err(quote_host_text)
     }
 
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.open_redirect_file(path, access, create_mode)
+        self.inner.open_redirect_file(&host_text(path), access, create_mode).map_err(quote_host_text)
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.read_file(path)
+        self.inner.read_file(&host_text(path)).map_err(quote_host_text)
     }
 
     fn open_read_file(&self, path: &str, allow_directory: bool) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.open_read_file(path, allow_directory)
+        self.inner.open_read_file(&host_text(path), allow_directory).map_err(quote_host_text)
     }
 
     fn open_chunks(&self, path: &str) -> Result<crate::vfs::ChunkReader<'_>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        let mut next = self.inner.open_chunks(path)?;
+        let mut next = self.inner.open_chunks(&host_text(path)).map_err(quote_host_text)?;
         Ok(Box::new(move |chunk| {
             self.budget.check_cancelled()?;
             next(chunk)
@@ -148,148 +155,153 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(after.len())?;
-        self.inner.commit_file_edit(path, original, before, after, in_place)
+        self.inner.commit_file_edit(&host_text(path), original, before, after, in_place).map_err(quote_host_text)
     }
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.create_file(path, data, mode)
+        self.inner.create_file(&host_text(path), data, mode).map_err(quote_host_text)
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.write_file(path, data)
+        self.inner.write_file(&host_text(path), data).map_err(quote_host_text)
     }
 
     fn patch_revision(&self, path: &str) -> Result<(u64, u64), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.patch_revision(path)
+        self.inner.patch_revision(&host_text(path)).map_err(quote_host_text)
     }
 
     fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         if let Some(data) = bytes { self.budget.add_output_bytes(data.len())?; }
-        self.inner.patch_file(path, bytes, expected)
+        self.inner.patch_file(&host_text(path), bytes, expected).map_err(quote_host_text)
     }
 
     fn replace_file_entry(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_entry(path, data, version)
+        self.inner.replace_file_entry(&host_text(path), data, version).map_err(quote_host_text)
     }
     fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_entry_with_mode(path, data, mode, version)
+        self.inner.replace_file_entry_with_mode(&host_text(path), data, mode, version).map_err(quote_host_text)
     }
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.replace_file_entry_with_metadata(path, data, mode, times, version)
+        self.inner.replace_file_entry_with_metadata(&host_text(path), data, mode, times, version).map_err(quote_host_text)
     }
 
     fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.publish_file(path, data, inputs, version)
+        if inputs.iter().any(|p| p.contains(crate::vfs::is_stream_byte)) {
+            let inputs: Vec<_> = inputs.iter().map(|p| host_text(p).into_owned()).collect();
+            self.inner.publish_file(&host_text(path), data, &inputs, version).map_err(quote_host_text)
+        } else {
+            self.inner.publish_file(&host_text(path), data, inputs, version).map_err(quote_host_text)
+        }
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
-        self.inner.append_file(path, data)
+        self.inner.append_file(&host_text(path), data).map_err(quote_host_text)
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.remove_published(path, publication)
+        self.inner.remove_published(&host_text(path), publication).map_err(quote_host_text)
     }
 
     fn move_across_devices(&self, source: &str, destination: &str, _: Option<&ExecutionBudget>) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;
-        self.inner.move_across_devices(source, destination, Some(self.budget))
+        self.inner.move_across_devices(&host_text(source), &host_text(destination), Some(self.budget)).map_err(quote_host_text)
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;
         self.budget.tick_fs_op()?;
-        self.inner.rename(source, destination, no_replace)
+        self.inner.rename(&host_text(source), &host_text(destination), no_replace).map_err(quote_host_text)
     }
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.remove_one(path, directory)
+        self.inner.remove_one(&host_text(path), directory).map_err(quote_host_text)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.remove_path(path)
+        self.inner.remove_path(&host_text(path)).map_err(quote_host_text)
     }
 
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.mkdir_one(path, mode)
+        self.inner.mkdir_one(&host_text(path), mode).map_err(quote_host_text)
     }
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.mkdir_all(path)
+        self.inner.mkdir_all(&host_text(path)).map_err(quote_host_text)
     }
 
     fn exists(&self, path: &str) -> bool {
-        self.budget.limits.check_path(path).is_ok() && self.inner.exists(path)
+        self.budget.limits.check_path(path).is_ok() && self.inner.exists(&host_text(path))
     }
 
     fn is_dir(&self, path: &str) -> bool {
-        self.budget.limits.check_path(path).is_ok() && self.inner.is_dir(path)
+        self.budget.limits.check_path(path).is_ok() && self.inner.is_dir(&host_text(path))
     }
 
     fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
-        self.inner.indexed_directory_entry(path)
+        self.inner.indexed_directory_entry(&host_text(path))
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.list_dir(path)
+        self.inner.list_dir(&host_text(path)).map(|mut names| { for name in &mut names { if let std::borrow::Cow::Owned(s) = shell_text(name) { *name = s; } } names }).map_err(quote_host_text)
     }
 
     fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.directory_entries(path, limit)
+        self.inner.directory_entries(&host_text(path), limit).map(|mut entries| { for (name, _) in &mut entries { if let std::borrow::Cow::Owned(s) = shell_text(name) { *name = s; } } entries }).map_err(quote_host_text)
     }
 
-    fn supports_hard_links(&self, path: &str) -> bool { self.inner.supports_hard_links(path) }
+    fn supports_hard_links(&self, path: &str) -> bool { self.inner.supports_hard_links(&host_text(path)) }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;
         self.budget.tick_fs_op()?;
-        self.inner.hard_link(source, destination)
+        self.inner.hard_link(&host_text(source), &host_text(destination)).map_err(quote_host_text)
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.symlink(target, path)
+        self.inner.symlink(&host_text(target), &host_text(path)).map_err(quote_host_text)
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.readlink(path)
+        self.inner.readlink(&host_text(path)).map(quote_host_text).map_err(quote_host_text)
     }
 
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
@@ -302,22 +314,22 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
 
     fn stat(&self, path: &str) -> Result<FileStat, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.stat(path)
+        self.inner.stat(&host_text(path)).map_err(quote_host_text)
     }
 
     fn lstat(&self, path: &str) -> Result<FileStat, String> {
         self.budget.limits.check_path(path)?;
-        self.inner.lstat(path)
+        self.inner.lstat(&host_text(path)).map_err(quote_host_text)
     }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.chmod(path, mode)
+        self.inner.chmod(&host_text(path), mode).map_err(quote_host_text)
     }
 
     fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
-        self.inner.set_times(path, atime_ms, mtime_ms)
+        self.inner.set_times(&host_text(path), atime_ms, mtime_ms).map_err(quote_host_text)
     }
 
     fn generation(&self) -> u64 {
@@ -373,7 +385,8 @@ impl HybridBackend {
             budget: &budget,
         };
         let allow_fallback = self.mode == BackendMode::Hybrid;
-        let mut eval = EvalState::new(cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
+        let mut shell_cwd = shell_text(cwd).into_owned();
+        let mut eval = EvalState::new(&mut shell_cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         eval.provided_devices = self.provided_devices;
         if let Ok(bindings) = self.bindings.lock() {
@@ -382,12 +395,14 @@ impl HybridBackend {
             eval.pos_args.clone_from(&bindings.positional);
         }
         let (eval_res, elapsed_ms) = crate::commands::with_execution_clock(|| eval.eval_script_str(script, stdin));
+        *cwd = host_text(eval.cwd).into_owned();
         self.last_elapsed_ms.store(elapsed_ms, Ordering::Relaxed);
         if let Err(exceeded_msg) = budget.check_exceeded() {
             return Some(Err(exceeded_msg));
         }
         match eval_res {
-            Ok(res) => {
+            Ok(mut res) => {
+                res.cwd.clone_from(cwd);
                 let last_exit_str = res.exit_code.to_string();
                 if let Ok(mut bindings) = self.bindings.lock() {
                     *bindings = ShellBindings {
@@ -483,7 +498,7 @@ impl HybridBackend {
 
         let mut env_obj = Vec::with_capacity(env.len());
         for (k, v) in env.iter().filter(|(k, _)| !k.contains('\0')) {
-            env_obj.push((jstr(k), Value::String(jstr(v))));
+            env_obj.push((jstr(k), Value::String(jstr(&host_text(v)))));
         }
 
         let mut req_obj = vec![
@@ -562,7 +577,7 @@ impl HybridBackend {
             env.retain(|k, _| k.starts_with('\0'));
             for (k, v) in next_env {
                 if !k.contains(&0) && let Value::String(s) = v {
-                    env.insert(from_jstr(k), from_jstr(s));
+                    env.insert(from_jstr(k), shell_text(&from_jstr(s)).into_owned());
                 }
             }
         }

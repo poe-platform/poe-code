@@ -9585,3 +9585,55 @@ test("arithmetic rejects process-id expansion only when the expression executes"
     assert.deepEqual([skipped.exitCode, skipped.stdout, skipped.stderr], [0, "done\n", ""]);
   } finally { rs.dispose(); }
 });
+
+test("xmllint rejects invalid output bytes without overwriting a private-use filename", async () => {
+  const name = "\ue0ff";
+  const sh = new RustWasmBash({cwd: "/", env: {V: name}, files: {["/" + name]: "<known/>", "/valid": name, "/raw": Uint8Array.of(255)}});
+  try {
+    for (const arg of ["$'\\xff'", '"$(cat /raw)"']) {
+      const r = await sh.exec("xmllint --output " + arg + " <<<'<new/>'");
+      assert.deepEqual([r.exitCode, r.stderr, new TextDecoder().decode(await sh.fs.readFile("/" + name))],
+        [2, "xmllint: XPath and filenames require valid UTF-8\n", "<known/>"], arg);
+    }
+    for (const arg of ["'" + name + "'", '"$V"', "$'\\ue0ff'", '"$(cat /valid)"']) {
+      const r = await sh.exec("xmllint --xpath 'count(/known)' " + arg);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "1\n", ""], arg);
+    }
+  } finally { sh.dispose(); }
+});
+
+test("XML commands validate argument bytes in command-specific order", async () => {
+  const sh = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [cmd, error] of [
+      ["xmllint --encode $'\\xff'", "xmllint: XPath and filenames require valid UTF-8"],
+      ["xmllint --xpath $'\\xff' --bad", "xmllint: expected XML input FILE or -"],
+      ["xmllint --xpath $'\\xff' -", "xmllint: XPath and filenames require valid UTF-8"],
+      ["xmllint -- $'\\xff'", "xmllint: XPath and filenames require valid UTF-8"],
+      ["xq --version $'\\xff'", "xq: filters and filenames require valid UTF-8"],
+    ]) {
+      const r = await sh.exec(cmd);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [2, "", error + "\n"], cmd);
+    }
+  } finally { sh.dispose(); }
+});
+
+test("private-use text crosses filesystem, shell source and session boundaries once", async () => {
+  const name = "\ue0ee\ue083\ue0bf";
+  const dir = "/" + name;
+  const sh = new RustWasmBash({cwd: dir, env: {V: name}, files: {[dir + "/" + name]: "ok"}});
+  try {
+    const r = await sh.exec("printf '%s\\n' \"$PWD\" \"$V\"; cat '" + name + "'; ln -s '" + name + "' link; readlink link; printf '%s' *");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr, r.cwd], [0, dir + "\n" + name + "\nok" + name + "\nlink" + name, "", dir]);
+    for (const cmd of ["printf '%s' $'" + name + "'", "eval \"printf %s '$V'\"", "bash -c \"printf %s '$V'\""]) {
+      const out = await sh.exec(cmd);
+      assert.deepEqual([out.exitCode, out.stdout, out.stderr], [0, name, ""], cmd);
+    }
+    const {state} = await sh.exec("set -- \"$V\"; a=(\"$V\")", {onState() {}});
+    assert.deepEqual([state.cwd, state.variables.V, state.positionalParams[0], state.arrays.a.elements[0]], [dir, name, name, name]);
+    const restored = await sh.exec('printf "%s:" "$PWD" "$1" "${a[0]}"', {state});
+    assert.equal(restored.stdout, dir + ":" + name + ":" + name + ":");
+    const syntax = await sh.exec("echo '" + name + "' $$");
+    assert.equal(syntax.stderr, "shell: Unsupported shell quoting or special parameter at offset 12\n");
+  } finally { sh.dispose(); }
+});

@@ -432,7 +432,7 @@ enum VideoEncoding { Mp4, Fragmented, PreserveConfig, Matroska }
 
 impl Remux<'_> {
     fn video_encoding(&self) -> VideoEncoding {
-        if matches!(self.format,"flv"|"avi"|"mpegts") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented || self.format == "dash" { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
+        if matches!(self.format,"flv"|"avi"|"mpegts") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented || matches!(self.format, "dash" | "hls") { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
     }
 }
 
@@ -1242,6 +1242,8 @@ mod concat;
 mod avi;
 #[path = "mpegts.rs"]
 mod mpegts;
+#[path = "hls.rs"]
+mod hls;
 #[path = "flv.rs"]
 mod flv;
 #[path = "mkv.rs"]
@@ -1557,6 +1559,7 @@ impl Composition {
 }
 
 pub(in super::super) struct Remux<'a> {
+    pub hls: Option<super::super::Hls<'a>>,
     pub composition: Option<Composition>,
     pub concat: Option<&'a mut DecodedConcat>,
     pub rate: Option<u32>,
@@ -1717,6 +1720,7 @@ pub(in super::super) fn input_slice(
     remux(
         std::slice::from_ref(input),
         Remux {
+            hls: None,
             composition: None,
             concat: None,
             start: seek.start,
@@ -2763,9 +2767,9 @@ pub(in super::super) fn remux(
     let mut tracks = Vec::new();
     // A manifest describes the presentation timeline. Packet durations can include
     // preroll hidden by edits, and applying filters leaves the movie duration intact.
-    let mut dash_seconds: Vec<_> = selected.iter().filter(|_| opts.format == "dash")
+    let mut stream_seconds: Vec<_> = selected.iter().filter(|_| matches!(opts.format, "dash" | "hls"))
         .map(|&source| presentation_duration(sources, &[source], scale, range)).collect();
-    let dash_duration = dash_seconds.iter().copied().fold(0., f64::max);
+    let stream_duration = stream_seconds.iter().copied().fold(0., f64::max);
     let mut index_bytes = 0usize;
     for (ordinal, &(j, i)) in selected.iter().enumerate() {
         let (input, _, source) = &sources[j];
@@ -3015,7 +3019,7 @@ pub(in super::super) fn remux(
             && samples.len() > n.max(1) as usize
         {
             samples.truncate(n.max(1) as usize);
-            if let Some(seconds) = dash_seconds.get_mut(ordinal) {
+            if let Some(seconds) = stream_seconds.get_mut(ordinal) {
                 *seconds = samples.iter().map(|s| f64::from(s.duration)).sum::<f64>() / f64::from(t.scale);
             }
         }
@@ -3415,8 +3419,32 @@ pub(in super::super) fn remux(
     } else {
         b"isomiso2avc1mp41"
     });
+    if let Some(hls) = opts.hls.as_ref() {
+        for (i,t) in tracks.iter().enumerate() {
+            if t.kind == "audio" && audio.clear_samples { stream_seconds[i] = f64::from(t.media_ticks) / f64::from(t.scale); }
+        }
+        let video = selected.iter().position(|&(j,i)| sources[j].2.kind(i) == "video");
+        let decoded = video.is_some_and(|v| {
+            let (j,_) = selected[v];
+            !opts.video_filters.is_empty() || composed.is_some() || !matches!(sources[j].2, Streams::Mp4(_))
+        });
+        let originals = vec![Original::None; tracks.len()];
+        audio.clear_samples = false;
+        let timestamps: Vec<Vec<u64>> = tracks.iter().zip(&selected).map(|(t,&(j,i))| {
+            if range.is_none() && opts.concat.is_none() && composed.is_none()
+                && !(t.kind == "audio" && (opts.rate.is_some() || opts.channels.is_some() || !opts.audio_filters.is_empty()))
+                && !(t.kind == "video" && decoded)
+                && let Streams::Mp4(v) = &sources[j].2 {
+                v[i].0.original.timestamps(t.kind == "video").take(t.samples.len()).collect()
+            } else { Vec::new() }
+        }).collect();
+        return hls::segments(hls, tracks, &timestamps, &stream_seconds, stream_duration, decoded, scale, opts.limit, |segment| {
+            if hls.fmp4 { write(segment, scale, &ftyp, &metadata, &chapters, true, opts.limit) }
+            else { mpegts::write(segment, &audio, &originals) }
+        });
+    }
     if opts.format == "dash" {
-        let duration = dash_duration;
+        let duration = stream_duration;
         let mut manifest = format!(r#"<?xml version="1.0" encoding="utf-8"?>
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" mediaPresentationDuration="PT{duration:.6}S" minBufferTime="PT1S" profiles="urn:mpeg:dash:profile:isoff-live:2011">
 <Period id="0" start="PT0S">
@@ -3445,7 +3473,7 @@ pub(in super::super) fn remux(
             let ticks = if kind == "audio" && audio.clear_samples {
                 u64::from(track.media_ticks)
             } else {
-                (dash_seconds[i] * f64::from(timescale)).round() as u64
+                (stream_seconds[i] * f64::from(timescale)).round() as u64
             };
             manifest.push_str(&format!(r#"<AdaptationSet id="{i}" contentType="{kind}" segmentAlignment="true">
 <Representation id="{i}" mimeType="{kind}/mp4" codecs="{codec}" bandwidth="{bandwidth}" {dimensions}>

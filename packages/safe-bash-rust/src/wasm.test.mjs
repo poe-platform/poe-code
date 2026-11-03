@@ -7984,3 +7984,24 @@ test("unxz restores RISC-V jumps and AUIPC pairs", async () => {
     assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "ef70b006eff24fa017710e280000000097c2bbaa138012cd1710000000000000ef001234");
   } finally { rs.dispose(); }
 });
+
+test("unxz checks optional block sizes even when the index and checksums are valid", async () => {
+  const { crc32 } = await import("node:zlib");
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ cwd: "/", fs }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const archive = Buffer.from("fd377a585a0000016922de360200210116000000742fe5a30100066578616d706c6500009f9bec6e00011b0712ebd4179042990d010000000001595a", "hex");
+  try {
+    for (const [packed, unpacked] of [[11, 7], [10, 7], [12, 7], [11, 6], [11, 8]]) {
+      archive.set([2, 0xc0, packed, unpacked, 0x21, 1, 0x16, 0], 12);
+      archive.writeUInt32LE(crc32(archive.subarray(12, 20)), 20);
+      for (const [vfs, shell] of [[fs, js], [rs.fs, rs]]) {
+        await vfs.writeFile("/z", archive);
+        const r = await shell.exec("unxz -c /z");
+        const valid = packed === 11 && unpacked === 7;
+        assert.equal(r.exitCode, valid ? 0 : 1, packed + "/" + unpacked);
+        assert.equal(r.stdout, valid ? "example" : "");
+      }
+    }
+  } finally { rs.dispose(); }
+});

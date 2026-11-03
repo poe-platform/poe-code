@@ -2160,12 +2160,8 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
             let mut bh_pos = pos + 2;
             let field = |offset: &mut usize| read_xz_vli(&data[..pos + bh_size - 4], offset)
                 .map_err(|_| "Compressed data is corrupt");
-            if (bh_flags & 0x40) != 0 {
-                let _ = field(&mut bh_pos)?;
-            }
-            if (bh_flags & 0x80) != 0 {
-                let _ = field(&mut bh_pos)?;
-            }
+            let packed_size = (bh_flags & 0x40 != 0).then(|| field(&mut bh_pos)).transpose()?;
+            let unpacked_size = (bh_flags & 0x80 != 0).then(|| field(&mut bh_pos)).transpose()?;
             let mut filters = Vec::new();
             for i in 0..num_filters {
                 let id = field(&mut bh_pos)?;
@@ -2255,6 +2251,11 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 }
             }
 
+            if packed_size.is_some_and(|n| n != (pos - block_start - bh_size) as u64)
+                || unpacked_size.is_some_and(|n| n != (out.len() - block_out_start) as u64)
+            {
+                return Err("Compressed data is corrupt".into());
+            }
             let unpadded_no_check = pos - block_start;
             while (pos - block_start) % 4 != 0 {
                 if pos >= data.len() || data[pos] != 0 {

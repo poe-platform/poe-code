@@ -9401,3 +9401,17 @@ test("heredocs check the expanded byte count before installing later redirects",
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint diagnoses malformed end tags and instruction names before their terminator", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [prefix, expected] of [
+      ["<r></r /", "mismatched closing tag"], ["<r></! ", "invalid qualified name"],
+      ["<?q:x:y ", "invalid qualified name"],
+    ]) {
+      await rs.fs.writeFile("/f", prefix + " ".repeat(9000));
+      const r = await rs.exec("xmllint --noout f", { limits: { maxInputBytes: 64 } });
+      assert.deepEqual([r.exitCode, r.stderr], [1, "xmllint: Invalid XML: " + expected + "\n"]);
+    }
+  } finally { rs.dispose(); }
+});

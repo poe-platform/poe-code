@@ -205,6 +205,7 @@ pub(super) struct Parser<'a> {
     pending: String,
     scanned: usize,
     start_tag: Option<StartTag>,
+    name_end: Option<usize>,
     after_cr: bool,
     started: bool,
 }
@@ -229,6 +230,7 @@ impl<'a> Parser<'a> {
             pending: String::new(),
             scanned: 0,
             start_tag: None,
+            name_end: None,
             after_cr: false,
             started: false,
         }
@@ -307,10 +309,34 @@ impl<'a> Parser<'a> {
                     .any(|p| p.starts_with(rest) && *p != rest)
             {
                 None
-            } else if let Some((prefix, delimiter)) =
-                [("<!--", "-->"), ("<![CDATA[", "]]>"), ("<?", "?>")]
-                    .into_iter()
-                    .find(|(p, _)| rest.starts_with(p))
+            } else if rest.starts_with("</") || rest.starts_with("<?") {
+                let end = if let Some(end) = self.name_end {
+                    end
+                } else {
+                    let from = self.scanned.max(2);
+                    if !eof && !rest[from..].contains(name_delimiter) {
+                        break;
+                    }
+                    let end = 2 + name(&mut &rest[2..])?.len();
+                    self.name_end = Some(end);
+                    end
+                };
+                if rest.starts_with("</") {
+                    let from = self.scanned.max(end);
+                    rest[from..]
+                        .char_indices()
+                        .find(|&(_, c)| !space(c))
+                        .map(|(i, c)| from + i + c.len_utf8())
+                } else {
+                    let from = self.scanned.saturating_sub(1).max(end);
+                    rest.as_bytes()[from..]
+                        .windows(2)
+                        .position(|p| p == b"?>")
+                        .map(|i| from + i + 2)
+                }
+            } else if let Some((prefix, delimiter)) = [("<!--", "-->"), ("<![CDATA[", "]]>")]
+                .into_iter()
+                .find(|(p, _)| rest.starts_with(p))
             {
                 if prefix == "<![CDATA[" && self.stack.is_empty() {
                     return Err("CDATA outside root");
@@ -326,30 +352,27 @@ impl<'a> Parser<'a> {
             } else if rest.starts_with("<!") {
                 return Err("DTD and entity declarations are forbidden");
             } else {
-                if rest.starts_with("</") {
-                    rest[self.scanned..].find('>').map(|n| self.scanned + n + 1)
-                } else {
-                    self.first = false;
-                    self.scope_starts.push(self.declarations.len());
-                    self.start_tag = Some(StartTag {
-                        element: Element {
-                            tag: String::new(),
-                            attrs: Vec::new(),
-                            children: Vec::new(),
-                        },
-                        names: HashSet::new(),
-                        part: TagPart::Name,
-                    });
-                    self.scanned = 0;
-                    rest = &rest[1..];
-                    continue;
-                }
+                self.first = false;
+                self.scope_starts.push(self.declarations.len());
+                self.start_tag = Some(StartTag {
+                    element: Element {
+                        tag: String::new(),
+                        attrs: Vec::new(),
+                        children: Vec::new(),
+                    },
+                    names: HashSet::new(),
+                    part: TagPart::Name,
+                });
+                self.scanned = 0;
+                rest = &rest[1..];
+                continue;
             };
             let Some(end) = end.or_else(|| eof.then_some(rest.len())) else {
                 break;
             };
-            let consumed = self.consume(&rest[..end])?;
-            rest = &rest[consumed..];
+            self.consume(&rest[..end])?;
+            rest = &rest[end..];
+            self.name_end = None;
             self.scanned = 0;
         }
         self.scanned = rest.len();
@@ -503,8 +526,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn consume(&mut self, mut s: &str) -> Result<usize, &'static str> {
-        let size = s.len();
+    fn consume(&mut self, s: &str) -> Result<(), &'static str> {
         let Self {
             doc,
             warnings,
@@ -514,25 +536,25 @@ impl<'a> Parser<'a> {
         let first = self.first;
         self.first = false;
         let node = if let Some(rest) = s.strip_prefix("<!--") {
-            let (comment, tail) = rest.split_once("-->").ok_or("malformed comment")?;
+            let comment = rest.strip_suffix("-->").ok_or("malformed comment")?;
             if comment.contains("--") || comment.ends_with('-') {
                 return Err("malformed comment");
             }
-            s = tail;
             Node::Markup(format!("<!--{comment}-->"))
         } else if let Some(rest) = s.strip_prefix("<![CDATA[") {
             if stack.is_empty() {
                 return Err("CDATA outside root");
             }
-            let (body, tail) = rest.split_once("]]>").ok_or("unterminated CDATA")?;
-            s = tail;
+            let body = rest.strip_suffix("]]>").ok_or("unterminated CDATA")?;
             Node::Cdata(body.into())
         } else if s.starts_with("<!") {
             return Err("DTD and entity declarations are forbidden");
-        } else if let Some(mut rest) = s.strip_prefix("<?") {
-            let target = name(&mut rest)?;
-            let (body, tail) = rest
-                .split_once("?>")
+        } else if s.starts_with("<?") {
+            let end = self.name_end.unwrap();
+            let target = &s[2..end];
+            let rest = &s[end..];
+            let body = rest
+                .strip_suffix("?>")
                 .ok_or("unterminated processing instruction")?;
             if target.eq_ignore_ascii_case("xml") {
                 if !first || target != "xml" {
@@ -540,41 +562,36 @@ impl<'a> Parser<'a> {
                 }
                 (doc.encoding, doc.standalone) = declaration(body, self.expected_encoding)
                     .ok_or("unsupported XML declaration")?;
-                s = tail;
-                return Ok(size - s.len());
+                return Ok(());
             }
             if !body.is_empty() && !body.starts_with(space) {
                 return Err("invalid processing instruction");
             }
-            s = tail;
             let data = body.trim_start_matches(space);
             Node::Markup(if data.is_empty() {
                 format!("<?{target}?>")
             } else {
                 format!("<?{target} {data}?>")
             })
-        } else if let Some(mut rest) = s.strip_prefix("</") {
-            let end = name(&mut rest)?;
-            rest = rest.trim_start_matches(space);
-            let closed = if let Some(tail) = rest.strip_prefix('>') {
-                s = tail;
+        } else if s.starts_with("</") {
+            let split = self.name_end.unwrap();
+            let end = &s[2..split];
+            let closed = if s[split..].trim_start_matches(space) == ">" {
                 stack.pop()
             } else {
-                s = rest.chars().next().map_or(rest, |c| &rest[c.len_utf8()..]);
                 None
             };
             if closed.as_ref().is_none_or(|el| el.tag != end) {
                 repair(warnings, "mismatched closing tag")?;
             }
             let Some(el) = closed else {
-                return Ok(size - s.len());
+                return Ok(());
             };
             Node::Element(el)
         } else if s.starts_with('<') {
             return Err("invalid qualified name");
         } else {
-            let (text, tail) = s.split_at(s.find('<').unwrap_or(s.len()));
-            s = tail;
+            let text = s;
             if text.contains("]]>") {
                 return Err("CDATA terminator in text");
             }
@@ -582,16 +599,16 @@ impl<'a> Parser<'a> {
                 if !text.chars().all(space) {
                     return Err("text outside the root");
                 }
-                return Ok(size - s.len());
+                return Ok(());
             }
             let decoded = decode(text, false, warnings)?;
             if decoded.is_empty() {
-                return Ok(size - s.len());
+                return Ok(());
             }
             Node::Text(decoded)
         };
         self.attach(node);
-        Ok(size - s.len())
+        Ok(())
     }
 
     fn attach(&mut self, node: Node) {

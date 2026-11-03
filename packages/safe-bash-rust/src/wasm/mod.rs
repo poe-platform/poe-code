@@ -937,27 +937,39 @@ pub unsafe extern "C" fn safe_bash_exec(
     stdin_ptr: *const u8,
     stdin_len: usize,
 ) -> i32 {
-    let script = unsafe {
-        str_from_raw(script_ptr, script_len)
-    };
-    let stdin_bytes = unsafe { slice_from_raw(stdin_ptr, stdin_len) };
-    let stdin_str = bytes_to_stream_string(stdin_bytes);
+    let script = unsafe { str_from_raw(script_ptr, script_len) };
+    let bytes = unsafe { slice_from_raw(stdin_ptr, stdin_len) };
+    exec_session(id, |shell| shell.exec_with_options(script, ExecOptions {
+        stdin: (!bytes.is_empty()).then(|| bytes_to_stream_string(bytes)),
+        ..Default::default()
+    }))
+}
+
+/// `next` returns 0 for EOF, 1 for a chunk, or -1 for a UTF-8 diagnostic.
+/// For a nonempty payload it transfers exactly `len` bytes allocated by safe_bash_alloc.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_exec_stream(
+    id: u32, script_ptr: *const u8, script_len: usize,
+    next: unsafe extern "C" fn(u32, *mut *mut u8, *mut usize) -> i32,
+) -> i32 {
+    let script = unsafe { str_from_raw(script_ptr, script_len) };
+    exec_session(id, |shell| shell.exec_with_stream(script, std::iter::from_fn(move || {
+        let mut ptr = std::ptr::null_mut();
+        let mut len = 0;
+        let status = unsafe { next(id, &mut ptr, &mut len) };
+        if status == 0 { return None; }
+        let bytes = if len == 0 { Vec::new() } else { unsafe { Vec::from_raw_parts(ptr, len, len) } };
+        Some(if status == 1 { Ok(bytes) } else { Err(String::from_utf8_lossy(&bytes).into_owned()) })
+    })))
+}
+
+fn exec_session(id: u32, run: impl FnOnce(&mut Shell) -> Result<crate::shell::ExecOutput, String>) -> i32 {
     let mut sess = {
         let Ok(mut map) = sessions().lock() else { return -1 };
         let Some(sess) = map.slots.get_mut(&id).and_then(Option::take) else { return -1 };
         sess
     };
-    let code = match sess.shell.exec_with_options(
-        script,
-        ExecOptions {
-            stdin: if stdin_bytes.is_empty() {
-                None
-            } else {
-                Some(stdin_str)
-            },
-            ..Default::default()
-        },
-    ) {
+    let code = match run(&mut sess.shell) {
         Ok(res) => {
             let mut buf = Vec::new();
             let stdout_bytes = stream_string_to_bytes(&res.stdout);

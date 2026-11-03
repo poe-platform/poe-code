@@ -615,6 +615,55 @@ test("a rejected beforeExec hook leaves stdin untouched", async () => {
   } finally { bash.dispose(); }
 });
 
+test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd offsets", () => {
+  const bash = new RustWasmBash();
+  const x = bash.exports, root = bash.sessionId;
+  // (import "" "next" (func (param i32 i32 i32) (result i32))) (export "next" (func 0))
+  // Re-exporting the import gives a JS callback the required Wasm function-table type.
+  const adapter = new WebAssembly.Module(Uint8Array.of(
+    0,97,115,109,1,0,0,0, 1,8,1,96,3,127,127,127,1,127,
+    2,9,1,0,4,110,101,120,116,0,0, 7,8,1,4,110,101,120,116,0,0,
+  ));
+  const table = x.__indirect_function_table;
+  try {
+    const slot = table.grow(1);
+    for (const [source, chunks, expected, pulls, stderr = ""] of [
+      ["echo ok", [], [111,107,10], 0],
+      ["echo ready > /flag; { head -c1 <&3; head -c1; } 3<&0", [[255,0,1]], [255,0], 1],
+      ["cat; cat", [[], [97]], [97], 3],
+      ["cat; cat", [[255], new Error("producer failed"), [98]], [255], 2, "cat: producer failed\n"],
+    ]) {
+      const id = x.safe_bash_fork_session(root);
+      let count = 0, seenId, observed;
+      table.set(slot, new WebAssembly.Instance(adapter, { "": { next(session, data, len) {
+        seenId = session;
+        if (source.includes("/flag")) observed = bash.execSync("cat /flag").stdout;
+        const chunk = chunks[count++];
+        if (chunk === undefined) return 0;
+        const bytes = chunk instanceof Error ? new TextEncoder().encode(chunk.message) : chunk;
+        const p = x.safe_bash_alloc(bytes.length);
+        new Uint8Array(x.memory.buffer, p, bytes.length).set(bytes);
+        const view = new DataView(x.memory.buffer);
+        view.setUint32(data, p, true);
+        view.setUint32(len, bytes.length, true);
+        return chunk instanceof Error ? -1 : 1;
+      } } }).exports.next);
+      const script = bash._allocBytes(new TextEncoder().encode(source));
+      try {
+        assert.equal(x.safe_bash_exec_stream(id, script.ptr, script.len, slot), 0);
+        const p = x.safe_bash_output_ptr(id);
+        const len = new DataView(x.memory.buffer).getUint32(p + 4, true);
+        assert.deepEqual([...new Uint8Array(x.memory.buffer, p + 16, len)], expected);
+        const errorLen = new DataView(x.memory.buffer).getUint32(p + 8, true);
+        assert.equal(new TextDecoder().decode(new Uint8Array(x.memory.buffer, p + 16 + len, errorLen)), stderr);
+        assert.equal(count, pulls);
+        if (pulls) assert.equal(seenId, id);
+        if (source.includes("/flag")) assert.equal(observed, "ready\n");
+      } finally { bash._freeBytes(script); x.safe_bash_destroy_session(id); }
+    }
+  } finally { bash.dispose(); }
+});
+
 test("abort closes held async stdin once without waiting for the producer", async () => {
   const bash = new RustWasmBash(), controller = new AbortController();
   const entered = Promise.withResolvers(), release = Promise.withResolvers();

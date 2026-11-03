@@ -3477,6 +3477,15 @@ fn cmd_rg(
         cross_line |= branches.cross_line;
         parsed.push(branches);
     }
+    if !requires_vm && !(multiline && cross_line) && let Some((p, at)) = patterns.iter().find_map(|p| p.find('\0').map(|at| (p, at))) {
+        let literal = fixed_strings || patterns.iter().all(|p| !p.bytes().any(|b| br"\.^$[]()|*+?{}".contains(&b)));
+        let message = if literal {
+            "bounded regex unsupported: rg literal patterns require non-NUL Unicode scalars for UTF-8".into()
+        } else {
+            format!("unsupported ERE profile at {}: expected non-NUL Unicode scalars", p[..at].encode_utf16().count())
+        };
+        return BuiltinOutcome { stdout: String::new(), stderr: if no_messages { String::new() } else { format!("rg: {message}\n") }, exit_code: 2 };
+    }
     if !requires_vm && !(multiline && cross_line) && let Some((i, message)) = bounded_error {
         return BuiltinOutcome { stdout: String::new(),
             stderr: format!("rg: unsupported ERE profile at {}: {message}\n", i + 2 * usize::from(line_regexp)), exit_code: 2 };
@@ -7301,6 +7310,25 @@ mod tests {
                 assert_eq!(r.stderr, if code == 2 { format!("rg: pattern file '{file}' is not UTF-8\n") } else { String::new() });
             }
         }
+    }
+
+    #[test]
+    fn rg_rejects_nul_patterns_in_the_bounded_matcher_before_opening_targets() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.write_file("/lit", b"a\0b").unwrap();
+        fs.write_file("/expr", b"a.\0b").unwrap();
+        fs.write_file("/rows", b"a\0b\n").unwrap();
+        for (args, expected) in [
+            ("-f /lit", "bounded regex unsupported: rg literal patterns require non-NUL Unicode scalars for UTF-8"),
+            ("-f /expr", "unsupported ERE profile at 2: expected non-NUL Unicode scalars"),
+            ("-F -f /expr", "bounded regex unsupported: rg literal patterns require non-NUL Unicode scalars for UTF-8"),
+        ] {
+            let result = shell.exec(&format!("rg {args} /absent")).unwrap();
+            assert_eq!((result.exit_code, result.stderr), (2, format!("rg: {expected}\n")));
+            let quiet = shell.exec(&format!("rg --no-messages {args} /absent")).unwrap();
+            assert_eq!((quiet.exit_code, quiet.stderr.as_str()), (2, ""));
+        }
+        assert_eq!(shell.exec("rg -a -f /lit /rows").unwrap().stdout, "a\0b\n");
     }
 
     #[test]

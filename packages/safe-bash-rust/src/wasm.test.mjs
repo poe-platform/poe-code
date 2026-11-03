@@ -8524,3 +8524,12 @@ test("mdq tracks open list items and quotes when lines continue, nest or leave a
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq treats caret labels with spaces as ordinary reference links", async () => {
+  const rs = new RustWasmBash({ files: { "/input": "A[^x y].\n\n[^x y]: note\n" } });
+  try {
+    const r = await rs.exec("mdq -o json </input");
+    assert.deepEqual(JSON.parse(r.stdout), {items:[{document:[{paragraph:"A[^x y]."}]}], links:{"^x y":{url:"note"}}});
+    assert.equal((await rs.exec("mdq -o plain </input")).stdout, "A^x y.\n");
+  } finally { rs.dispose(); }
+});

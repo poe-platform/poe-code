@@ -340,10 +340,13 @@ fn label(raw: &str) -> Option<(&str, usize)> {
 }
 
 fn definition(raw: &str) -> Option<(String, Target, usize)> {
-    if raw.starts_with("[^") {
+    let (key, after) = label(raw)?;
+    if key
+        .strip_prefix('^')
+        .is_some_and(|note| !note.is_empty() && !note.contains([' ', '\t', '\n']))
+    {
         return None;
     }
-    let (key, after) = label(raw)?;
     let key = normalized(key);
     if key.is_empty() || raw.as_bytes().get(after) != Some(&b':') {
         return None;

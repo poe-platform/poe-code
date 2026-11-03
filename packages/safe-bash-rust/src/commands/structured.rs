@@ -15170,6 +15170,7 @@ enum XPathItem<'a> {
     Attr(&'a (String,String), &'a str),
     Text(&'a String),
     Cdata(&'a String),
+    Markup(&'a str),
 }
 
 #[derive(Clone, Debug)]
@@ -15275,6 +15276,7 @@ impl<'a> XPathDocument<'a> {
                 }
                 XmlNode::Text(t) => { self.add(parent, XPathItem::Text(t)); }
                 XmlNode::Cdata(t) => { self.add(parent, XPathItem::Cdata(t)); }
+                XmlNode::Markup(m) if parent != 0 => { self.add(parent, XPathItem::Markup(m)); }
                 XmlNode::Markup(_) => {}
             }
         }
@@ -15328,6 +15330,7 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutco
                     XPathItem::Attr((k, v), _) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
                     XPathItem::Text(t) => out.push(xml::Escaping::Unicode.escape(t,false)),
                     XPathItem::Cdata(t) => out.push(format!("<![CDATA[{t}]]>")),
+                    XPathItem::Markup(m) => out.push((*m).into()),
                 }
             }
             ok_out(&format!("{}\n", out.join("\n")))
@@ -15346,6 +15349,7 @@ fn xpath_item_string_value(item: &XPathItem) -> String {
         }
         XPathItem::Text(t) | XPathItem::Cdata(t) => (*t).clone(),
         XPathItem::Attr((_, v), _) => v.clone(),
+        XPathItem::Markup(_) => String::new(),
         XPathItem::Node(el, _) => {
             let mut buf = String::new();
             visit_xml_text(&el.children, true, &mut |s,_| buf.push_str(s));
@@ -15551,6 +15555,11 @@ fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, last: usize, 
             }
             "name" | "local-name" | "namespace-uri" => {
                 let XPathVal::NodeSet(items) = first else { return Err("XPath function requires a node-set".into()); };
+                if let Some(XPathItem::Markup(markup)) = items.first() {
+                    let target = markup.strip_prefix("<?").and_then(|m| m.strip_suffix("?>"))
+                        .map_or("", |pi| pi.split_once(' ').map_or(pi, |(target, _)| target));
+                    return Ok(XPathVal::Str(if fname == "namespace-uri" { "" } else { target }.into()));
+                }
                 let (name, uri) = items.first().map_or(("", ""), |item| item.name());
                 XPathVal::Str(match fname {
                     "namespace-uri" => uri,

@@ -9070,7 +9070,8 @@ test("xmllint preserves comments, processing instructions, and CDATA through ser
     ]) {
       for (const store of [fs, rs.fs]) await store.writeFile("/xml", Buffer.from(xml));
       for (const args of ["", "--format", "--c14n", "--nocdata", "--format --noblanks --nocdata",
-        "--xpath '//r'", "--xpath '//r/text()'", "--xpath 'string(/*)'", "--xpath 'count(//text())'"]) {
+        "--xpath '//r'", "--xpath '//r/text()'", "--xpath 'string(/*)'", "--xpath 'count(//text())'",
+        "--xpath '//.'", "--xpath '//.[local-name()=\"pi\"]'", "--xpath '//.[string(.)=\"\"]'"]) {
         const cmd = "xmllint " + args + " /xml";
         const a = await js.exec(cmd), b = await rs.exec(cmd);
         assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + xml);

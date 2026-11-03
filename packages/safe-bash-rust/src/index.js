@@ -814,7 +814,7 @@ class WasmShell {
 
 export class RustWasmBash extends WasmShell {
   #sessions = new Set();
-  #externalCompanion;
+  #companion;
   #filesystems = new Map();
 
   #identityScopes = new Map();
@@ -1137,8 +1137,7 @@ export class RustWasmBash extends WasmShell {
       if (!this.companionFactory) throw new TypeError("Executing with an external filesystem requires a companion");
       // The call has its own filesystem. It neither needs the default
       // filesystem's history nor transfers ownership of subsequent calls.
-      this.#externalCompanion ??= this.companionFactory();
-      return this.#externalCompanion.shell.exec(script, options);
+      return this.#getCompanion().shell.exec(script, options);
     }
     if (this.companionFactory && (!this.forceNative || this._companion)) {
       if (this._companion || !this.canRunNative(script, options)) {
@@ -1260,11 +1259,12 @@ export class RustWasmBash extends WasmShell {
     return true;
   }
 
+  #getCompanion() {
+    return this.#companion ??= this.companionFactory?.();
+  }
+
   _getOrCreateCompanionSync() {
-    if (!this._companion && this.companionFactory) {
-      this._companion = this.#externalCompanion ?? this.companionFactory();
-    }
-    return this._companion;
+    return this._companion ??= this.#getCompanion();
   }
 
   async _ensureCompanionSynced() {
@@ -1309,8 +1309,7 @@ export class RustWasmBash extends WasmShell {
   registerFileSystem(scheme, factory) {
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (this.companionFactory) {
-      this.forceNative = false;
-      this._getOrCreateCompanionSync().shell.registerFileSystem(scheme, factory);
+      this.#getCompanion().shell.registerFileSystem(scheme, factory);
       return;
     }
     if (!/^[a-z][a-z0-9+.-]*$/u.test(scheme)) throw new TypeError("Invalid filesystem scheme");
@@ -1325,9 +1324,8 @@ export class RustWasmBash extends WasmShell {
       if (!factory) throw new Error(`Unknown filesystem scheme: ${scheme}`);
       return factory(options);
     }
-    const comp = this._getOrCreateCompanionSync();
-    await this._ensureCompanionSynced();
-    return comp.shell.createFileSystem(scheme, options);
+    if (!this.forceNative || this._companion) await this._ensureCompanionSynced();
+    return this.#getCompanion().shell.createFileSystem(scheme, options);
   }
 
   createSession(initialState) {
@@ -1385,8 +1383,7 @@ export class RustWasmBash extends WasmShell {
   dispose() {
     this.#filesystems.clear();
     this.#identityScopes.clear();
-    const companion = this._companion ?? this.#externalCompanion;
-    if (companion && this.sessionId) void companion.shell.dispose();
+    if (this.#companion && this.sessionId) void this.#companion.shell.dispose();
     for (const controller of this.#sessions) controller.abort(new Error("Shell session is disposed"));
     this.#sessions.clear();
     super.dispose();

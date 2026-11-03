@@ -2796,6 +2796,25 @@ test("stat distinguishes absent fields, a zero allocation, and a real inode", as
   } finally { bash.dispose(); }
 });
 
+test("filesystem factory registration preserves the live native filesystem with a companion configured", async () => {
+  const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
+  const bash = new RustWasmBash({ cwd: "/", companionFactory() {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" });
+    shell.registerFileSystem("existing", () => fs);
+    return { fs, shell };
+  } });
+  try {
+    await bash.exec("echo kept > /native");
+    assert.throws(() => bash.registerFileSystem("existing", () => bash.fs), /already registered: existing/);
+    bash.registerFileSystem("own", () => bash.fs);
+    assert.equal(await bash.createFileSystem("own"), bash.fs);
+    assert.notEqual(await bash.createFileSystem("existing"), bash.fs);
+    assert.equal(new TextDecoder().decode(await bash.fs.readFile("/native")), "kept\n");
+    assert.equal((await bash.exec("cat /native")).stdout, "kept\n");
+  } finally { bash.dispose(); }
+});
+
 test("standalone filesystem factories validate schemes and preserve factory inputs and results", async () => {
   const bash = new RustWasmBash();
   try {

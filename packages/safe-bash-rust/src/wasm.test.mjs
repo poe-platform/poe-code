@@ -8588,3 +8588,24 @@ test("mdq unquoted literals use Unicode simple case folding", async () => {
     }
   } finally { bash.dispose(); }
 });
+test("mdq retains parsed matcher values and delimiters inside selectors", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [src, query] of [
+      ["# Bob's title", '# "\\`"'],
+      ["# 😀", '# ^"\\u{1f600}"$'],
+      ["a\nb", 'P: "a\\nb"'],
+      ["### title", '#{} title'],
+      ["[text](url)", '["]("](*)'],
+      ["[a\\]\\(b](url)", '["]("](*)'],
+      ["| a:-:b | other |\n| --- | --- |\n| yes | no |", ':-: ":-:" :-: yes'],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(src));
+      const cmd = "mdq '" + query.replaceAll("'", "'\\''") + "' </in";
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], query);
+    }
+  } finally { rs.dispose(); }
+});

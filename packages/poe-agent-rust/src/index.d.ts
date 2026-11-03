@@ -83,6 +83,7 @@ export { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";
 export { default as filesPlugin } from "./plugin-files.js";
 export { openaiChatCompletionsPlugin, type OpenaiChatCompletionsPluginOptions } from "./plugin-openai-chat-completions.js";
 export { openaiResponsesPlugin, type OpenaiResponsesPluginOptions } from "./plugin-openai-responses.js";
+export { geminiPlugin, type GeminiPluginOptions } from "@poe-code/poe-agent";
 
 export { default as shellPlugin } from "./plugin-shell.js";
 

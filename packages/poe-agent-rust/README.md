@@ -2,6 +2,8 @@
 
 Build agents and reusable conversation sessions with an independent Rust core and no npm runtime dependencies. Providers register through plugins; matching runs in order and stops at the first supported model.
 
+`geminiPlugin({ apiKey, baseUrl, reasoningEffort: "high" })` connects this Rust runtime to Gemini's native API. Its fetch-based provider is shared with `@poe-code/poe-agent`, preserving tool-call signatures, images and thinking-token usage. Use the `gemini` plugin name in configuration and set `baseUrl` to route through a proxy.
+
 - Collect provider registrations and report name collisions with both contributors.
 - Preserve provider/callback identity and opaque plugin options.
 - Wrap support-check failures with the model, provider names and original cause.

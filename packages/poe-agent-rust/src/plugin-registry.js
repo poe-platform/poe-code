@@ -7,9 +7,18 @@ import { spec as responses } from "./plugin-openai-responses.js";
 import { spec as chat } from "./plugin-openai-chat-completions.js";
 import { spec as compaction } from "./plugin-compaction.js";
 import { spec as policy } from "./plugin-policy.js";
+import { builtinPluginRegistry as sharedRegistry } from "@poe-code/poe-agent";
 export const builtinPluginRegistry = new Map(
-  [systemPrompt, files, shell, web, memory, responses, chat, compaction, policy].map((spec) => [
-    spec.name,
-    Object.freeze(spec)
-  ])
+  [
+    systemPrompt,
+    files,
+    shell,
+    web,
+    memory,
+    responses,
+    chat,
+    compaction,
+    policy,
+    sharedRegistry.get("gemini")
+  ].map((spec) => [spec.name, Object.freeze(spec)])
 );

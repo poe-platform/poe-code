@@ -41,7 +41,7 @@ test("plugin config parsing and diagnostics agree on inherited, special, sparse 
     );
   }
   for (const spec of builtinPluginRegistry.values()) assert.equal(Object.isFrozen(spec), true);
-  assert.equal(builtinPluginRegistry.size, 9);
+  assert.equal(builtinPluginRegistry.size, 10);
 });
 test("Rust edit distances agree with independent JavaScript UTF16 dynamic programming", () => {
   const distance = (left, right) => {

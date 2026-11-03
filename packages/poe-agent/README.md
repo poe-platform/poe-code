@@ -73,6 +73,7 @@ Returns a fluent builder:
 Compatibility wrapper that builds a session with:
 
 - `openaiResponsesPlugin()`
+- `geminiPlugin({ apiKey, baseUrl, reasoningEffort: "high" })` uses Gemini's native API, including tool calls, images and signed conversation history. The default URL is `https://generativelanguage.googleapis.com/v1beta`; set `baseUrl` for a proxy. Host runs can use `GEMINI_API_KEY` or `GOOGLE_API_KEY`; custom filesystems require an explicit key. Configured agents use the `gemini` plugin name.
 - `openaiChatCompletionsPlugin()`
 - `systemPromptPlugin()`
 - `filesPlugin()`

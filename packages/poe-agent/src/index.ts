@@ -78,6 +78,7 @@ export { default as mcpPlugin } from "./plugins/poe-agent-plugin-mcp.js";
 export { default as memoryPlugin } from "./plugins/poe-agent-plugin-memory.js";
 export { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 export { openaiResponsesPlugin } from "./plugins/poe-agent-plugin-openai-responses.js";
+export { geminiPlugin, type GeminiPluginOptions } from "./plugins/poe-agent-plugin-gemini.js";
 export { default as policyPlugin, POLICY_MODES } from "./plugins/poe-agent-plugin-policy.js";
 export type { PolicyMode } from "./plugins/poe-agent-plugin-policy.js";
 export { default as scratchpadPlugin } from "./plugins/poe-agent-plugin-scratchpad.js";

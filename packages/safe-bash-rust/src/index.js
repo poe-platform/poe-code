@@ -745,8 +745,9 @@ class WasmShell {
   execSync(script, stdin = "") {
     if (!this.sessionId) throw new Error("Shell session is disposed");
     const s = this._allocBytes(encoder.encode(script));
-    const i = this._allocBytes(typeof stdin === "string" ? encoder.encode(stdin) : stdin);
+    let i;
     try {
+      i = this._allocBytes(typeof stdin === "string" ? encoder.encode(stdin) : stdin);
       this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr, i.len);
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       const outLen = this.exports.safe_bash_output_len(this.sessionId);
@@ -793,7 +794,7 @@ class WasmShell {
         env: this.state.env,
       };
     } catch (err) {
-      if (err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
+      if (i === undefined || err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
         throw err;
       }
       const msg = err instanceof Error ? err.message : String(err);
@@ -807,6 +808,9 @@ class WasmShell {
         cwd: this.state.cwd,
         env: this.state.env,
       };
+    } finally {
+      if (i !== undefined) this._freeBytes(i);
+      this._freeBytes(s);
     }
   }
 

@@ -671,6 +671,23 @@ test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd
   } finally { bash.dispose(); }
 });
 
+test("repeated Wasm executions reuse input and script allocations on success and limit errors", () => {
+  const bash = new RustWasmBash(), stdin = new Uint8Array(128 * 1024);
+  const script = ": #" + "a".repeat(stdin.length);
+  try {
+    for (const limited of [false, true]) {
+      if (limited) bash.setLimits({ maxSourceBytes: 1 });
+      let warm;
+      for (let i = 0; i < 10; i++) {
+        if (limited) assert.throws(() => bash.execSync(script, stdin), /maxSourceBytes/);
+        else assert.equal(bash.execSync(script, stdin).exitCode, 0);
+        if (i === 2) warm = bash.exports.memory.buffer.byteLength;
+      }
+      assert.equal(bash.exports.memory.buffer.byteLength, warm);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("abort closes held async stdin once without waiting for the producer", async () => {
   const bash = new RustWasmBash(), controller = new AbortController();
   const entered = Promise.withResolvers(), release = Promise.withResolvers();

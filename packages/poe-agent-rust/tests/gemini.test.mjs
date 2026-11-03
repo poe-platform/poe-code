@@ -165,7 +165,8 @@ for (const [name, sdk] of [
       part
     ]);
     assert.equal(body.contents[2].parts[0].functionResponse.name, "bash");
-    assert.deepEqual(body.contents[2].parts[1], {
+    assert.equal(body.contents[2].parts.length, 1);
+    assert.deepEqual(body.contents[2].parts[0].functionResponse.parts[0], {
       inlineData: { mimeType: "image/png", data: "aW1hZ2U=" }
     });
   });
@@ -193,13 +194,11 @@ for (const [name, sdk] of [
     try {
       await assert.rejects(
         async () =>
-          sdk
-            .geminiPlugin()
-            .providers[0].createModel("gemini-4-argon", {
-              runtime: { customFs: true },
-              options: {},
-              fetch
-            }),
+          sdk.geminiPlugin().providers[0].createModel("gemini-4-argon", {
+            runtime: { customFs: true },
+            options: {},
+            fetch
+          }),
         /explicit apiKey/
       );
     } finally {

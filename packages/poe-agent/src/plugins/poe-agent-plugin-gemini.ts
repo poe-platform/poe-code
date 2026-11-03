@@ -24,7 +24,7 @@ type Part = {
   thoughtSignature?: string;
   inlineData?: { mimeType: string; data: string };
   functionCall?: { id?: string; name: string; args?: unknown };
-  functionResponse?: { id?: string; name: string; response: { output: string } };
+  functionResponse?: { id?: string; name: string; response: { output: string }; parts?: Part[] };
 };
 type Frame = {
   error?: { message?: string };
@@ -176,11 +176,13 @@ function serializeMessages(messages: AcpModelRequestMessage[]) {
       const call = calls.get(message.tool_call_id ?? "");
       const name = call?.name ?? message.name;
       if (!name) throw new Error("Gemini tool result has no matching function call.");
+      const media = parts.filter((part) => part.inlineData);
       next = [
         {
           functionResponse: {
             ...(call?.id ? { id: call.id } : {}),
             name,
+            ...(media.length ? { parts: media } : {}),
             response: {
               output: parts
                 .filter((part) => part.text !== undefined)
@@ -188,8 +190,7 @@ function serializeMessages(messages: AcpModelRequestMessage[]) {
                 .join("\n")
             }
           }
-        },
-        ...parts.filter((part) => part.inlineData)
+        }
       ];
     }
     if (!next.length) continue;

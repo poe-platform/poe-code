@@ -13587,6 +13587,23 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_filters_avi_video_using_its_original_descriptor() {
+        let fs = MemoryVfs::new();
+        let mut bytes = include_bytes!("../../tests/fixtures/av.avi").to_vec();
+        let fmt = bytes.windows(4).position(|s| s == b"strf").unwrap() + 8;
+        bytes[fmt+16..fmt+20].copy_from_slice(b"MJPG");
+        let args = media_args(&["-y","-i","clip.avi","-vf","scale=8:8","out.ts"]);
+        fs.write_file("/clip.avi", &bytes).unwrap();
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.ts").unwrap())), "367596a649bb2afd46e97217d2ca82442f0704ca4b2da3ce9f87796b7134b656");
+        bytes[fmt+4..fmt+8].copy_from_slice(&(-7i32).to_le_bytes());
+        fs.write_file("/clip.avi", &bytes).unwrap();
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.stderr, "ffmpeg: Invalid H.264 pixel limit\n");
+    }
+
+    #[test]
     fn ffmpeg_writes_transport_packets_with_audio_and_video() {
         let fs = MemoryVfs::new();
         fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();

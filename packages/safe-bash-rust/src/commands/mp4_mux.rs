@@ -3044,6 +3044,14 @@ pub(in super::super) fn remux(
             handler,
             name,
         };
+        // AVI can label a video sample entry as JPEG while also describing its AVC
+        // packets. MP4 drops those parameters; the transport writers retain them on cuts.
+        if matches!(opts.format, "avi" | "flv" | "mpegts" | "mkv" | "webm")
+            && let Some(desc) = t.original.avi()
+            && !desc.jpeg_avcc.is_empty()
+        {
+            track.stsd = video_entry(t.width as usize, t.height as usize, VideoCodec::Config(&desc.jpeg_avcc))?.into();
+        }
         let (from, to) = range.unwrap_or((0., None));
         let joined = opts
             .concat

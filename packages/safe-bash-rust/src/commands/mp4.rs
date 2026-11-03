@@ -1437,6 +1437,9 @@ impl<'a> VideoDecoder<'a> {
         }
     }
     fn decode(&mut self, desc: u32, data: &[u8]) -> Result<&mut h264::Pcm, &'static str> {
+        if self.track.original.avi().is_some_and(|a| a.width < 0) {
+            return Err("Invalid H.264 pixel limit");
+        }
         self.remaining = self
             .remaining
             .checked_sub(data.len())

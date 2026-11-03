@@ -8830,3 +8830,20 @@ test("mdq regex conditionals select one branch and retain captures from the cond
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq evaluates nested regex class unions, intersections and differences", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from("aAbcdef123ΣςſßİΠ猫!\n"));
+    for (const pattern of [
+      "[a-z&&[^b]]", "[a-f--[b-d]]", "[a-f~~[d-z]]", "[a-z&&[^a-y]x]",
+      "[\\pL&&[^\\p{Greek}]--[a-c]]", "(?i)[[a-c]~~[B-D]]", "(?i)[[^s]&&\\w]",
+      "[[:^digit:]&&[:ascii:]]", "[[[:alnum:]]--[[:digit:]]]", "[a-\\w]", "[a&&[b]",
+    ]) {
+      const cmd = "mdq 'P: !s/" + pattern + "/X/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

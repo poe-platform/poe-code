@@ -1165,9 +1165,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             '\\' if jq => return Err("trailing backslash in regular expression".into()),
             '*' | '+' | '?' | '{' | '}' if jq => return Err("quantifier without an expression".into()),
             ')' if jq && groups.is_empty() => return Err("unmatched ')' in regular expression".into()),
+            '[' if mdq => mdq_class::bracket(&chars, &mut idx, mode.icase, |at| skip(at, mode))?,
             '[' => {
                 idx += 1;
-                skip(&mut idx, mode);
                 let mut negate = false;
                 if idx < chars.len() && chars[idx] == '^' {
                     negate = true;
@@ -1184,7 +1184,6 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         return if jq { Err("trailing backslash in regular expression".into()) } else { Ok('\\') };
                     };
                     *idx += 1;
-                    if mdq && !matches!(esc, 'p' | 'P') { return mdq_escaped(esc, &chars, idx); }
                     if esc == 'n' && !allow_newline { return Err("unsupported ERE '\\n' escape without --multiline (-U)".into()); }
                     Ok(match esc {
                         'n' => '\n', 'r' => '\r', 't' => '\t',
@@ -1193,9 +1192,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     })
                 };
                 let mut first = true;
-                loop {
-                    skip(&mut idx, mode);
-                    if idx == chars.len() || !first && chars[idx] == ']' { break; }
+                while idx < chars.len() && (first || chars[idx] != ']') {
                     first = false;
                     if chars[idx..].starts_with(&['[', ':']) {
                         if let Some(end) = chars[idx + 2..].windows(2).position(|w| w == [':', ']']) {
@@ -1220,23 +1217,6 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         return Err("collating and equivalence classes are not supported".into());
                     }
                     if chars[idx..].starts_with(&['\\', 'n']) { parsed.cross_line = true; }
-                    if mdq && let ['\\', c, ..] = chars[idx..] {
-                        let mut after = idx + 2;
-                        if let Some((edges, mut inside)) = mdq_class::escape(c, &chars, &mut after, mode.icase)? {
-                        let mut start = 0;
-                        for end in edges.iter().copied().chain([0x110000]) {
-                            if inside && start < end {
-                                let lo = char::from_u32(start).unwrap_or('\u{e000}');
-                                let hi = char::from_u32(end - 1).unwrap_or('\u{d7ff}');
-                                if lo <= hi { ranges.push((lo, hi)); }
-                            }
-                            start = end;
-                            inside = !inside;
-                        }
-                        idx = after;
-                        continue;
-                        }
-                    }
                     if let Some(class) = bracket_shorthand(&chars[idx..]) {
                         parsed.requires_vm |= matches!(chars[idx + 1], 'S' | 'W' | 'D');
                         parsed.cross_line |= matches!(chars[idx + 1], 's' | 'S' | 'W' | 'D');
@@ -1251,11 +1231,8 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         continue;
                     }
                     let lo = scalar(&mut idx)?;
-                    skip(&mut idx, mode);
                     let hi = if chars.get(idx) == Some(&'-') && chars.get(idx + 1).is_some_and(|c| *c != ']') {
                         idx += 1;
-                        skip(&mut idx, mode);
-                        if idx == chars.len() { return Err(RxParseError::at(idx, "Invalid character class")); }
                         if rg && (bracket_shorthand(&chars[idx..]).is_some() || chars[idx..].starts_with(&['[', ':'])) {
                             return Err("invalid ERE character range".into());
                         }
@@ -1264,7 +1241,6 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                         }
                         scalar(&mut idx)?
                     } else { lo };
-                    if mdq && lo > hi { return Err("Regex error: error parsing pattern 0".into()); }
                     if rg && lo > hi { return Err("invalid ERE character range".into()); }
                     if jq && lo != hi {
                         // In UTF-16, supplementary characters sort between these two BMP segments.
@@ -1281,7 +1257,6 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     }
                 }
                 if idx < chars.len() && chars[idx] == ']' { idx += 1; }
-                else if mdq { return Err(RxParseError::at(idx, "Invalid character class")); }
                 else if rg { return Err("invalid ERE: unclosed bracket expression".into()); }
                 else if jq { return Err("unterminated bracket expression".into()); }
                 RxAtom::Class {
@@ -1655,9 +1630,6 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
             let inside = chars.iter().any(|&(s, e)| {
                 let range = s..=e;
                 range.contains(&ch)
-                    || token.case == RxCase::Mdq && (range.contains(&mdq_fold(ch))
-                        || ch != 'ı' && ch.to_uppercase().count() == 1 && range.contains(&ch.to_uppercase().next().unwrap())
-                        || ch.to_lowercase().count() == 1 && range.contains(&ch.to_lowercase().next().unwrap()))
                     || token.case == RxCase::Unicode && (folded_in_range(ch.to_lowercase(), s, e)
                         || folded_in_range(ch.to_uppercase(), s, e))
                     || ignore_case

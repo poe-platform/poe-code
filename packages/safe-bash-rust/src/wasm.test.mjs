@@ -9478,3 +9478,26 @@ test("a failed here-string does not assign, unset, or read a builtin variable", 
     }
   } finally { rs.dispose(); }
 });
+
+test("mapfile checks a direct here-string in UTF-16 units before replacing its array", async () => {
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [cmd, status, values, extraLimits] of [
+      ['command -- mapfile -t a <<<🦊', 0, "🦊|"],
+      ['mapfile -t a <<<🦊', 1, "old|tail", {maxCommands: 999}],
+      ['mapfile -t a <<<🦊', 1, "old|tail", {maxExpansionBytes: 1024}],
+      ['mapfile -t a <<<1234', 1, "old|tail"],
+      ['v=🦊; readarray -t a <<<"$v"', 0, "🦊|"],
+      ["mapfile -t a <<<$'🦊\\n'", 0, "🦊|"],
+      ['mapfile -t a <<<$(printf 🦊)', 1, "old|tail"],
+      ['mapfile "-t" a <<<🦊', 1, "old|tail"],
+      ['! mapfile -t a <<<🦊', 0, "old|tail"],
+      ['set -a; mapfile -t a <<<🦊', 1, "old|tail"],
+    ]) {
+      const r = await rs.exec('a=(old tail); ' + cmd + '; echo "$?:${a[0]}|${a[1]}"', {limits: {maxInputBytes: 4, ...extraLimits}});
+      assert.deepEqual([r.stdout, r.stderr], [status + ":" + values + "\n", values === "old|tail" ? "shell: line 1: EFBIG: file too large, read\n" : ""], cmd);
+    }
+    const unset = await rs.exec('set -u; mapfile -t a <<<"$unknown"; echo reached');
+    assert.deepEqual([unset.exitCode, unset.stdout, unset.stderr], [1, "", "shell: line 1: unknown: unbound variable\n"]);
+  } finally { rs.dispose(); }
+});

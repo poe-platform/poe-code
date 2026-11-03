@@ -1355,7 +1355,7 @@ impl<'a> EvalState<'a> {
         }
 
         if pipe.commands.len() == 1 {
-            let res = self.eval_command_node(&pipe.commands[0], stdin);
+            let res = self.eval_command_node(&pipe.commands[0], stdin, !pipe.negated);
             self.in_condition = prev_cond;
             let mut out = res?;
             let raw_code = out.exit_code;
@@ -1421,7 +1421,7 @@ impl<'a> EvalState<'a> {
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let outer_input = self.fd_table.remove(&0);
-                let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin);
+                let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin, false);
                 if let Some(target) = outer_input {
                     self.fd_table.insert(0, target);
                 }
@@ -1470,9 +1470,9 @@ impl<'a> EvalState<'a> {
                 sub.in_pipeline_producer = true;
             }
             let stage_res = if idx == 0 {
-                sub.eval_command_node(cmd_node, stdin)
+                sub.eval_command_node(cmd_node, stdin, false)
             } else {
-                sub.eval_command_node(cmd_node, &mut cur_stdin)
+                sub.eval_command_node(cmd_node, &mut cur_stdin, false)
             };
             let mut stage_out = match stage_res {
                 Ok(o) => o,
@@ -1530,6 +1530,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         node: &CommandNode,
         stdin: &mut String,
+        standalone: bool,
     ) -> Result<BuiltinOutcome, EvalError> {
         if self.async_default_stdin {
             let prev_async = std::mem::replace(&mut self.async_default_stdin, false);
@@ -1556,7 +1557,7 @@ impl<'a> EvalState<'a> {
                 };
                 let saved_stream = self.in_fds.remove(&STDIN_STREAM_FD);
                 let mut empty_stdin = String::new();
-                let res = self.eval_command_node(node, &mut empty_stdin);
+                let res = self.eval_command_node(node, &mut empty_stdin, standalone);
                 if let Some(a0) = saved_alias0 {
                     self.in_fd_aliases.insert(0, a0);
                 }
@@ -1566,7 +1567,7 @@ impl<'a> EvalState<'a> {
                 self.async_default_stdin = prev_async;
                 return res;
             } else {
-                let res = self.eval_command_node(node, stdin);
+                let res = self.eval_command_node(node, stdin, standalone);
                 self.async_default_stdin = prev_async;
                 return res;
             }
@@ -1574,7 +1575,7 @@ impl<'a> EvalState<'a> {
         self.budget.check_cancelled().map_err(EvalError::Budget)?;
         self.budget.tick_command().map_err(EvalError::Budget)?;
         match node {
-            CommandNode::Simple(simple) => self.eval_simple_command(simple, stdin),
+            CommandNode::Simple(simple) => self.eval_simple_command(simple, stdin, standalone),
             CommandNode::Subshell { body, redirects } => {
                 self.budget.enter_recursion().map_err(EvalError::Budget)?;
                 let prev_iso = std::mem::replace(&mut self.isolated_inline_input, true);
@@ -3031,10 +3032,69 @@ impl<'a> EvalState<'a> {
         }
         Ok(out)
     }
+    fn try_mapfile_here_string(&mut self, simple: &SimpleCommand) -> Result<bool, EvalError> {
+        let [redirect] = simple.redirects.as_slice() else { return Ok(false) };
+        if !matches!(redirect.kind, RedirectKind::HereString(0)) || !simple.assignments.is_empty()
+            || self.budget.limits.max_expansion_bytes < 65536 || self.budget.limits.max_commands < 1000
+            || self.env.get("\0set_allexport").is_some_and(|v| v == "1")
+            || self.env.get("\0attr__PIPESTATUS").is_some_and(|a| a.contains('r')) {
+            return Ok(false);
+        }
+        let mut words = simple.words.as_slice();
+        if let [prefix, rest @ ..] = words
+            && matches!(prefix.as_str(), "builtin" | "command") && !self.functions.contains_key(prefix) {
+            words = if rest.first().is_some_and(|s| s == "--") { &rest[1..] } else { rest };
+        }
+        if !matches!(words.len(), 2 | 3) || words[1] != "-t"
+            || !matches!(words[0].as_str(), "mapfile" | "readarray") || self.functions.contains_key(&words[0]) {
+            return Ok(false);
+        }
+        // Production uses the plain array name or MAPFILE, even for a quoted target.
+        let name = words.get(2).filter(|s| !s.contains(['\'', '"', '\\', '$', '`', '<', '>']))
+            .map(String::as_str).unwrap_or("MAPFILE");
+        if !is_valid_shell_ident(name) || self.local_scopes.iter().any(|f| f.contains_key(name))
+            || self.env.get(&format!("\0attr__{name}")).is_some_and(|a| !a.is_empty() && a != "a")
+            || self.env.contains_key(&format!("\0assoc__{name}"))
+            || (self.env.contains_key(name) && super::is_exported_scalar(self.env, name))
+            || matches!(name, "PATH" | "PWD" | "OLDPWD" | "HOME" | "CDPATH" | "IFS" | "OPTIND" | "OPTERR" | "OPTARG" | "REPLY" | "LANG" | "LC_ALL" | "LC_CTYPE" | "RANDOM" | "SECONDS" | "LINENO") {
+            return Ok(false);
+        }
+        // Only try words whose expansion can be repeated without effects if the
+        // direct operation declines the input. Substitutions use descriptor setup.
+        let word = redirect.target.as_str();
+        let unquoted = word.strip_prefix('"').and_then(|v| v.strip_suffix('"')).unwrap_or(word);
+        let variable = unquoted.strip_prefix('$').map(|v| v.strip_prefix('{').and_then(|s| s.strip_suffix('}')).unwrap_or(v))
+            .filter(|v| is_valid_shell_ident(v));
+        if word.contains(['`', '<', '>']) || (word.contains('$') &&
+            !word.strip_prefix("$'").and_then(|v| v.strip_suffix('\'')).is_some_and(|v| !v.contains('\'')) &&
+            !variable.is_some_and(|v| !matches!(v, "RANDOM" | "SRANDOM" | "SECONDS"))) {
+            return Ok(false);
+        }
+        let value = self.expand_word_to_string(word)?;
+        let units = value.encode_utf16().count() + 1;
+        let fields = value.split('\n').count();
+        if units > self.budget.limits.max_input_bytes || units >= self.budget.limits.max_expansion_bytes
+            || value.contains('\0') || stream_byte_len(&value) != value.len()
+            || fields > self.budget.limits.max_expansion_fields.min(4096) {
+            return Ok(false);
+        }
+        let prefix = format!("{name}[");
+        self.env.retain(|k, _| !k.starts_with(&prefix));
+        for (i, line) in value.split('\n').enumerate() {
+            self.env.insert(format!("{name}[{i}]"), line.to_string());
+        }
+        self.env.insert(format!("\0declared__{name}"), "1".to_string());
+        sync_array_metadata(name, self.env);
+        self.env.remove("_");
+        self.env.insert("\0last_arg".into(), if words.len() == 2 { "-t" } else { name }.to_string());
+        Ok(true)
+    }
+
     fn eval_simple_command(
         &mut self,
         simple: &SimpleCommand,
         stdin: &mut String,
+        standalone: bool,
     ) -> Result<BuiltinOutcome, EvalError> {
         if let Some(FdTarget::InputFile { unread, .. }) = self.fd_table.get(&0) {
             stdin.clone_from(&unread.borrow());
@@ -3056,6 +3116,10 @@ impl<'a> EvalState<'a> {
         cmd_parts.extend(simple.words.iter().cloned());
         let (debug_out, skip_cmd) = self.fire_debug_trap(&cmd_parts.join(" "));
         if skip_cmd {
+            return Ok(debug_out);
+        }
+
+        if standalone && self.try_mapfile_here_string(simple)? {
             return Ok(debug_out);
         }
 
@@ -3417,8 +3481,6 @@ impl<'a> EvalState<'a> {
                     [name, arg, ..] if simple.words.get(offset) == Some(name) => match name.as_str() {
                         "echo" => !arg.starts_with('-'),
                         "printf" => !arg.starts_with('-') || arg == "--",
-                        "mapfile" | "readarray" => offset == 0 && arg == "-t" && expanded_words.len() <= 3
-                            && matches!(simple.redirects[0].kind, RedirectKind::HereString(0)),
                         _ => false,
                     },
                     _ => false,
@@ -3681,7 +3743,7 @@ impl<'a> EvalState<'a> {
             } else {
                 let mut r = match &func_body {
                     CommandNode::Group { body, redirects } if redirects.is_empty() => self.eval_script(body, stdin),
-                    cmd => self.eval_command_node(cmd, stdin),
+                    cmd => self.eval_command_node(cmd, stdin, false),
                 };
                 if let Ok(ref mut o) = r {
                     if !fn_dbg_out.stdout.is_empty() || !fn_dbg_out.stderr.is_empty() {

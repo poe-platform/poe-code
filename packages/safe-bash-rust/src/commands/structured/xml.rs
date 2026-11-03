@@ -781,7 +781,7 @@ impl Escaping {
             Self::Ascii => format!("&#x{unit:X};"),
             Self::SingleByte => format!("&#{unit};"),
             // XML cannot contain NUL. Preserve this raw UTF-16 unit across the
-            // string serializer until encode() writes it to the byte stream.
+            // string serializer until the encoder writes it to the byte stream.
             Self::Utf16 => format!("\0{}", char::from_u32(u32::from(unit) - 0xdc00 + 1).unwrap()),
             Self::Unicode | Self::Canonical => char::REPLACEMENT_CHARACTER.to_string(),
         };
@@ -814,50 +814,53 @@ impl Escaping {
     }
 }
 
-pub(super) fn encode(text: String, encoding: Option<&str>) -> Vec<u8> {
-    use std::io::Write;
-    match encoding {
-        Some(enc @ ("UTF-16" | "UTF-16LE" | "UTF-16BE")) => {
-            let mut bytes = Vec::with_capacity(text.len());
-            if enc == "UTF-16" {
-                bytes.extend([0xff, 0xfe]);
-            }
-            let mut units = text.encode_utf16();
-            while let Some(unit) = units.next() {
-                let unit = if unit == 0 { 0xdc00 + units.next().unwrap() - 1 } else { unit };
-                bytes.extend(if enc == "UTF-16BE" {
-                    unit.to_be_bytes()
-                } else {
-                    unit.to_le_bytes()
-                });
-            }
-            bytes
-        }
-        Some(enc @ ("US-ASCII" | "ISO-8859-1")) => {
-            let ceiling = if enc == "US-ASCII" { 127 } else { 255 };
-            let mut bytes = Vec::with_capacity(text.len());
-            for c in text.chars() {
-                if c as u32 <= ceiling {
-                    bytes.push(c as u8);
-                } else {
-                    write!(bytes, "&#{};", c as u32).unwrap();
+pub(super) struct EncodedOutput<'a> {
+    pub bytes: Vec<u8>,
+    pub encoding: Option<&'a str>,
+    pub limit: usize,
+}
+
+impl std::fmt::Write for EncodedOutput<'_> {
+    fn write_str(&mut self, text: &str) -> std::fmt::Result {
+        let first = self.bytes.is_empty();
+        let mut append = |part: &[u8]| {
+            if part.len() > self.limit - self.bytes.len() { return Err(std::fmt::Error); }
+            self.bytes.extend_from_slice(part);
+            Ok(())
+        };
+        match self.encoding {
+            Some(enc @ ("UTF-16" | "UTF-16LE" | "UTF-16BE")) => {
+                if enc == "UTF-16" && first { append(&[0xff, 0xfe])?; }
+                let mut units = text.encode_utf16();
+                while let Some(unit) = units.next() {
+                    let unit = if unit == 0 { 0xdc00 + units.next().unwrap() - 1 } else { unit };
+                    let bytes = if enc == "UTF-16BE" { unit.to_be_bytes() } else { unit.to_le_bytes() };
+                    append(&bytes)?;
                 }
             }
-            bytes
+            Some(enc @ ("US-ASCII" | "ISO-8859-1")) if !text.is_ascii() => {
+                let ceiling = if enc == "US-ASCII" { 127 } else { 255 };
+                for c in text.chars() {
+                    if c as u32 <= ceiling { append(&[c as u8])?; }
+                    else { append(format!("&#{};", c as u32).as_bytes())?; }
+                }
+            }
+            _ => append(text.as_bytes())?,
         }
-        _ => text.into_bytes(),
+        Ok(())
     }
 }
 
-pub(super) fn write_output(fs: &dyn crate::vfs::SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
-    use crate::vfs::{VfsEntryKind, dirname_posix_path, normalize_posix_path};
-    if normalize_posix_path(path) != path {
-        return Err(format!("EINVAL: invalid argument '{path}'"));
-    }
+pub(super) fn resolve_output(fs: &dyn crate::vfs::SafeBashFs, path: &str) -> Result<String, String> {
+    if crate::vfs::normalize_posix_path(path) != path { return Err(format!("EINVAL: invalid argument '{path}'")); }
+    fs.access_path(path, true).map_err(|e| crate::commands::coreutils::stream_file_error(e, "prepareStagingResolution", path))
+}
+
+pub(super) fn write_output(fs: &dyn crate::vfs::SafeBashFs, path: &str, entry: &str, bytes: &[u8]) -> Result<(), String> {
+    use crate::vfs::{VfsEntryKind, dirname_posix_path};
     let missing = |e: &str| e.starts_with("ENOENT:") || e.ends_with("(os error 2)");
     let resolution_error = |e| crate::commands::coreutils::stream_file_error(e, "prepareStagingResolution", path);
-    let entry = fs.access_path(path, true).map_err(resolution_error)?;
-    let existing = match fs.lstat(&entry) {
+    let existing = match fs.lstat(entry) {
         Ok(st) if st.kind == VfsEntryKind::Directory => {
             let op = if entry == "/" { "" } else { ", writeStream" };
             return Err(format!("EISDIR: illegal operation on a directory{op} '{path}'"));
@@ -866,7 +869,7 @@ pub(super) fn write_output(fs: &dyn crate::vfs::SafeBashFs, path: &str, bytes: &
         Err(e) if missing(&e) => None,
         Err(e) => return Err(e),
     };
-    let parent = dirname_posix_path(&entry);
+    let parent = dirname_posix_path(entry);
     let directory = fs.stat(&parent).map_err(resolution_error)?;
     if directory.mode & 0o300 != 0o300 {
         return Err(format!("EACCES: permission denied, writeStream '{path}'"));
@@ -875,8 +878,8 @@ pub(super) fn write_output(fs: &dyn crate::vfs::SafeBashFs, path: &str, bytes: &
         if st.mode & 0o200 == 0 {
             return Err(format!("EACCES: permission denied, publishStagedFile '{entry}'"));
         }
-        fs.write_file(&entry, bytes)
+        fs.write_file(entry, bytes)
     } else {
-        fs.create_file(&entry, bytes, 0o666)
+        fs.create_file(entry, bytes, 0o666)
     }.map_err(|e| crate::commands::coreutils::stream_file_error(e, "writeStream", path))
 }

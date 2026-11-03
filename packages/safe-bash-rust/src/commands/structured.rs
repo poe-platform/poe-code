@@ -15009,7 +15009,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                 res.stderr.insert_str(0, &stderr);
                 return res;
             }
-            res.stdout
+            Some(res.stdout)
         } else if c14n {
             let mut out = String::new();
             for node in &dom {
@@ -15018,8 +15018,18 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                     return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
                 }
             }
-            out
-        } else {
+            Some(out)
+        } else { None };
+        let destination = if let Some(of) = &out_file && xpath.is_none() {
+            if of.is_empty() { return err_out(&format!("{stderr}xmllint: ENOENT: no such file or directory ''\n"), 1); }
+            let path = crate::vfs::path::absolute_operand(cwd, of);
+            match xml::resolve_output(fs, &path) {
+                Ok(entry) => Some((path, entry)),
+                Err(e) => return err_out(&format!("{stderr}xmllint: {e}\n"), 6),
+            }
+        } else { None };
+        let bytes = if let Some(text) = rendered { text.into_bytes() } else {
+            use std::fmt::Write;
             let eff_encoding = encoding.as_ref().or(doc.encoding.as_ref());
             let mut decl = String::from("<?xml version=\"1.0\"");
             if let Some(enc) = eff_encoding {
@@ -15029,28 +15039,29 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
                 decl.push_str(&format!(" standalone=\"{sa}\""));
             }
             decl.push_str("?>\n");
-            let mut out = decl;
+            let limit = fs.shell_limits().max_output_bytes;
+            let mut out = xml::EncodedOutput { bytes: Vec::new(), encoding: encoding.as_deref(), limit };
+            let escaping = match eff_encoding.map(String::as_str) {
+                None => xml::Escaping::Ascii,
+                Some("UTF-16" | "UTF-16BE" | "UTF-16LE") => xml::Escaping::Utf16,
+                Some("US-ASCII" | "ISO-8859-1") => xml::Escaping::SingleByte,
+                _ => xml::Escaping::Unicode,
+            };
+            if out.write_str(&decl).is_err() { return err_out(&fs.limit_error("maxOutputBytes", limit), 5); }
             for n in &dom {
-                match n {
-                    XmlNode::Element(el) => out.push_str(&serialize_xml_pretty(el, format_xml,
-                        match eff_encoding.map(String::as_str) {
-                            None => xml::Escaping::Ascii,
-                            Some("UTF-16" | "UTF-16BE" | "UTF-16LE") => xml::Escaping::Utf16,
-                            Some("US-ASCII" | "ISO-8859-1") => xml::Escaping::SingleByte,
-                            _ => xml::Escaping::Unicode,
-                        })),
-                    XmlNode::Markup(markup) => out.push_str(markup),
+                let write = match n {
+                    XmlNode::Element(el) => serialize_xml_pretty(el, format_xml, escaping, &mut out),
+                    XmlNode::Markup(markup) => out.write_str(markup),
                     _ => continue,
+                };
+                if write.and_then(|()| out.write_char('\n')).is_err() {
+                    return err_out(&fs.limit_error("maxOutputBytes", limit), 5);
                 }
-                out.push('\n');
             }
-            out
+            out.bytes
         };
-        let bytes = xml::encode(rendered, if xpath.is_none() && !c14n { encoding.as_deref() } else { None });
-        if let Some(of) = &out_file && xpath.is_none() {
-            if of.is_empty() { return err_out(&format!("{stderr}xmllint: ENOENT: no such file or directory ''\n"), 1); }
-            let path = crate::vfs::path::absolute_operand(cwd, of);
-            if let Err(e) = xml::write_output(fs, &path, &bytes) {
+        if let Some((path, entry)) = destination {
+            if let Err(e) = xml::write_output(fs, &path, &entry, &bytes) {
                 return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
             }
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
@@ -15064,7 +15075,6 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut warnings = Vec::new();
         let tree = if noout && xpath.is_none() { xml::TreeMode::Discard }
-            else if format_xml && !c14n && xpath.is_none() { xml::TreeMode::DepthLimited }
             else { xml::TreeMode::Retain };
         let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), tree);
         let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
@@ -15168,49 +15178,50 @@ fn serialize_xml_c14n(node: &XmlNode, exclusive: bool, out: &mut String) -> Resu
     Ok(())
 }
 
-fn serialize_xml_pretty(el: &XmlElement, format_xml: bool, escaping: xml::Escaping) -> String {
-    let mut out = String::new();
-    let start = |el: &XmlElement, out: &mut String| {
-        out.push('<');
-        out.push_str(&el.tag);
+fn serialize_xml_pretty<W: std::fmt::Write>(el: &XmlElement, format_xml: bool, escaping: xml::Escaping, out: &mut W) -> std::fmt::Result {
+    let start = |el: &XmlElement, out: &mut W| -> std::fmt::Result {
+        out.write_char('<')?;
+        out.write_str(&el.tag)?;
         for is_ns in [true, false] {
             for (k, v) in &el.attrs {
                 let attr_is_ns = k == "xmlns" || k.starts_with("xmlns:");
                 if attr_is_ns == is_ns {
-                    out.push(' ');
-                    out.push_str(k);
-                    out.push_str("=\"");
-                    out.push_str(&escaping.escape(v, true));
-                    out.push('"');
+                    out.write_char(' ')?;
+                    out.write_str(k)?;
+                    out.write_str("=\"")?;
+                    out.write_str(&escaping.escape(v, true))?;
+                    out.write_char('"')?;
                 }
             }
         }
-        out.push_str(if el.children.is_empty() { "/>" } else { ">" });
+        out.write_str(if el.children.is_empty() { "/>" } else { ">" })
     };
     let indent_children = |el: &XmlElement| !el.children.iter().any(|n| matches!(n, XmlNode::Text(..) | XmlNode::Cdata(_)));
-    start(el, &mut out);
-    if el.children.is_empty() { return out; }
+    start(el, out)?;
+    if el.children.is_empty() { return Ok(()); }
     let mut stack = vec![(el, el.children.iter(), format_xml && indent_children(el))];
+    let mut padding = String::from("\n");
     loop {
         let depth = stack.len();
         let Some((el, children, indent)) = stack.last_mut() else { break };
         let child = children.next();
         if *indent {
-            out.push('\n');
-            for _ in 0..if child.is_some() { depth } else { depth - 1 } { out.push_str("  "); }
+            let width = 1 + 2 * if child.is_some() { depth } else { depth - 1 };
+            while padding.len() < width { padding.push_str("  "); }
+            out.write_str(&padding[..width])?;
         }
         match child {
             None => {
-                out.push_str("</");
-                out.push_str(&el.tag);
-                out.push('>');
+                out.write_str("</")?;
+                out.write_str(&el.tag)?;
+                out.write_char('>')?;
                 stack.pop();
             }
-            Some(XmlNode::Text(t, low)) => out.push_str(&escaping.text(t, *low)),
-            Some(XmlNode::Cdata(t)) => { out.push_str("<![CDATA["); out.push_str(t); out.push_str("]]>"); }
-            Some(XmlNode::Markup(m)) => out.push_str(m),
+            Some(XmlNode::Text(t, low)) => out.write_str(&escaping.text(t, *low))?,
+            Some(XmlNode::Cdata(t)) => { out.write_str("<![CDATA[")?; out.write_str(t)?; out.write_str("]]>")?; }
+            Some(XmlNode::Markup(m)) => out.write_str(m)?,
             Some(XmlNode::Element(child)) => {
-                start(child, &mut out);
+                start(child, out)?;
                 if !child.children.is_empty() {
                     let indent = *indent && indent_children(child);
                     stack.push((child, child.children.iter(), indent));
@@ -15218,7 +15229,7 @@ fn serialize_xml_pretty(el: &XmlElement, format_xml: bool, escaping: xml::Escapi
             }
         }
     }
-    out
+    Ok(())
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -15410,14 +15421,16 @@ fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query], fs: &dyn SafeBa
                         let mut text = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
                         for node in *nodes {
                             if let XmlNode::Element(el) = node {
-                                text.push_str(&serialize_xml_pretty(el,false,xml::Escaping::Unicode));
+                                serialize_xml_pretty(el, false, xml::Escaping::Unicode, &mut text).unwrap();
                             }
                         }
                         text.push('\n');
                         text
                     }
                     XPathItem::Node(el, _) => {
-                        serialize_xml_pretty(el, false, xml::Escaping::Unicode)
+                        let mut text = String::new();
+                        serialize_xml_pretty(el, false, xml::Escaping::Unicode, &mut text).unwrap();
+                        text
                     }
                     XPathItem::Attr((k, v), _) => format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true)),
                     XPathItem::Text(t) => xml::Escaping::Unicode.escape(t,false),

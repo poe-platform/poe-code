@@ -9736,3 +9736,24 @@ test("XPath traverses deep document text and restores namespace bindings for lat
     await assert.rejects(sh.exec("xmllint --xpath '//n' /doc >/dev/null", {limits: {maxOutputBytes: 1000}}), /maxOutputBytes/);
   } finally { sh.dispose(); }
 });
+
+test("xmllint formats deep XML up to the encoded output budget before publishing", async () => {
+  const depth = 540, doc = "<r>".repeat(depth) + "é" + "</r>".repeat(depth);
+  const sh = new RustWasmBash({cwd: "/", files: {"/doc": doc, "/out": "original"}});
+  try {
+    const lines = Array.from({length: depth - 1}, (_, i) => "  ".repeat(i) + "<r>");
+    const body = [...lines, "  ".repeat(depth - 1) + "<r>é</r>", ...lines.reverse().map(line => line.replace("<r>", "</r>"))].join("\n") + "\n";
+    for (const [enc, bytes] of [["UTF-8", "utf8"], ["UTF-16LE", "utf16le"], ["ISO-8859-1", "latin1"]]) {
+      const expected = Buffer.from('<?xml version="1.0" encoding="' + enc + '"?>\n' + body, bytes);
+      const cmd = "xmllint --format --encode " + enc;
+      const r = await sh.exec(cmd + " /doc", {limits: {maxOutputBytes: expected.length}});
+      assert.deepEqual([r.exitCode, r.stderr], [0, ""]);
+      assert.deepEqual(Buffer.from(r.stdoutBytes), expected);
+      await assert.rejects(sh.exec(cmd + " -o /out /doc", {limits: {maxOutputBytes: expected.length - 1}}), /maxOutputBytes/);
+      assert.equal(Buffer.from(await sh.fs.readFile("/out")).toString(), "original");
+    }
+    const r = await sh.exec("xmllint --format -o /missing/out /doc", {limits: {maxOutputBytes: 100}});
+    assert.deepEqual([r.exitCode, r.stderr], [6, "xmllint: ENOENT: no such file or directory, prepareStagingResolution '/missing/out'\n"]);
+    await assert.rejects(sh.exec("xmllint --format /doc >/dev/null", {limits: {maxOutputBytes: 100}}), /maxOutputBytes/);
+  } finally { sh.dispose(); }
+});

@@ -28100,10 +28100,7 @@ struct MdqBlock {
     table_rows: Vec<Vec<String>>,
 }
 
-fn mdq_inline_text(s: &str, plain: bool) -> String {
-    if !plain && !s.contains(['\\', '`']) { return s.to_string(); }
-    let mut out = String::with_capacity(s.len());
-    let bytes = s.as_bytes();
+fn mdq_backtick_runs(bytes: &[u8]) -> BTreeMap<usize, Vec<usize>> {
     // A closing delimiter must contain exactly as many backticks as its opener.
     let mut ticks = BTreeMap::<usize, Vec<usize>>::new();
     let mut at = 0;
@@ -28113,6 +28110,31 @@ fn mdq_inline_text(s: &str, plain: bool) -> String {
         while at < bytes.len() && bytes[at] == b'`' { at += 1; }
         ticks.entry(at - start).or_default().push(start);
     }
+    ticks
+}
+
+fn mdq_code_delimiters(bytes: &[u8], start: usize, runs: &BTreeMap<usize, Vec<usize>>) -> (usize, Option<usize>) {
+    let width = bytes[start..].iter().take_while(|&&b| b == b'`').count();
+    let close = runs.get(&width).and_then(|v| v.get(v.partition_point(|&n| n < start + width))).copied();
+    (width, close)
+}
+
+fn mdq_inline_html_len(s: &str) -> Option<usize> {
+    let tag = s[1..].strip_prefix('/').unwrap_or(&s[1..]);
+    let name_len = tag.bytes().take_while(|c| c.is_ascii_alphanumeric() || *c == b'-').count();
+    if s.starts_with("<!--") {
+        s[4..].find("-->").map(|n| n + 7)
+    } else if tag.as_bytes().first().is_some_and(u8::is_ascii_alphabetic)
+        && tag.as_bytes().get(name_len).is_some_and(|c| c.is_ascii_whitespace() || matches!(c, b'>' | b'/')) {
+        find_tag_close_gt(s).map(|n| n + 1)
+    } else { None }
+}
+
+fn mdq_inline_text(s: &str, plain: bool) -> String {
+    if !plain && !s.contains(['\\', '`']) { return s.to_string(); }
+    let mut out = String::with_capacity(s.len());
+    let bytes = s.as_bytes();
+    let ticks = mdq_backtick_runs(bytes);
     let mut i = 0usize;
     while i < bytes.len() {
         if bytes[i] == b'\\' && bytes.get(i + 1).is_some_and(u8::is_ascii_punctuation) {
@@ -28121,11 +28143,10 @@ fn mdq_inline_text(s: &str, plain: bool) -> String {
             continue;
         }
         if bytes[i] == b'`' {
-            let start = i;
-            while i < bytes.len() && bytes[i] == b'`' { i += 1; }
-            let width = i - start;
-            if let Some(close) = ticks.get(&width).and_then(|v| v.get(v.partition_point(|&n| n < i))) {
-                let content = s[i..*close].replace('\n', " ");
+            let (width, close) = mdq_code_delimiters(bytes, i, &ticks);
+            i += width;
+            if let Some(close) = close {
+                let content = s[i..close].replace('\n', " ");
                 let text = if content.starts_with(' ') && content.ends_with(' ') && content.bytes().any(|c| c != b' ') {
                     &content[1..content.len() - 1]
                 } else { &content };
@@ -28144,20 +28165,10 @@ fn mdq_inline_text(s: &str, plain: bool) -> String {
             }
             continue;
         }
-        if bytes[i] == b'<' {
-            let tag = s[i + 1..].strip_prefix('/').unwrap_or(&s[i + 1..]);
-            let name_len = tag.bytes().take_while(|c| c.is_ascii_alphanumeric() || *c == b'-').count();
-            let end = if s[i..].starts_with("<!--") {
-                s[i + 4..].find("-->").map(|n| i + 4 + n + 3)
-            } else if tag.as_bytes().first().is_some_and(u8::is_ascii_alphabetic)
-                && tag.as_bytes().get(name_len).is_some_and(|c| c.is_ascii_whitespace() || matches!(c, b'>' | b'/')) {
-                find_tag_close_gt(&s[i..]).map(|n| i + n + 1)
-            } else { None };
-            if let Some(end) = end {
-                out.push_str(&s[i..end]);
-                i = end;
-                continue;
-            }
+        if bytes[i] == b'<' && let Some(n) = mdq_inline_html_len(&s[i..]) {
+            out.push_str(&s[i..i + n]);
+            i += n;
+            continue;
         }
         if plain && bytes[i] == b'['
             && let Some(close) = s[i + 1..].find(']').map(|n| i + 1 + n)
@@ -28822,51 +28833,58 @@ fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
     {
         let url_m = url_part.strip_suffix(')').unwrap_or(url_part);
         let mut links = Vec::new();
+        let kind = if is_img { "image" } else { "link" };
+        let mut add_link = |display: &str, url: &str| {
+            if let (Some(title), Some(url)) = (
+                mdq_match_and_replace(disp_m, display, true),
+                mdq_match_and_replace(url_m, url, false),
+            ) {
+                links.push(MdqBlock { kind: kind.into(), title, url, ..MdqBlock::default() });
+            }
+        };
         let mut pending = nodes;
         pending.reverse();
         while let Some(b) = pending.pop() {
             pending.extend(b.children.into_iter().rev());
-            let src = if b.kind == "section" { &b.title } else { &b.text };
-            let chars: Vec<char> = src.chars().collect();
-            let mut k = 0usize;
-            while k < chars.len() {
-                let hit_start = if is_img {
-                    chars[k] == '!' && chars.get(k + 1) == Some(&'[')
-                } else {
-                    chars[k] == '[' && (k == 0 || chars[k - 1] != '!')
-                };
-                if hit_start {
-                    let open_b = if is_img { k + 1 } else { k };
-                    if let Some(cb) = chars[open_b + 1..].iter().position(|&c| c == ']') {
-                        let cb_idx = open_b + 1 + cb;
-                        if chars.get(cb_idx + 1) == Some(&'(')
-                            && let Some(cp) = chars[cb_idx + 2..].iter().position(|&c| c == ')')
-                        {
-                            let disp: String = chars[open_b + 1..cb_idx].iter().collect();
-                            let raw_url: String = chars[cb_idx + 2..cb_idx + 2 + cp].iter().collect();
-                            let url = raw_url
-                                .trim()
-                                .trim_start_matches('<')
-                                .trim_end_matches('>')
-                                .to_string();
-                            if let (Some(new_disp), Some(new_url)) = (
-                                mdq_match_and_replace(disp_m, &disp, true),
-                                mdq_match_and_replace(url_m, &url, false),
-                            ) {
-                                links.push(MdqBlock {
-                                    kind: if is_img { "image".to_string() } else { "link".to_string() },
-                                    title: new_disp.clone(),
-                                    text: new_disp,
-                                    url: new_url,
-                                    ..MdqBlock::default()
-                                });
+            if b.kind == kind {
+                add_link(&b.title, &b.url);
+                continue;
+            }
+            let paragraph = (b.kind == "paragraph").then_some(&b.text);
+            for src in paragraph.into_iter().chain(b.table_rows.iter().flatten()) {
+                let bytes = src.as_bytes();
+                let ticks = mdq_backtick_runs(bytes);
+                let mut k = 0usize;
+                while k < bytes.len() {
+                    if bytes[k] == b'\\' && bytes.get(k + 1).is_some_and(u8::is_ascii_punctuation) {
+                        k += 2;
+                        continue;
+                    }
+                    if bytes[k] == b'`' {
+                        let (width, close) = mdq_code_delimiters(bytes, k, &ticks);
+                        k = close.unwrap_or(k) + width;
+                        continue;
+                    }
+                    if bytes[k] == b'<' && let Some(n) = mdq_inline_html_len(&src[k..]) {
+                        k += n;
+                        continue;
+                    }
+                    let image = bytes[k..].starts_with(b"![");
+                    if image || bytes[k] == b'[' {
+                        let begin = k + if image { 2 } else { 1 };
+                        if let Some(close) = src[begin..].find(']').map(|n| begin + n)
+                            && bytes.get(close + 1) == Some(&b'(')
+                            && let Some(end) = src[close + 2..].find(')').map(|n| close + 2 + n) {
+                            if image == is_img {
+                                let url = src[close + 2..end].trim().trim_start_matches('<').trim_end_matches('>');
+                                add_link(&src[begin..close], url);
                             }
-                            k = cb_idx + 2 + cp + 1;
+                            k = end + 1;
                             continue;
                         }
                     }
+                    k += 1;
                 }
-                k += 1;
             }
         }
         return links;
@@ -28970,14 +28988,14 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             out
         }
         "link" => {
-            if link_format == "inline" {
+            if matches!(link_format, "inline" | "keep") {
                 format!("[{}]({})", b.title, b.url)
             } else {
                 format!("[{}][1]\n\n[1]: {}\n", b.title, b.url)
             }
         }
         "image" => {
-            if link_format == "inline" {
+            if matches!(link_format, "inline" | "keep") {
                 format!("![{}]({})", b.title, b.url)
             } else {
                 format!("![{}][1]\n\n[1]: {}\n", b.title, b.url)

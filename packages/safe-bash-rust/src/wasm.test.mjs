@@ -8235,3 +8235,20 @@ test("mdq keeps a matched subtree once and still searches its siblings", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq selects inline links from body content and can filter the selected link again", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const tick = String.fromCharCode(96);
+    const text = "# [title](/heading)\n\n> [yes](/q)\n\n~~~\n[code](/code)\n~~~\n\n| header |\n| - |\n| [cell](/c) |\n\n![pic](/img)\n\n"
+      + tick + "[literal](/span)" + tick + " and \\[escaped](/fake)";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["-o json '[]()'", "-o json '[]() | [yes]()'", "-l keep '[yes]()'",
+      "-l inline '[cell]() | []()'", "-l keep '![]() | ![pic]()'", "-o plain '[]()'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

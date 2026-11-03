@@ -170,6 +170,13 @@ fn streams(bytes: &[u8], budget: &mut usize) -> Result<Vec<(u8, Stream)>> {
         })
         .collect())
 }
+// MP4 sample tables represent time as successive 32-bit durations. Keep the
+// source clock when it cannot be reconstructed from those tables.
+pub(super) struct Description {
+    pub packets: Vec<Packet>,
+    pub ticks: u64,
+    pub avcc: Vec<u8>,
+}
 pub(super) struct Track {
     pub info: StreamInfo,
     pub packets: Vec<Packet>,

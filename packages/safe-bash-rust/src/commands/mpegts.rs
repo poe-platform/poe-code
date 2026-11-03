@@ -231,7 +231,10 @@ pub(super) fn write(
     Ok(w.out)
 }
 
-pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
+pub(super) fn as_mp4(
+    bytes: &[u8],
+    limit: usize,
+) -> Result<(Vec<u8>, Vec<super::super::mpegts_input::Description>)> {
     use super::super::super::media_probe::Codec;
     use super::super::mpegts_input::{self, Read};
     use super::{
@@ -288,7 +291,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
             .iter()
             .map(|p| Sample {
                 data: s.data[p.pos as usize..(p.pos + p.size) as usize].into(),
-                duration: p.ticks as u32,
+                duration: p.ticks as u64 as u32,
                 cts: p.pts - p.dts,
                 key: p.key,
                 description: 1,
@@ -297,8 +300,8 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
         tracks.push(Track {
             id: info.id as u32,
             scale: info.scale,
-            media_ticks: info.ticks as u32,
-            movie_ticks: (info.ticks / f64::from(info.scale) * 90000.).round() as u32,
+            media_ticks: info.ticks as u64 as u32,
+            movie_ticks: (info.ticks / f64::from(info.scale) * 90000.).round() as u64 as u32,
             samples,
             first_dts: 0,
             fragment_sample_size: None,
@@ -315,7 +318,7 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
             matrix: MATRIX,
         });
     }
-    super::write(
+    let mp4 = super::write(
         &tracks,
         90000,
         b"isom\0\0\x02\0isomiso2avc1mp41",
@@ -323,5 +326,28 @@ pub(super) fn as_mp4(bytes: &[u8], limit: usize) -> Result<Vec<u8>> {
         &[],
         false,
         limit,
-    )
+    )?;
+    let descriptions = streams
+        .into_iter()
+        .map(|s| {
+            let mut dts = 0;
+            let irregular = s.packets.iter().any(|p| {
+                let mismatch = p.dts != dts
+                    || p.ticks > f64::from(u32::MAX)
+                    || i32::try_from(p.pts - p.dts).is_err();
+                dts += p.ticks as i64;
+                mismatch
+            });
+            super::super::mpegts_input::Description {
+                ticks: s.info.ticks as u64,
+                packets: if irregular { s.packets } else { vec![] },
+                avcc: if matches!(s.info.codec, Codec::Video { tag: b"hvc1", .. }) {
+                    s.config
+                } else {
+                    vec![]
+                },
+            }
+        })
+        .collect();
+    Ok((mp4, descriptions))
 }

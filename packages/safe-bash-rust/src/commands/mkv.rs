@@ -153,7 +153,12 @@ pub(super) fn write(
                     w.element(0x63a2, avcc)?;
                 }
                 w.group(0xe0, |w| {
-                    w.uint(0xb0, source_tags[i].avi().map_or(t.width, |a| a.width.max(0) as u32))?;
+                    w.uint(
+                        0xb0,
+                        source_tags[i]
+                            .avi()
+                            .map_or(t.width, |a| a.width.max(0) as u32),
+                    )?;
                     w.uint(0xba, t.height)
                 })?;
             } else if t.kind == "audio" {
@@ -212,6 +217,12 @@ pub(super) fn write(
         };
         if t.kind == "audio" && audio.clear_samples {
             sample(0., 1024., super::super::super::adts::silent(channels), true)?;
+        } else if let super::Original::Transport(source) = source_tags[i]
+            && !source.packets.is_empty()
+        {
+            for (s, p) in t.samples.iter().zip(&source.packets) {
+                sample(p.pts as f64, p.ticks, &s.data, s.key)?;
+            }
         } else if let Some(o) = original {
             for b in o.blocks.iter().take(if t.kind == "video" {
                 t.samples.len()

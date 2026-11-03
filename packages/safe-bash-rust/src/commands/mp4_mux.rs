@@ -1814,6 +1814,7 @@ pub(super) struct InputBytes<'a> {
     pub bytes: Cow<'a, [u8]>,
     matroska: Option<super::mkv_input::Document<'a>>,
     avi: Vec<super::super::avi_input::Description>,
+    transport: Vec<super::mpegts_input::Description>,
 }
 
 fn materialize<'a>(
@@ -1838,6 +1839,7 @@ fn materialize<'a>(
         let mut bytes = Cow::Borrowed(input);
         let mut matroska = None;
         let mut avi = Vec::new();
+        let mut transport=Vec::new();
         if (seek.start.is_some()
             || seek.end().is_some()
             || seek.loops > 0
@@ -1861,7 +1863,9 @@ fn materialize<'a>(
             bytes = Cow::Owned(mkv::as_mp4(&doc, limit)?);
             matroska = Some(doc);
         } else if format == "mpegts" {
-            bytes=Cow::Owned(mpegts::as_mp4(input,opts.limit.saturating_sub(admitted))?);
+            let (mp4, descriptions) = mpegts::as_mp4(input,opts.limit.saturating_sub(admitted))?;
+            bytes=Cow::Owned(mp4);
+            transport=descriptions;
         } else if format == "avi" {
             let (mp4, descriptions) = avi::as_mp4(input, opts.limit.saturating_sub(admitted))?;
             bytes = Cow::Owned(mp4);
@@ -1902,7 +1906,7 @@ fn materialize<'a>(
         if admitted > opts.limit {
             return Err("input byte limit exceeded".into());
         }
-        materialized.push(InputBytes { bytes, matroska, avi });
+        materialized.push(InputBytes { bytes, matroska, avi, transport });
     }
     Ok(materialized)
 }
@@ -2056,6 +2060,10 @@ fn read_sources<'a>(
             for track in &mut tracks {
                 track.original = Original::Flv(tags);
             }
+        }
+        for (track, desc) in tracks.iter_mut().zip(&data.transport) {
+            track.original=Original::Transport(desc);
+            track.duration=desc.ticks;
         }
         for (track, desc) in tracks.iter_mut().zip(&data.avi) {
             track.original = Original::Avi(desc);

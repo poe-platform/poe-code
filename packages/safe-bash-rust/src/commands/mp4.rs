@@ -395,6 +395,7 @@ enum Original<'a> {
     #[default]
     None,
     Avi(&'a super::avi_input::Description),
+    Transport(&'a mpegts_input::Description),
     Flv(&'a [u8]),
     Matroska(&'a mkv_input::Track<'a>),
 }
@@ -406,6 +407,7 @@ impl<'a> Original<'a> {
         if let Some(t) = self.avi() && !t.jpeg_avcc.is_empty() {
             return Some(&t.jpeg_avcc);
         }
+        if let Self::Transport(t) = self && !t.avcc.is_empty() {return Some(&t.avcc);}
         atoms(entry.get(78..).unwrap_or_default())
             .find(|(k, _)| *k == b"avcC").map(|(_, body)| body)
     }
@@ -418,6 +420,7 @@ impl<'a> Original<'a> {
     fn timestamps(&self, video: bool) -> Box<dyn Iterator<Item = u64> + '_> {
         match self {
             Self::None | Self::Avi(_) => Box::new(std::iter::empty()),
+            Self::Transport(t) => Box::new(t.packets.iter().map(|p|p.dts as u64)),
             Self::Flv(tags) => Box::new(flv_input::timestamps(tags, video).map(u64::from)),
             Self::Matroska(t) => Box::new(t.blocks.iter().map(|b| b.dts as u64)),
         }
@@ -727,8 +730,10 @@ impl<'a> Track<'a> {
     fn samples(&self, input_size: usize) -> impl Iterator<Item = Sample> + '_ {
         let mut timestamps = match self.original {Original::Flv(tags)=>Some(flv_input::timestamps(tags, self.kind=="video")), _=>None};
         let mut blocks=self.original.matroska().map(|t|t.packets());
+        let mut transport = match self.original { Original::Transport(t) => t.packets.iter(), _ => [].iter() };
         let mut keys = self.original.avi().into_iter().flat_map(|a| &a.audio_keys);
         self.tables.samples(input_size).map(move |mut s| {
+            if let Some(p) = transport.next() {s.pts=p.pts.into();s.dts=p.dts as u64;s.tick=p.ticks as u64 as u32;}
             if let Some(&key) = keys.next() {s.key=key;}
             if let Some((p,_))=blocks.as_mut().and_then(Iterator::next) {s.dts=p.dts as u64;s.pts=p.pts.into();s.key=p.key;}
             if let Some(dts) = timestamps.as_mut().and_then(Iterator::next) {

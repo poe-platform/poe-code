@@ -13612,6 +13612,27 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_retains_discontinuous_transport_timestamps() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i","av.mp4","-c","copy","out.ts"]), "", "/", &fs);
+        assert_eq!(r.exit_code,0);
+        let mut bytes = fs.read_file("/out.ts").unwrap();
+        let mut stamps = [0u32,22500,8000].into_iter();
+        for p in bytes.chunks_exact_mut(188) {
+            if p[1] & 0x5f == 0x41 && p[2] == 0 {
+                let n=stamps.next().unwrap();
+                let at=4+if p[3]&32!=0 {1+usize::from(p[4])} else {0};
+                p[at+9..at+14].copy_from_slice(&[33,0,1,(n>>7) as u8,(n as u8)<<1|1]);
+            }
+        }
+        fs.write_file("/changed.ts",&bytes).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i","changed.ts","copy.ts"]), "", "/", &fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/copy.ts").unwrap())), "ecd90cd055941caf7b083ae29c317b154fcb97601e552cbbfa598e1403872d69");
+    }
+
+    #[test]
     fn ffmpeg_copies_transport_streams_into_mp4() {
         let fs = MemoryVfs::new();
         fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();

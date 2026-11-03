@@ -225,20 +225,18 @@ use super::super::png_pixels::Raster;
 
 // Baseline, frame-coded 4:2:0 access units containing I_PCM blocks or P skips.
 // Keep one reference picture; other macroblock and slice syntax requires a full decoder.
-pub(super) struct Pcm<'a> {
-    seq: &'a Sequence,
+pub(super) const INVALID_PACKET: &str = "H.264 packet decode failed (-1094995529)";
+
+pub(super) struct Pcm {
+    seq: Sequence,
     length: usize,
     pps_id: u32,
     deblock: bool,
     blocks: Vec<[u8; 384]>,
     next: usize,
 }
-impl<'a> Pcm<'a> {
-    pub(super) fn new(
-        seq: &'a Sequence,
-        config: &[u8],
-        limit: usize,
-    ) -> Result<Self, &'static str> {
+impl Pcm {
+    pub(super) fn new(seq: Sequence, config: &[u8], limit: usize) -> Result<Self, &'static str> {
         let unsupported = "unsupported H.264 picture parameters";
         if !seq.frame_only
             || seq.pix_fmt != "yuv420p"
@@ -302,23 +300,34 @@ impl<'a> Pcm<'a> {
     pub(super) fn decode(&mut self, mut data: &[u8]) -> Result<(), &'static str> {
         let invalid = "unsupported or truncated H.264 slice";
         let mut decoded = false;
-        while !data.is_empty() {
-            let (prefix, rest) = data.split_at_checked(self.length).ok_or(invalid)?;
+        let mut end_marker = false;
+        while let Some((prefix, rest)) = data.split_at_checked(self.length) {
             let len = prefix.iter().fold(0usize, |n, &v| n << 8 | usize::from(v));
-            let (nal, rest) = rest.split_at_checked(len).ok_or(invalid)?;
+            let Some((nal, rest)) = rest.split_at_checked(len) else {
+                break;
+            };
             data = rest;
-            let head = *nal.first().ok_or(invalid)?;
+            let Some(&head) = nal.first() else { break };
             let kind = head & 31;
             if matches!(kind, 6..=12) {
+                end_marker |= matches!(kind, 10 | 11);
                 continue;
+            }
+            if kind == 0 {
+                return Err(INVALID_PACKET);
             }
             if decoded || !matches!(kind, 1 | 5) {
                 return Err(invalid);
             }
             let raw = rbsp(&nal[1..]);
             let mut b = Bits { bytes: &raw, at: 0 };
+            let mut slice_error = invalid;
             let complete = (|| {
-                if b.ue()? != 0 {
+                let Some(first_mb) = b.ue() else {
+                    slice_error = INVALID_PACKET;
+                    return None;
+                };
+                if first_mb != 0 {
                     return None;
                 }
                 let ty = b.ue()?;
@@ -367,17 +376,32 @@ impl<'a> Pcm<'a> {
                         }
                     }
                     let at = b.at / 8;
-                    self.blocks[i].copy_from_slice(raw.get(at..at + 384)?);
+                    let Some(pixels) = raw.get(at..at + 384) else {
+                        slice_error = INVALID_PACKET;
+                        return None;
+                    };
+                    self.blocks[i].copy_from_slice(pixels);
                     b.at += 384 * 8;
                     i += 1;
                 }
                 Some(())
             })();
-            complete.ok_or(invalid)?;
+            complete.ok_or(if b.at / 8 >= raw.len() {
+                INVALID_PACKET
+            } else {
+                slice_error
+            })?;
+            if b.read(1) != Some(1) {
+                return Err(INVALID_PACKET);
+            }
             decoded = true;
         }
         if !decoded {
-            return Err(invalid);
+            return Err(if end_marker {
+                "H.264 stream did not decode every picture"
+            } else {
+                INVALID_PACKET
+            });
         }
         self.next += 1;
         Ok(())
@@ -452,8 +476,10 @@ pub(super) fn macroblocks(mut im: Raster, limit: usize) -> Result<Vec<[u8; 384]>
     if dw.saturating_mul(dh) > limit / 4 {
         return Err("image exceeds memory budget");
     }
-    if w==0 || h==0 {
-        im.width=dw; im.height=dh; im.pixels.resize(dw*dh,[0;4]);
+    if w == 0 || h == 0 {
+        im.width = dw;
+        im.height = dh;
+        im.pixels.resize(dw * dh, [0; 4]);
     } else if w != dw || h != dh {
         im.remap(dw, dh, |r, x, y| r.pixels[y.min(h - 1) * w + x.min(w - 1)])
     }

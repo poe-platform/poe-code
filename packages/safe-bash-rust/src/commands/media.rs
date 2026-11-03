@@ -13511,6 +13511,38 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_decodes_avc_without_configuration_and_rejects_bad_packets() {
+        let fs = MemoryVfs::new();
+        let original = include_bytes!("../../tests/fixtures/av.mp4");
+        let at = original.windows(4).position(|s| s == b"avcC").unwrap();
+        let args = media_args(&["-i", "av.mp4", "-vf", "scale=10:8", "-f", "yuv4mpegpipe", "-"]);
+        for case in ["absent", "length", "missing-sps", "truncated-slice"] {
+            let mut input = original.to_vec();
+            match case {
+                "absent" => input[at..at+4].copy_from_slice(b"junk"),
+                "length" => input[at+8] = 0xfc,
+                "missing-sps" => input[at+9] = 0xe0,
+                _ => {
+                    let stco = input.windows(4).position(|s| s == b"stco").unwrap();
+                    let offset = u32::from_be_bytes(input[stco+12..stco+16].try_into().unwrap()) as usize;
+                    let size = u32::from_be_bytes(input[offset..offset+4].try_into().unwrap());
+                    input[offset..offset+4].copy_from_slice(&(size-1).to_be_bytes());
+                }
+            }
+            fs.write_file("/av.mp4", &input).unwrap();
+            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            if case == "absent" {
+                assert_eq!(r.exit_code, 0, "{}", r.stderr);
+                let bytes = crate::vfs::stream_string_to_bytes(&r.stdout);
+                assert_eq!(hex_enc(&sha256_bytes(&bytes)), "251fc7740d37be3594b4e3ebdd004dab395848294b18addbb3d3d8371ef008ea");
+            } else {
+                assert_eq!(r.exit_code, 1);
+                assert_eq!(r.stderr, "ffmpeg: H.264 packet decode failed (-1094995529)\n");
+            }
+        }
+    }
+
+    #[test]
     fn ffmpeg_writes_avi_streams_and_packet_index() {
         let fs=MemoryVfs::new();
         fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();

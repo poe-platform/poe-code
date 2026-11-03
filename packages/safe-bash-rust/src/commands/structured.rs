@@ -804,6 +804,7 @@ fn cmd_jq_core(
     } else { env };
     let text_arg = |arg: &str| if shell_text { crate::vfs::host_text(arg).into_owned() } else { arg.to_owned() };
     const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
+    let diagnostic = |message: &str| format!("jq: {}\n", jq_input::diagnostic(message, 1000));
     let mut raw_output = false;
     let mut raw_output0 = false;
     let mut ascii_output = false;
@@ -866,7 +867,7 @@ fn cmd_jq_core(
                 "--arg" => JVal::Str(text_arg(text)),
                 "--argjson" => match jq_json::Parser::one(&text_arg(text)) {
                     Ok(parsed) => parsed,
-                    Err(_) => return err_out(&format!("jq: invalid JSON for --argjson {name}\n"), 2),
+                    Err(_) => return err_out(&diagnostic(&format!("invalid JSON for --argjson {name}")), 2),
                 },
                 _ => {
                     if vars.contains_key(&name) { continue; }
@@ -876,8 +877,8 @@ fn cmd_jq_core(
                     match source.next() {
                         Ok(Some(value)) => value,
                         Ok(None) => unreachable!("slurp always yields one value"),
-                        Err((2,e)) => return err_out(&format!("jq: {e}\n"), 2),
-                        Err((_,e)) => return err_out(&format!("jq: Bad JSON in {a} {name} {}: {e}\n", text_arg(text)), 2),
+                        Err((2,e)) => return err_out(&diagnostic(&e), 2),
+                        Err((_,e)) => return err_out(&diagnostic(&format!("Bad JSON in {a} {name} {}: {e}", text_arg(text))), 2),
                     }
                 }
             };
@@ -958,7 +959,7 @@ fn cmd_jq_core(
                 _ => &a[1..],
             };
             if flags.is_empty() || flags.chars().any(|ch| !"rRjcSsneaCMVh".contains(ch)) {
-                return err_out(&format!("jq: unsupported option {}\n", text_arg(a)), 2);
+                return err_out(&diagnostic(&format!("unsupported option {}", text_arg(a))), 2);
             }
             for ch in flags.chars() {
                 match ch {
@@ -1013,7 +1014,7 @@ fn cmd_jq_core(
         let full = crate::vfs::path::absolute_operand(cwd, &pf);
         match jq_parser::read_program(fs, &full, usize::MAX) {
             Ok(source) => source,
-            Err(jq_parser::ProgramError(code, e)) => return err_out(&format!("jq: {}\n", text_arg(&e)), code),
+            Err(jq_parser::ProgramError(code, e)) => return err_out(&diagnostic(&text_arg(&e)), code),
         }
     } else {
         filter.unwrap_or_else(|| ".".to_string())
@@ -1023,7 +1024,7 @@ fn cmd_jq_core(
     let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
-            Err(jq_parser::ProgramError(code, error)) => return err_out(&format!("jq: {error}\n"), code),
+            Err(jq_parser::ProgramError(code, error)) => return err_out(&diagnostic(&if code == 2 { text_arg(&error) } else { error }), code),
         }
     } else {
         if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) { return compile_err; }
@@ -1051,7 +1052,7 @@ fn cmd_jq_core(
             match next {
                 Ok(Some(v)) => v,
                 Ok(None) => break,
-                Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {msg}\n"), exit_code },
+                Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}{}", diagnostic(&msg)), exit_code },
             }
         };
         let mut invocation_last = None;
@@ -1087,7 +1088,7 @@ fn cmd_jq_core(
         });
         stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
         if let Some(e) = inputs.borrow_mut().file_error.take() {
-            return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {e}\n"), exit_code: 2 };
+            return BuiltinOutcome { stdout: out, stderr: format!("{stderr}{}", diagnostic(&e)), exit_code: 2 };
         }
         match emitted {
             Ok(_) => {
@@ -1118,7 +1119,7 @@ fn cmd_jq_core(
             match vars.pop_input() {
                 Ok(Some(_)) => {}
                 Ok(None) => break,
-                Err((exit_code,msg)) => return BuiltinOutcome { stdout:out, stderr:format!("{stderr}jq: {msg}\n"), exit_code },
+                Err((exit_code,msg)) => return BuiltinOutcome { stdout:out, stderr:format!("{stderr}{}", diagnostic(&msg)), exit_code },
             }
         }
     }

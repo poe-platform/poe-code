@@ -1080,6 +1080,26 @@ test("jq keeps the first named argument and skips duplicate file operands", asyn
   } finally { bash.dispose(); }
 });
 
+test("jq escapes control characters and truncates command errors before writing diagnostics", async () => {
+  const sh = new RustWasmBash({ cwd: "/" });
+  try {
+    const path = "/a\x1bb";
+    for (const args of ["-f", ".", "-R .", "-n 'first(inputs)'", "--rawfile v", "--slurpfile v"]) {
+      const r = await sh.exec(`jq ${args} '${path}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [2, "", "jq: ENOENT: no such file or directory, readStream '/a\\033b'\n"], args);
+    }
+    const name = "x".repeat(999 - "unsupported option --bad".length) + "🚀" + "y".repeat(30);
+    for (const [script, code, message] of [
+      ["jq -n 'nope #\x1b'", 3, "error: nope/0 is not defined at <top-level>, line 1:\nnope #\\033\njq: 1 compile error"],
+      ["jq --argjson 'a\rb' nope -n .", 2, "invalid JSON for --argjson a\\rb"],
+      [`jq --bad${name}`, 2, ("unsupported option --bad" + name).slice(0, 1000).toWellFormed()],
+    ]) {
+      const r = await sh.exec(script);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, "", "jq: " + message + "\n"]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("jq rejects invalid UTF-8 in program files before opening data files", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/filter.jq": Uint8Array.of(34, 255, 34) } });
   try {

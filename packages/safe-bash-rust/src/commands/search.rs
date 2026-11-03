@@ -6769,12 +6769,13 @@ fn walk_fd(
                 }
             }
         }
-        let entries = match fs.read_dir(full) {
+        let mut entries = match fs.read_dir(full) {
             Err(e) => return visit(Err(if e.starts_with("ENOENT:") {
                 format!("ENOENT: no such file or directory, realpath '{full}'")
             } else { e })),
             Ok(entries) => entries,
         };
+        entries.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
         if let Some(path) = &canonical { ancestors.insert(path.clone()); }
         for e in entries {
             if !cfg.show_hidden && e.starts_with('.') {
@@ -7656,6 +7657,16 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn fd_limits_results_in_javascript_filename_order() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work").unwrap();
+        for file in ["\u{e000}", "😀"] { fs.write_file(&format!("/work/{file}"), b"").unwrap(); }
+        let result = try_run_search_command("fd", &args(&["-1"]), "", &mut "/work".to_owned(),
+            &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(result.stdout, "😀\n");
     }
 
     #[test]

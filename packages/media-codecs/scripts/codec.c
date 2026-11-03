@@ -22,6 +22,7 @@ typedef struct {
     uint8_t *rgba;
     size_t capacity;
     Picture picture;
+    struct { int rate, channels, count; float *data; double pts; } audio;
 } Decoder;
 
 void decoder_free(Decoder *decoder) {
@@ -34,11 +35,11 @@ void decoder_free(Decoder *decoder) {
     av_free(decoder);
 }
 
-Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels) {
+static Decoder *create_decoder(const uint8_t *extra, int extra_size, double max_pixels, enum AVCodecID id) {
     av_log_set_level(AV_LOG_QUIET);
     Decoder *decoder = av_mallocz(sizeof(Decoder));
     if (!decoder) return NULL;
-    const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+    const AVCodec *codec = avcodec_find_decoder(id);
     decoder->context = avcodec_alloc_context3(codec);
     decoder->frame = av_frame_alloc();
     decoder->packet = av_packet_alloc();
@@ -57,6 +58,42 @@ Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels)
 failure:
     decoder_free(decoder);
     return NULL;
+}
+
+Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels) {
+    return create_decoder(extra, extra_size, max_pixels, AV_CODEC_ID_H264);
+}
+
+Decoder *aac_create(const uint8_t *extra, int extra_size) {
+    if (extra_size <= 0) return NULL;
+    return create_decoder(extra, extra_size, 0, AV_CODEC_ID_AAC);
+}
+
+intptr_t aac_receive(Decoder *decoder) {
+    AVFrame *frame = decoder->frame;
+    int result = avcodec_receive_frame(decoder->context, frame);
+    if (result == AVERROR(EAGAIN) || result == AVERROR_EOF) return 0;
+    if (result < 0) return result;
+    if (frame->decode_error_flags) return AVERROR_INVALIDDATA;
+    int channels = frame->ch_layout.nb_channels;
+    if (frame->format != AV_SAMPLE_FMT_FLTP || channels < 1 || channels > 8 ||
+        frame->nb_samples <= 0 || frame->nb_samples > 8192) return AVERROR_INVALIDDATA;
+    size_t length = channels * frame->nb_samples * sizeof(float);
+    if (length > decoder->capacity) {
+        uint8_t *allocation = av_realloc(decoder->rgba, length);
+        if (!allocation) return AVERROR(ENOMEM);
+        decoder->rgba = allocation;
+        decoder->capacity = length;
+    }
+    for (int channel = 0; channel < channels; channel++)
+        memcpy(decoder->rgba + channel * frame->nb_samples * sizeof(float),
+            frame->extended_data[channel], frame->nb_samples * sizeof(float));
+    decoder->audio.rate = frame->sample_rate;
+    decoder->audio.channels = channels;
+    decoder->audio.count = frame->nb_samples;
+    decoder->audio.data = (float *)decoder->rgba;
+    decoder->audio.pts = (double)frame->pts;
+    return (intptr_t)&decoder->audio;
 }
 
 int decoder_send(Decoder *decoder, const uint8_t *data, int length, double pts, double dts, double duration) {

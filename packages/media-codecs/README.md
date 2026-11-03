@@ -1,15 +1,17 @@
 # Portable media codecs
 
-Decode real H.264 video and encode Vorbis or Opus audio in memory, including in
+Decode real H.264 video and AAC audio, and encode Vorbis or Opus audio in memory, including in
 browser and Worker runtimes without Node, network access, or runtime WebAssembly
 compilation. The static JavaScript runtime initializes only when a codec is used.
 
 - H.264: CAVLC/CABAC, intra/inter prediction, reference pictures, B-frame ordering,
   SPS cropping, color conversion, and delayed-frame flushing.
+- AAC: decode access units to planar float PCM, retaining timestamps and priming
+  for the container to apply presentation edits.
 - Ogg audio: Vorbis and mono/stereo Opus packets, codec headers, encoder delay,
   and exact final granule positions. Pass packets to your container writer.
 - Decoder iteration releases its context when completed, interrupted, or failed.
-  Codec state uses an arena that starts at 16 MiB and grows up to 128 MiB;
+  Codec state uses an arena that starts at 32 MiB and grows up to 128 MiB;
   returned frame/packet copies belong to the caller.
 
 ```ts

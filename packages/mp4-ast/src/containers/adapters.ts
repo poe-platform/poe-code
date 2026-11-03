@@ -1,3 +1,4 @@
+import { decodeAacTrack } from "../aac.js";
 import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
@@ -499,8 +500,10 @@ export function serializeWav(doc: MediaDocument): Uint8Array {
   const bitsPerSample = 16;
 
   let pcmBytes: Uint8Array;
-  if (audioTrack?.decodedAudio) {
-    const chData = audioTrack.decodedAudio.channelData;
+  const decodedAudio = audioTrack?.decodedAudio ?? (audioTrack?.samples.length &&
+    audioTrack.codecDescriptions[0]?.codecName === "aac" ? decodeAacTrack(doc, audioTrack) : undefined);
+  if (decodedAudio) {
+    const chData = decodedAudio.channelData;
     const numSamples = chData[0]?.length ?? Math.round(doc.durationSeconds * sampleRate);
     pcmBytes = new Uint8Array(numSamples * channels * 2);
     const pView = new DataView(pcmBytes.buffer);

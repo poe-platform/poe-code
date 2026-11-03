@@ -25,13 +25,14 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     .filter(([path, input]) => path.includes("/media-codecs/") && input.bytesInOutput > 0);
   assert.equal(codecImplementations.length, 1);
   const codecBytes = codecImplementations[0]![1].bytesInOutput;
-  assert.ok(codecBytes < 6_000_000, "the focused portable codec must remain bounded");
+  assert.ok(codecBytes < 7_000_000, "the focused portable codec must remain bounded");
   const otherCodeBytes = Object.values(result.metafile.outputs)
     .flatMap(output => Object.entries(output.inputs))
     .filter(([path]) => !["/media-codecs/", "/image-ast/", "/pdf-ast/"].some(owner => path.includes(owner)))
     .reduce((total, [, input]) => total + input.bytesInOutput, 0);
-  assert.ok(otherCodeBytes < 400_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  assert.ok(otherCodeBytes < 410_000, "command code and streaming parsers remain bounded independently of media/image/PDF codecs");
+  // AAC adds its decoder and tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices, in the complete Worker bundle budget.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 8_000_000);
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 9_000_000);
 });

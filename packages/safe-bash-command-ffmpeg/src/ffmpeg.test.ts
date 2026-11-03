@@ -214,7 +214,7 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     assert.equal(failRes.exitCode, 1);
     assert.ok((failRes.stderr).includes("format AST not registered"));
 
-    // Container support does not imply an audio decoder for WAV extraction.
+    // Registered formats include real AAC-to-WAV extraction.
     const fullFfmpeg = createFfmpegCommand({ asts: allMediaAsts() });
     for (const ext of ["mkv", "webm", "ts", "avi", "flv", "y4m", "gif"]) {
       const res = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", `/out.${ext}`], vfs);
@@ -222,8 +222,8 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       assert.ok((vfs.store.get(`/out.${ext}`)?.byteLength ?? 0) > 10);
     }
     const wav = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", "/out.wav"], vfs);
-    assert.equal(wav.exitCode, 1);
-    assert.equal(vfs.store.has("/out.wav"), false);
+    assert.equal(wav.exitCode, 0, wav.stderr);
+    assert.ok(parseWav(vfs.store.get("/out.wav")!).durationSeconds > 0);
   });
 
   it("supports lavfi sources, video filters (scale, crop, pad, hflip, hstack), and image sequence extraction", async () => {
@@ -504,13 +504,17 @@ it("burns captions at presentation times through media offsets and leading empty
 });
 
 describe("decoded audio editing", () => {
-  it("rejects undecoded audio instead of replacing it with silence or a tone", async () => {
+  it("rejects corrupt audio instead of replacing it with silence or a tone", async () => {
     for (const options of [[], ["-ar", "16000"], ["-af", "volume=0.5"]]) {
       const original = new Uint8Array([1, 2, 3]);
-      const vfs = createTestVfs({ "/input.mp4": createSyntheticMp4({ width: 16, height: 16, frameCount: 2, includeAudio: true }), "/output.wav": original });
+      const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 2, includeAudio: true }));
+      const broken = { ...source, tracks: source.tracks.map(track => track.type !== "audio" ? track : {
+        ...track, samples: track.samples.map(sample => ({ ...sample, data: Uint8Array.of(255) }))
+      }) };
+      const vfs = createTestVfs({ "/input.mp4": serializeMp4(broken), "/output.wav": original });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.mp4", "-vn", ...options, "/output.wav"], vfs);
       assert.equal(result.exitCode, 1, JSON.stringify(options));
-      assert.match(result.stderr, /requires decoded PCM audio/);
+      assert.match(result.stderr, /requires decoded PCM audio|AAC/);
       assert.deepEqual(vfs.store.get("/output.wav"), original);
     }
   });
@@ -814,4 +818,30 @@ describe("animated GIF and lavfi source regressions", () => {
     assert.deepEqual(pixel(0, 8), [0, 0, 191]);
     assert.deepEqual(pixel(7, 11), [255, 255, 255]);
   });
+});
+
+it("extracts external AAC to WAV and leaves existing output intact on corrupt AAC", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../../mp4-ast/src/fixtures/aac-external.mp4", import.meta.url));
+  const command = createFfmpegCommand();
+  const vfs = createTestVfs({ "/demo.mp4": source });
+  const result = await runCmd(command, ["-y", "-i", "demo.mp4", "-vn", "-c:a", "pcm_s16le", "audio.wav"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const wav = vfs.store.get("/audio.wav")!;
+  const audio = parseWav(wav).tracks[0]!.decodedAudio!;
+  assert.equal(audio.sampleRate, 24000);
+  assert.equal(audio.channelData[0]!.length, 192000);
+  const parsed = parseMp4(source);
+  const broken = { ...parsed, tracks: parsed.tracks.map(track => track.type !== "audio" ? track : {
+    ...track, samples: track.samples.map((sample, index) => index === 20 ? { ...sample, data: Uint8Array.of(255) } : sample)
+  }) };
+  vfs.store.set("/demo.mp4", serializeMp4(broken));
+  const failure = await runCmd(command, ["-y", "-i", "demo.mp4", "-vn", "-c:a", "pcm_s16le", "audio.wav"], vfs);
+  assert.equal(failure.exitCode, 1);
+  assert.match(failure.stderr, /AAC/);
+  assert.deepEqual(vfs.store.get("/audio.wav"), wav);
+  vfs.store.set("/control.wav", wav);
+  const control = await runCmd(command, ["-y", "-i", "control.wav", "-c:a", "pcm_s16le", "audio.wav"], vfs);
+  assert.equal(control.exitCode, 0, control.stderr);
+  assert.equal(parseWav(vfs.store.get("/audio.wav")!).durationSeconds, 8);
 });

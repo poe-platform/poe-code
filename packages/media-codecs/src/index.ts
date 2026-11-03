@@ -178,3 +178,69 @@ export function encodeOggAudio(
     return { data: module.HEAPU8.slice(start, start + length), granule: view.getFloat64(8, true) };
   }
 }
+
+export interface DecodedAudioFrame {
+  readonly sampleRate: number;
+  readonly channelData: readonly Float32Array[];
+  readonly pts: number;
+}
+
+/** Decode AAC access units in memory, retaining priming samples for container edits. */
+export function* decodeAac(packets: Iterable<VideoPacket>, extra: Uint8Array): Generator<DecodedAudioFrame> {
+  if (!extra.length || extra.length > 65536) throw new Error("Invalid AAC decoder configuration");
+  const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
+  let decoded = 0;
+  let sent = 0;
+  let decoder = 0;
+  let input = 0;
+  try {
+    input = module._malloc(extra.length);
+    if (!input) throw new Error("AAC allocation failed");
+    module.HEAPU8.set(extra, input);
+    decoder = module._aac_create(input, extra.length);
+    module._free(input);
+    input = 0;
+    if (!decoder) throw new Error("Invalid AAC decoder configuration");
+    for (const packet of packets) {
+      sent++;
+      if (!packet.data.length || ![packet.pts, packet.dts, packet.duration].every(Number.isSafeInteger)) {
+        throw new Error("Invalid AAC packet");
+      }
+      input = module._malloc(packet.data.length);
+      if (!input) throw new Error("AAC allocation failed");
+      module.HEAPU8.set(packet.data, input);
+      const status = module._decoder_send(decoder, input, packet.data.length, packet.pts, packet.dts, packet.duration);
+      module._free(input);
+      input = 0;
+      if (status < 0) throw new Error(`AAC packet decode failed (${status})`);
+      yield* receive();
+    }
+    if (module._decoder_send(decoder, 0, 0, 0, 0, 0) < 0) throw new Error("AAC flush failed");
+    yield* receive();
+    if (decoded !== sent) throw new Error("AAC stream did not decode every access unit");
+  } finally {
+    module._free(input);
+    module._decoder_free(decoder);
+  }
+
+  function* receive(): Generator<DecodedAudioFrame> {
+    for (;;) {
+      const pointer = module._aac_receive(decoder);
+      if (pointer === 0) return;
+      if (pointer < 0) throw new Error(`AAC frame decode failed (${pointer})`);
+      const view = new DataView(module.HEAPU8.buffer, pointer, 24);
+      const sampleRate = view.getInt32(0, true);
+      const channels = view.getInt32(4, true);
+      const count = view.getInt32(8, true);
+      const data = view.getUint32(12, true);
+      if (sampleRate < 8000 || sampleRate > 192000 || channels < 1 || channels > 8 || count < 1 || count > 8192) {
+        throw new Error("Unsupported AAC frame dimensions");
+      }
+      const channelData = Array.from({ length: channels }, (_, channel) =>
+        new Float32Array(module.HEAPU8.slice(data + channel * count * 4, data + (channel + 1) * count * 4).buffer));
+      if (channelData.some(channel => channel.some(sample => !Number.isFinite(sample)))) throw new Error("Invalid AAC PCM sample");
+      decoded++;
+      yield { sampleRate, channelData, pts: view.getFloat64(16, true) };
+    }
+  }
+}

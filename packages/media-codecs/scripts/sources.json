@@ -35,13 +35,13 @@
   "inputs": [
     {
       "path": "scripts/codec.c",
-      "bytes": 9081,
-      "sha256": "d59b1d90f6f0fa979c75a46a3b9cdb8e8437ead2f8a52cd25132dd1335e61bd9"
+      "bytes": 10799,
+      "sha256": "6da49c66a074af14a4109d58dd9b336c0a2182d0e5f560887a3c660e44a8db71"
     },
     {
       "path": "scripts/build.mjs",
-      "bytes": 5366,
-      "sha256": "f2bb972647f8873abd156835ad451154e8a203f6987dc0ba5302ed5e788940d9"
+      "bytes": 5401,
+      "sha256": "d289e8fe5bd114a7378500f636917a7323c283329f31684b840bc4deca647dd8"
     },
     {
       "path": "scripts/normalize-runtime.mjs",
@@ -71,7 +71,7 @@
   ],
   "artifact": {
     "path": "vendor/runtime.js",
-    "bytes": 5954992,
-    "sha256": "6a29cdef8ffb4be7913f3488352ea090ba90bcd166a72f0673dc2ab9c2bbf617"
+    "bytes": 6677295,
+    "sha256": "bdec3f53a8483dbcc6d192ca97640a2935dbd867326d2512a3c6f5cf71c48e4d"
   }
 }

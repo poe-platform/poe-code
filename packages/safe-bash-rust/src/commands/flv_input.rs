@@ -46,7 +46,7 @@ fn tags(mut bytes: &[u8]) -> impl Iterator<Item = Tag<'_>> {
     })
 }
 
-fn packets(bytes: &[u8], video: bool) -> impl Iterator<Item = Packet> + '_ {
+pub(super) fn packets(bytes: &[u8], video: bool) -> impl Iterator<Item = (Packet, &[u8])> + '_ {
     let mut samples = tags(bytes)
         .filter(move |t| t.video == video && !t.config)
         .peekable();
@@ -70,26 +70,38 @@ fn packets(bytes: &[u8], video: bool) -> impl Iterator<Item = Packet> + '_ {
             key: tag.key,
         };
         pos += size;
-        Some(packet)
+        Some((packet, tag.payload))
     })
 }
 
-pub(in super::super) fn report(
-    input: &[u8],
-    name: &str,
-    opts: ProbeOptions<'_>,
-) -> Result<String, &'static str> {
+pub(super) struct Movie<'a> {
+    pub bytes: &'a [u8],
+    pub avc_config: Option<&'a [u8]>,
+    pub tracks: Vec<(bool, StreamInfo)>,
+}
+
+pub(in super::super) fn tag_bytes(input: &[u8]) -> Result<&[u8], &'static str> {
     if input.len() < 9 || !input.starts_with(b"FLV\x01") {
         return Err("Invalid FLV file: missing FLV header signature");
     }
     let start = (super::u32_at(input, 5) as usize).saturating_add(4);
-    let bytes = input.get(start..).unwrap_or_default();
+    Ok(input.get(start..).unwrap_or_default())
+}
+
+pub(super) fn timestamps(bytes: &[u8], video: bool) -> impl Iterator<Item = u32> + '_ {
+    tags(bytes)
+        .filter(move |t| !t.config && t.video == video)
+        .map(|t| t.dts as u32)
+}
+
+pub(super) fn parse(input: &[u8]) -> Result<Movie<'_>, &'static str> {
+    let bytes = tag_bytes(input)?;
     let (mut width, mut height) = (320, 240);
     let (mut rate, mut channels) = (44100, 2);
-    let mut video_config = false;
+    let mut avc_config = None;
     for tag in tags(bytes).filter(|t| t.config) {
         if tag.video {
-            video_config = true;
+            avc_config = Some(tag.payload);
             if let Some(sps) = h264::Sequence::from_config(tag.payload) {
                 if sps.width != 0 {
                     width = sps.width;
@@ -133,7 +145,7 @@ pub(in super::super) fn report(
             payload_bytes: 0,
             has_cts: false,
         };
-        for p in packets(bytes, video) {
+        for (p, _) in packets(bytes, video) {
             if info.count == 0 {
                 info.start = p.pts;
             }
@@ -142,10 +154,24 @@ pub(in super::super) fn report(
             info.payload_bytes += p.size;
             info.has_cts |= p.dts != p.pts;
         }
-        if info.count != 0 || (video && video_config) {
+        if info.count != 0 || (video && avc_config.is_some()) {
             tracks.push((video, info));
         }
     }
+    Ok(Movie {
+        bytes,
+        avc_config,
+        tracks,
+    })
+}
+
+pub(in super::super) fn report(
+    input: &[u8],
+    name: &str,
+    opts: ProbeOptions<'_>,
+) -> Result<String, &'static str> {
+    let movie = parse(input)?;
+    let tracks = &movie.tracks;
     let (counts, select) = (opts.counts, opts.select);
     let duration = tracks
         .iter()
@@ -155,8 +181,10 @@ pub(in super::super) fn report(
         / 1000.;
     media_probe::report(opts, |section| match section {
         "packet" | "frame" => {
+            let bytes = movie.bytes;
             Box::new(tracks.iter().enumerate().flat_map(move |(i, (video, t))| {
-                packets(bytes, *video).map(move |p| t.codec.record(i, 1000, p, section == "frame"))
+                packets(bytes, *video)
+                    .map(move |(p, _)| t.codec.record(i, 1000, p, section == "frame"))
             }))
         }
         "stream" => Box::new(

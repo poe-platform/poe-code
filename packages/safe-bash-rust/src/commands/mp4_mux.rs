@@ -297,17 +297,19 @@ impl Track<'_> {
         });
     }
 }
-enum VideoCodec {
+enum VideoCodec<'a> {
     Avc(u32),
+    Config(&'a [u8]),
     Still(&'static [u8; 4]),
 }
 
-fn video_entry(w: usize, h: usize, codec: VideoCodec) -> Result<Vec<u8>, &'static str> {
+fn video_entry(w: usize, h: usize, codec: VideoCodec<'_>) -> Result<Vec<u8>, &'static str> {
     if w > u16::MAX as usize || h > u16::MAX as usize {
         return Err("invalid AVC sample dimensions");
     }
     let (tag, config) = match codec {
-        VideoCodec::Avc(fps) => (b"avc1", Some(h264::configuration(w, h, fps)?)),
+        VideoCodec::Avc(fps) => (b"avc1", Some(Cow::Owned(h264::configuration(w, h, fps)?))),
+        VideoCodec::Config(config) => (b"avc1", Some(Cow::Borrowed(config))),
         VideoCodec::Still(tag) => (tag, None),
     };
     let mut stsd = Vec::new();
@@ -442,7 +444,7 @@ fn encode_video(
 fn video_track<'a>(
     w: usize,
     h: usize,
-    codec: VideoCodec,
+    codec: VideoCodec<'_>,
     timescale: u32,
     ticks: u64,
     movie_scale: u32,
@@ -1631,6 +1633,73 @@ pub(in super::super) fn input_slice(
     )
 }
 
+fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
+    use super::super::media_probe::Codec;
+    let movie = super::flv_input::parse(input)?;
+    let mut tracks = Vec::new();
+    let mut remaining = limit;
+    for (video, info) in &movie.tracks {
+        let ticks = info.ticks;
+        let mut track = match info.codec {
+            Codec::Video { width, height, .. } => video_track(
+                width as usize,
+                height as usize,
+                movie
+                    .avc_config
+                    .map_or(VideoCodec::Avc(30), VideoCodec::Config),
+                1000,
+                ticks,
+                1000,
+            )?,
+            Codec::Aac { rate, channels, .. } => Track {
+                id: 1,
+                samples: Vec::new(),
+                scale: 1000,
+                media_ticks: ticks as u32,
+                movie_ticks: ticks as u32,
+                first_dts: 0,
+                fragment_sample_size: None,
+                stsd: audio_entry(rate, channels.into(), 2).into(),
+                edits: vec![],
+                kind: "audio",
+                enabled: true,
+                volume: 256,
+                matrix: MATRIX,
+                width: 0,
+                height: 0,
+                language: 0x55c4,
+                handler: *b"soun",
+                name: b"SoundHandler",
+            },
+            Codec::Subtitle { .. } => unreachable!(),
+        };
+        remaining = remaining
+            .checked_sub(info.count.saturating_mul(size_of::<Sample>()))
+            .ok_or("sample index exceeds memory budget")?;
+        track.id = tracks.len() as u32 + 1;
+        track.samples.reserve_exact(info.count);
+        for (p, payload) in super::flv_input::packets(movie.bytes, *video) {
+            track.samples.push(Sample {
+                data: payload.into(),
+                duration: p.ticks as u32,
+                cts: p.pts - p.dts,
+                key: p.key,
+                description: 1,
+            });
+        }
+        tracks.push(track);
+    }
+    write(
+        &tracks,
+        1000,
+        b"isom\0\0\x02\0isomiso2avc1mp41",
+        &BTreeMap::new(),
+        &[],
+        false,
+        limit,
+    )
+}
+
 fn materialize<'a>(
     inputs: &'a [MediaInput],
     opts: &Remux<'_>,
@@ -1653,7 +1722,7 @@ fn materialize<'a>(
         let mut bytes = Cow::Borrowed(input);
         if (seek.start.is_some()
             || seek.end().is_some()
-            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "aac" | "image2" | "lavfi"))
+            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "flv" | "aac" | "image2" | "lavfi"))
             && !audio
             && !matches!(format, "wav" | "y4m" | "gif")
             && (!matches!(source, MediaInput::Bytes("image2", _)) || seek.loops > 0)
@@ -1664,6 +1733,8 @@ fn materialize<'a>(
                 seek.generation_end(opts.source_end),
                 opts.limit.saturating_sub(admitted),
             )?);
+        } else if format == "flv" {
+            bytes = Cow::Owned(flv_as_mp4(input, opts.limit.saturating_sub(admitted))?);
         } else if sliced && let MediaInput::Images(seq) = source {
             let limit = opts.limit.saturating_sub(admitted);
             let track = sequence_track(seq, 1000, &[], None, false, VideoEncoding::Mp4, limit)?;
@@ -1843,6 +1914,13 @@ fn read_sources<'a>(
             // duration of the synthetic movie used as its track template.
             tracks[0].duration =
                 (seq.template_duration() * f64::from(tracks[0].scale)).round() as u64;
+        }
+        if let MediaInput::Bytes("flv", bytes) = source
+            && seek.start.is_none() && seek.end().is_none() && seek.loops == 0
+        {
+            // FLV timestamps can have gaps even when every audio packet lasts 23 ms.
+            let tags = super::flv_input::tag_bytes(bytes)?;
+            for track in &mut tracks { track.flv_tags = Some(tags); }
         }
         let boxes = atoms(moov).filter_map(|(k, v)| (k == b"trak").then_some(v));
         sources.push((
@@ -3020,7 +3098,21 @@ pub(in super::super) fn remux(
         } else {
             presentation_duration(sources, &selected, scale, range)
         };
-        return flv::write(&tracks, duration, &audio).map_err(str::to_owned);
+        // MP4 sample tables store cumulative durations. An untrimmed FLV copy
+        // must retain the source DTS even when timestamps have gaps or overlap.
+        let mut source_tags = [&[][..]; 2];
+        if range.is_none() && opts.concat.is_none() && opts.composition.is_none() && loops == 0 {
+            for (slot, kind) in ["video", "audio"].into_iter().enumerate() {
+                if kind == "video" && !opts.video_filters.is_empty() { continue; }
+                if let Some(&(j, i)) = selected.iter().find(|&&(j, i)| sources[j].2.kind(i) == kind)
+                    && let Streams::Mp4(tracks) = &sources[j].2
+                    && let Some(tags) = tracks[i].0.flv_tags
+                {
+                    source_tags[slot] = tags;
+                }
+            }
+        }
+        return flv::write(&tracks, duration, &audio, source_tags).map_err(str::to_owned);
     }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();

@@ -4538,7 +4538,7 @@ impl MediaInput {
             Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
             Self::Bytes("image2",b)=>png_pixels::still_format(b).is_some(),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
+            Self::Images(_) | Self::Bytes("flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4798,6 +4798,9 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
             None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
         })?;
+        if id == "flv" {
+            mp4::flv_input::tag_bytes(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
+        }
         Ok::<_, BuiltinOutcome>((id, bytes))
     };
     let mut sources = Vec::new();
@@ -4894,7 +4897,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             let limit=fs.max_input_bytes();
             let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
                 let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                if inputs.len()>1 || matches!(format,Some("wav"|"y4m"|"gif"|"flv")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                     return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
                 let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -13488,6 +13491,27 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffmpeg_copies_flv_input_packets_to_mp4_and_flv() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "av.mp4", "clip.flv"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        for (flags, dst, expected) in [
+            ("-c copy", "out.mp4", "b45122766b1cf2cfda34124538b32613b675ead1cf75913037c8244e0a062688"),
+            ("-c copy", "out.flv", "5d6e959ddafd2e9f482bfcb40370215b2e110b94c65840831349285e769f6155"),
+            ("-ac 1 -f flv", "mono.flv", "a9620f7b0e94a84972d94b22c9e936aaa3259f992c71fef4848c1304e9deb3b2"),
+            ("-f yuv4mpegpipe", "decoded.y4m", "eb4ebcc962ed654a081dd282c60dfd23a77f1c49fad8d1a2130843eac017a0f5"),
+            ("-ss 0.05 -t 0.3", "cut.mp4", "7e93d48cde577e82327c4ef94a2655409f531186cae83229642680642405fe2c"),
+        ] {
+            let args = format!("-i clip.flv {flags} {dst}").split_whitespace().map(str::to_owned).collect::<Vec<_>>();
+            let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let bytes = fs.read_file(&format!("/{dst}")).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(&bytes)), expected, "{dst}");
+        }
     }
 
     #[test]

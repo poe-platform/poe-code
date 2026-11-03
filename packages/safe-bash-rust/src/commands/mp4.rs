@@ -404,6 +404,7 @@ struct Track<'a> {
     stats: Stats,
     runs: Vec<Run<'a>>,
     tables: Tables<'a>,
+    flv_tags: Option<&'a [u8]>,
 }
 fn header_time(b: &[u8], fallback: u32) -> (u32, u64) {
     if b.len() < 20 {
@@ -683,13 +684,21 @@ impl<'a> Track<'a> {
             stats,
             runs,
             tables,
+            flv_tags: None,
         })
     }
     fn time(&self, ticks: f64) -> String {
         format!("{:.6}", ticks / f64::from(self.scale))
     }
     fn samples(&self, input_size: usize) -> impl Iterator<Item = Sample> + '_ {
-        self.tables.samples(input_size).chain(
+        let mut timestamps = self.flv_tags.map(|tags| flv_input::timestamps(tags, self.kind == "video"));
+        self.tables.samples(input_size).map(move |mut s| {
+            if let Some(dts) = timestamps.as_mut().and_then(Iterator::next) {
+                s.pts += i128::from(dts) - i128::from(s.dts);
+                s.dts = dts.into();
+            }
+            s
+        }).chain(
             self.runs
                 .iter()
                 .flat_map(move |r| r.samples(input_size, self.kind == "video")),

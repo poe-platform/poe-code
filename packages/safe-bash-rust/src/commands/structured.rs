@@ -12,6 +12,7 @@ use std::ops::ControlFlow;
 mod jq_index;
 mod jq_input;
 mod jq_json;
+mod xml;
 mod jq_number;
 mod jq_parser;
 mod mdq_blocks;
@@ -4965,205 +4966,6 @@ pub(super) fn unescape_xml_entities(s: &str) -> String {
     out
 }
 
-fn skip_xml_trivia(s: &str, pos: &mut usize) {
-    loop {
-        while *pos < s.len() && s.as_bytes()[*pos].is_ascii_whitespace() {
-            *pos += 1;
-        }
-        let rest = &s[*pos..];
-        if rest.starts_with("<?") {
-            if let Some(end) = rest.find("?>") {
-                *pos += end + 2;
-                continue;
-            }
-        }
-        if rest.starts_with("<!--") {
-            if let Some(end) = rest.find("-->") {
-                *pos += end + 3;
-                continue;
-            }
-        }
-        if rest.starts_with("<!DOCTYPE") || rest.starts_with("<!doctype") {
-            if let Some(end) = rest.find('>') {
-                *pos += end + 1;
-                continue;
-            }
-        }
-        break;
-    }
-}
-
-fn parse_xml_element(s: &str, pos: &mut usize, use_plus_prefix: bool) -> Option<(String, JVal)> {
-    skip_xml_trivia(s, pos);
-    if *pos >= s.len() || !s[*pos..].starts_with('<') || s[*pos..].starts_with("</") {
-        return None;
-    }
-    *pos += 1;
-    let name_start = *pos;
-    while *pos < s.len() {
-        let b = s.as_bytes()[*pos];
-        if b.is_ascii_whitespace() || b == b'>' || b == b'/' {
-            break;
-        }
-        *pos += 1;
-    }
-    let tag_name = s[name_start..*pos].to_string();
-    if tag_name.is_empty() {
-        return None;
-    }
-
-    let mut attrs: Vec<(String, JVal)> = Vec::new();
-    let mut self_closing = false;
-    while *pos < s.len() {
-        while *pos < s.len() && s.as_bytes()[*pos].is_ascii_whitespace() {
-            *pos += 1;
-        }
-        if *pos >= s.len() {
-            break;
-        }
-        if s[*pos..].starts_with("/>") {
-            self_closing = true;
-            *pos += 2;
-            break;
-        }
-        if s.as_bytes()[*pos] == b'>' {
-            *pos += 1;
-            break;
-        }
-        let attr_start = *pos;
-        while *pos < s.len() {
-            let b = s.as_bytes()[*pos];
-            if b == b'=' || b.is_ascii_whitespace() || b == b'>' || b == b'/' {
-                break;
-            }
-            *pos += 1;
-        }
-        let attr_name = s[attr_start..*pos].trim().to_string();
-        while *pos < s.len() && s.as_bytes()[*pos].is_ascii_whitespace() {
-            *pos += 1;
-        }
-        let mut attr_val = String::new();
-        if *pos < s.len() && s.as_bytes()[*pos] == b'=' {
-            *pos += 1;
-            while *pos < s.len() && s.as_bytes()[*pos].is_ascii_whitespace() {
-                *pos += 1;
-            }
-            if *pos < s.len() && (s.as_bytes()[*pos] == b'"' || s.as_bytes()[*pos] == b'\'') {
-                let q = s.as_bytes()[*pos] as char;
-                *pos += 1;
-                let vstart = *pos;
-                while *pos < s.len() && !s[*pos..].starts_with(q) {
-                    *pos += s[*pos..].chars().next().map(|c| c.len_utf8()).unwrap_or(1);
-                }
-                attr_val = unescape_xml_entities(&s[vstart..*pos]);
-                if *pos < s.len() {
-                    *pos += 1;
-                }
-            }
-        }
-        if !attr_name.is_empty() {
-            let attr_key = if use_plus_prefix {
-                format!("+@{attr_name}")
-            } else {
-                format!("@{attr_name}")
-            };
-            attrs.push((attr_key, JVal::Str(attr_val)));
-        }
-    }
-
-    if self_closing {
-        let val = if attrs.is_empty() {
-            JVal::Null
-        } else {
-            JVal::Object(attrs)
-        };
-        return Some((tag_name, val));
-    }
-
-    let mut children: Vec<(String, JVal)> = Vec::new();
-    let mut text_buf = String::new();
-    while *pos < s.len() {
-        let rest = &s[*pos..];
-        if rest.starts_with("<![CDATA[") {
-            *pos += 9;
-            if let Some(end) = s[*pos..].find("]]>") {
-                text_buf.push_str(&s[*pos..*pos + end]);
-                *pos += end + 3;
-            } else {
-                text_buf.push_str(&s[*pos..]);
-                *pos = s.len();
-            }
-            continue;
-        }
-        if rest.starts_with("<!--") {
-            if let Some(end) = rest.find("-->") {
-                *pos += end + 3;
-            } else {
-                *pos = s.len();
-            }
-            continue;
-        }
-        if rest.starts_with("</") {
-            if let Some(gt) = find_tag_close_gt(rest) {
-                *pos += gt + 1;
-            } else {
-                *pos = s.len();
-            }
-            break;
-        }
-        if rest.starts_with('<') {
-            if let Some(child) = parse_xml_element(s, pos, use_plus_prefix) {
-                children.push(child);
-            } else {
-                *pos += 1;
-            }
-            continue;
-        }
-        let next_lt = rest.find('<').unwrap_or(rest.len());
-        text_buf.push_str(&unescape_xml_entities(&rest[..next_lt]));
-        *pos += next_lt;
-    }
-
-    let mut entries = attrs;
-    for (cname, cval) in children {
-        if let Some((_, existing)) = entries.iter_mut().find(|(k, _)| k == &cname) {
-            match existing {
-                JVal::Array(arr) => arr.push(cval),
-                other => {
-                    let prev = other.clone();
-                    *other = JVal::Array(vec![prev, cval]);
-                }
-            }
-        } else {
-            entries.push((cname, cval));
-        }
-    }
-    let trimmed = text_buf.trim();
-    let val = if entries.is_empty() {
-        if trimmed.is_empty() {
-            JVal::Null
-        } else {
-            JVal::Str(trimmed.to_string())
-        }
-    } else {
-        if !trimmed.is_empty() {
-            let text_key = if use_plus_prefix { "+content" } else { "#text" };
-            entries.push((text_key.to_string(), JVal::Str(trimmed.to_string())));
-        }
-        JVal::Object(entries)
-    };
-    Some((tag_name, val))
-}
-
-fn parse_xml_to_jval(input: &str, use_plus_prefix: bool) -> JVal {
-    let mut pos = 0usize;
-    if let Some((root_tag, root_val)) = parse_xml_element(input, &mut pos, use_plus_prefix) {
-        JVal::Object(vec![(root_tag, root_val)])
-    } else {
-        JVal::Null
-    }
-}
-
 fn explode_jval_merge_keys(val: &JVal) -> JVal {
     match val {
         JVal::Array(items) => JVal::Array(items.iter().map(explode_jval_merge_keys).collect()),
@@ -5545,7 +5347,7 @@ fn parse_yq_input_docs_with_meta(
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return Ok(vec![(parse_xml_to_jval(input, use_plus_xml), single_meta())]);
+        return Ok(vec![(xml::to_json(xml::parse(input).map_err(|e| format!("bad xml input: {e}"))?, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
@@ -15151,10 +14953,10 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
         };
 
-        let mut dom = match parse_xml_strict_dom(&text) {
+        let mut dom = match xml::parse(&text) {
             Ok(d) => d,
             Err(e) => {
-                if recover {
+                if recover && e != "XML resource limit exceeded" {
                     let recovered = parse_html_dom(&text);
                     if recovered.iter().any(|n| matches!(n, HtmlNode::Element(_))) {
                         recovered
@@ -15238,138 +15040,6 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
     }
     result
-}
-
-fn parse_xml_strict_dom(src: &str) -> Result<Vec<HtmlNode>, String> {
-    let mut pos = 0usize;
-    let nodes = parse_xml_strict_children(src, &mut pos, None)?;
-    let mut elem_count = 0usize;
-    for n in &nodes {
-        match n {
-            HtmlNode::Element(_) => elem_count += 1,
-            HtmlNode::Text(t) => {
-                if !t.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n')) {
-                    return Err("Invalid XML: text outside the root".to_string());
-                }
-            }
-        }
-    }
-    if elem_count == 0 {
-        return Err("Invalid XML: incomplete document".to_string());
-    }
-    if elem_count > 1 {
-        return Err("Invalid XML: multiple root elements".to_string());
-    }
-    Ok(nodes)
-}
-
-fn parse_xml_strict_children(
-    src: &str,
-    pos: &mut usize,
-    expected_close: Option<&str>,
-) -> Result<Vec<HtmlNode>, String> {
-    let mut out = Vec::new();
-    let bytes = src.as_bytes();
-    let mut closed = false;
-    while *pos < bytes.len() {
-        if let Some(rel_lt) = src[*pos..].find('<') {
-            if rel_lt > 0 {
-                let text = &src[*pos..*pos + rel_lt];
-                out.push(HtmlNode::Text(unescape_xml_entities(text)));
-                *pos += rel_lt;
-            }
-            let rest = &src[*pos..];
-            if rest.starts_with("<!--") {
-                let Some(end) = rest.find("-->") else {
-                    return Err("Invalid XML: malformed comment".to_string());
-                };
-                *pos += end + 3;
-                continue;
-            }
-            if let Some(after_cdata) = rest.strip_prefix("<![CDATA[") {
-                if expected_close.is_none() {
-                    return Err("Invalid XML: CDATA outside root".to_string());
-                }
-                let Some(end) = after_cdata.find("]]>") else {
-                    return Err("Invalid XML: unterminated CDATA".to_string());
-                };
-                out.push(HtmlNode::Text(after_cdata[..end].to_string()));
-                *pos += 9 + end + 3;
-                continue;
-            }
-            if rest.starts_with("<!") {
-                return Err("Invalid XML: DTD and entity declarations are forbidden".to_string());
-            }
-            if rest.starts_with("<?") {
-                let Some(end) = rest.find('>') else {
-                    return Err("Invalid XML: unterminated processing instruction".to_string());
-                };
-                *pos += end + 1;
-                continue;
-            }
-            if let Some(after_slash) = rest.strip_prefix("</") {
-                let Some(end_gt) = after_slash.find('>') else {
-                    return Err("Invalid XML: mismatched closing tag".to_string());
-                };
-                let close_name = after_slash[..end_gt].trim();
-                *pos += 2 + end_gt + 1;
-                match expected_close {
-                    Some(exp) if exp == close_name => {
-                        closed = true;
-                        break;
-                    }
-                    Some(_) | None => {
-                        return Err("Invalid XML: mismatched closing tag".to_string());
-                    }
-                }
-            }
-            let Some(gt) = find_tag_close_gt(rest) else {
-                return Err("Invalid XML: unterminated start tag".to_string());
-            };
-            let inside = &rest[1..gt];
-            let self_closing = inside.trim_end().ends_with('/');
-            let clean = inside.trim_end().trim_end_matches('/').trim();
-            let mut name_end = 0usize;
-            for (idx, ch) in clean.char_indices() {
-                if ch.is_whitespace() {
-                    break;
-                }
-                name_end = idx + ch.len_utf8();
-            }
-            let tag_name = clean[..name_end].to_string();
-            if tag_name.is_empty() {
-                return Err("Invalid XML: invalid qualified name".to_string());
-            }
-            let attrs = parse_html_attrs(clean[name_end..].trim());
-            *pos += gt + 1;
-            if self_closing {
-                out.push(HtmlNode::Element(HtmlElement {
-                    tag: tag_name,
-                    attrs,
-                    children: Vec::new(),
-                }));
-            } else {
-                let children = parse_xml_strict_children(src, pos, Some(&tag_name))?;
-                out.push(HtmlNode::Element(HtmlElement {
-                    tag: tag_name,
-                    attrs,
-                    children,
-                }));
-            }
-        } else {
-            let text = &src[*pos..];
-            if !text.is_empty() {
-                out.push(HtmlNode::Text(unescape_xml_entities(text)));
-            }
-            *pos = bytes.len();
-        }
-    }
-    if expected_close.is_some()
-        && !closed
-    {
-        return Err("Invalid XML: incomplete document".to_string());
-    }
-    Ok(out)
 }
 
 fn serialize_xml_c14n_with_scope(

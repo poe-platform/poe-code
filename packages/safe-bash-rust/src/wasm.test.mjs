@@ -8972,3 +8972,23 @@ test("xq converts XML when jq requests the next source", async () => {
     }
   } finally { rs.dispose(); }
 });
+
+test("XML commands share strict parsing and preserve their own JSON mapping", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const xml of [
+      '<r a="1" A="2"><?pi > text?>after<t/><t/></r>',
+      '\ufeff<r a="one\r\ntwo\tthree&#9;">a\rb<![CDATA[&]]><!--skip--></r>',
+      '<r a="1" a="2"/>', '<r a=b/>', '<r a/>', '<r a="1"b="2"/>', '<r a="<"/>',
+      '<r>&nbsp;</r>', '<r>&#xD800;</r>', '<r a="&#00000000000000065;"/>', '<r / >', '<r /x>',
+    ]) {
+      for (const store of [fs, rs.fs]) await store.writeFile("/xml", Buffer.from(xml));
+      for (const cmd of ["xq -c . /xml", "yq -p xml -o json -I 0 . /xml", "xmllint --noout /xml"]) {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + xml);
+      }
+    }
+  } finally { rs.dispose(); }
+});

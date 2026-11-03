@@ -8188,3 +8188,17 @@ test("mdq decodes escaped punctuation in text and preserves it inside code spans
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq item selectors distinguish ordinary items from checked and unchecked tasks", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "- open\n- [x] closed\n- [ ] pending\n- [X] done\n- [?] unknown\n- [x]\t  tabbed\n- [x]bare\n";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const sel of ["-", "- [x]", "- [ ]", "- [?]", "- unknown"]) {
+      const cmd = "mdq -o json '" + sel + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -28395,16 +28395,14 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             } else {
                 trimmed[ol_split.unwrap() + 2..].trim()
             };
-            let (checked, clean_text) = if let Some(r) = item_rest.strip_prefix("[ ] ") {
-                (Some(false), r.to_string())
-            } else if let Some(r) = item_rest.strip_prefix("[x] ").or_else(|| item_rest.strip_prefix("[X] ")) {
-                (Some(true), r.to_string())
-            } else {
-                (None, item_rest.to_string())
+            let (checked, clean_text) = match item_rest.as_bytes() {
+                [b'[', state @ (b' ' | b'x' | b'X'), b']', b' ' | b'\t', ..] =>
+                    (Some(*state != b' '), item_rest[3..].trim_start()),
+                _ => (None, item_rest),
             };
             blocks.push(MdqBlock {
                 kind: "list_item".to_string(),
-                text: clean_text,
+                text: clean_text.to_string(),
                 ordered,
                 checked,
                 ..MdqBlock::default()
@@ -28795,13 +28793,12 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                 if b.kind != "list_item" || b.ordered != want_ordered {
                     return None;
                 }
-                if let Some(tf) = task_filter {
-                    match tf {
-                        Some(want_chk) if b.checked != Some(want_chk) => return None,
-                        None if b.checked.is_none() => return None,
-                        _ => {}
-                    }
-                }
+                let matches_task = match task_filter {
+                    Some(Some(checked)) => b.checked == Some(checked),
+                    Some(None) => b.checked.is_some(),
+                    None => b.checked.is_none(),
+                };
+                if !matches_task { return None; }
                 let new_text = mdq_match_and_replace(rest, &b.text, true)?;
                 b.text = new_text;
                 Some(b)

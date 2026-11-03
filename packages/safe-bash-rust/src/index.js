@@ -1029,7 +1029,6 @@ export class RustWasmBash extends WasmShell {
 
   chmodConditional(filePath, mode, parent, expected, ancestors, guard, signal) {
     const fail = code => { throw fsOperationError(code, "chmod", filePath); };
-    if (mode !== undefined && (!Number.isInteger(mode) || mode < 0 || mode > 0o7777)) fail("EINVAL");
     if (guard !== undefined && typeof guard !== "function") fail("EINVAL");
     let last = "";
     const entries = ancestors.map(({path: p, stat}, i) => {
@@ -1042,23 +1041,31 @@ export class RustWasmBash extends WasmShell {
     const packed = new Float64Array(entries.length * 9);
     for (const [i,s] of entries.entries()) {
       const key = this.#scopeKeys.get(s.identityScope);
-      if (key === undefined || key >= 0n || !Number.isSafeInteger(s.dev) || !Number.isSafeInteger(s.ino)) fail("ENOTSUP");
-      packed.set([s.dev === 0 ? Number(~key) : -1, s.ino, ["file","directory","symlink","character"].indexOf(s.type),
+      const complete = (typeof s.identityScope === "symbol" || typeof s.identityScope === "object" && s.identityScope !== null)
+        && Number.isSafeInteger(s.dev) && s.dev >= 0 && Number.isSafeInteger(s.ino) && s.ino >= 0;
+      if (!complete && i < entries.length - 2) fail("ENOTSUP");
+      // Keep a foreign scope distinct from an incomplete identity. Only the
+      // issuing session can translate a scope back to its Rust filesystem.
+      const scope = !complete ? NaN : key === undefined ? -1 : key >= 0n ? -1 : Number(~key);
+      packed.set([scope, s.dev === 0 ? s.ino : -1, ["file","directory","symlink","character"].indexOf(s.type),
         ...[s.revision, s.size, s.mode, s.nlink, s.mtimeMs, s.ctimeMs].map(n => typeof n === "number" ? n : NaN)], 9*i);
-    }
-    if (guard !== undefined) {
-      const result = guard();
-      if (result !== true) { void Promise.resolve(result).catch(() => {}); fail("ENOTSUP"); }
     }
     signal?.throwIfAborted();
     const p = this._allocBytes(encoder.encode(filePath));
     try {
       const receipt = this._allocBytes(new Uint8Array(packed.buffer));
       try {
-        const rc = this.exports.safe_bash_chmod_conditional(this.sessionId, p.ptr, p.len,
-          mode === undefined ? 0 : typeof mode === "number" ? mode : NaN, receipt.ptr, receipt.len);
-        if (rc === -1) throw new Error("Wasm session unavailable");
-        if (rc < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), -rc)));
+        const apply = phase => {
+          const rc = this.exports.safe_bash_chmod_conditional(this.sessionId, p.ptr, p.len, mode === undefined ? 0 : typeof mode === "number" ? mode : NaN, receipt.ptr, receipt.len, phase);
+          if (rc === -1) throw new Error("Wasm session unavailable");
+          if (rc < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), -rc)));
+        };
+        if (guard === undefined) { apply(0); return; }
+        apply(1);
+        const result = guard();
+        if (result !== true) { void Promise.resolve(result).catch(() => {}); fail("ENOTSUP"); }
+        signal?.throwIfAborted();
+        apply(2);
       } finally { this._freeBytes(receipt); }
     } finally { this._freeBytes(p); }
   }

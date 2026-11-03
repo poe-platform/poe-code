@@ -665,15 +665,14 @@ pub extern "C" fn safe_bash_supports_conditional_chmod(id: u32) -> bool {
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_chmod_conditional(
-    id: u32, path_ptr: *const u8, path_len: usize, mode: f64, ptr: *const u8, len: usize,
+    id: u32, path_ptr: *const u8, path_len: usize, mode: f64, ptr: *const u8, len: usize, phase: u32,
 ) -> i32 {
     let path = unsafe { str_from_raw(path_ptr, path_len) };
     let data = unsafe { slice_from_raw(ptr,len) };
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
     let res = (|| {
-        let fs = sess.shell.fs.memory_backend().ok_or("ENOTSUP: unsupported conditional chmod backend")?;
-        if mode.fract() != 0. || !(0.0..=4095.0).contains(&mode) { return Err("EINVAL: invalid mode".into()); }
+        let fs = &sess.shell.fs;
         let paths = std::iter::once("/").chain(path.match_indices('/').skip(1).map(|(i,_)| &path[..i]));
         if data.len() / 72 != paths.clone().count() + 2 || !data.len().is_multiple_of(72) {
             return Err("EINVAL: invalid chmod receipt".into());
@@ -682,7 +681,7 @@ pub unsafe extern "C" fn safe_bash_chmod_conditional(
             let n = |i:usize| f64::from_le_bytes(row[i*8..][..8].try_into().unwrap());
             let count = |i| (n(i).is_finite() && n(i)>=0. && n(i).fract()==0.).then(||n(i) as u64);
             Ok::<_, String>(FileStat {
-                identity: Some(crate::vfs::EntryIdentity::Memory(count(0).ok_or("EAGAIN: different device")?, count(1).ok_or("ENOTSUP: missing inode")?)),
+                identity: n(0).is_finite().then(||crate::vfs::EntryIdentity::Memory(count(0).unwrap_or(u64::MAX), count(1).unwrap_or(u64::MAX))),
                 kind: match n(2) {0. => VfsEntryKind::File, 3. => return Err("ENOTSUP: character device".into()), 1. => VfsEntryKind::Directory, 2. => VfsEntryKind::Symlink, _=>return Err("EAGAIN: different type".into())},
                 revision: count(3), size: count(4).and_then(|n|usize::try_from(n).ok()).unwrap_or(usize::MAX),
                 mode: count(5).and_then(|n|u32::try_from(n).ok()).unwrap_or(u32::MAX), nlink: count(6).and_then(|n|usize::try_from(n).ok()),
@@ -691,13 +690,18 @@ pub unsafe extern "C" fn safe_bash_chmod_conditional(
             })
         });
         let ancestors = paths.map(|p| Ok::<_,String>((p,stats.next().unwrap()?))).collect::<Result<Vec<_>,_>>()?;
-        fs.chmod_conditional(path,mode as u32,&ancestors,&stats.next().unwrap()?,&stats.next().unwrap()?)
+        let parent = stats.next().unwrap()?;
+        let expected = stats.next().unwrap()?;
+        if phase != 2 { fs.prepare_chmod(path,&ancestors)?; }
+        if mode.fract() != 0. || !(0.0..=4095.0).contains(&mode) { return Err("EINVAL: invalid mode".into()); }
+        if phase == 1 { return Ok(()); }
+        fs.chmod_conditional(path,mode as u32,&ancestors,&parent,&expected)
     })();
     match res {
         Ok(()) => 0,
         Err(e) => {
             let detail = e.split_once(", ").and_then(|(_,s)|s.strip_suffix('\'')?.split_once(" '"));
-            let (op, operand) = detail.unwrap_or(("chmod",path));
+            let (op, operand) = if sess.profile == Profile::Devices { ("chmod",path) } else { detail.unwrap_or(("chmod",path)) };
             sess.read_error(&e,op,operand,None,None)
         }
     }

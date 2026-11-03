@@ -3438,6 +3438,29 @@ test("cancelled and guarded chmod calls cannot silently change Wasm permissions"
   } finally { bash.dispose(); }
 });
 
+test("mounted chmod checks directory receipts before invoking a guard and rechecks before mutation", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", files:{"/d/f":"x"}});
+  const fs = bash.fs;
+  async function receipt(path, parents) {
+    const ancestors = await Promise.all(parents.map(async path => ({path, stat: await fs.lstat(path)})));
+    return {expected: await fs.lstat(path), parent: ancestors.at(-1).stat, ancestors};
+  }
+  try {
+    for (const [path,parents,code] of [["/",["/"],"EBUSY"],["/dev",["/"],"EBUSY"],["/dev/null",["/","/dev"],"ENOTSUP"]]) {
+      const options = await receipt(path, parents);
+      await assert.rejects(fs.chmod(path,0o777,{...options,commitGuard:()=>assert.fail("protected entry invoked guard")}), {code,syscall:"chmod",path});
+    }
+    const options = await receipt("/d/f",["/","/d"]);
+    await fs.chmod("/d/f",0o640,options);
+    await assert.rejects(fs.chmod("/d/f",0o777,options),{code:"EAGAIN",syscall:"chmod",path:"/d/f"});
+    const fresh = await receipt("/d/f",["/","/d"]);
+    await assert.rejects(fs.chmod("/d/f",0o777,{...fresh,commitGuard(){ bash.chmod("/d/f",0o600); return true; }}),{code:"EAGAIN"});
+    assert.equal((await fs.lstat("/d/f")).mode & 0o777,0o600);
+    await fs.rename("/d","/saved"); await fs.mkdir("/d"); await fs.writeFile("/d/f","new");
+    await assert.rejects(fs.chmod("/d/f",0o777,{...fresh,commitGuard:()=>assert.fail("replaced parent invoked guard")}),{code:"EAGAIN"});
+  } finally { bash.dispose(); }
+});
+
 test("chmod forwards the original guard to the active companion", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

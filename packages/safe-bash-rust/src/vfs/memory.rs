@@ -731,50 +731,44 @@ impl MemoryVfs {
         &self, path: &str, mode: u32, ancestors: &[(&str, FileStat)],
         parent: &FileStat, expected: &FileStat,
     ) -> Result<(), String> {
+        super::validate_chmod_ancestry(path, mode, ancestors)?;
         let dir = super::dirname_posix_path(path);
-        if mode > 0o7777 || path != normalize_posix_path(path) || path.contains('\0')
-            || ancestors.last().map(|(p,_)|*p) != Some(dir.as_str()) {
-            return Err("EINVAL: invalid chmod receipt".into());
-        }
-        let mut previous = "";
-        for (i, (p, stat)) in ancestors.iter().enumerate() {
-            if (i == 0 && *p != "/") || (i > 0 && (*p == "/" || super::dirname_posix_path(p) != previous))
-                || stat.kind != VfsEntryKind::Directory {
-                return Err("EINVAL: invalid chmod ancestry".into());
-            }
-            previous = p;
-        }
         let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
-        let check = |path: &str, expected: &FileStat, unchanged: bool| -> Result<FileStat, String> {
-            let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
-            let current = self.resolved_metadata(&state, path).ok_or_else(changed)?;
-            let Some(EntryIdentity::Memory(scope, _)) = expected.identity else {
-                return Err("ENOTSUP: missing filesystem identity".into());
-            };
-            if !matches!(current.identity, Some(EntryIdentity::Memory(id,_)) if scope == id) {
-                return Err("ENOTSUP: different filesystem identity".into());
-            }
-            if expected.identity != current.identity || expected.kind != current.kind { return Err(changed()); }
-            if unchanged && current.kind != VfsEntryKind::Directory {
-                if current.revision.is_none() || expected.revision.is_none() {
-                    return Err("ENOTSUP: missing file revision".into());
-                }
-                if expected.revision != current.revision || expected.size != current.size || expected.mode != current.mode ||
-                    expected.nlink != current.nlink || expected.mtime_ms != current.mtime_ms || expected.ctime_ms != current.ctime_ms {
-                    return Err(changed());
-                }
-            }
-            Ok(current)
-        };
         for (p, expected_dir) in ancestors {
-            if check(p, expected_dir, false)?.mode & 0o100 == 0 {
-                return Err(format!("EACCES: permission denied, verifyDirectoryAncestry '{p}'"));
-            }
+            self.check_chmod_receipt(&state,p,expected_dir,false,true)?;
         }
-        check(&dir, parent, false)?;
-        check(path, expected, true)?;
+        self.check_chmod_receipt(&state,&dir,parent,false,false)?;
+        self.check_chmod_receipt(&state,path,expected,true,false)?;
         if state.devices.entry(path).is_some() { return Err("ENOTSUP: device chmod".into()); }
         self.set_mode_locked(&mut state, path, mode)
+    }
+
+    fn check_chmod_receipt(&self, state: &MemoryState, path: &str, expected: &FileStat, unchanged: bool, searchable: bool) -> Result<(), String> {
+        let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
+        let current = self.resolved_metadata(state,path).ok_or_else(changed)?;
+        current.check_chmod_receipt(expected, unchanged, path)?;
+        if searchable && current.mode & 0o100 == 0 { return Err(format!("EACCES: permission denied, verifyDirectoryAncestry '{path}'")); }
+        Ok(())
+    }
+
+    pub(super) fn chmod_across_mounts(
+        &self, path: &str, mode: u32, ancestors: &[(&Self, String, &FileStat)], parent: &FileStat, expected: &FileStat,
+    ) -> Result<(), String> {
+        // Keep the entire mounted ancestry pinned until the mode changes. Different
+        // mount namespaces can use the same stores in the opposite nesting order.
+        let stores: BTreeMap<_,_> = ancestors.iter().map(|(fs,_,_)|(fs.id,*fs)).chain([(self.id,self)]).collect();
+        let mut states = BTreeMap::new();
+        for (id,fs) in stores {
+            states.insert(id, fs.state.write().map_err(|_|"EIO: input/output error")?);
+        }
+        for (fs,local,receipt) in ancestors {
+            fs.check_chmod_receipt(&states[&fs.id], local, receipt, false, true)?;
+        }
+        let target = states.get_mut(&self.id).unwrap();
+        self.check_chmod_receipt(target, &super::dirname_posix_path(path), parent, false,false)?;
+        self.check_chmod_receipt(target, path, expected, true,false)?;
+        if target.devices.entry(path).is_some() { return Err("ENOTSUP: device chmod".into()); }
+        self.set_mode_locked(target, path, mode)
     }
 
     fn set_mode_locked(&self, guard: &mut MemoryState, path: &str, mode: u32) -> Result<(), String> {

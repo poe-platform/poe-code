@@ -74,6 +74,46 @@ pub struct FileStat {
     pub birthtime_ms: Option<f64>,
 }
 
+impl FileStat {
+    pub(crate) fn check_chmod_receipt(&self, expected: &Self, unchanged: bool, path: &str) -> Result<(),String> {
+        let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
+        let Some(EntryIdentity::Memory(scope, _)) = expected.identity else {
+            return Err("ENOTSUP: missing filesystem identity".into());
+        };
+        if !matches!(self.identity, Some(EntryIdentity::Memory(id,_)) if scope == id) {
+            return Err("ENOTSUP: different filesystem identity".into());
+        }
+        if expected.identity != self.identity || expected.kind != self.kind { return Err(changed()); }
+        if unchanged && self.kind != VfsEntryKind::Directory {
+            if self.revision.is_none() || expected.revision.is_none() {
+                return Err("ENOTSUP: missing file revision".into());
+            }
+            if expected.revision != self.revision || expected.size != self.size || expected.mode != self.mode ||
+                expected.nlink != self.nlink || expected.mtime_ms != self.mtime_ms || expected.ctime_ms != self.ctime_ms {
+                return Err(changed());
+            }
+        }
+        Ok(())
+    }
+}
+
+fn validate_chmod_ancestry(path: &str, mode: u32, ancestors: &[(&str, FileStat)]) -> Result<(),String> {
+    let dir = dirname_posix_path(path);
+    if mode > 0o7777 || path != normalize_posix_path(path) || path.contains('\0')
+        || ancestors.last().map(|(p,_)|*p) != Some(dir.as_str()) {
+        return Err("EINVAL: invalid chmod receipt".into());
+    }
+    let mut previous = "";
+    for (i, (p, stat)) in ancestors.iter().enumerate() {
+        if (i == 0 && *p != "/") || (i > 0 && (*p == "/" || dirname_posix_path(p) != previous))
+            || stat.kind != VfsEntryKind::Directory {
+            return Err("EINVAL: invalid chmod ancestry".into());
+        }
+        previous = p;
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VfsFileEntry {
     pub path: String,
@@ -245,6 +285,12 @@ pub trait SafeBashFs: Send + Sync {
     /// Remove only the file version returned by publish_file. A replacement is left intact.
     fn remove_published(&self, _path: &str, _publication: u64) -> Result<bool, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file removal".into())
+    }
+    /// Validate a mount namespace before the caller's commit guard may run.
+    fn prepare_chmod(&self, _path: &str, _ancestors: &[(&str, FileStat)]) -> Result<(), String> { Ok(()) }
+
+    fn chmod_conditional(&self, path: &str, mode: u32, ancestors: &[(&str, FileStat)], parent: &FileStat, expected: &FileStat) -> Result<(),String> {
+        self.memory_backend().ok_or("ENOTSUP: unsupported conditional chmod backend")?.chmod_conditional(path,mode,ancestors,parent,expected)
     }
     fn memory_backend(&self) -> Option<&MemoryVfs> { None }
 

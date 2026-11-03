@@ -336,6 +336,40 @@ impl SafeBashFs for MountVfs {
         fs.lstat(&rel)
     }
 
+    fn prepare_chmod(&self, path: &str, ancestors: &[(&str,FileStat)]) -> Result<(),String> {
+        let resolved = self.resolve(path,false,WalkPurpose::Access)?;
+        let (_,fs,local) = self.location(&resolved);
+        let st = fs.lstat(&local)?;
+        if resolved == "/" || self.mounts.keys().any(|m| super::is_path_within(&resolved,m)) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        if resolved != path { return Err("EAGAIN: mount resolution changed".into()); }
+        if st.mode & 0o170000 == 0o020000 || fs.memory_backend().is_none() { return Err("ENOTSUP: unsupported conditional chmod backend".into()); }
+        for (p,receipt) in ancestors {
+            let (_,fs,local) = self.location(p);
+            let st = fs.lstat(&local)?;
+            if receipt.identity.is_none() || st.identity.is_none() { return Err("ENOTSUP: missing directory identity".into()); }
+            if st.identity != receipt.identity || st.kind != super::VfsEntryKind::Directory { return Err("EAGAIN: mounted directory changed".into()); }
+            if st.mode & 0o100 == 0 { return Err("EACCES: permission denied".into()); }
+        }
+        Ok(())
+    }
+
+    fn chmod_conditional(&self, path: &str, mode: u32, ancestors: &[(&str,FileStat)], parent: &FileStat, expected: &FileStat) -> Result<(),String> {
+        super::validate_chmod_ancestry(path,mode,ancestors)?;
+        if path == "/" || self.mounts.keys().any(|m| super::is_path_within(path,m)) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let (prefix,fs,local) = self.location(path);
+        if prefix == "/" { return fs.chmod_conditional(&local,mode,ancestors,parent,expected); }
+        let target = fs.memory_backend().ok_or("ENOTSUP: unsupported conditional chmod backend")?;
+        let routed = ancestors.iter().map(|(p,receipt)| {
+            let (_,fs,local) = self.location(p);
+            Ok::<_,String>((fs.memory_backend().ok_or("ENOTSUP: unsupported mounted ancestry")?,local,receipt))
+        }).collect::<Result<Vec<_>,_>>()?;
+        target.chmod_across_mounts(&local,mode,&routed,parent,expected)
+    }
+
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
         let (fs, rel) = self.route(path, true)?;
         fs.chmod(&rel, mode)
@@ -482,6 +516,29 @@ mod tests {
         let exported = fs.export_entries().unwrap();
         assert!(exported.iter().any(|e| e.path == "/mnt/a/f1.txt"));
         assert!(exported.iter().any(|e| e.path == "/mnt/a/b/f2.txt"));
+    }
+
+    #[test]
+    fn conditional_chmod_pins_directories_in_each_backing_store() {
+        let root = Arc::new(MemoryVfs::new());
+        root.mkdir_all("/top").unwrap();
+        let store = Arc::new(MemoryVfs::new());
+        store.write_file("/d/f",b"original").unwrap();
+        let fs = MountVfs::new(root.clone()).with_mount("/top/m",store.clone());
+        let path = "/top/m/d/f";
+        let ancestor_paths = ["/","/top","/top/m","/top/m/d"];
+        let chain: Vec<_> = ancestor_paths.iter().map(|&p|(p,fs.lstat(p).unwrap())).collect();
+        let parent = &chain.last().unwrap().1;
+        let entry = fs.lstat(path).unwrap();
+        fs.prepare_chmod(path,&chain).unwrap();
+        fs.chmod_conditional(path,0o600,&chain,parent,&entry).unwrap();
+        assert_eq!(store.stat("/d/f").unwrap().mode,0o100600);
+        let fresh = fs.lstat(path).unwrap();
+        fs.prepare_chmod(path,&chain).unwrap();
+        root.rename("/top","/original",false).unwrap();
+        root.mkdir_all("/top").unwrap();
+        assert!(fs.chmod_conditional(path,0o777,&chain,parent,&fresh).unwrap_err().starts_with("EAGAIN:"));
+        assert_eq!(store.stat("/d/f").unwrap().mode,0o100600);
     }
 
     #[test]

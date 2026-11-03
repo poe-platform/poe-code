@@ -60,6 +60,26 @@ test("head and tail accept safe counts larger than Wasm memory", async () => {
   } finally { bash.dispose(); }
 });
 
+test("paste shares a reader for repeated stdin and opens named columns before reading rows", async () => {
+  const bash = new RustWasmBash({ files: { "/f": "a\nb\nc\n", "/g": "1\n", "/blocked": { content: "xx", mode: 0o200 } } });
+  try {
+    const limits = { maxInputBytes: 4 };
+    for (const [script, opts, code, stdout, stderr] of [
+      ["paste - -; cat", { stdin: "x\ny\nz" }, 0, "x\ty\nz\t\n", ""],
+      ["{ paste /g; head -c1; } </f", { limits }, 0, "1\na", ""],
+      ["{ paste - -; cat; } </f", { limits }, 0, "a\tb\n", "paste: EFBIG: file too large, read '/f'\n"],
+      ["paste - /blocked /missing; cat", { stdin: "x" }, 0, "x", "paste: ENOENT: no such file or directory, stat '/missing'\n"],
+      ["paste - /blocked; cat", { stdin: "x" }, 0, "", "paste: EACCES: permission denied, readStream '/blocked'\n"],
+      ["paste -s /g /blocked /g", {}, 1, "1\n", "paste: EACCES: permission denied, readStream '/blocked'\n"],
+      ["paste -s /g /missing /g", { limits }, 1, "1\n1\n", "paste: ENOENT: no such file or directory, stat '/missing'\n"],
+    ]) {
+      const r = await bash.exec(script, opts);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], script);
+    }
+    await assert.rejects(bash.exec("paste /g /g /g", { limits }), /maxInputBytes/);
+  } finally { bash.dispose(); }
+});
+
 test("date reads batch lines from the selected source and preserves output before read failures", async () => {
   const bash = new RustWasmBash({ files: { "/dates": "@0\n@1\n", "/blocked": { content: "@1", mode: 0o200 } } });
   try {

@@ -56,7 +56,7 @@ fn coreutil(
         "nl" => cmd_nl(args, input, cwd, fs),
         "tac" => cmd_tac(args, input, cwd, fs),
         "rev" => cmd_rev(args, input, cwd, env, fs),
-        "paste" => cmd_paste(args, input.buffered()?, cwd, fs),
+        "paste" => cmd_paste(args, input, cwd, fs),
         "join" => cmd_join(args, input.buffered()?, cwd, fs),
         "comm" => cmd_comm(args, input.buffered()?, cwd, fs),
         "getopt" => cmd_getopt(args, env),
@@ -356,7 +356,7 @@ fn resolve_record_output(fs: &dyn SafeBashFs, path: &str) -> Result<String, Stri
     }
 }
 
-fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_first: bool) -> Result<crate::vfs::ChunkReader<'a>, String> {
+fn record_input_path(name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: bool) -> Result<(String, String), String> {
     let path = absolute_operand(cwd, name);
     let (lookup, diagnostic) = if stat_first { ("stat", "stat") } else { ("capabilitiesFor", "readStream") };
     let (entry, stat) = fs.inspect_command_entry(&path, true, lookup)
@@ -365,6 +365,11 @@ fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_fir
         let operation = if stat_first { "" } else { ", readStream" };
         return Err(format!("EISDIR: illegal operation on a directory{operation} '{path}'"));
     }
+    Ok((path, entry))
+}
+
+fn open_record_input<'a>(name: &str, cwd: &str, fs: &'a dyn SafeBashFs, stat_first: bool) -> Result<crate::vfs::ChunkReader<'a>, String> {
+    let (path, entry) = record_input_path(name, cwd, fs, stat_first)?;
     let limit = fs.max_input_bytes();
     let mut available = limit;
     let mut next = fs.open_chunks(&entry).map_err(|e| stream_file_error(e, "readStream", &path))?;
@@ -3786,7 +3791,54 @@ fn split_records_by_byte(bytes: &[u8], sep: u8) -> Vec<Vec<u8>> {
     recs
 }
 
-fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+#[derive(Default)]
+struct TableReader<'a> {
+    file: Option<crate::vfs::ChunkReader<'a>>,
+    chunk: Vec<u8>,
+    offset: usize,
+    eof: bool,
+}
+
+impl<'a> TableReader<'a> {
+    fn open(name: &str, cwd: &str, fs: &'a dyn SafeBashFs) -> Result<Self, String> {
+        let (path, entry) = record_input_path(name, cwd, fs, true)?;
+        let mut reader = None;
+        let file: crate::vfs::ChunkReader = Box::new(move |chunk| {
+            let next = match &mut reader {
+                Some(next) => next,
+                None => reader.insert(fs.open_chunks(&entry).map_err(|e| stream_file_error(e, "readStream", &path))?),
+            };
+            next(chunk).map_err(|e| stream_file_error(e, "readStream", &path))
+        });
+        Ok(Self { file: Some(file), ..Self::default() })
+    }
+
+    fn next(&mut self, stdin: &mut CommandInput, delimiter: u8, record: &mut Vec<u8>,
+        available: &mut usize, fs: &dyn SafeBashFs,
+    ) -> Result<bool, String> {
+        record.clear();
+        while !self.eof {
+            if self.offset == self.chunk.len() {
+                if let Some(read) = &mut self.file { read(&mut self.chunk)?; }
+                else { stdin.next_stdin_chunk(&mut self.chunk)?; }
+                self.offset = 0;
+                *available = available.checked_sub(self.chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", fs.max_input_bytes()))?;
+                if self.chunk.is_empty() { self.eof = true; break; }
+            }
+            let tail = &self.chunk[self.offset..];
+            if let Some(end) = tail.iter().position(|&b| b == delimiter) {
+                record.extend_from_slice(&tail[..end]);
+                self.offset += end + 1;
+                return Ok(true);
+            }
+            record.extend_from_slice(tail);
+            self.offset = self.chunk.len();
+        }
+        Ok(!record.is_empty())
+    }
+}
+
+fn cmd_paste(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut delims: Vec<Vec<u8>> = vec![vec![b'\t']];
     let mut serial = false;
     let mut sep_byte = b'\n';
@@ -3876,110 +3928,65 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         files.push("-".to_string());
     }
 
-    let stdin_bytes = crate::vfs::stream_string_to_bytes(stdin);
-    let mut stdin_recs = std::collections::VecDeque::from(split_records_by_byte(&stdin_bytes, sep_byte));
-    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut available = fs.max_input_bytes();
+    let mut output = Vec::new();
+    let max_output = fs.remaining_output_bytes();
+    let mut write = |bytes: &[u8]| {
+        if bytes.len() > max_output - output.len() {
+            return Err(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
+        }
+        output.extend_from_slice(bytes);
+        Ok(())
+    };
     let mut stderr = String::new();
-    let mut status = 0;
-
-    if serial {
-        for f in &files {
-            let recs: Vec<Vec<u8>> = if f == "-" {
-                stdin_recs.drain(..).collect()
-            } else {
-                let p = resolve_posix_path(cwd, f);
-                if fs.is_dir(&p) {
-                    stderr.push_str(&format!(
-                        "paste: EISDIR: illegal operation on a directory, '{p}'\n"
-                    ));
-                    status = 1;
-                    continue;
-                }
-                match fs.read_file(&p) {
-                    Ok(b) => split_records_by_byte(&b, sep_byte),
-                    Err(_) => {
-                        stderr.push_str(&format!(
-                            "paste: ENOENT: no such file or directory, stat '{p}'\n"
-                        ));
-                        status = 1;
-                        continue;
+    let result = (|| -> Result<(), String> {
+        let mut standard = TableReader::default();
+        let mut record = Vec::new();
+        if serial {
+            for name in &files {
+                let mut file;
+                let reader = if name == "-" { &mut standard } else {
+                    match TableReader::open(name, cwd, fs) {
+                        Ok(open) => file = open,
+                        Err(e) => { stderr.push_str(&format!("paste: {e}\n")); continue; }
                     }
+                    &mut file
+                };
+                let mut count = 0;
+                while reader.next(&mut stdin, sep_byte, &mut record, &mut available, fs)? {
+                    if count > 0 { write(&delims[(count - 1) % delims.len()])?; }
+                    write(&record)?;
+                    count += 1;
                 }
-            };
-            if !recs.is_empty() {
-                for (idx, rec) in recs.iter().enumerate() {
-                    if idx > 0 {
-                        out_bytes.extend_from_slice(&delims[(idx - 1) % delims.len()]);
-                    }
-                    out_bytes.extend_from_slice(rec);
-                }
-                out_bytes.push(sep_byte);
+                if count > 0 { write(&[sep_byte])?; }
             }
-        }
-        return BuiltinOutcome {
-            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-            stderr,
-            exit_code: status,
-        };
-    }
-
-    enum PasteSource {
-        Stdin,
-        File(std::collections::VecDeque<Vec<u8>>),
-    }
-
-    let mut sources: Vec<PasteSource> = Vec::with_capacity(files.len());
-    for f in &files {
-        if f == "-" {
-            sources.push(PasteSource::Stdin);
         } else {
-            let p = resolve_posix_path(cwd, f);
-            if fs.is_dir(&p) {
-                return err_out(
-                    &format!("paste: EISDIR: illegal operation on a directory, '{p}'\n"),
-                    1,
-                );
+            let mut readers = vec![standard];
+            let mut columns = Vec::with_capacity(files.len());
+            for name in &files {
+                let index = if name == "-" { 0 } else {
+                    readers.push(TableReader::open(name, cwd, fs)?);
+                    readers.len() - 1
+                };
+                columns.push((index, Vec::new()));
             }
-            match fs.read_file(&p) {
-                Ok(b) => sources.push(PasteSource::File(std::collections::VecDeque::from(
-                    split_records_by_byte(&b, sep_byte),
-                ))),
-                Err(_) => {
-                    return err_out(
-                        &format!("paste: ENOENT: no such file or directory, stat '{p}'\n"),
-                        1,
-                    );
+            loop {
+                let mut present = false;
+                for (index, record) in &mut columns {
+                    present |= readers[*index].next(&mut stdin, sep_byte, record, &mut available, fs)?;
                 }
+                if !present { break; }
+                for (i, (_, record)) in columns.iter().enumerate() {
+                    if i > 0 { write(&delims[(i - 1) % delims.len()])?; }
+                    write(record)?;
+                }
+                write(&[sep_byte])?;
             }
         }
-    }
-
-    loop {
-        let mut row_bytes: Vec<u8> = Vec::new();
-        let mut present = false;
-        for (col, src) in sources.iter_mut().enumerate() {
-            let rec = match src {
-                PasteSource::Stdin => stdin_recs.pop_front(),
-                PasteSource::File(q) => q.pop_front(),
-            };
-            if rec.is_some() {
-                present = true;
-            }
-            if col > 0 {
-                row_bytes.extend_from_slice(&delims[(col - 1) % delims.len()]);
-            }
-            if let Some(r) = rec {
-                row_bytes.extend_from_slice(&r);
-            }
-        }
-        if !present {
-            break;
-        }
-        row_bytes.push(sep_byte);
-        out_bytes.extend_from_slice(&row_bytes);
-    }
-
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+        Ok(())
+    })();
+    if let Err(e) = result { stderr.push_str(&format!("paste: {e}\n")); }
+    BuiltinOutcome { stdout: crate::vfs::bytes_to_stream_string(&output), exit_code: i32::from(!stderr.is_empty()), stderr }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

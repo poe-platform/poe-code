@@ -9770,3 +9770,19 @@ test("writes to the default null device consume the output quota before the next
     await assert.rejects(sh.exec("printf a >/dev/null; printf b >>/dev/null", {limits: {maxOutputBytes: 1}}), /maxOutputBytes/);
   } finally { sh.dispose(); }
 });
+
+test("xq converts deep XML to raw JSON with ordered groups and mixed content", async () => {
+  const depth = 12000, root = "<r>".repeat(depth), tail = "</r>".repeat(depth);
+  const xml = root + '<m a="1"> before <x/> <y>2</y><x>3</x><![CDATA[after]]> </m>' + tail;
+  const sh = new RustWasmBash({files: {"/doc": xml}});
+  try {
+    const r = await sh.exec("xq -Rr . /doc");
+    assert.deepEqual([r.exitCode, r.stderr], [0, ""]);
+    assert.equal(r.stdout, '{"r":'.repeat(depth) + '{"m":{"@a":"1","x":[null,"3"],"y":"2","#text":"before  after"}}' + '}'.repeat(depth) + "\n");
+    await sh.fs.writeFile("/doc", Buffer.from(xml + "<extra/>"));
+    for (const [cmd, diagnostic] of [["xq .", "jq: Invalid XML: multiple root elements"], ["yq -p xml .", "Error: bad xml input: Invalid XML: multiple root elements"]]) {
+      const bad = await sh.exec(cmd + " /doc");
+      assert.deepEqual([bad.exitCode, bad.stdout, bad.stderr], [1, "", diagnostic + "\n"]);
+    }
+  } finally { sh.dispose(); }
+});

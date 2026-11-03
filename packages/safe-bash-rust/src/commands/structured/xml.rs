@@ -1,4 +1,4 @@
-use super::JVal;
+use super::JsonStrings;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
@@ -177,11 +177,7 @@ fn declaration(
 }
 
 fn diagnostic(error: &'static str) -> String {
-    if error == "XML resource limit exceeded" {
-        error.into()
-    } else {
-        format!("Invalid XML: {error}")
-    }
+    format!("Invalid XML: {error}")
 }
 
 const XML: &str = "http://www.w3.org/XML/1998/namespace";
@@ -203,13 +199,10 @@ struct StartTag {
     part: TagPart,
 }
 
-#[derive(Clone, Copy, PartialEq)]
-pub(super) enum TreeMode { Discard, Retain, DepthLimited }
-
 pub(super) struct Parser<'a> {
     expected_encoding: Option<&'a str>,
     warnings: Warnings<'a>,
-    tree: TreeMode,
+    retain_nodes: bool,
     first: bool,
     has_root: bool,
     doc: Document,
@@ -230,12 +223,12 @@ impl<'a> Parser<'a> {
     pub fn new(
         expected_encoding: Option<&'a str>,
         warnings: Warnings<'a>,
-        tree: TreeMode,
+        retain_nodes: bool,
     ) -> Self {
         Self {
             expected_encoding,
             warnings,
-            tree,
+            retain_nodes,
             first: true,
             has_root: false,
             doc: Document::default(),
@@ -462,11 +455,7 @@ impl<'a> Parser<'a> {
                         }
                         self.has_root = true;
                     }
-                    // Consumers that still recurse must stay within the WASM stack.
-                    if self.tree == TreeMode::DepthLimited && self.stack.len() >= 512 {
-                        return Err("XML resource limit exceeded");
-                    }
-                    if self.tree == TreeMode::Discard {
+                    if !self.retain_nodes {
                         tag.element.attrs = Vec::new();
                     }
                     if empty {
@@ -647,7 +636,7 @@ impl<'a> Parser<'a> {
                 }
             }
         }
-        if self.tree == TreeMode::Discard {
+        if !self.retain_nodes {
             return;
         }
         if let Some(parent) = self.stack.last_mut() {
@@ -669,7 +658,7 @@ impl<'a> Parser<'a> {
         }
         if !self.stack.is_empty() {
             repair(&mut self.warnings, "incomplete document")?;
-            if self.tree == TreeMode::Discard {
+            if !self.retain_nodes {
                 return Ok(self.doc);
             }
             while let Some(el) = self.stack.pop() {
@@ -689,7 +678,7 @@ pub(super) fn parse(
     expected_encoding: Option<&str>,
     warnings: Warnings<'_>,
 ) -> Result<Document, String> {
-    let mut parser = Parser::new(expected_encoding, warnings, TreeMode::DepthLimited);
+    let mut parser = Parser::new(expected_encoding, warnings, true);
     let src = src.strip_prefix('\u{feff}').unwrap_or(src);
     if !src.chars().all(valid) {
         return Err(diagnostic("invalid character"));
@@ -705,63 +694,79 @@ pub(super) fn parse(
     parser.finish_document().map_err(diagnostic)
 }
 
-pub(super) fn to_json(nodes: Vec<Node>, plus: bool) -> JVal {
-    fn element(mut el: Element, plus: bool) -> (String, JVal) {
-        let prefix = if plus { "+@" } else { "@" };
-        let mut fields: Vec<_> = std::mem::take(&mut el.attrs)
-            .into_iter()
-            .map(|(k, v)| (format!("{prefix}{k}"), JVal::Str(v)))
-            .collect();
-        let mut children = HashMap::<String, usize>::new();
+pub(super) fn to_json(nodes: &[Node], plus: bool) -> String {
+    enum Part<'a> { Element(&'a Element), Key(&'a str), Text(String), Punctuation(char) }
+    let mut out = String::from("{");
+    let mut pending = Vec::new();
+    let quote = JsonStrings::JavaScript;
+    // A validated document has one root. Comments and instructions have no JSON value.
+    for node in nodes {
+        if let Node::Element(el) = node {
+            pending.push(Part::Element(el));
+            pending.push(Part::Key(&el.tag));
+        }
+    }
+    while let Some(part) = pending.pop() {
+        let el = match part {
+            Part::Punctuation(c) => { out.push(c); continue; }
+            Part::Text(s) => { quote.quote(s.trim_matches(xml_json_space), &mut out); continue; }
+            Part::Key(key) => { quote.quote(key, &mut out); out.push(':'); continue; }
+            Part::Element(el) => el,
+        };
         let mut text = String::new();
-        for child in std::mem::take(&mut el.children) {
+        let mut groups: Vec<Vec<&Element>> = Vec::new();
+        let mut indices = HashMap::new();
+        for child in &el.children {
             match child {
-                Node::Text(s, _) | Node::Cdata(s) => text.push_str(&s),
-                Node::Markup(_) => {}
+                Node::Text(s, _) | Node::Cdata(s) => text.push_str(s),
                 Node::Element(child) => {
-                    let (key, value) = element(child, plus);
-                    if let Some(&i) = children.get(&key) {
-                        let old = &mut fields[i].1;
-                        if let JVal::Array(a) = old {
-                            a.push(value);
-                        } else {
-                            *old = JVal::Array(vec![std::mem::replace(old, JVal::Null), value]);
-                        }
-                    } else {
-                        children.insert(key.clone(), fields.len());
-                        fields.push((key, value));
-                    }
+                    let i = *indices.entry(&child.tag).or_insert_with(|| { groups.push(Vec::new()); groups.len() - 1 });
+                    groups[i].push(child);
                 }
+                Node::Markup(_) => {}
             }
         }
-        let text =
-            text.trim_matches(|c: char| c == '\u{feff}' || c != '\u{85}' && c.is_whitespace());
-        let value = if fields.is_empty() {
-            if text.is_empty() && !plus {
-                JVal::Null
-            } else {
-                JVal::Str(text.into())
+        let trimmed = text.trim_matches(xml_json_space);
+        if el.attrs.is_empty() && groups.is_empty() {
+            if !plus && trimmed.is_empty() { out.push_str("null"); }
+            else { quote.quote(trimmed, &mut out); }
+            continue;
+        }
+        out.push('{');
+        for (i, (key, val)) in el.attrs.iter().enumerate() {
+            if i != 0 { out.push(','); }
+            out.push_str(if plus { "\"+@" } else { "\"@" });
+            out.push_str(key); // XML names cannot contain JSON string delimiters.
+            out.push_str("\":");
+            quote.quote(val, &mut out);
+        }
+        pending.push(Part::Punctuation('}'));
+        if !trimmed.is_empty() {
+            pending.push(Part::Text(text));
+            pending.push(Part::Key(if plus { "+content" } else { "#text" }));
+            pending.push(Part::Punctuation(','));
+        }
+        for (i, group) in groups.into_iter().enumerate().rev() {
+            let name = &group[0].tag;
+            if group.len() == 1 { pending.push(Part::Element(group[0])); }
+            else {
+                pending.push(Part::Punctuation(']'));
+                for (j, child) in group.into_iter().enumerate().rev() {
+                    pending.push(Part::Element(child));
+                    if j != 0 { pending.push(Part::Punctuation(',')); }
+                }
+                pending.push(Part::Punctuation('['));
             }
-        } else {
-            if !text.is_empty() {
-                fields.push((
-                    if plus { "+content" } else { "#text" }.into(),
-                    JVal::Str(text.into()),
-                ));
-            }
-            JVal::Object(fields)
-        };
-        (std::mem::take(&mut el.tag), value)
+            pending.push(Part::Key(name));
+            if i != 0 || !el.attrs.is_empty() { pending.push(Part::Punctuation(',')); }
+        }
     }
-    JVal::Object(
-        nodes
-            .into_iter()
-            .filter_map(|n| match n {
-                Node::Element(el) => Some(element(el, plus)),
-                _ => None,
-            })
-            .collect(),
-    )
+    out.push('}');
+    out
+}
+
+fn xml_json_space(c: char) -> bool {
+    c == '\u{feff}' || c != '\u{85}' && c.is_whitespace()
 }
 
 #[derive(Clone, Copy)]

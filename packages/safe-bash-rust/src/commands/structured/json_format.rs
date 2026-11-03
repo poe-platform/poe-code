@@ -9,7 +9,7 @@ pub(super) enum JsonStrings {
 }
 
 impl JsonStrings {
-    fn quote(self, text: &str, out: &mut String) {
+    pub(super) fn quote(self, text: &str, out: &mut String) {
         use std::fmt::Write;
         out.push('"');
         for c in text.chars() {

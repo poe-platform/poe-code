@@ -667,7 +667,7 @@ fn read_xml_operand(
         result.map(|_| ())
     }));
     read.and_then(|_| parser.finish()).map_err(|e| {
-        if e.starts_with("Invalid XML:") || e == "XML resource limit exceeded" { (1, e) }
+        if e.starts_with("Invalid XML:") { (1, e) }
         else if e == "invalid data" { (1, "XML input must be UTF-8".into()) }
         else if e.starts_with("Execution aborted:") { (5, e) }
         else if let Some((path,_)) = file { (2, super::coreutils::stream_file_error(e, "readStream", path)) }
@@ -4817,8 +4817,8 @@ fn cmd_yq(
             Ok(docs) => docs,
             Err(e) => return err_out(&format!("Error: {e}\n"), 1),
         };
-        for (jv, meta) in parsed {
-            docs.push(jv.to_json_string(true, false, 0));
+        for (json, meta) in parsed {
+            docs.push(json);
             doc_metas.push(meta);
         }
     } else {
@@ -4853,8 +4853,8 @@ fn cmd_yq(
                     Ok(docs) => docs,
                     Err(e) => return err_out(&format!("Error: {e}\n"), 1),
                 };
-                for (jv, meta) in parsed {
-                    docs.push(jv.to_json_string(true, false, 0));
+                for (json, meta) in parsed {
+                    docs.push(json);
                     doc_metas.push(meta);
                 }
                 raw_sources.push(eff_in);
@@ -5398,7 +5398,7 @@ fn parse_yq_input_docs_with_meta(
     filename: Option<&str>,
     file_index: usize,
     use_plus_xml: bool,
-) -> Result<Vec<(JVal, YqDocMeta)>,String> {
+) -> Result<Vec<(String, YqDocMeta)>,String> {
     let fname = filename.unwrap_or("");
     let single_meta = || YqDocMeta {
         file_index,
@@ -5406,46 +5406,47 @@ fn parse_yq_input_docs_with_meta(
         filename: fname.to_string(),
         ..Default::default()
     };
+    let json = |v: JVal| v.to_json_string(true, false, 0);
     if fmt == Some("base64") {
         let clean: String = input.chars().filter(|c| !matches!(c, '\r' | '\n')).collect();
         let bytes = decode_base64_str(&clean).unwrap_or_default();
         return Ok(vec![(
-            JVal::Str(String::from_utf8_lossy(&bytes).into_owned()),
+            json(JVal::Str(String::from_utf8_lossy(&bytes).into_owned())),
             single_meta(),
         )]);
     }
     if fmt == Some("uri") {
-        return Ok(vec![(JVal::Str(yq_uri_decode(input)), single_meta())]);
+        return Ok(vec![(json(JVal::Str(yq_uri_decode(input))), single_meta())]);
     }
     if matches!(fmt, Some("ini") | Some("i"))
         || filename.map(|f| f.ends_with(".ini")).unwrap_or(false)
     {
-        return Ok(vec![(parse_ini_to_jval(input), single_meta())]);
+        return Ok(vec![(json(parse_ini_to_jval(input)), single_meta())]);
     }
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return Ok(vec![(xml::to_json(xml::parse(input, None, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
+        return Ok(vec![(xml::to_json(&xml::parse(input, None, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
     if is_toml {
-        return Ok(vec![(parse_toml_to_jval(input), single_meta())]);
+        return Ok(vec![(json(parse_toml_to_jval(input)), single_meta())]);
     }
     let is_props = matches!(fmt, Some("props") | Some("p"))
         || filename.map(|f| f.ends_with(".properties")).unwrap_or(false);
     if is_props {
-        return Ok(vec![(parse_props_to_jval(input)?, single_meta())]);
+        return Ok(vec![(json(parse_props_to_jval(input)?), single_meta())]);
     }
     let is_csv = matches!(fmt, Some("csv") | Some("c"))
         || (fmt.is_none() && filename.map(|f| f.ends_with(".csv")).unwrap_or(false));
     if is_csv {
-        return Ok(vec![(parse_yq_csv_to_jval(input, ','), single_meta())]);
+        return Ok(vec![(json(parse_yq_csv_to_jval(input, ',')), single_meta())]);
     }
     let is_tsv = matches!(fmt, Some("tsv") | Some("t"))
         || (fmt.is_none() && filename.map(|f| f.ends_with(".tsv")).unwrap_or(false));
     if is_tsv {
-        return Ok(vec![(parse_yq_csv_to_jval(input, '\t'), single_meta())]);
+        return Ok(vec![(json(parse_yq_csv_to_jval(input, '\t')), single_meta())]);
     }
     let trimmed = input.trim_start();
     if (trimmed.starts_with('{') || trimmed.starts_with('['))
@@ -5457,7 +5458,7 @@ fn parse_yq_input_docs_with_meta(
             .enumerate()
             .map(|(d_idx, v)| {
                 (
-                    v,
+                    json(v),
                     YqDocMeta {
                         file_index,
                         doc_index: d_idx,
@@ -5473,7 +5474,7 @@ fn parse_yq_input_docs_with_meta(
     let mut started = false;
     let finish = |doc: &mut String, docs: &mut Vec<_>| {
         let meta = extract_yaml_doc_meta(doc, file_index, docs.len(), fname);
-        docs.push((parse_nested_yaml(doc), meta));
+        docs.push((json(parse_nested_yaml(doc)), meta));
         doc.clear();
     };
     for line in input.lines() {
@@ -15074,9 +15075,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut warnings = Vec::new();
-        let tree = if noout && xpath.is_none() { xml::TreeMode::Discard }
-            else { xml::TreeMode::Retain };
-        let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), tree);
+        let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some());
         let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
         let next = match read_xml_operand(fs, file, &mut stdin, &mut remaining, parser) {
             Ok(doc) => render(doc, warnings),

@@ -75,6 +75,37 @@ fn saved_stdout_bypasses_pipeline_and_substitution_capture() {
 }
 
 #[test]
+fn merged_descriptors_emit_in_command_order() {
+    for (script, stdout, stderr) in [
+        ("{ printf a; printf b >&2; printf c; } 2>&1", "abc", ""),
+        ("{ printf a; printf b >&2; printf c; } >&2", "", "abc"),
+        ("{ printf a >&3; printf b >&2; printf c; } 3>&2 2>&1", "bc", "a"),
+        ("{ sh -c 'printf x; printf a >&2' | tr a z; } 2>&1", "ax", ""),
+        ("{ printf a; printf b >&2; printf c; } 2>&1 | tr b z", "azc", ""),
+        ("{ x=$(printf a; printf b >&2); printf %s \"$x\"; } 2>&1", "ba", ""),
+        ("f(){ printf a; printf b >&2; printf c; }; f 2>&1", "abc", ""),
+        ("f(){ printf a; printf b >&2; printf c; } 2>&1; f", "abc", ""),
+        ("{ exec 3>&2; printf a >&3; } 2>&1; printf b >&3", "ab", ""),
+        ("{ select x in 1; do printf b >&2; break; done <<<1; } 2>&1", "1) 1\n#? b", ""),
+        ("{ exec 2>/file; printf a >&2; printf b; } 2>&1; cat /file", "ba", ""),
+    ] {
+        let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+        let result = shell.exec(script).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, stdout, stderr), "{script}");
+    }
+}
+
+#[test]
+fn op_run_masks_writes_to_a_saved_copy_of_its_stdout() {
+    let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+    let result = shell.exec(r#"op vault create V >/dev/null
+        op item create --category login --title T --vault V password=fixture_value >/dev/null
+        export V=op://V/T/password
+        { op run -- sh -c 'printf "%s" "$V" >&3'; } 3>&1"#).unwrap();
+    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "<concealed by 1Password>", ""));
+}
+
+#[test]
 fn redirected_pipeline_writes_before_the_next_command() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     let result = shell.exec("(printf A | cat; cat output >&2; printf B) > output").unwrap();

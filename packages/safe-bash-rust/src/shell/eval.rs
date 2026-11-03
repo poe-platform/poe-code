@@ -86,6 +86,7 @@ pub enum FdTarget {
     PipeStdout { peer_retired: bool },
     SavedStdout { data: Rc<RefCell<String>>, pipe_peer_retired: Option<bool> },
     Stderr,
+    SavedStderr(Rc<RefCell<String>>),
     File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>> },
     InputFile {
         writable: bool,
@@ -501,7 +502,7 @@ impl<'a> EvalState<'a> {
                 FdTarget::Stdout
                     | FdTarget::PipeStdout { .. }
                     | FdTarget::SavedStdout { .. }
-                    | FdTarget::Stderr
+                    | FdTarget::Stderr | FdTarget::SavedStderr(_)
                     | FdTarget::File { .. }
                     | FdTarget::InputFile { writable: true, .. }
             )
@@ -521,32 +522,6 @@ impl<'a> EvalState<'a> {
             *dest = FdTarget::SavedStdout { data: saved.get_or_insert_with(Rc::default).clone(), pipe_peer_retired };
         }
         self.fd_table.insert(1, target);
-    }
-
-    fn enter_body_stdio(&mut self) -> (Option<FdTarget>, Option<FdTarget>) {
-        let saved_fd1 = if matches!(self.fd_table.get(&1), Some(FdTarget::Stderr)) {
-            self.fd_table.insert(1, FdTarget::Stdout)
-        } else {
-            None
-        };
-        let saved_fd2 = if matches!(
-            self.fd_table.get(&2),
-            Some(FdTarget::Stdout | FdTarget::PipeStdout { .. })
-        ) {
-            self.fd_table.insert(2, FdTarget::Stderr)
-        } else {
-            None
-        };
-        (saved_fd1, saved_fd2)
-    }
-
-    fn leave_body_stdio(&mut self, saved: (Option<FdTarget>, Option<FdTarget>)) {
-        if let Some(fd1) = saved.0 {
-            self.fd_table.insert(1, fd1);
-        }
-        if let Some(fd2) = saved.1 {
-            self.fd_table.insert(2, fd2);
-        }
     }
 
     fn evacuate_in_fd_owner(
@@ -1586,9 +1561,50 @@ impl<'a> EvalState<'a> {
         standalone: Option<bool>,
     ) -> Result<BuiltinOutcome, EvalError> {
         let outer = self.forwarded_output.take();
+        let mut stdout = None;
+        let mut stderr = None;
+        // Descriptor duplication copies a destination. Give the body distinct
+        // sinks before applying its redirects, so nested commands can write to
+        // the same stream in execution order (and saved fds retain their sink).
+        if matches!(self.fd_table.get(&1), Some(FdTarget::Stderr))
+            || matches!(self.fd_table.get(&2), Some(FdTarget::Stdout | FdTarget::PipeStdout { .. }))
+            || command_redirects(node).iter().any(|r| matches!(r.kind, RedirectKind::DupOut { .. } | RedirectKind::DupIn { .. }))
+        {
+            for dest in self.fd_table.values_mut() {
+                let pipe_peer_retired = match dest {
+                    FdTarget::Stdout => None,
+                    FdTarget::PipeStdout { peer_retired } => Some(*peer_retired),
+                    FdTarget::Stderr => {
+                        *dest = FdTarget::SavedStderr(Rc::clone(stderr.get_or_insert_with(Rc::default)));
+                        continue;
+                    }
+                    _ => continue,
+                };
+                *dest = FdTarget::SavedStdout { data: Rc::clone(stdout.get_or_insert_with(Rc::default)), pipe_peer_retired };
+            }
+        }
         let res = self.eval_command_node(node, stdin, standalone);
-        let forwarded = self.forwarded_output.replace(outer);
-        let out = res?;
+        if stdout.is_some() || stderr.is_some() {
+            for dest in self.fd_table.values_mut() {
+                match dest {
+                    FdTarget::SavedStdout { data, pipe_peer_retired } if stdout.as_ref().is_some_and(|s| Rc::ptr_eq(data, s)) =>
+                        *dest = pipe_peer_retired.map_or(FdTarget::Stdout, |peer_retired| FdTarget::PipeStdout { peer_retired }),
+                    FdTarget::SavedStderr(data) if stderr.as_ref().is_some_and(|s| Rc::ptr_eq(data, s)) =>
+                        *dest = FdTarget::Stderr,
+                    _ => {}
+                }
+            }
+        }
+        let mut forwarded = self.forwarded_output.replace(outer);
+        let mut out = res?;
+        for (sink, stream, credit) in [(stdout, &mut out.stdout, &mut forwarded.0), (stderr, &mut out.stderr, &mut forwarded.1)] {
+            if let Some(sink) = sink {
+                let mut data = sink.take();
+                *credit += stream_byte_len(&data);
+                data.push_str(stream);
+                *stream = data;
+            }
+        }
         self.account_forwarded_output(&out.stdout, &out.stderr, forwarded)?;
         Ok(out)
     }
@@ -1667,7 +1683,6 @@ impl<'a> EvalState<'a> {
                 let mut sub_cwd = self.cwd.clone();
                 let mut sub_env = self.env.clone();
                 let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-                let _ = sub.enter_body_stdio();
                 let res = sub.eval_script(body, eff_stdin);
                 self.budget.leave_recursion();
                 let mut out = match res {
@@ -1717,9 +1732,7 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let mut out = self.eval_script(body, eff_stdin)?;
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -1745,7 +1758,6 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut executed = false;
@@ -1777,7 +1789,6 @@ impl<'a> EvalState<'a> {
                     code = eb_out.exit_code;
                 }
 
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -1809,14 +1820,12 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let mut expanded_items = Vec::new();
                 for raw in items {
                     match self.expand_word_to_fields(raw) {
                         Ok(fields) => {
                             expanded_items.extend(fields);
                             if expanded_items.len() > self.budget.limits.max_expansion_fields {
-                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Budget(format!(
                                     "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
@@ -1825,7 +1834,6 @@ impl<'a> EvalState<'a> {
                             }
                         }
                         Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
-                            self.leave_body_stdio(body_stdio);
                             let mut out = BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("{msg}\n"),
@@ -1894,7 +1902,6 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -1926,14 +1933,12 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let mut expanded_items = Vec::new();
                 for raw in items {
                     match self.expand_word_to_fields(raw) {
                         Ok(fields) => {
                             expanded_items.extend(fields);
                             if expanded_items.len() > self.budget.limits.max_expansion_fields {
-                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Budget(format!(
                                     "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
@@ -1942,7 +1947,6 @@ impl<'a> EvalState<'a> {
                             }
                         }
                         Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
-                            self.leave_body_stdio(body_stdio);
                             let mut out = BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("{msg}\n"),
@@ -1953,14 +1957,12 @@ impl<'a> EvalState<'a> {
                             return Ok(out);
                         }
                         Err(e) => {
-                            self.leave_body_stdio(body_stdio);
                             self.restore_redirects(saved_fds, saved_in);
                             return Err(e);
                         }
                     }
                 }
                 if expanded_items.is_empty() {
-                    self.leave_body_stdio(body_stdio);
                     if let Some(dfd) = dup_fd {
                         self.in_fds.entry(dfd).or_default().replace(local_stdin);
                     }
@@ -1983,20 +1985,18 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
-                    if show_menu {
-                        stderr.push_str(&format_select_menu(&expanded_items, self.env));
-                    }
-                    let ps3 = self
-                        .env
-                        .get("PS3")
-                        .cloned()
-                        .unwrap_or_else(|| "#? ".to_string());
-                    stderr.push_str(&ps3);
+                    let mut prompt = if show_menu { format_select_menu(&expanded_items, self.env) } else { String::new() };
+                    prompt.push_str(self.env.get("PS3").map_or("#? ", String::as_str));
+                    let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
+                    let mut emitted = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                    self.write_to_fd_target(&fd2, &prompt, 0, &mut emitted);
+                    self.budget.check_exceeded().map_err(EvalError::Budget)?;
+                    stdout.push_str(&emitted.stdout);
+                    stderr.push_str(&emitted.stderr);
                     if stream_byte_len(&stderr) + stream_byte_len(&stdout)
                         > self.budget.limits.max_output_bytes
                     {
                         self.loop_depth -= 1;
-                        self.leave_body_stdio(body_stdio);
                         self.restore_redirects(saved_fds, saved_in);
                         return Err(EvalError::Budget(format!(
                             "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
@@ -2043,7 +2043,6 @@ impl<'a> EvalState<'a> {
                             }
                             other => {
                                 self.loop_depth -= 1;
-                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(other);
                             }
@@ -2074,7 +2073,6 @@ impl<'a> EvalState<'a> {
                             }
                             other => {
                                 self.loop_depth -= 1;
-                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(other);
                             }
@@ -2114,7 +2112,6 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -2147,7 +2144,6 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut code = 0;
@@ -2155,7 +2151,6 @@ impl<'a> EvalState<'a> {
                 if !init.trim().is_empty() {
                     let exp_init = self.expand_arith_text(init)?;
                     if let Err(e) = eval_arith_formatted(&exp_init, self.env) {
-                        self.leave_body_stdio(body_stdio);
                         if let Some(nu) = e.strip_prefix("__nounset__") {
                             self.restore_redirects(saved_fds, saved_in);
                             return Err(EvalError::Syntax(nu.to_string()));
@@ -2189,7 +2184,6 @@ impl<'a> EvalState<'a> {
                             Err(e) => {
                                 if let Some(nu) = e.strip_prefix("__nounset__") {
                                     self.loop_depth -= 1;
-                                    self.leave_body_stdio(body_stdio);
                                     self.restore_redirects(saved_fds, saved_in);
                                     return Err(EvalError::Syntax(nu.to_string()));
                                 }
@@ -2224,7 +2218,6 @@ impl<'a> EvalState<'a> {
                         if let Err(e) = eval_arith_formatted(&exp_step, self.env) {
                             if let Some(nu) = e.strip_prefix("__nounset__") {
                                 self.loop_depth -= 1;
-                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Syntax(nu.to_string()));
                             }
@@ -2236,7 +2229,6 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -2268,7 +2260,6 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut code = 0;
@@ -2343,7 +2334,6 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -2374,7 +2364,6 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_stdio = self.enter_body_stdio();
                 let case_desc = format!("case {word} in ");
                 let (dbg_out, skip_case) = self.fire_debug_trap(&case_desc);
                 let mut stdout = dbg_out.stdout;
@@ -2427,7 +2416,6 @@ impl<'a> EvalState<'a> {
                     }
                 }
 
-                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -3699,10 +3687,8 @@ impl<'a> EvalState<'a> {
             false
         };
         let eff_stdin = if use_local { &mut local_stdin } else { &mut *stdin };
-        let body_stdio = self.enter_body_stdio();
         self.retained_prefix_vars.clear();
         let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, false);
-        self.leave_body_stdio(body_stdio);
         if stashed_outer_stdin {
             *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default().take();
         }
@@ -3842,7 +3828,7 @@ impl<'a> EvalState<'a> {
             } else {
                 let mut r = match &func_body {
                     CommandNode::Group { body, redirects } if redirects.is_empty() => self.eval_script(body, stdin),
-                    cmd => self.eval_command_node(cmd, stdin, None),
+                    cmd => self.eval_pipeline_stage(cmd, stdin, None),
                 };
                 if let Ok(ref mut o) = r {
                     if !fn_dbg_out.stdout.is_empty() || !fn_dbg_out.stderr.is_empty() {
@@ -4970,6 +4956,17 @@ impl<'a> EvalState<'a> {
             fs_ref,
             |sub_words, sub_stdin, sub_cwd, sub_env| {
                 let mut fd_table = inherited_targets.clone();
+                // op masks the child's returned output. Saved copies of a public
+                // stream must go through that boundary too.
+                if effective_cmd == "op" {
+                    for dest in fd_table.values_mut() {
+                        match dest {
+                            FdTarget::SavedStdout { .. } => *dest = FdTarget::Stdout,
+                            FdTarget::SavedStderr(_) => *dest = FdTarget::Stderr,
+                            _ => {}
+                        }
+                    }
+                }
                 fd_table.insert(1, FdTarget::Stdout);
                 fd_table.insert(2, FdTarget::Stderr);
                 let mut sub_eval = EvalState {
@@ -10146,7 +10143,7 @@ impl<'a> EvalState<'a> {
         match target {
             FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
-            FdTarget::SavedStdout { data: saved, .. } => {
+            FdTarget::SavedStdout { data: saved, .. } | FdTarget::SavedStderr(saved) => {
                 if self.budget.add_output_bytes(stream_byte_len(data) - charged).is_ok() {
                     saved.borrow_mut().push_str(data);
                 }

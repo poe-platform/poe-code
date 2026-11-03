@@ -8936,3 +8936,16 @@ test("mdq reports invalid Markdown before compiling the selector", async () => {
     }
   } finally { bash.dispose(); }
 });
+
+test("xq compiles jq functions and rejects unknown names before reading XML", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands()), rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const vfs of [fs, rs.fs]) await vfs.writeFile("/xml", Buffer.from("<doc>value</doc>"));
+    for (const cmd of ["xq -n input /missing", "xq 'if false then nope else . end' /missing",
+      "xq -r 'def title: .doc; title' /xml", "xq -c 'def pick(k): .[k]; pick(\"doc\")' /xml"]) {
+      const a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

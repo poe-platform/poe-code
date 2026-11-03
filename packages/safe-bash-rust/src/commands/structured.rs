@@ -941,7 +941,7 @@ fn cmd_jq_core(
     };
     let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
     let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
-    let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
+    let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
             Err(error) => return err_out(&format!("jq: {error}\n"), 3),

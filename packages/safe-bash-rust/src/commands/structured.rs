@@ -13,6 +13,7 @@ mod jq_index;
 mod jq_input;
 mod jq_json;
 mod xml;
+mod xpath;
 use xml::{Element as XmlElement, Node as XmlNode};
 mod jq_number;
 mod jq_parser;
@@ -14931,12 +14932,10 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         files.push(file.clone());
         i += 1;
     }
-    if let Some(ref xp) = xpath
-        && xp.trim().is_empty()
-    {
-        return err_out("xmllint: unsupported XPath syntax at offset 0\n", 10);
-    }
-
+    let xpath = match xpath.as_deref().map(xpath::compile).transpose() {
+        Ok(query) => query,
+        Err(e) => return err_out(&format!("xmllint: {e}\n"), if e == "maxDepth limit exceeded" {5} else {10}),
+    };
     let render = |text: &str| {
         let mut warnings = Vec::new();
         let doc = match xml::parse(text, Some("UTF-8"), recover.then_some(&mut warnings)) {
@@ -14951,7 +14950,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }
         let rendered = if let Some(xp) = &xpath {
-            let mut res = eval_xmllint_xpath(&dom, xp.trim());
+            let mut res = eval_xmllint_xpath(&dom, xp);
             if res.exit_code != 0 {
                 res.stderr.insert_str(0, &stderr);
                 return res;
@@ -15288,6 +15287,7 @@ impl XPathVal<'_> {
 }
 
 struct XPathDocument<'a> {
+    program: &'a [xpath::Query<'a>],
     roots: &'a [XmlNode],
     namespaces: BTreeMap<String,String>,
     // Selections borrow the completed DOM. Equal spellings at different
@@ -15323,10 +15323,10 @@ impl XPathDocument<'_> {
         1 + self.order[&address]
     }
 }
-fn eval_xmllint_xpath(dom: &[XmlNode], xp: &str) -> BuiltinOutcome {
-    let mut doc = XPathDocument { roots: dom, namespaces: BTreeMap::from([("xml".into(),"http://www.w3.org/XML/1998/namespace".into())]), order: Default::default() };
+fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query]) -> BuiltinOutcome {
+    let mut doc = XPathDocument { program, roots: dom, namespaces: BTreeMap::from([("xml".into(),"http://www.w3.org/XML/1998/namespace".into())]), order: Default::default() };
     doc.index(dom);
-    let val = eval_xpath_expr(&doc, None, 1, 1, xp.trim());
+    let val = eval_xpath_query(&doc,None,1,1,&program[0]);
     match val {
         XPathVal::NodeSet(items) => {
             if items.is_empty() {
@@ -15379,188 +15379,6 @@ fn xpath_item_string_value(item: &XPathItem) -> String {
             buf
         }
     }
-}
-
-fn split_xpath_word_op(s: &str, keyword: &str) -> Vec<String> {
-    let mut out = Vec::new();
-    let chars: Vec<char> = s.chars().collect();
-    let kw_chars: Vec<char> = keyword.chars().collect();
-    let mut cur = String::new();
-    let mut b_depth = 0i32;
-    let mut p_depth = 0i32;
-    let mut in_q: Option<char> = None;
-    let mut i = 0usize;
-    while i < chars.len() {
-        let ch = chars[i];
-        if let Some(q) = in_q {
-            cur.push(ch);
-            if ch == q {
-                in_q = None;
-            }
-            i += 1;
-            continue;
-        }
-        match ch {
-            '"' | '\'' => {
-                in_q = Some(ch);
-                cur.push(ch);
-                i += 1;
-            }
-            '[' => {
-                b_depth += 1;
-                cur.push(ch);
-                i += 1;
-            }
-            ']' => {
-                b_depth -= 1;
-                cur.push(ch);
-                i += 1;
-            }
-            '(' => {
-                p_depth += 1;
-                cur.push(ch);
-                i += 1;
-            }
-            ')' => {
-                p_depth -= 1;
-                cur.push(ch);
-                i += 1;
-            }
-            _ if b_depth == 0
-                && p_depth == 0
-                && i + kw_chars.len() <= chars.len()
-                && chars[i..i + kw_chars.len()] == kw_chars[..] =>
-            {
-                out.push(cur.clone());
-                cur.clear();
-                i += kw_chars.len();
-            }
-            _ => {
-                cur.push(ch);
-                i += 1;
-            }
-        }
-    }
-    out.push(cur);
-    out
-}
-
-fn find_xpath_top_comparison<'a>(s: &'a str) -> Option<(&'a str, &'static str, &'a str)> {
-    let bytes = s.as_bytes();
-    let mut b_depth = 0i32;
-    let mut p_depth = 0i32;
-    let mut in_q: Option<u8> = None;
-    let mut i = 0usize;
-    while i < bytes.len() {
-        let ch = bytes[i];
-        if let Some(q) = in_q {
-            if ch == q {
-                in_q = None;
-            }
-            i += 1;
-            continue;
-        }
-        match ch {
-            b'"' | b'\'' => in_q = Some(ch),
-            b'[' => b_depth += 1,
-            b']' => b_depth -= 1,
-            b'(' => p_depth += 1,
-            b')' => p_depth -= 1,
-            _ if b_depth == 0 && p_depth == 0 => {
-                for op in ["!=", ">=", "<=", "=", ">", "<"] {
-                    if s[i..].starts_with(op) {
-                        return Some((&s[..i], op, &s[i + op.len()..]));
-                    }
-                }
-            }
-            _ => {}
-        }
-        i += 1;
-    }
-    None
-}
-
-fn find_xpath_top_add_sub<'a>(s: &'a str) -> Option<(&'a str, char, &'a str)> {
-    let bytes = s.as_bytes();
-    let mut b_depth = 0i32;
-    let mut p_depth = 0i32;
-    let mut in_q: Option<u8> = None;
-    let mut last_match: Option<(&'a str, char, &'a str)> = None;
-    for i in 0..bytes.len() {
-        let ch = bytes[i];
-        if let Some(q) = in_q {
-            if ch == q {
-                in_q = None;
-            }
-            continue;
-        }
-        match ch {
-            b'"' | b'\'' => in_q = Some(ch),
-            b'[' => b_depth += 1,
-            b']' => b_depth -= 1,
-            b'(' => p_depth += 1,
-            b')' => p_depth -= 1,
-            b'+' if b_depth == 0 && p_depth == 0 && i > 0 => {
-                last_match = Some((&s[..i], '+', &s[i + 1..]));
-            }
-            b'-' if b_depth == 0 && p_depth == 0 && i > 0 => {
-                let prev = bytes[i - 1];
-                if prev.is_ascii_whitespace() || prev == b')' || prev == b']' {
-                    last_match = Some((&s[..i], '-', &s[i + 1..]));
-                }
-            }
-            _ => {}
-        }
-    }
-    last_match
-}
-
-fn parse_xpath_func_call(s: &str) -> Option<(&str, Vec<String>)> {
-    let s = s.trim();
-    let open = s.find('(')?;
-    if !s.ends_with(')') {
-        return None;
-    }
-    let fname = s[..open].trim();
-    if fname.is_empty()
-        || fname == "text"
-        || !fname
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-    {
-        return None;
-    }
-    let mut depth = 0i32;
-    let mut in_q: Option<char> = None;
-    for (idx, ch) in s[open..].char_indices() {
-        if let Some(q) = in_q {
-            if ch == q {
-                in_q = None;
-            }
-            continue;
-        }
-        match ch {
-            '"' | '\'' => in_q = Some(ch),
-            '(' => depth += 1,
-            ')' => {
-                depth -= 1;
-                if depth == 0 && open + idx + 1 < s.len() {
-                    return None;
-                }
-            }
-            _ => {}
-        }
-    }
-    let inner = s[open + 1..s.len() - 1].trim();
-    let args = if inner.is_empty() {
-        Vec::new()
-    } else {
-        split_xpath_top(inner, ',')
-            .into_iter()
-            .map(|a| a.trim().to_string())
-            .collect()
-    };
-    Some((fname, args))
 }
 
 fn compare_xpath_vals(lhs: &XPathVal, op: &str, rhs: &XPathVal) -> bool {
@@ -15625,85 +15443,71 @@ fn compare_xpath_scalars(a: &str, op: &str, b: &str, force_num: bool) -> bool {
     }
 }
 
-fn eval_xpath_expr<'a>(
-    doc: &XPathDocument<'a>,
-    ctx_chain: Option<&[&'a XmlElement]>,
-    pos: usize,
-    last: usize,
-    expr: &str,
-) -> XPathVal<'a> {
-    let s = expr.trim();
-    if s.is_empty() {
-        return XPathVal::Str(String::new());
+fn eval_xpath_query<'a>(doc: &XPathDocument<'a>, ctx: Option<&[&'a XmlElement]>, pos: usize, last: usize, query: &xpath::Query) -> XPathVal<'a> {
+    match query {
+        xpath::Query::Expression(ops) => eval_xpath_expr(doc,ctx,pos,last,ops),
+        xpath::Query::Paths(paths) => {
+            let mut out = Vec::new();
+            for path in paths { out.extend(eval_xpath_path_ctx(doc,ctx,path)); }
+            out.sort_by_cached_key(|item| doc.position(item));
+            out.dedup_by_key(|item| doc.position(item));
+            XPathVal::NodeSet(out)
+        }
     }
-    let or_parts = split_xpath_word_op(s, " or ");
-    if or_parts.len() > 1 {
-        return XPathVal::Bool(
-            or_parts
-                .iter()
-                .any(|p| eval_xpath_expr(doc, ctx_chain, pos, last, p).to_bool_val()),
-        );
-    }
-    let and_parts = split_xpath_word_op(s, " and ");
-    if and_parts.len() > 1 {
-        return XPathVal::Bool(
-            and_parts
-                .iter()
-                .all(|p| eval_xpath_expr(doc, ctx_chain, pos, last, p).to_bool_val()),
-        );
-    }
-    if let Some((lhs_s, op, rhs_s)) = find_xpath_top_comparison(s) {
-        let lhs = eval_xpath_expr(doc, ctx_chain, pos, last, lhs_s);
-        let rhs = eval_xpath_expr(doc, ctx_chain, pos, last, rhs_s);
-        return XPathVal::Bool(compare_xpath_vals(&lhs, op, &rhs));
-    }
-    if let Some((lhs_s, op, rhs_s)) = find_xpath_top_add_sub(s) {
-        let lhs = eval_xpath_expr(doc, ctx_chain, pos, last, lhs_s).to_num_val();
-        let rhs = eval_xpath_expr(doc, ctx_chain, pos, last, rhs_s).to_num_val();
-        return XPathVal::Num(if op == '+' { lhs + rhs } else { lhs - rhs });
-    }
-    if (s.starts_with('"') && s.ends_with('"') && s.len() >= 2)
-        || (s.starts_with('\'') && s.ends_with('\'') && s.len() >= 2)
-    {
-        return XPathVal::Str(s[1..s.len() - 1].to_string());
-    }
-    if let Ok(n) = s.parse::<f64>() {
-        return XPathVal::Num(n);
-    }
-    if let Some(rest) = s.strip_prefix('-') {
-        return XPathVal::Num(
-            -eval_xpath_expr(doc, ctx_chain, pos, last, rest).to_num_val(),
-        );
-    }
-    if let Some((fname, args)) = parse_xpath_func_call(s) {
-        let eval_arg = |idx: usize| -> XPathVal {
-            args.get(idx)
-                .map(|a| eval_xpath_expr(doc, ctx_chain, pos, last, a))
-                .unwrap_or_else(|| {
-                    if let Some(ch) = ctx_chain {
-                        XPathVal::NodeSet(vec![XPathItem::Node(ch.to_vec())])
-                    } else {
-                        XPathVal::NodeSet(vec![XPathItem::Document(doc.roots)])
-                    }
-                })
+}
+
+fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: Option<&[&'a XmlElement]>, pos: usize, last: usize, ops: &[xpath::Op]) -> XPathVal<'a> {
+    use xpath::Op;
+    let mut stack: Vec<XPathVal> = Vec::new();
+    for op in ops {
+        let value = match *op {
+            Op::Text(s) => XPathVal::Str(s.into()),
+            Op::Number(n) => XPathVal::Num(n),
+            Op::Select(i) => eval_xpath_query(doc,ctx,pos,last,&doc.program[i]),
+            Op::Negate => XPathVal::Num(-stack.pop().unwrap().to_num_val()),
+            Op::Binary(op) => {
+                let rhs = stack.pop().unwrap(); let lhs = stack.pop().unwrap();
+                match op {
+                    "+" => XPathVal::Num(lhs.to_num_val() + rhs.to_num_val()),
+                    "-" => XPathVal::Num(lhs.to_num_val() - rhs.to_num_val()),
+                    "and" => XPathVal::Bool(lhs.to_bool_val() && rhs.to_bool_val()),
+                    "or" => XPathVal::Bool(lhs.to_bool_val() || rhs.to_bool_val()),
+                    _ => XPathVal::Bool(compare_xpath_vals(&lhs,op,&rhs)),
+                }
+            }
+            Op::Call(name,count) => {
+                let start = stack.len()-count;
+                let result = xpath_call(doc,ctx,pos,last,name,&stack[start..]);
+                stack.truncate(start); result
+            }
         };
-        return match fname {
+        stack.push(value);
+    }
+    stack.pop().unwrap()
+}
+
+fn xpath_call<'a>(doc: &XPathDocument<'a>, ctx_chain: Option<&[&'a XmlElement]>, pos: usize, last: usize, fname: &str, args: &[XPathVal<'a>]) -> XPathVal<'a> {
+    let context;
+    let first = if let Some(arg)=args.first() { arg } else {
+        context=XPathVal::NodeSet(vec![if let Some(chain)=ctx_chain { XPathItem::Node(chain.to_vec()) } else {XPathItem::Document(doc.roots)}]); &context
+    };
+    match fname {
             "position" => XPathVal::Num(pos as f64),
             "last" => XPathVal::Num(last as f64),
             "true" => XPathVal::Bool(true),
             "false" => XPathVal::Bool(false),
-            "not" => XPathVal::Bool(!eval_arg(0).to_bool_val()),
-            "boolean" => XPathVal::Bool(eval_arg(0).to_bool_val()),
-            "string" => XPathVal::Str(eval_arg(0).to_string_val()),
-            "number" => XPathVal::Num(eval_arg(0).to_num_val()),
-            "floor" => XPathVal::Num(eval_arg(0).to_num_val().floor()),
-            "ceiling" => XPathVal::Num(eval_arg(0).to_num_val().ceil()),
-            "round" => XPathVal::Num((eval_arg(0).to_num_val() + 0.5).floor()),
-            "count" => match eval_arg(0) {
+            "not" => XPathVal::Bool(!first.to_bool_val()),
+            "boolean" => XPathVal::Bool(first.to_bool_val()),
+            "string" => XPathVal::Str(first.to_string_val()),
+            "number" => XPathVal::Num(first.to_num_val()),
+            "floor" => XPathVal::Num(first.to_num_val().floor()),
+            "ceiling" => XPathVal::Num(first.to_num_val().ceil()),
+            "round" => XPathVal::Num((first.to_num_val() + 0.5).floor()),
+            "count" => match first {
                 XPathVal::NodeSet(items) => XPathVal::Num(items.len() as f64),
                 _ => XPathVal::Num(0.0),
             },
-            "sum" => match eval_arg(0) {
+            "sum" => match first {
                 XPathVal::NodeSet(items) => {
                     let total: f64 = items
                         .iter()
@@ -15715,47 +15519,47 @@ fn eval_xpath_expr<'a>(
             },
             "concat" => {
                 let mut buf = String::new();
-                for idx in 0..args.len() {
-                    buf.push_str(&eval_arg(idx).to_string_val());
+                for arg in args {
+                    buf.push_str(&arg.to_string_val());
                 }
                 XPathVal::Str(buf)
             }
             "normalize-space" => {
-                let st = eval_arg(0).to_string_val();
+                let st = first.to_string_val();
                 XPathVal::Str(st.split_whitespace().collect::<Vec<_>>().join(" "))
             }
             "string-length" => {
-                let st = eval_arg(0).to_string_val();
+                let st = first.to_string_val();
                 XPathVal::Num(st.chars().count() as f64)
             }
             "starts-with" => {
-                let a = eval_arg(0).to_string_val();
-                let b = eval_arg(1).to_string_val();
+                let a = first.to_string_val();
+                let b = args[1].to_string_val();
                 XPathVal::Bool(a.starts_with(&b))
             }
             "contains" => {
-                let a = eval_arg(0).to_string_val();
-                let b = eval_arg(1).to_string_val();
+                let a = first.to_string_val();
+                let b = args[1].to_string_val();
                 XPathVal::Bool(a.contains(&b))
             }
             "substring" => {
-                let st: Vec<char> = eval_arg(0).to_string_val().chars().collect();
-                let start_num = eval_arg(1).to_num_val();
+                let st: Vec<char> = first.to_string_val().chars().collect();
+                let start_num = args[1].to_num_val();
                 if start_num.is_nan() {
                     return XPathVal::Str(String::new());
                 }
                 let start_1 = (start_num + 0.5).floor() as isize;
                 let end_1 = if args.len() >= 3 {
-                    let len_num = eval_arg(2).to_num_val();
+                    let len_num = args[2].to_num_val();
                     if len_num.is_nan() {
                         return XPathVal::Str(String::new());
                     }
-                    start_1 + (len_num + 0.5).floor() as isize
+                    start_1.saturating_add((len_num + 0.5).floor() as isize)
                 } else {
                     (st.len() as isize) + 1
                 };
-                let from = (start_1 - 1).max(0) as usize;
-                let to = ((end_1 - 1).max(0) as usize).min(st.len());
+                let from = start_1.saturating_sub(1).max(0) as usize;
+                let to = (end_1.saturating_sub(1).max(0) as usize).min(st.len());
                 if from < to && from < st.len() {
                     XPathVal::Str(st[from..to].iter().collect())
                 } else {
@@ -15763,13 +15567,13 @@ fn eval_xpath_expr<'a>(
                 }
             }
             "substring-before" => {
-                let a = eval_arg(0).to_string_val();
-                let b = eval_arg(1).to_string_val();
+                let a = first.to_string_val();
+                let b = args[1].to_string_val();
                 XPathVal::Str(a.find(&b).map(|i| a[..i].to_string()).unwrap_or_default())
             }
             "substring-after" => {
-                let a = eval_arg(0).to_string_val();
-                let b = eval_arg(1).to_string_val();
+                let a = first.to_string_val();
+                let b = args[1].to_string_val();
                 XPathVal::Str(
                     a.find(&b)
                         .map(|i| a[i + b.len()..].to_string())
@@ -15777,9 +15581,9 @@ fn eval_xpath_expr<'a>(
                 )
             }
             "translate" => {
-                let st = eval_arg(0).to_string_val();
-                let from_chars: Vec<char> = eval_arg(1).to_string_val().chars().collect();
-                let to_chars: Vec<char> = eval_arg(2).to_string_val().chars().collect();
+                let st = first.to_string_val();
+                let from_chars: Vec<char> = args[1].to_string_val().chars().collect();
+                let to_chars: Vec<char> = args[2].to_string_val().chars().collect();
                 let mut out = String::new();
                 for ch in st.chars() {
                     if let Some(pos_idx) = from_chars.iter().position(|&fc| fc == ch) {
@@ -15796,7 +15600,7 @@ fn eval_xpath_expr<'a>(
                 let target_qname = if args.is_empty() {
                     ctx_chain.and_then(|c| c.last()).map(|e| e.tag.clone())
                 } else {
-                    match eval_arg(0) {
+                    match first {
                         XPathVal::NodeSet(items) => items.first().and_then(|it| match it {
                             XPathItem::Node(c) => c.last().map(|e| e.tag.clone()),
                             XPathItem::Attr((k, _)) => Some(k.clone()),
@@ -15821,112 +15625,8 @@ fn eval_xpath_expr<'a>(
                     _ => XPathVal::Str(String::new()),
                 }
             }
-            _ => XPathVal::Str(String::new()),
-        };
+        _ => unreachable!("validated XPath function"),
     }
-    XPathVal::NodeSet(eval_xpath_union_ctx(doc, ctx_chain, s))
-}
-
-fn eval_xpath_union_ctx<'a>(
-    doc: &XPathDocument<'a>,
-    ctx_chain: Option<&[&'a XmlElement]>,
-    expr: &str,
-) -> Vec<XPathItem<'a>> {
-    let mut out = Vec::new();
-    for part in split_xpath_top(expr, '|') {
-        out.extend(eval_xpath_path_ctx(doc, ctx_chain, part.trim()));
-    }
-    out.sort_by_cached_key(|item| doc.position(item));
-    out.dedup_by_key(|item| doc.position(item));
-    out
-}
-
-fn split_xpath_top(s: &str, sep: char) -> Vec<String> {
-    let mut out = Vec::new();
-    let mut cur = String::new();
-    let mut b_depth = 0i32;
-    let mut p_depth = 0i32;
-    let mut in_q: Option<char> = None;
-    for ch in s.chars() {
-        if let Some(q) = in_q {
-            cur.push(ch);
-            if ch == q {
-                in_q = None;
-            }
-            continue;
-        }
-        match ch {
-            '"' | '\'' => {
-                in_q = Some(ch);
-                cur.push(ch);
-            }
-            '[' => {
-                b_depth += 1;
-                cur.push(ch);
-            }
-            ']' => {
-                b_depth -= 1;
-                cur.push(ch);
-            }
-            '(' => {
-                p_depth += 1;
-                cur.push(ch);
-            }
-            ')' => {
-                p_depth -= 1;
-                cur.push(ch);
-            }
-            c if c == sep && b_depth == 0 && p_depth == 0 => {
-                out.push(cur.clone());
-                cur.clear();
-            }
-            _ => cur.push(ch),
-        }
-    }
-    out.push(cur);
-    out
-}
-
-fn parse_xpath_steps(path: &str) -> Vec<(bool, String)> {
-    let mut steps = Vec::new();
-    let chars: Vec<char> = path.chars().collect();
-    let mut i = 0usize;
-    while i < chars.len() {
-        let mut desc = false;
-        if chars[i] == '/' {
-            if i + 1 < chars.len() && chars[i + 1] == '/' {
-                desc = true;
-                i += 2;
-            } else {
-                i += 1;
-            }
-        }
-        let start = i;
-        let mut b_depth = 0i32;
-        let mut in_q: Option<char> = None;
-        while i < chars.len() {
-            let c = chars[i];
-            if let Some(q) = in_q {
-                if c == q {
-                    in_q = None;
-                }
-            } else if c == '"' || c == '\'' {
-                in_q = Some(c);
-            } else if c == '[' {
-                b_depth += 1;
-            } else if c == ']' {
-                b_depth -= 1;
-            } else if c == '/' && b_depth == 0 {
-                break;
-            }
-            i += 1;
-        }
-        let seg: String = chars[start..i].iter().collect();
-        if !seg.trim().is_empty() {
-            steps.push((desc, seg.trim().to_string()));
-        }
-    }
-    steps
 }
 
 fn select_xpath_elements<'a>(
@@ -15934,7 +15634,7 @@ fn select_xpath_elements<'a>(
     parent: &mut Vec<&'a XmlElement>,
     descend: bool,
     tag: &str,
-    predicates: &[String],
+    predicates: &[Vec<xpath::Op>],
     out: &mut Vec<Vec<&'a XmlElement>>,
 ) {
     let children = parent.last().map_or(doc.roots, |el| el.children.as_slice());
@@ -15976,20 +15676,16 @@ fn push_xpath_text<'a>(nodes: &'a [XmlNode], descend: bool, items: &mut Vec<XPat
 fn eval_xpath_path_ctx<'a>(
     doc: &XPathDocument<'a>,
     ctx_chain: Option<&[&'a XmlElement]>,
-    path: &str,
+    path: &xpath::Path,
 ) -> Vec<XPathItem<'a>> {
-    let path = path.trim();
-    let steps = parse_xpath_steps(path);
-    if steps.is_empty() {
-        return Vec::new();
-    }
-    let mut current = if !path.starts_with('/') && let Some(chain) = ctx_chain {
+    use xpath::AxisTest;
+    let mut current = if !path.absolute && let Some(chain) = ctx_chain {
         vec![XPathItem::Node(chain.to_vec())]
     } else { vec![XPathItem::Document(doc.roots)] };
-    for (desc,raw_seg) in &steps {
-        let (base_test,preds) = split_xpath_predicates(raw_seg);
+    for step in &path.steps {
+        let desc = step.descendant;
         let mut next_items: Vec<XPathItem> = Vec::new();
-        if base_test == ".." {
+        if matches!(step.test,AxisTest::Parent) {
             for item in &current {
                 if let XPathItem::Node(chain) = item
                 {
@@ -16000,7 +15696,7 @@ fn eval_xpath_path_ctx<'a>(
             current = next_items;
             continue;
         }
-        if base_test == "." {
+        if matches!(step.test,AxisTest::This) {
             continue;
         }
         for item in &current {
@@ -16009,24 +15705,24 @@ fn eval_xpath_path_ctx<'a>(
                 XPathItem::Node(chain) => chain.clone(),
                 _ => continue,
             };
-            if let Some(attr_name) = base_test.strip_prefix('@') {
+            if let AxisTest::Attribute(attr_name) = step.test {
                 let mut collect = |el: &'a XmlElement| {
                     if let Some(attr) = el.attrs.iter().find(|(k,_)| k == attr_name) {
                         next_items.push(XPathItem::Attr(attr));
                     }
                 };
                 if let Some(el) = chain.last() { collect(el); }
-                if *desc {
+                if desc {
                     let mut children = Vec::new();
                     select_xpath_elements(doc,&mut chain,true,"*",&[],&mut children);
                     for child in children { collect(child.last().unwrap()); }
                 }
-            } else if base_test == "text()" {
+            } else if matches!(step.test,AxisTest::Text) {
                 let children = chain.last().map_or(doc.roots,|el| el.children.as_slice());
-                push_xpath_text(children,*desc,&mut next_items);
-            } else {
+                push_xpath_text(children,desc,&mut next_items);
+            } else if let AxisTest::Element(tag) = step.test {
                 let mut children = Vec::new();
-                select_xpath_elements(doc, &mut chain, *desc, &base_test, &preds, &mut children);
+                select_xpath_elements(doc, &mut chain, desc, tag, &step.predicates, &mut children);
                 next_items.extend(children.into_iter().map(XPathItem::Node));
             }
         }
@@ -16035,63 +15731,19 @@ fn eval_xpath_path_ctx<'a>(
     current
 }
 
-fn split_xpath_predicates(seg: &str) -> (String, Vec<String>) {
-    let Some(first_b) = seg.find('[') else {
-        return (seg.trim().to_string(), Vec::new());
-    };
-    let base = seg[..first_b].trim().to_string();
-    let mut preds = Vec::new();
-    let chars: Vec<char> = seg[first_b..].chars().collect();
-    let mut i = 0usize;
-    while i < chars.len() {
-        if chars[i] != '[' {
-            i += 1;
-            continue;
-        }
-        i += 1;
-        let start = i;
-        let mut depth = 1i32;
-        let mut in_q: Option<char> = None;
-        while i < chars.len() && depth > 0 {
-            let c = chars[i];
-            if let Some(q) = in_q {
-                if c == q {
-                    in_q = None;
-                }
-            } else if c == '"' || c == '\'' {
-                in_q = Some(c);
-            } else if c == '[' {
-                depth += 1;
-            } else if c == ']' {
-                depth -= 1;
-                if depth == 0 {
-                    break;
-                }
-            }
-            i += 1;
-        }
-        let pred_str: String = chars[start..i].iter().collect();
-        preds.push(pred_str.trim().to_string());
-        if i < chars.len() {
-            i += 1;
-        }
-    }
-    (base, preds)
-}
-
 fn filter_xpath_chains<'a>(
     doc: &XPathDocument<'a>,
     mut chains: Vec<Vec<&'a XmlElement>>,
-    preds: &[String],
+    preds: &[Vec<xpath::Op>],
 ) -> Vec<Vec<&'a XmlElement>> {
     for pred in preds {
-        let p = pred.trim();
-        if p == "last()" {
+        if matches!(pred.as_slice(), [xpath::Op::Call("last",0)]) {
             chains = chains.pop().into_iter().collect();
             continue;
         }
-        if let Ok(idx1) = p.parse::<usize>() {
-            chains = if idx1 >= 1 && idx1 <= chains.len() {
+        if let [xpath::Op::Number(n)] = pred.as_slice() {
+            let idx1 = *n as usize;
+            chains = if *n == idx1 as f64 && idx1 >= 1 && idx1 <= chains.len() {
                 vec![chains.swap_remove(idx1 - 1)]
             } else {
                 Vec::new()
@@ -16101,7 +15753,7 @@ fn filter_xpath_chains<'a>(
         let total = chains.len();
         let mut next = Vec::new();
         for (idx, chain) in chains.into_iter().enumerate() {
-            let val = eval_xpath_expr(doc, Some(&chain), idx + 1, total, p);
+            let val = eval_xpath_expr(doc, Some(&chain), idx + 1, total, pred);
             let keep = match val {
                 XPathVal::Num(n) => n == (idx + 1) as f64,
                 other => other.to_bool_val(),

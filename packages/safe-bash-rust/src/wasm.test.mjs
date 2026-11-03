@@ -9105,3 +9105,22 @@ test("XPath descendant predicates use sibling positions at each parent", async (
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint compiles XPath paths and predicates before opening XML operands", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from('<r><a n="2"/><a n="4"/></r>'));
+    for (const xp of ["/", "//a/@n/b", "//a |", "//a[1", "//:a", "//a::b", " //comment()",
+      "count(//a::b)", "concat(//:q,/)", "string(1,2)", 'concat("🌻",)', "1 mod 2", "(1 + 2) - 3",
+      "1-2-3", "1--2", "not(not(true()))", "count(//a[-number(@n) + 2 = 0])",
+      "count( /r / a [ position() = last() ] )", "substring('abcdef', (1+1), 3)"]) {
+      for (const file of ["doc", "missing"]) {
+        const cmd = "xmllint --xpath " + "'" + xp.replaceAll("'", "'\\''") + "' " + file;
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+      }
+    }
+  } finally { rs.dispose(); }
+});

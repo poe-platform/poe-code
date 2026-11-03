@@ -9293,3 +9293,23 @@ test("xmllint --noout validates deeply nested input and still reports errors at 
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint reads redirected stdin only for the operand that requests it", async () => {
+  const rs = new RustWasmBash({ cwd: "/", files: { "/doc": "<r/>", "/big": "<big/>" } });
+  try {
+    const options = { limits: { maxInputBytes: 4 } };
+    for (const [cmd, code, output, error] of [
+      ["{ xmllint --noout doc; head -c 1; } <big", 0, "<", ""],
+      ["{ xmllint --noout -; head -c 1; } <doc", 0, "", ""],
+      ["xmllint --xpath '///' <big", 10, "", "xmllint: unsupported XPath syntax at offset 2\n"],
+      ["xmllint --noout missing - <big", 1, "", "xmllint: ENOENT: no such file or directory, readStream '/missing'\nxmllint: EFBIG: file too large, read '/big'\n"],
+    ]) {
+      const result = await rs.exec(cmd, options);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [code, output, error], cmd);
+    }
+    await rs.fs.writeFile("/invalid", Uint8Array.of(255, 65));
+    const invalid = await rs.exec("{ xmllint --noout; cat; } </invalid");
+    assert.deepEqual([invalid.exitCode, invalid.stdout, invalid.stderr], [0, "", "xmllint: XML input must be UTF-8\n"]);
+    await assert.rejects(rs.exec("xmllint --noout doc - <big", options), /maxInputBytes/);
+  } finally { rs.dispose(); }
+});

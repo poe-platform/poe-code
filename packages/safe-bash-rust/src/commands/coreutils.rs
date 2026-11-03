@@ -380,7 +380,7 @@ impl CommandInput<'_> {
         } else { *chunk = take_stdin_bytes(self.text); Ok(()) }
     }
 
-    fn read_stdin(&mut self, mut consume: impl FnMut(&[u8]) -> bool) -> Result<(), String> {
+    pub(super) fn read_stdin(&mut self, mut consume: impl FnMut(&[u8]) -> bool) -> Result<(), String> {
         if let Some(source) = self.file {
             source.read(self.text, usize::MAX, |chunk, _| Ok((consume(chunk), chunk.len())))
         } else {

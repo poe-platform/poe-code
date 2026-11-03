@@ -352,7 +352,7 @@ pub fn try_run_structured_command(
         "html-to-markdown" => Some(cmd_html_to_markdown(args, stdin, cwd, env, fs)),
         "mmdc" => Some(cmd_mmdc(args, stdin, cwd, fs)),
         "xan" => Some(cmd_xan(args, stdin, cwd, fs)),
-        "xmllint" => Some(cmd_xmllint(args, stdin, cwd, fs)),
+        "xmllint" => Some(cmd_xmllint(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs)),
         "sqlite3" => Some(cmd_sqlite3(args, stdin, cwd, fs)),
         _ => None,
     }
@@ -612,7 +612,10 @@ fn parse_single_json_strict(input: &str) -> Result<JVal, String> {
     Ok(vals.into_iter().next().unwrap())
 }
 
-fn read_utf8_source(fs: &dyn SafeBashFs, path: Option<&str>, stdin: &str, bytes: &mut Vec<u8>, remaining: &mut usize) -> Result<(), String> {
+fn read_utf8_source(
+    fs: &dyn SafeBashFs, path: Option<&str>, bytes: &mut Vec<u8>, remaining: &mut usize,
+    stdin: impl FnOnce(&mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String>,
+) -> Result<(), String> {
     let mut valid = bytes.len();
     let mut append = |chunk: &[u8]| {
         *remaining = remaining.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", fs.max_input_bytes()))?;
@@ -628,7 +631,7 @@ fn read_utf8_source(fs: &dyn SafeBashFs, path: Option<&str>, stdin: &str, bytes:
         if fs.is_dir(path) { return Err("EISDIR: illegal operation on a directory".into()); }
         fs.read_chunks(path, &mut append)?;
     } else {
-        append(&crate::vfs::stream_string_to_bytes(stdin))?;
+        stdin(&mut append)?;
     }
     if valid != bytes.len() { return Err("invalid data".into()); }
     Ok(())
@@ -14851,7 +14854,7 @@ fn apply_xml_transforms(
     *nodes = kept;
 }
 
-fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut xpath: Option<String> = None;
     let mut noout = false;
     let mut format_xml = false;
@@ -15011,16 +15014,24 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut bytes = Vec::new();
-        let read = if let Some(path) = &path {
-            fs.access_path(path, true).and_then(|entry| read_utf8_source(fs, Some(&entry), "", &mut bytes, &mut remaining))
-        } else {
-            read_utf8_source(fs, None, stdin.take().unwrap_or_default(), &mut bytes, &mut remaining)
-        };
+        let entry = path.as_ref().map(|p| fs.access_path(p, true)).transpose();
+        let read = entry.and_then(|entry| read_utf8_source(fs, entry.as_deref(), &mut bytes, &mut remaining, |append| {
+            let Some(mut input) = stdin.take() else { return Ok(()); };
+            let mut result = Ok(true);
+            input.read_stdin(|chunk| {
+                result = append(chunk);
+                matches!(result, Ok(true))
+            })?;
+            result.map(|_| ())
+        }));
         let next = match read {
             Ok(()) => render(std::str::from_utf8(&bytes).expect("validated XML input")),
             Err(e) if e == "invalid data" => err_out("xmllint: XML input must be UTF-8\n", 1),
             Err(e) if e.starts_with("Execution aborted:") => err_out(&e, 5),
-            Err(e) => err_out(&format!("xmllint: {}\n", super::coreutils::stream_file_error(e, "readStream", path.as_deref().unwrap_or("-"))), 1),
+            Err(e) => {
+                let message = if let Some(path) = path { super::coreutils::stream_file_error(e, "readStream", &path) } else { e };
+                err_out(&format!("xmllint: {message}\n"), 1)
+            }
         };
         result.stdout.push_str(&next.stdout);
         result.stderr.push_str(&next.stderr);
@@ -28874,7 +28885,9 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if !stdin_source || !used_stdin {
             let path = (!stdin_source).then(|| resolve_posix_path(cwd, f));
             used_stdin |= stdin_source;
-            let read = read_utf8_source(fs, path.as_deref(), stdin, &mut md_input, &mut remaining);
+            let read = read_utf8_source(fs, path.as_deref(), &mut md_input, &mut remaining, |append| {
+                append(&crate::vfs::stream_string_to_bytes(stdin)).map(|_| ())
+            });
             if let Err(e) = read {
                 return failure(match e.split(':').next() {
                     Some("ENOENT") => "entity not found",

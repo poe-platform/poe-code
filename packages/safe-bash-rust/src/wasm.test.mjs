@@ -8646,3 +8646,21 @@ test("mdq takes the first regex alternative and expands its actual captures", as
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq lookaround assertions preserve their captures without consuming their text", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, selector] of [
+      ["foobar", "P: !s/foo(?=bar)/X/"], ["foobaz", "P: /foo(?!bar)/"],
+      ["ab", "P: !s/a(?=(b))/$1/"], ["xbar", "P: /(?<!foo)bar/"],
+      ["aaab", "P: !s/(?<=(a+))b/$1/"], ["abab", "P: !s/(?=(ab|a))/$1/"],
+      ["aba", "P: /(?=a)(?<!b)a/"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const cmd = "mdq '" + selector + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], selector);
+    }
+  } finally { rs.dispose(); }
+});

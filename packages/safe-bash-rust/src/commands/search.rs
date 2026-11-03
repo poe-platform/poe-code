@@ -957,6 +957,7 @@ enum RxDialect<'a> { Auto, Awk, Mdq, Rg { flags: RxFlags, dot_nul: bool }, Jq(&'
 
 fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<ParsedRegex, String> {
     let jq = matches!(dialect, RxDialect::Jq(_));
+    let assertions = jq || matches!(dialect, RxDialect::Mdq);
     let rg = matches!(dialect, RxDialect::Rg { .. });
     let mut mode = match dialect {
         RxDialect::Rg { flags, .. } => flags,
@@ -1168,10 +1169,10 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
 
                     ['?', ':', ..] => { idx += 2; RxGroup::Plain }
                     ['?', '=' | '!', ..] | ['?', '<', '=' | '!', ..] if rg => return Err("unsupported ERE lookaround".into()),
-                    ['?', c @ ('=' | '!'), ..] if jq => {
+                    ['?', c @ ('=' | '!'), ..] if assertions => {
                         idx += 2; RxGroup::Assertion { behind: false, positive: *c == '=' }
                     }
-                    ['?', '<', c @ ('=' | '!'), ..] if jq => {
+                    ['?', '<', c @ ('=' | '!'), ..] if assertions => {
                         idx += 3; RxGroup::Assertion { behind: true, positive: *c == '=' }
                     }
                     tail if ((!jq && tail.starts_with(&['?', 'P', '<'])) || (tail.starts_with(&['?', '<']) && !matches!(tail.get(2), Some('=' | '!'))))

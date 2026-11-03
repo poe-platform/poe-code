@@ -1011,7 +1011,7 @@ fn cmd_jq_core(
 
     let raw_filter = if let Some(pf) = program_file {
         let full = crate::vfs::path::absolute_operand(cwd, &pf);
-        match jq_parser::read_program(fs, &full) {
+        match jq_parser::read_program(fs, &full, usize::MAX) {
             Ok(source) => source,
             Err(jq_parser::ProgramError(code, e)) => return err_out(&format!("jq: {}\n", text_arg(&e)), code),
         }

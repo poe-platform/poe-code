@@ -19,6 +19,49 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
 }
 
 #[test]
+fn jq_compiles_streamed_programs_and_modules_before_reading_input() {
+    use safe_bash_rust::{VfsFileEntry, vfs::ChunkReader};
+
+    struct StreamFs;
+    impl SafeBashFs for StreamFs {
+        fn access_path(&self, path: &str, _: bool) -> Result<String, String> { Ok(path.into()) }
+        fn open_chunks(&self, path: &str) -> Result<ChunkReader<'_>, String> {
+            let source: &[u8] = match path {
+                "/oversized" => {
+                    let mut first = true;
+                    return Ok(Box::new(move |out| {
+                        assert!(std::mem::take(&mut first), "read past the memory limit");
+                        out.resize(1025, b' ');
+                        Ok(())
+                    }));
+                }
+                "/filter" => b"include \"m\"; value",
+                "/lib/m.jq" => b"def value: \"\xc3\xa9\";",
+                _ => return Err("ENOENT: no such file or directory".into()),
+            };
+            let mut chunks = source.chunks(1);
+            Ok(Box::new(move |out| { out.clear(); out.extend_from_slice(chunks.next().unwrap_or_default()); Ok(()) }))
+        }
+        fn read_file(&self, _: &str) -> Result<Vec<u8>, String> { Err("EIO: whole-file read".into()) }
+        fn write_file(&self, _: &str, _: &[u8]) -> Result<(), String> { unreachable!() }
+        fn mkdir_all(&self, _: &str) -> Result<(), String> { Ok(()) }
+        fn remove_path(&self, _: &str) -> Result<(), String> { unreachable!() }
+        fn exists(&self, _: &str) -> bool { true }
+        fn is_dir(&self, path: &str) -> bool { matches!(path, "/" | "/lib") }
+        fn list_dir(&self, _: &str) -> Result<Vec<String>, String> { unreachable!() }
+        fn symlink(&self, _: &str, _: &str) -> Result<(), String> { unreachable!() }
+        fn readlink(&self, _: &str) -> Result<String, String> { unreachable!() }
+        fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> { unreachable!() }
+        fn replace_entries(&self, _: &[VfsFileEntry]) -> Result<(), String> { unreachable!() }
+    }
+    let mut shell = Shell::new(Arc::new(StreamFs), ShellOptions::default());
+    let r = shell.exec("jq -L/lib -nr -f /filter").unwrap();
+    assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "é\n", ""));
+    shell.set_limits(safe_bash_rust::ShellLimits { max_memory_bytes: 1024, ..Default::default() });
+    assert!(shell.exec("jq -n -f /oversized").unwrap_err().contains("maxMemoryBytes"));
+}
+
+#[test]
 fn recursive_jq_functions_return_a_diagnostic_and_leave_the_shell_usable() {
     let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
     for filter in ["def f: f; f", "def f: f; path(f)", "def f: if . > 0 then .-1 | f else . end; 10000 | f"] {

@@ -981,8 +981,24 @@ impl<T: Into<String>> From<T> for ProgramError {
     fn from(message: T) -> Self { Self(3, message.into()) }
 }
 
-pub(super) fn read_program(fs: &dyn SafeBashFs, path: &str) -> Result<String, ProgramError> {
-    let bytes = super::read_jq_file(fs, path, false).map_err(|e| ProgramError(2, e))?;
+pub(super) fn read_program(fs: &dyn SafeBashFs, path: &str, remaining_source: usize) -> Result<String, ProgramError> {
+    let read_error = |e| ProgramError(2, super::super::coreutils::stream_file_error(e, "readStream", path));
+    let entry = fs.access_path(path, true).map_err(read_error)?;
+    let mut next = fs.open_chunks(&entry).map_err(read_error)?;
+    let memory = fs.shell_limits().max_memory_bytes;
+    let mut bytes = Vec::new();
+    let mut chunk = Vec::new();
+    loop {
+        next(&mut chunk).map_err(read_error)?;
+        if chunk.is_empty() { break; }
+        if chunk.len() > remaining_source.saturating_sub(bytes.len()) {
+            return Err(ProgramError(5, "maxSourceBytes limit exceeded".into()));
+        }
+        if chunk.len() > memory.saturating_sub(bytes.len()) {
+            return Err(ProgramError(5, fs.limit_error("maxMemoryBytes", memory)));
+        }
+        bytes.extend_from_slice(&chunk);
+    }
     String::from_utf8(bytes).map_err(|_| "program file is not valid UTF-8".into())
 }
 
@@ -1077,7 +1093,7 @@ impl Modules<'_> {
                 if self.active.contains(&full) {
                     return Err(format!("module dependency cycle: {path}").into());
                 }
-                let contents = match read_program(self.fs, &full) {
+                let contents = match read_program(self.fs, &full, self.remaining) {
                     Ok(source) => source,
                     Err(ProgramError(2, e)) if e.starts_with("ENOENT") || e.starts_with("ENOTDIR") => continue,
                     Err(e) => return Err(e),

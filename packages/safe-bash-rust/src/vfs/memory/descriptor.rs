@@ -58,8 +58,10 @@ impl MemoryVfs {
     pub(crate) fn retain_file(&self, path: &str) -> Result<RetainedFile, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         let path = Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?;
-        let Some(&MemoryNode::File { ino }) = state.nodes.get(&path) else {
-            return Err("ENOENT: missing regular file".into());
+        let ino = match state.nodes.get(&path) {
+            Some(&MemoryNode::File { ino }) => ino,
+            Some(MemoryNode::Directory { .. }) => return Err("EISDIR: illegal operation on a directory".into()),
+            _ => return Err("ENOENT: missing regular file".into()),
         };
         state.files.get_mut(&ino).unwrap().opens += 1;
         Ok(RetainedFile { fs: self.clone(), ino, access: crate::vfs::RedirectAccess::ReadWrite })

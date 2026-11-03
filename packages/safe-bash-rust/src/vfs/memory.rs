@@ -94,6 +94,7 @@ pub(crate) fn fill_random(bytes: &mut [u8]) -> Result<(), String> {
         unsafe extern "C" {
             fn fill_random_bytes(ptr: *mut u8, len: usize) -> i32;
         }
+        let _suspended = crate::commands::suspend_execution_clock();
         // The host writes only to this live slice and never retains its pointer.
         if unsafe { fill_random_bytes(bytes.as_mut_ptr(), bytes.len()) } != 0 {
             return Err("EIO: host entropy source unavailable".into());

@@ -180,7 +180,7 @@ struct TimeoutFrame {
 
 #[derive(Default)]
 struct VirtualClock {
-    evaluating: bool,
+    caller: Option<Box<VirtualClock>>,
     now_ms: f64,
     next_id: u64,
     stack: Vec<TimeoutFrame>,
@@ -201,25 +201,47 @@ pub fn reset_virtual_clock() {
     });
 }
 
+impl VirtualClock {
+    fn enter(mut clock: Box<Self>) {
+        VIRTUAL_CLOCK.with_borrow_mut(|active| {
+            std::mem::swap(active, &mut clock);
+            active.caller = Some(clock);
+        });
+    }
+}
+
 pub(crate) fn with_execution_clock<T>(run: impl FnOnce() -> T) -> (T, u32) {
-    struct Restore(VirtualClock);
-    impl Drop for Restore {
+    struct Finish;
+    impl Drop for Finish {
         fn drop(&mut self) {
-            VIRTUAL_CLOCK.with_borrow_mut(|clock| {
-                if self.0.evaluating {
-                    std::mem::swap(clock, &mut self.0);
-                } else {
-                    clock.evaluating = false;
+            VIRTUAL_CLOCK.with_borrow_mut(|active| {
+                if let Some(caller) = active.caller.take() && caller.caller.is_some() {
+                    *active = *caller;
                 }
             });
         }
     }
-    let _restore = Restore(VIRTUAL_CLOCK.replace(VirtualClock {
-        evaluating: true,
-        ..Default::default()
-    }));
+    VirtualClock::enter(Box::default());
+    let _finish = Finish;
     let result = run();
     (result, virtual_clock_elapsed_ms().ceil() as u32)
+}
+
+// Keep the execution's clock and timeout frames on its own stack while a host
+// read is pending. The caller at resume need not be the caller at suspension.
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) fn suspend_execution_clock() -> impl Drop {
+    struct Resume(Option<Box<VirtualClock>>);
+    impl Drop for Resume {
+        fn drop(&mut self) {
+            if let Some(clock) = self.0.take() { VirtualClock::enter(clock); }
+        }
+    }
+    Resume(VIRTUAL_CLOCK.with_borrow_mut(|active| {
+        let mut caller = active.caller.take()?;
+        std::mem::swap(active, &mut caller);
+        Some(caller)
+    }))
 }
 
 pub fn virtual_clock_elapsed_ms() -> f64 {
@@ -1725,6 +1747,28 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn overlapping_host_reads_resume_their_own_virtual_clock() {
+        let env = BTreeMap::new();
+        let (_, a_ms) = with_execution_clock(|| {
+            advance_virtual_clock(1000.0, &env);
+            let a = suspend_execution_clock();
+            let (a, b_ms) = with_execution_clock(|| {
+                advance_virtual_clock(5000.0, &env);
+                let b = suspend_execution_clock();
+                drop(a);
+                assert_eq!(virtual_clock_elapsed_ms(), 1000.0);
+                advance_virtual_clock(2000.0, &env);
+                let a = suspend_execution_clock();
+                drop(b);
+                a
+            });
+            assert_eq!(b_ms, 5000);
+            drop(a);
+        });
+        assert_eq!(a_ms, 3000);
+    }
 
     #[test]
     fn unit_signal_parsing_and_naming_parity() {

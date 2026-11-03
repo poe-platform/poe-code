@@ -9571,3 +9571,17 @@ test("the shell rejects process-id expansion at the second dollar before running
     assert.deepEqual([literal.exitCode, literal.stdout, literal.stderr], [0, "$$ $$\n$$\n", ""]);
   } finally { rs.dispose(); }
 });
+
+test("arithmetic rejects process-id expansion only when the expression executes", async () => {
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [command, offset] of [['echo $(( $$ ))', 2], ['(( 1+$$ ))', 4], ["let 'n=$$'", 3]]) {
+      const r = await rs.exec('echo before; ' + command + '; echo after');
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [2, "before\n", "shell: Unsupported shell quoting or special parameter at offset " + offset + "\n"], command);
+    }
+    const continued = await rs.exec('v=ok; echo $\\\n$v "$\\\n$"');
+    assert.deepEqual([continued.exitCode, continued.stdout, continued.stderr], [0, "$ok $$\n", ""]);
+    const skipped = await rs.exec("if false; then echo $(( $$ )); fi; echo done");
+    assert.deepEqual([skipped.exitCode, skipped.stdout, skipped.stderr], [0, "done\n", ""]);
+  } finally { rs.dispose(); }
+});

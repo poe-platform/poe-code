@@ -980,6 +980,12 @@ impl<'a> EvalState<'a> {
     }
 
     fn fatal_expansion_error(&mut self, msg: &str, stderr: &mut String) -> i32 {
+        if msg.starts_with(UNSUPPORTED_DOLLAR) {
+            stderr.push_str(&format!("shell: {msg}\n"));
+            self.last_exit = 2;
+            self.exit_requested = Some(2);
+            return 2;
+        }
         let is_param_err = msg.starts_with("__param_err__");
         let clean_msg = msg
             .strip_prefix("__param_err__")
@@ -10153,6 +10159,9 @@ impl<'a> EvalState<'a> {
                 }
             }
             if c == '$' {
+                if chars.get(idx + 1) == Some(&'$') {
+                    return Err(EvalError::Syntax(super::lexer::dollar_error(&chars, idx + 1)));
+                }
                 let expanded = self.expand_dollar(&chars, &mut idx)?;
                 out.push_str(&expanded);
                 continue;
@@ -10185,6 +10194,9 @@ impl<'a> EvalState<'a> {
                 }
             }
             if chars[idx] == '$' {
+                if chars.get(idx + 1) == Some(&'$') {
+                    return Err(EvalError::Syntax(super::lexer::dollar_error(&chars, idx + 1)));
+                }
                 let expanded = self.expand_dollar(&chars, &mut idx)?;
                 out.push_str(&expanded);
                 continue;
@@ -11623,7 +11635,7 @@ impl<'a> EvalState<'a> {
             return res;
         }
         let first = chars[*idx];
-        if matches!(first, '?' | '#' | '@' | '*' | '$' | '!' | '-') || first.is_ascii_digit() {
+        if matches!(first, '?' | '#' | '@' | '*' | '!' | '-') || first.is_ascii_digit() {
             *idx += 1;
             let key = first.to_string();
             return expand_parameter_expr(&key, self.env, self.last_exit, &self.pos_args)

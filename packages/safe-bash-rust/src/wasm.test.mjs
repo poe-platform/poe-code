@@ -9970,6 +9970,20 @@ test("jq charges one read for a direct memory JSON operand and admits its bytes 
   }
 });
 
+test("jq early errors stop at the filesystem chunk actually requested", async () => {
+  const files = { "/a": "1\n" + " ".repeat(65531) + "2  \n", "/empty": "" };
+  for (const profile of ["warm-memory-fastpath", "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const sh = new RustWasmBash({ files, profile });
+    try {
+      for (const operands of ["/a", "/a /empty"]) {
+        const r = await sh.exec(`jq -nc 'inputs | select(. == 2) | error' ${operands}`);
+        const line = operands === "/a" && profile === "warm-memory-fastpath" ? 2 : 1;
+        assert.deepEqual([r.exitCode, r.stderr], [5, `jq: error (at /a:${line}): 2\n`], profile);
+      }
+    } finally { sh.dispose(); }
+  }
+});
+
 test("jq reports the line reached when a filter stops reading JSON inputs", async () => {
   const sh = new RustWasmBash();
   try {

@@ -675,15 +675,6 @@ fn read_xml_operand(
     })
 }
 
-fn read_jq_file(fs: &dyn SafeBashFs, path: &str, single_chunk: bool) -> Result<Vec<u8>, String> {
-    let read = if single_chunk && path != "/dev" && !path.starts_with("/dev/") {
-        fs.read_single_chunk_input(path, None)
-    } else {
-        fs.access_path(path, true).and_then(|entry| fs.read_file(&entry))
-    };
-    read.map_err(|e| super::coreutils::stream_file_error(e, "readStream", path))
-}
-
 fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {
     if fs.is_dir(full_path) {
         format!("EISDIR: illegal operation on a directory, readStream '{full_path}'")
@@ -1038,10 +1029,20 @@ fn cmd_jq_core(
     let mut last_truthy: Option<bool> = None;
     let mut status = if exit_status { 4 } else { 0 };
     let mut first_null_done = false;
+    let mut terminal = String::new();
 
     loop {
         let input_val = if null_input {
             if first_null_done {
+                if drain_xml {
+                    loop {
+                        match vars.pop_input() {
+                            Ok(Some(_)) => {}
+                            Ok(None) => break,
+                            Err((code, msg)) => { terminal = diagnostic(&msg); status = code; break; }
+                        }
+                    }
+                }
                 break;
             }
             first_null_done = true;
@@ -1052,9 +1053,10 @@ fn cmd_jq_core(
             match next {
                 Ok(Some(v)) => v,
                 Ok(None) => break,
-                Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}{}", diagnostic(&msg)), exit_code },
+                Err((code, msg)) => { terminal = diagnostic(&msg); status = code; break; }
             }
         };
+        if inputs.borrow_mut().flush_errors(&mut stderr, false).is_err() { return err_out(&output_error(), 5); }
         let mut invocation_last = None;
         let emitted = visit_jq(&filter_str, &input_val, &vars, &mut |r| {
             if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
@@ -1088,42 +1090,32 @@ fn cmd_jq_core(
         });
         stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
         if let Some(e) = inputs.borrow_mut().file_error.take() {
-            return BuiltinOutcome { stdout: out, stderr: format!("{stderr}{}", diagnostic(&e)), exit_code: 2 };
+            terminal = diagnostic(&e);
+            status = 2;
+            break;
         }
         match emitted {
             Ok(_) => {
                 last_truthy = invocation_last.or(last_truthy);
                 status = if !exit_status { 0 } else { match last_truthy { Some(true) => 0, Some(false) => 1, None => 4 } };
             }
-            Err(JqFault::Limit(limit)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {limit} limit exceeded\n"), exit_code: 5 },
+            Err(JqFault::Limit(limit)) => { terminal = format!("jq: {limit} limit exceeded\n"); status = 5; break; }
             Err(JqFault::Halt(exit_code, message)) => {
-                stderr.push_str(&message);
-                return BuiltinOutcome { stdout: out, stderr, exit_code };
+                terminal = message;
+                status = exit_code;
+                break;
             }
             Err(JqFault::Error(code, value)) => {
                 let error = value.to_raw_string(true, false);
-                let place = inputs.borrow_mut().location(null_input);
-                use std::fmt::Write;
-                let mut input = inputs.borrow_mut();
-                let mut sink = json_format::LimitedText { text: &mut stderr, remaining: &mut input.remaining_output };
-                if writeln!(sink, "jq: error (at {place}): {}", jq_input::diagnostic(&error, 1000)).is_err() {
-                    return err_out(&output_error(), 5);
-                }
+                if inputs.borrow_mut().report(&error, null_input).is_err() { return err_out(&output_error(), 5); }
                 status = code;
             }
         }
+        if inputs.borrow_mut().flush_errors(&mut stderr, false).is_err() { return err_out(&output_error(), 5); }
     }
 
-    if drain_xml {
-        loop {
-            match vars.pop_input() {
-                Ok(Some(_)) => {}
-                Ok(None) => break,
-                Err((exit_code,msg)) => return BuiltinOutcome { stdout:out, stderr:format!("{stderr}{}", diagnostic(&msg)), exit_code },
-            }
-        }
-    }
-
+    if inputs.borrow_mut().flush_errors(&mut stderr, true).is_err() { return err_out(&output_error(), 5); }
+    stderr.push_str(&terminal);
     BuiltinOutcome {
         stdout: out,
         stderr,

@@ -137,6 +137,8 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.read_file(&host_text(path)).map_err(quote_host_text)
     }
 
+    fn supplies_single_chunk_input(&self) -> bool { self.inner.supplies_single_chunk_input() }
+
     fn read_single_chunk_input(&self, path: &str, _: Option<&ExecutionBudget>) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.inner.read_single_chunk_input(&host_text(path), Some(self.budget)).map_err(quote_host_text)

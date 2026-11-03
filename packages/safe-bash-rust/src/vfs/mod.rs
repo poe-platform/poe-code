@@ -177,6 +177,7 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
+    fn supplies_single_chunk_input(&self) -> bool { self.memory_backend().is_some() }
     /// Read a command input supplied as a single chunk by a direct memory filesystem.
     fn read_single_chunk_input(&self, path: &str, budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> {
         if let Some(budget) = budget { budget.tick_fs_op()?; }

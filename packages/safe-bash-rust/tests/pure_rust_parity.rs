@@ -23,8 +23,8 @@ impl SafeBashFs for JqStreamFs {
     fn access_path(&self, path: &str, _: bool) -> Result<String, String> { Ok(path.into()) }
     fn open_chunks(&self, path: &str) -> Result<ChunkReader<'_>, String> {
         let source: &[u8] = match path {
-            "/late-error" => {
-                let mut chunks = [b"a\xc3".as_slice(), b"\xa9\n"].into_iter();
+            "/late-error" | "/json-error" => {
+                let mut chunks = if path == "/json-error" { [b"1 ".as_slice(), b"\n2\n".as_slice()] } else { [b"a\xc3".as_slice(), b"\xa9\n".as_slice()] }.into_iter();
                 return Ok(Box::new(move |out| {
                     out.clear();
                     out.extend_from_slice(chunks.next().ok_or("EIO: late read")?);
@@ -39,6 +39,8 @@ impl SafeBashFs for JqStreamFs {
                     Ok(())
                 }));
             }
+            "/seq" => b"\x1e1 x\n\x1e2\n",
+            "/nul" => b"1\0 2\n3\n",
             "/filter" => b"include \"m\"; value",
             "/lib/m.jq" => b"def value: \"\xc3\xa9\";",
             _ => return Err("ENOENT: no such file or directory".into()),
@@ -66,6 +68,22 @@ fn jq_compiles_streamed_programs_and_modules_before_reading_input() {
     assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "é\n", ""));
     shell.set_limits(safe_bash_rust::ShellLimits { max_memory_bytes: 1024, ..Default::default() });
     assert!(shell.exec("jq -n -f /oversized").unwrap_err().contains("maxMemoryBytes"));
+}
+
+#[test]
+fn jq_json_file_reads_stop_on_the_requested_value() {
+    let mut shell = Shell::new(Arc::new(JqStreamFs), ShellOptions::default());
+    for (cmd, code, stdout, stderr) in [
+        ("jq -nc 'first(inputs)' /json-error", 0, "1\n", ""),
+        ("jq -nc 'first(inputs)' /json-error /absent", 0, "1\n", ""),
+        ("jq -nc 'first(inputs) | error' /json-error", 5, "", "jq: error (at /json-error:0): 1\n"),
+        ("jq error /json-error", 2, "", "jq: error (at /json-error:1): 1\njq: error (at /json-error:2): 2\njq: EIO: input/output error, readStream '/json-error'\n"),
+        ("jq --seq error /seq", 5, "", "jq: ignoring parse error: Invalid numeric literal at line 2, column 0 (need RS to resync)\njq: error (at /seq:1): 1\njq: error (at /seq:2): 2\n"),
+        ("jq -nc '[inputs]' /nul", 0, "[1,2,3]\n", ""),
+    ] {
+        let r = shell.exec(cmd).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{cmd}");
+    }
 }
 
 #[test]

@@ -655,6 +655,12 @@ const SAFE_DETERMINISTIC_CMDS = new Set([
   "mkdir",
 ]);
 
+function validateEnvEntry(key, value) {
+  if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) {
+    throw new TypeError("Invalid environment entry");
+  }
+}
+
 class WasmShell {
   constructor(exports, sessionId, cwd, env, limitError) {
     this.exports = exports;
@@ -697,7 +703,7 @@ class WasmShell {
   }
 
   setEnv(key, value) {
-    if (key.includes("\0")) throw new TypeError("Environment names cannot contain NUL");
+    validateEnvEntry(key, value);
     this.state.env[key] = value;
     this._setBinding(key, value);
   }
@@ -1173,11 +1179,15 @@ export class RustWasmBash extends WasmShell {
     let res;
     try {
       const before = options.hooks?.beforeExec ?? this.hooks?.beforeExec;
+      const env = Object.entries(options.env ?? {});
+      if (before && options.state == null) {
+        for (const [key, value] of env) validateEnvEntry(key, value);
+      }
       const state = options.state ?? (before && await before({source: script, options}));
       options.signal?.throwIfAborted();
       if (options.limits) shell.setLimits(options.limits);
       if (state !== undefined) shell.restoreSession(state);
-      for (const [name, value] of Object.entries(options.env ?? {})) {
+      for (const [name, value] of env) {
         shell.setEnv(name, value);
       }
       if (options.cwd !== undefined) shell._setBinding("\0cwd", options.cwd);

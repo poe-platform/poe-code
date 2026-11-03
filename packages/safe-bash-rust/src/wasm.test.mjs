@@ -2796,6 +2796,20 @@ test("stat distinguishes absent fields, a zero allocation, and a real inode", as
   } finally { bash.dispose(); }
 });
 
+test("invalid environment entries reject construction and execution before hooks or writes", async () => {
+  const bash = new RustWasmBash({ files: { "/file": "original" } });
+  let calls = 0;
+  const hooks = { beforeExec() { calls++; } };
+  try {
+    for (const env of [{ "a=b": "v" }, { "a\0b": "v" }, { a: "v\0x" }, { a: 0 }]) {
+      assert.throws(() => new RustWasmBash({ env }), new TypeError("Invalid environment entry"));
+      await assert.rejects(bash.exec("echo changed > /file", { env, hooks }), new TypeError("Invalid environment entry"));
+    }
+    assert.equal(calls, 0);
+    assert.equal(bash.readText("/file"), "original");
+  } finally { bash.dispose(); }
+});
+
 test("filesystem factory registration preserves the live native filesystem with a companion configured", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const bash = new RustWasmBash({ cwd: "/", companionFactory() {

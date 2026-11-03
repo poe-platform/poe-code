@@ -1,6 +1,6 @@
 mod expr_bre;
 mod fd_glob;
-use fd_glob::FdGlob;
+use fd_glob::{FdGlob, IgnoreFile};
 mod mdq_classes;
 mod mdq_class;
 pub(super) use expr_bre::expr_match;
@@ -2591,7 +2591,7 @@ fn cmd_grep(
             read_patterns_from_stdin = true;
             stream_string_to_bytes(stdin)
         } else {
-            match read_grep_file(fs, &search_path(cwd, &file), "readStream") {
+            match read_search_file(fs, &search_path(cwd, &file), "readStream") {
                 Ok(bytes) => bytes,
                 Err(e) => return error(e),
             }
@@ -2679,7 +2679,7 @@ fn cmd_grep(
         match key {
             "exclude-dir" => excluded_dirs.push(value),
             "exclude-from" => {
-                let bytes = match read_grep_file(fs, &search_path(cwd, value), "readStream") {
+                let bytes = match read_search_file(fs, &search_path(cwd, value), "readStream") {
                     Ok(bytes) => bytes,
                     Err(e) => return error(e),
                 };
@@ -3830,7 +3830,7 @@ fn search_fs_error(error: &str, op: &str, path: &str) -> String {
     format!("{reason}, {op} '{path}'")
 }
 
-fn read_grep_file(fs: &dyn SafeBashFs, path: &str, op: &str) -> Result<Vec<u8>, String> {
+fn read_search_file(fs: &dyn SafeBashFs, path: &str, op: &str) -> Result<Vec<u8>, String> {
     fs.access_path(path, true).and_then(|resolved| fs.read_file(&resolved))
         .map_err(|e| search_fs_error(&e, op, path))
 }
@@ -3939,7 +3939,7 @@ fn run_grep_engine(
                     if cfg.max_count == Some(0) && !label.is_empty() {
                         Vec::new()
                     } else {
-                        match read_grep_file(fs, path, op) {
+                        match read_search_file(fs, path, op) {
                             Ok(bytes) => bytes,
                             Err(e) => {
                                 had_error = true;
@@ -6405,27 +6405,15 @@ where
         and_patterns,
     };
 
-    let mut init_custom_rules = Vec::new();
-    for igf in &custom_ignore_files {
-        let ig_path = resolve_posix_path(&effective_cwd, igf);
-        match fs.read_file(&ig_path) {
-            Ok(bytes) => {
-                for line in String::from_utf8_lossy(&bytes).lines() {
-                    let t = line.trim();
-                    if !t.is_empty() && !t.starts_with('#') {
-                        init_custom_rules.push(t.to_string());
-                    }
-                }
-            }
-            Err(e) => {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("fd: {igf}: {e}\n"),
-                    exit_code: 1,
-                };
-            }
+    let mut rules = Vec::new();
+    for name in &custom_ignore_files {
+        let path = resolve_posix_path(&effective_cwd, name);
+        match IgnoreFile::read(fs, &path, &effective_cwd, 3) {
+            Ok(file) => rules.push(file),
+            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
         }
     }
+    let explicit_rules = rules.len();
 
     let format_entry_display = |raw_disp: &str, prefix_cwd: bool| -> String {
         let mut disp = raw_disp.to_string();
@@ -6499,7 +6487,8 @@ where
         stopped
     };
 
-    for r in &roots {
+    'roots: for r in &roots {
+        rules.truncate(explicit_rules);
         let full = resolve_posix_path(&effective_cwd, r);
         match fs.stat(&full) {
             Ok(st) if st.kind == VfsEntryKind::Directory => {}
@@ -6512,34 +6501,13 @@ where
                 continue;
             }
         }
-        let mut init_rules = init_custom_rules.clone();
-        if cfg.respect_ignore {
-            let mut ancestor_dirs = Vec::new();
-            if !no_ignore_parent {
-                ancestor_dirs.push("/".to_string());
-                let mut accum = String::new();
-                for seg in full.split('/').filter(|s| !s.is_empty()) {
-                    accum.push('/');
-                    accum.push_str(seg);
-                    ancestor_dirs.push(accum.clone());
-                }
-            } else {
-                ancestor_dirs.push(full.clone());
-            }
-            for dir_path in ancestor_dirs {
-                for ign_name in [".gitignore", ".ignore", ".fdignore"] {
-                    if ign_name == ".gitignore" && cfg.no_ignore_vcs {
-                        continue;
-                    }
-                    let ign_path = normalize_posix_path(&format!("{dir_path}/{ign_name}"));
-                    if let Ok(bytes) = fs.read_file(&ign_path) {
-                        for line in String::from_utf8_lossy(&bytes).lines() {
-                            let t = line.trim();
-                            if !t.is_empty() && !t.starts_with('#') {
-                                init_rules.push(t.to_string());
-                            }
-                        }
-                    }
+        if cfg.respect_ignore && !no_ignore_parent {
+            for (slash, _) in full.match_indices('/') {
+                if full == "/" { break; }
+                let dir = if slash == 0 { "/" } else { &full[..slash] };
+                if let Err(e) = IgnoreFile::load(&mut rules, fs, dir, None, cfg.no_ignore_vcs) {
+                    if visit(Err(e)) { break 'roots; }
+                    continue 'roots;
                 }
             }
         }
@@ -6558,7 +6526,7 @@ where
             0,
             prefix_cwd,
             &cfg,
-            &init_rules,
+            &mut rules,
             fs,
             &mut std::collections::BTreeSet::new(),
             &mut visit,
@@ -6597,7 +6565,7 @@ fn walk_fd(
     depth: usize,
     prefix_cwd: bool,
     cfg: &FdConfig,
-    ignore_rules: &[String],
+    rules: &mut Vec<IgnoreFile>,
     fs: &dyn SafeBashFs,
     ancestors: &mut std::collections::BTreeSet<String>,
     visit: &mut dyn FnMut(Result<(&str, bool, bool), String>) -> bool,
@@ -6627,7 +6595,7 @@ fn walk_fd(
         if cfg.excludes.iter().any(|ex| ex.matches(rel, is_dir) || ex.matches(&base, is_dir)) {
             return false;
         }
-        if cfg.respect_ignore && is_ignored_by_rules(&base, is_dir, ignore_rules) {
+        if IgnoreFile::ignored(rules, full, is_dir) {
             return false;
         }
 
@@ -6751,29 +6719,16 @@ fn walk_fd(
                 return false;
             }
         }
-        let mut local_rules: Vec<String> = ignore_rules.to_vec();
-        if depth > 0 && cfg.respect_ignore {
-            for ign_name in [".gitignore", ".ignore", ".fdignore"] {
-                if ign_name == ".gitignore" && cfg.no_ignore_vcs {
-                    continue;
-                }
-                let ign_path = normalize_posix_path(&format!("{full}/{ign_name}"));
-                if let Ok(bytes) = fs.read_file(&ign_path) {
-                    for line in String::from_utf8_lossy(&bytes).lines() {
-                        let t = line.trim();
-                        if !t.is_empty() && !t.starts_with('#') {
-                            local_rules.push(t.to_string());
-                        }
-                    }
-                }
-            }
-        }
         let mut entries = match fs.read_dir(full) {
             Err(e) => return visit(Err(if e.starts_with("ENOENT:") {
                 format!("ENOENT: no such file or directory, realpath '{full}'")
             } else { e })),
             Ok(entries) => entries,
         };
+        if cfg.respect_ignore && let Err(error) = IgnoreFile::load(rules, fs, full, (depth > 0).then_some(entries.as_slice()), cfg.no_ignore_vcs) {
+            return visit(Err(error));
+        }
+        let inherited = rules.len();
         entries.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
         if let Some(path) = &canonical { ancestors.insert(path.clone()); }
         for e in entries {
@@ -6800,11 +6755,12 @@ fn walk_fd(
                 depth + 1,
                 prefix_cwd,
                 cfg,
-                &local_rules,
+                rules,
                 fs,
                 ancestors,
                 visit,
             ) { return true; }
+            rules.truncate(inherited);
         }
         if let Some(path) = canonical { ancestors.remove(&path); }
     }
@@ -7656,6 +7612,42 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn fd_ignore_rules_keep_their_base_and_source_priority() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work/sub").unwrap();
+        for (path, data) in [
+            (".fdignore", "!sub/pinned\n/local\n"), ("sub/.gitignore", "pinned\nignored\n"),
+            ("rules", "sub/drop\n"), ("local", ""), ("sub/local", ""), ("sub/pinned", ""),
+            ("sub/ignored", ""), ("sub/drop", ""),
+        ] { fs.write_file(&format!("/work/{path}"), data.as_bytes()).unwrap(); }
+        for (flags, stdout) in [
+            ("-tf", "rules\nsub/local\nsub/pinned\n"),
+            ("-Itf", "local\nrules\nsub/ignored\nsub/local\nsub/pinned\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&[flags, "--ignore-file", "rules"]), "",
+                &mut "/work".to_owned(), &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, ""), "{flags}");
+        }
+    }
+
+    #[test]
+    fn fd_ignore_read_errors_report_the_file_and_preserve_preceding_matches() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work/z").unwrap();
+        for path in ["a", "z/a", "z/.ignore"] { fs.write_file(&format!("/work/{path}"), b"").unwrap(); }
+        fs.chmod("/work/z/.ignore", 0).unwrap();
+        for (opts, stdout, stderr) in [
+            (vec!["-tf"], "a\n", "fd: EACCES: permission denied, readFile '/work/z/.ignore'\n"),
+            (vec!["--ignore-file", "absent"], "", "fd: ENOENT: no such file or directory, readFile '/work/absent'\n"),
+            (vec!["--ignore-file", "z"], "", "fd: EISDIR: illegal operation on a directory, readFile '/work/z'\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&opts), "", &mut "/work".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, stdout, stderr));
+        }
     }
 
     #[test]

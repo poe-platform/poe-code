@@ -65,3 +65,62 @@ impl FdGlob {
         false
     }
 }
+
+pub(super) struct IgnoreFile {
+    base: String,
+    priority: u8,
+    rules: Vec<(FdGlob, bool)>,
+}
+
+impl IgnoreFile {
+    pub(super) fn read(fs: &dyn super::SafeBashFs, path: &str, base: &str, priority: u8) -> Result<Self, String> {
+        let bytes = super::read_search_file(fs, path, "readFile")?;
+        let text = String::from_utf8_lossy(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes));
+        let mut rules = Vec::new();
+        for mut line in text.lines() {
+            if line.starts_with('#') || line.contains('\u{fffd}') { continue; }
+            while let Some(before) = line.strip_suffix(' ') {
+                if before.bytes().rev().take_while(|b| *b == b'\\').count() % 2 == 1 { break; }
+                line = before;
+            }
+            let (pattern, include) = line.strip_prefix('!').map_or((line, false), |p| (p, true));
+            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern)?, include)); }
+        }
+        Ok(Self { base: base.to_owned(), priority, rules })
+    }
+
+    pub(super) fn ignored(files: &[Self], path: &str, directory: bool) -> bool {
+        let mut decision = None;
+        for file in files {
+            if decision.is_some_and(|(priority, _)| priority > file.priority) { continue; }
+            let outside;
+            let relative = if let Some(relative) = path.strip_prefix(file.base.trim_end_matches('/')).and_then(|p| p.strip_prefix('/')) {
+                relative
+            } else {
+                // Explicit rule files use the invocation cwd as their base even
+                // for a search root outside it. JS slices by UTF-16 offset.
+                let start = file.base.encode_utf16().count() + usize::from(file.base != "/");
+                outside = String::from_utf16_lossy(&path.encode_utf16().skip(start).collect::<Vec<_>>());
+                &outside
+            };
+            for (glob, include) in &file.rules {
+                if glob.matches(relative, directory) { decision = Some((file.priority, !include)); }
+            }
+        }
+        decision.is_some_and(|(_, ignored)| ignored)
+    }
+
+    pub(super) fn load(files: &mut Vec<Self>, fs: &dyn super::SafeBashFs, dir: &str, entries: Option<&[String]>, no_vcs: bool) -> Result<(), String> {
+        for (priority, name) in [(0, ".gitignore"), (1, ".ignore"), (2, ".fdignore")] {
+            if (priority == 0 && no_vcs) || entries.is_some_and(|names| !names.iter().any(|n| n == name)) { continue; }
+            let path = format!("{}/{name}", dir.trim_end_matches('/'));
+            match Self::read(fs, &path, dir, priority) {
+                Ok(file) if !file.rules.is_empty() => files.push(file),
+                Ok(_) => {}
+                Err(e) if e.starts_with("ENOENT:") || e.starts_with("EISDIR:") => {}
+                Err(e) => return Err(e),
+            }
+        }
+        Ok(())
+    }
+}

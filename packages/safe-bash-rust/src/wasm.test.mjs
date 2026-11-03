@@ -8475,3 +8475,19 @@ test("mdq preserves source whitespace inside multiline code and HTML and consume
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq pairs Markdown brackets after recognizing code, HTML and inner links", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = ["[not a `link](/foo`)", "[foo <a data-x=\"][ref]\">", "[foo`][ref]`",
+      "[foo<https://example.com/?search=][ref]>", "[link [foo [bar]]][ref]",
+      "[outer [inner](/one)](/two) and [x\\]z][ref]", "[ref]: /target"].join("\n\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-l inline", "-o json", "-o plain", "-o json '[]()'", "'</>'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -28848,33 +28848,14 @@ enum MdqInlineAtom<'a> {
     Link { image: bool, display: &'a str, target: MdqTarget },
 }
 
-fn mdq_contains_bracketed_url(src: &str) -> bool {
-    if !src.contains('<') { return false; }
-    let bytes = src.as_bytes();
-    let ticks = mdq_backtick_runs(bytes);
-    let mut i = 0;
-    while i < bytes.len() {
-        match bytes[i] {
-            b'\\' if bytes.get(i+1).is_some_and(u8::is_ascii_punctuation) => i += 2,
-            b'`' => {
-                let (width, close) = mdq_code_delimiters(bytes, i, &ticks);
-                i = close.unwrap_or(i) + width;
-            }
-            b'<' => {
-                if mdq_links::autolink(src, i, true).is_some() { return true; }
-                i += mdq_inline_html_len(&src[i..]).unwrap_or(1);
-            }
-            _ => i += 1,
-        }
-    }
-    false
-}
-
-fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: impl FnMut(std::ops::Range<usize>, MdqInlineAtom<'a>)) {
+fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str) -> Vec<(std::ops::Range<usize>, MdqInlineAtom<'a>)> {
     let bytes = src.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut k = 0usize;
-    let mut brackets = 0usize;
+    let mut brackets = Vec::new();
+    let mut atoms = Vec::new();
+    // Closing a link deactivates all pending link openers, but not images.
+    let mut generation = 0usize;
     while k < bytes.len() {
         if bytes[k] == b'\\' && bytes.get(k + 1).is_some_and(u8::is_ascii_punctuation) {
             k += 2;
@@ -28886,38 +28867,38 @@ fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: im
             continue;
         }
         if (bytes[k] == b'<' || bytes[k].is_ascii_alphanumeric() || b".-+".contains(&bytes[k]))
-            && let Some((display, target, used)) = mdq_links::autolink(src, k, brackets != 0) {
-            visit(k..k+used, MdqInlineAtom::Link { image: false, display, target });
+            && let Some((display, target, used)) = mdq_links::autolink(src, k, !brackets.is_empty()) {
+            atoms.push((k..k+used, MdqInlineAtom::Link { image: false, display, target }));
+            generation += 1;
             k += used;
             continue;
         }
         if bytes[k] == b'<' && let Some(n) = mdq_inline_html_len(&src[k..]) {
-            visit(k..k + n, MdqInlineAtom::Html(&src[k..k + n]));
+            atoms.push((k..k + n, MdqInlineAtom::Html(&src[k..k + n])));
             k += n;
             continue;
         }
         let image = bytes[k..].starts_with(b"![");
         if image || bytes[k] == b'[' {
-            let begin = k + if image { 2 } else { 1 };
-            if let Some(close) = src[begin..].match_indices(']').find(|(n, _)| {
-                src[begin..begin+n].bytes().rev().take_while(|&b| b == b'\\').count() % 2 == 0
-            }).map(|(n, _)| begin+n) {
-                let tail = &src[close+1..];
-                let parsed = tail.strip_prefix('(').and_then(MdqTarget::inline).map(|(t,n)| (t,n+1))
-                    .or_else(|| mdq_links::reference(tail, &src[begin-1..=close], defs));
-                let Some((target, used)) = parsed.filter(|_| image || !mdq_contains_bracketed_url(&src[begin..close])) else {
-                    brackets += 1; k = begin; continue;
-                };
-                let end = close + 1 + used;
-                visit(k..end, MdqInlineAtom::Link { image, display: &src[begin..close], target });
+            brackets.push((k, image, atoms.len(), generation));
+            k += if image { 2 } else { 1 };
+            continue;
+        }
+        if bytes[k] == b']' && let Some((open, image, child_start, opened)) = brackets.pop()
+            && (image || opened == generation) {
+            let begin = open + if image { 2 } else { 1 };
+            let tail = &src[k+1..];
+            let parsed = tail.strip_prefix('(').and_then(MdqTarget::inline).map(|(t,n)| (t,n+1))
+                .or_else(|| mdq_links::reference(tail, &src[begin-1..=k], defs));
+            if let Some((target, used)) = parsed {
+                let end = k + 1 + used;
+                atoms.truncate(child_start);
+                atoms.push((open..end, MdqInlineAtom::Link { image, display: &src[begin..k], target }));
+                if !image { generation += 1; }
                 k = end;
                 continue;
             }
-            brackets += 1;
-            k = begin;
-            continue;
         }
-        if bytes[k] == b']' { brackets = brackets.saturating_sub(1); }
         let standalone = b"\\`*_~[]<& \t\n".contains(&bytes[k]);
         k += 1;
         if !standalone {
@@ -28930,6 +28911,7 @@ fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: im
             }
         }
     }
+    atoms
 }
 
 fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: impl FnMut(&MdqTarget) -> String, mut emit: impl FnMut(&str, bool)) {
@@ -28937,8 +28919,7 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: i
         emit(&mdq_text_span(src, plain), true);
         return;
     }
-    let mut atoms = Vec::new();
-    mdq_visit_inline_atoms(defs, src, |r, atom| atoms.push((r, atom)));
+    let atoms = mdq_inline_atoms(defs, src);
     let marks = if src.contains(['_', '*', '~']) { mdq_emphasis::resolve(src, atoms.iter().map(|(r, _)| r)) } else { BTreeMap::new() };
     let mut at = 0;
     for (range, atom) in atoms {
@@ -29107,17 +29088,17 @@ fn mdq_select_one(defs: &MdqDefinitions, nodes: Vec<MdqBlock>, stage: &MdqSelect
                 _ => None,
             };
             for src in paragraph.into_iter().chain(b.table_rows.iter().flatten()) {
-                mdq_visit_inline_atoms(defs, src, |_, atom| match atom {
+                for (_, atom) in mdq_inline_atoms(defs, src) { match atom {
                     MdqInlineAtom::Html(text) => emit("html", text, None),
                     MdqInlineAtom::Link { image, display, target } => {
                         emit(if image { "image" } else { "link" }, display, Some(&target));
                         if kind == "html" && !image {
-                            mdq_visit_inline_atoms(defs, display, |_, inner| {
+                            for (_, inner) in mdq_inline_atoms(defs, display) {
                                 if let MdqInlineAtom::Html(text) = inner { emit("html", text, None); }
-                            });
+                            }
                         }
                     }
-                });
+                } }
             }
         }
         return selected;

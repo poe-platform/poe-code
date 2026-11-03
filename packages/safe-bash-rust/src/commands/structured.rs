@@ -28191,16 +28191,51 @@ fn mdq_html_block_end(line: &str, interrupt: bool) -> Option<&'static [&'static 
     { Some(&[]) } else { None }
 }
 
+fn mdq_decode_escape(src: &str, out: &mut String) -> Option<usize> {
+    use poe_agent_rust::html_markdown::{named_entity, numeric_entity};
+    let bytes = src.as_bytes();
+    if bytes.first() == Some(&b'\\') && bytes.get(1).is_some_and(u8::is_ascii_punctuation) {
+        out.push(bytes[1] as char);
+        return Some(2);
+    }
+    let rest = src.strip_prefix('&')?;
+    // The longest named character reference is 32 ASCII bytes, including its semicolon.
+    let end = rest.bytes().take(32).position(|b| b == b';')?;
+    let name = &rest[..end];
+    if let Some(n) = name.strip_prefix('#') {
+        let hex = n.starts_with(['x', 'X']);
+        let digits = if hex { &n[1..] } else { n };
+        if digits.is_empty() || digits.len() > (if hex { 6 } else { 7 })
+            || !digits.bytes().all(|c| if hex { c.is_ascii_hexdigit() } else { c.is_ascii_digit() }) { return None; }
+        out.push(numeric_entity(u32::from_str_radix(digits, if hex { 16 } else { 10 }).ok()?));
+    } else {
+        out.extend(char::decode_utf16(named_entity(&rest[..=end])?.iter().copied()).map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER)));
+    }
+    Some(end + 2)
+}
+
+fn mdq_decode_syntax(src: &str) -> String {
+    let mut rest = src;
+    let mut out = String::with_capacity(src.len());
+    while let Some(i) = rest.find(['\\', '&']) {
+        out.push_str(&rest[..i]);
+        rest = &rest[i..];
+        if let Some(n) = mdq_decode_escape(rest, &mut out) { rest = &rest[n..]; }
+        else { out.push(rest.as_bytes()[0] as char); rest = &rest[1..]; }
+    }
+    out.push_str(rest);
+    out
+}
+
 fn mdq_inline_text(s: &str, plain: bool) -> String {
-    if !plain && !s.contains(['\\', '`']) { return s.to_string(); }
+    if !plain && !s.contains(['\\', '`', '&']) { return s.to_string(); }
     let mut out = String::with_capacity(s.len());
     let bytes = s.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut i = 0usize;
     while i < bytes.len() {
-        if bytes[i] == b'\\' && bytes.get(i + 1).is_some_and(u8::is_ascii_punctuation) {
-            out.push(bytes[i + 1] as char);
-            i += 2;
+        if matches!(bytes[i], b'&' | b'\\') && let Some(n) = mdq_decode_escape(&s[i..], &mut out) {
+            i += n;
             continue;
         }
         if bytes[i] == b'`' {
@@ -28390,6 +28425,8 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
             continue;
         }
         if let Some((indent, marker, width, info)) = mdq_fence(line) {
+            let decoded = mdq_decode_syntax(info);
+            let info = decoded.trim();
             let (lang, metadata) = info.split_once([' ', '\t']).unwrap_or((info, ""));
             let mut code = Vec::new();
             i += 1;

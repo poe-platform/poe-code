@@ -92,7 +92,16 @@ fn units(value: &str) -> Vec<u16> {
 fn append(out: &mut Vec<u16>, value: &str) {
     out.extend(value.encode_utf16());
 }
-fn numeric(code: u32) -> Vec<u16> {
+/// Look up an HTML5 character reference without the leading ampersand.
+pub fn named_entity(name: &str) -> Option<&'static [u16]> {
+    ENTITIES
+        .binary_search_by(|(key, _)| key.cmp(&name))
+        .ok()
+        .map(|i| ENTITIES[i].1)
+}
+
+/// Resolve a numeric HTML reference, including the legacy Windows-1252 range.
+pub fn numeric_entity(code: u32) -> char {
     let special = [
         0x20ac, 0x81, 0x201a, 0x192, 0x201e, 0x2026, 0x2020, 0x2021, 0x2c6, 0x2030, 0x160, 0x2039,
         0x152, 0x8d, 0x17d, 0x8f, 0x90, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
@@ -103,10 +112,9 @@ fn numeric(code: u32) -> Vec<u16> {
     } else {
         code
     };
-    let c = char::from_u32(code)
+    char::from_u32(code)
         .filter(|_| code != 0)
-        .unwrap_or('\u{fffd}');
-    c.encode_utf16(&mut [0; 2]).to_vec()
+        .unwrap_or('\u{fffd}')
 }
 fn entities(input: &[u16], attribute: bool) -> Vec<u16> {
     let mut out = vec![];
@@ -141,7 +149,7 @@ fn entities(input: &[u16], attribute: bool) -> Vec<u16> {
                 let value = String::from_utf16_lossy(&input[digits..i]);
                 let code =
                     u32::from_str_radix(&value, if hex { 16 } else { 10 }).unwrap_or(u32::MAX);
-                out.extend(numeric(code));
+                out.extend_from_slice(numeric_entity(code).encode_utf16(&mut [0; 2]));
                 if input.get(i) == Some(&59) {
                     i += 1;
                 }
@@ -164,7 +172,7 @@ fn entities(input: &[u16], attribute: bool) -> Vec<u16> {
         let mut found = None;
         for stop in (i + 1..=end).rev() {
             let name = String::from_utf16_lossy(&input[i..stop]);
-            if let Ok(index) = ENTITIES.binary_search_by(|(key, _)| key.cmp(&name.as_str())) {
+            if let Some(value) = named_entity(&name) {
                 let terminated = input[stop - 1] == 59;
                 if !terminated
                     && attribute
@@ -174,7 +182,7 @@ fn entities(input: &[u16], attribute: bool) -> Vec<u16> {
                 {
                     break;
                 }
-                found = Some((stop, ENTITIES[index].1));
+                found = Some((stop, value));
                 break;
             }
         }

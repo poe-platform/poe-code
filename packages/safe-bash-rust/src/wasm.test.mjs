@@ -8324,3 +8324,21 @@ test("mdq quote selection rewrites matched children and skips code blocks", asyn
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq decodes Markdown character references in text and fence info, once", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const tick = String.fromCharCode(96);
+    const text = ["# &copy; &#x1F600; &NotEqualTilde;", "",
+      "A &amp;amp; \\&copy; &amp &unknown; &#0; &#xD800; &#1114112; &#00000000; &#x0000000; &#128;",
+      "", tick + "&amp;" + tick + " <b title='&copy;'>ok</b>",
+      "", "~~~a&#32;b&amp;c title\\! &#x1F600;", "&amp; stays in code", "~~~"].join("\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-o json", "-o plain", "'# ©'", "'P: &unknown;'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

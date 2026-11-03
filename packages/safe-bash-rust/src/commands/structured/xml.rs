@@ -37,7 +37,17 @@ fn name<'a>(input: &mut &'a str) -> Result<&'a str, &'static str> {
     Ok(name)
 }
 
-fn decode(mut s: &str, attr: bool) -> Result<String, &'static str> {
+type Warnings<'a> = Option<&'a mut Vec<&'static str>>;
+
+fn repair(warnings: &mut Warnings<'_>, message: &'static str) -> Result<(), &'static str> {
+    let list = warnings.as_mut().ok_or(message)?;
+    if !list.contains(&message) {
+        list.push(message);
+    }
+    Ok(())
+}
+
+fn decode(mut s: &str, attr: bool, warnings: &mut Warnings<'_>) -> Result<String, &'static str> {
     let mut out = String::with_capacity(s.len());
     loop {
         let (raw, entity) = s.split_once('&').map_or((s, None), |(a, b)| (a, Some(b)));
@@ -50,7 +60,16 @@ fn decode(mut s: &str, attr: bool) -> Result<String, &'static str> {
             out.push_str(raw);
         }
         let Some(entity) = entity else { return Ok(out) };
-        let (token, rest) = entity.split_once(';').ok_or("unterminated entity")?;
+        let Some((token, rest)) = entity.split_once(';') else {
+            repair(warnings, "unterminated entity")?;
+            if attr {
+                out.push_str(&entity.replace(['\n', '\t'], " "));
+            } else {
+                out.push_str(entity);
+            }
+            return Ok(out);
+        };
+        s = rest;
         out.push(match token {
             "amp" => '&',
             "lt" => '<',
@@ -58,10 +77,14 @@ fn decode(mut s: &str, attr: bool) -> Result<String, &'static str> {
             "quot" => '"',
             "apos" => '\'',
             _ => {
-                let n = token.strip_prefix('#').ok_or("undeclared entity")?;
+                let Some(n) = token.strip_prefix('#') else {
+                    repair(warnings, "undeclared entity")?;
+                    continue;
+                };
                 let (radix, digits) = n.strip_prefix('x').map_or((10, n), |s| (16, s));
                 if digits.is_empty() {
-                    return Err("undeclared entity");
+                    repair(warnings, "undeclared entity")?;
+                    continue;
                 }
                 let mut point = 0u32;
                 for c in digits.chars() {
@@ -75,7 +98,6 @@ fn decode(mut s: &str, attr: bool) -> Result<String, &'static str> {
                     .ok_or("invalid character reference")?
             }
         });
-        s = rest;
     }
 }
 
@@ -125,7 +147,11 @@ fn declaration(
     Some((encoding.map(str::to_owned), standalone.map(str::to_owned)))
 }
 
-pub(super) fn parse(src: &str, expected_encoding: Option<&str>) -> Result<Document, String> {
+pub(super) fn parse(
+    src: &str,
+    expected_encoding: Option<&str>,
+    warnings: Warnings<'_>,
+) -> Result<Document, String> {
     let src = src.strip_prefix('\u{feff}').unwrap_or(src);
     if !src.chars().all(valid) {
         return Err("Invalid XML: invalid character".into());
@@ -137,7 +163,7 @@ pub(super) fn parse(src: &str, expected_encoding: Option<&str>) -> Result<Docume
     } else {
         src
     };
-    document(src, expected_encoding).map_err(|e| {
+    document(src, expected_encoding, warnings).map_err(|e| {
         if e == "XML resource limit exceeded" {
             e.into()
         } else {
@@ -146,7 +172,11 @@ pub(super) fn parse(src: &str, expected_encoding: Option<&str>) -> Result<Docume
     })
 }
 
-fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'static str> {
+fn document(
+    mut s: &str,
+    expected_encoding: Option<&str>,
+    mut warnings: Warnings<'_>,
+) -> Result<Document, &'static str> {
     let size = s.len();
     let mut doc = Document::default();
     let mut stack: Vec<HtmlElement> = Vec::new();
@@ -191,14 +221,20 @@ fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'
             continue;
         } else if let Some(mut rest) = s.strip_prefix("</") {
             let end = name(&mut rest)?;
-            s = rest
-                .trim_start_matches(space)
-                .strip_prefix('>')
-                .ok_or("mismatched closing tag")?;
-            let el = stack
-                .pop()
-                .filter(|e| e.tag == end)
-                .ok_or("mismatched closing tag")?;
+            rest = rest.trim_start_matches(space);
+            let closed = if let Some(tail) = rest.strip_prefix('>') {
+                s = tail;
+                stack.pop()
+            } else {
+                s = rest.chars().next().map_or(rest, |c| &rest[c.len_utf8()..]);
+                None
+            };
+            if closed.as_ref().is_none_or(|el| el.tag != end) {
+                repair(&mut warnings, "mismatched closing tag")?;
+            }
+            let Some(el) = closed else {
+                continue;
+            };
             HtmlNode::Element(el)
         } else if let Some(rest) = s.strip_prefix('<') {
             s = rest;
@@ -208,7 +244,7 @@ fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'
             scope_starts.push(declarations.len());
             loop {
                 let rest = s.trim_start_matches(space);
-                if rest.starts_with(['/', '>']) {
+                if rest.starts_with(['/', '>']) || rest.is_empty() && warnings.is_some() {
                     s = rest;
                     break;
                 }
@@ -234,7 +270,7 @@ fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'
                 if value.contains('<') {
                     return Err("less-than in attribute");
                 }
-                let value = decode(value, true)?;
+                let value = decode(value, true, &mut warnings)?;
                 if key == "xmlns" || key.starts_with("xmlns:") {
                     let prefix = key.strip_prefix("xmlns:").unwrap_or("");
                     if prefix == "xmlns"
@@ -284,11 +320,21 @@ fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'
                 attrs,
                 children: Vec::new(),
             };
-            if let Some(tail) = s.strip_prefix("/>") {
+            let empty = s.starts_with('/');
+            if empty {
+                s = &s[1..];
+            }
+            if let Some(tail) = s.strip_prefix('>') {
                 s = tail;
+            } else {
+                repair(&mut warnings, "unterminated start tag")?;
+                if let Some(c) = s.chars().next() {
+                    s = &s[c.len_utf8()..];
+                }
+            }
+            if empty {
                 HtmlNode::Element(el)
             } else {
-                s = s.strip_prefix('>').ok_or("unterminated start tag")?;
                 stack.push(el);
                 continue;
             }
@@ -301,7 +347,11 @@ fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'
             if stack.is_empty() && !text.chars().all(space) {
                 return Err("text outside the root");
             }
-            HtmlNode::Text(decode(text, false)?)
+            let decoded = decode(text, false, &mut warnings)?;
+            if decoded.is_empty() {
+                continue;
+            }
+            HtmlNode::Text(decoded)
         };
         if matches!(&node, HtmlNode::Element(_)) {
             for prefix in declarations.drain(scope_starts.pop().unwrap()..) {
@@ -318,8 +368,18 @@ fn document(mut s: &str, expected_encoding: Option<&str>) -> Result<Document, &'
             doc.nodes.push(node);
         }
     }
-    if !has_root || !stack.is_empty() {
+    if !has_root {
         return Err("incomplete document");
+    }
+    if !stack.is_empty() {
+        repair(&mut warnings, "incomplete document")?;
+        while let Some(el) = stack.pop() {
+            if let Some(parent) = stack.last_mut() {
+                parent.children.push(HtmlNode::Element(el));
+            } else {
+                doc.nodes.push(HtmlNode::Element(el));
+            }
+        }
     }
     Ok(doc)
 }

@@ -8997,3 +8997,19 @@ test("XML commands share strict parsing and preserve their own JSON mapping", as
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint recovery reports repairs and rejects malformed attributes and DTDs", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const xml of ["<A a='1'><B>open", "<r><x></wrong>", "<r>&a;&b; &text", "<r",
+      "<r a='&unknown;'/>", "<r>&#;</r>", "<r>&#bad;</r>", "<r a='1' a='2'/>", "<p:r/>", "<!DOCTYPE r><r/>"]) {
+      for (const store of [fs, rs.fs]) await store.writeFile("/xml", Buffer.from(xml));
+      for (const cmd of ["xmllint --recover /xml", "xmllint --recover --noout /xml"]) {
+        const a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + xml);
+      }
+    }
+  } finally { rs.dispose(); }
+});

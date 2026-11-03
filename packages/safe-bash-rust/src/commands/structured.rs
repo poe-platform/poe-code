@@ -5347,7 +5347,7 @@ fn parse_yq_input_docs_with_meta(
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return Ok(vec![(xml::to_json(xml::parse(input, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
+        return Ok(vec![(xml::to_json(xml::parse(input, None, None).map_err(|e| format!("bad xml input: {e}"))?.nodes, use_plus_xml), single_meta())]);
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
@@ -14934,26 +14934,18 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
         };
 
-        let doc = match xml::parse(&text, Some("UTF-8")) {
-            Ok(d) => d,
+        let mut warnings = Vec::new();
+        let doc = match xml::parse(&text, Some("UTF-8"), recover.then_some(&mut warnings)) {
+            Ok(doc) => doc,
             Err(e) => {
-                if recover && e != "XML resource limit exceeded" {
-                    let recovered = parse_html_dom(&text);
-                    if recovered.iter().any(|n| matches!(n, HtmlNode::Element(_))) {
-                        xml::Document { nodes: recovered, ..Default::default() }
-                    } else {
-                        result.stderr.push_str(&format!("xmllint: {e}\n"));
-                        result.exit_code = 1;
-                        continue;
-                    }
-                } else {
-                    result.stderr.push_str(&format!("xmllint: {e}\n"));
-                    result.exit_code = 1;
-                    continue;
-                }
+                result.stderr.push_str(&format!("xmllint: {e}\n"));
+                result.exit_code = 1;
+                continue;
             }
         };
-
+        for message in warnings {
+            result.stderr.push_str(&format!("xmllint: {message} (recovered)\n"));
+        }
         let mut dom = doc.nodes;
         apply_xml_transforms(&mut dom, noblanks, nocdata, false);
 

@@ -1,4 +1,4 @@
-import OpenAI from "./openai-transport.js";
+import OpenAI, { APIError } from "./openai-transport.js";
 import { native } from "./native.js";
 import { setResolvedPluginOptions } from "./provider-metadata.js";
 import { toolResultPartToText } from "./tool-results.js";
@@ -132,7 +132,11 @@ export function openaiResponsesPlugin(opts = {}) {
                   },
                   { signal: request.signal }
                 );
-                return { events: streamEvents(stream) };
+                const response = (attempt) => ({
+                  events: streamEvents(attempt),
+                  retry: async (error) => response(await attempt.retry(error))
+                });
+                return response(stream);
               }
             };
           }
@@ -152,6 +156,10 @@ async function* streamEvents(stream) {
         return { type: event.type, payload: frames[event.sourceIndex].item };
       if (event.type === "pending_error")
         return { type: event.type, source: frames[event.sourceIndex] };
+      if (event.type === "pending_stop" && event.reason === "error") {
+        const error = frames[event.sourceIndex]?.response?.error;
+        if (error) return { type: "pending_error", source: error };
+      }
       return event;
     });
   };
@@ -164,13 +172,8 @@ async function* streamEvents(stream) {
       })();
   for await (const event of projected) {
     if (event.type === "pending_error") {
-      const source = event.source,
-        error = new Error(source.message ?? "OpenAI responses stream failed.");
+      const error = new APIError(undefined, event.source, "OpenAI responses stream failed.");
       error.name = "OpenAIResponsesStreamError";
-      Object.assign(error, {
-        ...(source.code === undefined ? {} : { code: source.code }),
-        ...(source.param === undefined ? {} : { param: source.param })
-      });
       throw error;
     }
     if (event.type === "pending_stop") {

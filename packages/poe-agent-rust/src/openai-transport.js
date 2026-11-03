@@ -57,8 +57,8 @@ export default class OpenAI {
     };
     this.responses = { stream: (body, request) => this.#responses(body, request) };
   }
-  #responses(body, request) {
-    const ready = this.#request("responses", { ...body, stream: true }, request);
+  #responses(body, request, retries = { used: 0 }) {
+    const ready = this.#request("responses", { ...body, stream: true }, request, retries);
     // The SDK starts Responses requests immediately, while consumers observe
     // failures through iteration. Handle the promise without swallowing its error.
     void ready.catch(() => {});
@@ -73,9 +73,32 @@ export default class OpenAI {
       projection.map = map;
       return iterator;
     };
+    // Only the response owner may retry: it must discard its parser and collector.
+    iterator.retry = async (error) => {
+      const signal = request?.signal;
+      signal?.throwIfAborted();
+      if (
+        !(error instanceof APIError) ||
+        error.status !== undefined ||
+        !["server_error", "rate_limit_exceeded"].includes(error.code ?? error.type) ||
+        retries.used >= this.#options.maxRetries
+      ) {
+        throw error;
+      }
+      const headers = error.headers ?? (await ready).headers;
+      if (headers.get("x-should-retry") === "false") throw error;
+      const wait = this.#retryDelay(headers, retries.used++);
+      try {
+        await delay(wait, undefined, { signal });
+      } catch (cause) {
+        signal?.throwIfAborted();
+        throw cause;
+      }
+      return this.#responses(body, request, retries);
+    };
     return iterator;
   }
-  async #request(path, body, { signal } = {}) {
+  async #request(path, body, { signal } = {}, retries = { used: 0 }) {
     const options = this.#options;
     const headers = new Headers({
       "content-type": "application/json",
@@ -89,7 +112,7 @@ export default class OpenAI {
       else if (value !== undefined) headers.set(name, value);
     }
     const url = `${options.baseURL.endsWith("/") ? options.baseURL.slice(0, -1) : options.baseURL}/${path}`;
-    for (let attempt = 0; ; attempt++) {
+    while (true) {
       signal?.throwIfAborted();
       const controller = new AbortController();
       let response;
@@ -113,7 +136,7 @@ export default class OpenAI {
       } catch (cause) {
         signal?.removeEventListener("abort", forward);
         signal?.throwIfAborted();
-        if (attempt >= options.maxRetries) {
+        if (retries.used >= options.maxRetries) {
           const error = new APIError(
             undefined,
             undefined,
@@ -122,7 +145,7 @@ export default class OpenAI {
           error.cause = cause;
           throw error;
         }
-        await delay(native.agentOpenaiRetryDelay(attempt, Math.random()), undefined, { signal });
+        await delay(native.agentOpenaiRetryDelay(retries.used++, Math.random()), undefined, { signal });
         continue;
       } finally {
         clearTimeout(timer);
@@ -130,11 +153,11 @@ export default class OpenAI {
       if (!response.ok) {
         signal?.removeEventListener("abort", forward);
         if (
-          attempt < options.maxRetries &&
+          retries.used < options.maxRetries &&
           native.agentOpenaiRetryable(response.status, response.headers.get("x-should-retry"))
         ) {
           await response.body?.cancel();
-          await delay(this.#retryDelay(response.headers, attempt), undefined, { signal });
+          await delay(this.#retryDelay(response.headers, retries.used++), undefined, { signal });
           continue;
         }
         const text = await readErrorBody(response, signal);
@@ -148,6 +171,7 @@ export default class OpenAI {
       }
       const projection = { started: false };
       const stream = this.#events(response, controller, signal, forward, projection);
+      stream.headers = response.headers;
       stream.mapFrames = (map) => {
         if (projection.started) throw new Error("Cannot project a consumed stream");
         projection.map = map;

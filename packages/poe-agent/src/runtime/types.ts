@@ -107,6 +107,8 @@ export type UsageInfo = {
 };
 
 export type AcpEvent =
+  | { type: "model.attempt.start"; attempt: number }
+  | { type: "model.attempt.failed"; attempt: number; error: unknown }
   | { type: "message.delta"; content: string }
   | { type: "tool.intent"; intentId: string; tool: string; args: unknown }
   | { type: "tool.result"; intentId: string; result: unknown }
@@ -115,7 +117,7 @@ export type AcpEvent =
   | { type: "fork.complete"; forkId: string; result: ForkResult }
   | { type: "fork.error"; forkId: string; error: string }
   | { type: "progress"; message: string }
-  | { type: "usage"; usage: UsageInfo }
+  | { type: "usage"; usage: UsageInfo; attempt?: number }
   | { type: "session.complete"; result: RunResult }
   | { type: "session.error"; error: Error };
 

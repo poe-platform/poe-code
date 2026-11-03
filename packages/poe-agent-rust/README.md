@@ -180,7 +180,13 @@ mocked benchmarks; the full Chat provider currently fails its speed gate.
 adds Responses models with streamed text, tools, reasoning summaries and opaque
 encrypted reasoning payloads. It uses the same owned transport and credential
 precedence. Rust maintains tool aliases/arguments and maps usage and terminal
-states; Node serializes messages and preserves argument-parse diagnostics. Include
+states; Node serializes messages and preserves argument-parse diagnostics. Agent
+collection retries streamed `server_error` and `rate_limit_exceeded` failures within
+`maxRetries` (default 2), sharing the budget with HTTP retries. Each attempt uses a
+fresh collector; failed calls never execute or enter conversation history. Cancellation
+interrupts retry backoff. `model.attempt.start` and `model.attempt.failed` delimit
+partial events; reported usage from failed attempts is emitted once with its attempt
+number, separately from successful-response usage. Include
 defaults to `reasoning.encrypted_content`. Tool/alias state has the same retained
 UTF16 and identity bounds; terminal output is limited to 4,096 items. Valid streams
 match the official SDK in mocked comparisons and are faster in the current scoped

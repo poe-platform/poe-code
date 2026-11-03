@@ -24,7 +24,8 @@ vi.mock("auth-store", () => ({
   createSecretStore: createSecretStoreMock
 }));
 
-vi.mock("openai", () => ({
+vi.mock("openai", async (importOriginal) => ({
+  APIError: (await importOriginal<typeof import("openai")>()).APIError,
   default: openAiConstructorMock,
   OpenAI: openAiConstructorMock
 }));

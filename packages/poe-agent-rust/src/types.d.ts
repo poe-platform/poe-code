@@ -91,6 +91,8 @@ export type UsageInfo = {
   cacheCreationTokens: number;
 };
 export type AcpEvent =
+  | { type: "model.attempt.start"; attempt: number }
+  | { type: "model.attempt.failed"; attempt: number; error: unknown }
   | {
       type: "message.delta";
       content: string;
@@ -133,6 +135,7 @@ export type AcpEvent =
   | {
       type: "usage";
       usage: UsageInfo;
+      attempt?: number;
     }
   | {
       type: "session.complete";

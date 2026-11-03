@@ -46,16 +46,18 @@ impl NativeAgentResponsesStream {
             };
             for event in &mut next {
                 if let Value::Object(properties) = event
-                    && ["reasoning_details", "pending_error"].iter().any(|kind| {
-                        is(
-                            properties
-                                .iter()
-                                .find(|(key, _)| key.iter().copied().eq("type".encode_utf16()))
-                                .map(|(_, value)| value)
-                                .unwrap_or(&Value::Null),
-                            kind,
-                        )
-                    })
+                    && ["reasoning_details", "pending_error", "pending_stop"]
+                        .iter()
+                        .any(|kind| {
+                            is(
+                                properties
+                                    .iter()
+                                    .find(|(key, _)| key.iter().copied().eq("type".encode_utf16()))
+                                    .map(|(_, value)| value)
+                                    .unwrap_or(&Value::Null),
+                                kind,
+                            )
+                        })
                 {
                     properties.push((
                         "sourceIndex".encode_utf16().collect(),

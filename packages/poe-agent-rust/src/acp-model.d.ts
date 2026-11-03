@@ -7,6 +7,8 @@ export type AcpModelToolDefinition = {
 };
 export type AcpModelResponse = {
   events: AsyncIterable<ProviderStreamEvent>;
+  /** Discard the failed response before requesting a fresh, bounded attempt. */
+  retry?(error: unknown): Promise<AcpModelResponse>;
 };
 export type AcpModelRequestMessage = {
   role: "system" | "user" | "assistant" | "tool";

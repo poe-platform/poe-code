@@ -192,7 +192,7 @@ test("reasoning projection leaves opaque payloads untouched and stops batch scan
     ]),
     [
       { type: "reasoning_details", sourceIndex: 0 },
-      { type: "pending_stop", reason: "end_turn" }
+      { type: "pending_stop", reason: "end_turn", sourceIndex: 1 }
     ]
   );
 });
@@ -209,7 +209,7 @@ test("late tool parse success updates the terminal stop within the same native b
     ]),
     [
       { type: "pending_tool", id: "call", name: "tool", raw: "{}" },
-      { type: "pending_stop", reason: "end_turn" }
+      { type: "pending_stop", reason: "end_turn", sourceIndex: 1 }
     ]
   );
   state.recordToolSuccess();

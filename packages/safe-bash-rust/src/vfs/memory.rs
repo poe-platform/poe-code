@@ -6,7 +6,7 @@ pub(crate) use descriptor::RetainedFile;
 use crate::vfs::path::{normalize_posix_path, parent_posix_path};
 use crate::vfs::{EntryIdentity, FileStat, FsError, FsErrorCode, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::collections::{BTreeMap, HashMap};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]
@@ -25,13 +25,24 @@ enum MemoryNode {
     Symlink {
         ino: u64,
         target: Arc<str>,
-        mode: u32,
+        status: Arc<SymlinkStatus>,
         atime_ms: f64,
         mtime_ms: f64,
-        revision: Arc<AtomicU64>,
-        ctime_bits: Arc<AtomicU64>,
         birthtime_ms: f64,
     },
+}
+
+#[derive(Debug)]
+struct SymlinkStatus {
+    mode: AtomicU32,
+    revision: AtomicU64,
+    ctime_bits: AtomicU64,
+}
+
+impl SymlinkStatus {
+    fn new(mode: u32, now: f64) -> Arc<Self> {
+        Arc::new(Self { mode: mode.into(), revision: 0.into(), ctime_bits: now.to_bits().into() })
+    }
 }
 
 impl MemoryNode {
@@ -43,7 +54,7 @@ impl MemoryNode {
         match self {
             Self::File { ino } => files.get_mut(ino).unwrap().status_changed(now),
             Self::Directory { ctime_ms, revision, .. } => { *ctime_ms = now; *revision += 1; }
-            Self::Symlink { ctime_bits, revision, .. } => { ctime_bits.store(now.to_bits(), Ordering::Relaxed); revision.fetch_add(1, Ordering::Relaxed); }
+            Self::Symlink { status, .. } => { status.ctime_bits.store(now.to_bits(), Ordering::Relaxed); status.revision.fetch_add(1, Ordering::Relaxed); }
         }
     }
 
@@ -432,7 +443,7 @@ impl MemoryVfs {
                     (VfsEntryKind::File, file.data.len(), file.mode, file.atime_ms, file.mtime_ms, file.ctime_ms, file.birthtime_ms, *ino, Some(file.revision))
                 }
                 Some(MemoryNode::Directory { ino, mode, atime_ms, mtime_ms, ctime_ms, birthtime_ms, revision, .. }) => (VfsEntryKind::Directory, 0, *mode, *atime_ms, *mtime_ms, *ctime_ms, *birthtime_ms, *ino, Some(*revision)),
-                Some(MemoryNode::Symlink { ino, target, mode, atime_ms, mtime_ms, ctime_bits, birthtime_ms, revision }) => (VfsEntryKind::Symlink, target.len(), *mode, *atime_ms, *mtime_ms, f64::from_bits(ctime_bits.load(Ordering::Relaxed)), *birthtime_ms, *ino, Some(revision.load(Ordering::Relaxed))),
+                Some(MemoryNode::Symlink { ino, target, status, atime_ms, mtime_ms, birthtime_ms }) => (VfsEntryKind::Symlink, target.len(), status.mode.load(Ordering::Relaxed), *atime_ms, *mtime_ms, f64::from_bits(status.ctime_bits.load(Ordering::Relaxed)), *birthtime_ms, *ino, Some(status.revision.load(Ordering::Relaxed))),
                 None => return None,
             }
         };
@@ -713,6 +724,75 @@ impl MemoryVfs {
         Ok(true)
     }
 
+    /// Change the inspected entry without following a final symbolic link.
+    /// Receipts come from lstat on this filesystem. Check every component and
+    /// apply the change under one lock, including for hard-linked entries.
+    pub fn chmod_conditional(
+        &self, path: &str, mode: u32, ancestors: &[(&str, FileStat)],
+        parent: &FileStat, expected: &FileStat,
+    ) -> Result<(), String> {
+        let dir = super::dirname_posix_path(path);
+        if mode > 0o7777 || path != normalize_posix_path(path) || path.contains('\0')
+            || ancestors.last().map(|(p,_)|*p) != Some(dir.as_str()) {
+            return Err("EINVAL: invalid chmod receipt".into());
+        }
+        let mut previous = "";
+        for (i, (p, stat)) in ancestors.iter().enumerate() {
+            if (i == 0 && *p != "/") || (i > 0 && (*p == "/" || super::dirname_posix_path(p) != previous))
+                || stat.kind != VfsEntryKind::Directory {
+                return Err("EINVAL: invalid chmod ancestry".into());
+            }
+            previous = p;
+        }
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let check = |path: &str, expected: &FileStat, unchanged: bool| -> Result<FileStat, String> {
+            let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
+            let current = self.resolved_metadata(&state, path).ok_or_else(changed)?;
+            let Some(EntryIdentity::Memory(scope, _)) = expected.identity else {
+                return Err("ENOTSUP: missing filesystem identity".into());
+            };
+            if !matches!(current.identity, Some(EntryIdentity::Memory(id,_)) if scope == id) {
+                return Err("ENOTSUP: different filesystem identity".into());
+            }
+            if expected.identity != current.identity || expected.kind != current.kind { return Err(changed()); }
+            if unchanged && current.kind != VfsEntryKind::Directory {
+                if current.revision.is_none() || expected.revision.is_none() {
+                    return Err("ENOTSUP: missing file revision".into());
+                }
+                if expected.revision != current.revision || expected.size != current.size || expected.mode != current.mode ||
+                    expected.nlink != current.nlink || expected.mtime_ms != current.mtime_ms || expected.ctime_ms != current.ctime_ms {
+                    return Err(changed());
+                }
+            }
+            Ok(current)
+        };
+        for (p, expected_dir) in ancestors {
+            if check(p, expected_dir, false)?.mode & 0o100 == 0 {
+                return Err(format!("EACCES: permission denied, verifyDirectoryAncestry '{p}'"));
+            }
+        }
+        check(&dir, parent, false)?;
+        check(path, expected, true)?;
+        if state.devices.entry(path).is_some() { return Err("ENOTSUP: device chmod".into()); }
+        self.set_mode_locked(&mut state, path, mode)
+    }
+
+    fn set_mode_locked(&self, guard: &mut MemoryState, path: &str, mode: u32) -> Result<(), String> {
+        let now = super::now_ms();
+        let node = guard.nodes.get_mut(path).ok_or_else(|| format!("ENOENT: no such file or directory, chmod '{path}'"))?;
+        node.status_changed(&mut guard.files, now);
+        match node {
+            MemoryNode::File { ino } => {
+                let file = guard.files.get_mut(ino).unwrap();
+                file.publication = None;
+                file.mode = 0o100000 | (mode & 0o7777);
+            }
+            MemoryNode::Directory { mode: m, .. } => *m = 0o040000 | (mode & 0o7777),
+            MemoryNode::Symlink { status, .. } => status.mode.store(0o120000 | (mode & 0o7777), Ordering::Relaxed),
+        }
+        self.bump_generation();
+        Ok(())
+    }
     fn mutation_entry(state: &MemoryState, path: &str) -> Result<String, String> {
         super::path::rename_entry(path, state.limits.max_symlink_hops, |parent| {
             match state.nodes.get(parent) {
@@ -1389,8 +1469,8 @@ impl SafeBashFs for MemoryVfs {
             MemoryNode::Symlink {
                 ino,
                 target: Arc::from(target),
-                mode: 0o120777,
-                atime_ms: now, mtime_ms: now, birthtime_ms: now, revision: Arc::default(), ctime_bits: Arc::new(AtomicU64::new(now.to_bits())),
+                status: SymlinkStatus::new(0o120777, now),
+                atime_ms: now, mtime_ms: now, birthtime_ms: now,
             },
         );
         self.bump_generation();
@@ -1414,28 +1494,7 @@ impl SafeBashFs for MemoryVfs {
         let norm = normalize_posix_path(path);
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-        match guard.nodes.get_mut(&resolved) {
-            Some(MemoryNode::File { ino }) => {
-                let ino = *ino;
-                let file = guard.files.get_mut(&ino).unwrap();
-                file.publication = None;
-                file.status_changed(super::now_ms());
-                file.mode = 0o100000 | (mode & 0o7777);
-            }
-            Some(MemoryNode::Directory { mode: m, ctime_ms, revision, .. }) => {
-                *revision += 1;
-                *ctime_ms = super::now_ms();
-                *m = 0o040000 | (mode & 0o7777);
-            }
-            Some(MemoryNode::Symlink { mode: m, ctime_bits, revision, .. }) => {
-                revision.fetch_add(1, Ordering::Relaxed);
-                ctime_bits.store(super::now_ms().to_bits(), Ordering::Relaxed);
-                *m = 0o120000 | (mode & 0o7777);
-            }
-            None => return Err(format!("ENOENT: no such file or directory, chmod '{norm}'")),
-        }
-        self.bump_generation();
-        Ok(())
+        self.set_mode_locked(&mut guard, &resolved, mode)
     }
 
     fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
@@ -1507,14 +1566,14 @@ impl SafeBashFs for MemoryVfs {
                         mode: file.mode,
                     });
                 }
-                MemoryNode::Symlink { ino, target, mode, .. } => {
+                MemoryNode::Symlink { ino, target, status, .. } => {
                     out.push(VfsFileEntry {
                         path: path.clone(),
                         kind: VfsEntryKind::Symlink,
                         data: Arc::default(),
                         link_group: guard.extra_links.get(ino).map(|g| g.snapshot_id),
                         symlink_target: Some(target.to_string()),
-                        mode: *mode,
+                        mode: status.mode.load(Ordering::Relaxed),
                     });
                 }
             }
@@ -1559,7 +1618,7 @@ impl SafeBashFs for MemoryVfs {
                 let now = super::now_ms();
                 let ino = guard.allocate_ino();
                 guard.nodes.insert(norm.clone(), MemoryNode::Symlink { ino,
-                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, atime_ms: now, mtime_ms: now, birthtime_ms: now, revision: Arc::default(), ctime_bits: Arc::new(AtomicU64::new(now.to_bits())) });
+                    target: target.into(), status: SymlinkStatus::new(if entry.mode != 0 { entry.mode } else { 0o120777 }, now), atime_ms: now, mtime_ms: now, birthtime_ms: now });
             }
             if let Some(group) = entry.link_group { groups.insert(group, guard.nodes[&norm].clone()); }
         }
@@ -1585,6 +1644,31 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn conditional_chmod_checks_receipts_and_modifies_the_symlink_inode() {
+        let fs = MemoryVfs::new();
+        fs.mkdir("/d", false, 0o755).unwrap();
+        fs.write_file("/d/target", b"data").unwrap();
+        fs.symlink("target","/d/link").unwrap();
+        fs.hard_link("/d/link","/alias").unwrap();
+        let dir = fs.lstat("/d").unwrap();
+        let chain = [("/",fs.lstat("/").unwrap()), ("/d",dir.clone())];
+        let symlink = fs.lstat("/d/link").unwrap();
+        fs.chmod_conditional("/d/link",0o601,&chain,&dir,&symlink).unwrap();
+        assert_eq!(fs.lstat("/alias").unwrap().mode,0o120601);
+        assert_eq!(fs.stat("/d/link").unwrap().mode,0o100644);
+        assert!(fs.chmod_conditional("/d/link",0o777,&chain,&dir,&symlink).unwrap_err().starts_with("EAGAIN:"));
+        let target = fs.stat("/d/target").unwrap();
+        fs.write_file("/d/target", b"data").unwrap();
+        assert!(fs.chmod_conditional("/d/target",0o777,&chain,&dir,&target).unwrap_err().starts_with("EAGAIN:"));
+        fs.rename("/d", "/saved", false).unwrap();
+        fs.mkdir("/d",false,0o755).unwrap();
+        fs.hard_link("/saved/target", "/d/target").unwrap();
+        let target = fs.stat("/d/target").unwrap();
+        assert!(fs.chmod_conditional("/d/target",0o777,&chain,&dir,&target).unwrap_err().starts_with("EAGAIN:"));
+        assert_eq!(fs.stat("/d/target").unwrap().mode,0o100644);
+    }
 
     #[test]
     fn names_are_limited_to_255_bytes_before_publication() {

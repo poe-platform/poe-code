@@ -216,7 +216,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 
 const wasmCapabilities = Object.freeze({
   write: true, append: true, read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
-  permissions: true, readlink: true, symlinks: true,
+  conditionalChmod: true, permissions: true, readlink: true, symlinks: true,
 });
 
 export class WasmFileSystem {
@@ -226,7 +226,8 @@ export class WasmFileSystem {
 
   get capabilities() {
     const backing = this.bash._companion?.fs;
-    if (!backing) return wasmCapabilities;
+    if (!backing) return this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId)
+      ? wasmCapabilities : Object.freeze({...wasmCapabilities, conditionalChmod:false});
     return Object.freeze(Object.fromEntries(Object.keys(wasmCapabilities)
       .map(key => [key, backing.capabilities?.[key] === true])));
   }
@@ -345,7 +346,7 @@ export class WasmFileSystem {
 
   async stat(filePath, options) {
     options?.signal?.throwIfAborted();
-    if (this.bash._companion) {
+    if (this.bash._companion || this.bash.companionFactory && !this.bash.forceNative) {
       await this.bash._ensureCompanionSynced();
       return this.bash._companion.fs.stat(filePath, options);
     }
@@ -354,7 +355,7 @@ export class WasmFileSystem {
 
   async lstat(filePath, options) {
     options?.signal?.throwIfAborted();
-    if (this.bash._companion) {
+    if (this.bash._companion || this.bash.companionFactory && !this.bash.forceNative) {
       await this.bash._ensureCompanionSynced();
       return this.bash._companion.fs.lstat
         ? this.bash._companion.fs.lstat(filePath, options)
@@ -394,20 +395,22 @@ export class WasmFileSystem {
   async chmod(filePath, mode, options) {
     options?.signal?.throwIfAborted();
     const bash = this.bash;
-    if (bash._companion) {
+    const { parent, expected, ancestors, commitGuard, signal } = options ?? {};
+    const guarded = parent !== undefined || expected !== undefined || ancestors !== undefined || commitGuard !== undefined;
+    if (bash._companion || guarded && bash.companionFactory && !bash.forceNative) {
       await bash._ensureCompanionSynced();
       options?.signal?.throwIfAborted();
       if (!bash._companion.fs.chmod) throw fsOperationError("ENOTSUP", "chmod", filePath);
       return bash._companion.fs.chmod(filePath, mode, options);
     }
-    const { parent, expected, ancestors, commitGuard } = options ?? {};
-    if (parent !== undefined || expected !== undefined || ancestors !== undefined || commitGuard !== undefined) {
+    if (guarded) {
       if (parent === undefined || expected === undefined || ancestors === undefined) {
         throw fsOperationError("EINVAL", "chmod", filePath, undefined, "complete conditional chmod receipt is required");
       }
-      throw fsOperationError("ENOTSUP", "chmod", filePath);
+      bash.chmodConditional(filePath, mode, parent, expected, ancestors, commitGuard, signal);
+    } else {
+      bash.chmod(filePath, mode);
     }
-    bash.chmod(filePath, mode);
     if (bash.companionFactory && !bash.forceNative) {
       bash._history.push({ type: "fs", run: fs => fs.chmod(filePath, mode) });
     }
@@ -828,6 +831,7 @@ export class RustWasmBash extends WasmShell {
   #filesystems = new Map();
 
   #identityScopes = new Map();
+  #scopeKeys = new WeakMap();
   #releasedScopes = new FinalizationRegistry(scope => {
     if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
   });
@@ -1023,6 +1027,42 @@ export class RustWasmBash extends WasmShell {
     }
   }
 
+  chmodConditional(filePath, mode, parent, expected, ancestors, guard, signal) {
+    const fail = code => { throw fsOperationError(code, "chmod", filePath); };
+    if (mode !== undefined && (!Number.isInteger(mode) || mode < 0 || mode > 0o7777)) fail("EINVAL");
+    if (guard !== undefined && typeof guard !== "function") fail("EINVAL");
+    let last = "";
+    const entries = ancestors.map(({path: p, stat}, i) => {
+      if (stat.type !== "directory" || (i === 0 ? p !== "/" : p === "/" || path.posix.dirname(p) !== last)) fail("EINVAL");
+      last = p;
+      return stat;
+    });
+    if (last !== path.posix.dirname(filePath)) fail("EINVAL");
+    entries.push(parent, expected);
+    const packed = new Float64Array(entries.length * 9);
+    for (const [i,s] of entries.entries()) {
+      const key = this.#scopeKeys.get(s.identityScope);
+      if (key === undefined || key >= 0n || !Number.isSafeInteger(s.dev) || !Number.isSafeInteger(s.ino)) fail("ENOTSUP");
+      packed.set([s.dev === 0 ? Number(~key) : -1, s.ino, ["file","directory","symlink","character"].indexOf(s.type),
+        ...[s.revision, s.size, s.mode, s.nlink, s.mtimeMs, s.ctimeMs].map(n => typeof n === "number" ? n : NaN)], 9*i);
+    }
+    if (guard !== undefined) {
+      const result = guard();
+      if (result !== true) { void Promise.resolve(result).catch(() => {}); fail("ENOTSUP"); }
+    }
+    signal?.throwIfAborted();
+    const p = this._allocBytes(encoder.encode(filePath));
+    try {
+      const receipt = this._allocBytes(new Uint8Array(packed.buffer));
+      try {
+        const rc = this.exports.safe_bash_chmod_conditional(this.sessionId, p.ptr, p.len,
+          mode === undefined ? 0 : typeof mode === "number" ? mode : NaN, receipt.ptr, receipt.len);
+        if (rc === -1) throw new Error("Wasm session unavailable");
+        if (rc < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), -rc)));
+      } finally { this._freeBytes(receipt); }
+    } finally { this._freeBytes(p); }
+  }
+
   setMtime(filePath, mtime) {
     this._setTimes(filePath, 0, mtime, false);
   }
@@ -1081,6 +1121,7 @@ export class RustWasmBash extends WasmShell {
       if (!identityScope) {
         identityScope = Symbol("Wasm filesystem identity");
         this.#identityScopes.set(key, new WeakRef(identityScope));
+        this.#scopeKeys.set(identityScope,key);
         this.#releasedScopes.register(identityScope, key);
       }
     }

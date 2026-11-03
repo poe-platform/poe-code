@@ -162,7 +162,7 @@ impl MemoryVfs {
                 }
                 MemoryNode::Symlink {
                     target,
-                    mode,
+                    status,
                     atime_ms, mtime_ms,
                     ..
                 } => {
@@ -177,9 +177,8 @@ impl MemoryVfs {
                         new_path,
                         MemoryNode::Symlink {
                             target: target.clone(),
-                            revision: Arc::default(), ctime_bits: Arc::new(AtomicU64::new(now.to_bits())), birthtime_ms: now,
+                            status: SymlinkStatus::new(status.mode.load(Ordering::Relaxed), now), birthtime_ms: now,
                             ino,
-                            mode: *mode,
                             atime_ms: *atime_ms,
                             mtime_ms: *mtime_ms,
                         },

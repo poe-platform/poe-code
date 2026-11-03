@@ -3415,14 +3415,26 @@ test("memory inode revisions match TypeScript through writes, links and chmod", 
 test("cancelled and guarded chmod calls cannot silently change Wasm permissions", async () => {
   const bash = new RustWasmBash({ files: { "/private": { content: "data", mode: 0o600 } } });
   try {
+    assert.equal(bash.fs.capabilities.conditionalChmod, true);
     const reason = new Error("cancel chmod");
     await assert.rejects(bash.fs.chmod("/private", 0o777, { signal: AbortSignal.abort(reason) }), e => e === reason);
     const file = await bash.fs.stat("/private"), root = await bash.fs.stat("/");
     await assert.rejects(bash.fs.chmod("/private", 0o777, { expected: file }), { code: "EINVAL", syscall: "chmod" });
-    await assert.rejects(bash.fs.chmod("/private", 0o777, {
-      parent: root, expected: file, ancestors: [{ path: "/", stat: root }],
-    }), { code: "ENOTSUP", syscall: "chmod" });
+    const options = { parent: root, expected: file, ancestors: [{path:"/", stat:root}] };
+    await assert.rejects(bash.fs.chmod("/private", 0o777, {...options, commitGuard: () => false}), {code:"ENOTSUP"});
+    const controller = new AbortController();
+    const cancelled = { ...options, signal:controller.signal, commitGuard() {
+      controller.abort(reason); cancelled.signal = new AbortController().signal; return true;
+    }};
+    await assert.rejects(bash.fs.chmod("/private",0o777,cancelled), e => e === reason);
     assert.equal((await bash.fs.stat("/private")).mode & 0o777, 0o600);
+    await bash.fs.chmod("/private",0o640,{...options, commitGuard: () => true});
+    await assert.rejects(bash.fs.chmod("/private",0o777,options), {code:"EAGAIN",syscall:"fileStaging",path:"/private"});
+    assert.equal((await bash.fs.stat("/private")).mode & 0o777,0o640);
+    const fresh = {...options, expected: await bash.fs.lstat("/private")};
+    await assert.rejects(bash.fs.chmod("/private",0o777,{...fresh, commitGuard() {
+      bash.chmod("/private",0o640); return true;
+    }}), {code:"EAGAIN"});
   } finally { bash.dispose(); }
 });
 
@@ -3432,8 +3444,7 @@ test("chmod forwards the original guard to the active companion", async () => {
   const bash = new RustWasmBash({ forceNative: false, companionFactory: () => ({ fs, shell: new Shell({ fs }) }) });
   try {
     await bash.fs.writeFile("/private", "", { mode: 0o600 });
-    await bash.fs.realpath("/private");
-    const expected = await fs.lstat("/private"), parent = await fs.lstat("/");
+    const expected = await bash.fs.lstat("/private"), parent = await bash.fs.lstat("/");
     const refused = new Error("guard refused");
     await assert.rejects(bash.fs.chmod("/private", 0o777, {
       expected, parent, ancestors: [{ path: "/", stat: parent }], commitGuard() { throw refused; },

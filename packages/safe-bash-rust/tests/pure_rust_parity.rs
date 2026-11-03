@@ -337,3 +337,31 @@ fn xmllint_checks_cumulative_encoded_output_before_opening_the_next_document() {
     assert!(shell.exec("xmllint --recover -o /dest /bad").unwrap_err().contains("maxOutputBytes"));
     assert_eq!(fs.read_file("/dest").unwrap(), b"old");
 }
+
+#[test]
+fn jq_opens_input_variable_and_program_files_in_path_traversal_order() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.mkdir_all("/real/sub").unwrap();
+    fs.symlink("/real/sub", "/link").unwrap();
+    fs.write_file("/f", b"7").unwrap();
+    fs.write_file("/real/f", b"8").unwrap();
+    fs.write_file("/doc", b"<r/>").unwrap();
+    for script in ["jq . /link/../f", "jq -n -f /link/../f", "jq --rawfile v /link/../f -nr '$v'",
+        "jq --slurpfile v /link/../f -n '$v[0]'", "xq -f /link/../f /doc"] {
+        let out = shell.exec(script).unwrap();
+        assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, "8\n", ""), "{script}");
+    }
+    fs.mkdir_all("/locked").unwrap();
+    fs.chmod("/locked", 0).unwrap();
+    for (script, error) in [
+        ("jq . /f///", "ENOTDIR: not a directory, readStream '/f///'"),
+        ("jq -f /f/../f -n", "ENOTDIR: not a directory, readStream '/f/../f'"),
+        ("jq --slurpfile v /missing/../f -n .", "ENOENT: no such file or directory, readStream '/missing/../f'"),
+        ("jq --rawfile v '' -n .", "ENOENT: no such file or directory ''"),
+        ("jq . /locked/f", "EACCES: permission denied, lstat '/locked/f'"),
+        ("jq . /real", "EISDIR: illegal operation on a directory, readStream '/real'"),
+    ] {
+        let out = shell.exec(script).unwrap();
+        assert_eq!((out.exit_code, out.stderr), (2, format!("jq: {error}\n")), "{script}");
+    }
+}

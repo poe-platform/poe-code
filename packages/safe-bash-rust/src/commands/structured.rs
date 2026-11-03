@@ -675,6 +675,11 @@ fn read_xml_operand(
     })
 }
 
+fn read_jq_file(fs: &dyn SafeBashFs, path: &str) -> Result<Vec<u8>, String> {
+    fs.access_path(path, true).and_then(|entry| fs.read_file(&entry))
+        .map_err(|e| super::coreutils::stream_file_error(e, "readStream", path))
+}
+
 fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {
     if fs.is_dir(full_path) {
         format!("EISDIR: illegal operation on a directory, readStream '{full_path}'")
@@ -860,7 +865,7 @@ fn cmd_jq_core(
                 },
                 _ => {
                     if vars.contains_key(&name) { continue; }
-                    let full = resolve_posix_path(cwd, text);
+                    let full = crate::vfs::path::absolute_operand(cwd, text);
                     let mut source = jq_input::files(vec![full], jq_input::Source::Json(None), cwd, fs, a == "--rawfile", true, false, false, false);
                     match source.next() {
                         Ok(Some(value)) => value,
@@ -999,13 +1004,13 @@ fn cmd_jq_core(
 );
 
     let raw_filter = if let Some(pf) = program_file {
-        let full = resolve_posix_path(cwd, &pf);
-        match fs.read_file(&full) {
+        let full = crate::vfs::path::absolute_operand(cwd, &pf);
+        match read_jq_file(fs, &full) {
             Ok(bytes) => match String::from_utf8(bytes) {
                 Ok(source) => source,
                 Err(_) => return err_out("jq: program file is not valid UTF-8\n", 3),
             },
-            Err(_) => return err_out(&format!("jq: {}\n", text_arg(&read_stream_diag(&full, fs))), 2),
+            Err(e) => return err_out(&format!("jq: {}\n", text_arg(&e)), 2),
         }
     } else {
         filter.unwrap_or_else(|| ".".to_string())

@@ -1,4 +1,4 @@
-use super::{JVal, SafeBashFs, jq_json::Parser, read_stream_diag, resolve_posix_path};
+use super::{JVal, SafeBashFs, jq_json::Parser, read_jq_file};
 use std::borrow::Cow;
 
 #[derive(Default)]
@@ -104,8 +104,8 @@ impl Bytes<'_> {
                 }
                 Source::Json(input) if path == "-" => Cow::Borrowed(input.take().unwrap_or_default().as_bytes()),
                 Source::Json(_) => {
-                    let full = resolve_posix_path(self.cwd, &path);
-                    Cow::Owned(self.fs.read_file(&full).map_err(|_| (2, read_stream_diag(&full, self.fs)))?)
+                    let full = crate::vfs::path::absolute_operand(self.cwd, &path);
+                    Cow::Owned(read_jq_file(self.fs, &full).map_err(|e| (2, e))?)
                 }
             };
             self.more_newlines = None;

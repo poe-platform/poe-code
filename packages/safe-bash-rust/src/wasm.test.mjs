@@ -2796,6 +2796,28 @@ test("stat distinguishes absent fields, a zero allocation, and a real inode", as
   } finally { bash.dispose(); }
 });
 
+test("standalone filesystem factories validate schemes and preserve factory inputs and results", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const inputs = [];
+    const filesystem = bash.fs;
+    const factory = async options => { inputs.push(options); return filesystem; };
+    for (const scheme of ["", "UPPER", "1mem", "a/b"]) {
+      assert.throws(() => bash.registerFileSystem(scheme, factory), new TypeError("Invalid filesystem scheme"));
+    }
+    assert.equal(bash.registerFileSystem("mem+v1.0-x", factory), undefined);
+    assert.throws(() => bash.registerFileSystem("mem+v1.0-x", factory), /Filesystem already registered: mem\+v1/);
+    await assert.rejects(bash.createFileSystem("unknown"), /Unknown filesystem scheme: unknown/);
+    const options = { source: filesystem };
+    assert.equal(await bash.createFileSystem("mem+v1.0-x", options), filesystem);
+    assert.equal(await bash.createFileSystem("mem+v1.0-x"), filesystem);
+    assert.equal(inputs[0], options);
+    assert.deepEqual(inputs[1], {});
+  } finally { bash.dispose(); }
+  assert.throws(() => bash.registerFileSystem("mem", () => bash.fs), /Shell is disposed/);
+  await assert.rejects(bash.createFileSystem("mem+v1.0-x"), /Shell is disposed/);
+});
+
 test("per-call filesystems never redirect writes into the default Wasm filesystem", async () => {
   const main = new RustWasmBash({ files: { "/file": "original" } });
   const other = new RustWasmBash({ files: { "/file": "other" } });

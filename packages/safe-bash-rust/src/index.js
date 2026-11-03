@@ -815,6 +815,7 @@ class WasmShell {
 export class RustWasmBash extends WasmShell {
   #sessions = new Set();
   #externalCompanion;
+  #filesystems = new Map();
 
   #identityScopes = new Map();
   #releasedScopes = new FinalizationRegistry(scope => {
@@ -1306,15 +1307,24 @@ export class RustWasmBash extends WasmShell {
   }
 
   registerFileSystem(scheme, factory) {
-    this.forceNative = false;
-    const comp = this._getOrCreateCompanionSync();
-    if (comp) {
-      comp.shell.registerFileSystem(scheme, factory);
+    if (!this.sessionId) throw new Error("Shell is disposed");
+    if (this.companionFactory) {
+      this.forceNative = false;
+      this._getOrCreateCompanionSync().shell.registerFileSystem(scheme, factory);
+      return;
     }
-    return this;
+    if (!/^[a-z][a-z0-9+.-]*$/u.test(scheme)) throw new TypeError("Invalid filesystem scheme");
+    if (this.#filesystems.has(scheme)) throw new Error(`Filesystem already registered: ${scheme}`);
+    this.#filesystems.set(scheme, factory);
   }
 
-  async createFileSystem(scheme, options) {
+  async createFileSystem(scheme, options = {}) {
+    if (!this.sessionId) throw new Error("Shell is disposed");
+    if (!this.companionFactory) {
+      const factory = this.#filesystems.get(scheme);
+      if (!factory) throw new Error(`Unknown filesystem scheme: ${scheme}`);
+      return factory(options);
+    }
     const comp = this._getOrCreateCompanionSync();
     await this._ensureCompanionSynced();
     return comp.shell.createFileSystem(scheme, options);
@@ -1373,6 +1383,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   dispose() {
+    this.#filesystems.clear();
     this.#identityScopes.clear();
     const companion = this._companion ?? this.#externalCompanion;
     if (companion && this.sessionId) void companion.shell.dispose();

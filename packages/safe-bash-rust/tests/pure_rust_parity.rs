@@ -419,6 +419,26 @@ fn jq_opens_input_variable_and_program_files_in_path_traversal_order() {
 }
 
 #[test]
+fn jq_waits_for_a_newline_after_nul_before_publishing_json_values() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.write_file("/a", b"1\0 2").unwrap();
+    fs.write_file("/b", b"\n").unwrap();
+    fs.write_file("/str", b"\"a\0b\"").unwrap();
+    fs.write_file("/seq", b"\x1e1\n\x1e2\0ignored").unwrap();
+    for (script, expected) in [
+        ("jq -n 'first(inputs)' /a /absent", (2, "", "jq: ENOENT: no such file or directory, readStream '/absent'\n")),
+        ("jq -c . /a", (0, "1\n", "")), ("jq -c . /a /b", (0, "1\n2\n", "")),
+        ("jq 'error(.)' /a /b", (5, "", "jq: error (at /b:1): 1\njq: error (at /b:1): 2\n")),
+        ("jq --stream-errors -c . /str", (0, "[\"Unfinished string at EOF at line 1, column 2\",[]]\n", "")),
+        ("jq --seq -c . /seq", (0, "\x1e1\n", "jq: ignoring parse error: Potentially truncated top-level numeric value at EOF at line 2, column 2\n")),
+        ("jq -R . /a", (0, "\"1\\u0000 2\"\n", "")),
+    ] {
+        let result = shell.exec(script).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), expected, "{script}");
+    }
+}
+
+#[test]
 fn jq_sequence_warnings_stop_input_at_the_shared_output_limit() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.write_file("/bad", b"\x1e1\n\x1e!\n\x1e!\n").unwrap();

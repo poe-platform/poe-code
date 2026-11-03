@@ -14,20 +14,14 @@ impl JqInputs<'_> {
     pub fn location(&mut self) -> String {
         if let Some(v) = &mut self.reader {
             let b = &mut v.bytes;
-            let Some(name) = &b.name else {
-                return "<unknown>".into();
-            };
-            let line = if b.at != 0
-                && b.chunk[b.at - 1] != b'\n'
-                && *b
-                    .more_newlines
-                    .get_or_insert_with(|| b.chunk[b.at..].contains(&b'\n'))
+            let line = if (b.at > 0 && b.chunk[b.at - 1] != b'\n' && b.has_newline())
+                || (b.at == 0 && b.more_newlines == Some(true))
             {
                 b.line + 1
             } else {
                 b.line
             };
-            return format!("{}:{line}", diagnostic(name, usize::MAX));
+            if let Some(name) = &b.name { return format!("{}:{line}", diagnostic(name, usize::MAX)); }
         }
         "<unknown>".into()
     }
@@ -69,6 +63,7 @@ struct Bytes<'a> {
     name: Option<String>,
     line: usize,
     more_newlines: Option<bool>,
+    nul_prefix: Option<std::vec::IntoIter<u8>>,
 }
 
 impl Bytes<'_> {
@@ -79,6 +74,42 @@ impl Bytes<'_> {
             self.more_newlines = None;
         }
     }
+    fn has_newline(&mut self) -> bool {
+        *self.more_newlines.get_or_insert_with(|| self.chunk[self.at..].contains(&b'\n'))
+    }
+
+    fn next_json_byte(&mut self) -> Result<Option<u8>, (i32, String)> {
+        if let Some(prefix) = &mut self.nul_prefix {
+            if let Some(b) = prefix.next() { return Ok(Some(b)); }
+            self.nul_prefix = None;
+        }
+        let Some(b) = self.peek()? else { return Ok(None); };
+        if b == 0 && !self.has_newline() {
+            // jq ignores an unterminated NUL suffix. Later operands may
+            // terminate it, so only retain the prefix that might need replay.
+            let mut prefix = Some(Vec::new());
+            let limit = self.fs.shell_limits().max_memory_bytes;
+            loop {
+                let rest = &self.chunk[self.at..];
+                self.at = self.chunk.len();
+                if self.files.len() == 0 { return Ok(None); }
+                if let Some(saved) = &mut prefix {
+                    if rest.len() <= limit.saturating_sub(saved.len()) { saved.extend_from_slice(rest); }
+                    else { prefix = None; }
+                }
+                if self.peek()?.is_none() { return Ok(None); }
+                if self.has_newline() {
+                    let mut saved = prefix.ok_or_else(|| (5, self.fs.limit_error("maxMemoryBytes", limit)))?.into_iter();
+                    let first = saved.next();
+                    self.nul_prefix = Some(saved);
+                    return Ok(first);
+                }
+            }
+        }
+        self.advance(b);
+        Ok(Some(b))
+    }
+
     fn peek(&mut self) -> Result<Option<u8>, (i32, String)> {
         while self.at == self.chunk.len() {
             let Some(path) = self.files.next() else {
@@ -175,10 +206,9 @@ impl Values<'_> {
             if self.eof {
                 return Ok(None);
             }
-            let byte = self.bytes.peek()?;
+            let byte = self.bytes.next_json_byte()?;
             let separator = self.sequence && byte == Some(0x1e);
             if let Some(b) = byte {
-                self.bytes.advance(b);
                 if b == b'\n' {
                     self.line += 1;
                     self.column = 0;
@@ -290,6 +320,7 @@ pub(super) fn files<'a>(
             name: None,
             line: 0,
             more_newlines: None,
+            nul_prefix: None,
         },
         raw,
         slurp,

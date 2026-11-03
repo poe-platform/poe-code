@@ -5429,10 +5429,15 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
     }
     let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
     let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
-    if gif || still || real_mp4 || matches!(container, "flv" | "aac" | "y4m" | "srt" | "webvtt") {
+    if gif || still || real_mp4 || matches!(container, "mkv" | "webm" | "flv" | "aac" | "y4m" | "srt" | "webvtt") {
         let records=requested.contains("packet") || requested.contains("frame");
         let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
             writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+        if matches!(container, "mkv" | "webm") {
+            return match mp4::mkv_input::report(&raw_bytes, name, fs.max_input_bytes(), opts) {
+                Ok(output) => ok_out(&output), Err(reason) => ffprobe_err(reason),
+            };
+        }
         if container == "flv" {
             return match mp4::flv_input::report(&raw_bytes, name, opts) {
                 Ok(output) => ok_out(&output),
@@ -13533,6 +13538,17 @@ mod media_unit_tests {
             let bytes = fs.read_file(&format!("/{dst}")).unwrap();
             assert_eq!(hex_enc(&sha256_bytes(&bytes)), expected, "{dst}");
         }
+    }
+
+    #[test]
+    fn ffprobe_reads_matroska_tracks_and_blocks() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "av.mp4", "-c", "copy", "clip.mkv"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        let r = cmd_media_doc("ffprobe", &media_args(&["-show_entries", "stream=codec_name,width,height,nb_frames,duration_ts",
+            "-of", "csv=p=0", "clip.mkv"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "h264,6,4,750,3\naac,766,33\n", ""));
     }
 
     #[test]

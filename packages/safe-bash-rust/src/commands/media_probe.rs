@@ -13,7 +13,7 @@ pub(super) struct Clip {
 
 enum VideoPackets {
     Fixed(u64),
-    Gif(Vec<(u64,usize)>), // cumulative duration and end offset of each packet
+    Gif(Vec<(u64, usize)>), // cumulative duration and end offset of each packet
 }
 
 enum Track {
@@ -70,25 +70,46 @@ impl Clip {
             payload_bytes: input.len() as u64,
         })
     }
-    pub(super) fn gif(input:&[u8], records:bool, limit:usize) -> Result<Self,&'static str> {
-        let (width,height)=super::gif::dimensions(input)?;
-        if !super::gif::signature(input) {return Err("Input buffer contains unsupported image format");}
-        if u64::from(width)*u64::from(height) > (limit/4) as u64 {return Err("image exceeds memory budget");}
-        let (mut ticks,mut count)=(0u64,0usize);
-        let mut ends=Vec::new();
+    pub(super) fn gif(input: &[u8], records: bool, limit: usize) -> Result<Self, &'static str> {
+        let (width, height) = super::gif::dimensions(input)?;
+        if !super::gif::signature(input) {
+            return Err("Input buffer contains unsupported image format");
+        }
+        if u64::from(width) * u64::from(height) > (limit / 4) as u64 {
+            return Err("image exceeds memory budget");
+        }
+        let (mut ticks, mut count) = (0u64, 0usize);
+        let mut ends = Vec::new();
         super::gif::packets(input, |delay, end| {
-            ticks+=u64::from(delay);
+            ticks += u64::from(delay);
             if records {
-                if count>=limit/size_of::<(u64,usize)>() {return Err("sample index exceeds memory budget");}
-                ends.push((ticks,end));
+                if count >= limit / size_of::<(u64, usize)>() {
+                    return Err("sample index exceeds memory budget");
+                }
+                ends.push((ticks, end));
             }
-            count+=1;
+            count += 1;
             Ok(())
         })?;
-        if count==0 {return Err("Cannot read properties of undefined (reading 'byteLength')");}
-        if let Some(last)=ends.last_mut(){last.1=input.len();}
-        Ok(Self { track:Track::Video{tag:b"gif ",width,height,packets:VideoPackets::Gif(ends)},timescale:100,
-            payload_bytes:input.len() as u64, ticks, duration:ticks as f64/100.,count })
+        if count == 0 {
+            return Err("Cannot read properties of undefined (reading 'byteLength')");
+        }
+        if let Some(last) = ends.last_mut() {
+            last.1 = input.len();
+        }
+        Ok(Self {
+            track: Track::Video {
+                tag: b"gif ",
+                width,
+                height,
+                packets: VideoPackets::Gif(ends),
+            },
+            timescale: 100,
+            payload_bytes: input.len() as u64,
+            ticks,
+            duration: ticks as f64 / 100.,
+            count,
+        })
     }
     pub(super) fn subtitles(
         input: &[u8],
@@ -184,7 +205,12 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
         "timed_thumbnails",
     ]
     .into_iter()
-    .map(|k| (k.to_owned(), Number(f64::from(enabled && k == "default"), None)))
+    .map(|k| {
+        (
+            k.to_owned(),
+            Number(f64::from(enabled && k == "default"), None),
+        )
+    })
     .collect()
 }
 
@@ -192,12 +218,14 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
 pub(super) enum Codec {
     Video {
         tag: &'static [u8; 4],
-        width: u32,
-        height: u32,
+        width: Option<u32>,
+        height: Option<u32>,
     },
-    Aac {
+    Audio {
         rate: u32,
-        channels: u8,
+        channels: u32,
+        bits: u32,
+        tag: &'static [u8; 4],
         profile: bool,
     },
     Subtitle {
@@ -209,7 +237,11 @@ pub(super) struct StreamInfo {
     pub codec: Codec,
     pub scale: u32,
     pub start: i64,
-    pub ticks: u64,
+    pub ticks: f64,
+    pub sample_ticks: f64,
+    pub id: u64,
+    pub language: std::borrow::Cow<'static, str>,
+    pub profile: Option<String>,
     pub count: usize,
     pub payload_bytes: u64,
     pub has_cts: bool,
@@ -217,16 +249,24 @@ pub(super) struct StreamInfo {
 
 impl StreamInfo {
     pub(super) fn stream(&self, index: usize, (count_frames, count_packets): (bool, bool)) -> Row {
-        let (start, ticks) = (self.start as f64, self.ticks as f64);
+        let (start, ticks) = (self.start as f64, self.ticks);
         let duration = ticks / f64::from(self.scale);
-        let rate = if self.count == 0 || ticks == 0. || !matches!(self.codec, Codec::Video { .. }) {
+        let rate = if self.count == 0
+            || self.sample_ticks <= 0.
+            || !matches!(self.codec, Codec::Video { .. })
+        {
             "0/0".into()
         } else {
-            ratio(self.scale as u64 * self.count as u64, ticks as u64, '/')
+            let num = self.scale as f64 * self.count as f64;
+            let (mut x, mut y) = (num, self.sample_ticks.round());
+            while y != 0. {
+                (x, y) = (y, x % y);
+            }
+            format!("{}/{}", num / x, self.sample_ticks / x)
         };
         let mut row = vec![
             ("index", Number(index as f64, None)),
-            ("id", Str(format!("0x{:x}", index + 1))),
+            ("id", Str(format!("0x{:x}", self.id))),
         ];
         match self.codec {
             Codec::Subtitle { webvtt, .. } => {
@@ -250,6 +290,10 @@ impl StreamInfo {
             } => {
                 let fourcc = std::str::from_utf8(tag).unwrap();
                 let (name, long) = match tag {
+                    b"hvc1" => ("hevc", "H.265 / HEVC (High Efficiency Video Coding)"),
+                    b"vp08" => ("vp8", "On2 VP8"),
+                    b"vp09" => ("vp9", "Google VP9"),
+                    b"av01" => ("av1", "Alliance for Open Media AV1"),
                     b"avc1" => ("h264", "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"),
                     b"mjpe" => ("mjpeg", "Motion JPEG"),
                     b"webp" => ("webp", "WebP image"),
@@ -261,22 +305,31 @@ impl StreamInfo {
                 row.extend([
                     ("codec_name", Str(name.into())),
                     ("codec_long_name", Str(long.into())),
+                ]);
+                if let Some(profile) = &self.profile {
+                    row.push(("profile", Str(profile.clone())));
+                }
+                row.extend([
                     ("codec_type", Str("video".into())),
                     ("codec_tag_string", Str(fourcc.into())),
                     (
                         "codec_tag",
                         Str(format!("0x{:08x}", u32::from_be_bytes(*tag))),
                     ),
-                    ("width", Number(width.into(), None)),
-                    ("height", Number(height.into(), None)),
                 ]);
-                if width != 0 {
+                if let Some(w) = width {
+                    row.push(("width", Number(w.into(), None)));
+                }
+                if let Some(h) = height {
+                    row.push(("height", Number(h.into(), None)));
+                }
+                if let Some(width) = width.filter(|&w| w != 0) {
                     row.push((
                         "coded_width",
                         Number(f64::from(width.div_ceil(16)) * 16., None),
                     ));
                 }
-                if height != 0 {
+                if let Some(height) = height.filter(|&h| h != 0) {
                     row.push((
                         "coded_height",
                         Number(f64::from(height.div_ceil(16)) * 16., None),
@@ -286,7 +339,9 @@ impl StreamInfo {
                     ("has_b_frames", Number(f64::from(self.has_cts), None)),
                     ("sample_aspect_ratio", Str("1:1".into())),
                 ]);
-                if width != 0 && height != 0 {
+                if let (Some(width), Some(height)) =
+                    (width.filter(|&w| w != 0), height.filter(|&h| h != 0))
+                {
                     row.push((
                         "display_aspect_ratio",
                         Str(ratio(width.into(), height.into(), ':')),
@@ -297,7 +352,7 @@ impl StreamInfo {
                         "pix_fmt",
                         Str(match tag {
                             b"gif " => "rgb8",
-                            b"raw " | b"avc1" => "yuv420p",
+                            b"raw " | b"avc1" | b"hvc1" | b"vp08" | b"vp09" | b"av01" => "yuv420p",
                             _ => "rgb24",
                         }
                         .into()),
@@ -306,30 +361,50 @@ impl StreamInfo {
                     ("color_space", Str("bt709".into())),
                 ])
             }
-            Codec::Aac {
+            Codec::Audio {
                 channels,
                 rate,
                 profile,
+                tag,
+                bits,
             } => {
+                let (name, long) = match tag {
+                    b"Opus" => ("opus", "Opus (Opus Interactive Audio Codec)"),
+                    b"vorb" => ("vorbis", "Vorbis"),
+                    b".mp3" => ("mp3", "MP3 (MPEG audio layer 3)"),
+                    b"fLaC" => ("flac", "FLAC (Free Lossless Audio Codec)"),
+                    b"sowt" => ("pcm_s16le", "PCM signed 16-bit little-endian"),
+                    b"avc1" => ("h264", "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"),
+                    _ => ("aac", "AAC (Advanced Audio Coding)"),
+                };
                 row.extend([
-                    ("codec_name", Str("aac".into())),
-                    ("codec_long_name", Str("AAC (Advanced Audio Coding)".into())),
+                    ("codec_name", Str(name.into())),
+                    ("codec_long_name", Str(long.into())),
                 ]);
                 if profile {
                     row.push(("profile", Str("LC".into())));
                 }
                 row.extend([
                     ("codec_type", Str("audio".into())),
-                    ("codec_tag_string", Str("mp4a".into())),
-                    ("codec_tag", Str("0x6d703461".into())),
-                    ("sample_fmt", Str("fltp".into())),
+                    (
+                        "codec_tag_string",
+                        Str(std::str::from_utf8(tag).unwrap().into()),
+                    ),
+                    (
+                        "codec_tag",
+                        Str(format!("0x{:08x}", u32::from_be_bytes(*tag))),
+                    ),
+                    (
+                        "sample_fmt",
+                        Str(if tag == b"sowt" { "s16" } else { "fltp" }.into()),
+                    ),
                     ("sample_rate", Str(rate.to_string())),
                     ("channels", Number(channels.into(), None)),
                     (
                         "channel_layout",
                         Str(if channels == 1 { "mono" } else { "stereo" }.into()),
                     ),
-                    ("bits_per_sample", Number(16., None)),
+                    ("bits_per_sample", Number(bits.into(), None)),
                 ]);
             }
         }
@@ -356,7 +431,10 @@ impl StreamInfo {
             ),
             ("nb_frames", Str(self.count.to_string())),
             ("disposition", Object(disposition(true))),
-            ("tags", Object(vec![("language".into(), Str("und".into()))])),
+            (
+                "tags",
+                Object(vec![("language".into(), Str(self.language.to_string()))]),
+            ),
         ]);
         if count_frames {
             row.push(("nb_read_frames", Str(self.count.to_string())));
@@ -373,11 +451,17 @@ impl Clip {
         let codec = match self.track {
             Track::Video {
                 tag, width, height, ..
-            } => Codec::Video { tag, width, height },
+            } => Codec::Video {
+                tag,
+                width: Some(width),
+                height: Some(height),
+            },
             Track::Subtitle { webvtt, .. } => Codec::Subtitle { webvtt },
-            Track::Aac { channels, .. } => Codec::Aac {
+            Track::Aac { channels, .. } => Codec::Audio {
                 rate: self.timescale,
-                channels,
+                channels: channels.into(),
+                tag: b"mp4a",
+                bits: 16,
                 profile: true,
             },
         };
@@ -393,7 +477,11 @@ impl Clip {
             codec,
             scale: self.timescale,
             start,
-            ticks,
+            ticks: ticks as f64,
+            sample_ticks: ticks as f64,
+            id: 1,
+            language: "und".into(),
+            profile: None,
             count: self.count,
             payload_bytes: self.payload_bytes,
             has_cts: false,
@@ -424,12 +512,7 @@ impl Clip {
             }
             Track::Aac { ends, .. } => {
                 let pos = if i == 0 { 0 } else { ends[i - 1] };
-                (
-                    default_pts,
-                    self.ticks,
-                    (ends[i] - pos) as u64,
-                    pos as u64,
-                )
+                (default_pts, self.ticks, (ends[i] - pos) as u64, pos as u64)
             }
             Track::Video {
                 packets: VideoPackets::Gif(ends),
@@ -437,22 +520,12 @@ impl Clip {
             } => {
                 let (pts, pos) = if i == 0 { (0, 0) } else { ends[i - 1] };
                 let (end, offset) = ends[i];
-                (
-                    pts as i64,
-                    end - pts,
-                    (offset - pos) as u64,
-                    pos as u64,
-                )
+                (pts as i64, end - pts, (offset - pos) as u64, pos as u64)
             }
             Track::Video {
                 packets: VideoPackets::Fixed(frame_size),
                 ..
-            } => (
-                default_pts,
-                self.ticks,
-                *frame_size,
-                i as u64 * frame_size,
-            ),
+            } => (default_pts, self.ticks, *frame_size, i as u64 * frame_size),
         };
         let key = i == 0
             || !matches!(
@@ -468,7 +541,7 @@ impl Clip {
             Packet {
                 pts,
                 dts: pts,
-                ticks,
+                ticks: ticks as f64,
                 size,
                 pos,
                 key,
@@ -481,7 +554,7 @@ impl Clip {
 pub(super) struct Packet {
     pub pts: i64,
     pub dts: i64,
-    pub ticks: u64,
+    pub ticks: f64,
     pub size: u64,
     pub pos: u64,
     pub key: bool,
@@ -496,9 +569,9 @@ impl Codec {
             pos,
             key,
         } = p;
-        let (pts, dts, ticks) = (pts as f64, dts as f64, ticks as f64);
+        let (pts, dts, ticks) = (pts as f64, dts as f64, ticks);
         let kind = match self {
-            Self::Aac { .. } => "audio",
+            Self::Audio { .. } => "audio",
             Self::Video { .. } => "video",
             Self::Subtitle { .. } => "subtitle",
         };
@@ -521,27 +594,38 @@ impl Codec {
             ];
             match self {
                 Codec::Subtitle { .. } => {}
-                Codec::Aac { channels, .. } => row.extend([
-                    ("sample_fmt", Str("fltp".into())),
+                Codec::Audio { channels, tag, .. } => row.extend([
+                    (
+                        "sample_fmt",
+                        Str(if tag == b"sowt" { "s16" } else { "fltp" }.into()),
+                    ),
                     ("nb_samples", Number(ticks, None)),
                     ("channels", Number(channels.into(), None)),
                 ]),
                 Codec::Video {
                     tag, width, height, ..
-                } => row.extend([
-                    ("width", Number(width.into(), None)),
-                    ("height", Number(height.into(), None)),
-                    (
-                        "pix_fmt",
-                        Str(match tag {
-                            b"gif " => "rgb8",
-                            b"raw " | b"avc1" => "yuv420p",
-                            _ => "rgb24",
-                        }
-                        .into()),
-                    ),
-                    ("pict_type", Str(if key { "I" } else { "P" }.into())),
-                ]),
+                } => {
+                    if let Some(w) = width {
+                        row.push(("width", Number(w.into(), None)));
+                    }
+                    if let Some(h) = height {
+                        row.push(("height", Number(h.into(), None)));
+                    }
+                    row.extend([
+                        (
+                            "pix_fmt",
+                            Str(match tag {
+                                b"gif " => "rgb8",
+                                b"raw " | b"avc1" | b"hvc1" | b"vp08" | b"vp09" | b"av01" => {
+                                    "yuv420p"
+                                }
+                                _ => "rgb24",
+                            }
+                            .into()),
+                        ),
+                        ("pict_type", Str(if key { "I" } else { "P" }.into())),
+                    ]);
+                }
             }
             row
         } else {

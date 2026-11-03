@@ -2,6 +2,8 @@
 mod h264;
 #[path = "flv_input.rs"]
 pub(super) mod flv_input;
+#[path = "mkv_input.rs"]
+pub(super) mod mkv_input;
 #[path = "mp4_mux.rs"]
 pub(super) mod mux;
 

@@ -64,7 +64,7 @@ pub(super) fn packets(bytes: &[u8], video: bool) -> impl Iterator<Item = (Packet
         let packet = Packet {
             pts: tag.dts + i64::from(tag.cts),
             dts: tag.dts,
-            ticks,
+            ticks: ticks as f64,
             size,
             pos,
             key: tag.key,
@@ -123,15 +123,17 @@ pub(super) fn parse(input: &[u8]) -> Result<Movie<'_>, &'static str> {
             true,
             Codec::Video {
                 tag: b"avc1",
-                width,
-                height,
+                width: Some(width),
+                height: Some(height),
             },
         ),
         (
             false,
-            Codec::Aac {
+            Codec::Audio {
                 rate,
-                channels,
+                channels: channels.into(),
+                bits: 16,
+                tag: b"mp4a",
                 profile: false,
             },
         ),
@@ -140,7 +142,11 @@ pub(super) fn parse(input: &[u8]) -> Result<Movie<'_>, &'static str> {
             codec,
             scale: 1000,
             start: 0,
-            ticks: 0,
+            ticks: 0.,
+            sample_ticks: 0.,
+            id: tracks.len() as u64 + 1,
+            language: "und".into(),
+            profile: None,
             count: 0,
             payload_bytes: 0,
             has_cts: false,
@@ -151,6 +157,7 @@ pub(super) fn parse(input: &[u8]) -> Result<Movie<'_>, &'static str> {
             }
             info.count += 1;
             info.ticks += p.ticks;
+            info.sample_ticks = info.ticks;
             info.payload_bytes += p.size;
             info.has_cts |= p.dts != p.pts;
         }
@@ -173,12 +180,7 @@ pub(in super::super) fn report(
     let movie = parse(input)?;
     let tracks = &movie.tracks;
     let (counts, select) = (opts.counts, opts.select);
-    let duration = tracks
-        .iter()
-        .map(|(_, t)| t.ticks)
-        .max()
-        .unwrap_or_default() as f64
-        / 1000.;
+    let duration = tracks.iter().map(|(_, t)| t.ticks).fold(0., f64::max) / 1000.;
     media_probe::report(opts, |section| match section {
         "packet" | "frame" => {
             let bytes = movie.bytes;

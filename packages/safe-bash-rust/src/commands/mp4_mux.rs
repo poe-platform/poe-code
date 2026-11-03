@@ -1648,11 +1648,11 @@ fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
     let mut tracks = Vec::new();
     let mut remaining = limit;
     for (video, info) in &movie.tracks {
-        let ticks = info.ticks;
+        let ticks = info.ticks as u64;
         let mut track = match info.codec {
             Codec::Video { width, height, .. } => video_track(
-                width as usize,
-                height as usize,
+                width.unwrap_or_default() as usize,
+                height.unwrap_or_default() as usize,
                 movie
                     .avc_config
                     .map_or(VideoCodec::Avc(30), VideoCodec::Config),
@@ -1660,7 +1660,7 @@ fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
                 ticks,
                 1000,
             )?,
-            Codec::Aac { rate, channels, .. } => Track {
+            Codec::Audio { rate, channels, .. } => Track {
                 id: 1,
                 samples: Vec::new(),
                 scale: 1000,
@@ -1668,7 +1668,7 @@ fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
                 movie_ticks: ticks as u32,
                 first_dts: 0,
                 fragment_sample_size: None,
-                stsd: audio_entry(rate, channels.into(), 2).into(),
+                stsd: audio_entry(rate, channels, 2).into(),
                 edits: vec![],
                 kind: "audio",
                 enabled: true,

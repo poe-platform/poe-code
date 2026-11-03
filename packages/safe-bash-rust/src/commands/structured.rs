@@ -1011,12 +1011,9 @@ fn cmd_jq_core(
 
     let raw_filter = if let Some(pf) = program_file {
         let full = crate::vfs::path::absolute_operand(cwd, &pf);
-        match read_jq_file(fs, &full, false) {
-            Ok(bytes) => match String::from_utf8(bytes) {
-                Ok(source) => source,
-                Err(_) => return err_out("jq: program file is not valid UTF-8\n", 3),
-            },
-            Err(e) => return err_out(&format!("jq: {}\n", text_arg(&e)), 2),
+        match jq_parser::read_program(fs, &full) {
+            Ok(source) => source,
+            Err(jq_parser::ProgramError(code, e)) => return err_out(&format!("jq: {}\n", text_arg(&e)), code),
         }
     } else {
         filter.unwrap_or_else(|| ".".to_string())
@@ -1026,7 +1023,7 @@ fn cmd_jq_core(
     let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
-            Err(error) => return err_out(&format!("jq: {error}\n"), 3),
+            Err(jq_parser::ProgramError(code, error)) => return err_out(&format!("jq: {error}\n"), code),
         }
     } else {
         if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) { return compile_err; }

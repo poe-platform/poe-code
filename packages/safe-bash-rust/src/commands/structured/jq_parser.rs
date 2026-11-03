@@ -975,15 +975,26 @@ fn parse<'a>(
     Ok(without_comments(source, start..source.len(), &comments))
 }
 
+pub(super) struct ProgramError(pub i32, pub String);
+
+impl<T: Into<String>> From<T> for ProgramError {
+    fn from(message: T) -> Self { Self(3, message.into()) }
+}
+
+pub(super) fn read_program(fs: &dyn SafeBashFs, path: &str) -> Result<String, ProgramError> {
+    let bytes = super::read_jq_file(fs, path, false).map_err(|e| ProgramError(2, e))?;
+    String::from_utf8(bytes).map_err(|_| "program file is not valid UTF-8".into())
+}
+
 pub(super) fn compile<'a>(
     source: &'a str,
     scope: &mut JqScope<'_>,
     dirs: &[String],
     cwd: &str,
     fs: &dyn SafeBashFs,
-) -> Result<Cow<'a, str>, String> {
+) -> Result<Cow<'a, str>, ProgramError> {
     if dirs.is_empty() {
-        return parse(source, scope, false);
+        return Ok(parse(source, scope, false)?);
     }
     let mut modules = Modules {
         dirs,
@@ -1008,7 +1019,7 @@ impl Modules<'_> {
         &mut self,
         source: &'a str,
         scope: &mut JqScope<'_>,
-    ) -> Result<Cow<'a, str>, String> {
+    ) -> Result<Cow<'a, str>, ProgramError> {
         self.remaining = self
             .remaining
             .checked_sub(source.len())
@@ -1064,22 +1075,20 @@ impl Modules<'_> {
             for dir in self.dirs {
                 let full = resolve_posix_path(self.cwd, &format!("{dir}/{path}.jq"));
                 if self.active.contains(&full) {
-                    return Err(format!("module dependency cycle: {path}"));
+                    return Err(format!("module dependency cycle: {path}").into());
                 }
-                let bytes = match self.fs.read_file(&full) {
-                    Ok(bytes) => bytes,
-                    Err(e) if e.starts_with("ENOENT") || e.starts_with("ENOTDIR") => continue,
+                let contents = match read_program(self.fs, &full) {
+                    Ok(source) => source,
+                    Err(ProgramError(2, e)) if e.starts_with("ENOENT") || e.starts_with("ENOTDIR") => continue,
                     Err(e) => return Err(e),
                 };
-                let contents =
-                    std::str::from_utf8(&bytes).map_err(|_| "program file is not valid UTF-8")?;
                 self.active.push(full);
                 let mut child = JqScope {
                     functions: Default::default(),
                     bindings: scope.bindings.clone(),
                     ..scope.clone()
                 };
-                self.compile(contents, &mut child)?;
+                self.compile(&contents, &mut child)?;
                 self.active.pop();
                 for (name, overloads) in child.functions {
                     let name = if let Some(a) = alias {
@@ -1093,10 +1102,10 @@ impl Modules<'_> {
                 break;
             }
             if !found {
-                return Err(format!("module not found: {path}"));
+                return Err(format!("module not found: {path}").into());
             }
             token = lexer.next()?;
         }
-        parse(&source[token.at..], scope, !self.active.is_empty())
+        Ok(parse(&source[token.at..], scope, !self.active.is_empty())?)
     }
 }

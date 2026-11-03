@@ -1129,6 +1129,24 @@ test("jq reports undefined function signatures in unused definitions and branche
   } finally { bash.dispose(); }
 });
 
+test("jq reads each module as a program file and only skips missing candidates", async () => {
+  const sh = new RustWasmBash({ files: { "/lib/m.jq": "def value: 12;", "/lib/bad.jq": Uint8Array.of(255) } });
+  try {
+    await sh.fs.mkdir("/lib/dir.jq");
+    const script = name => `jq -L/lib -nc 'include "${name}"; value'`;
+    for (const [name, expected] of [
+      ["m", [0, "12\n", ""]],
+      ["bad", [3, "", "jq: program file is not valid UTF-8\n"]],
+      ["dir", [2, "", "jq: EISDIR: illegal operation on a directory, readStream '/lib/dir.jq'\n"]],
+      ["missing", [3, "", "jq: module not found: missing\n"]],
+    ]) {
+      await assert.rejects(sh.exec(script(name), { limits: { maxFileSystemOperations: 1 } }), /maxFileSystemOperations/);
+      const r = await sh.exec(script(name), { limits: { maxFileSystemOperations: 2 } });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], expected, name);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("jq compiles nested modules in their own scope before opening inputs", async () => {
   const bash = new RustWasmBash({ files: {
     "/workspace/lib/base.jq": 'def pair($a;$b): [$a,$b]; def tag: "m::tag";',

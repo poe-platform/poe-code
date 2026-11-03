@@ -77,7 +77,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
-          NPM_CONFIG_LOGLEVEL: warn
+          NPM_CONFIG_LOGLEVEL: http
           # The same-run build above was digest-verified.
           # Preserve it instead of rebuilding through npm's prepack lifecycle.
           NPM_CONFIG_IGNORE_SCRIPTS: "true"
@@ -102,6 +102,7 @@ jobs:
           git push origin "HEAD:$publication_ref"
           node --input-type=module <<'JS'
           import { readFileSync, appendFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
           import semanticRelease from 'semantic-release';
           const config = JSON.parse(readFileSync('.releaserc.json', 'utf8'));
           let analyzed = false;
@@ -120,7 +121,35 @@ jobs:
                 analyzed = true;
                 releaseType = result;
               }
-              if (name === '@semantic-release/npm' && hook === 'publish' && result) npmPublished = true;
+              if (name === '@semantic-release/npm' && hook === 'publish' && result) {
+                const { version, gitHead } = context.nextRelease;
+                const metadataResponse = await fetch(`https://registry.npmjs.org/poe-code/${version}?release=${gitHead}`, {
+                  headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(30_000)
+                });
+                if (!metadataResponse.ok) throw new Error(`npm publish returned success, but poe-code@${version} metadata returned HTTP ${metadataResponse.status}.`);
+                const metadata = await metadataResponse.json();
+                if (metadata.name !== 'poe-code' || metadata.version !== version || metadata.gitHead !== gitHead) {
+                  throw new Error(`npm metadata does not match poe-code@${version} at ${gitHead}.`);
+                }
+                if (!metadata.dist?.integrity?.startsWith('sha512-') || !metadata.dist?.tarball) {
+                  throw new Error('Published npm metadata is missing the tarball or SHA512 integrity.');
+                }
+                const tarball = await fetch(metadata.dist.tarball, { signal: AbortSignal.timeout(120_000) });
+                if (!tarball.ok) throw new Error(`Published npm tarball returned HTTP ${tarball.status}.`);
+                const hash = createHash('sha512');
+                for await (const chunk of tarball.body) hash.update(chunk);
+                if (`sha512-${hash.digest('base64')}` !== metadata.dist.integrity) {
+                  throw new Error('Published npm tarball does not match its SHA512 integrity.');
+                }
+                const latestResponse = await fetch(`https://registry.npmjs.org/-/package/poe-code/dist-tags?release=${gitHead}`, {
+                  headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(30_000)
+                });
+                if (!latestResponse.ok || (await latestResponse.json()).latest !== version) {
+                  throw new Error(`npm latest does not point to the verified poe-code@${version}.`);
+                }
+                context.logger.log(`Verified npm poe-code@${version}, commit ${gitHead}, tarball SHA512 and latest tag.`);
+                npmPublished = true;
+              }
               return result;
             }]));
             return [wrapped, options];

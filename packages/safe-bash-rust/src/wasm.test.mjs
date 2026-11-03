@@ -8221,3 +8221,17 @@ test("mdq groups list items by marker, numbers from the first item, and selects 
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq keeps a matched subtree once and still searches its siblings", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "> outer\n>\n> > inside\n\nbetween\n\n> sibling\n";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const selector of [">", "> inside", "> | P:", "P:"]) {
+      const cmd = "mdq -o json '" + selector + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

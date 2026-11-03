@@ -28675,46 +28675,47 @@ enum MdqSelector {
     Other(String),
 }
 
-fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
-    let mut all = Vec::new();
-    fn collect_recursive(ns: &[MdqBlock], out: &mut Vec<MdqBlock>) {
-        for n in ns {
-            out.push(n.clone());
-            collect_recursive(&n.children, out);
+fn mdq_select_blocks(mut pending: Vec<MdqBlock>, mut select: impl FnMut(&mut MdqBlock) -> Option<()>) -> Vec<MdqBlock> {
+    let mut selected = Vec::new();
+    pending.reverse();
+    while let Some(mut block) = pending.pop() {
+        if select(&mut block).is_some() {
+            if block.kind == "list_item" {
+                block = MdqBlock { kind: "list".into(), children: vec![block], ..MdqBlock::default() };
+            }
+            selected.push(block);
+        } else {
+            pending.extend(block.children.into_iter().rev());
         }
     }
-    collect_recursive(nodes, &mut all);
+    selected
+}
 
+fn mdq_select_one(nodes: Vec<MdqBlock>, stage: &MdqSelector) -> Vec<MdqBlock> {
     if let MdqSelector::Code(lang_m, code_m) = stage {
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "code" {
-                    return None;
-                }
-                let new_lang = mdq_match_and_replace(lang_m, &b.lang, false)?;
-                let new_text = mdq_match_and_replace(code_m, &b.text, false)?;
-                b.lang = new_lang;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "code" {
+                return None;
+            }
+            let new_lang = mdq_match_and_replace(lang_m, &b.lang, false)?;
+            let new_text = mdq_match_and_replace(code_m, &b.text, false)?;
+            b.lang = new_lang;
+            b.text = new_text;
+            Some(())
+        });
     }
     if let MdqSelector::Frontmatter(lang_m, body_m) = stage {
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "frontmatter" {
-                    return None;
-                }
-                if !lang_m.is_empty() && lang_m != "*" && b.lang != *lang_m {
-                    return None;
-                }
-                let new_text = mdq_match_and_replace(body_m, &b.text, false)?;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "frontmatter" {
+                return None;
+            }
+            if !lang_m.is_empty() && lang_m != "*" && b.lang != *lang_m {
+                return None;
+            }
+            let new_text = mdq_match_and_replace(body_m, &b.text, false)?;
+            b.text = new_text;
+            Some(())
+        });
     }
     let MdqSelector::Other(sel) = stage else { unreachable!() };
     if let Some(rest) = sel.strip_prefix('#') {
@@ -28742,44 +28743,22 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                 (1, 6, rest.trim())
             }
         };
-        let mut out = Vec::new();
-        fn select_sections(
-            ns: &[MdqBlock],
-            min_l: usize,
-            max_l: usize,
-            matcher: &str,
-            out: &mut Vec<MdqBlock>,
-        ) {
-            for b in ns {
-                if b.kind == "section"
-                    && b.level >= min_l
-                    && b.level <= max_l
-                    && let Some(new_title) = mdq_match_and_replace(matcher, &b.title, true)
-                {
-                    let mut nb = b.clone();
-                    nb.title = new_title;
-                    out.push(nb);
-                } else {
-                    select_sections(&b.children, min_l, max_l, matcher, out);
-                }
-            }
-        }
-        select_sections(nodes, min_l, max_l, matcher, &mut out);
-        return out;
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "section" || b.level < min_l || b.level > max_l { return None; }
+            b.title = mdq_match_and_replace(matcher, &b.title, true)?;
+            Some(())
+        });
     }
     if let Some(rest) = sel.strip_prefix("</>") {
         let m = rest.trim();
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "html" {
-                    return None;
-                }
-                let new_text = mdq_match_and_replace(m, &b.text, false)?;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "html" {
+                return None;
+            }
+            let new_text = mdq_match_and_replace(m, &b.text, false)?;
+            b.text = new_text;
+            Some(())
+        });
     }
     if sel.starts_with("- ") || sel == "-" || sel.starts_with("1.") {
         let want_ordered = sel.starts_with("1.");
@@ -28799,51 +28778,42 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
             task_filter = Some(None);
             rest = r.trim();
         }
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "list_item" || b.index.is_some() != want_ordered {
-                    return None;
-                }
-                let matches_task = match task_filter {
-                    Some(Some(checked)) => b.checked == Some(checked),
-                    Some(None) => b.checked.is_some(),
-                    None => b.checked.is_none(),
-                };
-                if !matches_task { return None; }
-                let paragraph = b.children.first_mut()?;
-                paragraph.text = mdq_match_and_replace(rest, &paragraph.text, true)?;
-                Some(MdqBlock { kind: "list".into(), children: vec![b], ..MdqBlock::default() })
-            })
-            .collect();
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "list_item" || b.index.is_some() != want_ordered {
+                return None;
+            }
+            let matches_task = match task_filter {
+                Some(Some(checked)) => b.checked == Some(checked),
+                Some(None) => b.checked.is_some(),
+                None => b.checked.is_none(),
+            };
+            if !matches_task { return None; }
+            let paragraph = b.children.first_mut()?;
+            paragraph.text = mdq_match_and_replace(rest, &paragraph.text, true)?;
+            Some(())
+        });
     }
     if let Some(rest) = sel.strip_prefix('>') {
         let m = rest.trim();
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "quote" {
-                    return None;
-                }
-                let new_text = mdq_match_and_replace(m, &b.text, true)?;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "quote" {
+                return None;
+            }
+            let new_text = mdq_match_and_replace(m, &b.text, true)?;
+            b.text = new_text;
+            Some(())
+        });
     }
     if let Some(rest) = sel.strip_prefix("P:") {
         let m = rest.trim();
-        return all
-            .into_iter()
-            .filter_map(|mut b| {
-                if b.kind != "paragraph" {
-                    return None;
-                }
-                let new_text = mdq_match_and_replace(m, &b.text, true)?;
-                b.text = new_text;
-                Some(b)
-            })
-            .collect();
+        return mdq_select_blocks(nodes, |b| {
+            if b.kind != "paragraph" {
+                return None;
+            }
+            let new_text = mdq_match_and_replace(m, &b.text, true)?;
+            b.text = new_text;
+            Some(())
+        });
     }
     if (sel.starts_with("![") || sel.starts_with('['))
         && let is_img = sel.starts_with("![")
@@ -28852,7 +28822,10 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
     {
         let url_m = url_part.strip_suffix(')').unwrap_or(url_part);
         let mut links = Vec::new();
-        for b in &all {
+        let mut pending = nodes;
+        pending.reverse();
+        while let Some(b) = pending.pop() {
+            pending.extend(b.children.into_iter().rev());
             let src = if b.kind == "section" { &b.title } else { &b.text };
             let chars: Vec<char> = src.chars().collect();
             let mut k = 0usize;
@@ -28902,8 +28875,7 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
         if let Some((col_m, cell_m)) = rest.split_once(":-:") {
             let col_m = col_m.trim();
             let cell_m = cell_m.trim();
-            let mut out_tables = Vec::new();
-            for b in all {
+            return mdq_select_blocks(nodes, |b| {
                 if b.kind == "table" && !b.table_rows.is_empty() {
                     let head = &b.table_rows[0];
                     let mut col_indices = Vec::new();
@@ -28939,17 +28911,14 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                         }
                         if new_rows.len() > 1 || b.table_rows.len() == 1 {
                             let new_aligns: Vec<String> = col_indices.iter().map(|&ci| b.table_aligns.get(ci).cloned().unwrap_or_else(|| "none".to_string())).collect();
-                            out_tables.push(MdqBlock {
-                                kind: "table".to_string(),
-                                table_aligns: new_aligns,
-                                table_rows: new_rows,
-                                ..MdqBlock::default()
-                            });
+                            b.table_aligns = new_aligns;
+                            b.table_rows = new_rows;
+                            return Some(());
                         }
                     }
                 }
-            }
-            return out_tables;
+                None
+            });
         }
     }
     Vec::new()
@@ -30034,7 +30003,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     let mut current = vec![MdqBlock { kind: "document".into(), children: parse_mdq_markdown(&md_input), ..MdqBlock::default() }];
     for stage in &stages {
-        current = mdq_select_one(&current, stage);
+        current = mdq_select_one(current, stage);
     }
     let breaks = breaks_opt.unwrap_or(output_fmt == "markdown" || output_fmt == "md");
     let matched = !current.is_empty();

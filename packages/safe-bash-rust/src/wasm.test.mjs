@@ -8425,3 +8425,21 @@ test("mdq keeps production definition order for mixed numeric and named referenc
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq selects and renders bracketed URLs, bare URLs, domains and email addresses", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = "<https://example.com/a_b> <me+tag@example.com> www.é.test/p.\n\n" +
+      "Go to https://x.test/(path)). or ftp://x.test/r! Reach a.b@team.test.\n\n" +
+      "Skip `www.code.test` and [http://verbatim.test] and http://localhost.\n\n" +
+      "A <xx:x_&amp;b> and <a@local>. [<aa:inner>](/outer) [parent www.some.test](link).\n\n" +
+      "a\u2028https://site.test and a!+new@b.test.\n\n| link |\n| - |\n| www.cell.test |";
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-l inline", "-l keep", "-o json", "-o plain", "-o json '[]()'", "'[]()'", "'[](s/test/T/g)'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

@@ -28826,10 +28826,33 @@ enum MdqInlineAtom<'a> {
     Link { image: bool, display: &'a str, target: MdqTarget },
 }
 
+fn mdq_contains_bracketed_url(src: &str) -> bool {
+    if !src.contains('<') { return false; }
+    let bytes = src.as_bytes();
+    let ticks = mdq_backtick_runs(bytes);
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'\\' if bytes.get(i+1).is_some_and(u8::is_ascii_punctuation) => i += 2,
+            b'`' => {
+                let (width, close) = mdq_code_delimiters(bytes, i, &ticks);
+                i = close.unwrap_or(i) + width;
+            }
+            b'<' => {
+                if mdq_links::autolink(src, i, true).is_some() { return true; }
+                i += mdq_inline_html_len(&src[i..]).unwrap_or(1);
+            }
+            _ => i += 1,
+        }
+    }
+    false
+}
+
 fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: impl FnMut(std::ops::Range<usize>, MdqInlineAtom<'a>)) {
     let bytes = src.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut k = 0usize;
+    let mut brackets = 0usize;
     while k < bytes.len() {
         if bytes[k] == b'\\' && bytes.get(k + 1).is_some_and(u8::is_ascii_punctuation) {
             k += 2;
@@ -28838,6 +28861,12 @@ fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: im
         if bytes[k] == b'`' {
             let (width, close) = mdq_code_delimiters(bytes, k, &ticks);
             k = close.unwrap_or(k) + width;
+            continue;
+        }
+        if (bytes[k] == b'<' || bytes[k].is_ascii_alphanumeric() || b".-+".contains(&bytes[k]))
+            && let Some((display, target, used)) = mdq_links::autolink(src, k, brackets != 0) {
+            visit(k..k+used, MdqInlineAtom::Link { image: false, display, target });
+            k += used;
             continue;
         }
         if bytes[k] == b'<' && let Some(n) = mdq_inline_html_len(&src[k..]) {
@@ -28854,14 +28883,30 @@ fn mdq_visit_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, mut visit: im
                 let tail = &src[close+1..];
                 let parsed = tail.strip_prefix('(').and_then(MdqTarget::inline).map(|(t,n)| (t,n+1))
                     .or_else(|| mdq_links::reference(tail, &src[begin-1..=close], defs));
-                let Some((target, used)) = parsed else { k += 1; continue; };
+                let Some((target, used)) = parsed.filter(|_| image || !mdq_contains_bracketed_url(&src[begin..close])) else {
+                    brackets += 1; k = begin; continue;
+                };
                 let end = close + 1 + used;
                 visit(k..end, MdqInlineAtom::Link { image, display: &src[begin..close], target });
                 k = end;
                 continue;
             }
+            brackets += 1;
+            k = begin;
+            continue;
         }
+        if bytes[k] == b']' { brackets = brackets.saturating_sub(1); }
+        let standalone = b"\\`*_~[]<& \t\n".contains(&bytes[k]);
         k += 1;
+        if !standalone {
+            // A text run stops before Markdown syntax, URL schemes, or the start of an email word.
+            while let Some(&c) = bytes.get(k) {
+                if b"\\`*_~[]!<& \t\n".contains(&c)
+                    || c.is_ascii_alphanumeric() && !bytes[k-1].is_ascii_alphanumeric() && !b".-_+".contains(&bytes[k-1])
+                    || matches!(c, b'h' | b'f' | b'w') && ["https://","http://","ftp://","www."].iter().any(|p| src[k..].starts_with(p)) { break; }
+                k += 1;
+            }
+        }
     }
 }
 
@@ -28872,8 +28917,8 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: i
         match atom {
             MdqInlineAtom::Html(text) => emit(text, true),
             MdqInlineAtom::Link { image, display, target } => {
-                let label = mdq_text_span(display, plain || image);
-                if plain { emit(&label, true); } else {
+                let label = if target.auto.is_some() { display.into() } else { mdq_text_span(display, plain || image) };
+                if plain { emit(&label, true); } else if let Some(value) = target.auto_text() { emit(&value, true); } else {
                     let prefix = if image { "!" } else { "" };
                     emit(&format!("{prefix}[{label}]{}", suffix(&target)), false);
                 }
@@ -28884,8 +28929,12 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: i
     if at < src.len() { emit(&mdq_text_span(&src[at..], plain), true); }
 }
 
+fn mdq_has_links(src: &str) -> bool {
+    src.contains(['[', '<', '@']) || src.contains("://") || src.contains("www.")
+}
+
 fn mdq_inline_text(defs: &MdqDefinitions, src: &str, plain: bool) -> String {
-    if !src.contains('[') { return mdq_text_span(src, plain); }
+    if !mdq_has_links(src) { return mdq_text_span(src, plain); }
     let mut out = String::new();
     mdq_inline_parts(defs, src, plain, |t| format!("({t})"), |part, _| out.push_str(part));
     out
@@ -29010,9 +29059,10 @@ fn mdq_select_one(defs: &MdqDefinitions, nodes: Vec<MdqBlock>, stage: &MdqSelect
                     selected.push(MdqBlock { kind: found.into(), text, ..MdqBlock::default() });
                 }
             } else if let Some(target) = target && let (Some(title), Some(url)) = (
-                mdq_match_and_replace(defs, matcher, text, true),
+                mdq_match_and_replace(defs, matcher, text, target.auto.is_none()),
                 mdq_match_and_replace(defs, url_m, &target.url, false),
             ) {
+                let title = if matches!(target.auto, Some(mdq_links::Auto::Bracketed | mdq_links::Auto::Bare)) { url.clone() } else { title };
                 selected.push(MdqBlock { kind: found.into(), title, target: MdqTarget { url, ..target.clone() }, ..MdqBlock::default() });
             }
         };
@@ -29136,7 +29186,11 @@ fn mdq_render_block_md(defs: &MdqDefinitions, b: &MdqBlock, refs: &mut MdqRefere
         }
         "link" | "image" => {
             let prefix = if b.kind == "image" { "!" } else { "" };
-            w.write(&format!("{prefix}[{}]{}", mdq_inline_text(defs, &b.title, b.kind == "image"), refs.suffix(&b.target)), false);
+            if let Some(value) = b.target.auto_text() { w.write(&value, true); }
+            else {
+                let label = if b.target.auto.is_some() { b.title.clone() } else { mdq_text_span(&b.title, b.kind == "image") };
+                w.write(&format!("{prefix}[{label}]{}", refs.suffix(&b.target)), false);
+            }
         }
         "frontmatter" => {
             let delim = if b.lang == "toml" { "+++" } else { "---" };
@@ -29239,7 +29293,8 @@ fn mdq_block_to_jval(defs: &MdqDefinitions, b: &MdqBlock, refs: &mut MdqReferenc
         }
         "link" | "image" => {
             let label = if b.kind == "link" { "display" } else { "alt" };
-            let mut fields = vec![(label.into(), JVal::Str(mdq_inline_text(defs, &b.title, false))), ("url".into(), JVal::Str(b.target.url.clone()))];
+            let display = if b.target.auto.is_some() { b.title.clone() } else { mdq_text_span(&b.title, false) };
+            let mut fields = vec![(label.into(), JVal::Str(display)), ("url".into(), JVal::Str(b.target.url.clone()))];
             if !b.target.title.is_empty() { fields.push(("title".into(), JVal::Str(b.target.title.clone()))); }
             if let Some((key, style)) = &b.target.reference {
                 use mdq_links::Style::*;
@@ -30203,7 +30258,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             match b.kind.as_str() {
                 "section" | "paragraph" | "link" | "image" => {
                     let source = if matches!(b.kind.as_str(), "section" | "link" | "image") { &b.title } else { &b.text };
-                    let text = mdq_inline_text(defs, source, true);
+                    let text = if b.target.auto.is_some() { source.clone() } else { mdq_inline_text(defs, source, true) };
                     if !text.is_empty() { out.push(text); }
                 }
                 "code" | "frontmatter" | "html" if !b.text.is_empty() => out.push(b.text.clone()),

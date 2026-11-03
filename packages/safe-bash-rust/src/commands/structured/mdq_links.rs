@@ -7,6 +7,7 @@ pub(super) struct Target {
     pub url: String,
     pub title: String,
     pub reference: Option<(String, Style)>,
+    pub auto: Option<Auto>,
 }
 
 impl fmt::Display for Target {
@@ -92,19 +93,23 @@ fn title(raw: &str) -> Result<(&str, usize), usize> {
 
 impl Target {
     fn decode(url: &str, title: &str) -> Self {
+        Self {
+            url: Self::encode_uri(&mdq_decode_syntax(url)),
+            title: mdq_decode_syntax(title),
+            ..Self::default()
+        }
+    }
+
+    fn encode_uri(url: &str) -> String {
         let mut encoded = String::new();
-        for b in mdq_decode_syntax(url).bytes() {
+        for b in url.bytes() {
             if b.is_ascii_alphanumeric() || b";/?:@&=+$,-_.!~*'()#%".contains(&b) {
                 encoded.push(b as char);
             } else {
                 write!(encoded, "%{b:02X}").unwrap();
             }
         }
-        Self {
-            url: encoded,
-            title: mdq_decode_syntax(title),
-            reference: None,
-        }
+        encoded
     }
 
     // The input starts just after the opening parenthesis.
@@ -134,6 +139,151 @@ impl Target {
             None
         }
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Auto {
+    Bracketed,
+    Bare,
+    Www,
+}
+
+impl Target {
+    pub fn auto_text(&self) -> Option<String> {
+        match self.auto? {
+            Auto::Bracketed => Some(format!("<{}>", self.url)),
+            Auto::Bare => Some(self.url.clone()),
+            Auto::Www => None,
+        }
+    }
+}
+
+pub(super) fn autolink(src: &str, at: usize, in_brackets: bool) -> Option<(&str, Target, usize)> {
+    let raw = &src[at..];
+    let (label, end, style) = if let Some(after) = raw.strip_prefix('<') {
+        let end = after
+            .bytes()
+            .position(|b| b <= 32 || matches!(b, b'<' | b'>'))?;
+        if after.as_bytes()[end] != b'>' {
+            return None;
+        }
+        let label = &after[..end];
+        let scheme = label.split_once(':').is_some_and(|(s, _)| {
+            (2..=32).contains(&s.len())
+                && s.as_bytes()[0].is_ascii_alphabetic()
+                && s.bytes()
+                    .all(|c| c.is_ascii_alphanumeric() || b"+.-".contains(&c))
+        });
+        if !scheme
+            && !label.split_once('@').is_some_and(|(user, host)| {
+                !user.is_empty()
+                    && user
+                        .bytes()
+                        .all(|c| c.is_ascii_alphanumeric() || b".!#$%&'*+/=?^_`{|}~-".contains(&c))
+                    && host.split('.').all(|p| {
+                        (1..=63).contains(&p.len())
+                            && !p.starts_with('-')
+                            && !p.ends_with('-')
+                            && p.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-')
+                    })
+            })
+        {
+            return None;
+        }
+        (label, end + 2, Auto::Bracketed)
+    } else {
+        if in_brackets {
+            return None;
+        }
+        let prev = src[..at].chars().next_back();
+        // CommonMark whitespace is Zs plus TAB, LF, FF and CR.
+        let space = |c: char| {
+            c.is_whitespace() && !matches!(c, '\u{b}' | '\u{85}' | '\u{2028}' | '\u{2029}')
+        };
+        let scheme = prev
+            .is_none_or(|c| space(c) || "*_~(".contains(c))
+            .then(|| {
+                ["https://", "http://", "ftp://", "www."]
+                    .into_iter()
+                    .find(|p| raw.starts_with(p))
+            })
+            .flatten();
+        if let Some(prefix) = scheme {
+            let www = prefix == "www.";
+            let stop = raw.find(|c| space(c) || c == '<').unwrap_or(raw.len());
+            let mut label = &raw[..stop];
+            let mut balance = label.bytes().fold(0isize, |n, b| {
+                n + isize::from(b == b'(') - isize::from(b == b')')
+            });
+            loop {
+                if label.ends_with(['?', '!', '.', ',', ':', '*', '_', '~']) {
+                    label = &label[..label.len() - 1];
+                } else if label.ends_with(')') && balance < 0 {
+                    label = &label[..label.len() - 1];
+                    balance += 1;
+                } else if let Some(tail) = label.strip_suffix(';') {
+                    let head = tail.trim_end_matches(|c: char| c.is_ascii_alphanumeric());
+                    if head.len() == tail.len() || !head.ends_with('&') {
+                        break;
+                    }
+                    label = &head[..head.len() - 1];
+                } else {
+                    break;
+                }
+            }
+            let domain = label
+                .get(if www { 0 } else { prefix.len() }..)?
+                .split(['/', ':', '?', '#'])
+                .next()?;
+            let mut parts = domain.rsplit('.');
+            if !(0..2).all(|_| {
+                parts
+                    .next()
+                    .is_some_and(|s| !s.is_empty() && !s.contains('_'))
+            }) || parts.any(str::is_empty)
+            {
+                return None;
+            }
+            (label, label.len(), if www { Auto::Www } else { Auto::Bare })
+        } else {
+            let local = |b: u8| b.is_ascii_alphanumeric() || b".-_+".contains(&b);
+            if prev.is_some_and(|c| c.is_ascii() && local(c as u8)) {
+                return None;
+            }
+            let n = raw.bytes().take_while(|b| local(*b)).count();
+            if n == 0 || raw.as_bytes().get(n) != Some(&b'@') {
+                return None;
+            }
+            let domain = &raw[n + 1..];
+            let end = domain
+                .bytes()
+                .take_while(|c| c.is_ascii_alphanumeric() || b".-_".contains(c))
+                .count();
+            let domain = domain[..end].trim_end_matches('.');
+            let end = n + 1 + domain.len();
+            if !domain.contains('.')
+                || domain.ends_with(['-', '_'])
+                || raw.as_bytes().get(end) == Some(&b'+')
+            {
+                return None;
+            }
+            (&raw[..end], end, Auto::Bare)
+        }
+    };
+    let url = if style == Auto::Www {
+        format!("http://{}", Target::encode_uri(label))
+    } else {
+        label.into()
+    };
+    Some((
+        label,
+        Target {
+            url,
+            auto: Some(style),
+            ..Target::default()
+        },
+        end,
+    ))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -325,7 +475,7 @@ impl<'a> References<'a> {
     }
 
     pub fn text(&mut self, src: &str, defs: &Definitions) -> String {
-        if !src.contains('[') {
+        if !super::mdq_has_links(src) {
             return super::mdq_text_span(src, false);
         }
         let mut text = String::new();

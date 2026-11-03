@@ -9853,3 +9853,22 @@ test("path-based writes to mounted devices charge only newly emitted bytes", asy
     }
   } finally { sh.dispose(); }
 });
+
+test("jq decodes shell bytes once and emits UTF-8 from files, filters and variables", async () => {
+  const pua = "\uE080";
+  const sh = new RustWasmBash({files: {"/doc": JSON.stringify(pua), "/raw": pua, "/bad": Uint8Array.of(255), ["/" + pua]: JSON.stringify(pua)}});
+  try {
+    for (const [script, text] of [
+      ["jq -r . /doc", pua], ["jq -r . /" + pua, pua], ["jq -nr '\"\\uE080\"'", pua],
+      ["jq -r . <<< '\"" + pua + "\"'", pua], ["jq -nr --arg x '" + pua + "' '$x'", pua],
+      ["export X='" + pua + "'; jq -nr '$ENV.X'", pua], ["jq -Rr . /raw", pua],
+      ["jq -Rr . </bad", "�"], ["jq -nr --arg x $'\\xff' '$x'", "�"],
+    ]) {
+      const r = await sh.exec(script);
+      assert.deepEqual([r.exitCode, r.stderr], [0, ""], script);
+      assert.deepEqual(r.stdoutBytes, new TextEncoder().encode(text + "\n"), script);
+    }
+    const bad = await sh.exec("jq . /missing" + pua);
+    assert.equal(bad.stderr, "jq: ENOENT: no such file or directory, readStream '/missing" + pua + "'\n");
+  } finally { sh.dispose(); }
+});

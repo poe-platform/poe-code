@@ -773,18 +773,13 @@ pub(crate) fn cmd_jq_with_env(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    cmd_jq_core(args, jq_input::Source::Json(Some(stdin)), cwd, env, fs, None)
+    utf8_output(cmd_jq_core(args, jq_input::Source::ShellJson(Some(stdin)), cwd, env, fs, None))
 }
 
 pub(super) fn cmd_xq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.iter().any(|a| crate::vfs::stream_utf8(a).is_err()) {
         return err_out("xq: filters and filenames require valid UTF-8\n", 2);
     }
-    let decoded;
-    let env = if env.values().any(|v| v.contains(crate::vfs::is_stream_byte)) {
-        decoded = env.iter().map(|(k,v)| (k.clone(), crate::vfs::host_text(v).into_owned())).collect();
-        &decoded
-    } else { env };
     utf8_output(cmd_jq_core(args, jq_input::Source::Xml(Some(stdin)), cwd, env, fs, None))
 }
 
@@ -797,7 +792,13 @@ fn cmd_jq_core(
     yq: Option<&YqDocuments<'_>>,
 ) -> BuiltinOutcome {
     let xml_input = matches!(stdin, jq_input::Source::Xml(_));
-    let text_arg = |arg: &str| if xml_input { crate::vfs::host_text(arg).into_owned() } else { arg.to_owned() };
+    let shell_text = !matches!(stdin, jq_input::Source::Json(_));
+    let decoded;
+    let env = if shell_text && env.iter().any(|(k, v)| k.contains(crate::vfs::is_stream_byte) || v.contains(crate::vfs::is_stream_byte)) {
+        decoded = env.iter().map(|(k,v)| (crate::vfs::host_text(k).into_owned(), crate::vfs::host_text(v).into_owned())).collect();
+        &decoded
+    } else { env };
+    let text_arg = |arg: &str| if shell_text { crate::vfs::host_text(arg).into_owned() } else { arg.to_owned() };
     const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
     let mut raw_output = false;
     let mut raw_output0 = false;
@@ -866,12 +867,13 @@ fn cmd_jq_core(
                 _ => {
                     if vars.contains_key(&name) { continue; }
                     let full = crate::vfs::path::absolute_operand(cwd, text);
-                    let mut source = jq_input::files(vec![full], jq_input::Source::Json(None), cwd, fs, a == "--rawfile", true, false, false, false);
+                    let stdin = if shell_text { jq_input::Source::ShellJson(None) } else { jq_input::Source::Json(None) };
+                    let mut source = jq_input::files(vec![full], stdin, cwd, fs, a == "--rawfile", true, false, false, false);
                     match source.next() {
                         Ok(Some(value)) => value,
                         Ok(None) => unreachable!("slurp always yields one value"),
                         Err((2,e)) => return err_out(&format!("jq: {e}\n"), 2),
-                        Err((_,e)) => return err_out(&format!("jq: Bad JSON in {a} {name} {text}: {e}\n"), 2),
+                        Err((_,e)) => return err_out(&format!("jq: Bad JSON in {a} {name} {}: {e}\n", text_arg(text)), 2),
                     }
                 }
             };

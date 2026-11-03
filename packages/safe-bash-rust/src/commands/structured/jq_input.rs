@@ -50,6 +50,7 @@ impl JqInputs<'_> {
 }
 
 pub(super) enum Source<'a> {
+    ShellJson(Option<&'a str>),
     Json(Option<&'a str>),
     Xml(Option<super::super::CommandInput<'a>>),
 }
@@ -84,10 +85,11 @@ impl Bytes<'_> {
             if self.raw && path == "-" && matches!(self.stdin, Source::Xml(None)) {
                 continue;
             }
+            let shell_text = !matches!(self.stdin, Source::Json(_));
             self.name = Some(if path == "-" {
                 "<stdin>".into()
             } else {
-                if matches!(self.stdin, Source::Xml(_)) { crate::vfs::host_text(&path).into_owned() } else { path.clone() }
+                if shell_text { crate::vfs::host_text(&path).into_owned() } else { path.clone() }
             });
             self.at = 0;
             self.line = 0;
@@ -103,9 +105,14 @@ impl Bytes<'_> {
                     Cow::Owned(json.into_bytes())
                 }
                 Source::Json(input) if path == "-" => Cow::Borrowed(input.take().unwrap_or_default().as_bytes()),
-                Source::Json(_) => {
+                Source::ShellJson(input) if path == "-" => {
+                    let text = input.take().unwrap_or_default();
+                    if text.contains(crate::vfs::is_stream_byte) { Cow::Owned(crate::vfs::stream_string_to_bytes(text)) }
+                    else { Cow::Borrowed(text.as_bytes()) }
+                }
+                Source::Json(_) | Source::ShellJson(_) => {
                     let full = crate::vfs::path::absolute_operand(self.cwd, &path);
-                    Cow::Owned(read_jq_file(self.fs, &full).map_err(|e| (2, e))?)
+                    Cow::Owned(read_jq_file(self.fs, &full).map_err(|e| (2, if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }))?)
                 }
             };
             self.more_newlines = None;

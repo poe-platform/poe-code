@@ -8,7 +8,7 @@ use super::{ChildIo, ChildRun, CommandInput, CommandWriter};
 use crate::shell::builtins::BuiltinOutcome;
 use crate::shell::expand::glob_match;
 use crate::vfs::{
-    SafeBashFs, VfsEntryKind, basename_posix_path, bytes_to_stream_string, normalize_posix_path, resolve_posix_path, stream_byte_len, stream_string_to_bytes,
+    SafeBashFs, VfsEntryKind, basename_posix_path, bytes_to_stream_string, resolve_posix_path, stream_byte_len, stream_string_to_bytes,
 };
 use std::collections::BTreeMap;
 
@@ -5849,6 +5849,11 @@ fn parse_fd_time_ms(spec: &str, now: f64) -> Option<f64> {
     None
 }
 
+#[derive(Clone, Copy, PartialEq)]
+enum FdMode { Regex, Fixed, Glob }
+
+enum FdPattern { Regex(ZeroRegex), Fixed(String), Glob(FdGlob) }
+
 struct FdConfig {
     extensions: Vec<String>,
     types: Vec<char>,
@@ -5865,12 +5870,9 @@ struct FdConfig {
     follow: bool,
     full_path: bool,
     absolute_path: bool,
-    glob_mode: bool,
-    fixed_mode: bool,
-    ignore_case: bool,
+    fold_subject: bool,
     prune: bool,
-    pattern: Option<String>,
-    and_patterns: Vec<String>,
+    patterns: Vec<FdPattern>,
 }
 
 fn cmd_fd<F>(
@@ -5905,8 +5907,7 @@ where
     let mut quiet = false;
     let mut list_details = false;
     let mut strip_cwd_prefix = false;
-    let mut glob_mode = false;
-    let mut fixed_mode = false;
+    let mut mode = FdMode::Regex;
     let mut case_override: Option<bool> = None;
     let mut prune = false;
     let mut format_tpl: Option<String> = None;
@@ -6029,8 +6030,8 @@ where
                             }
                         }
                         "--follow" => follow = true,
-                        "--glob" => glob_mode = true,
-                        "--fixed-strings" => fixed_mode = true,
+                        "--glob" => mode = FdMode::Glob,
+                        "--fixed-strings" => mode = FdMode::Fixed,
                         "--ignore-case" => case_override = Some(true),
                         "--case-sensitive" => case_override = Some(false),
                         "--full-path" => full_path = true,
@@ -6205,8 +6206,8 @@ where
                         }
                     }
                     'L' => follow = true,
-                    'g' => glob_mode = true,
-                    'F' => fixed_mode = true,
+                    'g' => mode = FdMode::Glob,
+                    'F' => mode = FdMode::Fixed,
                     'i' => case_override = Some(true),
                     's' => case_override = Some(false),
                     'p' => full_path = true,
@@ -6303,30 +6304,8 @@ where
         Err(error) => return error,
     };
 
-    let raw_pattern = if !operands.is_empty() {
-        Some(operands.remove(0))
-    } else {
-        None
-    };
-
-    if !glob_mode && !fixed_mode {
-        if let Some(ref p) = raw_pattern
-            && !p.is_empty()
-            && has_unsupported_regex_features(p)
-        {
-            return usage_err(&format!("invalid regex '{p}'"));
-        }
-        for ap in &and_patterns {
-            if has_unsupported_regex_features(ap) {
-                return usage_err(&format!("invalid regex '{ap}'"));
-            }
-        }
-    }
-
-    let pattern = match raw_pattern {
-        Some(p) if !p.is_empty() => Some(p),
-        _ => None,
-    };
+    if !operands.is_empty() { and_patterns.insert(0, operands.remove(0)); }
+    and_patterns.retain(|p| !p.is_empty());
 
     let mut roots = if !search_paths.is_empty() {
         search_paths
@@ -6339,18 +6318,8 @@ where
         roots.push(".".to_string());
     }
 
-    let ignore_case = match case_override {
-        Some(ic) => ic,
-        None => {
-            !pattern
-                .as_ref()
-                .map(|p| p.chars().any(|c| c.is_ascii_uppercase()))
-                .unwrap_or(false)
-                && !and_patterns
-                    .iter()
-                    .any(|p| p.chars().any(|c| c.is_ascii_uppercase()))
-        }
-    };
+    let ignore_case = case_override.unwrap_or_else(|| !and_patterns.iter().any(|p| p.chars().any(char::is_uppercase)));
+    let fold_subject = ignore_case && mode != FdMode::Regex;
 
     let effective_cwd = match &base_dir {
         Some(b) => resolve_posix_path(cwd, b),
@@ -6377,7 +6346,36 @@ where
         }
     }
 
-    let excludes = match excludes.iter().map(|pattern| FdGlob::compile(pattern)).collect::<Result<Vec<_>, _>>() {
+    let mut rules = Vec::new();
+    for name in &custom_ignore_files {
+        let path = resolve_posix_path(&effective_cwd, name);
+        match IgnoreFile::read(fs, &path, &effective_cwd, 3) {
+            Ok(file) => rules.push(file),
+            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
+        }
+    }
+    let explicit_rules = rules.len();
+
+    let mut patterns = Vec::new();
+    for source in and_patterns {
+        let source = if fold_subject { source.to_lowercase() } else { source };
+        let pattern = match mode {
+            FdMode::Fixed => Ok(FdPattern::Fixed(source)),
+            FdMode::Glob => FdGlob::compile(&source, true).map(FdPattern::Glob),
+            FdMode::Regex => {
+                let (pattern, insensitive) = if let Some(p) = source.strip_prefix("(?i)") { (p, true) }
+                    else if let Some(p) = source.strip_prefix("(?-i)") { (p, false) } else { (source.as_str(), ignore_case) };
+                parse_rx_branches(pattern, false, RxDialect::Jq(if insensitive { "i" } else { "" }))
+                    .map(|parsed| FdPattern::Regex(ZeroRegex::from_branches([parsed], false, false, false)))
+                    .map_err(|error| error.message)
+            }
+        };
+        match pattern {
+            Ok(pattern) => patterns.push(pattern),
+            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
+        }
+    }
+    let excludes = match excludes.iter().map(|pattern| FdGlob::compile(pattern, false)).collect::<Result<Vec<_>, _>>() {
         Ok(globs) => globs,
         Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
     };
@@ -6397,23 +6395,10 @@ where
         follow,
         full_path,
         absolute_path,
-        glob_mode,
-        fixed_mode,
-        ignore_case,
+        fold_subject,
         prune,
-        pattern,
-        and_patterns,
+        patterns,
     };
-
-    let mut rules = Vec::new();
-    for name in &custom_ignore_files {
-        let path = resolve_posix_path(&effective_cwd, name);
-        match IgnoreFile::read(fs, &path, &effective_cwd, 3) {
-            Ok(file) => rules.push(file),
-            Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
-        }
-    }
-    let explicit_rules = rules.len();
 
     let format_entry_display = |raw_disp: &str, prefix_cwd: bool| -> String {
         let mut disp = raw_disp.to_string();
@@ -6538,25 +6523,6 @@ where
     result
 }
 
-fn match_fd_single_pattern(pat: &str, subj: &str, cfg: &FdConfig) -> bool {
-    if cfg.glob_mode {
-        if cfg.ignore_case {
-            glob_match(&pat.to_ascii_lowercase(), &subj.to_ascii_lowercase())
-        } else {
-            glob_match(pat, subj)
-        }
-    } else if cfg.fixed_mode {
-        if cfg.ignore_case {
-            subj.to_ascii_lowercase().contains(&pat.to_ascii_lowercase())
-        } else {
-            subj.contains(pat)
-        }
-    } else {
-        let rx = ZeroRegex::new(vec![pat.to_string()], cfg.ignore_case, false, false, false);
-        rx.is_match(subj)
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 fn walk_fd(
     disp: &str,
@@ -6592,7 +6558,7 @@ fn walk_fd(
         if !cfg.show_hidden && base.starts_with('.') {
             return false;
         }
-        if cfg.excludes.iter().any(|ex| ex.matches(rel, is_dir) || ex.matches(&base, is_dir)) {
+        if cfg.excludes.iter().any(|ex| ex.matches(rel, is_dir, true) || ex.matches(&base, is_dir, true)) {
             return false;
         }
         if IgnoreFile::ignored(rules, full, is_dir) {
@@ -6673,33 +6639,15 @@ fn walk_fd(
                     .any(|ext| lower.len() > ext.len() + 1 && lower.ends_with(&format!(".{ext}")));
             }
 
-            if matches {
-                let subj = if cfg.full_path {
-                    if cfg.absolute_path {
-                        full.to_string()
-                    } else if prefix_cwd
-                        && !disp.starts_with('/')
-                        && !disp.starts_with("./")
-                        && !disp.starts_with("../")
-                    {
-                        format!("./{disp}")
-                    } else {
-                        disp.to_string()
-                    }
-                } else {
-                    base.clone()
-                };
-                if let Some(pat) = &cfg.pattern {
-                    matches = match_fd_single_pattern(pat, &subj, cfg);
-                }
-                if matches {
-                    for ap in &cfg.and_patterns {
-                        if !match_fd_single_pattern(ap, &subj, cfg) {
-                            matches = false;
-                            break;
-                        }
-                    }
-                }
+            if matches && !cfg.patterns.is_empty() {
+                let subject = if cfg.full_path { if cfg.absolute_path { full } else { disp } } else { &base };
+                let folded;
+                let subject = if cfg.fold_subject { folded = subject.to_lowercase(); &folded } else { subject };
+                matches = cfg.patterns.iter().all(|pattern| match pattern {
+                    FdPattern::Fixed(needle) => subject.contains(needle),
+                    FdPattern::Glob(glob) => glob.matches(subject, false, false),
+                    FdPattern::Regex(regex) => regex.is_match(subject),
+                });
             }
 
             if matches {
@@ -7647,6 +7595,28 @@ mod tests {
             let r = try_run_search_command("fd", &args(&opts), "", &mut "/work".to_owned(),
                 &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, stdout, stderr));
+        }
+    }
+
+    #[test]
+    fn fd_compiles_patterns_in_the_last_selected_mode_and_matches_display_paths() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w/b").unwrap();
+        for name in ["AÄ.txt", "aä.txt", "a.X", "b/a.x", "b/b.x"] { fs.write_file(&format!("/w/{name}"), b"").unwrap(); }
+        for (argv, stdout, stderr) in [
+            (vec!["-gp", "*.x"], "a.X\n", ""),
+            (vec!["-gp", "**/*.x"], "a.X\nb/a.x\nb/b.x\n", ""),
+            (vec!["-gp", "b/{a,b}.x"], "b/a.x\nb/b.x\n", ""),
+            (vec!["-Fg", "*.X"], "a.X\n", ""), (vec!["-gF", "*.X"], "", ""),
+            (vec!["-F", "ä"], "AÄ.txt\naä.txt\n", ""), (vec!["-F", "Ä"], "AÄ.txt\n", ""),
+            (vec!["(?i)A.X"], "a.X\nb/a.x\n", ""), (vec!["(?-i)a.x"], "b/a.x\n", ""),
+            (vec!["(?=a)"], "AÄ.txt\na.X\naä.txt\nb/a.x\n", ""),
+            (vec!["["], "", "fd: unterminated bracket expression\n"),
+            (vec!["-g", "["], "", "fd: invalid glob: unclosed glob character class\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&argv), "", &mut "/w".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (i32::from(!stderr.is_empty()), stdout, stderr), "{argv:?}");
         }
     }
 

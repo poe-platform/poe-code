@@ -8,11 +8,11 @@ pub(super) struct FdGlob {
 }
 
 impl FdGlob {
-    pub(super) fn compile(source: &str) -> Result<Self, String> {
+    pub(super) fn compile(source: &str, search_pattern: bool) -> Result<Self, String> {
         let directory_only = source.ends_with('/');
         let pattern = source.strip_suffix('/').unwrap_or(source);
-        let mut expression = if source.starts_with('/') || pattern.contains('/') { "^" } else { "(^|/)" }.to_owned();
-        let mut chars = pattern.strip_prefix('/').unwrap_or(pattern).chars();
+        let mut expression = if search_pattern || source.starts_with('/') || pattern.contains('/') { "^" } else { "(^|/)" }.to_owned();
+        let mut chars = if search_pattern { pattern } else { pattern.strip_prefix('/').unwrap_or(pattern) }.chars();
         let mut braces = 0;
         while let Some(c) = chars.next() {
             match c {
@@ -38,7 +38,8 @@ impl FdGlob {
                         } else { expression.push_str(contents); }
                         expression.push(']');
                         chars = tail[end + 1..].chars();
-                    } else { expression.push_str(r"\["); }
+                    } else if search_pattern { return Err("invalid glob: unclosed glob character class".into()); }
+                    else { expression.push_str(r"\["); }
                 }
                 '{' => { braces += 1; expression.push('('); }
                 '}' if braces == 0 => return Err("invalid glob: unmatched glob brace".into()),
@@ -56,9 +57,9 @@ impl FdGlob {
         Ok(Self { expression: ZeroRegex::awk(&expression), directory_only })
     }
 
-    pub(super) fn matches(&self, mut path: &str, directory: bool) -> bool {
+    pub(super) fn matches(&self, mut path: &str, directory: bool, ancestors: bool) -> bool {
         if (!self.directory_only || directory) && self.expression.is_match(path) { return true; }
-        while let Some((parent, _)) = path.rsplit_once('/') {
+        while ancestors && let Some((parent, _)) = path.rsplit_once('/') {
             if self.expression.is_match(parent) { return true; }
             path = parent;
         }
@@ -84,7 +85,7 @@ impl IgnoreFile {
                 line = before;
             }
             let (pattern, include) = line.strip_prefix('!').map_or((line, false), |p| (p, true));
-            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern)?, include)); }
+            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, false)?, include)); }
         }
         Ok(Self { base: base.to_owned(), priority, rules })
     }
@@ -104,7 +105,7 @@ impl IgnoreFile {
                 &outside
             };
             for (glob, include) in &file.rules {
-                if glob.matches(relative, directory) { decision = Some((file.priority, !include)); }
+                if glob.matches(relative, directory, true) { decision = Some((file.priority, !include)); }
             }
         }
         decision.is_some_and(|(_, ignored)| ignored)

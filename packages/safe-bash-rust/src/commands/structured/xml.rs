@@ -32,10 +32,12 @@ fn name_start(c: char) -> bool {
         | '\u{10000}'..='\u{effff}')
 }
 
+fn name_delimiter(c: char) -> bool {
+    space(c) || matches!(c, '/' | '=' | '>' | '?')
+}
+
 fn name<'a>(input: &mut &'a str) -> Result<&'a str, &'static str> {
-    let end = input
-        .find(|c| space(c) || matches!(c, '/' | '=' | '>' | '?'))
-        .unwrap_or(input.len());
+    let end = input.find(name_delimiter).unwrap_or(input.len());
     let (name, rest) = input.split_at(end);
     let mut parts = name.split(':');
     for part in parts.by_ref().take(2) {
@@ -173,6 +175,22 @@ fn diagnostic(error: &'static str) -> String {
 const XML: &str = "http://www.w3.org/XML/1998/namespace";
 const XMLNS: &str = "http://www.w3.org/2000/xmlns/";
 
+enum TagPart {
+    Name,
+    Between(bool),
+    Attribute,
+    Equals,
+    Quote,
+    Value(char),
+    End(bool),
+}
+
+struct StartTag {
+    element: Element,
+    names: HashSet<String>,
+    part: TagPart,
+}
+
 pub(super) struct Parser<'a> {
     expected_encoding: Option<&'a str>,
     warnings: Warnings<'a>,
@@ -186,7 +204,7 @@ pub(super) struct Parser<'a> {
     scope_starts: Vec<usize>,
     pending: String,
     scanned: usize,
-    quote: u8,
+    start_tag: Option<StartTag>,
     after_cr: bool,
     started: bool,
 }
@@ -210,7 +228,7 @@ impl<'a> Parser<'a> {
             scope_starts: Vec::new(),
             pending: String::new(),
             scanned: 0,
-            quote: 0,
+            start_tag: None,
             after_cr: false,
             started: false,
         }
@@ -237,14 +255,18 @@ impl<'a> Parser<'a> {
         };
         if self.warnings.is_some() {
             // Recovery validates every input character before parsing.
-            if !chunk.chars().all(valid) { return Err(diagnostic("invalid character")); }
+            if !chunk.chars().all(valid) {
+                return Err(diagnostic("invalid character"));
+            }
             self.pending.push_str(chunk);
             return Ok(());
         }
         let mut start = 0;
         let mut units = 0;
         for (offset, c) in chunk.char_indices() {
-            if !valid(c) { return Err(diagnostic("invalid character")); }
+            if !valid(c) {
+                return Err(diagnostic("invalid character"));
+            }
             units += c.len_utf16();
             if units >= 512 {
                 let end = offset + c.len_utf8();
@@ -257,11 +279,26 @@ impl<'a> Parser<'a> {
     }
 
     fn consume_chunk(&mut self, chunk: &str) -> Result<(), String> {
-        if chunk.is_empty() { return Ok(()); }
+        if chunk.is_empty() {
+            return Ok(());
+        }
         self.pending.push_str(chunk);
         let mut pending = std::mem::take(&mut self.pending);
-        let mut rest = pending.as_str();
-        while !rest.is_empty() {
+        let rest = self.tokens(&pending, false).map_err(diagnostic)?;
+        pending.drain(..pending.len() - rest.len());
+        self.pending = pending;
+        Ok(())
+    }
+
+    fn tokens<'s>(&mut self, mut rest: &'s str, eof: bool) -> Result<&'s str, &'static str> {
+        while !rest.is_empty() || eof && self.start_tag.is_some() {
+            if self.start_tag.is_some() {
+                if !self.read_start(&mut rest, eof)? {
+                    break;
+                }
+                self.scanned = 0;
+                continue;
+            }
             let end = if !rest.starts_with('<') {
                 rest[self.scanned..].find('<').map(|n| n + self.scanned)
             } else if rest == "<"
@@ -276,7 +313,7 @@ impl<'a> Parser<'a> {
                     .find(|(p, _)| rest.starts_with(p))
             {
                 if prefix == "<![CDATA[" && self.stack.is_empty() {
-                    return Err(diagnostic("CDATA outside root"));
+                    return Err("CDATA outside root");
                 }
                 let start = self
                     .scanned
@@ -287,140 +324,148 @@ impl<'a> Parser<'a> {
                     .position(|s| s == delimiter.as_bytes())
                     .map(|n| start + n + delimiter.len())
             } else if rest.starts_with("<!") {
-                return Err(diagnostic("DTD and entity declarations are forbidden"));
+                return Err("DTD and entity declarations are forbidden");
             } else {
-                let mut end = None;
-                for (i, &b) in rest.as_bytes().iter().enumerate().skip(self.scanned) {
-                    if self.quote != 0 {
-                        if b == self.quote {
-                            self.quote = 0;
-                        }
-                    } else if matches!(b, b'\'' | b'"') {
-                        self.quote = b;
-                    } else if b == b'>' {
-                        end = Some(i + 1);
-                        break;
-                    }
+                if rest.starts_with("</") {
+                    rest[self.scanned..].find('>').map(|n| self.scanned + n + 1)
+                } else {
+                    self.first = false;
+                    self.scope_starts.push(self.declarations.len());
+                    self.start_tag = Some(StartTag {
+                        element: Element {
+                            tag: String::new(),
+                            attrs: Vec::new(),
+                            children: Vec::new(),
+                        },
+                        names: HashSet::new(),
+                        part: TagPart::Name,
+                    });
+                    self.scanned = 0;
+                    rest = &rest[1..];
+                    continue;
                 }
-                end
             };
-            let Some(end) = end else { break };
-            self.consume(&rest[..end]).map_err(diagnostic)?;
-            rest = &rest[end..];
+            let Some(end) = end.or_else(|| eof.then_some(rest.len())) else {
+                break;
+            };
+            let consumed = self.consume(&rest[..end])?;
+            rest = &rest[consumed..];
             self.scanned = 0;
         }
         self.scanned = rest.len();
-        pending.drain(..pending.len() - rest.len());
-        self.pending = pending;
-        Ok(())
+        Ok(rest)
     }
 
-    fn consume(&mut self, mut s: &str) -> Result<(), &'static str> {
-        let Self {
-            doc,
-            warnings,
-            stack,
-            namespaces,
-            declarations,
-            scope_starts,
-            has_root,
-            ..
-        } = self;
-        while !s.is_empty() {
-            let first = self.first;
-            self.first = false;
-            let node = if let Some(rest) = s.strip_prefix("<!--") {
-                let (comment, tail) = rest.split_once("-->").ok_or("malformed comment")?;
-                if comment.contains("--") || comment.ends_with('-') {
-                    return Err("malformed comment");
-                }
-                s = tail;
-                Node::Markup(format!("<!--{comment}-->"))
-            } else if let Some(rest) = s.strip_prefix("<![CDATA[") {
-                if stack.is_empty() {
-                    return Err("CDATA outside root");
-                }
-                let (body, tail) = rest.split_once("]]>").ok_or("unterminated CDATA")?;
-                s = tail;
-                Node::Cdata(body.into())
-            } else if s.starts_with("<!") {
-                return Err("DTD and entity declarations are forbidden");
-            } else if let Some(mut rest) = s.strip_prefix("<?") {
-                let target = name(&mut rest)?;
-                let (body, tail) = rest
-                    .split_once("?>")
-                    .ok_or("unterminated processing instruction")?;
-                if target.eq_ignore_ascii_case("xml") {
-                    if !first || target != "xml" {
-                        return Err("unsupported XML declaration");
+    fn read_start(&mut self, s: &mut &str, eof: bool) -> Result<bool, &'static str> {
+        let tag = self.start_tag.as_mut().unwrap();
+        loop {
+            if s.is_empty() && !eof {
+                return Ok(false);
+            }
+            match tag.part {
+                TagPart::Name | TagPart::Attribute => {
+                    if !eof && !s[self.scanned..].contains(name_delimiter) {
+                        return Ok(false);
                     }
-                    (doc.encoding, doc.standalone) = declaration(body, self.expected_encoding)
-                        .ok_or("unsupported XML declaration")?;
-                    s = tail;
-                    continue;
+                    self.scanned = 0;
+                    let value = name(s)?.to_owned();
+                    if matches!(tag.part, TagPart::Name) {
+                        tag.element.tag = value;
+                        tag.part = TagPart::Between(false);
+                    } else {
+                        if !tag.names.insert(value.clone()) {
+                            return Err("duplicate attribute");
+                        }
+                        tag.element.attrs.push((value, String::new()));
+                        tag.part = TagPart::Equals;
+                    }
                 }
-                if !body.is_empty() && !body.starts_with(space) {
-                    return Err("invalid processing instruction");
-                }
-                s = tail;
-                let data = body.trim_start_matches(space);
-                Node::Markup(if data.is_empty() {
-                    format!("<?{target}?>")
-                } else {
-                    format!("<?{target} {data}?>")
-                })
-            } else if let Some(mut rest) = s.strip_prefix("</") {
-                let end = name(&mut rest)?;
-                rest = rest.trim_start_matches(space);
-                let closed = if let Some(tail) = rest.strip_prefix('>') {
-                    s = tail;
-                    stack.pop()
-                } else {
-                    s = rest.chars().next().map_or(rest, |c| &rest[c.len_utf8()..]);
-                    None
-                };
-                if closed.as_ref().is_none_or(|el| el.tag != end) {
-                    repair(warnings, "mismatched closing tag")?;
-                }
-                let Some(el) = closed else {
-                    continue;
-                };
-                Node::Element(el)
-            } else if let Some(rest) = s.strip_prefix('<') {
-                s = rest;
-                let tag = name(&mut s)?;
-                let mut attrs = Vec::new();
-                let mut names = HashSet::new();
-                scope_starts.push(declarations.len());
-                loop {
+                TagPart::Between(had_space) => {
                     let rest = s.trim_start_matches(space);
-                    if rest.starts_with(['/', '>']) || rest.is_empty() && warnings.is_some() {
-                        s = rest;
-                        break;
+                    let spaced = had_space || rest.len() != s.len();
+                    *s = rest;
+                    if rest.is_empty() && !eof {
+                        tag.part = TagPart::Between(spaced);
+                        return Ok(false);
                     }
-                    if s.len() == rest.len() {
-                        return Err("attributes require whitespace");
+                    let empty = s.starts_with('/');
+                    if !(empty || s.starts_with('>') || s.is_empty() && self.warnings.is_some()) {
+                        if !spaced {
+                            return Err("attributes require whitespace");
+                        }
+                        tag.part = TagPart::Attribute;
+                        continue;
                     }
-                    s = rest;
-                    let key = name(&mut s)?;
-                    if !names.insert(key) {
-                        return Err("duplicate attribute");
+                    let mut expanded = HashSet::new();
+                    for (key, _) in &tag.element.attrs {
+                        if let Some((prefix, local)) = key.split_once(':')
+                            && prefix != "xmlns"
+                        {
+                            let uri = self
+                                .namespaces
+                                .get(prefix)
+                                .and_then(|b| b.last())
+                                .ok_or("unbound attribute prefix")?;
+                            if !expanded.insert((uri, local)) {
+                                return Err("duplicate expanded attribute");
+                            }
+                        }
                     }
-                    s = s
-                        .trim_start_matches(space)
-                        .strip_prefix('=')
-                        .ok_or("missing attribute equals")?
-                        .trim_start_matches(space);
-                    let quote = s
-                        .chars()
-                        .next()
-                        .filter(|c| matches!(c, '\'' | '"'))
-                        .ok_or("unquoted attribute")?;
-                    let (value, tail) = s[1..].split_once(quote).ok_or("unterminated attribute")?;
-                    if value.contains('<') {
+                    if let Some((prefix, _)) = tag.element.tag.split_once(':')
+                        && !self.namespaces.contains_key(prefix)
+                    {
+                        return Err("unbound element prefix");
+                    }
+                    if self.stack.is_empty() {
+                        if self.has_root {
+                            return Err("multiple root elements");
+                        }
+                        self.has_root = true;
+                    }
+                    // DOM consumers recurse when rendering or dropping a tree.
+                    if self.retain_nodes && self.stack.len() >= 512 {
+                        return Err("XML resource limit exceeded");
+                    }
+                    if !self.retain_nodes {
+                        tag.element.attrs = Vec::new();
+                    }
+                    if empty {
+                        *s = &s[1..];
+                    }
+                    tag.part = TagPart::End(empty);
+                }
+                TagPart::Equals | TagPart::Quote => {
+                    *s = s.trim_start_matches(space);
+                    if s.is_empty() && !eof {
+                        return Ok(false);
+                    }
+                    if matches!(tag.part, TagPart::Equals) {
+                        *s = s.strip_prefix('=').ok_or("missing attribute equals")?;
+                        tag.part = TagPart::Quote;
+                    } else {
+                        let q = s
+                            .chars()
+                            .next()
+                            .filter(|c| matches!(c, '\'' | '"'))
+                            .ok_or("unquoted attribute")?;
+                        *s = &s[1..];
+                        tag.part = TagPart::Value(q);
+                    }
+                }
+                TagPart::Value(q) => {
+                    let Some(end) = s[self.scanned..].find(q).map(|n| self.scanned + n) else {
+                        if eof {
+                            return Err("unterminated attribute");
+                        }
+                        return Ok(false);
+                    };
+                    self.scanned = 0;
+                    let raw = &s[..end];
+                    if raw.contains('<') {
                         return Err("less-than in attribute");
                     }
-                    let value = decode(value, true, warnings)?;
+                    let (key, value) = tag.element.attrs.last_mut().unwrap();
+                    *value = decode(raw, true, &mut self.warnings)?;
                     if key == "xmlns" || key.starts_with("xmlns:") {
                         let prefix = key.strip_prefix("xmlns:").unwrap_or("");
                         if prefix == "xmlns"
@@ -430,109 +475,148 @@ impl<'a> Parser<'a> {
                         {
                             return Err("invalid namespace binding");
                         }
-                        namespaces
-                            .entry(prefix.to_owned())
+                        self.namespaces
+                            .entry(prefix.into())
                             .or_default()
                             .push(value.clone());
-                        declarations.push(prefix.to_owned());
+                        self.declarations.push(prefix.into());
                     }
-                    attrs.push((key.to_owned(), value));
-                    s = tail;
+                    *s = &s[end + 1..];
+                    tag.part = TagPart::Between(false);
                 }
-                let mut expanded = HashSet::new();
-                for (key, _) in &attrs {
-                    if let Some((prefix, local)) = key.split_once(':')
-                        && prefix != "xmlns"
-                    {
-                        let uri = namespaces
-                            .get(prefix)
-                            .and_then(|bindings| bindings.last())
-                            .ok_or("unbound attribute prefix")?;
-                        if !expanded.insert((uri.as_str(), local)) {
-                            return Err("duplicate expanded attribute");
-                        }
+                TagPart::End(empty) => {
+                    if !s.starts_with('>') {
+                        repair(&mut self.warnings, "unterminated start tag")?;
                     }
-                }
-                if let Some((prefix, _)) = tag.split_once(':')
-                    && !namespaces.contains_key(prefix)
-                {
-                    return Err("unbound element prefix");
-                }
-                if stack.is_empty() {
-                    if *has_root {
-                        return Err("multiple root elements");
-                    }
-                    *has_root = true;
-                }
-                // The DOM consumers recurse when rendering or dropping a tree.
-                if self.retain_nodes && stack.len() >= 512 {
-                    return Err("XML resource limit exceeded");
-                }
-                let el = Element {
-                    tag: tag.into(),
-                    attrs: if self.retain_nodes { attrs } else { Vec::new() },
-                    children: Vec::new(),
-                };
-                let empty = s.starts_with('/');
-                if empty {
-                    s = &s[1..];
-                }
-                if let Some(tail) = s.strip_prefix('>') {
-                    s = tail;
-                } else {
-                    repair(warnings, "unterminated start tag")?;
                     if let Some(c) = s.chars().next() {
-                        s = &s[c.len_utf8()..];
+                        *s = &s[c.len_utf8()..];
                     }
-                }
-                if empty {
-                    Node::Element(el)
-                } else {
-                    stack.push(el);
-                    continue;
-                }
-            } else {
-                let (text, tail) = s.split_at(s.find('<').unwrap_or(s.len()));
-                s = tail;
-                if text.contains("]]>") {
-                    return Err("CDATA terminator in text");
-                }
-                if stack.is_empty() {
-                    if !text.chars().all(space) {
-                        return Err("text outside the root");
+                    let el = self.start_tag.take().unwrap().element;
+                    if empty {
+                        self.attach(Node::Element(el));
+                    } else {
+                        self.stack.push(el);
                     }
-                    continue;
+                    return Ok(true);
                 }
-                let decoded = decode(text, false, warnings)?;
-                if decoded.is_empty() {
-                    continue;
-                }
-                Node::Text(decoded)
-            };
-            if matches!(&node, Node::Element(_)) {
-                for prefix in declarations.drain(scope_starts.pop().unwrap()..) {
-                    let bindings = namespaces.get_mut(&prefix).unwrap();
-                    bindings.pop();
-                    if bindings.is_empty() {
-                        namespaces.remove(&prefix);
-                    }
-                }
-            }
-            if !self.retain_nodes {
-                continue;
-            }
-            if let Some(parent) = stack.last_mut() {
-                parent.children.push(node);
-            } else {
-                doc.nodes.push(node);
             }
         }
-        Ok(())
+    }
+
+    fn consume(&mut self, mut s: &str) -> Result<usize, &'static str> {
+        let size = s.len();
+        let Self {
+            doc,
+            warnings,
+            stack,
+            ..
+        } = self;
+        let first = self.first;
+        self.first = false;
+        let node = if let Some(rest) = s.strip_prefix("<!--") {
+            let (comment, tail) = rest.split_once("-->").ok_or("malformed comment")?;
+            if comment.contains("--") || comment.ends_with('-') {
+                return Err("malformed comment");
+            }
+            s = tail;
+            Node::Markup(format!("<!--{comment}-->"))
+        } else if let Some(rest) = s.strip_prefix("<![CDATA[") {
+            if stack.is_empty() {
+                return Err("CDATA outside root");
+            }
+            let (body, tail) = rest.split_once("]]>").ok_or("unterminated CDATA")?;
+            s = tail;
+            Node::Cdata(body.into())
+        } else if s.starts_with("<!") {
+            return Err("DTD and entity declarations are forbidden");
+        } else if let Some(mut rest) = s.strip_prefix("<?") {
+            let target = name(&mut rest)?;
+            let (body, tail) = rest
+                .split_once("?>")
+                .ok_or("unterminated processing instruction")?;
+            if target.eq_ignore_ascii_case("xml") {
+                if !first || target != "xml" {
+                    return Err("unsupported XML declaration");
+                }
+                (doc.encoding, doc.standalone) = declaration(body, self.expected_encoding)
+                    .ok_or("unsupported XML declaration")?;
+                s = tail;
+                return Ok(size - s.len());
+            }
+            if !body.is_empty() && !body.starts_with(space) {
+                return Err("invalid processing instruction");
+            }
+            s = tail;
+            let data = body.trim_start_matches(space);
+            Node::Markup(if data.is_empty() {
+                format!("<?{target}?>")
+            } else {
+                format!("<?{target} {data}?>")
+            })
+        } else if let Some(mut rest) = s.strip_prefix("</") {
+            let end = name(&mut rest)?;
+            rest = rest.trim_start_matches(space);
+            let closed = if let Some(tail) = rest.strip_prefix('>') {
+                s = tail;
+                stack.pop()
+            } else {
+                s = rest.chars().next().map_or(rest, |c| &rest[c.len_utf8()..]);
+                None
+            };
+            if closed.as_ref().is_none_or(|el| el.tag != end) {
+                repair(warnings, "mismatched closing tag")?;
+            }
+            let Some(el) = closed else {
+                return Ok(size - s.len());
+            };
+            Node::Element(el)
+        } else if s.starts_with('<') {
+            return Err("invalid qualified name");
+        } else {
+            let (text, tail) = s.split_at(s.find('<').unwrap_or(s.len()));
+            s = tail;
+            if text.contains("]]>") {
+                return Err("CDATA terminator in text");
+            }
+            if stack.is_empty() {
+                if !text.chars().all(space) {
+                    return Err("text outside the root");
+                }
+                return Ok(size - s.len());
+            }
+            let decoded = decode(text, false, warnings)?;
+            if decoded.is_empty() {
+                return Ok(size - s.len());
+            }
+            Node::Text(decoded)
+        };
+        self.attach(node);
+        Ok(size - s.len())
+    }
+
+    fn attach(&mut self, node: Node) {
+        if matches!(&node, Node::Element(_)) {
+            for prefix in self.declarations.drain(self.scope_starts.pop().unwrap()..) {
+                let bindings = self.namespaces.get_mut(&prefix).unwrap();
+                bindings.pop();
+                if bindings.is_empty() {
+                    self.namespaces.remove(&prefix);
+                }
+            }
+        }
+        if !self.retain_nodes {
+            return;
+        }
+        if let Some(parent) = self.stack.last_mut() {
+            parent.children.push(node);
+        } else {
+            self.doc.nodes.push(node);
+        }
     }
 
     pub fn finish(mut self) -> Result<Document, String> {
         let pending = std::mem::take(&mut self.pending);
-        self.consume(&pending).map_err(diagnostic)?;
+        self.tokens(&pending, true).map_err(diagnostic)?;
         self.finish_document().map_err(diagnostic)
     }
 
@@ -565,13 +649,17 @@ pub(super) fn parse(
 ) -> Result<Document, String> {
     let mut parser = Parser::new(expected_encoding, warnings, retain_nodes);
     let src = src.strip_prefix('\u{feff}').unwrap_or(src);
-    if !src.chars().all(valid) { return Err(diagnostic("invalid character")); }
+    if !src.chars().all(valid) {
+        return Err(diagnostic("invalid character"));
+    }
     let normalized;
     let src = if src.contains('\r') {
         normalized = src.replace("\r\n", "\n").replace('\r', "\n");
         &normalized
-    } else { src };
-    parser.consume(src).map_err(diagnostic)?;
+    } else {
+        src
+    };
+    parser.tokens(src, true).map_err(diagnostic)?;
     parser.finish_document().map_err(diagnostic)
 }
 

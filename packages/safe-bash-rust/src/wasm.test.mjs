@@ -9368,3 +9368,19 @@ test("xmllint reports invalid XML characters in the normalization window it need
     }
   } finally { rs.dispose(); }
 });
+
+test("xmllint rejects malformed attributes before reading the rest of an open tag", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [prefix, reason] of [
+      ["<r><x a=unquoted ", "unquoted attribute"],
+      ['<r a="1" a="2" ', "duplicate attribute"],
+      ['<r xmlns:x="" ', "invalid namespace binding"],
+      ['<r a="&bad;" ', "undeclared entity"],
+    ]) {
+      await rs.fs.writeFile("/bad", prefix + " ".repeat(8192));
+      const r = await rs.exec("xmllint --noout bad", { limits: { maxInputBytes: 64 } });
+      assert.deepEqual([r.exitCode, r.stderr], [1, "xmllint: Invalid XML: " + reason + "\n"]);
+    }
+  } finally { rs.dispose(); }
+});

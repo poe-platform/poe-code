@@ -3,7 +3,8 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
 pub(super) enum Node {
-    Text(String),
+    // The string uses the UTF-8 replacement character for an isolated leading low surrogate.
+    Text(String, Option<u16>),
     Cdata(String),
     Markup(String),
     Element(Element),
@@ -205,6 +206,7 @@ pub(super) struct Parser<'a> {
     pending: String,
     scanned: usize,
     start_tag: Option<StartTag>,
+    split_scalar: bool,
     name_end: Option<usize>,
     after_cr: bool,
     started: bool,
@@ -230,6 +232,7 @@ impl<'a> Parser<'a> {
             pending: String::new(),
             scanned: 0,
             start_tag: None,
+            split_scalar: false,
             name_end: None,
             after_cr: false,
             started: false,
@@ -511,8 +514,12 @@ impl<'a> Parser<'a> {
                     if !s.starts_with('>') {
                         repair(&mut self.warnings, "unterminated start tag")?;
                     }
+                    // The reference parser consumes one UTF-16 unit here. Keep
+                    // a split scalar with the next text token so its validation
+                    // and node boundaries still follow the normal text path.
                     if let Some(c) = s.chars().next() {
-                        *s = &s[c.len_utf8()..];
+                        self.split_scalar = c.len_utf16() == 2;
+                        if !self.split_scalar { *s = &s[c.len_utf8()..]; }
                     }
                     let el = self.start_tag.take().unwrap().element;
                     if empty {
@@ -601,11 +608,16 @@ impl<'a> Parser<'a> {
                 }
                 return Ok(());
             }
-            let decoded = decode(text, false, warnings)?;
+            let (text, low) = if std::mem::take(&mut self.split_scalar) {
+                let c = text.chars().next().unwrap();
+                (&text[c.len_utf8()..], Some(c.encode_utf16(&mut [0; 2])[1]))
+            } else { (text, None) };
+            let mut decoded = decode(text, false, warnings)?;
+            if low.is_some() { decoded.insert(0, char::REPLACEMENT_CHARACTER); }
             if decoded.is_empty() {
                 return Ok(());
             }
-            Node::Text(decoded)
+            Node::Text(decoded, low)
         };
         self.attach(node);
         Ok(())
@@ -692,7 +704,7 @@ pub(super) fn to_json(nodes: Vec<Node>, plus: bool) -> JVal {
         let mut text = String::new();
         for child in el.children {
             match child {
-                Node::Text(s) | Node::Cdata(s) => text.push_str(&s),
+                Node::Text(s, _) | Node::Cdata(s) => text.push_str(&s),
                 Node::Markup(_) => {}
                 Node::Element(child) => {
                     let (key, value) = element(child, plus);
@@ -745,9 +757,25 @@ pub(super) enum Escaping {
     Ascii,
     Unicode,
     Canonical,
+    Utf16,
+    SingleByte,
 }
 
 impl Escaping {
+    pub fn text(self, value: &str, low: Option<u16>) -> String {
+        let Some(unit) = low else { return self.escape(value, false) };
+        let tail = &value[char::REPLACEMENT_CHARACTER.len_utf8()..];
+        let prefix = match self {
+            Self::Ascii => format!("&#x{unit:X};"),
+            Self::SingleByte => format!("&#{unit};"),
+            // XML cannot contain NUL. Preserve this raw UTF-16 unit across the
+            // string serializer until encode() writes it to the byte stream.
+            Self::Utf16 => format!("\0{}", char::from_u32(u32::from(unit) - 0xdc00 + 1).unwrap()),
+            Self::Unicode | Self::Canonical => char::REPLACEMENT_CHARACTER.to_string(),
+        };
+        prefix + &self.escape(tail, false)
+    }
+
     pub fn escape(self, text: &str, attr: bool) -> String {
         use std::fmt::Write;
         let mut out = String::with_capacity(text.len());
@@ -782,7 +810,9 @@ pub(super) fn encode(text: String, encoding: Option<&str>) -> Vec<u8> {
             if enc == "UTF-16" {
                 bytes.extend([0xff, 0xfe]);
             }
-            for unit in text.encode_utf16() {
+            let mut units = text.encode_utf16();
+            while let Some(unit) = units.next() {
+                let unit = if unit == 0 { 0xdc00 + units.next().unwrap() - 1 } else { unit };
                 bytes.extend(if enc == "UTF-16BE" {
                     unit.to_be_bytes()
                 } else {

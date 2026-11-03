@@ -9520,3 +9520,31 @@ test("direct printing skips the here-string operand only when it can write the r
     assert.equal((await rs.exec("test -f /wrote")).exitCode, 0);
   } finally { rs.dispose(); }
 });
+
+test("xmllint recovery consumes one UTF-16 unit of a malformed root terminator", async () => {
+  const rs = new RustWasmBash({cwd: "/"});
+  try {
+    for (const [tail, error] of [["🪴", "text outside the root"], ["🪴<!", "text outside the root"], ["🪴]]>", "CDATA terminator in text"]]) {
+      const r = await rs.exec("xmllint --recover --noout <<< '<r/" + tail + "'");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "", "xmllint: Invalid XML: " + error + "\n"], tail);
+    }
+  } finally { rs.dispose(); }
+});
+
+test("xmllint retains recovered low surrogates in their original text node and output encoding", async () => {
+  const rs = new RustWasmBash({cwd: "/", files: {"/f": "<p><r/🪴text</p>"}});
+  try {
+    const warn = "xmllint: unterminated start tag (recovered)\n";
+    for (const [args, wanted] of [
+      ["", '<?xml version="1.0"?>\n<p><r/>&#xDEB4;text</p>\n'],
+      ["--encode US-ASCII", '<?xml version="1.0" encoding="US-ASCII"?>\n<p><r/>&#57012;text</p>\n'],
+      ["--c14n", "<p><r></r>�text</p>"], ["--xpath 'count(/p/text())'", "1\n"],
+      ["--xpath 'string-length(/p)'", "5\n"], ["--xpath 'string(/p)'", "�text\n"],
+    ]) {
+      const r = await rs.exec("xmllint --recover " + args + " /f");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, wanted, warn], args);
+    }
+    const r = await rs.exec("xmllint --recover --encode UTF-16LE /f");
+    assert.deepEqual(Buffer.from(r.stdoutBytes), Buffer.from('<?xml version="1.0" encoding="UTF-16LE"?>\n<p><r/>\udeb4text</p>\n', "utf16le"));
+  } finally { rs.dispose(); }
+});

@@ -371,6 +371,18 @@ test("factor, envsubst and numfmt consume their shared stdin once", async () => 
   } finally { bash.dispose(); }
 });
 
+test("factor reads byte tokens and quotes invalid values from stdin and argv", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const r = await bash.exec("factor", { stdin: Uint8Array.of(51, 13, 10, 52, 0, 120, 9, 255, 32, 48) });
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "4: 2 2\n0:\n",
+      "factor: '3\\r' is not a valid positive integer\nfactor: '\\377' is not a valid positive integer\n"]);
+    const arg = await bash.exec("factor 'é' '  +6'");
+    assert.deepEqual([arg.exitCode, arg.stdout, arg.stderr], [1, "6: 2 3\n",
+      "factor: '\\303\\251' is not a valid positive integer\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("numfmt stops pulling on conversion failure and keeps records split across chunks", async () => {
   const bash = new RustWasmBash({ files: {
     "/bad": "2\nwrong\n" + "x".repeat(65528) + "Z",

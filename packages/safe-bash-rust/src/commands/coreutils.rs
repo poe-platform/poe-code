@@ -5424,7 +5424,7 @@ fn cmd_expr(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
     match eval_expr_or(args, &mut pos, true, &locale) {
         Ok(res) => {
             if pos != args.len() {
-                return err_out(&format!("expr: syntax error: unexpected argument {}\n", expr_quote(&args[pos])), 2);
+                return err_out(&format!("expr: syntax error: unexpected argument {}\n", quote_bytes(args[pos].as_bytes())), 2);
             }
             let truthy = is_expr_truthy(&res);
             BuiltinOutcome {
@@ -5494,10 +5494,10 @@ fn expr_units(mut bytes: &[u8], unicode: bool) -> impl Iterator<Item = &[u8]> {
     })
 }
 
-fn expr_quote(value: &str) -> String {
+fn quote_bytes(value: &[u8]) -> String {
     use std::fmt::Write;
     let mut out = String::from("'");
-    for byte in value.bytes() {
+    for &byte in value {
         match byte {
             b'\'' => out.push_str("\\'"),
             b'\\' => out.push_str("\\\\"),
@@ -5672,7 +5672,7 @@ fn eval_expr_match(args: &[String], pos: &mut usize, active: bool, locale: &Expr
 
 fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
     if *pos >= args.len() {
-        return Err((format!("expr: syntax error: missing argument after {}\n", expr_quote(&args[*pos - 1])), 2));
+        return Err((format!("expr: syntax error: missing argument after {}\n", quote_bytes(args[*pos - 1].as_bytes())), 2));
     }
     let tok = &args[*pos];
     if tok == ")" {
@@ -5682,10 +5682,10 @@ fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool, locale: &Ex
         *pos += 1;
         let val = eval_expr_or(args, pos, active, locale)?;
         if *pos == args.len() {
-            return Err((format!("expr: syntax error: expecting ')' after {}\n", expr_quote(&args[*pos - 1])), 2));
+            return Err((format!("expr: syntax error: expecting ')' after {}\n", quote_bytes(args[*pos - 1].as_bytes())), 2));
         }
         if args[*pos] != ")" {
-            return Err((format!("expr: syntax error: expecting ')' instead of {}\n", expr_quote(&args[*pos])), 2));
+            return Err((format!("expr: syntax error: expecting ')' instead of {}\n", quote_bytes(args[*pos].as_bytes())), 2));
         }
         *pos += 1;
         return Ok(val);
@@ -11600,7 +11600,8 @@ fn cmd_factor(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
         if let Err(error) = stdin.append_bytes(&mut bytes) {
             return err_out(&format!("factor: standard input: {error}\n"), 1);
         }
-        crate::vfs::bytes_to_stream_string(&bytes).split_whitespace().map(str::to_owned).collect()
+        bytes.split(|&b| matches!(b, b' ' | b'\t' | b'\n')).filter(|t| !t.is_empty())
+            .map(|t| crate::vfs::bytes_to_stream_string(t.split(|&b| b == 0).next().unwrap())).collect()
     } else {
         operands
     };
@@ -11609,16 +11610,13 @@ fn cmd_factor(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
     let mut err = String::new();
     let mut exit_code = 0;
     for raw in nums {
-        let trimmed = raw.trim_start();
+        let trimmed = raw.trim_start_matches(' ');
         let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
-        if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        let n = digits.bytes().all(|b| b.is_ascii_digit()).then(|| digits.parse::<u128>().ok()).flatten();
+        let Some(n) = n else {
             exit_code = 1;
-            err.push_str(&format!("factor: '{raw}' is not a valid positive integer\n"));
-            continue;
-        }
-        let Ok(n) = digits.parse::<u128>() else {
-            exit_code = 1;
-            err.push_str(&format!("factor: '{raw}' is not a valid positive integer\n"));
+            let quoted = quote_bytes(&stream_string_to_bytes(&raw));
+            err.push_str(&format!("factor: {quoted} is not a valid positive integer\n"));
             continue;
         };
         let factors = factor_u128(n);

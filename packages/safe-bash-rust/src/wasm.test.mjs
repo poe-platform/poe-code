@@ -9467,3 +9467,14 @@ test("oversized here-strings fail during descriptor setup even when nobody reads
     }
   } finally { rs.dispose(); }
 });
+
+test("a failed here-string does not assign, unset, or read a builtin variable", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const builtin of ["read -n1 v <<<1234", "read -u3 v 3<<<🦊", "printf -v v x <<<1234",
+      "unset v <<<1234", "export v=new <<<1234", "mapfile v <<<1234", "command -p printf x <<<1234"]) {
+      const r = await rs.exec('v=old; ' + builtin + '; echo "$?:$v"', {limits: {maxInputBytes: 4}});
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "1:old\n", "shell: line 1: EFBIG: file too large, read\n"], builtin);
+    }
+  } finally { rs.dispose(); }
+});

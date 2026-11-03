@@ -3408,14 +3408,25 @@ impl<'a> EvalState<'a> {
             for binding in temp_saved.iter_mut().rev() { binding.exchange(self.env); }
         }
 
-        // Single builtin here-strings may use a direct string operation rather than
-        // opening a byte source. Status builtins still prepare the redirect.
-        let prepare_here_string = simple.redirects.len() != 1 || expanded_words.first()
-            .is_none_or(|name| !Self::is_shell_builtin_name(name) || self.functions.contains_key(name)
-                || matches!(name.as_str(), ":" | "true" | "false"));
+        let direct_here = matches!(simple.redirects.as_slice(), [Redirect { kind: RedirectKind::HereString(_), .. }])
+            && simple.assignments.is_empty() && expanded_words.first().is_some_and(|name|
+                simple.words.first() == Some(name) && !self.functions.contains_key(name))
+            && {
+                let offset = usize::from(matches!(expanded_words[0].as_str(), "command" | "builtin"));
+                match expanded_words.get(offset..).unwrap_or_default() {
+                    [name, arg, ..] if simple.words.get(offset) == Some(name) => match name.as_str() {
+                        "echo" => !arg.starts_with('-'),
+                        "printf" => !arg.starts_with('-') || arg == "--",
+                        "mapfile" | "readarray" => offset == 0 && arg == "-t" && expanded_words.len() <= 3
+                            && matches!(simple.redirects[0].kind, RedirectKind::HereString(0)),
+                        _ => false,
+                    },
+                    _ => false,
+                }
+            };
         let prev_iso = std::mem::replace(&mut self.isolated_inline_input, is_external_inline);
         let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-            match self.setup_redirects(&simple.redirects, stdin, prepare_here_string) {
+            match self.setup_redirects(&simple.redirects, stdin, !direct_here) {
                 Ok(res) => {
                     self.isolated_inline_input = prev_iso;
                     self.redirect_assignments.clear();

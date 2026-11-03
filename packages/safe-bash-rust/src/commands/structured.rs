@@ -15012,18 +15012,10 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
             res.stdout
         } else if c14n {
             let mut out = String::new();
-            let in_scope = BTreeMap::new();
-            let rendered_ns = BTreeMap::new();
-            for n in &dom {
+            for node in &dom {
                 if !out.is_empty() { out.push('\n'); }
-                match n {
-                    XmlNode::Element(el) => {
-                        if let Err(e) = serialize_xml_c14n_with_scope(el, exc_c14n, &in_scope, &rendered_ns, &mut out) {
-                            return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
-                        }
-                    }
-                    XmlNode::Markup(markup) => out.push_str(markup),
-                    _ => {}
+                if let Err(e) = serialize_xml_c14n(node, exc_c14n, &mut out) {
+                    return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
                 }
             }
             out
@@ -15072,7 +15064,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
         let mut warnings = Vec::new();
         let tree = if noout && xpath.is_none() { xml::TreeMode::Discard }
-            else if xpath.is_some() || c14n || format_xml { xml::TreeMode::DepthLimited }
+            else if xpath.is_some() || format_xml && !c14n { xml::TreeMode::DepthLimited }
             else { xml::TreeMode::Retain };
         let parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), tree);
         let file = path.as_deref().map(|p| (p, remaining.clamp(1, 65536)));
@@ -15089,71 +15081,90 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
     result
 }
 
-fn serialize_xml_c14n_with_scope<'a>(
-    el: &'a XmlElement,
-    exclusive: bool,
-    inherited: &BTreeMap<&'a str, &'a str>,
-    rendered: &BTreeMap<&'a str, &'a str>,
-    out: &mut String,
-) -> Result<(), &'static str> {
-    let mut scope = inherited.clone();
-    for (name, value) in &el.attrs {
-        if let Some(prefix) = xml_binding(name) {
-            if !value.is_empty() && !value.split_once(':').is_some_and(|(scheme, _)| {
-                let mut bytes = scheme.bytes();
-                bytes.next().is_some_and(|b| b.is_ascii_alphabetic())
-                    && bytes.all(|b| b.is_ascii_alphanumeric() || matches!(b, b'+' | b'-' | b'.'))
-            }) {
-                return Err("Failed to canonicalize: relative namespace URI");
-            }
-            scope.insert(prefix, value);
-        }
+fn restore_xml_bindings<'a>(
+    scope: &mut BTreeMap<&'a str, &'a str>, changes: &mut Vec<(&'a str, Option<&'a str>)>, start: usize,
+) {
+    for (prefix, previous) in changes.drain(start..).rev() {
+        if let Some(uri) = previous { scope.insert(prefix, uri); } else { scope.remove(prefix); }
     }
-    let mut attrs = Vec::new();
-    for (name, value) in &el.attrs {
-        if xml_binding(name).is_some() { continue; }
-        let (prefix, local) = name.split_once(':').unwrap_or(("", name));
-        let uri = match prefix {
-            "" => "",
-            "xml" => "http://www.w3.org/XML/1998/namespace",
-            prefix => scope[prefix],
-        };
-        attrs.push((uri, local, prefix, name, value));
-    }
-    attrs.sort_unstable_by_key(|&(uri, local, ..)| (uri, local));
+}
 
-    out.push('<');
-    out.push_str(&el.tag);
-    let el_prefix = el.tag.split_once(':').map_or("", |(p, _)| p);
-    let mut next = rendered.clone();
-    for (&prefix, &uri) in &scope {
-        if prefix == "xml" || rendered.get(prefix).copied().unwrap_or("") == uri { continue; }
-        if exclusive && prefix != el_prefix && !attrs.iter().any(|a| a.2 == prefix) { continue; }
-        next.insert(prefix, uri);
-        out.push_str(" xmlns");
-        if !prefix.is_empty() { out.push(':'); out.push_str(prefix); }
-        out.push_str("=\"");
-        out.push_str(&xml::Escaping::Canonical.escape(uri, true));
-        out.push('"');
-    }
-    for (_, _, _, k, v) in attrs {
-        out.push(' ');
-        out.push_str(k);
-        out.push_str("=\"");
-        out.push_str(&xml::Escaping::Canonical.escape(v, true));
-        out.push('"');
-    }
-    out.push('>');
-    for child in &el.children {
-        match child {
-            XmlNode::Markup(m) => out.push_str(m),
-            XmlNode::Text(t, _) | XmlNode::Cdata(t) => out.push_str(&xml::Escaping::Canonical.escape(t, false)),
-            XmlNode::Element(el) => serialize_xml_c14n_with_scope(el, exclusive, &scope, &next, out)?,
+fn serialize_xml_c14n(node: &XmlNode, exclusive: bool, out: &mut String) -> Result<(), &'static str> {
+    enum Event<'a> { Visit(&'a XmlNode), Close(&'a str, usize, usize) }
+    let mut stack = vec![Event::Visit(node)];
+    let mut scope = BTreeMap::new();
+    let mut rendered = BTreeMap::new();
+    let mut bindings = Vec::new();
+    let mut emitted = Vec::new();
+    while let Some(event) = stack.pop() {
+        let el = match event {
+            Event::Close(tag, scope_start, render_start) => {
+                out.push_str("</");
+                out.push_str(tag);
+                out.push('>');
+                restore_xml_bindings(&mut scope, &mut bindings, scope_start);
+                restore_xml_bindings(&mut rendered, &mut emitted, render_start);
+                continue;
+            }
+            Event::Visit(XmlNode::Markup(m)) => { out.push_str(m); continue; }
+            Event::Visit(XmlNode::Text(t, _) | XmlNode::Cdata(t)) => {
+                out.push_str(&xml::Escaping::Canonical.escape(t, false));
+                continue;
+            }
+            Event::Visit(XmlNode::Element(el)) => el,
+        };
+        stack.push(Event::Close(&el.tag, bindings.len(), emitted.len()));
+        let mut prefixes = std::collections::BTreeSet::new();
+        for (name, value) in &el.attrs {
+            if let Some(prefix) = xml_binding(name) {
+                if !value.is_empty() && !value.split_once(':').is_some_and(|(scheme, _)| {
+                    let mut bytes = scheme.bytes();
+                    bytes.next().is_some_and(|b| b.is_ascii_alphabetic())
+                        && bytes.all(|b| b.is_ascii_alphanumeric() || matches!(b, b'+' | b'-' | b'.'))
+                }) {
+                    return Err("Failed to canonicalize: relative namespace URI");
+                }
+                bindings.push((prefix, scope.insert(prefix, value)));
+                if !exclusive { prefixes.insert(prefix); }
+            }
         }
+        let mut attrs = Vec::new();
+        for (name, value) in &el.attrs {
+            if xml_binding(name).is_some() { continue; }
+            let (prefix, local) = name.split_once(':').unwrap_or(("", name));
+            let uri = match prefix {
+                "" => "",
+                "xml" => "http://www.w3.org/XML/1998/namespace",
+                prefix => scope[prefix],
+            };
+            if exclusive { prefixes.insert(prefix); }
+            attrs.push((uri, local, name, value));
+        }
+        attrs.sort_unstable_by_key(|&(uri, local, ..)| (uri, local));
+
+        out.push('<');
+        out.push_str(&el.tag);
+        if exclusive { prefixes.insert(el.tag.split_once(':').map_or("", |(p, _)| p)); }
+        for prefix in prefixes {
+            let uri = scope.get(prefix).copied().unwrap_or("");
+            if prefix == "xml" || rendered.get(prefix).copied().unwrap_or("") == uri { continue; }
+            emitted.push((prefix, rendered.insert(prefix, uri)));
+            out.push_str(" xmlns");
+            if !prefix.is_empty() { out.push(':'); out.push_str(prefix); }
+            out.push_str("=\"");
+            out.push_str(&xml::Escaping::Canonical.escape(uri, true));
+            out.push('"');
+        }
+        for (_, _, k, v) in attrs {
+            out.push(' ');
+            out.push_str(k);
+            out.push_str("=\"");
+            out.push_str(&xml::Escaping::Canonical.escape(v, true));
+            out.push('"');
+        }
+        out.push('>');
+        stack.extend(el.children.iter().rev().map(Event::Visit));
     }
-    out.push_str("</");
-    out.push_str(&el.tag);
-    out.push('>');
     Ok(())
 }
 

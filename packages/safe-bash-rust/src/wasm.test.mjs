@@ -9706,3 +9706,19 @@ test("xmllint transforms deeply nested whitespace and CDATA in document order", 
     assert.equal(r.stdout, '<?xml version="1.0"?>\n' + open + '<a><b/></a><a xml:space="preserve"> <b/> </a><c>xy z</c>' + close + "\n");
   } finally { sh.dispose(); }
 });
+
+test("xmllint canonicalizes deep namespace changes and restores sibling bindings", async () => {
+  const open = "<n>".repeat(5000), close = "</n>".repeat(5000);
+  const tree = '<r xmlns:p="urn:old">' + open + '<a xmlns:p="urn:new"><p:x/></a><p:y/>' + close + '</r>';
+  const sh = new RustWasmBash({files: {"/doc": tree}});
+  try {
+    for (const [flag, root, inner] of [
+      ["--c14n", '<r xmlns:p="urn:old">', '<a xmlns:p="urn:new"><p:x></p:x></a><p:y></p:y>'],
+      ["--exc-c14n", '<r>', '<a><p:x xmlns:p="urn:new"></p:x></a><p:y xmlns:p="urn:old"></p:y>'],
+    ]) {
+      const r = await sh.exec("xmllint " + flag + " /doc");
+      assert.deepEqual([r.exitCode, r.stderr], [0, ""]);
+      assert.equal(r.stdout, root + open + inner + close + "</r>");
+    }
+  } finally { sh.dispose(); }
+});

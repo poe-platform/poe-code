@@ -82,7 +82,7 @@ fn coreutil(
         "nproc" => cmd_nproc(args, env),
         "id" => cmd_id(args, env, fs),
         "sleep" => cmd_sleep(args, env),
-        "factor" => cmd_factor(args, input),
+        "factor" => cmd_factor(args, input, env.contains_key("POSIXLY_CORRECT")),
         "expand" => cmd_expand(args, input, cwd, fs),
         "unexpand" => cmd_unexpand(args, input, cwd, fs),
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
@@ -11553,46 +11553,41 @@ fn factor_u128(mut n: u128) -> Vec<u128> {
     factors
 }
 
-fn cmd_factor(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
+fn cmd_factor(args: &[String], mut stdin: CommandInput, posix: bool) -> BuiltinOutcome {
     let mut exponents = false;
+    let mut debug = false;
     let mut options_ended = false;
-    let mut operands: Vec<String> = Vec::new();
+    let mut operands = Vec::new();
+    let usage = |message: String| err_out(&format!("factor: {message}\nTry 'factor --help' for more information.\n"), 1);
     for arg in args {
         if !options_ended && arg == "--" {
             options_ended = true;
             continue;
         }
-        if !options_ended && arg.starts_with("--") {
-            if arg == "--help" {
-                return ok_out("Usage: factor [NUMBER]...\nPrint prime factors; with no numbers, read standard input.\nOptions: --exponents (print repeated factors as powers) --help --version\nMaximum supported value: Infinity\n");
+        if !options_ended && let Some(long) = arg.strip_prefix("--") {
+            let name = long.split('=').next().unwrap();
+            let mut matches = ["-debug", "exponents", "help", "version"].into_iter().filter(|opt| opt.starts_with(name));
+            let Some(option) = matches.next() else { return usage(format!("unrecognized option '{arg}'")); };
+            if let Some(next) = matches.next() {
+                let choices = [option, next].into_iter().chain(matches).map(|s| format!("'--{s}'")).collect::<Vec<_>>().join(" ");
+                return usage(format!("option '{arg}' is ambiguous; possibilities: {choices}"));
             }
-            if arg == "--version" {
-                return ok_out("factor (virtual-bash)\n");
+            if name.len() != long.len() { return usage(format!("option '--{option}' doesn't allow an argument")); }
+            match option {
+                "help" => return ok_out("Usage: factor [NUMBER]...\nPrint prime factors; with no numbers, read standard input.\nOptions: --exponents (print repeated factors as powers) --help --version\nMaximum supported value: Infinity\n"),
+                "version" => return ok_out("factor (virtual-bash)\n"),
+                "-debug" => debug = true,
+                _ => exponents = true,
             }
-            if "--exponents".starts_with(arg.as_str()) && arg.len() >= 3 {
-                exponents = true;
-                continue;
+        } else if !options_ended && arg.len() > 1 && arg.starts_with('-') {
+            if let Some(ch) = arg[1..].chars().find(|&ch| ch != 'h') {
+                return usage(format!("invalid option -- '{ch}'"));
             }
-            if arg == "---debug" {
-                continue;
-            }
-            return err_out(
-                &format!("factor: unrecognized option '{arg}'\nTry 'factor --help' for more information.\n"),
-                1,
-            );
+            exponents = true;
+        } else {
+            operands.push(arg.clone());
+            options_ended |= posix;
         }
-        if !options_ended && arg.starts_with('-') && arg.len() > 1 {
-            if arg[1..].chars().all(|c| c == 'h') {
-                exponents = true;
-                continue;
-            }
-            let ch = arg[1..].chars().next().unwrap_or('?');
-            return err_out(
-                &format!("factor: invalid option -- '{ch}'\nTry 'factor --help' for more information.\n"),
-                1,
-            );
-        }
-        operands.push(arg.clone());
     }
 
     let nums: Vec<String> = if operands.is_empty() {
@@ -11619,6 +11614,7 @@ fn cmd_factor(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
             err.push_str(&format!("factor: {quoted} is not a valid positive integer\n"));
             continue;
         };
+        if debug { err.push_str("[using single-precision arithmetic] "); }
         let factors = factor_u128(n);
         out.push_str(&format!("{n}:"));
         let mut i = 0usize;

@@ -18,6 +18,22 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
     (shell, vfs)
 }
 
+#[test]
+fn factor_parses_gnu_options_before_reading_numbers() {
+    let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+    for (script, status, stdout, stderr) in [
+        ("factor --v --bad", 0, "factor (virtual-bash)\n", ""),
+        ("factor ---de 6 x 8", 1, "6: 2 3\n8: 2 2 2\n",
+            "[using single-precision arithmetic] factor: 'x' is not a valid positive integer\n[using single-precision arithmetic] "),
+        ("factor --exp=y", 1, "", "factor: option '--exponents' doesn't allow an argument\nTry 'factor --help' for more information.\n"),
+        ("factor -hx", 1, "", "factor: invalid option -- 'x'\nTry 'factor --help' for more information.\n"),
+        ("POSIXLY_CORRECT= factor 8 -h", 1, "8: 2 2 2\n", "factor: '-h' is not a valid positive integer\n"),
+    ] {
+        let r = shell.exec(script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (status, stdout, stderr), "{script}");
+    }
+}
+
 struct JqStreamFs;
 impl SafeBashFs for JqStreamFs {
     fn access_path(&self, path: &str, _: bool) -> Result<String, String> { Ok(path.into()) }

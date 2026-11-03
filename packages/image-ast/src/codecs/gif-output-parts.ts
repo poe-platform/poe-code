@@ -1,3 +1,4 @@
+import { quantizeGif } from "./gif-quantization.js";
 import type { RgbaImage } from "../ast.js";
 export interface GifOptions {
   readonly pageHeight?: number;
@@ -11,6 +12,8 @@ export class GifPalette {
   private readonly colors = new Map<number, number>();
   private readonly used = new Set<number>();
   private readonly missing = new Set<number>();
+  private readonly histogram = new Float64Array(32768 * 4);
+  private quantized?: Uint8Array;
   constructor() {
     for (let i = 0; i < 254; i++) {
       const r = Math.round((((i >>> 5) & 7) * 255) / 7),
@@ -24,6 +27,13 @@ export class GifPalette {
   }
   add(r: number, g: number, b: number, a: number) {
     if (a < 128) return;
+    if (r !== 255 || g !== 255 || b !== 255) {
+      const at = (((r >>> 3) << 10) | ((g >>> 3) << 5) | (b >>> 3)) * 4;
+      this.histogram[at]! += r;
+      this.histogram[at + 1]! += g;
+      this.histogram[at + 2]! += b;
+      this.histogram[at + 3]!++;
+    }
     const key = (r << 16) | (g << 8) | b,
       existing = this.colors.get(key);
     if (existing !== undefined) this.used.add(existing);
@@ -39,10 +49,16 @@ export class GifPalette {
         this.colors.set(key, probe);
         this.bytes.set([(key >>> 16) & 255, (key >>> 8) & 255, key & 255], probe * 3);
       }
+    } else {
+      this.quantized = quantizeGif(this.histogram, this.bytes);
     }
   }
   index(r: number, g: number, b: number, a: number) {
     if (a < 128) return 255;
+    if (this.quantized) {
+      if (r === 255 && g === 255 && b === 255) return 254;
+      return this.quantized[((r >>> 3) << 10) | ((g >>> 3) << 5) | (b >>> 3)]!;
+    }
     const exact = this.colors.get((r << 16) | (g << 8) | b);
     if (exact !== undefined) return exact;
     const value = ((r >>> 5) << 5) | ((g >>> 5) << 2) | (b >>> 6);

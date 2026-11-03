@@ -8,7 +8,7 @@ import {
   gifFrameHeader,
   type GifOptions
 } from "./gif-output-parts.js";
-/** Multipass GIF encoding with a fixed palette and pull-driven owned subblocks. */
+/** Multipass GIF encoding with a source-derived palette and pull-driven owned subblocks. */
 export async function* encodeGifFromStorage(
   image: StoredRgbaImage,
   storage: ImageByteStorage,

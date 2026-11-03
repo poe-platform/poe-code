@@ -89,7 +89,7 @@ file output, statistics and metadata, preserving alignment, spacing and animatio
 use the same retained output path, and text metadata avoids rendering a pixel canvas.
 These input formats also support
 streaming TIFF, GIF, JPEG, WebP, PDF and raw output. PDF output streams compressed RGB and transparency from caller-backed pixels. `encodeRawFromStorage` preserves
-raw channel/depth conversion and original high-depth samples in caller storage. `encodeGifFromStorage` uses a fixed palette, bounded
+raw channel/depth conversion and original high-depth samples in caller storage. `encodeGifFromStorage` uses a source-derived palette with a bounded 32K-bin color histogram, bounded
 pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
 storage, including page selection, interlacing and disposal. Async GIF output reads

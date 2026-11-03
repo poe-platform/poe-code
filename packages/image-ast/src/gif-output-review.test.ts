@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { expect, it, vi } from "vitest";
 import type { RgbaImage } from "./ast.js";
-import { encodeGifImage } from "./codecs/gif.js";
+import { decodeGifImage, encodeGifImage } from "./codecs/gif.js";
 import { encodeGifFromStorage } from "./codecs/gif-storage.js";
 import type { GifOptions } from "./codecs/gif-output-parts.js";
 interface Spec {
@@ -42,8 +42,9 @@ function raster(spec: Spec): RgbaImage {
     hasAlpha: true
   };
 }
-// Frozen independently executed old GIF encoder hashes at 7e531d71ec.
-const vectors: { spec: Spec; options: GifOptions; hash: string }[] = [
+// Small palettes retain frozen encoder hashes at 7e531d71ec.
+// Former RGB332 fallback cases instead check decoded source-color accuracy.
+const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 1, height: 1, colors: 254 },
     options: {},
@@ -161,8 +162,7 @@ const vectors: { spec: Spec; options: GifOptions; hash: string }[] = [
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "white" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "b125aa1dbd5be52fbfea7bbdab68c5ef5a2bef8b84c3ef1fc9a0fb589652a0be"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "alpha" },
@@ -171,8 +171,7 @@ const vectors: { spec: Spec; options: GifOptions; hash: string }[] = [
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "grid" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "a08085b0c51de1f41ec65b4a223813f57cffb5aad4bd30c29cc9a905934b2867"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "white" },
@@ -181,28 +180,23 @@ const vectors: { spec: Spec; options: GifOptions; hash: string }[] = [
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "alpha" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "ea862e3d6aa7f8527eea097dcc8cdb2d426e54336705891743b31a3de7c0f25c"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 257, height: 4, colors: 256, mode: "grid" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "d07c170c64c143d764eb30e3c4bffaa0a5f2ef98a125c2374316bafe6c312a87"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 257, height: 4, colors: 256, mode: "white" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "86f41017438da3fe3665e5ff50ab7e6ae32d93a8e528519f9fd5ccc710b35c59"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 257, height: 4, colors: 256, mode: "alpha" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "cc8a30feab2ef3299d57a94cf3c8d8e3ff101e5c98c87d8222a62f4b85342d5f"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 301, height: 4, colors: 300, mode: "grid" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "097c178c0642e6bdd1f8af32bacbe8e39377d035690a1ead7a790d8899d86f68"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: { width: 301, height: 4, colors: 300, mode: "white" },
@@ -211,8 +205,7 @@ const vectors: { spec: Spec; options: GifOptions; hash: string }[] = [
   },
   {
     spec: { width: 301, height: 4, colors: 300, mode: "alpha" },
-    options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "e60e2615d2ea6ac850cc61f787cd5373f213721582fe6c15c5ad94cba8f50850"
+    options: { pageHeight: 1, delay: [12, 35], loop: 2 }
   },
   {
     spec: {
@@ -405,23 +398,43 @@ function backing(spec: Spec = vectors[0]!.spec) {
   return { image, stored: { ...image, position: 8 }, storage };
 }
 const digest = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
-it.each(vectors)("matches frozen GIF bytes for $spec and $options", async (vector) => {
-  const { image, stored, storage } = backing(vector.spec),
-    hash = createHash("sha256"),
-    before = new Uint8Array(image.data);
-  for await (const bytes of encodeGifFromStorage(
-    stored,
-    storage,
-    new AbortController().signal,
-    vector.options
-  ))
-    hash.update(bytes);
-  expect(hash.digest("hex")).toBe(vector.hash);
-  expect(digest(encodeGifImage(image, vector.options))).toBe(vector.hash);
-  expect(image.data).toEqual(before);
-  expect(storage.allocate).not.toHaveBeenCalled();
-  expect(storage.write).not.toHaveBeenCalled();
-});
+it.each(vectors)(
+  "preserves GIF colors and storage parity for $spec and $options",
+  async (vector) => {
+    const { image, stored, storage } = backing(vector.spec),
+      hash = createHash("sha256"),
+      before = new Uint8Array(image.data);
+    for await (const bytes of encodeGifFromStorage(
+      stored,
+      storage,
+      new AbortController().signal,
+      vector.options
+    ))
+      hash.update(bytes);
+    const encoded = encodeGifImage(image, vector.options);
+    expect(hash.digest("hex")).toBe(digest(encoded));
+    if (vector.hash) expect(digest(encoded)).toBe(vector.hash);
+    else {
+      const decoded = decodeGifImage(encoded, { animated: true });
+      expect(decoded.data.length).toBe(image.data.length);
+      let error = 0,
+        channels = 0;
+      for (let i = 0; i < image.data.length; i += 4) {
+        const alpha = image.data[i + 3]! < 128 ? 0 : 255;
+        expect(decoded.data[i + 3]).toBe(alpha);
+        if (alpha)
+          for (let c = 0; c < 3; c++) {
+            error += Math.abs(decoded.data[i + c]! - image.data[i + c]!);
+            channels++;
+          }
+      }
+      expect(error / channels).toBeLessThan(4);
+    }
+    expect(image.data).toEqual(before);
+    expect(storage.allocate).not.toHaveBeenCalled();
+    expect(storage.write).not.toHaveBeenCalled();
+  }
+);
 it("bounds raster cache and output chunks while retaining owned bytes across yields", async () => {
   const { stored, storage } = backing({ width: 1031, height: 37, colors: 400, mode: "alpha" }),
     Original = Uint8Array;
@@ -430,7 +443,8 @@ it("bounds raster cache and output chunks while retaining owned bytes across yie
     new Proxy(Original, {
       construct(target, args) {
         const length = typeof args[0] === "number" ? args[0] : (args[0]?.length ?? 0);
-        if (length > 4096) throw new Error("unbounded GIF allocation");
+        // The palette lookup has a fixed 32K bound independent of raster size.
+        if (length > 4096 && length !== 32768) throw new Error("unbounded GIF allocation");
         return Reflect.construct(target, args);
       }
     })

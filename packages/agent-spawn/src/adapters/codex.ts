@@ -265,10 +265,10 @@ Keep build prerequisite failures separate from application test failures.`
             event: "error",
             message: `${item.aggregated_output.trim()}
 Codex could not initialize its sandbox: this host rejected bubblewrap network namespace setup.
-For read-only work, verify the Landlock compatibility sandbox:
-  codex --enable use_legacy_landlock -c 'sandbox_mode="read-only"' sandbox /bin/pwd
+For read-only work, verify the read-only sandbox:
+  codex -c 'sandbox_mode="read-only"' sandbox /bin/pwd
 If that succeeds, start a new session:
-  codex --enable use_legacy_landlock -s read-only
+  codex -s read-only
 Poe Code supplies these flags for mode: "read".
 For workspace-write, keep the session policy and existing approval reviewer.
 Ask Codex to retry the exact failed command with:

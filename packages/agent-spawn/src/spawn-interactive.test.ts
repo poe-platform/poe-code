@@ -108,7 +108,7 @@ describe("spawnInteractive", () => {
     ]);
   });
 
-  it("keeps interactive Codex read launches sandboxed without loopback setup", async () => {
+  it("keeps interactive Codex read launches sandboxed without deprecated flags", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(() => createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "Read the repository", mode: "read" });
@@ -120,9 +120,7 @@ describe("spawnInteractive", () => {
       "-a",
       "never",
       "-s",
-      "read-only",
-      "--enable",
-      "use_legacy_landlock"
+      "read-only"
     ]);
   });
 

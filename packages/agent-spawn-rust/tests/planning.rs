@@ -21,7 +21,7 @@ fn permission_admission_redaction_and_resume_are_declarative() {
     assert_eq!(
         built.get("args"),
         Some(&v(
-            r#"["exec","--model","gpt-5","--skip-git-repo-check","--json","-s","read-only","--enable","use_legacy_landlock","extra","resume","thread","secret"]"#
+            r#"["exec","--model","gpt-5","--skip-git-repo-check","--json","-s","read-only","extra","resume","thread","secret"]"#
         ))
     );
     assert_eq!(built.get("displayArgs").unwrap().get("bad"), None);

@@ -93,9 +93,7 @@
       ],
       "read": [
         "-s",
-        "read-only",
-        "--enable",
-        "use_legacy_landlock"
+        "read-only"
       ]
     },
     "stdinMode": {

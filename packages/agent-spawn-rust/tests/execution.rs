@@ -86,13 +86,13 @@ fn interactive_transport_uses_interactive_catalog_arguments_without_print_mode()
     assert_eq!(
         built.get("args"),
         Some(&v(
-            r#"["secret","-a","never","-s","read-only","--enable","use_legacy_landlock"]"#
+            r#"["secret","-a","never","-s","read-only"]"#
         ))
     );
     assert_eq!(
         built.get("displayArgs"),
         Some(&v(
-            r#"["[prompt redacted]","-a","never","-s","read-only","--enable","use_legacy_landlock"]"#
+            r#"["[prompt redacted]","-a","never","-s","read-only"]"#
         ))
     );
     let empty = p

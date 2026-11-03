@@ -827,7 +827,8 @@ describe("adaptCodex", () => {
       message: expect.stringContaining(item.aggregated_output.trim())
     });
     if (diagnostic?.event !== "error") throw new Error("Missing sandbox diagnostic");
-    expect(diagnostic.message).toContain("codex --enable use_legacy_landlock -s read-only");
+    expect(diagnostic.message).toContain("codex -s read-only");
+    expect(diagnostic.message).not.toContain("use_legacy_landlock");
     expect(diagnostic.message).toContain("workspace-write");
     expect(diagnostic.message).toContain('sandbox_permissions: "require_escalated"');
     expect(diagnostic.message).toContain("existing approval reviewer");

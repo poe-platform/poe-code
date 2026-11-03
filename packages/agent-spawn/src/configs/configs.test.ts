@@ -194,7 +194,7 @@ describe("configs/read mode is non-mutating", () => {
   it.each([
     {},
     { resumeThreadId: "read-session" }
-  ])("keeps Codex read spawns sandboxed without loopback setup (%j)", async (options) => {
+  ])("keeps Codex read spawns sandboxed without deprecated flags (%j)", async (options) => {
     const { buildSpawnArgs } = await import("../spawn.js");
     const { args } = buildSpawnArgs("codex", {
       prompt: "Read the repository",
@@ -206,10 +206,7 @@ describe("configs/read mode is non-mutating", () => {
       "-s",
       "read-only"
     ]);
-    expect(args.slice(args.indexOf("--enable"), args.indexOf("--enable") + 2)).toEqual([
-      "--enable",
-      "use_legacy_landlock"
-    ]);
+    expect(args).not.toContain("use_legacy_landlock");
     expect(args).not.toContain("--dangerously-bypass-approvals-and-sandbox");
     expect(args).not.toContain("danger-full-access");
   });

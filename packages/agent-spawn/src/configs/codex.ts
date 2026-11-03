@@ -23,9 +23,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
       'approvals_reviewer="auto_review"'
     ],
     edit: ["-s", "workspace-write"],
-    // Landlock and seccomp enforce read-only mode without bubblewrap loopback
-    // setup, which restricted Linux hosts can reject with RTM_NEWADDR EPERM.
-    read: ["-s", "read-only", "--enable", "use_legacy_landlock"]
+    read: ["-s", "read-only"]
   },
   stdinMode: {
     omitPrompt: true,

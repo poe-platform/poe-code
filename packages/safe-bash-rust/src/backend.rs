@@ -390,15 +390,30 @@ impl HybridBackend {
         limits: &ShellLimits,
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
+        self.execute_native_input(script, cwd, env, stdin, None, timeout_ms, limits, fs)
+    }
+
+    pub(crate) fn execute_native_input(
+        &self,
+        script: &str,
+        cwd: &mut String,
+        env: &mut BTreeMap<String, String>,
+        stdin: &str,
+        stream: Option<crate::shell::eval::FdTarget>,
+        timeout_ms: Option<u64>,
+        limits: &ShellLimits,
+        fs: &dyn SafeBashFs,
+    ) -> Option<Result<CommandResult, String>> {
         self.used_typescript_bridge.store(false, Ordering::Relaxed);
         let budget = ExecutionBudget::new(limits.clone(), timeout_ms);
         let budgeted_fs = BudgetedFs {
             inner: fs,
             budget: &budget,
         };
-        let allow_fallback = self.mode == BackendMode::Hybrid;
+        let allow_fallback = self.mode == BackendMode::Hybrid && stream.is_none();
         let mut shell_cwd = shell_text(cwd).into_owned();
         let mut eval = EvalState::new(&mut shell_cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
+        if let Some(input) = stream { eval.fd_table.insert(0, input); }
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         eval.provided_devices = self.provided_devices;
         if let Ok(bindings) = self.bindings.lock() {

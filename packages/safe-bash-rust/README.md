@@ -17,7 +17,7 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
 | Zero-Dep Command Suite | `rg`, `grep`, `find`, `fd`, `xargs`, `sed`, `awk`, `diff`, `diff3`, `patch`, `apply_patch`, `jq`, `yq`, `xan`, `sqlite3`, `tar`, `gzip`, `zstd`, `xz`, `bzip2`, `zip`, `unzip`, `sha256sum`, `xxd`, `od`, `dd`, and POSIX coreutils |
 
-Native Rust callers can pass `ExecOptions { fs: Some(filesystem), ..Default::default() }` to read and write a different `SafeBashFs` for one call. Subsequent calls use the shell’s original filesystem. At the evaluator level, `EvalState::eval_script_with_stream(script, chunks)` takes an iterator of `Result<Vec<u8>, String>`. The shell pulls chunks when a command reads stdin; duplicated input descriptors share any unread bytes.
+Native Rust callers can pass `ExecOptions { fs: Some(filesystem), ..Default::default() }` to read and write a different `SafeBashFs` for one call. Subsequent calls use the shell’s original filesystem. `shell.exec_with_stream(script, chunks)` takes an iterator of `Result<Vec<u8>, String>`. Commands pull stdin on demand and duplicated descriptors share unread bytes. Streamed calls use the native backend, including in hybrid mode, so an unknown command returns status 127 without replaying the script. TypeScript-only mode rejects streamed calls.
 
 In WebAssembly, pass a shell’s own `fs` to `exec` to use its Wasm filesystem. Selecting another filesystem for a call requires a `companionFactory`; without one, `exec` rejects the call before running the script.
 

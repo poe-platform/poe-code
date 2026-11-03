@@ -156,6 +156,27 @@ impl Shell {
         script: &str,
         options: ExecOptions,
     ) -> Result<ExecOutput, String> {
+        self.exec_input(script, options, None)
+    }
+
+    /// Execute with a forward-only native stdin. A consumed iterator cannot be replayed in the bridge.
+    pub fn exec_with_stream(
+        &mut self,
+        script: &str,
+        chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static,
+    ) -> Result<ExecOutput, String> {
+        if self.backend.mode == BackendMode::TypeScriptOnly {
+            return Err("Streamed stdin requires the native backend".into());
+        }
+        self.exec_input(script, ExecOptions::default(), Some(eval::FdTarget::input_stream(chunks)))
+    }
+
+    fn exec_input(
+        &mut self,
+        script: &str,
+        options: ExecOptions,
+        stream: Option<eval::FdTarget>,
+    ) -> Result<ExecOutput, String> {
         if let Some(override_cwd) = options.cwd.as_deref() {
             self.cwd = normalize_posix_path(override_cwd);
         }
@@ -166,11 +187,12 @@ impl Shell {
         let fs = options.fs.as_deref().unwrap_or(self.fs.as_ref());
 
         if self.backend.mode != BackendMode::TypeScriptOnly
-            && let Some(native_res) = self.backend.try_execute_native_with_limits(
+            && let Some(native_res) = self.backend.execute_native_input(
                 script,
                 &mut self.cwd,
                 &mut self.env,
                 stdin,
+                stream,
                 options.timeout_ms,
                 &self.limits,
                 fs,
@@ -211,6 +233,39 @@ impl Shell {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn streamed_execution_uses_session_bindings_limits_and_the_live_filesystem() {
+        let (mut shell, fs) = Shell::with_memory_fs();
+        shell.exec("f() { head -c1; }; set -- saved").unwrap();
+        let observed = fs.clone();
+        let mut reads = 0;
+        let chunks = std::iter::from_fn(move || {
+            reads += 1;
+            assert_eq!(reads, 1, "an early consumer pulled another chunk");
+            assert_eq!(observed.read_file("/events").unwrap(), b"once\n");
+            Some(Ok(b"abc".to_vec()))
+        });
+        let result = shell.exec_with_stream("echo once >> /events; f; keep=$1; sleep 2; echo $SECONDS", chunks).unwrap();
+        assert_eq!((result.exit_code, result.stdout.as_str(), result.used_typescript_bridge), (0, "a2\n", false));
+        assert_eq!(shell.exec("echo $keep").unwrap().stdout, "saved\n");
+        assert_eq!(fs.read_file("/events").unwrap(), b"once\n");
+        shell.set_limits(ShellLimits { max_input_bytes: 1, ..Default::default() });
+        let err = shell.exec_with_stream("f", std::iter::once(Ok(vec![0, 1]))).unwrap_err();
+        assert!(err.contains("maxInputBytes"), "{err}");
+    }
+
+    #[test]
+    fn streamed_execution_never_replays_the_script_or_input_in_the_bridge() {
+        let fs = Arc::new(MemoryVfs::new());
+        let mut shell = Shell::new(fs.clone(), ShellOptions { mode: BackendMode::Hybrid, ..Default::default() });
+        let result = shell.exec_with_stream("cat >> /events; no-such-command", std::iter::once(Ok(vec![b'x']))).unwrap();
+        assert_eq!((result.exit_code, result.used_typescript_bridge), (127, false));
+        assert_eq!(fs.read_file("/events").unwrap(), b"x");
+        let mut bridge = Shell::new(fs.clone(), ShellOptions { mode: BackendMode::TypeScriptOnly, ..Default::default() });
+        assert!(bridge.exec_with_stream("echo bad >> /events", std::iter::from_fn(|| panic!("unexpected pull"))).is_err());
+        assert_eq!(fs.read_file("/events").unwrap(), b"x");
+    }
 
     #[test]
     fn per_call_filesystem_owns_reads_writes_and_failures() {

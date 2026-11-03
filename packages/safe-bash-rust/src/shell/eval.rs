@@ -114,6 +114,14 @@ pub enum FdTarget {
 }
 
 impl FdTarget {
+    pub(crate) fn input_stream(chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static) -> Self {
+        Self::InputStream {
+            reader: StdinStream(Rc::new(RefCell::new(chunks))),
+            unread: Rc::default(),
+            position: Rc::default(),
+        }
+    }
+
     fn cursor(&self) -> Option<&InputCursor> {
         match self {
             Self::InputFile { unread, .. } | Self::InputStream { unread, .. } => Some(unread),
@@ -680,9 +688,7 @@ impl<'a> EvalState<'a> {
 
     /// Run a script with a forward-only source on fd 0. Descriptor copies share its cursor.
     pub fn eval_script_with_stream(&mut self, script: &str, chunks: impl Iterator<Item = Result<Vec<u8>, String>> + 'static) -> Result<CommandResult, EvalError> {
-        let saved = self.fd_table.insert(0, FdTarget::InputStream {
-            reader: StdinStream(Rc::new(RefCell::new(chunks))), unread: Rc::default(), position: Rc::default(),
-        });
+        let saved = self.fd_table.insert(0, FdTarget::input_stream(chunks));
         let alias = self.in_fd_aliases.remove(&0);
         let cursor = self.in_fds.remove(&0);
         let result = self.eval_script_str(script, "");

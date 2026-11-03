@@ -14870,10 +14870,9 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         match a {
             "--noout" => noout = true,
             "--format" => format_xml = true,
-            "--c14n" => c14n = true,
-            "--exc-c14n" => {
+            "--c14n" | "--exc-c14n" => {
                 c14n = true;
-                exc_c14n = true;
+                exc_c14n = a == "--exc-c14n";
             }
             "--recover" => recover = true,
             "--noblanks" => noblanks = true,
@@ -14963,7 +14962,11 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             for n in &dom {
                 if !out.is_empty() { out.push('\n'); }
                 match n {
-                    XmlNode::Element(el) => out.push_str(&serialize_xml_c14n_with_scope(el, exc_c14n, &in_scope, &rendered_ns)),
+                    XmlNode::Element(el) => {
+                        if let Err(e) = serialize_xml_c14n_with_scope(el, exc_c14n, &in_scope, &rendered_ns, &mut out) {
+                            return err_out(&format!("{stderr}xmllint: {e}\n"), 6);
+                        }
+                    }
                     XmlNode::Markup(markup) => out.push_str(markup),
                     _ => {}
                 }
@@ -15023,63 +15026,54 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     result
 }
 
-fn serialize_xml_c14n_with_scope(
-    el: &XmlElement,
+fn serialize_xml_c14n_with_scope<'a>(
+    el: &'a XmlElement,
     exclusive: bool,
-    in_scope_ns: &BTreeMap<String, String>,
-    rendered_ns: &BTreeMap<String, String>,
-) -> String {
-    let mut cur_scope = in_scope_ns.clone();
-    let mut normal_attrs: Vec<(String, String)> = Vec::new();
-    for (k, v) in &el.attrs {
-        if k == "xmlns" {
-            cur_scope.insert(String::new(), v.clone());
-        } else if let Some(prefix) = k.strip_prefix("xmlns:") {
-            cur_scope.insert(prefix.to_string(), v.clone());
-        } else {
-            normal_attrs.push((k.clone(), v.clone()));
+    inherited: &BTreeMap<&'a str, &'a str>,
+    rendered: &BTreeMap<&'a str, &'a str>,
+    out: &mut String,
+) -> Result<(), &'static str> {
+    let mut scope = inherited.clone();
+    for (name, value) in &el.attrs {
+        if let Some(prefix) = xml_binding(name) {
+            if !value.is_empty() && !value.split_once(':').is_some_and(|(scheme, _)| {
+                let mut bytes = scheme.bytes();
+                bytes.next().is_some_and(|b| b.is_ascii_alphabetic())
+                    && bytes.all(|b| b.is_ascii_alphanumeric() || matches!(b, b'+' | b'-' | b'.'))
+            }) {
+                return Err("Failed to canonicalize: relative namespace URI");
+            }
+            scope.insert(prefix, value);
         }
     }
-    let mut next_rendered = rendered_ns.clone();
-    let mut ns_attrs: Vec<(String, String)> = Vec::new();
-    let el_prefix = el.tag.split_once(':').map(|(p, _)| p).unwrap_or("");
-    for (prefix, uri) in &cur_scope {
-        if prefix == "xml" {
-            continue;
-        }
-        if exclusive {
-            let mut used = prefix == el_prefix && (!prefix.is_empty() || !uri.is_empty());
-            if !used && !prefix.is_empty() {
-                for (ak, _) in &normal_attrs {
-                    if let Some((ap, _)) = ak.split_once(':')
-                        && ap == prefix
-                    {
-                        used = true;
-                        break;
-                    }
-                }
-            }
-            if !used {
-                continue;
-            }
-        }
-        let prev = rendered_ns.get(prefix).map(|s| s.as_str()).unwrap_or("");
-        if prev != uri {
-            let attr_name = if prefix.is_empty() {
-                "xmlns".to_string()
-            } else {
-                format!("xmlns:{prefix}")
-            };
-            ns_attrs.push((attr_name, uri.clone()));
-            next_rendered.insert(prefix.clone(), uri.clone());
-        }
+    let mut attrs = Vec::new();
+    for (name, value) in &el.attrs {
+        if xml_binding(name).is_some() { continue; }
+        let (prefix, local) = name.split_once(':').unwrap_or(("", name));
+        let uri = match prefix {
+            "" => "",
+            "xml" => "http://www.w3.org/XML/1998/namespace",
+            prefix => scope[prefix],
+        };
+        attrs.push((uri, local, prefix, name, value));
     }
-    normal_attrs.sort_by(|(ka, _), (kb, _)| ka.cmp(kb));
+    attrs.sort_unstable_by_key(|&(uri, local, ..)| (uri, local));
 
-    let mut out = String::new();
     out.push('<');
     out.push_str(&el.tag);
-    for (k, v) in ns_attrs.iter().chain(normal_attrs.iter()) {
+    let el_prefix = el.tag.split_once(':').map_or("", |(p, _)| p);
+    let mut next = rendered.clone();
+    for (&prefix, &uri) in &scope {
+        if prefix == "xml" || rendered.get(prefix).copied().unwrap_or("") == uri { continue; }
+        if exclusive && prefix != el_prefix && !attrs.iter().any(|a| a.2 == prefix) { continue; }
+        next.insert(prefix, uri);
+        out.push_str(" xmlns");
+        if !prefix.is_empty() { out.push(':'); out.push_str(prefix); }
+        out.push_str("=\"");
+        out.push_str(&xml::Escaping::Canonical.escape(uri, true));
+        out.push('"');
+    }
+    for (_, _, _, k, v) in attrs {
         out.push(' ');
         out.push_str(k);
         out.push_str("=\"");
@@ -15087,26 +15081,17 @@ fn serialize_xml_c14n_with_scope(
         out.push('"');
     }
     out.push('>');
-    for c in &el.children {
-        match c {
+    for child in &el.children {
+        match child {
             XmlNode::Markup(m) => out.push_str(m),
-            XmlNode::Text(t) | XmlNode::Cdata(t) => {
-                out.push_str(&xml::Escaping::Canonical.escape(t, false));
-            }
-            XmlNode::Element(child_el) => {
-                out.push_str(&serialize_xml_c14n_with_scope(
-                    child_el,
-                    exclusive,
-                    &cur_scope,
-                    &next_rendered,
-                ));
-            }
+            XmlNode::Text(t) | XmlNode::Cdata(t) => out.push_str(&xml::Escaping::Canonical.escape(t, false)),
+            XmlNode::Element(el) => serialize_xml_c14n_with_scope(el, exclusive, &scope, &next, out)?,
         }
     }
     out.push_str("</");
     out.push_str(&el.tag);
     out.push('>');
-    out
+    Ok(())
 }
 
 fn serialize_xml_pretty(

@@ -9197,3 +9197,24 @@ test("XPath translate uses the first mapping for each code point and drops unmap
     assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "1🌺1z\n", ""]);
   } finally { rs.dispose(); }
 });
+
+test("xmllint canonicalizes expanded names and preserves the destination on a relative namespace URI", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const xml of [
+      '<r xmlns:z="urn:a" xmlns:b="urn:z" b:a="2" z:a="1" t="z"/>',
+      '<t:r xmlns:t="urn:t" xmlns="urn:d" xmlns:u="urn:unused" id="1"><x xmlns=""/></t:r>',
+      '<r><x xmlns:unused="relative"/></r>',
+    ]) {
+      for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from(xml));
+      for (const flags of ["--c14n", "--exc-c14n", "--exc-c14n --c14n", "--exc-c14n --noout", "--c14n -o /out"]) {
+        for (const store of [fs, rs.fs]) await store.writeFile("/out", Buffer.from("original"));
+        const cmd = "xmllint " + flags + " /doc", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + xml);
+        assert.deepEqual(Buffer.from(await rs.fs.readFile("/out")), Buffer.from(await fs.readFile("/out")));
+      }
+    }
+  } finally { rs.dispose(); }
+});

@@ -28843,12 +28843,14 @@ fn mdq_select_blocks(mut pending: Vec<MdqBlock>, mut select: impl FnMut(&mut Mdq
     selected
 }
 
+type MdqAtoms<'a> = Vec<(std::ops::Range<usize>, MdqInlineAtom<'a>)>;
+
 enum MdqInlineAtom<'a> {
     Html(&'a str),
-    Link { image: bool, display: &'a str, target: MdqTarget },
+    Link { image: bool, display: std::borrow::Cow<'a, str>, target: MdqTarget, children: MdqAtoms<'a> },
 }
 
-fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str) -> Vec<(std::ops::Range<usize>, MdqInlineAtom<'a>)> {
+fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, in_label: bool) -> MdqAtoms<'a> {
     let bytes = src.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut k = 0usize;
@@ -28867,8 +28869,8 @@ fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str) -> Vec<(std::ops::R
             continue;
         }
         if (bytes[k] == b'<' || bytes[k].is_ascii_alphanumeric() || b".-+".contains(&bytes[k]))
-            && let Some((display, target, used)) = mdq_links::autolink(src, k, !brackets.is_empty()) {
-            atoms.push((k..k+used, MdqInlineAtom::Link { image: false, display, target }));
+            && let Some((display, target, used)) = mdq_links::autolink(src, k, in_label || !brackets.is_empty()) {
+            atoms.push((k..k+used, MdqInlineAtom::Link { image: false, display: display.into(), target, children: Vec::new() }));
             generation += 1;
             k += used;
             continue;
@@ -28892,8 +28894,16 @@ fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str) -> Vec<(std::ops::R
                 .or_else(|| mdq_links::reference(tail, &src[begin-1..=k], defs));
             if let Some((target, used)) = parsed {
                 let end = k + 1 + used;
-                atoms.truncate(child_start);
-                atoms.push((open..end, MdqInlineAtom::Link { image, display: &src[begin..k], target }));
+                let raw = &src[begin..k];
+                let mut children = atoms.split_off(child_start);
+                for (range, _) in &mut children { range.start -= begin; range.end -= begin; }
+                let display = if image {
+                    // Production stores just the plain description on an image; its descendants are not selectable.
+                    let mut alt = String::new();
+                    mdq_emit_atoms(raw, std::mem::take(&mut children), true, &mut |_| unreachable!(), &mut |s, _| alt.push_str(s));
+                    alt.into()
+                } else { raw.into() };
+                atoms.push((open..end, MdqInlineAtom::Link { image, display, target, children }));
                 if !image { generation += 1; }
                 k = end;
                 continue;
@@ -28919,15 +28929,25 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: i
         emit(&mdq_text_span(src, plain), true);
         return;
     }
-    let atoms = mdq_inline_atoms(defs, src);
+    let atoms = mdq_inline_atoms(defs, src, false);
+    mdq_emit_atoms(src, atoms, plain, &mut suffix, &mut emit);
+}
+
+fn mdq_emit_atoms(src: &str, atoms: MdqAtoms<'_>, plain: bool, suffix: &mut dyn FnMut(&MdqTarget)->String, emit: &mut dyn FnMut(&str, bool)) {
     let marks = if src.contains(['_', '*', '~']) { mdq_emphasis::resolve(src, atoms.iter().map(|(r, _)| r)) } else { BTreeMap::new() };
     let mut at = 0;
     for (range, atom) in atoms {
         if at < range.start { emit(&mdq_render_span(&src[at..range.start], plain, &marks, at), true); }
         match atom {
             MdqInlineAtom::Html(text) => emit(text, true),
-            MdqInlineAtom::Link { image, display, target } => {
-                let label = if target.auto.is_some() { display.into() } else { mdq_text_span(display, plain || image) };
+            MdqInlineAtom::Link { image, display, target, children } => {
+                let label = if image || target.auto.is_some() { display.into_owned() }
+                    else if children.is_empty() { mdq_text_span(&display, plain) }
+                    else {
+                        let mut label = String::new();
+                        mdq_emit_atoms(&display, children, plain, suffix, &mut |s,_| label.push_str(s));
+                        label
+                    };
                 if plain { emit(&label, true); } else if let Some(value) = target.auto_text() { emit(&value, true); } else {
                     let prefix = if image { "!" } else { "" };
                     emit(&format!("{prefix}[{label}]{}", suffix(&target)), false);
@@ -28937,6 +28957,15 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, plain: bool, mut suffix: i
         at = range.end;
     }
     if at < src.len() { emit(&mdq_render_span(&src[at..], plain, &marks, at), true); }
+}
+
+// Selected links retain their source label so substitutions can be rendered again.
+fn mdq_selected_label(defs: &MdqDefinitions, b: &MdqBlock, plain: bool, suffix: &mut dyn FnMut(&MdqTarget)->String) -> String {
+    if b.kind == "image" || b.target.auto.is_some() { return b.title.clone(); }
+    if !b.title.contains("![") { return mdq_text_span(&b.title, plain); }
+    let mut label = String::new();
+    mdq_emit_atoms(&b.title, mdq_inline_atoms(defs, &b.title, true), plain, suffix, &mut |s,_| label.push_str(s));
+    label
 }
 
 fn mdq_has_links(src: &str) -> bool {
@@ -29069,7 +29098,7 @@ fn mdq_select_one(defs: &MdqDefinitions, nodes: Vec<MdqBlock>, stage: &MdqSelect
                     selected.push(MdqBlock { kind: found.into(), text, ..MdqBlock::default() });
                 }
             } else if let Some(target) = target && let (Some(title), Some(url)) = (
-                mdq_match_and_replace(defs, matcher, text, target.auto.is_none()),
+                mdq_match_and_replace(defs, matcher, text, found != "image" && target.auto.is_none()),
                 mdq_match_and_replace(defs, url_m, &target.url, false),
             ) {
                 let title = if matches!(target.auto, Some(mdq_links::Auto::Bracketed | mdq_links::Auto::Bare)) { url.clone() } else { title };
@@ -29084,21 +29113,25 @@ fn mdq_select_one(defs: &MdqDefinitions, nodes: Vec<MdqBlock>, stage: &MdqSelect
             if b.kind == kind && kind != "html" { emit(kind, &b.title, Some(&b.target)); continue; }
             let paragraph = match b.kind.as_str() {
                 "paragraph" => Some(&b.text),
-                "link" if kind == "html" => Some(&b.title),
+                "link" if matches!(kind, "html" | "image") => Some(&b.title),
                 _ => None,
             };
             for src in paragraph.into_iter().chain(b.table_rows.iter().flatten()) {
-                for (_, atom) in mdq_inline_atoms(defs, src) { match atom {
-                    MdqInlineAtom::Html(text) => emit("html", text, None),
-                    MdqInlineAtom::Link { image, display, target } => {
-                        emit(if image { "image" } else { "link" }, display, Some(&target));
-                        if kind == "html" && !image {
-                            for (_, inner) in mdq_inline_atoms(defs, display) {
-                                if let MdqInlineAtom::Html(text) = inner { emit("html", text, None); }
+                for (_, atom) in mdq_inline_atoms(defs, src, b.kind == "link") {
+                    match atom {
+                        MdqInlineAtom::Html(text) => emit("html", text, None),
+                        MdqInlineAtom::Link { image, display, target, children } => {
+                            emit(if image { "image" } else { "link" }, &display, Some(&target));
+                            for (_, inner) in children {
+                                match inner {
+                                    MdqInlineAtom::Html(text) => emit("html", text, None),
+                                    MdqInlineAtom::Link { image: true, display, target, .. } => emit("image", &display, Some(&target)),
+                                    _ => {}
+                                }
                             }
                         }
                     }
-                } }
+                }
             }
         }
         return selected;
@@ -29198,7 +29231,7 @@ fn mdq_render_block_md(defs: &MdqDefinitions, b: &MdqBlock, refs: &mut MdqRefere
             let prefix = if b.kind == "image" { "!" } else { "" };
             if let Some(value) = b.target.auto_text() { w.write(&value, true); }
             else {
-                let label = if b.target.auto.is_some() { b.title.clone() } else { mdq_text_span(&b.title, b.kind == "image") };
+                let label = mdq_selected_label(defs, b, false, &mut |t| refs.suffix(t));
                 w.write(&format!("{prefix}[{label}]{}", refs.suffix(&b.target)), false);
             }
         }
@@ -29303,7 +29336,7 @@ fn mdq_block_to_jval(defs: &MdqDefinitions, b: &MdqBlock, refs: &mut MdqReferenc
         }
         "link" | "image" => {
             let label = if b.kind == "link" { "display" } else { "alt" };
-            let display = if b.target.auto.is_some() { b.title.clone() } else { mdq_text_span(&b.title, false) };
+            let display = mdq_selected_label(defs, b, false, &mut |t| refs.suffix(t));
             let mut fields = vec![(label.into(), JVal::Str(display)), ("url".into(), JVal::Str(b.target.url.clone()))];
             if !b.target.title.is_empty() { fields.push(("title".into(), JVal::Str(b.target.title.clone()))); }
             if let Some((key, style)) = &b.target.reference {
@@ -30268,7 +30301,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             match b.kind.as_str() {
                 "section" | "paragraph" | "link" | "image" => {
                     let source = if matches!(b.kind.as_str(), "section" | "link" | "image") { &b.title } else { &b.text };
-                    let text = if b.target.auto.is_some() { source.clone() } else { mdq_inline_text(defs, source, true) };
+                    let text = if matches!(b.kind.as_str(), "link" | "image") { mdq_selected_label(defs, b, true, &mut |_| unreachable!()) } else { mdq_inline_text(defs, source, true) };
                     if !text.is_empty() { out.push(text); }
                 }
                 "code" | "frontmatter" | "html" if !b.text.is_empty() => out.push(b.text.clone()),

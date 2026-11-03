@@ -8491,3 +8491,20 @@ test("mdq pairs Markdown brackets after recognizing code, HTML and inner links",
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq flattens image descriptions and renders or selects images inside links", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    const text = ["![foo ![bar](/img)](/outer)", "![foo [bar](/url)](/o2)",
+      "![[[foo](uri1)](uri2)](uri3)", "[before **![alt _x_](/pic)** after][ref]",
+      "![literal \\*stars\\* and `_code_`](/raw)", "[ref]: /target"].join("\n\n");
+    for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+    for (const flags of ["", "-l keep", "-l inline", "-o json", "-o plain", "-o json '[]()'",
+      "-o json '![]()'", "'[]()'", "'![]()'", "-o json '[]() | ![]()'"]) {
+      const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

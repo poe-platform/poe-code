@@ -8117,3 +8117,21 @@ test("mdq plain output normalizes blank lines and preserves literal block text",
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq retains ragged tables and normalizes column widths only for selection", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["| é | X |\n| :- | -: |\n| αβ | 猫 | extra |\n| last |",
+      "| | | |\n|-|:-:|-:|\n||| |", "| title |\n| - |", "| name |\n|-|\n| body |\n\nafter\n\n| t |\n|-|\n| z |"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const query of ["", "':-: * :-:'", "':-: * :-: missing'"]) {
+        for (const format of ["markdown", "json", "plain"]) {
+          const cmd = "mdq -o " + format + " " + query + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+          assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+        }
+      }
+    }
+  } finally { rs.dispose(); }
+});

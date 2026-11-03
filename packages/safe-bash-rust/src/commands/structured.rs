@@ -28272,7 +28272,8 @@ fn parse_mdq_markdown(input: &str) -> Vec<MdqBlock> {
         }
         if trimmed.starts_with("|") && i + 1 < lines.len() && lines[i + 1].trim().starts_with('|') && lines[i + 1].contains('-') {
             let parse_row = |r: &str| -> Vec<String> {
-                let s = r.trim().trim_start_matches('|').trim_end_matches('|');
+                let s = r.trim().strip_prefix('|').unwrap_or(r.trim());
+                let s = s.strip_suffix('|').unwrap_or(s);
                 s.split('|').map(|c| c.trim().to_string()).collect()
             };
             let head = parse_row(lines[i]);
@@ -28819,7 +28820,9 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                     let head = &b.table_rows[0];
                     let mut col_indices = Vec::new();
                     let mut new_head = Vec::new();
-                    for (idx, h) in head.iter().enumerate() {
+                    let width = b.table_rows.iter().map(Vec::len).max().unwrap_or(0).max(b.table_aligns.len());
+                    for idx in 0..width {
+                        let h = head.get(idx).map(String::as_str).unwrap_or("");
                         if let Some(nh) = mdq_match_and_replace(col_m, h, true) {
                             col_indices.push(idx);
                             new_head.push(nh);
@@ -28831,6 +28834,7 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                         for r in b.table_rows.iter().skip(1) {
                             let mut row_matched = false;
                             let mut updated_row = r.clone();
+                            updated_row.resize_with(width, String::new);
                             for cell in &mut updated_row {
                                 if let Some(nc) = mdq_match_and_replace(cell_m, cell, true) {
                                     *cell = nc;
@@ -28845,7 +28849,7 @@ fn mdq_select_one(nodes: &[MdqBlock], stage: &MdqSelector) -> Vec<MdqBlock> {
                                 new_rows.push(nr);
                             }
                         }
-                        if new_rows.len() > 1 || cell_m.is_empty() || cell_m == "*" {
+                        if new_rows.len() > 1 || b.table_rows.len() == 1 {
                             let new_aligns: Vec<String> = col_indices.iter().map(|&ci| b.table_aligns.get(ci).cloned().unwrap_or_else(|| "none".to_string())).collect();
                             out_tables.push(MdqBlock {
                                 kind: "table".to_string(),
@@ -28873,7 +28877,10 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
                 out.push('\n');
             }
             for child in &b.children {
-                if !out.is_empty() && !out.ends_with("\n\n") { out.push('\n'); }
+                if !out.is_empty() {
+                    if !out.ends_with('\n') { out.push('\n'); }
+                    if !out.ends_with("\n\n") { out.push('\n'); }
+                }
                 out.push_str(&mdq_render_block_md(child, link_format));
             }
             out
@@ -28924,32 +28931,35 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
             if b.table_rows.is_empty() {
                 return String::new();
             }
-            let cols = b.table_rows[0].len();
-            let mut widths = vec![3usize; cols];
-            for r in &b.table_rows {
-                for (ci, cell) in r.iter().enumerate() {
-                    if ci < cols {
-                        widths[ci] = widths[ci].max(cell.len() + 2);
-                    }
+            let mut widths: Vec<_> = b.table_aligns.iter().map(|a| match a.as_str() {
+                "left" | "right" => 2, "center" => 3, _ => 1,
+            }).collect();
+            for row in &b.table_rows {
+                if row.len() > widths.len() { widths.resize(row.len(), 1); }
+                for (w, cell) in widths.iter_mut().zip(row) {
+                    *w = (*w).max(if cell.is_empty() { 1 } else { cell.len() + 2 });
                 }
             }
-            let fmt_row = |r: &[String]| -> String {
+            let fmt_row = |row: &[String]| -> String {
                 let mut s = String::from("|");
-                for (ci, w) in widths.iter().enumerate() {
-                    let cell = r.get(ci).map(|x| x.as_str()).unwrap_or("");
-                    let pad = w.saturating_sub(cell.len() + 1);
-                    s.push(' ');
+                for (i, cell) in row.iter().enumerate() {
+                    let gap = widths[i] - cell.len() - if cell.is_empty() { 1 } else { 2 };
+                    let left = match b.table_aligns.get(i).map(String::as_str) {
+                        Some("right") => gap, Some("center") => gap / 2, _ => 0,
+                    };
+                    if !cell.is_empty() { s.push(' '); }
+                    s.extend(std::iter::repeat_n(' ', left));
                     s.push_str(cell);
-                    s.push_str(&" ".repeat(pad));
-                    s.push('|');
+                    s.extend(std::iter::repeat_n(' ', gap - left));
+                    s.push_str(" |");
                 }
                 s
             };
             let mut lines = Vec::new();
             lines.push(fmt_row(&b.table_rows[0]));
             let mut div = String::from("|");
-            for (ci, w) in widths.iter().enumerate() {
-                let al = b.table_aligns.get(ci).map(|x| x.as_str()).unwrap_or("none");
+            for (w, align) in widths.iter().zip(&b.table_aligns) {
+                let al = align.as_str();
                 let left = al == "left" || al == "center";
                 let right = al == "right" || al == "center";
                 let dashes = w.saturating_sub(usize::from(left) + usize::from(right));
@@ -28962,7 +28972,8 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str) -> String {
             for r in b.table_rows.iter().skip(1) {
                 lines.push(fmt_row(r));
             }
-            format!("{}\n", lines.join("\n"))
+            if b.table_rows.len() == 1 { lines.push(String::new()); }
+            lines.join("\n")
         }
         _ => String::new(),
     }
@@ -29993,12 +30004,14 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             exit_code: if matched { 0 } else { 1 },
         };
     }
-    let mut rendered = Vec::new();
-    for b in &current {
-        rendered.push(mdq_render_block_md(b, &link_format));
+    let mut stdout = String::new();
+    for (i, b) in current.iter().enumerate() {
+        if i != 0 {
+            if breaks && !stdout.ends_with('\n') { stdout.push('\n'); }
+            stdout.push_str(if breaks { "\n   -----\n\n" } else { "\n" });
+        }
+        stdout.push_str(&mdq_render_block_md(b, &link_format));
     }
-    let sep = if breaks { "\n   -----\n\n" } else { "\n" };
-    let stdout = rendered.join(sep);
     BuiltinOutcome {
         stdout,
         stderr: String::new(),

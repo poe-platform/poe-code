@@ -154,6 +154,147 @@ pub(super) fn resolve<'a>(
         .collect()
 }
 
+// Positions follow mdq's byte-based formatting events, even when several
+// matches change length. Match offsets always refer to the original text.
+pub(super) struct Event {
+    start: usize,
+    end: usize,
+    marker: &'static str,
+}
+
+pub(super) fn projection(src: &str) -> (String, Vec<Event>) {
+    let marks = resolve(src, std::iter::empty());
+
+    let literal = BTreeMap::new();
+    let mut text = String::new();
+    let mut events: Vec<Event> = Vec::new();
+    let mut open: Vec<usize> = Vec::new();
+    let mut at = 0;
+    for (i, run) in marks {
+        text.push_str(&super::mdq_render_span(&src[at..i], true, &literal, 0));
+        for _ in run.closing {
+            events[open.pop().unwrap()].end = text.len();
+        }
+        text.extend(std::iter::repeat_n(
+            src.as_bytes()[i] as char,
+            run.remaining,
+        ));
+        for marker in run.opening.into_iter().rev() {
+            open.push(events.len());
+            events.push(Event {
+                start: text.len(),
+                end: text.len(),
+                marker,
+            });
+        }
+        at = i + run.width;
+    }
+    text.push_str(&super::mdq_render_span(&src[at..], true, &literal, 0));
+    (text, events)
+}
+
+pub(super) fn reconstruct(
+    text: &str,
+    mut events: Vec<Event>,
+    ranges: &[(usize, usize, usize)],
+) -> Result<String, String> {
+    for &(start, end, replacement) in ranges {
+        let delta = replacement as isize - (end - start) as isize;
+        events.retain_mut(|e| {
+            if e.start < start {
+                if e.end > start {
+                    e.end = if e.end < end {
+                        start
+                    } else {
+                        e.end.saturating_add_signed(delta)
+                    };
+                }
+            } else if e.start == start {
+                if e.end <= end {
+                    if replacement == 0 {
+                        return false;
+                    }
+                    e.end = start + replacement;
+                } else {
+                    e.end = e.end.saturating_add_signed(delta);
+                }
+            } else if e.start < end {
+                if e.end <= end {
+                    return false;
+                }
+                e.end = e.end.saturating_add_signed(delta);
+                e.start = start + replacement;
+            } else {
+                e.start = e.start.saturating_add_signed(delta);
+                e.end = e.end.saturating_add_signed(delta);
+            }
+            true
+        });
+    }
+    let mut out = String::new();
+    let mut pos = 0;
+    let formatted = !events.is_empty();
+    // These strings will be parsed again if another selector follows. Quote
+    // literal punctuation and protect the text on each side of a delimiter:
+    // CommonMark otherwise treats a space inserted beside a marker as syntax.
+    let literal = |out: &mut String, start: usize, end: usize| -> Result<(), String> {
+        use std::fmt::Write;
+        let slice = text
+            .get(start..end)
+            .ok_or("internal error: formatting boundary is not a UTF-8 boundary")?;
+        let mut chars = slice.chars().peekable();
+        let mut first = true;
+        while let Some(c) = chars.next() {
+            if formatted
+                && (first || chars.peek().is_none())
+                && (!c.is_control() || matches!(c, '\n' | '\t' | '\r'))
+            {
+                write!(out, "&#{};", c as u32).unwrap();
+            } else {
+                if c.is_ascii_punctuation() {
+                    out.push('\\');
+                }
+                out.push(c);
+            }
+            first = false;
+        }
+        Ok(())
+    };
+    let mut closes = Vec::<(usize, &'static str)>::new();
+    let mut events = events.into_iter().peekable();
+    loop {
+        let end = closes.last().map_or(text.len(), |c| c.0);
+        if let Some(e) = events.next_if(|e| e.start < end) {
+            if e.end <= pos {
+                continue;
+            }
+            let start = pos.max(e.start);
+            literal(&mut out, pos, start)?;
+            pos = start;
+            let stop = e.end.min(end);
+            if stop > pos {
+                out.push_str(e.marker);
+                closes.push((stop, e.marker));
+            }
+        } else {
+            literal(&mut out, pos, end)?;
+            pos = end;
+            if let Some((_, mark)) = closes.pop() {
+                out.push_str(mark);
+            } else {
+                break;
+            }
+        }
+    }
+    if events.len() != 0 {
+        return Err(format!(
+            "internal error: failed to unflatten: {} events remaining",
+            events.len()
+        ));
+    }
+    Ok(out)
+}
+
 fn punctuation(c: char) -> bool {
     // Unicode 17.0 punctuation/symbol ranges from commonmark-characters.ts.
     // Each pair is a half-open interval. See LICENSE.UNICODE.

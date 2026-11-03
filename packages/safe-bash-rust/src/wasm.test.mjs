@@ -8552,3 +8552,23 @@ test("mdq follows reachable footnotes once, resolves their bodies and places def
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq maps replacements on visible text back to nested emphasis ranges", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [src, selector] of [
+      ["- Item with _emphasis and **nested bold**_ formatting", "- !s/and nested /and formerly /"],
+      ["he**ll**o", "P: !s/hello/hi/"], ["**hi**", "P: !s/^/x/"], ["a**b**c", "P: !s/()/x/"],
+      ["α**β**γ", "P: !s/./x/"], ["α**β**γ", "P: !s/()/x/"], ["α**β**γ", "P: !s/./😀/"],
+      ["hello", "P: !s/o*/x/"], ["ab~~cde~~fg", "P: !s/cd//"],
+      ["_alpha **bcd** end_", "P: !s/b/ x /"], ["a__b__c", "P: !s/b/*hi*/"],
+      ["_abc_ **abc** ~~abc~~", "P: !s/abc/A/"],
+    ]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(src));
+      const cmd = "mdq '" + selector + "' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr], [a.exitCode,a.stdout,a.stderr], cmd);
+    }
+  } finally { rs.dispose(); }
+});

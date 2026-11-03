@@ -72,7 +72,7 @@ fn coreutil(
         "locale" => cmd_locale(args, env),
         "less" | "more" => cmd_less_more(cmd, args, input.buffered()?, cwd, fs),
         "pathchk" => cmd_pathchk(args, cwd, fs),
-        "expr" => cmd_expr(args),
+        "expr" => cmd_expr(args, env),
         "bc" => cmd_bc(args, input.buffered()?, cwd, fs),
         "numfmt" => cmd_numfmt(args, input.buffered()?),
         "uname" => cmd_uname(args, env, fs),
@@ -5408,7 +5408,7 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
     ok_out(&String::from_utf8_lossy(&out))
 }
 
-fn cmd_expr(args: &[String]) -> BuiltinOutcome {
+fn cmd_expr(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
     if args.len() == 1 && args[0] == "--help" {
         return ok_out("Usage: expr EXPRESSION\nTokens: | & < <= = == != >= > + - * / % :\nPrefixes: + TOKEN, length STRING, index STRING CHARS, substr STRING POS LENGTH, match STRING REGEXP\nGroup with ( EXPRESSION ). Each token is a separate argument.\nMatching uses bounded provider-driven BRE.\nProfiles depend on the provider: built-in portable non-NUL ASCII; Node C/POSIX byte or C.UTF-8 scalar.\n");
     }
@@ -5422,7 +5422,10 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
     if pos >= args.len() {
         return err_out("expr: missing operand\nTry 'expr --help' for more information.\n", 2);
     }
-    match eval_expr_or(args, &mut pos, true) {
+    let category = |name| ["LC_ALL", name, "LANG"].into_iter()
+        .find_map(|key| env.get(key).filter(|v| !v.is_empty())).map_or("C", String::as_str);
+    let locale = ExprLocale { ctype: category("LC_CTYPE"), collate: category("LC_COLLATE") };
+    match eval_expr_or(args, &mut pos, true, &locale) {
         Ok(res) => {
             if pos != args.len() {
                 return err_out(&format!("expr: syntax error: unexpected argument {}\n", expr_quote(&args[pos])), 2);
@@ -5436,6 +5439,63 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
         }
         Err((msg, code)) => err_out(&msg, code),
     }
+}
+
+struct ExprLocale<'a> {
+    ctype: &'a str,
+    collate: &'a str,
+}
+
+impl ExprLocale<'_> {
+    // UTF-8 (without a language) and C.UTF-8 use byte ordering.
+    fn utf8_language(locale: &str) -> Option<&str> {
+        let (name, encoding) = locale.rsplit_once('.').unwrap_or(("", locale));
+        if !encoding.eq_ignore_ascii_case("utf8") && !encoding.eq_ignore_ascii_case("utf-8") {
+            return None;
+        }
+        if name.is_empty() || name == "C" { return Some(""); }
+        let mut parts = name.split(['-', '_']);
+        let language = parts.next()?;
+        if !(2..=8).contains(&language.len()) || language.len() == 4 || !language.bytes().all(|b| b.is_ascii_alphabetic())
+            || !parts.all(|p| (1..=8).contains(&p.len()) && p.bytes().all(|b| b.is_ascii_alphanumeric())) {
+            return None;
+        }
+        Some(name)
+    }
+
+    fn unicode(&self) -> Result<bool, (String, i32)> {
+        if matches!(self.ctype, "C" | "POSIX") { return Ok(false); }
+        if Self::utf8_language(self.ctype).is_some() { return Ok(true); }
+        Err(("expr: character operations require C/POSIX or a UTF-8 locale\n".into(), 2))
+    }
+
+    fn compare(&self, left: &str, right: &str, equality: bool) -> Result<std::cmp::Ordering, (String, i32)> {
+        let a = crate::vfs::stream_string_to_bytes(left);
+        let b = crate::vfs::stream_string_to_bytes(right);
+        if equality || matches!(self.collate, "C" | "POSIX") { return Ok(a.cmp(&b)); }
+        let error = || ("expr: string comparison requires C/POSIX or a supported UTF-8 collation locale\n".to_string(), 2);
+        let language = Self::utf8_language(self.collate).ok_or_else(error)?;
+        if language.is_empty() { return Ok(a.cmp(&b)); }
+        let collator = crate::collation::Collator::open(&language.replace('_', "-"), true).ok_or_else(error)?;
+        let a = String::from_utf8_lossy(a.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&a));
+        let b = String::from_utf8_lossy(b.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&b));
+        collator.compare(&a, &b).map_err(|_| error())
+    }
+}
+
+fn expr_units(mut bytes: &[u8], unicode: bool) -> impl Iterator<Item = &[u8]> {
+    std::iter::from_fn(move || {
+        let width = match *bytes.first()? {
+            0xc2..=0xdf if unicode => 2,
+            0xe0..=0xef if unicode => 3,
+            0xf0..=0xf4 if unicode => 4,
+            _ => 1,
+        };
+        let width = if width == 1 || bytes.get(..width).is_some_and(|s| std::str::from_utf8(s).is_ok()) { width } else { 1 };
+        let (unit, rest) = bytes.split_at(width);
+        bytes = rest;
+        Some(unit)
+    })
 }
 
 fn expr_quote(value: &str) -> String {
@@ -5504,12 +5564,12 @@ fn expr_arithmetic(left: &str, op: &str, right: &str) -> Result<String, (String,
     Ok(format_big_with_scale(&magnitude, 0, negative))
 }
 
-fn eval_expr_or(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_and(args, pos, active)?;
+fn eval_expr_or(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_and(args, pos, active, locale)?;
     while *pos < args.len() && args[*pos] == "|" {
         *pos += 1;
         let left_truth = active && is_expr_truthy(&left);
-        let right = eval_expr_and(args, pos, active && !left_truth)?;
+        let right = eval_expr_and(args, pos, active && !left_truth, locale)?;
         if active && !left_truth {
             left = if is_expr_truthy(&right) {
                 right
@@ -5521,12 +5581,12 @@ fn eval_expr_or(args: &[String], pos: &mut usize, active: bool) -> Result<String
     Ok(left)
 }
 
-fn eval_expr_and(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_cmp(args, pos, active)?;
+fn eval_expr_and(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_cmp(args, pos, active, locale)?;
     while *pos < args.len() && args[*pos] == "&" {
         *pos += 1;
         let left_truth = active && is_expr_truthy(&left);
-        let right = eval_expr_cmp(args, pos, active && left_truth)?;
+        let right = eval_expr_cmp(args, pos, active && left_truth, locale)?;
         if active && !(left_truth && is_expr_truthy(&right)) {
             left = "0".to_string();
         }
@@ -5534,18 +5594,18 @@ fn eval_expr_and(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     Ok(left)
 }
 
-fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_add(args, pos, active)?;
+fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_add(args, pos, active, locale)?;
     while *pos < args.len() && matches!(args[*pos].as_str(), "=" | "==" | "!=" | "<" | "<=" | ">" | ">=") {
         let op = args[*pos].clone();
         *pos += 1;
-        let right = eval_expr_add(args, pos, active)?;
+        let right = eval_expr_add(args, pos, active, locale)?;
         if active {
             let order = if let (Some((neg_a, a)), Some((neg_b, b))) = (parse_expr_int(&left), parse_expr_int(&right)) {
                 let magnitude = a.len().cmp(&b.len()).then_with(|| a.cmp(b));
                 neg_b.cmp(&neg_a).then(if neg_a { magnitude.reverse() } else { magnitude })
             } else {
-                left.cmp(&right)
+                locale.compare(&left, &right, matches!(op.as_str(), "=" | "==" | "!="))?
             };
             let res = match op.as_str() {
                 "=" | "==" => order.is_eq(),
@@ -5562,12 +5622,12 @@ fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     Ok(left)
 }
 
-fn eval_expr_add(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_mul(args, pos, active)?;
+fn eval_expr_add(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_mul(args, pos, active, locale)?;
     while *pos < args.len() && matches!(args[*pos].as_str(), "+" | "-") {
         let op = args[*pos].clone();
         *pos += 1;
-        let right = eval_expr_mul(args, pos, active)?;
+        let right = eval_expr_mul(args, pos, active, locale)?;
         if active {
             left = expr_arithmetic(&left, &op, &right)?;
         }
@@ -5575,12 +5635,12 @@ fn eval_expr_add(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     Ok(left)
 }
 
-fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_match(args, pos, active)?;
+fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_match(args, pos, active, locale)?;
     while *pos < args.len() && matches!(args[*pos].as_str(), "*" | "/" | "%") {
         let op = args[*pos].clone();
         *pos += 1;
-        let right = eval_expr_match(args, pos, active)?;
+        let right = eval_expr_match(args, pos, active, locale)?;
         if active {
             left = expr_arithmetic(&left, &op, &right)?;
         }
@@ -5604,11 +5664,11 @@ fn eval_expr_colon(lhs: &str, pat: &str) -> String {
     }
 }
 
-fn eval_expr_match(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_primary(args, pos, active)?;
+fn eval_expr_match(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_primary(args, pos, active, locale)?;
     while *pos < args.len() && args[*pos] == ":" {
         *pos += 1;
-        let right = eval_expr_primary(args, pos, active)?;
+        let right = eval_expr_primary(args, pos, active, locale)?;
         if active {
             left = eval_expr_colon(&left, &right);
         }
@@ -5616,7 +5676,7 @@ fn eval_expr_match(args: &[String], pos: &mut usize, active: bool) -> Result<Str
     Ok(left)
 }
 
-fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool, locale: &ExprLocale<'_>) -> Result<String, (String, i32)> {
     if *pos >= args.len() {
         return Err((format!("expr: syntax error: missing argument after {}\n", expr_quote(&args[*pos - 1])), 2));
     }
@@ -5626,7 +5686,7 @@ fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<S
     }
     if tok == "(" {
         *pos += 1;
-        let val = eval_expr_or(args, pos, active)?;
+        let val = eval_expr_or(args, pos, active, locale)?;
         if *pos == args.len() {
             return Err((format!("expr: syntax error: expecting ')' after {}\n", expr_quote(&args[*pos - 1])), 2));
         }
@@ -5647,53 +5707,59 @@ fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<S
     }
     if tok == "length" {
         *pos += 1;
-        let s = eval_expr_primary(args, pos, active)?;
-        return Ok(if active { s.chars().count().to_string() } else { String::new() });
+        let s = eval_expr_primary(args, pos, active, locale)?;
+        if !active { return Ok(String::new()); }
+        let count = if locale.unicode()? {
+            expr_units(&crate::vfs::stream_string_to_bytes(&s), true).count()
+        } else {
+            crate::vfs::stream_byte_len(&s)
+        };
+        return Ok(count.to_string());
     }
     if tok == "match" {
         *pos += 1;
-        let s = eval_expr_primary(args, pos, active)?;
-        let pat = eval_expr_primary(args, pos, active)?;
+        let s = eval_expr_primary(args, pos, active, locale)?;
+        let pat = eval_expr_primary(args, pos, active, locale)?;
         return Ok(if active { eval_expr_colon(&s, &pat) } else { String::new() });
     }
     if tok == "substr" {
         *pos += 1;
-        let s_str = eval_expr_primary(args, pos, active)?;
-        let p_str = eval_expr_primary(args, pos, active)?;
-        let l_str = eval_expr_primary(args, pos, active)?;
+        let s_str = eval_expr_primary(args, pos, active, locale)?;
+        let p_str = eval_expr_primary(args, pos, active, locale)?;
+        let l_str = eval_expr_primary(args, pos, active, locale)?;
         if !active {
             return Ok(String::new());
         }
-        let chars: Vec<char> = s_str.chars().collect();
+        let unicode = locale.unicode()?;
+        let bytes = crate::vfs::stream_string_to_bytes(&s_str);
         let index = |value: &str| match parse_expr_int(value) {
             Some((false, digits)) => digits.parse::<usize>().unwrap_or(usize::MAX),
             _ => 0,
         };
         let p = index(&p_str);
         let l = index(&l_str);
-        let sub: String = if p == 0 || l == 0 || p > chars.len() {
-            String::new()
+        if p == 0 || l == 0 || p > bytes.len() { return Ok(String::new()); }
+        let (start, len) = if unicode {
+            let mut units = expr_units(&bytes, true);
+            let start = units.by_ref().take(p - 1).map(<[u8]>::len).sum::<usize>();
+            (start, units.take(l).map(<[u8]>::len).sum::<usize>())
         } else {
-            let p_idx = p - 1;
-            let end_idx = p_idx.saturating_add(l).min(chars.len());
-            chars[p_idx..end_idx].iter().collect()
+            (p - 1, l.min(bytes.len() - (p - 1)))
         };
-        return Ok(sub);
+        return Ok(crate::vfs::bytes_to_stream_string(&bytes[start..start + len]));
     }
     if tok == "index" {
         *pos += 1;
-        let s = eval_expr_primary(args, pos, active)?;
-        let chars_set = eval_expr_primary(args, pos, active)?;
+        let s = eval_expr_primary(args, pos, active, locale)?;
+        let chars_set = eval_expr_primary(args, pos, active, locale)?;
         if !active {
             return Ok(String::new());
         }
-        let mut found = 0usize;
-        for (i, ch) in s.chars().enumerate() {
-            if chars_set.contains(ch) {
-                found = i + 1;
-                break;
-            }
-        }
+        let unicode = locale.unicode()?;
+        let set_bytes = crate::vfs::stream_string_to_bytes(&chars_set);
+        let set: std::collections::HashSet<_> = expr_units(&set_bytes, unicode).collect();
+        let bytes = crate::vfs::stream_string_to_bytes(&s);
+        let found = expr_units(&bytes, unicode).position(|unit| set.contains(unit)).map_or(0, |i| i + 1);
         return Ok(found.to_string());
     }
     *pos += 1;
@@ -21557,7 +21623,7 @@ mod tests {
             (&["substr", "abc", "2", next], "bc"),
             (&["substr", "abc", next, "2"], ""),
         ] {
-            let r = cmd_expr(&args(tokens));
+            let r = cmd_expr(&args(tokens), &BTreeMap::new());
             assert_eq!(r.stdout, format!("{result}\n"), "{tokens:?}: {}", r.stderr);
             assert_eq!(r.exit_code, i32::from(result == "0" || result.is_empty()));
         }
@@ -21573,7 +21639,7 @@ mod tests {
             (&["(", "a", "b"], "syntax error: expecting ')' instead of 'b'"),
             (&["1", "x'é\n"], r"syntax error: unexpected argument 'x\'\303\251\n'"),
         ] {
-            let result = cmd_expr(&args(tokens));
+            let result = cmd_expr(&args(tokens), &BTreeMap::new());
             assert_eq!(result.exit_code, 2);
             assert_eq!(result.stderr, format!("expr: {detail}\n"));
         }
@@ -21586,7 +21652,7 @@ mod tests {
         assert_eq!(bc.exit_code, 0);
         assert_eq!(bc.stdout.trim(), "1048");
 
-        let expr = cmd_expr(&args(&["15", "*", "3", "+", "5"]));
+        let expr = cmd_expr(&args(&["15", "*", "3", "+", "5"]), &BTreeMap::new());
         assert_eq!(expr.exit_code, 0);
         assert_eq!(expr.stdout.trim(), "50");
 

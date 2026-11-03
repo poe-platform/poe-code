@@ -8005,3 +8005,25 @@ test("unxz checks optional block sizes even when the index and checksums are val
     }
   } finally { rs.dispose(); }
 });
+
+test("expr counts and slices bytes or characters using LC_CTYPE, and orders strings using LC_COLLATE", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const script of [
+      "LC_ALL=C expr length é", "LC_ALL=POSIX expr substr é 1 1",
+      "LC_ALL=C expr index aéz z", "LC_ALL=C expr index é è",
+      "LC_ALL=C.UTF-8 expr index é è", "LC_ALL=UTF8 expr substr a😀z 2 1",
+      "LANG=C LC_CTYPE=de_DE.UTF8 expr length é", "LC_ALL=C LC_CTYPE=UTF-8 expr length é",
+      "LC_ALL=C expr length substr é 2 1", "LC_ALL=C expr substr é 2 1 '>' z",
+      "LC_ALL=invalid expr length a", "LC_ALL=invalid expr 1 '|' length é",
+      "LC_ALL=C LC_COLLATE=en_US.UTF-8 expr a '<' A", "LC_ALL=en_US.UTF-8 expr a '<' A",
+      "LC_COLLATE=fr_FR.UTF-8 LC_ALL='' expr é '<' z", "LC_ALL=invalid expr a '<' b",
+      "LC_ALL=invalid expr a = b", "LC_ALL=invalid expr 100 '>' 2",
+    ]) {
+      const a = await js.exec(script), b = await rs.exec(script);
+      assert.deepEqual([b.exitCode, b.stdoutBytes, b.stderr], [a.exitCode, a.stdoutBytes, a.stderr], script);
+    }
+  } finally { rs.dispose(); }
+});

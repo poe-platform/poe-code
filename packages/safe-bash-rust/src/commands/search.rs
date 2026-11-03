@@ -1,4 +1,6 @@
 mod expr_bre;
+mod fd_glob;
+use fd_glob::FdGlob;
 mod mdq_classes;
 mod mdq_class;
 pub(super) use expr_bre::expr_match;
@@ -5853,7 +5855,7 @@ struct FdConfig {
     min_depth: usize,
     max_depth: Option<usize>,
     max_results: Option<usize>,
-    excludes: Vec<String>,
+    excludes: Vec<FdGlob>,
     sizes: Vec<(char, f64)>,
     changed_within_ms: Option<f64>,
     changed_before_ms: Option<f64>,
@@ -6375,6 +6377,10 @@ where
         }
     }
 
+    let excludes = match excludes.iter().map(|pattern| FdGlob::compile(pattern)).collect::<Result<Vec<_>, _>>() {
+        Ok(globs) => globs,
+        Err(error) => return BuiltinOutcome { stdout: String::new(), stderr: format!("fd: {error}\n"), exit_code: 1 },
+    };
     let cfg = FdConfig {
         extensions,
         types,
@@ -6618,14 +6624,7 @@ fn walk_fd(
         if !cfg.show_hidden && base.starts_with('.') {
             return false;
         }
-        if cfg.excludes.iter().any(|ex| {
-            let ex_clean = ex.trim_end_matches('/');
-            glob_match(ex, &base)
-                || glob_match(ex_clean, &base)
-                || glob_match(ex, rel)
-                || glob_match(ex_clean, rel)
-                || glob_match(ex, disp)
-        }) {
+        if cfg.excludes.iter().any(|ex| ex.matches(rel, is_dir) || ex.matches(&base, is_dir)) {
             return false;
         }
         if cfg.respect_ignore && is_ignored_by_rules(&base, is_dir, ignore_rules) {
@@ -7657,6 +7656,24 @@ mod tests {
         .unwrap();
         assert_eq!(which_out.exit_code, 0);
         assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn fd_exclude_globs_match_components_directories_and_alternatives() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work/sub/deep").unwrap();
+        for name in ["keep", "sub/item.txt", "sub/deep/item.log"] { fs.write_file(&format!("/work/{name}"), b"").unwrap(); }
+        for (glob, stdout, stderr) in [
+            ("sub/*.{txt,log}", "keep\nsub/deep/item.log\n", ""),
+            ("/sub/**/item.[lt]*", "keep\n", ""),
+            ("keep/", "keep\nsub/deep/item.log\nsub/item.txt\n", ""),
+            ("sub/deep/", "keep\nsub/item.txt\n", ""),
+            ("a{", "", "fd: invalid glob: unclosed glob brace\n"),
+        ] {
+            let r = try_run_search_command("fd", &args(&["-Itf", "-E", glob]), "", &mut "/work".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.stdout.as_str(), r.stderr.as_str(), r.exit_code), (stdout, stderr, i32::from(!stderr.is_empty())), "{glob}");
+        }
     }
 
     #[test]

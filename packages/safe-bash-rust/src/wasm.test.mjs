@@ -8100,3 +8100,20 @@ test("mdq preserves indented and fenced code without selecting headings inside i
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq plain output normalizes blank lines and preserves literal block text", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const text of ["~~~\n\n\n~~~", "~~~\n\nfirst\n\n\nsecond\n\n~~~",
+      "---\nkey_name: *literal*\n\n---\n\n> # heading\n>\n> quoted",
+      "<!-- literal_* -->\n", "| a | b |\n| - | - |\n| | |"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const flags of ["", "--br"]) {
+        const cmd = "mdq -o plain " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], text + flags);
+      }
+    }
+  } finally { rs.dispose(); }
+});

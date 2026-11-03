@@ -29955,37 +29955,38 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if output_fmt == "plain" {
         let mut pieces = Vec::new();
         fn walk_plain(b: &MdqBlock, out: &mut Vec<String>) {
-            if matches!(b.kind.as_str(), "document" | "section") {
-                if !b.title.is_empty() {
-                    out.push(mdq_strip_inline(&b.title));
+            match b.kind.as_str() {
+                "section" | "paragraph" | "list_item" | "link" | "image" => {
+                    let source = if matches!(b.kind.as_str(), "section" | "link" | "image") { &b.title } else { &b.text };
+                    let text = mdq_strip_inline(source);
+                    if !text.is_empty() { out.push(text); }
                 }
-                for ch in &b.children {
-                    walk_plain(ch, out);
-                }
-            } else if b.kind == "table" {
-                for r in &b.table_rows {
-                    let row_s: Vec<String> = r.iter().map(|c| mdq_strip_inline(c)).filter(|s| !s.is_empty()).collect();
-                    if !row_s.is_empty() {
-                        out.push(row_s.join(" "));
+                "code" | "frontmatter" | "html" if !b.text.is_empty() => out.push(b.text.clone()),
+                "table" => {
+                    for row in &b.table_rows {
+                        out.push(row.iter().map(|cell| mdq_strip_inline(cell))
+                            .filter(|text| !text.is_empty()).collect::<Vec<_>>().join(" "));
                     }
                 }
-            } else if b.kind == "code" {
-                if !b.text.is_empty() {
-                    out.push(b.text.clone());
+                _ => {}
+            }
+            for child in &b.children { walk_plain(child, out); }
+        }
+        for b in &current { walk_plain(b, &mut pieces); }
+        let mut stdout = String::new();
+        for piece in &pieces {
+            let mut blank = true;
+            for line in piece.split('\n') {
+                if line.is_empty() { blank = true; continue; }
+                if !stdout.is_empty() {
+                    if breaks && blank { stdout.push('\n'); }
+                    stdout.push('\n');
                 }
-            } else if !b.text.is_empty() {
-                out.push(mdq_strip_inline(&b.text));
+                stdout.push_str(line);
+                blank = false;
             }
         }
-        for b in &current {
-            walk_plain(b, &mut pieces);
-        }
-        let sep = if breaks { "\n\n" } else { "\n" };
-        let stdout = if pieces.is_empty() {
-            String::new()
-        } else {
-            format!("{}\n", pieces.join(sep))
-        };
+        if !pieces.is_empty() { stdout.push('\n'); }
         return BuiltinOutcome {
             stdout,
             stderr: String::new(),

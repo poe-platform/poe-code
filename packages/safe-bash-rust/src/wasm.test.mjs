@@ -9313,3 +9313,58 @@ test("xmllint reads redirected stdin only for the operand that requests it", asy
     await assert.rejects(rs.exec("xmllint --noout doc - <big", options), /maxInputBytes/);
   } finally { rs.dispose(); }
 });
+
+test("xmllint stops consuming a redirected operand at a fatal XML error", async () => {
+  const rs = new RustWasmBash({ cwd: "/", files: { "/broken": "<broken/>".repeat(20000) } });
+  try {
+    for (const maxInputBytes of [190, 4096]) {
+      const r = await rs.exec("{ xmllint --noout; head -c8; } <broken", { limits: { maxInputBytes } });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "",
+        "xmllint: Invalid XML: multiple root elements\nhead: EFBIG: file too large, read '/broken'\n"]);
+    }
+  } finally { rs.dispose(); }
+});
+
+test("xmllint preserves XML tokens, namespace scope and text nodes across decoder chunks", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const fragment of ["🦊", "\r\n", "&amp;", "<!-- a -->", "<![CDATA[<]]>", "<?go ok?>",
+      '<p:x a=">"/>', "</p:e>"]) {
+      const prefix = '<r xmlns:p="urn:x"><p:e>';
+      const suffix = fragment === "</p:e>" ? "</r>" : "</p:e></r>";
+      for (let split = 1; split < Buffer.byteLength(fragment); split++) {
+        const pad = "a".repeat(4096 - Buffer.byteLength(prefix) - split);
+        await rs.fs.writeFile("/f", prefix + pad + fragment + suffix);
+        const result = await rs.exec("xmllint --c14n f");
+        const canonical = new Map([["\r\n", "\n"], ["<![CDATA[<]]>", "&lt;"], ['<p:x a=">"/>', '<p:x a="&gt;"></p:x>']]);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, prefix + pad + (canonical.get(fragment) ?? fragment) + suffix);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("xmllint charges named input in read order and prevalidates recovery input", async () => {
+  const rs = new RustWasmBash({ cwd: "/", files: {
+    "/f": Buffer.concat([Buffer.from("<r/><r/>" + " ".repeat(9000)), Buffer.from([255])])
+  } });
+  try {
+    const options = { limits: { maxInputBytes: 64 } };
+    const invalid = await rs.exec("xmllint --noout f", options);
+    assert.equal(invalid.stderr, "xmllint: Invalid XML: multiple root elements\n");
+    await assert.rejects(rs.exec("xmllint --recover --noout f", options), /maxInputBytes/);
+    const recover = await rs.exec("xmllint --recover --noout f");
+    assert.equal(recover.stderr, "xmllint: XML input must be UTF-8\n");
+  } finally { rs.dispose(); }
+});
+
+test("xmllint reports invalid XML characters in the normalization window it needs", async () => {
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [spaces, reason] of [[503, "invalid character"], [504, "multiple root elements"]]) {
+      await rs.fs.writeFile("/bad", "<r/><r/>" + " ".repeat(spaces) + "\0");
+      const r = await rs.exec("xmllint --noout bad");
+      assert.equal(r.stderr, "xmllint: Invalid XML: " + reason + "\n");
+    }
+  } finally { rs.dispose(); }
+});

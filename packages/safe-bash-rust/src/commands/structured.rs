@@ -613,27 +613,34 @@ fn parse_single_json_strict(input: &str) -> Result<JVal, String> {
 }
 
 fn read_utf8_source(
-    fs: &dyn SafeBashFs, path: Option<&str>, bytes: &mut Vec<u8>, remaining: &mut usize,
+    fs: &dyn SafeBashFs, file: Option<(&str, usize)>, remaining: &mut usize, mut consume: impl FnMut(&str) -> Result<(), String>,
     stdin: impl FnOnce(&mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String>,
 ) -> Result<(), String> {
-    let mut valid = bytes.len();
+    let mut bytes = Vec::new();
     let mut append = |chunk: &[u8]| {
         *remaining = remaining.checked_sub(chunk.len()).ok_or_else(|| fs.limit_error("maxInputBytes", fs.max_input_bytes()))?;
-        bytes.extend_from_slice(chunk);
-        match std::str::from_utf8(&bytes[valid..]) {
-            Ok(_) => valid = bytes.len(),
-            Err(e) if e.error_len().is_none() => valid += e.valid_up_to(),
-            Err(_) => return Err("invalid data".into()),
+        for part in chunk.chunks(4096) {
+            bytes.extend_from_slice(part);
+            let end = match std::str::from_utf8(&bytes) {
+                Ok(text) => { consume(text)?; bytes.clear(); continue; }
+                Err(e) if e.error_len().is_none() => e.valid_up_to(),
+                Err(_) => return Err("invalid data".into()),
+            };
+            consume(std::str::from_utf8(&bytes[..end]).unwrap())?;
+            bytes.drain(..end);
         }
         Ok(true)
     };
-    if let Some(path) = path {
+    if let Some((path, size)) = file {
         if fs.is_dir(path) { return Err("EISDIR: illegal operation on a directory".into()); }
-        fs.read_chunks(path, &mut append)?;
+        fs.read_chunks(path, &mut |chunk| {
+            for part in chunk.chunks(size) { append(part)?; }
+            Ok(true)
+        })?;
     } else {
         stdin(&mut append)?;
     }
-    if valid != bytes.len() { return Err("invalid data".into()); }
+    if !bytes.is_empty() { return Err("invalid data".into()); }
     Ok(())
 }
 
@@ -14938,12 +14945,7 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
         Ok(query) => query,
         Err(e) => return err_out(&format!("xmllint: {e}\n"), 10),
     };
-    let render = |text: &str| {
-        let mut warnings = Vec::new();
-        let doc = match xml::parse(text, Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some()) {
-            Ok(doc) => doc,
-            Err(e) => return err_out(&format!("xmllint: {e}\n"), 1),
-        };
+    let render = |doc: xml::Document, warnings: Vec<&str>| {
         let stderr: String = warnings.into_iter().map(|msg| format!("xmllint: {msg} (recovered)\n")).collect();
         if noout && xpath.is_none() {
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
@@ -15013,9 +15015,10 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
     let mut stdin = Some(stdin);
     for file in files.iter().map(String::as_str).chain(files.is_empty().then_some("-")) {
         let path = (file != "-").then(|| crate::vfs::path::absolute_operand(cwd, file));
-        let mut bytes = Vec::new();
+        let mut warnings = Vec::new();
+        let mut parser = xml::Parser::new(Some("UTF-8"), recover.then_some(&mut warnings), !noout || xpath.is_some());
         let entry = path.as_ref().map(|p| fs.access_path(p, true)).transpose();
-        let read = entry.and_then(|entry| read_utf8_source(fs, entry.as_deref(), &mut bytes, &mut remaining, |append| {
+        let read = entry.and_then(|entry| read_utf8_source(fs, entry.as_deref().map(|p| (p, remaining.clamp(1, 65536))), &mut remaining, |s| parser.feed(s), |append| {
             let Some(mut input) = stdin.take() else { return Ok(()); };
             let mut result = Ok(true);
             input.read_stdin(|chunk| {
@@ -15024,8 +15027,9 @@ pub(super) fn cmd_xmllint(args: &[String], stdin: super::CommandInput, cwd: &str
             })?;
             result.map(|_| ())
         }));
-        let next = match read {
-            Ok(()) => render(std::str::from_utf8(&bytes).expect("validated XML input")),
+        let next = match read.and_then(|_| parser.finish()) {
+            Ok(doc) => render(doc, warnings),
+            Err(e) if e.starts_with("Invalid XML:") || e == "XML resource limit exceeded" => err_out(&format!("xmllint: {e}\n"), 1),
             Err(e) if e == "invalid data" => err_out("xmllint: XML input must be UTF-8\n", 1),
             Err(e) if e.starts_with("Execution aborted:") => err_out(&e, 5),
             Err(e) => {
@@ -28871,7 +28875,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     let limit = fs.max_input_bytes();
     let mut remaining = limit;
-    let mut md_input = Vec::new();
+    let mut md_input = String::new();
     let mut used_stdin = false;
     let sources = files.iter().map(String::as_str).chain(files.is_empty().then_some("-"));
     for f in sources {
@@ -28885,7 +28889,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if !stdin_source || !used_stdin {
             let path = (!stdin_source).then(|| resolve_posix_path(cwd, f));
             used_stdin |= stdin_source;
-            let read = read_utf8_source(fs, path.as_deref(), &mut md_input, &mut remaining, |append| {
+            let read = read_utf8_source(fs, path.as_deref().map(|p| (p, usize::MAX)), &mut remaining, |s| { md_input.push_str(s); Ok(()) }, |append| {
                 append(&crate::vfs::stream_string_to_bytes(stdin)).map(|_| ())
             });
             if let Err(e) = read {
@@ -28898,9 +28902,8 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 });
             }
         }
-        if !files.is_empty() { md_input.push(b'\n'); }
+        if !files.is_empty() { md_input.push('\n'); }
     }
-    let md_input = String::from_utf8(md_input).expect("all input sources validated");
     let mut definitions = MdqDefinitions::default();
     let children = match mdq_blocks::parse(&mut definitions, &md_input) { Ok(b) => b, Err(e) => return err_out(&e,1) };
     let stages = match parse_mdq_query(&selector_str) {

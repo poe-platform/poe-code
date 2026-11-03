@@ -345,13 +345,11 @@ impl<'a> References<'a> {
         }
         w.block(super::MdqLayout::Plain, |w| {
             let mut pending: Vec<_> = self.targets[self.emitted..].iter().collect();
-            pending.sort_by(|(a, _), (b, _)| {
+            super::mdq_order::sort(&mut pending, |(a, _), (b, _)| {
                 if [a, b].iter().all(|k| k.bytes().all(|c| c.is_ascii_digit())) {
-                    a.parse::<f64>()
-                        .unwrap()
-                        .total_cmp(&b.parse::<f64>().unwrap())
+                    a.parse::<f64>().unwrap() < b.parse::<f64>().unwrap()
                 } else {
-                    a.encode_utf16().cmp(b.encode_utf16())
+                    a.encode_utf16().lt(b.encode_utf16())
                 }
             });
             for (i, (id, target)) in pending.into_iter().enumerate() {

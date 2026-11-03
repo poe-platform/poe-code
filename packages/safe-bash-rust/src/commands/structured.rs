@@ -15,6 +15,7 @@ mod jq_json;
 mod jq_number;
 mod jq_parser;
 mod mdq_links;
+mod mdq_order;
 use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};

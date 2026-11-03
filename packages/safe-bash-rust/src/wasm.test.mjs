@@ -8403,3 +8403,25 @@ test("mdq resolves document references before selection and preserves their sour
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq keeps production definition order for mixed numeric and named reference IDs", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    let seed = 42;
+    for (const count of [180, 180, 35, 75, 240]) {
+      const ids = Array.from({ length: count }, (_, i) => String(i) + (i % 5 ? "" : "a"));
+      for (let i = count - 1; i; i--) {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        const j = Math.floor(seed / 2**32 * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+      }
+      const input = ids.map(id => "[link][" + id + "]").join(" ") + "\n\n" + ids.map(id => "[" + id + "]: /x").join("\n");
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(input));
+      const a = await js.exec("mdq -l keep </in"), b = await rs.exec("mdq -l keep </in");
+      assert.equal(b.exitCode, 0, b.stderr);
+      assert.deepEqual(b.stdout.split("\n"), a.stdout.split("\n"));
+    }
+  } finally { rs.dispose(); }
+});

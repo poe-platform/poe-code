@@ -442,3 +442,70 @@ pub(super) fn to_json(nodes: Vec<HtmlNode>, plus: bool) -> JVal {
             .collect(),
     )
 }
+
+#[derive(Clone, Copy)]
+pub(super) enum Escaping {
+    Ascii,
+    Unicode,
+    Canonical,
+}
+
+impl Escaping {
+    pub fn escape(self, text: &str, attr: bool) -> String {
+        use std::fmt::Write;
+        let mut out = String::with_capacity(text.len());
+        for c in text.chars() {
+            match c {
+                '&' => out.push_str("&amp;"),
+                '<' => out.push_str("&lt;"),
+                '>' => out.push_str("&gt;"),
+                '"' if attr => out.push_str("&quot;"),
+                '\r' | '\t' | '\n' if attr || c == '\r' => {
+                    if matches!(self, Self::Canonical) {
+                        write!(out, "&#x{:X};", c as u32).unwrap();
+                    } else {
+                        write!(out, "&#{};", c as u32).unwrap();
+                    }
+                }
+                c if !c.is_ascii() && matches!(self, Self::Ascii) => {
+                    write!(out, "&#x{:X};", c as u32).unwrap()
+                }
+                c => out.push(c),
+            }
+        }
+        out
+    }
+}
+
+pub(super) fn encode(text: String, encoding: Option<&str>) -> Vec<u8> {
+    use std::io::Write;
+    match encoding {
+        Some(enc @ ("UTF-16" | "UTF-16LE" | "UTF-16BE")) => {
+            let mut bytes = Vec::with_capacity(text.len());
+            if enc == "UTF-16" {
+                bytes.extend([0xff, 0xfe]);
+            }
+            for unit in text.encode_utf16() {
+                bytes.extend(if enc == "UTF-16BE" {
+                    unit.to_be_bytes()
+                } else {
+                    unit.to_le_bytes()
+                });
+            }
+            bytes
+        }
+        Some(enc @ ("US-ASCII" | "ISO-8859-1")) => {
+            let ceiling = if enc == "US-ASCII" { 127 } else { 255 };
+            let mut bytes = Vec::with_capacity(text.len());
+            for c in text.chars() {
+                if c as u32 <= ceiling {
+                    bytes.push(c as u8);
+                } else {
+                    write!(bytes, "&#{};", c as u32).unwrap();
+                }
+            }
+            bytes
+        }
+        _ => text.into_bytes(),
+    }
+}

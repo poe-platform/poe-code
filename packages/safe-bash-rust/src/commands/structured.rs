@@ -350,7 +350,7 @@ pub fn try_run_structured_command(
         "html-to-markdown" => Some(cmd_html_to_markdown(args, stdin, cwd, env, fs)),
         "mmdc" => Some(cmd_mmdc(args, stdin, cwd, fs)),
         "xan" => Some(cmd_xan(args, stdin, cwd, fs)),
-        "xmllint" => Some(utf8_output(cmd_xmllint(args, stdin, cwd, fs))),
+        "xmllint" => Some(cmd_xmllint(args, stdin, cwd, fs)),
         "sqlite3" => Some(cmd_sqlite3(args, stdin, cwd, fs)),
         _ => None,
     }
@@ -14895,6 +14895,9 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     "LATIN1" => "ISO-8859-1".to_string(),
                     _ => upper,
                 };
+                if !matches!(norm.as_str(), "UTF-8" | "UTF-16" | "UTF-16LE" | "UTF-16BE" | "US-ASCII" | "ISO-8859-1") {
+                    return err_out(&format!("xmllint: unsupported output encoding: {}\n",args[i]),2);
+                }
                 encoding = Some(norm);
             }
             "--xpath" => {
@@ -14985,21 +14988,22 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         format_xml,
                         0,
                         false,
-                        eff_encoding.map(String::as_str),
+                        if eff_encoding.is_some() { xml::Escaping::Unicode } else { xml::Escaping::Ascii },
                     ));
                     out.push('\n');
                 }
             }
             out
         };
+        let bytes = xml::encode(rendered, if xpath.is_none() && !c14n { encoding.as_deref() } else { None });
         if let Some(of) = &out_file && xpath.is_none() {
             let full = resolve_posix_path(cwd, of);
-            if let Err(e) = fs.write_file(&full, rendered.as_bytes()) {
+            if let Err(e) = fs.write_file(&full, &bytes) {
                 return err_out(&format!("{stderr}xmllint: {of}: {e}\n"), 1);
             }
             return BuiltinOutcome { stdout: String::new(), stderr, exit_code: 0 };
         }
-        BuiltinOutcome { stdout: rendered, stderr, exit_code: 0 }
+        BuiltinOutcome { stdout: crate::vfs::bytes_to_stream_string(&bytes), stderr, exit_code: 0 }
     };
     let mut result = ok_out("");
     let mut remaining = fs.max_input_bytes();
@@ -15083,26 +15087,14 @@ fn serialize_xml_c14n_with_scope(
         out.push(' ');
         out.push_str(k);
         out.push_str("=\"");
-        out.push_str(
-            &v.replace('&', "&amp;")
-                .replace('<', "&lt;")
-                .replace('"', "&quot;")
-                .replace('\t', "&#x9;")
-                .replace('\n', "&#xA;")
-                .replace('\r', "&#xD;"),
-        );
+        out.push_str(&xml::Escaping::Canonical.escape(v, true));
         out.push('"');
     }
     out.push('>');
     for c in &el.children {
         match c {
             HtmlNode::Text(t) => {
-                out.push_str(
-                    &t.replace('&', "&amp;")
-                        .replace('<', "&lt;")
-                        .replace('>', "&gt;")
-                        .replace('\r', "&#xD;"),
-                );
+                out.push_str(&xml::Escaping::Canonical.escape(t, false));
             }
             HtmlNode::Element(child_el) => {
                 out.push_str(&serialize_xml_c14n_with_scope(
@@ -15120,31 +15112,12 @@ fn serialize_xml_c14n_with_scope(
     out
 }
 
-fn escape_xml_str_with_encoding(s: &str, is_attr: bool, encoding: Option<&str>) -> String {
-    let mut out = String::with_capacity(s.len());
-    for ch in s.chars() {
-        let cp = ch as u32;
-        match ch {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' if !is_attr => out.push_str("&gt;"),
-            '"' if is_attr => out.push_str("&quot;"),
-            _ => match encoding {
-                Some("US-ASCII") if cp > 127 => out.push_str(&format!("&#{cp};")),
-                Some("ISO-8859-1") if cp > 255 => out.push_str(&format!("&#{cp};")),
-                _ => out.push(ch),
-            },
-        }
-    }
-    out
-}
-
 fn serialize_xml_pretty(
     el: &HtmlElement,
     format_xml: bool,
     indent: usize,
     inline_ctx: bool,
-    encoding: Option<&str>,
+    escaping: xml::Escaping,
 ) -> String {
     let mut out = String::new();
     let pad = if format_xml && !inline_ctx {
@@ -15162,7 +15135,7 @@ fn serialize_xml_pretty(
                 out.push(' ');
                 out.push_str(k);
                 out.push_str("=\"");
-                out.push_str(&escape_xml_str_with_encoding(v, true, encoding));
+                out.push_str(&escaping.escape(v, true));
                 out.push('"');
             }
         }
@@ -15193,7 +15166,7 @@ fn serialize_xml_pretty(
                     true,
                     indent + 1,
                     false,
-                    encoding,
+                    escaping,
                 ));
                 out.push('\n');
             }
@@ -15203,7 +15176,7 @@ fn serialize_xml_pretty(
         for c in &el.children {
             match c {
                 HtmlNode::Text(t) => {
-                    out.push_str(&escape_xml_str_with_encoding(t, false, encoding));
+                    out.push_str(&escaping.escape(t, false));
                 }
                 HtmlNode::Element(child_el) => {
                     out.push_str(&serialize_xml_pretty(
@@ -15211,7 +15184,7 @@ fn serialize_xml_pretty(
                         format_xml,
                         indent + 1,
                         true,
-                        encoding,
+                        escaping,
                     ));
                 }
             }
@@ -15375,16 +15348,11 @@ fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
                 match item {
                     XPathItem::Node(chain) => {
                         if let Some(el) = chain.last() {
-                            out.push(serialize_xml_pretty(el, false, 0, true, Some("UTF-8")));
+                            out.push(serialize_xml_pretty(el, false, 0, true, xml::Escaping::Unicode));
                         }
                     }
-                    XPathItem::Attr(k, v) => {
-                        out.push(format!(
-                            " {k}=\"{}\"",
-                            v.replace('&', "&amp;").replace('<', "&lt;").replace('"', "&quot;")
-                        ));
-                    }
-                    XPathItem::Text(t) => out.push(t.clone()),
+                    XPathItem::Attr(k, v) => out.push(format!(" {k}=\"{}\"", xml::Escaping::Unicode.escape(v,true))),
+                    XPathItem::Text(t) => out.push(xml::Escaping::Unicode.escape(t,false)),
                 }
             }
             ok_out(&format!("{}\n", out.join("\n")))

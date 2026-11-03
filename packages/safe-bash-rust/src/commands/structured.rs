@@ -28396,7 +28396,7 @@ fn expand_mdq_replacement(
         }
         let index = names.iter().find_map(|(key, slot)| (key == &name).then_some((slot + 1) as f64))
             .unwrap_or_else(|| super::js_number(&name, 0.0));
-        if index == 0.0 { out.push_str(&target[matched.clone()]); }
+        if index == 0.0 { out.push_str(target.get(matched.clone()).unwrap_or("")); }
         else if index >= 1.0 && index.fract() == 0.0 && let Some(Some((a, b))) = caps.get(index as usize - 1) {
             out.push_str(&target[*a..*b]);
         }
@@ -28415,10 +28415,10 @@ fn mdq_match_and_replace(defs: &MdqDefinitions, matcher: &MdqMatcher, target: &s
         let mut last_byte = 0usize;
         let mut ranges = Vec::new();
         let matched = rx.scan(target.as_bytes(), repl_template.contains('$'), |mb_start, mb_end, caps| {
-            if mb_start < last_byte || mb_start == mb_end && ranges.last().is_some_and(|&(_,end,_)|end==mb_start) {
+            if mb_start == mb_end && ranges.last().is_some_and(|&(_,end,_)|end==mb_start) {
                 return true;
             }
-            replaced.push_str(&target[last_byte..mb_start]);
+            if last_byte < mb_start { replaced.push_str(&target[last_byte..mb_start]); }
             let replacement = expand_mdq_replacement(repl_template, target, mb_start..mb_end, caps, &rx.capture_names);
             ranges.push((mb_start, mb_end, replacement.len()));
             replaced.push_str(&replacement);

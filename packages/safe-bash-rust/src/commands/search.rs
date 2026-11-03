@@ -490,7 +490,7 @@ pub fn is_known_command(name: &str) -> bool {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum RxSearch { Longest, Expr, BytewiseLongest, First, Mdq, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
+enum RxSearch { Longest, Expr, BytewiseLongest, First, Mdq { continuation: usize, trailing_start: usize }, Rg { empty_pattern: bool, binary_text: bool, word_assertions: bool } }
 
 #[derive(Clone)]
 pub struct ZeroRegex {
@@ -517,7 +517,7 @@ impl ZeroRegex {
     pub(super) fn mdq(pattern: &str) -> Result<Self, RxParseError> {
         let branches = parse_rx_branches(pattern, false, RxDialect::Mdq)?;
         let mut rx = Self::from_branches([branches], false, false, false);
-        rx.search = RxSearch::Mdq;
+        rx.search = RxSearch::Mdq { continuation: 0, trailing_start: 0 };
         Ok(rx)
     }
 
@@ -634,6 +634,10 @@ impl ZeroRegex {
         let byte_at = |i| hay.get(i).map_or(text.len(), |&(byte, _)| byte);
         let mut found = false;
         let mut pos = 0;
+        let mut search = self.search;
+        if let RxSearch::Mdq { trailing_start, .. } = &mut search {
+            *trailing_start = hay.iter().rposition(|&(_, c)| c != '\n').map_or(0, |last| last + 1);
+        }
         let last_start = if self.anchored { 0 } else { hay.len() };
         let first = !matches!(self.search, RxSearch::Longest | RxSearch::BytewiseLongest);
         let rg = matches!(self.search, RxSearch::Rg { .. });
@@ -646,7 +650,7 @@ impl ZeroRegex {
             let mut matches = self.branches.iter().filter_map(|program| {
                 let base = group_offset;
                 group_offset += program.groups;
-                program.run(&hay, pos..=bound, self.ignore_case, self.search, capture, |end|
+                program.run(&hay, pos..=bound, self.ignore_case, search, capture, |end|
                     !self.word_regexp || is_word_boundary(&hay, pos, end) && (!matches!(self.search, RxSearch::Rg { word_assertions: true, .. })
                         || pos < end && is_word_char(hay[pos].1) && is_word_char(hay[end - 1].1))).map(|m| (base, m))
             });
@@ -656,7 +660,14 @@ impl ZeroRegex {
                     if base > 0 { m.caps.splice(0..0, std::iter::repeat_n(None, base)); }
                     for (lo, hi) in m.caps.iter_mut().flatten() { *lo = byte_at(*lo); *hi = byte_at(*hi); }
                 }
-                if !visit(byte_at(pos), byte_at(m.pos), &m.caps) { break; }
+                if !visit(byte_at(m.start), byte_at(m.pos), &m.caps) { break; }
+                if let RxSearch::Mdq { continuation, .. } = &mut search {
+                    *continuation = m.pos;
+                    if m.pos <= m.start {
+                        pos = m.pos + 1;
+                        continue;
+                    }
+                }
                 if m.pos > pos { pos = m.pos; continue; }
             }
             if rg && !self.word_regexp && let Some(&(start, ch)) = hay.get(pos) && byte_at(pos + 1) > start + 1 {
@@ -713,6 +724,7 @@ enum RxAtom {
     NewlineEnd { multiline: bool },
     WordBoundary(bool),
     MdqBoundary(char),
+    MdqPosition(char),
     MdqShorthand(&'static [u32], bool),
     WordStart,
     WordEnd,
@@ -956,7 +968,7 @@ impl ParsedRegex {
         let index = self.groups.len();
         let width = rx_fixed_width(&branches);
         let nullable = branches.iter().any(|seq| seq.iter().all(|tok| tok.min == 0 || matches!(tok.atom,
-            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_)
+            RxAtom::Begin | RxAtom::End | RxAtom::LineBegin | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_)
             | RxAtom::WordStart | RxAtom::WordEnd | RxAtom::Group { nullable: true, .. })));
         self.groups.push(branches);
         RxAtom::Group { index, width, nullable, kind }
@@ -1078,6 +1090,9 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
                     'n' => RxAtom::Char('\n'),
                     't' => RxAtom::Char('\t'),
                     'r' => RxAtom::Char('\r'),
+                    'A' if mdq => RxAtom::Begin,
+                    'z' if mdq => RxAtom::End,
+                    c @ ('Z' | 'G' | 'K') if mdq => RxAtom::MdqPosition(c),
                     '0'..='9' if mdq => {
                         let start = idx - 1;
                         while chars.get(idx).is_some_and(char::is_ascii_digit) { idx += 1; }
@@ -1350,7 +1365,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
             }
         };
 
-        parsed.requires_vm |= matches!(atom, RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
+        parsed.requires_vm |= matches!(atom, RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd);
         parsed.cross_line |= matches!(atom, RxAtom::Any { newline: true, .. } | RxAtom::Space(_) | RxAtom::Word(true)
             | RxAtom::Digit(true) | RxAtom::Char('\n') | RxAtom::Begin | RxAtom::End);
         skip(&mut idx, mode);
@@ -1360,7 +1375,7 @@ fn parse_rx_branches(pat: &str, fixed: bool, dialect: RxDialect<'_>) -> Result<P
         let mut lazy = mode.ungreedy;
         if matches!(
             atom,
-            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
+            RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
         ) {
             if rg && matches!(chars.get(idx), Some('*' | '+' | '?' | '{')) {
                 return Err("invalid ERE: assertion cannot be quantified".into());
@@ -1529,7 +1544,7 @@ fn rx_fixed_width(alts: &[Vec<RxToken>]) -> Option<usize> {
         for tok in seq {
             let n = match &tok.atom {
                 RxAtom::Backref(_) => return None,
-                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
+                RxAtom::Begin | RxAtom::LineBegin | RxAtom::End | RxAtom::NewlineEnd { .. } | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_) | RxAtom::WordStart | RxAtom::WordEnd
                 | RxAtom::Group { kind: RxGroup::Assertion { .. }, .. } => 0,
                 RxAtom::Group { width, .. } => (*width)?,
                 _ => 1,
@@ -1596,7 +1611,7 @@ fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {
         | RxAtom::LineBegin
         | RxAtom::NewlineEnd { .. }
         | RxAtom::End
-        | RxAtom::MdqBoundary(_) | RxAtom::WordBoundary(_)
+        | RxAtom::MdqBoundary(_) | RxAtom::MdqPosition(_) | RxAtom::WordBoundary(_)
         | RxAtom::WordStart
         | RxAtom::WordEnd => false,
     }
@@ -1636,6 +1651,7 @@ struct RxProgram {
 #[derive(Clone)]
 struct RxMatch {
     pc: usize,
+    start: usize,
     pos: usize,
     caps: Vec<Option<(usize, usize)>>,
     repeats: Vec<(usize, usize)>,
@@ -1762,6 +1778,7 @@ impl RxProgram {
         let (start, stop) = range.into_inner();
         let mut state = RxMatch {
             pc: 0,
+            start,
             pos: start,
             caps: vec![
                 None;
@@ -1803,7 +1820,7 @@ impl RxProgram {
                         };
                         let body = state.pc;
                         state.pc = *after;
-                        let probe = RxMatch { pc: body, pos: origin, caps: state.caps.clone(), repeats: Vec::new() };
+                        let probe = RxMatch { pc: body, start: state.start, pos: origin, caps: state.caps.clone(), repeats: Vec::new() };
                         assertions.push(AssertionFrame {
                             resume: state, body, origin, last_origin: if width.is_some() { origin } else { pos },
                             end: behind.then_some(pos), positive: *positive, pending_base: pending.len(), seen: std::mem::take(&mut seen),
@@ -1817,13 +1834,13 @@ impl RxProgram {
                         seen = frame.seen;
                         pending.truncate(frame.pending_base);
                         if !frame.positive { break; }
-                        state = RxMatch { pos: if *consume {state.pos} else {frame.resume.pos}, caps: state.caps, ..frame.resume };
+                        state = RxMatch { start: state.start, pos: if *consume {state.pos} else {frame.resume.pos}, caps: state.caps, ..frame.resume };
                     }
                     RxOp::Jump(dest) => state.pc = *dest,
                     RxOp::Open { slot, until } if !state.caps.is_empty() => {
                         if search != RxSearch::Expr { state.caps[*slot..*until].fill(None); }
                         // mdq distinguishes an open group from a closed empty capture.
-                        state.caps[*slot] = Some((state.pos, if search == RxSearch::Mdq { usize::MAX } else { state.pos }));
+                        state.caps[*slot] = Some((state.pos, if matches!(search, RxSearch::Mdq { .. }) { usize::MAX } else { state.pos }));
                     }
                     RxOp::Close(slot) if !state.caps.is_empty() => {
                         state.caps[*slot].as_mut().unwrap().1 = state.pos;
@@ -1905,6 +1922,16 @@ impl RxProgram {
                         }
                     }
                     RxOp::Atom(tok) => {
+                        if let RxAtom::MdqPosition(kind) = tok.atom
+                            && let RxSearch::Mdq { continuation, trailing_start } = search {
+                            match kind {
+                                'K' => state.start = state.pos,
+                                'G' if state.pos != continuation => break,
+                                'Z' if state.pos < trailing_start => break,
+                                _ => {}
+                            }
+                            continue;
+                        }
                         if let Some(ok) = check_boundary_atom(&tok.atom, hay, state.pos) {
                             if !ok {
                                 break;
@@ -1980,7 +2007,7 @@ impl RxProgram {
                 if frame.origin < frame.last_origin {
                     frame.origin += 1;
                     seen.clear();
-                    state = RxMatch { pc: frame.body, pos: frame.origin, caps: frame.resume.caps.clone(), repeats: Vec::new() };
+                    state = RxMatch { pc: frame.body, start: frame.resume.start, pos: frame.origin, caps: frame.resume.caps.clone(), repeats: Vec::new() };
                     continue 'search;
                 }
                 let frame = assertions.pop().unwrap();

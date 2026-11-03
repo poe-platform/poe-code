@@ -209,7 +209,7 @@ pub(super) fn reconstruct(
     ranges: &[(usize, usize, usize)],
 ) -> Result<String, String> {
     for &(start, end, replacement) in ranges {
-        let delta = replacement as isize - (end - start) as isize;
+        let delta = replacement as isize - (end as isize - start as isize);
         let mut atoms = events
             .iter()
             .filter(|e| e.marker == "`" && e.start < end && e.end >= start);

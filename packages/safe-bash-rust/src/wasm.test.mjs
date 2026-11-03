@@ -8756,3 +8756,21 @@ test("mdq resolves and validates named, numbered and relative regex references",
     }
   } finally { rs.dispose(); }
 });
+
+test("mdq distinguishes match start, search continuation and end-of-input anchors", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  try {
+    for (const [input, pattern] of [
+      ["abab", "a\\Kb"], ["aab", "(a+)\\K(b)"], ["abcd", "\\G."], ["aa bb", "\\G\\w"],
+      ["abc", "\\A.|.\\z"], ["ab\n\n", "b\\Z"], ["abcdef", "\\G(..)"], ["aaaa", "a\\K"],
+      ["xx", "\\G"], ["aab", "(?:a\\Kx|a)b"], ["abc", "(?=a\\K)ab"], ["abc", "(?>a\\K)b"],
+    ]) {
+      const src = "```\n" + input + "\n```\n";
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(src));
+      const cmd = "mdq '```* !s/" + pattern + "/[$0:$1:$2]/' </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+      assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], pattern);
+    }
+  } finally { rs.dispose(); }
+});

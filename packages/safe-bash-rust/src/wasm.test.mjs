@@ -8162,7 +8162,26 @@ test("mdq recognizes tables by their delimiter row and respects escaped pipes", 
       "| a\\|b | c |\n| - | - |\nleft | right\\|", "| a | b |\n| - | wrong |",
       "| a |\n| - | - |", "first\n| a | b |\n| - | - |", "one\\|two\n-|-"]) {
       for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
-      for (const flags of text.startsWith("one\\|") ? ["':-: * :-:'"] : ["", "-o json", "'P:'", "':-: * :-:'"]) {
+      for (const flags of ["", "-o json", "'P:'", "':-: * :-:'"]) {
+        const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
+        assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
+      }
+    }
+  } finally { rs.dispose(); }
+});
+
+test("mdq decodes escaped punctuation in text and preserves it inside code spans", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const rs = new RustWasmBash({ cwd: "/" });
+  const tick = String.fromCharCode(96);
+  try {
+    for (const text of ["one\\|two\n-|-", "# alpha\\_beta\n\n\\*x\\* and \\a",
+      "value " + tick + "a_*\\|b" + tick, tick.repeat(2) + " a" + tick + "b " + tick.repeat(2),
+      "alpha " + tick + " first\nsecond " + tick + " and an unmatched " + tick,
+      'before <span title="a\\|b">tag</span> after\\|', "α\\|β"]) {
+      for (const vfs of [rs.fs, fs]) await vfs.writeFile("/in", Buffer.from(text));
+      for (const flags of ["", "-o json", "-o plain", "'P: \"one|two\"'"]) {
         const cmd = "mdq " + flags + " </in", a = await js.exec(cmd), b = await rs.exec(cmd);
         assert.deepEqual([b.exitCode, b.stdout, b.stderr], [a.exitCode, a.stdout, a.stderr], cmd + ": " + text);
       }

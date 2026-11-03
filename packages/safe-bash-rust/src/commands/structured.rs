@@ -28100,30 +28100,76 @@ struct MdqBlock {
     table_rows: Vec<Vec<String>>,
 }
 
-fn mdq_strip_inline(s: &str) -> String {
-    let mut out = String::new();
-    let chars: Vec<char> = s.chars().collect();
+fn mdq_inline_text(s: &str, plain: bool) -> String {
+    if !plain && !s.contains(['\\', '`']) { return s.to_string(); }
+    let mut out = String::with_capacity(s.len());
+    let bytes = s.as_bytes();
+    // A closing delimiter must contain exactly as many backticks as its opener.
+    let mut ticks = BTreeMap::<usize, Vec<usize>>::new();
+    let mut at = 0;
+    while at < bytes.len() {
+        if bytes[at] != b'`' { at += 1; continue; }
+        let start = at;
+        while at < bytes.len() && bytes[at] == b'`' { at += 1; }
+        ticks.entry(at - start).or_default().push(start);
+    }
     let mut i = 0usize;
-    while i < chars.len() {
-        if chars[i] == '[' {
-            if let Some(close_br) = chars[i + 1..].iter().position(|&c| c == ']') {
-                let close_idx = i + 1 + close_br;
-                if chars.get(close_idx + 1) == Some(&'(')
-                    && let Some(close_p) = chars[close_idx + 2..].iter().position(|&c| c == ')')
-                {
-                    let label: String = chars[i + 1..close_idx].iter().collect();
-                    out.push_str(&label);
-                    i = close_idx + 2 + close_p + 1;
-                    continue;
-                }
-            }
-        }
-        if matches!(chars[i], '*' | '_' | '`' | '~') {
-            i += 1;
+    while i < bytes.len() {
+        if bytes[i] == b'\\' && bytes.get(i + 1).is_some_and(u8::is_ascii_punctuation) {
+            out.push(bytes[i + 1] as char);
+            i += 2;
             continue;
         }
-        out.push(chars[i]);
-        i += 1;
+        if bytes[i] == b'`' {
+            let start = i;
+            while i < bytes.len() && bytes[i] == b'`' { i += 1; }
+            let width = i - start;
+            if let Some(close) = ticks.get(&width).and_then(|v| v.get(v.partition_point(|&n| n < i))) {
+                let content = s[i..*close].replace('\n', " ");
+                let text = if content.starts_with(' ') && content.ends_with(' ') && content.bytes().any(|c| c != b' ') {
+                    &content[1..content.len() - 1]
+                } else { &content };
+                if plain { out.push_str(text); } else {
+                    let fence = "`".repeat(max_backtick_run(text) + 1);
+                    let pad = text.starts_with('`') || text.ends_with('`') || (text.starts_with(' ') && text.ends_with(' ') && !text.trim().is_empty());
+                    out.push_str(&fence);
+                    if pad { out.push(' '); }
+                    out.push_str(text);
+                    if pad { out.push(' '); }
+                    out.push_str(&fence);
+                }
+                i = close + width;
+            } else {
+                out.extend(std::iter::repeat_n('`', width));
+            }
+            continue;
+        }
+        if bytes[i] == b'<' {
+            let tag = s[i + 1..].strip_prefix('/').unwrap_or(&s[i + 1..]);
+            let name_len = tag.bytes().take_while(|c| c.is_ascii_alphanumeric() || *c == b'-').count();
+            let end = if s[i..].starts_with("<!--") {
+                s[i + 4..].find("-->").map(|n| i + 4 + n + 3)
+            } else if tag.as_bytes().first().is_some_and(u8::is_ascii_alphabetic)
+                && tag.as_bytes().get(name_len).is_some_and(|c| c.is_ascii_whitespace() || matches!(c, b'>' | b'/')) {
+                find_tag_close_gt(&s[i..]).map(|n| i + n + 1)
+            } else { None };
+            if let Some(end) = end {
+                out.push_str(&s[i..end]);
+                i = end;
+                continue;
+            }
+        }
+        if plain && bytes[i] == b'['
+            && let Some(close) = s[i + 1..].find(']').map(|n| i + 1 + n)
+            && s[close..].starts_with("](")
+            && let Some(end) = s[close + 2..].find(')') {
+            out.push_str(&mdq_inline_text(&s[i + 1..close], true));
+            i = close + 2 + end + 1;
+            continue;
+        }
+        let ch = s[i..].chars().next().unwrap();
+        if !plain || !matches!(ch, '*' | '_' | '~') { out.push(ch); }
+        i += ch.len_utf8();
     }
     out
 }
@@ -28602,7 +28648,7 @@ fn mdq_match_and_replace(pat_raw: &str, target: &str, strip_inline_for_match: bo
         return Some(replaced);
     }
     let check_target = if strip_inline_for_match {
-        mdq_strip_inline(target)
+        mdq_inline_text(target, true)
     } else {
         target.to_string()
     };
@@ -28910,7 +28956,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             let mut out = String::new();
             if b.kind == "section" {
                 out.push_str(&"#".repeat(b.level));
-                if !b.title.is_empty() { out.push(' '); out.push_str(&b.title); }
+                if !b.title.is_empty() { out.push(' '); out.push_str(&mdq_inline_text(&b.title, false)); }
                 out.push('\n');
             }
             for child in &b.children {
@@ -28924,7 +28970,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             }
             out
         }
-        "paragraph" => format!("{}\n", b.text),
+        "paragraph" => format!("{}\n", mdq_inline_text(&b.text, false)),
         "code" => {
             let ticks = b.text.lines().map(|s| s.bytes().take_while(|&c| c == b'`').count()).max().unwrap_or(0);
             let fence = "`".repeat((ticks + 1).max(3));
@@ -28938,7 +28984,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
                 Some(false) => "[ ] ",
                 None => "",
             };
-            format!("{prefix}{chk}{}\n", b.text)
+            format!("{prefix}{chk}{}\n", mdq_inline_text(&b.text, false))
         }
         "quote" => {
             let mut out = String::new();
@@ -28970,10 +29016,11 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
             if b.table_rows.is_empty() {
                 return String::new();
             }
+            let rows: Vec<Vec<_>> = b.table_rows.iter().map(|row| row.iter().map(|cell| mdq_inline_text(cell, false)).collect()).collect();
             let mut widths: Vec<_> = b.table_aligns.iter().map(|a| match a.as_str() {
                 "left" | "right" => 2, "center" => 3, _ => 1,
             }).collect();
-            for row in &b.table_rows {
+            for row in &rows {
                 if row.len() > widths.len() { widths.resize(row.len(), 1); }
                 for (w, cell) in widths.iter_mut().zip(row) {
                     *w = (*w).max(if cell.is_empty() { 1 } else { cell.len() + 2 });
@@ -28995,7 +29042,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
                 s
             };
             let mut lines = Vec::new();
-            lines.push(fmt_row(&b.table_rows[0]));
+            lines.push(fmt_row(&rows[0]));
             let mut div = String::from("|");
             for (w, align) in widths.iter().zip(&b.table_aligns) {
                 let al = align.as_str();
@@ -29008,7 +29055,7 @@ fn mdq_render_block_md(b: &MdqBlock, link_format: &str, previous_break: &mut boo
                 div.push('|');
             }
             lines.push(div);
-            for r in b.table_rows.iter().skip(1) {
+            for r in rows.iter().skip(1) {
                 lines.push(fmt_row(r));
             }
             if b.table_rows.len() == 1 { lines.push(String::new()); }
@@ -29028,12 +29075,12 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
                 "section".to_string(),
                 JVal::Object(vec![
                     ("depth".to_string(), JVal::Number(b.level as f64, None)),
-                    ("title".to_string(), JVal::Str(b.title.clone())),
+                    ("title".to_string(), JVal::Str(mdq_inline_text(&b.title, false))),
                     ("body".to_string(), JVal::Array(body)),
                 ]),
             )])
         }
-        "paragraph" => JVal::Object(vec![("paragraph".to_string(), JVal::Str(b.text.clone()))]),
+        "paragraph" => JVal::Object(vec![("paragraph".to_string(), JVal::Str(mdq_inline_text(&b.text, false)))]),
         "code" => {
             let mut fields = vec![
                 ("code".to_string(), JVal::Str(b.text.clone())),
@@ -29050,7 +29097,7 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
         "list_item" => {
             let mut item_obj = vec![(
                 "item".to_string(),
-                JVal::Array(vec![JVal::Object(vec![("paragraph".to_string(), JVal::Str(b.text.clone()))])]),
+                JVal::Array(vec![JVal::Object(vec![("paragraph".to_string(), JVal::Str(mdq_inline_text(&b.text, false)))])]),
             )];
             if let Some(chk) = b.checked {
                 item_obj.push(("checked".to_string(), JVal::Bool(chk)));
@@ -29064,14 +29111,14 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
         "link" => JVal::Object(vec![(
             "link".to_string(),
             JVal::Object(vec![
-                ("display".to_string(), JVal::Str(b.title.clone())),
+                ("display".to_string(), JVal::Str(mdq_inline_text(&b.title, false))),
                 ("url".to_string(), JVal::Str(b.url.clone())),
             ]),
         )]),
         "image" => JVal::Object(vec![(
             "image".to_string(),
             JVal::Object(vec![
-                ("alt".to_string(), JVal::Str(b.title.clone())),
+                ("alt".to_string(), JVal::Str(mdq_inline_text(&b.title, false))),
                 ("url".to_string(), JVal::Str(b.url.clone())),
             ]),
         )]),
@@ -29091,7 +29138,7 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             let rows = JVal::Array(
                 b.table_rows
                     .iter()
-                    .map(|r| JVal::Array(r.iter().cloned().map(JVal::Str).collect()))
+                    .map(|r| JVal::Array(r.iter().map(|cell| JVal::Str(mdq_inline_text(cell, false))).collect()))
                     .collect(),
             );
             JVal::Object(vec![(
@@ -30009,13 +30056,13 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             match b.kind.as_str() {
                 "section" | "paragraph" | "list_item" | "link" | "image" => {
                     let source = if matches!(b.kind.as_str(), "section" | "link" | "image") { &b.title } else { &b.text };
-                    let text = mdq_strip_inline(source);
+                    let text = mdq_inline_text(source, true);
                     if !text.is_empty() { out.push(text); }
                 }
                 "code" | "frontmatter" | "html" if !b.text.is_empty() => out.push(b.text.clone()),
                 "table" => {
                     for row in &b.table_rows {
-                        out.push(row.iter().map(|cell| mdq_strip_inline(cell))
+                        out.push(row.iter().map(|cell| mdq_inline_text(cell, true))
                             .filter(|text| !text.is_empty()).collect::<Vec<_>>().join(" "));
                     }
                 }

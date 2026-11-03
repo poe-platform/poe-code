@@ -432,7 +432,7 @@ enum VideoEncoding { Mp4, Fragmented, PreserveConfig, Matroska }
 
 impl Remux<'_> {
     fn video_encoding(&self) -> VideoEncoding {
-        if matches!(self.format,"flv"|"avi"|"mpegts") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
+        if matches!(self.format,"flv"|"avi"|"mpegts") { VideoEncoding::PreserveConfig } else if matches!(self.format,"mkv"|"webm") { VideoEncoding::Matroska } else if self.fragmented || self.format == "dash" { VideoEncoding::Fragmented } else { VideoEncoding::Mp4 }
     }
 }
 
@@ -1740,6 +1740,7 @@ pub(in super::super) fn input_slice(
             rotation: None,
         },
         seek.loops,
+        &mut Vec::new(),
     )
 }
 
@@ -2531,6 +2532,7 @@ pub(in super::super) fn remux(
     inputs: &[MediaInput],
     mut opts: Remux<'_>,
     loops: usize,
+    resources: &mut Vec<(String, Vec<u8>)>,
 ) -> Result<Vec<u8>, String> {
     use super::{atoms, child, rows, u16_at, u32_at, wide};
     if opts.concat.is_some() && inputs.len() > 128 {
@@ -2759,6 +2761,11 @@ pub(in super::super) fn remux(
                 .any(|name| word.eq_ignore_ascii_case(name))
         });
     let mut tracks = Vec::new();
+    // A manifest describes the presentation timeline. Packet durations can include
+    // preroll hidden by edits, and applying filters leaves the movie duration intact.
+    let mut dash_seconds: Vec<_> = selected.iter().filter(|_| opts.format == "dash")
+        .map(|&source| presentation_duration(sources, &[source], scale, range)).collect();
+    let dash_duration = dash_seconds.iter().copied().fold(0., f64::max);
     let mut index_bytes = 0usize;
     for (ordinal, &(j, i)) in selected.iter().enumerate() {
         let (input, _, source) = &sources[j];
@@ -3005,8 +3012,12 @@ pub(in super::super) fn remux(
             && repeated_still.is_none()
             && !temporal
             && let Some(n) = opts.frames
+            && samples.len() > n.max(1) as usize
         {
             samples.truncate(n.max(1) as usize);
+            if let Some(seconds) = dash_seconds.get_mut(ordinal) {
+                *seconds = samples.iter().map(|s| f64::from(s.duration)).sum::<f64>() / f64::from(t.scale);
+            }
         }
         let ticks = if !sliced && samples.is_empty() {
             t.original
@@ -3404,6 +3415,48 @@ pub(in super::super) fn remux(
     } else {
         b"isomiso2avc1mp41"
     });
+    if opts.format == "dash" {
+        let duration = dash_duration;
+        let mut manifest = format!(r#"<?xml version="1.0" encoding="utf-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" mediaPresentationDuration="PT{duration:.6}S" minBufferTime="PT1S" profiles="urn:mpeg:dash:profile:isoff-live:2011">
+<Period id="0" start="PT0S">
+"#);
+        let mut remaining = opts.limit;
+        for (i, track) in tracks.iter().enumerate() {
+            let kind = track.kind;
+            if !matches!(kind, "video" | "audio") {
+                return Err("DASH output supports video and audio tracks".into());
+            }
+            let mut init = write(std::slice::from_ref(track), scale, &ftyp, &metadata, &chapters, true, remaining)?;
+            remaining -= init.len();
+            let bandwidth = (init.len() as f64 * 8. / duration.max(0.001)).ceil().max(1.) as u64;
+            let offset = super::spans(&init).find(|(_, tag, _)| *tag == b"moof").ok_or("DASH output requires fragmented MP4 samples")?.0;
+            let segment = init.split_off(offset);
+            resources.push((format!("init-stream{i}.m4s"), init));
+            resources.push((format!("chunk-stream{i}-00001.m4s"), segment));
+            let (tag, entry) = atoms(track.stsd.get(8..).unwrap_or_default()).next().unwrap_or((b"    ", &[]));
+            let avcc = child(entry.get(78..).unwrap_or_default(), b"avcC");
+            let codec = if kind == "video" && avcc.len() >= 4 {
+                format!("avc1.{:02x}{:02x}{:02x}", avcc[1], avcc[2], avcc[3])
+            } else if tag == b"mp4a" { "mp4a.40.2".into() } else { String::from_utf8_lossy(tag).into_owned() };
+            let dimensions = if kind == "video" { format!("width=\"{}\" height=\"{}\"", track.width, track.height) }
+                else { format!("audioSamplingRate=\"{}\"", track.audio_format(track.scale).0) };
+            let timescale = track.scale;
+            let ticks = if kind == "audio" && audio.clear_samples {
+                u64::from(track.media_ticks)
+            } else {
+                (dash_seconds[i] * f64::from(timescale)).round() as u64
+            };
+            manifest.push_str(&format!(r#"<AdaptationSet id="{i}" contentType="{kind}" segmentAlignment="true">
+<Representation id="{i}" mimeType="{kind}/mp4" codecs="{codec}" bandwidth="{bandwidth}" {dimensions}>
+<SegmentTemplate timescale="{timescale}" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"><SegmentTimeline><S t="0" d="{ticks}"/></SegmentTimeline></SegmentTemplate>
+</Representation></AdaptationSet>
+"#));
+        }
+        manifest.push_str("</Period></MPD>\n");
+        if manifest.len() > remaining { return Err("output byte limit exceeded".into()); }
+        return Ok(manifest.into_bytes());
+    }
     write(
         &tracks,
         scale,

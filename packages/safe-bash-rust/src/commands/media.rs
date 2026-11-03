@@ -4778,7 +4778,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let sequence=if ext.and_then(|f|frame_output::image_format(f,true)).is_some() && !matches!(output_format,Some("null"|"hls"|"dash")) {
         match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
     }else{None};
-    let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null" || output_format==Some("null"){Some("null")}else{match output_format {
+    let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null" || output_format==Some("null"){Some("null")}else if out_lower.ends_with(".mpd"){Some("dash")}else{match output_format {
         Some("webm") => Some("webm"),
         Some(name) => media_format::by_name(name),
         None => media_format::by_filename(&out_rel),
@@ -4789,7 +4789,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
     let frame_output=y4m_output || image_format.is_some();
     let audio_output = muxer == Some("aac");
-    let movie_output = matches!(muxer, Some("mpegts" | "avi" | "mp4" | "mov" | "flv" | "mkv" | "webm"));
+    let movie_output = matches!(muxer, Some("dash" | "mpegts" | "avi" | "mp4" | "mov" | "flv" | "mkv" | "webm"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
     let mut read_input = |path: &str, explicit: Option<&str>| {
         let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
@@ -4896,11 +4896,12 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         let sources=if remux_inputs && (concat && inputs.len()>1 || composition.is_some() && (ss_opt.is_some() || end.is_some())){
             let opts=mp4::mux::Remux{concat:remux.concat.as_deref_mut(),frames:None,format:"mp4",fragmented:false,metadata:&BTreeMap::new(),audio_filters:&[],video_filters:&[],rate:None,channels:None,..remux};
             let opts=if concat{mp4::mux::Remux{start:None,end:None,strip_audio:false,strip_video:false,..opts}}else{opts};
-            graph_movie=match mp4::mux::remux(&sources,opts,0){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
+            graph_movie=match mp4::mux::remux(&sources,opts,0,&mut Vec::new()){Ok(bytes)=>[MediaInput::Bytes("mp4",bytes)],Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)};
             remux.composition=None;
             remux.input_times=&[InputTime{start:None,to:None,duration:None,loops:0}];
             &graph_movie[..]
         }else{&sources[..]};
+        let mut resources = Vec::new();
         let output=if muxer==Some("wav") && !remux_inputs && inputs.len()==1 && fc_flag.is_empty() {
             match ffmpeg_wave::Input::parse(format.unwrap_or(""),bytes).map_err(str::to_owned).and_then(|input|input.map(|a|a.render(input_times[0],&remux)).transpose()){
                 Ok(data)=>data, Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
@@ -4936,10 +4937,25 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             });
             match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
         } else if (movie_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null"))) && remux_inputs {
-            match mp4::mux::remux(sources,remux,0){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+            match mp4::mux::remux(sources,remux,0,&mut resources){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
         } else {None};
         if let Some(output)=output {
             if muxer==Some("null"){return ok_out("");}
+            if muxer == Some("dash") {
+                let dir = crate::vfs::dirname_posix_path(&out_full);
+                let result = fs.mkdir_all(&dir).map_err(|e| {
+                    if e.starts_with("ENOTDIR:") { format!("ENOTDIR: not a directory, stat '{dir}'") } else { e }
+                }).and_then(|_| {
+                    let write = |path: &str, bytes: &[u8]| write_ffmpeg_output(fs, path, bytes).map_err(|e| {
+                        e.replace(", open '", ", writeFile '")
+                    });
+                    for (name, bytes) in resources {
+                        write(&resolve_posix_path(&dir, &name), &bytes)?;
+                    }
+                    write(&out_full, &output)
+                });
+                return match result { Ok(()) => ok_out(""), Err(e) => err_out(&format!("ffmpeg: {e}\n"),1) };
+            }
             if stdout {
                 return ok_out(&crate::vfs::bytes_to_stream_string(&output));
             }
@@ -5189,13 +5205,8 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         let _ = fs.write_file(&out_full, ffmeta.as_bytes());
         return ok_out("");
     }
-    if out_lower.ends_with(".mpd") || fmt_flag == "dash" {
-        let mpd = format!(
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" mediaPresentationDuration=\"PT{:.1}S\">\n  <Period>\n    <AdaptationSet mimeType=\"video/mp4\" width=\"{}\" height=\"{}\"/>\n  </Period>\n</MPD>\n",
-            doc.duration, doc.width, doc.height
-        );
-        let _ = fs.write_file(&out_full, mpd.as_bytes());
-        return ok_out("");
+    if muxer == Some("dash") {
+        return err_out("ffmpeg: unsupported DASH input\n", 1);
     }
     if out_lower.ends_with(".vtt") {
         let vtt = format!("WEBVTT\n\n{}", doc.subtitles.replace(',', "."));
@@ -13658,6 +13669,36 @@ mod media_unit_tests {
             let r = cmd_media_doc("ffprobe",&args,"","/",&fs);
             assert_eq!(r.stdout, "h264,6,4,67500,3\naac,33792,33\n");
         }
+    }
+
+    #[test]
+    fn ffmpeg_writes_dash_manifest_and_fragments() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i", "av.mp4", "-c", "copy", "out/movie.mpd"]);
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        for (name, digest) in [
+            ("/out/chunk-stream0-00001.m4s", "f65e08bdcdfec2d2cf18091b7bde5a1bf56a412ae450c2690b44a509568057f0"),
+            ("/out/chunk-stream1-00001.m4s", "20d8664b5a401ae3eac3abb8133cc460cd02a7626b9d93f0092c38ca74ca85c8"),
+            ("/out/init-stream0.m4s", "f97411f4ef8e90a54797ff9dfc14ea912e9224375f0a1849afbddbfa3d8b04cf"),
+            ("/out/init-stream1.m4s", "f2c76a9378b2dce960cf54a1316c16b9854d78ec5bae2f41a8d122902de68e19"),
+            ("/out/movie.mpd", "e48b6fcfd294cf2d4b325818cc23b1ee4f8f6992932e05121f5fa7ac10a2eb56"),
+        ] {
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(name).unwrap())), digest, "{name}");
+        }
+    }
+
+    #[test]
+    fn ffmpeg_dash_keeps_movie_duration_when_limiting_video_frames() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i", "av.mp4", "-frames:v", "1", "-f", "dash", "manifest"]);
+        let r = cmd_media_doc("ffmpeg", &args, "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        let xml = String::from_utf8(fs.read_file("/manifest").unwrap()).unwrap();
+        assert!(xml.contains("mediaPresentationDuration=\"PT0.750000S\""));
+        assert!(xml.contains("<S t=\"0\" d=\"22500\"/>"));
     }
 
     #[test]

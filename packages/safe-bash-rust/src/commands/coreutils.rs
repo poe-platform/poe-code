@@ -696,7 +696,7 @@ fn head_tail_normalize_args(name: &str, arguments: &[String]) -> Vec<String> {
     out
 }
 
-fn head_tail_count(amount: &str) -> Result<usize, String> {
+fn head_tail_count(amount: &str) -> Result<u64, String> {
     let text = amount.strip_prefix(['+', '-']).unwrap_or(amount);
     let bytes = text.as_bytes();
     let mut offset = 0usize;
@@ -733,18 +733,18 @@ fn head_tail_count(amount: &str) -> Result<usize, String> {
         1
     };
     let total = count_base.saturating_mul(multiplier);
-    if total > (usize::MAX as u128) {
+    if total > (1u128 << 53) - 1 {
         return Err(format!("invalid number '{amount}'"));
     }
-    Ok(total as usize)
+    Ok(total as u64)
 }
 
-fn prefix_len(chunk: &[u8], remaining: &mut usize, bytes: bool, delimiter: u8) -> usize {
+fn prefix_len(chunk: &[u8], remaining: &mut u64, bytes: bool, delimiter: u8) -> usize {
     if *remaining == 0 { return 0; }
     if bytes {
-        let n = chunk.len().min(*remaining);
+        let n = (chunk.len() as u64).min(*remaining);
         *remaining -= n;
-        return n;
+        return n as usize;
     }
     for (i, &b) in chunk.iter().enumerate() {
         if b == delimiter {
@@ -956,7 +956,8 @@ fn run_head_or_tail(
         };
         let mut window = std::collections::VecDeque::<u8>::new();
         let mut records = 0usize;
-        let maximum = if prefix && bytes_mode && !skip { remaining } else { usize::MAX };
+        let window_limit = usize::try_from(count).unwrap_or(usize::MAX);
+        let maximum = if prefix && bytes_mode && !skip { window_limit } else { usize::MAX };
         let mut copy = |chunk: &[u8], eof: bool| {
             if prefix {
                 let offset = prefix_len(chunk, &mut remaining, bytes_mode, delimiter);
@@ -965,11 +966,11 @@ fn run_head_or_tail(
             }
             window.extend(chunk);
             let excess = if bytes_mode {
-                window.len().saturating_sub(count)
+                window.len().saturating_sub(window_limit)
             } else {
                 records += chunk.iter().filter(|&&b| b == delimiter).count();
                 if eof && window.back().is_some_and(|&b| b != delimiter) { records += 1; }
-                let excess = records.saturating_sub(count);
+                let excess = records.saturating_sub(window_limit);
                 records -= excess;
                 if excess == 0 { 0 } else {
                     window.iter().enumerate().filter(|&(_, &b)| b == delimiter)
@@ -21662,6 +21663,8 @@ mod tests {
 
     #[test]
     fn unit_sort_uniq_cut_tr_paste_comm_and_head_tail_wc() {
+        assert_eq!(head_tail_count("8PiB"), Err("invalid number '8PiB'".to_string()));
+        assert_eq!(head_tail_count("9007199254740991"), Ok(9_007_199_254_740_991));
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
         let env = BTreeMap::new();

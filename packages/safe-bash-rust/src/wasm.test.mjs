@@ -46,6 +46,20 @@ test("tail and negative head retain the requested suffix across chunks until EOF
   } finally { bash.dispose(); }
 });
 
+test("head and tail accept safe counts larger than Wasm memory", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, code, stdout, stderr] of [
+      ["head -c4294967296", 0, "xy", ""], ["tail -n+4294967296", 0, "", ""],
+      ["tail -c-9007199254740991", 0, "xy", ""],
+      ["head -c9007199254740992", 2, "", "head: invalid number '9007199254740992'\n"],
+    ]) {
+      const r = await bash.exec(cmd, { stdin: "xy" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, stdout, stderr], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("tail starting at a record skips across device chunks and reads to EOF or a limit", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

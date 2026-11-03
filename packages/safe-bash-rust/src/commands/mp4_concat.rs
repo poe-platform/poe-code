@@ -5,11 +5,15 @@ use std::collections::{BTreeMap, HashMap};
 pub(in super::super::super) struct DecodedConcat {
     pub(super) video: Option<BTreeMap<usize, VideoFrames>>,
     pub(super) audio: BTreeMap<usize, Pcm>,
-    pub(super) joined: bool,
-    pub(super) align_durations: bool,
+    pub(in super::super::super) joined: bool,
+    pub(in super::super::super) align_durations: bool,
     export_pcm: bool,
 }
 impl DecodedConcat {
+    pub(in super::super::super) fn byte_size(&self) -> usize {
+        self.audio.values().map(|pcm|pcm.bytes.len()).sum::<usize>() +
+            self.video.iter().flat_map(|slots|slots.values()).flat_map(|seq| &seq.images).map(|im|im.pixels.len()*4).sum::<usize>()
+    }
     pub(in super::super::super) fn new(video: bool, export_pcm: bool) -> Self {
         Self {
             video: video.then(BTreeMap::new),

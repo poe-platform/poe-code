@@ -39,7 +39,7 @@ fn atoms(bytes: &[u8]) -> impl Iterator<Item = (&[u8; 4], &[u8])> {
     spans(bytes).map(|(_, k, v)| (k, v))
 }
 
-fn movie(input: &[u8]) -> Result<&[u8], &'static str> {
+pub(super) fn movie(input: &[u8]) -> Result<&[u8], &'static str> {
     atoms(input)
         .find_map(|(kind, payload)| (kind == b"moov").then_some(payload))
         .ok_or("Invalid MP4/ISOBMFF file: missing 'moov' atom")
@@ -1371,7 +1371,7 @@ fn ffmetadata(
     let mut chapter_text = String::new();
     for (i,source) in inputs.iter().enumerate(){
         let input=match source{
-            super::MediaInput::Bytes("mp4"|"mov",b)=>b.as_slice(),
+            super::MediaInput::Joined(b,_) | super::MediaInput::Bytes("mp4"|"mov",b)=>b.as_slice(),
             super::MediaInput::Bytes("mkv"|"webm",_)=>materialized[i].bytes.as_ref(),
             super::MediaInput::Bytes("y4m",b)=>{super::y4m::Stream::parse(b)?;continue;}
             super::MediaInput::Bytes("wav",b)=>{super::ffmpeg_wave::Wave::read(b)?;continue;}

@@ -2778,6 +2778,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
 
 #[path = "video_filter.rs"]
 mod video_filter;
+#[path = "ffmpeg_input.rs"]
+mod ffmpeg_input;
 #[path = "ffmpeg_wave.rs"]
 mod ffmpeg_wave;
 #[path = "lavfi.rs"]
@@ -4238,6 +4240,17 @@ impl InputTime {
     fn end(self) -> Option<f64> {
         self.to.or_else(||self.duration.map(|d|self.start.unwrap_or(0.)+d))
     }
+    fn then(self, outer: Self) -> Self {
+        if self.start.is_none() && self.end().is_none() { return outer; }
+        let origin = self.start.unwrap_or(0.);
+        let end = outer.end().map(|t|origin+t);
+        Self {
+            start: Some(origin+outer.start.unwrap_or(0.)),
+            to: match (self.end(),end) { (Some(a),Some(b))=>Some(a.min(b)), (a,b)=>a.or(b) },
+            duration: None,
+            loops: outer.loops,
+        }
+    }
     fn generation_end(self, output_end: Option<f64>) -> Option<f64> {
         let start=self.start.unwrap_or(0.);
         self.duration.map(|d|start+d).or(self.to).or_else(||output_end.map(|e|start+e))
@@ -4545,16 +4558,27 @@ fn write_streaming_file(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result
 enum MediaInput {
     Bytes(&'static str,Vec<u8>),
     Images(frame_output::ImageSequence),
+    Joined(Vec<u8>, mp4::mux::DecodedConcat),
 }
 
 impl MediaInput {
+    fn decoded(&self) -> Option<&mp4::mux::DecodedConcat> {
+        if let Self::Joined(_, decoded) = self { Some(decoded) } else { None }
+    }
+    fn byte_size(&self) -> usize {
+        match self {
+            Self::Bytes(_, b) => b.len(),
+            Self::Joined(b, decoded) => b.len().saturating_add(decoded.byte_size()),
+            Self::Images(seq) => seq.frames.iter().map(|im|im.pixels.len()*4 + size_of::<png_pixels::Raster>()).sum(),
+        }
+    }
     fn remuxable(&self)->bool {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
             Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
             Self::Bytes("image2",b)=>png_pixels::still_format(b).is_some(),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("mpegts"|"avi"|"mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
+            Self::Joined(..) | Self::Images(_) | Self::Bytes("mpegts"|"avi"|"mkv"|"webm"|"flv"|"aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4815,35 +4839,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
     let audio_output = muxer == Some("aac");
     let movie_output = matches!(muxer, Some("hls" | "dash" | "mpegts" | "avi" | "mp4" | "mov" | "flv" | "mkv" | "webm"));
     let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-    let mut read_input = |path: &str, explicit: Option<&str>| {
-        let bytes = if media_stdin(path) { read_media_stdin(&mut stdin) } else {
-            let full = resolve_posix_path(cwd, path);
-            fs.read_file(&full).map_err(|e| format!("{}, readFile '{full}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)))
-        }.map_err(|e| err_out(&format!("ffmpeg: {e}\n"), 1))?;
-        let format = if explicit == Some("concat") { Some("concat") } else { media_format::detect(&bytes, path, explicit) };
-        let id = format.ok_or_else(|| match explicit {
-            Some(name) => err_out(&format!("ffmpeg: Unknown input format: '{name}' (AST not registered)\n"), 1),
-            None => err_out(&format!("ffmpeg: {path}: Unsupported input format (AST not registered)\n"), 1),
-        })?;
-        if matches!(id, "hls" | "dash") {
-            return streaming_input::read(id, &bytes, &resolve_posix_path(cwd,path), fs)
-                .and_then(|manifest| manifest.into_media(fs.max_input_bytes()))
-                .map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1));
-        }
-        if id == "mpegts" {
-            mp4::mpegts_input::framing(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"),1))?;
-        }
-        if id == "avi" {
-            avi_input::check_header(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
-        }
-        if id == "flv" {
-            mp4::flv_input::tag_bytes(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
-        }
-        if matches!(id, "mkv" | "webm") {
-            mp4::mkv_input::check_header(&bytes).map_err(|reason| err_out(&format!("ffmpeg: {reason}\n"), 1))?;
-        }
-        Ok::<_, BuiltinOutcome>((id, bytes))
-    };
+    let mut input_reader = ffmpeg_input::Reader {fs, cwd, stdin: &mut stdin};
     let mut sources = Vec::new();
     if movie_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
         let composition=if inputs.len()>=2 {mp4::mux::Composition::parse(&fc_flag)}else{None};
@@ -4856,31 +4852,21 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
         let end=to_opt.or_else(||t_opt.map(|t|start+t));
         let limit=fs.max_input_bytes();
         let mut remaining=limit;
+        let retain=(frame_output || !vf_flags.is_empty() || size_opt.is_some() || output_fps.is_some() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some(),muxer==Some("wav"));
+        let mut decoded=mp4::mux::DecodedConcat::new(retain.0,retain.1);
         for (i,path) in inputs.iter().enumerate(){
-            let explicit=input_formats[i];
-            let input=if explicit==Some("lavfi"){
-                MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-            }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg","tif","tiff","webp"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
-                Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
-            }{
-                let (number,fps)=image_options[i];
-                match frame_output::ImageSequence::read(fs,cwd,path,pattern,number,fps.unwrap_or(25.),remaining){
-                    Ok(seq)=>MediaInput::Images(seq),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
-                }
-            }else if path.starts_with("concat:") || path.contains('%') {
-                break;
-            }else{
-                let (id, data) = match read_input(path, explicit) { Ok(pair) => pair, Err(e) => return e };
-                MediaInput::Bytes(id, data)
+            let (input,cut) = match input_reader.load(path, input_formats[i], image_options[i], remaining, retain, 0) {
+                Ok(input) => input, Err(e) => return err_out(&format!("ffmpeg: {e}\n"), 1),
             };
-            let size=match &input {MediaInput::Bytes(_,b)=>b.len(),MediaInput::Images(seq)=>seq.frames.iter().map(|im|im.pixels.len()*4+size_of::<png_pixels::Raster>()).sum()};
+            input_times[i] = cut.then(input_times[i]);
+            let size = input.byte_size();
             let Some(left)=remaining.checked_sub(size)else{return err_out("ffmpeg: input byte limit exceeded\n",1)};
             remaining=left;
             let supported=input.remuxable();
             sources.push(input);
             if !supported{break;}
         }
-        let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),_=>(None,&[][..])};
+        let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),Some(MediaInput::Joined(b,_))=>(Some("mp4"),b.as_slice()),_=>(None,&[][..])};
         let supported=sources.first().is_some_and(MediaInput::remuxable);
         let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
         let still_input=format==Some("image2") && supported;
@@ -4916,7 +4902,6 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
             if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
         }
-        let mut decoded=mp4::mux::DecodedConcat::new(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some()),!strip_audio && muxer==Some("wav"));
         let output_container=if muxer==Some("mkv") && matches!(format,Some("mkv"|"webm")) && mp4::mkv_input::webm_header(bytes) {"webm"}else{muxer.unwrap_or("")};
         let out_dir = crate::vfs::dirname_posix_path(&out_full);
         let hls = (muxer == Some("hls")).then_some(Hls { fs, cwd, dir: &out_dir, time: hls_time, pattern: hls_pattern, fmp4: hls_fmp4 });
@@ -4942,7 +4927,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             let limit=fs.max_input_bytes();
             let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,vf_flags.is_empty(),|sequence,emit|{
                 let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
-                if inputs.len()>1 || matches!(format,Some("mpegts"|"avi"|"wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
+                if inputs.len()>1 || sources[0].decoded().is_some() || remux.concat.is_some() || matches!(format,Some("mpegts"|"avi"|"wav"|"y4m"|"gif"|"flv"|"mkv"|"webm")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                     return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                 }
                 let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -5010,27 +4995,7 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
                 doc = lavfi_doc.clone();
             }
             parsed_input_docs.push(lavfi_doc);
-        } else if let Some(rest) = inp.strip_prefix("concat:") {
-            let mut total_frames = 0u32;
-            let mut total_dur = 0.0f64;
-            for p in rest.split('|').map(str::trim).filter(|p| !p.is_empty()) {
-                let f = resolve_posix_path(cwd, p);
-                let (_, b) = match read_input(p, None) { Ok(pair) => pair, Err(e) => return e };
-                let sub = MediaDoc::parse(&b, &f);
-                doc.width = sub.width;
-                doc.height = sub.height;
-                doc.fps = sub.fps;
-                total_frames += sub.nb_frames;
-                total_dur += sub.duration;
-            }
-            doc.nb_frames = total_frames.max(1);
-            doc.duration = if total_dur > 0.0 {
-                total_dur
-            } else {
-                (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
-            };
-            parsed_input_docs.push(doc.clone());
-        } else if inp.contains('%') {
+        } else if !inp.starts_with("concat:") && inp.contains('%') {
             let mut count = 0u32;
             let mut idx = 1usize;
             while idx <= 100 {
@@ -5056,39 +5021,15 @@ pub(super) fn cmd_ffmpeg(args: &[String], mut stdin: super::CommandInput, cwd: &
             parsed_input_docs.push(doc.clone());
         } else {
             let full_in = resolve_posix_path(cwd, inp);
-            let (format, b) = if let Some(MediaInput::Bytes(id, bytes)) = prior { (id, bytes) } else {
-                match read_input(inp, input_formats[source_idx]) { Ok(pair) => pair, Err(e) => return e }
+            let input = match prior {
+                Some(input) => input,
+                None => match input_reader.load(inp, input_formats[source_idx], image_options[source_idx], fs.max_input_bytes(), (false,false), 0) {
+                    Ok((input,_)) => input, Err(e) => return err_out(&format!("ffmpeg: {e}\n"),1),
+                },
             };
+            let (format,b)=match input {MediaInput::Bytes(f,b)=>(f,b),MediaInput::Joined(b,_)=>("mp4",b),_=>return err_out("ffmpeg: unsupported image sequence output\n",1)};
             let text = String::from_utf8_lossy(&b);
-            if format == "concat" {
-                let base = if inp == "-" { cwd.to_owned() } else { crate::vfs::dirname_posix_path(&full_in) };
-                let mut has_inputs = false;
-                let mut total_frames = 0u32;
-                let mut total_dur = 0.0f64;
-                for line in text.lines() {
-                    let t = line.trim();
-                    if let Some(r) = t.strip_prefix("file ") {
-                        let p = r.trim().trim_matches('\'').trim_matches('"');
-                        let pf = resolve_posix_path(&base, p);
-                        let (_, pb) = match read_input(&pf, None) { Ok(pair) => pair, Err(e) => return e };
-                        let sub = MediaDoc::parse(&pb, &pf);
-                        has_inputs = true;
-                        doc.width = sub.width;
-                        doc.height = sub.height;
-                        doc.fps = sub.fps;
-                        total_frames += sub.nb_frames;
-                        total_dur += sub.duration;
-                    }
-                }
-                if !has_inputs { return err_out("ffmpeg: concatMp4 requires at least one input MediaDocument\n", 1); }
-                doc.nb_frames = total_frames.max(1);
-                doc.duration = if total_dur > 0.0 {
-                    total_dur
-                } else {
-                    (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
-                };
-                parsed_input_docs.push(doc.clone());
-            } else if format == "srt" {
+            if format == "srt" {
                 doc.subtitles = text.to_string();
             } else if full_in.ends_with(".ffmeta") || text.starts_with(";FFMETADATA1") {
                 let mut cid = 0usize;
@@ -13712,6 +13653,42 @@ mod media_unit_tests {
         let r = cmd_media_doc("ffprobe", &args, "", "/", &fs);
         assert_eq!(r.exit_code, 0, "{}", r.stderr);
         assert_eq!(r.stdout, "aac,35\nh264,3\nhls,0.750000,175\n");
+    }
+
+    #[test]
+    fn ffmpeg_concat_url_appends_real_sample_tables() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/clip.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i","concat:clip.mp4|clip.mp4","-c","copy","joined.mp4"]);
+        let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/joined.mp4").unwrap())), "99eda334b9cdfcd6aa43479e2eb015bd03a244060aaf4688135231ccebd654a2");
+    }
+
+    #[test]
+    fn ffmpeg_concat_list_resolves_relative_paths_and_cuts_each_clip() {
+        let fs = MemoryVfs::new();
+        fs.mkdir("/lists", true, 0o755).unwrap();
+        fs.write_file("/clip.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        fs.write_file("/lists/cut", b"file '../clip.mp4'\ninpoint 0.1\noutpoint 0.5\nfile '../clip.mp4'\nduration 0.2\n").unwrap();
+        let args = media_args(&["-f","concat","-i","lists/cut","-c","copy","joined.mp4"]);
+        let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/joined.mp4").unwrap())), "e66c62877cd3437672fed8fce8b4398f9acceeee209d70ce7806fb988c2a2b10");
+    }
+
+    #[test]
+    fn ffmpeg_seeks_joined_pcm_with_different_sample_rates() {
+        let fs = MemoryVfs::new();
+        for args in [
+            media_args(&["-f","lavfi","-i","sine=r=8000:d=0.2","s.wav"]),
+            media_args(&["-f","lavfi","-i","sine=r=12000:d=0.31","t.wav"]),
+            media_args(&["-ss",".1","-i","concat:s.wav|t.wav","joined.wav"]),
+        ] {
+            let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+        }
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/joined.wav").unwrap())), "038d4980a8cc5a31861786af377e6740f01cb5c2446040377731b19e584f06a3");
     }
 
     #[test]

@@ -1751,11 +1751,9 @@ impl<'a> Remux<'a> {
     }
 }
 
-pub(in super::super) fn assemble_segments(inputs: &[MediaInput], concatenate: bool, limit: usize) -> Result<Vec<u8>,String> {
+pub(in super::super) fn assemble_segments(inputs: &[MediaInput], input_times: &[InputTime], concat: Option<&mut DecodedConcat>, limit: usize) -> Result<Vec<u8>,String> {
     let metadata = BTreeMap::new();
-    let mut concat = DecodedConcat::new(false, false);
-    concat.align_durations = false;
-    remux(inputs, Remux {concat:concatenate.then_some(&mut concat), ..Remux::passthrough(&metadata, limit)}, 0, &mut Vec::new())
+    remux(inputs, Remux {concat, input_times, ..Remux::passthrough(&metadata, limit)}, 0, &mut Vec::new())
 }
 
 fn flv_as_mp4(input: &[u8], limit: usize) -> Result<Vec<u8>, &'static str> {
@@ -1843,6 +1841,7 @@ fn materialize<'a>(
     for (j, source) in inputs.iter().enumerate() {
         let (format, input) = match source {
             MediaInput::Bytes(f, b) => (*f, b.as_slice()),
+            MediaInput::Joined(b, _) => ("mp4", b.as_slice()),
             MediaInput::Images(_) => ("image2", &[][..]),
         };
         let seek = opts.input_times.get(j).copied().unwrap_or_default();
@@ -1942,6 +1941,7 @@ fn read_sources<'a>(
         } else {
             match source {
                 MediaInput::Bytes(f, _) => *f,
+                MediaInput::Joined(..) => "mp4",
                 MediaInput::Images(seq) => {
                     sources.push((&[][..], &[][..], Streams::Images(seq)));
                     continue;
@@ -2191,9 +2191,7 @@ pub(in super::super) fn render_mapped(
         filters: opts.video_filters,
         limit: opts.limit,
     };
-    if let Some(seq) = opts
-        .concat
-        .as_deref()
+    if let Some(seq) = inputs[j].decoded().or(opts.concat.as_deref())
         .and_then(|c| c.video.as_ref()?.get(&i))
         && let Streams::Mp4(tracks) = streams
         && !seq.visible(options.start, options.end).is_empty()
@@ -2610,8 +2608,8 @@ pub(in super::super) fn remux(
             .iter()
             .find(|&&(j, i)| sources[j].2.kind(i) == "audio")
         {
-            if let Some(pcm) = opts.concat.as_deref().and_then(|c| c.audio.get(&i)) {
-                return ffmpeg_wave::Input::Wave(pcm.wave()).render(InputTime::default(), &opts);
+            if let Some(pcm) = inputs[j].decoded().or(opts.concat.as_deref()).and_then(|c| c.audio.get(&i)) {
+                return ffmpeg_wave::Input::Wave(pcm.wave()).render(opts.input_times.get(j).copied().unwrap_or_default(), &opts);
             }
             let (bytes, _, stream) = &sources[j];
             let seek = opts.input_times.get(j).copied().unwrap_or_default();
@@ -2712,7 +2710,7 @@ pub(in super::super) fn remux(
                         .map_err(str::to_owned);
                 }
                 Streams::Mp4(v) if v[i].0.kind == "audio" => {
-                    if let Some(pcm) = opts.concat.as_deref().and_then(|c| c.audio.get(&i)) {
+                    if let Some(pcm) = inputs[j].decoded().or(opts.concat.as_deref()).and_then(|c| c.audio.get(&i)) {
                         audio.rate.get_or_insert(pcm.rate);
                         audio.channels.get_or_insert(pcm.channels as u32);
                     }
@@ -2753,7 +2751,7 @@ pub(in super::super) fn remux(
                         &mut writer,
                         range,
                         matches!(data[j].bytes, Cow::Owned(_))
-                            || opts.concat.as_deref().is_some_and(|c| c.joined),
+                            || inputs[j].decoded().is_some() || opts.concat.as_deref().is_some_and(|c| c.joined),
                     )?
                 }
                 Streams::Captions(text) => {
@@ -2951,7 +2949,7 @@ pub(in super::super) fn remux(
         let mut first_dts = 0;
         let mut begin = 0;
         let sliced = range.is_some();
-        let pcm = opts.concat.as_deref().and_then(|c| c.audio.get(&i));
+        let pcm = inputs[j].decoded().or(opts.concat.as_deref()).and_then(|c| c.audio.get(&i));
         let (first, start, end, packets) = cut_packets(t, input.len(), range);
         for s in packets.take(count) {
             if samples.is_empty() {
@@ -3088,9 +3086,7 @@ pub(in super::super) fn remux(
             track.stsd = video_entry(t.width as usize, t.height as usize, VideoCodec::Config(&desc.jpeg_avcc))?.into();
         }
         let (from, to) = range.unwrap_or((0., None));
-        let joined = opts
-            .concat
-            .as_deref()
+        let joined = inputs[j].decoded().or(opts.concat.as_deref())
             .and_then(|c| c.video.as_ref()?.get(&i))
             .map(|v| (v, v.visible(from, to)))
             .filter(|(_, v)| {
@@ -3213,7 +3209,7 @@ pub(in super::super) fn remux(
                 continue;
             }
             let (rate, channels) =
-                if let Some(pcm) = opts.concat.as_deref().and_then(|c| c.audio.get(&i)) {
+                if let Some(pcm) = inputs[j].decoded().or(opts.concat.as_deref()).and_then(|c| c.audio.get(&i)) {
                     (pcm.rate, pcm.channels as u32)
                 } else {
                     match &sources[j].2 {

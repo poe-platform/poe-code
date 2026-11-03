@@ -69,7 +69,9 @@ impl Manifest {
             let media = if sequence.len() == 1 {
                 sequence.pop().unwrap()
             } else {
-                MediaInput::Bytes("mp4", mp4::mux::assemble_segments(&sequence, true, limit)?)
+                let mut concat = mp4::mux::DecodedConcat::new(false, false);
+                concat.align_durations = false;
+                MediaInput::Bytes("mp4", mp4::mux::assemble_segments(&sequence, &[], Some(&mut concat), limit)?)
             };
             representations.push(media);
         }
@@ -80,7 +82,7 @@ impl Manifest {
         } else {
             Ok((
                 "mp4",
-                mp4::mux::assemble_segments(&representations, false, limit)?,
+                mp4::mux::assemble_segments(&representations, &[], None, limit)?,
             ))
         }
     }

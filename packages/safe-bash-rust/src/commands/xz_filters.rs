@@ -10,13 +10,14 @@ pub(super) enum Filter {
     Thumb(u32),
     Sparc(u32),
     Arm64(u32),
+    RiscV(u32),
 }
 
 impl Filter {
     pub(super) fn from_header(id: u64, props: &[u8]) -> Option<Self> {
         match (id, props) {
             (3, [n]) => Some(Self::Delta(usize::from(*n) + 1)),
-            (4..=10, _) => {
+            (4..=11, _) => {
                 let start = if props.is_empty() {
                     0
                 } else {
@@ -30,6 +31,7 @@ impl Filter {
                     8 if start % 2 == 0 => Some(Self::Thumb(start)),
                     9 if start % 4 == 0 => Some(Self::Sparc(start)),
                     10 if start % 4 == 0 => Some(Self::Arm64(start)),
+                    11 if start % 2 == 0 => Some(Self::RiscV(start)),
                     _ => None,
                 }
             }
@@ -78,6 +80,7 @@ impl Filter {
                 }
             }
             Self::Thumb(start) => thumb(data, start),
+            Self::RiscV(start) => riscv(data, start),
             Self::Ia64(start) => ia64(data, start),
             Self::Arm64(start) => arm64(data, start),
         }
@@ -191,5 +194,54 @@ fn ia64(data: &mut [u8], start: u32) {
             }
         }
         bundle.copy_from_slice(&bits.to_le_bytes());
+    }
+}
+
+fn riscv(data: &mut [u8], start: u32) {
+    let mut i = 0;
+    while data.len() - i >= 8 {
+        let pc = start.wrapping_add(i as u32);
+        let word = u32::from_le_bytes(data[i..i + 4].try_into().unwrap());
+        if word & 0xdff == 0xef {
+            // JAL with link register x1 or x5: unpack the byte-ordered address.
+            let addr = ((word & 0xf000) << 5)
+                | (u32::from(data[i + 2]) << 9)
+                | (u32::from(data[i + 3]) << 1);
+            let dest = addr.wrapping_sub(pc);
+            let jal = (word & 0xfff)
+                | (dest & 0xff000)
+                | ((dest & 0x800) << 9)
+                | ((dest & 0x7fe) << 20)
+                | ((dest & 0x100000) << 11);
+            data[i..i + 4].copy_from_slice(&jal.to_le_bytes());
+            i += 4;
+        } else if word & 0x7f == 0x17 {
+            let pair: [u8; 4] = data[i + 4..i + 8].try_into().unwrap();
+            let (first, second) = if word & 0xe80 != 0 {
+                // Undo the escape for literal bytes resembling a packed AUIPC pair.
+                let next = u32::from_le_bytes(pair);
+                if ((word << 8) ^ next) & 0xf8003 != 3 {
+                    i += 6;
+                    continue;
+                }
+                (0x117 | (next << 12), (word & 0xfffff000) | (next >> 20))
+            } else {
+                let reg = word >> 27;
+                if word.wrapping_sub(0x3100) & 0x3f80 >= reg & 0x1d {
+                    i += 4;
+                    continue;
+                }
+                let dest = u32::from_be_bytes(pair).wrapping_sub(pc);
+                (
+                    0x17 | (reg << 7) | (dest.wrapping_add(0x800) & 0xfffff000),
+                    (word >> 12) | (dest << 20),
+                )
+            };
+            data[i..i + 4].copy_from_slice(&first.to_le_bytes());
+            data[i + 4..i + 8].copy_from_slice(&second.to_le_bytes());
+            i += 8;
+        } else {
+            i += 2;
+        }
     }
 }

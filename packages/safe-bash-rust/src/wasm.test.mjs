@@ -7972,3 +7972,15 @@ test("unxz reads PowerPC, ARM, Thumb, SPARC and IA-64 executable filters", async
     }
   } finally { rs.dispose(); }
 });
+
+test("unxz restores RISC-V jumps and AUIPC pairs", async () => {
+  // The payload contains JAL, packed AUIPC, and a literal pair that resembles AUIPC.
+  const archive = Buffer.from("fd377a585a000000ff12d94103010b04fc0f00002101000024b2092f010023ef004433ef02010297020000e780020017310128aabbccdd1710000000000000ef001234000001382401ed1a0b06729e7a010000000000595a", "hex");
+  const rs = new RustWasmBash({ files: { "/z": archive } });
+  try {
+    const result = await rs.exec("unxz -c /z");
+    assert.equal(result.exitCode, 0, result.stderr);
+    // Decoded independently by the production liblzma runtime.
+    assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "ef70b006eff24fa017710e280000000097c2bbaa138012cd1710000000000000ef001234");
+  } finally { rs.dispose(); }
+});

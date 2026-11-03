@@ -46,6 +46,16 @@ function createEventStream(events: unknown[]): AsyncIterable<unknown> {
 }
 
 describe("poe-agent-plugin-openai-responses", () => {
+  it.each([
+    ["halo-alpha", true],
+    ["gpt-5.4", true],
+    ["o3", true],
+    ["gemini-4-argon", false],
+    ["halo-unknown", false]
+  ])("supports %s: %s", (model, supported) => {
+    expect(openaiResponsesPlugin().providers?.[0]?.supports(model)).toBe(supported);
+  });
+
   const originalPoeBaseUrl = process.env.POE_BASE_URL;
   const originalOpenaiBaseUrl = process.env.OPENAI_BASE_URL;
   const originalPoeApiKey = process.env.POE_API_KEY;

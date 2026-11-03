@@ -12,7 +12,8 @@ fn normalized(value: Option<&Value>) -> Option<Vec<u16>> {
         .map(Vec::from)
 }
 pub fn supports(model: &[u16]) -> bool {
-    model.starts_with(&"gpt-".encode_utf16().collect::<Vec<_>>())
+    model.iter().copied().eq("halo-alpha".encode_utf16())
+        || model.starts_with(&"gpt-".encode_utf16().collect::<Vec<_>>())
         || model.first() == Some(&111)
             && model.get(1).is_some_and(|value| (48..=57).contains(value))
 }

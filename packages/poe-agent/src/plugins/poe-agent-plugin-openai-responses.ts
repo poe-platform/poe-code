@@ -100,7 +100,8 @@ export const spec: PluginSpec<OpenaiResponsesPluginOptions> = {
 
 export function openaiResponsesPlugin(opts: OpenaiResponsesPluginOptions = {}): AgentPlugin {
   const options = spec.parseOptions(opts);
-  const supports = (id: string) => id.startsWith("gpt-") || isOpenaiOSeriesModel(id);
+  const supports = (id: string) =>
+    id === "halo-alpha" || id.startsWith("gpt-") || isOpenaiOSeriesModel(id);
 
   return setResolvedPluginOptions(
     {

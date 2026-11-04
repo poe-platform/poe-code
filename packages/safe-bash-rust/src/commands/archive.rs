@@ -6664,15 +6664,14 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     }
                 }
             }
-            a if !a.starts_with('-') && archive.is_none() => archive = Some(a.to_string()),
-            a if !a.starts_with('-') => {
+            a if archive.is_none() => archive = Some(a.to_string()),
+            a => {
                 if in_exclude {
                     excludes.push(a.to_string());
                 } else {
                     members.push(a.to_string());
                 }
             }
-            _ => {}
         }
         i += 1;
     }
@@ -6712,27 +6711,34 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             2,
         );
     }
-    let mut arch = raw_arch.clone();
-    let mut full = resolve_posix_path(cwd, &arch);
-    if !fs.exists(&full) {
-        for cand in [format!("{raw_arch}.zip"), format!("{raw_arch}.ZIP")] {
-            let cand_full = resolve_posix_path(cwd, &cand);
-            if fs.exists(&cand_full) {
-                arch = cand;
-                full = cand_full;
-                break;
+    let mut arch = raw_arch;
+    let file = if arch == "-" { None } else {
+        let mut full = resolve_posix_path(cwd, &arch);
+        if !fs.exists(&full) {
+            for cand in [format!("{arch}.zip"), format!("{arch}.ZIP")] {
+                let cand_full = resolve_posix_path(cwd, &cand);
+                if fs.exists(&cand_full) {
+                    arch = cand;
+                    full = cand_full;
+                    break;
+                }
             }
         }
-    }
-    let Ok(stat) = fs.stat(&full) else {
-        return err_out(
-            &format!("unzip:  cannot find or open {raw_arch}, {raw_arch}.zip or {raw_arch}.ZIP.\n"),
-            9,
-        );
+        let Ok(stat) = fs.stat(&full) else {
+            return err_out(&format!("unzip:  cannot find or open {arch}, {arch}.zip or {arch}.ZIP.\n"),9);
+        };
+        Some((full,stat))
     };
-    let archive_input = match ZipInput::open(fs, &full, &stat) {
-        Ok(input) => input,
-        Err(e) => return err_out(&format!("unzip: {}\n", tar_format::display(&e)), 2),
+    let archive_input = if let Some((path,stat)) = &file {
+        match ZipInput::open(fs,path,stat) {
+            Ok(input) => input,
+            Err(e) => return err_out(&format!("unzip: {}\n",tar_format::display(&e)),2),
+        }
+    } else {
+        if crate::vfs::stream_byte_len(stdin) > fs.max_input_bytes() {
+            return err_out(&fs.limit_error("maxInputBytes",fs.max_input_bytes()),2);
+        }
+        ZipInput::Bytes(crate::vfs::stream_string_to_bytes(stdin))
     };
     let quiet = quiet_level != 0;
     let heading = !quiet && !names_only && !pipe_to_stdout;
@@ -6864,7 +6870,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         };
         let mut stderr = String::new();
         let mut exit_code = 0;
-        let answers = crate::vfs::stream_string_to_bytes(stdin);
+        let answers = if file.is_some() { crate::vfs::stream_string_to_bytes(stdin) } else { Vec::new() };
         let mut remaining = answers.as_slice();
         let mut read_answer = |max: usize| {
             if remaining.is_empty() { return None; }
@@ -6877,7 +6883,6 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         let mut prompt_bytes = crate::vfs::stream_byte_len(&out);
         let extract = || -> Result<(),String> {
             let out_dir = directory(&raw)?;
-            let input = fs.stat(&full)?;
             'member: for entry in selected {
                 let is_dir = entry.typeflag == b'5';
                 if junk_paths && is_dir { continue; }
@@ -6909,7 +6914,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         }
                         continue 'member;
                     }
-                    if dest == full || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity) {
+                    if file.as_ref().is_some_and(|(path,input)| dest == *path || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity)) {
                         return Err("entry would overwrite input archive".into());
                     }
                     let shown = match &dest_dir {
@@ -6918,7 +6923,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     };
                     if let Some(st) = existing {
                         if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
-                        if st.identity.is_none() || input.identity.is_none() { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
+                        if file.as_ref().is_some_and(|(_,input)| st.identity.is_none() || input.identity.is_none()) { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
                         // ZIP compares the destination rounded up to the next DOS two-second tick.
                         if never_overwrite || !renamed && update_mode.is_some() && ((st.mtime_ms / 1000.).floor() / 2.).ceil() * 2. >= entry.mtime {
                             continue 'member;

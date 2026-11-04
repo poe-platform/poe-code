@@ -2173,6 +2173,31 @@ test("unzip preserves existing files unless overwrite is selected and checks ren
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("unzip consumes a binary archive from stdin for listing, piping and extraction",async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const bytes=Uint8Array.of(0,255,65,128,10);
+    await fs.writeFile("/item",bytes);
+    assert.equal((await js.exec("zip -0q source.zip item")).exitCode,0);
+    const archive=await fs.readFile("/source.zip");
+    await rust.fs.writeFile("/source.zip",archive);
+    for(const [sh,view] of [[js,fs],[rust,rust.fs]]){
+      await view.writeFile("/-",Uint8Array.of(90));
+      const invoke=cmd=>sh.exec(cmd,{stdin:(async function*(){yield archive.subarray(0,7);yield archive.subarray(7);})()});
+      const names=await invoke("unzip -Z1 -");
+      assert.deepEqual([names.exitCode,names.stdout,names.stderr],[0,"item\n",""]);
+      const piped=await invoke("unzip -p - item");assert.equal(piped.exitCode,0,piped.stderr);assert.deepEqual(piped.stdoutBytes,bytes);
+      const pipeline=await sh.exec("cat source.zip | unzip -p - item");
+      assert.equal(pipeline.exitCode,0,pipeline.stderr);assert.deepEqual(pipeline.stdoutBytes,bytes);
+      const extract=await invoke("unzip -q - -d box");assert.equal(extract.exitCode,0,extract.stderr);
+      assert.deepEqual(await view.readFile("/box/item"),bytes);
+      const eof=await invoke("unzip -q - -d box");assert.equal(eof.exitCode,1);assert.match(eof.stderr,/EOF or read error/);
+      assert.deepEqual(await view.readFile("/-"),Uint8Array.of(90));
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip update and freshen compare DOS timestamps before prompting and skip absent freshen paths",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

@@ -50,7 +50,7 @@ where
             input,
             cwd,
             fs,
-            cmd == "fgrep",
+            write,
         )),
         "rg" => Some(cmd_rg(args, input, cwd, env, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, write, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env, ChildIo::Inherit { stderr_before: "" }))),
@@ -2415,14 +2415,75 @@ fn translate_search_pattern(source: &str, extended: bool) -> (String, Option<usi
     (out, offset, group_headers)
 }
 
+fn grep_literal_stdin(pattern: &str, mut stdin: CommandInput, write: &mut CommandWriter) -> BuiltinOutcome {
+    let anchored = pattern.strip_prefix('^');
+    let mut result = ok_out("");
+    let mut selected = false;
+    let mut staged = Vec::new();
+    let mut pending = Vec::new();
+    let mut invalid = false;
+    let mut writable = true;
+    let mut flush = |bytes: &mut Vec<u8>, out: &mut BuiltinOutcome| {
+        let ok = bytes.is_empty() || write(1, &bytes_to_stream_string(bytes), out);
+        bytes.clear();
+        ok
+    };
+    let mut scan = |chunk: &[u8], pending: &mut Vec<u8>, tail: bool| {
+        let mut rows = 0;
+        let mut bytes = 0;
+        let mut lines = chunk.split_inclusive(|&b| b == b'\n').peekable();
+        while let Some(part) = lines.next() {
+            let line = if let Some(line) = part.strip_suffix(b"\n") { line }
+                else if tail { part } else { pending.extend_from_slice(part); break };
+            let line = if pending.is_empty() { line } else { pending.extend_from_slice(line); pending.as_slice() };
+            let Ok(text) = std::str::from_utf8(line) else { invalid = true; break };
+            if line.contains(&0) { invalid = true; break; }
+            if anchored.map_or_else(|| text.contains(pattern), |literal| text.starts_with(literal)) {
+                selected = true;
+                if staged.len() + line.len() + 1 > 65536 && !flush(&mut staged, &mut result) { return false; }
+                if line.len() >= 65536 {
+                    staged.extend_from_slice(line);
+                    if !flush(&mut staged, &mut result) { return false; }
+                    staged.push(b'\n');
+                    if !flush(&mut staged, &mut result) { return false; }
+                } else { staged.extend_from_slice(line); staged.push(b'\n'); }
+            }
+            bytes += line.len();
+            rows += 1;
+            pending.clear();
+            // A full matcher batch can flush before the end of the producer chunk.
+            if rows == 128 || bytes >= 65536 || lines.peek().is_some_and(|p| p.ends_with(b"\n") && bytes + p.len() - 1 > 65536) {
+                if staged.len() >= 8192 && !flush(&mut staged, &mut result) { return false; }
+                rows = 0;
+                bytes = 0;
+            }
+        }
+        flush(&mut staged, &mut result) && !invalid
+    };
+    let read = stdin.read_stdin(|chunk| { writable = scan(chunk, &mut pending, false); writable });
+    if writable && read.is_ok() && !pending.is_empty() { scan(&pending, &mut Vec::new(), true); }
+    if result.exit_code != 0 { result.exit_code = 2; }
+    else if invalid || read.is_err() {
+        let error = read.err().unwrap_or_else(|| "bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes".into());
+        if write(2, &format!("grep: {error}\n"), &mut result) { result.exit_code = 2; }
+    } else { result.exit_code = i32::from(!selected); }
+    result
+}
+
 fn cmd_grep(
     invoked_as: &str,
     args: &[String],
     mut stdin: CommandInput,
     cwd: &str,
     fs: &dyn SafeBashFs,
-    default_fixed: bool,
+    write: &mut CommandWriter,
 ) -> BuiltinOutcome {
+    let literal = invoked_as == "grep" && args.len() <= 2 && args.get(1).is_none_or(|f| f == "-" || !f.starts_with('-'))
+        && args.first().is_some_and(|p| !p.is_empty() && p != "^" && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
+            .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b)));
+    if literal && args.get(1).is_none_or(|f| f == "-") {
+        return grep_literal_stdin(&args[0], stdin, write);
+    }
     let mut ignore_case = false;
     let mut invert = false;
     let mut count_only = false;
@@ -2435,7 +2496,7 @@ fn cmd_grep(
     let mut only_matching = false;
     let mut word_regexp = false;
     let mut line_regexp = false;
-    let mut fixed_strings = default_fixed;
+    let mut fixed_strings = invoked_as == "fgrep";
     let mut extended_regexp = invoked_as == "egrep";
     let mut matcher: Option<char> = match invoked_as {
         "egrep" => Some('E'),
@@ -2715,9 +2776,7 @@ fn cmd_grep(
         fs,
         GrepConfig {
             // Production's single-pattern ASCII shortcut checks every input line.
-            grep_input: if !text && invoked_as == "grep" && args.len() <= 2 && args.first().is_some_and(|p|
-                !p.is_empty() && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
-                    .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b))) { GrepInput::PlainLiteral { fast_file: args[0] != "^" } }
+            grep_input: if literal { GrepInput::PlainLiteral }
                 else if bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
             ascii_record_rx: None,
             invert,
@@ -3582,7 +3641,7 @@ fn cmd_rg(
 enum RgBinary { Auto, Binary, Text }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum GrepInput<'a> { Bytes, PlainLiteral { fast_file: bool }, Bounded(&'a str) }
+enum GrepInput<'a> { Bytes, PlainLiteral, Bounded(&'a str) }
 
 struct GrepConfig<'a> {
     grep_input: GrepInput<'a>,
@@ -4034,7 +4093,7 @@ fn run_grep_engine(
             }
             SearchInput::File(ref label, ref path, explicit) => {
                 let bytes = if let SearchFiles::Grep(files) = &cfg.files {
-                    let fast = matches!(cfg.grep_input, GrepInput::PlainLiteral { fast_file: true });
+                    let fast = matches!(cfg.grep_input, GrepInput::PlainLiteral);
                     let op = if fast && path != "/dev" && !path.starts_with("/dev/") { "readFile" } else { "readStream" };
                     if cfg.max_count == Some(0) && !label.is_empty() {
                         Vec::new()
@@ -4172,7 +4231,7 @@ fn run_grep_engine(
             let mut batch_rx = &rx;
             for (idx, line) in lines.iter().enumerate() {
                 if idx >= print_end || limit == 0 { break; }
-                if matches!(cfg.grep_input, GrepInput::PlainLiteral { .. }) && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
+                if matches!(cfg.grep_input, GrepInput::PlainLiteral) && (line.contains(&0) || std::str::from_utf8(line).is_err()) {
                     had_error = true;
                     if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
                     break;

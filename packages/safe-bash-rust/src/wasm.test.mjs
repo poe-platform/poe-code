@@ -8562,6 +8562,28 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("grep publishes literal matches before the next stdin pull and stops on write or validation failure", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    const seen = [];
+    const stdin = {async *[Symbol.asyncIterator]() {
+      for (const chunk of ["a\nmiss\n","a","é\r\n","a\ninvalid\0\n","unreachable"]) {
+        seen.push(Buffer.from(await bash.fs.readFile("/matches")).toString());
+        yield Buffer.from(chunk);
+      }
+    }};
+    const r = await bash.exec("grep '^a' - >/matches", {stdin});
+    assert.deepEqual(seen, ["", "a\n", "a\n", "a\naé\r\n"]);
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [2, "", "grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"]);
+    assert.equal(Buffer.from(await bash.fs.readFile("/matches")).toString(), "a\naé\r\na\n");
+    let pulls = 0;
+    await assert.rejects(bash.exec("grep a", {limits: {maxOutputBytes: 6}, stdin: {async *[Symbol.asyncIterator]() {
+      for (let i = 0; i < 5; ++i) { pulls++; yield Buffer.from("abc\n"); }
+    }}}), /maxOutputBytes/);
+    assert.equal(pulls, 2);
+  } finally { bash.dispose(); }
+});
+
 test("grep validates plain ASCII searches record by record and preserves earlier output", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});

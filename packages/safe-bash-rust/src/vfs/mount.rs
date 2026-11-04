@@ -533,7 +533,13 @@ impl SafeBashFs for MountVfs {
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
-        let (fs, rel) = self.route(path, false)?;
+        if target.is_empty() { return Err(format!("ENOENT: no such file or directory, symlink '{path}'")); }
+        if target.contains('\0') { return Err(format!("EINVAL: invalid argument, symlink '{path}'")); }
+        let entry = self.resolve(path, false, WalkPurpose::Access)?;
+        if entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m)) {
+            return Err(format!("EBUSY: resource busy or locked, symlink '{path}'"));
+        }
+        let (_, fs, rel) = self.location(&entry);
         fs.symlink(target, &rel)
     }
 
@@ -959,6 +965,22 @@ mod tests {
         assert!(fs.replace_entries(&snapshot).is_err());
         assert!(fs.remove_path("/data").is_err());
         assert_eq!(root.read_file("/data/m/covered").unwrap(), b"hidden");
+    }
+
+    #[test]
+    fn symlink_walks_all_ancestors_before_selecting_the_writable_mount() {
+        let root = Arc::new(MemoryVfs::new());
+        let mounted = Arc::new(MemoryVfs::new());
+        let fs = MountVfs::new(root.clone()).with_mount("/base/m", mounted.clone());
+        for path in ["/absent/../x", "/base/m/missing/../x"] {
+            assert!(fs.symlink("text", path).unwrap_err().starts_with("ENOENT:"));
+        }
+        for path in ["/", "/base", "/base/m"] {
+            assert!(fs.symlink("text", path).unwrap_err().starts_with("EBUSY:"));
+        }
+        assert!(root.lstat("/x").is_err() && mounted.lstat("/x").is_err());
+        fs.symlink("text", "/base/m/x").unwrap();
+        assert_eq!(mounted.readlink("/x").unwrap(), "text");
     }
 
     #[test]

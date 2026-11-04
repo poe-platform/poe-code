@@ -2278,7 +2278,7 @@ fn apply_rg_line_replace(line: &[u8], offset: usize, spans: &[(usize, usize)], r
 
 fn rg_json_data(bytes: &[u8]) -> String {
     match std::str::from_utf8(bytes) {
-        Ok(text) => format!("{{\"text\":\"{}\"}}", json_escape_str(text)),
+        Ok(text) => format!("{{\"text\":\"{}\"}}", json_escape_str(&crate::vfs::shell_text(text))),
         Err(_) => format!("{{\"bytes\":\"{}\"}}", super::archive::base64_encode(bytes)),
     }
 }
@@ -2324,6 +2324,8 @@ fn json_escape_str(s: &str) -> String {
         match c {
             '"' => out.push_str("\\\""),
             '\\' => out.push_str("\\\\"),
+            '\x08' => out.push_str("\\b"),
+            '\x0c' => out.push_str("\\f"),
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
@@ -4044,6 +4046,40 @@ fn render_search_record(cfg: &GrepConfig, out: &mut String, line: &[u8], spans: 
     true
 }
 
+fn rg_json_begin(escaped_path: &str) -> String {
+    format!("{{\"type\":\"begin\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}}}}}}\n")
+}
+
+fn rg_json_record(escaped_path: &str, line: &[u8], ending: Option<u8>, line_no: usize, abs_off: usize, selected: bool, spans: &[(usize, usize)]) -> String {
+    let line_data = if let Some(term) = ending {
+        let mut raw = Vec::with_capacity(line.len() + 1);
+        raw.extend_from_slice(line);
+        raw.push(term);
+        rg_json_data(&raw)
+    } else { rg_json_data(line) };
+    let event = if selected { "match" } else { "context" };
+    let mut subs_json = String::new();
+    for (si, &(s, e)) in spans.iter().enumerate() {
+        if si > 0 { subs_json.push(','); }
+        let mtxt = rg_json_data(&line[s..e]);
+        subs_json.push_str(&format!(
+            "{{\"match\":{mtxt},\"start\":{s},\"end\":{e}}}"
+        ));
+    }
+    format!(
+        "{{\"type\":\"{event}\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
+    )
+}
+
+fn rg_json_end(escaped_path: &str, binary: Option<usize>, file_searched: usize, file_printed: usize, matched_count: usize, file_submatch_count: usize) -> String {
+    let binary_offset = binary.map_or_else(|| "null".to_owned(), |off| off.to_string());
+    format!("{{\"type\":\"end\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"binary_offset\":{binary_offset},\"stats\":{{\"elapsed\":{{\"secs\":0,\"nanos\":0,\"human\":\"0.000000s\"}},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":{file_searched},\"bytes_printed\":{file_printed},\"matched_lines\":{matched_count},\"matches\":{file_submatch_count}}}}}}}\n")
+}
+
+fn rg_json_summary(json_bytes_printed: usize, bytes_searched: usize, total_matched_lines: usize, total_matches: usize, searches: usize, searches_with_match: usize) -> String {
+    format!("{{\"data\":{{\"elapsed_total\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"stats\":{{\"bytes_printed\":{json_bytes_printed},\"bytes_searched\":{bytes_searched},\"elapsed\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"matched_lines\":{total_matched_lines},\"matches\":{total_matches},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}},\"type\":\"summary\"}}\n")
+}
+
 fn rg_stats(total_matches: usize, total_matched_lines: usize, searches_with_match: usize, searches: usize, bytes_printed: usize, bytes_searched: usize) -> String {
     format!(
         "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
@@ -4103,8 +4139,8 @@ fn run_grep_engine(
         let output_start = out.len();
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
-                if is_rg && targets.len() <= 1 && !multiline && !cfg.json_output
-                    && !(cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet) {
+                if is_rg && targets.len() <= 1 && !multiline
+                    && (cfg.json_output || !(cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet)) {
                     return rg_stream::lines(&cfg, &rx, stdin, replacement.as_deref(), capture, write);
                 }
                 let mut bytes = Vec::new();
@@ -4419,9 +4455,7 @@ fn run_grep_engine(
             if matched_count == 0 || cfg.quiet { continue; }
             let path_text = fname.unwrap_or("<stdin>");
             let escaped_path = json_escape_str(path_text);
-            out.push_str(&format!(
-                "{{\"type\":\"begin\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}}}}}}\n"
-            ));
+            out.push_str(&rg_json_begin(&escaped_path));
             let mut printed = vec![false; lines.len()];
             for (idx, _) in &match_indices {
                 let start = idx.saturating_sub(cfg.before_ctx);
@@ -4437,36 +4471,16 @@ fn run_grep_engine(
                     continue;
                 }
                 let end = line_offsets.get(idx + 1).copied().unwrap_or(content.len());
-                let raw_line = &content[line_offsets[idx]..end];
-                let line_data = if binary_records && raw_line.ends_with(&[0]) {
-                    let mut raw_line = raw_line.to_vec();
-                    *raw_line.last_mut().unwrap() = b'\n';
-                    rg_json_data(&raw_line)
-                } else { rg_json_data(raw_line) };
-                let line_no = idx + 1;
-                let abs_off = line_offsets.get(idx).copied().unwrap_or(0);
                 let selected = match_map.contains_key(&idx);
-                let event = if selected { "match" } else { "context" };
-                let spans = match_map.get(&idx).copied().or_else(|| context_matches.get(&idx));
-                let mut subs_json = String::new();
-                for (si, &(s, e)) in spans.into_iter().flatten().enumerate() {
-                    if si > 0 { subs_json.push(','); }
-                    let mtxt = rg_json_data(&lines[idx][s..e]);
-                    subs_json.push_str(&format!(
-                        "{{\"match\":{mtxt},\"start\":{s},\"end\":{e}}}"
-                    ));
-                }
-                out.push_str(&format!(
-                    "{{\"type\":\"{event}\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{line_data},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
-                ));
+                let spans = match_map.get(&idx).copied().or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
+                let line = lines[idx];
+                let ending = (end - line_offsets[idx] > line.len()).then_some(rec_term as u8);
+                out.push_str(&rg_json_record(&escaped_path, line, ending, idx + 1, line_offsets[idx], selected, spans));
             }
             if read_failed { continue; }
             let file_printed = stream_byte_len(&out[output_start..]);
             json_bytes_printed += file_printed;
-            let binary_offset = nul_off.map_or_else(|| "null".to_owned(), |off| off.to_string());
-            out.push_str(&format!(
-                "{{\"type\":\"end\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"binary_offset\":{binary_offset},\"stats\":{{\"elapsed\":{{\"secs\":0,\"nanos\":0,\"human\":\"0.000000s\"}},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":{file_searched},\"bytes_printed\":{file_printed},\"matched_lines\":{matched_count},\"matches\":{file_submatch_count}}}}}}}\n"
-            ));
+            out.push_str(&rg_json_end(&escaped_path, nul_off, file_searched, file_printed, matched_count, file_submatch_count));
             continue;
         }
 
@@ -4675,9 +4689,7 @@ fn run_grep_engine(
     }
 
     if cfg.json_output {
-        out.push_str(&format!(
-            "{{\"data\":{{\"elapsed_total\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"stats\":{{\"bytes_printed\":{json_bytes_printed},\"bytes_searched\":{bytes_searched},\"elapsed\":{{\"human\":\"0.000000s\",\"nanos\":0,\"secs\":0}},\"matched_lines\":{total_matched_lines},\"matches\":{total_matches},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}},\"type\":\"summary\"}}\n"
-        ));
+        out.push_str(&rg_json_summary(json_bytes_printed, bytes_searched, total_matched_lines, total_matches, searches, searches_with_match));
     } else if cfg.stats {
         let bytes_printed = if cfg.count_only || cfg.files_with_matches || cfg.files_without_match { 0 }
             else { stream_byte_len(&out) - failed_output_bytes };

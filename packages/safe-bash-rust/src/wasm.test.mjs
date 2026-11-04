@@ -8785,6 +8785,41 @@ test("a filesystem quota rejects descriptor setup before truncation or the next 
   } finally { sh.dispose(); }
 });
 
+test("rg JSON preserves Unicode and uses compact JSON escapes in lines and submatches", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const line = "a\b\f\x01\ue080";
+    const r = await sh.exec("rg --json 'a.*' >/out", {stdin: Buffer.from(line + "\n")});
+    assert.equal(r.exitCode, 0);
+    const [begin, match, end] = Buffer.from(await sh.fs.readFile("/out")).toString().trimEnd().split("\n");
+    const data = {path:{text:"<stdin>"}, lines:{text:line + "\n"}, line_number:1, absolute_offset:0,
+      submatches:[{match:{text:line}, start:0, end:Buffer.byteLength(line)}]};
+    assert.equal(match, JSON.stringify({type:"match", data}));
+    assert.equal(JSON.parse(end).data.stats.bytes_printed, Buffer.byteLength(begin + "\n" + match + "\n"));
+  } finally { sh.dispose(); }
+});
+
+test("rg JSON publishes complete batches, reports binary lines, and keeps failed input out of the summary", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const events = async () => Buffer.from(await sh.fs.readFile("/out")).toString().trimEnd().split("\n").filter(Boolean).map(line => JSON.parse(line));
+    const seen = [];
+    const r = await sh.exec("rg --json -B1 a >/out", {stdin:{async *[Symbol.asyncIterator]() {
+      yield Uint8Array.of(255, 0, 97, 10);
+      seen.push((await events()).map(e => e.type));
+      throw Error("failed input");
+    }}});
+    assert.deepEqual(seen, [["begin", "context", "match"]]);
+    assert.deepEqual([r.exitCode, r.stderr], [2, "rg: internal error\n"]);
+    const records = await events();
+    assert.deepEqual(records.map(e => e.type), ["begin", "context", "match", "summary"]);
+    assert.deepEqual(records[1].data.lines, {bytes:"/wo="});
+    assert.equal(records[2].data.absolute_offset, 2);
+    assert.equal(records[3].data.stats.bytes_printed, 0);
+    assert.equal(records[3].data.stats.searches, 0);
+  } finally { sh.dispose(); }
+});
+
 test("rg streams matches with statistics and discards the totals of a failed input", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {

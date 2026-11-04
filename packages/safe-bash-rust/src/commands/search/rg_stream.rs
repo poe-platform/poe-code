@@ -65,7 +65,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
             let inverted_tail = cfg.invert && count >= limit && after != 0 && !terminated;
             let selected = spans.is_empty() == cfg.invert || inverted_tail;
             if selected { last_selected_end = offset; }
-            if let Some(off) = binary {
+            if let Some(off) = binary.filter(|_| !cfg.json_output) {
                 if count > 0 || selected {
                     if count == 0 { count = 1; if !cfg.invert { matches += spans.len(); } }
                     out.put(&format!("{}binary file matches (found \"\\0\" byte around offset {off})\n", if filename { "<stdin>: " } else { "" }));
@@ -75,6 +75,12 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
                 continue;
             }
             let mut emit = |line: &[u8], spans: &[(usize,usize)], n: usize, off: usize, selected, ending| {
+                if cfg.json_output {
+                    if cfg.quiet { return true; }
+                    if last_printed == 0 && !out.put(&rg_json_begin("<stdin>")) { return false; }
+                    last_printed = n;
+                    return out.put(&rg_json_record("<stdin>", line, (ending != 0).then_some(term as u8), n, off, selected, spans));
+                }
                 if last_printed == 0 && cfg.heading && filename {
                     if !out.put(if cfg.null_delim { "<stdin>\0" } else { "<stdin>\n" }) { return false; }
                 } else if last_printed != 0 && n > last_printed + 1 && (cfg.before_ctx != 0 || cfg.after_ctx != 0)
@@ -95,7 +101,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
                     if !emit(&prev, &matches, n, off, false, 1) { return false; }
                 }
                 if !emit(row, &spans, number, base, true, usize::from(terminated)) { return false; }
-                after = cfg.after_ctx;
+                if !cfg.quiet { after = cfg.after_ctx; }
             } else if after > 0 {
                 if selected {
                     count += 1;
@@ -103,7 +109,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
                 }
                 if !emit(row, &spans, number, base, selected, usize::from(terminated)) { return false; }
                 after -= 1;
-            } else if cfg.before_ctx > 0 {
+            } else if cfg.before_ctx > 0 && !cfg.quiet {
                 if before.len() == cfg.before_ctx { before.pop_front(); }
                 before.push_back((row.to_vec(), spans, number, base));
             }
@@ -117,7 +123,7 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
     let read = stdin.read_stdin(|chunk| {
         if detects_binary && binary_offset.is_none() { binary_offset = chunk.iter().position(|&b| b == 0).map(|n| received + n); }
         received += chunk.len();
-        let size = if cfg.max_count.is_some() || binary_offset.is_some() { 1 } else { 128 };
+        let size = if cfg.max_count.is_some() || binary_offset.is_some() && !cfg.json_output { 1 } else { 128 };
         let mut rows = Vec::new();
         let mut bytes = 0;
         let mut parts = chunk.split_inclusive(delimiter).peekable();
@@ -142,7 +148,14 @@ pub(super) fn lines(cfg: &GrepConfig, rx: &ZeroRegex, mut stdin: CommandInput, r
         if !cfg.no_messages { out.writable = (out.write)(2, &format!("rg: {e}\n"), &mut out.result); }
         out.result.exit_code = 2;
     } else { out.result.exit_code = i32::from(count == 0); }
-    if cfg.stats && out.writable {
+    if cfg.json_output && out.writable {
+        let summary = if read.is_ok() {
+            let printed = out.total;
+            if last_printed != 0 { out.put(&rg_json_end("<stdin>", binary_offset, searched, printed, count, matches)); }
+            rg_json_summary(printed, searched, count, matches, 1, usize::from(count != 0))
+        } else { rg_json_summary(0, 0, 0, 0, 0, 0) };
+        if out.writable { out.put(&summary); }
+    } else if cfg.stats && out.writable {
         let stats = if read.is_ok() { rg_stats(matches, count, usize::from(count != 0), 1, out.total, searched) }
             else { rg_stats(0, 0, 0, 0, 0, 0) };
         out.put(&stats);

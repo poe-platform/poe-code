@@ -3469,8 +3469,8 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             let mut length = -1;
             let array = args.get(2).map(|name| name.trim());
             ZeroRegex::awk(&pat).scan(hay.as_bytes(), array.is_some(), |start, end, caps| {
-                position = start + 1;
-                length = (end - start) as isize;
+                position = crate::vfs::stream_byte_len(&hay[..start]) + 1;
+                length = crate::vfs::stream_byte_len(&hay[start..end]) as isize;
                 if let Some(name) = array {
                     let map = state.arrays.entry(name.to_owned()).or_default();
                     map.insert("0".into(), Scalar::Text(hay[start..end].to_owned()));
@@ -9427,6 +9427,14 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn awk_match_positions_count_preserved_input_bytes() {
+        let stdin = crate::vfs::bytes_to_stream_string(b"a\xffz\n");
+        let program = r#"{ print match($0,/z/),RSTART,RLENGTH; print match($0,/a(.)/,m),RLENGTH,ord(m[1]); print match($0,/$/),RLENGTH }"#;
+        let out = try_run_text_command("awk", &args(&["-lordchr",program]), &stdin, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"3 3 1\n1 2 255\n4 0\n",""));
     }
 
     #[test]

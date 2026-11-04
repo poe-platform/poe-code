@@ -1,3 +1,4 @@
+use super::codecs::ZIP_COMMENT_TYPE;
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
@@ -6132,7 +6133,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if show_files {
         let mut out = format!("Archive contains:\n");
         for e in &entries {
-            if e.name != "__ZIP_COMMENT__" {
+            if e.typeflag != ZIP_COMMENT_TYPE {
                 out.push_str(&format!("  {}\n", e.name));
             }
         }
@@ -6141,7 +6142,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if copy_mode {
         entries.retain(|e| {
-            if e.name == "__ZIP_COMMENT__" {
+            if e.typeflag == ZIP_COMMENT_TYPE {
                 return true;
             }
             let op_ok = operands.is_empty() || operands.iter().any(|p| zip_matches_pattern(p, &e.name));
@@ -6153,18 +6154,18 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if delete_mode {
         entries.retain(|e| {
-            e.name == "__ZIP_COMMENT__" || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
+            e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
         return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,&retained,|_,_,_,_| {}), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
-    if timed && !quiet && entries.iter().all(|e| e.name == "__ZIP_COMMENT__") {
+    if timed && !quiet && entries.iter().all(|e| e.typeflag == ZIP_COMMENT_TYPE) {
         notices.push_str(&format!("\tzip warning: {} not found or empty\n",zip_public_text(&arch_name)));
     }
     if filesync_mode { entries.clear(); retained.clear(); }
     let targets = if recursive_patterns { vec![".".to_string()] }
-        else if timed && operands.is_empty() { entries.iter().filter(|e| e.name != "__ZIP_COMMENT__").map(|e|e.name.clone()).collect() }
+        else if timed && operands.is_empty() { entries.iter().filter(|e| e.typeflag != ZIP_COMMENT_TYPE).map(|e|e.name.clone()).collect() }
         else { operands.clone() };
     let mut targets: std::collections::VecDeque<_> = targets.into_iter().map(|p| (p,false)).collect();
     let mut moving_paths = std::collections::BTreeSet::new();
@@ -6172,7 +6173,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let mut skipped_archive = false;
     // Keep the original source spelling separate from the name stored in the ZIP.
-    let mut members: BTreeMap<_,_> = entries.iter().enumerate()
+    let mut members: BTreeMap<_,_> = entries.iter().enumerate().filter(|(_,e)| e.typeflag != ZIP_COMMENT_TYPE)
         .map(|(index,e)| (e.name.clone(), (index,None::<String>,Some(e.mtime)))).collect();
     while let Some((t,stored_name)) = targets.pop_front() {
         let mut raw_entries = Vec::new();
@@ -6208,7 +6209,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
             if timed && raw_entries.is_empty() && !stored_name {
                 let mut matched = false;
-                for entry in entries.iter().rev().filter(|e| e.name != "__ZIP_COMMENT__" && members.get(&e.name).is_some_and(|m| m.2.is_some())) {
+                for entry in entries.iter().rev().filter(|e| e.typeflag != ZIP_COMMENT_TYPE && members.get(&e.name).is_some_and(|m| m.2.is_some())) {
                     if zip_matches_pattern(t.trim_start_matches('/'),&entry.name) {
                         targets.push_front((entry.name.clone(),true)); matched = true;
                     }
@@ -6340,10 +6341,10 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             format!("{}\n", comment_lines.join("\n"))
         };
         let comment_bytes = comment_str.into_bytes();
-        entries.retain(|e| e.name != "__ZIP_COMMENT__");
+        entries.retain(|e| e.typeflag != ZIP_COMMENT_TYPE);
         entries.push(TarEntry {
             name: "__ZIP_COMMENT__".to_string(),
-            typeflag: b'0',
+            typeflag: ZIP_COMMENT_TYPE,
             mode: 0o644,
             mtime: 1700000000.,
                 atime: None,
@@ -6620,40 +6621,18 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             9,
         );
     };
-    let raw_entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
-    if !bytes.is_empty() && !bytes.iter().all(|&b| b == 0) && raw_entries.is_empty() {
+    let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
+    if !bytes.is_empty() && !bytes.iter().all(|&b| b == 0) && entries.is_empty() {
         return err_out(&format!("unzip: {arch}: End-of-central-directory signature not found\n"), 9);
     }
+    let mut comment_text = entries.pop_if(|e|e.typeflag == ZIP_COMMENT_TYPE)
+        .map(|e|String::from_utf8_lossy(&e.content).into_owned()).unwrap_or_default();
+    if !comment_text.is_empty() && !comment_text.ends_with('\n') { comment_text.push('\n'); }
     if show_comment {
-        let mut out = String::new();
-        if !quiet {
-            out.push_str(&format!("Archive:  {arch}\n"));
-        }
-        for e in &raw_entries {
-            if e.name == "__ZIP_COMMENT__" {
-                let text = String::from_utf8_lossy(&e.content);
-                out.push_str(&text);
-                if !text.is_empty() && !text.ends_with('\n') {
-                    out.push('\n');
-                }
-            }
-        }
+        let mut out = if quiet { String::new() } else { format!("Archive:  {arch}\n") };
+        out.push_str(&comment_text);
         return ok_out(&out);
     }
-    let mut comment_text = String::new();
-    for e in &raw_entries {
-        if e.name == "__ZIP_COMMENT__" {
-            let text = String::from_utf8_lossy(&e.content);
-            comment_text.push_str(&text);
-            if !text.is_empty() && !text.ends_with('\n') {
-                comment_text.push('\n');
-            }
-        }
-    }
-    let entries: Vec<TarEntry> = raw_entries
-        .into_iter()
-        .filter(|e| e.name != "__ZIP_COMMENT__")
-        .collect();
     if test_only {
         let mut out = String::new();
         if !quiet {

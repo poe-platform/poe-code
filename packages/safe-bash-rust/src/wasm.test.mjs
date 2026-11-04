@@ -1809,6 +1809,26 @@ test("ZIP editing verifies a retained data descriptor before moving the source",
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("a ZIP member named __ZIP_COMMENT__ remains distinct from the archive comment",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    const name="__ZIP_COMMENT__", payload=Uint8Array.of(0,255,1);
+    await ref.writeFile("/"+name,payload);
+    const made=await js.exec("zip -qz seed.zip "+name,{stdin:"archive comment\n.\n"});
+    assert.equal(made.exitCode,0,made.stderr); const seed=await ref.readFile("/seed.zip");
+    for(const [sh,fs] of [[js,ref],[rust,rust.fs]]) {
+      await fs.writeFile("/work.zip",seed);
+      await fs.writeFile("/extra",Uint8Array.of(9));
+      const r=await sh.exec("zip -q work.zip extra"); assert.equal(r.exitCode,0,r.stderr);
+      assert.deepEqual((await sh.exec("unzip -p work.zip "+name)).stdoutBytes,payload);
+      const b=Buffer.from(await fs.readFile("/work.zip")), end=b.lastIndexOf(Buffer.from([80,75,5,6]));
+      assert.equal(b.subarray(end+22).toString(),"archive comment");
+      assert.equal(b.readUInt16LE(end+10),2);
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("ZIP update and freshen select newer members and leave a current archive untouched",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

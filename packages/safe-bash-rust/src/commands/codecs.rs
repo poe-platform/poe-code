@@ -3502,6 +3502,9 @@ fn dos_to_unix_secs(dos_date: u16, dos_time: u16) -> u64 {
     }
 }
 
+// ZIP has no member with this tar type. Keep archive metadata separate from every filename.
+pub const ZIP_COMMENT_TYPE: u8 = b'C';
+
 /// The local header and compressed payload (without a trailing descriptor), and
 /// the central record. Both borrow the validated input archive during an edit.
 pub(super) struct ZipRecord<'a> {
@@ -3521,7 +3524,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
     let mut count = 0u16;
 
     for e in entries {
-        if e.name == "__ZIP_COMMENT__" {
+        if e.typeflag == ZIP_COMMENT_TYPE {
             comment = e.content.clone();
             continue;
         }
@@ -3820,7 +3823,7 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     if cmt_len > 0 {
         out.push(crate::commands::archive::TarEntry {
             name: "__ZIP_COMMENT__".to_string(),
-            typeflag: b'0',
+            typeflag: ZIP_COMMENT_TYPE,
             mode: 0o644,
             mtime: 1700000000.,
             atime: None,

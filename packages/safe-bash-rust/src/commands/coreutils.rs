@@ -36,6 +36,7 @@ pub(super) fn try_run_coreutil_with_input(
     }
     if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
+    if cmd == "dd" { return Ok(Some(cmd_dd(args, input, cwd, fs, write))); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
     if matches!(cmd, "less" | "more") { return Ok(Some(cmd_less_more(cmd, args, input, cwd, fs, write))); }
     if cmd == "expand" { return Ok(Some(cmd_expand(args, input, cwd, fs, write))); }
@@ -96,7 +97,6 @@ fn coreutil(
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
         "shuf" => cmd_shuf(args, input.buffered()?, cwd, env, fs),
         "split" => cmd_split(args, input.buffered()?, cwd, env, fs),
-        "dd" => cmd_dd(args, input, cwd, fs),
         "install" => cmd_install(args, cwd, env, fs),
         _ => return Ok(None),
     }))
@@ -17176,7 +17176,7 @@ fn parse_dd_number(text: &str, warnings: &mut Vec<String>) -> Result<usize, Stri
     Ok(product)
 }
 
-fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut in_file: Option<String> = None;
     let mut out_file: Option<String> = None;
     let mut bs_opt: Option<usize> = None;
@@ -17425,8 +17425,8 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
     seek_bytes |= oflags.contains("seek_bytes");
 
     let skip_offset = if skip_bytes { skip } else { skip.saturating_mul(ibs) };
-    let raw_in: Vec<u8> = if let Some(ref inf) = in_file {
-        if inf == "/dev/null" {
+    let file_input = if let Some(ref inf) = in_file {
+        Some(if inf == "/dev/null" {
             Vec::new()
         } else if inf == "/dev/zero" {
             let cnt_len = match count {
@@ -17451,35 +17451,8 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
                     );
                 }
             }
-        }
-    } else {
-        // With count=0 the stream adapter still skips whole 512-byte records.
-        let skip_read = if count == Some(0) && stdin.file.is_some_and(|s| matches!(s.source, super::InputSource::Chunks(_))) {
-            let records = if skip_bytes { skip / ibs } else { skip };
-            records.saturating_mul(512).saturating_add(if skip_bytes { skip % ibs } else { 0 })
-        } else { skip_offset };
-        let maximum = count.map_or(usize::MAX, |n| skip_read.saturating_add(if count_bytes { n } else { n.saturating_mul(ibs) }));
-        if maximum == 0 { Vec::new() }
-        else if let Some(source) = stdin.file {
-            let mut bytes = Vec::new();
-            let read = source.admit_bounded_read().and_then(|()| source.read(stdin.text, maximum, |chunk, _| {
-                bytes.extend_from_slice(chunk);
-                Ok((true, chunk.len()))
-            }));
-            if let Err(e) = read { return err_out(&format!("dd: error reading 'standard input': {e}\n"), 1); }
-            bytes
-        } else {
-            let mut bytes = stream_string_to_bytes(stdin.text);
-            if bytes.len() > fs.max_input_bytes() {
-                return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1);
-            }
-            if maximum < bytes.len() {
-                *stdin.text = crate::vfs::bytes_to_stream_string(&bytes[maximum..]);
-                bytes.truncate(maximum);
-            } else { stdin.text.clear(); }
-            bytes
-        }
-    };
+        })
+    } else { None };
 
     if let Some(ref outf) = out_file
         && outf != "/dev/null"
@@ -17501,59 +17474,6 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
                 ),
                 1,
             );
-        }
-    }
-
-    let after_skip = if skip_offset >= raw_in.len() {
-        &[][..]
-    } else {
-        &raw_in[skip_offset..]
-    };
-
-    let mut blocks: Vec<Vec<u8>> = Vec::new();
-    let mut input_full = 0usize;
-    let mut input_partial = 0usize;
-    let copying = count != Some(0);
-    if copying {
-        let max_records = count.map(|c| if count_bytes { c / ibs } else { c });
-        let final_bytes = match count {
-            Some(c) if count_bytes => c % ibs,
-            _ => 0usize,
-        };
-        let mut pos = 0usize;
-        let mut records_read = 0usize;
-        let sync_pad = conv_set.contains("sync");
-        let sync_fill = if conv_set.contains("block") || conv_set.contains("unblock") {
-            b' '
-        } else {
-            0u8
-        };
-        while pos < after_skip.len() {
-            if let Some(mr) = max_records
-                && records_read >= mr + usize::from(final_bytes > 0)
-            {
-                break;
-            }
-            let wanted = if let Some(mr) = max_records
-                && records_read >= mr
-            {
-                final_bytes
-            } else {
-                ibs
-            };
-            let end = (pos + wanted).min(after_skip.len());
-            let mut blk = after_skip[pos..end].to_vec();
-            pos = end;
-            records_read += 1;
-            if blk.len() == ibs {
-                input_full += 1;
-            } else {
-                input_partial += 1;
-            }
-            if sync_pad && blk.len() < ibs {
-                blk.resize(ibs, sync_fill);
-            }
-            blocks.push(blk);
         }
     }
 
@@ -17598,79 +17518,155 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
     let do_unblock = conv_set.contains("unblock");
     let do_swab = conv_set.contains("swab");
 
-    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut result = ok_out("");
+    let mut out_bytes = Vec::new();
+    let mut output_record = Vec::new();
+    let mut total_b = 0u64;
+    let mut write_record = |record: &[u8]| {
+        if out_file.is_none() {
+            if !write(1, &crate::vfs::bytes_to_stream_string(record), &mut result) { return false; }
+        } else if out_file.as_deref() != Some("/dev/null") {
+            out_bytes.extend_from_slice(record);
+        }
+        total_b += record.len() as u64;
+        true
+    };
+    let mut emit = |mut bytes: &[u8]| -> Result<(), ()> {
+        while !bytes.is_empty() {
+            if output_record.is_empty() && bytes.len() >= obs {
+                if !write_record(&bytes[..obs]) { return Err(()); }
+                bytes = &bytes[obs..];
+            } else {
+                let n = bytes.len().min(obs - output_record.len());
+                output_record.extend_from_slice(&bytes[..n]);
+                bytes = &bytes[n..];
+                if output_record.len() == obs {
+                    if !write_record(&output_record) { return Err(()); }
+                    output_record.clear();
+                }
+            }
+        }
+        Ok(())
+    };
     let mut column = 0usize;
     let mut spaces = 0usize;
     let mut saved: Option<u8> = None;
     let mut truncated = 0usize;
 
-    let mut record_byte = |b: u8, out: &mut Vec<u8>| {
+    let mut record_byte = |b: u8, emit: &mut dyn FnMut(&[u8]) -> Result<(), ()>| -> Result<(), ()> {
         if do_block {
             if b == newline_byte {
-                while column < cbs {
-                    out.push(space_byte);
-                    column += 1;
-                }
+                while column < cbs { emit(&[space_byte])?; column += 1; }
                 column = 0;
             } else {
-                if column < cbs {
-                    out.push(b);
-                } else if column == cbs {
-                    truncated += 1;
-                }
-                column = (column + 1).min(cbs + 1);
+                if column < cbs { emit(&[b])?; }
+                else if column == cbs { truncated += 1; }
+                column = column.saturating_add(1).min(cbs.saturating_add(1));
             }
         } else if do_unblock {
-            if column == cbs {
-                out.push(newline_byte);
-                column = 0;
-                spaces = 0;
-            }
+            if column == cbs { emit(&[newline_byte])?; column = 0; spaces = 0; }
             column += 1;
-            if b == space_byte {
-                spaces += 1;
-            } else {
-                while spaces > 0 {
-                    out.push(space_byte);
-                    spaces -= 1;
-                }
-                out.push(b);
+            if b == space_byte { spaces += 1; }
+            else {
+                while spaces > 0 { emit(&[space_byte])?; spaces -= 1; }
+                emit(&[b])?;
             }
-        } else {
-            out.push(b);
-        }
+        } else { emit(&[b])?; }
+        Ok(())
     };
 
-    for blk in &blocks {
-        for &raw_b in blk {
-            let v = table[raw_b as usize];
-            if do_swab {
-                if let Some(prev) = saved.take() {
-                    record_byte(v, &mut out_bytes);
-                    record_byte(prev, &mut out_bytes);
-                } else {
-                    saved = Some(v);
-                }
-            } else {
-                record_byte(v, &mut out_bytes);
+    let mut input_full = 0usize;
+    let mut input_partial = 0usize;
+    let sync = conv_set.contains("sync");
+    let sync_fill = if do_block || do_unblock { b' ' } else { 0 };
+    let translate = ["ascii", "ebcdic", "ibm", "lcase", "ucase"].iter().any(|name| conv_set.contains(*name));
+    let plain = !translate && !do_block && !do_unblock && !do_swab;
+    let mut record = |bytes: &[u8]| -> Result<(), ()> {
+        if bytes.len() == ibs { input_full += 1; } else { input_partial += 1; }
+        let padding = if sync { ibs - bytes.len() } else { 0 };
+        if plain {
+            emit(bytes)?;
+            let zeros = [0u8; 512];
+            let mut left = padding;
+            while left > 0 {
+                let n = left.min(zeros.len());
+                emit(&zeros[..n])?;
+                left -= n;
             }
+            return Ok(());
+        }
+        for raw in bytes.iter().copied().chain(std::iter::repeat_n(sync_fill, padding)) {
+            let v = table[raw as usize];
+            if do_swab {
+                if let Some(prev) = saved.take() { record_byte(v, &mut emit)?; record_byte(prev, &mut emit)?; }
+                else { saved = Some(v); }
+            } else { record_byte(v, &mut emit)?; }
+        }
+        Ok(())
+    };
+
+    // Without a seekable input, count=0 still skips whole 512-byte records.
+    let mut skip_left = if in_file.is_none() && count == Some(0)
+        && stdin.file.is_some_and(|s| matches!(s.source, super::InputSource::Chunks(_))) {
+        let records = if skip_bytes { skip / ibs } else { skip };
+        records.saturating_mul(512).saturating_add(if skip_bytes { skip % ibs } else { 0 })
+    } else { skip_offset };
+    let maximum = count.map_or(usize::MAX, |n| skip_left.saturating_add(if count_bytes { n } else { n.saturating_mul(ibs) }));
+    let mut partial = Vec::new();
+    let mut writable = true;
+    let mut consume = |chunk: &[u8], _: bool| {
+        let skipped = skip_left.min(chunk.len());
+        skip_left -= skipped;
+        let mut used = skipped;
+        while used < chunk.len() {
+            let n = (ibs - partial.len()).min(chunk.len() - used);
+            let bytes = &chunk[used..used + n];
+            used += n;
+            if partial.is_empty() && n == ibs {
+                writable = record(bytes).is_ok();
+            } else {
+                partial.extend_from_slice(bytes);
+                if partial.len() == ibs {
+                    writable = record(&partial).is_ok();
+                    partial.clear();
+                }
+            }
+            if !writable { break; }
+        }
+        Ok((writable, used))
+    };
+    if maximum != 0 {
+        let read = if let Some(bytes) = file_input {
+            consume(&bytes[..bytes.len().min(maximum)], false).map(|_| ())
+        } else if let Some(source) = stdin.file {
+            source.admit_bounded_read().and_then(|()| source.read(stdin.text, maximum, consume))
+        } else {
+            let bytes = stream_string_to_bytes(stdin.text);
+            if bytes.len() > fs.max_input_bytes() {
+                return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1);
+            }
+            consume(&bytes[..bytes.len().min(maximum)], false).map(|(_, used)| {
+                *stdin.text = crate::vfs::bytes_to_stream_string(&bytes[used..]);
+            })
+        };
+        if let Err(e) = read {
+            result.stderr.push_str(&format!("dd: error reading 'standard input': {e}\n"));
+            result.exit_code = 1;
+            return result;
         }
     }
-    if let Some(prev) = saved.take() {
-        record_byte(prev, &mut out_bytes);
-    }
+    if !writable || (!partial.is_empty() && record(&partial).is_err()) { return result; }
+    if let Some(prev) = saved && record_byte(prev, &mut emit).is_err() { return result; }
     if do_block && column > 0 {
         while column < cbs {
-            out_bytes.push(space_byte);
+            if emit(&[space_byte]).is_err() { return result; }
             column += 1;
         }
     }
-    if do_unblock && column > 0 {
-        out_bytes.push(newline_byte);
-    }
-
-    let output_full = out_bytes.len() / obs;
-    let output_partial = usize::from(!out_bytes.len().is_multiple_of(obs));
+    if do_unblock && column > 0 && emit(&[newline_byte]).is_err() { return result; }
+    if !output_record.is_empty() && !write_record(&output_record) { return result; }
+    let output_full = total_b / obs as u64;
+    let output_partial = usize::from(!total_b.is_multiple_of(obs as u64));
 
     let mut stderr = warnings.concat();
     if status_level != "none" {
@@ -17684,7 +17680,6 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
             ));
         }
         if status_level != "noxfer" {
-            let total_b = out_bytes.len();
             stderr.push_str(&format!(
                 "{total_b} {} copied, 0 s, Infinity B/s\n",
                 if total_b == 1 { "byte" } else { "bytes" }
@@ -17731,11 +17726,8 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) 
             exit_code: 0,
         }
     } else {
-        BuiltinOutcome {
-            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-            stderr,
-            exit_code: 0,
-        }
+        result.stderr.push_str(&stderr);
+        result
     }
 }
 

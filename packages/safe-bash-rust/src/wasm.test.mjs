@@ -543,6 +543,24 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("dd stops pulling input when a converted output record exceeds the limit", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, pullsAtLimit] of [
+      ["bs=4", 2],
+      ["ibs=4 obs=3 conv=swab,ucase", 3],
+      ["ibs=4 obs=4 cbs=6 conv=block", 2],
+    ]) {
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (let i = 0; i < 5; i++) { pulls++; yield Uint8Array.of(97,98,99,10); }
+      }};
+      await assert.rejects(bash.exec(`dd ${args} status=none`, {stdin,limits:{maxOutputBytes:6}}), {limit:"maxOutputBytes"});
+      assert.equal(pulls, pullsAtLimit, args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("dd honors count, charges the producer chunk, and leaves its unread suffix for the next command", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/in":"FILE"}});
   try {

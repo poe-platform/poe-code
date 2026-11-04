@@ -9239,6 +9239,22 @@ test("pr keeps the completed prefix and reports redirected input errors in order
   } finally { bash.dispose(); }
 });
 
+test("pr measures headers in bytes and checks the locale and timezone only for printed headers", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands());
+  const rs = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [env, flags, stdin] of [
+      ["LC_ALL=C","-h é","row\n"], ["LC_ALL=C.UTF-8","-h é","row\n"], ["LC_ALL=C.UTF-8","-t -h é","row\n"],
+      ["TZ=Europe/Paris","","row\n"], ["TZ=Europe/Paris","",""], ["TZ=UTC","","row\n"],
+    ]) {
+      const cmd = env + " pr --date-format=date " + flags;
+      const a = await js.exec(cmd,{stdin}), b = await rs.exec(cmd,{stdin});
+      assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],cmd);
+    }
+  } finally { rs.dispose(); }
+});
+
 test("pr timestamps stdin and merged pages from the clock and files from their mtime", async (t) => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

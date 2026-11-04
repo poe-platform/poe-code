@@ -12993,6 +12993,7 @@ fn pr_fs_reason(error: &str) -> &str {
 }
 
 enum PrStop {
+    Header(&'static str),
     Read(String),
     Write,
 }
@@ -13398,11 +13399,12 @@ impl PrFormatter {
         }
     }
 
-    fn header(&mut self, date: &str, name: &str) {
+    fn header(&mut self, date: &str, name: Result<&str, &'static str>) -> Result<(), PrStop> {
+        let name = name.map_err(PrStop::Header)?;
         self.output_position = 0;
         self.pad(self.opts.margin);
         self.white();
-        let print_w = |s: &str| s.chars().filter(|&c| c >= ' ' && c != '\x7f').count();
+        let print_w = |s: &str| s.bytes().filter(|&b| b >= b' ' && b != 127).count();
         let page = format!("Page {}", self.page_number);
         let used = print_w(date) + print_w(name) + print_w(&page);
         let available = self.opts.width.saturating_sub(used);
@@ -13416,9 +13418,10 @@ impl PrFormatter {
         self.append(&hdr);
         self.need_header = false;
         self.output_position = 0;
+        Ok(())
     }
 
-    fn read_col(&mut self, col_idx: usize, io: &mut PrIo<'_, '_>, date: &str, name: &str) -> Result<(), PrStop> {
+    fn read_col(&mut self, col_idx: usize, io: &mut PrIo<'_, '_>, date: &str, name: Result<&str, &'static str>) -> Result<(), PrStop> {
         let r_idx = self.columns[col_idx].reader_idx;
         let mut byte = io.get(r_idx)?;
         if byte == 12 && self.columns[col_idx].full {
@@ -13433,7 +13436,7 @@ impl PrFormatter {
             self.feed_only = true;
             if self.need_header && !self.store {
                 self.vertical = true;
-                self.header(date, name);
+                self.header(date, name)?;
             } else if self.opts.keep_ff {
                 self.print_feed = true;
             }
@@ -13456,7 +13459,7 @@ impl PrFormatter {
         if !self.storing {
             self.vertical = true;
             if self.need_header && !self.store {
-                self.header(date, name);
+                self.header(date, name)?;
             }
             if self.opts.merge && self.align_empty {
                 let pending = self.separators;
@@ -13530,10 +13533,10 @@ impl PrFormatter {
         })
     }
 
-    fn stored_line(&mut self, col_idx: usize, date: &str, name: &str) {
+    fn stored_line(&mut self, col_idx: usize, date: &str, name: Result<&str, &'static str>) -> Result<(), PrStop> {
         self.vertical = true;
         if self.need_header {
-            self.header(date, name);
+            self.header(date, name)?;
         }
         if self.columns[col_idx].status == PrColStatus::Feed {
             for c in &mut self.columns {
@@ -13543,13 +13546,13 @@ impl PrFormatter {
                 if !self.opts.extremities {
                     self.vertical = false;
                 }
-                return;
+                return Ok(());
             }
         }
         let cur = self.columns[col_idx].current;
         self.columns[col_idx].current += 1;
         let Some(line) = self.columns[col_idx].lines.get(cur).cloned() else {
-            return;
+            return Ok(());
         };
         if self.opts.separator.len() < self.padding {
             let p = self.padding - self.opts.separator.len();
@@ -13569,6 +13572,7 @@ impl PrFormatter {
                 self.output_position = self.output_position.saturating_sub(self.opts.separator.len());
             }
         }
+        Ok(())
     }
 
     fn run(
@@ -13576,7 +13580,7 @@ impl PrFormatter {
         io: &mut PrIo<'_, '_>,
         col_reader_indices: &[usize],
         date: &str,
-        name: &str,
+        name: Result<&str, &'static str>,
     ) -> Result<(), PrStop> {
         let count = if self.opts.merge {
             col_reader_indices.len()
@@ -13678,7 +13682,7 @@ impl PrFormatter {
                         self.feed_only = false;
                         self.padding = self.columns[col_idx].start;
                         if self.store {
-                            self.stored_line(col_idx, date, name);
+                            self.stored_line(col_idx, date, name)?;
                         } else {
                             self.read_col(col_idx, io, date, name)?;
                         }
@@ -14312,9 +14316,19 @@ fn cmd_pr(
                 first_name
             }
         });
-        match formatter.run(&mut io, &col_reader_indices, &date_str, &title) {
+        let header = if !matches!(env.get("TZ").map(String::as_str), None | Some("" | "UTC" | "UTC0" | ":UTC" | "GMT" | "GMT0")) {
+            Err("only UTC timezones are supported for headers")
+        } else if matches!(ctype, "C.UTF-8" | "C.utf8") && !title.is_ascii() {
+            Err("non-ASCII headers require the C locale")
+        } else { Ok(title.as_str()) };
+        match formatter.run(&mut io, &col_reader_indices, &date_str, header) {
             Ok(()) => { if io.flush().is_err() { return out; } }
             Err(PrStop::Write) => return out,
+            Err(PrStop::Header(message)) => {
+                if io.flush().is_ok() { (io.write)(2, &format!("pr: {message}\n")); }
+                exit_code = 1;
+                break;
+            }
             Err(PrStop::Read(e)) => {
                 if io.row(&mut formatter.rendered).is_ok() && io.flush().is_ok() {
                     (io.write)(2, &e);

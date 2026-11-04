@@ -2027,35 +2027,33 @@ fn cmd_ln(
         Ok(p) => p, Err(e) => return err_out(&format!("ln: {e}\n"),1),
     };
     let follow_dir = target_dir.is_some() || !no_deref;
-    let target_base = match fs.access_path(&target_operand, false) {
-        Ok(path) => Some(path),
-        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
-        Err(e) => {
-            let syscall = if no_target_dir || !follow_dir { "lstat" } else { "stat" };
-            return err_out(&format!("ln: {}\n", copy_error(&e, syscall, &target_operand)), 1);
+    let directory = if no_target_dir { false } else {
+        let syscall = if follow_dir { "stat" } else { "lstat" };
+        match fs.inspect_command_entry(&target_operand, follow_dir, syscall) {
+            Ok((_, st)) => st.kind == VfsEntryKind::Directory,
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => false,
+            Err(e) if follow_dir && (e.starts_with("ELOOP:") || e.starts_with("ENOTDIR:"))
+                && fs.inspect_command_entry(&target_operand, false, "lstat").is_ok_and(|(_, st)| st.kind == VfsEntryKind::Symlink) => false,
+            Err(e) => return err_out(&format!("ln: {}\n", copy_error(&e, syscall, &target_operand)), 1),
         }
     };
-    let directory = if no_target_dir { None } else {
-        match fs.inspect_command_entry(&target_operand, follow_dir, if follow_dir { "stat" } else { "lstat" }) {
-            Ok((path, st)) if st.kind == VfsEntryKind::Directory => Some(path),
-            Ok(_) => None,
-            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
-            Err(e) => return err_out(&format!("ln: {}\n", copy_error(&e, if follow_dir { "stat" } else { "lstat" }, &target_operand)), 1),
-        }
-    };
-    if (target_dir.is_some() || eff_operands.len() > 2) && directory.is_none() {
+    if (target_dir.is_some() || eff_operands.len() > 2) && !directory {
         return err_out(&format!("ln: ENOTDIR: not a directory '{target_operand}'\n"), 1);
     }
-
+    // Production joins a child to the directory operand before resolving that child.
+    let destination_for = |source: &str| {
+        if !directory { return target_operand.clone(); }
+        let name = source.trim_end_matches('/').rsplit('/').next().unwrap_or("");
+        let mut dst = normalize_posix_path(&child_disp_path(&target_operand, name));
+        if name.is_empty() && target_operand.ends_with('/') && dst != "/" { dst.push('/'); }
+        dst
+    };
     for operand in &eff_operands[..eff_operands.len()-1] {
-        let dst = directory.as_ref().map_or_else(|| target_base.as_ref().unwrap_or(&target_operand).clone(), |d| child_disp_path(d, &basename_posix_path(operand)));
-        let supported = if symbolic {
-            let entry = fs.access_path(&dst, true).unwrap_or_else(|_| dst.clone());
-            fs.supports_symbolic_links(&entry)
-        } else { fs.supports_hard_links(&dst) };
+        let dst = destination_for(operand);
+        let entry = fs.access_path(&dst, symbolic).unwrap_or_else(|_| dst.clone());
+        let supported = if symbolic { fs.supports_symbolic_links(&entry) } else { fs.supports_hard_links(&entry) };
         if !supported {
-            let label = if directory.is_some() { child_disp_path(&target_operand, &basename_posix_path(operand)) } else { target_operand.clone() };
-            return err_out(&format!("ln: ENOTSUP: operation not supported, ln '{label}'\n"), 1);
+            return err_out(&format!("ln: ENOTSUP: operation not supported, ln '{dst}'\n"), 1);
         }
     }
     let mut stdout = String::new();
@@ -2065,18 +2063,15 @@ fn cmd_ln(
     let mut answers = PromptAnswers::new(stdin);
 
     for src_op in &eff_operands[..eff_operands.len() - 1] {
-        let base_name = basename_posix_path(src_op);
-        let link_path = if let Some(dir) = &directory {
-            child_disp_path(dir, &base_name)
-        } else {
-            target_base.as_ref().unwrap_or(&target_operand).clone()
+        let destination = destination_for(src_op);
+        let resolved = match fs.access_path(&destination, false) {
+            Ok(path) => Some(path),
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+            Err(e) => { stderr.push_str(&format!("ln: {}\n", copy_error(&e, "lstat", &destination))); code = 1; continue; }
         };
-        let disp_target = if directory.is_some() {
-            child_disp_path(last_op, &base_name)
-        } else {
-            last_op.clone()
-        };
-        let existing = target_base.as_ref().and_then(|_| fs.lstat(&link_path).ok());
+        let existing = resolved.as_ref().and_then(|p| fs.lstat(p).ok());
+        let link_path = resolved.unwrap_or_else(|| destination.clone());
+        let disp_target = if directory { child_disp_path(last_op, &basename_posix_path(src_op)) } else { last_op.clone() };
         let replacing = existing.is_some() && (force || interactive || backup_mode != BackupMode::None);
         let operand = if !symbolic || replacing {
             match command_operand(cwd,src_op) {
@@ -2096,8 +2091,8 @@ fn cmd_ln(
                 }
             }
         };
-        if !symbolic && src_full == link_path {
-            stderr.push_str(&format!("ln: EEXIST: file already exists '{link_path}'\n"));
+        if !symbolic && (if logical { src_full == destination } else { absolute_operand(cwd, src_op) == destination }) {
+            stderr.push_str(&format!("ln: EEXIST: file already exists '{destination}'\n"));
             code = 1;
             continue;
         }
@@ -2121,7 +2116,7 @@ fn cmd_ln(
                 continue;
             }
             if !force && !interactive && backup_mode == BackupMode::None {
-                stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"));
+                stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{destination}'\n"));
                 code = 1;
                 continue;
             }
@@ -2166,17 +2161,14 @@ fn cmd_ln(
             }
         }
         let stored_target = relative_target.as_deref().unwrap_or(src_op);
-        let result = if symbolic {
-            let destination = if directory.is_some() { child_disp_path(&target_operand, &base_name) } else { target_operand.clone() };
-            fs.symlink(stored_target, &destination)
-        }
+        let result = if symbolic { fs.symlink(stored_target, &destination) }
             else { fs.hard_link(&src_full, &link_path) };
         if let Err(e) = result {
             if let Some(backup) = moved_backup && let Err(e) = fs.rename(&backup, &link_path, true) {
-                stderr.push_str(&format!("ln: {e}, restoring '{backup}' -> '{link_path}'\n"));
+                stderr.push_str(&format!("ln: {e}, restoring '{backup}' -> '{destination}'\n"));
             }
             if !symbolic && e.starts_with("EEXIST:") {
-                stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"));
+                stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{destination}'\n"));
             } else if !symbolic { stderr.push_str(&format!("ln: {}\n", hard_link_error(&e, &src_full, &link_path))); }
             else { stderr.push_str(&format!("ln: {e}\n")); }
             code = 1;
@@ -6272,6 +6264,32 @@ mod tests {
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/w/a").unwrap(),b"A");
             assert!(!fs.exists("/copy"));
+        }
+    }
+
+    #[test]
+    fn ln_uses_the_joined_child_for_every_phase_of_directory_replacement() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/tree/dir").unwrap();
+        fs.symlink("/tree/dir", "/alias").unwrap();
+        fs.write_file("/tree/src", b"untouched").unwrap();
+        fs.write_file("/src", b"source").unwrap();
+        let r = try_run_fs_command("ln", &args(&["-sf", "/src", "/alias/.."]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(fs.read_file("/tree/src").unwrap(), b"untouched");
+        assert_eq!(r.stderr, "ln: EEXIST: source and destination are the same file '/src'\n");
+        assert_eq!(r.exit_code, 1);
+    }
+
+    #[test]
+    fn ln_can_replace_a_final_symlink_whose_target_cannot_be_traversed() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/file", b"keep").unwrap();
+        for (path, target) in [("/loop", "/loop"), ("/broken", "/file/child")] {
+            fs.symlink(target, path).unwrap();
+            let r = try_run_fs_command("ln", &args(&["-sb", "new", path]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(fs.readlink(path).unwrap(), "new");
+            assert_eq!(fs.readlink(&format!("{path}~")).unwrap(), target);
         }
     }
 

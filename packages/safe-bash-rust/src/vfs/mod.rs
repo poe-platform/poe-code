@@ -589,11 +589,10 @@ pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
     if let Ok(s) = std::str::from_utf8(bytes) {
         return shell_text(s).into_owned();
     }
-    let mut out = String::with_capacity(bytes.len() * 2);
-    for &b in bytes {
-        if b < 0x80 {
-            out.push(b as char);
-        } else {
+    let mut out = String::with_capacity(bytes.len());
+    for chunk in bytes.utf8_chunks() {
+        out.push_str(&shell_text(chunk.valid()));
+        for &b in chunk.invalid() {
             out.push(char::from_u32(0xE000 + b as u32).unwrap());
         }
     }
@@ -710,6 +709,15 @@ mod tests {
         let s = bytes_to_stream_string(mixed);
         let roundtrip = stream_string_to_bytes(&s);
         assert_eq!(roundtrip, mixed);
+    }
+
+    #[test]
+    fn valid_utf8_on_either_side_of_a_raw_byte_keeps_its_characters() {
+        let bytes = ["é".as_bytes(), &[0xff], "🌍\u{e080}".as_bytes(), &[0xc3]].concat();
+        let text = bytes_to_stream_string(&bytes);
+        assert!(text.starts_with("é\u{e0ff}🌍"));
+        assert_eq!(stream_string_to_bytes(&text), bytes);
+        assert_eq!(stream_byte_len(&text), bytes.len());
     }
 
     #[test]

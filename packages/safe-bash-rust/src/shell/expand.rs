@@ -212,10 +212,6 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool
                     ti += 1;
                     continue;
                 }
-            } else if pi < p.len() && (p[pi] == '?' || chars_eq(p[pi], t[ti], nocase)) {
-                pi += 1;
-                ti += 1;
-                continue;
             } else if pi < p.len() && p[pi] == '[' {
                 match match_bracket(&p[pi..], t[ti], nocase) {
                     Some((true, next_pi)) => {
@@ -232,6 +228,10 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool
                         }
                     }
                 }
+            } else if pi < p.len() && (p[pi] == '?' || chars_eq(p[pi], t[ti], nocase)) {
+                pi += 1;
+                ti += 1;
+                continue;
             }
             if let Some(sp) = star_pi {
                 pi = sp + 1;
@@ -4931,6 +4931,13 @@ mod tests {
         assert_eq!(decode_ansi_c_escapes(r"uv\u0000wx"), "uv");
         assert_eq!(decode_ansi_c_escapes(r"ctrl\c@tail"), "ctrl");
         assert_eq!(decode_ansi_c_escapes(r"\u-\U"), r"\u-\U");
+    }
+
+    #[test]
+    fn opening_bracket_in_text_does_not_disable_the_pattern_class() {
+        assert!(!glob_match("[*]", "[]"));
+        assert!(glob_match("[[]", "["));
+        assert!(glob_match("[", "["));
     }
 
     #[test]

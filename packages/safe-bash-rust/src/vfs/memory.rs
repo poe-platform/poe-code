@@ -1107,10 +1107,8 @@ impl SafeBashFs for MemoryVfs {
 
     fn open_chunks_sized(&self, path: &str, size: std::num::NonZeroUsize) -> Result<super::ChunkReader<'_>, String> {
         let size = size.get().min(65536);
-        let (resolved, devices) = {
-            let state = self.state.read().map_err(|e| e.to_string())?;
-            (Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?, state.devices)
-        };
+        let resolved = self.access_path(path, true)?;
+        let devices = self.state.read().map_err(|e| e.to_string())?.devices;
         match devices.entry(&resolved) {
             Some("null") => Ok(Box::new(|chunk| { chunk.clear(); Ok(()) })),
             Some(name @ ("zero" | "random" | "urandom")) => {
@@ -1921,6 +1919,18 @@ mod tests {
         fs.commit_file_edit("/f", &linked, b"abc", b"def", true).unwrap();
         assert_eq!(fs.read_file("/alias").unwrap(), b"def");
         assert_eq!(fs.stat("/alias").unwrap().identity, original.identity);
+    }
+
+    #[test]
+    fn file_streams_check_ancestor_search_permissions_before_opening() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/private").unwrap();
+        fs.write_file("/private/a", b"hidden").unwrap();
+        fs.write_file("/public", b"visible").unwrap();
+        fs.chmod("/private", 0o600).unwrap();
+        for path in ["/private/a", "/private/../public"] {
+            assert!(fs.open_chunks(path).err().is_some_and(|e| e.starts_with("EACCES:")), "{path}");
+        }
     }
 
     #[test]

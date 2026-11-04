@@ -1742,6 +1742,33 @@ test("plugin file reads share the script's filesystem quota and obey path and si
   } finally { await bash.dispose(); }
 });
 
+test("plugin filesystem capabilities allow private output and inspection of links and permissions", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  async function run(sh, fs, maxFileSystemOperations) {
+    const seen = [];
+    await fs.writeFile("/target",Uint8Array.of(1));
+    await fs.symlink("/target","/alias");
+    sh.register({name:"saveprivate",async execute({fs}) {
+      const caps = fs.capabilities;
+      for (const key of ["read","write","append","exclusiveCreate","stat","realpath","access"]) assert.equal(caps[key],true,key);
+      seen.push(await fs.readlink("/alias"), await fs.realpath("/alias"));
+      await fs.access("/target",4);
+      await fs.writeFile("/private",Uint8Array.of(2),{flag:"wx",mode:0o600});
+      try { await fs.writeFile("/private",Uint8Array.of(3),{flag:"wx"}); } catch (error) { seen.push(error.code); }
+      await fs.chmod("/private",0o640);
+      return {exitCode:0};
+    }});
+    try {
+      const result = await sh.exec("saveprivate",{onInternalError:e=>seen.push(e.message),limits:{maxFileSystemOperations}}).then(r=>[r.exitCode,r.stderr],e=>e.limit??e.message);
+      return [result,seen,await fs.stat("/private").then(s=>s.mode&0o777,()=>null)];
+    } finally { await sh.dispose(); }
+  }
+  for (const limit of [3,5,6]) {
+    const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+    assert.deepEqual(await run(rust,rust.fs,limit),await run(js,fs,limit),"limit "+limit);
+  }
+});
+
 test("plugin directory creation and removal honor umask and share the execution quota", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const run = async (sh, fs, maxFileSystemOperations) => {

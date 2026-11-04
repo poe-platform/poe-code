@@ -179,6 +179,10 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const slots = [], cleanupFailures = [], top = x.__stack_pointer.value;
   const signal = options.signal ?? new AbortController().signal;
   const {onInternalError} = options;
+  const backing = fs.capabilities;
+  const capabilities = Object.freeze(Object.fromEntries(
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate"].map(key => [key, backing[key]])));
+
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
     if (!signal.aborted && cleanupFailures.length) {
@@ -234,6 +238,15 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             return fs[operation](path, data, options);
           };
           const commandFs = {
+            capabilities,
+            async access(path, mode, settings) {
+              admitPath(path, settings);
+              return fs.access(path, mode, settings);
+            },
+            async chmod(path, mode, settings) {
+              admitPath(path, settings);
+              return fs.chmod(path, mode, settings);
+            },
             async mkdir(path, settings) {
               admitPath(path, settings);
               const options = {...settings};
@@ -244,7 +257,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
           };
-          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm"]) {
+          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "readlink", "realpath"]) {
             commandFs[operation] = async (path, settings) => {
               admitPath(path, settings);
               return fs[operation](path, settings);
@@ -487,7 +500,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 }
 
 const wasmCapabilities = Object.freeze({
-  write: true, append: true, read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
+  write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
   conditionalChmod: true, permissions: true, readlink: true, symlinks: true,
 });
 

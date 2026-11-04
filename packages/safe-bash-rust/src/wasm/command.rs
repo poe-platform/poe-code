@@ -174,6 +174,15 @@ fn host_handler(invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -
         for (key, value) in ctx.env.iter() {
             if crate::shell::is_exported_scalar(ctx.env, key) { field(key); field(value); envc += 1; }
         }
+        let state = ctx.caller.state();
+        for name in &state.exported_functions {
+            if let Some(body) = state.functions.get(name) {
+                let display = crate::shell::eval::format_function_display(name,body);
+                field(&format!("BASH_FUNC_{name}%%"));
+                field(display[name.len()+1..].trim_end());
+                envc += 1;
+            }
+        }
         packet[4..8].copy_from_slice(&envc.to_le_bytes());
         let input_start = packet.len();
         let mut middleware_input = middleware.then(||ctx.stdin.to_owned());

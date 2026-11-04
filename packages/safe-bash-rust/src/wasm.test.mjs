@@ -1617,6 +1617,60 @@ test("middleware restores arrays, preserves replacements and honors directory st
   try{assert.deepEqual(await run(rust),await run(js));}finally{await js.dispose();await rust.dispose();}
 });
 
+test("ctx.invoke inherits the current context before, inside and after the middleware terminal",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh)=>{
+    sh.use({name:"child-test",setup(host){
+      host.commands.register({name:"parent",async execute(ctx){
+        await ctx.invoke("inspect",[]);
+        ctx.env={...ctx.env,MARK:"handler"};
+        await ctx.invoke("inspect",[],{cwd:"next",env:{EXTRA:"explicit"}});
+        return {exitCode:0};
+      }});
+    }});
+    sh.use(async(ctx,next)=>{
+      if(ctx.command!=="parent")return next();
+      ctx.cwd="/work";ctx.env.MARK="middleware";delete ctx.env.DROP;
+      await ctx.invoke("inspect",[]);
+      const r=await next();
+      await ctx.invoke("inspect",[]);
+      return r;
+    });
+    const r=await sh.exec('mkdir -p /work/next; export MARK=original DROP=old; inspect(){ pwd; echo "$MARK:${DROP-absent}:${EXTRA-absent}"; }; parent; inspect');
+    return [r.exitCode,r.stdout,r.stderr];
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const expected=await run(js);
+    assert.deepEqual(expected,[0,"/work\nmiddleware:absent:absent\n/work\nmiddleware:absent:absent\n/work/next\nhandler:absent:explicit\n/work\nhandler:absent:absent\n/\noriginal:old:absent\n",""]);
+    assert.deepEqual(await run(rust),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+test("host commands inherit exported functions and can remove them from external invocations",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh)=>{
+    let definition;
+    sh.use({name:"function-env",setup(host){
+      host.commands.register({name:"driver",async execute(ctx){
+        definition=ctx.env["BASH_FUNC_f%%"];
+        await ctx.invoke("f",[],{externalInvocation:true});
+        delete ctx.env["BASH_FUNC_f%%"];
+        return ctx.invoke("f",[],{externalInvocation:true});
+      }});
+    }});
+    const r=await sh.exec('f(){ echo inherited; }; export -f f; driver');
+    return [definition,r.exitCode,r.stdout,r.stderr];
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const expected=await run(js);
+    assert.equal(expected[1],127);
+    assert.equal(expected[2],"inherited\n");
+    assert.deepEqual(await run(rust),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("middleware replacements reach builtins, functions and registered commands with literal byte arguments",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const {createCommandArguments}=await import("safe-bash-contracts");

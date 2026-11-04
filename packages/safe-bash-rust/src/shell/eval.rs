@@ -190,9 +190,10 @@ impl CommandContext<'_> {
         self.budget.enter_substitution()?;
         let result = (|| {
             let mut cwd = resolve_posix_path(self.cwd, options.cwd.unwrap_or("."));
-            let mut env = self.env.clone();
+            let source = if options.replace_env { &*self.caller.state().env } else { &*self.env };
+            let mut env = source.clone();
             if options.replace_env {
-                env.retain(|k,_| !super::is_exported_scalar(self.env,k));
+                env.retain(|k,_| !super::is_exported_scalar(source,k));
             }
             let external = options.external_invocation;
             let exported_functions = self.caller.state().exported_functions.iter().filter(|name| {

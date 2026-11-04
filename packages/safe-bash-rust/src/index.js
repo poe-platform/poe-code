@@ -504,7 +504,9 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if (settings.argv0 !== undefined && (typeof settings.argv0 !== "string" || settings.argv0.includes("\0"))) throw new TypeError("invoke argv0 must be a string without NUL");
             if (settings.admittedHandles || settings.processSignals) throw new Error("Unsupported child process capabilities");
             const carrier = commandContract.getCommandArguments({args,argumentValues:settings.argumentValues});
-            const entries = Object.entries(settings.env ?? {});
+            const childCwd = proceed === undefined ? path.posix.resolve("/",context.cwd,settings.cwd ?? ".") : settings.cwd;
+            const entries = Object.entries(proceed !== undefined || settings.replaceEnv ? settings.env ?? {}
+              : {...context.env,...settings.env,PWD:childCwd});
             if (entries.some(([k,v])=>k.includes("\0") || k.includes("=") || typeof v !== "string" || v.includes("\0"))) throw new TypeError(proceed === undefined ? "Invalid invoke environment entry" : "Invalid middleware environment value");
             const inherited = settings.stdin === undefined || settings.stdin === stdin;
             children ??= new AbortController();
@@ -537,11 +539,11 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 }
               }
               else {
-                word((!definition && inherited?256:0) | (settings.cwd!==undefined?1:0) | (settings.argv0!==undefined?2:0) | (settings.replaceEnv?4:0) | (settings.externalInvocation?8:0)
+                word(1 | 4 | (!definition && inherited?256:0) | (settings.argv0!==undefined?2:0) | (settings.externalInvocation?8:0)
                   | ((settings.stdin===undefined?stdinIsDefault:settings.stdinIsDefault)?16:0)
                   | (stdout===stderr || sharedOutput && sinks.includes(stdout) && sinks.includes(stderr) ? 32:0));
                 word(args.length); word(entries.length); field(name);
-                if (settings.cwd !== undefined) field(settings.cwd);
+                field(childCwd);
                 if (settings.argv0 !== undefined) field(settings.argv0);
                 for (let i=0;i<args.length;i++) field(carrier.bytes(i));
                 for (const [k,v] of entries) { field(k); field(v); }

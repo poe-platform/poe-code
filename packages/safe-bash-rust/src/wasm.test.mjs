@@ -1439,6 +1439,60 @@ test("async Rust commands pull stdin on demand and resume independently", {skip:
   } finally { bash.dispose(); }
 });
 
+test("Wasm host commands inherit exported bindings and preserve bytes in native pipelines", async () => {
+  const bash = new RustWasmBash({cwd:"/", env:{BASE:"initial"}});
+  const x = bash.exports, table = x.__indirect_function_table, slot = table.grow(1);
+  const adapter = new WebAssembly.Module(Uint8Array.of(
+    0,97,115,109,1,0,0,0, 1,8,1,96,3,127,127,127,1,127,
+    2,9,1,0,4,110,101,120,116,0,0, 7,8,1,4,110,101,120,116,0,0,
+  ));
+  const decoder = new TextDecoder(), seen = [];
+  table.set(slot, new WebAssembly.Instance(adapter, {"":{next(ptr, len, reply) {
+    const end = ptr + len, view = new DataView(x.memory.buffer);
+    const word = () => { const n = view.getUint32(ptr, true); ptr += 4; return n; };
+    const bytes = () => { const n = word(), b = new Uint8Array(x.memory.buffer, ptr, n).slice(); ptr += n; return b; };
+    const argc = word(), envc = word(), hasArgv0 = word(), cwd = decoder.decode(bytes());
+    const argv0 = hasArgv0 ? decoder.decode(bytes()) : undefined;
+    const args = Array.from({length:argc}, () => [...bytes()]);
+    const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(bytes()),decoder.decode(bytes())]));
+    const input = new Uint8Array(x.memory.buffer, ptr, end - ptr).slice();
+    seen.push({cwd, argv0, args, env, input:[...input]});
+    for (const [index, out] of [input, Uint8Array.of(254)].entries()) {
+      const p = out.length ? x.safe_bash_alloc(out.length) : 0;
+      new Uint8Array(x.memory.buffer,p,out.length).set(out);
+      const v = new DataView(x.memory.buffer);
+      v.setUint32(reply + index * 8, p, true);
+      v.setUint32(reply + index * 8 + 4, out.length, true);
+    }
+    return argv0 === "bad-status" ? 256 : 23;
+  }}}).exports.next);
+  const name = bash._allocBytes(new TextEncoder().encode("probe"));
+  try {
+    assert.equal(x.safe_bash_register_command(bash.sessionId, name.ptr, name.len, slot), 0);
+    const result = await bash.exec("LOCAL=private; export PUB=public; TMP=once /bin/probe $'\\377' < /data > /out", {});
+    // A failed redirect must not call the host.
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(seen.length, 0);
+    bash.writeFile("/data", Uint8Array.of(0,255,65));
+    const r = await bash.exec("LOCAL=private; export PUB=public; TMP=once /bin/probe $'\\377' </data >/out");
+    assert.equal(r.exitCode, 23);
+    assert.deepEqual([...r.stderrBytes], [254]);
+    assert.deepEqual([...bash.readFile("/out")], [0,255,65]);
+    assert.deepEqual(seen, [{cwd:"/", argv0:"/bin/probe", args:[[255]], env:{BASE:"initial",PWD:"/",PUB:"public",TMP:"once"}, input:[0,255,65]}]);
+    const piped = await bash.exec("printf ok | probe | cat");
+    assert.equal(piped.stdout, "ok");
+    assert.equal(seen.at(-1).argv0, undefined);
+    const alias = await bash.exec("exec -a '' probe");
+    assert.equal(alias.exitCode, 23);
+    assert.equal(seen.at(-1).argv0, "");
+    await assert.rejects(bash.exec("probe </data; touch /late", {limits:{maxOutputBytes:2}}), {limit:"maxOutputBytes"});
+    await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+    const invalid = await bash.exec("exec -a bad-status probe");
+    assert.equal(invalid.exitCode, 1);
+    assert.match(invalid.stderr, /Exit status must be an integer between 0 and 255/);
+  } finally { bash._freeBytes(name); bash.dispose(); }
+});
+
 test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd offsets", () => {
   const bash = new RustWasmBash();
   const x = bash.exports, root = bash.sessionId;

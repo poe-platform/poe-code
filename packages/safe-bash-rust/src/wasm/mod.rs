@@ -1,3 +1,4 @@
+mod command;
 mod descriptor;
 use crate::backend::BackendMode;
 use crate::budget::ShellLimits;

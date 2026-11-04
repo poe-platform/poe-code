@@ -27,6 +27,7 @@ pub struct CommandResult {
 }
 
 pub struct CommandContext<'a> {
+    pub argv0: Option<&'a str>,
     pub args: &'a [String],
     pub stdin: &'a str,
     pub cwd: &'a mut String,

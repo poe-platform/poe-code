@@ -5075,6 +5075,7 @@ impl<'a> EvalState<'a> {
         {
             self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
+                argv0: custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),
                 args,
                 stdin,
                 cwd: self.cwd,

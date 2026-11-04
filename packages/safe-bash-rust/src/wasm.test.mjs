@@ -8698,6 +8698,17 @@ test("awk resolves function names and arity before executing the program", async
   } finally { sh.dispose(); }
 });
 
+test("awk ordchr reads and writes bytes, including through redirection", async () => {
+  const sh = new RustWasmBash({files:{"/bytes":Uint8Array.of(0xfe,0x0a)}});
+  try {
+    const r = await sh.exec(`awk -lordchr 'BEGIN { printf "%s%s%s%s",chr(-1),chr(321),chr(1e100),chr(-258.75) > "/out"; print ord("🍎"),ord("") } {print ord($0)}' /bytes`);
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,"240 0\n254\n",""]);
+    assert.deepEqual([...await sh.fs.readFile("/out")], [255,65,0,254]);
+    const bad = await sh.exec(`awk -lordchr 'BEGIN {print chr("1e999"); print "unreachable"}'`);
+    assert.deepEqual([bad.exitCode,bad.stdout,bad.stderr], [2,"","awk: invalid numeric argument in 'chr'\n"]);
+  } finally { sh.dispose(); }
+});
+
 test("awk keeps source-file bytes and parses the program before opening debugger commands", async () => {
   const sh = new RustWasmBash({files:{"/quit":"quit\n"}});
   try {

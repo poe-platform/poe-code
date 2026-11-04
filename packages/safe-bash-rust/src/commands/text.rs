@@ -3769,17 +3769,20 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             Some(Scalar::Number(-1.0))
         }
         "ord" if !state.funcs.contains_key("ord") => {
-            let s = args.first().map(|a| eval_awk_text(a, state)).unwrap_or_default();
-            let code = s.chars().next().map(|c| c as u32).unwrap_or(0);
-            Some(Scalar::Number(code as f64))
+            let s = eval_awk_text(args.first()?, state);
+            let byte = s.chars().next().map_or(0, |c| {
+                if crate::vfs::is_stream_byte(c) { c as u32 as u8 } else { s.as_bytes()[0] }
+            });
+            Some(Scalar::Number(f64::from(byte)))
         }
         "chr" if !state.funcs.contains_key("chr") => {
-            let n = args
-                .first()
-                .map(|a| eval_awk_value(a, state).number() as u32)
-                .unwrap_or(0);
-            let ch = char::from_u32(n).map(|c| c.to_string()).unwrap_or_default();
-            Some(Scalar::Text(ch))
+            let n = eval_awk_value(args.first()?, state).number();
+            if !n.is_finite() {
+                state.runtime_err = Some("awk: invalid numeric argument in 'chr'\n".into());
+                return Some(Scalar::Unset);
+            }
+            let byte = n.trunc().rem_euclid(256.0) as u8;
+            Some(Scalar::Text(crate::vfs::bytes_to_stream_string(&[byte])))
         }
         "sprintf" => {
             if args.is_empty() {

@@ -927,7 +927,7 @@ impl CopySettings {
 }
 
 fn copy_error(error: &str, op: &str, path: &str) -> String {
-    if error.split_once(", ").is_some_and(|(_, at)| at.starts_with("realpath '") || at.starts_with("overlay '")) {
+    if error.starts_with("ENAMETOOLONG: name too long, resolve '") || error.split_once(", ").is_some_and(|(_, at)| at.starts_with("realpath '") || at.starts_with("overlay '")) {
         return error.to_owned();
     }
     let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
@@ -7328,6 +7328,20 @@ mod tests {
                 "inode/chardevice\n",
             )
         );
+    }
+
+    #[test]
+    fn path_limits_report_resolution_after_charging_the_operation() {
+        let (mut shell, _) = crate::Shell::with_memory_fs();
+        for (script, label) in [
+            ("du -b /a/b", "du: \"/a/b\": "), ("du -b -X /a/b /x", "du: "),
+            ("stat /a/b", "stat: ENAMETOOLONG: "), ("cp /a/b /c", "cp: ENAMETOOLONG: "),
+        ] {
+            shell.set_limits(crate::ShellLimits { max_pathname_components: 1, max_filesystem_operations: 0, ..Default::default() });
+            assert!(shell.exec(script).unwrap_err().contains("maxFileSystemOperations"), "{script}");
+            shell.set_limits(crate::ShellLimits { max_pathname_components: 1, ..Default::default() });
+            assert_eq!(shell.exec(script).unwrap().stderr, format!("{label}name too long, resolve '/a/b'\n"));
+        }
     }
 
     #[test]

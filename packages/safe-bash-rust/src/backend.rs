@@ -130,8 +130,8 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, crate::vfs::FileStat), String> {
-        self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
+        self.budget.limits.check_path(path)?;
         self.inner.inspect_command_entry(&host_text(path), follow, syscall).map(|(p, st)| (quote_host_text(p), st)).map_err(quote_host_text)
     }
 
@@ -180,8 +180,8 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
+        self.budget.limits.check_path(path)?;
         self.inner.read_file(&host_text(path)).map_err(quote_host_text)
     }
 

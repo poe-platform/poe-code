@@ -2904,7 +2904,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
                 line_out.push_str(&state.ors);
             }
             if let Some((append, target_expr)) = redir {
-                let target_path = eval_awk_text(&target_expr, state);
+                let target_path = eval_awk_text(target_expr, state);
                 state.write_redirect(&target_path, append, &line_out);
             } else {
                 state.print(&line_out);
@@ -2927,7 +2927,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
                 let vals: Vec<_> = args[1..].iter().map(|a| eval_awk_value(a, state)).collect();
                 let formatted = state.formatted(format_awk_printf(&fmt_str, &vals, Some(&state.convfmt)));
                 if let Some((append, target_expr)) = redir {
-                    let target_path = eval_awk_text(&target_expr, state);
+                    let target_path = eval_awk_text(target_expr, state);
                     state.write_redirect(&target_path, append, &formatted);
                 } else {
                     state.print(&formatted);
@@ -3296,6 +3296,11 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     if s.starts_with(|c: char| c.is_ascii_digit() || c == '.') && let Ok(n) = s.parse::<f64>() {
         return Scalar::Number(n);
     }
+    if is_valid_awk_ident(s) && s != "getline" { return state.get_var(s); }
+    if let Some(field) = s.strip_prefix('$')
+        && !field.is_empty() && (field.bytes().all(|b| b.is_ascii_digit()) || is_valid_awk_ident(field)) {
+        return state.field_index(field).map_or(Scalar::Unset, |idx| state.get_field(idx));
+    }
     if is_single_awk_string_literal(s) {
         return Scalar::Text(unescape_sed_text(&s[1..s.len() - 1]));
     }
@@ -3310,34 +3315,34 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
             if op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
                 continue;
             }
-            let rval = eval_awk_value(&rhs, state);
+            let rval = eval_awk_value(rhs, state);
             let final_val = if op == "=" {
                 rval
             } else {
-                let lnum = eval_awk_value(&lhs, state).number();
+                let lnum = eval_awk_value(lhs, state).number();
                 let rnum = rval.number();
                 state.arithmetic(op.as_bytes()[0], lnum, rnum)
             };
-            assign_awk_lvalue(&lhs, final_val.clone(), state);
+            assign_awk_lvalue(lhs, final_val.clone(), state);
             return final_val;
         }
     }
 
     if let Some((cond_part, branches)) = split_awk_binary_once(s, "?") {
-        if let Some((t_branch, f_branch)) = split_awk_binary_once(&branches, ":") {
-            return if eval_awk_cond(&cond_part, state) {
-                eval_awk_value(&t_branch, state)
+        if let Some((t_branch, f_branch)) = split_awk_binary_once(branches, ":") {
+            return if eval_awk_cond(cond_part, state) {
+                eval_awk_value(t_branch, state)
             } else {
-                eval_awk_value(&f_branch, state)
+                eval_awk_value(f_branch, state)
             };
         }
     }
 
     if let Some((a, b)) = split_awk_binary_once(s, "||") {
-        return Scalar::Number(f64::from(eval_awk_cond(&a, state) || eval_awk_cond(&b, state)));
+        return Scalar::Number(f64::from(eval_awk_cond(a, state) || eval_awk_cond(b, state)));
     }
     if let Some((a, b)) = split_awk_binary_once(s, "&&") {
-        return Scalar::Number(f64::from(eval_awk_cond(&a, state) && eval_awk_cond(&b, state)));
+        return Scalar::Number(f64::from(eval_awk_cond(a, state) && eval_awk_cond(b, state)));
     }
 
     if let Some(gl_rest) = s.strip_prefix("getline")
@@ -3361,7 +3366,7 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
 
     for cmp_op in ["==", "!=", "<=", ">=", "!~", "~", "<", ">"] {
         if let Some((lhs, rhs)) = split_awk_binary_once(s, cmp_op) {
-            let lv = eval_awk_value(&lhs, state);
+            let lv = eval_awk_value(lhs, state);
             if cmp_op == "~" || cmp_op == "!~" {
                 let raw_pat = rhs.trim();
                 let pat_owned = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
@@ -3374,7 +3379,7 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
                 let ok = if cmp_op == "~" { matched } else { !matched };
                 return Scalar::Number(f64::from(ok));
             }
-            let rv = eval_awk_value(&rhs, state);
+            let rv = eval_awk_value(rhs, state);
             let cmp = match lv.compare(&rv, &state.convfmt) {
                 Ok(cmp) => cmp,
                 Err(e) => { state.formatted(Err(e)); return Scalar::Unset; }
@@ -3393,7 +3398,7 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     }
 
     if let Some((lhs, rhs)) = split_awk_binary_once(s, " in ") {
-        let key = eval_awk_array_key(&lhs, state);
+        let key = eval_awk_array_key(lhs, state);
         let arr_name = rhs.trim();
         let present = state
             .arrays
@@ -3979,42 +3984,42 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
     }
 }
 
-fn split_awk_redirection(s: &str) -> (String, Option<(bool, String)>) {
+fn split_awk_redirection(s: &str) -> (&str, Option<(bool, &str)>) {
     if let Some((lhs, rhs)) = split_awk_binary_once(s, ">>") {
-        return (lhs, Some((true, rhs.trim().to_string())));
+        return (lhs, Some((true, rhs.trim())));
     }
     if let Some((lhs, rhs)) = split_awk_binary_once(s, ">") {
-        return (lhs, Some((false, rhs.trim().to_string())));
+        return (lhs, Some((false, rhs.trim())));
     }
-    (s.to_string(), None)
+    (s, None)
 }
 
-fn split_awk_binary_once(s: &str, op: &str) -> Option<(String, String)> {
-    let chars: Vec<char> = s.chars().collect();
-    let op_chars: Vec<char> = op.chars().collect();
+fn split_awk_binary_once<'a>(s: &'a str, op: &str) -> Option<(&'a str, &'a str)> {
+    if !s.contains(op) { return None; }
+    let bytes = s.as_bytes();
     let mut quote = false;
     let mut in_rx = false;
     let mut paren = 0i32;
     let mut bracket = 0i32;
     let mut i = 0usize;
 
-    while i + op_chars.len() <= chars.len() {
-        let c = chars[i];
-        if c == '\\' {
+    while i + op.len() <= bytes.len() {
+        let c = bytes[i];
+        if c == b'\\' {
             i += 2;
             continue;
         }
-        if c == '"' && !in_rx {
+        if c == b'"' && !in_rx {
             quote = !quote;
             i += 1;
             continue;
         }
-        if !quote && c == '/' {
+        if !quote && c == b'/' {
             if in_rx {
                 in_rx = false;
                 i += 1;
                 continue;
-            } else if awk_chars_allow_regex(&chars, i) {
+            } else if awk_prev_allows_regex(&s[..i]) {
                 in_rx = true;
                 i += 1;
                 continue;
@@ -4022,20 +4027,18 @@ fn split_awk_binary_once(s: &str, op: &str) -> Option<(String, String)> {
         }
         if !quote && !in_rx {
             match c {
-                '(' => paren += 1,
-                ')' => paren -= 1,
-                '[' => bracket += 1,
-                ']' => bracket -= 1,
+                b'(' => paren += 1,
+                b')' => paren -= 1,
+                b'[' => bracket += 1,
+                b']' => bracket -= 1,
                 _ => {}
             }
-            if paren == 0 && bracket == 0 && chars[i..i + op_chars.len()] == op_chars[..] {
-                if op == "=" && i + 1 < chars.len() && chars[i + 1] == '=' {
+            if paren == 0 && bracket == 0 && &bytes[i..i + op.len()] == op.as_bytes() {
+                if op == "=" && i + 1 < bytes.len() && bytes[i + 1] == b'=' {
                     i += 2;
                     continue;
                 }
-                let lhs: String = chars[..i].iter().collect();
-                let rhs: String = chars[i + op_chars.len()..].iter().collect();
-                return Some((lhs, rhs));
+                return Some((&s[..i], &s[i + op.len()..]));
             }
         }
         i += 1;

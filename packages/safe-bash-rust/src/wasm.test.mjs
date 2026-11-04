@@ -12438,3 +12438,33 @@ test("overlay fs.rm removes empty visible directories and preserves nonempty one
     assert.equal(sh.readText("/lower/file"),"keep");
   } finally { sh.dispose(); }
 });
+
+test("mv admits all routed operands before either rename", async () => {
+  for (const profile of ["strict-budgets-mount-dev", "overlay-cow-fs"]) {
+    for (const [limit, moved] of [[3,0],[5,0],[6,1],[7,2]]) {
+      const sh = new RustWasmBash({profile,files:{"/w/a":"A","/w/b":"B","/w/d/keep":"K"}});
+      try {
+        const run = sh.exec("mv a b d",{cwd:"/w",limits:{maxFileSystemOperations:limit}});
+        if (limit < 7) await assert.rejects(run,/maxFileSystemOperations/);
+        else assert.equal((await run).exitCode,0);
+        for (const [i,f] of ["a","b"].entries()) {
+          const dest = i < moved;
+          assert.equal(sh.readText((dest ? "/w/d/" : "/w/")+f),f.toUpperCase());
+          assert.equal((await sh.exec("test -e "+(dest ? "/w/" : "/w/d/")+f)).exitCode,1);
+        }
+      } finally { sh.dispose(); }
+    }
+  }
+});
+
+test("mv preserves the source when an overlay device destination cannot be renamed", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/a":"A"}});
+  try {
+    for (const [command,target] of [["mv -T a /dev","/dev"],["mv a /dev","/dev/a"]]) {
+      const result = await sh.exec(command,{cwd:"/w"});
+      assert.equal(result.stderr,`mv: ENOTSUP: operation not supported, mv '${target}'\n`);
+      assert.equal(result.exitCode,1);
+      assert.equal(sh.readText("/w/a"),"A");
+    }
+  } finally { sh.dispose(); }
+});

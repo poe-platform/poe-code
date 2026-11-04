@@ -162,11 +162,7 @@ impl Remove<'_, '_> {
         let mut candidate = path.to_owned();
         if self.plain && path != "/dev" && !path.starts_with("/dev/") {
             let clean = normalize_posix_path(path);
-            if path == clean && path.split('/').all(|part| part.len() <= 255)
-                && path.match_indices('/').all(|(end,_)| match self.fs.lstat(if end == 0 { "/" } else { &path[..end] }) {
-                    Ok(st) => st.kind == VfsEntryKind::Directory && st.mode & 0o100 != 0,
-                    Err(e) => e.starts_with("ENOENT:"),
-                }) { return Ok(()); }
+            if direct_memory_capabilities(self.fs, path) { return Ok(()); }
             candidate = clean;
         }
         loop {

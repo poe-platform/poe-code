@@ -9,7 +9,7 @@ impl MemoryVfs {
         destination: &Self,
         source: (&str, &str, u64),
         target: (&str, &str, u64),
-        children: &[crate::vfs::mount::MoveChild],
+        plan: Option<&crate::vfs::mount::DirectoryMove>,
         budget: Option<&ExecutionBudget>,
     ) -> Result<Option<FileStat>, String> {
         if self.id == destination.id {
@@ -140,21 +140,21 @@ impl MemoryVfs {
                 "ENOTSUP: operation not supported, mv '{display_to}'"
             ));
         }
-        let entries = std::iter::once((from, to, "")).chain(children.iter().map(|p| (p.source.as_str(),p.target.as_str(),p.suffix.as_str())));
+        // Listing a directory or reading another name for an inode advances atime.
+        // Preserve the snapshot from inspection before any of those reads.
+        let children = plan.map_or(&[][..], |p| p.children.as_slice());
+        let entries = std::iter::once((from, to, "",plan.map(|p| p.atime_ms)))
+            .chain(children.iter().map(|p| (p.source.as_str(),p.target.as_str(),p.suffix.as_str(),Some(p.atime_ms))));
         let operand = |base: &str, suffix: &str| if suffix.is_empty() { base.to_owned() }
             else { normalize_posix_path(&format!("{base}{suffix}")) };
         // Inspect capabilities for the entire plan before publishing even the root.
         // A target below a not-yet-created directory retries at each missing parent.
         let mut links = HashMap::new();
         let mut readers = 0;
-        for (path, target, _) in entries.clone() {
+        for (path, target, _, _) in entries.clone() {
             let node = &src.nodes[path];
             let ino = node.ino();
-            if src.extra_links.contains_key(&ino) {
-                // Reading one name changes the shared inode's atime. Every copy
-                // uses the metadata inspected before the first name was read.
-                links.entry(ino).or_insert_with(|| (0usize,src.files.get(&ino).map(|f| f.atime_ms))).0 += 1;
-            }
+            if src.extra_links.contains_key(&ino) { *links.entry(ino).or_insert(0usize) += 1; }
             if matches!(node, MemoryNode::File { .. }) {
                 readers += 1;
                 if matches!(dst.nodes.get(target), Some(MemoryNode::File { .. })) {
@@ -162,9 +162,9 @@ impl MemoryVfs {
                 }
             }
         }
-        for (path, target, _) in entries.clone() {
+        for (path, target, _, _) in entries.clone() {
             let node = &src.nodes[path];
-            if links.get(&node.ino()).is_some_and(|(n,_)| *n > 1) {
+            if links.get(&node.ino()).is_some_and(|n| *n > 1) {
                 admit(1)?; // capability for an atomic hardlink removal receipt
             }
             admit(2)?; // source mode and conditional removal capability
@@ -186,7 +186,7 @@ impl MemoryVfs {
         }
         admit(readers)?; // retained read capability for each regular file
         let mut metadata = Vec::new();
-        for (path, target, suffix) in entries.clone() {
+        for (path, target, suffix, inspected_atime) in entries.clone() {
             let device = dst.devices.entry(target);
             let target_name = operand(display_to,suffix);
             let source_name = operand(display_from,suffix);
@@ -223,7 +223,7 @@ impl MemoryVfs {
                         dst.create_directory(target.to_owned(),0o40700);
                         destination.bump_generation();
                     }
-                    metadata.push((target,*mode,*atime_ms,*mtime_ms));
+                    metadata.push((target,*mode,inspected_atime.unwrap_or(*atime_ms),*mtime_ms));
                 }
                 MemoryNode::Symlink { target: link, .. } => {
                     if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
@@ -256,7 +256,7 @@ impl MemoryVfs {
                     admit(1)?; // openReadFile
                     let file = src.files.get_mut(&ino).unwrap();
                     if file.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source_name}'")); }
-                    let atime = links.get(&ino).and_then(|(_,time)| *time).unwrap_or(file.atime_ms);
+                    let atime = inspected_atime.unwrap_or(file.atime_ms);
                     admit(1)?; // stat the retained reader
                     if replacing {
                         if let Some(b) = budget && file.data.len() > b.limits.max_input_bytes {
@@ -358,7 +358,7 @@ impl MemoryVfs {
             }
         }
         admit(1 + children.len())?; // recheck every source before the first removal
-        for (path, _, suffix) in entries.rev() {
+        for (path, _, suffix, _) in entries.rev() {
             if suffix.is_empty() && directory { break; }
             admit(2)?; // recheck entry and removeEntryConditional
             let is_directory = matches!(src.nodes.get(path), Some(MemoryNode::Directory { .. }));
@@ -402,7 +402,7 @@ mod tests {
                 &b,
                 ("/src", "/src", old),
                 ("/dst", "/mnt/dst", b.generation()),
-                &[], None
+                None, None
             )
             .unwrap_err()
             .starts_with("EBUSY")
@@ -414,7 +414,7 @@ mod tests {
                 &b,
                 ("/src", "/src", a.generation()),
                 ("/dst", "/mnt/dst", old),
-                &[], None
+                None, None
             )
             .unwrap_err()
             .starts_with("EBUSY")

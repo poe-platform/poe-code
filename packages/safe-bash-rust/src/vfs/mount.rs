@@ -3,15 +3,17 @@ use crate::vfs::{FileStat, SafeBashFs, VfsFileEntry};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-struct DirectoryMove {
+pub(super) struct DirectoryMove {
     parent: FileStat,
-    children: Vec<MoveChild>,
+    pub(super) atime_ms: f64,
+    pub(super) children: Vec<MoveChild>,
 }
 
 pub(super) struct MoveChild {
     pub(super) source: String,
     pub(super) target: String,
     pub(super) suffix: String,
+    pub(super) atime_ms: f64,
 }
 
 #[derive(Clone)]
@@ -114,6 +116,7 @@ impl MountVfs {
         let target_mount = self.location(&target_entry).0;
         let mut children = Vec::new();
         let mut pending = vec![(source.to_owned(),target.to_owned(),String::new())];
+        let atime_ms = root.atime_ms;
         let mut root_stats = Some((root,existing));
         let mut root_parent = None;
         while let Some((from,to,suffix)) = pending.pop() {
@@ -129,7 +132,7 @@ impl MountVfs {
                 if mount != source_mount || other != target_mount {
                     return Err(format!("ENOTSUP: cannot bind cross-device directory entry '{from}' -> '{to}'"));
                 }
-                children.push(MoveChild { source: local, target: target_local, suffix: suffix.clone() });
+                children.push(MoveChild { source: local, target: target_local, suffix: suffix.clone(), atime_ms: st.atime_ms });
             }
             if let Some(other) = existing {
                 if st.identity.is_some() && st.identity == other.identity {
@@ -153,7 +156,7 @@ impl MountVfs {
                 }
             }
         }
-        Ok(DirectoryMove { parent: root_parent.expect("the plan starts at the source directory"), children })
+        Ok(DirectoryMove { parent: root_parent.expect("the plan starts at the source directory"), atime_ms, children })
     }
 
 }
@@ -342,7 +345,7 @@ impl SafeBashFs for MountVfs {
         let plan = if src.lstat(&src_path)?.kind == super::VfsEntryKind::Directory {
             Some(self.inspect_directory_move(source,destination,budget)?)
         } else { None };
-        let retained = src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), plan.as_ref().map_or(&[][..], |p| &p.children), budget)?;
+        let retained = src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), plan.as_ref(), budget)?;
         if let (Some(plan), Some(expected)) = (plan, retained) {
             // Removing the children may have removed a component of the original operand.
             if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // recheck root
@@ -669,6 +672,21 @@ mod tests {
             let st = dst.lstat(path).unwrap();
             assert_eq!((st.atime_ms,st.mtime_ms,st.nlink),(123456.0,654321.0,Some(1)),"{path}");
         }
+    }
+
+    #[test]
+    fn cross_mount_directories_keep_the_access_times_from_before_listing_their_children() {
+        let src = Arc::new(MemoryVfs::new());
+        src.mkdir_all("/w/d").unwrap();
+        src.set_times("/w",Some(123456.0),Some(654321.0)).unwrap();
+        src.set_times("/w/d",Some(345678.0),Some(456789.0)).unwrap();
+        let dst = Arc::new(MemoryVfs::new());
+        let fs = MountVfs::new(src).with_mount("/m",dst.clone());
+        fs.move_across_devices("/w","/m/out",None).unwrap();
+        let root = dst.lstat("/out").unwrap();
+        let child = dst.lstat("/out/d").unwrap();
+        assert_eq!((root.atime_ms,root.mtime_ms),(123456.0,654321.0));
+        assert_eq!((child.atime_ms,child.mtime_ms),(345678.0,456789.0));
     }
 
     #[test]

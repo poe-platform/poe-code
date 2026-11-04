@@ -8769,6 +8769,22 @@ test("awk reads only selected operands and shares the main reader with getline a
   } finally { sh.dispose(); }
 });
 
+test("a filesystem quota rejects descriptor setup before truncation or the next stdin pull", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [ops, expected, reads] of [[3, "saved", 0], [4, "", 1], [5, "one\n", 2], [6, "one\ntwo\n", 2]]) {
+      await sh.fs.writeFile("/out", Buffer.from("saved"));
+      let pulls = 0;
+      const run = sh.exec("cat > /out 2>&1", {limits:{maxFileSystemOperations:ops}, stdin:{async *[Symbol.asyncIterator]() {
+        for (const chunk of ["one\n", "two\n"]) { pulls++; yield Buffer.from(chunk); }
+      }}});
+      if (ops < 6) await assert.rejects(run, {limit:"maxFileSystemOperations"});
+      else assert.equal((await run).exitCode, 0);
+      assert.deepEqual([Buffer.from(await sh.fs.readFile("/out")).toString(), pulls], [expected, reads]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("rg publishes line and context batches and closes stdin when output stops", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {

@@ -168,7 +168,7 @@ impl FdWriter<'_> {
                 }
             }
             FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
-                // There is no filesystem write, but the command emitted these bytes.
+                if matches!(target, FdTarget::File { .. }) && self.budget.tick_fs_op().is_err() { return; }
                 let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
             }
             FdTarget::File { path, file, offset } => {
@@ -9644,7 +9644,18 @@ impl<'a> EvalState<'a> {
                 Err(e) => return Err(error(e)),
             }
         } else { self.output_redirect_path(operand, kind)? };
-        let file = if self.is_default_null(&path) { None } else {
+        let null = self.is_default_null(&path);
+        if null || self.fs.supports_command_descriptor(&path) {
+            // The shell and the output adapter query capabilities; the descriptor
+            // queries again for a nonexclusive open. Path lookup above accounts
+            // for the first query (or the extra metadata lookup under noclobber).
+            self.fs.command_descriptor_op().map_err(error)?;
+            if !exclusive || null { self.fs.command_descriptor_op().map_err(error)?; }
+        }
+        let file = if null {
+            self.fs.command_descriptor_op().map_err(error)?;
+            None
+        } else {
             let file = self.fs.open_redirect_file(&path, access, Some(mode)).map_err(error)?;
             if file.is_none() && !exclusive {
                 let existed = self.fs.exists(&path);

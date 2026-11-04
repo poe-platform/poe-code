@@ -1498,6 +1498,33 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("ZIP newline conversion preserves binary members and uses the compression method's text probe", async () => {
+  const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
+  const prefix = new Uint8Array(32770).fill(65);
+  prefix.set([0,13,10],8192);
+  try {
+    for (const [options,name,bytes] of [
+      ["-0 -l","binary",[65,0,10]], ["-ll","binary",[65,14,13,10]],
+      ["-l","no-text",[9,10,13]], ["--to-crlf","mixed",[65,13,10,66,10]],
+      ["-qll","grouped",[65,13,10]], ["-ll -l","last",[65,13,10]],
+      ["-0 -l","store",prefix], ["-l","deflate",prefix], ["-l -n .data","suffix.data",prefix],
+    ]) {
+      const run = async (shell,volume) => {
+        await volume.writeFile("/"+name,Uint8Array.from(bytes));
+        const created = await shell.exec("zip -q "+options+" sample.zip "+name);
+        assert.equal(created.exitCode,0,created.stderr || created.stdout);
+        const extracted = await shell.exec("unzip -p sample.zip "+name);
+        assert.equal(extracted.exitCode,0,extracted.stderr);
+        await volume.unlink("/sample.zip");
+        return Buffer.from(extracted.stdoutBytes);
+      };
+      const expected = await run(js,fs), actual = await run(rust,rust.fs);
+      assert.equal(actual.compare(expected),0,options+" "+name);
+    }
+  } finally { await rust.dispose(); await js.dispose(); }
+});
+
 test("ZIP updates exclude archive aliases, preserve retained readers, and validate destinations before moving inputs", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
   for (const [link,command] of [

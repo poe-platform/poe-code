@@ -5697,8 +5697,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut recursive = false;
     let mut recursive_patterns = false;
     let mut store_symlinks = false;
-    let mut lf_to_crlf = false;
-    let mut crlf_to_lf = false;
+    let mut from_crlf = None;
     let mut show_files = false;
     let mut read_comment = false;
     let mut stdin_names = false;
@@ -5838,8 +5837,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             show_files = true;
             in_exclude = false;
             in_include = false;
-        } else if a == "-ll" || a == "--from-crlf" {
-            crlf_to_lf = true;
+        } else if matches!(a.as_str(), "--from-crlf" | "--to-crlf") {
+            from_crlf = Some(a == "--from-crlf");
             in_exclude = false;
             in_include = false;
         } else if a == "-FS" || a == "--filesync" {
@@ -5962,7 +5961,11 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                     }
                     'y' => store_symlinks = true,
-                    'l' => lf_to_crlf = true,
+                    'l' => {
+                        let from = flags.as_str().starts_with('l');
+                        if from { flags.next(); }
+                        from_crlf = Some(from);
+                    },
                     'z' => read_comment = true,
                     '@' => stdin_names = true,
                     'e' => has_encrypt_opt = true,
@@ -6129,6 +6132,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     let _ = update_mode;
     let mut moves = Vec::new();
+    let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let mut skipped_archive = false;
     // Keep the original source spelling separate from the name stored in the ZIP.
     let mut members: BTreeMap<_,_> = entries.iter().enumerate()
@@ -6208,17 +6212,25 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return result;
             }
             *selected = Some(source);
-            if e.typeflag == b'0' {
-                if lf_to_crlf {
-                    let mut converted = Vec::with_capacity(e.content.len() + 16);
-                    for (idx, &b) in e.content.iter().enumerate() {
-                        if b == b'\n' && (idx == 0 || e.content[idx - 1] != b'\r') {
+            if e.typeflag == b'0' && let Some(from) = from_crlf {
+                let store = !use_deflate || level == 0 || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
+                let window = match (from, store) {
+                    (false,true) => 8192, (false,false) => 32768,
+                    (true,true) => 16383, (true,false) => 65535,
+                };
+                let prefix = &e.content[..e.content.len().min(window)];
+                let text = prefix.iter().any(|&b| b >= 32)
+                    && !prefix.iter().any(|&b| matches!(b, 0..=6 | 14..=25 | 28..=31));
+                if text && !from {
+                    let mut converted = Vec::with_capacity(e.content.len() + e.content.iter().filter(|&&b| b == b'\n').count());
+                    for &b in &e.content {
+                        if b == b'\n' {
                             converted.push(b'\r');
                         }
                         converted.push(b);
                     }
                     e.content = converted;
-                } else if crlf_to_lf {
+                } else if text {
                     let mut converted = Vec::with_capacity(e.content.len());
                     for (idx, &b) in e.content.iter().enumerate() {
                         if b == b'\r' && e.content.get(idx + 1) == Some(&b'\n') {
@@ -6271,7 +6283,6 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             content: comment_bytes,
         });
     }
-    let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false);
     let result = publish(out_bytes, &sources);
     if result.exit_code == 0 {

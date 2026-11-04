@@ -2027,12 +2027,11 @@ fn cmd_ln(
         Ok(p) => p, Err(e) => return err_out(&format!("ln: {e}\n"),1),
     };
     let follow_dir = target_dir.is_some() || !no_deref;
-    let operation = if symbolic { "symlink" } else { "link" };
     let target_base = match fs.access_path(&target_operand, false) {
-        Ok(path) => path,
+        Ok(path) => Some(path),
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
         Err(e) => {
-            let syscall = if e.starts_with("ENOENT:") { operation }
-                else if no_target_dir || !follow_dir { "lstat" } else { "stat" };
+            let syscall = if no_target_dir || !follow_dir { "lstat" } else { "stat" };
             return err_out(&format!("ln: {}\n", copy_error(&e, syscall, &target_operand)), 1);
         }
     };
@@ -2049,7 +2048,7 @@ fn cmd_ln(
     }
 
     for operand in &eff_operands[..eff_operands.len()-1] {
-        let dst = directory.as_ref().map_or_else(|| target_base.clone(), |d| child_disp_path(d, &basename_posix_path(operand)));
+        let dst = directory.as_ref().map_or_else(|| target_base.as_ref().unwrap_or(&target_operand).clone(), |d| child_disp_path(d, &basename_posix_path(operand)));
         let supported = if symbolic {
             let entry = fs.access_path(&dst, true).unwrap_or_else(|_| dst.clone());
             fs.supports_symbolic_links(&entry)
@@ -2070,14 +2069,14 @@ fn cmd_ln(
         let link_path = if let Some(dir) = &directory {
             child_disp_path(dir, &base_name)
         } else {
-            target_base.clone()
+            target_base.as_ref().unwrap_or(&target_operand).clone()
         };
         let disp_target = if directory.is_some() {
             child_disp_path(last_op, &base_name)
         } else {
             last_op.clone()
         };
-        let existing = fs.lstat(&link_path).ok();
+        let existing = target_base.as_ref().and_then(|_| fs.lstat(&link_path).ok());
         let replacing = existing.is_some() && (force || interactive || backup_mode != BackupMode::None);
         let operand = if !symbolic || replacing {
             match command_operand(cwd,src_op) {
@@ -2110,9 +2109,8 @@ fn cmd_ln(
             Some(relative_posix_path(&crate::vfs::dirname_posix_path(&link_path), &target))
         } else { None };
         let mut moved_backup = None;
-        // With no replacement requested the symlink syscall validates its text
-        // before reporting a name collision, even when the text is empty.
-        if let Some(existing) = existing.filter(|_| replacing || !symbolic || relative || !src_op.is_empty()) {
+        // Let symlink validate its text and the original destination before a collision.
+        if let Some(existing) = existing.filter(|_| replacing || !symbolic) {
             let src_entry = fs.access_path(&src_full, false);
             if (force || interactive || backup_mode != BackupMode::None)
                 && src_entry.is_ok_and(|src| fs.access_path(&link_path, false).is_ok_and(|dst| src == dst)) {
@@ -2123,15 +2121,7 @@ fn cmd_ln(
                 continue;
             }
             if !force && !interactive && backup_mode == BackupMode::None {
-                if symbolic {
-                    stderr.push_str(&format!(
-                        "ln: EEXIST: file already exists, symlink '{link_path}'\n"
-                    ));
-                } else {
-                    stderr.push_str(&format!(
-                        "ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"
-                    ));
-                }
+                stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"));
                 code = 1;
                 continue;
             }
@@ -2176,7 +2166,10 @@ fn cmd_ln(
             }
         }
         let stored_target = relative_target.as_deref().unwrap_or(src_op);
-        let result = if symbolic { fs.symlink(stored_target, &link_path) }
+        let result = if symbolic {
+            let destination = if directory.is_some() { child_disp_path(&target_operand, &base_name) } else { target_operand.clone() };
+            fs.symlink(stored_target, &destination)
+        }
             else { fs.hard_link(&src_full, &link_path) };
         if let Err(e) = result {
             if let Some(backup) = moved_backup && let Err(e) = fs.rename(&backup, &link_path, true) {
@@ -6279,6 +6272,28 @@ mod tests {
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/w/a").unwrap(),b"A");
             assert!(!fs.exists("/copy"));
+        }
+    }
+
+    #[test]
+    fn ln_preserves_operand_order_when_the_destination_parent_is_missing() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/f", b"keep").unwrap();
+        for (args_list, error) in [
+            (vec!["", "/missing/x"], "ENOENT: no such file or directory ''"),
+            (vec!["-s", "", "/missing/x"], "ENOENT: no such file or directory, symlink ''"),
+            (vec!["/absent", "/missing/x"], "ENOENT: no such file or directory, link '/absent'"),
+            (vec!["-L", "/absent", "/missing/x"], "ENOENT: no such file or directory, realpath '/absent'"),
+            (vec!["/", "/missing/x"], "EBUSY: resource busy or locked '/'"),
+            (vec!["/f", "/missing/x"], "ENOENT: no such file or directory, link '/missing/x'"),
+            (vec!["/f", "/absent", "/missing/x"], "ENOTDIR: not a directory '/missing/x'"),
+            (vec!["-sf", "target", "/missing/../f"], "ENOENT: no such file or directory, symlink '/missing/../f'"),
+        ] {
+            let r = try_run_fs_command("ln", &args(&args_list), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.stderr, format!("ln: {error}\n"), "{args_list:?}");
+            assert_eq!(r.exit_code, 1);
+            assert_eq!(fs.read_file("/f").unwrap(), b"keep");
+            assert!(!fs.exists("/missing"));
         }
     }
 

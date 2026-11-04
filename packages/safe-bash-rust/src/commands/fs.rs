@@ -778,7 +778,19 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             if fs.has_path_capabilities() || device_view && (!link_free || path == "/" || path == "/dev" || path.starts_with("/dev/") || normalize_posix_path(&path) != path) {
                 fs.command_descriptor_op()?;
             }
-            if let Some(reason) = entry.as_deref().and_then(|p| fs.rmdir_capability_error(p)) {
+            let mut candidate = path.clone();
+            let mut resolved = entry.as_deref();
+            let refusal = loop {
+                match fs.rmdir_capability_error(&candidate, resolved) {
+                    Err(e) if e.starts_with("ENOENT:") && candidate != "/" => {
+                        candidate = parent(&candidate);
+                        resolved = None;
+                        fs.command_descriptor_op()?;
+                    }
+                    result => break result?,
+                }
+            };
+            if let Some(reason) = refusal {
                 fs.command_descriptor_op()?;
                 if reason.starts_with("ENOTEMPTY:") {
                     fs.command_descriptor_op()?;

@@ -473,8 +473,8 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     /// A missing rmdir capability stops the operand batch before its first mutation.
-    fn rmdir_capability_error(&self, entry: &str) -> Option<&'static str> {
-        (entry == "/dev" && self.default_device_view()).then_some("ENOTSUP: operation not supported")
+    fn rmdir_capability_error(&self, path: &str, entry: Option<&str>) -> Result<Option<&'static str>, String> {
+        Ok((entry.unwrap_or(path) == "/dev" && self.default_device_view()).then_some("ENOTSUP: operation not supported"))
     }
 
     fn default_device_view(&self) -> bool { false }

@@ -3877,6 +3877,20 @@ test("removal checks device traversal and mounted roots before rejecting a termi
   }
 });
 
+test("rmdir charges parent capability retries when device traversal crosses a missing directory", async () => {
+  for (const [symlinks, minimum] of [[{}, 9], [{"/link":"/a"}, 10]]) {
+    const bash = new RustWasmBash({cwd:"/", directories:["/a"], symlinks});
+    try {
+      const run = n => bash.exec("rmdir -p /bad/../a", {limits:{maxFileSystemOperations:n}});
+      await assert.rejects(run(minimum - 1), {limit:"maxFileSystemOperations"});
+      const result = await run(minimum);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /ENOENT/);
+      assert.equal((await bash.fs.stat("/a")).type, "directory");
+    } finally { bash.dispose(); }
+  }
+});
+
 test("rmdir checks every operand's removal capability before deleting earlier directories", async () => {
   for (const [profile, ignore, code, removed] of [
     [undefined, false, "ENOTSUP", false], [undefined, true, "ENOTSUP", false],

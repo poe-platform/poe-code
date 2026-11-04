@@ -121,7 +121,7 @@ pub(super) fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn S
     let mut code = 0;
     if !direct {
         for operand in &targets {
-            let path = absolute_operand(cwd, operand);
+            let Ok(path) = command_operand(cwd,operand) else { continue; };
             if let Err(e) = rm.preflight(&path)
                 && (e.starts_with("ENOTSUP:") || e.starts_with("EROFS:") || e.starts_with("ENOTEMPTY:") || e.contains("Execution aborted:")) {
                 rm.stderr.push_str(&format!("rm: {e}\n"));
@@ -130,7 +130,9 @@ pub(super) fn cmd_rm(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn S
         }
     }
     for operand in targets {
-        let path = absolute_operand(cwd, &operand);
+        let path = match command_operand(cwd,&operand) {
+            Ok(p) => p, Err(e) => { rm.stderr.push_str(&format!("rm: {e}\n")); code = 1; continue; }
+        };
         let result = if path == "/" || matches!(operand.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
             Err(format!("EBUSY: refusing to remove root, '.' or '..' '{path}'"))
         } else if direct { rm.direct(&operand, &path, single) } else { rm.guarded(&operand, &path) };

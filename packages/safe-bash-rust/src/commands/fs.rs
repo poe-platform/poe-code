@@ -606,7 +606,10 @@ fn cmd_mkdir(
     };
 
     for a in &operands {
-        let p = resolve_posix_path(cwd, a);
+        let p = match command_operand(cwd,a) {
+            Ok(p) => normalize_posix_path(&p),
+            Err(e) => { stderr.push_str(&format!("mkdir: {e}\n")); code = 1; continue; }
+        };
         let exists = fs.exists(&p) || fs.lstat(&p).is_ok();
         if exists {
             if recursive && fs.is_dir(&p) {
@@ -735,6 +738,9 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         return err_out("rmdir: missing operand\n", 2);
     }
     for a in &operands {
+        let mut cur_p = match command_operand(cwd,a) {
+            Ok(p) => p, Err(e) => { stderr.push_str(&format!("rmdir: {e}\n")); code = 1; continue; }
+        };
         let stop = if a.starts_with('/') {
             "/".to_string()
         } else {
@@ -744,7 +750,6 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 .unwrap_or(a.as_str());
             crate::vfs::dirname_posix_path(&resolve_posix_path(cwd, first_seg))
         };
-        let mut cur_p = if a.starts_with('/') || a.is_empty() { a.clone() } else { child_disp_path(cwd, a) };
         let mut cur_disp = a.clone();
         loop {
             if cur_p == "/" {
@@ -1393,7 +1398,9 @@ fn cmd_cp(
     settings.no_clobber = no_clobber;
     if backup_mode != BackupMode::None { settings.backup = Some((backup_mode, backup_suffix)); }
     let dst_raw = eff_operands.last().unwrap();
-    let dst_operand = absolute_operand(cwd, dst_raw);
+    let dst_operand = match command_operand(cwd,dst_raw) {
+        Ok(p) => p, Err(e) => return err_out(&format!("cp: {e}\n"),1),
+    };
     let dst_base = match fs.access_path(&dst_operand, false) {
         Ok(entry) => entry,
         Err(e) => {
@@ -1418,7 +1425,7 @@ fn cmd_cp(
     let sources = &eff_operands[..eff_operands.len() - 1];
     if preserve_links || sym_link || hard_link || settings.timestamps && !settings.archive && (deref_mode == 'P' || settings.recursive && deref_mode == 'H') {
         for operand in sources {
-            let src = absolute_operand(cwd, operand);
+            let Ok(src) = command_operand(cwd,operand) else { continue; };
             let target = if dst_is_dir { child_disp_path(&dst_base, &basename_posix_path(&src)) } else { dst_base.clone() };
             if let Err(e) = copy_entry(&src, &target, (operand, &target), fs, &mut settings, CopyPass::Admit { missing_parent: false }, &mut Default::default())
                 && e.starts_with("ENOTSUP:") {
@@ -1428,7 +1435,9 @@ fn cmd_cp(
     }
     settings.links = preserve_links.then(CopyLinks::default);
     for src_raw in sources {
-        let operand = absolute_operand(cwd, src_raw);
+        let operand = match command_operand(cwd,src_raw) {
+            Ok(p) => p, Err(e) => { report.stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
+        };
         let (src, link) = match fs.inspect_command_entry(&operand, false, "lstat") {
             Ok(v) => v,
             Err(e) => { report.stderr.push_str(&format!("cp: {}\n", copy_error(&e, "lstat", &operand))); code = 1; continue; }
@@ -1712,7 +1721,7 @@ fn cmd_touch(
         return err_out("touch: cannot specify times from more than one source\n", 1);
     }
     if let Some(ref rf) = ref_file {
-        let rp = absolute_operand(cwd, rf);
+        let rp = match command_operand(cwd,rf) { Ok(p) => p, Err(e) => return err_out(&format!("touch: {e}\n"),1) };
         let syscall = if follow { "stat" } else { "lstat" };
         match fs.inspect_command_entry(&rp, follow, syscall) {
             Ok((_, st)) => {
@@ -1733,7 +1742,7 @@ fn cmd_touch(
     let touch_m = !only_atime || only_mtime;
     if !follow {
         for a in &operands {
-            let path = absolute_operand(cwd, a);
+            let Ok(path) = command_operand(cwd,a) else { continue; };
             if fs.inspect_command_entry(&path, false, "lstat").is_ok_and(|(_, st)| st.kind == VfsEntryKind::Symlink) {
                 return err_out(&format!("touch: ENOTSUP: symlink timestamps are unavailable, touch '{path}'\n"), 1);
             }
@@ -1742,7 +1751,7 @@ fn cmd_touch(
     let now = crate::vfs::now_ms();
     let syscall = if follow { "stat" } else { "lstat" };
     let touch = |operand: &str| -> Result<(), String> {
-        let path = absolute_operand(cwd, operand);
+        let path = command_operand(cwd,operand)?;
         let target = match fs.inspect_command_entry(&path, follow, syscall) {
             Ok((_, st)) if !follow && st.kind == VfsEntryKind::Symlink =>
                 return Err(format!("ENOTSUP: symlink timestamps are unavailable, touch '{path}'")),
@@ -6249,6 +6258,23 @@ mod tests {
         assert_eq!(result.stderr, "mv: ENOTEMPTY: directory not empty, rename '/tree' -> '/dir/tree'\n");
         assert_eq!(fs.read_file("/tree/file").unwrap(), b"source");
         assert_eq!(fs.read_file("/dir/tree/file").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn empty_filesystem_operands_fail_before_force_recursive_or_no_create_modes() {
+        for (cmd,operands) in [
+            ("rm",vec!["-rf",""]), ("mkdir",vec!["-p",""]), ("rmdir",vec![""]),
+            ("touch",vec!["-c",""]), ("touch",vec!["-r","","/copy"]),
+            ("cp",vec!["-R","","/copy"]), ("cp",vec!["/w/a",""]),
+        ] {
+            let fs = MemoryVfs::new();
+            fs.write_file("/w/a",b"A").unwrap();
+            let r = try_run_fs_command(cmd,&args(&operands),"","/w",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.stderr,format!("{cmd}: ENOENT: no such file or directory ''\n"),"{cmd} {operands:?}");
+            assert_eq!(r.exit_code,1);
+            assert_eq!(fs.read_file("/w/a").unwrap(),b"A");
+            assert!(!fs.exists("/copy"));
+        }
     }
 
     #[test]

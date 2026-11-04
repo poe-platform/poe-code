@@ -1986,7 +1986,7 @@ impl<'a> AwkState<'a> {
                     return;
                 }
                 let new_nf = n as usize;
-                self.fields.resize(new_nf, Scalar::Unset);
+                self.fields.resize(new_nf, Scalar::Text(String::new()));
                 self.rebuild_line_from_fields();
             }
             _ => {
@@ -1995,11 +1995,21 @@ impl<'a> AwkState<'a> {
         }
     }
 
+    fn field_index(&mut self, expr: &str) -> Option<usize> {
+        let n = eval_awk_value(expr, self).number().trunc();
+        if self.runtime_err.is_some() { return None; }
+        if !(0.0..=9_007_199_254_740_991.0).contains(&n) {
+            self.runtime_err = Some("awk: invalid or excessive field index\n".into());
+            return None;
+        }
+        Some(n as usize)
+    }
+
     fn get_field(&self, idx: usize) -> Scalar {
         if idx == 0 {
             self.record_value.clone().unwrap_or_else(|| Scalar::input(self.line.clone()))
         } else {
-            self.fields.get(idx - 1).cloned().unwrap_or_default()
+            self.fields.get(idx - 1).cloned().unwrap_or_else(|| Scalar::Text(String::new()))
         }
     }
 
@@ -2009,8 +2019,12 @@ impl<'a> AwkState<'a> {
             self.set_line(&line);
             self.record_value = Some(val);
         } else {
-            while self.fields.len() < idx {
-                self.fields.push(Scalar::Unset);
+            if idx > self.fields.len() {
+                if self.fields.try_reserve(idx - self.fields.len()).is_err() {
+                    self.runtime_err = Some("awk: invalid or excessive field index\n".into());
+                    return;
+                }
+                self.fields.resize(idx, Scalar::Text(String::new()));
             }
             self.fields[idx - 1] = val;
             self.rebuild_line_from_fields();
@@ -3446,10 +3460,7 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     }
 
     if let Some(field_expr) = s.strip_prefix('$') {
-        let idx = eval_awk_text(field_expr, state)
-            .parse::<usize>()
-            .unwrap_or(0);
-        return state.get_field(idx);
+        return state.field_index(field_expr).map_or(Scalar::Unset, |idx| state.get_field(idx));
     }
 
     if let Some(open) = s.find('[') {
@@ -3472,8 +3483,7 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
 fn assign_awk_lvalue(lval: &str, val: Scalar, state: &mut AwkState) {
     let lv = lval.trim();
     if let Some(f) = lv.strip_prefix('$') {
-        let idx = eval_awk_text(f, state).parse::<usize>().unwrap_or(0);
-        state.set_field(idx, val);
+        if let Some(idx) = state.field_index(f) { state.set_field(idx, val); }
         return;
     }
     if let Some(open) = lv.find('[') {
@@ -9560,6 +9570,19 @@ mod tests {
         let out = try_run_text_command("awk", &args(&[program]), "003 0\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
         assert_eq!(out.exit_code, 0);
         assert_eq!(crate::vfs::stream_string_to_bytes(&out.stdout), b"003 1 0 1 0\n6\x03\xc3");
+    }
+
+    #[test]
+    fn awk_field_references_use_numeric_indices_and_missing_fields_are_strings() {
+        for (program, status, stdout, stderr) in [
+            (r#"{ CONVFMT="%.0f"; i=1.9; print $i; $i=9; j="2suffix"; print $0,$j }"#, 0, "alpha\n9 beta beta\n", ""),
+            ("{ print $3==0; NF=4; print $4==0; $6=1; print $5==0 }", 0, "0\n0\n0\n", ""),
+            ("{ i=-1; print 1; print $i }", 2, "1\n", "awk: invalid or excessive field index\n"),
+            ("{ i=9007199254740992; $i=2; print $0 }", 2, "", "awk: invalid or excessive field index\n"),
+        ] {
+            let out = try_run_text_command("awk", &args(&[program]), "alpha beta\n", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (status, stdout, stderr), "{program}");
+        }
     }
 
     #[test]

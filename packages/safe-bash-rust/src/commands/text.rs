@@ -2541,12 +2541,7 @@ fn split_awk_statements(block: &str) -> Vec<String> {
 }
 
 fn eval_awk_array_key(key_expr: &str, state: &mut AwkState) -> String {
-    let trimmed = key_expr.trim();
-    let inner = if trimmed.starts_with('(') && trimmed.ends_with(')') && is_awk_outer_parens(trimmed) {
-        &trimmed[1..trimmed.len() - 1]
-    } else {
-        trimmed
-    };
+    let inner = awk_ungroup(key_expr);
     let parts = split_awk_top_args(inner);
     if parts.len() <= 1 {
         eval_awk_text(inner, state)
@@ -2630,34 +2625,13 @@ fn split_awk_top_else(s: &str) -> Option<(&str, &str)> {
 }
 
 fn is_awk_outer_parens(s: &str) -> bool {
-    if !s.starts_with('(') || !s.ends_with(')') {
-        return false;
-    }
-    let chars: Vec<char> = s.chars().collect();
-    let mut depth = 0i32;
-    let mut quote = false;
-    let mut idx = 0usize;
-    while idx < chars.len() {
-        let c = chars[idx];
-        if c == '\\' && idx + 1 < chars.len() {
-            idx += 2;
-            continue;
-        }
-        if c == '"' {
-            quote = !quote;
-        } else if !quote {
-            if c == '(' {
-                depth += 1;
-            } else if c == ')' {
-                depth -= 1;
-                if depth == 0 && idx + 1 < chars.len() {
-                    return false;
-                }
-            }
-        }
-        idx += 1;
-    }
-    depth == 0
+    s.starts_with('(') && s.ends_with(')') && split_awk_binary_once(s, ")").is_some_and(|(_, rest)| rest.is_empty())
+}
+
+fn awk_ungroup(mut expr: &str) -> &str {
+    expr = expr.trim();
+    while is_awk_outer_parens(expr) { expr = expr[1..expr.len()-1].trim(); }
+    expr
 }
 
 fn exec_awk_block(block: &str, state: &mut AwkState) {
@@ -2765,7 +2739,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
                 line_out.push_str(&state.line);
                 line_out.push_str(&state.ors);
             } else {
-                let args = split_awk_top_args(expr_trim);
+                let args = split_awk_top_args(awk_ungroup(expr_trim));
                 let mut vals = Vec::with_capacity(args.len());
                 for a in &args {
                     let value = eval_awk_value(a, state);
@@ -2786,13 +2760,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
         if stmt.starts_with("printf ") || stmt.starts_with("printf(") {
             let rest = stmt.strip_prefix("printf").unwrap_or("").trim();
             let (expr_part, redir) = split_awk_redirection(rest);
-            let expr_trim = expr_part.trim();
-            let inner = if expr_trim.starts_with('(') && expr_trim.ends_with(')') && is_awk_outer_parens(expr_trim) {
-                &expr_trim[1..expr_trim.len() - 1]
-            } else {
-                expr_trim
-            };
-            let args = split_awk_top_args(inner);
+            let args = split_awk_top_args(awk_ungroup(expr_part));
             if !args.is_empty() {
                 let fmt_str = eval_awk_text(&args[0], state);
                 let vals: Vec<_> = args[1..].iter().map(|a| eval_awk_value(a, state)).collect();
@@ -3181,6 +3149,15 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
         return Scalar::Number(f64::from(matched));
     }
 
+    if is_awk_outer_parens(s) {
+        let inner = awk_ungroup(&s[1..s.len() - 1]);
+        if split_awk_binary_once(inner, ",").is_some() {
+            state.runtime_err = Some("awk: tuple is only valid as an array membership key\n".into());
+            return Scalar::Unset;
+        }
+        return eval_awk_value(inner, state);
+    }
+
     for op in ["+=", "-=", "*=", "/=", "%=", "^=", "="] {
         if let Some((lhs, rhs)) = split_awk_binary_once(s, op) {
             if op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
@@ -3325,10 +3302,6 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
     if let Some(inner) = s.strip_prefix(['+', '-']) {
         let n = eval_awk_value(inner, state).number();
         return Scalar::Number(if s.starts_with('-') { -n } else { n });
-    }
-
-    if s.starts_with('(') && s.ends_with(')') && is_awk_outer_parens(s) {
-        return eval_awk_value(&s[1..s.len() - 1], state);
     }
 
     if let Some(func_res) = try_eval_awk_func(s, state) {
@@ -9427,6 +9400,18 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn awk_print_and_printf_expand_one_grouped_argument_list() {
+        let fs = MemoryVfs::new();
+        let program = r#"BEGIN { OFS="|"; print ((1, "x" ~ /[(]/, 2)) > "/rows"; printf (("%s:%d", "abc", 3)); print (1+2)*3,(4+5) }"#;
+        let out = try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"abc:39|9\n",""));
+        assert_eq!(fs.read_file("/rows").unwrap(), b"1|0|2\n");
+        let bad = r#"BEGIN{print "before"; print ((1,2),3); print "after"}"#;
+        let out = try_run_text_command("awk", &args(&[bad]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (2,"before\n","awk: tuple is only valid as an array membership key\n"));
     }
 
     #[test]

@@ -3698,6 +3698,22 @@ test("fs.mkdir creates only requested entries, respects search permissions and p
   }
 });
 
+test("mkdir checks routed creation capabilities before publishing a missing directory", async () => {
+  for (const [profile, args, error, absent] of [
+    ["overlay-cow-fs", "/alias/../out", "ENOENT: no such file or directory, realpath '/alias/../out'", "/dir/out"],
+    ["overlay-cow-fs", "-p /alias/new", "ENOTSUP: recursive creation through symlinks cannot be verified before mutation, overlay '/alias/new'", "/dir/child/new"],
+    ["overlay-cow-fs", "-p /cycle/x", "ELOOP: too many symbolic links encountered, overlay '/cycle/x'", "/x"],
+    ["strict-budgets-mount-dev", "-p /new//child", "EISDIR: illegal operation on a directory, capabilitiesFor '/new/'", "/new"],
+  ]) {
+    const bash = new RustWasmBash({profile, deviceView:"provided", directories:["/dir/child"], symlinks:{"/alias":"/dir/child","/cycle":"/cycle"}});
+    try {
+      const result = await bash.exec("mkdir " + args);
+      assert.deepEqual([result.exitCode, result.stderr], [1, "mkdir: " + error + "\n"]);
+      await assert.rejects(bash.fs.stat(absent), {code:"ENOENT"});
+    } finally { bash.dispose(); }
+  }
+});
+
 test("link-free mkdir uses backing memory only when the shell has no explicit operation limit", async () => {
   for (const limits of [undefined, {maxFileSystemOperations: 100000}]) {
     const bash = new RustWasmBash({deviceView:"default", cwd:"/", limits});

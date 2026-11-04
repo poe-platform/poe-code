@@ -89,3 +89,15 @@ pub(super) fn mkdir<'a, F: SafeBashFs + ?Sized + 'a>(
     for (fs, local) in pending { fs.mkdir_one(&local, mode).map_err(|e| error(&e, operand))?; }
     Ok(())
 }
+
+pub(super) fn creation_mode(path: &str, recursive: bool, query: impl Fn(&str) -> Result<String, String>) -> Result<(), String> {
+    let mut candidate = path;
+    loop {
+        match query(candidate) {
+            Err(e) if recursive && e.starts_with("ENOENT:") && candidate != "/" => {
+                candidate = candidate.trim_end_matches('/').rsplit_once('/').map_or("/", |(p, _)| if p.is_empty() { "/" } else { p });
+            }
+            result => return result.map(|_| ()),
+        }
+    }
+}

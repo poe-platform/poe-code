@@ -628,6 +628,7 @@ fn cmd_mkdir(
             Err(e) if follow && (e.starts_with("ELOOP:") || e.starts_with("ENOTDIR:"))
                 && fs.inspect_command_entry(path, false, "lstat").is_ok_and(|(_, st)| st.kind == VfsEntryKind::Symlink) => Ok(None),
             Err(e) if e.starts_with("ENOTDIR: not a directory '") => Err(e),
+            Err(e) if e.starts_with("ELOOP:") && e.contains(", overlay '") => Err(e),
             Err(e) if !device_view && e.starts_with("ELOOP:") => Err(format!("ELOOP: too many symbolic links encountered, {op} '{path}'")),
             Err(e) => Err(copy_error(&e, op, path)),
         }
@@ -638,6 +639,7 @@ fn cmd_mkdir(
             "ENOTDIR" => "not a directory", "EACCES" => "permission denied",
             "ELOOP" => "too many symbolic links encountered", "EBUSY" => "resource busy or locked",
             "ENAMETOOLONG" => "name too long", "ENOSPC" => "no space left on device",
+            "ENOTSUP" if op == "overlay" && parents => "recursive creation through symlinks cannot be verified before mutation",
             "ENOTSUP" => "operation not supported", "EINVAL" => "invalid argument",
             "EROFS" => "read-only file system", _ => return code,
         };
@@ -676,7 +678,7 @@ fn cmd_mkdir(
         if recursive && (explicit_mode.is_some() || umask_val & 0o300 != 0) {
             mkdir(&crate::vfs::dirname_posix_path(&path), true, default_mode | 0o300)?;
         }
-        if !direct && explicit_mode.is_none() && device_view {
+        if !direct && explicit_mode.is_none() && (device_view || fs.has_path_capabilities()) {
             fs.check_mkdir_creation_mode(&path, recursive)?;
         }
         mkdir(&path, recursive, explicit_mode.unwrap_or(default_mode))?;

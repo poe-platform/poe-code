@@ -452,6 +452,22 @@ impl SafeBashFs for MountVfs {
         fs.remove_path(&rel)
     }
 
+    fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
+        super::mkdir::creation_mode(path, recursive, |p| {
+            self.resolve(p, true, WalkPurpose::CommandCreate).map_err(|error| {
+                let reason = match error.split(':').next() {
+                    Some("ENOENT") => "ENOENT: no such file or directory",
+                    Some("ENOTDIR") => "ENOTDIR: not a directory",
+                    Some("EISDIR") => "EISDIR: illegal operation on a directory",
+                    Some("EACCES") => "EACCES: permission denied",
+                    Some("ELOOP") => "ELOOP: too many symbolic links encountered",
+                    _ => return error,
+                };
+                format!("{reason}, capabilitiesFor '{p}'")
+            })
+        })
+    }
+
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
         super::mkdir::mkdir(path, recursive, mode, super::mkdir::Namespace::Mounted, |p| {
             let (prefix, fs, local) = self.location(p);

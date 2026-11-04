@@ -78,6 +78,7 @@ pub fn dirname_posix_path(path: &str) -> String {
 pub(super) enum WalkPurpose {
     AllowMissingParents,
     OverlayAccess,
+    OverlayCreate,
     CommandCreate,
     Access,
     Rename,
@@ -92,7 +93,8 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     location: impl Fn(&str) -> (Option<&'a str>, &'a F, String),
     mount_parent: impl Fn(&str) -> bool,
 ) -> Result<String, String> {
-    let access = matches!(purpose, WalkPurpose::Access | WalkPurpose::OverlayAccess | WalkPurpose::CommandCreate);
+    let overlay = matches!(purpose, WalkPurpose::OverlayAccess | WalkPurpose::OverlayCreate);
+    let access = overlay || matches!(purpose, WalkPurpose::Access | WalkPurpose::CommandCreate);
     let mut link_checks = Vec::new();
     let mut current = "/".to_string();
     let mut pending: Vec<String> = path
@@ -113,7 +115,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             let st = match backend.stat(&local) {
                 Ok(st) => Some(st),
                 Err(e) if (e.starts_with("ENOENT:") || e.ends_with("(os error 2)")) && mount_parent(&current) => None,
-                Err(e) if purpose == WalkPurpose::OverlayAccess => {
+                Err(e) if overlay => {
                     return Err(format!("{}, overlay '{current}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)));
                 }
                 Err(e) => return Err(e),
@@ -122,10 +124,10 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                 if purpose == WalkPurpose::Access && mount.is_none() && st.mode & 0o170000 == 0o020000 && st.allocated_bytes == Some(0) {
                     return Err(format!("ENOTDIR: not a directory '{path}'"));
                 }
-                return Err(if purpose == WalkPurpose::OverlayAccess { format!("ENOTDIR: not a directory, overlay '{current}'") } else { "ENOTDIR: not a directory".into() });
+                return Err(if overlay { format!("ENOTDIR: not a directory, overlay '{current}'") } else { "ENOTDIR: not a directory".into() });
             }
             if st.is_some_and(|st| st.mode & 0o100 == 0) {
-                if purpose == WalkPurpose::OverlayAccess { return Err(format!("EACCES: permission denied, overlay '{current}'")); }
+                if overlay { return Err(format!("EACCES: permission denied, overlay '{current}'")); }
                 if purpose == WalkPurpose::CommandCreate { return Err(format!("EACCES: permission denied, access '{current}'")); }
                 if access {
                     if matches!(part.as_str(), "." | "..") { return Err("EACCES: permission denied".into()); }
@@ -169,7 +171,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
                 if links > 40 {
                     return Err("ELOOP: too many symbolic links".into());
                 }
-                if purpose == WalkPurpose::OverlayAccess {
+                if overlay {
                     let final_name = pending.first().filter(|p| !follow_final && *p != "." && *p != "..").cloned();
                     let mut remaining = relative.clone();
                     for part in pending[usize::from(final_name.is_some())..].iter().rev() {
@@ -207,7 +209,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             Err(e) if e.starts_with("ENOENT:") => true,
             Err(e) => return Err(e),
         };
-        if missing && follow_final {
+        if missing && follow_final && purpose != WalkPurpose::OverlayCreate {
             return Err(format!("ENOENT: no such file or directory, overlay '{current}'"));
         }
         for (backend, remaining, final_name) in link_checks {

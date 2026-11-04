@@ -469,15 +469,7 @@ pub trait SafeBashFs: Send + Sync {
 
     // Mode selection happens inside the charged mkdir operation.
     fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
-        let mut candidate = path;
-        loop {
-            match self.command_create_path(candidate) {
-                Err(e) if recursive && e.starts_with("ENOENT:") && candidate != "/" => {
-                    candidate = candidate.trim_end_matches('/').rsplit_once('/').map_or("/", |(p, _)| if p.is_empty() { "/" } else { p });
-                }
-                result => return result.map(|_| ()),
-            }
-        }
+        mkdir::creation_mode(path, recursive, |candidate| self.command_create_path(candidate))
     }
 
     fn default_device_view(&self) -> bool { false }

@@ -56,6 +56,17 @@ impl super::FileReadHandle for OverlayDirectoryRead {
 enum Removal { Rm { recursive: bool }, Unlink, Rmdir }
 
 impl OverlayVfs {
+    fn walk(&self, path: &str, follow_final: bool, purpose: super::path::WalkPurpose) -> Result<String, String> {
+        super::path::walk_path(path, follow_final, purpose, |p| {
+            let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) { &self.upper } else { &self.lower };
+            (None, layer.as_ref(), p.to_owned())
+        }, |_| false).map_err(|e| {
+            if e.starts_with("ELOOP:") && !self.lower.default_device_view() {
+                format!("ELOOP: too many symbolic links encountered, overlay '{path}'")
+            } else { e }
+        })
+    }
+
     fn staged_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'static>, String> {
         match self.stat(entry) {
             Ok(st) if st.kind == VfsEntryKind::Directory => return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'")),
@@ -427,6 +438,7 @@ impl OverlayVfs {
 
 impl SafeBashFs for OverlayVfs {
     fn has_path_capabilities(&self) -> bool { true }
+    fn default_device_view(&self) -> bool { self.lower.default_device_view() }
 
     fn overlay_backend(&self) -> Option<&Self> { Some(self) }
     fn start_command_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
@@ -787,10 +799,11 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
-        super::path::walk_path(path, follow_final, super::path::WalkPurpose::OverlayAccess, |p| {
-            let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) { &self.upper } else { &self.lower };
-            (None, layer.as_ref(), p.to_owned())
-        }, |_| false)
+        self.walk(path, follow_final, super::path::WalkPurpose::OverlayAccess)
+    }
+
+    fn check_mkdir_creation_mode(&self, path: &str, recursive: bool) -> Result<(), String> {
+        super::mkdir::creation_mode(path, recursive, |p| self.walk(p, true, super::path::WalkPurpose::OverlayCreate))
     }
 
     fn stat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, true) }

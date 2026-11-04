@@ -577,7 +577,9 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     };
     match result {
         Ok(()) => 0,
-        Err(e) if force && e.starts_with("ENOENT:") && !e.starts_with("ENOENT: no such file or directory, lstat '") => 0,
+        Err(e) if force && e.starts_with("ENOENT:")
+            && !(sess.profile == Profile::Memory && sess.shell.fs.default_device_view()
+                && e.starts_with("ENOENT: no such file or directory, lstat '")) => 0,
         Err(e) => {
             let op = if operation == 2 { "rmdir" } else if operation == 1 && sess.profile == Profile::Devices { "unlink" } else { "rm" };
             if sess.profile == Profile::Memory {

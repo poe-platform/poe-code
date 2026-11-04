@@ -3860,6 +3860,21 @@ test("single-entry removal preserves unseen descendants", async () => {
   }
 });
 
+test("mounted removal requires a searchable directory before crossing a trailing slash", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/locked"]});
+  try {
+    await bash.fs.chmod("/locked", 0);
+    for (const method of ["rmdir", "rm", "unlink"]) {
+      await assert.rejects(bash.fs[method]("/locked/", {recursive:true, force:true}), {code:"EACCES", syscall:method, path:"/locked/"});
+      assert.equal((await bash.fs.lstat("/locked")).type, "directory");
+      await assert.rejects(bash.fs[method]("/dev/null/"), {code:"ENOTDIR", syscall:method, path:"/dev/null/"});
+    }
+    await bash.fs.rm("/missing/", {force:true});
+    await bash.fs.rm("/missing/", {force:true, recursive:true});
+    await bash.fs.rmdir("/locked");
+  } finally { bash.dispose(); }
+});
+
 test("removal checks device traversal and mounted roots before rejecting a terminal dot", async () => {
   for (const [profile, path, method, code, syscall, failed] of [
     [undefined, "/missing/../dev", "rmdir", "ENOENT", "lstat", "/missing"],

@@ -63,12 +63,20 @@ impl MountVfs {
         let trimmed = path.trim_end_matches('/');
         let operand = if trimmed.is_empty() && !path.is_empty() { "/" } else { trimmed };
         let entry = self.resolve(operand, false, WalkPurpose::Access)?;
-        if entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m)) {
-            return Err("EBUSY: resource busy or locked".into());
+        let protected = entry == "/" || self.mounts.keys().any(|m| super::is_path_within(&entry, m));
+        let (_, fs, local) = self.location(&entry);
+        if path.ends_with('/') {
+            match fs.lstat(&local) {
+                Ok(st) if st.kind != super::VfsEntryKind::Directory => return Err("ENOTDIR: not a directory".into()),
+                Ok(st) if st.mode & 0o100 == 0 => return Err("EACCES: permission denied".into()),
+                // A missing ancestor of a mount is a synthetic directory.
+                Err(e) if protected && e.starts_with("ENOENT:") => {}
+                Err(e) => return Err(e),
+                Ok(_) => {}
+            }
         }
-        let (_, fs, mut local) = self.location(&entry);
+        if protected { return Err("EBUSY: resource busy or locked".into()); }
         if matches!(trimmed.rsplit('/').next(), Some("." | "..")) { return Err("EINVAL: invalid argument".into()); }
-        if path.ends_with('/') { local.push('/'); }
         Ok((fs, local))
     }
 

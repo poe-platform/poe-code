@@ -533,7 +533,7 @@ export class WasmFileSystem {
       return this.bash._companion.fs.rm(filePath, options);
     }
     const recursive = options?.recursive === true, force = options?.force === true;
-    this.bash.removePath(filePath, recursive ? 0 : 1, force);
+    this.bash.removePath(filePath, recursive ? 0 : 3, force);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
@@ -1083,7 +1083,7 @@ export class RustWasmBash extends WasmShell {
       if (rc < 0) {
         const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
         const message = decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -rc));
-        throw fsOperationError(message, operation === 2 ? "rmdir" : "rm", filePath);
+        throw readOperationError(message);
       }
     } finally {
       this._freeBytes(p);

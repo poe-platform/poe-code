@@ -611,6 +611,9 @@ impl MemoryVfs {
 
     fn remove_one_locked(state: &mut MemoryState, path: &str, directory: bool) -> Result<(), String> {
         let entry = Self::mutation_entry(state, path)?;
+        if state.devices == Devices::Mounted && entry != "/" && state.devices.entry(&entry).is_some() {
+            return Err(if directory { "ENOTDIR: not a directory" } else { "ENOTSUP: operation not supported" }.into());
+        }
         if entry == "/" || state.devices.entry(&entry).is_some() {
             return Err("EBUSY: resource busy or locked".into());
         }
@@ -852,6 +855,9 @@ impl MemoryVfs {
     fn remove_entry(&self, path: &str, publication: Option<u64>) -> Result<bool, String> {
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::mutation_entry(&guard, path)?;
+        if guard.devices == Devices::Mounted && resolved != "/" && guard.devices.entry(&resolved).is_some() {
+            return Err("ENOTSUP: operation not supported".into());
+        }
         if resolved == "/" || guard.devices.entry(&resolved).is_some() {
             return Err("EBUSY: resource busy or locked".into());
         }

@@ -553,7 +553,7 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     id: u32,
     path_ptr: *const u8,
     path_len: usize,
-    // 0: recursive rm (legacy ABI default), 1: unlink, 2: rmdir.
+    // 0: recursive rm (legacy ABI default), 1: unlink, 2: rmdir, 3: nonrecursive rm.
     operation: u32,
     force: bool,
 ) -> i32 {
@@ -563,14 +563,21 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     let result = match operation {
         0 => sess.shell.fs.remove_path(path),
         1 | 2 => sess.shell.fs.remove_one(path, operation == 2),
+        3 => match sess.shell.fs.overlay_backend() {
+            Some(overlay) => overlay.rm(path, false),
+            None => sess.shell.fs.remove_one(path, false),
+        },
         _ => Err("EINVAL: invalid removal operation".into()),
     };
     match result {
         Ok(()) => 0,
         Err(e) if force && e.starts_with("ENOENT:") => 0,
         Err(e) => {
-            sess.last_output_buf = e.into_bytes();
-            -(sess.last_output_buf.len() as i32)
+            let op = if operation == 2 { "rmdir" } else if operation == 1 && sess.profile == Profile::Devices { "unlink" } else { "rm" };
+            if sess.profile == Profile::Overlay && matches!(operation, 1 | 2) {
+                sess.last_output_buf = format!("{}:{op}::{path}", e.split(':').next().unwrap_or("EIO")).into_bytes();
+                -(sess.last_output_buf.len() as i32)
+            } else { sess.read_error(&e, op, path, None, None) }
         }
     }
 }

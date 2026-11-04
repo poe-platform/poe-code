@@ -12425,3 +12425,16 @@ test("rm checks all operands before deleting, then charges each guarded removal"
     } finally { sh.dispose(); }
   }
 });
+
+test("overlay fs.rm removes empty visible directories and preserves nonempty ones", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/lower/file":"keep","/empty/hidden":"lower"}});
+  try {
+    await sh.fs.rm("/empty/hidden");
+    await sh.fs.rm("/empty/.");
+    await assert.rejects(sh.fs.lstat("/empty"),{code:"ENOENT"});
+    await assert.rejects(sh.fs.rm("/lower/"),{code:"ENOTEMPTY",syscall:"overlay",path:"/lower/"});
+    assert.equal(sh.readText("/lower/file"),"keep");
+    await assert.rejects(sh.fs.rm("/absent/../lower",{recursive:true}),{code:"ENOENT",syscall:"overlay",path:"/absent"});
+    assert.equal(sh.readText("/lower/file"),"keep");
+  } finally { sh.dispose(); }
+});

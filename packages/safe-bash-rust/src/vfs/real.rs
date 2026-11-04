@@ -196,6 +196,8 @@ impl RealVfs {
 }
 
 impl super::OpenRedirectFile for std::fs::File {
+    fn truncate_to(&self, len: usize) -> Result<(), String> { self.set_len(len as u64).map_err(mutation_error) }
+
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
         use std::io::{Read, Seek, SeekFrom};
         let mut file = self;
@@ -253,15 +255,17 @@ impl SafeBashFs for RealVfs {
             .open(parent).map(|file| std::rc::Rc::new(file) as _).map_err(mutation_error)
     }
 
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
+    fn supports_command_descriptor(&self, _entry: &str) -> bool { true }
+
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let exclusive = access == super::RedirectAccess::Exclusive;
         let host = self.walk(&self.root, path, if exclusive { Walk::RenameEntry } else { Walk::Follow }, false)?;
         let mut options = std::fs::OpenOptions::new();
         options.read(matches!(access, super::RedirectAccess::Read | super::RedirectAccess::ReadWrite))
-            .write(access != super::RedirectAccess::Read).create(access != super::RedirectAccess::Read).create_new(exclusive)
+            .write(access != super::RedirectAccess::Read).create(create_mode.is_some() && access != super::RedirectAccess::Read).create_new(exclusive)
             .append(access == super::RedirectAccess::Append).truncate(access == super::RedirectAccess::Truncate);
         #[cfg(unix)]
-        std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode);
+        std::os::unix::fs::OpenOptionsExt::mode(&mut options, create_mode.unwrap_or(0));
         options.open(host).map(|f| Some(std::rc::Rc::new(f) as _)).map_err(mutation_error)
     }
 

@@ -63,6 +63,11 @@ impl std::fmt::Debug for RetainedFile {
 impl crate::vfs::OpenRedirectFile for RetainedFile {
     fn revision(&self) -> Option<u64> { Some(self.fs.generation()) }
 
+    fn truncate_to(&self, len: usize) -> Result<(), String> {
+        if self.access == crate::vfs::RedirectAccess::Read { return Err("EBADF: bad file descriptor".into()); }
+        self.truncate(len as u64)
+    }
+
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
         if !matches!(self.access, crate::vfs::RedirectAccess::Read | crate::vfs::RedirectAccess::ReadWrite) { return Err("EBADF: bad file descriptor".into()); }
         Ok(self.read(offset as u64, limit))
@@ -222,7 +227,7 @@ mod tests {
         std::thread::scope(|scope| {
             let open = || {
                 start.wait();
-                match fs.open_redirect_file("/output", RedirectAccess::Exclusive, 0o600) {
+                match fs.open_redirect_file("/output", RedirectAccess::Exclusive, Some(0o600)) {
                     Ok(Some(fd)) => { fd.write_at(Some(0), b"winner").unwrap(); true }
                     Err(e) if e.starts_with("EEXIST:") => false,
                     other => panic!("{other:?}"),
@@ -233,7 +238,7 @@ mod tests {
         });
         assert_eq!(fs.read_file("/output").unwrap(), b"winner");
         fs.symlink("/missing", "/link").unwrap();
-        assert!(fs.open_redirect_file("/link", RedirectAccess::Exclusive, 0o600).unwrap_err().starts_with("EEXIST:"));
+        assert!(fs.open_redirect_file("/link", RedirectAccess::Exclusive, Some(0o600)).unwrap_err().starts_with("EEXIST:"));
         assert!(!fs.exists("/missing"));
     }
 

@@ -9596,7 +9596,7 @@ impl<'a> EvalState<'a> {
         let access = if writable { RedirectAccess::ReadWrite } else { RedirectAccess::Read };
         let null = self.is_default_null(&path);
         let file = if null { None } else {
-            self.fs.open_redirect_file(&path, access, self.redirect_create_mode()).map_err(|e| {
+            self.fs.open_redirect_file(&path, access, Some(self.redirect_create_mode())).map_err(|e| {
                 if writable && e.starts_with("ENOTSUP:") {
                     BuiltinOutcome { stdout: String::new(), stderr: format!("{}ENOTSUP: operation not supported, open '{operand}'\n", self.diag_prefix()), exit_code: 1 }
                 } else { error(e) }
@@ -9640,7 +9640,7 @@ impl<'a> EvalState<'a> {
             }
         } else { self.output_redirect_path(operand, kind)? };
         let file = if self.is_default_null(&path) { None } else {
-            let file = self.fs.open_redirect_file(&path, access, mode).map_err(error)?;
+            let file = self.fs.open_redirect_file(&path, access, Some(mode)).map_err(error)?;
             if file.is_none() && !exclusive {
                 let existed = self.fs.exists(&path);
                 if !append || !existed {

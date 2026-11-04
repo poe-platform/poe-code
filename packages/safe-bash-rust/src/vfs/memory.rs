@@ -974,7 +974,9 @@ impl SafeBashFs for MemoryVfs {
         Ok(std::rc::Rc::new(RetainedFile { fs: self.clone(), ino, access: super::RedirectAccess::ReadWrite }))
     }
 
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
+    fn supports_command_descriptor(&self, _entry: &str) -> bool { true }
+
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         let exclusive = access == super::RedirectAccess::Exclusive;
         let entry = if exclusive { Self::mutation_entry(&state, path)? } else {
@@ -1001,6 +1003,7 @@ impl SafeBashFs for MemoryVfs {
             }
             Some(_) => return Err("EISDIR: illegal operation on a directory".into()),
             None => {
+                let create_mode = create_mode.ok_or("ENOENT: no such file or directory")?;
                 if access == super::RedirectAccess::Read || state.devices == Devices::Mounted { return Err("ENOENT: no such file or directory".into()); }
                 let parent = super::dirname_posix_path(&entry);
                 match state.nodes.get(&parent) {

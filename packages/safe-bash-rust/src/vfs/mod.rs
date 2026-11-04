@@ -165,6 +165,7 @@ pub trait OpenRedirectFile: std::fmt::Debug {
     fn revision(&self) -> Option<u64> { None }
     fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String>;
     fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String>;
+    fn truncate_to(&self, _len: usize) -> Result<(), String> { Err("ENOTSUP: operation not supported".into()) }
 }
 
 impl PartialEq for dyn OpenRedirectFile {
@@ -222,22 +223,25 @@ pub trait SafeBashFs: Send + Sync {
         Err("ENOTSUP: operation not supported".into())
     }
 
+    /// Whether commands can request positioned descriptors at a resolved entry.
+    fn supports_command_descriptor(&self, _entry: &str) -> bool { false }
+
     /// None uses the filesystem’s path-based output or special-device operations.
-    fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
+    fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
         if matches!(access, RedirectAccess::ReadWrite | RedirectAccess::Write) { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }
         else {
-            if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
+            if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode.ok_or("EINVAL: missing creation mode")?)?; }
             Ok(None)
         }
     }
 
-    fn open_command_stream<'a>(&'a self, path: &str, append: bool, mode: u32, budget: Option<&'a crate::ExecutionBudget>) -> Result<ChunkWriter<'a>, String> {
+    fn open_command_stream<'a>(&'a self, path: &str, append: bool, exclusive: bool, mode: u32, budget: Option<&'a crate::ExecutionBudget>) -> Result<ChunkWriter<'a>, String> {
         if path.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
         if let Some(b) = budget {
             // tee and its output adapter each query capabilities before access(W_OK).
-            b.tick_fs_op()?; b.tick_fs_op()?; b.tick_fs_op()?;
+            b.tick_fs_op()?; b.tick_fs_op()?; if !exclusive { b.tick_fs_op()?; }
         }
-        let access = self.access_path(path, true);
+        let access = self.access_path(path, !exclusive);
         let diagnostic = |e: String, syscall: &str| {
             if e.contains(", overlay '") || e.contains(", realpath '") || e.contains(", lstat '") && e.starts_with("EACCES:") {
                 e
@@ -245,7 +249,7 @@ pub trait SafeBashFs: Send + Sync {
                 format!("{}, {syscall} '{path}'", e.split(", ").next().unwrap_or(&e))
             }
         };
-        if let Ok(entry) = &access {
+        if !exclusive && let Ok(entry) = &access {
             if self.lstat(entry).is_ok_and(|st| st.mode & 0o200 == 0) {
                 let syscall = if self.overlay_backend().is_some() { "overlay" } else { "access" };
                 return Err(format!("EACCES: permission denied, {syscall} '{entry}'"));
@@ -255,17 +259,18 @@ pub trait SafeBashFs: Send + Sync {
         }
         if let Some(b) = budget { b.tick_fs_op()?; }
         let entry = access.map_err(|e| diagnostic(e, "writeStream"))?;
+        if exclusive && self.lstat(&entry).is_ok() { return Err("EEXIST: file exists".into()); }
         if entry == "/" { return Err(format!("EISDIR: illegal operation on a directory '{path}'")); }
-        let mut stream = self.start_command_stream(path, &entry, append, mode).map_err(|e| diagnostic(e, "writeStream"))?;
+        let mut stream = self.start_command_stream(path, &entry, append, exclusive, mode).map_err(|e| diagnostic(e, "writeStream"))?;
         Ok(Box::new(move |chunk| {
             if let (Some(b), Some(bytes)) = (budget, chunk) { b.add_output_bytes(bytes.len())?; }
             stream(chunk)
         }))
     }
 
-    fn start_command_stream(&self, _path: &str, entry: &str, append: bool, mode: u32) -> Result<ChunkWriter<'_>, String> {
-        let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
-        if let Some(handle) = self.open_redirect_file(entry, access, mode)? {
+    fn start_command_stream(&self, _path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<ChunkWriter<'_>, String> {
+        let access = if exclusive { RedirectAccess::Exclusive } else if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        if let Some(handle) = self.open_redirect_file(entry, access, Some(mode))? {
             let mut cursor = 0;
             return Ok(Box::new(move |chunk| {
                 if let Some(bytes) = chunk {
@@ -289,7 +294,7 @@ pub trait SafeBashFs: Send + Sync {
     fn write_command_path(&self, path: &str, bytes: &[u8], append: bool, mode: u32) -> Result<(), String> {
         let entry = self.access_path(path, true)?;
         let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
-        if let Some(handle) = self.open_redirect_file(&entry, access, mode)? {
+        if let Some(handle) = self.open_redirect_file(&entry, access, Some(mode))? {
             if !bytes.is_empty() { handle.write_at(if append { None } else { Some(0) }, bytes)?; }
             return Ok(());
         }
@@ -308,9 +313,12 @@ pub trait SafeBashFs: Send + Sync {
         if append { self.append_file(&entry, bytes) } else { self.write_file(&entry, bytes) }
     }
 
-    /// Write to a retained command output at the specified byte offset.
-    fn write_command_file_at(&self, file: &dyn OpenRedirectFile, offset: usize, bytes: &[u8]) -> Result<(), String> {
-        file.write_at(Some(offset), bytes)
+    /// Admit an operation on an already-open command descriptor (such as fstat or truncate).
+    fn command_descriptor_op(&self) -> Result<(), String> { Ok(()) }
+
+    /// Write to a retained command output; None appends at its current end.
+    fn write_command_file_at(&self, file: &dyn OpenRedirectFile, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
+        file.write_at(offset, bytes)
     }
 
     /// Write to a path when the filesystem did not supply a retained redirect handle.

@@ -543,6 +543,52 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("dd opens named output before stdin and publishes completed records according to the filesystem", {skip: !WebAssembly.Suspending}, async () => {
+  for (const overlay of [false,true]) {
+    const bash = new RustWasmBash({...(overlay ? {profile:"overlay-cow-fs"} : {}),files:{"/o":"old"}});
+    try {
+      const seen = [];
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const chunk of ["ab","c","defg","hijk"]) { seen.push(bash.readText("/o")); yield Buffer.from(chunk); }
+      }};
+      await assert.rejects(bash.exec("dd bs=4 of=/o status=none", {stdin,limits:{maxOutputBytes:5}}), {limit:"maxOutputBytes"});
+      assert.deepEqual([seen, bash.readText("/o")], overlay ? [["old","old","old","old"],"old"] : [["","","","abcd"],"abcd"]);
+      seen.length = 0;
+      const failed = await bash.exec("dd of=/missing/o status=none", {stdin});
+      assert.deepEqual([failed.exitCode,failed.stderr,seen], [1,"dd: failed to open '/missing/o': No such file or directory\n",[]]);
+    } finally { bash.dispose(); }
+  }
+});
+
+test("dd charges open, descriptor inspection and each named output record in order", {skip: !WebAssembly.Suspending}, async () => {
+  for (const [limit, pulls, content] of [[2,0,"old"],[3,0,""],[4,1,""],[5,2,"A"]]) {
+    const bash = new RustWasmBash({files:{"/o":"old"}});
+    try {
+      let seen = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const byte of [65,66]) { seen++; yield Uint8Array.of(byte); }
+      }};
+      await assert.rejects(bash.exec("dd bs=1 of=/o status=none", {stdin,limits:{maxFileSystemOperations:limit}}), {limit:"maxFileSystemOperations"});
+      assert.deepEqual([seen,bash.readText("/o")], [pulls,content]);
+    } finally { bash.dispose(); }
+  }
+});
+
+test("dd keeps writing the opened inode after its name is replaced", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/o":"abcdef"}});
+  try {
+    const stdin = {async *[Symbol.asyncIterator]() {
+      yield Buffer.from("12");
+      assert.equal(bash.readText("/o"), "ab12ef");
+      await bash.fs.rename("/o","/moved");
+      await bash.fs.writeFile("/o","replacement");
+      yield Buffer.from("3");
+    }};
+    const r = await bash.exec("dd bs=2 seek=1 of=/o conv=notrunc status=none", {stdin});
+    assert.deepEqual([r.exitCode,r.stderr,bash.readText("/o"),bash.readText("/moved")], [0,"","replacement","ab123f"]);
+  } finally { bash.dispose(); }
+});
+
 test("dd rejects unsupported flags at open time before copying or truncating", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/target":"keep"}});
   try {

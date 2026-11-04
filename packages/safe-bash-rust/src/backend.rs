@@ -131,15 +131,19 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.scratch_file(&host_text(directory)).map_err(quote_host_text)
     }
 
-    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
+    fn supports_command_descriptor(&self, entry: &str) -> bool {
+        self.inner.supports_command_descriptor(&host_text(entry))
+    }
+
+    fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.inner.open_redirect_file(&host_text(path), access, create_mode).map_err(quote_host_text)
     }
 
-    fn open_command_stream<'b>(&'b self, path: &str, append: bool, mode: u32, _: Option<&'b ExecutionBudget>) -> Result<crate::vfs::ChunkWriter<'b>, String> {
+    fn open_command_stream<'b>(&'b self, path: &str, append: bool, exclusive: bool, mode: u32, _: Option<&'b ExecutionBudget>) -> Result<crate::vfs::ChunkWriter<'b>, String> {
         self.budget.limits.check_path(path)?;
-        let mut stream = self.inner.open_command_stream(&host_text(path), append, mode, Some(self.budget)).map_err(quote_host_text)?;
+        let mut stream = self.inner.open_command_stream(&host_text(path), append, exclusive, mode, Some(self.budget)).map_err(quote_host_text)?;
         Ok(Box::new(move |chunk| stream(chunk).map_err(quote_host_text)))
     }
 
@@ -150,10 +154,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.write_command_path(&host_text(path), bytes, append, mode).map_err(quote_host_text)
     }
 
-    fn write_command_file_at(&self, file: &dyn crate::vfs::OpenRedirectFile, offset: usize, bytes: &[u8]) -> Result<(), String> {
+    fn command_descriptor_op(&self) -> Result<(), String> { self.budget.tick_fs_op() }
+
+    fn write_command_file_at(&self, file: &dyn crate::vfs::OpenRedirectFile, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(bytes.len())?;
-        file.write_at(Some(offset), bytes).map_err(quote_host_text)
+        file.write_at(offset, bytes).map_err(quote_host_text)
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {

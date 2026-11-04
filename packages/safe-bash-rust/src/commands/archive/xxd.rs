@@ -308,7 +308,7 @@ pub(crate) fn cmd_xxd(
                 Ok(entry) => entry,
                 Err(e) => return input_error(&e),
             };
-            match fs.open_redirect_file(&entry, crate::vfs::RedirectAccess::Write, mode) {
+            match fs.open_redirect_file(&entry, crate::vfs::RedirectAccess::Write, Some(mode)) {
                 Ok(descriptor) => descriptor,
                 Err(e) => {
                     let op = if e.starts_with("EISDIR:") && path == "/" {
@@ -328,7 +328,7 @@ pub(crate) fn cmd_xxd(
                 let written = if let Some(handle) = &descriptor {
                     usize::try_from(offset)
                         .map_err(|_| "EFBIG: file too large".to_owned())
-                        .and_then(|pos| fs.write_command_file_at(handle.as_ref(), pos, bytes))
+                        .and_then(|pos| fs.write_command_file_at(handle.as_ref(), Some(pos), bytes))
                 } else {
                     fs.append_file(path, bytes)
                 };

@@ -36,7 +36,7 @@ pub(super) fn try_run_coreutil_with_input(
     }
     if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
-    if cmd == "dd" { return Ok(Some(cmd_dd(args, input, cwd, fs, write))); }
+    if cmd == "dd" { return Ok(Some(cmd_dd(args, input, cwd, env, fs, write))); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
     if matches!(cmd, "less" | "more") { return Ok(Some(cmd_less_more(cmd, args, input, cwd, fs, write))); }
     if cmd == "expand" { return Ok(Some(cmd_expand(args, input, cwd, fs, write))); }
@@ -4024,7 +4024,7 @@ fn cmd_tee(args: &[String], mut input: CommandInput, cwd: &str, env: &BTreeMap<S
     let mut out = ok_out("");
     for f in files {
         let path = absolute_operand(cwd, &f);
-        match fs.open_command_stream(&path, append, mode, None) {
+        match fs.open_command_stream(&path, append, false, mode, None) {
             Ok(target) => targets.push((path, target)),
             Err(e) => {
                 out.exit_code = 1;
@@ -17176,7 +17176,52 @@ fn parse_dd_number(text: &str, warnings: &mut Vec<String>) -> Result<usize, Stri
     Ok(product)
 }
 
-fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+fn dd_output<'a>(
+    fs: &'a dyn SafeBashFs, cwd: &str, name: &str, flags: &[&str], conv: &BTreeSet<String>,
+    start: usize, mode: u32,
+) -> Result<crate::vfs::ChunkWriter<'a>, String> {
+    use crate::vfs::RedirectAccess;
+    let failed = |e: String| format!("failed to open '{name}': {}", install_reason(&e));
+    let unsupported = |what: &str| format!("{what}: Operation not supported by the filesystem stream adapter");
+    let path = absolute_operand(cwd, name);
+    if path.is_empty() { return Err(failed("ENOENT: empty path".into())); }
+    let exclusive = conv.contains("excl");
+    let no_create = conv.contains("nocreat");
+    let append = flags.contains(&"append");
+    let keep = conv.contains("notrunc");
+    let nofollow = flags.contains(&"nofollow");
+    let entry = fs.access_path(&path, !(nofollow || exclusive)).map_err(failed)?;
+    if !fs.supports_command_descriptor(&entry) {
+        if nofollow { return Err(failed("ENOTSUP: operation not supported".into())); }
+        for flag in ["dsync", "sync"] { if flags.contains(&flag) { return Err(unsupported(flag)); } }
+        for flag in ["fsync", "fdatasync"] { if conv.contains(flag) { return Err(unsupported(flag)); } }
+        if append && !keep && start == 0 { return Err(unsupported("append with truncation")); }
+        if start != 0 || keep && !append || no_create { return Err(unsupported("positioned or existing-only output")); }
+        return fs.open_command_stream(&path, append, exclusive, mode, None).map_err(failed);
+    }
+    if nofollow && fs.lstat(&entry).is_ok_and(|s| s.kind == crate::vfs::VfsEntryKind::Symlink) {
+        return Err(failed("ELOOP: too many symbolic links".into()));
+    }
+    if !exclusive && !nofollow { fs.command_create_path(&entry).map_err(failed)?; }
+    let access = if exclusive { RedirectAccess::Exclusive } else if !keep && start == 0 { RedirectAccess::Truncate }
+        else if append { RedirectAccess::Append } else { RedirectAccess::Write };
+    let handle = fs.open_redirect_file(&entry, access, (!no_create).then_some(mode)).map_err(failed)?;
+    let Some(handle) = handle else { return fs.open_command_stream(&path, append, false, mode, None).map_err(failed); };
+    fs.command_descriptor_op().map_err(failed)?; // fstat on the opened descriptor
+    if !keep && start != 0 {
+        fs.command_descriptor_op().and_then(|()| handle.truncate_to(start)).map_err(|e| format!("'{name}': cannot seek: {}", install_reason(&e)))?;
+    }
+    let mut offset = start;
+    Ok(Box::new(move |chunk| {
+        if let Some(bytes) = chunk {
+            fs.write_command_file_at(handle.as_ref(), (!append).then_some(offset), bytes)?;
+            offset = offset.saturating_add(bytes.len());
+        }
+        Ok(())
+    }))
+}
+
+fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut in_file: Option<String> = None;
     let mut out_file: Option<String> = None;
     let mut bs_opt: Option<usize> = None;
@@ -17474,26 +17519,13 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
         }
     }
 
-    if let Some(ref outf) = out_file
-        && outf != "/dev/null"
-    {
-        let full = resolve_posix_path(cwd, outf);
-        let exists = fs.exists(&full);
-        if conv_set.contains("excl") && exists {
-            return err_out(
-                &format!("{}{}", warnings.concat(), format!("dd: failed to open '{outf}': File exists\n")),
-                1,
-            );
-        }
-        if conv_set.contains("nocreat") && !exists {
-            return err_out(
-                &format!(
-                    "{}{}",
-                    warnings.concat(),
-                    format!("dd: failed to open '{outf}': No such file or directory\n")
-                ),
-                1,
-            );
+    let mut target = None;
+    if let Some(name) = out_file.as_deref().filter(|p| *p != "/dev/null") {
+        let start = if seek_bytes { seek } else { seek.saturating_mul(obs) };
+        let mode = 0o666 & !env.get("\0umask").and_then(|v| u32::from_str_radix(v, 8).ok()).unwrap_or(0o022);
+        match dd_output(fs, cwd, name, &oflags, &conv_set, start, mode) {
+            Ok(writer) => target = Some(writer),
+            Err(message) => return err_out(&format!("{}dd: {message}\n", warnings.concat()), 1),
         }
     }
 
@@ -17539,14 +17571,17 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
     let do_swab = conv_set.contains("swab");
 
     let mut result = ok_out("");
-    let mut out_bytes = Vec::new();
     let mut output_record = Vec::new();
     let mut total_b = 0u64;
+    let two_buffers = bs_opt.is_none() || ["ascii","ebcdic","ibm","block","unblock","swab","lcase","ucase"].iter().any(|f| conv_set.contains(*f));
     let mut write_record = |record: &[u8]| {
         if out_file.is_none() {
             if !write(1, &crate::vfs::bytes_to_stream_string(record), &mut result) { return false; }
-        } else if out_file.as_deref() != Some("/dev/null") {
-            out_bytes.extend_from_slice(record);
+        } else if let Some(target) = &mut target && let Err(e) = target(Some(record)) {
+            let stage = if two_buffers && record.len() == obs { "writing to" } else { "error writing" };
+            result.stderr.push_str(&format!("dd: {stage} '{}': {}\n", out_file.as_deref().unwrap(), install_reason(&e)));
+            result.exit_code = 1;
+            return false;
         }
         total_b += record.len() as u64;
         true
@@ -17675,16 +17710,13 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
             return result;
         }
     }
-    if !writable || (!partial.is_empty() && record(&partial).is_err()) { return result; }
-    if let Some(prev) = saved && record_byte(prev, &mut emit).is_err() { return result; }
-    if do_block && column > 0 {
-        while column < cbs {
-            if emit(&[space_byte]).is_err() { return result; }
-            column += 1;
-        }
+    if writable && !partial.is_empty() { writable = record(&partial).is_ok(); }
+    if writable && let Some(prev) = saved { writable = record_byte(prev, &mut emit).is_ok(); }
+    if writable && do_block && column > 0 {
+        while writable && column < cbs { writable = emit(&[space_byte]).is_ok(); column += 1; }
     }
-    if do_unblock && column > 0 && emit(&[newline_byte]).is_err() { return result; }
-    if !output_record.is_empty() && !write_record(&output_record) { return result; }
+    if writable && do_unblock && column > 0 { writable = emit(&[newline_byte]).is_ok(); }
+    if writable && !output_record.is_empty() { writable = write_record(&output_record); }
     let output_full = total_b / obs as u64;
     let output_partial = usize::from(!total_b.is_multiple_of(obs as u64));
 
@@ -17707,48 +17739,12 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
         }
     }
 
-    if let Some(outf) = out_file {
-        if outf == "/dev/null" {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr,
-                exit_code: 0,
-            };
-        }
-        let full = resolve_posix_path(cwd, &outf);
-        let notrunc = conv_set.contains("notrunc");
-        let append = oflags.contains(&"append");
-        let seek_offset = if seek_bytes {
-            seek
-        } else {
-            seek.saturating_mul(obs)
-        };
-        if append {
-            let mut dest = fs.read_file(&full).unwrap_or_default();
-            dest.extend_from_slice(&out_bytes);
-            let _ = fs.write_file(&full, &dest);
-        } else if seek_offset > 0 || notrunc {
-            let mut dest = fs.read_file(&full).unwrap_or_default();
-            if dest.len() < seek_offset + out_bytes.len() {
-                dest.resize(seek_offset + out_bytes.len(), 0);
-            }
-            dest[seek_offset..seek_offset + out_bytes.len()].copy_from_slice(&out_bytes);
-            if !notrunc {
-                dest.truncate(seek_offset + out_bytes.len());
-            }
-            let _ = fs.write_file(&full, &dest);
-        } else {
-            let _ = fs.write_file(&full, &out_bytes);
-        }
-        BuiltinOutcome {
-            stdout: String::new(),
-            stderr,
-            exit_code: 0,
-        }
-    } else {
-        result.stderr.push_str(&stderr);
-        result
+    if writable && let Some(mut target) = target && let Err(e) = target(None) {
+        result.stderr.push_str(&format!("dd: closing output file '{}': {}\n", out_file.as_deref().unwrap(), install_reason(&e)));
+        result.exit_code = 1;
     }
+    result.stderr.push_str(&stderr);
+    result
 }
 
 fn ensure_install_dirs(

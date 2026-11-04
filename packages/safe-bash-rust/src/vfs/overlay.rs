@@ -345,7 +345,7 @@ impl OverlayVfs {
 
 impl SafeBashFs for OverlayVfs {
     fn overlay_backend(&self) -> Option<&Self> { Some(self) }
-    fn start_command_stream(&self, path: &str, entry: &str, append: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
+    fn start_command_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
         match self.stat(entry) {
             Ok(st) if st.kind == VfsEntryKind::Directory => return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'")),
             Err(e) if e.starts_with("ENOENT:") => {
@@ -358,13 +358,14 @@ impl SafeBashFs for OverlayVfs {
         let path = path.to_owned();
         Ok(Box::new(move |chunk| match chunk {
             Some(bytes) => stage.write_at(None, bytes),
-            None => self.write_command_path(&path, &stage.read_at(0, usize::MAX)?, append, mode).map_err(|e| {
+            None => if exclusive { self.create_file(&path, &stage.read_at(0, usize::MAX)?, mode) }
+                else { self.write_command_path(&path, &stage.read_at(0, usize::MAX)?, append, mode) }.map_err(|e| {
                 if e.contains(", ") { e } else { format!("{e}, overlay '{path}'") }
             }),
         }))
     }
 
-    fn open_redirect_file(&self, path: &str, access: super::RedirectAccess, mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
+    fn open_redirect_file(&self, path: &str, access: super::RedirectAccess, mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         use super::RedirectAccess;
         match access {
             RedirectAccess::Read => {
@@ -372,7 +373,7 @@ impl SafeBashFs for OverlayVfs {
                 layer.open_redirect_file(&entry, access, mode)
             }
             RedirectAccess::ReadWrite | RedirectAccess::Write => Err(format!("ENOTSUP: operation not supported, open '{path}'")),
-            RedirectAccess::Exclusive => { self.create_file(path, &[], mode)?; Ok(None) }
+            RedirectAccess::Exclusive => { self.create_file(path, &[], mode.ok_or("EINVAL: missing creation mode")?)?; Ok(None) }
             _ => Ok(None),
         }
     }

@@ -242,6 +242,7 @@ struct MemoryState {
     next_ino: u64,
     devices: Devices,
     nodes: BTreeMap<String, MemoryNode>,
+    symlink_entries: usize,
     files: HashMap<u64, MemoryFile>,
     extra_links: HashMap<u64, LinkGroup>,
     child_dirs: HashMap<String, usize>,
@@ -251,6 +252,17 @@ struct MemoryState {
 }
 
 impl MemoryState {
+    fn insert_node(&mut self, path: String, node: MemoryNode) {
+        self.symlink_entries += usize::from(matches!(node, MemoryNode::Symlink { .. }));
+        if matches!(self.nodes.insert(path, node), Some(MemoryNode::Symlink { .. })) { self.symlink_entries -= 1; }
+    }
+
+    fn take_node(&mut self, path: &str) -> Option<MemoryNode> {
+        let node = self.nodes.remove(path)?;
+        self.symlink_entries -= usize::from(matches!(node, MemoryNode::Symlink { .. }));
+        Some(node)
+    }
+
     fn entry_count(&self) -> usize { self.nodes.len() + self.staged_entries }
 
     fn admit_new_file(&self, size: usize) -> Result<(), String> {
@@ -285,7 +297,7 @@ impl MemoryState {
         self.files.insert(ino, MemoryFile { revision: 0, data: Arc::new(data), publication, mode, atime_ms: now, mtime_ms: now,
             ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
         self.parent_changed(&path, now);
-        self.nodes.insert(path, MemoryNode::File { ino });
+        self.insert_node(path, MemoryNode::File { ino });
         ino
     }
 
@@ -294,7 +306,7 @@ impl MemoryState {
         if let MemoryNode::Directory { retained, .. } = &node && let Some(handle) = retained.upgrade() {
             handle.lock().unwrap().path = Some(path.clone());
         }
-        self.nodes.insert(path, node);
+        self.insert_node(path, node);
     }
 
     fn create_directory(&mut self, path: String, mode: u32) {
@@ -367,7 +379,7 @@ impl MemoryVfs {
             id: NEXT_FS_ID.fetch_add(2, Ordering::Relaxed),
             state: Arc::new(RwLock::new(MemoryState {
                 next_ino: 2, devices: Devices::Extended,
-                nodes,
+                nodes, symlink_entries: 0,
                 files: HashMap::new(), extra_links: HashMap::new(), child_dirs: HashMap::new(),
                 total_bytes: 0, staged_entries: 0,
                 limits,
@@ -606,7 +618,7 @@ impl MemoryVfs {
         let now = super::now_ms();
         state.parent_changed(&dst, now);
         node.status_changed(&mut state.files, now);
-        state.nodes.insert(dst, node);
+        state.insert_node(dst, node);
         Ok(())
     }
 
@@ -1006,7 +1018,7 @@ impl MemoryVfs {
     }
 
     fn unlink_locked(guard: &mut MemoryState, k: &str) {
-        let Some(mut node) = guard.nodes.remove(k) else { return };
+        let Some(mut node) = guard.take_node(k) else { return };
         let now = super::now_ms();
         guard.parent_changed(k, now);
         node.status_changed(&mut guard.files, now);
@@ -1462,7 +1474,7 @@ impl SafeBashFs for MemoryVfs {
             paths.extend(state.nodes.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)).map(|(k, _)| k.clone()));
         }
         for old in paths {
-            let mut node = state.nodes.remove(&old).unwrap();
+            let mut node = state.take_node(&old).unwrap();
             if old == from {
                 let now = super::now_ms();
                 state.parent_changed(&from, now);
@@ -1473,7 +1485,7 @@ impl SafeBashFs for MemoryVfs {
             if matches!(node, MemoryNode::Directory { .. }) {
                 state.removed_directory(&old);
                 state.insert_directory(new, node);
-            } else { state.nodes.insert(new, node); }
+            } else { state.insert_node(new, node); }
         }
         self.bump_generation();
         Ok(())
@@ -1528,7 +1540,7 @@ impl SafeBashFs for MemoryVfs {
             // The shell can use stock, link-free memory directly for a single plain mkdir.
             // A failed attempt falls through with any parents already created.
             if try_backing && path != "/dev" && !path.starts_with("/dev/")
-                && !state.nodes.values().any(|n| matches!(n, MemoryNode::Symlink { .. }))
+                && state.symlink_entries == 0
                 && self.mkdir_nodes(&mut state, path, recursive, mode).is_ok() { return Ok(()); }
             let resolved = Self::device_operand(&state, path, true).map_err(|error| {
                 let failed = error.split_once(" '").filter(|(reason, _)| reason.ends_with(", lstat")).and_then(|(_, p)| p.strip_suffix('\''));
@@ -1597,7 +1609,7 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn link_free_memory(&self) -> bool {
-        self.state.read().is_ok_and(|s| !s.nodes.values().any(|n| matches!(n, MemoryNode::Symlink { .. })))
+        self.state.read().is_ok_and(|s| s.symlink_entries == 0)
     }
 
     fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
@@ -1609,7 +1621,7 @@ impl SafeBashFs for MemoryVfs {
         }
         let state = self.state.read().ok()?;
         if !matches!(state.nodes.get(parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o500 == 0o500)
-            || state.nodes.values().any(|node| matches!(node, MemoryNode::Symlink { .. })) {
+            || state.symlink_entries != 0 {
             return None;
         }
         Some(state.nodes.contains_key(path.trim_end_matches('/')))
@@ -1711,7 +1723,7 @@ impl SafeBashFs for MemoryVfs {
         let now = super::now_ms();
         guard.parent_changed(&resolved, now);
         let ino = guard.allocate_ino();
-        guard.nodes.insert(
+        guard.insert_node(
             resolved,
             MemoryNode::Symlink {
                 ino,
@@ -1833,7 +1845,7 @@ impl SafeBashFs for MemoryVfs {
         // Detached versions held by streams also survive replacement of the namespace.
         let released: usize = current.files.values().filter(|f| f.opens == 0).map(|f| f.data.len()).sum();
         let retained_bytes = current.total_bytes - released;
-        let mut guard = MemoryState { next_ino: current.next_ino, devices: current.devices, nodes: BTreeMap::new(), files: HashMap::new(), extra_links: HashMap::new(), child_dirs: HashMap::new(),
+        let mut guard = MemoryState { next_ino: current.next_ino, devices: current.devices, nodes: BTreeMap::new(), symlink_entries: 0, files: HashMap::new(), extra_links: HashMap::new(), child_dirs: HashMap::new(),
             total_bytes: retained_bytes, staged_entries: current.staged_entries, limits: current.limits.clone() };
         let root_ino = guard.allocate_ino();
         guard.insert_directory(
@@ -1866,7 +1878,7 @@ impl SafeBashFs for MemoryVfs {
                 let target = entry.symlink_target.clone().ok_or("EINVAL: missing symlink target")?;
                 let now = super::now_ms();
                 let ino = guard.allocate_ino();
-                guard.nodes.insert(norm.clone(), MemoryNode::Symlink { ino,
+                guard.insert_node(norm.clone(), MemoryNode::Symlink { ino,
                     target: target.into(), status: SymlinkStatus::new(if entry.mode != 0 { entry.mode } else { 0o120777 }, now), atime_ms: now, mtime_ms: now, birthtime_ms: now });
             }
             if let Some(group) = entry.link_group { groups.insert(group, guard.nodes[&norm].clone()); }
@@ -1893,6 +1905,27 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn link_free_paths_require_the_last_symlink_name_to_be_gone() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/d").unwrap();
+        fs.symlink("/missing", "/d/link").unwrap();
+        fs.hard_link("/d/link", "/second").unwrap();
+        let snapshot = fs.export_entries().unwrap();
+        fs.rename("/d", "/renamed", false).unwrap();
+        fs.remove_path("/renamed").unwrap();
+        assert!(!fs.link_free_memory());
+        fs.remove_one("/second", false).unwrap();
+        assert!(fs.link_free_memory());
+        fs.replace_entries(&snapshot).unwrap();
+        assert!(!fs.link_free_memory());
+        fs.write_file("/ordinary", b"data").unwrap();
+        fs.rename("/ordinary", "/second", false).unwrap();
+        assert!(!fs.link_free_memory());
+        fs.remove_one("/d/link", false).unwrap();
+        assert!(fs.link_free_memory());
+    }
 
     #[test]
     fn mkdir_below_virtual_dev_uses_the_backing_directory() {

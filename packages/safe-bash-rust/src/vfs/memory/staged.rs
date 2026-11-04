@@ -70,9 +70,7 @@ impl StagedFile {
         let now = crate::vfs::now_ms();
         file.status_changed(now);
         state.parent_changed(path, now);
-        state
-            .nodes
-            .insert(path.to_owned(), MemoryNode::File { ino });
+        state.insert_node(path.to_owned(), MemoryNode::File { ino });
         state.staged_entries -= 1;
         self.fs.bump_generation();
         Ok(())

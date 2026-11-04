@@ -262,7 +262,7 @@ impl MemoryVfs {
                     let now = super::super::now_ms();
                     let ino = dst.allocate_ino();
                     dst.parent_changed(target,now);
-                    dst.nodes.insert(target.to_owned(),MemoryNode::Symlink { target:link.clone(), status:SymlinkStatus::new(0o120777,now),
+                    dst.insert_node(target.to_owned(),MemoryNode::Symlink { target:link.clone(), status:SymlinkStatus::new(0o120777,now),
                         ino,atime_ms:now,mtime_ms:now,birthtime_ms:now });
                     destination.bump_generation();
                 }
@@ -321,12 +321,12 @@ impl MemoryVfs {
                             dst.files.get_mut(&staged).unwrap().set_times((Some(atime),Some(file.mtime_ms)));
                             admit(4)?; // stat retained reader and original path, publish, validate commit guard
                             Self::unlink_locked(&mut dst,target);
-                            let mut node = dst.nodes.remove(&entry).unwrap();
+                            let mut node = dst.take_node(&entry).unwrap();
                             let now = super::super::now_ms();
                             node.status_changed(&mut dst.files,now);
                             dst.parent_changed(&entry,now);
                             dst.parent_changed(target,now);
-                            dst.nodes.insert(target.to_owned(),node);
+                            dst.insert_node(target.to_owned(),node);
                             Ok(())
                         })();
                         // Cleanup itself consumes an operation. If it is refused,

@@ -48,10 +48,24 @@ fn name_at<'a>(source: &'a str, at: &mut usize) -> Result<&'a str, String> {
 }
 
 struct Group<'a> {
+    close: u8,
     control: bool,
+    awaiting_close: bool,
     call: Option<&'a str>,
     commas: usize,
     has_arg: bool,
+}
+
+impl Group<'_> {
+    fn error(&self, source: &str, at: usize) -> String {
+        let offset = crate::vfs::stream_byte_len(&source[..at]);
+        if self.has_arg {
+            format!("expected '{}' at byte {offset}", char::from(self.close))
+        } else {
+            let token = source[at..].chars().next().map(String::from).unwrap_or_default();
+            format!("unsupported expression '{token}' at byte {offset}")
+        }
+    }
 }
 
 // Read the complete source before handing any actions to the evaluator. Only
@@ -77,8 +91,23 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
             && !(c == b'\\' && bytes.get(at) == Some(&b'\n')) {
             return Err(format!("expected '{{' at byte {}", crate::vfs::stream_byte_len(&source[..start])));
         }
-        if !matches!(c, b' ' | b'\t' | b'\r' | b'\n' | b'#' | b')' | b']' | b',' | b'\\')
-            && let Some(group) = groups.last_mut() { group.has_arg = true; }
+        if let Some(group) = groups.last_mut() {
+            match c {
+                b' ' | b'\t' | b'\r' | b'#' | b'\\' => {},
+                b'\n' => {
+                    if group.call.is_some() && operand { group.awaiting_close = true; }
+                }
+                _ if group.awaiting_close && c != group.close => return Err(group.error(source, start)),
+                b',' if !group.has_arg => return Err(group.error(source, start)),
+                b',' => { group.commas += 1; group.has_arg = false; }
+                b')' | b']' if c != group.close || !(group.has_arg || group.call.is_some() && group.commas == 0) => {
+                    return Err(group.error(source, start));
+                }
+                b')' | b']' => {},
+                b'}' | b';' if !group.control => return Err(group.error(source, start)),
+                _ => group.has_arg = true,
+            }
+        }
         match c {
             b' ' | b'\t' | b'\r' => {},
             b'#' => {
@@ -188,11 +217,10 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                 operand = true; control = false;
             }
             b'(' | b'[' => {
-                groups.push(Group { control, call: next_call.take(), commas: 0, has_arg: false });
+                groups.push(Group { close: if c == b'(' { b')' } else { b']' }, control, awaiting_close: false, call: next_call.take(), commas: 0, has_arg: false });
                 control = false; operand = false;
             }
             b',' => {
-                if let Some(group) = groups.last_mut() { group.commas += 1; }
                 control = false; operand = false;
             }
             b')' | b']' => {
@@ -222,7 +250,7 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
             }
             b'\n' | b';' => {
                 operand = false; control = false;
-                if braces == 0 {
+                if braces == 0 && groups.is_empty() {
                     let rule = part.trim();
                     if c == b'\n' && (matches!(rule, "BEGIN" | "END") || definition.is_some()) {
                         part.push(' '); continue;
@@ -243,6 +271,7 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
         }
         part.push_str(&source[start..at]);
     }
+    if let Some(group) = groups.last() { return Err(group.error(source, source.len())); }
     if braces != 0 {
         if !part.trim_end_matches([' ', '\t', '\r']).ends_with([';', '\n', '{', '}']) && !part.trim().is_empty() {
             return Err(format!("expected statement separator at byte {}", crate::vfs::stream_byte_len(source)));
@@ -282,4 +311,35 @@ fn add_rule(head: &str, body: &str, rules: &mut Vec<AwkRule>) {
         body: split_awk_statements(body),
         in_range: false,
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_missing_call_arguments_and_delimiters_at_the_offending_byte() {
+        for (source, error) in [
+            ("BEGIN{f(,1)}", "unsupported expression ',' at byte 8"),
+            ("BEGIN{f(1,,2)}", "unsupported expression ',' at byte 10"),
+            ("BEGIN{f(1,)}", "unsupported expression ')' at byte 10"),
+            ("BEGIN{f(1", "expected ')' at byte 9"),
+            ("BEGIN{f(1,", "unsupported expression '' at byte 10"),
+            ("BEGIN{f(}", "unsupported expression '}' at byte 8"),
+            ("BEGIN{f(1]}", "expected ')' at byte 9"),
+            ("BEGIN{f(1;2)}", "expected ')' at byte 9"),
+            ("BEGIN{f(1\n,2)}", "expected ')' at byte 10"),
+            ("BEGIN{x ()}", "unsupported expression ')' at byte 9"),
+            ("BEGIN{a[]}", "unsupported expression ']' at byte 8"),
+        ] {
+            assert_eq!(parse_rules(source, false).err().as_deref(), Some(error), "{source}");
+        }
+        for source in [
+            "function f(a,b){} BEGIN{f(\n# comment\n)}",
+            "function f(a,b){} BEGIN{f(1 +\n 2,\n a[1,2]\n)}",
+            "BEGIN{for(;;)break}",
+        ] {
+            assert_eq!(parse_rules(source, false).err(), None, "{source}");
+        }
+    }
 }

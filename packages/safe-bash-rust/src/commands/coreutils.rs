@@ -24,18 +24,20 @@ pub fn try_run_coreutil(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
-    try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)
+    try_run_coreutil_with_input(cmd, args, CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)
         .unwrap_or_else(|e| Some(e.diagnose("shell: line 1: ")))
 }
 
 pub(super) fn try_run_coreutil_with_input(
-    cmd: &str, args: &[String], input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
+    cmd: &str, args: &[String], input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter,
 ) -> Result<Option<BuiltinOutcome>, CommandFailure> {
     if cmd == "envsubst" {
         return cmd_envsubst(args, input, env).map(Some).map_err(|message| CommandFailure { output: ok_out(""), message });
     }
     if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
+    if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
+    if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
         Ok(out) => out,
         Err(error) => Some(err_out(&format!("{cmd}: {error}\n"), 1)),
@@ -46,13 +48,11 @@ fn coreutil(
     cmd: &str, args: &[String], input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs,
 ) -> Result<Option<BuiltinOutcome>, String> {
     Ok(Some(match cmd {
-        "cat" => cmd_cat(args, input, cwd, fs),
         "wc" => cmd_wc(args, input, cwd, env, fs),
         "head" | "tail" => run_head_or_tail(cmd, args, input, cwd, fs),
         "sort" => cmd_sort(args, input, cwd, env, fs),
         "uniq" => cmd_uniq(args, input, cwd, env, fs),
         "cut" => cmd_cut(args, input, cwd, env, fs),
-        "tr" => cmd_tr(args, input),
         "nl" => cmd_nl(args, input, cwd, fs),
         "tac" => cmd_tac(args, input, cwd, fs),
         "rev" => cmd_rev(args, input, cwd, env, fs),
@@ -458,7 +458,7 @@ impl CommandInput<'_> {
     }
 }
 
-fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut flag_n = false;
     let mut flag_b = false;
     let mut flag_s = false;
@@ -532,122 +532,116 @@ fn cmd_cat(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBas
         );
     }
 
-    let mut raw_bytes: Vec<u8> = Vec::new();
-    let mut stderr = String::new();
-    let mut exit_code = 0;
-    let targets = if files.is_empty() {
-        vec!["-".to_string()]
-    } else {
-        files
-    };
-    for f in &targets {
-        if f == "-" {
-            if let Err(error) = stdin.append_bytes(&mut raw_bytes) {
-                stderr.push_str(&format!("cat: {error}\n"));
-                exit_code = 1;
-            }
-        } else {
-            let p = absolute_operand(cwd, f);
-            let result = fs.inspect_command_entry(&p, true, "capabilitiesFor")
-                .and_then(|(resolved, st)| {
-                    if st.mode & 0o170000 != 0o100000 {
-                        raw_bytes.extend(fs.read_file(&resolved)?);
-                        return Ok(());
-                    }
-                    let limit = fs.max_input_bytes();
-                    let mut remaining = limit;
-                    fs.read_chunks(&resolved, &mut |chunk| {
-                        remaining = remaining.checked_sub(chunk.len())
-                            .ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
-                        raw_bytes.extend_from_slice(chunk);
-                        Ok(true)
-                    })
-                });
-            if let Err(error) = result {
-                let message = stream_file_error(error, "readStream", &p);
-                stderr.push_str(&format!("cat: {message}\n"));
-                exit_code = 1;
-            }
-        }
-    }
-
-    if !flag_n && !flag_b && !flag_s && !flag_e_ends && !flag_t_tabs && !flag_v {
-        return BuiltinOutcome {
-            stdout: crate::vfs::bytes_to_stream_string(&raw_bytes),
-            stderr,
-            exit_code,
-        };
-    }
-
+    let plain = !(flag_n || flag_b || flag_s || flag_e_ends || flag_t_tabs || flag_v);
+    let mut out = ok_out("");
     let show_ends_only_cr = flag_e_ends && !flag_v;
     let mut line_start = true;
     let mut blank_count = 0usize;
     let mut number = 1usize;
     let mut pending_cr = false;
-    let mut out_bytes: Vec<u8> = Vec::with_capacity(raw_bytes.len());
-
-    for &byte in &raw_bytes {
-        if pending_cr {
-            pending_cr = false;
-            if byte == 10 {
-                out_bytes.extend_from_slice(b"^M");
-            } else {
-                out_bytes.push(13);
+    let mut out_bytes = Vec::new();
+    if files.is_empty() { files.push("-".into()); }
+    for f in &files {
+        let mut writable = true;
+        let mut consume = |chunk: &[u8]| {
+            if plain {
+                writable = write(1, &crate::vfs::bytes_to_stream_string(chunk), &mut out);
+                return writable;
             }
-        }
-        if line_start && byte == 10 && flag_s && blank_count > 0 {
-            continue;
-        }
-        if line_start && (if flag_b { byte != 10 } else { flag_n }) {
-            out_bytes.extend_from_slice(format!("{number:>6}\t").as_bytes());
-            number += 1;
-        }
-        if byte == 10 {
-            if flag_e_ends {
-                out_bytes.push(b'$');
+            for &byte in chunk {
+                if pending_cr {
+                    pending_cr = false;
+                    if byte == 10 {
+                        out_bytes.extend_from_slice(b"^M");
+                    } else {
+                        out_bytes.push(13);
+                    }
+                }
+                if line_start && byte == 10 && flag_s && blank_count > 0 {
+                    continue;
+                }
+                if line_start && (if flag_b { byte != 10 } else { flag_n }) {
+                    out_bytes.extend_from_slice(format!("{number:>6}\t").as_bytes());
+                    number += 1;
+                }
+                if byte == 10 {
+                    if flag_e_ends {
+                        out_bytes.push(b'$');
+                    }
+                    out_bytes.push(10);
+                    blank_count = if line_start { blank_count + 1 } else { 0 };
+                    line_start = true;
+                } else {
+                    line_start = false;
+                    blank_count = 0;
+                    if byte == 13 && show_ends_only_cr {
+                        pending_cr = true;
+                    } else if byte == 9 {
+                        if flag_t_tabs {
+                            out_bytes.extend_from_slice(b"^I");
+                        } else {
+                            out_bytes.push(9);
+                        }
+                    } else if flag_v {
+                        let mut visible = byte;
+                        if visible >= 128 {
+                            out_bytes.extend_from_slice(b"M-");
+                            visible -= 128;
+                        }
+                        if visible < 32 {
+                            out_bytes.push(b'^');
+                            out_bytes.push(visible + 64);
+                        } else if visible == 127 {
+                            out_bytes.extend_from_slice(b"^?");
+                        } else {
+                            out_bytes.push(visible);
+                        }
+                    } else {
+                        out_bytes.push(byte);
+                    }
+                }
+                if out_bytes.len() >= 8192 {
+                    writable = write(1, &crate::vfs::bytes_to_stream_string(&out_bytes), &mut out);
+                    out_bytes.clear();
+                    if !writable { return false; }
+                }
             }
-            out_bytes.push(10);
-            blank_count = if line_start { blank_count + 1 } else { 0 };
-            line_start = true;
+            if !out_bytes.is_empty() {
+                writable = write(1, &crate::vfs::bytes_to_stream_string(&out_bytes), &mut out);
+                out_bytes.clear();
+            }
+            writable
+        };
+        let result = if f == "-" {
+            stdin.read_stdin(consume)
         } else {
-            line_start = false;
-            blank_count = 0;
-            if byte == 13 && show_ends_only_cr {
-                pending_cr = true;
-            } else if byte == 9 {
-                if flag_t_tabs {
-                    out_bytes.extend_from_slice(b"^I");
-                } else {
-                    out_bytes.push(9);
+            let p = absolute_operand(cwd, f);
+            fs.inspect_command_entry(&p, true, "capabilitiesFor").and_then(|(path, st)| {
+                if st.mode & 0o170000 != 0o100000 {
+                    consume(&fs.read_file(&path)?);
+                    return Ok(());
                 }
-            } else if flag_v {
-                let mut visible = byte;
-                if visible >= 128 {
-                    out_bytes.extend_from_slice(b"M-");
-                    visible -= 128;
-                }
-                if visible < 32 {
-                    out_bytes.push(b'^');
-                    out_bytes.push(visible + 64);
-                } else if visible == 127 {
-                    out_bytes.extend_from_slice(b"^?");
-                } else {
-                    out_bytes.push(visible);
-                }
-            } else {
-                out_bytes.push(byte);
-            }
+                // A named read ends at the size seen on open, even if stdout
+                // appends to the very same inode. Redirected stdin is a live fd.
+                let mut left = st.size;
+                let limit = fs.max_input_bytes();
+                let mut available = limit;
+                fs.read_chunks(&path, &mut |chunk| {
+                    let n = left.min(chunk.len());
+                    available = available.checked_sub(n).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+                    left -= n;
+                    Ok(consume(&chunk[..n]) && left != 0)
+                })
+            }).map_err(|e| stream_file_error(e, "readStream", &p))
+        };
+        if !writable { return out; }
+        if let Err(e) = result {
+            out.exit_code = 1;
+            if !write(2, &format!("cat: {e}\n"), &mut out) { return out; }
         }
     }
-    if pending_cr {
-        out_bytes.push(13);
-    }
-
-    BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        stderr,
-        exit_code,
-    }
+    if pending_cr { write(1, "\r", &mut out); }
+    out
 }
 
 fn head_tail_normalize_args(name: &str, arguments: &[String]) -> Vec<String> {
@@ -2921,7 +2915,7 @@ fn parse_tr_character_set(
     })
 }
 
-fn cmd_tr(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
+fn cmd_tr(args: &[String], mut stdin: CommandInput, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut deleting = false;
     let mut squeezing = false;
     let mut complement = false;
@@ -3042,8 +3036,10 @@ fn cmd_tr(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
     }
 
     let mut out_bytes = Vec::new();
+    let mut out = ok_out("");
     let mut prev_out = None;
     let result = stdin.read_stdin(|chunk| {
+        out_bytes.clear();
         for &b in chunk {
             if removed[b as usize] { continue; }
             let mapped = mapping[b as usize];
@@ -3051,13 +3047,13 @@ fn cmd_tr(args: &[String], mut stdin: CommandInput) -> BuiltinOutcome {
             prev_out = Some(mapped);
             out_bytes.push(mapped);
         }
-        true
+        write(1, &crate::vfs::bytes_to_stream_string(&out_bytes), &mut out)
     });
-    BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        exit_code: i32::from(result.is_err()),
-        stderr: result.err().map_or_else(String::new, |e| format!("tr: {e}\n")),
+    if let Err(e) = result {
+        out.exit_code = 1;
+        write(2, &format!("tr: {e}\n"), &mut out);
     }
+    out
 }
 
 fn validate_nl_style(s: &str) -> Result<(), String> {

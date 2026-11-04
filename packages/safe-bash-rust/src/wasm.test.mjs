@@ -605,6 +605,37 @@ test("cat, head and tail advance the shared stdin cursor only when they read", a
   } finally { bash.dispose(); }
 });
 
+test("cat reads only the original bytes when appending a named file to itself", async () => {
+  const bash = new RustWasmBash({ files: { "/f": "ab\n" } });
+  try {
+    const result = await bash.exec("cat /f >>/f", { limits: { maxOutputBytes: 32 } });
+    assert.deepEqual([result.exitCode, result.stderr, bash.readText("/f")], [0, "", "ab\nab\n"]);
+  } finally { bash.dispose(); }
+});
+
+test("cat and tr publish each chunk before pulling more stdin", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd,expected] of [["cat","a\r"],["cat -E","a"],["tr a x","x\r"]]) {
+      const seen = [];
+      let closed = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        try {
+          for (const chunk of ["a\r","\nb\n","c\n","later"]) {
+            seen.push(bash.readText("/copy"));
+            yield new TextEncoder().encode(chunk);
+          }
+        } finally { closed++; }
+      }};
+      await assert.rejects(bash.exec(cmd + " > /copy",{stdin,limits:{maxOutputBytes:6}}), {limit:"maxOutputBytes"});
+      assert.equal(seen[1], expected, cmd);
+      assert.equal(closed, 1, cmd);
+      assert.equal(seen.length, cmd === "cat -E" ? 2 : 3, cmd);
+      assert.equal(bash.readText("/copy"), seen.at(-1), cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

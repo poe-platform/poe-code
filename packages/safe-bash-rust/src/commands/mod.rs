@@ -943,7 +943,7 @@ where
         })));
     }
 
-    if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs)? {
+    if let Some(out) = coreutils::try_run_coreutil_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write)? {
         return Ok(Some(out));
     }
     if let Some(out) = fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {

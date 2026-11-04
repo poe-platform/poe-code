@@ -1591,6 +1591,30 @@ test("plugin writes share quotas, apply umask on creation, and stop after the ha
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("the du plugin walks directories and follows symlinks through scoped Wasm metadata", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem, createDuCommand} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [sh,store] of [[js,fs],[rust,rust.fs]]) {
+      await store.mkdir("/dir");
+      await store.writeFile("/dir/data", Uint8Array.of(1,2,3));
+      await store.symlink("/dir", "/link");
+      const du = createDuCommand();
+      sh.register({...du, name:"inspect-du"});
+    }
+    for (const flags of ["-ab","-Lab"]) {
+      const script = "inspect-du " + flags + " /link";
+      const expected = await js.exec(script), got = await rust.exec(script);
+      assert.equal(expected.exitCode, 0, expected.stderr);
+      assert.deepEqual([got.exitCode,got.stdout,got.stderr], [expected.exitCode,expected.stdout,expected.stderr]);
+    }
+    for (const sh of [js,rust]) {
+      await assert.rejects(sh.exec("inspect-du -Lab /link; : >/late", {limits:{maxFileSystemOperations:1}}), {limit:"maxFileSystemOperations"});
+    }
+    await assert.rejects(rust.fs.stat("/late"), {code:"ENOENT"});
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
 test("document plugin cleanup drains before the next command and preserves failures", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const {docxCommands} = await import("@poe-platform/safe-bash/commands/docx");

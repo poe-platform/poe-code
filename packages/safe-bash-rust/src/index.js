@@ -229,10 +229,15 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
             return fs[operation](path, data, options);
           };
           const commandFs = {
-            async readFile(path, settings) { admitPath(path, settings); return fs.readFile(path, settings); },
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
           };
+          for (const operation of ["readFile", "stat", "lstat", "readdir"]) {
+            commandFs[operation] = async (path, settings) => {
+              admitPath(path, settings);
+              return fs[operation](path, settings);
+            };
+          }
           const stdin = {async *[Symbol.asyncIterator]() {
             check();
             if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }

@@ -4,12 +4,12 @@ use crate::ExecutionBudget;
 impl MemoryVfs {
     /// Publish under both namespace locks. Return the refreshed source directory
     /// snapshot so the mount router can recheck the original path before rmdir.
-    pub(crate) fn transfer_to(
+    pub(in crate::vfs) fn transfer_to(
         &self,
         destination: &Self,
         source: (&str, &str, u64),
         target: (&str, &str, u64),
-        children: &[(String, String)],
+        children: &[crate::vfs::mount::MoveChild],
         budget: Option<&ExecutionBudget>,
     ) -> Result<Option<FileStat>, String> {
         if self.id == destination.id {
@@ -138,12 +138,12 @@ impl MemoryVfs {
                 "ENOTSUP: operation not supported, mv '{display_to}'"
             ));
         }
-        let entries = std::iter::once((from, "")).chain(children.iter().map(|(p,s)| (p.as_str(),s.as_str())));
+        let entries = std::iter::once((from, to, "")).chain(children.iter().map(|p| (p.source.as_str(),p.target.as_str(),p.suffix.as_str())));
         let operand = |base: &str, suffix: &str| if suffix.is_empty() { base.to_owned() }
             else { normalize_posix_path(&format!("{base}{suffix}")) };
         let mut metadata = Vec::new();
-        for (path, suffix) in entries.clone() {
-            let target = format!("{to}{suffix}");
+        for (path, target, suffix) in entries.clone() {
+            let device = dst.devices.entry(target);
             let target_name = operand(display_to,suffix);
             let source_name = operand(display_from,suffix);
             let node = src.nodes.get(path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{source_name}'"))?;
@@ -152,11 +152,16 @@ impl MemoryVfs {
                 b.tick_fs_op()?;
                 b.limits.check_path(&target_name)?;
             }
-            let existed = dst.nodes.contains_key(&target);
-            let allows_create = matches!(dst.nodes.get(&crate::vfs::dirname_posix_path(&target)),
-                Some(MemoryNode::Directory {mode,..}) if mode & 0o300 == 0o300);
-            let check_parent = |operation: &str| {
-                if allows_create { Ok(()) } else { Err(format!("EACCES: permission denied, {operation} '{target_name}'")) }
+            let existed = dst.nodes.contains_key(target);
+            let parent_error = match dst.nodes.get(&crate::vfs::dirname_posix_path(target)) {
+                None => Some("ENOENT: no such file or directory"),
+                Some(MemoryNode::Directory {mode,..}) if mode & 0o300 == 0o300 => None,
+                Some(MemoryNode::Directory {..}) => Some("EACCES: permission denied"),
+                Some(_) => Some("ENOTDIR: not a directory"),
+            };
+            let check_parent = |operation: &str| match parent_error {
+                Some(reason) => Err(format!("{reason}, {operation} '{target_name}'")),
+                None => Ok(()),
             };
             let storage_error = |err: String, operation: &str| {
                 let reason = if err.starts_with("EFBIG:") { "EFBIG: file too large" }
@@ -170,7 +175,7 @@ impl MemoryVfs {
                     if !existed {
                         check_parent("mkdir")?;
                         dst.admit_new_file(0).map_err(|e| storage_error(e,"mkdir"))?;
-                        dst.create_directory(target.clone(),0o40700);
+                        dst.create_directory(target.to_owned(),0o40700);
                         destination.bump_generation();
                     }
                     metadata.push((target,*mode,*atime_ms,*mtime_ms));
@@ -178,30 +183,30 @@ impl MemoryVfs {
                 MemoryNode::Symlink { target: link, .. } => {
                     if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
                     check_parent("symlink")?;
-                    if existed { Self::unlink_locked(&mut dst,&target); destination.bump_generation(); }
+                    if existed { Self::unlink_locked(&mut dst,target); destination.bump_generation(); }
                     dst.admit_new_file(0).map_err(|e| storage_error(e,"symlink"))?;
                     let now = super::super::now_ms();
                     let ino = dst.allocate_ino();
-                    dst.parent_changed(&target,now);
-                    dst.nodes.insert(target,MemoryNode::Symlink { target:link.clone(), status:SymlinkStatus::new(0o120777,now),
+                    dst.parent_changed(target,now);
+                    dst.nodes.insert(target.to_owned(),MemoryNode::Symlink { target:link.clone(), status:SymlinkStatus::new(0o120777,now),
                         ino,atime_ms:now,mtime_ms:now,birthtime_ms:now });
                     destination.bump_generation();
                 }
                 MemoryNode::File { ino } => {
                     let ino = *ino;
-                    if matches!(dst.nodes.get(&target),Some(MemoryNode::Symlink { .. })) {
+                    if matches!(dst.nodes.get(target),Some(MemoryNode::Symlink { .. })) {
                         check_parent("rm")?;
-                        Self::unlink_locked(&mut dst,&target);
+                        Self::unlink_locked(&mut dst,target);
                         destination.bump_generation();
                     }
                     let file = src.files.get_mut(&ino).unwrap();
                     if file.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source_name}'")); }
                     let atime = file.atime_ms;
-                    let replacing = dst.nodes.contains_key(&target);
+                    let replacing = dst.nodes.contains_key(target);
                     if device.is_none() {
                         check_parent("writeStream")?;
                         if !replacing {
-                            Self::store_file(&mut dst,target.clone(),&[],file.mode,None,None).map_err(|e| storage_error(e,"writeStream"))?;
+                            Self::store_file(&mut dst,target.to_owned(),&[],file.mode,None,None).map_err(|e| storage_error(e,"writeStream"))?;
                             destination.bump_generation();
                         }
                     }
@@ -219,7 +224,7 @@ impl MemoryVfs {
                             Some("full") => return Err(format!("ENOSPC: no space left on device, writeStream '{target_name}'")),
                             Some("urandom") => return Err(format!("EPERM: operation not permitted, writeStream '{target_name}'")),
                             None if !replacing => {
-                                Self::store_file(&mut dst,target.clone(),&[],file.mode,None,Some(chunk)).map_err(|e| storage_error(e,"writeStream"))?;
+                                Self::store_file(&mut dst,target.to_owned(),&[],file.mode,None,Some(chunk)).map_err(|e| storage_error(e,"writeStream"))?;
                             }
                             _ => {}
                         }
@@ -228,7 +233,7 @@ impl MemoryVfs {
                         // Overwriting a regular file publishes a separate inode after
                         // the copy succeeds, so aliases of the old file keep their data.
                         if replacing {
-                            Self::replace_inode(&mut dst,target.clone(),&file.data,file.mode)?;
+                            Self::replace_inode(&mut dst,target.to_owned(),&file.data,file.mode)?;
                             destination.bump_generation();
                         }
                         metadata.push((target,file.mode,atime,file.mtime_ms));
@@ -238,8 +243,8 @@ impl MemoryVfs {
         }
         if let Some(b) = budget { b.check_cancelled()?; }
         for (path,mode,accessed,modified) in metadata.into_iter().rev() {
-            destination.set_mode_locked(&mut dst,&path,mode)?;
-            match dst.nodes.get_mut(&path) {
+            destination.set_mode_locked(&mut dst,path,mode)?;
+            match dst.nodes.get_mut(path) {
                 Some(MemoryNode::Directory {atime_ms,mtime_ms,..}) => { *atime_ms = accessed; *mtime_ms = modified; }
                 Some(MemoryNode::File {ino}) => {
                     let ino = *ino;
@@ -248,7 +253,7 @@ impl MemoryVfs {
                 _ => unreachable!(),
             }
         }
-        for (path, suffix) in entries.rev() {
+        for (path, _, suffix) in entries.rev() {
             if suffix.is_empty() && directory { break; }
             let is_directory = matches!(src.nodes.get(path), Some(MemoryNode::Directory { .. }));
             Self::remove_one_locked(&mut src,path,is_directory).map_err(|e| {

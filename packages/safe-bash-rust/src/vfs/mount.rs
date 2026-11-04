@@ -5,8 +5,13 @@ use std::sync::Arc;
 
 struct DirectoryMove {
     parent: FileStat,
-    // Backing-store source and relative destination for each inspected child.
-    children: Vec<(String, String)>,
+    children: Vec<MoveChild>,
+}
+
+pub(super) struct MoveChild {
+    pub(super) source: String,
+    pub(super) target: String,
+    pub(super) suffix: String,
 }
 
 #[derive(Clone)]
@@ -106,6 +111,7 @@ impl MountVfs {
         let source_entry = self.access_path(source,false)?;
         let source_mount = self.location(&source_entry).0;
         let target_entry = self.resolve(target,false,WalkPurpose::AllowMissingParents)?;
+        let target_mount = self.location(&target_entry).0;
         let mut children = Vec::new();
         let mut pending = vec![(source.to_owned(),target.to_owned(),String::new())];
         let mut root_stats = Some((root,existing));
@@ -119,10 +125,11 @@ impl MountVfs {
                 let source_child = self.access_path(&from,false)?;
                 let (mount, _, local) = self.location(&source_child);
                 let target_child = self.resolve(&to,false,WalkPurpose::AllowMissingParents)?;
-                if mount != source_mount || target_child != format!("{target_entry}{suffix}") {
+                let (other, _, target_local) = self.location(&target_child);
+                if mount != source_mount || other != target_mount {
                     return Err(format!("ENOTSUP: cannot bind cross-device directory entry '{from}' -> '{to}'"));
                 }
-                children.push((local,suffix.clone()));
+                children.push(MoveChild { source: local, target: target_local, suffix: suffix.clone() });
             }
             if let Some(other) = existing {
                 if st.identity.is_some() && st.identity == other.identity {
@@ -585,6 +592,39 @@ impl SafeBashFs for MountVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn cross_mount_move_uses_the_inspected_destination_for_each_child() {
+        for alternate in ["missing", "occupied", "readonly"] {
+            let root = Arc::new(MemoryVfs::new());
+            root.write_file("/w/d/b", b"b").unwrap();
+            root.write_file("/w/file", b"original").unwrap();
+            let dst = Arc::new(MemoryVfs::new());
+            dst.mkdir_all("/empty/leaf").unwrap();
+            dst.mkdir_all("/a").unwrap();
+            dst.symlink("/empty/leaf", "/a/link").unwrap();
+            if alternate != "missing" { dst.mkdir_all("/a/copy").unwrap(); }
+            if alternate == "occupied" {
+                dst.write_file("/a/copy/file", b"old").unwrap();
+                dst.hard_link("/a/copy/file", "/old").unwrap();
+            }
+            if alternate == "readonly" { dst.chmod("/a/copy", 0o555).unwrap(); }
+            let fs = MountVfs::new(root.clone()).with_mount("/m", dst.clone());
+            let result = fs.move_across_devices("/w", "/m/a/link/../copy", None);
+            assert!(dst.list_dir("/empty/copy").unwrap().is_empty());
+            if alternate == "occupied" {
+                result.unwrap();
+                assert_eq!(dst.read_file("/a/copy/file").unwrap(),b"original");
+                assert_eq!(dst.read_file("/a/copy/d/b").unwrap(),b"b");
+                assert_eq!(dst.read_file("/old").unwrap(),b"old");
+                assert!(!root.exists("/w"));
+            } else {
+                let reason = if alternate == "missing" { "ENOENT: no such file or directory" } else { "EACCES: permission denied" };
+                assert_eq!(result.unwrap_err(), format!("{reason}, mkdir '/m/a/copy/d'"));
+                assert!(root.exists("/w/file") && root.exists("/w/d/b"));
+            }
+        }
+    }
 
     #[test]
     fn cross_mount_copy_failure_retains_completed_chunks_before_cleanup_or_chmod() {

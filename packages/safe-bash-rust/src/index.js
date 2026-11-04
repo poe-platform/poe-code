@@ -181,7 +181,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead"].map(key => [key, backing[key]]))});
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead"].map(key => [key, backing[key]]))});
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -300,7 +300,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const kind = pathProfile(path, settings);
               const directory = kind === 2, regular = kind === 0;
               return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
-                open:supportsOpen && !directory, retainedRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
+                open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
                 rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
             },
@@ -343,6 +343,29 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           for (const [key,method] of Object.entries(commandFs)) {
             if (typeof method === "function") commandFs[key] = async (...args) => { if (busy) await busy; return method(...args); };
           }
+          commandFs.readStream = (path, settings) => {
+            const admission = busy?.then(() => admitPath(path,settings));
+            if (admission) admission.catch(()=>{}); else admitPath(path,settings);
+            const options = {...settings,signal:settings?.signal && settings.signal !== signal ? AbortSignal.any([signal,settings.signal]) : signal};
+            const iterator = fs.readStream(path,options)[Symbol.asyncIterator]();
+            const close = () => iterator.return().finally(()=>handles.delete(close));
+            (handles ??= new Set()).add(close);
+            return {
+              [Symbol.asyncIterator]() { return this; },
+              async next() {
+                if (admission) await admission;
+                if (busy) await busy;
+                try {
+                  check(); options.signal.throwIfAborted();
+                  const chunk = await iterator.next();
+                  check();
+                  if (chunk.done) handles.delete(close);
+                  return chunk;
+                } catch (error) { await close(); throw error; }
+              },
+              return:close,
+            };
+          };
           const stdin = {async *[Symbol.asyncIterator]() {
             check();
             if (!(access & 1)) throw badDescriptor();
@@ -626,18 +649,19 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
     return bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size);
   });
   const close = () => closing ??= pending.then(() => { try { call("close", 7); } finally { bash = undefined; } });
-  if (kind === 3 || kind === 4) return {
+  if (kind >= 3) return {
     stat, close,
     seekEnd: options => run("lseek", options, () => {
       const size = call("lseek", 3);
       const st = bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size);
       return st.isDirectory ? (1n << 63n) - 1n : BigInt(st.size);
     }),
-    read: (position, maximum, options) => run("read", options, () => {
+    read: (position, maximum, options) => run("read", options, async () => {
+      if (kind === 5) { await new Promise(resolve => setImmediate(resolve)); options?.signal?.throwIfAborted(); }
       if (!Number.isSafeInteger(position) || position < 0 || !Number.isSafeInteger(maximum)
           || maximum < 0 || kind !== 4 && (maximum === 0 || maximum > Number.MAX_SAFE_INTEGER - position)) throw fsOperationError("EINVAL", kind === 4 ? undefined : "read", path);
       // The Wasm ABI uses a u32 length. Rust clips it to the retained bytes before allocating.
-      const n = call("read", 0, position, 0, Math.min(maximum, 0xffffffff));
+      const n = call("read", 0, position, 0, Math.min(maximum, kind === 5 ? 65536 : 0xffffffff));
       const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
       return new Uint8Array(bash.exports.memory.buffer.slice(ptr, ptr + n));
     }),
@@ -679,7 +703,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 }
 
 const wasmCapabilities = Object.freeze({
-  write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, stat: true, readdir: true, realpath: true, access: true,
+  write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, streamingRead: true, stat: true, readdir: true, realpath: true, access: true,
   conditionalChmod: true, permissions: true, readlink: true, symlinks: true,
 });
 
@@ -974,6 +998,37 @@ export class WasmFileSystem {
   }
 
   async openReadFile(filePath, options = {}) {
+    return this.#openReader(filePath,options,options.allowDirectory === true ? 1 : 0);
+  }
+
+  async *readStream(filePath, options = {}) {
+    options.signal?.throwIfAborted();
+    if (this.bash._companion) {
+      await this.bash._ensureCompanionSynced();
+      const fs = this.bash._companion.fs;
+      if (!fs.readStream) throw fsOperationError("ENOTSUP","readStream",filePath);
+      yield* fs.readStream(filePath,options);
+      return;
+    }
+    let position = options.start ?? 0;
+    const end = options.endExclusive ?? Number.MAX_SAFE_INTEGER, size = options.chunkSize ?? 65536;
+    if (!Number.isSafeInteger(position) || position < 0 || !Number.isSafeInteger(end) || end < position || !Number.isSafeInteger(size) || size <= 0) {
+      throw fsOperationError("EINVAL","readStream",filePath);
+    }
+    const handle = await this.#openReader(filePath,options,2);
+    try {
+      while (position < end) {
+        const chunk = await handle.read(position,Math.min(size,end-position),options);
+        options.signal?.throwIfAborted();
+        if (!chunk.length) break;
+        position += chunk.length;
+        yield chunk;
+        options.signal?.throwIfAborted();
+      }
+    } finally { await handle.close(); }
+  }
+
+  async #openReader(filePath, options, mode) {
     const {signal} = options;
     signal?.throwIfAborted();
     const bash = this.bash;
@@ -985,7 +1040,7 @@ export class WasmFileSystem {
     if (typeof filePath !== "string") throw new TypeError("Filesystem paths must be strings");
     const path = bash._allocBytes(encoder.encode(filePath));
     try {
-      const fd = bash.exports.safe_bash_open_read_file(bash.sessionId, path.ptr, path.len, options.allowDirectory === true);
+      const fd = bash.exports.safe_bash_open_read_file(bash.sessionId, path.ptr, path.len, mode);
       if (fd === -1) throw new Error("Wasm session unavailable");
       if (fd < 0) throw readOperationError(decoder.decode(new Uint8Array(bash.exports.memory.buffer, bash.exports.safe_bash_output_ptr(bash.sessionId), -fd)));
       const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);

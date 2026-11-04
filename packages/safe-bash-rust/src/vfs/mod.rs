@@ -351,6 +351,11 @@ pub trait SafeBashFs: Send + Sync {
         Err("ENOTSUP: retained reads are not supported".into())
     }
 
+    /// Byte source for a ranged stream. Memory pins the allocation; overlays retain the selected file.
+    fn open_stream_reader(&self, path: &str) -> Result<Box<dyn FileReadHandle>, String> {
+        self.open_read_file(path, false)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
     fn supplies_single_chunk_input(&self) -> bool { self.memory_backend().is_some() }
     /// Read a command input supplied as a single chunk by a direct memory filesystem.

@@ -215,6 +215,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.open_read_file(&host_text(path), allow_directory).map_err(quote_host_text)
     }
 
+    fn open_stream_reader(&self, path: &str) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.open_stream_reader(&host_text(path)).map_err(quote_host_text)
+    }
+
     fn open_chunks(&self, path: &str) -> Result<crate::vfs::ChunkReader<'_>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

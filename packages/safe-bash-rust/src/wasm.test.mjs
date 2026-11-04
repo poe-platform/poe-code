@@ -1498,6 +1498,71 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("plugin filesystem streams pin memory bytes on first pull, obey ranges and charge once", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  for (const [sh, volume] of [[js,fs],[rust,rust.fs]]) {
+    let held;
+    sh.register({name:"streamprobe", async execute(c) {
+      const source = c.fs.readStream("/file",{chunkSize:2, start:1, endExclusive:6});
+      held = source[Symbol.asyncIterator]();
+      await volume.writeFile("/file", Uint8Array.of(0,255,2,3,4,5,6));
+      const first = await held.next();
+      await volume.writeFile("/file", Uint8Array.of(9,9,9,9));
+      await c.stdout.write(first.value);
+      await c.stdout.write((await held.next()).value);
+      return {exitCode:0};
+    }});
+    sh.register({name:"cancelstream", async execute(c) {
+      const controller = new AbortController();
+      const source = c.fs.readStream("/file",{chunkSize:1,signal:controller.signal})[Symbol.asyncIterator]();
+      await source.next(); controller.abort(false);
+      await assert.rejects(source.next(), e=>e===false);
+      return {exitCode:0};
+    }});
+    try {
+      await volume.writeFile("/file",Uint8Array.of(0));
+      const r = await sh.exec("streamprobe",{limits:{maxFileSystemOperations:1}});
+      assert.equal(r.exitCode,0,r.stderr); assert.deepEqual([...r.stdoutBytes],[255,2,3,4]);
+      await assert.rejects(held.next(),/closed|finished/i);
+      await assert.rejects(sh.exec("streamprobe",{limits:{maxFileSystemOperations:0}}),{limit:"maxFileSystemOperations"});
+      const c = await sh.exec("cancelstream"); assert.equal(c.exitCode,0,c.stderr);
+    } finally { await sh.dispose(); }
+  }
+});
+
+test("returning a memory stream releases its pinned bytes even after unlink",async () => {
+  const {MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const bash = new RustWasmBash({memoryFsOptions:{maxBytes:100}});
+  try {
+    for (const fs of [new MemoryFileSystem({maxBytes:100}),bash.fs]) {
+      await fs.writeFile("/f",new Uint8Array(80));
+      const stream = fs.readStream("/f",{chunkSize:1})[Symbol.asyncIterator]();
+      assert.equal((await stream.next()).value.length,1);
+      await fs.unlink("/f");
+      await assert.rejects(fs.writeFile("/large",new Uint8Array(90)),{code:"ENOSPC"});
+      await stream.return();
+      await fs.writeFile("/large",new Uint8Array(90));
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("ranged filesystem streams keep large regular chunks and bound infinite device reads",async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/data":new Uint8Array(100005)}});
+  async function sizes(path,options) {
+    const result = [];
+    for await (const chunk of bash.fs.readStream(path,options)) result.push(chunk.length);
+    return result;
+  }
+  try {
+    assert.deepEqual(await sizes("/data",{chunkSize:100000,start:3}),[100000,2]);
+    assert.deepEqual(await sizes("/dev/zero",{chunkSize:100000,start:3,endExclusive:100005}),[65536,34466]);
+    assert.deepEqual(await sizes("/dev/null",{}),[]);
+    await assert.rejects(sizes("/absent",{}),{code:"ENOENT"});
+    await assert.rejects(sizes("/data",{start:5,endExclusive:4}),{code:"EINVAL"});
+  } finally { await bash.dispose(); }
+});
+
 test("ZIP newline conversion preserves binary members and uses the compression method's text probe", async () => {
   const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});

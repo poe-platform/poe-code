@@ -126,6 +126,20 @@ struct StreamSnapshot {
     file: RetainedFile,
 }
 
+impl super::FileReadHandle for StreamSnapshot {
+    fn stat(&self) -> Result<FileStat, String> {
+        let mut st = self.file.stat();
+        st.size = self.data.as_ref().unwrap().len();
+        Ok(st)
+    }
+
+    fn read(&self, position: u64, maximum: usize) -> Result<Vec<u8>, String> {
+        let data = self.data.as_ref().unwrap();
+        let start = position.min(data.len() as u64) as usize;
+        Ok(data[start..start.saturating_add(maximum).min(data.len())].to_vec())
+    }
+}
+
 impl Drop for StreamSnapshot {
     fn drop(&mut self) {
         let mut state = self.file.fs.state.write().unwrap();
@@ -339,6 +353,15 @@ impl Default for MemoryVfs {
 }
 
 impl MemoryVfs {
+    fn stream_snapshot(&self, resolved: &str) -> Result<StreamSnapshot, String> {
+        let file = self.retain_file(resolved)?;
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        let inode = state.files.get_mut(&file.ino).unwrap();
+        if inode.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        inode.atime_ms = super::now_ms();
+        Ok(StreamSnapshot { data: Some(inode.data.clone()), file })
+    }
+
     pub(crate) fn set_devices(&self, devices: Devices) {
         self.state.write().unwrap().devices = devices;
         self.bump_generation();
@@ -1280,6 +1303,10 @@ impl SafeBashFs for MemoryVfs {
         Ok(Box::new(RetainedFile { fs: self.clone(), ino, access: super::RedirectAccess::Read }))
     }
 
+    fn open_stream_reader(&self, path: &str) -> Result<Box<dyn super::FileReadHandle>, String> {
+        Ok(Box::new(self.stream_snapshot(&self.access_path(path,true)?)?))
+    }
+
     fn open_chunks(&self, path: &str) -> Result<super::ChunkReader<'_>, String> {
         self.open_chunks_sized(path, std::num::NonZeroUsize::new(65536).unwrap())
     }
@@ -1300,12 +1327,7 @@ impl SafeBashFs for MemoryVfs {
             }
             Some("") => Err(format!("EISDIR: illegal operation on a directory, read '{path}'")),
             _ => {
-                let file = self.retain_file(&resolved)?;
-                let mut state = self.state.write().map_err(|e| e.to_string())?;
-                let inode = state.files.get_mut(&file.ino).unwrap();
-                if inode.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
-                inode.atime_ms = super::now_ms();
-                let mut snapshot = Some(StreamSnapshot { data: Some(inode.data.clone()), file });
+                let mut snapshot = Some(self.stream_snapshot(&resolved)?);
                 let mut offset = 0;
                 Ok(Box::new(move |chunk| {
                     chunk.clear();

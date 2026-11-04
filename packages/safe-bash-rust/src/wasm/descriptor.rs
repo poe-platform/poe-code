@@ -107,19 +107,20 @@ impl WasmSession {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: usize, allow_directory: bool) -> i32 {
+pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: usize, mode: u32) -> i32 {
     let mut map = sessions().lock().unwrap();
     let Some(sess) = map.get_mut(&id) else { return -1 };
     let path = unsafe { str_from_raw(ptr, len) };
     let wrapped = sess.profile == Profile::Memory && !sess.shell.backend.provided_devices;
-    let mut syscall = "openReadFile";
+    let stream = mode == 2;
+    let mut syscall = if stream { "readStream" } else { "openReadFile" };
     let mut resolved = None;
     let result = (|| {
         let fs = &sess.shell.fs;
         let p = fs.access_path(path, true)?;
         let st = fs.lstat(&p)?;
         let null = st.mode & 0o170000 == 0o020000 && st.allocated_bytes == Some(0);
-        if sess.profile == Profile::Devices && (p == "/dev" || p.starts_with("/dev/")) {
+        if !stream && sess.profile == Profile::Devices && (p == "/dev" || p.starts_with("/dev/")) {
             return Err("ENOTSUP: operation not supported".into());
         }
         if wrapped && p == "/dev" {
@@ -128,10 +129,13 @@ pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: 
         }
         resolved = Some(p);
         let p = resolved.as_deref().unwrap();
-        let target = if null {
-            Target::Device { stat: st, name: "null".into(), mounted: false }
+        let device = stream && st.mode & 0o170000 == 0o020000;
+        let target = if null || device {
+            Target::Device { stat: st, name: crate::vfs::basename_posix_path(p), mounted: sess.profile == Profile::Devices }
+        } else if stream {
+            Target::ReadOnly(fs.open_stream_reader(p)?)
         } else {
-            Target::ReadOnly(fs.open_read_file(p, allow_directory)?)
+            Target::ReadOnly(fs.open_read_file(p, mode == 1)?)
         };
         let fd = sess.next_descriptor;
         let next = fd.checked_add(1).filter(|n| *n <= i32::MAX as u32).ok_or("EMFILE: too many open files")?;
@@ -140,7 +144,7 @@ pub unsafe extern "C" fn safe_bash_open_read_file(id: u32, ptr: *const u8, len: 
         sess.next_descriptor = next;
         // Handle errors refer to the backing operand, not an overlay or mount alias.
         sess.last_output_buf.clear();
-        sess.last_output_buf.push(if null { 4 } else { 3 });
+        sess.last_output_buf.push(if device { 5 } else if null { 4 } else { 3 });
         sess.last_output_buf.extend_from_slice(if sess.profile == Profile::Memory { path } else { p }.as_bytes());
         Ok(fd as i32)
     })();

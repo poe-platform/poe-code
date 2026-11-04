@@ -898,6 +898,24 @@ mod tests {
     }
 
     #[test]
+    fn registered_command_discovery_uses_which_options_and_the_callers_path() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        shell.register_command("probe", Arc::new(|_| panic!("discovery executed the command")));
+        for (script, code, out, err) in [
+            ("which probe", 0, "/bin/probe\n", ""),
+            ("PATH=/nowhere which probe", 1, "", ""),
+            ("PATH=/usr/bin:/bin which -a probe", 0, "/usr/bin/probe\n/bin/probe\n", ""),
+            ("/bin/which /usr/bin/probe", 0, "/usr/bin/probe\n", ""),
+            ("which -z probe", 1, "", "which: illegal option -- z\nusage: which [-as] program ...\n"),
+            ("which probe -z", 1, "/bin/probe\n", ""),
+            ("mkdir -p /bin; touch /bin/probe; chmod 000 /bin/probe; which probe", 0, "/bin/probe\n", ""),
+        ] {
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, out, err), "{script}");
+        }
+    }
+
+    #[test]
     fn unit_base64_decode_invalid_inputs_and_padding_lengths() {
         assert!(base64_decode("abc").is_err());
         assert!(base64_decode("ab!d").is_err());

@@ -63,7 +63,7 @@ where
             exec_sub(words, &mut String::new(), cwd, env, ChildIo::Inherit { stderr_before: "" })
         })),
         "xargs" => Some(cmd_xargs(args, input, cwd, env, fs, &mut exec_sub)),
-        "which" => Some(cmd_which(args, cwd, env, fs)),
+        "which" => Some(cmd_which(args, cwd, env, fs, |_| false)),
         _ => None,
     }
 }
@@ -76,11 +76,12 @@ fn ok_out(stdout: &str) -> BuiltinOutcome {
     }
 }
 
-fn cmd_which(
+pub(crate) fn cmd_which(
     args: &[String],
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    registered: impl Fn(&str) -> bool,
 ) -> BuiltinOutcome {
     const USAGE: &str = "usage: which [-as] program ...\n";
     let mut show_all = false;
@@ -143,7 +144,7 @@ fn cmd_which(
         if name.contains('/') {
             if !(name.ends_with('/') || name.ends_with("/.") || name.ends_with("/..")) {
                 let full = resolve_posix_path(cwd, name);
-                if is_which_executable(fs, &full) {
+                if is_which_executable(fs, &full, &registered) {
                     found.push(name.clone());
                 }
             }
@@ -155,7 +156,7 @@ fn cmd_which(
                     continue;
                 }
                 let lookup = resolve_posix_path(cwd, &candidate);
-                if is_which_executable(fs, &lookup) {
+                if is_which_executable(fs, &lookup, &registered) {
                     found.push(candidate);
                     if !show_all {
                         break;
@@ -179,14 +180,7 @@ fn cmd_which(
     }
 }
 
-fn is_which_executable(fs: &dyn SafeBashFs, full_path: &str) -> bool {
-    if let Ok(st) = fs.stat(full_path) {
-        return st.kind == VfsEntryKind::File && (st.mode & 0o111) != 0;
-    }
-    is_virtual_executable(full_path)
-}
-
-fn is_virtual_executable(full_path: &str) -> bool {
+fn is_which_executable(fs: &dyn SafeBashFs, full_path: &str, registered: &impl Fn(&str) -> bool) -> bool {
     if matches!(full_path, "/tmp/sh" | "/tmp/bash" | "/tmp/zsh") {
         return true;
     }
@@ -194,12 +188,12 @@ fn is_virtual_executable(full_path: &str) -> bool {
         if let Some(cmd) = full_path.strip_prefix(prefix)
             && !cmd.is_empty()
             && !cmd.contains('/')
-            && is_external_command(cmd)
+            && (is_external_command(cmd) || registered(cmd))
         {
             return true;
         }
     }
-    false
+    fs.stat(full_path).is_ok_and(|st| st.kind == VfsEntryKind::File && st.mode & 0o111 != 0)
 }
 
 pub(crate) fn is_external_command(name: &str) -> bool {

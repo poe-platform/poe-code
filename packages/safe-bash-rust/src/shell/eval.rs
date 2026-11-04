@@ -5042,10 +5042,7 @@ impl<'a> EvalState<'a> {
                 });
             }
             "type" => {
-                return Ok(self.builtin_type(cmd, args));
-            }
-            "which" if args.iter().any(|a| self.custom_commands.contains_key(a.as_str())) => {
-                return Ok(self.builtin_type(cmd, args));
+                return Ok(self.builtin_type(args));
             }
             "wait" => {
                 return Ok(self.builtin_wait(args));
@@ -5128,6 +5125,10 @@ impl<'a> EvalState<'a> {
                     exit_code: 1,
                 }),
             };
+        }
+
+        if effective_cmd == "which" && !self.custom_commands.is_empty() {
+            return Ok(crate::commands::search::cmd_which(args, self.cwd, self.env, self.fs, |name| self.custom_commands.contains_key(name)));
         }
 
         if let Some(b_out) =
@@ -5492,20 +5493,6 @@ impl<'a> EvalState<'a> {
         }
         Ok(None)
     }
-
-    fn resolve_vfs_executable(&self, cmd: &str) -> Option<String> {
-        if let Some(hashed) = self.env.get(&format!("\0hash__{cmd}")) {
-            let resolved = resolve_posix_path(self.cwd, hashed);
-            if let Ok(st) = self.fs.stat(&resolved)
-                && st.kind == crate::vfs::VfsEntryKind::File
-                && (st.mode & 0o111) != 0
-            {
-                return Some(hashed.clone());
-            }
-        }
-        self.search_command_path(cmd, false).ok().flatten()
-    }
-
 
     fn capture_caller_frame(&self, routine: &str) -> CallerFrame {
         let name = self
@@ -5907,59 +5894,7 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn builtin_type(&self, invoked: &str, args: &[String]) -> BuiltinOutcome {
-        if invoked == "which" {
-            let mut silent = false;
-            let mut show_all = false;
-            let mut targets = Vec::new();
-            for a in args {
-                if a.starts_with('-') && a.len() > 1 {
-                    for ch in a[1..].chars() {
-                        match ch {
-                            's' => silent = true,
-                            'a' => show_all = true,
-                            _ => {}
-                        }
-                    }
-                } else {
-                    targets.push(a.as_str());
-                }
-            }
-            let mut out = String::new();
-            let mut all_found = !targets.is_empty();
-            for t in targets {
-                if show_all && !t.contains('/') {
-                    let matches = self.search_discovery_paths(t, true, false);
-                    if matches.is_empty() {
-                        all_found = false;
-                    } else if !silent {
-                        for m in matches {
-                            out.push_str(&format!("{m}\n"));
-                        }
-                    }
-                    continue;
-                }
-                if let Some(vfs_p) = self.resolve_vfs_executable(t) {
-                    if !silent {
-                        out.push_str(&format!("{vfs_p}\n"));
-                    }
-                } else if crate::commands::search::is_known_command(t)
-                    || self.custom_commands.contains_key(t)
-                {
-                    if !silent {
-                        out.push_str(&format!("/usr/bin/{t}\n"));
-                    }
-                } else {
-                    all_found = false;
-                }
-            }
-            return BuiltinOutcome {
-                stdout: out,
-                stderr: String::new(),
-                exit_code: if all_found { 0 } else { 1 },
-            };
-        }
-
+    fn builtin_type(&self, args: &[String]) -> BuiltinOutcome {
         let mut mode = "describe";
         let mut show_all = false;
         let mut skip_functions = false;

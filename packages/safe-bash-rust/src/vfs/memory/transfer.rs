@@ -138,149 +138,115 @@ impl MemoryVfs {
                 "ENOTSUP: operation not supported, mv '{display_to}'"
             ));
         }
-        if device.is_none() {
-            let parent = crate::vfs::dirname_posix_path(to);
-            match dst.nodes.get(&parent) {
-                Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300 => {}
-                Some(MemoryNode::Directory { .. }) => {
-                    return Err(format!("EACCES: permission denied, mv '{display_to}'"));
-                }
-                _ => {
-                    return Err(format!(
-                        "ENOENT: no such file or directory, mv '{display_to}'"
-                    ));
-                }
-            }
-        }
-        // Stage only the moved entries. No published name or open file changes
-        // if any descendant fails admission, including a quota or cancellation.
-        let mut staged = MemoryState {
-            next_ino: dst.next_ino,
-            nodes: BTreeMap::new(),
-            files: HashMap::new(),
-            extra_links: HashMap::new(), child_dirs: HashMap::new(),
-            devices: Devices::None,
-            total_bytes: dst.total_bytes, staged_entries: 0,
-            limits: dst.limits.clone(),
-        };
-        let available = dst.limits.max_entries.saturating_sub(dst.entry_count())
-            + usize::from(existing.is_some());
         let entries = std::iter::once((from, "")).chain(children.iter().map(|(p,s)| (p.as_str(),s.as_str())));
+        let operand = |base: &str, suffix: &str| if suffix.is_empty() { base.to_owned() }
+            else { normalize_posix_path(&format!("{base}{suffix}")) };
+        let mut metadata = Vec::new();
         for (path, suffix) in entries.clone() {
-            let node = src.nodes.get(path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
-            let new_path = format!("{to}{suffix}");
+            let target = format!("{to}{suffix}");
+            let target_name = operand(display_to,suffix);
+            let source_name = operand(display_from,suffix);
+            let node = src.nodes.get(path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{source_name}'"))?;
             if let Some(b) = budget {
                 b.check_cancelled()?;
                 b.tick_fs_op()?;
-                b.limits.check_path(&format!("{display_to}{suffix}"))?;
+                b.limits.check_path(&target_name)?;
             }
-            if device.is_none() && staged.nodes.len() >= available {
-                return Err("ENOSPC: inode limit exceeded".into());
-            }
+            let existed = dst.nodes.contains_key(&target);
+            let allows_create = matches!(dst.nodes.get(&crate::vfs::dirname_posix_path(&target)),
+                Some(MemoryNode::Directory {mode,..}) if mode & 0o300 == 0o300);
+            let check_parent = |operation: &str| {
+                if allows_create { Ok(()) } else { Err(format!("EACCES: permission denied, {operation} '{target_name}'")) }
+            };
+            let storage_error = |err: String, operation: &str| {
+                let reason = if err.starts_with("EFBIG:") { "EFBIG: file too large" }
+                    else if err.starts_with("ENOSPC:") { "ENOSPC: no space left on device" } else { &err };
+                format!("{reason}, {operation} '{target_name}'")
+            };
             match node {
-                MemoryNode::File { ino } => {
-                    let file = &src.files[ino];
-                    if file.mode & 0o400 == 0 {
-                        return Err(format!(
-                            "EACCES: permission denied, openReadFile '{display_from}{suffix}'"
-                        ));
-                    }
-                    if let Some(b) = budget {
-                        b.add_output_bytes(file.data.len())?;
-                    }
-                    match device {
-                        Some("urandom") => {
-                            return Err(format!(
-                                "EPERM: operation not permitted, writeStream '{display_to}'"
-                            ));
-                        }
-                        Some("full") => {
-                            return Err(format!(
-                                "ENOSPC: no space left on device, writeStream '{display_to}'"
-                            ));
-                        }
-                        Some(_) => {}
-                        None => {
-                            Self::store_file(
-                                &mut staged,
-                                new_path.clone(),
-                                &file.data,
-                                file.mode,
-                                None,
-                                None,
-                            )?;
-                            let MemoryNode::File { ino } = staged.nodes[&new_path] else {
-                                unreachable!()
-                            };
-                            let copy = staged.files.get_mut(&ino).unwrap();
-                            copy.atime_ms = file.atime_ms;
-                            copy.mtime_ms = file.mtime_ms;
-                        }
-                    }
-                }
-                MemoryNode::Symlink {
-                    target,
-                    status,
-                    atime_ms, mtime_ms,
-                    ..
-                } => {
-                    if device.is_some() {
-                        return Err(format!(
-                            "ENOTSUP: operation not supported, mv '{display_to}'"
-                        ));
-                    }
-                    let now = super::super::now_ms();
-                    let ino = staged.allocate_ino();
-                    staged.nodes.insert(
-                        new_path,
-                        MemoryNode::Symlink {
-                            target: target.clone(),
-                            status: SymlinkStatus::new(status.mode.load(Ordering::Relaxed), now), birthtime_ms: now,
-                            ino,
-                            atime_ms: *atime_ms,
-                            mtime_ms: *mtime_ms,
-                        },
-                    );
-                }
                 MemoryNode::Directory { mode, atime_ms, mtime_ms, .. } => {
-                    if mode & 0o500 != 0o500 {
-                        return Err(format!(
-                            "EACCES: permission denied, readdir '{display_from}{suffix}'"
-                        ));
+                    if mode & 0o500 != 0o500 { return Err(format!("EACCES: permission denied, readdir '{source_name}'")); }
+                    if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
+                    if !existed {
+                        check_parent("mkdir")?;
+                        dst.admit_new_file(0).map_err(|e| storage_error(e,"mkdir"))?;
+                        dst.create_directory(target.clone(),0o40700);
+                        destination.bump_generation();
                     }
-                    let ino = match existing {
-                        Some(MemoryNode::Directory { ino, .. }) if suffix.is_empty() => *ino,
-                        _ => staged.allocate_ino(),
-                    };
+                    metadata.push((target,*mode,*atime_ms,*mtime_ms));
+                }
+                MemoryNode::Symlink { target: link, .. } => {
+                    if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
+                    check_parent("symlink")?;
+                    if existed { Self::unlink_locked(&mut dst,&target); destination.bump_generation(); }
+                    dst.admit_new_file(0).map_err(|e| storage_error(e,"symlink"))?;
                     let now = super::super::now_ms();
-                    staged.insert_directory(
-                        new_path,
-                        MemoryNode::Directory {
-                            revision: 0, retained: Default::default(), ino,
-                            ctime_ms: now, birthtime_ms: now,
-                            mode: *mode,
-                            atime_ms: *atime_ms,
-                            mtime_ms: *mtime_ms,
-                        },
-                    );
+                    let ino = dst.allocate_ino();
+                    dst.parent_changed(&target,now);
+                    dst.nodes.insert(target,MemoryNode::Symlink { target:link.clone(), status:SymlinkStatus::new(0o120777,now),
+                        ino,atime_ms:now,mtime_ms:now,birthtime_ms:now });
+                    destination.bump_generation();
+                }
+                MemoryNode::File { ino } => {
+                    let ino = *ino;
+                    if matches!(dst.nodes.get(&target),Some(MemoryNode::Symlink { .. })) {
+                        check_parent("rm")?;
+                        Self::unlink_locked(&mut dst,&target);
+                        destination.bump_generation();
+                    }
+                    let file = src.files.get_mut(&ino).unwrap();
+                    if file.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source_name}'")); }
+                    let atime = file.atime_ms;
+                    let replacing = dst.nodes.contains_key(&target);
+                    if device.is_none() {
+                        check_parent("writeStream")?;
+                        if !replacing {
+                            Self::store_file(&mut dst,target.clone(),&[],file.mode,None,None).map_err(|e| storage_error(e,"writeStream"))?;
+                            destination.bump_generation();
+                        }
+                    }
+                    let mut consumed = 0;
+                    file.atime_ms = super::super::now_ms();
+                    for chunk in file.data.chunks(65536) {
+                        consumed += chunk.len();
+                        if let Some(b) = budget {
+                            if consumed > b.limits.max_input_bytes {
+                                return Err(b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", b.limits.max_input_bytes)));
+                            }
+                            b.add_output_bytes(chunk.len())?;
+                        }
+                        match device {
+                            Some("full") => return Err(format!("ENOSPC: no space left on device, writeStream '{target_name}'")),
+                            Some("urandom") => return Err(format!("EPERM: operation not permitted, writeStream '{target_name}'")),
+                            None if !replacing => {
+                                Self::store_file(&mut dst,target.clone(),&[],file.mode,None,Some(chunk)).map_err(|e| storage_error(e,"writeStream"))?;
+                            }
+                            _ => {}
+                        }
+                    }
+                    if device.is_none() {
+                        // Overwriting a regular file publishes a separate inode after
+                        // the copy succeeds, so aliases of the old file keep their data.
+                        if replacing {
+                            Self::replace_inode(&mut dst,target.clone(),&file.data,file.mode)?;
+                            destination.bump_generation();
+                        }
+                        metadata.push((target,file.mode,atime,file.mtime_ms));
+                    }
                 }
             }
         }
-        if let Some(b) = budget {
-            b.check_cancelled()?;
-        }
-        if device.is_none() {
-            let added = staged.total_bytes - dst.total_bytes;
-            if existing.is_some() {
-                Self::unlink_locked(&mut dst, to);
+        if let Some(b) = budget { b.check_cancelled()?; }
+        for (path,mode,accessed,modified) in metadata.into_iter().rev() {
+            destination.set_mode_locked(&mut dst,&path,mode)?;
+            match dst.nodes.get_mut(&path) {
+                Some(MemoryNode::Directory {atime_ms,mtime_ms,..}) => { *atime_ms = accessed; *mtime_ms = modified; }
+                Some(MemoryNode::File {ino}) => {
+                    let ino = *ino;
+                    dst.files.get_mut(&ino).unwrap().set_times((Some(accessed),Some(modified)));
+                }
+                _ => unreachable!(),
             }
-            for (parent, count) in staged.child_dirs { *dst.child_dirs.entry(parent).or_default() += count; }
-            dst.parent_changed(to, super::super::now_ms());
-            dst.next_ino = staged.next_ino;
-            dst.nodes.append(&mut staged.nodes);
-            dst.files.extend(staged.files);
-            dst.total_bytes += added;
-            destination.bump_generation();
         }
         for (path, suffix) in entries.rev() {
             if suffix.is_empty() && directory { break; }

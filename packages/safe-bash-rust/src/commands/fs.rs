@@ -6302,7 +6302,9 @@ mod tests {
         dest.set_max_file_bytes(2);
         assert_ne!(mv(&["/tree", "/mnt/new"]).exit_code, 0);
         assert_eq!(root.read_file("/tree/file").unwrap(), b"source");
-        assert!(!dest.exists("/new"));
+        assert_eq!(dest.read_file("/new/file").unwrap(),b"");
+        assert!(!dest.exists("/new/link"));
+        dest.remove_path("/new").unwrap();
         dest.set_max_file_bytes(64);
         let moved = mv(&["/tree", "/mnt/new"]);
         assert_eq!(moved.exit_code, 0, "{}", moved.stderr);

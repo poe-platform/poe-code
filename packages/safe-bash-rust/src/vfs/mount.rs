@@ -587,6 +587,26 @@ mod tests {
     use crate::vfs::MemoryVfs;
 
     #[test]
+    fn cross_mount_copy_failure_retains_completed_chunks_before_cleanup_or_chmod() {
+        let root = Arc::new(MemoryVfs::new());
+        root.mkdir_all("/src/d").unwrap();
+        root.write_file("/src/a",b"first").unwrap();
+        root.write_file("/src/d/b",&vec![b'x';65537]).unwrap();
+        root.write_file("/src/z",b"last").unwrap();
+        let dst = Arc::new(MemoryVfs::new());
+        dst.set_max_file_bytes(65536);
+        let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
+        let error = fs.move_across_devices("/src", "/m/copy",None).unwrap_err();
+        assert_eq!(error, "EFBIG: file too large, writeStream '/m/copy/d/b'");
+        assert_eq!(dst.read_file("/copy/a").unwrap(), b"first");
+        assert_eq!(dst.read_file("/copy/d/b").unwrap(), vec![b'x';65536]);
+        assert_eq!(dst.stat("/copy").unwrap().mode & 0o777, 0o700);
+        assert!(!dst.exists("/copy/z"));
+        assert_eq!(root.read_file("/src/d/b").unwrap().len(),65537);
+        assert!(root.exists("/src/a") && root.exists("/src/z"));
+    }
+
+    #[test]
     fn cross_mount_permission_failure_keeps_the_copy_and_completed_source_unlinks() {
         let root = Arc::new(MemoryVfs::new());
         root.mkdir_all("/w/d").unwrap();

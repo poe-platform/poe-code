@@ -210,18 +210,24 @@ pub(super) fn cmd_mv(
     };
     let dst_raw = eff_operands.last().unwrap();
     let dst_base = absolute(dst_raw);
+    let inspect_dest = |follow| {
+        let op = if follow { "stat" } else { "lstat" };
+        fs.inspect_command_entry(&dst_base, follow, op)
+            .map(|(_, st)| st)
+            .map_err(|e| {
+                if e.starts_with("EACCES:") && e.contains(", ") {
+                    e
+                } else {
+                    copy_error(&e, op, &dst_base)
+                }
+            })
+    };
     let dst_is_dir = if no_target_dir {
         false
-    } else if target_dir.is_some() {
-        match fs.inspect_command_entry(&dst_base, true, "stat") {
-            Ok((_, st)) => st.kind == VfsEntryKind::Directory,
-            Err(e) => return err_out(&format!("mv: {}\n", copy_error(&e, "stat", &dst_base)), 1),
-        }
     } else {
-        match fs.access_path(&dst_base, true).and_then(|p| fs.stat(&p)) {
+        match inspect_dest(true) {
             Ok(st) => {
-                // An implicit destination uses the production memory entry lookup.
-                // "." and ".." can resolve to directories without being listed entries.
+                // The implicit memory lookup uses the literal final entry name.
                 let name = dst_base
                     .trim_end_matches('/')
                     .rsplit('/')
@@ -232,32 +238,24 @@ pub(super) fn cmd_mv(
                         && matches!(name, "." | "..")
                         && fs.indexed_directory_entry(&dst_base) == Some(false))
             }
-            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => false,
-            Err(e) if e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:") => {
-                if fs
-                    .access_path(&dst_base, false)
-                    .and_then(|p| fs.lstat(&p))
-                    .is_ok_and(|st| st.kind == VfsEntryKind::Symlink)
-                {
+            Err(e) if target_dir.is_none() && e.starts_with("ENOENT:") => false,
+            Err(e)
+                if target_dir.is_none()
+                    && (e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:")) =>
+            {
+                // maybeStat accepts a dangling final symlink. If its probe fails,
+                // destinations independently checks whether the operand itself is a link.
+                if inspect_dest(false).is_ok_and(|st| st.kind == VfsEntryKind::Symlink) {
                     false
                 } else {
-                    let error = if e.starts_with("ELOOP:") {
-                        "ELOOP: too many symbolic links encountered"
-                    } else {
-                        "ENOTDIR: not a directory"
-                    };
-                    return err_out(&format!("mv: {error}, lstat '{dst_base}'\n"), 1);
+                    match inspect_dest(false) {
+                        Ok(st) if st.kind == VfsEntryKind::Symlink => false,
+                        Ok(_) => return err_out(&format!("mv: {e}\n"), 1),
+                        Err(last) => return err_out(&format!("mv: {last}\n"), 1),
+                    }
                 }
             }
-            Err(e) => {
-                return err_out(
-                    &format!(
-                        "mv: {}, stat '{dst_base}'\n",
-                        e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)
-                    ),
-                    1,
-                );
-            }
+            Err(e) => return err_out(&format!("mv: {e}\n"), 1),
         }
     };
     if (target_dir.is_some() || eff_operands.len() > 2) && !dst_is_dir {

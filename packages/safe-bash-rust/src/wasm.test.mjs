@@ -12468,3 +12468,18 @@ test("mv preserves the source when an overlay device destination cannot be renam
     }
   } finally { sh.dispose(); }
 });
+
+test("mv retries destination lstat before reporting a non-directory ancestor", async () => {
+  for (const profile of ["warm-memory-fastpath","strict-budgets-mount-dev","overlay-cow-fs"]) {
+    const sh = new RustWasmBash({profile,files:{"/w/a":"A","/w/b":"B"}});
+    try {
+      await sh.fs.symlink("b","/w/link");
+      const run = limit => sh.exec("mv a link/child",{cwd:"/w",limits:{maxFileSystemOperations:limit}});
+      await assert.rejects(run(2),/maxFileSystemOperations/);
+      const result = await run(3);
+      const path = profile === "overlay-cow-fs" ? "overlay '/w/b'" : "lstat '/w/link/child'";
+      assert.equal(result.stderr,`mv: ENOTDIR: not a directory, ${path}\n`);
+      assert.equal(sh.readText("/w/a"),"A");
+    } finally { sh.dispose(); }
+  }
+});

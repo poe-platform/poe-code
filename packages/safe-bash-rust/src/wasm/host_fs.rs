@@ -242,6 +242,62 @@ impl crate::vfs::OpenRedirectFile for HostDescriptor {
             .map(drop)
     }
 }
+enum HostRead {
+    File(HostDescriptor),
+    Null,
+}
+
+impl crate::vfs::FileReadHandle for HostRead {
+    fn stat(&self) -> Result<FileStat, String> {
+        match self {
+            Self::File(h) => h.fs.metadata("fstat", "", h.id),
+            Self::Null => device_metadata("/dev/null"),
+        }
+    }
+    fn seek_end(&self) -> Result<u64, String> {
+        let Self::File(h) = self else { return Ok(0) };
+        let bytes = h.fs.request("seekEnd", "", &[], h.id, 0)?;
+        Ok(u64::from_le_bytes(
+            bytes.try_into().map_err(|_| "EIO: invalid end offset")?,
+        ))
+    }
+    fn read(&self, offset: u64, maximum: usize) -> Result<Vec<u8>, String> {
+        let Self::File(h) = self else {
+            return Ok(Vec::new());
+        };
+        let mut result = Vec::new();
+        while result.len() < maximum {
+            let position = offset
+                .checked_add(result.len() as u64)
+                .ok_or("EOVERFLOW: read offset")?;
+            let size = (maximum - result.len()).min(65536).min(
+                h.fs.max_input
+                    .saturating_sub(result.len())
+                    .saturating_add(1),
+            );
+            let data =
+                h.fs.request("rangeRead", "", &position.to_le_bytes(), h.id, size as u32)?;
+            if data.is_empty() {
+                break;
+            }
+            if data.len() > size {
+                return Err("EIO: invalid range read".into());
+            }
+            if data.len() > h.fs.max_input - result.len() {
+                return Err("EFBIG: file input limit exceeded".into());
+            }
+            if data.len() == maximum {
+                return Ok(data);
+            }
+            result
+                .try_reserve(data.len())
+                .map_err(|_| "ENOMEM: insufficient memory for range read")?;
+            result.extend_from_slice(&data);
+        }
+        Ok(result)
+    }
+}
+
 impl SafeBashFs for HostFs {
     fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
         if !self.devices {
@@ -409,6 +465,24 @@ impl SafeBashFs for HostFs {
     }
     fn remove_published(&self, path: &str, stamp: u64) -> Result<bool, String> {
         Ok(self.request("removePublished", path, &[], stamp as u32, 0)? == [1])
+    }
+    fn open_read_file(
+        &self,
+        p: &str,
+        allow_directory: bool,
+    ) -> Result<Box<dyn crate::vfs::FileReadHandle>, String> {
+        match self.reserved_device(p, true)? {
+            Some("/dev/null") => return Ok(Box::new(HostRead::Null)),
+            Some("/dev") => return Err("EISDIR: illegal operation on a directory".into()),
+            _ => {}
+        }
+        let reply = self.request("openReadFile", p, &[], u32::from(allow_directory), 0)?;
+        let id = u32::from_le_bytes(
+            reply
+                .try_into()
+                .map_err(|_| "EIO: invalid retained handle")?,
+        );
+        Ok(Box::new(HostRead::File(HostDescriptor { fs: *self, id })))
     }
     fn read_file(&self, p: &str) -> Result<Vec<u8>, String> {
         match self.reserved_device(p, true)? {

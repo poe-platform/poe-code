@@ -355,6 +355,19 @@ function bindExternalFs(shell,fs,options) {
           try{await h.close();}catch(e){closeErrors.push(e);}
           return;
         }
+        if(op==="rangeRead"){
+          const at=Number(new DataView(data.buffer,data.byteOffset).getBigUint64(0,true));
+          if(!Number.isSafeInteger(at))throw fsOperationError("EOVERFLOW","read");
+          const bytes=await h.read(at,mode,settings);
+          if(!(bytes instanceof Uint8Array) || bytes.length>mode)throw fsOperationError("EIO","read");
+          result=bytes;return;
+        }
+        if(op==="seekEnd"){
+          if(typeof h.seekEnd!=="function")throw fsOperationError("ENOTSUP",op);
+          const end=await h.seekEnd(settings);
+          if(typeof end!=="bigint" || end<0n || end>0xffffffffffffffffn)throw fsOperationError("EOVERFLOW",op);
+          result=new Uint8Array(8);new DataView(result.buffer).setBigUint64(0,end,true);return;
+        }
         if(op==="pread"){
           const b=new Uint8Array(mode), at=new DataView(data.buffer,data.byteOffset).getUint32(0,true);
           const n=await h.read(b,at,settings);
@@ -375,13 +388,15 @@ function bindExternalFs(shell,fs,options) {
           const caps=await fs.capabilitiesFor?.(path,settings) ?? fs.capabilities;
           result=Uint8Array.of(Number(caps?.hardlinks===true && typeof fs.link==="function"));return;
         }
-        if(op==="canOpen" || op==="open"){
+        if(op==="canOpen" || op==="open" || op==="openReadFile"){
           const creation=flags===4?"exclusive":flags===0||mode===0xffffffff?"never":"ifMissing";
-          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,creation}):fs.capabilities;
+          const retained=op==="openReadFile";
+          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,retained?settings:{...settings,creation}):fs.capabilities;
           const supported=typeof fs.open==="function" && caps?.open===true;
           if(op==="canOpen"){result=Uint8Array.of(Number(supported));return;}
-          if(!supported)return;
-          const descriptor=await fs.open(path,{...settings,creation,access:flags===0?"read":flags===5?"readwrite":"write",
+          if(retained && (!fs.openReadFile || caps?.retainedRead!==true))throw fsOperationError("ENOTSUP",op,path);
+          if(!retained && !supported)return;
+          const descriptor=retained?await fs.openReadFile(path,{...settings,allowDirectory:!!flags}):await fs.open(path,{...settings,creation,access:flags===0?"read":flags===5?"readwrite":"write",
             truncate:flags===2,append:flags===3,...(mode===0xffffffff?{}:{mode,exactMode:true})});
           const id=nextHandle++;
           handles.set(id,descriptor);

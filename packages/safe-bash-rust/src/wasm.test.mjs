@@ -6284,6 +6284,38 @@ test("ln and cp -l use the supplied filesystem's hard links and respect path cap
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("host retained reads keep the opened object, bound each range and close after a failed read",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"});
+  const bytes=new Uint8Array(140000).fill(65);bytes[bytes.length-1]=10;
+  await fs.writeFile("/input",bytes);
+  const open=fs.openReadFile.bind(fs);let calls=0,closed=0,max=0,bad=false;
+  const view=new Proxy(fs,{get(target,key){
+    if(key==="capabilitiesFor")return async()=>({...fs.capabilities,open:false});
+    if(key==="readFile")return ()=>{throw new Error("whole-file read");};
+    if(key==="openReadFile")return async(path,settings)=>{
+    const h=await open(path,settings);
+    if(!calls++){await fs.rename("/input","/old");await fs.writeFile("/input",Uint8Array.of(66,10));}
+    return {...h,async read(pos,n,opts){
+      max=Math.max(max,n);
+      if(bad)return new Uint8Array(n+1);
+      return h.read(pos,Math.min(n,17000),opts);
+    },async close(){closed++;await h.close();}};
+  };
+    const v=target[key];return typeof v==="function"?v.bind(target):v;
+  }});
+  try{
+    const r=await sh.exec("dd if=/input bs=140000 count=1 status=none",{fs:view});
+    assert.deepEqual([r.exitCode,r.stderr],[0,""]);assert.deepEqual(r.stdoutBytes,bytes);
+    assert.deepEqual([calls,closed],[1,1]);assert.ok(max>0 && max<=65536);
+    bad=true;
+    const failed=await sh.exec("shuf /input",{fs:view});
+    assert.notEqual(failed.exitCode,0);assert.deepEqual([calls,closed],[2,2]);
+    const device=await sh.exec("dd if=/dev/null bs=1 count=1 status=none",{fs:view});
+    assert.deepEqual([device.exitCode,device.stdout,device.stderr],[0,"",""]);assert.equal(calls,2);
+  }finally{await sh.dispose();}
+});
+
 test("a supplied filesystem keeps redirected descriptors on the opened file after a rename",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),bash=new RustWasmBash({cwd:"/"});

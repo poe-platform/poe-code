@@ -1265,157 +1265,71 @@ fn cmd_wc(
         width = width.max(total_size.to_string().len());
     }
 
-    let zero_ranges = decode_wc_ranges(WC_ZERO_WIDTH_PACKED);
-    let wide_ranges = decode_wc_ranges(WC_WIDE_PACKED);
-    let display_width = |point: u32| -> usize {
-        if (0x20..=0x7e).contains(&point) {
-            return 1;
-        }
-        if ranges_contain(&zero_ranges, point) {
-            return 0;
-        }
-        if ranges_contain(&wide_ranges, point) {
-            2
-        } else {
-            1
-        }
-    };
-
-    let count_bytes = |bytes: &[u8]| -> (usize, usize, usize, usize, usize) {
-        let c = bytes.len();
-        if single_byte {
-            let mut l = 0usize;
-            let mut w = 0usize;
-            let m = c;
-            let mut max_l = 0usize;
-            let mut columns = 0usize;
-            let mut in_word = false;
-            for &byte in bytes {
-                if byte == 10 {
-                    l += 1;
-                    in_word = false;
-                    if columns > max_l {
-                        max_l = columns;
-                    }
-                    columns = 0;
-                } else if byte == 32 || (9..=13).contains(&byte) {
-                    in_word = false;
-                    if byte == 9 {
-                        columns += 8 - (columns & 7);
-                    } else if byte == 13 || byte == 12 {
-                        if columns > max_l {
-                            max_l = columns;
-                        }
-                        columns = 0;
-                    } else if byte == 32 {
-                        columns += 1;
-                    }
-                } else if (33..127).contains(&byte) {
-                    if !in_word {
-                        w += 1;
-                        in_word = true;
-                    }
-                    columns += 1;
-                }
+    static ZERO_RANGES: std::sync::LazyLock<Vec<(u32, u32)>> = std::sync::LazyLock::new(|| decode_wc_ranges(WC_ZERO_WIDTH_PACKED));
+    static WIDE_RANGES: std::sync::LazyLock<Vec<(u32, u32)>> = std::sync::LazyLock::new(|| decode_wc_ranges(WC_WIDE_PACKED));
+    let mut count_operand = |name: &str| -> Result<_, String> {
+        let (mut lines, mut words, mut chars, mut bytes, mut max_cols, mut cols) = (0u64, 0u64, 0u64, 0u64, 0u64, 0u64);
+        let mut in_word = false;
+        let mut remaining = 0u8;
+        let mut point = 0u32;
+        let mut lead = 0u8;
+        let mut first = false;
+        let limit = fs.max_input_bytes();
+        let mut exceeded = false;
+        stdin.read_operand(name, cwd, fs, false, |chunk| {
+            bytes += chunk.len() as u64;
+            if bytes > limit as u64 { exceeded = true; return false; }
+            if show_l { lines += chunk.iter().filter(|&&b| b == b'\n').count() as u64; }
+            if !show_w && !show_max_l && (!show_m || single_byte) {
+                if show_m { chars += chunk.len() as u64; }
+                return true;
             }
-            if columns > max_l {
-                max_l = columns;
-            }
-            (l, w, m, c, max_l)
-        } else {
-            let l = bytes.iter().filter(|&&b| b == 10).count();
-            let mut w = 0usize;
-            let mut m = 0usize;
-            let mut max_l = 0usize;
-            let mut columns = 0usize;
-            let mut in_word = false;
-
-            let mut consume_point = |point_opt: Option<u32>| {
-                if let Some(point) = point_opt {
-                    m += 1;
-                    let is_ws = wc_space(point, posix);
-                    let is_pr = point >= 32 && !(127..160).contains(&point);
-                    if is_ws {
-                        in_word = false;
-                    } else if is_pr && !in_word {
-                        w += 1;
-                        in_word = true;
-                    }
-                    if point == 10 || point == 13 || point == 12 {
-                        if columns > max_l {
-                            max_l = columns;
-                        }
-                        columns = 0;
-                    } else if point == 9 {
-                        columns += 8 - (columns % 8);
-                    } else {
-                        columns += display_width(point);
-                    }
-                }
-            };
-
-            let mut remaining = 0u8;
-            let mut point = 0u32;
-            let mut lead = 0u8;
-            let mut first = false;
-            let mut idx = 0usize;
-            while idx < bytes.len() {
-                let byte = bytes[idx];
-                if remaining > 0 {
-                    let invalid = !(0x80..=0xbf).contains(&byte)
-                        || (first
-                            && ((lead == 0xe0 && byte < 0xa0)
-                                || (lead == 0xed && byte >= 0xa0)
-                                || (lead == 0xf0 && byte < 0x90)
-                                || (lead == 0xf4 && byte >= 0x90)));
+            for &byte in chunk {
+                // Keep UTF-8 state across reads. After an invalid continuation,
+                // the current byte can still be the start of another character.
+                let continuation = remaining != 0 && (0x80..=0xbf).contains(&byte)
+                    && !(first && ((lead == 0xe0 && byte < 0xa0) || (lead == 0xed && byte >= 0xa0)
+                    || (lead == 0xf0 && byte < 0x90) || (lead == 0xf4 && byte >= 0x90)));
+                if continuation {
                     first = false;
-                    if invalid {
-                        remaining = 0;
-                        consume_point(None);
-                        continue;
-                    }
-                    point = (point << 6) | ((byte & 0x3f) as u32);
+                    point = (point << 6) | u32::from(byte & 0x3f);
                     remaining -= 1;
-                    if remaining == 0 {
-                        consume_point(Some(point));
-                    }
-                } else if byte < 0x80 {
-                    consume_point(Some(byte as u32));
-                } else if (0xc2..=0xf4).contains(&byte) {
-                    lead = byte;
-                    remaining = if byte < 0xe0 {
-                        1
-                    } else if byte < 0xf0 {
-                        2
-                    } else {
-                        3
-                    };
-                    point = (byte
-                        & if remaining == 1 {
-                            0x1f
-                        } else if remaining == 2 {
-                            0x0f
-                        } else {
-                            0x07
-                        }) as u32;
-                    first = true;
+                    if remaining != 0 { continue; }
                 } else {
-                    consume_point(None);
+                    remaining = 0;
+                    if single_byte || byte < 0x80 { point = u32::from(byte); }
+                    else if (0xc2..=0xf4).contains(&byte) {
+                        lead = byte; first = true;
+                        remaining = if byte < 0xe0 { 1 } else if byte < 0xf0 { 2 } else { 3 };
+                        point = u32::from(byte & (0x7f >> (remaining + 1)));
+                        continue;
+                    } else { continue; }
                 }
-                idx += 1;
+                chars += 1;
+                if show_w {
+                    let space = if single_byte { point == 32 || (9..=13).contains(&point) } else { wc_space(point, posix) };
+                    let printable = if single_byte { (32..127).contains(&point) } else { point >= 32 && !(127..160).contains(&point) };
+                    if space { in_word = false; }
+                    else if printable && !in_word { words += 1; in_word = true; }
+                }
+                if show_max_l {
+                    match point {
+                        10 | 12 | 13 => { max_cols = max_cols.max(cols); cols = 0; }
+                        9 => cols += 8 - (cols & 7),
+                        32..=126 => cols += 1,
+                        _ if !single_byte && !ranges_contain(&ZERO_RANGES, point) => cols += if ranges_contain(&WIDE_RANGES, point) { 2 } else { 1 },
+                        _ => {}
+                    }
+                }
             }
-            if remaining > 0 {
-                consume_point(None);
-            }
-            if columns > max_l {
-                max_l = columns;
-            }
-            (l, w, m, c, max_l)
-        }
+            true
+        })?;
+        if exceeded { return Err(fs.limit_error("maxInputBytes", limit)); }
+        Ok((lines, words, chars, bytes, max_cols.max(cols)))
     };
 
     let format_counts =
-        |l: usize, w: usize, m: usize, c: usize, max_l: usize, label: Option<&str>| -> String {
+        |l: u64, w: u64, m: u64, c: u64, max_l: u64, label: Option<&str>| -> String {
             let mut nums = Vec::new();
             if show_l {
                 nums.push(format!("{l:>width$}"));
@@ -1442,33 +1356,12 @@ fn cmd_wc(
     let mut out = String::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
-    let mut tot = (0usize, 0usize, 0usize, 0usize, 0usize);
+    let mut tot = (0u64, 0u64, 0u64, 0u64, 0u64);
 
     for name in &names {
         let label = if has_operands { Some(name.as_str()) } else { None };
-        let raw_res: Result<Vec<u8>, String> = if name == "-" {
-            let mut bytes = Vec::new();
-            stdin.append_bytes(&mut bytes).map(|()| bytes)
-        } else {
-            let p = resolve_posix_path(cwd, name);
-            match fs.stat(&p) {
-                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {
-                    stderr.push_str(&format!(
-                        "wc: EISDIR: illegal operation on a directory, readStream '{p}'\n"
-                    ));
-                    exit_code = 1;
-                    if total_mode != "only" {
-                        out.push_str(&format_counts(0, 0, 0, 0, 0, label));
-                    }
-                    continue;
-                }
-                _ => {}
-            }
-            fs.read_file(&p).map_err(|_| format!("ENOENT: no such file or directory, readStream '{p}'"))
-        };
-        match raw_res {
-            Ok(bytes) => {
-                let (l, w, m, c, max_l) = count_bytes(&bytes);
+        match count_operand(name) {
+            Ok((l, w, m, c, max_l)) => {
                 tot.0 += l;
                 tot.1 += w;
                 tot.2 += m;
@@ -1479,6 +1372,9 @@ fn cmd_wc(
                 }
             }
             Err(error) => {
+                if error.starts_with("EISDIR:") && total_mode != "only" {
+                    out.push_str(&format_counts(0, 0, 0, 0, 0, label));
+                }
                 stderr.push_str(&format!("wc: {error}\n"));
                 exit_code = 1;
             }

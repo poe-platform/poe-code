@@ -605,6 +605,20 @@ test("cat, head and tail advance the shared stdin cursor only when they read", a
   } finally { bash.dispose(); }
 });
 
+test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
+  const bash = new RustWasmBash({files:{"/words":"abcd"}});
+  const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];
+  const stdin = {async *[Symbol.asyncIterator]() {yield* chunks;}};
+  try {
+    for (const cmd of ["wc -c","wc -wm -","wc /words"]) {
+      await assert.rejects(bash.exec(cmd,{stdin, limits:{maxInputBytes:3}}), {limit:"maxInputBytes"});
+    }
+    const r = await bash.exec("LC_ALL=C.UTF-8 wc -lwmcL - -",{stdin});
+    assert.deepEqual([r.exitCode,r.stderr,r.stdout.trim().split(/\s+/)],
+      [0,"",["1","2","4","7","2","-","0","0","0","0","0","-","1","2","4","7","2","total"]]);
+  } finally { bash.dispose(); }
+});
+
 test("a rejected beforeExec hook leaves stdin untouched", async () => {
   const bash = new RustWasmBash(), reason = new Error("hook refused execution");
   let opened = 0;

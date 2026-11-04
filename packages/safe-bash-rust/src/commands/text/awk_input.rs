@@ -26,7 +26,7 @@ impl<'a> Reader<'a> {
                     Source::Stdin => stdin.next_stdin_chunk(&mut self.chunk)?,
                     Source::Getline(path) => {
                         let entry = fs.access_path(path, true)
-                            .map_err(|e| super::super::coreutils::stream_file_error(e, "capabilitiesFor", path))?;
+                            .map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", path))?;
                         let mut next = fs.open_chunks(&entry)
                             .map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", path))?;
                         next(&mut self.chunk).map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", path))?;
@@ -84,12 +84,16 @@ impl AwkState<'_> {
             self.runtime_err = Some("awk: getline requires a nonempty filename\n".into());
             return "-1".into();
         }
+        if name.contains('\0') {
+            self.set_var("ERRNO", format!("EINVAL: invalid argument '{name}'"));
+            return "-1".into();
+        }
         let rs = crate::vfs::stream_string_to_bytes(&self.rs);
         if rs.len() > 1 {
             self.runtime_err = Some("awk: RS must be one byte or empty for paragraph records\n".into());
             return "-1".into();
         }
-        let path = crate::vfs::resolve_posix_path(&self.cwd, name);
+        let path = crate::vfs::path::absolute_operand(&self.cwd, name);
         let stdin = matches!(name, "-" | "/dev/stdin");
         let reader = self.getline_files.entry(path.clone()).or_insert_with(|| Reader {
             source: if stdin { Source::Stdin } else { Source::Getline(path.clone()) },

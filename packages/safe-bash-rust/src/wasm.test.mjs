@@ -8562,6 +8562,20 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk retains filename spelling when opening and closing redirected streams", async () => {
+  const sh = new RustWasmBash({cwd:"/",files:{"/f":"x\ny\n"}});
+  try {
+    const read = await sh.exec(`awk 'BEGIN{getline x < "./f"; getline y < "f"; print x,y; print (getline z < "/missing/../f"),ERRNO}'`);
+    assert.equal(read.stdout, "x x\n-1 ENOENT: no such file or directory, readStream '/missing/../f'\n");
+    for (const [name, message] of [["/missing/../f","ENOENT: no such file or directory, writeFile '/missing/../f'"],["/f/","ENOTDIR: not a directory, writeFile '/f/'"],["","ENOENT: no such file or directory ''"]]) {
+      const r = await sh.exec(`awk 'BEGIN{print "wrong" > "${name}"}'`);
+      assert.deepEqual([r.exitCode,r.stderr,Buffer.from(await sh.fs.readFile("/f")).toString()], [1,"awk: "+message+"\n","x\ny\n"]);
+    }
+    const r = await sh.exec(`awk 'BEGIN{print 1 > "./f";print 2 > "f";print close("/./f"),close("/f")}'`);
+    assert.deepEqual([r.stdout,Buffer.from(await sh.fs.readFile("/f")).toString()], ["0 0\n","2\n"]);
+  } finally { sh.dispose(); }
+});
+
 test("awk named getline keeps a byte cursor across separator changes and exposes read errors", async () => {
   const sh = new RustWasmBash({files:{"/f":Buffer.from([255,13,10,58,98,58,10])}});
   try {

@@ -2,7 +2,7 @@ mod awk_input;
 type StagedPatchWrites = Vec<(String, Option<Vec<u8>>)>;
 use crate::commands::search::{ZeroRegex, replace_regex_in_text};
 use crate::shell::builtins::BuiltinOutcome;
-use crate::vfs::{SafeBashFs, resolve_posix_path};
+use crate::vfs::{SafeBashFs, path::absolute_operand, resolve_posix_path};
 use std::collections::BTreeMap;
 
 pub fn try_run_text_command(
@@ -1862,7 +1862,13 @@ impl<'a> AwkState<'a> {
             if !(self.output.send)(2, data) { self.runtime_err = Some(String::new()); }
             return;
         }
-        let full = resolve_posix_path(&self.cwd, raw_path);
+        if raw_path.is_empty() || raw_path.contains('\0') {
+            self.runtime_err = Some(if raw_path.is_empty() { "awk: ENOENT: no such file or directory ''\n".into() }
+                else { format!("awk: EINVAL: invalid argument '{}'\n", raw_path.replace('\0', "\\000")) });
+            self.error_status = 1;
+            return;
+        }
+        let full = absolute_operand(&self.cwd, raw_path);
         let bytes = crate::vfs::stream_string_to_bytes(data);
         let open = self.redirect_written.contains(&full);
         let result = self.vfs.write_command_path(&full, &bytes, open || append, self.create_mode);
@@ -3948,7 +3954,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let name = args.first().map(|a| eval_awk_expr(a, state)).unwrap_or_default();
             if name.is_empty() || name == "/dev/stdout" {
                 if !state.output.flush() { state.runtime_err = Some(String::new()); }
-            } else if name != "/dev/stderr" && !state.redirect_written.contains(&resolve_posix_path(&state.cwd, &name)) {
+            } else if name != "/dev/stderr" && !state.redirect_written.contains(&absolute_operand(&state.cwd, &name)) {
                 return Some("-1".to_string());
             }
             Some("0".to_string())
@@ -3956,7 +3962,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
         "close" => {
             if let Some(arg) = args.first() {
                 let path = eval_awk_expr(arg, state);
-                let full = resolve_posix_path(&state.cwd, &path);
+                let full = absolute_operand(&state.cwd, &path);
                 let input = state.getline_files.remove(&full).is_some();
                 let output = state.redirect_written.remove(&full);
                 if input || output { return Some("0".to_string()); }

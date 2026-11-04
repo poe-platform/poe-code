@@ -8665,6 +8665,39 @@ test("awk reads the entire program before actions, file writes or stdin", async 
   } finally { sh.dispose(); }
 });
 
+test("awk resolves function names and arity before executing the program", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [source, message] of [
+      ["0 { missing(a[1,2], nested(3)) }", "unsupported function 'nested'"],
+      ["function f(a) {} END { f(1,2) }", "invalid argument count for 'f'"],
+      ["{ print substr($0) }", "invalid argument count for 'substr'"],
+      ["function f(a,a) {}", "duplicate function parameter"],
+      ["function f(substr) {}", "reserved function parameter"],
+      ["function f() {} function f(x) {}", "duplicate or reserved function 'f'"],
+      ["function int(x) {}", "duplicate or reserved function 'int'"],
+      ["function f();", "expected '{' at byte 39"],
+      ["{ print chr(1) }", "unsupported function 'chr'"],
+      ["{ print sqrt }", "reserved variable 'sqrt'"],
+    ]) {
+      let reads = 0;
+      const r = await sh.exec(`awk 'BEGIN { print 1 > "/out" } ${source}'`, {
+        stdin: {async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("x"); }},
+      });
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,reads], [2,"","awk: "+message+"\n",0], source);
+      await assert.rejects(sh.fs.readFile("/out"));
+    }
+    for (const [cmd, output] of [
+      [`awk 'BEGIN { x=2; print chr(2), length ("abc"), x (3) } function chr(x,y) {return x+40}'`, "42 3 23\n"],
+      [`awk --load=ordchr.so 'BEGIN { print chr (65), ord("A") }'`, "A 65\n"],
+      [`printf 'abcd\\n' | awk '{ print length }'`, "4\n"],
+    ]) {
+      const r = await sh.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,output,""], cmd);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk keeps source-file bytes and parses the program before opening debugger commands", async () => {
   const sh = new RustWasmBash({files:{"/quit":"quit\n"}});
   try {

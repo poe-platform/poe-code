@@ -2053,6 +2053,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     let mut vars = BTreeMap::new();
     let mut program_parts: Vec<String> = Vec::new();
     let mut saw_explicit_prog = false;
+    let mut ordchr = false;
     let mut saw_prog_file = false;
     let mut debug_file: Option<String> = None;
     let mut operand_assignments = true;
@@ -2209,11 +2210,13 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             if base != "ordchr" && base != "ordchr.so" {
                 return err_out(&format!("awk: unsupported awk extension '{ext}'\n"), 2);
             }
+            ordchr = true;
         } else if !end_of_opts && let Some(ext) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--load=")) {
             let base = ext.rsplit('/').next().unwrap_or(ext);
             if base != "ordchr" && base != "ordchr.so" {
                 return err_out(&format!("awk: unsupported awk extension '{ext}'\n"), 2);
             }
+            ordchr = true;
         } else if !end_of_opts && a.starts_with('-') && a != "-" {
             return err_out(&format!("awk: unsupported awk option '{a}'\n"), 2);
         } else {
@@ -2236,7 +2239,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     }
     let prog_str = program_parts.join("\n");
 
-    let (mut rules, funcs) = match awk_source::parse_rules(&prog_str) {
+    let (mut rules, funcs) = match awk_source::parse_rules(&prog_str, ordchr) {
         Ok(program) => program,
         Err(e) => return err_out(&format!("awk: {e}\n"), 2),
     };
@@ -3765,12 +3768,12 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             }
             Some(Scalar::Number(-1.0))
         }
-        "ord" => {
+        "ord" if !state.funcs.contains_key("ord") => {
             let s = args.first().map(|a| eval_awk_text(a, state)).unwrap_or_default();
             let code = s.chars().next().map(|c| c as u32).unwrap_or(0);
             Some(Scalar::Number(code as f64))
         }
-        "chr" => {
+        "chr" if !state.funcs.contains_key("chr") => {
             let n = args
                 .first()
                 .map(|a| eval_awk_value(a, state).number() as u32)

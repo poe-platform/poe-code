@@ -6538,156 +6538,50 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut excludes: Vec<String> = Vec::new();
     let mut in_exclude = false;
     let mut ended = false;
-    let mut i = 0usize;
-    while i < args.len() {
-        if !ended && args[i] == "--" {
-            ended = true;
-            i += 1;
-            continue;
-        }
-        if ended {
-            if archive.is_none() {
-                archive = Some(args[i].clone());
-            } else if in_exclude {
-                excludes.push(args[i].clone());
-            } else {
-                members.push(args[i].clone());
-            }
-            i += 1;
-            continue;
-        }
-        match args[i].as_str() {
-            "-Z" if i == 0 => {
-                zipinfo_mode = true;
-                in_exclude = false;
-            }
-            "-1" if zipinfo_mode => {
-                names_only = true;
-                in_exclude = false;
-            }
-            "-Z1" if i == 0 => {
-                zipinfo_mode = true;
-                names_only = true;
-                in_exclude = false;
-            }
-            "-l" => {
-                list_table = true;
-                in_exclude = false;
-            }
-            "-v" => {
-                list_table = true;
-                verbose_list = true;
-                in_exclude = false;
-            }
-            "-t" => {
-                test_only = true;
-                in_exclude = false;
-            }
-            "-j" => {
-                junk_paths = true;
-                in_exclude = false;
-            }
-            "-p" => {
-                pipe_to_stdout = true;
-                in_exclude = false;
-            }
-            "-c" => {
-                pipe_headers = true;
-                in_exclude = false;
-            }
-            "-q" | "-qq" => {
-                quiet_level += args[i].len()-1;
-                in_exclude = false;
-            }
-            "-n" => {
-                never_overwrite = true;
-                in_exclude = false;
-            }
-            "-o" => {
-                explicit_overwrite = true;
-                in_exclude = false;
-            }
-            "-C" => {
-                case_insensitive = true;
-                in_exclude = false;
-            }
-            "-z" => {
-                show_comment = true;
-                in_exclude = false;
-            }
-            "-x" => {
-                in_exclude = true;
-            }
-            "-d" => {
-                if dest_dir.is_some() {
-                    return err_out("unzip: -d may only be specified once\n", 2);
-                }
-                if i + 1 >= args.len() || args[i + 1].is_empty() {
-                    return err_out(
-                        "unzip: must specify directory to which to extract with -d option\n",
-                        2,
-                    );
-                }
-                in_exclude = false;
-                i += 1;
-                dest_dir = Some(args[i].clone());
-            }
-            s if s.starts_with("-d") && s.len() > 2 => {
-                if dest_dir.is_some() {
-                    return err_out("unzip: -d may only be specified once\n", 2);
-                }
-                in_exclude = false;
-                dest_dir = Some(s[2..].to_string());
-            }
-            "-P" => {
-                if i + 1 >= args.len() {
-                    return err_out("unzip: password option requires a value\n", 2);
-                }
-                has_password = true;
-                in_exclude = false;
-                i += 1;
-            }
-            s if s.starts_with("-P") && s.len() > 2 => {
-                has_password = true;
-                in_exclude = false;
-            }
-            s if s.starts_with('-') && s.len() > 1 => {
-                in_exclude = false;
-                for (ci, ch) in s[1..].chars().enumerate() {
-                    match ch {
-                        'Z' if i == 0 && ci == 0 => zipinfo_mode = true,
-                        '1' if zipinfo_mode => names_only = true,
-                        'l' => list_table = true,
-                        'v' => {
-                            list_table = true;
-                            verbose_list = true;
-                        }
-                        't' => test_only = true,
-                        'j' => junk_paths = true,
-                        'p' => pipe_to_stdout = true,
-                        'c' => pipe_headers = true,
-                        'q' => quiet_level += 1,
-                        'n' => never_overwrite = true,
-                        'o' => explicit_overwrite = true,
-                        'C' => case_insensitive = true,
-                        'z' => show_comment = true,
-                        mode @ ('u' | 'f') => update_mode = Some(mode),
-                        other => {
-                            return err_out(&format!("unzip: unsupported option: -{other}\n"), 2);
-                        }
+    let mut arguments=args.iter().enumerate();
+    while let Some((index,arg))=arguments.next() {
+        if !ended && arg=="--" {ended=true;continue;}
+        if !ended && arg.starts_with('-') && arg.len()>1 {
+            let mut flags=arg[1..].chars();
+            while let Some(flag)=flags.next() {
+                match flag {
+                    'Z' if index==0 && arg.starts_with("-Z") && !zipinfo_mode => zipinfo_mode=true,
+                    '1' if zipinfo_mode => names_only=true,
+                    'l'=>list_table=true,
+                    'v'=>{list_table=true;verbose_list=true;}
+                    't'=>test_only=true,
+                    'j'=>junk_paths=true,
+                    'p'=>pipe_to_stdout=true,
+                    'c'=>pipe_headers=true,
+                    'q'=>quiet_level+=1,
+                    'n'=>never_overwrite=true,
+                    'o'=>explicit_overwrite=true,
+                    'C'=>case_insensitive=true,
+                    'z'=>show_comment=true,
+                    mode @ ('u'|'f')=>update_mode=Some(mode),
+                    'x'=>{
+                        in_exclude=true;
+                        if !flags.as_str().is_empty(){excludes.push(flags.as_str().to_owned());}
+                        break;
                     }
+                    'd'|'P'=>{
+                        if flag=='d' && dest_dir.is_some(){return err_out("unzip: -d may only be specified once\n",2);}
+                        let value=if flags.as_str().is_empty(){arguments.next().map(|(_,v)|v.as_str())}else{Some(flags.as_str())};
+                        if flag=='P' {
+                            if value.is_none(){return err_out("unzip: password option requires a value\n",2);}
+                            has_password=true;
+                        } else {
+                            let Some(dir)=value.filter(|v|!v.is_empty()) else {return err_out("unzip: must specify directory to which to extract with -d option\n",2);};
+                            dest_dir=Some(dir.to_owned());
+                        }
+                        break;
+                    }
+                    other=>return err_out(&format!("unzip: unsupported option: -{other}\n"),2),
                 }
             }
-            a if archive.is_none() => archive = Some(a.to_string()),
-            a => {
-                if in_exclude {
-                    excludes.push(a.to_string());
-                } else {
-                    members.push(a.to_string());
-                }
-            }
-        }
-        i += 1;
+        } else if archive.is_none() {archive=Some(arg.clone());}
+        else if in_exclude {excludes.push(arg.clone());}
+        else {members.push(arg.clone());}
     }
     let Some(raw_arch) = archive else {
         return err_out(

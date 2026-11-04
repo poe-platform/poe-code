@@ -6528,6 +6528,22 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip accepts grouped value options and keeps exclusions active after other flags",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    for(const name of ["one","two","three"])await fs.writeFile("/"+name,new TextEncoder().encode(name));
+    const seed=await js.exec("zip -q seed.zip one two three");assert.equal(seed.exitCode,0,seed.stderr);
+    await rust.fs.writeFile("/seed.zip",await fs.readFile("/seed.zip"));
+    for(const args of ["-p seed.zip -xone -q two","-p seed.zip -qxone two","-pPpass seed.zip one","-pP pass seed.zip one",
+      "-oqdout seed.zip one","-qo -d a -qd b seed.zip","-qpP","-oqd"]){
+      const command="unzip "+args,ref=await js.exec(command),actual=await rust.exec(command);
+      assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[ref.exitCode,ref.stdout,ref.stderr],command);
+    }
+    assert.deepEqual(await rust.fs.readFile("/out/one"),await fs.readFile("/out/one"));
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip matches full member names and credits the first matching include",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

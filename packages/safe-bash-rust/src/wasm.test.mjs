@@ -1498,6 +1498,61 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const bash = new RustWasmBash();
+  const trace = [], failure = new Error("cleanup failed");
+  let enter, signal, write;
+  const started = new Promise(resolve => { enter = resolve; });
+  bash.use({setup() {}, dispose() { trace.push("first"); }});
+  bash.use({setup({commands}) {
+    commands.register({name:"hold", execute(ctx) {
+      signal = ctx.signal;
+      write = () => ctx.stdout.write(Uint8Array.of(65));
+      enter();
+      return new Promise(() => {});
+    }});
+  }, dispose() { trace.push("second"); throw failure; }});
+  const pending = bash.exec("hold; touch /late");
+  await started;
+  const cleanup = bash.dispose();
+  try {
+    assert.equal(signal.aborted, true);
+    await assert.rejects(pending, e => e === signal.reason);
+    await assert.rejects(write(), e => e === signal.reason);
+    await assert.rejects(cleanup, e => e instanceof AggregateError && e.errors[0] === failure);
+    assert.deepEqual(trace, ["second","first"]);
+    assert.equal(bash.dispose(), cleanup);
+  } finally { await cleanup.catch(() => {}); }
+});
+
+test("a cancelled execution does not wait for unfinished plugin setup", async () => {
+  const bash = new RustWasmBash(), controller = new AbortController();
+  let resume;
+  const held = new Promise(resolve => { resume = resolve; });
+  bash.use({setup: () => held});
+  const outcome = bash.exec("touch /late", {signal:controller.signal}).catch(e => e);
+  const reason = new Error("cancel during setup");
+  controller.abort(reason);
+  try {
+    assert.equal(await Promise.race([outcome, new Promise(resolve => setImmediate(resolve))]), reason);
+    await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+  } finally { resume(); await outcome; await bash.dispose(); }
+});
+
+test("disposal waits for queued plugin setup before releasing the shell", async () => {
+  const bash = new RustWasmBash();
+  const trace = [];
+  bash.use({async setup(host) {
+    await Promise.resolve();
+    host.registerFileSystem("custom", () => bash.fs);
+    trace.push("setup");
+  }, dispose() { trace.push("disposed"); }});
+  const cleanup = bash.dispose();
+  await assert.rejects(bash.exec("true"), /disposed/);
+  await cleanup;
+  assert.deepEqual(trace, ["setup","disposed"]);
+});
+
 test("Wasm host commands inherit exported bindings and preserve bytes in native pipelines", async () => {
   const bash = new RustWasmBash({cwd:"/", env:{BASE:"initial"}});
   const x = bash.exports, table = x.__indirect_function_table, slot = table.grow(1);

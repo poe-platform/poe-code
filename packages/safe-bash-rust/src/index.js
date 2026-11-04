@@ -1048,6 +1048,9 @@ export class RustWasmBash extends WasmShell {
   #commands;
   #createArguments;
   #plugins = [];
+  #pluginLifetime;
+  #activePlugins = new Set();
+  #disposal;
 
   #identityScopes = new Map();
   #scopeKeys = new WeakMap();
@@ -1458,8 +1461,17 @@ export class RustWasmBash extends WasmShell {
 
   async exec(script, options = {}) {
     if (!this.sessionId) throw new Error("Shell is disposed");
-    if (this.#ready) await this.#ready;
-    if (!this.sessionId) throw new Error("Shell is disposed");
+    if (!this.#ready) return this.#exec(script, options);
+    const signal = options.signal ? AbortSignal.any([options.signal, this.#pluginLifetime.signal]) : this.#pluginLifetime.signal;
+    signal.throwIfAborted();
+    await untilAbort(this.#ready, signal);
+    signal.throwIfAborted();
+    const run = this.#exec(script, {...options, signal}, Boolean(options.signal));
+    this.#activePlugins.add(run);
+    try { return await run; } finally { this.#activePlugins.delete(run); }
+  }
+
+  async #exec(script, options, simulateSleep = options.signal) {
     const filesystem = options?.fs;
     const externalFs = filesystem != null && filesystem !== this.fs;
     if (externalFs && !this._companion) {
@@ -1478,7 +1490,7 @@ export class RustWasmBash extends WasmShell {
           : this._companion.shell.exec(script);
       }
     }
-    if (options && options.signal) {
+    if (simulateSleep) {
       options.signal.throwIfAborted();
       const sleepMatch = /\bsleep\s+([0-9.]+)/.exec(script);
       if (sleepMatch) {
@@ -1646,6 +1658,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   #install(setup) {
+    this.#pluginLifetime ??= new AbortController();
     this.#ready = (this.#ready ?? import("safe-bash-contracts/command").then(({CommandRegistry, createCommandArguments}) => {
       this.#commands = new CommandRegistry();
       this.#createArguments = createCommandArguments;
@@ -1654,6 +1667,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   use(plugin) {
+    this.#pluginLifetime?.signal.throwIfAborted();
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (this.companionFactory) {
       this.forceNative = false;
@@ -1661,7 +1675,7 @@ export class RustWasmBash extends WasmShell {
     } else {
       if (typeof plugin?.setup !== "function") throw new TypeError("Expected a shell plugin with setup");
       this.#install(async () => {
-        await plugin.setup({commands:this.#commands, registerFileSystem:(scheme, factory) => this.registerFileSystem(scheme, factory)});
+        await plugin.setup({commands:this.#commands, registerFileSystem:(scheme, factory) => this.#registerFileSystem(scheme, factory)});
         this.#plugins.push(plugin);
       });
     }
@@ -1669,6 +1683,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   register(cmd, options) {
+    this.#pluginLifetime?.signal.throwIfAborted();
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (this.companionFactory) {
       this.forceNative = false;
@@ -1683,17 +1698,24 @@ export class RustWasmBash extends WasmShell {
   }
 
   registerFileSystem(scheme, factory) {
+    this.#pluginLifetime?.signal.throwIfAborted();
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (this.companionFactory) {
       this.#getCompanion().shell.registerFileSystem(scheme, factory);
       return;
     }
+    this.#registerFileSystem(scheme, factory);
+  }
+
+  #registerFileSystem(scheme, factory) {
+    if (!this.sessionId) throw new Error("Shell is disposed");
     if (!/^[a-z][a-z0-9+.-]*$/u.test(scheme)) throw new TypeError("Invalid filesystem scheme");
     if (this.#filesystems.has(scheme)) throw new Error(`Filesystem already registered: ${scheme}`);
     this.#filesystems.set(scheme, factory);
   }
 
   async createFileSystem(scheme, options = {}) {
+    this.#pluginLifetime?.signal.throwIfAborted();
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (!this.companionFactory) {
       if (this.#ready) await this.#ready;
@@ -1706,6 +1728,7 @@ export class RustWasmBash extends WasmShell {
   }
 
   createSession(initialState) {
+    this.#pluginLifetime?.signal.throwIfAborted();
     if (this.companionFactory && !this.forceNative) {
       const comp = this._getOrCreateCompanionSync();
       const inner = comp.shell.createSession(initialState);
@@ -1758,15 +1781,29 @@ export class RustWasmBash extends WasmShell {
   }
 
   dispose() {
-    this.#filesystems.clear();
-    this.#identityScopes.clear();
+    if (this.#disposal) return this.#disposal;
     if (this.#companion && this.sessionId) void this.#companion.shell.dispose();
+    if (this.#ready) {
+      // Publish the disposal promise before abort listeners can reenter dispose().
+      this.#disposal = Promise.resolve().then(async () => {
+        await Promise.allSettled([this.#ready, ...this.#activePlugins]);
+        const failures = [];
+        for (const plugin of this.#plugins.splice(0).reverse()) {
+          try { await plugin.dispose?.(); } catch (error) { failures.push(error); }
+        }
+        this.#filesystems.clear();
+        this.#identityScopes.clear();
+        super.dispose();
+        if (failures.length) throw new AggregateError(failures, "Plugin disposal failed");
+      });
+      this.#pluginLifetime.abort(new Error("Shell is disposed"));
+    }
     for (const controller of this.#sessions) controller.abort(new Error("Shell session is disposed"));
     this.#sessions.clear();
+    if (this.#disposal) return this.#disposal;
+    this.#filesystems.clear();
+    this.#identityScopes.clear();
     super.dispose();
-    if (this.#ready) return this.#ready.catch(() => {}).then(async () => {
-      for (const plugin of this.#plugins.splice(0).reverse()) await plugin.dispose?.();
-    });
   }
 }
 

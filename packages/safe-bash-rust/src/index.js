@@ -225,7 +225,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         let active = true, outputOpen = true, cleanups, handles, stages, fsOps = 0, consumed = 0, code = 1;
         let fileOutput = 0;
         const streams = [[], []], credits = [0,0], unpaid = [0,0];
-        let tail = Promise.resolve(), busy, children, stopped;
+        let tail = Promise.resolve(), busy, children, stopped, nativeFlow;
         const run = async () => { try {
           const view = new DataView(packet.buffer);
           let offset = 0;
@@ -553,6 +553,12 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               if (dest < 0) await untilAbort(Promise.resolve(sink.write(data)),childSignal);
               else await writeSink(dest,data,true);
             }
+            if (status >= 257 && status <= 260) {
+              const kind = ["exit","return","break","continue"][status-257], previous=view.getInt32(pos+8,true);
+              nativeFlow = {name:"Flow",message:kind,kind,status:view.getInt32(pos,true),levels:view.getUint32(pos+4,true),
+                previousStatus:previous<0?undefined:previous,expansionFailure:false};
+              throw nativeFlow;
+            }
             return {exitCode:status};
           };
           check();
@@ -600,6 +606,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           }
         } catch (error) {
           if (signal.aborted) code = -2;
+          else if (nativeFlow && error === nativeFlow) code = -8;
           else if (code >= 0) {
             const message = diagnostics.publicDiagnosticMessage(error, onInternalError);
             if (message === "internal error") code = -4;

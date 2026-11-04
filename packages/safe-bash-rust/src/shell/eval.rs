@@ -46,7 +46,16 @@ enum DispatchMode { Shell, BypassFunctions, Builtin, EnvShebang }
 
 pub(crate) trait CommandCaller {
     fn state(&self) -> &EvalState<'_>;
+    fn take_flow(&mut self, status:i32, previous:Option<i32>) -> Option<MiddlewareFlow>;
+    fn restore_flow(&mut self, flow:&MiddlewareFlow);
     fn proceed(&mut self, stdin: &mut String, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String>;
+}
+
+pub(crate) enum MiddlewareFlow {
+    Exit {status:i32, explicit:bool, previous:Option<i32>},
+    Return {status:i32, previous:Option<i32>},
+    Break {levels:usize, status:i32},
+    Continue {levels:usize, status:i32},
 }
 
 struct DispatchFrame<'a,'b> {
@@ -57,6 +66,26 @@ struct DispatchFrame<'a,'b> {
 
 impl CommandCaller for DispatchFrame<'_,'_> {
     fn state(&self) -> &EvalState<'_> { self.state }
+    fn take_flow(&mut self, status:i32, previous:Option<i32>) -> Option<MiddlewareFlow> {
+        let state = &mut self.state;
+        if let Some(status) = state.exit_requested.take() {
+            Some(MiddlewareFlow::Exit {status, explicit:std::mem::take(&mut state.explicit_exit),previous})
+        } else if let Some(status) = state.return_requested.take() {
+            Some(MiddlewareFlow::Return {status,previous})
+        } else if state.break_count != 0 {
+            Some(MiddlewareFlow::Break {levels:std::mem::take(&mut state.break_count),status})
+        } else if state.continue_count != 0 {
+            Some(MiddlewareFlow::Continue {levels:std::mem::take(&mut state.continue_count),status})
+        } else { None }
+    }
+    fn restore_flow(&mut self, flow:&MiddlewareFlow) {
+        match *flow {
+            MiddlewareFlow::Exit {status,explicit,..} => { self.state.exit_requested=Some(status); self.state.explicit_exit=explicit; },
+            MiddlewareFlow::Return {status,..} => self.state.return_requested=Some(status),
+            MiddlewareFlow::Break {levels,..} => self.state.break_count=levels,
+            MiddlewareFlow::Continue {levels,..} => self.state.continue_count=levels,
+        }
+    }
     fn proceed(&mut self, stdin: &mut String, host_terminal:Option<(&str,&mut bool)>) -> Result<BuiltinOutcome, String> {
         let mode = self.next.take().ok_or("next() may only be called once per middleware")?;
         let state = &mut self.state;

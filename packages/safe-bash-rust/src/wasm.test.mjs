@@ -1566,6 +1566,26 @@ test("middleware and the selected plugin handler share streams, cleanup and thro
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("middleware can observe or catch exit, return, break and continue",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async(sh,swallow)=>{
+    const trace=[];
+    sh.use(async(ctx,next)=>{
+      try {const r=await next();trace.push([ctx.command,"done",r.exitCode]);return r;}
+      catch(e) {trace.push([ctx.command,e.name,e.kind,e.status,e.levels,e.previousStatus]);if(swallow)return {exitCode:7};throw e;}
+    });
+    const results=[];
+    for(const script of ["false; exit 5; printf X","f(){ false; return 4; printf Y; }; f","for i in a b; do break; printf Z; done","for i in a b; do continue; printf W; done","exec /bin/false; printf Q"]){
+      const r=await sh.exec(script);results.push([r.exitCode,r.stdout,r.stderr]);
+    }
+    return [results,trace];
+  };
+  for(const swallow of [false,true]){
+    const js=new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
+    try{assert.deepEqual(await run(rust,swallow),await run(js,swallow));}finally{await js.dispose();await rust.dispose();}
+  }
+});
+
 test("plugin-provided capabilities reach nested commands and explicit invocation settings win",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
   for(const sh of [new Shell({fs:new MemoryFileSystem(),cwd:"/"}),new RustWasmBash({cwd:"/"})]){

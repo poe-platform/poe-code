@@ -2,6 +2,7 @@ use super::{sessions, slice_from_raw};
 use crate::backend::{CommandFailure, CommandResult};
 use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::sync::Arc;
+use crate::shell::eval::MiddlewareFlow;
 
 #[repr(C)]
 #[derive(Default)]
@@ -49,7 +50,7 @@ fn field(packet: &mut &[u8]) -> Result<String, String> {
     Ok(bytes_to_stream_string(packet.split_off(..n).ok_or("Truncated child field")?))
 }
 
-fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middleware_input:&mut Option<String>) -> Result<(i32, Vec<u8>, usize), String> {
+fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middleware_input:&mut Option<String>, pending:&mut Option<(MiddlewareFlow,i32)>) -> Result<(i32, Vec<u8>, usize), String> {
     let flags = word(&mut request)?;
     if flags == 132 {
         let input = middleware_input.as_mut().ok_or("No middleware input")?;
@@ -59,8 +60,24 @@ fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middlew
         let input = middleware_input.as_mut().ok_or("No command to continue")?;
         let candidate = field(&mut request)?;
         let mut selected = false;
+        let previous = matches!(ctx.command,"exit"|"return").then(||ctx.caller.state().last_exit);
         let result = ctx.caller.proceed(input,Some((&candidate,&mut selected)))?;
-        return Ok(if selected { (256,Vec::new(),0) } else { child_result(result,0) });
+        if selected { return Ok((256,Vec::new(),0)); }
+        let (code,mut bytes,credit) = child_result(result,0);
+        if let Some(flow) = ctx.caller.take_flow(code,previous) {
+            let (tag,status,levels,prev) = match flow {
+                MiddlewareFlow::Exit {status,previous,..} => (257,status,1,previous),
+                MiddlewareFlow::Return {status,previous} => (258,status,1,previous),
+                MiddlewareFlow::Break {status,levels} => (259,status,levels,None),
+                MiddlewareFlow::Continue {status,levels} => (260,status,levels,None),
+            };
+            bytes.extend_from_slice(&status.to_le_bytes());
+            bytes.extend_from_slice(&(levels as u32).to_le_bytes());
+            bytes.extend_from_slice(&prev.unwrap_or(-1).to_le_bytes());
+            *pending = Some((flow,code));
+            return Ok((tag,bytes,credit));
+        }
+        return Ok((code,bytes,credit));
     }
     if (128..=131).contains(&flags) {
         let data = bytes_to_stream_string(request);
@@ -154,6 +171,7 @@ fn host_handler(invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -
         let mut response = Vec::new();
         let mut charged = 0usize;
         let mut file_output = 0usize;
+        let mut pending_flow = None;
         let (code,reply) = loop {
             let mut reply = HostReply {
                 max_input: ctx.budget.limits.max_input_bytes,
@@ -185,7 +203,7 @@ fn host_handler(invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -
             let reserved = reply.output_credit[0].saturating_add(reply.output_credit[1]);
             (child_status,response) = match ctx.budget.charge_fs_ops(reply.used_fs_ops)
                 .and_then(|()| ctx.budget.add_output_bytes(reserved))
-                .and_then(|()| { charged += reserved; invoke_child(ctx,&request,&mut middleware_input) }) {
+                .and_then(|()| { charged += reserved; invoke_child(ctx,&request,&mut middleware_input,&mut pending_flow) }) {
                 Ok((code, bytes, credit)) => { charged += credit; (code,bytes) }
                 Err(e) => (-2,e.into_bytes()),
             };
@@ -202,6 +220,11 @@ fn host_handler(invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
         }
         if reply.used_fs_ops != 0 { ctx.budget.charge_fs_ops(reply.used_fs_ops)?; }
+        let code = if code == -8 {
+            let (flow,status) = pending_flow.ok_or("No pending middleware control transfer")?;
+            ctx.caller.restore_flow(&flow);
+            status
+        } else {code};
         ctx.failure = match code {
             -9 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxInputBytes", ctx.budget.limits.max_input_bytes))),
             -5 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxFileSystemOperations", ctx.budget.limits.max_filesystem_operations))),

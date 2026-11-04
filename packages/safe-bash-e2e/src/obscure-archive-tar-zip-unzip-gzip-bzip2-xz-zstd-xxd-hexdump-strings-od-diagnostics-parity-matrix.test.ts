@@ -483,6 +483,7 @@ describe("obscure archive tar zip unzip gzip bzip2 xz zstd xxd hexdump strings o
       printf 'alpha\\n' > /tmp/tar_wk/a.txt
       printf 'beta\\n' > /tmp/tar_wk/b.txt
       printf 'gamma\\n' > /tmp/tar_wk/c.txt
+      touch -d @1700000000 /tmp/tar_wk/a.txt
       tar -cf /tmp/tar_wk/one.tar -C /tmp/tar_wk a.txt
       tar -rf /tmp/tar_wk/one.tar -C /tmp/tar_wk b.txt
       tar -cf /tmp/tar_wk/two.tar -C /tmp/tar_wk c.txt
@@ -493,6 +494,7 @@ describe("obscure archive tar zip unzip gzip bzip2 xz zstd xxd hexdump strings o
       tar -tf /tmp/tar_wk/one.tar
       tar -df /tmp/tar_wk/one.tar -C /tmp/tar_wk a.txt; echo "diff_rc1=$?"
       printf 'alpha modified\\n' > /tmp/tar_wk/a.txt
+      touch -d @1700000000 /tmp/tar_wk/a.txt
       tar -df /tmp/tar_wk/one.tar -C /tmp/tar_wk a.txt 2>&1; echo "diff_rc2=$?"
     `);
     assert.equal(r.exitCode, 0);

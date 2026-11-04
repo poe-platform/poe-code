@@ -303,11 +303,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         }
         self.inner.replace_file_batch(files, version).map_err(quote_host_text)
     }
-    fn validate_staged_file(&self, path: &str, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
-        self.inner.validate_staged_file(&host_text(path), bytes, stamp, &mut |p| check(&quote_host_text(p.into())))
+        let temp=temporary.map(|(dir,id)|(host_text(dir),id));
+        self.inner.validate_staged_file(&host_text(path), temp.as_ref().map(|(p,id)|(p.as_ref(),*id)), bytes, stamp, &mut |p| check(&quote_host_text(p.into())))
             .map_err(quote_host_text)
     }
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {

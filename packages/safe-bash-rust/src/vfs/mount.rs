@@ -335,13 +335,18 @@ impl SafeBashFs for MountVfs {
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         fs.replace_file_entry(&rel, data, local_version)
     }
-    fn validate_staged_file(&self, destination: &str, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
         let dest=self.resolve(destination,false,WalkPurpose::AllowMissingParents)?;
         let (mount,fs,local)=self.location(&dest);
         let version=fs.generation();
         if self.generation()!=stamp { return Err("EAGAIN: filesystem changed before staging".into()); }
-        let (valid,next)=fs.validate_staged_file(&local,bytes,version,&mut |path|{
+        let local_temp=if let Some((dir,id))=temporary {
+            let (where_,_,path)=self.location(dir);
+            if where_!=mount { return Err("EXDEV: ZIP staging directory is on a different mount".into()); }
+            Some((path,id))
+        }else{None};
+        let (valid,next)=fs.validate_staged_file(&local,local_temp.as_ref().map(|(p,id)|(p.as_str(),*id)),bytes,version,&mut |path|{
             let full=format!("{}{path}",mount.trim_end_matches('/'));
             self.location(&full).0==mount && check(&full)
         })?;

@@ -6600,6 +6600,65 @@ test("zip validates its temporary directory before writing the archive or removi
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip -b tests the archive in the requested directory and cleans up without removing collisions",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const reference=new MemoryFileSystem();
+  for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
+    [new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()],
+    ...["overlay-cow-fs","strict-budgets-mount-dev"].map(profile=>[new RustWasmBash({cwd:"/",profile,directories:["/scratch"]})])]){
+    const fs=supplied??sh.fs;let seen;
+    sh.register({name:"verify",async execute(ctx){
+      seen=ctx.args[0];const zip=await ctx.fs.readFile(seen);return {exitCode:zip[0]===80 && zip[1]===75?0:9};
+    }});
+    try{
+      await fs.mkdir("/scratch",{recursive:true});await fs.symlink("scratch","/alias");
+      await fs.writeFile("/scratch/.zip-1",Uint8Array.of(11));await fs.writeFile("/src",Uint8Array.of(9));
+      for(const flag of ["-qb alias","--temp-path=/alias -q"]){
+        const r=await sh.exec("zip "+flag+" -T -TT verify work.zip src",{fs});
+        assert.equal(r.exitCode,0,r.stderr);assert.equal(seen,"/scratch/.zip-2/archive.zip");
+        assert.deepEqual(await fs.readFile("/scratch/.zip-1"),Uint8Array.of(11));
+        assert.deepEqual((await fs.readdir("/scratch")).map(e=>e.name),[".zip-1"]);
+      }
+    }finally{await sh.dispose();}
+  }
+});
+
+test("zip -b preserves the destination and move sources if the staging directory changes",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const reference=new MemoryFileSystem();
+  for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
+    [new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
+    const fs=supplied??sh.fs;
+    sh.register({name:"redirect",async execute(ctx){
+      await ctx.fs.unlink("/alias");await ctx.fs.symlink("b","/alias");return {exitCode:0};
+    }});
+    try{
+      await fs.mkdir("/a");await fs.mkdir("/b");await fs.symlink("a","/alias");await fs.writeFile("/src",Uint8Array.of(1));
+      const old=await sh.exec("zip -q work.zip src",{fs});assert.equal(old.exitCode,0,old.stderr);
+      const original=await fs.readFile("/work.zip");await fs.writeFile("/src",Uint8Array.of(2));
+      const r=await sh.exec("zip -qTm -b alias -TT redirect work.zip src",{fs});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"","zip: ZIP temporary path changed before publication\n"]);
+      assert.deepEqual(await fs.readFile("/work.zip"),original);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(2));
+      assert.deepEqual(await fs.readdir("/a"),[]);assert.deepEqual(await fs.readdir("/b"),[]);
+    }finally{await sh.dispose();}
+  }
+});
+
+test("zip -b uses staging even without -T and leaves a read-only temporary directory untouched",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const reference=new MemoryFileSystem();
+  for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
+    [new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
+    const fs=supplied??sh.fs;
+    try{
+      await fs.mkdir("/dir");await fs.chmod("/dir",0o555);await fs.writeFile("/src",Uint8Array.of(7));
+      const r=await sh.exec("zip -qm --temp-path=dir out.zip src",{fs});
+      assert.equal(r.exitCode,2);assert.match(r.stderr,/EACCES/);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(7));
+      await assert.rejects(fs.lstat("/out.zip"),{code:"ENOENT"});assert.deepEqual(await fs.readdir("/dir"),[]);
+    }finally{await sh.dispose();}
+  }
+});
+
 test("zip validates literal -TT arguments even without an integrity test",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

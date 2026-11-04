@@ -190,7 +190,7 @@ impl OverlayVfs {
         Ok(())
     }
 
-    fn prepare_parent(&self, path: &str) -> Result<(), String> {
+    fn prepare_parent(&self, path: &str) -> Result<usize, String> {
         let mut parent = crate::vfs::dirname_posix_path(path);
         let st = self.stat(&parent)?;
         if st.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
@@ -200,8 +200,9 @@ impl OverlayVfs {
             missing.push((parent.clone(), mode));
             parent = crate::vfs::dirname_posix_path(&parent);
         }
+        let count=missing.len();
         for (dir, mode) in missing.into_iter().rev() { self.copy_up_directories(&dir, || self.upper.mkdir_one(&dir, mode & 0o7777))?; }
-        Ok(())
+        Ok(count)
     }
 
     fn movable_link(layer: &dyn SafeBashFs, path: &str) -> Result<String, String> {
@@ -571,15 +572,20 @@ impl SafeBashFs for OverlayVfs {
         self.copy_up_directories(&parent, || upper.install_overlay_batch(lower,versions,files,parents))
     }
 
-    fn validate_staged_file(&self, destination: &str, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
         let upper=self.upper.memory_backend().ok_or("ENOTSUP: owned validation staging unavailable")?;
         let version=upper.generation();
         if self.generation()!=stamp { return Err("EAGAIN: filesystem changed before staging".into()); }
-        let mut parent=self.access_path(&super::dirname_posix_path(destination),true)?;
-        // A lower-only parent does not need to be copied up just to test bytes.
-        while parent!="/" && !upper.exists(&parent) { parent=super::dirname_posix_path(&parent); }
-        let (valid,next)=upper.check_in_owned_stage(&parent,bytes,version,|dir| match self.lstat(dir) {
+        let (parent,copies)=if let Some((dir,_))=temporary {
+            let copies=self.prepare_parent(&format!("{}/archive.zip",dir.trim_end_matches('/')))?;
+            (dir.to_owned(),copies as u64)
+        } else {
+            let mut parent=self.access_path(&super::dirname_posix_path(destination),true)?;
+            while parent!="/" && !upper.exists(&parent) { parent=super::dirname_posix_path(&parent); }
+            (parent,0)
+        };
+        let (valid,next)=upper.check_in_owned_stage(&parent,bytes,version.wrapping_add(copies),|dir| match self.lstat(dir) {
             Ok(_) => Ok(false), Err(e) if e.starts_with("ENOENT:") => Ok(!self.is_deleted(dir)), Err(e) => Err(e),
         },check)?;
         Ok((valid,stamp.wrapping_add(next.wrapping_sub(version))))

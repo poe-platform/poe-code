@@ -415,9 +415,9 @@ impl SafeBashFs for HostFs {
             })
         })
     }
-    fn validate_staged_file(&self, path: &str, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, path: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
-        let file = self.request("stageForTest", path, bytes, stamp as u32, 0)?;
+        let file = self.request("stageForTest", path, bytes, stamp as u32, temporary.map_or(0,|(_,id)|id as u32))?;
         let file = std::str::from_utf8(&file).map_err(|_| "EIO: invalid staging path")?;
         let valid = check(file);
         Ok((valid,stamp))
@@ -438,6 +438,7 @@ impl SafeBashFs for HostFs {
                 Write => 0,
                 Rollback => 1,
                 Replace => 2,
+                StagingDirectory => 3,
             },
             0,
         )?;

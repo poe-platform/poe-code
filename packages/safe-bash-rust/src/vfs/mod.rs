@@ -202,7 +202,7 @@ pub struct RedirectCharge(pub(crate) usize);
 pub enum RmdirSupport { Available, Unsupported, InspectDirectory }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum PublicationMode { Write, Rollback, Replace }
+pub enum PublicationMode { Write, Rollback, Replace, StagingDirectory }
 
 /// Keep a host's destination and parent observations alive until publication or rollback.
 pub struct PublicationStamp {
@@ -455,7 +455,7 @@ pub trait SafeBashFs: Send + Sync {
     }
     /// Run a virtual checker on owned temporary bytes. Return the publication
     /// stamp adjusted only for this stage's own filesystem mutations.
-    fn validate_staged_file(&self, _destination: &str, _bytes: &[u8], _stamp: u64,
+    fn validate_staged_file(&self, _destination: &str, _temporary: Option<(&str,u64)>, _bytes: &[u8], _stamp: u64,
         _check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
         Err("ENOTSUP: owned validation staging unavailable".into())
     }

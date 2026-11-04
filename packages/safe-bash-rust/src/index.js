@@ -200,11 +200,11 @@ function bindExternalFs(shell,fs,options) {
   };
   const statBytes=s=>new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
               s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
-  const createStage=async(view,path,content,guard,metadata,name="file")=>{
-    const settings={signal:options.signal}, parentDir=path.slice(0,path.lastIndexOf("/"));
+  const createStage=async(view,path,content,guard,metadata,name="file",parentDir=path.slice(0,path.lastIndexOf("/")))=>{
+    const settings={signal:options.signal};
     for(let attempt=0;;attempt++){
       try{
-        const temporary=parentDir+"/.safe-bash-stage-"+nextHandle++;
+        const temporary=parentDir+(name==="archive.zip"?"/.zip-"+(attempt+1):"/.safe-bash-stage-"+nextHandle++);
         if(temporary===path)continue;
         return await view.createStagedFile(temporary,name,content,
           {...settings,retainCleanup:true,...metadata,parent:guard.parent});
@@ -414,6 +414,12 @@ function bindExternalFs(shell,fs,options) {
           return;
         }
         if(op==="observePublication"){
+          if(flags===3){
+            const dir=await fs.realpath(path,settings),parent=await fs.lstat(dir,settings);
+            if(parent.type!=="directory" || parent.identityScope==null)throw fsOperationError("ENOTSUP",op,path);
+            const id=nextHandle++;publications.set(id,{dir,parent,name:path});
+            result=new Uint8Array(4);new DataView(result.buffer).setUint32(0,id,true);return;
+          }
           const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,create:true,...(flags===2 && {stagingResolution:true})}):fs.capabilities;
           const write=caps?.atomicFileMutation && typeof fs.writeFileConditional==="function";
           const stream=caps?.atomicFilePublication && typeof fs.publishFileConditional==="function";
@@ -438,7 +444,11 @@ function bindExternalFs(shell,fs,options) {
           const obs=publications.get(flags),r=obs?.resolution;
           if(!r || path!==obs.path || obs.testStage)throw fsOperationError("ENOTSUP",op,path);
           r.validate();
-          const stage=await createStage(fs,r.path,{type:"file",data},r,{mode:r.destination?r.destination.mode&0o7777:0o644},"archive.zip");
+          const temp=mode?publications.get(mode):undefined;
+          if(mode && !temp?.parent)throw fsOperationError("EAGAIN",op,path);
+          const stage=await createStage(fs,r.path,{type:"file",data},temp??r,{mode:r.destination?r.destination.mode&0o7777:0o644},
+            "archive.zip",temp?(temp.dir==="/"?"":temp.dir):undefined);
+          obs.temp=temp;
           obs.testStage=stage;
           if(stage.writer)obs.testStage={...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}};
           result=encoder.encode(stage.file.path);return;
@@ -448,6 +458,7 @@ function bindExternalFs(shell,fs,options) {
           if(!obs?.resolution || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
           const r=obs.resolution;
           r.validate();
+          if(obs.temp && await fs.realpath(obs.temp.name,settings)!==obs.temp.dir)throw fsOperationError("EAGAIN",op,path);
           const inPlace=op==="publish";
           if(inPlace){
             if(!r.destination || r.destination.nlink<=1)throw fsOperationError("EAGAIN",op,path);

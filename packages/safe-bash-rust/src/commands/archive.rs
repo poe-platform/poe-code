@@ -6263,15 +6263,19 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         .as_deref()
         .map(|o| resolve_posix_path(cwd, &ensure_zip_suffix(o)))
         .unwrap_or_else(|| arch_full.clone());
-    if let Some(temp)=temp_path.filter(|_| !show_files) {
+    let temporary=if let Some(temp)=temp_path.filter(|_| !show_files) {
         let name=resolve_posix_path(cwd,temp);
-        match fs.inspect_command_entry(&name,true,"realpath") {
-            Ok((_,st)) if st.kind==crate::vfs::VfsEntryKind::Directory && st.identity.is_some() => (),
+        let (dir,stat)=match fs.inspect_command_entry(&name,true,"realpath") {
+            Ok((dir,st)) if st.kind==crate::vfs::VfsEntryKind::Directory && st.identity.is_some() => (dir,st),
             Ok(_) => return err_out("zip: ZIP temporary path requires a directory with known backing identity\n",2),
             Err(e) if e.starts_with("ENOENT:") => return err_out(&format!("zip: ENOENT: no such file or directory, realpath '{name}'\n"),2),
             Err(e) => return err_out(&format!("zip: {e}\n"),2),
-        }
-    }
+        };
+        let receipt=match fs.observe_publication(&name,fs.generation(),crate::vfs::PublicationMode::StagingDirectory) {
+            Ok(receipt)=>receipt,Err(e)=>return err_out(&format!("zip: {e}\n"),2),
+        };
+        Some((name,dir,stat.identity,receipt))
+    } else {None};
     let mut operands: Vec<String> = positional[1..].to_vec();
     if stdin_names && !read_comment {
         for line in stdin.lines() {
@@ -6331,9 +6335,10 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     let mut publish = |bytes: Vec<u8>, sources: &[_]| {
         let mut stamp = replacement.as_ref().map_or(version,|r|r.version);
         let mut report=String::new();
-        if test_archive && arch_name!="-" {
+        if (test_archive || temporary.is_some()) && arch_name!="-" {
             let mut checker_changes = 0;
-            let result = fs.validate_staged_file(&dest_full, &bytes, stamp, &mut |path| {
+            let result = fs.validate_staged_file(&dest_full, temporary.as_ref().map(|(_,dir,_,r)|(dir.as_str(),r.version)), &bytes, stamp, &mut |path| {
+                if !test_archive { return true; }
                 let mut remaining = fs.shell_limits().max_expansion_bytes;
                 let mut words = vec![checker[0].clone()];
                 let mut placeholder = false;
@@ -6370,11 +6375,15 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                 Ok((valid,next)) => { stamp=next.wrapping_add(checker_changes); valid }
                 Err(e) => return err_out(&format!("zip: {e}\n"),2),
             };
-            if !quiet {report=format!("test of {} {}\n",zip_public_text(&arch_name),if valid {"OK"} else {"FAILED"});}
+            if test_archive && !quiet {report=format!("test of {} {}\n",zip_public_text(&arch_name),if valid {"OK"} else {"FAILED"});}
             if !valid {
                 report.push_str("\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n");
                 return BuiltinOutcome {stdout:report,stderr:String::new(),exit_code:8};
             }
+        }
+        if let Some((name,dir,id,_))=&temporary
+            && !fs.inspect_command_entry(name,true,"realpath").is_ok_and(|(p,st)|p==*dir && st.identity==*id) {
+            return err_out("zip: ZIP temporary path changed before publication\n",2);
         }
         let result = if split_size != 0 {
             zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources,stamp)

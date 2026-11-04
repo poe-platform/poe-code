@@ -489,9 +489,9 @@ impl MemoryVfs {
     pub(super) fn check_in_owned_stage(&self, parent: &str, bytes: &[u8], stamp: u64,
         available: impl Fn(&str) -> Result<bool,String>, check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
         let stat = self.lstat(parent)?;
-        for _ in 0..32 {
-            let seq = NEXT_PUBLICATION.fetch_add(1, Ordering::Relaxed);
-            let dir = format!("{}/.safe-bash-stage-{seq}", parent.trim_end_matches('/'));
+        let attempts=self.state.read().map_err(|_| "EIO: input/output error")?.limits.max_entries.saturating_add(1);
+        for seq in 1..=attempts {
+            let dir = format!("{}/.zip-{seq}", parent.trim_end_matches('/'));
             if !available(&dir)? { continue; }
             let entries = match self.create_owned_stage(&dir, "archive.zip", StageContent::File(bytes), &stat, 0o600, [None;2]) {
                 Err(e) if e.starts_with("EEXIST:") => continue,
@@ -1556,9 +1556,9 @@ impl SafeBashFs for MemoryVfs {
         Ok(self.generation())
     }
 
-    fn validate_staged_file(&self, destination: &str, bytes: &[u8], stamp: u64,
+    fn validate_staged_file(&self, destination: &str, temporary: Option<(&str,u64)>, bytes: &[u8], stamp: u64,
         check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
-        let parent = self.access_path(&super::dirname_posix_path(destination), true)?;
+        let parent = match temporary { Some((dir,_))=>dir.to_owned(),None=>self.access_path(&super::dirname_posix_path(destination),true)? };
         self.check_in_owned_stage(&parent,bytes,stamp, |_| Ok(true),check)
     }
 

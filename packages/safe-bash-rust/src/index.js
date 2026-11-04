@@ -177,7 +177,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
   const slots = [], cleanupFailures = [], top = x.__stack_pointer.value;
-  const signal = options.signal ?? new AbortController().signal;
+  const executionSignal = options.signal ?? new AbortController().signal, childSignals = [];
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
@@ -185,34 +185,46 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
-    if (!signal.aborted && cleanupFailures.length) {
+    if (!executionSignal.aborted && cleanupFailures.length) {
       if (cleanupFailures.length === 1) throw cleanupFailures[0];
       throw new AggregateError(cleanupFailures, "Invocation cleanup failed");
     }
   };
   try {
     for (const definition of definitions) {
-      let sp, stack, streams, consumed, fsOps, code;
+      const jobs = new Map();
       const slot = free.pop() ?? table.grow(1);
       slots.push(slot);
       table.set(slot, suspendingCallback(async (ptr, len, reply) => {
+        const header = new DataView(x.memory.buffer), status = header.getInt32(reply+72,true);
+        const job = status === -1 ? {} : jobs.get(ptr);
+        const sp = x.__stack_pointer.value;
+        job.sp = sp; job.stack = new Uint8Array(x.memory.buffer.slice(sp,top));
+        x.__stack_pointer.value = top;
+        job.next = Promise.withResolvers();
+        if (status !== -1) {
+          childSignals.pop();
+          const start = header.getUint32(reply+64,true), size = header.getUint32(reply+68,true);
+          const bytes = new Uint8Array(x.memory.buffer,start,size).slice();
+          job.resume(status,bytes,header.getUint32(reply+20,true),header.getUint32(reply+28,true));
+          return job.next.promise;
+        }
+        const signal = childSignals.at(-1) ?? executionSignal;
+        jobs.set(ptr,job);
         const packet = new Uint8Array(x.memory.buffer, ptr, len).slice();
-        const header = new DataView(x.memory.buffer);
         let remaining = header.getUint32(reply + 20, true);
         const sharedOutput = header.getUint32(reply + 24, true) !== 0;
-        const remainingFsOps = header.getUint32(reply + 28, true), maxComponents = header.getUint32(reply + 32, true);
+        let remainingFsOps = header.getUint32(reply + 28, true);
+        const maxComponents = header.getUint32(reply + 32, true), maxInput = header.getUint32(reply+84,true);
         const creationMode = header.getUint32(reply + 40, true);
         const stdinIsDefault = header.getUint32(reply + 52, true) !== 0;
         const access = header.getUint32(reply + 56, true);
         const directoryMode = header.getUint32(reply + 60, true);
         const badDescriptor = () => Object.assign(new diagnostics.PublicDiagnostic("Bad file descriptor"), {code:"EBADF"});
-        fsOps = 0;
-        sp = x.__stack_pointer.value;
-        stack = new Uint8Array(x.memory.buffer.slice(sp, top));
-        x.__stack_pointer.value = top;
-        let active = true, outputOpen = true, cleanups, handles;
-        streams = [[], []]; consumed = 0; code = 1;
-        try {
+        let active = true, outputOpen = true, cleanups, handles, fsOps = 0, consumed = 0, code = 1;
+        const streams = [[], []], credits = [0,0], unpaid = [0,0];
+        let tail = Promise.resolve(), busy, children, stopped;
+        const run = async () => { try {
           const view = new DataView(packet.buffer);
           let offset = 0;
           const word = () => { const n = view.getUint32(offset, true); offset += 4; return n; };
@@ -221,7 +233,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const argv0 = explicit ? decoder.decode(field()) : undefined;
           const argumentValues = commandContract.createCommandArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
-          const check = (open = active) => { signal.throwIfAborted(); if (!open) throw new Error("Command has finished"); };
+          const check = (open = active) => { signal.throwIfAborted(); if (stopped) throw stopped; if (!open) throw new Error("Command has finished"); };
           const admitPath = (path, settings) => {
             check();
             settings?.signal?.throwIfAborted();
@@ -254,6 +266,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               for (const [name, index] of [["read",2],["write",2],["stat",0],["seekEnd",0],["getPosition",0],["probeRead",0],["truncate",1],["sync",1]]) {
                 if (typeof handle[name] !== "function") continue;
                 scoped[name] = async (...args) => {
+                  if (busy) await busy;
                   check();
                   const opts = args[index];
                   opts?.signal?.throwIfAborted();
@@ -327,20 +340,98 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               return fs[operation](path, settings);
             };
           }
+          for (const [key,method] of Object.entries(commandFs)) {
+            if (typeof method === "function") commandFs[key] = async (...args) => { if (busy) await busy; return method(...args); };
+          }
           const stdin = {async *[Symbol.asyncIterator]() {
             check();
             if (!(access & 1)) throw badDescriptor();
-            if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }
+            if (busy) await busy;
+            const start = offset+consumed;
+            if (start < packet.length) { consumed = packet.length-offset; yield packet.subarray(start); }
           }};
-          const sink = index => ({async write(bytes) {
+          const append = (index,bytes,paid) => {
             check(outputOpen);
             if (!(access & (2 << index))) throw badDescriptor();
             if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
             if (code === -5) throw new ShellLimitError("maxFileSystemOperations");
-            if (code === -3 || bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
-            remaining -= bytes.length;
-            if (bytes.length) streams[sharedOutput ? 0 : index].push(new Uint8Array(bytes));
-          }});
+            if (code === -3 || !paid && bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
+            const channel = sharedOutput ? 0 : index;
+            if (paid) credits[channel] += bytes.length;
+            else { remaining -= bytes.length; unpaid[channel] += bytes.length; }
+            if (bytes.length) streams[channel].push(new Uint8Array(bytes));
+          };
+          const sinks = [0,1].map(i=>({async write(bytes) { if (busy) await busy; append(i,bytes,false); }}));
+          const invoke = async (name,args,settings={}) => {
+            check();
+            settings.signal?.throwIfAborted();
+            if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some(a=>typeof a !== "string" || a.includes("\0")))
+              throw new TypeError("invoke requires a command and literal string arguments without NUL");
+            if (settings.argv0 !== undefined && (typeof settings.argv0 !== "string" || settings.argv0.includes("\0"))) throw new TypeError("invoke argv0 must be a string without NUL");
+            if (settings.admittedHandles || settings.processSignals) throw new Error("Unsupported child process capabilities");
+            const carrier = commandContract.getCommandArguments({args,argumentValues:settings.argumentValues});
+            const entries = Object.entries(settings.env ?? {});
+            if (entries.some(([k,v])=>k.includes("\0") || k.includes("=") || typeof v !== "string" || v.includes("\0"))) throw new TypeError("Invalid invoke environment entry");
+            const inherited = settings.stdin === undefined || settings.stdin === stdin;
+            children ??= new AbortController();
+            const childSignal = AbortSignal.any([signal,children.signal,...(settings.signal ? [settings.signal] : [])]);
+            let supplied;
+            try { if (!inherited) supplied = await collectAsyncStdin(settings.stdin,childSignal,maxInput); }
+            catch (error) {
+              if (error instanceof ShellLimitError && error.limit === "maxInputBytes") { code = -9; stopped = error; }
+              throw error;
+            }
+            const stdout = settings.stdout ?? sinks[0], stderr = settings.stderr ?? sinks[1];
+            const call = tail.then(async () => {
+              check(); childSignal.throwIfAborted();
+              const input = inherited ? packet.subarray(offset+consumed) : supplied;
+              const size = input.length;
+              const parts = [], word = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); parts.push(b); };
+              const field = v => { const b = typeof v === "string" ? encoder.encode(v) : v; word(b.length); parts.push(b); };
+              word((settings.cwd!==undefined?1:0) | (settings.argv0!==undefined?2:0) | (settings.replaceEnv?4:0) | (settings.externalInvocation?8:0)
+                | ((settings.stdin===undefined?stdinIsDefault:settings.stdinIsDefault)?16:0)
+                | (stdout===stderr || sharedOutput && sinks.includes(stdout) && sinks.includes(stderr) ? 32:0));
+              word(args.length); word(entries.length); field(name);
+              if (settings.cwd !== undefined) field(settings.cwd);
+              if (settings.argv0 !== undefined) field(settings.argv0);
+              for (let i=0;i<args.length;i++) field(carrier.bytes(i));
+              for (const [k,v] of entries) { field(k); field(v); }
+              field(input);
+              check();
+              const done = Promise.withResolvers();
+              busy = done.promise;
+              job.resume = (status,bytes,output,ops) => {
+                busy = undefined; remaining = output; remainingFsOps = ops;
+                if (status < 0 && decoder.decode(bytes).startsWith("Execution aborted:")) stopped = new Error(decoder.decode(bytes));
+                done.resolve({status,bytes});
+              };
+              job.childSignal = childSignal; job.request = parts; job.fsOps = fsOps; fsOps = 0;
+              job.reserve = unpaid.slice();
+              for (let i=0;i<2;i++) { credits[i] += unpaid[i]; unpaid[i]=0; }
+              job.next.resolve();
+              const {status,bytes} = await done.promise;
+              childSignal.throwIfAborted();
+              if (status < 0) throw stopped ?? new Error(decoder.decode(bytes));
+              check(); settings.signal?.throwIfAborted();
+              const view = new DataView(bytes.buffer);
+              const left = view.getUint32(0,true);
+              if (inherited) consumed += size-left;
+              return {bytes,status};
+            });
+            tail = call.catch(()=>{});
+            const {bytes,status} = await call;
+            const view = new DataView(bytes.buffer);
+            let pos = 4;
+            for (const sink of [stdout,stderr]) {
+              const n = view.getUint32(pos,true); pos += 4;
+              const data = bytes.subarray(pos,pos+n); pos += n;
+              if (!n) continue;
+              const dest = sinks.indexOf(sink);
+              if (dest < 0) await untilAbort(Promise.resolve(sink.write(data)),childSignal);
+              else append(dest,data,true);
+            }
+            return {exitCode:status};
+          };
           check();
           const registerCleanup = cleanup => {
             check();
@@ -348,8 +439,8 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             (cleanups ??= []).push(cleanup);
           };
           const pending = definition.execute({onInternalError, registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
-            cwd, env, stdin, stdinIsDefault, fs:commandFs, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
-          const result = await (options.signal ? untilAbort(pending, signal) : pending);
+            cwd, env, stdin, stdinIsDefault, invoke, fs:commandFs, stdout:sinks[0], stderr:sinks[1], signal, capabilities:options.capabilities});
+          const result = await (options.signal || childSignals.length ? untilAbort(pending, signal) : pending);
           if (code >= 0) {
             code = commandContract.validateExitCode(result.exitCode);
           }
@@ -362,6 +453,8 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           }
         } finally {
           active = false;
+          children?.abort(new Error("Command has finished"));
+          await tail;
           if (handles) for (const close of handles) (cleanups ??= []).push(close);
           if (cleanups) {
             await Promise.all(cleanups.map(async cleanup => {
@@ -373,10 +466,29 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           }
           outputOpen = false;
         }
-      }, (_ptr, _len, reply) => {
-        new Uint8Array(x.memory.buffer, sp, stack.length).set(stack);
-        x.__stack_pointer.value = sp;
-        stack = undefined;
+        job.finish = {streams,credits,consumed,fsOps,code};
+        job.next.resolve();
+        };
+        void run().catch(error => job.next.reject(error));
+        return job.next.promise;
+      }, (ptr, _len, reply) => {
+        const job = jobs.get(ptr);
+        new Uint8Array(x.memory.buffer,job.sp,job.stack.length).set(job.stack);
+        x.__stack_pointer.value = job.sp;
+        job.stack = undefined;
+        if (job.request) {
+          const parts = job.request, len = parts.reduce((n,b)=>n+b.length,0);
+          const p = x.safe_bash_alloc(len), dest = new Uint8Array(x.memory.buffer,p,len);
+          let pos=0; for (const b of parts) { dest.set(b,pos); pos+=b.length; }
+          const view = new DataView(x.memory.buffer);
+          view.setUint32(reply+44,p,true); view.setUint32(reply+48,len,true); view.setUint32(reply+36,job.fsOps,true);
+          for (let i=0;i<2;i++) view.setUint32(reply+76+i*4,job.reserve[i],true);
+          job.request = undefined;
+          childSignals.push(job.childSignal);
+          return -7;
+        }
+        jobs.delete(ptr);
+        const {streams,credits,consumed,fsOps,code} = job.finish;
         for (const [i,chunks] of streams.entries()) {
           const len = chunks.reduce((n,chunk) => n + chunk.length, 0);
           if (!len) continue;
@@ -391,8 +503,8 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         const view = new DataView(x.memory.buffer);
         view.setUint32(reply + 16,consumed,true);
         view.setUint32(reply + 36,fsOps,true);
-        streams = undefined;
-        return signal.aborted ? -2 : code;
+        for (let i=0;i<2;i++) view.setUint32(reply+76+i*4,credits[i],true);
+        return (childSignals.at(-1) ?? executionSignal).aborted ? -2 : code;
       }));
       const name = shell._allocBytes(encoder.encode(definition.name));
       try {
@@ -442,8 +554,8 @@ async function execAsyncStdin(shell, script, source, signal) {
   }
 }
 
-async function collectAsyncStdin(source, signal) {
-  const iterator = source[Symbol.asyncIterator]();
+async function collectAsyncStdin(source, signal, maximum) {
+  const iterator = source[Symbol.asyncIterator]?.() ?? source[Symbol.iterator]();
   let bytes = new Uint8Array(0), length = 0;
   async function read() {
     for (;;) {
@@ -451,10 +563,12 @@ async function collectAsyncStdin(source, signal) {
       const { done, value } = await iterator.next();
       signal?.throwIfAborted();
       if (done) return bytes.subarray(0, length);
+      if (maximum !== undefined && !(value instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
       const data = value instanceof Uint8Array ? value : encoder.encode(String(value));
       const end = length + data.byteLength;
+      if (maximum !== undefined && end > maximum) throw new ShellLimitError("maxInputBytes");
       if (end > bytes.length) {
-        const grown = new Uint8Array(Math.max(end, bytes.length * 2));
+        const grown = new Uint8Array(Math.min(maximum ?? Infinity, Math.max(end, bytes.length * 2)));
         grown.set(bytes.subarray(0, length));
         bytes = grown;
       }

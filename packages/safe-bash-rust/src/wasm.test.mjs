@@ -2204,6 +2204,61 @@ test("disposal waits for queued plugin setup before releasing the shell", async 
   assert.deepEqual(trace, ["setup","disposed"]);
 });
 
+test("standalone plugin invocation preserves literal bytes, recursive state, environment and output budgets", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem,getCommandArguments} = await import("@poe-platform/safe-bash");
+  const js = new Shell({fs:new MemoryFileSystem(),cwd:"/",env:{HOME:"/original"}}), rust = new RustWasmBash({cwd:"/",env:{HOME:"/original"}});
+  for (const sh of [js,rust]) {
+    sh.register({name:"emit",async execute(c) {
+      await c.stdout.write(getCommandArguments(c).bytes(0));
+      if (c.argv0) await c.stderr.write(Buffer.from([c.argv0,c.cwd,c.env.X,c.env.HOME].join(":")));
+      return {exitCode:17};
+    }});
+    sh.register({name:"delegate", async execute(c) {
+      if (c.args[0] === "again") return c.invoke("delegate",c.args.slice(1));
+      const carrier = getCommandArguments(c).slice(1);
+      return c.invoke("emit",carrier.args,{argumentValues:carrier,externalInvocation:true,replaceEnv:true,env:{X:"chosen"},
+        ...(c.args[0] === "metadata" && {argv0:"child",cwd:"sub"}),
+        ...(c.args[0] === "custom" && {stdout:{write:bytes=>c.stdout.write(bytes)}}),
+        ...(c.args[0] === "reenter" && {stdout:{write:()=>c.invoke("emit",["nested"],{externalInvocation:true})}})});
+    }});
+  }
+  const run = async (sh,src,limit) => {
+    try {const r = await sh.exec(src,{limits:{maxOutputBytes:limit}});return [r.exitCode,[...r.stdoutBytes],r.stderr];}
+    catch(e){return e.limit ?? e.message;}
+  };
+  try {
+    for (const [src,limit] of [
+      ["emit() { :; }; delegate metadata $'\\377'",1000], ["delegate again plain '$(touch /bad);*'",100],
+      ["delegate reenter abc",100], ["delegate plain abc",3], ["delegate custom abc",3], ["delegate custom abc",6], ["delegate again plain abc",3],
+    ]) assert.deepEqual(await run(rust,src,Number(limit)),await run(js,src,Number(limit)),src);
+  } finally { await rust.dispose(); await js.dispose(); }
+});
+
+test("nested plugin input limits and cancellation stop child effects and release suspended callbacks", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const shell = new RustWasmBash();
+  const started = Promise.withResolvers(), controller = new AbortController();
+  shell.register({name:"wait_child",async execute(c) {
+    started.resolve();
+    await new Promise(resolve=>c.signal.addEventListener("abort",resolve,{once:true}));
+    await c.fs.writeFile("/late",Uint8Array.of(42));
+    return {exitCode:0};
+  }});
+  shell.register({name:"call_child",execute:c=>c.invoke("wait_child",[])});
+  shell.register({name:"too_much",async execute(c) {
+    try { await c.invoke("touch",["/late"],{stdin:[Uint8Array.of(1,2,3)]}); } catch {}
+    try { await c.fs.writeFile("/late",Uint8Array.of(4)); } catch {}
+    return {exitCode:0};
+  }});
+  try {
+    await assert.rejects(shell.exec("too_much",{limits:{maxInputBytes:2}}),{limit:"maxInputBytes"});
+    const running = shell.exec("call_child",{signal:controller.signal});
+    await started.promise; controller.abort(false);
+    await assert.rejects(running,e=>e===false);
+    await assert.rejects(shell.fs.stat("/late"),{code:"ENOENT"});
+    assert.equal((await shell.exec("echo ok")).stdout,"ok\n");
+  } finally { await shell.dispose(); }
+});
+
 test("Wasm host commands can yield a literal child call and resume with binary output and status", async () => {
   const bash = new RustWasmBash({cwd:"/"}), x = bash.exports;
   const table = x.__indirect_function_table, slot = table.grow(1);

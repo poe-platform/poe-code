@@ -28,6 +28,8 @@ pub struct HostReply {
     child_packet: *const u8,
     child_len: usize,
     child_status: i32,
+    output_credit: [usize; 2],
+    max_input: usize,
 }
 
 impl HostBuffer {
@@ -46,11 +48,11 @@ fn field(packet: &mut &[u8]) -> Result<String, String> {
     Ok(bytes_to_stream_string(packet.split_off(..n).ok_or("Truncated child field")?))
 }
 
-fn invoke_child(ctx: &crate::CommandContext<'_>, mut request: &[u8]) -> Result<(i32, Vec<u8>), String> {
+fn invoke_child(ctx: &crate::CommandContext<'_>, mut request: &[u8]) -> Result<(i32, Vec<u8>, usize), String> {
     let flags = word(&mut request)?;
     let argc = word(&mut request)? as usize;
     let envc = word(&mut request)? as usize;
-    if flags & !31 != 0 || argc > request.len()/4 || envc > request.len()/8 {
+    if flags & !63 != 0 || argc > request.len()/4 || envc > request.len()/8 {
         return Err("Invalid child request".into());
     }
     let name = field(&mut request)?;
@@ -62,14 +64,15 @@ fn invoke_child(ctx: &crate::CommandContext<'_>, mut request: &[u8]) -> Result<(
     if !request.is_empty() { return Err("Trailing child request bytes".into()); }
     let result = ctx.invoke(&name,&args,crate::InvokeOptions {
         cwd:cwd.as_deref(), argv0:argv0.as_deref(), env, replace_env:flags & 4 != 0,
-        external_invocation:flags & 8 != 0, stdin_is_default:flags & 16 != 0,
+        external_invocation:flags & 8 != 0, stdin_is_default:flags & 16 != 0, merge_stderr:flags & 32 != 0,
     }, &mut stdin)?;
     let mut response = (crate::vfs::stream_byte_len(&stdin) as u32).to_le_bytes().to_vec();
     for stream in [result.stdout,result.stderr] {
         response.extend_from_slice(&(crate::vfs::stream_byte_len(&stream) as u32).to_le_bytes());
         response.extend_from_slice(&stream_string_to_bytes(&stream));
     }
-    Ok((result.exit_code,response))
+    let credit = response.len() - 12;
+    Ok((result.exit_code,response,credit))
 }
 
 /// Register a Wasm host function with the Rust evaluator. Forks inherit the registration.
@@ -110,8 +113,10 @@ pub unsafe extern "C" fn safe_bash_register_command(
         let umask = ctx.env.get("\0umask").and_then(|mask| u32::from_str_radix(mask, 8).ok()).unwrap_or(0o022);
         let mut child_status = -1;
         let mut response = Vec::new();
+        let mut charged = 0usize;
         let (code,reply) = loop {
             let mut reply = HostReply {
+                max_input: ctx.budget.limits.max_input_bytes,
                 child_status, child_packet: response.as_ptr(), child_len: response.len(),
                 remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output),
                 stdin_is_default: u32::from(ctx.stdin_is_default), stream_access: ctx.stream_access,
@@ -129,20 +134,28 @@ pub unsafe extern "C" fn safe_bash_register_command(
             if child_status == -2 && ctx.budget.check_cancelled().is_err() {
                 return Err("Cannot invoke after the execution has stopped".into());
             }
+            let reserved = reply.output_credit[0].saturating_add(reply.output_credit[1]);
             (child_status,response) = match ctx.budget.charge_fs_ops(reply.used_fs_ops)
-                .and_then(|()| invoke_child(ctx,&request)) {
-                Ok(result) => result,
+                .and_then(|()| ctx.budget.add_output_bytes(reserved))
+                .and_then(|()| { charged += reserved; invoke_child(ctx,&request) }) {
+                Ok((code, bytes, credit)) => { charged += credit; (code,bytes) }
                 Err(e) => (-2,e.into_bytes()),
             };
         };
         let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
         let diagnostic = unsafe { reply.diagnostic.take() };
+        let [out,err] = reply.output_credit;
+        if out > stdout.len() || err > stderr.len() || out.saturating_add(err) > charged {
+            return Err("Host output credit exceeds charged bytes".into());
+        }
+        ctx.forwarded = (out,err);
         if reply.consumed != 0 {
             let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
         }
         if reply.used_fs_ops != 0 { ctx.budget.charge_fs_ops(reply.used_fs_ops)?; }
         ctx.failure = match code {
+            -9 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxInputBytes", ctx.budget.limits.max_input_bytes))),
             -5 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxFileSystemOperations", ctx.budget.limits.max_filesystem_operations))),
             -2 => Some(CommandFailure::Abort("Execution aborted: cancelled".into())),
             -3 => Some(CommandFailure::Abort(crate::budget::ShellLimits::limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes))),

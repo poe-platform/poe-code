@@ -93,6 +93,8 @@ impl CommandContext<'_> {
                 child.in_fd_aliases.remove(&fd);
                 child.in_fds.remove(&fd);
             }
+            child.fd_table.insert(1,FdTarget::Stdout);
+            child.fd_table.insert(2,if options.merge_stderr { FdTarget::Stdout } else { FdTarget::Stderr });
             if options.stdin_is_default { child.default_input_fds.insert(0); } else { child.default_input_fds.remove(&0); }
             let words = std::iter::once(name.to_string()).chain(args.iter().cloned()).collect::<Vec<_>>();
             let mut out = child.dispatch_words(&words,stdin,DispatchMode::Shell)?;
@@ -5179,6 +5181,7 @@ impl<'a> EvalState<'a> {
             let mut env = self.env.clone();
             let mut ctx = CommandContext {
                 caller: self,
+                forwarded: (0, 0),
                 stdin_is_default: self.default_input_fds.contains(&0),
                 stream_access: u32::from(self.is_fd_readable(0))
                     | u32::from(self.is_fd_writable(1)) << 1 | u32::from(self.is_fd_writable(2)) << 2,
@@ -5195,6 +5198,8 @@ impl<'a> EvalState<'a> {
             };
             let result = custom(&mut ctx);
             let failure = ctx.failure;
+            let (a,b) = self.forwarded_output.get();
+            self.forwarded_output.set((a+ctx.forwarded.0,b+ctx.forwarded.1));
             if let Some(unread) = ctx.unread_stdin { *stdin = unread; }
             return match result {
                 Ok(res) => {

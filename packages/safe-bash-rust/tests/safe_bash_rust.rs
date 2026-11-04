@@ -107,6 +107,51 @@ fn custom_rust_commands_execute_with_shared_vfs() {
 }
 
 #[test]
+fn plugins_invoke_literal_children_in_the_current_execution() {
+    use safe_bash_rust::{InvokeOptions, ShellLimits};
+    let (mut shell, fs) = Shell::with_memory_fs();
+    fs.mkdir_all("/nested").unwrap();
+    shell.register_command("inspect", Arc::new(|ctx| Ok(CommandResult {
+        stdout: format!("{} {} {} {:?} {}", ctx.argv0.unwrap(), ctx.cwd, ctx.env["X"], ctx.env.get("HOME"), ctx.args[0]),
+        stderr: ctx.stdin.into(), exit_code: 17, env: ctx.env.clone(), cwd: ctx.cwd.clone(),
+    })));
+    shell.register_command("delegate", Arc::new(|ctx| {
+        let external = !ctx.args.is_empty();
+        let mut input = "child input".to_owned();
+        let o = ctx.invoke("inspect", &["$(touch /injected); *".into()], InvokeOptions {
+            argv0: Some("child0"), cwd: Some("/nested"), env: [("X".into(),"child".into())].into(),
+            replace_env: true, external_invocation: external, ..Default::default()
+        }, &mut input)?;
+        Ok(CommandResult { stdout:o.stdout, stderr:o.stderr, exit_code:o.exit_code, env:ctx.env.clone(), cwd:ctx.cwd.clone() })
+    }));
+    shell.exec("export HOME=/parent X=parent; inspect() { printf shadow; }").unwrap();
+    assert_eq!(shell.exec("delegate").unwrap().stdout, "shadow");
+    let r = shell.exec("delegate external").unwrap();
+    assert_eq!((r.exit_code,r.stdout.as_str(),r.stderr.as_str()),(17,"child0 /nested child None $(touch /injected); *","child input"));
+    assert!(!fs.exists("/injected"));
+    assert_eq!(shell.exec("echo $X:$HOME").unwrap().stdout, "parent:/parent\n");
+    shell.set_limits(ShellLimits { max_commands:1, ..Default::default() });
+    assert!(shell.exec("delegate").unwrap_err().contains("maxCommands"));
+}
+
+#[test]
+fn invoked_builtins_and_recursive_plugins_cannot_escape_resource_limits() {
+    use safe_bash_rust::{InvokeOptions, ShellLimits};
+    let (mut shell, _) = Shell::with_memory_fs();
+    shell.register_command("call", Arc::new(|ctx| {
+        let (name, args) = ctx.args.split_first().unwrap();
+        let output = ctx.invoke(name,args,InvokeOptions::default(),&mut ctx.stdin.to_string())?;
+        Ok(CommandResult { stdout:output.stdout, stderr:output.stderr, exit_code:output.exit_code, env:ctx.env.clone(), cwd:ctx.cwd.clone() })
+    }));
+    let r = shell.exec("printf 'data' | call call cat").unwrap();
+    assert_eq!((r.exit_code,r.stdout.as_str()),(0,"data"));
+    shell.set_limits(ShellLimits { max_substitution_depth:1, ..Default::default() });
+    assert!(shell.exec("call call true").unwrap_err().contains("maxSubstitutionDepth"));
+    shell.set_limits(ShellLimits { max_output_bytes:2, ..Default::default() });
+    assert!(shell.exec("call printf 123").unwrap_err().contains("maxOutputBytes"));
+}
+
+#[test]
 fn hybrid_backend_delegates_complex_bash_to_typescript_safe_bash_and_syncs_vfs() {
     let vfs = MemoryVfs::new();
     vfs.mkdir_all("/workspace").unwrap();

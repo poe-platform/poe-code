@@ -44,6 +44,70 @@ type SavedFds = (Vec<(u32, Option<FdTarget>, bool)>, Vec<(u32, Option<u32>)>);
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum DispatchMode { Shell, BypassFunctions, EnvShebang }
 
+impl CommandContext<'_> {
+    /// Invoke literal words in an isolated child, capturing both streams for the plugin.
+    pub fn invoke(&self, name: &str, args: &[String], options: crate::InvokeOptions<'_>, stdin: &mut String) -> Result<BuiltinOutcome, String> {
+        if name.contains('\0') || args.iter().any(|s| s.contains('\0')) || options.argv0.is_some_and(|s| s.contains('\0')) {
+            return Err("invoke requires literal arguments without NUL".into());
+        }
+        if options.env.iter().any(|(k,v)| k.contains(['\0','=']) || v.contains('\0')) {
+            return Err("Invalid invoke environment entry".into());
+        }
+        if args.len() >= self.budget.limits.max_expansion_fields {
+            return Err(self.budget.record_exceeded(crate::budget::ShellLimits::limit_error("maxExpansionFields", self.budget.limits.max_expansion_fields)));
+        }
+        self.budget.tick_command()?;
+        self.budget.enter_substitution()?;
+        let result = (|| {
+            let mut cwd = resolve_posix_path(self.cwd, options.cwd.unwrap_or("."));
+            let mut env = self.env.clone();
+            if options.replace_env {
+                env.retain(|k,_| !super::is_exported_scalar(self.env,k));
+            }
+            let external = options.external_invocation;
+            let exported_functions = self.caller.exported_functions.iter().filter(|name| {
+                let key = format!("BASH_FUNC_{name}%%");
+                if let Some(value) = options.env.get(&key) {
+                    self.caller.functions.get(*name).is_some_and(|body| {
+                        let text = format_function_display(name,body);
+                        value == text[name.len()+1..].trim_end()
+                    })
+                } else { !options.replace_env }
+            }).cloned().collect();
+            for (k,v) in options.env {
+                env.remove(&format!("\0unexported__{k}"));
+                env.insert(k,v);
+            }
+            if !options.replace_env { env.insert("PWD".into(),cwd.clone()); }
+            if let Some(arg0) = options.argv0 { env.insert("\0argv0".into(),arg0.into()); }
+            let mut child = self.caller.make_child(&mut cwd, &mut env);
+            child.exported_functions = exported_functions;
+            if external { child.functions.retain(|k,_| child.exported_functions.contains(k)); }
+            child.allow_unported_fallback = false;
+            child.source_depth = 0;
+            child.func_stack.clear();
+            child.forwarded_output = Rc::default();
+            // Standard streams belong to the invocation. Other inherited descriptors still refer to the parent's files.
+            for fd in 0..=2 {
+                child.fd_table.remove(&fd);
+                child.in_fd_aliases.remove(&fd);
+                child.in_fds.remove(&fd);
+            }
+            if options.stdin_is_default { child.default_input_fds.insert(0); } else { child.default_input_fds.remove(&0); }
+            let words = std::iter::once(name.to_string()).chain(args.iter().cloned()).collect::<Vec<_>>();
+            let mut out = child.dispatch_words(&words,stdin,DispatchMode::Shell)?;
+            child.close_child_outputs(&mut out);
+            child.account_forwarded_output(&out.stdout,&out.stderr,child.forwarded_output.get())?;
+            Ok(out)
+        })();
+        self.budget.leave_substitution();
+        result.map_err(|e| match e {
+            EvalError::Budget(m) => self.budget.record_exceeded(m),
+            EvalError::Syntax(m) | EvalError::OutputClose(m) | EvalError::UnportedCommand(m) => m,
+        })
+    }
+}
+
 struct PrefixBinding {
     name: String,
     values: BTreeMap<String, Option<String>>,
@@ -5111,7 +5175,10 @@ impl<'a> EvalState<'a> {
                 || matches!(effective_cmd, "true" | "false" | "pwd"))
         {
             self.refresh_file_input(0, stdin)?;
+            let mut cwd = self.cwd.clone();
+            let mut env = self.env.clone();
             let mut ctx = CommandContext {
+                caller: self,
                 stdin_is_default: self.default_input_fds.contains(&0),
                 stream_access: u32::from(self.is_fd_readable(0))
                     | u32::from(self.is_fd_writable(1)) << 1 | u32::from(self.is_fd_writable(2)) << 2,
@@ -5122,8 +5189,8 @@ impl<'a> EvalState<'a> {
                 argv0: custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),
                 args,
                 stdin,
-                cwd: self.cwd,
-                env: self.env,
+                cwd: &mut cwd,
+                env: &mut env,
                 fs: self.fs,
             };
             let result = custom(&mut ctx);
@@ -5151,11 +5218,11 @@ impl<'a> EvalState<'a> {
                     }
                     Ok(out)
                 }
-                Err(msg) => Ok(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{msg}\n"),
-                    exit_code: 1,
-                }),
+                Err(msg) => {
+                    *self.cwd = cwd;
+                    *self.env = env;
+                    Ok(BuiltinOutcome { stdout:String::new(), stderr:format!("{msg}\n"), exit_code:1 })
+                },
             };
         }
 

@@ -490,6 +490,30 @@ impl SafeBashFs for HostFs {
         bytes.truncate(4);
         Ok((stat, self.own_stamp(bytes)?))
     }
+    fn prepare_extraction_directory(
+        &self,
+        path: &str,
+        _parent: &FileStat,
+        _expected: Option<&FileStat>,
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        stamp: u64,
+    ) -> Result<FileStat, String> {
+        if stamp == 0 {
+            self.mutable(path, false)?;
+            return Err("ENOTSUP: extraction directory metadata is unsupported".into());
+        }
+        let mut data = [0u8; 16];
+        data[..8].copy_from_slice(&times.0.unwrap_or(f64::NAN).to_le_bytes());
+        data[8..].copy_from_slice(&times.1.unwrap_or(f64::NAN).to_le_bytes());
+        Self::parse_stat(&self.request(
+            "prepareExtractionDirectory",
+            path,
+            &data,
+            stamp as u32,
+            mode,
+        )?)
+    }
     fn remove_extraction_entry(
         &self,
         path: &str,

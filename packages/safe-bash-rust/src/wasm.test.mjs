@@ -6528,6 +6528,56 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+for(const format of ["zip","tar"])test(format+" restores directory metadata after extracting children and guards the original directory",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  const base=1700000000000,input="/seed."+format;
+  try{
+    await ref.mkdir("/tree");await ref.mkdir("/tree/sub");await ref.writeFile("/tree/sub/file",Uint8Array.of(7));
+    for(const [path,mode,delta] of [["/tree",0o750,0],["/tree/sub",0o711,2000]]){
+      await ref.chmod(path,mode);await ref.utimes(path,base+delta,base+delta);
+    }
+    const create=await js.exec(format==="zip"?"zip -qr seed.zip tree":"tar -cf seed.tar tree");
+    assert.equal(create.exitCode,0,create.stderr);
+    const archive=await ref.readFile(input);
+    const cmd=format==="zip"?"unzip -o seed.zip":"tar -xf seed.tar";
+    await rust.fs.writeFile(input,archive);
+    const native=await rust.exec(cmd);assert.equal(native.exitCode,0,native.stderr);
+    assert.equal((await rust.fs.stat("/tree/sub")).mtimeMs,base+2000);
+    for(const sh of [js,rust])for(const race of ["none","replace","ancestor"]){
+      const fs=new MemoryFileSystem();await fs.writeFile(input,archive);
+      const prepare=fs.prepareDirectory.bind(fs);let swapped=false;
+      fs.prepareDirectory=async(path,opts)=>{
+        if(race==="replace" && path==="/tree" && opts.expected && opts.mtimeMs===base){
+          swapped=true;await fs.rename(path,"/saved");await fs.mkdir(path,{mode:0o700});await fs.utimes(path,base+8000,base+8000);
+        }
+        return prepare(path,opts);
+      };
+      if(race==="ancestor"){
+        const publish=fs.publishStagedFile.bind(fs);
+        fs.publishStagedFile=async(stage,path,opts)=>{
+          await publish(stage,path,opts);
+          if(path==="/tree/sub/file"){swapped=true;await fs.rename("/tree","/saved");await fs.symlink("saved","/tree");}
+        };
+      }
+      const r=await sh.exec(cmd,{fs});assert.equal(swapped,race!=="none",r.stderr);
+      if(race==="ancestor"){
+        assert.notEqual(r.exitCode,0);const st=await fs.stat("/saved/sub");
+        assert.notEqual(st.mtimeMs,base+2000,"must not restore through a new symlink");
+      }else if(race==="replace"){
+        assert.notEqual(r.exitCode,0);const st=await fs.stat("/tree");assert.deepEqual([st.mode&511,st.mtimeMs],[0o700,base+8000]);
+        assert.deepEqual(await fs.readFile("/saved/sub/file"),Uint8Array.of(7));
+      }else{
+        assert.equal(r.exitCode,0,r.stderr);
+        for(const [path,mode,delta] of [["/tree",0o750,0],["/tree/sub",0o711,2000]]){
+          const st=await fs.stat(path);assert.deepEqual([st.mode&511,st.mtimeMs],[mode,base+delta]);
+        }
+        if(format==="zip")assert.match(r.stdout,/   creating: tree\/\n/);
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 for(const format of ["zip","tar"])test(format+" extraction stages host files with archive metadata and rejects changes to the destination or its parent",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

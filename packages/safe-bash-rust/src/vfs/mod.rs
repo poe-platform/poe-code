@@ -469,6 +469,22 @@ pub trait SafeBashFs: Send + Sync {
         };
         Ok((existing,PublicationStamp::new(version,None)))
     }
+    fn prepare_extraction_directory(&self,path:&str,parent:&FileStat,expected:Option<&FileStat>,mode:u32,times:(Option<f64>,Option<f64>),_stamp:u64)->Result<FileStat,String> {
+        if let Some(memory)=self.memory_backend() {
+            return memory.prepare_directory(path,parent,expected,Some(mode),times.0,times.1);
+        }
+        let changed=||format!("EAGAIN: extraction directory changed: {path}");
+        if parent.identity.is_none() || self.lstat(&dirname_posix_path(path))?.identity!=parent.identity {return Err(changed());}
+        if let Some(expected)=expected {
+            let current=self.lstat(path)?;
+            if current.kind!=VfsEntryKind::Directory || current.identity.is_none() || current.identity!=expected.identity {return Err(changed());}
+        } else {
+            self.mkdir_one(path,mode)?;
+        }
+        if times!=(None,None) { self.set_times(path,times.0,times.1)?; }
+        if expected.is_some() { self.chmod(path,mode)?; }
+        self.lstat(path)
+    }
     fn remove_extraction_entry(&self,path:&str,expected:&FileStat,version:u64)->Result<(),String> {
         if self.generation()!=version {return Err(format!("EAGAIN: extraction destination changed: {path}"));}
         if self.supports_conditional_removal(path) {

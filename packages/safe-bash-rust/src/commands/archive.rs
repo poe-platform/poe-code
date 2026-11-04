@@ -2899,6 +2899,33 @@ fn check_tar_symlink(fs: &dyn SafeBashFs, root: &str, path: &str, target: &str) 
     Ok(())
 }
 
+fn check_extraction_root(fs:&dyn SafeBashFs,root:&str) -> Result<(), String> {
+    let mut path = String::from("/");
+    for part in root.split('/').filter(|s| !s.is_empty()) {
+        path = resolve_posix_path(&path, part);
+        if fs.lstat(&path)?.kind != crate::vfs::VfsEntryKind::Directory {
+            return Err(format!("extraction root has a non-directory or symlink ancestor: {}", tar_format::display(&path)));
+        }
+    }
+    Ok(())
+}
+
+struct DirectoryMetadata {
+    parent: crate::vfs::FileStat,
+    identity: crate::vfs::FileStat,
+    stamp: crate::vfs::PublicationStamp,
+    mode: u32,
+    times: (Option<f64>,Option<f64>),
+}
+
+impl DirectoryMetadata {
+    fn restore(self,fs:&dyn SafeBashFs,path:&str)->Result<(),String> {
+        check_extraction_root(fs,&crate::vfs::dirname_posix_path(path))?;
+        fs.prepare_extraction_directory(path,&self.parent,Some(&self.identity),self.mode,self.times,self.stamp.version)?;
+        Ok(())
+    }
+}
+
 fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const TAR_HELP_TEXT: &str = "Usage: tar [OPTION]... [FILE]...\nCreate, read or modify USTAR/PAX archives in the virtual filesystem.\n\n  -c, --create             Create an archive\n  -t, --list               List archive members\n  -x, --extract, --get      Extract archive members\n  -O, --to-stdout          Extract file contents to standard output\n  -r, --append             Append files to an uncompressed archive\n  -u, --update             Append files newer than archived members\n  -d, --compare, --diff    Compare archive members with filesystem entries\n      --delete            Delete selected archive members\n  -A, --catenate, --concatenate Append archives to an uncompressed archive\n  -f, --file=ARCHIVE        Use ARCHIVE (default - for standard input/output)\n  -z, --gzip               Use gzip compression\n  -j, --bzip2              Use bzip2 compression\n  -J, --xz                 Use xz compression\n  -a, --auto-compress      Select output compression by archive suffix\n  -b, --blocking-factor=N  Use N 512-byte blocks per output record\n      --record-size=SIZE  Set output record bytes (multiple of 512; K/M/G suffixes)\n  -B, --read-full-records  Join short reads (always enabled for VFS streams)\n  -i, --ignore-zeros       Read past zero blocks, including concatenated archives\n  -n, --seek               Accept seekable input; VFS reads remain sequential\n      --no-seek           Read sequentially\n      --force-local       Treat archive names as local VFS paths (always enabled)\n      --utc               Show UTC timestamps; implies verbose listing\n      --quoting-style=STYLE Display literal, escape (default), or c filenames\n      --totals            Report archive bytes read or written to stderr\n  -v, --verbose            List processed members\n  -C, --directory=DIR      Change directory for subsequent operands\n  -T, --files-from=FILE    Read filenames from FILE (- for standard input)\n      --null              Read NUL-delimited filenames; implies verbatim names\n      --no-null           Read newline-delimited filenames\n      --verbatim-files-from Treat file-list entries as literal filenames\n      --no-verbatim-files-from Enable supported file-list directory options\n      --exclude=PATTERN   Exclude paths from subsequent sources\n      --exclude-caches    Keep cache directories and tags, omit other contents\n      --no-recursion      Archive subsequent directories without their contents\n      --recursion         Recurse into subsequent directories (default)\n      --sort=ORDER        Order directory children by name or none (default)\n  -h, --dereference       Archive symbolic-link targets during creation\n  -X, --exclude-from=FILE Read newline-delimited exclusion patterns\n      --wildcards         Select archive members with anchored glob patterns\n      --no-wildcards      Select literal member names (default)\n      --occurrence[=NUM]  Select only occurrence NUM of each operand (default 1)\n      --strip-components=NUM Remove leading components when reading archives\n      --transform=EXPR    Substitute member names (s/old/new/[gix])\n      --show-transformed-names Display transformed names in archive listings\n      --format=FORMAT     Create pax (default), posix or ustar archives\n      --mtime=DATE        Override creation mtime (@seconds or ISO/RFC date)\n      --owner=ID          Override numeric creation owner\n      --group=ID          Override numeric creation group\n      --mode=OCTAL        Override creation permission bits\n      --numeric-owner     Use numeric ownership IDs\n      --full-time         Show full UTC timestamps in verbose listings\n  -m, --touch              Retain current extraction timestamps\n  -p, --same-permissions   Restore ordinary archive permission bits\n      --no-same-permissions Apply virtual 022 mask to ordinary permissions\n      --no-same-owner     Retain filesystem-assigned ownership\n      --atime-preserve[=replace] Restore source access times after creation\n      --delay-directory-restore Restore directory metadata at archive end\n      --no-delay-directory-restore Restore after leaving each directory subtree\n  -k, --keep-old-files     Keep existing files and report conflicts as errors\n      --skip-old-files    Skip existing files without reporting errors\n      --overwrite         Replace existing entries using safe extraction checks\n      --help              Display this help and exit\n      --                  End options; remaining arguments are filenames\n\nExactly one of -c, -t, -x, -r, -u, -d, --delete or -A is required.\nWhen reading, gzip, bzip2 and xz compression is detected from archive bytes.\nExamples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory\n";
     let mut create = false;
@@ -4164,21 +4191,6 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut matched_ops = vec![false; operands.len()];
     let mut warned_absolute = false;
     let mut published = BTreeMap::<String, Option<crate::vfs::EntryIdentity>>::new();
-    let check_root = |root: &str| -> Result<(), String> {
-        let mut path = String::from("/");
-        for part in root.split('/').filter(|s| !s.is_empty()) {
-            path = resolve_posix_path(&path, part);
-            if fs.lstat(&path)?.kind != crate::vfs::VfsEntryKind::Directory {
-                return Err(format!("extraction root has a non-directory or symlink ancestor: {}", tar_format::display(&path)));
-            }
-        }
-        Ok(())
-    };
-    struct DirectoryMetadata {
-        mode: u32,
-        atime: Option<f64>,
-        mtime: Option<f64>,
-    }
     let mut directories = BTreeMap::new();
     let restore_directories = |pending: &mut BTreeMap<String, DirectoryMetadata>, next: Option<&str>| -> Result<(), String> {
         let mut paths: Vec<_> = pending.keys()
@@ -4186,15 +4198,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             .cloned().collect();
         paths.sort_by_key(|path| std::cmp::Reverse(path.len()));
         for path in paths {
-            check_root(&crate::vfs::dirname_posix_path(&path))?;
-            if fs.lstat(&path)?.kind != crate::vfs::VfsEntryKind::Directory {
-                return Err("directory changed before metadata restoration".into());
-            }
-            let meta = pending.remove(&path).unwrap();
-            if meta.atime.is_some() || meta.mtime.is_some() {
-                fs.set_times(&path, meta.atime, meta.mtime)?;
-            }
-            fs.chmod(&path, meta.mode)?;
+            pending.remove(&path).unwrap().restore(fs,&path)?;
         }
         Ok(())
     };
@@ -4206,7 +4210,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 Err(e) => return err_out(&format!("tar: {e}\n"), 2),
             }
         }
-        if let Err(e) = check_root(&current_dir) { return err_out(&format!("tar: {e}\n"), 2); }
+        if let Err(e) = check_extraction_root(fs,&current_dir) { return err_out(&format!("tar: {e}\n"), 2); }
     }
     let input_path = archive_file.as_deref().filter(|p| extracting_files && *p != "-").map(|p| resolve_posix_path(cwd, p));
     let input_identity = input_path.as_deref().and_then(|p| fs.stat(p).ok()).and_then(|s| s.identity);
@@ -4338,7 +4342,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             use crate::vfs::VfsEntryKind::{Directory, File};
             let dest = resolve_posix_path(&entry_root, &rel_name);
             if dest == entry_root && !is_dir_entry { return Err("non-directory entry would replace extraction root".into()); }
-            check_root(&entry_root)?;
+            check_extraction_root(fs,&entry_root)?;
             let mut parents = dest.match_indices('/').map(|(i, _)| &dest[..i])
                 .filter(|p| p.len() > entry_root.len()).peekable();
             while let Some(&parent) = parents.peek() {
@@ -4360,7 +4364,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 let target = resolve_posix_path(&entry_root, &rel);
                 if target == dest { return Err("self-referential hardlink entry is unsupported".into()); }
                 let expected = published.get(&target).ok_or_else(|| format!("hardlink target was not previously extracted (forward or unselected target): {}", tar_format::display(link)))?;
-                check_root(&crate::vfs::dirname_posix_path(&target))?;
+                check_extraction_root(fs,&crate::vfs::dirname_posix_path(&target))?;
                 let stat = fs.lstat(&target)?;
                 if stat.kind != File || (expected.is_some() && expected != &stat.identity) { return Err("hardlink target changed or is not a regular file".into()); }
                 if !fs.supports_hard_links(&target) { return Err("filesystem does not support hardlinks".into()); }
@@ -4394,8 +4398,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             published.remove(&dest);
             if !is_dir_entry { directories.remove(&dest); }
             if is_dir_entry {
-                if !existing.is_some_and(|s| s.kind == Directory) { fs.mkdir_one(&dest, 0o700)?; }
-                directories.insert(dest.clone(), DirectoryMetadata { mode: entry.mode & permission_mask, atime: times.0, mtime: times.1 });
+                let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
+                let identity=match existing {
+                    Some(st) if st.kind==Directory => st,
+                    _ => fs.prepare_extraction_directory(&dest,&parent,None,0o700,(None,None),stamp.version)?,
+                };
+                directories.insert(dest.clone(),DirectoryMetadata {parent,identity,stamp,mode:entry.mode & permission_mask,times});
             } else if entry.typeflag == b'2' {
                 fs.symlink(link, &dest)?;
             } else if let Some(target) = hard_target {
@@ -6879,6 +6887,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         let mut prompt_bytes = crate::vfs::stream_byte_len(&out);
         let extract = || -> Result<(),String> {
             let out_dir = directory(&raw)?;
+            let mut directories=Vec::new();
             'member: for entry in selected {
                 let is_dir = entry.typeflag == b'5';
                 if junk_paths && is_dir { continue; }
@@ -6898,11 +6907,27 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if is_dir {
                         if entry.size != 0 { return Err("directory has nonempty payload".into()); }
                         decode(entry)?;
-                        match existing {
-                            Some(st) if st.kind == Directory => (),
+                        let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
+                        let identity=match existing {
+                            Some(st) if st.kind == Directory => st,
                             Some(_) => return Err("directory destination is not a directory".into()),
-                            None => fs.mkdir_one(&dest,0o755)?,
-                        }
+                            None => {
+                                let st=fs.prepare_extraction_directory(&dest,&parent,None,0o755,(None,None),stamp.version)?;
+                                if !quiet {
+                                    let shown=match &dest_dir {
+                                        Some(d)=>format!("{d}{}{name}",if d.ends_with('/') {""} else {"/"}),
+                                        None=>name.clone(),
+                                    };
+                                    let line=format!("   creating: {}\n",unzip_filtered(&shown));
+                                    prompt_bytes+=crate::vfs::stream_byte_len(&line);
+                                    if prompt_bytes>fs.remaining_output_bytes(){return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));}
+                                    out.push_str(&line);
+                                }
+                                st
+                            }
+                        };
+                        let time=Some(entry.mtime*1000.);
+                        directories.push((dest,DirectoryMetadata {parent,identity,stamp,mode:entry.mode & 0o777,times:(time,time)}));
                         continue 'member;
                     }
                     if file.as_ref().is_some_and(|(path,input)| dest == *path || existing.as_ref().is_some_and(|s| s.identity.is_some() && s.identity == input.identity)) {
@@ -6982,6 +7007,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     break;
                 }
             }
+            for (path,meta) in directories.into_iter().rev() {meta.restore(fs,&path)?;}
             Ok(())
         };
         if let Err(e) = extract() {

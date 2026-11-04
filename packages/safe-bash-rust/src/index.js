@@ -268,6 +268,23 @@ function bindExternalFs(shell,fs,options) {
           if(bytes)result.set(bytes,4);
           return;
         }
+        if(op==="prepareExtractionDirectory"){
+          const obs=publications.get(flags);
+          if(!obs?.guard || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
+          const {parent,destination:expected}=obs.guard,{caps}=obs;
+          if(expected && caps?.permissions===false && caps.timestamps===false){result=statBytes(expected);return;}
+          if(!fs.prepareDirectory || !obs.allowTrusted && !(caps?.atomicDirectoryMetadata || caps?.trustedOwnedStaging)){
+            status=-1;result=encoder.encode(expected?(obs.allowTrusted?"extraction requires conditional metadata":"extraction metadata requires atomic entry conditions"):
+              (obs.allowTrusted?"extraction requires conditional directory creation":"extraction requires atomic directory creation"));return;
+          }
+          const times=new DataView(data.buffer,data.byteOffset,data.byteLength),atime=times.getFloat64(0,true),mtime=times.getFloat64(8,true);
+          const parentPath=obs.guard.ancestors.at(-1).path;
+          const confined=fs.confineExtraction?await fs.confineExtraction([parentPath],settings):fs;
+          const directory=await confined.prepareDirectory(path,{...settings,parent,expected,...(caps?.permissions!==false && {mode}),
+            ...(caps?.timestamps!==false && Number.isFinite(atime) && {atimeMs:atime}),
+            ...(caps?.timestamps!==false && Number.isFinite(mtime) && {mtimeMs:mtime})});
+          obs.guard.destination=directory;result=statBytes(directory);return;
+        }
         if(op==="removeExtraction"){
           const obs=publications.get(flags);
           if(!obs?.guard?.destination || obs.path!==path)throw fsOperationError("EAGAIN",op,path);

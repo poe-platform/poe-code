@@ -3719,6 +3719,7 @@ test("mkdir reports which device lookup failed before creating a directory", asy
       ["/missing/..", true, "ENOENT", "lstat", "/missing"],
       ["/alias/null/../x", true, "ENOTDIR", undefined, "/alias/null/../x"],
       ["/alias", false, "EEXIST", undefined, "/alias"],
+      ["/dev/null/, lstat 'name", true, "ENOTDIR", undefined, "/dev/null/, lstat 'name"],
     ]) {
       await assert.rejects(bash.fs.mkdir(path, {recursive}), {code, syscall, path:failed});
       await assert.rejects(bash.fs.stat("/missing"), {code:"ENOENT"});

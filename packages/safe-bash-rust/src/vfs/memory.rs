@@ -1496,7 +1496,7 @@ impl SafeBashFs for MemoryVfs {
         }
         if state.devices == Devices::Null {
             let resolved = Self::device_operand(&state, path, true).map_err(|error| {
-                let failed = error.split_once(", lstat '").and_then(|(_, p)| p.strip_suffix('\''));
+                let failed = error.split_once(" '").filter(|(reason, _)| reason.ends_with(", lstat")).and_then(|(_, p)| p.strip_suffix('\''));
                 (error.split(':').next().unwrap().to_owned(), if failed.is_some() { "lstat" } else { "" }, failed.unwrap_or(path).to_owned())
             })?;
             if matches!(resolved.as_str(), "/" | "/dev" | "/dev/null") && !path.is_empty() {

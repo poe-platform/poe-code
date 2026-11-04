@@ -242,6 +242,10 @@ impl ExecutionBudget {
         self.limits.max_output_bytes.saturating_sub(self.output_bytes.load(Ordering::Relaxed))
     }
 
+    pub(crate) fn refund_file_output(&self, bytes: usize) {
+        self.output_bytes.fetch_sub(bytes, Ordering::Relaxed);
+    }
+
     pub fn add_output_bytes(&self, bytes: usize) -> Result<(), String> {
         if bytes == 0 {
             return Ok(());

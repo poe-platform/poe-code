@@ -1547,6 +1547,35 @@ test("returning a memory stream releases its pinned bytes even after unlink",asy
   } finally { await bash.dispose(); }
 });
 
+test("plugin file output shares the shell byte limit with child commands and refunds short writes", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {writeFileOutput,writeFileOutputCounted} = await import("safe-bash-contracts/filesystem-output-budget");
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  for (const sh of [new Shell({fs:new MemoryFileSystem(),cwd:"/"}),new RustWasmBash({cwd:"/"})]) {
+    let touched = false;
+    sh.register({name:"child",async execute(c) { await c.stdout.write(Uint8Array.of(120)); return {exitCode:0}; }});
+    sh.register({name:"publish",async execute(c) {
+      const bytes = Uint8Array.of(0,255,1);
+      Object.defineProperty(bytes,"length",{value:0});
+      await writeFileOutput(c,bytes,async () => { touched = true; });
+      await writeFileOutputCounted(c,bytes,async () => {
+        await c.invoke("child",[]);
+        return 1;
+      });
+      await c.stdout.write(bytes);
+      return {exitCode:0};
+    }});
+    try {
+      const exec = limit => sh.exec("publish",{limits:{maxOutputBytes:limit}});
+      await assert.rejects(exec(2),/maxOutputBytes/);
+      assert.equal(touched,false);
+      await assert.rejects(exec(7),/maxOutputBytes/);
+      const result = await exec(8);
+      assert.equal(result.exitCode,0,result.stderr);
+      assert.deepEqual([...result.stdoutBytes],[120,0,255,1]);
+    } finally { await sh.dispose(); }
+  }
+});
+
 test("conditional plugin publication checks parent and destination receipts before editing hard links", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const reference = new MemoryFileSystem(), js = new Shell({fs:reference,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});

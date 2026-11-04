@@ -30,6 +30,7 @@ pub struct HostReply {
     child_status: i32,
     output_credit: [usize; 2],
     max_input: usize,
+    file_output: usize,
 }
 
 impl HostBuffer {
@@ -114,6 +115,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
         let mut child_status = -1;
         let mut response = Vec::new();
         let mut charged = 0usize;
+        let mut file_output = 0usize;
         let (code,reply) = loop {
             let mut reply = HostReply {
                 max_input: ctx.budget.limits.max_input_bytes,
@@ -125,6 +127,14 @@ pub unsafe extern "C" fn safe_bash_register_command(
                 ..Default::default()
             };
             let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
+            // File bytes count against the script but are never credit for a forwarded stream.
+            // A short counted write can settle after its callback invokes another command.
+            if reply.file_output < file_output {
+                ctx.budget.refund_file_output(file_output - reply.file_output);
+            } else {
+                ctx.budget.add_output_bytes(reply.file_output - file_output)?;
+            }
+            file_output = reply.file_output;
             if code != -7 { break (code,reply); }
             let request = unsafe { reply.diagnostic.take() };
             let streams = reply.streams.map(|b| unsafe { b.take() });

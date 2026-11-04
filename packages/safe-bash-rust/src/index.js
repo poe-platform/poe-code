@@ -172,7 +172,7 @@ function streamHost(x) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, fs, supportsOpen, options) {
+function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, bindFileOutputBudget, fs, supportsOpen, options) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
@@ -222,6 +222,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         const directoryMode = header.getUint32(reply + 60, true);
         const badDescriptor = () => Object.assign(new diagnostics.PublicDiagnostic("Bad file descriptor"), {code:"EBADF"});
         let active = true, outputOpen = true, cleanups, handles, fsOps = 0, consumed = 0, code = 1;
+        let fileOutput = 0;
         const streams = [[], []], credits = [0,0], unpaid = [0,0];
         let tail = Promise.resolve(), busy, children, stopped;
         const run = async () => { try {
@@ -381,12 +382,13 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             check(outputOpen);
             if (!(access & (2 << index))) throw badDescriptor();
             if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
+            const length = bytes.byteLength;
             if (code === -5) throw new ShellLimitError("maxFileSystemOperations");
-            if (code === -3 || !paid && bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
+            if (code === -3 || !paid && length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
             const channel = sharedOutput ? 0 : index;
-            if (paid) credits[channel] += bytes.length;
-            else { remaining -= bytes.length; unpaid[channel] += bytes.length; }
-            if (bytes.length) streams[channel].push(new Uint8Array(bytes));
+            if (paid) credits[channel] += length;
+            else { remaining -= length; unpaid[channel] += length; }
+            if (length) streams[channel].push(new Uint8Array(bytes));
           };
           const sinks = [0,1].map(i=>({async write(bytes) { if (busy) await busy; append(i,bytes,false); }}));
           const invoke = async (name,args,settings={}) => {
@@ -433,7 +435,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 done.resolve({status,bytes});
               };
               job.childSignal = childSignal; job.request = parts; job.fsOps = fsOps; fsOps = 0;
-              job.reserve = unpaid.slice();
+              job.reserve = unpaid.slice(); job.fileOutput = fileOutput;
               for (let i=0;i<2;i++) { credits[i] += unpaid[i]; unpaid[i]=0; }
               job.next.resolve();
               const {status,bytes} = await done.promise;
@@ -465,6 +467,30 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
             (cleanups ??= []).push(cleanup);
           };
+          const reserveFileOutput = bytes => {
+            check();
+            if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
+            const length = bytes.byteLength;
+            if (code === -3 || length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
+            remaining -= length;
+            fileOutput += length;
+            return length;
+          };
+          bindFileOutputBudget({registerCleanup}, sink => ({async write(bytes) {
+            if (busy) await busy;
+            reserveFileOutput(bytes);
+            await sink.write(bytes);
+          }}), async (bytes,write,preserveReceipt) => {
+            if (busy) await busy;
+            const reserved = reserveFileOutput(bytes);
+            const count = await write();
+            if (busy) await busy;
+            if (!Number.isSafeInteger(count) || count < 0 || count > reserved) throw fsOperationError("EIO","write");
+            fileOutput -= reserved-count;
+            remaining += reserved-count;
+            if (!preserveReceipt) signal.throwIfAborted();
+            return count;
+          });
           const pending = definition.execute({onInternalError, registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
             cwd, env, stdin, stdinIsDefault, invoke, fs:commandFs, stdout:sinks[0], stderr:sinks[1], signal, capabilities:options.capabilities});
           const result = await (options.signal || childSignals.length ? untilAbort(pending, signal) : pending);
@@ -494,6 +520,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           outputOpen = false;
         }
         job.finish = {streams,credits,consumed,fsOps,code};
+        job.fileOutput = fileOutput;
         job.next.resolve();
         };
         void run().catch(error => job.next.reject(error));
@@ -503,6 +530,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         new Uint8Array(x.memory.buffer,job.sp,job.stack.length).set(job.stack);
         x.__stack_pointer.value = job.sp;
         job.stack = undefined;
+        new DataView(x.memory.buffer).setUint32(reply+88,job.fileOutput,true);
         if (job.request) {
           const parts = job.request, len = parts.reduce((n,b)=>n+b.length,0);
           const p = x.safe_bash_alloc(len), dest = new Uint8Array(x.memory.buffer,p,len);
@@ -1379,6 +1407,7 @@ export class RustWasmBash extends WasmShell {
   #ready;
   #commands;
   #commandContract;
+  #bindFileOutputBudget;
   #diagnostics;
   #onInternalError;
   #validatePath;
@@ -1923,7 +1952,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.fs, !this.#overlay, options);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, this.fs, !this.#overlay, options);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
@@ -2037,11 +2066,12 @@ export class RustWasmBash extends WasmShell {
 
   #install(setup) {
     this.#pluginLifetime ??= new AbortController();
-    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics")]).then(([commandContract, {validatePath}, diagnostics]) => {
+    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics"), import("safe-bash-contracts/filesystem-output-budget")]).then(([commandContract, {validatePath}, diagnostics, {bindFileOutputBudget}]) => {
       this.#validatePath = validatePath;
       this.#diagnostics = diagnostics;
       this.#commands = new commandContract.CommandRegistry();
       this.#commandContract = commandContract;
+      this.#bindFileOutputBudget = bindFileOutputBudget;
     })).then(setup);
     this.#ready.catch(() => {});
   }

@@ -1748,6 +1748,67 @@ test("ZIP rejects reserved move switches before replacing an archive or deleting
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("ZIP update, delete and copy keep the compressed records of untouched members",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  function retained(bytes) {
+    const b=Buffer.from(bytes), end=b.length-22;
+    let p=b.readUInt32LE(end+16);
+    while (p<end) {
+      const size=b.readUInt32LE(p+20), n=b.readUInt16LE(p+28), x=b.readUInt16LE(p+30), c=b.readUInt16LE(p+32);
+      const off=b.readUInt32LE(p+42), next=p+46+n+x+c;
+      if (b.toString("utf8",p+46,p+46+n)==="keep") {
+        const central=Buffer.from(b.subarray(p,next)); central.writeUInt32LE(0,42);
+        const data=off+30+b.readUInt16LE(off+26)+b.readUInt16LE(off+28);
+        assert.equal(b.readUInt16LE(p+10),8,"keep must remain deflated");
+        return [central,b.subarray(off,data+size)];
+      }
+      p=next;
+    }
+    assert.fail("missing retained member");
+  }
+  try {
+    await ref.writeFile("/first",Uint8Array.of(1));
+    await ref.writeFile("/keep",new Uint8Array(4096).fill(65));
+    assert.equal((await js.exec("zip -q base.zip first keep")).exitCode,0);
+    const seed=await ref.readFile("/base.zip"), original=retained(seed);
+    for (const [sh,fs] of [[js,ref],[rust,rust.fs]]) {
+      await fs.writeFile("/work.zip",seed);
+      await fs.writeFile("/first",new Uint8Array(160).fill(2));
+      for (const [script,path] of [["zip -q0 work.zip first","work"],["zip -qd work.zip first","work"],["zip -qU -O copy.zip work.zip keep","copy"]]) {
+        const r=await sh.exec(script); assert.equal(r.exitCode,0,r.stderr || r.stdout);
+        assert.deepEqual(retained(await fs.readFile("/"+path+".zip")),original);
+        assert.deepEqual((await sh.exec("unzip -p "+path+".zip keep")).stdoutBytes,new Uint8Array(4096).fill(65));
+      }
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
+test("ZIP editing verifies a retained data descriptor before moving the source",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    await ref.writeFile("/keep",new Uint8Array(4096).fill(65));
+    assert.equal((await js.exec("zip -q -fd seed.zip keep")).exitCode,0);
+    const seed=Buffer.from(await ref.readFile("/seed.zip"));
+    const marker=seed.indexOf(Buffer.from([80,75,7,8]));
+    assert.ok(marker>30); const broken=Buffer.from(seed); broken[marker+8]^=1;
+    const run=async (sh,fs) => {
+      await fs.writeFile("/unsafe.zip",broken); await fs.writeFile("/input",Uint8Array.of(66));
+      const fail=await sh.exec("zip -qm unsafe.zip input");
+      assert.notEqual(fail.exitCode,0);
+      assert.deepEqual(await fs.readFile("/unsafe.zip"),new Uint8Array(broken));
+      assert.deepEqual([...await fs.readFile("/input")],[66]);
+      await fs.writeFile("/valid.zip",seed);
+      const r=await sh.exec("zip -qm valid.zip input"); assert.equal(r.exitCode,0,r.stderr);
+      const b=Buffer.from(await fs.readFile("/valid.zip"));
+      assert.equal(b.readUInt16LE(6)&8,0);
+      return [fail.exitCode,fail.stdout,fail.stderr,b.subarray(0,marker)];
+    };
+    const expected=await run(js,ref); assert.deepEqual(await run(rust,rust.fs),expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("ZIP update and freshen select newer members and leave a current archive untouched",async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});

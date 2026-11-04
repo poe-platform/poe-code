@@ -6101,27 +6101,28 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     let mut sources = Vec::new();
     if arch_full != dest_full && let Some(st) = &input { sources.push((arch_full.clone(),st.identity.clone())); }
-    let mut linked_original = None;
-    let mut entries = if let Some(st) = &input {
-        let bytes = match fs.read_file(&arch_full) { Ok(b) => b, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
-        let entries = match crate::commands::codecs::parse_zip_archive(&bytes) {
+    let original;
+    let mut retained = crate::commands::codecs::ZipRecords::new();
+    let mut entries = if input.is_some() {
+        original = match fs.read_file(&arch_full) { Ok(b) => b, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
+        let entries = match crate::commands::codecs::read_zip_members(&original,Some(&mut retained)) {
             Ok(entries) => entries,
             Err(e) => return err_out(&format!("zip: {e}\n"), 2),
         };
         if split_size != 0 && output_archive.is_none() && !show_files {
             return zip_err("split archives require a separate --out destination");
         }
-        if st.nlink.is_some_and(|n| n > 1) { linked_original = Some(bytes); }
         entries
     } else {
+        original = Vec::new();
         if copy_mode || delete_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
         Vec::new()
     };
     let publish = |bytes: Vec<u8>, sources: &[_]| {
         let result = if split_size != 0 {
             zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources,version)
-        } else if let (Some(before), Some(st)) = (&linked_original, &dest) {
-            fs.commit_file_edit(&dest_full,st,before,&bytes,true).map(|()| String::new())
+        } else if let Some(st) = &dest && st.nlink.is_some_and(|n| n > 1) {
+            fs.commit_file_edit(&dest_full,st,&original,&bytes,true).map(|()| String::new())
         } else {
             fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),version)
                 .map(|()| String::new())
@@ -6148,20 +6149,20 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,&retained,|_,_,_,_| {}), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.name == "__ZIP_COMMENT__" || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,0,&[],false,&retained,|_,_,_,_| {}), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
     if timed && !quiet && entries.iter().all(|e| e.name == "__ZIP_COMMENT__") {
         notices.push_str(&format!("\tzip warning: {} not found or empty\n",zip_public_text(&arch_name)));
     }
-    if filesync_mode { entries.clear(); }
+    if filesync_mode { entries.clear(); retained.clear(); }
     let targets = if recursive_patterns { vec![".".to_string()] }
         else if timed && operands.is_empty() { entries.iter().filter(|e| e.name != "__ZIP_COMMENT__").map(|e|e.name.clone()).collect() }
         else { operands.clone() };
@@ -6273,6 +6274,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return result;
             }
             *selected = Some(source);
+            retained.remove(&e.name);
             if e.typeflag == b'0' {
                 e.content = match fs.read_file(&path) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
             }
@@ -6354,8 +6356,10 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     use std::fmt::Write;
     let mut progress = String::new();
     let (mut total,mut compressed) = (0u64,0u64);
-    let savings = |size: u64, stored: u64| if size == 0 { 0 } else { (100*(size-stored) + size/2)/size };
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false,
+    let savings = |size: u64, stored: u64| if size == 0 { 0 } else {
+        (100*(i128::from(size)-i128::from(stored)) + i128::from(size/2)).div_euclid(i128::from(size))
+    };
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes, false, &retained,
         |name,method,size,stored| {
             if quiet { return; }
             let (size,stored) = (size as u64,stored as u64);

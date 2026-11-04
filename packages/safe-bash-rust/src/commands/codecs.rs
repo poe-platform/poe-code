@@ -3502,11 +3502,19 @@ fn dos_to_unix_secs(dos_date: u16, dos_time: u16) -> u64 {
     }
 }
 
+/// The local header and compressed payload (without a trailing descriptor), and
+/// the central record. Both borrow the validated input archive during an edit.
+pub(super) struct ZipRecord<'a> {
+    local: &'a [u8],
+    central: &'a [u8],
+}
+pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
+
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, 0, &[], false, |_,_,_,_| {})
+    encode_zip_members(entries, 0, &[], false, &ZipRecords::new(), |_,_,_,_| {})
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str], document: bool, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], level: u8, store_suffixes: &[&str], document: bool, retained: &ZipRecords<'_>, mut report: impl FnMut(&str,u16,usize,usize)) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3515,6 +3523,26 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
     for e in entries {
         if e.name == "__ZIP_COMMENT__" {
             comment = e.content.clone();
+            continue;
+        }
+        if let Some(record) = retained.get(&e.name) {
+            let local = out.len();
+            out.extend_from_slice(record.local);
+            let start = central.len();
+            central.extend_from_slice(record.central);
+            central[start+42..start+46].copy_from_slice(&(local as u32).to_le_bytes());
+            // Named output already knows the sizes. Like the JS writer, put them
+            // in the local header and drop any streaming descriptor on plain members.
+            if record.central[8] & 8 != 0 {
+                out[local+6] &= !8;
+                central[start+8] &= !8;
+                out[local+14..local+26].copy_from_slice(&record.central[16..28]);
+            }
+            let method = u16::from_le_bytes(record.central[10..12].try_into().unwrap());
+            let size = u32::from_le_bytes(record.central[24..28].try_into().unwrap());
+            let stored = u32::from_le_bytes(record.central[20..24].try_into().unwrap());
+            report(&e.name,method,size as usize,stored as usize);
+            count = count.saturating_add(1);
             continue;
         }
         let mut clean_name = e.name.trim_start_matches('/').to_string();
@@ -3622,6 +3650,10 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
 }
 
 pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
+    read_zip_members(data, None)
+}
+
+pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut ZipRecords<'a>>) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
     if data.len() < 22 {
         return Err("ZIP missing end record".into());
     }
@@ -3660,6 +3692,7 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
         if u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) != 0x0201_4b50 {
             return Err("invalid central directory header".into());
         }
+        let central_start = pos;
         let version_made_by = u16::from_le_bytes([data[pos + 4], data[pos + 5]]);
         let method = u16::from_le_bytes([data[pos + 10], data[pos + 11]]);
         let dos_time = u16::from_le_bytes([data[pos + 12], data[pos + 13]]);
@@ -3718,6 +3751,28 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
         };
         if decoded.len() != uncomp_size || crc32_ieee(&decoded) != crc {
             return Err("CRC or size mismatch".into());
+        }
+
+        if let Some(records) = retained.as_deref_mut() {
+            let central = &data[central_start..pos];
+            let local = &data[local_off..payload_start+comp_size];
+            if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
+            if local[30..30+l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
+            if central[8] & 1 != 0 { return Err("ZIP encrypted member requires a password".into()); }
+            let descriptor = central[8] & 8 != 0;
+            if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
+                .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
+                return Err("ZIP central/local size or CRC mismatch".into());
+            }
+            if descriptor {
+                let tail = &data[payload_start+comp_size..central_offset];
+                let unsigned = tail.starts_with(&central[16..28]);
+                let signed = tail.strip_prefix(&0x08074b50u32.to_le_bytes()).is_some_and(|t|t.starts_with(&central[16..28]));
+                if unsigned == signed { return Err("ZIP truncated, ambiguous or mismatched data descriptor".into()); }
+            }
+            if records.insert(name.clone(),ZipRecord {local,central}).is_some() {
+                return Err("ZIP duplicate member name".into());
+            }
         }
 
         let host = version_made_by >> 8;

@@ -42,9 +42,73 @@ type InputCursor = Rc<RefCell<String>>;
 type SavedFds = (Vec<(u32, Option<FdTarget>, bool)>, Vec<(u32, Option<u32>)>);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum DispatchMode { Shell, BypassFunctions, EnvShebang }
+enum DispatchMode { Shell, BypassFunctions, Builtin, EnvShebang }
+
+pub(crate) trait CommandCaller {
+    fn state(&self) -> &EvalState<'_>;
+    fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome, String>;
+}
+
+struct DispatchFrame<'a,'b> {
+    state: &'a mut EvalState<'b>,
+    words: &'a [String],
+    next: Option<DispatchMode>,
+}
+
+impl CommandCaller for DispatchFrame<'_,'_> {
+    fn state(&self) -> &EvalState<'_> { self.state }
+    fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome, String> {
+        let mode = self.next.take().ok_or("next() may only be called once per middleware")?;
+        let state = &mut self.state;
+        let prior = state.forwarded_output.take();
+        let result = state.dispatch_terminal(self.words,stdin,mode);
+        let credit = state.forwarded_output.replace(prior);
+        result.and_then(|mut out| {
+            for (fd,paid) in [(1,credit.0),(2,credit.1)] {
+                if let Some(target) = state.fd_table.get(&fd).filter(|t| t.is_redirected_output()) {
+                    let data = std::mem::take(if fd == 1 { &mut out.stdout } else { &mut out.stderr });
+                    state.fd_writer().write(target,&data,paid.min(stream_byte_len(&data)),&mut out);
+                }
+            }
+            state.budget.add_output_bytes(stream_byte_len(&out.stdout).saturating_sub(credit.0)
+                + stream_byte_len(&out.stderr).saturating_sub(credit.1)).map_err(EvalError::Budget)?;
+            Ok(out)
+        }).map_err(|e| match e {
+            EvalError::Budget(m) | EvalError::Syntax(m) | EvalError::OutputClose(m) | EvalError::UnportedCommand(m) => m,
+        })
+    }
+}
 
 impl CommandContext<'_> {
+    /// Continue the intercepted command in its original shell, at most once.
+    pub fn proceed(&mut self, stdin: &mut String) -> Result<BuiltinOutcome,String> {
+        let out = self.caller.proceed(stdin)?;
+        self.forwarded = (stream_byte_len(&out.stdout),stream_byte_len(&out.stderr));
+        self.unread_stdin = Some(stdin.clone());
+        Ok(out)
+    }
+
+    pub(crate) fn read_middleware_input(&self, input:&mut String) -> Result<Vec<u8>,String> {
+        let state = self.caller.state();
+        if !state.is_fd_readable(0) { return Err("Bad file descriptor".into()); }
+        if let Some(source) = state.fd_table.get(&0).and_then(|fd| fd.file_input(state.budget)) {
+            source.admit_bounded_read()?;
+            let mut bytes = Vec::new();
+            source.read(input,65536,|chunk,_|{bytes.extend_from_slice(chunk);Ok((false,chunk.len()))})?;
+            source.unread.borrow_mut().clone_from(input);
+            Ok(bytes)
+        } else { Ok(stream_string_to_bytes(&std::mem::take(input))) }
+    }
+
+    pub(crate) fn write_middleware_output(&self, fd:u32, data:&str, paid:usize) -> Result<(),String> {
+        let state = self.caller.state();
+        let target = state.fd_table.get(&fd).filter(|t| t.is_redirected_output()).ok_or("Bad output descriptor")?;
+        let mut out = BuiltinOutcome {stdout:String::new(), stderr:String::new(), exit_code:0};
+        state.fd_writer().write(target,data,paid,&mut out);
+        state.budget.check_exceeded()?;
+        if out.exit_code == 0 { Ok(()) } else { Err(out.stderr) }
+    }
+
     /// Invoke literal words in an isolated child, capturing both streams for the plugin.
     pub fn invoke(&self, name: &str, args: &[String], options: crate::InvokeOptions<'_>, stdin: &mut String) -> Result<BuiltinOutcome, String> {
         if name.contains('\0') || args.iter().any(|s| s.contains('\0')) || options.argv0.is_some_and(|s| s.contains('\0')) {
@@ -65,10 +129,10 @@ impl CommandContext<'_> {
                 env.retain(|k,_| !super::is_exported_scalar(self.env,k));
             }
             let external = options.external_invocation;
-            let exported_functions = self.caller.exported_functions.iter().filter(|name| {
+            let exported_functions = self.caller.state().exported_functions.iter().filter(|name| {
                 let key = format!("BASH_FUNC_{name}%%");
                 if let Some(value) = options.env.get(&key) {
-                    self.caller.functions.get(*name).is_some_and(|body| {
+                    self.caller.state().functions.get(*name).is_some_and(|body| {
                         let text = format_function_display(name,body);
                         value == text[name.len()+1..].trim_end()
                     })
@@ -80,7 +144,7 @@ impl CommandContext<'_> {
             }
             if !options.replace_env { env.insert("PWD".into(),cwd.clone()); }
             if let Some(arg0) = options.argv0 { env.insert("\0argv0".into(),arg0.into()); }
-            let mut child = self.caller.make_child(&mut cwd, &mut env);
+            let mut child = self.caller.state().make_child(&mut cwd, &mut env);
             child.exported_functions = exported_functions;
             if external { child.functions.retain(|k,_| child.exported_functions.contains(k)); }
             child.allow_unported_fallback = false;
@@ -88,7 +152,7 @@ impl CommandContext<'_> {
             child.func_stack.clear();
             child.forwarded_output = Rc::default();
             // Standard streams belong to the invocation. Other inherited descriptors still refer to the parent's files.
-            for fd in 0..=2 {
+            for fd in u32::from(options.inherit_stdin)..=2 {
                 child.fd_table.remove(&fd);
                 child.in_fd_aliases.remove(&fd);
                 child.in_fds.remove(&fd);
@@ -226,6 +290,10 @@ pub enum FdTarget {
 }
 
 impl FdTarget {
+    fn is_redirected_output(&self) -> bool {
+        matches!(self, Self::Exclusive {..} | Self::File {..} | Self::SavedStdout {..} | Self::SavedStderr(_) | Self::InputFile {writable:true,..})
+    }
+
     fn shares_output(&self, other: &Self) -> bool {
         use FdTarget::*;
         match (self, other) {
@@ -370,6 +438,7 @@ pub struct EvalState<'a> {
     pub fs: &'a dyn SafeBashFs,
     pub budget: &'a ExecutionBudget,
     pub custom_commands: &'a BTreeMap<String, RustCommand>,
+    pub(crate) middleware: Option<&'a RustCommand>,
     pub functions: BTreeMap<String, CommandNode>,
     pub exported_functions: BTreeSet<String>,
     pub func_stack: Vec<String>,
@@ -485,6 +554,7 @@ impl<'a> EvalState<'a> {
             fs,
             budget,
             custom_commands,
+            middleware:None,
             functions: BTreeMap::new(),
             exported_functions: BTreeSet::new(),
             func_stack: Vec::new(),
@@ -641,6 +711,7 @@ impl<'a> EvalState<'a> {
             fs: self.fs,
             budget: self.budget,
             custom_commands: self.custom_commands,
+            middleware:self.middleware,
             functions: self.functions.clone(),
             exported_functions: self.exported_functions.clone(),
             func_stack: self.func_stack.clone(),
@@ -3427,7 +3498,7 @@ impl<'a> EvalState<'a> {
         Ok(out)
     }
     fn direct_builtin_words<'s>(&self, simple: &'s SimpleCommand) -> Option<&'s [String]> {
-        if !simple.assignments.is_empty() || self.budget.limits.max_expansion_bytes < 65536
+        if self.middleware.is_some() || !simple.assignments.is_empty() || self.budget.limits.max_expansion_bytes < 65536
             || self.budget.limits.max_commands < 1000
             || self.env.get("\0attr__PIPESTATUS").is_some_and(|a| a.contains('r')) {
             return None;
@@ -3802,11 +3873,14 @@ impl<'a> EvalState<'a> {
                 self.materialize_stdin_aliases(stdin, &mut exec_saved_in);
                 *stdin = local_stdin;
             }
-            return Ok(BuiltinOutcome {
-                stdout: debug_out.stdout,
-                stderr: debug_out.stderr,
-                exit_code: 0,
-            });
+            if self.middleware.is_some() {
+                let mut out = self.dispatch_words(&expanded_words,stdin,DispatchMode::Shell)?;
+                self.route_outcome(&mut out);
+                out.stdout.insert_str(0,&debug_out.stdout);
+                out.stderr.insert_str(0,&debug_out.stderr);
+                return Ok(out);
+            }
+            return Ok(BuiltinOutcome {stdout:debug_out.stdout,stderr:debug_out.stderr,exit_code:0});
         }
 
         let has_inline_input = simple.redirects.iter().any(|r| {
@@ -4122,7 +4196,74 @@ impl<'a> EvalState<'a> {
         result
     }
 
-    fn dispatch_words(
+    fn dispatch_host(&mut self, custom:&RustCommand, words:&[String], stdin:&mut String, argv0:Option<&str>, next:Option<DispatchMode>) -> Result<BuiltinOutcome, EvalError> {
+        if next.is_none() { self.refresh_file_input(0, stdin)?; }
+        let mut cwd = self.cwd.clone();
+        let mut env = self.env.clone();
+        let mut ctx = CommandContext {
+            command: &words[0],
+            forwarded: (0, 0),
+            stdin_is_default: self.default_input_fds.contains(&0),
+            stream_access: u32::from(self.is_fd_readable(0))
+                | u32::from(self.is_fd_writable(1)) << 1 | u32::from(self.is_fd_writable(2)) << 2
+                | u32::from(next.is_some() && self.fd_table.get(&1).is_some_and(FdTarget::is_redirected_output)) << 3
+                | u32::from(next.is_some() && self.fd_table.get(&2).is_some_and(FdTarget::is_redirected_output)) << 4,
+            shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
+            failure: None,
+            unread_stdin: None,
+            budget: self.budget,
+            argv0,
+            args: &words[1..],
+            stdin,
+            cwd: &mut cwd,
+            env: &mut env,
+            fs: self.fs,
+            caller: &mut DispatchFrame {state:self,words,next},
+        };
+        let result = custom(&mut ctx);
+        let failure = ctx.failure;
+        let forwarded = ctx.forwarded;
+        let unread = ctx.unread_stdin;
+        let (a,b) = self.forwarded_output.get();
+        self.forwarded_output.set((a+forwarded.0,b+forwarded.1));
+        if let Some(unread) = unread { *stdin = unread; }
+        match result {
+            Ok(res) => {
+                if next.is_none() { *self.cwd = res.cwd; *self.env = res.env; }
+                let mut out = BuiltinOutcome { stdout: res.stdout, stderr: res.stderr, exit_code: res.exit_code };
+                match failure {
+                    Some(CommandFailure::Diagnostic(message)) if self.is_fd_writable(2) => {
+                        out.stderr.push_str(&self.diag_prefix());
+                        out.stderr.push_str(&message);
+                        out.stderr.push('\n');
+                    }
+                    Some(CommandFailure::Abort(reason)) => {
+                        // Redirect bytes accepted before the host stopped, while the budget is still open.
+                        self.route_outcome(&mut out);
+                        self.budget.record_exceeded(reason);
+                        out.stdout.clear();
+                        out.stderr.clear();
+                    }
+                    None | Some(CommandFailure::Diagnostic(_)) => {}
+                }
+                Ok(out)
+            }
+            Err(msg) => {
+                if next.is_none() { *self.cwd = cwd; *self.env = env; }
+                Ok(BuiltinOutcome { stdout:String::new(), stderr:format!("{msg}\n"), exit_code:1 })
+            },
+        }
+    }
+
+    fn dispatch_words(&mut self, words:&[String], stdin:&mut String, mode:DispatchMode) -> Result<BuiltinOutcome,EvalError> {
+        if let Some(handler) = self.middleware && !words.is_empty() {
+            let argv0 = self.env.get("\0argv0").cloned();
+            return self.dispatch_host(handler,words,stdin,argv0.as_deref(),Some(mode));
+        }
+        self.dispatch_terminal(words,stdin,mode)
+    }
+
+    fn dispatch_terminal(
         &mut self,
         words: &[String],
         stdin: &mut String,
@@ -4137,6 +4278,9 @@ impl<'a> EvalState<'a> {
             });
         };
         let args = &words[1..];
+        if mode == DispatchMode::Builtin
+            && !(matches!(cmd.as_str(),"echo"|"printf"|"test"|"[") && self.custom_commands.contains_key(cmd))
+            && let Some(out) = try_run_builtin(cmd,args,stdin,self.cwd,self.env,self.fs) { return Ok(out); }
 
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
@@ -5018,14 +5162,7 @@ impl<'a> EvalState<'a> {
                 self.budget
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
-                if !(matches!(target.as_str(), "echo" | "printf" | "test" | "[") && self.custom_commands.contains_key(target))
-                    && let Some(b_out) =
-                    try_run_builtin(target, &args[idx + 1..], stdin, self.cwd, self.env, self.fs)
-                {
-                    self.budget.leave_substitution();
-                    return Ok(b_out);
-                }
-                let res = self.dispatch_words(&args[idx..], stdin, DispatchMode::BypassFunctions);
+                let res = self.dispatch_words(&args[idx..], stdin, DispatchMode::Builtin);
                 self.budget.leave_substitution();
                 return res;
             }
@@ -5176,59 +5313,7 @@ impl<'a> EvalState<'a> {
             && (virtual_name.is_some() || !Self::is_implemented_builtin_name(effective_cmd)
                 || matches!(effective_cmd, "true" | "false" | "pwd"))
         {
-            self.refresh_file_input(0, stdin)?;
-            let mut cwd = self.cwd.clone();
-            let mut env = self.env.clone();
-            let mut ctx = CommandContext {
-                caller: self,
-                forwarded: (0, 0),
-                stdin_is_default: self.default_input_fds.contains(&0),
-                stream_access: u32::from(self.is_fd_readable(0))
-                    | u32::from(self.is_fd_writable(1)) << 1 | u32::from(self.is_fd_writable(2)) << 2,
-                shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
-                failure: None,
-                unread_stdin: None,
-                budget: self.budget,
-                argv0: custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),
-                args,
-                stdin,
-                cwd: &mut cwd,
-                env: &mut env,
-                fs: self.fs,
-            };
-            let result = custom(&mut ctx);
-            let failure = ctx.failure;
-            let (a,b) = self.forwarded_output.get();
-            self.forwarded_output.set((a+ctx.forwarded.0,b+ctx.forwarded.1));
-            if let Some(unread) = ctx.unread_stdin { *stdin = unread; }
-            return match result {
-                Ok(res) => {
-                    *self.cwd = res.cwd;
-                    *self.env = res.env;
-                    let mut out = BuiltinOutcome { stdout: res.stdout, stderr: res.stderr, exit_code: res.exit_code };
-                    match failure {
-                        Some(CommandFailure::Diagnostic(message)) if self.is_fd_writable(2) => {
-                            out.stderr.push_str(&self.diag_prefix());
-                            out.stderr.push_str(&message);
-                            out.stderr.push('\n');
-                        }
-                        Some(CommandFailure::Abort(reason)) => {
-                            // Redirect bytes accepted before the host stopped, while the budget is still open.
-                            self.route_outcome(&mut out);
-                            self.budget.record_exceeded(reason);
-                            out.stdout.clear();
-                            out.stderr.clear();
-                        }
-                        None | Some(CommandFailure::Diagnostic(_)) => {}
-                    }
-                    Ok(out)
-                }
-                Err(msg) => {
-                    *self.cwd = cwd;
-                    *self.env = env;
-                    Ok(BuiltinOutcome { stdout:String::new(), stderr:format!("{msg}\n"), exit_code:1 })
-                },
-            };
+            return self.dispatch_host(custom,words,stdin,custom_argv0.as_deref().or(virtual_name.as_ref().map(|_| cmd.as_str())),None);
         }
 
         if virtual_name.is_some() {
@@ -5386,6 +5471,7 @@ impl<'a> EvalState<'a> {
                     fs: fs_ref,
                     budget: budget_ref,
                     custom_commands: custom_ref,
+                    middleware:self.middleware,
                     functions: funcs_clone.clone(),
                     exported_functions: exported_clone.clone(),
                     func_stack: Vec::new(),

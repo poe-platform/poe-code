@@ -125,6 +125,7 @@ export class WasmFileSystem {
 }
 
 type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly invoke: NonNullable<CommandContext["invoke"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "readStream" | "writeFileConditional" | "createStagedFile" | "publishStagedFile" | "removeStagedFile" | "prepareDirectory" | "removeFileConditional" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath" | "rename" | "symlink" | "unlink">};
+type StreamMiddleware = (context: StreamCommandContext, next: () => Promise<CommandResult>) => CommandResult | Promise<CommandResult>;
 type StreamCommand = Omit<CommandDefinition, "execute"> & {
   readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
 };
@@ -150,9 +151,9 @@ export class RustWasmBash {
 
   constructor(options?: RustWasmBashOptions);
   register(command: StreamCommand, options?: RegisterCommandOptions): this;
-  use(plugin: {
+  use(plugin: StreamMiddleware | {
     readonly name?: string;
-    setup(host: {commands: StreamCommandRegistry; provideCapabilities(defaults: NonNullable<CommandContext["capabilities"]>): void; registerFileSystem: RustWasmBash["registerFileSystem"]}): void | Promise<void>;
+    setup(host: {commands: StreamCommandRegistry; use(middleware: StreamMiddleware): void; provideCapabilities(defaults: NonNullable<CommandContext["capabilities"]>): void; registerFileSystem: RustWasmBash["registerFileSystem"]}): void | Promise<void>;
     dispose?(): void | Promise<void>;
   }): this;
   mountDevices(): void;

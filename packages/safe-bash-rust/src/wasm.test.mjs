@@ -1467,6 +1467,79 @@ test("standalone plugins run async handlers in Rust pipelines and sessions", {sk
   } finally { await bash.dispose(); }
 });
 
+test("middleware wraps live shell commands, functions and plugin handlers",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), js=new Shell({fs,cwd:"/"}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
+  const run=async(sh,fs)=>{
+    await fs.mkdir("/dir");
+    const trace=[];
+    sh.use(async(ctx,next)=>{trace.push("before:"+ctx.command);const r=await next();trace.push("after:"+ctx.command+":"+r.exitCode);return r;});
+    sh.use({name:"gate",setup(host){
+      host.use(async(ctx,next)=>{
+        if(ctx.command==="denied")return {exitCode:23};
+        if(ctx.command==="probe")await ctx.stdout.write(Uint8Array.of(65));
+        const r=await next();
+        if(ctx.command==="probe")await ctx.stdout.write(Uint8Array.of(67));
+        return r;
+      });
+      host.commands.register({name:"probe",async execute(ctx){await ctx.stdout.write(Uint8Array.of(66));return {exitCode:0};}});
+    }});
+    const r=await sh.exec("cd /dir; export V=value; f(){ probe; }; f >result; pwd; denied");
+    return {code:r.exitCode,out:r.stdout,err:r.stderr,bytes:[...await fs.readFile("/dir/result")],trace};
+  };
+  try {
+    const expected=await run(js,fs);
+    assert.deepEqual([expected.code,expected.out,expected.bytes],[23,"/dir\n",[65,66,67]]);
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+test("middleware writes to the active redirect before and after the native command",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  const run=async(sh,fs)=>{
+    const trace=[], views=[];
+    sh.use(async(ctx,next)=>{
+      trace.push(ctx.command);
+      if(ctx.command!=="cat") return next();
+      await ctx.stdout.write(Uint8Array.of(65));
+      views.push([...await ctx.fs.readFile("/out")]);
+      const result=await next();
+      views.push([...await ctx.fs.readFile("/out")]);
+      await ctx.stdout.write(Uint8Array.of(67));
+      return result;
+    });
+    const a=await sh.exec("cat > /out",{stdin:Uint8Array.of(66)});
+    const b=await sh.exec("builtin printf x; command printf y; exec > /permanent; printf Z");
+    return [trace,views,[...await fs.readFile("/out")],[...await fs.readFile("/permanent")],a.stdout,b.stdout];
+  };
+  try{
+    const expected=await run(js,ref);assert.deepEqual(expected[1],[[65],[65,66]]);
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+test("middleware pulls stdin only when read and next sees the remaining chunks",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const js=new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  const run=async sh=>{
+    const reads=[];let pulls=0;
+    sh.use(async(ctx,next)=>{
+      reads.push([ctx.command,pulls]);
+      if(ctx.command==="stop") return ctx.invoke("true",[]);
+      if(ctx.command==="cat"){
+        for await(const bytes of ctx.stdin){reads.push([...bytes]);break;}
+      }
+      return next();
+    });
+    async function* source(){for(const n of [65,66,67]){pulls++;yield Uint8Array.of(n);}}
+    const result=await sh.exec("stop; cat",{stdin:source()});
+    return [reads,result.stdout,result.stderr,result.exitCode];
+  };
+  try{const expected=await run(js);assert.equal(expected[0][0][1],0);assert.deepEqual(await run(rust),expected);}
+  finally{await js.dispose();await rust.dispose();}
+});
+
 test("plugin-provided capabilities reach nested commands and explicit invocation settings win",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
   for(const sh of [new Shell({fs:new MemoryFileSystem(),cwd:"/"}),new RustWasmBash({cwd:"/"})]){

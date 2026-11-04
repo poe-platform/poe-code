@@ -40,10 +40,13 @@ pub struct InvokeOptions<'a> {
     pub external_invocation: bool,
     pub merge_stderr: bool,
     pub stdin_is_default: bool,
+    /// Share the caller's input descriptor and its read position with this invocation.
+    pub inherit_stdin: bool,
 }
 
 pub struct CommandContext<'a> {
-    pub(crate) caller: &'a EvalState<'a>,
+    pub(crate) caller: &'a mut dyn crate::shell::eval::CommandCaller,
+    pub command: &'a str,
     pub argv0: Option<&'a str>,
     pub args: &'a [String],
     pub stdin: &'a str,
@@ -74,6 +77,7 @@ pub struct HybridBackend {
     pub mode: BackendMode,
     pub(crate) provided_devices: bool,
     commands: BTreeMap<String, RustCommand>,
+    pub(crate) middleware: Option<RustCommand>,
     bindings: Mutex<ShellBindings>,
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
     pub(crate) last_elapsed_ms: AtomicU32,
@@ -85,6 +89,7 @@ impl Clone for HybridBackend {
             mode: self.mode,
             provided_devices: self.provided_devices,
             commands: self.commands.clone(),
+            middleware: self.middleware.clone(),
             last_elapsed_ms: AtomicU32::default(),
             bindings: Mutex::new(self.bindings.lock().unwrap().clone()),
             used_typescript_bridge: self.used_typescript_bridge.clone(),
@@ -556,7 +561,8 @@ impl HybridBackend {
         let allow_fallback = self.mode == BackendMode::Hybrid && stream.is_none();
         let mut shell_cwd = shell_text(cwd).into_owned();
         let mut eval = EvalState::new(&mut shell_cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
-        if stdin.is_none() && stream.is_none() && !self.commands.is_empty() { eval.default_input_fds.insert(0); }
+        eval.middleware = self.middleware.as_ref();
+        if stdin.is_none() && stream.is_none() && (!self.commands.is_empty() || self.middleware.is_some()) { eval.default_input_fds.insert(0); }
         if let Some(input) = stream { eval.fd_table.insert(0, input); }
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         eval.provided_devices = self.provided_devices;
@@ -952,6 +958,22 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(custom.stdout, "abab");
+    }
+
+    #[test]
+    fn middleware_continues_in_the_original_shell_without_recharging_command_output() {
+        let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
+        fs.mkdir_all("/other").unwrap();
+        shell.set_limits(ShellLimits {max_output_bytes: 8,..Default::default()});
+        shell.set_middleware(Arc::new(|ctx| {
+            let mut input = ctx.stdin.to_owned();
+            let result = ctx.proceed(&mut input)?;
+            assert!(ctx.proceed(&mut input).is_err());
+            Ok(CommandResult {stdout:result.stdout,stderr:result.stderr,exit_code:result.exit_code,
+                cwd:ctx.cwd.clone(),env:ctx.env.clone()})
+        }));
+        let r = shell.exec("cd /other; pwd; printf X").unwrap();
+        assert_eq!((r.stdout.as_str(),r.cwd.as_str()),("/other\nX","/other"));
     }
 
     #[test]

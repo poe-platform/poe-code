@@ -172,7 +172,7 @@ function streamHost(x) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, bindFileOutputBudget, fs, supportsOpen, options) {
+function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, bindFileOutputBudget, fs, supportsOpen, options, middleware, composeMiddleware) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
@@ -191,7 +191,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
     }
   };
   try {
-    for (const definition of definitions) {
+    for (const definition of middleware.length ? [...definitions,null] : definitions) {
       const jobs = new Map();
       const slot = free.pop() ?? table.grow(1);
       slots.push(slot);
@@ -231,6 +231,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const word = () => { const n = view.getUint32(offset, true); offset += 4; return n; };
           const field = () => { const n = word(); offset += n; return packet.subarray(offset - n, offset); };
           const argc = word(), envc = word(), explicit = word(), cwd = decoder.decode(field());
+          const command = definition?.name ?? decoder.decode(field());
           const argv0 = explicit ? decoder.decode(field()) : undefined;
           const argumentValues = commandContract.createCommandArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
@@ -439,6 +440,15 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             check();
             if (!(access & 1)) throw badDescriptor();
             if (busy) await busy;
+            if (!definition) {
+              for (;;) {
+                const call = tail.then(()=>exchange([Uint8Array.of(132,0,0,0)],signal));
+                tail = call.catch(()=>{});
+                const {bytes} = await call;
+                if (!bytes.length) return;
+                yield bytes;
+              }
+            }
             const start = offset+consumed;
             if (start < packet.length) { consumed = packet.length-offset; yield packet.subarray(start); }
           }};
@@ -454,8 +464,37 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             else { remaining -= length; unpaid[channel] += length; }
             if (length) streams[channel].push(new Uint8Array(bytes));
           };
-          const sinks = [0,1].map(i=>({async write(bytes) { if (busy) await busy; append(i,bytes,false); }}));
-          const invoke = async (name,args,settings={}) => {
+          const exchange = async (parts,childSignal) => {
+            check();
+            const done = Promise.withResolvers();
+            busy = done.promise;
+            job.resume = (status,bytes,output,ops) => {
+              busy = undefined; remaining = output; remainingFsOps = ops;
+              if (status < 0 && decoder.decode(bytes).startsWith("Execution aborted:")) stopped = new Error(decoder.decode(bytes));
+              done.resolve({status,bytes});
+            };
+            job.childSignal = childSignal; job.request = parts; job.fsOps = fsOps; fsOps = 0;
+            job.reserve = unpaid.slice(); job.fileOutput = fileOutput;
+            for (let i=0;i<2;i++) { credits[i] += unpaid[i]; unpaid[i]=0; }
+            job.next.resolve();
+            const {status,bytes} = await done.promise;
+            childSignal.throwIfAborted();
+            if (status < 0) throw stopped ?? new Error(decoder.decode(bytes));
+            check(); return {status,bytes};
+          };
+          const writeSink = async (i,bytes,paid) => {
+            if (busy) await busy;
+            if (!(access & (8 << i))) { append(i,bytes,paid); return; }
+            check();
+            if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
+            const tag = new Uint8Array([128+i+(paid?2:0),0,0,0]);
+            const data = bytes.slice();
+            const call = tail.then(()=>exchange([tag,data],signal));
+            tail = call.catch(()=>{});
+            await call;
+          };
+          const sinks = [0,1].map(i=>({write:bytes=>writeSink(i,bytes,false)}));
+          const invoke = async (name,args,settings={},proceed=false) => {
             check();
             settings.signal?.throwIfAborted();
             if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some(a=>typeof a !== "string" || a.includes("\0")))
@@ -481,34 +520,22 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const size = input.length;
               const parts = [], word = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); parts.push(b); };
               const field = v => { const b = typeof v === "string" ? encoder.encode(v) : v; word(b.length); parts.push(b); };
-              word((settings.cwd!==undefined?1:0) | (settings.argv0!==undefined?2:0) | (settings.replaceEnv?4:0) | (settings.externalInvocation?8:0)
-                | ((settings.stdin===undefined?stdinIsDefault:settings.stdinIsDefault)?16:0)
-                | (stdout===stderr || sharedOutput && sinks.includes(stdout) && sinks.includes(stderr) ? 32:0));
-              word(args.length); word(entries.length); field(name);
-              if (settings.cwd !== undefined) field(settings.cwd);
-              if (settings.argv0 !== undefined) field(settings.argv0);
-              for (let i=0;i<args.length;i++) field(carrier.bytes(i));
-              for (const [k,v] of entries) { field(k); field(v); }
-              field(input);
-              check();
-              const done = Promise.withResolvers();
-              busy = done.promise;
-              job.resume = (status,bytes,output,ops) => {
-                busy = undefined; remaining = output; remainingFsOps = ops;
-                if (status < 0 && decoder.decode(bytes).startsWith("Execution aborted:")) stopped = new Error(decoder.decode(bytes));
-                done.resolve({status,bytes});
-              };
-              job.childSignal = childSignal; job.request = parts; job.fsOps = fsOps; fsOps = 0;
-              job.reserve = unpaid.slice(); job.fileOutput = fileOutput;
-              for (let i=0;i<2;i++) { credits[i] += unpaid[i]; unpaid[i]=0; }
-              job.next.resolve();
-              const {status,bytes} = await done.promise;
-              childSignal.throwIfAborted();
-              if (status < 0) throw stopped ?? new Error(decoder.decode(bytes));
-              check(); settings.signal?.throwIfAborted();
+              if (proceed) word(64);
+              else {
+                word((!definition && inherited?256:0) | (settings.cwd!==undefined?1:0) | (settings.argv0!==undefined?2:0) | (settings.replaceEnv?4:0) | (settings.externalInvocation?8:0)
+                  | ((settings.stdin===undefined?stdinIsDefault:settings.stdinIsDefault)?16:0)
+                  | (stdout===stderr || sharedOutput && sinks.includes(stdout) && sinks.includes(stderr) ? 32:0));
+                word(args.length); word(entries.length); field(name);
+                if (settings.cwd !== undefined) field(settings.cwd);
+                if (settings.argv0 !== undefined) field(settings.argv0);
+                for (let i=0;i<args.length;i++) field(carrier.bytes(i));
+                for (const [k,v] of entries) { field(k); field(v); }
+                field(input);
+              }
+              const {status,bytes} = await exchange(parts,childSignal);
               const view = new DataView(bytes.buffer);
               const left = view.getUint32(0,true);
-              if (inherited) consumed += size-left;
+              if (definition && inherited) consumed += size-left;
               return {bytes,status};
             });
             tail = call.catch(()=>{});
@@ -521,7 +548,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               if (!n) continue;
               const dest = sinks.indexOf(sink);
               if (dest < 0) await untilAbort(Promise.resolve(sink.write(data)),childSignal);
-              else append(dest,data,true);
+              else await writeSink(dest,data,true);
             }
             return {exitCode:status};
           };
@@ -555,8 +582,10 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             if (!preserveReceipt) signal.throwIfAborted();
             return count;
           });
-          const pending = definition.execute({onInternalError, registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
-            cwd, env, stdin, stdinIsDefault, invoke, fs:commandFs, stdout:sinks[0], stderr:sinks[1], signal, capabilities:options.capabilities});
+          const context = {onInternalError, registerCleanup, command, argv0, args:argumentValues.args, argumentValues,
+            cwd, env, stdin, stdinIsDefault, invoke:(name,args,settings)=>invoke(name,args,settings), fs:commandFs, stdout:sinks[0], stderr:sinks[1], signal, capabilities:options.capabilities};
+          const pending = definition ? definition.execute(context)
+            : composeMiddleware(middleware,()=>invoke("",[],{},true))(context);
           const result = await (options.signal || childSignals.length ? untilAbort(pending, signal) : pending);
           if (code >= 0) {
             code = commandContract.validateExitCode(result.exitCode);
@@ -634,6 +663,10 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         for (let i=0;i<2;i++) view.setUint32(reply+76+i*4,credits[i],true);
         return (childSignals.at(-1) ?? executionSignal).aborted ? -2 : code;
       }));
+      if (!definition) {
+        if (x.safe_bash_register_middleware(shell.sessionId,slot) !== 0) throw new Error("Could not register middleware");
+        continue;
+      }
       const name = shell._allocBytes(encoder.encode(definition.name));
       try {
         if (x.safe_bash_register_command(shell.sessionId,name.ptr,name.len,slot) !== 0) throw new Error("Could not register command: " + definition.name);
@@ -1494,6 +1527,8 @@ export class RustWasmBash extends WasmShell {
   #onInternalError;
   #validatePath;
   #plugins = [];
+  #middleware = [];
+  #composeMiddleware;
   #providedCapabilities;
   #pluginLifetime;
   #activePlugins = new Set();
@@ -2132,11 +2167,11 @@ export class RustWasmBash extends WasmShell {
       const asyncInput = stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData;
       if (this.#commands) {
         const definitions = this.#commands.list();
-        if (definitions.length) {
+        if (definitions.length || this.#middleware.length) {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, this.fs, !this.#overlay, options);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, this.fs, !this.#overlay, options, this.#middleware, this.#composeMiddleware);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
@@ -2250,11 +2285,12 @@ export class RustWasmBash extends WasmShell {
 
   #install(setup) {
     this.#pluginLifetime ??= new AbortController();
-    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics"), import("safe-bash-contracts/filesystem-output-budget")]).then(([commandContract, {validatePath}, diagnostics, {bindFileOutputBudget}]) => {
+    this.#ready = (this.#ready ?? Promise.all([import("safe-bash-contracts/command"), import("safe-bash-contracts/path"), import("safe-bash-contracts/diagnostics"), import("safe-bash-contracts/filesystem-output-budget"), import("safe-bash-contracts/plugin")]).then(([commandContract, {validatePath}, diagnostics, {bindFileOutputBudget}, {composeMiddleware}]) => {
       this.#validatePath = validatePath;
       this.#diagnostics = diagnostics;
       this.#commands = new commandContract.CommandRegistry();
       this.#commandContract = commandContract;
+      this.#composeMiddleware = composeMiddleware;
       this.#bindFileOutputBudget = bindFileOutputBudget;
     })).then(setup);
     this.#ready.catch(() => {});
@@ -2266,10 +2302,16 @@ export class RustWasmBash extends WasmShell {
     if (this.companionFactory) {
       this.forceNative = false;
       this._getOrCreateCompanionSync().shell.use(plugin);
+    } else if (typeof plugin === "function") {
+      this.#install(()=>{this.#middleware.push(plugin);});
     } else {
       if (typeof plugin?.setup !== "function") throw new TypeError("Expected a shell plugin with setup");
       this.#install(async () => {
-        await plugin.setup({commands:this.#commands, registerFileSystem:(scheme, factory) => this.#registerFileSystem(scheme, factory),
+        await plugin.setup({commands:this.#commands, use: middleware => {
+          if (this.#pluginLifetime.signal.aborted) throw new Error("Shell is disposed");
+          if (typeof middleware !== "function") throw new TypeError("Expected middleware function");
+          this.#middleware.push(middleware);
+        }, registerFileSystem:(scheme, factory) => this.#registerFileSystem(scheme, factory),
           provideCapabilities: defaults => {
             if (this.#pluginLifetime.signal.aborted) throw new Error("Shell is disposed");
             this.#providedCapabilities = {...this.#providedCapabilities,...defaults};
@@ -2390,6 +2432,7 @@ export class RustWasmBash extends WasmShell {
         for (const plugin of this.#plugins.splice(0).reverse()) {
           try { await plugin.dispose?.(); } catch (error) { failures.push(error); }
         }
+        this.#middleware.length = 0;
         this.#providedCapabilities = undefined;
         this.#filesystems.clear();
         this.#identityScopes.clear();

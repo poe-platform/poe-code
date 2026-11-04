@@ -106,6 +106,11 @@ impl Shell {
         &self.limits
     }
 
+    /// Intercept command dispatch, including shell functions and nested invocations.
+    pub fn set_middleware(&mut self, handler: RustCommand) {
+        self.backend.middleware = Some(handler);
+    }
+
     pub fn register_command(&mut self, name: impl Into<String>, cmd: RustCommand) {
         self.backend.register_command(name, cmd);
     }

@@ -49,11 +49,25 @@ fn field(packet: &mut &[u8]) -> Result<String, String> {
     Ok(bytes_to_stream_string(packet.split_off(..n).ok_or("Truncated child field")?))
 }
 
-fn invoke_child(ctx: &crate::CommandContext<'_>, mut request: &[u8]) -> Result<(i32, Vec<u8>, usize), String> {
+fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middleware_input:&mut Option<String>) -> Result<(i32, Vec<u8>, usize), String> {
     let flags = word(&mut request)?;
+    if flags == 132 {
+        let input = middleware_input.as_mut().ok_or("No middleware input")?;
+        return Ok((0,ctx.read_middleware_input(input)?,0));
+    }
+    if flags == 64 {
+        let input = middleware_input.as_mut().ok_or("No command to continue")?;
+        let result = ctx.proceed(input)?;
+        return Ok(child_result(result,0));
+    }
+    if (128..=131).contains(&flags) {
+        let data = bytes_to_stream_string(request);
+        ctx.write_middleware_output(1 + (flags & 1), &data, if flags & 2 != 0 {request.len()} else {0})?;
+        return Ok((0,Vec::new(),0));
+    }
     let argc = word(&mut request)? as usize;
     let envc = word(&mut request)? as usize;
-    if flags & !63 != 0 || argc > request.len()/4 || envc > request.len()/8 {
+    if flags & !319 != 0 || argc > request.len()/4 || envc > request.len()/8 {
         return Err("Invalid child request".into());
     }
     let name = field(&mut request)?;
@@ -63,17 +77,24 @@ fn invoke_child(ctx: &crate::CommandContext<'_>, mut request: &[u8]) -> Result<(
     let env = (0..envc).map(|_| Ok((field(&mut request)?,field(&mut request)?))).collect::<Result<_,String>>()?;
     let mut stdin = field(&mut request)?;
     if !request.is_empty() { return Err("Trailing child request bytes".into()); }
+    let input = if flags & 256 != 0 {
+        middleware_input.as_mut().ok_or("No middleware input")?
+    } else { &mut stdin };
     let result = ctx.invoke(&name,&args,crate::InvokeOptions {
         cwd:cwd.as_deref(), argv0:argv0.as_deref(), env, replace_env:flags & 4 != 0,
-        external_invocation:flags & 8 != 0, stdin_is_default:flags & 16 != 0, merge_stderr:flags & 32 != 0,
-    }, &mut stdin)?;
-    let mut response = (crate::vfs::stream_byte_len(&stdin) as u32).to_le_bytes().to_vec();
+        external_invocation:flags & 8 != 0, stdin_is_default:flags & 16 != 0, merge_stderr:flags & 32 != 0, inherit_stdin:flags & 256 != 0,
+    }, input)?;
+    Ok(child_result(result,crate::vfs::stream_byte_len(input)))
+}
+
+fn child_result(result:crate::shell::builtins::BuiltinOutcome, remaining:usize) -> (i32,Vec<u8>,usize) {
+    let mut response = (remaining as u32).to_le_bytes().to_vec();
     for stream in [result.stdout,result.stderr] {
         response.extend_from_slice(&(crate::vfs::stream_byte_len(&stream) as u32).to_le_bytes());
         response.extend_from_slice(&stream_string_to_bytes(&stream));
     }
     let credit = response.len() - 12;
-    Ok((result.exit_code,response,credit))
+    (result.exit_code,response,credit)
 }
 
 /// Register a Wasm host function with the Rust evaluator. Forks inherit the registration.
@@ -91,7 +112,20 @@ pub unsafe extern "C" fn safe_bash_register_command(
     if name.is_empty() || name.contains(|c: char| c.is_whitespace() || matches!(c, '/' | '\0' | '\u{feff}')) { return -1; }
     let Ok(mut sessions) = sessions().lock() else { return -1 };
     let Some(session) = sessions.get_mut(&id) else { return -1 };
-    session.shell.register_command(crate::vfs::shell_text(name), Arc::new(move |ctx| {
+    session.shell.register_command(crate::vfs::shell_text(name), host_handler(invoke,false));
+    0
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_register_middleware(id:u32, invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -> i32) -> i32 {
+    let Ok(mut sessions) = sessions().lock() else { return -1 };
+    let Some(session) = sessions.get_mut(&id) else { return -1 };
+    session.shell.set_middleware(host_handler(invoke,true));
+    0
+}
+
+fn host_handler(invoke: unsafe extern "C" fn(*const u8, usize, *mut HostReply) -> i32, middleware:bool) -> crate::backend::RustCommand {
+    Arc::new(move |ctx| {
         let mut packet = Vec::new();
         packet.extend_from_slice(&(ctx.args.len() as u32).to_le_bytes());
         packet.extend_from_slice(&0u32.to_le_bytes());
@@ -102,6 +136,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
             packet.extend_from_slice(&bytes);
         };
         field(ctx.cwd);
+        if middleware { field(ctx.command); }
         if let Some(argv0) = ctx.argv0 { field(argv0); }
         for arg in ctx.args { field(arg); }
         let mut envc = 0u32;
@@ -110,7 +145,8 @@ pub unsafe extern "C" fn safe_bash_register_command(
         }
         packet[4..8].copy_from_slice(&envc.to_le_bytes());
         let input_start = packet.len();
-        packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
+        let mut middleware_input = middleware.then(||ctx.stdin.to_owned());
+        if !middleware { packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin)); }
         let umask = ctx.env.get("\0umask").and_then(|mask| u32::from_str_radix(mask, 8).ok()).unwrap_or(0o022);
         let mut child_status = -1;
         let mut response = Vec::new();
@@ -147,7 +183,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
             let reserved = reply.output_credit[0].saturating_add(reply.output_credit[1]);
             (child_status,response) = match ctx.budget.charge_fs_ops(reply.used_fs_ops)
                 .and_then(|()| ctx.budget.add_output_bytes(reserved))
-                .and_then(|()| { charged += reserved; invoke_child(ctx,&request) }) {
+                .and_then(|()| { charged += reserved; invoke_child(ctx,&request,&mut middleware_input) }) {
                 Ok((code, bytes, credit)) => { charged += credit; (code,bytes) }
                 Err(e) => (-2,e.into_bytes()),
             };
@@ -159,7 +195,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
             return Err("Host output credit exceeds charged bytes".into());
         }
         ctx.forwarded = (out,err);
-        if reply.consumed != 0 {
+        if middleware { ctx.unread_stdin = middleware_input; } else if reply.consumed != 0 {
             let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
         }
@@ -179,6 +215,5 @@ pub unsafe extern "C" fn safe_bash_register_command(
             exit_code: code, stdout: bytes_to_stream_string(&stdout), stderr: bytes_to_stream_string(&stderr),
             cwd: ctx.cwd.clone(), env: ctx.env.clone(),
         })
-    }));
-    0
+    })
 }

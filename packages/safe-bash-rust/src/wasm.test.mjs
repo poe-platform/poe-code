@@ -6601,6 +6601,74 @@ test("zip validates literal -TT arguments even without an integrity test",async(
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip -TT invokes the checker on a private readable archive before replacing or moving anything",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const reference=new MemoryFileSystem();
+  for(const [sh,supplied] of [[new Shell({cwd:"/",fs:reference}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
+    const fs=supplied??sh.fs,run=script=>sh.exec(script,{fs}),move=!supplied || supplied===reference?"m":"";
+    const calls=[];
+    sh.register({name:"checkzip",async execute(ctx){
+      const path=ctx.args.at(-1),data=await ctx.fs.readFile(path);
+      calls.push([ctx.args.slice(0,-1).map(w=>w.replaceAll(path,"{}")),path,[...data.slice(0,4)]]);
+      await ctx.stdout.write(Uint8Array.of(97));await ctx.stderr.write(Uint8Array.of(98));
+      return {exitCode:ctx.args[0]==="fail"?3:0};
+    }});
+    try{
+      await fs.writeFile("/original",Uint8Array.of(8));await fs.writeFile("/src",Uint8Array.of(3));
+      const seed=await run("zip -q work.zip original");assert.equal(seed.exitCode,0,seed.stderr);
+      const old=await fs.readFile("/work.zip"),names=async()=>(await fs.readdir("/")).map(e=>e.name).sort(),before=await names();
+      const fail=await run("zip -qT"+move+" -TT 'checkzip fail' work.zip src");
+      assert.deepEqual([fail.exitCode,fail.stdout,fail.stderr],[8,"\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n",""]);
+      assert.deepEqual(await fs.readFile("/work.zip"),old);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(3));
+      const ok=await run(`zip -qT --unzip-command="checkzip 'a b' '' {}:{} {}" work.zip src`);
+      assert.deepEqual([ok.exitCode,ok.stdout,ok.stderr],[0,"",""]);
+      assert.deepEqual(calls.map(([args,,magic])=>[args,magic]),[[["fail"],[80,75,3,4]],[["a b","","{}:{}"],[80,75,3,4]]]);
+      for(const [,path] of calls){assert.notEqual(path,"/work.zip");await assert.rejects(async()=>fs.readFile(path));}
+      assert.deepEqual((await run("unzip -p work.zip src")).stdoutBytes,Uint8Array.of(3));
+      const tested=await run("zip -qT -TT 'unzip -tqq {}' work.zip original");
+      assert.deepEqual([tested.exitCode,tested.stdout,tested.stderr],[0,"",""]);
+      assert.deepEqual(await names(),before);
+    }finally{await sh.dispose();}
+  }
+});
+
+test("zip tests a staged archive in overlay and mounted memory profiles",async()=>{
+  for(const profile of ["overlay-cow-fs","strict-budgets-mount-dev"]){
+    const sh=new RustWasmBash({cwd:"/",profile,files:{"/dir/src":"abc"}});
+    try{
+      const r=await sh.exec("zip -qT /dir/work.zip /dir/src");assert.equal(r.exitCode,0,profile+": "+r.stderr);
+      assert.equal((await sh.exec("unzip -p /dir/work.zip")).stdout,"abc");
+    }finally{await sh.dispose();}
+  }
+});
+
+test("zip -T dispatches a replacement unzip and retains competing writes",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const reference=new MemoryFileSystem();
+  for(const [sh,supplied] of [[new Shell({cwd:"/",fs:reference}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
+    const fs=supplied??sh.fs,run=script=>sh.exec(script,{fs}),move=!supplied || supplied===reference?"m":"";
+    const competitor=Uint8Array.of(85);
+    let target,staged;
+    sh.register({name:"unzip",async execute(ctx){
+      assert.equal(ctx.args[0],"-tqq");staged=ctx.args[1];
+      await ctx.fs.writeFile(target==="destination"?"/work.zip":staged,competitor);
+      return {exitCode:0};
+    }},{replace:true});
+    try{
+      for(target of ["destination","stage"]){
+        await fs.writeFile("/src",Uint8Array.of(4));
+        const r=await run("zip -qT"+move+" work.zip src");
+        assert.notEqual(r.exitCode,0,sh.constructor.name+" "+target+" "+staged);assert.ok(staged,sh.constructor.name+" "+r.stderr+" "+r.stdout);
+        assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(4));
+        if(target==="destination"){
+          assert.deepEqual(await fs.readFile("/work.zip"),competitor);
+          await fs.unlink("/work.zip");await assert.rejects(async()=>fs.readFile(staged));
+        }else{await assert.rejects(async()=>fs.readFile("/work.zip"));assert.deepEqual(await fs.readFile(staged),competitor);}
+      }
+    }finally{await sh.dispose();}
+  }
+});
+
 test("zip -T verifies the resulting members before publication and before moving sources",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(37)}})),rust=new RustWasmBash({cwd:"/"});

@@ -335,6 +335,21 @@ impl SafeBashFs for MountVfs {
         if version != self.generation() { return Err("EAGAIN: filesystem changed before replacement".into()); }
         fs.replace_file_entry(&rel, data, local_version)
     }
+    fn validate_staged_file(&self, destination: &str, bytes: &[u8], stamp: u64,
+        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
+        let dest=self.resolve(destination,false,WalkPurpose::AllowMissingParents)?;
+        let (mount,fs,local)=self.location(&dest);
+        let version=fs.generation();
+        if self.generation()!=stamp { return Err("EAGAIN: filesystem changed before staging".into()); }
+        let (valid,next)=fs.validate_staged_file(&local,bytes,version,&mut |path|{
+            let full=format!("{}{path}",mount.trim_end_matches('/'));
+            self.location(&full).0==mount && check(&full)
+        })?;
+        let mut delta=next.wrapping_sub(version);
+        for _ in self.mounts.keys().filter(|m| mount=="/" || m.as_str()>mount) {delta=delta.wrapping_mul(31);}
+        Ok((valid,stamp.wrapping_add(delta)))
+    }
+
     fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {
         let Some((first, _, _)) = files.first() else { return Ok(()); };
         let (backend, _) = self.route(first, false)?;

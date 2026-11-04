@@ -992,6 +992,11 @@ where
     let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
         exec_sub(words, &mut input.to_owned(), cwd, env, ChildIo::Capture).unwrap_or_else(std::convert::identity)
     };
+    if cmd == "zip" {
+        return Ok(Some(archive::cmd_zip(args, stdin, cwd, fs, &mut |words| {
+            exec_with_copy(words, "", &mut cwd.clone(), &mut env.clone()).exit_code == 0
+        })));
+    }
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Ok(Some(res));
     }

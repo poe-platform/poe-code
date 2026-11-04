@@ -396,6 +396,13 @@ impl SafeBashFs for HostFs {
         );
         Ok(Some(std::rc::Rc::new(HostDescriptor { fs: *self, id })))
     }
+    fn validate_staged_file(&self, path: &str, bytes: &[u8], stamp: u64,
+        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
+        let file = self.request("stageForTest", path, bytes, stamp as u32, 0)?;
+        let file = std::str::from_utf8(&file).map_err(|_| "EIO: invalid staging path")?;
+        let valid = check(file);
+        Ok((valid,stamp))
+    }
     fn observe_publication(
         &self,
         path: &str,

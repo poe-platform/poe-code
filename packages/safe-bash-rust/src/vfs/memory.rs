@@ -486,6 +486,24 @@ impl MemoryVfs {
         }
     }
 
+    pub(super) fn check_in_owned_stage(&self, parent: &str, bytes: &[u8], stamp: u64,
+        available: impl Fn(&str) -> Result<bool,String>, check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
+        let stat = self.lstat(parent)?;
+        for _ in 0..32 {
+            let seq = NEXT_PUBLICATION.fetch_add(1, Ordering::Relaxed);
+            let dir = format!("{}/.safe-bash-stage-{seq}", parent.trim_end_matches('/'));
+            if !available(&dir)? { continue; }
+            let entries = match self.create_owned_stage(&dir, "archive.zip", StageContent::File(bytes), &stat, 0o600, [None;2]) {
+                Err(e) if e.starts_with("EEXIST:") => continue,
+                result => result?,
+            };
+            let valid = self.generation() == stamp.wrapping_add(1) && check(&entries[2].0);
+            self.finish_owned_stage(entries.each_ref().map(|(p,s)| (p.as_str(),s)), StageAction::Remove { retained:true })?;
+            return Ok((valid, stamp.wrapping_add(2)));
+        }
+        Err("EEXIST: no available staging path".into())
+    }
+
     fn bump_generation(&self) {
         self.generation.fetch_add(1, Ordering::Relaxed);
     }
@@ -1536,6 +1554,12 @@ impl SafeBashFs for MemoryVfs {
         }
         self.bump_generation();
         Ok(self.generation())
+    }
+
+    fn validate_staged_file(&self, destination: &str, bytes: &[u8], stamp: u64,
+        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool, u64), String> {
+        let parent = self.access_path(&super::dirname_posix_path(destination), true)?;
+        self.check_in_owned_stage(&parent,bytes,stamp, |_| Ok(true),check)
     }
 
     fn replace_file_batch(&self, mut files: Vec<(String, Vec<u8>, u32)>, version: u64) -> Result<(), String> {

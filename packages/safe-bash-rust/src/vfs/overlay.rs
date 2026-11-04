@@ -571,6 +571,20 @@ impl SafeBashFs for OverlayVfs {
         self.copy_up_directories(&parent, || upper.install_overlay_batch(lower,versions,files,parents))
     }
 
+    fn validate_staged_file(&self, destination: &str, bytes: &[u8], stamp: u64,
+        check: &mut dyn FnMut(&str) -> bool) -> Result<(bool,u64),String> {
+        let upper=self.upper.memory_backend().ok_or("ENOTSUP: owned validation staging unavailable")?;
+        let version=upper.generation();
+        if self.generation()!=stamp { return Err("EAGAIN: filesystem changed before staging".into()); }
+        let mut parent=self.access_path(&super::dirname_posix_path(destination),true)?;
+        // A lower-only parent does not need to be copied up just to test bytes.
+        while parent!="/" && !upper.exists(&parent) { parent=super::dirname_posix_path(&parent); }
+        let (valid,next)=upper.check_in_owned_stage(&parent,bytes,version,|dir| match self.lstat(dir) {
+            Ok(_) => Ok(false), Err(e) if e.starts_with("ENOENT:") => Ok(!self.is_deleted(dir)), Err(e) => Err(e),
+        },check)?;
+        Ok((valid,stamp.wrapping_add(next.wrapping_sub(version))))
+    }
+
     fn replace_file_entry_with_metadata(&self, path: &str, data: &[u8], mode: u32, times: (Option<f64>, Option<f64>), version: u64) -> Result<(), String> {
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
         if [times.0, times.1].into_iter().flatten().any(|t| !t.is_finite()) { return Err("EINVAL: invalid file timestamp".into()); }

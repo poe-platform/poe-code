@@ -185,27 +185,34 @@ function bindExternalFs(shell,fs,options) {
   freeCommandSlots.set(x,free);
   const slot=free.pop() ?? table.grow(1), handles=new Map(), publications=new Map(), closeErrors=[];
   let nextHandle=1;
+  const discardTestStage=async obs=>{
+    const stage=obs.testStage;
+    if(!stage)return;
+    delete obs.testStage;
+    try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}
+  };
   const release=async()=>{
     table.set(slot,null);free.push(slot);
-    const closed=await Promise.allSettled([...handles.values()].map(h=>h.close()));
+    const closed=await Promise.allSettled([...Array.from(publications.values(),discardTestStage),...Array.from(handles.values(),h=>h.close())]);
     for(const r of closed)if(r.status==="rejected")closeErrors.push(r.reason);
     if(closeErrors.length===1)throw closeErrors[0];
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
   const statBytes=s=>new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
               s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
-  const stageOutput=async(view,path,content,guard,metadata,writeStage)=>{
+  const createStage=async(view,path,content,guard,metadata,name="file")=>{
     const settings={signal:options.signal}, parentDir=path.slice(0,path.lastIndexOf("/"));
-    let stage;
     for(let attempt=0;;attempt++){
       try{
         const temporary=parentDir+"/.safe-bash-stage-"+nextHandle++;
         if(temporary===path)continue;
-        stage=await view.createStagedFile(temporary,"file",content,
+        return await view.createStagedFile(temporary,name,content,
           {...settings,retainCleanup:true,...metadata,parent:guard.parent});
-        break;
       }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
     }
+  };
+  const stageOutput=async(view,path,content,guard,metadata,writeStage)=>{
+    const settings={signal:options.signal},stage=await createStage(view,path,content,guard,metadata);
     try{
       if(writeStage){
         if(!stage.writer)throw fsOperationError("ENOTSUP","createStagedFile",path);
@@ -244,7 +251,11 @@ function bindExternalFs(shell,fs,options) {
             await writer.write(bytes,settings);
           }
         } : undefined;
-        if(op==="forgetPublication"){publications.delete(flags);return;}
+        if(op==="forgetPublication"){
+          const obs=publications.get(flags);
+          if(obs?.testStage)await discardTestStage(obs);
+          publications.delete(flags);return;
+        }
         if(op!=="close" && op!=="removePublished")options.signal?.throwIfAborted();
         if(op==="namespace"){
           const root=selectNamespace(path);
@@ -390,6 +401,15 @@ function bindExternalFs(shell,fs,options) {
           publications.set(id,{path,parent,expected,write});
           new DataView(result.buffer).setUint32(0,id,true);return;
         }
+        if(op==="stageForTest"){
+          const obs=publications.get(flags),r=obs?.resolution;
+          if(!r || path!==obs.path || obs.testStage)throw fsOperationError("ENOTSUP",op,path);
+          r.validate();
+          const stage=await createStage(fs,r.path,{type:"file",data},r,{mode:r.destination?r.destination.mode&0o7777:0o644},"archive.zip");
+          obs.testStage=stage;
+          if(stage.writer)obs.testStage={...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}};
+          result=encoder.encode(stage.file.path);return;
+        }
         if(op==="replaceEntry" || op==="publish" && publications.get(flags)?.resolution){
           const obs=publications.get(flags);
           if(!obs?.resolution || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
@@ -400,13 +420,15 @@ function bindExternalFs(shell,fs,options) {
             if(!r.destination || r.destination.nlink<=1)throw fsOperationError("EAGAIN",op,path);
             if(!obs.write)throw fsOperationError("ENOTSUP",op,path);
             if(!obs.stagedMutation){
-              if(!fs.confineExtraction)throw fsOperationError("ENOTSUP",op,path);
+              if(obs.testStage || !fs.confineExtraction)throw fsOperationError("ENOTSUP",op,path);
               const confined=await fs.confineExtraction([r.path.slice(0,r.path.lastIndexOf("/"))||"/"],{...settings,commitGuard:r.validate});
               await confined.writeFileConditional(r.path,data,{...settings,parent:r.parent,expected:r.destination});return;
             }
           }
-          await stageOutput(fs,r.path,{type:"file",data:chunked?new Uint8Array():data},{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
-            ...(inPlace && {preserveIdentity:true})},{mode:inPlace?r.destination.mode&0o7777:mode},writeStage);
+          const guard={parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
+            ...(inPlace && {preserveIdentity:true})};
+          if(obs.testStage)await fs.publishStagedFile(obs.testStage,r.path,{...settings,...guard});
+          else await stageOutput(fs,r.path,{type:"file",data:chunked?new Uint8Array():data},guard,{mode:inPlace?r.destination.mode&0o7777:mode},writeStage);
           return;
         }
         if(op==="publicationAlias"){

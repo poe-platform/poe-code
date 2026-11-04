@@ -201,13 +201,10 @@ pub(super) fn cmd_mv(
     if eff_operands.len() < 2 {
         return err_out("mv: missing operand\n", 2);
     }
-    let absolute = |path: &str| {
-        if path.is_empty() { return Err("mv: ENOENT: no such file or directory ''\n"); }
-        if path.contains('\0') { return Err("mv: EINVAL: paths must be strings without NUL bytes, resolve\n"); }
-        Ok(crate::vfs::path::absolute_operand(cwd,path))
-    };
     let dst_raw = eff_operands.last().unwrap();
-    let dst_base = match absolute(dst_raw) { Ok(p) => p, Err(e) => return err_out(e,1) };
+    let dst_base = match command_operand(cwd,dst_raw) {
+        Ok(p) => p, Err(e) => return err_out(&format!("mv: {e}\n"),1),
+    };
     let inspect_dest = |follow| {
         let op = if follow { "stat" } else { "lstat" };
         fs.inspect_command_entry(&dst_base, follow, op)
@@ -266,7 +263,7 @@ pub(super) fn cmd_mv(
     let mut answers = PromptAnswers::new(stdin);
 
     let paths = |src_raw: &str| {
-        let src = absolute(src_raw)?;
+        let src = command_operand(cwd,src_raw)?;
         let name = basename_posix_path(&src);
         let target = if dst_is_dir {
             child_disp_path(&dst_base, &name)
@@ -347,7 +344,7 @@ pub(super) fn cmd_mv(
     for src_raw in sources {
         let (src, name, target) = match paths(src_raw) {
             Ok(paths) => paths,
-            Err(e) => { stderr.push_str(e); code = 1; continue; }
+            Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; }
         };
         let disp_target = if dst_is_dir {
             child_disp_path(dst_raw, &name)

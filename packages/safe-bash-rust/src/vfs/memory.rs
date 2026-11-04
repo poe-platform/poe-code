@@ -1613,6 +1613,8 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
+        if target.is_empty() { return Err("ENOENT: no such file or directory, symlink ''".into()); }
+        if target.contains('\0') { return Err(format!("EINVAL: invalid argument, symlink '{target}'")); }
         let norm = normalize_posix_path(path);
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{norm}'")); }

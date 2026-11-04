@@ -64,6 +64,12 @@ fn err_out(stderr: &str, exit_code: i32) -> BuiltinOutcome {
     }
 }
 
+fn command_operand(cwd: &str, path: &str) -> Result<String,&'static str> {
+    if path.is_empty() { return Err("ENOENT: no such file or directory ''"); }
+    if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve"); }
+    Ok(absolute_operand(cwd,path))
+}
+
 fn natural_version_cmp(a: &str, b: &str) -> std::cmp::Ordering {
     let ab = a.as_bytes();
     let bb = b.as_bytes();
@@ -2008,7 +2014,9 @@ fn cmd_ln(
     };
 
     let last_op = eff_operands.last().unwrap();
-    let target_operand = absolute_operand(cwd, last_op);
+    let target_operand = match command_operand(cwd,last_op) {
+        Ok(p) => p, Err(e) => return err_out(&format!("ln: {e}\n"),1),
+    };
     let follow_dir = target_dir.is_some() || !no_deref;
     let operation = if symbolic { "symlink" } else { "link" };
     let target_base = match fs.access_path(&target_operand, false) {
@@ -2055,9 +2063,15 @@ fn cmd_ln(
         } else {
             last_op.clone()
         };
-        let operand = absolute_operand(cwd, src_op);
         let existing = fs.lstat(&link_path).ok();
         let replacing = existing.is_some() && (force || interactive || backup_mode != BackupMode::None);
+        let operand = if !symbolic || replacing {
+            match command_operand(cwd,src_op) {
+                Ok(p) => p, Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
+            }
+        } else if relative && src_op.is_empty() {
+            cwd.to_owned()
+        } else { absolute_operand(cwd,src_op) };
         let (src_full, source_stat) = if symbolic { (operand, None) } else {
             let syscall = if logical { "realpath" } else if replacing { "lstat" } else { "link" };
             match fs.inspect_command_entry(&operand, logical, syscall) {
@@ -2082,7 +2096,9 @@ fn cmd_ln(
             Some(relative_posix_path(&crate::vfs::dirname_posix_path(&link_path), &target))
         } else { None };
         let mut moved_backup = None;
-        if let Some(existing) = existing {
+        // With no replacement requested the symlink syscall validates its text
+        // before reporting a name collision, even when the text is empty.
+        if let Some(existing) = existing.filter(|_| replacing || !symbolic || relative || !src_op.is_empty()) {
             let src_entry = fs.access_path(&src_full, false);
             if (force || interactive || backup_mode != BackupMode::None)
                 && src_entry.is_ok_and(|src| fs.access_path(&link_path, false).is_ok_and(|dst| src == dst)) {
@@ -6233,6 +6249,27 @@ mod tests {
         assert_eq!(result.stderr, "mv: ENOTEMPTY: directory not empty, rename '/tree' -> '/dir/tree'\n");
         assert_eq!(fs.read_file("/tree/file").unwrap(), b"source");
         assert_eq!(fs.read_file("/dir/tree/file").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn ln_does_not_unlink_or_back_up_files_for_an_empty_symbolic_source() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w").unwrap();
+        fs.write_file("/existing",b"keep").unwrap();
+        for options in ["-sf","-sb","-si","-srf"] {
+            let r = try_run_fs_command("ln",&args(&[options,"","/existing"]),"y\n","/w",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!((r.exit_code,r.stderr.as_str()),(1,"ln: ENOENT: no such file or directory ''\n"));
+            assert_eq!(fs.read_file("/existing").unwrap(),b"keep");
+            assert!(!fs.exists("/existing~"));
+        }
+        for dest in ["/out","/existing"] {
+            let r = try_run_fs_command("ln",&args(&["-s","",dest]),"","/w",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!((r.exit_code,r.stderr.as_str()),(1,"ln: ENOENT: no such file or directory, symlink ''\n"));
+        }
+        assert!(fs.lstat("/out").is_err());
+        let r = try_run_fs_command("ln",&args(&["-sr","","/out"]),"","/w",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,0);
+        assert_eq!(fs.readlink("/out").unwrap(),"w");
     }
 
     #[test]

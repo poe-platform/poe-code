@@ -478,6 +478,8 @@ impl SafeBashFs for RealVfs {
         Ok(entries)
     }
 
+    fn supports_symbolic_links(&self, _entry: &str) -> bool { cfg!(unix) }
+
     fn supports_hard_links(&self, _path: &str) -> bool { true }
 
     fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {

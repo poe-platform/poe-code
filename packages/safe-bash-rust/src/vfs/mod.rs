@@ -483,6 +483,7 @@ pub trait SafeBashFs: Send + Sync {
             Ok((name, mode & 0o170000))
         }).collect()
     }
+    fn supports_symbolic_links(&self, _entry: &str) -> bool { true }
     fn supports_hard_links(&self, _path: &str) -> bool { false }
     /// Create a second name for the source inode without following its final symlink.
     fn hard_link(&self, _source: &str, _destination: &str) -> Result<(), String> {

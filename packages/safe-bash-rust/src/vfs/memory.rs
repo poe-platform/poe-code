@@ -1594,6 +1594,10 @@ impl SafeBashFs for MemoryVfs {
         Ok(children)
     }
 
+    fn supports_symbolic_links(&self, entry: &str) -> bool {
+        self.state.read().is_ok_and(|s| s.devices != Devices::Mounted && s.devices.entry(entry).is_none())
+    }
+
     fn supports_hard_links(&self, path: &str) -> bool {
         self.state.read().is_ok_and(|s| s.devices != Devices::Mounted && !s.devices.protects_hard_link(path))
     }

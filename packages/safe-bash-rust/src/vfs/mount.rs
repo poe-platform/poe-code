@@ -510,6 +510,11 @@ impl SafeBashFs for MountVfs {
         Ok(entries)
     }
 
+    fn supports_symbolic_links(&self, entry: &str) -> bool {
+        let (_, fs, local) = self.location(entry);
+        fs.supports_symbolic_links(&local)
+    }
+
     fn supports_hard_links(&self, path: &str) -> bool {
         self.route(path, false).is_ok_and(|(fs, local)| fs.supports_hard_links(&local))
     }

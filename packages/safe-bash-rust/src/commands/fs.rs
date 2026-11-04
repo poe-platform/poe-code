@@ -2048,10 +2048,15 @@ fn cmd_ln(
         return err_out(&format!("ln: ENOTDIR: not a directory '{target_operand}'\n"), 1);
     }
 
-    if !symbolic {
-        for operand in &eff_operands[..eff_operands.len()-1] {
-            let dst = directory.as_ref().map_or_else(|| target_base.clone(), |d| child_disp_path(d, &basename_posix_path(operand)));
-            if !fs.supports_hard_links(&dst) { return err_out(&format!("ln: ENOTSUP: operation not supported, ln '{dst}'\n"), 1); }
+    for operand in &eff_operands[..eff_operands.len()-1] {
+        let dst = directory.as_ref().map_or_else(|| target_base.clone(), |d| child_disp_path(d, &basename_posix_path(operand)));
+        let supported = if symbolic {
+            let entry = fs.access_path(&dst, true).unwrap_or_else(|_| dst.clone());
+            fs.supports_symbolic_links(&entry)
+        } else { fs.supports_hard_links(&dst) };
+        if !supported {
+            let label = if directory.is_some() { child_disp_path(&target_operand, &basename_posix_path(operand)) } else { target_operand.clone() };
+            return err_out(&format!("ln: ENOTSUP: operation not supported, ln '{label}'\n"), 1);
         }
     }
     let mut stdout = String::new();
@@ -6274,6 +6279,26 @@ mod tests {
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/w/a").unwrap(),b"A");
             assert!(!fs.exists("/copy"));
+        }
+    }
+
+    #[test]
+    fn ln_admits_all_symbolic_destinations_before_replacement_or_prompting() {
+        let fs = MemoryVfs::new();
+        fs.symlink("/dev/null", "/alias").unwrap();
+        fs.symlink("/dev", "/devices").unwrap();
+        for (operands, destination) in [
+            (vec!["-sf", "", "/dev/null"], "/dev/null"),
+            (vec!["-si", "new", "/alias"], "/alias"),
+            (vec!["-sb", "new", "/devices/null"], "/devices/null"),
+            (vec!["-s", "first", "null", "/dev"], "/dev/null"),
+        ] {
+            let r = try_run_fs_command("ln", &args(&operands), "y\n", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code, 1);
+            assert_eq!(r.stderr, format!("ln: ENOTSUP: operation not supported, ln '{destination}'\n"));
+            assert_eq!(fs.readlink("/alias").unwrap(), "/dev/null");
+            assert!(fs.lstat("/dev/first").is_err());
+            assert!(fs.lstat("/dev/null~").is_err());
         }
     }
 

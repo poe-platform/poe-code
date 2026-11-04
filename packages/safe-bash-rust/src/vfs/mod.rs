@@ -201,6 +201,18 @@ pub struct RedirectCharge(pub(crate) usize);
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum RmdirSupport { Available, Unsupported, InspectDirectory }
 
+/// Keep a host's destination and parent observations alive until publication or rollback.
+pub struct PublicationStamp {
+    pub version:u64,
+    release:Option<Box<dyn FnOnce()>>,
+}
+impl PublicationStamp {
+    pub(crate) fn new(version:u64, release:Option<Box<dyn FnOnce()>>) -> Self { Self {version,release} }
+}
+impl Drop for PublicationStamp {
+    fn drop(&mut self) { if let Some(release)=self.release.take() {release();} }
+}
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -444,6 +456,9 @@ pub trait SafeBashFs: Send + Sync {
     /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
     fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {
         Err("ENOTSUP: retained file replacement is unsupported".into())
+    }
+    fn observe_publication(&self, _path:&str, generation:u64, _cleanup:bool)->Result<PublicationStamp,String> {
+        Ok(PublicationStamp::new(generation,None))
     }
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.
     fn publish_file(&self, _path: &str, _data: &[u8], _inputs: &[String], _version: u64) -> Result<u64, String> {

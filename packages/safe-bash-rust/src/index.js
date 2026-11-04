@@ -175,7 +175,7 @@ function bindExternalFs(shell,fs,options) {
   const x=shell.exports, table=x.__indirect_function_table, top=x.__stack_pointer.value;
   const free=freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x,free);
-  const slot=free.pop() ?? table.grow(1), handles=new Map(), closeErrors=[];
+  const slot=free.pop() ?? table.grow(1), handles=new Map(), publications=new Map(), closeErrors=[];
   let nextHandle=1;
   const release=async()=>{
     table.set(slot,null);free.push(slot);
@@ -196,7 +196,49 @@ function bindExternalFs(shell,fs,options) {
         const field=at=>new Uint8Array(x.memory.buffer,word(at),word(at+4));
         const op=decoder.decode(field(0)), path=decoder.decode(field(8)), data=field(16).slice();
         const flags=word(24), mode=word(28), settings={signal:options.signal};
-        if(op!=="close")options.signal?.throwIfAborted();
+        if(op==="forgetPublication"){publications.delete(flags);return;}
+        if(op!=="close" && op!=="removePublished")options.signal?.throwIfAborted();
+        if(op==="observePublication"){
+          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,create:true}):fs.capabilities;
+          const write=caps?.atomicFileMutation && typeof fs.writeFileConditional==="function";
+          const stream=caps?.atomicFilePublication && typeof fs.publishFileConditional==="function";
+          result=new Uint8Array(4);
+          if(flags ? !write || typeof fs.removeFileConditional!=="function" : !write && !stream)return;
+          const parent=await fs.stat(path.slice(0,path.lastIndexOf("/"))||"/",settings);
+          let expected;
+          try{expected=await fs.lstat(path,settings);}catch(error){if(error?.code!=="ENOENT")throw error;expected=null;}
+          if(expected && expected.type!=="file")throw fsOperationError("EINVAL","publish",path);
+          const id=nextHandle++;
+          publications.set(id,{path,parent,expected,write});
+          new DataView(result.buffer).setUint32(0,id,true);return;
+        }
+        if(op==="publicationAlias"){
+          const observation=publications.get(flags), dst=observation.expected;
+          let distinct=!dst;
+          if(dst){
+            if(typeof fs.compareEntry==="function")distinct=(await fs.compareEntry(path,fs,observation.path,settings))==="distinct";
+            else {
+              const src=await fs.stat(path,settings);
+              distinct=src.identityScope!==undefined && src.identityScope===dst.identityScope && (
+                (src.opaqueIdentity!==undefined && dst.opaqueIdentity!==undefined && src.opaqueIdentity!==dst.opaqueIdentity) ||
+                (src.dev!==undefined && dst.dev!==undefined && src.ino!==undefined && dst.ino!==undefined && (src.dev!==dst.dev || src.ino!==dst.ino)));
+            }
+          }
+          result=Uint8Array.of(Number(!distinct));return;
+        }
+        if(op==="publish" || op==="removePublished"){
+          const obs=publications.get(flags);
+          if(!obs || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
+          const guard={parent:obs.parent,expected:obs.expected};
+          if(op==="publish"){
+            obs.expected=obs.write?await fs.writeFileConditional(path,data,{...guard,...settings})
+              :await fs.publishFileConditional(path,(async function*(){yield data;})(),{...guard,...settings,maxBytes:data.length});
+          }else{
+            try{await fs.removeFileConditional(path,guard);result=Uint8Array.of(1);}
+            catch(error){if(error?.code!=="ENOENT" && error?.code!=="EAGAIN")throw error;result=Uint8Array.of(0);}
+          }
+          return;
+        }
         const h=handles.get(flags);
         if(op==="close"){
           handles.delete(flags);

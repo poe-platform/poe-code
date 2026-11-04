@@ -6207,6 +6207,61 @@ test("command output on a supplied filesystem preserves creation and existing mo
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("supplied filesystems publish rendered files against their original destination and parent",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const enc=new TextEncoder(),fs=new MemoryFileSystem(),shell=new RustWasmBash({cwd:"/"});
+  await fs.writeFile("/in",enc.encode("graph TD; A-->B;"));
+  let race=false, calls=0;
+  const write=fs.writeFileConditional.bind(fs);
+  fs.writeFileConditional=async(path,bytes,opts)=>{
+    calls++;
+    if(race){
+      assert.equal(opts.expected,null);
+      await fs.writeFile(path,enc.encode("concurrent"));
+    }
+    return write(path,bytes,opts);
+  };
+  try{
+    const first=await shell.exec("mmdc -i /in -o /out.svg",{fs});
+    assert.deepEqual([first.exitCode,first.stderr,calls],[0,"",1]);
+    assert.equal((await fs.stat("/out.svg")).mode&0o777,0o666);
+    race=true;
+    const second=await shell.exec("mmdc -i /in -o /other.svg",{fs});
+    assert.notEqual(second.exitCode,0);
+    assert.match(second.stderr,/EAGAIN/);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/other.svg")),"concurrent");
+    race=false;
+    const read=fs.readFile.bind(fs);
+    fs.readFile=async(path,settings)=>{
+      if(path==="/in")await fs.writeFile("/out.svg",enc.encode("changed during rendering"));
+      return read(path,settings);
+    };
+    const third=await shell.exec("mmdc -i /in -o /out.svg",{fs});
+    assert.notEqual(third.exitCode,0);
+    assert.match(third.stderr,/EAGAIN/);
+    assert.equal(new TextDecoder().decode(await read("/out.svg")),"changed during rendering");
+  }finally{await shell.dispose();}
+});
+
+test("csplit rollback on a supplied filesystem removes only its own output",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), sh=new RustWasmBash({cwd:"/"});
+  const remove=fs.removeFileConditional.bind(fs), removed=[];
+  fs.removeFileConditional=async(path,options)=>{
+    removed.push(path);
+    if(path==="/xx00")await fs.writeFile(path,new TextEncoder().encode("new owner"));
+    return remove(path,options);
+  };
+  try{
+    const r=await sh.exec("printf 'one\ntwo\nthree\n' | csplit - 2 3 20",{fs});
+    assert.notEqual(r.exitCode,0);
+    assert.ok(removed.includes("/xx00"));
+    assert.ok(removed.includes("/xx01"));
+    assert.equal(new TextDecoder().decode(await fs.readFile("/xx00")),"new owner");
+    await assert.rejects(fs.stat("/xx01"),{code:"ENOENT"});
+  }finally{await sh.dispose();}
+});
+
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
   try {

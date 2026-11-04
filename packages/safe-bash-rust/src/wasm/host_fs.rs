@@ -200,6 +200,53 @@ impl SafeBashFs for HostFs {
         );
         Ok(Some(std::rc::Rc::new(HostDescriptor { fs: *self, id })))
     }
+    fn observe_publication(
+        &self,
+        path: &str,
+        _generation: u64,
+        cleanup:bool,
+    ) -> Result<crate::vfs::PublicationStamp, String> {
+        let bytes = self.request("observePublication", path, &[], cleanup as u32, 0)?;
+        let id = u32::from_le_bytes(
+            bytes
+                .try_into()
+                .map_err(|_| "EIO: invalid publication stamp")?,
+        );
+        let fs = *self;
+        Ok(crate::vfs::PublicationStamp::new(
+            id.into(),
+            (id != 0).then(|| {
+                Box::new(move || {
+                    let _ = fs.request("forgetPublication", "", &[], id, 0);
+                }) as Box<dyn FnOnce()>
+            }),
+        ))
+    }
+    fn publish_file(
+        &self,
+        path: &str,
+        data: &[u8],
+        inputs: &[String],
+        stamp: u64,
+    ) -> Result<u64, String> {
+        if stamp == 0 {
+            return Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into());
+        }
+        for input in inputs {
+            if input == path
+                || self.request("publicationAlias", input, &[], stamp as u32, 0)? != [0]
+            {
+                return Err(
+                    "INVALID_VALUE: Input and output VFS identities must be distinct".into(),
+                );
+            }
+        }
+        self.request("publish", path, data, stamp as u32, 0)?;
+        Ok(stamp)
+    }
+    fn remove_published(&self, path: &str, stamp: u64) -> Result<bool, String> {
+        Ok(self.request("removePublished", path, &[], stamp as u32, 0)? == [1])
+    }
     fn read_file(&self, p: &str) -> Result<Vec<u8>, String> {
         self.request("readFile", p, &[], self.max_input as u32, 0)
     }

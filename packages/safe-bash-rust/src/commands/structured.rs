@@ -26908,7 +26908,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     };
 
-    let output_version = fs.generation();
+    let output_version = if output == "-" { None } else {
+        match fs.observe_publication(&resolve_posix_path(cwd,&output),fs.generation(),false) {
+            Ok(stamp)=>Some(stamp), Err(e)=>return err_out(&format!("mmdc: E_IO: {e}\n"),1)
+        }
+    };
     let mut inputs = Vec::new();
     if output != "-" {
         let out = resolve_posix_path(cwd, &output);
@@ -27084,7 +27088,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
     } else {
         let full = resolve_posix_path(cwd, &output);
-        match fs.publish_file(&full, &out_bytes, &inputs, output_version) {
+        match fs.publish_file(&full, &out_bytes, &inputs, output_version.as_ref().unwrap().version) {
             Ok(_) => {}
             Err(e) if e.starts_with("UNSUPPORTED_CAPABILITY:") => {
                 if fs.write_file(&full, &out_bytes).is_err() {

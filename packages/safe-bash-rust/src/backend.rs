@@ -326,6 +326,10 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.replace_file_entry_with_metadata(&host_text(path), data, mode, times, version).map_err(quote_host_text)
     }
 
+    fn observe_publication(&self,path:&str,generation:u64,cleanup:bool)->Result<crate::vfs::PublicationStamp,String> {
+        self.budget.limits.check_path(path)?;
+        self.inner.observe_publication(&host_text(path),generation,cleanup).map_err(quote_host_text)
+    }
     fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

@@ -12737,7 +12737,8 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         if fs.lstat(&full).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File) {
             return Err(format!("csplit: unsafe output file '{fname}'\n"));
         }
-        let publication = fs.publish_file(&full, piece, input_path.as_slice(), version).map_err(|e| {
+        let stamp=fs.observe_publication(&full,version,true).map_err(|e|format!("csplit: {fname}: {e}\n"))?;
+        let publication = fs.publish_file(&full, piece, input_path.as_slice(), stamp.version).map_err(|e| {
             match e.as_str() {
                 "INVALID_VALUE: Input and output VFS identities must be distinct" =>
                     "csplit: output would overwrite the input file\n".into(),
@@ -12754,7 +12755,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             };
         }
         file_no += 1;
-        created_files.push((full, publication));
+        created_files.push((full, publication, stamp));
         if !quiet {
             stdout.push_str(&format!("{}\n", piece.len()));
         }
@@ -12912,7 +12913,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
     if let Some(err) = fail_msg {
         if !keep {
-            for (path, publication) in created_files {
+            for (path, publication, _stamp) in created_files {
                 if let Err(e) = fs.remove_published(&path, publication) {
                     stderr.push_str(&format!("csplit: {path}: {e}\n"));
                 }

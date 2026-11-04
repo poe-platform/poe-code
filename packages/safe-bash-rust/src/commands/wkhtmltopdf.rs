@@ -487,8 +487,12 @@ pub(super) fn wkhtmltopdf(
     doc.page_w = pw;
     doc.page_h = ph;
     doc.title = title_opt.clone().unwrap_or_default();
-    let output_version = fs.generation();
     let out_arg = pos_args.pop().unwrap().path;
+    let output_version = if out_arg == "-" {None} else {
+        match fs.observe_publication(&resolve_posix_path(cwd,out_arg),fs.generation(),false) {
+            Ok(stamp)=>Some(stamp),Err(e)=>return err_out(&format!("wkhtmltopdf: {e}\n"),1)
+        }
+    };
     for source in &mut pos_args {
         let src = source.path;
         let raw_html = if src == "-" {
@@ -628,7 +632,7 @@ pub(super) fn wkhtmltopdf(
         .filter(|s| s.path != "-")
         .map(|s| resolve_posix_path(cwd, s.path))
         .collect::<Vec<_>>();
-    if let Err(message) = fs.publish_file(&dst, &serialized, &inputs, output_version) {
+    if let Err(message) = fs.publish_file(&dst, &serialized, &inputs, output_version.as_ref().unwrap().version) {
         return err_out(&format!("wkhtmltopdf: {message}\n"), 1);
     }
     ok_out("")

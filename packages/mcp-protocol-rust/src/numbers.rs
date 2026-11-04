@@ -34,7 +34,11 @@ pub fn format(number: f64) -> String {
         } else {
             None
         };
-        if let Some(adjusted) = adjusted {
+        // At a power of two the lower spacing is smaller than the upper.
+        // The even decimal neighbor must still round back to this binary64.
+        if let Some(adjusted) =
+            adjusted.filter(|n| format!("{n}e{scale}").parse::<f64>().ok() == Some(number.abs()))
+        {
             let adjusted = adjusted.to_string();
             exponent += adjusted.len() as i32 - digits.len() as i32;
             digits = adjusted;

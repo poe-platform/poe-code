@@ -15,6 +15,7 @@ fn ecmascript_numbers_use_shortest_digits_and_notation_boundaries() {
         (1.234e21, "1.234e+21"),
         (-1.234e-7, "-1.234e-7"),
         (f64::from_bits(1), "5e-324"),
+        (2.0_f64.powi(-24), "5.960464477539063e-8"),
         (f64::MAX, "1.7976931348623157e+308"),
         (f64::from_bits(0x431e6c8213473ec1), "2140888806576048.2"),
     ] {

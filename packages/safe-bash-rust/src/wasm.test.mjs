@@ -6114,10 +6114,63 @@ test("per-call filesystems never redirect writes into the default Wasm filesyste
   const main = new RustWasmBash({ files: { "/file": "original" } });
   const other = new RustWasmBash({ files: { "/file": "other" } });
   try {
-    await assert.rejects(main.exec("echo wrong > /file", { fs: other.fs }), /filesystem.*companion/i);
+    if (!WebAssembly.Suspending) {
+      await assert.rejects(main.exec("echo changed > /file",{fs:other.fs}),/Promise Integration/i);
+    } else {
+      const r=await main.exec("echo changed > /file; cat /file",{fs:other.fs});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"changed\n",""]);
+    }
     assert.equal(main.readText("/file"), "original");
-    assert.equal(other.readText("/file"), "other");
+    assert.equal(other.readText("/file"), WebAssembly.Suspending ? "changed\n" : "other");
   } finally { main.dispose(); other.dispose(); }
+});
+
+test("standalone Wasm executes against live caller-supplied files without inspecting unrelated paths",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(), sh=new RustWasmBash({cwd:"/",files:{"/source":"default"}});
+  const bytes=Uint8Array.of(0,255,65);
+  await fs.writeFile("/source",bytes);
+  const visited=[];
+  const view=new Proxy(fs,{get(target,key){
+    const method=target[key];
+    if(typeof method!=="function")return method;
+    return (...args)=>{visited.push([key,args[0]]);return method.apply(target,args);};
+  }});
+  try{
+    const r=await sh.exec("mkdir /out; cat /source > /out/copy; ln -s /out/copy /alias; cat /alias",{fs:view});
+    assert.deepEqual([r.exitCode,r.stderr],[0,""]);
+    assert.deepEqual(r.stdoutBytes,bytes);
+    assert.deepEqual(await fs.readFile("/out/copy"),bytes);
+    assert.equal(await fs.readlink("/alias"),"/out/copy");
+    assert.ok(!visited.some(([method,path])=>method==="readdir" && path==="/"));
+    assert.equal((await sh.exec("cat /source")).stdout,"default");
+  }finally{await sh.dispose();}
+});
+
+test("suspended host filesystem calls isolate concurrent forks and share the selected filesystem with plugins",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const first=new MemoryFileSystem(), second=new MemoryFileSystem(), bash=new RustWasmBash({cwd:"/"});
+  const entered=Promise.withResolvers(), resume=Promise.withResolvers();
+  await first.writeFile("/input",new TextEncoder().encode("first"));
+  await second.writeFile("/input",new TextEncoder().encode("second"));
+  const read=first.readFile.bind(first);
+  first.readFile=async(...args)=>{entered.resolve();await resume.promise;return read(...args);};
+  bash.register({name:"record",async execute(ctx){
+    await ctx.fs.writeFile("/marked",new TextEncoder().encode(ctx.args[0]));return {exitCode:0};
+  }});
+  try{
+    const run=bash.exec("cat /input; record one",{fs:first});
+    try{
+      await entered.promise;
+      const r=await bash.exec("cat /input; record two",{fs:second});
+      assert.deepEqual([r.stdout,r.stderr],["second",""]);
+    }finally{resume.resolve();}
+    const r=await run;
+    assert.deepEqual([r.stdout,r.stderr],["first",""]);
+    assert.equal(new TextDecoder().decode(await first.readFile("/marked")),"one");
+    assert.equal(new TextDecoder().decode(await second.readFile("/marked")),"two");
+    assert.equal((await bash.exec("test -e /marked")).exitCode,1);
+  }finally{resume.resolve();await bash.dispose();}
 });
 
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {

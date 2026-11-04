@@ -170,6 +170,67 @@ function streamHost(x) {
   return host;
 }
 
+// One callback belongs to one execution fork; the host filesystem remains live during the call.
+function bindExternalFs(shell,fs,options) {
+  const x=shell.exports, table=x.__indirect_function_table, top=x.__stack_pointer.value;
+  const free=freeCommandSlots.get(x) ?? [];
+  freeCommandSlots.set(x,free);
+  const slot=free.pop() ?? table.grow(1);
+  const release=()=>{table.set(slot,null);free.push(slot);};
+  let stack,sp,result,status;
+  try {
+    table.set(slot,suspendingCallback(async ptr=>{
+      sp=x.__stack_pointer.value;
+      stack=new Uint8Array(x.memory.buffer.slice(sp,top));
+      x.__stack_pointer.value=top;
+      result=undefined;status=0;
+      try {
+        const view=new DataView(x.memory.buffer), word=at=>view.getUint32(ptr+at,true);
+        const field=at=>new Uint8Array(x.memory.buffer,word(at),word(at+4));
+        const op=decoder.decode(field(0)), path=decoder.decode(field(8)), data=field(16).slice();
+        const flags=word(24), mode=word(28), settings={signal:options.signal};
+        options.signal?.throwIfAborted();
+        if(typeof fs[op]!=="function")throw fsOperationError("ENOTSUP",op,path);
+        switch(op) {
+          case "stat":case "lstat":{
+            const s=await fs[op](path,settings);
+            result=new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
+              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
+            break;
+          }
+          case "readFile":result=await fs.readFile(path,{...settings,maxBytes:flags});break;
+          case "writeFile":await fs.writeFile(path,data,flags?{...settings,mode,flag:"wx"}:settings);break;
+          case "appendFile":await fs.appendFile(path,data,settings);break;
+          case "mkdir":await fs.mkdir(path,{...settings,recursive:!!flags,mode,exactMode:true});break;
+          case "rm":await fs.rm(path,{...settings,recursive:!!flags});break;
+          case "unlink":case "rmdir":await fs[op](path,settings);break;
+          case "rename":await fs.rename(path,decoder.decode(data),{...settings,noReplace:!!flags});break;
+          case "symlink":await fs.symlink(path,decoder.decode(data),settings);break;
+          case "readlink":result=encoder.encode(await fs.readlink(path,settings));break;
+          case "readdir":result=encoder.encode((await fs.readdir(path,settings)).map(e=>typeof e==="string"?e:e.name).join("\0"));break;
+          case "chmod":await fs.chmod(path,mode,settings);break;
+          default:throw fsOperationError("ENOTSUP",op,path);
+        }
+      }catch(error){
+        status=-1;
+        const known=error?.[FS_ERROR_BRAND] === true;
+        result=encoder.encode(options.signal?.aborted?"Execution aborted: cancelled":known?error.message:"internal error");
+        if(!known && !options.signal?.aborted)options.onInternalError?.(error);
+      }
+    },(_ptr,reply)=>{
+      new Uint8Array(x.memory.buffer,sp,stack.length).set(stack);x.__stack_pointer.value=sp;
+      stack=undefined;
+      if(result?.length){
+        const bytes=shell._allocBytes(result), view=new DataView(x.memory.buffer);
+        view.setUint32(reply,bytes.ptr,true);view.setUint32(reply+4,bytes.len,true);
+      }
+      result=undefined;return status;
+    }));
+    if(x.safe_bash_bind_fs(shell.sessionId,slot)!==0)throw new Error("Could not bind the execution filesystem");
+    return release;
+  }catch(error){release();throw error;}
+}
+
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
 function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, bindFileOutputBudget, fs, supportsOpen, options, middleware, composeMiddleware) {
@@ -2131,8 +2192,7 @@ export class RustWasmBash extends WasmShell {
   async #exec(script, options, simulateSleep = options.signal) {
     const filesystem = options?.fs;
     const externalFs = filesystem != null && filesystem !== this.fs;
-    if (externalFs && !this._companion) {
-      if (!this.companionFactory) throw new TypeError("Executing with an external filesystem requires a companion");
+    if (externalFs && this.companionFactory && !this._companion) {
       // The call has its own filesystem. It neither needs the default
       // filesystem's history nor transfers ownership of subsequent calls.
       return this.#getCompanion().shell.exec(script, options);
@@ -2167,7 +2227,7 @@ export class RustWasmBash extends WasmShell {
     }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();
-    let releaseCommands, elapsedMs;
+    let releaseCommands, releaseFs, elapsedMs;
     let res;
     try {
       const before = options.hooks?.beforeExec ?? this.hooks?.beforeExec;
@@ -2178,6 +2238,10 @@ export class RustWasmBash extends WasmShell {
       const state = options.state ?? (before && await before({source: script, options}));
       options.signal?.throwIfAborted();
       if (options.limits) shell.setLimits(options.limits);
+      if (externalFs) {
+        if (!WebAssembly.Suspending || !WebAssembly.promising) throw new TypeError("Executing with a host filesystem requires WebAssembly Promise Integration");
+        releaseFs=bindExternalFs(shell,filesystem,options);
+      }
       if (state !== undefined) shell.restoreSession(state);
       for (const [name, value] of env) {
         shell.setEnv(name, value);
@@ -2203,12 +2267,12 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, this.fs, !this.#overlay, options, this.#middleware, this.#composeMiddleware);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, externalFs ? filesystem : this.fs, externalFs ? filesystem.capabilities?.open===true : !this.#overlay, options, this.#middleware, this.#composeMiddleware);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
         res = await execAsyncStdin(shell,script,stdinData,options.signal);
-      } else if (releaseCommands) {
+      } else if (releaseCommands || releaseFs) {
         const scriptBytes = shell._allocBytes(encoder.encode(script));
         let input;
         try {
@@ -2229,7 +2293,7 @@ export class RustWasmBash extends WasmShell {
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
-      try { releaseCommands?.(); } finally { shell.dispose(); }
+      try { releaseCommands?.(); } finally { releaseFs?.(); shell.dispose(); }
     }
     if (elapsedMs > 0 && res.exitCode !== 1) {
       const waitMs = Math.min(elapsedMs, 50);

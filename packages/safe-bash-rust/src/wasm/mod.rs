@@ -1,4 +1,5 @@
 mod command;
+mod host_fs;
 mod descriptor;
 mod staging;
 use crate::backend::BackendMode;

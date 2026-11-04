@@ -9,7 +9,7 @@ impl MemoryVfs {
         destination: &Self,
         source: (&str, &str, u64),
         target: (&str, &str, u64),
-        plan: Option<&crate::vfs::mount::DirectoryMove>,
+        plan: &crate::vfs::mount::MovePlan,
         budget: Option<&ExecutionBudget>,
     ) -> Result<Option<FileStat>, String> {
         if self.id == destination.id {
@@ -38,6 +38,16 @@ impl MemoryVfs {
                 for _ in 0..operations { b.tick_fs_op()?; }
             }
             Ok(())
+        };
+        let link_retry = |path: &str| -> Result<Option<&String>,String> {
+            let error = plan.link_errors.get(path);
+            if let Some(e) = error {
+                if e.starts_with("ENOENT:") { admit(1)?; } // retry the capability at its parent
+                else if e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:") {
+                    admit(2)?; // lstat confirms a link before the parent retry
+                } else { return Err(e.clone()); }
+            }
+            Ok(error)
         };
         if src.devices == Devices::Mounted && src.devices.entry(from).is_some_and(|name| !name.is_empty()) {
             admit(2)?; // lstat source and destination before planning the removal
@@ -90,7 +100,10 @@ impl MemoryVfs {
         if dst.devices == Devices::Mounted && !directory {
             let writable_parent = matches!(src.nodes.get(&crate::vfs::dirname_posix_path(from)),
                 Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300);
-            admit(2)?; // admit source removal, then require atomic removal
+            admit(1)?; // source mode
+            let error = link_retry(display_from)?;
+            admit(1)?; // conditional removal capability follows the original operand
+            if let Some(e) = error { return Err(e.clone()); }
             let MemoryNode::File { ino } = origin else {
                 admit(1)?; // the device mount cannot publish a symbolic link
                 return Err(format!("ENOTSUP: operation not supported, mv '{display_to}'"));
@@ -142,9 +155,9 @@ impl MemoryVfs {
         }
         // Listing a directory or reading another name for an inode advances atime.
         // Preserve the snapshot from inspection before any of those reads.
-        let children = plan.map_or(&[][..], |p| p.children.as_slice());
-        let entries = std::iter::once((from, to, "",plan.map(|p| p.atime_ms)))
-            .chain(children.iter().map(|p| (p.source.as_str(),p.target.as_str(),p.suffix.as_str(),Some(p.atime_ms))));
+        let children = &plan.children;
+        let entries = std::iter::once((from, to, "",plan.atime_ms))
+            .chain(children.iter().map(|p| (p.source.as_str(),p.target.as_str(),p.suffix.as_str(),p.atime_ms)));
         let operand = |base: &str, suffix: &str| if suffix.is_empty() { base.to_owned() }
             else { normalize_posix_path(&format!("{base}{suffix}")) };
         // Inspect capabilities for the entire plan before publishing even the root.
@@ -162,12 +175,17 @@ impl MemoryVfs {
                 }
             }
         }
-        for (path, target, _, _) in entries.clone() {
+        for (path, target, suffix, _) in entries.clone() {
             let node = &src.nodes[path];
             if links.get(&node.ino()).is_some_and(|n| *n > 1) {
                 admit(1)?; // capability for an atomic hardlink removal receipt
             }
-            admit(2)?; // source mode and conditional removal capability
+            if matches!(node,MemoryNode::Symlink { .. }) {
+                admit(1)?; // source mode may fall back to the parent
+                let error = link_retry(&operand(display_from,suffix))?;
+                admit(1)?; // conditional removal needs capabilities on the original operand
+                if let Some(e) = error { return Err(e.clone()); }
+            } else { admit(2)?; } // source mode and conditional removal capability
             let existing = dst.nodes.get(target);
             let queries = match node {
                 MemoryNode::Directory { .. } => usize::from(existing.is_none()),
@@ -176,6 +194,11 @@ impl MemoryVfs {
                 MemoryNode::File { .. } => 2, // writer selection and destination mode
             };
             if queries == 0 { continue; }
+            if matches!(node,MemoryNode::Symlink { .. }) && matches!(existing,Some(MemoryNode::Symlink { .. })) {
+                let name = operand(display_to,suffix);
+                for _ in 0..queries { admit(1)?; link_retry(&name)?; }
+                continue;
+            }
             let mut candidate = target;
             loop {
                 admit(queries)?;
@@ -213,7 +236,7 @@ impl MemoryVfs {
                 format!("{reason}, {operation} '{name}'")
             };
             match node {
-                MemoryNode::Directory { mode, atime_ms, mtime_ms, .. } => {
+                MemoryNode::Directory { mode, mtime_ms, .. } => {
                     if mode & 0o500 != 0o500 { return Err(format!("EACCES: permission denied, readdir '{source_name}'")); }
                     if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
                     if !existed {
@@ -223,7 +246,7 @@ impl MemoryVfs {
                         dst.create_directory(target.to_owned(),0o40700);
                         destination.bump_generation();
                     }
-                    metadata.push((target,*mode,inspected_atime.unwrap_or(*atime_ms),*mtime_ms));
+                    metadata.push((target,*mode,inspected_atime,*mtime_ms));
                 }
                 MemoryNode::Symlink { target: link, .. } => {
                     if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
@@ -256,7 +279,7 @@ impl MemoryVfs {
                     admit(1)?; // openReadFile
                     let file = src.files.get_mut(&ino).unwrap();
                     if file.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source_name}'")); }
-                    let atime = inspected_atime.unwrap_or(file.atime_ms);
+                    let atime = inspected_atime;
                     admit(1)?; // stat the retained reader
                     if replacing {
                         if let Some(b) = budget && file.data.len() > b.limits.max_input_bytes {
@@ -402,7 +425,7 @@ mod tests {
                 &b,
                 ("/src", "/src", old),
                 ("/dst", "/mnt/dst", b.generation()),
-                None, None
+                &Default::default(), None
             )
             .unwrap_err()
             .starts_with("EBUSY")
@@ -414,7 +437,7 @@ mod tests {
                 &b,
                 ("/src", "/src", a.generation()),
                 ("/dst", "/mnt/dst", old),
-                None, None
+                &Default::default(), None
             )
             .unwrap_err()
             .starts_with("EBUSY")

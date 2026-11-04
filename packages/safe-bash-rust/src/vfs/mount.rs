@@ -3,8 +3,10 @@ use crate::vfs::{FileStat, SafeBashFs, VfsFileEntry};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-pub(super) struct DirectoryMove {
-    parent: FileStat,
+#[derive(Default)]
+pub(super) struct MovePlan {
+    parent: Option<FileStat>,
+    pub(super) link_errors: BTreeMap<String,String>,
     pub(super) atime_ms: f64,
     pub(super) children: Vec<MoveChild>,
 }
@@ -61,9 +63,24 @@ impl MountVfs {
         let (_, fs, local) = self.location(&self.resolve(path, follow_final, WalkPurpose::AllowMissingParents)?);
         Ok((fs, local))
     }
+    // Source and replacement capabilities follow links even though mv copies
+    // the link itself. Resolve through the router before locking the backends.
+    fn inspect_move_link(&self, path: &str, errors: &mut BTreeMap<String,String>) {
+        if let Err(e) = self.inspect_command_entry(path,true,"capabilitiesFor") {
+            let code = e.split(':').next().unwrap_or("");
+            let message = match code {
+                "ENOENT" => format!("ENOENT: no such file or directory, capabilitiesFor '{path}'"),
+                "ENOTDIR" => format!("ENOTDIR: not a directory, capabilitiesFor '{path}'"),
+                "ELOOP" => format!("ELOOP: too many symbolic links encountered '{path}'"),
+                _ => e,
+            };
+            errors.insert(path.to_owned(),message);
+        }
+    }
+
     /// Inspect the same routed entries that will be published. The transfer
     /// checks the backing generations again under both namespace locks.
-    fn inspect_directory_move(&self, source: &str, target: &str, budget: Option<&crate::ExecutionBudget>) -> Result<DirectoryMove, String> {
+    fn inspect_directory_move(&self, source: &str, target: &str, budget: Option<&crate::ExecutionBudget>) -> Result<MovePlan, String> {
         use super::{VfsEntryKind::{Directory, Symlink}, dirname_posix_path, is_path_within};
         let admit = |path: &str| -> Result<(),String> {
             if let Some(b) = budget {
@@ -115,6 +132,7 @@ impl MountVfs {
         let target_entry = self.resolve(target,false,WalkPurpose::AllowMissingParents)?;
         let target_mount = self.location(&target_entry).0;
         let mut children = Vec::new();
+        let mut link_errors = BTreeMap::new();
         let mut pending = vec![(source.to_owned(),target.to_owned(),String::new())];
         let atime_ms = root.atime_ms;
         let mut root_stats = Some((root,existing));
@@ -133,6 +151,10 @@ impl MountVfs {
                     return Err(format!("ENOTSUP: cannot bind cross-device directory entry '{from}' -> '{to}'"));
                 }
                 children.push(MoveChild { source: local, target: target_local, suffix: suffix.clone(), atime_ms: st.atime_ms });
+            }
+            if st.kind == Symlink {
+                self.inspect_move_link(&from,&mut link_errors);
+                if existing.as_ref().is_some_and(|s| s.kind == Symlink) { self.inspect_move_link(&to,&mut link_errors); }
             }
             if let Some(other) = existing {
                 if st.identity.is_some() && st.identity == other.identity {
@@ -156,7 +178,7 @@ impl MountVfs {
                 }
             }
         }
-        Ok(DirectoryMove { parent: root_parent.expect("the plan starts at the source directory"), atime_ms, children })
+        Ok(MovePlan { parent: root_parent, atime_ms, children, link_errors })
     }
 
 }
@@ -342,11 +364,21 @@ impl SafeBashFs for MountVfs {
         let (dst_mount, dst, dst_path) = self.location(&to);
         let Some(src) = src.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, removeEntryConditional '{source}'")); };
         let Some(dst) = dst.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, mv '{destination}'")); };
-        let plan = if src.lstat(&src_path)?.kind == super::VfsEntryKind::Directory {
-            Some(self.inspect_directory_move(source,destination,budget)?)
-        } else { None };
-        let retained = src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), plan.as_ref(), budget)?;
-        if let (Some(plan), Some(expected)) = (plan, retained) {
+        let st = src.lstat(&src_path)?;
+        let plan = if st.kind == super::VfsEntryKind::Directory {
+            self.inspect_directory_move(source,destination,budget)?
+        } else {
+            let mut link_errors = BTreeMap::new();
+            if st.kind == super::VfsEntryKind::Symlink {
+                self.inspect_move_link(source,&mut link_errors);
+                if dst.lstat(&dst_path).is_ok_and(|s| s.kind == super::VfsEntryKind::Symlink) {
+                    self.inspect_move_link(destination,&mut link_errors);
+                }
+            }
+            MovePlan { atime_ms:st.atime_ms, link_errors, ..Default::default() }
+        };
+        let retained = src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), &plan, budget)?;
+        if let (Some(parent), Some(expected)) = (plan.parent, retained) {
             // Removing the children may have removed a component of the original operand.
             if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // recheck root
             let version = src.generation();
@@ -354,7 +386,7 @@ impl SafeBashFs for MountVfs {
                 format!("{}, lstat '{source}'", e.split_once(", ").map_or(e.as_str(), |(reason,_)| reason)))?;
             if entry != from { return Err(format!("EBUSY: move source changed before removal '{source}'")); }
             if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // conditional rmdir
-            src.remove_moved_directory(&src_path, &plan.parent, &expected, version)
+            src.remove_moved_directory(&src_path, &parent, &expected, version)
                 .map_err(|e| format!("{e}, removeEntryConditional '{source}'"))?;
         }
         Ok(())
@@ -687,6 +719,35 @@ mod tests {
         let child = dst.lstat("/out/d").unwrap();
         assert_eq!((root.atime_ms,root.mtime_ms),(123456.0,654321.0));
         assert_eq!((child.atime_ms,child.mtime_ms),(345678.0,456789.0));
+    }
+
+    #[test]
+    fn cross_mount_links_check_the_followed_capabilities_before_replacing_any_entry() {
+        for (source_target,dest_target,remove,finish,reason) in [
+            ("f","old",13,17,""), ("f","missing",16,20,""), ("f","copy",19,23,""),
+            ("missing","old",usize::MAX,11,"ENOENT: no such file or directory, capabilitiesFor '/w/l'"),
+            ("f/x","old",usize::MAX,13,"ENOTDIR: not a directory, capabilitiesFor '/w/l'"),
+            ("l","old",usize::MAX,13,"ELOOP: too many symbolic links encountered '/w/l'"),
+        ] {
+            for limit in 0..=finish {
+                let src = Arc::new(MemoryVfs::new());
+                src.write_file("/w/f",b"A").unwrap();
+                src.symlink(source_target,"/w/l").unwrap();
+                let dst = Arc::new(MemoryVfs::new());
+                dst.write_file("/old",b"B").unwrap();
+                dst.symlink(dest_target,"/copy").unwrap();
+                let fs = MountVfs::new(src.clone()).with_mount("/m",dst.clone());
+                let mut sh = crate::Shell::new(Arc::new(fs),crate::ShellOptions {cwd:Some("/".into()),..Default::default()});
+                sh.use_provided_devices();
+                sh.set_limits(crate::ShellLimits { max_filesystem_operations:limit,..Default::default() });
+                let result = sh.exec("mv -T /w/l /m/copy");
+                if limit < finish { assert!(result.unwrap_err().contains("maxFileSystemOperations")); }
+                else if reason.is_empty() { assert_eq!(result.unwrap().exit_code,0); }
+                else { assert_eq!(result.unwrap().stderr, format!("mv: {reason}\n")); }
+                assert_eq!(src.readlink("/w/l").is_ok(),limit < finish || !reason.is_empty());
+                assert_eq!(dst.readlink("/copy").ok().as_deref(),if limit < remove {Some(dest_target)} else if limit == remove {None} else {Some(source_target)},"{source_target} -> {dest_target}, limit {limit}");
+            }
+        }
     }
 
     #[test]

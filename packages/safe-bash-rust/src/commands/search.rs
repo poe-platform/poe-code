@@ -1,6 +1,7 @@
 mod expr_bre;
 mod fd_glob;
 mod grep_stream;
+mod rg_ignore;
 mod rg_stream;
 mod rg_types;
 use fd_glob::{FdGlob, IgnoreFile, RuleError};
@@ -2903,6 +2904,8 @@ fn cmd_rg(
     let mut max_columns: Option<usize> = None;
     let mut no_ignore_vcs = false;
     let mut no_ignore_dot = false;
+    let mut ignore_parent = true;
+    let mut require_git = true;
     let mut use_ignore_files = true;
     let mut custom_ignore_files: Vec<String> = Vec::new();
     let mut follow = false;
@@ -2973,6 +2976,9 @@ fn cmd_rg(
                 "--no-config" | "--pcre2" | "--no-pcre2" => {}
                 "--no-messages" => no_messages = true,
                 "--messages" => no_messages = false,
+                "--no-ignore-parent" => ignore_parent = false,
+                "--no-require-git" => require_git = false,
+                "--no-ignore-global" => {}
                 "--no-ignore-files" => use_ignore_files = false,
                 "--ignore-files" => use_ignore_files = true,
                 "--files" => {
@@ -3472,28 +3478,19 @@ fn cmd_rg(
             patterns.extend(text.split_terminator('\n').map(|line| line.strip_suffix('\r').unwrap_or(line).to_owned()));
         }
     }
-    if !use_ignore_files {
-        custom_ignore_files.clear();
-    } else if respect_ignore {
-        for igf in &custom_ignore_files {
-            let p = resolve_posix_path(cwd, igf);
-            if fs.read_file(&p).is_err() {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: if no_messages {
-                        String::new()
-                    } else {
-                        format!("rg: ENOENT: no such file or directory, readFile '{p}'\n")
-                    },
-                    exit_code: 2,
-                };
+    let mut explicit = rg_ignore::Rules::default();
+    if use_ignore_files {
+        for operand in custom_ignore_files {
+            let path = search_path(cwd, &operand);
+            match rg_ignore::read(fs, &path, cwd, 0) {
+                Ok(file) => explicit.add(file),
+                Err(e) => return BuiltinOutcome { stdout: String::new(),
+                    stderr: if no_messages { String::new() } else { format!("rg: {}\n", e.message()) }, exit_code: 2 },
             }
         }
     }
-
-
     let files = RgFiles { list_files_only, follow, globs, types, show_hidden, respect_ignore,
-        no_ignore_vcs, no_ignore_dot, custom_ignore_files, max_depth, max_filesize };
+        no_ignore_vcs, no_ignore_dot, require_git, ignore_parent, explicit, max_depth, max_filesize };
     if list_files_only {
         let mut out = rg_stream::Output::new(write);
         let mut found = false;
@@ -3679,32 +3676,6 @@ struct GrepConfig<'a> {
     stats: bool,
 }
 
-fn is_ignored_by_rules(name: &str, is_dir: bool, rules: &[String]) -> bool {
-    let mut ignored = false;
-    for rule in rules {
-        let r = rule.trim();
-        if r.is_empty() || r.starts_with('#') {
-            continue;
-        }
-        if let Some(neg) = r.strip_prefix('!') {
-            let neg_clean = neg.trim_start_matches('/').trim_end_matches('/');
-            if glob_match(neg_clean, name) {
-                ignored = false;
-            }
-        } else if let Some(dir_pat) = r.strip_suffix('/') {
-            if is_dir && glob_match(dir_pat.trim_start_matches('/'), name) {
-                ignored = true;
-            }
-        } else {
-            let pat = r.trim_start_matches('/');
-            if glob_match(pat, name) {
-                ignored = true;
-            }
-        }
-    }
-    ignored
-}
-
 fn eval_cli_globs(globs: &[String], base: &str, target: &str) -> Option<bool> {
     let mut result = None;
     for g in globs {
@@ -3749,7 +3720,9 @@ struct RgFiles {
     max_filesize: Option<usize>,
     no_ignore_vcs: bool,
     no_ignore_dot: bool,
-    custom_ignore_files: Vec<String>,
+    ignore_parent: bool,
+    require_git: bool,
+    explicit: rg_ignore::Rules,
 }
 
 enum SearchFiles<'a> { Grep(GrepFiles<'a>), Rg(RgFiles) }
@@ -3757,26 +3730,18 @@ enum SearchFiles<'a> { Grep(GrepFiles<'a>), Rg(RgFiles) }
 impl RgFiles {
     fn inputs<'a>(&'a self, targets: &[String], cwd: &'a str, fs: &'a dyn SafeBashFs, stdin: bool)
         -> impl Iterator<Item = Result<SearchInput, String>> + 'a {
-        use std::rc::Rc;
-        enum Visit { Entry(String, usize, Rc<Vec<String>>), Leave(String) }
-        let mut rules = Vec::new();
-        if self.respect_ignore {
-            for file in &self.custom_ignore_files {
-                if let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, file)) {
-                    rules.extend(String::from_utf8_lossy(&bytes).lines().map(str::to_owned));
-                }
-            }
-        }
-        let rules = Rc::new(rules);
-        let mut pending: Vec<_> = targets.iter().rev().map(|t| Visit::Entry(t.clone(), 0, rules.clone())).collect();
+        enum Visit { Entry(String, usize, rg_ignore::Rules), Leave(String), Error(String) }
+        let mut cache = BTreeMap::new();
+        let mut pending: Vec<_> = targets.iter().rev().map(|t| Visit::Entry(t.clone(), 0, self.explicit.clone())).collect();
         let implicit = targets.is_empty();
         if implicit {
-            pending.push(Visit::Entry(if stdin { "-" } else { "." }.into(), 0, rules));
+            pending.push(Visit::Entry(if stdin { "-" } else { "." }.into(), 0, self.explicit.clone()));
         }
         let mut ancestors = BTreeMap::new();
         let positive_glob = self.globs.iter().any(|p| !p.strip_prefix("i:").unwrap_or(p).starts_with('!'));
         std::iter::from_fn(move || loop {
             let (label, depth, mut rules) = match pending.pop()? {
+                Visit::Error(e) => return Some(Ok(SearchInput::Error(format!("rg: {e}\n")))),
                 Visit::Leave(path) => { ancestors.remove(&path); continue; }
                 Visit::Entry(label, depth, rules) => (label, depth, rules),
             };
@@ -3813,9 +3778,10 @@ impl RgFiles {
                     Some(false) => continue,
                     Some(true) => {}
                     None => {
-                        if !directory && positive_glob || self.respect_ignore && is_ignored_by_rules(base, directory, &rules) { continue; }
+                        let included = rules.selected(&resolve_posix_path(cwd, &label), directory);
+                        if !directory && positive_glob || included == Some(false) { continue; }
                         let selected = (!directory).then(|| self.types.selected(base)).flatten();
-                        if !selected.unwrap_or_else(|| self.show_hidden || !base.starts_with('.')) { continue; }
+                        if !selected.or(included).unwrap_or_else(|| self.show_hidden || !base.starts_with('.')) { continue; }
                     }
                 }
                 if !directory && self.max_filesize.is_some_and(|max| stat.size > max) { continue; }
@@ -3827,20 +3793,31 @@ impl RgFiles {
                 Err(e) => return report(e, "readdir"),
             };
             entries.sort_unstable();
-            if self.respect_ignore {
-                for name in [".gitignore", ".ignore", ".rgignore"] {
-                    if (name == ".gitignore" && self.no_ignore_vcs) || (name != ".gitignore" && self.no_ignore_dot)
-                        || entries.binary_search_by(|e| e.as_str().cmp(name)).is_err() { continue; }
-                    if let Ok(bytes) = fs.read_file(&resolve_posix_path(&resolved, name)) {
-                        Rc::make_mut(&mut rules).extend(String::from_utf8_lossy(&bytes).lines().map(str::to_owned));
+            let logical = resolve_posix_path(cwd, &label);
+            let mut errors = Vec::new();
+            if explicit {
+                let mut parents = Vec::new();
+                let mut dir = crate::vfs::dirname_posix_path(&logical);
+                loop {
+                    parents.push(dir.clone());
+                    if dir == "/" { break; }
+                    dir = crate::vfs::dirname_posix_path(&dir);
+                }
+                if self.ignore_parent {
+                    for parent in parents.iter().rev() {
+                        rules.load(self, fs, parent, None, &mut cache, &mut errors);
                     }
+                } else if self.respect_ignore && !self.no_ignore_vcs && self.require_git {
+                    rules.repository = parents.iter().any(|p| fs.lstat(&format!("{}/.git", p.trim_end_matches('/'))).is_ok());
                 }
             }
+            rules.load(self, fs, &logical, Some(&entries), &mut cache, &mut errors);
             ancestors.insert(resolved.clone(), label.clone());
             pending.push(Visit::Leave(resolved));
             let prefix = label.strip_suffix('/').unwrap_or(&label);
             pending.extend(entries.into_iter().rev().map(|child| Visit::Entry(
                 if implicit && explicit { child } else { format!("{prefix}/{child}") }, depth + 1, rules.clone())));
+            pending.extend(errors.into_iter().rev().map(Visit::Error));
         })
     }
 }

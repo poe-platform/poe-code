@@ -117,7 +117,7 @@ impl RuleError {
 
 pub(super) struct IgnoreFile {
     base: String,
-    priority: u8,
+    pub(super) priority: u8,
     rules: Vec<(FdGlob, bool)>,
 }
 
@@ -125,17 +125,26 @@ impl IgnoreFile {
     pub(super) fn read(fs: &dyn super::SafeBashFs, path: &str, base: &str, priority: u8) -> Result<Self, RuleError> {
         let bytes = super::read_search_file(fs, path, "readFile").map_err(RuleError::Read)?;
         let text = String::from_utf8_lossy(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes));
+        Self::parse(text.lines().filter(|line| !line.contains('\u{fffd}')), base, priority).map_err(RuleError::Pattern)
+    }
+
+    pub(super) fn parse<'a>(lines: impl Iterator<Item = &'a str>, base: &str, priority: u8) -> Result<Self, String> {
         let mut rules = Vec::new();
-        for mut line in text.lines() {
-            if line.starts_with('#') || line.contains('\u{fffd}') { continue; }
+        for mut line in lines {
+            if line.starts_with('#') { continue; }
             while let Some(before) = line.strip_suffix(' ') {
                 if before.bytes().rev().take_while(|b| *b == b'\\').count() % 2 == 1 { break; }
                 line = before;
             }
             let (pattern, include) = line.strip_prefix('!').map_or((line, false), |p| (p, true));
-            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, false).map_err(RuleError::Pattern)?, include)); }
+            if !pattern.is_empty() { rules.push((FdGlob::compile(pattern, false)?, include)); }
         }
         Ok(Self { base: base.to_owned(), priority, rules })
+    }
+
+    pub(super) fn include_within(&self, path: &str, directory: bool) -> Option<bool> {
+        let relative = path.strip_prefix(self.base.trim_end_matches('/'))?.strip_prefix('/')?;
+        self.rules.iter().rev().find(|(glob, _)| glob.matches(relative, directory, false)).map(|(_, include)| *include)
     }
 
     pub(super) fn ignored(files: &[Self], path: &str, directory: bool) -> bool {

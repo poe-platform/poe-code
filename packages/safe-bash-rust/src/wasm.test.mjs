@@ -12318,3 +12318,26 @@ test("cat charges named reads in operand order for each filesystem profile", asy
     } finally { sh.dispose(); }
   }
 });
+
+test("rg inherits ignore rules by directory, source priority and repository boundary", async () => {
+  const sh = new RustWasmBash({cwd:"/p",files:{
+    "/p/.gitignore":"gitfile\n","/p/.ignore":"*.log\n","/p/d/.gitignore":"!keep.log\n",
+    "/p/d/.rgignore":"!.kept\n/sub/file\n","/p/d/.kept":"","/p/d/gitfile":"",
+    "/p/d/keep.log":"","/p/d/sub/file":"","/p/d/sub/gitfile":"","/p/rules":"d/sub/file\n"
+  }});
+  try {
+    const list = async (args,expected) => {
+      const r = await sh.exec("rg --files "+args);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""],args);
+    };
+    await list("d","d/.kept\nd/gitfile\nd/sub/gitfile\n");
+    await list("--no-require-git d","d/.kept\n");
+    await sh.exec("mkdir -p /p/.git /p/d/sub/.git");
+    await list("d","d/.kept\nd/sub/gitfile\n");
+    await list("--no-ignore-parent d","d/.kept\nd/gitfile\nd/keep.log\nd/sub/gitfile\n");
+    await list("--no-ignore --ignore-file rules d","d/gitfile\nd/keep.log\nd/sub/gitfile\n");
+    await sh.fs.writeFile("/p/d/.rgignore",Buffer.from("bad{"));
+    const bad = await sh.exec("rg --files d");
+    assert.deepEqual([bad.exitCode,bad.stdout,bad.stderr],[2,"d/sub/file\nd/sub/gitfile\n","rg: invalid glob: unclosed glob brace\n"]);
+  } finally { sh.dispose(); }
+});

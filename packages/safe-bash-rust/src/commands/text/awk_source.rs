@@ -53,10 +53,33 @@ struct Group<'a> {
     awaiting_close: bool,
     call: Option<&'a str>,
     commas: usize,
+    arg_start: usize,
+    array_error: Option<&'static str>,
     has_arg: bool,
 }
 
 impl Group<'_> {
+    fn finish_arg(&mut self, part: &mut String) {
+        let message = match (self.call, self.commas) {
+            (Some("split"), 1 | 3) => "split requires an array variable as its second argument",
+            (Some("match"), 2) => "match requires an array variable as its third argument",
+            (Some("asort" | "asorti"), _) => "asort/asorti requires array variables",
+            _ => return,
+        };
+        let arg = &part[self.arg_start..];
+        let mut name = arg.trim();
+        while let Some(inner) = name.strip_prefix('(').and_then(|s| s.strip_suffix(')')) {
+            name = inner.trim();
+        }
+        if !super::is_valid_awk_ident(name) || keyword(name) {
+            self.array_error = Some(message);
+        } else if arg != name {
+            let name = name.to_owned();
+            part.truncate(self.arg_start);
+            part.push_str(&name);
+        }
+    }
+
     fn error(&self, source: &str, at: usize) -> String {
         let offset = crate::vfs::stream_byte_len(&source[..at]);
         if self.has_arg {
@@ -99,12 +122,17 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                 }
                 _ if group.awaiting_close && c != group.close => return Err(group.error(source, start)),
                 b',' if !group.has_arg => return Err(group.error(source, start)),
-                b',' => { group.commas += 1; group.has_arg = false; }
+                b',' => {
+                    group.finish_arg(&mut part);
+                    group.commas += 1; group.has_arg = false;
+                    group.arg_start = part.len() + 1;
+                }
                 b')' | b']' if c != group.close || !(group.has_arg || group.call.is_some() && group.commas == 0) => {
                     return Err(group.error(source, start));
                 }
-                b')' | b']' => {},
-                b'}' | b';' if !group.control => return Err(group.error(source, start)),
+                b')' | b']' => { if group.has_arg { group.finish_arg(&mut part); } },
+                b'{' | b'}' => return Err(group.error(source, start)),
+                b';' if !group.control => return Err(group.error(source, start)),
                 _ => group.has_arg = true,
             }
         }
@@ -217,7 +245,7 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                 operand = true; control = false;
             }
             b'(' | b'[' => {
-                groups.push(Group { close: if c == b'(' { b')' } else { b']' }, control, awaiting_close: false, call: next_call.take(), commas: 0, has_arg: false });
+                groups.push(Group { close: if c == b'(' { b')' } else { b']' }, control, awaiting_close: false, call: next_call.take(), commas: 0, arg_start: part.len() + 1, array_error: None, has_arg: false });
                 control = false; operand = false;
             }
             b',' => {
@@ -227,7 +255,7 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
                 let group = groups.pop();
                 operand = !group.as_ref().is_some_and(|g| g.control);
                 if let Some(group) = group && let Some(name) = group.call {
-                    calls.push((name, group.commas + usize::from(group.has_arg)));
+                    calls.push((name, group.commas + usize::from(group.has_arg), group.array_error));
                 }
                 control = false;
             }
@@ -282,10 +310,11 @@ pub(super) fn parse_rules(source: &str, ordchr: bool) -> Result<(Vec<AwkRule>, A
     if matches!(rule, "BEGIN" | "END") { return Err(format!("expected '{{' at byte {}", crate::vfs::stream_byte_len(source))); }
     if !rule.is_empty() { add_rule(rule, "print", &mut rules); }
     if definition.is_some() { return Err(format!("expected '{{' at byte {}", crate::vfs::stream_byte_len(source))); }
-    for (name, count) in calls {
+    for (name, count, array_error) in calls {
         let (min, max) = builtin(name, ordchr).or_else(|| funcs.get(name).map(|(params, _)| (0, params.len())))
             .ok_or_else(|| format!("unsupported function '{name}'"))?;
         if !(min..=max).contains(&count) { return Err(format!("invalid argument count for '{name}'")); }
+        if let Some(message) = array_error { return Err(message.into()); }
     }
     Ok((rules, funcs))
 }

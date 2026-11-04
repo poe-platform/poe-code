@@ -8722,6 +8722,28 @@ test("awk systime returns whole seconds on either side of the Unix epoch", async
   } finally { sh.dispose(); }
 });
 
+test("awk validates array targets in function calls and resolves grouped names", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [expr,message] of [
+      ['split("a",a[1])', "split requires an array variable as its second argument"],
+      ['split("a",a,",",length)', "split requires an array variable as its second argument"],
+      ['match("a",/a/,(a,b))', "match requires an array variable as its third argument"],
+      ['asort((a)+(b))', "asort/asorti requires array variables"],
+      ['asorti(a,42)', "asort/asorti requires array variables"],
+      ['asorti(a,42,42)', "invalid argument count for 'asorti'"],
+    ]) {
+      const r = await sh.exec(`awk 'BEGIN{print "ran"} 0{${expr}}'`);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [2,"","awk: "+message+"\n"], expr);
+    }
+    const r = await sh.exec(`awk 'BEGIN {
+      split("z,a",((a)),",",(s)); asort((a),((b))); asorti((a),(c));
+      match("abc",/(b)/,(m)); print b[1],s[1],c[2],m[1]
+    }'`);
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,"a , 2 b\n",""]);
+  } finally { sh.dispose(); }
+});
+
 test("awk keeps source-file bytes and parses the program before opening debugger commands", async () => {
   const sh = new RustWasmBash({files:{"/quit":"quit\n"}});
   try {

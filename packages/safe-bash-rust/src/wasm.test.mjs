@@ -3878,6 +3878,17 @@ test("device metadata follows virtual traversal without granting access to backi
   } finally { bash.dispose(); }
 });
 
+test("memory rmdir reports a missing entry without the trailing slash", async () => {
+  for (const deviceView of ["default","provided"]) {
+    const bash = new RustWasmBash({deviceView, directories:["/dir"]});
+    try {
+      const r = await bash.exec("rmdir /dir/missing///");
+      assert.equal(r.stderr, "rmdir: ENOENT: no such file or directory, rmdir '/dir/missing'\n");
+      await assert.rejects(bash.fs.rmdir("/dir/missing///"), {code:"ENOENT", syscall:"rmdir", path:"/dir/missing"});
+    } finally { bash.dispose(); }
+  }
+});
+
 test("a missing prefix cannot select a mounted device's directory removal capability", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/empty"]});
   try {

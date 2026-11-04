@@ -808,7 +808,8 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 if let Err(e) = fs.remove_one(&path, true) {
                     if ignore_non_empty && e.starts_with("ENOTEMPTY:") { return Ok(()); }
                     if e.starts_with("EBUSY: resource busy or locked '") || e.starts_with("ENOTDIR: not a directory '")
-                        || e.starts_with("ENOENT: no such file or directory, lstat '") { return Err(e); }
+                        || e.starts_with("ENOENT: no such file or directory, lstat '")
+                        || e.starts_with("ENOENT: no such file or directory, rmdir '") { return Err(e); }
                     let reason = e.split_once(", ").map_or(e.as_str(), |(r, _)| r);
                     return Err(format!("{reason}, rmdir '{path}'"));
                 }

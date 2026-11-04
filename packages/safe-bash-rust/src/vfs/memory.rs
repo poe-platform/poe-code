@@ -1501,7 +1501,11 @@ impl SafeBashFs for MemoryVfs {
                 return Err(format!("EBUSY: resource busy or locked '{path}'"));
             }
         }
-        Self::remove_one_locked(&mut state, path, directory)?;
+        Self::remove_one_locked(&mut state, path, directory).map_err(|e| {
+            if directory && path.ends_with('/') && e == "ENOENT: no such file or directory" {
+                format!("{e}, rmdir '{}'", path.trim_end_matches('/'))
+            } else { e }
+        })?;
         self.bump_generation();
         Ok(())
     }

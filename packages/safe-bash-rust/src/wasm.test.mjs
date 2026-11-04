@@ -9243,6 +9243,14 @@ test("pr commits complete rows at named-file read boundaries", async () => {
   }
 });
 
+test("pr reads its original input when output appends through a hard link", async () => {
+  const bash = new RustWasmBash({cwd:"/",files:{"/f":"abc\n"}});
+  try {
+    const r = await bash.exec("ln /f /alias && pr -t /f >>/alias", {limits:{maxOutputBytes:20}});
+    assert.deepEqual([r.exitCode,r.stderr,bash.readText("/f")], [0,"","abc\nabc\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("pr keeps the completed prefix and reports redirected input errors in order", async () => {
   const bash = new RustWasmBash({cwd:"/", files:{"/f":"abc\n123\n"}});
   try {

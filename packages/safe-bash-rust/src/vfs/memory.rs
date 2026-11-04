@@ -82,7 +82,7 @@ impl MemoryNode {
 #[derive(Debug)]
 struct MemoryFile {
     revision: u64,
-    data: Vec<u8>,
+    data: Arc<Vec<u8>>,
     publication: Option<u64>,
     mode: u32,
     atime_ms: f64,
@@ -94,10 +94,46 @@ struct MemoryFile {
 }
 
 impl MemoryFile {
+    // An open stream owns its allocation independently of this inode's next contents.
+    fn reclaimable_bytes(&self) -> usize {
+        if Arc::strong_count(&self.data) == 1 { self.data.len() } else { 0 }
+    }
+
+    fn resize_data(&mut self, size: usize) -> Result<&mut Vec<u8>, String> {
+        if Arc::get_mut(&mut self.data).is_none() {
+            let mut detached = Vec::new();
+            detached.try_reserve_exact(size).map_err(|_| "ENOSPC: insufficient memory")?;
+            detached.extend_from_slice(&self.data[..size.min(self.data.len())]);
+            self.data = Arc::new(detached);
+        }
+        let data = Arc::get_mut(&mut self.data).unwrap();
+        if size > data.len() {
+            data.try_reserve(size - data.len()).map_err(|_| "ENOSPC: insufficient memory")?;
+        }
+        data.resize(size, 0);
+        Ok(data)
+    }
+
     fn status_changed(&mut self, now: f64) { self.ctime_ms = now; self.revision += 1; }
     fn set_times(&mut self, (accessed, modified): (Option<f64>, Option<f64>)) {
         if let Some(t) = accessed { self.atime_ms = t; }
         if let Some(t) = modified { self.mtime_ms = t; }
+    }
+}
+
+struct StreamSnapshot {
+    data: Option<Arc<Vec<u8>>>,
+    file: RetainedFile,
+}
+
+impl Drop for StreamSnapshot {
+    fn drop(&mut self) {
+        let mut state = self.file.fs.state.write().unwrap();
+        // Release under the same lock used to detach writes so the last owner
+        // of an old version returns its bytes to the filesystem exactly once.
+        if let Some(data) = Arc::into_inner(self.data.take().unwrap()) {
+            state.total_bytes -= data.len();
+        }
     }
 }
 
@@ -246,7 +282,7 @@ impl MemoryState {
     fn insert_new_file(&mut self, path: String, data: Vec<u8>, mode: u32, publication: Option<u64>) -> u64 {
         let ino = self.allocate_ino();
         let now = super::now_ms();
-        self.files.insert(ino, MemoryFile { revision: 0, data, publication, mode, atime_ms: now, mtime_ms: now,
+        self.files.insert(ino, MemoryFile { revision: 0, data: Arc::new(data), publication, mode, atime_ms: now, mtime_ms: now,
             ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
         self.parent_changed(&path, now);
         self.nodes.insert(path, MemoryNode::File { ino });
@@ -499,7 +535,7 @@ impl MemoryVfs {
         let mut observed = self.resolved_metadata(state, path).ok_or_else(changed)?;
         // Reading the original may advance atime. All other metadata and the bytes must still match.
         observed.atime_ms = original.atime_ms;
-        if observed != *original || state.files[ino].data != before { return Err(changed()); }
+        if observed != *original || state.files[ino].data.as_slice() != before { return Err(changed()); }
         if original.mode & 0o200 == 0 { return Err(format!("EACCES: permission denied, access '{path}'")); }
         if !in_place && original.nlink != Some(1) { return Err("VFS hardlink replacement is not yet supported".into()); }
         Ok(())
@@ -533,17 +569,17 @@ impl MemoryVfs {
         if new_len > state.limits.max_file_bytes {
             return Err("EFBIG: file size budget exceeded".to_string());
         }
-        let next_total = state.total_bytes.saturating_sub(old_len).saturating_add(new_len);
+        let reclaimed = existing.map_or(0, |ino| state.files[&ino].reclaimable_bytes());
+        let next_total = (state.total_bytes - reclaimed).checked_add(new_len).ok_or("ENOSPC: byte limit exceeded")?;
         if next_total > state.limits.max_total_bytes {
             return Err("ENOSPC: file system byte budget exceeded".to_string());
         }
         if let Some(ino) = existing {
             let file = state.files.get_mut(&ino).unwrap();
             if let Some(tail) = suffix {
-                file.data.try_reserve(tail.len()).map_err(|_| "ENOSPC: insufficient memory")?;
-                file.data.extend_from_slice(tail);
+                file.resize_data(new_len)?[old_len..].copy_from_slice(tail);
             } else {
-                file.data = data.to_vec();
+                file.data = Arc::new(data.to_vec());
             }
             file.publication = publication;
             file.mtime_ms = super::now_ms();
@@ -924,7 +960,7 @@ impl MemoryVfs {
                     }
                     budget.tick_fs_op()?;
                 }
-                return Ok(file.data.clone());
+                return Ok(file.data.to_vec());
             }
         }
         if let Some(budget) = budget { budget.tick_fs_op()?; }
@@ -969,7 +1005,7 @@ impl SafeBashFs for MemoryVfs {
         if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
         let ino = state.allocate_ino();
         let now = super::now_ms();
-        state.files.insert(ino, MemoryFile { revision: 0, data: Vec::new(), publication: None, mode: 0o100600,
+        state.files.insert(ino, MemoryFile { revision: 0, data: Arc::default(), publication: None, mode: 0o100600,
             atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now, opens: 1, linked: false });
         Ok(std::rc::Rc::new(RetainedFile { fs: self.clone(), ino, access: super::RedirectAccess::ReadWrite }))
     }
@@ -1088,11 +1124,21 @@ impl SafeBashFs for MemoryVfs {
             Some("") => Err(format!("EISDIR: illegal operation on a directory, read '{path}'")),
             _ => {
                 let file = self.retain_file(&resolved)?;
-                if file.stat().mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+                let mut state = self.state.write().map_err(|e| e.to_string())?;
+                let inode = state.files.get_mut(&file.ino).unwrap();
+                if inode.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+                inode.atime_ms = super::now_ms();
+                let mut snapshot = Some(StreamSnapshot { data: Some(inode.data.clone()), file });
                 let mut offset = 0;
                 Ok(Box::new(move |chunk| {
-                    *chunk = file.read(offset, size);
-                    offset += chunk.len() as u64;
+                    chunk.clear();
+                    if let Some(stream) = &snapshot {
+                        let data = stream.data.as_ref().unwrap();
+                        let end = data.len().min(offset + size);
+                        chunk.extend_from_slice(&data[offset..end]);
+                        offset = end;
+                        if chunk.is_empty() { snapshot = None; }
+                    }
                     Ok(())
                 }))
             }
@@ -1176,7 +1222,7 @@ impl SafeBashFs for MemoryVfs {
             _ => return Err(format!("target is not a regular file: {path}")),
         };
         if let Some(data) = bytes {
-            if matches!(state.nodes.get(&dest), Some(MemoryNode::File { ino }) if state.files[ino].data == data) {
+            if matches!(state.nodes.get(&dest), Some(MemoryNode::File { ino }) if state.files[ino].data.as_slice() == data) {
                 return Ok(expected.1);
             }
             if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
@@ -1613,7 +1659,9 @@ impl SafeBashFs for MemoryVfs {
 
     fn replace_entries(&self, entries: &[VfsFileEntry]) -> Result<(), String> {
         let mut current = self.state.write().map_err(|e| e.to_string())?;
-        let retained_bytes = current.files.values().filter(|f| f.opens != 0).map(|f| f.data.len()).sum();
+        // Detached versions held by streams also survive replacement of the namespace.
+        let released: usize = current.files.values().filter(|f| f.opens == 0).map(|f| f.data.len()).sum();
+        let retained_bytes = current.total_bytes - released;
         let mut guard = MemoryState { next_ino: current.next_ino, devices: current.devices, nodes: BTreeMap::new(), files: HashMap::new(), extra_links: HashMap::new(), child_dirs: HashMap::new(),
             total_bytes: retained_bytes, staged_entries: current.staged_entries, limits: current.limits.clone() };
         let root_ino = guard.allocate_ino();
@@ -1873,6 +1921,52 @@ mod tests {
         fs.commit_file_edit("/f", &linked, b"abc", b"def", true).unwrap();
         assert_eq!(fs.read_file("/alias").unwrap(), b"def");
         assert_eq!(fs.stat("/alias").unwrap().identity, original.identity);
+    }
+
+    #[test]
+    fn file_streams_retain_one_version_and_its_quota_until_the_last_reader_closes() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/file", b"abcd").unwrap();
+        fs.hard_link("/file", "/alias").unwrap();
+        let mut first = fs.open_chunks_sized("/file", std::num::NonZeroUsize::new(2).unwrap()).unwrap();
+        let second = fs.open_chunks("/alias").unwrap();
+        let mut chunk = Vec::new();
+        first(&mut chunk).unwrap();
+        assert_eq!(chunk, b"ab");
+        fs.set_max_total_bytes(7);
+        assert!(fs.write_file("/alias", b"wxyz").unwrap_err().starts_with("ENOSPC"));
+        fs.set_max_total_bytes(8);
+        fs.write_file("/alias", b"wxyz").unwrap();
+        first(&mut chunk).unwrap();
+        assert_eq!(chunk, b"cd");
+        assert_eq!(fs.read_file("/file").unwrap(), b"wxyz");
+        first(&mut chunk).unwrap(); // EOF releases this reader's allocation.
+        assert!(chunk.is_empty());
+        assert!(fs.write_file("/new", b"x").unwrap_err().starts_with("ENOSPC"));
+        let entries = fs.export_entries().unwrap();
+        fs.replace_entries(&[]).unwrap(); // The old inode and snapshot are still pinned.
+        assert!(fs.write_file("/new", b"x").unwrap_err().starts_with("ENOSPC"));
+        drop(second);
+        fs.replace_entries(&entries).unwrap();
+        fs.write_file("/new", b"more").unwrap();
+    }
+
+    #[test]
+    fn descriptor_edits_detach_file_streams_without_changing_descriptor_identity() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/f", b"abcd").unwrap();
+        let descriptor = fs.retain_file("/f").unwrap();
+        let mut stream = fs.open_chunks("/f").unwrap();
+        fs.set_max_total_bytes(6);
+        assert!(descriptor.write(Some(1), b"X").unwrap_err().starts_with("ENOSPC"));
+        descriptor.truncate(2).unwrap();
+        descriptor.write(Some(1), b"X").unwrap();
+        let mut original = Vec::new();
+        stream(&mut original).unwrap();
+        assert_eq!(original, b"abcd");
+        assert_eq!(descriptor.read(0, 10), b"aX");
+        drop(stream);
+        descriptor.write(None, b"1234").unwrap();
     }
 
     #[test]

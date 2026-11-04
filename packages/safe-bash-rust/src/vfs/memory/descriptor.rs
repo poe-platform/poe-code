@@ -135,7 +135,7 @@ impl RetainedFile {
             .and_then(|n| n.checked_add(data.len()))
             .ok_or("EFBIG: file too large")?;
         self.resize_locked(&mut state, size.max(end))?;
-        state.files.get_mut(&self.ino).unwrap().data[end - data.len()..end].copy_from_slice(data);
+        Arc::get_mut(&mut state.files.get_mut(&self.ino).unwrap().data).unwrap()[end - data.len()..end].copy_from_slice(data);
         Ok(end)
     }
 
@@ -150,21 +150,14 @@ impl RetainedFile {
         }
         let file = state.files.get_mut(&self.ino).unwrap();
         let old = file.data.len();
-        let total = (state.total_bytes - old)
+        let total = (state.total_bytes - file.reclaimable_bytes())
             .checked_add(size)
             .ok_or("ENOSPC: byte limit exceeded")?;
         if total > state.limits.max_total_bytes {
             return Err("ENOSPC: byte limit exceeded".into());
         }
-        if size > old {
-            file.data
-                .try_reserve_exact(size - old)
-                .map_err(|_| "ENOSPC: insufficient memory")?;
-        }
-        file.data.resize(size, 0);
-        if size < old {
-            file.data.shrink_to_fit();
-        }
+        let data = file.resize_data(size)?;
+        if size < old { data.shrink_to_fit(); }
         file.publication = None;
         file.mtime_ms = crate::vfs::now_ms();
         file.status_changed(file.mtime_ms);

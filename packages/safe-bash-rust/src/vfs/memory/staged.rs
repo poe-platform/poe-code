@@ -36,7 +36,7 @@ impl MemoryVfs {
             ino,
             MemoryFile {
                 revision: 0,
-                data,
+                data: Arc::new(data),
                 publication: None,
                 mode: 0o100000 | mode,
                 atime_ms: st.atime_ms,

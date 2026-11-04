@@ -488,6 +488,44 @@ impl SafeBashFs for RealVfs {
         std::fs::hard_link(src, dst).map_err(mutation_error)
     }
 
+    #[cfg(unix)]
+    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static SERIAL: AtomicU64 = AtomicU64::new(0);
+        let dir=crate::vfs::dirname_posix_path(path);
+        let verify_parent=|| {
+            let current=self.lstat(&dir)?;
+            if current.kind!=VfsEntryKind::Directory || parent.identity.is_none() || current.identity!=parent.identity {
+                return Err(format!("EAGAIN: extraction parent changed: {path}"));
+            }
+            Ok(())
+        };
+        verify_parent()?;
+        let Some(expected)=expected else {return self.symlink(target,path);};
+        let verify_destination=|| {
+            if expected.kind!=VfsEntryKind::File || !self.lstat(path)?.same_snapshot(expected) {
+                return Err(format!("EAGAIN: extraction destination changed: {path}"));
+            }
+            Ok(())
+        };
+        verify_destination()?;
+        for _ in 0..128 {
+            let id=SERIAL.fetch_add(1,Ordering::Relaxed);
+            let stage=format!("{}/.safe-bash-stage-{}-{id}",dir.trim_end_matches('/'),std::process::id());
+            if stage==path {continue;}
+            match self.symlink(target,&stage) {
+                Ok(())=>{},
+                Err(e) if e.starts_with("EEXIST:")=>continue,
+                Err(e)=>return Err(e),
+            }
+            // RealVfs assumes a trusted host tree during each path operation.
+            let result=verify_parent().and_then(|()|verify_destination()).and_then(|()|self.rename(&stage,path,false));
+            if result.is_err(){self.remove_one(&stage,false)?;}
+            return result;
+        }
+        Err("EEXIST: could not allocate a staging symlink".into())
+    }
+
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         #[cfg(unix)]
         {
@@ -568,6 +606,16 @@ mod tests {
 
         #[cfg(unix)]
         {
+            let parent=vfs.lstat("/nested/dir").unwrap();
+            vfs.write_file("/nested/dir/replace",b"old").unwrap();
+            vfs.hard_link("/nested/dir/replace","/old").unwrap();
+            let expected=vfs.lstat("/nested/dir/replace").unwrap();
+            vfs.publish_extraction_symlink("/nested/dir/replace","hello.txt",&parent,Some(&expected),0).unwrap();
+            assert_eq!(vfs.read_file("/old").unwrap(),b"old");
+            assert_eq!(vfs.read_file("/nested/dir/replace").unwrap(),b"real-vfs-bytes");
+            assert!(vfs.publish_extraction_symlink("/nested/dir/replace","else",&parent,Some(&expected),0).is_err());
+            vfs.remove_one("/nested/dir/replace",false).unwrap();
+            vfs.remove_one("/old",false).unwrap();
             vfs.symlink("hello.txt", "/nested/dir/link.txt").unwrap();
             assert!(vfs.create_file("/nested/dir/link.txt", b"no", 0o600).unwrap_err().starts_with("EEXIST"));
             assert_eq!(vfs.read_file("/nested/dir/hello.txt").unwrap(), b"real-vfs-bytes");

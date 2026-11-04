@@ -498,7 +498,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const invoke = async (name,args,settings={},proceed) => {
             check();
             settings.signal?.throwIfAborted();
-            if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some(a=>typeof a !== "string" || a.includes("\0")))
+            if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || (proceed === undefined && args.some(a=>typeof a !== "string" || a.includes("\0"))))
               throw new TypeError("invoke requires a command and literal string arguments without NUL");
             if (settings.argv0 !== undefined && (typeof settings.argv0 !== "string" || settings.argv0.includes("\0"))) throw new TypeError("invoke argv0 must be a string without NUL");
             if (settings.admittedHandles || settings.processSignals) throw new Error("Unsupported child process capabilities");
@@ -521,7 +521,13 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const size = input.length;
               const parts = [], word = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); parts.push(b); };
               const field = v => { const b = typeof v === "string" ? encoder.encode(v) : v; word(b.length); parts.push(b); };
-              if (proceed !== undefined) { word(64); field(proceed); }
+              if (proceed !== undefined) {
+                word(64); field(proceed);
+                if (name !== command || carrier !== argumentValues) {
+                  field(name);
+                  for (let i=0;i<args.length;i++) field(carrier.bytes(i));
+                }
+              }
               else {
                 word((!definition && inherited?256:0) | (settings.cwd!==undefined?1:0) | (settings.argv0!==undefined?2:0) | (settings.replaceEnv?4:0) | (settings.externalInvocation?8:0)
                   | ((settings.stdin===undefined?stdinIsDefault:settings.stdinIsDefault)?16:0)
@@ -594,11 +600,12 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           const context = {onInternalError, registerCleanup, command, argv0, args:argumentValues.args, argumentValues,
             cwd, env, stdin, stdinIsDefault, invoke:(name,args,settings)=>invoke(name,args,settings), fs:commandFs, stdout:sinks[0], stderr:sinks[1], signal, capabilities:options.capabilities};
           const pending = definition ? definition.execute(context)
-            : composeMiddleware(middleware,async ()=>{
-              const handler = terminals.get(path.posix.basename(command));
-              const result = await invoke("",[],{},handler?.name ?? "");
+            : composeMiddleware(middleware,async forwarded=>{
+              const {command:name,args,argumentValues:values,argv0} = forwarded;
+              const handler = terminals.get(path.posix.basename(name));
+              const result = await invoke(name,args,{argumentValues:values},handler?.name ?? "");
               if (result !== undefined) return result;
-              return handler.execute(handler.name===command ? context : {...context,command:handler.name,argv0:argv0 ?? command});
+              return handler.execute(handler.name===name ? forwarded : {...forwarded,command:handler.name,argv0:argv0 ?? name});
             })(context);
           const result = await (options.signal || childSignals.length ? untilAbort(pending, signal) : pending);
           if (code >= 0) {

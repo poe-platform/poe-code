@@ -59,9 +59,15 @@ fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middlew
     if flags == 64 {
         let input = middleware_input.as_mut().ok_or("No command to continue")?;
         let candidate = field(&mut request)?;
+        let words = if request.is_empty() { None } else {
+            let mut words = vec![field(&mut request)?];
+            while !request.is_empty() { words.push(field(&mut request)?); }
+            Some(words)
+        };
+        let name = words.as_ref().map_or(ctx.command, |w| w[0].as_str());
         let mut selected = false;
-        let previous = matches!(ctx.command,"exit"|"return").then(||ctx.caller.state().last_exit);
-        let result = ctx.caller.proceed(input,Some((&candidate,&mut selected)))?;
+        let previous = matches!(name,"exit"|"return").then(||ctx.caller.state().last_exit);
+        let result = ctx.caller.proceed(input,words.as_deref(),Some((&candidate,&mut selected)))?;
         if selected { return Ok((256,Vec::new(),0)); }
         let (code,mut bytes,credit) = child_result(result,0);
         if let Some(flow) = ctx.caller.take_flow(code,previous) {

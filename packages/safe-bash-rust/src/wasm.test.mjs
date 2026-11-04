@@ -1566,6 +1566,29 @@ test("middleware and the selected plugin handler share streams, cleanup and thro
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("middleware replacements reach builtins, functions and registered commands with literal byte arguments",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const {createCommandArguments}=await import("safe-bash-contracts");
+  for(const sh of [new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()),new RustWasmBash({cwd:"/"})]){
+    sh.use({name:"rewrite-target",setup(host){host.commands.register({name:"raw",async execute(ctx){
+      await ctx.stdout.write(ctx.argumentValues.bytes(0));return {exitCode:0};
+    }});}});
+    sh.use((ctx,next)=>{
+      if(ctx.command==="rewrite"){
+        ctx.command=ctx.args[0];
+        ctx.argumentValues=createCommandArguments([...(ctx.command==="printf"?["%s"]:[]),Uint8Array.of(255,65)]);
+        ctx.args=ctx.argumentValues.args;
+      }
+      return next();
+    });
+    try{
+      const r=await sh.exec('f(){ printf "%s" "$1"; }; rewrite printf; rewrite f; rewrite /bin/raw');
+      assert.equal(r.exitCode,0,r.stderr);
+      assert.deepEqual(r.stdoutBytes,Uint8Array.of(255,65,255,65,255,65));
+    }finally{await sh.dispose();}
+  }
+});
+
 test("middleware can observe or catch exit, return, break and continue",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh,swallow)=>{

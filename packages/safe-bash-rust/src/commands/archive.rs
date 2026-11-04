@@ -6114,7 +6114,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if st.nlink.is_some_and(|n| n > 1) { linked_original = Some(bytes); }
         entries
     } else {
-        if copy_mode || delete_mode || freshen_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
+        if copy_mode || delete_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
         Vec::new()
     };
     let publish = |bytes: Vec<u8>, sources: &[_]| {
@@ -6156,40 +6156,28 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         });
         return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
     }
-    if freshen_mode {
-        for e in &mut entries {
-            if e.typeflag == b'0' && e.name != "__ZIP_COMMENT__" {
-                if !operands.is_empty() && !operands.iter().any(|t| zip_matches_pattern(t, &e.name)) {
-                    continue;
-                }
-                let disk_path = resolve_posix_path(cwd, &e.name);
-                if let Ok(new_bytes) = fs.read_file(&disk_path) {
-                    if let Ok(st) = fs.stat(&disk_path) { sources.push((disk_path, st.identity)); }
-                    e.content = new_bytes;
-                }
-            }
-        }
-        return publish(crate::commands::codecs::serialize_zip_archive(&entries), &sources);
+    let timed = update_mode || freshen_mode;
+    let mut notices = String::new();
+    if timed && !quiet && entries.iter().all(|e| e.name == "__ZIP_COMMENT__") {
+        notices.push_str(&format!("\tzip warning: {} not found or empty\n",zip_public_text(&arch_name)));
     }
     if filesync_mode { entries.clear(); }
-    let effective_targets: Vec<String> = if recursive_patterns {
-        vec![".".to_string()]
-    } else {
-        operands.clone()
-    };
-    let _ = update_mode;
+    let targets = if recursive_patterns { vec![".".to_string()] }
+        else if timed && operands.is_empty() { entries.iter().filter(|e| e.name != "__ZIP_COMMENT__").map(|e|e.name.clone()).collect() }
+        else { operands.clone() };
+    let mut targets: std::collections::VecDeque<_> = targets.into_iter().map(|p| (p,false)).collect();
+    let mut moving_paths = std::collections::BTreeSet::new();
     let mut moves = Vec::new();
     let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
     let mut skipped_archive = false;
     // Keep the original source spelling separate from the name stored in the ZIP.
-    let original_count = entries.len();
     let mut members: BTreeMap<_,_> = entries.iter().enumerate()
-        .map(|(index,e)| (e.name.clone(), (index,None::<String>))).collect();
-    for t in &effective_targets {
+        .map(|(index,e)| (e.name.clone(), (index,None::<String>,Some(e.mtime)))).collect();
+    while let Some((t,stored_name)) = targets.pop_front() {
         let mut raw_entries = Vec::new();
         let visit = visit_archive_sources(
             t.trim_start_matches('/'),
-            &resolve_posix_path(cwd, t),
+            &resolve_posix_path(cwd, &t),
             &excludes,
             false,
             !store_symlinks,
@@ -6197,7 +6185,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             recursive || recursive_patterns,
             fs,
             &mut Vec::new(),
-            &mut |stat, named, path, mut entry, root| {
+            &mut |stat, named, path, entry, root| {
                 if path == arch_full || path == dest_full || [input.as_ref(),dest.as_ref()].into_iter().flatten()
                     .any(|archive| archive.identity.is_some() && archive.identity == stat.identity) {
                     skipped_archive = true;
@@ -6206,7 +6194,6 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 let receipt = if move_mode {
                     Some((fs.lstat(&crate::vfs::dirname_posix_path(&path))?, named.clone()))
                 } else { None };
-                if entry.typeflag == b'0' { entry.content = fs.read_file(&path)?; }
                 let source = if root { t.clone() } else {
                     let name = entry.name.trim_end_matches('/');
                     if t == "." { name.strip_prefix("./").unwrap_or(name).into() }
@@ -6216,7 +6203,18 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 Ok(true)
             },
         );
-        if let Err(e) = visit && !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
+        if let Err(e) = visit {
+            if !e.starts_with("ENOENT:") { return err_out(&format!("zip: {e}\n"),2); }
+            if timed && raw_entries.is_empty() && !stored_name {
+                let mut matched = false;
+                for entry in entries.iter().rev().filter(|e| e.name != "__ZIP_COMMENT__" && members.get(&e.name).is_some_and(|m| m.2.is_some())) {
+                    if zip_matches_pattern(t.trim_start_matches('/'),&entry.name) {
+                        targets.push_front((entry.name.clone(),true)); matched = true;
+                    }
+                }
+                if !matched && !quiet { notices.push_str(&format!("\tzip warning: name not matched: {}\n",zip_public_text(&t))); }
+            }
+        }
         for (path,id,source,receipt,mut e) in raw_entries {
             e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();
             if e.name.is_empty() || e.name == "." || e.name == "./" {
@@ -6252,7 +6250,19 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 e.name = base;
             }
-            let (index, selected) = members.entry(e.name.clone()).or_insert((entries.len(), None));
+            let prior = members.get(&e.name).and_then(|m|m.2);
+            if freshen_mode && prior.is_none() { continue; }
+            if let Some((parent,expected)) = receipt && moving_paths.insert(path.clone()) {
+                if !fs.supports_conditional_removal(&path) {
+                    return err_out("zip: ZIP move requires atomic conditional source removal\n",2);
+                }
+                if parent.identity.is_none() || expected.identity.is_none() || expected.revision.is_none() {
+                    return err_out("zip: ZIP move requires known source identity and revision\n",2);
+                }
+                moves.push(ZipMove {path:path.clone(),source:source.clone(),parent,expected});
+            }
+            if timed && prior.is_some_and(|mtime| e.mtime.floor() <= mtime.floor()) { continue; }
+            let (index, selected, _) = members.entry(e.name.clone()).or_insert((entries.len(), None, None));
             if let Some(first) = selected {
                 if first == &source { continue; }
                 let mut result = zip_err("cannot repeat names in zip file");
@@ -6262,16 +6272,10 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 return result;
             }
-            if let Some((parent,expected)) = receipt {
-                if !fs.supports_conditional_removal(&path) {
-                    return err_out("zip: ZIP move requires atomic conditional source removal\n",2);
-                }
-                if parent.identity.is_none() || expected.identity.is_none() || expected.revision.is_none() {
-                    return err_out("zip: ZIP move requires known source identity and revision\n",2);
-                }
-                moves.push(ZipMove {path:path.clone(),source:source.clone(),parent,expected});
-            }
             *selected = Some(source);
+            if e.typeflag == b'0' {
+                e.content = match fs.read_file(&path) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
+            }
             if e.typeflag == b'0' && let Some(from) = from_crlf {
                 let store = !use_deflate || level == 0 || level != 9 && suffixes.iter().any(|s| e.name.ends_with(s));
                 let window = match (from, store) {
@@ -6309,7 +6313,12 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         }
     }
-    if skipped_archive && members.values().all(|(_,source)| source.is_none()) && !read_comment {
+    let unchanged = members.values().all(|(_,source,_)| source.is_none());
+    if timed && unchanged && !read_comment {
+        if let Err(e) = remove_zip_sources(fs,moves,quiet,&mut notices) { return err_out(&e,2); }
+        return BuiltinOutcome { stdout:notices,stderr:String::new(),exit_code:12 };
+    }
+    if skipped_archive && unchanged && !read_comment {
         return BuiltinOutcome { stdout:format!("\nzip error: Nothing to do! ({})\n",zip_public_text(&arch_name)),stderr:String::new(),exit_code:12 };
     }
     if read_comment {
@@ -6352,8 +6361,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let (size,stored) = (size as u64,stored as u64);
             total += size;
             compressed += stored;
-            if let Some((index,Some(_))) = members.get(name) {
-                progress.push_str(if *index < original_count { "updating: " } else { "  adding: " });
+            if let Some((_,Some(_),prior)) = members.get(name) {
+                progress.push_str(if prior.is_none() { "  adding: " } else if freshen_mode { "freshening: " } else { "updating: " });
                 super::fs::write_display_name(&mut progress,zip_public_text(name),false);
                 if verbose {
                     if method != 0 { progress.push(' '); }
@@ -6365,6 +6374,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         });
     if verbose && !quiet { writeln!(progress,"total bytes={total}, compressed={compressed} -> {}% savings",savings(total,compressed)).unwrap(); }
     let mut result = publish(out_bytes, &sources);
+    result.stdout.insert_str(0,&notices);
     if result.exit_code == 0 {
         result.stdout.push_str(&progress);
         if result.stdout.len() > fs.remaining_output_bytes() {

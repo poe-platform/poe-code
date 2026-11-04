@@ -1748,6 +1748,38 @@ test("ZIP rejects reserved move switches before replacing an archive or deleting
   } finally {await js.dispose();await rust.dispose();}
 });
 
+test("ZIP update and freshen select newer members and leave a current archive untouched",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    const run=async (sh,fs) => {
+      const results=[], base=1700000000000;
+      const file=async (path,byte,time) => {await fs.writeFile(path,Uint8Array.of(byte));await fs.utimes(path,time,time);};
+      const zip=async args=>{const r=await sh.exec("zip "+args);results.push([r.exitCode,r.stdout,r.stderr]);};
+      await file("/member",65,base);
+      await zip("-q out.zip member");
+      const before=await fs.readFile("/out.zip"), initial=await fs.lstat("/out.zip");
+      await file("/member",66,base+999); await file("/extra",67,base);
+      await zip("-u out.zip member");
+      assert.deepEqual(await fs.readFile("/out.zip"),before,"equal second must not republish the archive");
+      await file("/member",66,base-1000);
+      await zip("-f out.zip member extra");
+      assert.deepEqual(await fs.readFile("/out.zip"),before,"freshen must ignore new names");
+      assert.equal((await fs.lstat("/out.zip")).revision,initial.revision);
+      await file("/member",68,base+1000);
+      await zip("-f out.zip");
+      results.push((await sh.exec("unzip -p out.zip member")).stdout);
+      await zip("-u out.zip extra"); results.push((await sh.exec("unzip -p out.zip extra")).stdout);
+      await zip("-um out.zip member"); await assert.rejects(fs.lstat("/member"),{code:"ENOENT"});
+      await zip("-f missing.zip extra");
+      await assert.rejects(fs.lstat("/missing.zip"),{code:"ENOENT"});
+      return results;
+    };
+    const expected=await run(js,ref); assert.equal(expected[4],"D"); assert.equal(expected[6],"C");
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
   const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
   for (const [size, flags, obstacle] of [

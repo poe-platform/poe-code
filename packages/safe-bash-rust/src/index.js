@@ -1494,6 +1494,7 @@ export class RustWasmBash extends WasmShell {
   #onInternalError;
   #validatePath;
   #plugins = [];
+  #providedCapabilities;
   #pluginLifetime;
   #activePlugins = new Set();
   #disposal;
@@ -2054,7 +2055,8 @@ export class RustWasmBash extends WasmShell {
     signal.throwIfAborted();
     await untilAbort(this.#ready, signal);
     signal.throwIfAborted();
-    const run = this.#exec(script, {...options, signal}, Boolean(options.signal));
+    const capabilities = Object.freeze({...this.#providedCapabilities,...options.capabilities});
+    const run = this.#exec(script, {...options, signal, capabilities}, Boolean(options.signal));
     this.#activePlugins.add(run);
     try { return await run; } finally { this.#activePlugins.delete(run); }
   }
@@ -2267,7 +2269,12 @@ export class RustWasmBash extends WasmShell {
     } else {
       if (typeof plugin?.setup !== "function") throw new TypeError("Expected a shell plugin with setup");
       this.#install(async () => {
-        await plugin.setup({commands:this.#commands, registerFileSystem:(scheme, factory) => this.#registerFileSystem(scheme, factory)});
+        await plugin.setup({commands:this.#commands, registerFileSystem:(scheme, factory) => this.#registerFileSystem(scheme, factory),
+          provideCapabilities: defaults => {
+            if (this.#pluginLifetime.signal.aborted) throw new Error("Shell is disposed");
+            this.#providedCapabilities = {...this.#providedCapabilities,...defaults};
+          },
+        });
         this.#plugins.push(plugin);
       });
     }
@@ -2383,6 +2390,7 @@ export class RustWasmBash extends WasmShell {
         for (const plugin of this.#plugins.splice(0).reverse()) {
           try { await plugin.dispose?.(); } catch (error) { failures.push(error); }
         }
+        this.#providedCapabilities = undefined;
         this.#filesystems.clear();
         this.#identityScopes.clear();
         super.dispose();

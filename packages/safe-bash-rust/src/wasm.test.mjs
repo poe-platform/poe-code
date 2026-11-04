@@ -1467,6 +1467,31 @@ test("standalone plugins run async handlers in Rust pipelines and sessions", {sk
   } finally { await bash.dispose(); }
 });
 
+test("plugin-provided capabilities reach nested commands and explicit invocation settings win",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  for(const sh of [new Shell({fs:new MemoryFileSystem(),cwd:"/"}),new RustWasmBash({cwd:"/"})]){
+    let provided;
+    const marker={}, seen=[];
+    sh.use({name:"defaults",setup(host){
+      provided=host.provideCapabilities;
+      host.provideCapabilities({services:marker,choice:"default"});
+      host.commands.register({name:"child",async execute(ctx){
+        seen.push([ctx.capabilities.services===marker,ctx.capabilities.choice,Object.isFrozen(ctx.capabilities)]);
+        return {exitCode:0};
+      }});
+      host.commands.register({name:"parent",execute:ctx=>ctx.invoke("child",[])});
+    }});
+    try{
+      for(const choice of [undefined,"explicit",undefined]){
+        const r=await sh.exec("parent",choice?{capabilities:{choice}}:{});
+        assert.equal(r.exitCode,0,r.stderr);
+      }
+      assert.deepEqual(seen,[[true,"default",true],[true,"explicit",true],[true,"default",true]]);
+    }finally{await sh.dispose();}
+    assert.throws(()=>provided({choice:"late"}),/disposed/i);
+  }
+});
+
 test("suspended plugin commands keep their own inputs, output limits and cancellation", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash({cwd:"/"});
   let release, entered;

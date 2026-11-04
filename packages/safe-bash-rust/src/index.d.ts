@@ -152,7 +152,7 @@ export class RustWasmBash {
   register(command: StreamCommand, options?: RegisterCommandOptions): this;
   use(plugin: {
     readonly name?: string;
-    setup(host: {commands: StreamCommandRegistry; registerFileSystem: RustWasmBash["registerFileSystem"]}): void | Promise<void>;
+    setup(host: {commands: StreamCommandRegistry; provideCapabilities(defaults: NonNullable<CommandContext["capabilities"]>): void; registerFileSystem: RustWasmBash["registerFileSystem"]}): void | Promise<void>;
     dispose?(): void | Promise<void>;
   }): this;
   mountDevices(): void;

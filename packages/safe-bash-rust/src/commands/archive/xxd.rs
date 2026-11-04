@@ -38,6 +38,20 @@ fn read_input(
                 if stat.kind == crate::vfs::VfsEntryKind::Directory {
                     return Err("EISDIR: illegal operation on a directory".into());
                 }
+                if matches!(stat.identity, Some(crate::vfs::EntryIdentity::Memory(..)))
+                    && stat.mode & 0o170000 == 0o100000
+                {
+                    let file = fs.open_read_file(&entry, false)?;
+                    let mut offset = 0;
+                    while offset < stat.size {
+                        let bytes = file.read(offset as u64, (stat.size - offset).min(8192))?;
+                        if bytes.is_empty() || !feed(&bytes)? {
+                            break;
+                        }
+                        offset += bytes.len();
+                    }
+                    return Ok(());
+                }
                 fs.read_chunks(&entry, &mut |chunk| {
                     for part in chunk.chunks(8192) {
                         if !feed(part)? {
@@ -52,6 +66,15 @@ fn read_input(
 }
 
 const MAX_ADDRESS: u64 = (1 << 53) - 1;
+
+fn hex_digit(b: u8) -> Option<u8> {
+    match b {
+        b'0'..=b'9' => Some(b - b'0'),
+        b'a'..=b'f' => Some(b - b'a' + 10),
+        b'A'..=b'F' => Some(b - b'A' + 10),
+        _ => None,
+    }
+}
 
 fn parse_xxd_num(text: &str) -> Result<u64, String> {
     let (digits, radix) =
@@ -75,6 +98,7 @@ pub(crate) fn cmd_xxd(
     args: &[String],
     mut stdin: CommandInput,
     cwd: &str,
+    env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
     write: &mut CommandWriter,
 ) -> BuiltinOutcome {
@@ -266,127 +290,193 @@ pub(crate) fn cmd_xxd(
         );
     }
     if reverse {
-        let Ok(seek_offset) = usize::try_from(seek) else {
-            return err_out("xxd: Sorry, cannot seek.\n", 4);
-        };
-        let mut raw_data = Vec::new();
-        if let Err(e) = read_input(&mut stdin, infile, cwd, fs, |chunk| {
-            raw_data.extend_from_slice(chunk);
-            true
-        }) {
-            return input_error(&e);
-        }
-        let mut out_bytes: Vec<u8> = Vec::new();
-        if plain {
-            if seek_offset > 0 {
-                out_bytes.resize(seek_offset, 0);
-            }
-            let mut high: Option<u8> = None;
-            for &b in &raw_data {
-                if b == b' ' || (9..=13).contains(&b) {
-                    continue;
-                }
-                let digit = match b {
-                    b'0'..=b'9' => Some(b - b'0'),
-                    b'a'..=b'f' => Some(b - b'a' + 10),
-                    b'A'..=b'F' => Some(b - b'A' + 10),
-                    _ => None,
-                };
-                if let Some(d) = digit {
-                    if let Some(h) = high {
-                        out_bytes.push((h << 4) | d);
-                        high = None;
+        let mode = 0o666
+            & !env
+                .get("\0umask")
+                .and_then(|s| u32::from_str_radix(s, 8).ok())
+                .unwrap_or(0o022);
+        let descriptor = if let Some(path) = &outpath {
+            let entry = match fs.access_path(path, true) {
+                Ok(p) => p,
+                Err(e) => return input_error(&e),
+            };
+            match fs.open_redirect_file(&entry, crate::vfs::RedirectAccess::Write, mode) {
+                Ok(descriptor) => descriptor,
+                Err(e) => {
+                    let op = if e.starts_with("EISDIR:") {
+                        "capabilitiesFor"
                     } else {
-                        high = Some(d);
-                    }
-                } else {
-                    high = None;
+                        "open"
+                    };
+                    return input_error(&stream_file_error(e, op, path));
                 }
             }
         } else {
-            for line in raw_data.split(|&b| b == b'\n') {
-                let trimmed_non_ws = line.iter().any(|&b| b != b' ' && !(9..=13).contains(&b));
-                if !trimmed_non_ws || line == b"*" {
-                    continue;
-                }
-                let Some(colon_pos) = line.iter().position(|&b| b == b':') else {
-                    return err_out(
-                        "xxd: invalid input: expected hexadecimal address and colon\n",
-                        1,
-                    );
+            None
+        };
+        let mut result = ok_out("");
+        let mut emit = |offset: u64, bytes: &[u8]| -> Result<(), String> {
+            if let Some(path) = &outpath {
+                let written = if let Some(handle) = &descriptor {
+                    usize::try_from(offset)
+                        .map_err(|_| "EFBIG: file too large".to_owned())
+                        .and_then(|pos| fs.write_command_file_at(handle.as_ref(), pos, bytes))
+                } else {
+                    fs.append_file(path, bytes)
                 };
-                if colon_pos == 0 || colon_pos > 14 {
-                    return err_out(
-                        "xxd: invalid input: expected hexadecimal address and colon\n",
-                        1,
-                    );
+                written.map_err(|e| stream_file_error(e, "write", path))
+            } else if write(1, &crate::vfs::bytes_to_stream_string(bytes), &mut result) {
+                Ok(())
+            } else {
+                Err(String::new())
+            } // The shell writer has already reported the failure.
+        };
+        let positioned = outpath.is_some();
+        let mut pos = 0u64;
+        let mut send = |address: i64, bytes: &[u8]| -> Result<(), String> {
+            if address.unsigned_abs() > MAX_ADDRESS {
+                return Err("input address exceeds safe integer range".into());
+            }
+            if address < 0 || !positioned && (address as u64) < pos {
+                return Err(if positioned {
+                    "Sorry, cannot seek."
+                } else {
+                    "invalid input: cannot seek backwards on output stream"
                 }
-                let mut addr = 0usize;
-                for &b in &line[..colon_pos] {
-                    let d = match b {
-                        b'0'..=b'9' => (b - b'0') as usize,
-                        b'a'..=b'f' => (b - b'a' + 10) as usize,
-                        b'A'..=b'F' => (b - b'A' + 10) as usize,
-                        _ => {
-                            return err_out(
-                                "xxd: invalid input: expected hexadecimal address and colon\n",
-                                1,
-                            );
+                .into());
+            }
+            let address = address as u64;
+            if !positioned {
+                while pos < address {
+                    let len = (address - pos).min(8192) as usize;
+                    emit(pos, &[0; 8192][..len])?;
+                    pos += len as u64;
+                }
+            }
+            pos = address;
+            if !bytes.is_empty() {
+                if pos + bytes.len() as u64 > MAX_ADDRESS {
+                    return Err("input address exceeds safe integer range".into());
+                }
+                emit(pos, bytes)?;
+                pos += bytes.len() as u64;
+            }
+            Ok(())
+        };
+        let mut status = Ok(());
+        let mut decoded = Vec::new();
+        if plain {
+            status = send(seek, &[]);
+            if status.is_ok() {
+                let mut high = None;
+                let mut cursor = seek;
+                let read = read_input(&mut stdin, infile, cwd, fs, |chunk| {
+                    decoded.clear();
+                    for &b in chunk {
+                        if b == b' ' || (9..=13).contains(&b) {
+                            continue;
                         }
-                    };
-                    addr = addr.saturating_mul(16).saturating_add(d);
+                        if let Some(digit) = hex_digit(b) {
+                            if let Some(h) = high.take() {
+                                decoded.push(h << 4 | digit);
+                            } else {
+                                high = Some(digit);
+                            }
+                        } else {
+                            high = None;
+                        }
+                    }
+                    status = send(cursor, &decoded);
+                    cursor += decoded.len() as i64;
+                    status.is_ok()
+                });
+                status = status.and(read);
+            }
+        } else {
+            let mut pending = Vec::new();
+            let mut row = |line: &[u8]| -> Result<(), String> {
+                if line == b"*" || line.iter().all(|&b| b == b' ' || (9..=13).contains(&b)) {
+                    return Ok(());
                 }
-                addr = addr.saturating_add(seek_offset);
-                if out_bytes.len() < addr {
-                    out_bytes.resize(addr, 0);
+                let invalid = "invalid input: expected hexadecimal address and colon";
+                let colon = line
+                    .iter()
+                    .position(|&b| b == b':')
+                    .filter(|n| (1..=14).contains(n))
+                    .ok_or(invalid)?;
+                let mut address = 0i64;
+                for &b in &line[..colon] {
+                    address = 16 * address + i64::from(hex_digit(b).ok_or(invalid)?);
                 }
-                let mut row_bytes: Vec<u8> = Vec::new();
-                let mut high: Option<u8> = None;
-                let mut spaces = 0usize;
-                for &b in &line[colon_pos + 1..] {
-                    if b == b' ' || b == b'\t' || b == b'\r' {
+                address += seek;
+                send(address, &[])?;
+                let mut high = None;
+                let mut spaces = 0;
+                decoded.clear();
+                for &b in &line[colon + 1..] {
+                    if matches!(b, b' ' | b'\t' | b'\r') {
                         spaces += 1;
-                        if !row_bytes.is_empty() && spaces >= 2 {
+                        if !decoded.is_empty() && spaces >= 2 {
                             break;
                         }
                         continue;
                     }
-                    let digit = match b {
-                        b'0'..=b'9' => Some(b - b'0'),
-                        b'a'..=b'f' => Some(b - b'a' + 10),
-                        b'A'..=b'F' => Some(b - b'A' + 10),
-                        _ => None,
-                    };
-                    let Some(d) = digit else {
+                    let Some(digit) = hex_digit(b) else {
                         break;
                     };
                     spaces = 0;
-                    if let Some(h) = high {
-                        row_bytes.push((h << 4) | d);
-                        high = None;
-                        if row_bytes.len() == cols {
+                    if let Some(h) = high.take() {
+                        decoded.push(h << 4 | digit);
+                        if decoded.len() == cols {
                             break;
                         }
                     } else {
-                        high = Some(d);
+                        high = Some(digit);
                     }
                 }
-                for (k, &rb) in row_bytes.iter().enumerate() {
-                    if addr + k < out_bytes.len() {
-                        out_bytes[addr + k] = rb;
+                if decoded.is_empty() {
+                    return Err("invalid input: malformed hexadecimal data field".into());
+                }
+                send(address, &decoded)
+            };
+            let read = read_input(&mut stdin, infile, cwd, fs, |chunk| {
+                for part in chunk.split_inclusive(|&b| b == 10) {
+                    if let Some(line) = part.strip_suffix(b"\n") {
+                        status = if pending.is_empty() {
+                            row(line)
+                        } else {
+                            pending.extend_from_slice(line);
+                            let r = row(&pending);
+                            pending.clear();
+                            r
+                        };
+                        if status.is_err() {
+                            return false;
+                        }
                     } else {
-                        out_bytes.push(rb);
+                        pending.extend_from_slice(part);
                     }
                 }
+                true
+            });
+            status = status.and(read);
+            if status.is_ok() && !pending.is_empty() {
+                status = row(&pending);
             }
         }
-        if let Some(path) = &outpath {
-            if let Err(e) = fs.write_file(path, &out_bytes) {
-                return input_error(&e);
-            }
-            return ok_out("");
+        if let Err(e) = status
+            && !e.is_empty()
+        {
+            result.exit_code = if e == "Sorry, cannot seek." {
+                4
+            } else if e.starts_with("ENOENT:") {
+                2
+            } else {
+                1
+            };
+            write(2, &format!("xxd: {e}\n"), &mut result);
         }
-        return ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes));
+        return result;
     }
 
     let seek_offset = if seek < 0 {

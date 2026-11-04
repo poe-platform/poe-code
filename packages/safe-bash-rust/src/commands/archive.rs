@@ -22,7 +22,7 @@ pub fn try_run_archive_command(
     }
     match cmd {
         "base64" | "base32" => Some(run_base_cmd(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
-        "xxd" => Some(cmd_xxd(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
+        "xxd" => Some(cmd_xxd(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
         "strings" => Some(cmd_strings(args, stdin, cwd, fs)),
         "od" => Some(cmd_od(args, stdin, cwd, fs)),
         "hexdump" => Some(cmd_hexdump(args, stdin, cwd, fs, false)),

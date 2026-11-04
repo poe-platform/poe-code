@@ -352,7 +352,7 @@ impl SafeBashFs for OverlayVfs {
                 let (layer, entry) = self.read_source(path)?;
                 layer.open_redirect_file(&entry, access, mode)
             }
-            RedirectAccess::ReadWrite => Err(format!("ENOTSUP: operation not supported, open '{path}'")),
+            RedirectAccess::ReadWrite | RedirectAccess::Write => Err(format!("ENOTSUP: operation not supported, open '{path}'")),
             RedirectAccess::Exclusive => { self.create_file(path, &[], mode)?; Ok(None) }
             _ => Ok(None),
         }

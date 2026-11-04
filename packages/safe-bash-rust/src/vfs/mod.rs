@@ -155,7 +155,7 @@ impl FsError {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RedirectAccess { Read, Truncate, Append, Exclusive, ReadWrite }
+pub enum RedirectAccess { Read, Write, Truncate, Append, Exclusive, ReadWrite }
 
 /// An open descriptor. Its operations use the same object even if its name is replaced.
 pub trait OpenRedirectFile: std::fmt::Debug {
@@ -203,11 +203,16 @@ pub trait SafeBashFs: Send + Sync {
 
     /// None uses the filesystem’s path-based output or special-device operations.
     fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
-        if access == RedirectAccess::ReadWrite { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }
+        if matches!(access, RedirectAccess::ReadWrite | RedirectAccess::Write) { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }
         else {
             if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
             Ok(None)
         }
+    }
+
+    /// Write to a retained command output at the specified byte offset.
+    fn write_command_file_at(&self, file: &dyn OpenRedirectFile, offset: usize, bytes: &[u8]) -> Result<(), String> {
+        file.write_at(Some(offset), bytes)
     }
 
     /// Write to a path when the filesystem did not supply a retained redirect handle.

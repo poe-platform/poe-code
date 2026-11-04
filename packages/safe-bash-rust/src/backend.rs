@@ -131,6 +131,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.open_redirect_file(&host_text(path), access, create_mode).map_err(quote_host_text)
     }
 
+    fn write_command_file_at(&self, file: &dyn crate::vfs::OpenRedirectFile, offset: usize, bytes: &[u8]) -> Result<(), String> {
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(bytes.len())?;
+        file.write_at(Some(offset), bytes).map_err(quote_host_text)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

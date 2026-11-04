@@ -543,6 +543,66 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("xxd reverse patches the opened file without truncating or reopening it", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/target":"abcdef"}});
+  try {
+    const stdin = { async *[Symbol.asyncIterator]() {
+      yield new TextEncoder().encode("2: 5859\n");
+      assert.equal(bash.readText("/target"), "abXYef");
+      await bash.fs.rename("/target", "/moved");
+      await bash.fs.writeFile("/target", "replacement");
+      yield new TextEncoder().encode("0: 5a\n8: ff");
+    }};
+    const r = await bash.exec("xxd -r - /target", {stdin});
+    assert.deepEqual([r.exitCode, r.stderr, bash.readText("/target"), [...await bash.fs.readFile("/moved")]],
+      [0, "", "replacement", [90,98,88,89,101,102,0,0,255]]);
+    const w = await bash.exec("chmod 200 /target; xxd -rp -s1 - /target; chmod 600 /target", {stdin:"58"});
+    assert.deepEqual([w.stderr, bash.readText("/target")], ["", "rXplacement"]);
+    const empty = await bash.exec("umask 077; xxd -rp -s8 - /new; stat -c %a /new");
+    assert.deepEqual([empty.stdout, bash.readText("/new")], ["600\n", ""]);
+  } finally { bash.dispose(); }
+});
+
+test("xxd reads named input in 8192-byte blocks when its output aliases the same file", async () => {
+  const input = "2000: 6666\n".padEnd(8192, " ") + "\n0: 58";
+  const bash = new RustWasmBash({files:{"/src":input}});
+  try {
+    const r = await bash.exec("ln /src /alias; xxd -r /src /alias");
+    assert.deepEqual([r.exitCode, r.stderr, bash.readText("/src")], [1,
+      "xxd: invalid input: expected hexadecimal address and colon\n", input.slice(0, 8192) + "ff: 58"]);
+  } finally { bash.dispose(); }
+});
+
+test("xxd reverse retains emitted rows and padding on invalid input", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, input, bytes, error] of [
+      ["-r", "0: 61\n0: ff\n", [97], "invalid input: cannot seek backwards on output stream"],
+      ["-r", "0: 61\n2: 7\n", [97,0], "invalid input: malformed hexadecimal data field"],
+      ["-r", "0: 61\nbad", [97], "invalid input: expected hexadecimal address and colon"],
+      ["-r -s-1", "1: 58", [88], ""],
+    ]) {
+      const r = await bash.exec("xxd " + args, {stdin:input});
+      assert.deepEqual([r.exitCode, [...r.stdoutBytes], r.stderr], [error ? 1 : 0, bytes, error ? "xxd: " + error + "\n" : ""]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("xxd reverse charges streamed writes before pulling more input", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/target":"abcdef"}});
+  try {
+    for (const [args, limit, expectedPulls] of [["-rp -s8193 >/pad",8192,0], ["-rp -s2 - /target",1,2]]) {
+      let pulls = 0;
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const chunk of ["58","59","5a"]) { pulls++; yield new TextEncoder().encode(chunk); }
+      }};
+      await assert.rejects(bash.exec("xxd " + args, {stdin,limits:{maxOutputBytes:limit}}), {limit:"maxOutputBytes"});
+      assert.equal(pulls, expectedPulls, args);
+    }
+    assert.deepEqual([bash.readText("/pad"), bash.readText("/target")], ["\0".repeat(8192), "abXdef"]);
+  } finally { bash.dispose(); }
+});
+
 test("xxd validates all numeric options after opening named output and uses wide addresses", async () => {
   const bash = new RustWasmBash({ files: { "/out": "old" } });
   try {

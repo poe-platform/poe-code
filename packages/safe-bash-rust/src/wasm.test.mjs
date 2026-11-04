@@ -6511,11 +6511,13 @@ test("ZIP reads an existing archive and its members in bounded ranges, and rejec
     assert.deepEqual((await fs.readdir("/")).map(e=>e.name).sort(),["first","out.zip","second"]);
     const update=await sh.exec("zip -0q out.zip second",{fs:view});
     assert.deepEqual([update.exitCode,update.stderr],[0,""]);
-    const contents=await sh.exec("unzip -p out.zip second",{fs});
-    assert.equal(contents.exitCode,0);assert.deepEqual(contents.stdoutBytes,await fs.readFile("/second"));
     assert.equal(opened,closed);assert.ok(opened>1);
     assert.ok(limits.length>4 && Math.max(...limits)<=65536,"read range: "+Math.max(...limits));
     assert.ok(writes.length>4 && Math.max(...writes)<=65536,"write range: "+Math.max(...writes));
+    const contents=await sh.exec("unzip -p out.zip second",{fs:view});
+    assert.deepEqual([contents.exitCode,contents.stderr],[0,""]);
+    assert.deepEqual(contents.stdoutBytes,await fs.readFile("/second"));
+    assert.equal(opened,closed);
   };
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
   try{for(const sh of [js,rust])await run(sh);}finally{await js.dispose();await rust.dispose();}

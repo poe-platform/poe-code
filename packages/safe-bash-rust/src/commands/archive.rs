@@ -6687,11 +6687,15 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             }
         }
     }
-    let Ok(bytes) = fs.read_file(&full) else {
+    let Ok(stat) = fs.stat(&full) else {
         return err_out(
             &format!("unzip:  cannot find or open {raw_arch}, {raw_arch}.zip or {raw_arch}.ZIP.\n"),
             9,
         );
+    };
+    let bytes = match zip_read_file(fs, &full, &stat) {
+        Ok(bytes) => bytes,
+        Err(e) => return err_out(&format!("unzip: {}\n", tar_format::display(&e)), 2),
     };
     let quiet = quiet_level != 0;
     let heading = !quiet && !names_only && !pipe_to_stdout;

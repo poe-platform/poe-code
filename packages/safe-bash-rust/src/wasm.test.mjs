@@ -6544,6 +6544,39 @@ test("unzip rejects absolute symlink target chains even inside the extraction ro
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip defers guarded symlinks until regular entries finish",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const src=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:src}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await src.symlink("target","/link");await src.writeFile("/target",Uint8Array.of(7));
+    const seed=await js.exec("zip -yq seed.zip link target");assert.equal(seed.exitCode,0,seed.stderr);
+    const archive=await src.readFile("/seed.zip");
+    let stdout;
+    for(const [sh,fs,race] of [[js,new MemoryFileSystem(),false],[rust,rust.fs,false],[rust,new MemoryFileSystem(),false],
+      [js,new MemoryFileSystem(),true],[rust,new MemoryFileSystem(),true]]){
+      await fs.writeFile("/seed.zip",archive);await fs.writeFile("/link",Uint8Array.of(1));await fs.link("/link","/old");
+      if(race){
+        const publish=fs.publishStagedFile.bind(fs);
+        fs.publishStagedFile=async(stage,path,opts)=>{
+          await publish(stage,path,opts);
+          if(path==="/target"){await fs.rename("/link","/moved");await fs.writeFile("/link",Uint8Array.of(9));}
+        };
+      }
+      const r=await sh.exec("unzip -o seed.zip",fs===rust.fs?{}:{fs});
+      assert.deepEqual(await fs.readFile("/old"),Uint8Array.of(1));
+      if(race){
+        assert.notEqual(r.exitCode,0);assert.deepEqual(await fs.readFile("/link"),Uint8Array.of(9));
+        assert.ok(r.stdout.includes("finishing deferred symbolic links:\n"));
+      }else{
+        assert.equal(r.exitCode,0,r.stderr);stdout??=r.stdout;
+        assert.match(stdout,/linking: link[^\n]*\n extracting: target[^\n]*\nfinishing deferred symbolic links:\n/);
+        assert.equal(r.stdout,stdout);assert.equal(await fs.readlink("/link"),"target");
+        assert.deepEqual(await fs.readFile("/target"),Uint8Array.of(7));
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 for(const format of ["zip","tar"])test(format+" refuses an implicit extraction parent replaced during its creation",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

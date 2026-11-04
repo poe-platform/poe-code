@@ -469,6 +469,14 @@ pub trait SafeBashFs: Send + Sync {
         };
         Ok((existing,PublicationStamp::new(version,None)))
     }
+    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
+        if expected.is_some() {return Err("ENOTSUP: guarded symlink replacement unavailable".into());}
+        if parent.identity.is_none() || self.lstat(&dirname_posix_path(path))?.identity!=parent.identity {
+            return Err(format!("EAGAIN: extraction parent changed: {path}"));
+        }
+        self.symlink(target,path)
+    }
+    fn charge_extraction_bytes(&self,_bytes:usize)->Result<(),String>{Ok(())}
     fn prepare_extraction_directory(&self,path:&str,parent:&FileStat,expected:Option<&FileStat>,mode:u32,times:(Option<f64>,Option<f64>),_stamp:u64)->Result<FileStat,String> {
         if let Some(memory)=self.memory_backend() {
             return memory.prepare_directory(path,parent,expected,Some(mode),times.0,times.1);

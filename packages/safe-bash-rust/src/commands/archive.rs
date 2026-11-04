@@ -6895,9 +6895,15 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             Some(String::from_utf8_lossy(line))
         };
         let mut prompt_bytes = crate::vfs::stream_byte_len(&out);
+        let progress = |out:&mut String, used:&mut usize, line:&str| -> Result<(),String> {
+            *used+=crate::vfs::stream_byte_len(line);
+            if *used>fs.remaining_output_bytes(){return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));}
+            out.push_str(line);Ok(())
+        };
         let extract = || -> Result<(),String> {
             let out_dir = directory(&raw)?;
             let mut directories=Vec::new();
+            let mut links=Vec::new();
             'member: for entry in selected {
                 let is_dir = entry.typeflag == b'5';
                 if junk_paths && is_dir { continue; }
@@ -6929,9 +6935,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                                         None=>name.clone(),
                                     };
                                     let line=format!("   creating: {}\n",unzip_filtered(&shown));
-                                    prompt_bytes+=crate::vfs::stream_byte_len(&line);
-                                    if prompt_bytes>fs.remaining_output_bytes(){return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));}
-                                    out.push_str(&line);
+                                    progress(&mut out,&mut prompt_bytes,&line)?;
                                 }
                                 st
                             }
@@ -6947,7 +6951,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         Some(d) => format!("{d}{}{name}",if d.ends_with('/') { "" } else { "/" }),
                         None => name.clone(),
                     };
-                    if let Some(st) = existing {
+                    if let Some(st) = &existing {
                         if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
                         if file.as_ref().is_some_and(|(_,input)| st.identity.is_none() || input.identity.is_none()) { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
                         // ZIP compares the destination rounded up to the next DOS two-second tick.
@@ -7002,20 +7006,28 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     let data = decode(entry)?;
                     if entry.typeflag == b'2' {
                         let target = std::str::from_utf8(&data).map_err(|_| "invalid UTF-8 archive name or metadata")?;
+                        fs.charge_extraction_bytes(data.len())?;
+                        if target.is_empty() || target.contains('\0'){return Err("invalid empty, NUL, or non-Unicode path".into());}
+                        let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
                         check_archive_symlink(fs,&out_dir,&dest,target,true)?;
-                        fs.symlink(target,&dest)?;
+                        if !quiet { progress(&mut out,&mut prompt_bytes,&format!("    linking: {}  -> {} \n",padded(&shown),unzip_filtered(target)))?; }
+                        links.push((dest,shown,target.to_owned(),parent,existing,stamp));
                     } else {
                         let time = Some(entry.mtime*1000.);
                         fs.replace_file_entry_with_metadata(&dest,&data,entry.mode & 0o777,(time,time),stamp.version)?;
                         if !quiet {
-                            let progress = format!("{}: {}  \n",action(entry.method),padded(&shown));
-                            prompt_bytes += crate::vfs::stream_byte_len(&progress);
-                            out.push_str(&progress);
-                            if prompt_bytes > fs.remaining_output_bytes() { return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes)); }
+                            progress(&mut out,&mut prompt_bytes,&format!("{}: {}  \n",action(entry.method),padded(&shown)))?;
                         }
                     }
                     break;
                 }
+            }
+            if !links.is_empty() && !quiet {progress(&mut out,&mut prompt_bytes,"finishing deferred symbolic links:\n")?;}
+            for (dest,shown,target,parent,existing,stamp) in links {
+                check_extraction_root(fs,&crate::vfs::dirname_posix_path(&dest))?;
+                check_archive_symlink(fs,&out_dir,&dest,&target,true)?;
+                fs.publish_extraction_symlink(&dest,&target,&parent,existing.as_ref(),stamp.version)?;
+                if !quiet {progress(&mut out,&mut prompt_bytes,&format!("  {} -> {}\n",padded(&shown),unzip_filtered(&target)))?;}
             }
             for (path,meta) in directories.into_iter().rev() {meta.restore(fs,&path)?;}
             Ok(())

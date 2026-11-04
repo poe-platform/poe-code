@@ -490,6 +490,10 @@ impl SafeBashFs for HostFs {
         bytes.truncate(4);
         Ok((stat, self.own_stamp(bytes)?))
     }
+    fn publish_extraction_symlink(&self,path:&str,target:&str,_parent:&FileStat,_expected:Option<&FileStat>,stamp:u64)->Result<(),String> {
+        self.mutable(path,false)?;
+        self.request("extractSymlink",path,target.as_bytes(),stamp as u32,0).map(drop)
+    }
     fn prepare_extraction_directory(
         &self,
         path: &str,

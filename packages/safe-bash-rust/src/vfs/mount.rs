@@ -599,6 +599,15 @@ impl SafeBashFs for MountVfs {
         fs.symlink(target, &rel)
     }
 
+    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,stamp:u64)->Result<(),String> {
+        let entry=self.resolve(path,false,WalkPurpose::Access)?;
+        if entry!=path || entry=="/" || self.mounts.keys().any(|m|super::is_path_within(&entry,m)){
+            return Err(format!("EBUSY: unsafe extraction destination: {path}"));
+        }
+        let (_,fs,local)=self.location(&entry);
+        fs.publish_extraction_symlink(&local,target,parent,expected,stamp)
+    }
+
     fn readlink(&self, path: &str) -> Result<String, String> {
         let (fs, rel) = self.route(path, false)?;
         fs.readlink(&rel)

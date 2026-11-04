@@ -194,14 +194,14 @@ function bindExternalFs(shell,fs,options) {
   };
   const statBytes=s=>new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
               s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
-  const stageOutput=async(view,path,data,guard,metadata,writeStage)=>{
+  const stageOutput=async(view,path,content,guard,metadata,writeStage)=>{
     const settings={signal:options.signal}, parentDir=path.slice(0,path.lastIndexOf("/"));
     let stage;
     for(let attempt=0;;attempt++){
       try{
         const temporary=parentDir+"/.safe-bash-stage-"+nextHandle++;
         if(temporary===path)continue;
-        stage=await view.createStagedFile(temporary,"file",{type:"file",data:data??new Uint8Array()},
+        stage=await view.createStagedFile(temporary,"file",content,
           {...settings,retainCleanup:true,...metadata,parent:guard.parent});
         break;
       }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
@@ -231,8 +231,8 @@ function bindExternalFs(shell,fs,options) {
         const op=decoder.decode(field(0)), path=decoder.decode(field(8));
         const flags=word(24), mode=word(28), settings={signal:options.signal};
         const start=word(16),length=word(20);
-        const obs=(op==="publish" || op==="replaceEntry" || op==="extractEntry") && publications.get(flags);
-        const chunked=length>65536 && obs?.retainedWriter && (op!=="publish" || obs.stagedMutation);
+        const obs=(op==="publish" || op==="replaceEntry" || op==="extractEntry" || op==="extractSymlink") && publications.get(flags);
+        const chunked=op!=="extractSymlink" && length>65536 && obs?.retainedWriter && (op!=="publish" || obs.stagedMutation);
         // Rust owns the request bytes until this callback resumes. Stack storage
         // can be reused during suspension; heap views must be renewed after memory grows.
         const data=!chunked || start<top && start+length>sp ? field(16).slice() : undefined;
@@ -293,7 +293,7 @@ function bindExternalFs(shell,fs,options) {
           if(!fs[remove]){status=-1;result=encoder.encode("extraction requires conditional "+(expected.type==="file"?"file":"entry")+" removal");return;}
           await fs[remove](path,{...settings,expected,parent});return;
         }
-        if(op==="extractEntry"){
+        if(op==="extractEntry" || op==="extractSymlink"){
           if(!obs?.guard || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
           const {caps,guard}=obs;
           const staging=!!(caps?.atomicFileStaging || caps?.trustedOwnedStaging) && fs.createStagedFile && fs.publishStagedFile && fs.removeStagedFile;
@@ -304,8 +304,13 @@ function bindExternalFs(shell,fs,options) {
             status=-1;result=encoder.encode("extraction requires atomic owned file staging");return;
           }
           if(!obs.allowTrusted && !caps.atomicStagingAncestry){status=-1;result=encoder.encode("extraction requires atomic staging ancestry verification");return;}
+          if(op==="extractSymlink"){
+            if(!fs.symlink || caps.symlinks===false){status=-1;result=encoder.encode("filesystem does not support symlinks");return;}
+            await stageOutput(fs,path,{type:"symlink",target:decoder.decode(data)},guard,{retainCleanup:caps.retainedStagingCleanup===true});
+            return;
+          }
           const atime=view.getFloat64(ptr+32,true),mtime=view.getFloat64(ptr+40,true);
-          await stageOutput(fs,path,chunked?undefined:data,guard,{retainCleanup:caps.retainedStagingCleanup===true,
+          await stageOutput(fs,path,{type:"file",data:chunked?new Uint8Array():data},guard,{retainCleanup:caps.retainedStagingCleanup===true,
             ...(caps.permissions!==false && {mode}),...(caps.timestamps!==false && {
               ...(Number.isFinite(atime) && {atimeMs:atime}),...(Number.isFinite(mtime) && {mtimeMs:mtime})})},writeStage);
           return;
@@ -359,7 +364,7 @@ function bindExternalFs(shell,fs,options) {
               return;
             }
           }
-          if(obs.stage)await stageOutput(view,path,data,{parent,destination:expected,...(expected && {preserveIdentity:true})},
+          if(obs.stage)await stageOutput(view,path,{type:"file",data},{parent,destination:expected,...(expected && {preserveIdentity:true})},
             expected?{atimeMs:expected.atimeMs}:{});
           else await view.writeFileConditional(path,data,{...settings,parent,expected,...(expected && {mode:expected.mode&0o7777})});
           return;
@@ -400,7 +405,7 @@ function bindExternalFs(shell,fs,options) {
               await confined.writeFileConditional(r.path,data,{...settings,parent:r.parent,expected:r.destination});return;
             }
           }
-          await stageOutput(fs,r.path,chunked?undefined:data,{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
+          await stageOutput(fs,r.path,{type:"file",data:chunked?new Uint8Array():data},{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
             ...(inPlace && {preserveIdentity:true})},{mode:inPlace?r.destination.mode&0o7777:mode},writeStage);
           return;
         }

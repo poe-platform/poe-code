@@ -329,6 +329,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.tick_fs_op()?;
         self.inner.inspect_extraction(&host_text(path),allow_trusted_ancestry).map_err(quote_host_text)
     }
+    fn charge_extraction_bytes(&self,bytes:usize)->Result<(),String>{self.budget.add_output_bytes(bytes)}
+    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,stamp:u64)->Result<(),String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.publish_extraction_symlink(&host_text(path),&host_text(target),parent,expected,stamp).map_err(quote_host_text)
+    }
     fn prepare_extraction_directory(&self,path:&str,parent:&FileStat,expected:Option<&FileStat>,mode:u32,times:(Option<f64>,Option<f64>),stamp:u64)->Result<FileStat,String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

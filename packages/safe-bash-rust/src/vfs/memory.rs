@@ -362,6 +362,51 @@ impl Default for MemoryVfs {
 }
 
 impl MemoryVfs {
+    fn install_symlink(&self, target: &str, path: &str, guard_entry: Option<(&FileStat,Option<&FileStat>)>) -> Result<(), String> {
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        if guard.devices == Devices::Null { Self::check_device_mutation_operand(&guard, path)?; }
+        if target.is_empty() { return Err("ENOENT: no such file or directory, symlink ''".into()); }
+        if target.contains('\0') { return Err(format!("EINVAL: invalid argument, symlink '{target}'")); }
+        if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{path}'")); }
+        let directory;
+        let operand = if path.ends_with('/') { directory = format!("{path}."); &directory } else { path };
+        let resolved = Self::resolve_mutation_entry(&guard, operand).map_err(|e| format!("{e}, symlink '{path}'"))?;
+        if let Some((parent,expected)) = guard_entry {
+            let current=self.resolved_metadata(&guard,&resolved);
+            if resolved!=path || guard.devices.entry(&resolved).is_some() ||
+                !self.resolved_metadata(&guard,&super::dirname_posix_path(path)).is_some_and(|st| st.identity.is_some() && st.identity==parent.identity) ||
+                !match (expected,current) {
+                    (None,None)=>true,
+                    (Some(old),Some(now))=>now.kind==VfsEntryKind::File && now.same_snapshot(old),
+                    _=>false,
+                } {return Err(format!("EAGAIN: extraction destination changed: {path}"));}
+        } else if guard.nodes.contains_key(&resolved) || guard.devices.entry(&resolved).is_some() {
+            return Err(format!("EEXIST: file already exists, symlink '{path}'"));
+        }
+        if !matches!(guard.nodes.get(&super::dirname_posix_path(&resolved)), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
+            return Err(format!("EACCES: permission denied, symlink '{path}'"));
+        }
+        if guard_entry.is_some_and(|(_,expected)|expected.is_some()) {
+            Self::unlink_locked(&mut guard,&resolved);
+        } else if guard.entry_count() >= guard.limits.max_entries {
+            return Err("ENOSPC: inode limit exceeded".to_string());
+        }
+        let now = super::now_ms();
+        guard.parent_changed(&resolved, now);
+        let ino = guard.allocate_ino();
+        guard.insert_node(
+            resolved,
+            MemoryNode::Symlink {
+                ino,
+                target: Arc::from(target),
+                status: SymlinkStatus::new(0o120777, now),
+                atime_ms: now, mtime_ms: now, birthtime_ms: now,
+            },
+        );
+        self.bump_generation();
+        Ok(())
+    }
+
     fn stream_snapshot(&self, resolved: &str) -> Result<StreamSnapshot, String> {
         let file = self.retain_file(resolved)?;
         let mut state = self.state.write().map_err(|e| e.to_string())?;
@@ -1872,37 +1917,10 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
-        let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        if guard.devices == Devices::Null { Self::check_device_mutation_operand(&guard, path)?; }
-        if target.is_empty() { return Err("ENOENT: no such file or directory, symlink ''".into()); }
-        if target.contains('\0') { return Err(format!("EINVAL: invalid argument, symlink '{target}'")); }
-        if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{path}'")); }
-        let directory;
-        let operand = if path.ends_with('/') { directory = format!("{path}."); &directory } else { path };
-        let resolved = Self::resolve_mutation_entry(&guard, operand).map_err(|e| format!("{e}, symlink '{path}'"))?;
-        if guard.nodes.contains_key(&resolved) || guard.devices.entry(&resolved).is_some() {
-            return Err(format!("EEXIST: file already exists, symlink '{path}'"));
-        }
-        if !matches!(guard.nodes.get(&super::dirname_posix_path(&resolved)), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
-            return Err(format!("EACCES: permission denied, symlink '{path}'"));
-        }
-        if guard.entry_count() >= guard.limits.max_entries {
-            return Err("ENOSPC: inode limit exceeded".to_string());
-        }
-        let now = super::now_ms();
-        guard.parent_changed(&resolved, now);
-        let ino = guard.allocate_ino();
-        guard.insert_node(
-            resolved,
-            MemoryNode::Symlink {
-                ino,
-                target: Arc::from(target),
-                status: SymlinkStatus::new(0o120777, now),
-                atime_ms: now, mtime_ms: now, birthtime_ms: now,
-            },
-        );
-        self.bump_generation();
-        Ok(())
+        self.install_symlink(target,path,None)
+    }
+    fn publish_extraction_symlink(&self,path:&str,target:&str,parent:&FileStat,expected:Option<&FileStat>,_stamp:u64)->Result<(),String> {
+        self.install_symlink(target,path,Some((parent,expected)))
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {

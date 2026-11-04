@@ -6528,6 +6528,59 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip stages host files with archive metadata and rejects changes to the destination or its parent",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({cwd:"/",fs:ref}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  const bytes=new Uint8Array(170000).fill(77),time=1700000000000;
+  try{
+    await ref.writeFile("/item",bytes,{mode:0o640});await ref.utimes("/item",time,time);
+    assert.equal((await js.exec("zip -0q seed.zip item")).exitCode,0);
+    const archive=await ref.readFile("/seed.zip");
+    for(const sh of [js,rust])for(const race of ["none","file","parent","buffered","unguarded"]){
+      const fs=new MemoryFileSystem();await fs.writeFile("/seed.zip",archive);await fs.mkdir("/box");
+      await fs.writeFile("/box/item",Uint8Array.of(65));await fs.link("/box/item","/alias");
+      if(race==="buffered" || race==="unguarded"){
+        fs.capabilitiesFor=async()=>({...fs.capabilities,...(race==="buffered"
+          ? {retainedStagingWrite:false,retainedStagingCleanup:false}:{atomicStagingAncestry:false})});
+      }
+      const publish=fs.publishStagedFile.bind(fs),sizes=[];
+      const create=fs.createStagedFile.bind(fs);
+      fs.createStagedFile=async (...args)=>{
+        const stage=await create(...args);if(!args[0].startsWith("/box/"))return stage;
+        sizes.push(args[2].data?.length??0);
+        if(!stage.writer)return stage;
+        return {...stage,writer:{...stage.writer,async write(b,o){sizes.push(b.length);return stage.writer.write(b,o);}}};
+      };
+      let sawPublication=false;
+      fs.publishStagedFile=async(stage,path,options)=>{
+        if(path==="/box/item"){
+          sawPublication=true;
+          if(race==="file")await fs.writeFile(path,Uint8Array.of(66));
+          if(race==="parent"){await fs.rename("/box","/saved");await fs.mkdir("/box");await fs.writeFile(path,Uint8Array.of(67));}
+        }
+        return publish(stage,path,options);
+      };
+      const r=await sh.exec("unzip -oq seed.zip -d box",{fs});
+      if(race==="unguarded"){
+        assert.equal(r.exitCode,2);assert.match(r.stderr,/extraction requires atomic staging ancestry verification/);
+        assert.equal(sawPublication,false);assert.deepEqual(sizes,[]);assert.deepEqual(await fs.readFile("/box/item"),Uint8Array.of(65));
+        continue;
+      }
+      assert.equal(sawPublication,true,r.stderr);
+      if(race==="none" || race==="buffered"){
+        assert.equal(r.exitCode,0,r.stderr);
+        const st=await fs.stat("/box/item");assert.deepEqual([st.mode&0o777,st.mtimeMs],[0o640,time]);
+        assert.deepEqual(await fs.readFile("/box/item"),bytes);assert.deepEqual(await fs.readFile("/alias"),Uint8Array.of(65));
+        if(race!=="buffered")assert.ok(sizes.length>2 && Math.max(...sizes)<=65536);
+      }else{
+        assert.notEqual(r.exitCode,0);assert.deepEqual(await fs.readFile("/box/item"),Uint8Array.of(race==="file"?66:67));
+        if(race==="parent")assert.deepEqual((await fs.readdir("/saved")).map(e=>e.name),["item"]);
+      }
+      assert.deepEqual((await fs.readdir("/box")).map(e=>e.name),["item"]);
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("ZIP reads an existing archive and its members in bounded ranges, and rejects a member changed mid-read",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
   const payload=new Uint8Array(280000).fill(73);

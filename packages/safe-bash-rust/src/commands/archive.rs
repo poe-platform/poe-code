@@ -6897,12 +6897,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         return Err(e);
                     }
                     directory(&crate::vfs::dirname_posix_path(&dest))?;
-                    let version = fs.generation();
-                    let existing = match fs.lstat(&dest) {
-                        Ok(stat) => Some(stat),
-                        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
-                        Err(e) => return Err(e),
-                    };
+                    let (existing,stamp) = fs.inspect_extraction(&dest)?;
                     if freshen && existing.is_none() { continue 'member; }
                     if is_dir {
                         if entry.size != 0 { return Err("directory has nonempty payload".into()); }
@@ -6980,7 +6975,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         fs.symlink(target,&dest)?;
                     } else {
                         let time = Some(entry.mtime*1000.);
-                        fs.replace_file_entry_with_metadata(&dest,&data,entry.mode & 0o777,(time,time),version)?;
+                        fs.replace_file_entry_with_metadata(&dest,&data,entry.mode & 0o777,(time,time),stamp.version)?;
                         if !quiet {
                             let progress = format!("{}: {}  \n",action(entry.method),padded(&shown));
                             prompt_bytes += crate::vfs::stream_byte_len(&progress);

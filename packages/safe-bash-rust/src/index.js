@@ -192,13 +192,17 @@ function bindExternalFs(shell,fs,options) {
     if(closeErrors.length===1)throw closeErrors[0];
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
+  const statBytes=s=>new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
+              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
   const stageOutput=async(view,path,data,guard,metadata,writeStage)=>{
     const settings={signal:options.signal}, parentDir=path.slice(0,path.lastIndexOf("/"));
     let stage;
     for(let attempt=0;;attempt++){
       try{
-        stage=await view.createStagedFile(parentDir+"/.safe-bash-stage-"+nextHandle++,"file",{type:"file",data:data??new Uint8Array()},
-          {...settings,...metadata,parent:guard.parent,retainCleanup:true});
+        const temporary=parentDir+"/.safe-bash-stage-"+nextHandle++;
+        if(temporary===path)continue;
+        stage=await view.createStagedFile(temporary,"file",{type:"file",data:data??new Uint8Array()},
+          {...settings,retainCleanup:true,...metadata,parent:guard.parent});
         break;
       }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
     }
@@ -210,7 +214,8 @@ function bindExternalFs(shell,fs,options) {
       const finished=stage.writer?{...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}}:stage;
       await view.publishStagedFile(finished,path,{...settings,...guard});
     }finally{
-      try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}
+      if(stage.cleanup){try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}}
+      else await view.removeStagedFile(stage);
     }
   };
   let stack,sp,result,status;
@@ -226,8 +231,8 @@ function bindExternalFs(shell,fs,options) {
         const op=decoder.decode(field(0)), path=decoder.decode(field(8));
         const flags=word(24), mode=word(28), settings={signal:options.signal};
         const start=word(16),length=word(20);
-        const obs=(op==="publish" || op==="replaceEntry") && publications.get(flags);
-        const chunked=length>65536 && obs?.retainedWriter && (op==="replaceEntry" || obs.stagedMutation);
+        const obs=(op==="publish" || op==="replaceEntry" || op==="extractEntry") && publications.get(flags);
+        const chunked=length>65536 && obs?.retainedWriter && (op!=="publish" || obs.stagedMutation);
         // Rust owns the request bytes until this callback resumes. Stack storage
         // can be reused during suspension; heap views must be renewed after memory grows.
         const data=!chunked || start<top && start+length>sp ? field(16).slice() : undefined;
@@ -245,6 +250,36 @@ function bindExternalFs(shell,fs,options) {
           const root=selectNamespace(path);
           if(typeof root!=="string")throw fsOperationError("EIO",op,path);
           result=encoder.encode(root);return;
+        }
+        if(op==="inspectExtraction"){
+          const caps=await fs.capabilitiesFor?.(path,{...settings,create:true}) ?? fs.capabilities;
+          const ancestors=[];
+          for(let end=0;end>=0;end=path.indexOf("/",end+1)){
+            const dir=path.slice(0,end)||"/",stat=await fs.lstat(dir,settings);
+            if(stat.type!=="directory")throw fsOperationError("ENOTDIR",op,dir);
+            ancestors.push({path:dir,stat});
+          }
+          let destination=null;
+          try{destination=await fs.lstat(path,settings);}catch(error){if(error?.code!=="ENOENT")throw error;}
+          const id=nextHandle++, guard={ancestors,parent:ancestors.at(-1).stat,destination};
+          publications.set(id,{path,guard,caps,retainedWriter:caps?.retainedStagingWrite===true});
+          const bytes=destination && statBytes(destination);
+          result=new Uint8Array(4+(bytes?.length??0));new DataView(result.buffer).setUint32(0,id,true);
+          if(bytes)result.set(bytes,4);
+          return;
+        }
+        if(op==="extractEntry"){
+          if(!obs?.guard || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
+          const {caps,guard}=obs;
+          if(!(caps?.atomicFileStaging || caps?.trustedOwnedStaging) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile){
+            status=-1;result=encoder.encode("extraction requires atomic owned file staging");return;
+          }
+          if(!caps.atomicStagingAncestry){status=-1;result=encoder.encode("extraction requires atomic staging ancestry verification");return;}
+          const atime=view.getFloat64(ptr+32,true),mtime=view.getFloat64(ptr+40,true);
+          await stageOutput(fs,path,chunked?undefined:data,guard,{retainCleanup:caps.retainedStagingCleanup===true,
+            ...(caps.permissions!==false && {mode}),...(caps.timestamps!==false && {
+              ...(Number.isFinite(atime) && {atimeMs:atime}),...(Number.isFinite(mtime) && {mtimeMs:mtime})})},writeStage);
+          return;
         }
         if(op==="observePatch"){
           result=new Uint8Array(4);
@@ -424,8 +459,7 @@ function bindExternalFs(shell,fs,options) {
         switch(op) {
           case "stat":case "lstat":case "fstat":{
             const s=op==="fstat"?await h.stat(settings):await fs[op](path,settings);
-            result=new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
-              s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
+            result=statBytes(s);
             break;
           }
           case "readFile":result=await fs.readFile(path,{...settings,maxBytes:flags});break;

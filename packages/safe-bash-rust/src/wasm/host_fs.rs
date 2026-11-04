@@ -24,6 +24,12 @@ pub struct Request {
     mode: u32,
 }
 #[repr(C)]
+struct TimedRequest {
+    base: Request,
+    atime_ms: f64,
+    mtime_ms: f64,
+}
+#[repr(C)]
 pub struct Reply {
     ptr: *mut u8,
     len: usize,
@@ -46,19 +52,21 @@ impl HostFs {
         flags: u32,
         mode: u32,
     ) -> Result<Vec<u8>, String> {
-        let request = Request {
+        self.call_request(&Request {
             operation: operation.as_bytes().into(),
             path: path.as_bytes().into(),
             data: data.into(),
             flags,
             mode,
-        };
+        })
+    }
+    fn call_request(&self, request: *const Request) -> Result<Vec<u8>, String> {
         let mut reply = Reply {
             ptr: std::ptr::null_mut(),
             len: 0,
         };
         // JS copies the request before suspension and transfers an exact safe_bash_alloc allocation back.
-        let status = unsafe { (self.call)(&request, &mut reply, 0) };
+        let status = unsafe { (self.call)(request, &mut reply, 0) };
         let data = if reply.len == 0 {
             Vec::new()
         } else {
@@ -138,6 +146,9 @@ impl HostFs {
     }
     fn metadata(&self, operation: &str, path: &str, handle: u32) -> Result<FileStat, String> {
         let data = self.request(operation, path, &[], handle, 0)?;
+        Self::parse_stat(&data)
+    }
+    fn parse_stat(data: &[u8]) -> Result<FileStat, String> {
         let numbers: Vec<_> = data
             .chunks_exact(8)
             .map(|b| f64::from_le_bytes(b.try_into().unwrap()))
@@ -449,6 +460,52 @@ impl SafeBashFs for HostFs {
         }
         self.request("publish", path, data, stamp as u32, 0)?;
         Ok(stamp)
+    }
+    fn inspect_extraction(
+        &self,
+        path: &str,
+    ) -> Result<(Option<FileStat>, crate::vfs::PublicationStamp), String> {
+        if let Some(device) = self.reserved_device(path, false)? {
+            return Ok((
+                Some(device_metadata(device)?),
+                crate::vfs::PublicationStamp::new(0, None),
+            ));
+        }
+        let mut bytes = self.request("inspectExtraction", path, &[], 0, 0)?;
+        if bytes.len() < 4 {
+            return Err("EIO: invalid extraction receipt".into());
+        }
+        let stat = if bytes.len() == 4 {
+            None
+        } else {
+            Some(Self::parse_stat(&bytes[4..])?)
+        };
+        bytes.truncate(4);
+        Ok((stat, self.own_stamp(bytes)?))
+    }
+    fn replace_file_entry_with_metadata(
+        &self,
+        path: &str,
+        data: &[u8],
+        mode: u32,
+        times: (Option<f64>, Option<f64>),
+        stamp: u64,
+    ) -> Result<(), String> {
+        if stamp == 0 {
+            return Err("ENOTSUP: retained file replacement is unsupported".into());
+        }
+        let request = TimedRequest {
+            base: Request {
+                operation: b"extractEntry".as_slice().into(),
+                path: path.as_bytes().into(),
+                data: data.into(),
+                flags: stamp as u32,
+                mode,
+            },
+            atime_ms: times.0.unwrap_or(f64::NAN),
+            mtime_ms: times.1.unwrap_or(f64::NAN),
+        };
+        self.call_request((&raw const request).cast()).map(drop)
     }
     fn replace_file_entry_with_mode(
         &self,

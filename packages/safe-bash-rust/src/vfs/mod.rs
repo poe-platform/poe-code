@@ -459,6 +459,16 @@ pub trait SafeBashFs: Send + Sync {
         if expected.kind != VfsEntryKind::File { return Err(format!("EBUSY: input changed; input retained '{path}'")); }
         self.remove_unchanged_entry(path,parent,expected)
     }
+    /// Inspect the extraction destination and bind its replacement to that observation.
+    fn inspect_extraction(&self, path: &str) -> Result<(Option<FileStat>,PublicationStamp),String> {
+        let version = self.generation();
+        let existing = match self.lstat(path) {
+            Ok(stat) => Some(stat),
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+            Err(e) => return Err(e),
+        };
+        Ok((existing,PublicationStamp::new(version,None)))
+    }
     /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
     fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {
         Err("ENOTSUP: retained file replacement is unsupported".into())

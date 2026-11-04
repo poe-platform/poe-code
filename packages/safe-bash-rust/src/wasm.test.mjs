@@ -1769,6 +1769,32 @@ test("plugin filesystem capabilities allow private output and inspection of link
   }
 });
 
+test("plugin filesystem queries resolve permissions at the target, including device aliases and exclusive creation", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  async function run(sh,fs) {
+    const seen = [];
+    await fs.symlink("/dev/null","/alias");
+    sh.register({name:"query", async execute({fs}) {
+      for (const path of ["/absent","/absent/child","/dev","/dev/null","/alias","/"]) {
+        for (const opts of [{},{creation:"exclusive"},{create:true},{create:false}]) {
+          try {
+            const c = await fs.capabilitiesFor(path,opts);
+            seen.push(["read","write","exclusiveCreate","permissions","readlink","readdir"].map(key=>c[key]));
+          } catch (e) { seen.push([e.code,e.syscall,e.path]); }
+        }
+      }
+      return {exitCode:0};
+    }});
+    try {
+      const r = await sh.exec("query");
+      assert.equal(r.exitCode,0,r.stderr);
+      return seen;
+    } finally { await sh.dispose(); }
+  }
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  assert.deepEqual(await run(rust,rust.fs),await run(js,fs));
+});
+
 test("plugin directory creation and removal honor umask and share the execution quota", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const run = async (sh, fs, maxFileSystemOperations) => {

@@ -904,6 +904,11 @@ impl MemoryVfs {
         Ok(())
     }
 
+    pub(crate) fn device_capability_path(&self, path: &str, follow: bool) -> Result<String,String> {
+        let state = self.state.read().map_err(|_| "EIO: input/output error")?;
+        Self::device_operand(&state,path,follow)
+    }
+
     fn device_operand(state: &MemoryState, path: &str, follow_final: bool) -> Result<String, String> {
         if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
         let not_dir = || format!("ENOTDIR: not a directory '{path}'");

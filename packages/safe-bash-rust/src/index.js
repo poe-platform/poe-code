@@ -239,6 +239,22 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           };
           const commandFs = {
             capabilities,
+            async capabilitiesFor(path, settings) {
+              admitPath(path, settings);
+              const intent = settings?.create === true ? 2 : settings?.create === false ? 3
+                : (settings?.stagingResolution ? !settings.followFinalSymlink : settings?.creation === "exclusive") ? 1 : 0;
+              // Use the owning session: the executing fork is suspended in its handler.
+              const bash = fs.bash, p = bash._allocBytes(encoder.encode(path));
+              try {
+                const kind = x.safe_bash_command_fs_profile(bash.sessionId,p.ptr,p.len,intent);
+                if (kind === -1) throw new Error("Wasm session unavailable");
+                if (kind < 0) throw readOperationError(decoder.decode(new Uint8Array(x.memory.buffer,x.safe_bash_output_ptr(bash.sessionId),-kind)));
+                const directory = kind === 2, regular = kind === 0;
+                return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
+                  permissions:regular, readdir:kind !== 1, readlink:regular, mkdir:regular, recursiveMkdir:regular,
+                  remove:regular, removeDirectory:regular, recursiveRemove:regular});
+              } finally { bash._freeBytes(p); }
+            },
             async access(path, mode, settings) {
               admitPath(path, settings);
               return fs.access(path, mode, settings);

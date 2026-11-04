@@ -465,6 +465,37 @@ pub unsafe extern "C" fn safe_bash_read_file(
     }
 }
 
+// Select the backing namespace before a scoped plugin advertises path-specific operations.
+// Query intent: 0 follow, 1 exclusive, 2 create, 3 require existing.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_command_fs_profile(id: u32, ptr: *const u8, len: usize, intent: u32) -> i32 {
+    let path = unsafe { str_from_raw(ptr,len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let fs = &sess.shell.fs;
+    let wrapped = sess.profile == Profile::Memory && !sess.shell.backend.provided_devices;
+    let result = (|| {
+        if sess.profile == Profile::Memory && !wrapped { return Ok(0); }
+        let target = if wrapped && intent < 2 {
+            fs.memory_backend().ok_or("EIO: filesystem unavailable")?.device_capability_path(path,intent == 0)?
+        } else if wrapped {
+            fs.command_create_path(path)?
+        } else { fs.access_path(path,intent != 1)? };
+        if wrapped && intent >= 2 && matches!(target.as_str(),"/" | "/dev") {
+            return Err(format!("EISDIR: illegal operation on a directory, capabilitiesFor '{path}'"));
+        }
+        if intent == 3 && (wrapped || sess.profile == Profile::Devices) { fs.lstat(&target)?; }
+        let device = wrapped && matches!(target.as_str(),"/dev" | "/dev/null")
+            || sess.profile == Profile::Devices && (target == "/dev" || target.starts_with("/dev/"));
+        Ok(if device { if target == "/dev" { 2 } else { 1 } } else { 0 })
+    })();
+    match result {
+        Ok(kind) => kind,
+        Err(e) if wrapped => sess.memory_mutation_error(&e,"capabilitiesFor",path),
+        Err(e) => sess.read_error(&e,"capabilitiesFor",path,None,None),
+    }
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_realpath(id: u32, ptr: *const u8, len: usize) -> i32 {
     let path = unsafe { str_from_raw(ptr, len) };

@@ -6528,6 +6528,40 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip verifies traditional ZIP passwords before releasing member bytes",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(17)}})),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const bytes=Uint8Array.from({length:1024},(_,i)=>i%7);
+    await fs.writeFile("/secret",bytes);await fs.writeFile("/plain",Uint8Array.of(97));
+    for(const cmd of ["zip -qP key seed.zip secret","zip -q seed.zip plain"]){
+      const r=await js.exec(cmd);assert.equal(r.exitCode,0,r.stderr);
+    }
+    await rust.fs.writeFile("/seed.zip",await fs.readFile("/seed.zip"));
+    for(const args of ["-pPkey seed.zip secret","-tP key seed.zip","-pPwrong seed.zip","-tPwrong seed.zip secret",
+      "-p seed.zip secret","-Z1 seed.zip","-oqPwrong -d bad seed.zip","-oqPkey -d good seed.zip"]){
+      const command="unzip "+args,ref=await js.exec(command),actual=await rust.exec(command);
+      assert.deepEqual([actual.exitCode,actual.stdoutBytes,actual.stderr],[ref.exitCode,ref.stdoutBytes,ref.stderr],command);
+    }
+    for(const dest of [fs,rust.fs]){
+      assert.deepEqual(await dest.readFile("/good/secret"),bytes);
+      assert.deepEqual((await dest.readdir("/bad")).map(e=>e.name),["plain"]);
+    }
+    const stored=await js.exec("zip -0qP key stored.zip secret");assert.equal(stored.exitCode,0,stored.stderr);
+    const damaged=await fs.readFile("/stored.zip"),header=new DataView(damaged.buffer,damaged.byteOffset);
+    const start=30+header.getUint16(26,true)+header.getUint16(28,true);
+    damaged[start+12]^=1;
+    for(const [shell,view] of [[js,fs],[rust,rust.fs]]){
+      await view.writeFile("/bad.zip",damaged);await view.writeFile("/secret",Uint8Array.of(91));
+      for(const flags of ["-p","-oq"]){
+        const result=await shell.exec("unzip "+flags+" -P key bad.zip");
+        assert.deepEqual([result.exitCode,result.stdout,result.stderr],[2,"","unzip: ZIP CRC32 mismatch\n"]);
+        assert.deepEqual(await view.readFile("/secret"),Uint8Array.of(91));
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip accepts grouped value options and keeps exclusions active after other flags",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

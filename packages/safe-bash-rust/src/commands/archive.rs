@@ -6529,7 +6529,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut update_mode = None;
     let mut never_overwrite = false;
     let mut explicit_overwrite = false;
-    let mut has_password = false;
+    let mut password = None;
     let mut case_insensitive = false;
     let mut show_comment = false;
     let mut dest_dir: Option<String> = None;
@@ -6569,7 +6569,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         let value=if flags.as_str().is_empty(){arguments.next().map(|(_,v)|v.as_str())}else{Some(flags.as_str())};
                         if flag=='P' {
                             if value.is_none(){return err_out("unzip: password option requires a value\n",2);}
-                            has_password=true;
+                            password=value.map(crate::vfs::stream_string_to_bytes);
                         } else {
                             let Some(dir)=value.filter(|v|!v.is_empty()) else {return err_out("unzip: must specify directory to which to extract with -d option\n",2);};
                             dest_dir=Some(dir.to_owned());
@@ -6598,7 +6598,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             || show_comment
             || explicit_overwrite
             || dest_dir.is_some()
-            || has_password)
+            || password.is_some())
     {
         return err_out(
             "unzip: supported zipinfo mode is unzip -Z -1 ARCHIVE [FILES...]\n",
@@ -6657,10 +6657,19 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         Err(e) => return failure(out,&e),
     };
     if let Err(e) = archive_input.validate() { return failure(out,&e); }
-    let decode = |entry: &crate::commands::codecs::ZipMember| {
+    let mut bad_passwords=0;
+    let mut decode = |entry: &crate::commands::codecs::ZipMember,stderr:&mut String| {
         let payload = archive_input.read(entry.payload.clone())?;
         archive_input.validate()?;
-        entry.decode(payload)
+        match entry.decode(payload,password.as_deref()) {
+            Ok(bytes)=>Ok(Some(bytes)),
+            Err(e) if e=="ZIP incorrect password"=>{
+                bad_passwords+=1;
+                stderr.push_str(&format!("skipping: {}  incorrect password\n",unzip_filtered(&entry.name)));
+                Ok(None)
+            }
+            Err(e)=>Err(e),
+        }
     };
     let render_comment = |comment: &[u8]| {
         let mut bytes = Vec::new();
@@ -6700,6 +6709,9 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         if !matched { unmatched.push_str(&format!("caution: filename not matched:  {}\n",unzip_filtered(pat))); }
     }
     let selection_status = if selected.is_empty() || !unmatched.is_empty() { 11 } else { 0 };
+    let count=selected.len();
+    let password_status=|bad,status| if bad==0 {status} else if bad==count {82} else {1};
+    let mut stderr=String::new();
     let padded = |s: &str| { let s = unzip_filtered(s); let n = 22usize.saturating_sub(s.len()); format!("{s}{}"," ".repeat(n)) };
     let action = |method: u16| if method == 0 { " extracting" } else { "  inflating" };
     if test_only || effective_pipe || names_only || list_table {
@@ -6728,7 +6740,10 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 if !test_only && pipe_headers && !pipe_to_stdout && !quiet {
                     writeln!(out,"{}: {}  ",action(entry.method),padded(&entry.name)).unwrap();
                 }
-                let data = match decode(entry) { Ok(bytes)=>bytes,Err(e)=>return failure(out,&e) };
+                let data = match decode(entry,&mut stderr) {
+                    Ok(Some(bytes))=>bytes,Ok(None)=>continue,
+                    Err(e)=>{stderr.push_str(&format!("unzip: {}\n",tar_format::display(&e)));return BuiltinOutcome {stdout:out,stderr,exit_code:2};}
+                };
                 if test_only {
                     if !quiet { writeln!(out,"    testing: {} OK",padded(&entry.name)).unwrap(); }
                 } else {
@@ -6743,11 +6758,13 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 writeln!(out,"--------          -------  ---                            -------\n{total:>8}         {stored:>8} {:>3}%                            {count} {label}",ratio(total,stored)).unwrap();
             } else { writeln!(out,"---------                     -------\n{total:>9}                     {count} {label}").unwrap(); }
         }
+        let status=password_status(bad_passwords,selection_status);
         if test_only && quiet_level < 2 {
-            if selection_status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
+            if status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
             else { writeln!(out,"No errors detected in compressed data of {}.",unzip_filtered(&arch)).unwrap(); }
         }
-        return BuiltinOutcome {stdout:out,stderr:unmatched,exit_code:selection_status};
+        stderr.push_str(&unmatched);
+        return BuiltinOutcome {stdout:out,stderr,exit_code:status};
     }
     {
         use crate::vfs::VfsEntryKind::{Directory, File};
@@ -6768,7 +6785,6 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             Some(d) if !d.starts_with('/') => format!("{cwd}/{d}"),
             other => other.unwrap_or(cwd).to_owned(),
         };
-        let mut stderr = String::new();
         let mut exit_code = 0;
         let answers = if file.is_some() { crate::vfs::stream_string_to_bytes(stdin) } else { Vec::new() };
         let mut remaining = answers.as_slice();
@@ -6808,7 +6824,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if freshen && existing.is_none() { continue 'member; }
                     if is_dir {
                         if entry.size != 0 { return Err("directory has nonempty payload".into()); }
-                        decode(entry)?;
+                        if decode(entry,&mut stderr)?.is_none(){continue 'member;}
                         let parent=fs.lstat(&crate::vfs::dirname_posix_path(&dest))?;
                         let identity=match existing {
                             Some(st) if st.kind == Directory => st,
@@ -6889,7 +6905,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if entry.size > fs.remaining_output_bytes().saturating_sub(prompt_bytes) {
                         return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
                     }
-                    let data = decode(entry)?;
+                    let Some(data)=decode(entry,&mut stderr)? else {continue 'member;};
                     if entry.typeflag == b'2' {
                         let target = std::str::from_utf8(&data).map_err(|_| "invalid UTF-8 archive name or metadata")?;
                         fs.charge_extraction_bytes(data.len())?;
@@ -6925,6 +6941,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         }
         stderr.push_str(&unmatched);
         if selection_status != 0 { exit_code = selection_status; }
+        exit_code=password_status(bad_passwords,exit_code);
         BuiltinOutcome {
             stdout: out,
             stderr,

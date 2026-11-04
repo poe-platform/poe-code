@@ -1,19 +1,26 @@
 #[path = "xz_filters.rs"]
 mod xz_filters;
 
-pub fn crc32_ieee(data: &[u8]) -> u32 {
-    let mut crc = 0xffff_ffffu32;
-    for &b in data {
-        crc ^= b as u32;
-        for _ in 0..8 {
-            if (crc & 1) != 0 {
-                crc = (crc >> 1) ^ 0xedb8_8320;
-            } else {
-                crc >>= 1;
+fn crc32_byte(state:u32, byte:u8)->u32 {
+    const TABLE:[u32;256]={
+        let mut table=[0;256];
+        let mut i=0;
+        while i<256 {
+            let mut n=i as u32;
+            let mut bit=0;
+            while bit<8 {
+                n=(n>>1) ^ (0xedb8_8320 & (n&1).wrapping_neg());
+                bit+=1;
             }
+            table[i]=n;i+=1;
         }
-    }
-    !crc
+        table
+    };
+    (state>>8)^TABLE[((state as u8)^byte) as usize]
+}
+
+pub fn crc32_ieee(data: &[u8]) -> u32 {
+    !data.iter().copied().fold(u32::MAX,crc32_byte)
 }
 
 pub fn crc64_xz(data: &[u8]) -> u64 {
@@ -3671,7 +3678,7 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
 pub(super) struct ZipMember {
     central: std::ops::Range<usize>,
     local_start: usize,
-    encrypted: bool,
+    verifier: Option<u8>,
     pub name: String,
     pub method: u16,
     pub size: usize,
@@ -3684,9 +3691,27 @@ pub(super) struct ZipMember {
 }
 
 impl ZipMember {
-    pub fn decode<'a>(&self, payload: std::borrow::Cow<'a,[u8]>) -> Result<std::borrow::Cow<'a,[u8]>,String> {
+    pub fn decode<'a>(&self, payload: std::borrow::Cow<'a,[u8]>, password:Option<&[u8]>) -> Result<std::borrow::Cow<'a,[u8]>,String> {
         use std::borrow::Cow;
-        if self.encrypted { return Err("ZIP encrypted member requires a password".into()); }
+        let payload=if let Some(verifier)=self.verifier {
+            let password=password.ok_or("ZIP no-echo password capability is unavailable")?;
+            if self.method==99 {return Err("ZIP unsupported encryption method".into());}
+            let update=|(a,b,c):(u32,u32,u32),byte:u8|{
+                let a=crc32_byte(a,byte);
+                let b=b.wrapping_add(a&255).wrapping_mul(134775813).wrapping_add(1);
+                (a,b,crc32_byte(c,(b>>24) as u8))
+            };
+            let mut keys=password.iter().copied().fold((0x12345678,0x23456789,0x34567890),update);
+            let mut data=payload.into_owned();
+            for (i,byte) in data.iter_mut().enumerate(){
+                let t=(keys.2 & 0xffff)|2;
+                *byte^=(t.wrapping_mul(t^1)>>8) as u8;
+                if i==11 && *byte!=verifier{return Err("ZIP incorrect password".into());}
+                keys=update(keys,*byte);
+            }
+            data.drain(..12);
+            Cow::Owned(data)
+        }else{payload};
         let decoded = match self.method {
             0 => payload,
             8 => {
@@ -3707,7 +3732,7 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     let (members,comment) = zip_directory(data.len(), |r| Ok(std::borrow::Cow::Borrowed(&data[r])))?;
     let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
     for member in members {
-        let decoded = member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]))?;
+        let decoded = member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]),None)?;
         let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
             if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central]}).is_some() { return Err("ZIP duplicate member name".into()); }
             (String::new(),Vec::new())
@@ -3835,7 +3860,9 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
         if read(local_off+30..local_off+30+l_name_len)?.as_ref() != &central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
         if !matches!(method,0|8|12|14|99) { return Err("ZIP unsupported compression method".into()); }
-        if method == 0 && central[8] & 1 == 0 && comp_size != uncomp_size { return Err("ZIP stored size mismatch".into()); }
+        let encrypted=central[8]&1!=0;
+        if encrypted && comp_size<12 {return Err("ZIP truncated encryption header".into());}
+        if method == 0 && comp_size-usize::from(encrypted)*12 != uncomp_size { return Err("ZIP stored size mismatch".into()); }
         let descriptor = central[8] & 8 != 0;
         if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
             .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
@@ -3869,7 +3896,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
             0o644
         };
 
-        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,encrypted:central[8]&1!=0,
+        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
             payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });

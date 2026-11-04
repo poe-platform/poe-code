@@ -8966,6 +8966,17 @@ test("rg multiline keeps a published heading when the next output write exceeds 
   } finally { sh.dispose(); }
 });
 
+test("rg reports the ancestor that denied a path lookup", async () => {
+  const sh = new RustWasmBash({files:{"/locked/sub/f":"hit\n"}});
+  try {
+    await sh.fs.chmod("/locked", 0o600);
+    for (const args of ["--files /locked/sub/f","hit /locked/sub/f/","-c hit /locked/sub/./f"]) {
+      const r = await sh.exec("rg "+args);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [2,"","rg: EACCES: permission denied, lstat '/locked/sub'\n"],args);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("rg admits explicit memory files once and charges the complete input in count mode", async () => {
   const sh = new RustWasmBash({files:{"/f":"a\nb\na\n","/out":"old"}});
   try {

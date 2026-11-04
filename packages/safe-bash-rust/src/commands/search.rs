@@ -3852,10 +3852,10 @@ impl RgFiles {
                 && fs.indexed_directory_entry(&path) == Some(true) && fs.lstat(&path).is_ok_and(|st| st.kind == VfsEntryKind::File) {
                 return Some(SearchInput::File(label, path, true));
             }
-            let report = |e: &str, op| Some(SearchInput::Error(format!("rg: {}\n", search_fs_error(e, op, &path))));
+            let report = |e, op| Some(SearchInput::Error(format!("rg: {}\n", super::coreutils::stream_file_error(e, op, &path))));
             let (resolved, stat) = match fs.inspect_command_entry(&path, explicit || self.follow, "stat") {
                 Ok(entry) => entry,
-                Err(e) => return report(&e, "stat"),
+                Err(e) => return report(e, "stat"),
             };
             let directory = stat.kind == VfsEntryKind::Directory;
             if !explicit {
@@ -3880,7 +3880,7 @@ impl RgFiles {
             if self.max_depth.is_some_and(|max| depth >= max) { continue; }
             let mut entries = match fs.read_dir(&resolved) {
                 Ok(entries) => entries,
-                Err(e) => return report(&e, "readdir"),
+                Err(e) => return report(e, "readdir"),
             };
             entries.sort_unstable();
             if self.respect_ignore {

@@ -676,7 +676,7 @@ fn cmd_mkdir(
             code = 1;
         } else {
             for d in created {
-                stdout.push_str(&format!("mkdir: created directory '{d}'\n"));
+                stdout.push_str(&format!("mkdir: created directory {}\n", display_operand(&d)));
             }
         }
     }
@@ -756,7 +756,7 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 break;
             }
             if verbose {
-                stdout.push_str(&format!("rmdir: removing directory, '{cur_disp}'\n"));
+                stdout.push_str(&format!("rmdir: removing directory, {}\n", display_operand(&cur_disp)));
             }
             if !parents {
                 break;
@@ -913,8 +913,15 @@ struct CopyReport<'a> {
     declined: bool,
 }
 
-fn copy_operand_text(path: &str, prompt: bool) -> String {
-    if prompt && path.contains('\'') && path.bytes().all(|b|
+fn display_operand(path: &str) -> String {
+    let mut out = String::from("'");
+    write_display_name(&mut out, path, false);
+    out.push('\'');
+    out
+}
+
+fn shell_quoted_operand(path: &str) -> String {
+    if path.contains('\'') && path.bytes().all(|b|
         (32..127).contains(&b) && !matches!(b, b'$' | 96 | b'\\' | b'"')) {
         return format!("\"{path}\"");
     }
@@ -922,21 +929,20 @@ fn copy_operand_text(path: &str, prompt: bool) -> String {
     let mut escaped = false;
     for b in crate::vfs::host_text(path).bytes() {
         let special = !(32..127).contains(&b);
-        if prompt && special != escaped {
+        if special != escaped {
             if special { out.push_str("'$'"); }
             else if b != b'\'' { out.push_str("''"); }
             escaped = special;
         }
         match b {
-            7 if prompt => out.push_str("\\a"),
+            7 => out.push_str("\\a"),
             8 => out.push_str("\\b"),
             9 => out.push_str("\\t"),
             10 => out.push_str("\\n"),
             11 => out.push_str("\\v"),
             12 => out.push_str("\\f"),
             13 => out.push_str("\\r"),
-            b'\'' if prompt => out.push_str("'\\''"),
-            b'\\' if !prompt => out.push_str("\\\\"),
+            b'\'' => out.push_str("'\\''"),
             32..=126 => out.push(char::from(b)),
             _ => out.push_str(&format!("\\{b:03o}")),
         }
@@ -948,14 +954,14 @@ fn copy_operand_text(path: &str, prompt: bool) -> String {
 impl CopyReport<'_> {
     fn confirm(&mut self, dst: &str) -> Result<bool, String> {
         let Some(lines) = self.answers.as_mut() else { return Ok(true) };
-        self.stderr.push_str(&format!("cp: overwrite {}? ", copy_operand_text(dst, true)));
+        self.stderr.push_str(&format!("cp: overwrite {}? ", shell_quoted_operand(dst)));
         let yes = lines.yes(false)?;
         self.declined |= !yes;
         Ok(yes)
     }
 
     fn copied(&mut self, (src, dst): (&str, &str)) {
-        if self.verbose { self.stdout.push_str(&format!("{} -> {}\n", copy_operand_text(src, false), copy_operand_text(dst, false))); }
+        if self.verbose { self.stdout.push_str(&format!("{} -> {}\n", display_operand(src), display_operand(dst))); }
     }
 }
 
@@ -1708,7 +1714,7 @@ fn cmd_mv(
             if update_only && source_stat.kind != VfsEntryKind::Directory && target_stat.kind != VfsEntryKind::Directory
                 && source_stat.mtime_ms <= target_stat.mtime_ms { continue; }
             if interactive {
-                stderr.push_str(&format!("mv: overwrite '{disp_target}'? "));
+                stderr.push_str(&format!("mv: overwrite {}? ", shell_quoted_operand(&disp_target)));
                 let accepted = match answers.yes(false) {
                     Ok(v) => v,
                     Err(e) => { stderr.push_str(&format!("mv: {e}\n")); code = 1; continue; }
@@ -1747,7 +1753,7 @@ fn cmd_mv(
         match result {
             Ok(()) => {
                 if verbose {
-                    stdout.push_str(&format!("renamed '{src_raw}' -> '{disp_target}'\n"));
+                    stdout.push_str(&format!("renamed {} -> {}\n", display_operand(src_raw), display_operand(&disp_target)));
                 }
             }
             Err(e) => {
@@ -2371,7 +2377,7 @@ fn cmd_ln(
                 continue;
             }
             if interactive {
-                stderr.push_str(&format!("ln: replace '{disp_target}'? "));
+                stderr.push_str(&format!("ln: replace {}? ", display_operand(&disp_target)));
                 let accepted = match answers.yes(true) {
                     Ok(v) => v,
                     Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
@@ -2421,8 +2427,7 @@ fn cmd_ln(
         }
         if verbose {
             let arrow = if symbolic { "->" } else { "=>" };
-            let shown_target = stored_target;
-            stdout.push_str(&format!("'{disp_target}' {arrow} '{shown_target}'\n"));
+            stdout.push_str(&format!("{} {arrow} {}\n", display_operand(&disp_target), display_operand(stored_target)));
         }
     }
     BuiltinOutcome {
@@ -6925,6 +6930,22 @@ mod tests {
         assert_eq!(r.exit_code, 1);
         assert_eq!(fs.read_file("/dst/𐀀").unwrap(), b"OLD");
         assert_eq!(fs.read_file("/dst/\u{e000}").unwrap(), b"NEW");
+    }
+
+    #[test]
+    fn interactive_move_and_removal_label_the_actual_operand_on_one_line() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/source", b"new").unwrap();
+        let name = "é\n\x1b";
+        fs.write_file(&format!("/{name}"), b"old").unwrap();
+        let run = |cmd, a: &[&str]| try_run_fs_command(cmd, &args(a), "y\n", "/", &BTreeMap::new(), &fs).unwrap();
+        let moved = run("mv", &["-iv","source",name]);
+        assert_eq!((moved.exit_code,moved.stdout.as_str(),moved.stderr.as_str()),
+            (0,"renamed 'source' -> '\\303\\251\\n\\033'\n",r"mv: overwrite ''$'\303\251\n\033'? "));
+        let removed = run("rm", &["-iv",name]);
+        assert_eq!((removed.exit_code,removed.stdout.as_str(),removed.stderr.as_str()),
+            (0,"removed '\\303\\251\\n\\033'\n",r"rm: remove regular file '\303\251\n\033'? "));
+        assert!(!fs.exists(&format!("/{name}")));
     }
 
     #[test]

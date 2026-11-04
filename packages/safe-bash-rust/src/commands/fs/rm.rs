@@ -224,7 +224,7 @@ impl Remove<'_, '_> {
     }
 
     fn removed(&mut self, operand: &str) {
-        if self.verbose { self.stdout.push_str(&format!("removed '{operand}'\n")); }
+        if self.verbose { self.stdout.push_str(&format!("removed {}\n",display_operand(operand))); }
     }
 
     fn guarded(&mut self, operand: &str, path: &str) -> Result<bool,String> {
@@ -238,7 +238,7 @@ impl Remove<'_, '_> {
                 self.fs.command_descriptor_op()?;
                 let names = self.fs.list_dir(path).map_err(|e| copy_error(&e,"readdir",path))?;
                 if !names.is_empty() {
-                    self.stderr.push_str(&format!("rm: descend into directory '{operand}'? "));
+                    self.stderr.push_str(&format!("rm: descend into directory {}? ",display_operand(operand)));
                     if !self.answers.yes(true)? { return Ok(false); }
                     let mut removed = true;
                     for name in names {
@@ -250,7 +250,7 @@ impl Remove<'_, '_> {
             }
             let kind = if dir { "directory" } else if st.kind == VfsEntryKind::Symlink { "symbolic link" }
                 else if st.size == 0 { "regular empty file" } else { "regular file" };
-            self.stderr.push_str(&format!("rm: remove {kind} '{operand}'? "));
+            self.stderr.push_str(&format!("rm: remove {kind} {}? ",display_operand(operand)));
             if !self.answers.yes(true)? { return Ok(false); }
         }
         if dir && (!self.recursive || self.prompt) {

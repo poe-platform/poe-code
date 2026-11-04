@@ -382,10 +382,16 @@ impl SafeBashFs for MountVfs {
         fs.publish_file(&rel, data, &local_inputs, inner_version)
     }
 
-    fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
-        let (mount, fs, local) = self.location(path);
-        if mount == path || local == "/" { return Err("EBUSY: cannot remove a mount".into()); }
-        fs.remove_unchanged_file(&local, parent, expected)
+    fn supports_conditional_removal(&self, path: &str) -> bool {
+        let (_, fs, local) = self.location(path);
+        fs.supports_conditional_removal(&local)
+    }
+    fn remove_unchanged_entry(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
+        if path == "/" || self.mounts.keys().any(|mount| super::is_path_within(path,mount)) {
+            return Err("EBUSY: cannot remove a mount".into());
+        }
+        let (_,fs,local) = self.location(path);
+        fs.remove_unchanged_entry(&local,parent,expected)
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {

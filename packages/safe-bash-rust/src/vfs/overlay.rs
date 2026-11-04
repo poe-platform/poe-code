@@ -587,8 +587,11 @@ impl SafeBashFs for OverlayVfs {
         Ok(stamp)
     }
 
-    fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
-        self.remove_entry(path, Removal::Unlink, Some((parent, expected)))
+    fn supports_conditional_removal(&self, _path: &str) -> bool {
+        self.upper.memory_backend().is_some() && self.lower.memory_backend().is_some()
+    }
+    fn remove_unchanged_entry(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
+        self.remove_entry(path, if expected.kind == VfsEntryKind::Directory { Removal::Rmdir } else { Removal::Unlink }, Some((parent, expected)))
     }
 
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {

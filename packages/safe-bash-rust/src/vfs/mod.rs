@@ -433,8 +433,13 @@ pub trait SafeBashFs: Send + Sync {
     fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
         self.replace_file_entry_with_mode(path, data, 0o600, version)
     }
-    fn remove_unchanged_file(&self, _path: &str, _parent: &FileStat, _expected: &FileStat) -> Result<(), String> {
+    fn supports_conditional_removal(&self, _path: &str) -> bool { false }
+    fn remove_unchanged_entry(&self, _path: &str, _parent: &FileStat, _expected: &FileStat) -> Result<(), String> {
         Err("ENOTSUP: atomic source removal unavailable (use -k or -c)".into())
+    }
+    fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
+        if expected.kind != VfsEntryKind::File { return Err(format!("EBUSY: input changed; input retained '{path}'")); }
+        self.remove_unchanged_entry(path,parent,expected)
     }
     /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
     fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {

@@ -1683,6 +1683,26 @@ test("ZIP updates exclude archive aliases, preserve retained readers, and valida
   }
 });
 
+test("zip -m keeps protected inputs after publication and removes writable sources and their aliases", async () => {
+  const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
+  const reference = new MemoryFileSystem(), js = new Shell({fs:reference,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
+  try {
+    const run = async (sh,fs) => {
+      await fs.mkdir("/keep"); await fs.writeFile("/keep/file",Uint8Array.of(1)); await fs.chmod("/keep",0o500);
+      await fs.mkdir("/tree"); await fs.writeFile("/tree/file",Uint8Array.of(2)); await fs.link("/tree/file","/tree/alias");
+      await fs.symlink("keep/file","/link");
+      const r = await sh.exec("zip -qrm out.zip keep/file tree link");
+      for (const name of ["/tree","/link"]) await assert.rejects(fs.lstat(name),{code:"ENOENT"});
+      assert.deepEqual([...await fs.readFile("/keep/file")],[1]);
+      const read = await sh.exec("unzip -p out.zip tree/alias");
+      return [r.exitCode,r.stdout,r.stderr,read.exitCode,[...read.stdoutBytes]];
+    };
+    const expected=await run(js,reference);
+    assert.deepEqual(expected,[0,"","",0,[2]]);
+    assert.deepEqual(await run(rust,rust.fs),expected);
+  } finally {await js.dispose(); await rust.dispose();}
+});
+
 test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
   const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
   for (const [size, flags, obstacle] of [

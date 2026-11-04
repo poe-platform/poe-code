@@ -5821,6 +5821,14 @@ fn zip_checker_paths<'a>(fs: &dyn SafeBashFs, files: [&'a str;3]) -> Option<BTre
     Some(observed)
 }
 
+fn zip_option_value<'a>(args: &'a [String], attached: &'a str, i: &mut usize) -> &'a str {
+    let value = if attached.is_empty() {
+        *i += 1;
+        args.get(*i).map_or("", String::as_str)
+    } else { attached };
+    value.strip_prefix('=').unwrap_or(value)
+}
+
 fn zip_test_words(value: &str) -> Result<Vec<String>, &'static str> {
     if value.is_empty() { return Err("option TT requires a value"); }
     let forbidden = |c| "\n\r\0;|&<>$`".contains(c);
@@ -5908,13 +5916,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
     let mut in_exclude = false;
     let mut in_include = false;
     let mut positional = Vec::new();
-    let parse_test = |attached: &str, i: &mut usize| {
-        let value = if attached.is_empty() {
-            *i += 1;
-            args.get(*i).map_or("", String::as_str)
-        } else { attached };
-        zip_test_words(value.strip_prefix('=').unwrap_or(value))
-    };
+    let mut temp_path = None;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
@@ -6096,7 +6098,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             if recursive && recursive_patterns {
                 return zip_err("do not specify both -r and -R");
             }
-        } else if matches!(a.as_str(), "-b" | "-lf" | "-ds") {
+        } else if matches!(a.as_str(), "-lf" | "-ds") {
             let opt = &a[1..];
             if i + 1 >= args.len() {
                 return zip_err(&format!("option {opt} requires a value"));
@@ -6107,9 +6109,17 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
             let key = name.strip_suffix('-').unwrap_or(name);
             if key.starts_with("un") && "unzip-command".starts_with(key) {
                 if name != key { return zip_err("option unzip-command is not negatable"); }
-                checker = match parse_test(attached, &mut i) { Ok(words) => words, Err(e) => return zip_err(e) };
+                checker = match zip_test_words(zip_option_value(args,attached,&mut i)) { Ok(words) => words, Err(e) => return zip_err(e) };
                 in_exclude = false;
                 in_include = false;
+            } else if key.starts_with("te") && "temp-path".starts_with(key) {
+                if key=="te" { return zip_err("long option 'te' ambiguous"); }
+                if name!=key { return zip_err("option temp-path is not negatable"); }
+                let value=zip_option_value(args,attached,&mut i);
+                if value.is_empty() { return zip_err("option b requires a value"); }
+                temp_path=Some(value);
+                in_exclude=false;
+                in_include=false;
             } else { return zip_err(&format!("unsupported option: --{name}")); }
         } else if a.starts_with('-') && !a.starts_with("--") {
             in_exclude = false;
@@ -6196,9 +6206,15 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                     }
                     'q' => quiet = true,
                     'v' => { quiet = false; verbose = true; }
+                    'b' => {
+                        let value=zip_option_value(args,flags.as_str(),&mut i);
+                        if value.is_empty() { return zip_err("option b requires a value"); }
+                        temp_path=Some(value);
+                        break;
+                    }
                     'T' if flags.as_str().starts_with('T') => {
                         flags.next();
-                        checker = match parse_test(flags.as_str(), &mut i) { Ok(words) => words, Err(e) => return zip_err(e) };
+                        checker = match zip_test_words(zip_option_value(args,flags.as_str(),&mut i)) { Ok(words) => words, Err(e) => return zip_err(e) };
                         break;
                     }
                     'T' => test_archive=true,
@@ -6247,6 +6263,15 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         .as_deref()
         .map(|o| resolve_posix_path(cwd, &ensure_zip_suffix(o)))
         .unwrap_or_else(|| arch_full.clone());
+    if let Some(temp)=temp_path.filter(|_| !show_files) {
+        let name=resolve_posix_path(cwd,temp);
+        match fs.inspect_command_entry(&name,true,"realpath") {
+            Ok((_,st)) if st.kind==crate::vfs::VfsEntryKind::Directory && st.identity.is_some() => (),
+            Ok(_) => return err_out("zip: ZIP temporary path requires a directory with known backing identity\n",2),
+            Err(e) if e.starts_with("ENOENT:") => return err_out(&format!("zip: ENOENT: no such file or directory, realpath '{name}'\n"),2),
+            Err(e) => return err_out(&format!("zip: {e}\n"),2),
+        }
+    }
     let mut operands: Vec<String> = positional[1..].to_vec();
     if stdin_names && !read_comment {
         for line in stdin.lines() {

@@ -6587,6 +6587,19 @@ for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lz
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip validates its temporary directory before writing the archive or removing sources",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    for(const fs of [ref,rust.fs])await fs.writeFile("/src",Uint8Array.of(5));
+    for(const flags of ["-qm -b missing","-qmb=src","--temp-path=missing -qm","--temp-p=src","-b ''","--temp-path-"]){
+      const script="zip "+flags+" work.zip src",a=await js.exec(script),b=await rust.exec(script);
+      assert.notEqual(a.exitCode,0);assert.deepEqual([b.exitCode,b.stdout,b.stderr],[a.exitCode,a.stdout,a.stderr],script);
+      assert.deepEqual(await rust.fs.readFile("/src"),Uint8Array.of(5));await assert.rejects(rust.fs.lstat("/work.zip"),{code:"ENOENT"});
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("zip validates literal -TT arguments even without an integrity test",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

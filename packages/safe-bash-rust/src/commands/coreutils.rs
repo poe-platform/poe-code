@@ -17191,8 +17191,8 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
     let mut seek_bytes = false;
     let mut status_level = "default".to_string();
     let mut conv_set: BTreeSet<String> = BTreeSet::new();
-    let mut iflags: BTreeSet<String> = BTreeSet::new();
-    let mut oflags: BTreeSet<String> = BTreeSet::new();
+    let mut iflags = Vec::new();
+    let mut oflags = Vec::new();
     let mut warnings: Vec<String> = Vec::new();
 
     let allowed_convs = [
@@ -17304,7 +17304,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
                             1,
                         );
                     }
-                    iflags.insert(sym.to_string());
+                    iflags.push(sym);
                 }
             }
             "oflag" => {
@@ -17319,7 +17319,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
                             1,
                         );
                     }
-                    oflags.insert(sym.to_string());
+                    oflags.push(sym);
                 }
             }
             "status" => {
@@ -17411,8 +17411,8 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
             return err_out(&format!("{}{msg}", warnings.concat()), 1);
         }
     }
-    if (iflags.contains("direct") && iflags.contains("nocache"))
-        || (oflags.contains("direct") && oflags.contains("nocache"))
+    if (iflags.contains(&"direct") && iflags.contains(&"nocache"))
+        || (oflags.contains(&"direct") && oflags.contains(&"nocache"))
     {
         return err_out(
             &format!("{}dd: cannot combine direct and nocache\n", warnings.concat()),
@@ -17420,9 +17420,19 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
         );
     }
 
-    count_bytes |= iflags.contains("count_bytes");
-    skip_bytes |= iflags.contains("skip_bytes");
-    seek_bytes |= oflags.contains("seek_bytes");
+    count_bytes |= iflags.contains(&"count_bytes");
+    skip_bytes |= iflags.contains(&"skip_bytes");
+    seek_bytes |= oflags.contains(&"seek_bytes");
+
+    let unsupported = |name: &str| err_out(
+        &format!("{}dd: {name}: Operation not supported by the filesystem stream adapter\n", warnings.concat()), 1,
+    );
+    let check_flags = |flags: &[&str], named_output: bool| {
+        flags.iter().copied().find(|&flag| !matches!(flag,
+            "binary" | "text" | "noctty" | "count_bytes" | "skip_bytes" | "seek_bytes" | "fullblock" | "append" | "nofollow"
+        ) && !(named_output && matches!(flag, "dsync" | "sync"))).map(unsupported)
+    };
+    if let Some(error) = check_flags(&iflags, false) { return error; }
 
     let skip_offset = if skip_bytes { skip } else { skip.saturating_mul(ibs) };
     let file_input = if let Some(ref inf) = in_file {
@@ -17446,13 +17456,23 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
                 Ok(b) => b,
                 Err(e) => {
                     return err_out(
-                        &format!("{}{}", warnings.concat(), format!("dd: failed to open '{inf}': {e}\n")),
+                        &format!("{}dd: failed to open '{inf}': {}\n", warnings.concat(), install_reason(&e)),
                         1,
                     );
                 }
             }
         })
     } else { None };
+
+    if let Some(error) = check_flags(&oflags, out_file.is_some()) { return error; }
+    if out_file.is_none() {
+        for sync in ["fsync", "fdatasync"] {
+            if conv_set.contains(sync) { return unsupported(sync); }
+        }
+        if oflags.contains(&"append") && !conv_set.contains("notrunc") && seek == 0 {
+            return unsupported("append with truncation");
+        }
+    }
 
     if let Some(ref outf) = out_file
         && outf != "/dev/null"
@@ -17697,7 +17717,7 @@ fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, 
         }
         let full = resolve_posix_path(cwd, &outf);
         let notrunc = conv_set.contains("notrunc");
-        let append = oflags.contains("append");
+        let append = oflags.contains(&"append");
         let seek_offset = if seek_bytes {
             seek
         } else {

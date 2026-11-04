@@ -543,6 +543,27 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("dd rejects unsupported flags at open time before copying or truncating", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/target":"keep"}});
+  try {
+    for (const [args, message] of [
+      ["iflag=nonblock,direct of=/target", "nonblock: Operation not supported by the filesystem stream adapter"],
+      ["iflag=direct,nocache of=/target", "cannot combine direct and nocache"],
+      ["if=/missing oflag=direct", "failed to open '/missing': No such file or directory"],
+      ["of=/target oflag=direct", "direct: Operation not supported by the filesystem stream adapter"],
+      ["oflag=sync", "sync: Operation not supported by the filesystem stream adapter"],
+      ["conv=fdatasync", "fdatasync: Operation not supported by the filesystem stream adapter"],
+      ["oflag=append", "append with truncation: Operation not supported by the filesystem stream adapter"],
+    ]) {
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() { pulls++; yield Uint8Array.of(65); }};
+      const r = await bash.exec("dd " + args + " status=noxfer", {stdin});
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr, pulls, bash.readText("/target")],
+        [1, "", "dd: " + message + "\n", 0, "keep"], args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("dd stops pulling input when a converted output record exceeds the limit", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

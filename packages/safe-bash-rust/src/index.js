@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const encoder = new TextEncoder();
+const overlayReceipt = Symbol("overlay observation");
 const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
 function fsErr(code, msg) { const e = new Error(msg); e.code = code; e[FS_ERROR_BRAND] = true; return e; }
 let systemErrors;
@@ -832,6 +833,8 @@ export class RustWasmBash extends WasmShell {
 
   #identityScopes = new Map();
   #scopeKeys = new WeakMap();
+  #overlayReceipts = new WeakMap();
+  #overlay = false;
   #releasedScopes = new FinalizationRegistry(scope => {
     if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
   });
@@ -914,6 +917,7 @@ export class RustWasmBash extends WasmShell {
     }
     if (options.profile === "overlay-cow-fs") {
       this.exports.safe_bash_configure_profile(this.sessionId, 1);
+      this.#overlay = true;
     } else if (options.profile === "strict-budgets-mount-dev") {
       this.exports.safe_bash_configure_profile(this.sessionId, 2);
     }
@@ -923,6 +927,7 @@ export class RustWasmBash extends WasmShell {
     if (this.exports.safe_bash_configure_profile(this.sessionId, 3) !== 0) {
       throw new Error("Unable to mount virtual devices");
     }
+    this.#overlay = false;
   }
 
   mkdirAll(dirPath) {
@@ -1038,8 +1043,18 @@ export class RustWasmBash extends WasmShell {
     });
     if (last !== path.posix.dirname(filePath)) fail("EINVAL");
     entries.push(parent, expected);
-    const packed = new Float64Array(entries.length * 9);
+    if (this.#overlay && (!Number.isInteger(mode) || mode < 0 || mode > 0o7777)) throw fsOperationError("EINVAL","overlay",filePath);
+    const packed = this.#overlay ? new Uint8Array(entries.length*48) : new Float64Array(entries.length * 9);
+    let differentType = false;
     for (const [i,s] of entries.entries()) {
+      if (this.#overlay) {
+        const r = this.#overlayReceipts.get(s[overlayReceipt]);
+        if (!r) throw fsOperationError("ENOTSUP",undefined,filePath);
+        const path = i < ancestors.length ? ancestors[i].path : i === ancestors.length ? last : filePath;
+        if (path === r.path) packed.set(r.stamp,48*i);
+        if (i === entries.length - 1) differentType = s.type !== r.type;
+        continue;
+      }
       const key = this.#scopeKeys.get(s.identityScope);
       const complete = (typeof s.identityScope === "symbol" || typeof s.identityScope === "object" && s.identityScope !== null)
         && Number.isSafeInteger(s.dev) && s.dev >= 0 && Number.isSafeInteger(s.ino) && s.ino >= 0;
@@ -1056,11 +1071,25 @@ export class RustWasmBash extends WasmShell {
       const receipt = this._allocBytes(new Uint8Array(packed.buffer));
       try {
         const apply = phase => {
-          const rc = this.exports.safe_bash_chmod_conditional(this.sessionId, p.ptr, p.len, mode === undefined ? 0 : typeof mode === "number" ? mode : NaN, receipt.ptr, receipt.len, phase);
+          const op = this.#overlay ? this.exports.safe_bash_overlay_chmod : this.exports.safe_bash_chmod_conditional;
+          const rc = op(this.sessionId, p.ptr, p.len, mode === undefined ? 0 : typeof mode === "number" ? mode : NaN, receipt.ptr, receipt.len, phase);
           if (rc === -1) throw new Error("Wasm session unavailable");
           if (rc < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), -rc)));
         };
-        if (guard === undefined) { apply(0); return; }
+        if (guard === undefined) {
+          if (differentType) { apply(1); throw fsOperationError("EAGAIN",undefined,filePath); }
+          apply(0); return;
+        }
+        if (this.#overlay) {
+          for (const phase of [1,2,3]) {
+            const result = guard();
+            if (result !== true) { void Promise.resolve(result).catch(() => {}); throw fsOperationError("ENOTSUP",undefined,undefined); }
+            signal?.throwIfAborted();
+            apply(phase);
+            if (differentType) throw fsOperationError("EAGAIN",undefined,filePath);
+          }
+          return;
+        }
         apply(1);
         const result = guard();
         if (result !== true) { void Promise.resolve(result).catch(() => {}); fail("ENOTSUP"); }
@@ -1115,6 +1144,17 @@ export class RustWasmBash extends WasmShell {
     const ctimeMs = view.getFloat64(28, true), birthtimeMs = view.getFloat64(36, true);
     const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
     const fields = view.getUint32(44, true);
+    let token;
+    if (fields & 32) {
+      const pathLen = view.getUint32(len-4,true);
+      len -= pathLen + 52;
+      token = {};
+      this.#overlayReceipts.set(token, {
+        type,
+        stamp: new Uint8Array(this.exports.memory.buffer.slice(outPtr+len,outPtr+len+48)),
+        path: decoder.decode(new Uint8Array(this.exports.memory.buffer,outPtr+len+48,pathLen)),
+      });
+    }
     const allocatedBytes = view.getFloat64(60, true), ioBlockSize = view.getFloat64(68, true);
     const revision = fields & 16 ? Number(view.getBigUint64(len - 8, true)) : undefined;
     const identityLength = len - (fields & 16 ? 8 : 0);
@@ -1133,6 +1173,7 @@ export class RustWasmBash extends WasmShell {
       }
     }
     return {
+      ...(token ? {[overlayReceipt]:token} : {}),
       ...(Number.isSafeInteger(revision) ? {revision} : {}),
       ...(fields & 1 ? {uid: view.getUint32(48, true)} : {}),
       ...(fields & 2 ? {gid: view.getUint32(52, true)} : {}),

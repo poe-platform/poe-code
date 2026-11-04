@@ -3461,6 +3461,42 @@ test("mounted chmod checks directory receipts before invoking a guard and rechec
   } finally { bash.dispose(); }
 });
 
+test("overlay guarded chmod preserves directory receipts and rejects unsafe replacements", async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/d/f":"original", "/target":"saved"}});
+  const fs = bash.fs;
+  async function receipt(path) {
+    const parents = path.startsWith("/d/") ? ["/","/d"] : ["/"];
+    const ancestors = await Promise.all(parents.map(async path => ({path, stat:await fs.lstat(path)})));
+    return {ancestors, parent:ancestors.at(-1).stat, expected:await fs.lstat(path)};
+  }
+  try {
+    const dir = await receipt("/d"), file = await receipt("/d/f");
+    await assert.rejects(fs.chmod("/d/f",0o777,{...file, expected:{...file.expected,type:"directory"}}), {code:"EAGAIN",path:"/d/f"});
+    await fs.writeFile("/d/sibling","new");
+    await fs.chmod("/d/f",0o640,{...file, expected:{...file.expected}});
+    await assert.rejects(fs.chmod("/d/f",0o777,file), {code:"EAGAIN"});
+    assert.equal(bash.readText("/d/f"), "original");
+    await fs.chmod("/d",0o751,dir);
+    assert.equal((await fs.lstat("/d")).identityScope, dir.expected.identityScope);
+    const fresh = await receipt("/d/f");
+    let calls = 0;
+    await assert.rejects(fs.chmod("/d/f",0o777,{...fresh, commitGuard() {
+      if (++calls === 3) bash.chmod("/d/f",0o600);
+      return true;
+    }}), {code:"EAGAIN"});
+    assert.equal(calls,3);
+    assert.equal((await fs.lstat("/d/f")).mode & 0o777,0o600);
+    await fs.symlink("/target","/link");
+    await fs.chmod("/target",0o600);
+    await assert.rejects(fs.chmod("/link",0o777,await receipt("/link")), {code:"ENOTSUP"});
+    assert.equal((await fs.lstat("/target")).mode & 0o777,0o600);
+    await fs.chmod("/",0o555);
+    calls = 0;
+    await assert.rejects(fs.chmod("/d/f",0o777,{...await receipt("/d/f"),commitGuard:()=>!!++calls}), {code:"EACCES"});
+    assert.equal(calls,2);
+  } finally { bash.dispose(); }
+});
+
 test("chmod forwards the original guard to the active companion", async () => {
   const { Shell, MemoryFileSystem } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

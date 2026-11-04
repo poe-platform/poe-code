@@ -660,7 +660,7 @@ pub unsafe extern "C" fn safe_bash_chmod(
 
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_supports_conditional_chmod(id: u32) -> bool {
-    sessions().lock().is_ok_and(|map| map.get(&id).is_some_and(|s| s.shell.fs.memory_backend().is_some()))
+    sessions().lock().is_ok_and(|map| map.get(&id).is_some_and(|s| s.shell.fs.memory_backend().is_some() || s.shell.fs.overlay_backend().is_some()))
 }
 
 #[unsafe(no_mangle)]
@@ -703,6 +703,43 @@ pub unsafe extern "C" fn safe_bash_chmod_conditional(
             let detail = e.split_once(", ").and_then(|(_,s)|s.strip_suffix('\'')?.split_once(" '"));
             let (op, operand) = if sess.profile == Profile::Devices { ("chmod",path) } else { detail.unwrap_or(("chmod",path)) };
             sess.read_error(&e,op,operand,None,None)
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_overlay_chmod(
+    id: u32, path_ptr: *const u8, path_len: usize, mode: f64, ptr: *const u8, len: usize, phase: u32,
+) -> i32 {
+    let path = unsafe { str_from_raw(path_ptr, path_len) };
+    let data = unsafe { slice_from_raw(ptr,len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let res = (|| {
+        let fs = sess.shell.fs.overlay_backend().ok_or("ENOTSUP: not an overlay")?;
+        if mode.fract()!=0. || !(0.0..=4095.0).contains(&mode) {return Err("EINVAL: invalid mode".into());}
+        let dir=crate::vfs::dirname_posix_path(path);
+        let paths=std::iter::once("/").chain(path.match_indices('/').skip(1).map(|(i,_)|&path[..i])).chain([dir.as_str(),path]);
+        if paths.clone().count()*48 != len {return Err("EINVAL: invalid ancestry".into());}
+        let receipts=paths.zip(data.chunks_exact(48)).map(|(p,row)|crate::vfs::OverlayChmodReceipt {
+            path:p.to_owned(), stamp:std::array::from_fn(|i|u64::from_le_bytes(row[i*8..][..8].try_into().unwrap()))
+        }).collect::<Vec<_>>();
+        match phase {
+            0 => fs.chmod_observed(path,mode as u32,&receipts,||Ok(())),
+            1 => fs.check_observed_chmod(path,&receipts).map(|_|()),
+            2 | 3 => fs.apply_observed_chmod(path,mode as u32,&receipts,phase==2),
+            _ => Err("EINVAL: invalid chmod phase".into())
+        }
+    })();
+    match res {
+        Ok(())=>0,
+        Err(e)=>{
+            if let Some((reason,p))=e.split_once(", receipt '") {
+                let code=reason.split(':').next().unwrap_or("EIO");
+                sess.last_output_buf=format!("{code}:::{}",p.strip_suffix('\'').unwrap_or(p)).into_bytes();
+                return -(sess.last_output_buf.len() as i32);
+            }
+            sess.read_error(&e,"chmod",path,None,None)
         }
     }
 }
@@ -834,10 +871,20 @@ pub unsafe extern "C" fn safe_bash_stat(
         return -1;
     };
     let fs = &sess.shell.fs;
-    let res = fs.access_path(path, follow != 0).and_then(|p| fs.lstat(&p));
+    let res = fs.access_path(path, follow != 0).and_then(|p| match fs.overlay_backend() {
+        Some(overlay) => overlay.observe_chmod(&p).map(|(st,r)|(st,Some(r))),
+        None => fs.lstat(&p).map(|st|(st,None)),
+    });
     match res {
-        Ok(st) => {
+        Ok((st,receipt)) => {
             sess.last_output_buf = stat_bytes(st);
+            if let Some(r) = receipt {
+                let buf = &mut sess.last_output_buf;
+                buf[44] |= 32;
+                for v in r.stamp { buf.extend_from_slice(&v.to_le_bytes()); }
+                buf.extend_from_slice(r.path.as_bytes());
+                buf.extend_from_slice(&(r.path.len() as u32).to_le_bytes());
+            }
             sess.last_output_buf.len() as i32
         }
         Err(e) => sess.read_error(&e, if follow != 0 { "stat" } else { "lstat" }, path, None, None),

@@ -658,6 +658,9 @@ impl MemoryVfs {
 
     pub(super) fn copy_up_metadata(&self, lower: &Self, versions: (u64, u64), path: &str, st: &FileStat) -> Result<(), String> {
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
+        if matches!(upper.nodes.get(path),Some(MemoryNode::Directory {..})) {
+            return self.set_mode_locked(&mut upper,path,st.mode);
+        }
         let mut directories = Vec::new();
         let mut cursor = path;
         while !upper.nodes.contains_key(cursor) {

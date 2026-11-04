@@ -1,3 +1,5 @@
+mod chmod;
+pub use chmod::OverlayChmodReceipt;
 use crate::vfs::path::normalize_posix_path;
 use crate::vfs::{EntryIdentity, FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::collections::{BTreeMap, BTreeSet};
@@ -26,6 +28,7 @@ enum MetadataChange {
 
 #[derive(Clone)]
 pub struct OverlayVfs {
+    receipt_owner: u64,
     lower: Arc<dyn SafeBashFs>,
     upper: Arc<dyn SafeBashFs>,
     whiteouts: Arc<RwLock<BTreeSet<String>>>,
@@ -64,6 +67,7 @@ impl OverlayVfs {
 
     pub fn new(lower: Arc<dyn SafeBashFs>, upper: Arc<dyn SafeBashFs>) -> Self {
         Self {
+            receipt_owner: chmod::new_owner(),
             lower,
             upper,
             whiteouts: Arc::new(RwLock::new(BTreeSet::new())),
@@ -340,6 +344,7 @@ impl OverlayVfs {
 }
 
 impl SafeBashFs for OverlayVfs {
+    fn overlay_backend(&self) -> Option<&Self> { Some(self) }
     fn open_redirect_file(&self, path: &str, access: super::RedirectAccess, mode: u32) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {
         use super::RedirectAccess;
         match access {

@@ -8,7 +8,7 @@ pub mod real;
 
 pub use memory::{MemoryVfs, MemoryVfsLimits};
 pub use mount::MountVfs;
-pub use overlay::OverlayVfs;
+pub use overlay::{OverlayVfs,OverlayChmodReceipt};
 pub use path::{
     basename_posix_path, dirname_posix_path, is_path_within, normalize_posix_path,
     parent_posix_path, resolve_posix_path,
@@ -292,6 +292,7 @@ pub trait SafeBashFs: Send + Sync {
     fn chmod_conditional(&self, path: &str, mode: u32, ancestors: &[(&str, FileStat)], parent: &FileStat, expected: &FileStat) -> Result<(),String> {
         self.memory_backend().ok_or("ENOTSUP: unsupported conditional chmod backend")?.chmod_conditional(path,mode,ancestors,parent,expected)
     }
+    fn overlay_backend(&self) -> Option<&OverlayVfs> { None }
     fn memory_backend(&self) -> Option<&MemoryVfs> { None }
 
     fn move_across_devices(&self, source: &str, _destination: &str, _budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {

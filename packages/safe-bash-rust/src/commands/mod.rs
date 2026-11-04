@@ -950,7 +950,7 @@ where
         return Ok(Some(out));
     }
     if matches!(cmd, "awk" | "gawk" | "mawk") {
-        return Ok(Some(text::cmd_awk(args, CommandInput { text: stdin, file }, cwd, env, fs)));
+        return Ok(Some(text::cmd_awk(args, CommandInput { text: stdin, file }, cwd, env, fs, write)));
     }
     if cmd == "jq" {
         return structured::cmd_jq(args, CommandInput { text: stdin, file }, cwd, env, fs, write).map(Some);

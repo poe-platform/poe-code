@@ -8,11 +8,12 @@ pub(super) struct Reader<'a> {
 }
 
 impl Reader<'_> {
-    fn record(&mut self, rs: Option<u8>, stdin: &mut super::super::CommandInput) -> Result<Option<String>, String> {
+    fn record(&mut self, rs: Option<u8>, stdin: &mut super::super::CommandInput, output: &mut super::AwkOutput) -> Result<Option<String>, String> {
         let mut partial = Vec::new();
         let mut newlines = 0;
         loop {
             if self.at == self.chunk.len() {
+                if !output.flush() { return Err(String::new()); }
                 if let Some(next) = &mut self.file { next(&mut self.chunk)?; }
                 else { stdin.next_stdin_chunk(&mut self.chunk)?; }
                 self.at = 0;
@@ -82,7 +83,7 @@ impl AwkState<'_> {
                 self.runtime_err = Some("awk: RS must be one byte or empty for paragraph records\n".into());
                 return None;
             }
-            match self.reader.as_mut().unwrap().record(rs.first().copied(), &mut self.stdin) {
+            match self.reader.as_mut().unwrap().record(rs.first().copied(), &mut self.stdin, &mut self.output) {
                 Ok(Some(line)) => { self.nr += 1; self.fnr += 1; return Some(line); }
                 Ok(None) => self.reader = None,
                 Err(e) => { self.runtime_err = Some(format!("awk: {e}\n")); self.error_status = 1; return None; }

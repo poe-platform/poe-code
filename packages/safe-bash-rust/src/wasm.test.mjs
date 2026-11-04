@@ -8562,6 +8562,31 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk publishes completed output before pulling stdin and keeps it on failure", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const seen = [];
+    const stdin = {async *[Symbol.asyncIterator]() {
+      for (const chunk of ["a\nb\n","c\n",null]) {
+        seen.push(Buffer.from(await sh.fs.readFile("/o")).toString());
+        if (chunk === null) throw Error("private");
+        yield Buffer.from(chunk);
+      }
+    }};
+    const r = await sh.exec("awk 'BEGIN{print 1} {print;getline a;print a}' >/o 2>&1", {stdin});
+    assert.deepEqual(seen, ["1\n", "1\na\nb\n", "1\na\nb\nc\n"]);
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr], [1,"",""]);
+    assert.equal(Buffer.from(await sh.fs.readFile("/o")).toString(), seen[2]+"awk: internal error\n");
+    const failed = await sh.exec("awk 'BEGIN{print 1;print 1/0;print 9}' 2>&1");
+    assert.deepEqual([failed.exitCode,failed.stdout,failed.stderr], [2,"1\nawk: division by zero\n",""]);
+    let pulls = 0;
+    await assert.rejects(sh.exec("awk 1", {limits:{maxOutputBytes:6},stdin:{async *[Symbol.asyncIterator](){
+      for(let i=0;i<5;i++){pulls++;yield Buffer.from("abc\n");}
+    }}}), /maxOutputBytes/);
+    assert.equal(pulls,2);
+  } finally { sh.dispose(); }
+});
+
 test("awk reads only selected operands and shares the main reader with getline and END", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash({files: {"/f": "first\n"}});
   try {

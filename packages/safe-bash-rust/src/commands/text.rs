@@ -15,7 +15,7 @@ pub fn try_run_text_command(
 ) -> Option<BuiltinOutcome> {
     match cmd {
         "sed" => Some(cmd_sed(args, stdin, cwd, fs)),
-        "awk" | "gawk" | "mawk" => Some(cmd_awk(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs)),
+        "awk" | "gawk" | "mawk" => Some(cmd_awk(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
         "diff" => Some(cmd_diff(args, stdin, cwd, fs)),
         "diff3" => Some(cmd_diff3(args, stdin, cwd, fs)),
         "patch" => Some(cmd_patch(args, stdin, cwd, fs)),
@@ -1720,6 +1720,19 @@ struct AwkRule {
 
 type AwkFuncMap = BTreeMap<String, (Vec<String>, String)>;
 
+struct AwkOutput<'a> {
+    pending: String,
+    send: &'a mut dyn FnMut(&str) -> bool,
+}
+
+impl AwkOutput<'_> {
+    fn flush(&mut self) -> bool {
+        let ok = self.pending.is_empty() || (self.send)(&self.pending);
+        self.pending.clear();
+        ok
+    }
+}
+
 struct AwkState<'a> {
     vars: BTreeMap<String, String>,
     numeric_vars: std::collections::BTreeSet<String>,
@@ -1735,7 +1748,7 @@ struct AwkState<'a> {
     ors: String,
     ofmt: String,
     convfmt: String,
-    output: String,
+    output: AwkOutput<'a>,
     next_requested: bool,
     nextfile_requested: bool,
     break_requested: bool,
@@ -1765,7 +1778,7 @@ impl<'a> AwkState<'a> {
         cwd: &str,
         vfs: &'a dyn SafeBashFs,
         stdin: super::CommandInput<'a>,
-        operand_assignments: bool,
+        output: AwkOutput<'a>,
     ) -> Self {
         let ofs = vars.get("OFS").cloned().unwrap_or_else(|| " ".to_string());
         let ors = vars.get("ORS").cloned().unwrap_or_else(|| "\n".to_string());
@@ -1788,7 +1801,7 @@ impl<'a> AwkState<'a> {
             ors,
             ofmt,
             convfmt,
-            output: String::new(),
+            output,
             next_requested: false,
             nextfile_requested: false,
             break_requested: false,
@@ -1801,8 +1814,24 @@ impl<'a> AwkState<'a> {
             cwd: cwd.to_string(),
             vfs,
             getline_files: BTreeMap::new(),
-            stdin, reader: None, argument: 1, saw_file: false, operand_assignments, error_status: 2,
+            stdin, reader: None, argument: 1, saw_file: false, operand_assignments: true, error_status: 2,
             redirect_written: BTreeMap::new(),
+        }
+    }
+
+    fn print(&mut self, text: &str) {
+        if self.runtime_err.is_some() { return; }
+        self.output.pending.push_str(text);
+        if self.output.pending.len() >= 16384 && crate::vfs::stream_byte_len(&self.output.pending) >= 16384 && !self.output.flush() {
+            self.runtime_err = Some(String::new());
+        }
+    }
+
+    fn finish(self) -> BuiltinOutcome {
+        BuiltinOutcome {
+            stdout: self.output.pending,
+            exit_code: if self.runtime_err.is_some() { self.error_status } else { self.exit_status.rem_euclid(256) },
+            stderr: self.runtime_err.unwrap_or_default(),
         }
     }
 
@@ -1823,6 +1852,8 @@ impl<'a> AwkState<'a> {
 
     fn write_redirect(&mut self, raw_path: &str, append: bool, data: &str) {
         let full = resolve_posix_path(&self.cwd, raw_path);
+        if self.runtime_err.is_some() { return; }
+        if !self.output.flush() { self.runtime_err = Some(String::new()); return; }
         let should_append = append || self.redirect_written.get(&full).copied().unwrap_or(false);
         self.redirect_written.insert(full.clone(), true);
         if should_append {
@@ -1965,7 +1996,16 @@ fn is_valid_awk_ident(name: &str) -> bool {
         && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
-pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
+    let mut result = ok_out("");
+    let tail = run_awk(args, stdin, cwd, env, fs, AwkOutput { pending: String::new(), send: &mut |s| write(1, s, &mut result) });
+    if result.exit_code == 0 && write(1, &tail.stdout, &mut result) && write(2, &tail.stderr, &mut result) {
+        result.exit_code = tail.exit_code;
+    }
+    result
+}
+
+fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: &BTreeMap<String, String>, fs: &'a dyn SafeBashFs, output: AwkOutput<'a>) -> BuiltinOutcome {
     let mut field_sep = " ".to_string();
     let mut vars = BTreeMap::new();
     let mut program_parts: Vec<String> = Vec::new();
@@ -2186,7 +2226,8 @@ pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, en
     let prog_str = program_parts.join("\n");
 
     let (mut rules, funcs) = parse_awk_rules(&prog_str);
-    let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, operand_assignments);
+    let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output);
+    state.operand_assignments = operand_assignments;
     state.arrays.insert("ENVIRON".to_string(), env.clone());
     state.set_var("ARGC", (files.len() + 1).to_string());
     let mut argv_map = BTreeMap::new();
@@ -2199,9 +2240,7 @@ pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, en
     for r in &rules {
         if matches!(r.cond, AwkCond::Begin) {
             exec_awk_block(&r.body, &mut state);
-            if let Some(err) = &state.runtime_err {
-                return err_out(err, state.error_status);
-            }
+            if state.runtime_err.is_some() { return state.finish(); }
             if state.exit_requested {
                 break;
             }
@@ -2246,9 +2285,7 @@ pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, en
                         }
                     }
                 }
-                if let Some(err) = &state.runtime_err {
-                    return err_out(err, state.error_status);
-                }
+                if state.runtime_err.is_some() { return state.finish(); }
                 if state.exit_requested {
                     break 'input_loop;
                 }
@@ -2256,12 +2293,10 @@ pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, en
                     break;
                 }
             }
-            if let Some(err) = &state.runtime_err {
-                return err_out(err, state.error_status);
-            }
+            if state.runtime_err.is_some() { return state.finish(); }
             if state.nextfile_requested { state.reader = None; state.nextfile_requested = false; }
         }
-        if let Some(err) = &state.runtime_err { return err_out(err, state.error_status); }
+        if state.runtime_err.is_some() { return state.finish(); }
     }
 
     state.next_requested = false;
@@ -2270,20 +2305,14 @@ pub(super) fn cmd_awk(args: &[String], stdin: super::CommandInput, cwd: &str, en
     for r in &rules {
         if matches!(r.cond, AwkCond::End) {
             exec_awk_block(&r.body, &mut state);
-            if let Some(err) = &state.runtime_err {
-                return err_out(err, state.error_status);
-            }
+            if state.runtime_err.is_some() { return state.finish(); }
             if state.exit_requested {
                 break;
             }
         }
     }
 
-    BuiltinOutcome {
-        stdout: state.output,
-        stderr: String::new(),
-        exit_code: ((state.exit_status % 256) + 256) % 256,
-    }
+    state.finish()
 }
 
 fn parse_awk_rules(
@@ -2849,7 +2878,7 @@ fn exec_awk_block(block: &str, state: &mut AwkState) {
                 let target_path = eval_awk_expr(&target_expr, state);
                 state.write_redirect(&target_path, append, &line_out);
             } else {
-                state.output.push_str(&line_out);
+                state.print(&line_out);
             }
             idx += 1;
             continue;
@@ -2872,7 +2901,7 @@ fn exec_awk_block(block: &str, state: &mut AwkState) {
                     let target_path = eval_awk_expr(&target_expr, state);
                     state.write_redirect(&target_path, append, &formatted);
                 } else {
-                    state.output.push_str(&formatted);
+                    state.print(&formatted);
                 }
             }
             idx += 1;
@@ -3927,7 +3956,15 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let val = (state.rng_state as f64) / 4294967296.0;
             Some(format_awk_num(val))
         }
-        "fflush" => Some("0".to_string()),
+        "fflush" => {
+            let name = args.first().map(|a| eval_awk_expr(a, state)).unwrap_or_default();
+            if name.is_empty() || name == "/dev/stdout" {
+                if !state.output.flush() { state.runtime_err = Some(String::new()); }
+            } else if name != "/dev/stderr" && !state.redirect_written.contains_key(&resolve_posix_path(&state.cwd, &name)) {
+                return Some("-1".to_string());
+            }
+            Some("0".to_string())
+        }
         "close" => {
             if let Some(arg) = args.first() {
                 let path = eval_awk_expr(arg, state);

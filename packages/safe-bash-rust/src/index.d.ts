@@ -117,7 +117,7 @@ export class WasmFileSystem {
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 
-type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath">};
+type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "signal" | "capabilities" | "onInternalError"> & {readonly registerCleanup: NonNullable<CommandContext["registerCleanup"]>; readonly fs: Required<Pick<FileSystem, "capabilitiesFor">> & Pick<WasmFileSystem, "readFile" | "writeFile" | "appendFile" | "stat" | "lstat" | "readdir" | "mkdir" | "rm" | "capabilities" | "openReadFile" | "open" | "access" | "chmod" | "readlink" | "realpath" | "rename" | "symlink" | "unlink">};
 type StreamCommand = Omit<CommandDefinition, "execute"> & {
   readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
 };

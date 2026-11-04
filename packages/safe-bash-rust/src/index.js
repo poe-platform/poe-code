@@ -268,23 +268,38 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               return scoped;
             } catch (error) { await close(); throw error; }
           };
+          const pathProfile = (path, settings) => {
+            const intent = settings?.create === true ? 2 : settings?.create === false ? 3
+                : (settings?.stagingResolution ? !settings.followFinalSymlink : settings?.creation === "exclusive") ? 1 : 0;
+            // Use the owning session: the executing fork is suspended in its handler.
+            const bash = fs.bash, p = bash._allocBytes(encoder.encode(path));
+            try {
+              const kind = x.safe_bash_command_fs_profile(bash.sessionId,p.ptr,p.len,intent);
+              if (kind === -1) throw new Error("Wasm session unavailable");
+              if (kind < 0) throw readOperationError(decoder.decode(new Uint8Array(x.memory.buffer,x.safe_bash_output_ptr(bash.sessionId),-kind)));
+              return kind;
+            } finally { bash._freeBytes(p); }
+          };
           const commandFs = {
             capabilities,
             async capabilitiesFor(path, settings) {
               admitPath(path, settings);
-              const intent = settings?.create === true ? 2 : settings?.create === false ? 3
-                : (settings?.stagingResolution ? !settings.followFinalSymlink : settings?.creation === "exclusive") ? 1 : 0;
-              // Use the owning session: the executing fork is suspended in its handler.
-              const bash = fs.bash, p = bash._allocBytes(encoder.encode(path));
-              try {
-                const kind = x.safe_bash_command_fs_profile(bash.sessionId,p.ptr,p.len,intent);
-                if (kind === -1) throw new Error("Wasm session unavailable");
-                if (kind < 0) throw readOperationError(decoder.decode(new Uint8Array(x.memory.buffer,x.safe_bash_output_ptr(bash.sessionId),-kind)));
-                const directory = kind === 2, regular = kind === 0;
-                return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
-                  open:supportsOpen && !directory, retainedRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular, mkdir:regular, recursiveMkdir:regular,
-                  remove:regular, removeDirectory:regular, recursiveRemove:regular});
-              } finally { bash._freeBytes(p); }
+              const kind = pathProfile(path, settings);
+              const directory = kind === 2, regular = kind === 0;
+              return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
+                open:supportsOpen && !directory, retainedRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
+                mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
+                rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
+            },
+            async rename(source, destination, settings) {
+              admitPath(source, settings);
+              validatePath(destination, maxComponents);
+              if (settings?.noReplace && pathProfile(destination, settings) !== 0) throw fsOperationError("ENOTSUP","rename",source,destination);
+              return fs.rename(source, destination, settings);
+            },
+            async symlink(target, path, settings) {
+              admitPath(path, settings);
+              return fs.symlink(target, path, settings);
             },
             openReadFile(path, settings) { return openHandle("openReadFile", path, settings); },
             open(path, settings) { return openHandle("open", path, settings); },
@@ -306,7 +321,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
           };
-          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "readlink", "realpath"]) {
+          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "unlink", "readlink", "realpath"]) {
             commandFs[operation] = async (path, settings) => {
               admitPath(path, settings);
               return fs[operation](path, settings);

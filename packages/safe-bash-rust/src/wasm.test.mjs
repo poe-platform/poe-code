@@ -1829,6 +1829,43 @@ test("plugin descriptors share the execution quota and retain position and file 
   }
 });
 
+test("plugin rename, symlink, and unlink validate entry paths before changing them", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  async function run(sh,fs,limit) {
+    await fs.writeFile("/src",Uint8Array.of(1));
+    await fs.writeFile("/dest",Uint8Array.of(2));
+    const events = [];
+    sh.register({name:"paths",async execute({fs}) {
+      for (const call of [
+        ()=>fs.rename("/src","/too/deep"),
+        ()=>fs.rename("/src","/dest",{noReplace:true}),
+        ()=>fs.symlink("/still/missing","/alias"),
+        ()=>fs.rename("/alias","/link"),
+        ()=>fs.unlink("/link"),
+        ()=>fs.rename("/src","/dest"),
+      ]) {
+        try { await call(); events.push("ok"); }
+        catch(e) { events.push(e.limit ?? e.code); }
+      }
+      return {exitCode:0};
+    }});
+    try {
+      const r = await sh.exec("paths",{limits:{maxPathnameComponents:1,maxFileSystemOperations:limit}}).then(r=>[r.exitCode,r.stderr],e=>e.limit);
+      const entries = await Promise.all(["src","dest","alias","link"].map(async name => {
+        const p = "/"+name, st = await fs.lstat(p).catch(()=>null);
+        return st?.type === "symlink" ? fs.readlink(p) : st ? [...await fs.readFile(p)] : null;
+      }));
+      return [r,events,entries];
+    } finally { await sh.dispose(); }
+  }
+  for (const limit of [2,3,4,5,6]) {
+    const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+    const expected = await run(js,fs,limit);
+    if (limit === 6) assert.deepEqual(expected,[[0,""],["ENAMETOOLONG","EEXIST","ok","ok","ok","ok"],[null,[1],null,null]]);
+    assert.deepEqual(await run(rust,rust.fs,limit),expected,"quota "+limit);
+  }
+});
+
 test("plugin retained reads share quotas, survive replacement, and close at command exit", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
   async function run(sh,fs,limit) {

@@ -1795,6 +1795,40 @@ test("plugin filesystem queries resolve permissions at the target, including dev
   assert.deepEqual(await run(rust,rust.fs),await run(js,fs));
 });
 
+test("plugin descriptors share the execution quota and retain position and file identity", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  async function run(sh,fs,limit) {
+    const seen = [];
+    let fd;
+    sh.register({name:"editfd",async execute({fs}) {
+      fd = await fs.open("/out",{access:"readwrite",creation:"exclusive"});
+      seen.push((await fd.stat()).mode & 0o777);
+      await fd.write(Uint8Array.of(0,255,4),null);
+      seen.push(await fd.getPosition());
+      const bytes = new Uint8Array(1);
+      await fd.read(bytes,1);
+      seen.push(bytes[0],await fd.getPosition());
+      await fs.rm("/out");
+      await fs.writeFile("/out",Uint8Array.of(7,8));
+      await fd.truncate(1);
+      seen.push((await fd.stat()).size);
+      await fd.sync(true);
+      return {exitCode:0};
+    }});
+    try {
+      const r = await sh.exec("umask 077; editfd",{limits:{maxFileSystemOperations:limit}}).then(r=>[r.exitCode,r.stderr],e=>e.limit);
+      const late = fd && await fd.write(Uint8Array.of(5),0).then(()=>"wrote",()=>"rejected");
+      return [r,seen,late,await fs.readFile("/out").then(b=>[...b],()=>null)];
+    } finally { await sh.dispose(); }
+  }
+  for (const limit of [0,1,3,6,9,12,20]) {
+    const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+    const expected = await run(js,fs,limit);
+    if (limit === 20) assert.deepEqual(expected,[[0,""],[0o600,3,255,3,1],"rejected",[7,8]]);
+    assert.deepEqual(await run(rust,rust.fs,limit),expected,"quota "+limit);
+  }
+});
+
 test("plugin retained reads share quotas, survive replacement, and close at command exit", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
   async function run(sh,fs,limit) {

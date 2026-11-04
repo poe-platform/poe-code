@@ -172,7 +172,7 @@ function streamHost(x) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, fs, options) {
+function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, fs, supportsOpen, options) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
@@ -180,8 +180,8 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const signal = options.signal ?? new AbortController().signal;
   const {onInternalError} = options;
   const backing = fs.capabilities;
-  const capabilities = Object.freeze(Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead"].map(key => [key, backing[key]])));
+  const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead"].map(key => [key, backing[key]]))});
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -210,7 +210,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
         x.__stack_pointer.value = top;
-        let active = true, outputOpen = true, cleanups, readers;
+        let active = true, outputOpen = true, cleanups, handles;
         streams = [[], []]; consumed = 0; code = 1;
         try {
           const view = new DataView(packet.buffer);
@@ -237,6 +237,37 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             check();
             return fs[operation](path, data, options);
           };
+          const openHandle = async (operation, path, settings) => {
+            admitPath(path, settings);
+            if (operation === "open" && settings?.mode === undefined && ["ifMissing","exclusive"].includes(settings?.creation)) {
+              settings = {...settings, mode:creationMode};
+            }
+            const opening = fs[operation](path, settings);
+            let closing;
+            const close = () => closing ??= opening.then(handle => handle.close(), () => {}).finally(() => handles.delete(close));
+            (handles ??= new Set()).add(close);
+            try {
+              const handle = await opening;
+              check();
+              const scoped = {close, ...(handle.capabilities && {capabilities:handle.capabilities})};
+              // The last argument is the operation signal; close is always available for cleanup.
+              for (const [name, index] of [["read",2],["write",2],["stat",0],["seekEnd",0],["getPosition",0],["probeRead",0],["truncate",1],["sync",1]]) {
+                if (typeof handle[name] !== "function") continue;
+                scoped[name] = async (...args) => {
+                  check();
+                  const opts = args[index];
+                  opts?.signal?.throwIfAborted();
+                  if (closing) throw fsOperationError("EBADF");
+                  admitPath(path, opts);
+                  args[index] = {...opts,signal:opts?.signal && opts.signal !== signal ? AbortSignal.any([signal,opts.signal]) : signal};
+                  const result = await handle[name](...args);
+                  check();
+                  return result;
+                };
+              }
+              return scoped;
+            } catch (error) { await close(); throw error; }
+          };
           const commandFs = {
             capabilities,
             async capabilitiesFor(path, settings) {
@@ -251,27 +282,12 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 if (kind < 0) throw readOperationError(decoder.decode(new Uint8Array(x.memory.buffer,x.safe_bash_output_ptr(bash.sessionId),-kind)));
                 const directory = kind === 2, regular = kind === 0;
                 return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
-                  retainedRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular, mkdir:regular, recursiveMkdir:regular,
+                  open:supportsOpen && !directory, retainedRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular, mkdir:regular, recursiveMkdir:regular,
                   remove:regular, removeDirectory:regular, recursiveRemove:regular});
               } finally { bash._freeBytes(p); }
             },
-            async openReadFile(path, settings) {
-              admitPath(path, settings);
-              const opening = fs.openReadFile(path, settings);
-              let closing;
-              const close = () => closing ??= opening.then(handle => handle.close(), () => {}).finally(() => readers.delete(close));
-              (readers ??= new Set()).add(close);
-              try {
-                const handle = await opening;
-                check();
-                return {
-                  close,
-                  async read(position, maximum, opts) { admitPath(path, opts); return handle.read(position, maximum, opts); },
-                  async stat(opts) { admitPath(path, opts); return handle.stat(opts); },
-                  ...(handle.seekEnd && {async seekEnd(opts) { admitPath(path, opts); return handle.seekEnd(opts); }}),
-                };
-              } catch (error) { await close(); throw error; }
-            },
+            openReadFile(path, settings) { return openHandle("openReadFile", path, settings); },
+            open(path, settings) { return openHandle("open", path, settings); },
             async access(path, mode, settings) {
               admitPath(path, settings);
               return fs.access(path, mode, settings);
@@ -331,7 +347,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           }
         } finally {
           active = false;
-          if (readers) for (const close of readers) (cleanups ??= []).push(close);
+          if (handles) for (const close of handles) (cleanups ??= []).push(close);
           if (cleanups) {
             await Promise.all(cleanups.map(async cleanup => {
               try { await cleanup(); } catch (error) { cleanupFailures.push(error); }
@@ -1671,7 +1687,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.fs, options);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.fs, !this.#overlay, options);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {

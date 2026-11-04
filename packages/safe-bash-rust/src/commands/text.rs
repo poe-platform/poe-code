@@ -1706,7 +1706,7 @@ fn run_sed_on_text(
 enum AwkCond {
     Begin,
     End,
-    Always,
+    Constant(bool),
     Expr(String),
     Range(String, String),
 }
@@ -1714,7 +1714,7 @@ enum AwkCond {
 #[derive(Clone, Debug)]
 struct AwkRule {
     cond: AwkCond,
-    body: String,
+    body: Vec<String>,
     in_range: bool,
 }
 
@@ -2241,7 +2241,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
 
     for r in &rules {
         if matches!(r.cond, AwkCond::Begin) {
-            exec_awk_block(&r.body, &mut state);
+            exec_awk_statements(&r.body, &mut state);
             if state.runtime_err.is_some() { return state.finish(); }
             if state.exit_requested {
                 break;
@@ -2260,13 +2260,13 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
 
             for r in &mut rules {
                 match &r.cond {
-                    AwkCond::Begin | AwkCond::End => continue,
-                    AwkCond::Always => {
-                        exec_awk_block(&r.body, &mut state);
+                    AwkCond::Begin | AwkCond::End | AwkCond::Constant(false) => continue,
+                    AwkCond::Constant(true) => {
+                        exec_awk_statements(&r.body, &mut state);
                     }
                     AwkCond::Expr(expr) => {
                         if eval_awk_cond(expr, &mut state) {
-                            exec_awk_block(&r.body, &mut state);
+                            exec_awk_statements(&r.body, &mut state);
                         }
                     }
                     AwkCond::Range(start_e, end_e) => {
@@ -2284,7 +2284,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                             true
                         };
                         if active {
-                            exec_awk_block(&r.body, &mut state);
+                            exec_awk_statements(&r.body, &mut state);
                         }
                     }
                 }
@@ -2307,7 +2307,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     state.exit_requested = false;
     for r in &rules {
         if matches!(r.cond, AwkCond::End) {
-            exec_awk_block(&r.body, &mut state);
+            exec_awk_statements(&r.body, &mut state);
             if state.runtime_err.is_some() { return state.finish(); }
             if state.exit_requested {
                 break;
@@ -2411,7 +2411,7 @@ fn parse_awk_rules(
             }
             b
         } else {
-            "print $0".to_string()
+            "print".to_string()
         };
 
         if let Some(fn_sig) = cond_trim.strip_prefix("function ") {
@@ -2431,21 +2431,23 @@ fn parse_awk_rules(
         }
 
         let cond = match cond_trim.as_str() {
-            "" => AwkCond::Always,
+            "" => AwkCond::Constant(true),
             "BEGIN" => AwkCond::Begin,
             "END" => AwkCond::End,
             other => {
-                let parts = split_awk_top_args(other);
-                if parts.len() == 2 {
-                    AwkCond::Range(parts[0].clone(), parts[1].clone())
+                if other.trim_start_matches(['+', '-']).starts_with(|c: char| c.is_ascii_digit() || c == '.')
+                    && let Ok(n) = other.parse::<f64>() && n.is_finite() {
+                    AwkCond::Constant(n != 0.0)
                 } else {
-                    AwkCond::Expr(other.to_string())
+                    let parts = split_awk_top_args(other);
+                    if parts.len() == 2 { AwkCond::Range(parts[0].clone(), parts[1].clone()) }
+                    else { AwkCond::Expr(other.to_string()) }
                 }
             }
         };
         rules.push(AwkRule {
             cond,
-            body,
+            body: split_awk_statements(&body),
             in_range: false,
         });
     }
@@ -2754,7 +2756,10 @@ fn is_awk_numeric_expr(expr: &str, val: &str, state: &AwkState) -> bool {
 }
 
 fn exec_awk_block(block: &str, state: &mut AwkState) {
-    let stmts = split_awk_statements(block);
+    exec_awk_statements(&split_awk_statements(block), state);
+}
+
+fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
     let mut idx = 0usize;
     while idx < stmts.len() {
         if state.next_requested

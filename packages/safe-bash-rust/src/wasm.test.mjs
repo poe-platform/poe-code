@@ -8562,6 +8562,14 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk evaluates numeric rule patterns once and retains zero-pattern input processing", async () => {
+  const sh = new RustWasmBash();
+  try {
+    const r = await sh.exec("awk 'BEGIN{v=0} 0e-2;0e+2;1e-2;v{print NR}{v=1} END{print NR}'", {stdin:"one\ntwo\n"});
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"one\ntwo\n2\n2\n",""]);
+  } finally { sh.dispose(); }
+});
+
 test("awk charges each streamed memory operand once and flushes before getline opens it", async () => {
   const sh = new RustWasmBash({files:{"/f":"a\nb\n"}});
   try {

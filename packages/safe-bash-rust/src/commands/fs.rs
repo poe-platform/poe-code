@@ -1880,119 +1880,53 @@ fn cmd_ln(
     let mut target_dir: Option<String> = None;
     let mut verbose = false;
     let mut backup_flag = false;
-    let mut suffix_flag = false;
-    let mut backup_control: Option<String> = None;
-    let mut backup_suffix = env
-        .get("SIMPLE_BACKUP_SUFFIX")
-        .filter(|s| !s.is_empty())
-        .cloned()
-        .unwrap_or_else(|| "~".to_string());
-    let mut ended = false;
+    let default_control = env.get("VERSION_CONTROL").map(String::as_str).filter(|s| !s.is_empty()).unwrap_or("existing");
+    let mut backup_control = None;
+    let mut backup_suffix = env.get("SIMPLE_BACKUP_SUFFIX").map(String::as_str).unwrap_or("~");
     let mut operands = Vec::new();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if ended {
-            operands.push(a.clone());
-            i += 1;
-            continue;
-        }
-        if a == "--" {
-            ended = true;
-            i += 1;
-            continue;
-        }
-        if (a == "-S" || a == "--suffix") && i + 1 < args.len() {
-            backup_suffix = args[i + 1].clone();
-            suffix_flag = true;
-            i += 2;
-            continue;
-        }
-        if (a == "-t" || a == "--target-directory") && i + 1 < args.len() {
-            target_dir = Some(args[i + 1].clone());
-            i += 2;
-            continue;
-        }
-        if a.starts_with("--") {
-            match a.as_str() {
-                "--force" => {
-                    force = true;
-                    interactive = false;
-                }
-                "--interactive" => {
-                    interactive = true;
-                    force = false;
-                }
-                "--logical" => logical = true,
-                "--physical" => logical = false,
-                "--symbolic" => symbolic = true,
-                "--relative" => relative = true,
-                "--no-dereference" => no_deref = true,
-                "--no-target-directory" => no_target_dir = true,
-                "--verbose" => verbose = true,
-                "--backup" => backup_flag = true,
-                s if s.starts_with("--backup=") => {
-                    backup_control = Some(s["--backup=".len()..].to_string());
-                }
-                s if s.starts_with("--suffix=") => {
-                    backup_suffix = s["--suffix=".len()..].to_string();
-                    suffix_flag = true;
-                }
-                s if s.starts_with("--target-directory=") => {
-                    target_dir = Some(s["--target-directory=".len()..].to_string());
-                }
-                _ => return err_out(&format!("ln: unrecognized option '{a}'\n"), 2),
+    let mut arguments = args.iter();
+    while let Some(arg) = arguments.next() {
+        if arg == "--" { operands.extend(arguments.cloned()); break; }
+        if arg == "-" || !arg.starts_with('-') { operands.push(arg.clone()); continue; }
+        let (flags, long, inline) = if let Some(option) = arg.strip_prefix("--") {
+            let (name, inline) = option.split_once('=').map_or((option, None), |(name, v)| (name, Some(v)));
+            let flag = match name {
+                "backup" => { backup_control = Some(inline.unwrap_or(default_control)); continue; }
+                "force" => "f", "interactive" => "i", "logical" => "L", "physical" => "P",
+                "symbolic" => "s", "relative" => "r", "no-dereference" => "n",
+                "no-target-directory" => "T", "verbose" => "v", "suffix" => "S", "target-directory" => "t",
+                _ => return err_out(&format!("ln: unrecognized option '{arg}'\n"), 2),
+            };
+            if inline.is_some() && !matches!(flag, "S" | "t") {
+                return err_out(&format!("ln: option '--{name}' does not take an argument\n"), 2);
             }
-        } else if a.starts_with('-') && a.len() > 1 {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut j = 0usize;
-            while j < chars.len() {
-                match chars[j] {
-                    'f' => {
-                        force = true;
-                        interactive = false;
-                    }
-                    'i' => {
-                        interactive = true;
-                        force = false;
-                    }
-                    'L' => logical = true,
-                    'P' => logical = false,
-                    's' => symbolic = true,
-                    'r' => relative = true,
-                    'n' | 'h' => no_deref = true,
-                    'T' => no_target_dir = true,
-                    'v' => verbose = true,
-                    'b' => backup_flag = true,
-                    't' => {
-                        let rest: String = chars[j + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            target_dir = Some(rest);
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            target_dir = Some(args[i].clone());
-                        }
-                        break;
-                    }
-                    'S' => {
-                        suffix_flag = true;
-                        let rest: String = chars[j + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            backup_suffix = rest;
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            backup_suffix = args[i].clone();
-                        }
-                        break;
-                    }
-                    ch => return err_out(&format!("ln: invalid option -- '{ch}'\n"), 2),
+            (flag, Some(name), inline)
+        } else { (&arg[1..], None, None) };
+        let mut chars = flags.chars();
+        while let Some(flag) = chars.next() {
+            match flag {
+                'f' => { force = true; interactive = false; }
+                'i' => { interactive = true; force = false; }
+                'L' => logical = true, 'P' => logical = false, 's' => symbolic = true,
+                'r' => relative = true, 'n' => no_deref = true, 'T' => no_target_dir = true,
+                'v' => verbose = true, 'b' => backup_flag = true,
+                'S' | 't' => {
+                    let value = inline.or_else(|| (!chars.as_str().is_empty()).then_some(chars.as_str()))
+                        .or_else(|| arguments.next().map(String::as_str));
+                    let Some(value) = value else {
+                        let message = match long {
+                            Some(name) => format!("ln: option '--{name}' requires an argument\n"),
+                            None => format!("ln: option requires an argument -- '{flag}'\n"),
+                        };
+                        return err_out(&message, 2);
+                    };
+                    if flag == 't' { target_dir = Some(value.to_owned()); }
+                    else { backup_suffix = value; backup_flag = true; }
+                    break;
                 }
-                j += 1;
+                _ => return err_out(&format!("ln: invalid option -- '{flag}'\n"), 2),
             }
-        } else {
-            operands.push(a.clone());
         }
-        i += 1;
     }
     if relative && !symbolic {
         return err_out("ln: cannot do --relative without --symbolic\n", 2);
@@ -2000,11 +1934,15 @@ fn cmd_ln(
     if target_dir.is_some() && no_target_dir {
         return err_out("ln: cannot combine --target-directory and --no-target-directory\n", 2);
     }
-    if operands.is_empty() {
+    let backup_mode = match parse_backup_control(backup_control.or(backup_flag.then_some(default_control))) {
+        Ok(mode) => mode,
+        Err(e) => return err_out(&format!("ln: {e}\n"), 2),
+    };
+    if operands.is_empty() || no_target_dir && operands.len() < 2 {
         return err_out("ln: missing operand\n", 2);
     }
-    if no_target_dir && operands.len() != 2 {
-        return err_out("ln: missing destination file operand\n", 2);
+    if no_target_dir && operands.len() > 2 {
+        return err_out(&format!("ln: extra operand '{}'\n", operands[2]), 2);
     }
     let eff_operands: Vec<String> = if let Some(ref td) = target_dir {
         let mut v = operands;
@@ -2015,13 +1953,6 @@ fn cmd_ln(
     } else {
         operands
     };
-    let control = backup_control.as_deref().or_else(|| (backup_flag || suffix_flag)
-        .then(|| env.get("VERSION_CONTROL").map(String::as_str).unwrap_or("existing")));
-    let backup_mode = match parse_backup_control(control) {
-        Ok(mode) => mode,
-        Err(e) => return err_out(&format!("ln: {e}\n"), 2),
-    };
-
     let last_op = eff_operands.last().unwrap();
     let target_operand = match command_operand(cwd,last_op) {
         Ok(p) => p, Err(e) => return err_out(&format!("ln: {e}\n"),1),
@@ -2137,7 +2068,7 @@ fn cmd_ln(
                 }
             }
             if backup_mode != BackupMode::None {
-                let (backup, _) = match backup_path(&link_path, backup_mode, &backup_suffix, fs) {
+                let (backup, _) = match backup_path(&link_path, backup_mode, backup_suffix, fs) {
                     Ok(p) => p, Err(e) => { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
                 };
                 if backup == src_full || backup == link_path {
@@ -6265,6 +6196,33 @@ mod tests {
             assert_eq!(fs.read_file("/w/a").unwrap(),b"A");
             assert!(!fs.exists("/copy"));
         }
+    }
+
+    #[test]
+    fn ln_rejects_incomplete_options_before_replacing_any_file() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/existing", b"keep").unwrap();
+        for (argv, error) in [
+            (vec!["-sf", "new", "/existing", "-t"], "option requires an argument -- 't'"),
+            (vec!["-sf", "new", "/existing", "-vS"], "option requires an argument -- 'S'"),
+            (vec!["-sf", "new", "/existing", "--suffix"], "option '--suffix' requires an argument"),
+            (vec!["--force=yes"], "option '--force' does not take an argument"),
+            (vec!["-h"], "invalid option -- 'h'"),
+            (vec!["--backup=bad"], "invalid argument 'bad' for 'backup type'"),
+            (vec!["-T", "a"], "missing operand"),
+            (vec!["-T", "a", "b", "c"], "extra operand 'c'"),
+        ] {
+            let r = try_run_fs_command("ln", &args(&argv), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(r.exit_code, 2, "{argv:?}");
+            assert_eq!(r.stderr, format!("ln: {error}\n"));
+            assert_eq!(fs.read_file("/existing").unwrap(), b"keep");
+            assert!(fs.lstat("/existing~").is_err());
+        }
+        let argv = ["--backup=numbered", "--backup", "-sf", "new", "/existing"];
+        let r = try_run_fs_command("ln", &args(&argv), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(fs.read_file("/existing~").unwrap(), b"keep");
+        assert!(fs.lstat("/existing.~1~").is_err());
     }
 
     #[test]

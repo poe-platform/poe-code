@@ -9639,8 +9639,36 @@ impl<'a> EvalState<'a> {
                 BuiltinOutcome { stdout: String::new(), stderr: format!("{}{e}\n", self.diag_prefix()), exit_code: 1 }
             } else { self.redirect_error(operand, &e) }
         };
+        let raw = crate::vfs::path::absolute_operand(self.cwd, operand);
+        if self.fs.has_path_capabilities() && !self.is_default_null(&raw) && !self.fs.supports_command_descriptor(&raw) {
+            let opened = (|| {
+                if exclusive {
+                    match self.fs.inspect_command_entry(&raw, false, "lstat") {
+                        Ok((_, st)) if st.kind == crate::vfs::VfsEntryKind::Symlink => {
+                            if let Err(e) = self.fs.inspect_command_entry(&raw, true, "stat")
+                                && !e.starts_with("ENOENT:") && !e.starts_with("ELOOP:") { return Err(e); }
+                        }
+                        Err(e) if !e.starts_with("ENOENT:") && !e.starts_with("ELOOP:") => return Err(e),
+                        _ => {}
+                    }
+                }
+                // The shell and then its pathname output adapter resolve capabilities.
+                let entry = self.fs.access_path(&raw, !exclusive)?;
+                self.fs.command_descriptor_op()?;
+                if exclusive {
+                    self.fs.open_redirect_file(&entry, access, Some(mode))?;
+                } else {
+                    self.fs.command_descriptor_op()?;
+                    if self.fs.lstat(&entry).is_ok_and(|st| st.mode & 0o200 == 0) {
+                        return Err("EACCES: permission denied".into());
+                    }
+                    self.fs.write_command_path(&entry, b"", append, mode)?;
+                }
+                Ok(FdTarget::File { path: entry, file: None, offset: None })
+            })();
+            return opened.map_err(error);
+        }
         let path = if exclusive {
-            let raw = crate::vfs::path::absolute_operand(self.cwd, operand);
             let entry = self.fs.access_path(&raw, false).map_err(error)?;
             // Only device links may be followed under noclobber. Leave a dangling or
             // looping final link in place so exclusive acquisition reports EEXIST.

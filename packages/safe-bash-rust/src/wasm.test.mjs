@@ -8977,6 +8977,21 @@ test("rg reports the ancestor that denied a path lookup", async () => {
   } finally { sh.dispose(); }
 });
 
+test("overlay output redirection charges access before it creates, appends or truncates", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/f":"keep","/readonly":{content:"keep",mode:0o400}}});
+  try {
+    for (const [command,path,after] of [[": >/f","/f",""],[": >>/new","/new",""],["set -C; : >/exclusive","/exclusive",""]]) {
+      await assert.rejects(sh.exec(command,{limits:{maxFileSystemOperations:3}}),{limit:"maxFileSystemOperations"});
+      if (path === "/f") assert.equal(sh.readText(path),"keep");
+      else await assert.rejects(sh.fs.stat(path),{code:"ENOENT"});
+      assert.equal((await sh.exec(command,{limits:{maxFileSystemOperations:4}})).exitCode,0);
+      assert.equal(sh.readText(path),after);
+    }
+    await assert.rejects(sh.exec(": >/readonly",{limits:{maxFileSystemOperations:2}}),{limit:"maxFileSystemOperations"});
+    assert.match((await sh.exec(": >/readonly",{limits:{maxFileSystemOperations:3}})).stderr,/Permission denied/);
+  } finally { sh.dispose(); }
+});
+
 test("rg stops at a denied operand on mounted and overlay filesystems", async () => {
   for (const profile of ["strict-budgets-mount-dev","overlay-cow-fs"]) {
     const sh = new RustWasmBash({profile,files:{"/locked/f":"a\nb\n","/ok":"a\nb\n"}});

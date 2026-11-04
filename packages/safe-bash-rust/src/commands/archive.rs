@@ -718,51 +718,113 @@ struct ChecksumInputs<'a, 'b> {
     stdin_used: bool,
 }
 
-impl ChecksumInputs<'_, '_> {
-    fn read(&mut self, file: &str, mut consume: impl FnMut(&[u8])) -> Result<(), String> {
-        if file == "-" && std::mem::replace(&mut self.stdin_used, true) { return Ok(()); }
-        if file.is_empty() || file.contains('\0') || crate::vfs::stream_utf8(file).is_err() {
-            return Err("EINVAL: filename must be nonempty, NUL-free, valid Unicode".into());
+enum SumSource<'a> {
+    Stdin,
+    File(crate::vfs::ChunkReader<'a>),
+    Empty,
+}
+
+#[derive(Default, PartialEq, Eq)]
+enum SumReportMode { #[default] Normal, Warn, Quiet, Status }
+
+#[derive(Default)]
+struct SumReport {
+    mode: SumReportMode,
+    strict: bool,
+    ignore_missing: bool,
+}
+
+fn validate_sum_name(file: &str) -> Result<(), String> {
+    if file.is_empty() || file.contains('\0') || crate::vfs::stream_utf8(file).is_err() {
+        return Err("EINVAL: filename must be nonempty, NUL-free, valid Unicode".into());
+    }
+    if crate::vfs::stream_byte_len(file) > 16384 { return Err("ENAMETOOLONG: filename exceeds 16384 UTF-8 bytes".into()); }
+    Ok(())
+}
+
+fn escape_sum_name(f: &str) -> (bool, String) {
+    if f.contains('\\') || f.contains('\n') || f.contains('\r') {
+        let esc = f
+            .replace('\\', "\\\\")
+            .replace('\n', "\\n")
+            .replace('\r', "\\r");
+        (true, esc)
+    } else {
+        (false, f.to_string())
+    }
+}
+
+fn unescape_sum_name(f: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut chs = f.chars();
+    while let Some(c) = chs.next() {
+        if c == '\\' {
+            match chs.next() {
+                Some('n') => out.push('\n'),
+                Some('r') => out.push('\r'),
+                Some('\\') => out.push('\\'),
+                _ => return None,
+            }
+        } else {
+            out.push(c);
         }
-        if crate::vfs::stream_byte_len(file) > 16384 { return Err("ENAMETOOLONG: filename exceeds 16384 UTF-8 bytes".into()); }
-        let mut exceeded = false;
-        self.stdin.read_operand(file, self.cwd, self.fs, false, |chunk| {
-            let Some(left) = self.left.checked_sub(chunk.len()) else { exceeded = true; return false };
-            self.left = left;
-            consume(chunk);
-            true
-        }).map_err(|e| {
-            if e.starts_with("EISDIR:") {
-                format!("{}: Is a directory", file.replace('\\', "\\\\").replace('\n', "\\n").replace('\r', "\\r"))
-            } else { e }
-        })?;
-        if exceeded { return Err(self.fs.limit_error("maxInputBytes", self.fs.max_input_bytes())); }
-        Ok(())
+    }
+    Some(out)
+}
+
+impl<'fs> ChecksumInputs<'_, 'fs> {
+    fn open(&mut self, name: &str) -> Result<SumSource<'fs>, String> {
+        validate_sum_name(name)?;
+        if name == "-" {
+            return Ok(if std::mem::replace(&mut self.stdin_used, true) { SumSource::Empty } else { SumSource::Stdin });
+        }
+        let path = crate::vfs::path::absolute_operand(self.cwd, name);
+        let message = |e| super::coreutils::stream_file_error(e, "readStream", &path);
+        let (entry, st) = self.fs.inspect_command_entry(&path, true, "capabilitiesFor").map_err(message)?;
+        if st.kind == crate::vfs::VfsEntryKind::Directory { return Err(format!("{}: Is a directory", escape_sum_name(name).1)); }
+        let mut next = self.fs.open_chunks(&entry).map_err(message)?;
+        let mut remaining = if st.mode & 0o170000 == 0o100000 { st.size } else { usize::MAX };
+        Ok(SumSource::File(Box::new(move |chunk| {
+            if remaining == 0 { chunk.clear(); return Ok(()); }
+            next(chunk).map_err(|e| super::coreutils::stream_file_error(e, "readStream", &path))?;
+            chunk.truncate(remaining);
+            remaining -= chunk.len();
+            Ok(())
+        })))
     }
 
-    fn manifest(&mut self, file: &str) -> Result<String, String> {
-        let mut bytes = Vec::new();
-        self.read(file, |chunk| bytes.extend_from_slice(chunk))?;
-        Ok(crate::vfs::shell_text(&String::from_utf8_lossy(&bytes)).into_owned())
+    fn next(&mut self, source: &mut SumSource, chunk: &mut Vec<u8>) -> Result<(), String> {
+        chunk.clear();
+        match source {
+            SumSource::File(next) => next(chunk)?,
+            SumSource::Stdin => self.stdin.read_stdin(|b| { chunk.extend_from_slice(b); false })?,
+            SumSource::Empty => {}
+        }
+        self.left = self.left.checked_sub(chunk.len()).ok_or_else(|| self.fs.limit_error("maxInputBytes", self.fs.max_input_bytes()))?;
+        Ok(())
     }
 
     fn digest(&mut self, file: &str, algo: &str, bits: usize) -> Result<(String, u64), String> {
         let mut len = 0u64;
         let mut crc = if algo == "crc32b" { u32::MAX } else { 0 };
         let mut bytes = Vec::new();
-        self.read(file, |chunk| {
+        let mut source = self.open(file)?;
+        let mut chunk = Vec::new();
+        loop {
+            self.next(&mut source, &mut chunk)?;
+            if chunk.is_empty() { break; }
             len += chunk.len() as u64;
             match algo {
-                "crc" => for &b in chunk { crc = posix_crc_byte(crc, b); },
-                "crc32b" => for &b in chunk {
+                "crc" => for &b in &chunk { crc = posix_crc_byte(crc, b); },
+                "crc32b" => for &b in &chunk {
                     crc ^= u32::from(b);
                     for _ in 0..8 { crc = (crc >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(crc & 1)); }
                 },
-                "bsd" => for &b in chunk { crc = u32::from((crc as u16).rotate_right(1).wrapping_add(u16::from(b))); },
-                "sysv" => for &b in chunk { crc = crc.wrapping_add(u32::from(b)); },
-                _ => bytes.extend_from_slice(chunk),
+                "bsd" => for &b in &chunk { crc = u32::from((crc as u16).rotate_right(1).wrapping_add(u16::from(b))); },
+                "sysv" => for &b in &chunk { crc = crc.wrapping_add(u32::from(b)); },
+                _ => bytes.extend_from_slice(&chunk),
             }
-        })?;
+        }
         let value = match algo {
             "crc" => {
                 let mut size = len;
@@ -778,6 +840,136 @@ impl ChecksumInputs<'_, '_> {
             _ => compute_digest_hex_bits(algo, &bytes, bits),
         };
         Ok((value, len))
+    }
+}
+
+fn sum_entry<'a>(line: &str, selected: &'a str, allow_base64: bool) -> Option<(&'a str, usize, String, String)> {
+    let text = line.trim_start_matches([' ', '\t']);
+    let escaped = text.starts_with('\\');
+    let text = text.strip_prefix('\\').unwrap_or(text);
+    let raw_label = text.split_once('(').map(|(label, _)| label).unwrap_or("");
+    let label = raw_label.strip_suffix(' ').unwrap_or(raw_label);
+    let tagged = match label {
+        "MD5" => Some(("md5",128)), "SHA1" => Some(("sha1",160)), "SHA224" => Some(("sha224",224)),
+        "SHA256" => Some(("sha256",256)), "SM3" => Some(("sm3",256)), "SHA384" => Some(("sha384",384)),
+        "SHA512" => Some(("sha512",512)), "BLAKE2b" => Some(("blake2b",512)),
+        _ if label.starts_with("BLAKE2b-") => {
+            let n = &label[8..];
+            if !n.bytes().all(|b| b.is_ascii_digit()) { return None; }
+            let bits = n.parse::<usize>().ok()?;
+            if !(8..=512).contains(&bits) || bits % 8 != 0 { return None; }
+            Some(("blake2b", bits))
+        }
+        _ if label.starts_with("SHA3-") => match &label[5..] {
+            "224" => Some(("sha3",224)), "256" => Some(("sha3",256)),
+            "384" => Some(("sha3",384)), "512" => Some(("sha3",512)), _ => return None,
+        },
+        _ => None,
+    };
+    let (algo, bits, fname, encoded) = if let Some((algo, bits)) = tagged {
+        if selected != "crc" && selected != algo { return None; }
+        let (_, body) = text.split_once('(')?;
+        let (fname, suffix) = body.rsplit_once(')')?;
+        let encoded = suffix.trim_start_matches([' ', '\t']).strip_prefix('=')?.trim_start_matches([' ', '\t']);
+        (algo, Some(bits), fname, encoded)
+    } else {
+        let bits = match selected {
+            "md5" => Some(128), "sha1" => Some(160), "sha224" => Some(224), "sha256" | "sm3" => Some(256),
+            "sha384" => Some(384), "sha512" => Some(512), "blake2b" | "sha3" => None, _ => return None,
+        };
+        let (encoded, tail) = text.split_once([' ', '\t'])?;
+        (selected, bits, tail.strip_prefix([' ', '*'])?, encoded)
+    };
+    if encoded.is_empty() || encoded.len() > 128 { return None; }
+    let hex = if encoded.len() % 2 == 0 && bits.is_none_or(|n| encoded.len() * 4 == n)
+        && encoded.bytes().all(|b| b.is_ascii_hexdigit()) {
+        encoded.to_ascii_lowercase()
+    } else {
+        if !allow_base64 { return None; }
+        let bytes = base64_decode_strict(encoded).ok()?;
+        if base64_encode(&bytes) != encoded { return None; }
+        hex_encode(&bytes)
+    };
+    let size = hex.len() * 4;
+    if bits.is_some_and(|n| size != n) || (algo == "blake2b" && !(8..=512).contains(&size))
+        || (algo == "sha3" && !matches!(size, 224 | 256 | 384 | 512)) { return None; }
+    let name = if escaped { unescape_sum_name(fname)? } else { fname.to_string() };
+    let name = crate::vfs::shell_text(&name).into_owned();
+    validate_sum_name(&name).ok()?;
+    Some((algo, size, name, hex))
+}
+
+impl ChecksumInputs<'_, '_> {
+    fn verify(&mut self, cmd: &str, algo: &str, manifests: &[String], report: SumReport, write: &mut super::CommandWriter) -> BuiltinOutcome {
+        let mut result = ok_out("");
+        'manifest: for manifest in manifests {
+            let disp = escape_sum_name(manifest).1;
+            let mut source = match self.open(manifest) {
+                Ok(reader) => reader,
+                Err(e) => {
+                    result.exit_code = 1;
+                    if !write(2, &format!("{cmd}: {e}\n"), &mut result) { break; }
+                    continue;
+                }
+            };
+            let (mut chunk, mut pending) = (Vec::new(), Vec::new());
+            let (mut line_num, mut malformed, mut mismatched, mut failures) = (0u64,0u64,0u64,0u64);
+            let (mut valid, mut matched) = (false, false);
+            loop {
+                if let Err(e) = self.next(&mut source, &mut chunk) {
+                    result.exit_code = 1;
+                    if !write(2, &format!("{cmd}: {e}\n"), &mut result) { return result; }
+                    continue 'manifest;
+                }
+                let eof = chunk.is_empty();
+                if eof {
+                    if pending.is_empty() { break; }
+                    chunk.push(b'\n');
+                }
+                for part in chunk.split_inclusive(|&b| b == b'\n') {
+                    let Some(tail) = part.strip_suffix(b"\n") else { pending.extend_from_slice(part); continue };
+                    pending.extend_from_slice(tail);
+                    line_num += 1;
+                    let line = std::str::from_utf8(&pending).ok().map(|s| s.strip_suffix('\r').unwrap_or(s));
+                    let skip = line.is_some_and(|s| s.is_empty() || s.starts_with('#'));
+                    let entry = if skip { None } else { line.and_then(|s| sum_entry(s, algo, cmd == "cksum")) };
+                    pending.clear();
+                    if skip { continue; }
+                    let Some((algorithm,bits,name,expected)) = entry.filter(|(_,_,n,_)| !(manifest == "-" && n == "-")) else {
+                        malformed += 1;
+                        if report.mode == SumReportMode::Warn && !write(2, &format!("{cmd}: {disp}: {line_num}: improperly formatted {algo} checksum line\n"), &mut result) { return result; }
+                        continue;
+                    };
+                    valid = true;
+                    let status = match self.digest(&name, algorithm, bits) {
+                        Ok((hex, _)) if hex == expected => { matched = true; "OK" }
+                        Ok(_) => { mismatched += 1; "FAILED" }
+                        Err(e) => {
+                            if report.ignore_missing && name != "-" && e.starts_with("ENOENT:") { continue; }
+                            failures += 1;
+                            if !write(2, &format!("{cmd}: {e}\n"), &mut result) { return result; }
+                            "FAILED open or read"
+                        }
+                    };
+                    if report.mode != SumReportMode::Status && !(report.mode == SumReportMode::Quiet && status == "OK") {
+                        let (escaped, fname) = escape_sum_name(&name);
+                        let prefix = if escaped { "\\" } else { "" };
+                        if !write(1, &format!("{prefix}{fname}: {status}\n"), &mut result) { return result; }
+                    }
+                }
+                if eof { break; }
+            }
+            if !valid || !matched || failures > 0 || mismatched > 0 || (report.strict && malformed > 0) { result.exit_code = 1; }
+            if !valid {
+                if !write(2, &format!("{cmd}: {disp}: no properly formatted checksum lines found\n"), &mut result) { return result; }
+            } else if report.mode != SumReportMode::Status {
+                for (n, reason) in [(malformed,"improperly formatted checksum line(s)"), (failures,"listed file(s) could not be read"), (mismatched,"computed checksum(s) did NOT match")] {
+                    if n != 0 && !write(2, &format!("{cmd}: WARNING: {n} {reason}\n"), &mut result) { return result; }
+                }
+                if report.ignore_missing && !matched && !write(2, &format!("{cmd}: {disp}: no file was verified\n"), &mut result) { return result; }
+            }
+        }
+        result
     }
 }
 
@@ -809,11 +1001,7 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
         format!("{algo}sum")
     };
     let mut check_mode = false;
-    let mut quiet = false;
-    let mut status_only = false;
-    let mut warn_mode = false;
-    let mut strict = false;
-    let mut ignore_missing = false;
+    let mut report = SumReport::default();
     let mut binary_mode = false;
     let mut explicit_mode = false;
     let mut explicit_text = false;
@@ -866,23 +1054,23 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
                         }
                     }
                     "--warn" => {
-                        warn_mode = true;
+                        report.mode = SumReportMode::Warn;
                         check_only = true;
                     }
                     "--quiet" => {
-                        quiet = true;
+                        report.mode = SumReportMode::Quiet;
                         check_only = true;
                     }
                     "--status" => {
-                        status_only = true;
+                        report.mode = SumReportMode::Status;
                         check_only = true;
                     }
                     "--strict" => {
-                        strict = true;
+                        report.strict = true;
                         check_only = true;
                     }
                     "--ignore-missing" => {
-                        ignore_missing = true;
+                        report.ignore_missing = true;
                         check_only = true;
                     }
                     "--length" if algo == "blake2b" => {
@@ -916,7 +1104,7 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
                 'c' => check_mode = true,
                 'z' => zero_delim = true,
                 'w' => {
-                    warn_mode = true;
+                    report.mode = SumReportMode::Warn;
                     check_only = true;
                 }
                 'l' if algo == "blake2b" => {
@@ -977,228 +1165,9 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
         );
     }
 
-    let escape_fname = |f: &str| -> (bool, String) {
-        if f.contains('\\') || f.contains('\n') || f.contains('\r') {
-            let esc = f
-                .replace('\\', "\\\\")
-                .replace('\n', "\\n")
-                .replace('\r', "\\r");
-            (true, esc)
-        } else {
-            (false, f.to_string())
-        }
-    };
-    let unescape_fname = |f: &str| -> Option<String> {
-        let mut out = String::new();
-        let mut chs = f.chars();
-        while let Some(c) = chs.next() {
-            if c == '\\' {
-                match chs.next() {
-                    Some('n') => out.push('\n'),
-                    Some('r') => out.push('\r'),
-                    Some('\\') => out.push('\\'),
-                    _ => return None,
-                }
-            } else {
-                out.push(c);
-            }
-        }
-        Some(out)
-    };
-
-    let algo_default_bits = match algo {
-        "sha224" => 224usize,
-        "sha256" => 256,
-        "sha384" => 384,
-        "sha512" => 512,
-        "sha1" => 160,
-        "md5" => 128,
-        _ => bits,
-    };
-
     if check_mode {
-        let manifests = if files.is_empty() {
-            vec!["-".to_string()]
-        } else {
-            files
-        };
-        let mut out = String::new();
-        let mut err = String::new();
-        let mut overall_ok = true;
-        for manifest in &manifests {
-            let (_, disp_m) = escape_fname(manifest);
-            let content = match inputs.manifest(manifest) {
-                Ok(text) => text,
-                Err(e) => {
-                    err.push_str(&format!("{cmd_name}: {e}\n"));
-                    overall_ok = false;
-                    continue;
-                }
-            };
-            let mut malformed = 0usize;
-            let mut failures = 0usize;
-            let mut mismatched = 0usize;
-            let mut valid = false;
-            let mut matched = false;
-            for (line_idx, raw_line) in content.lines().enumerate() {
-                let line_num = line_idx + 1;
-                let mut line = raw_line.trim_end_matches('\r');
-                if line.is_empty() || line.starts_with('#') {
-                    continue;
-                }
-                while line.starts_with(' ') || line.starts_with('\t') {
-                    line = &line[1..];
-                }
-                let is_escaped = line.starts_with('\\');
-                if is_escaped {
-                    line = &line[1..];
-                }
-                let parsed_entry: Option<(usize, String, String)> =
-                    if let Some(open) = line.find('(')
-                        && let Some(close) = line.rfind(')')
-                        && open < close
-                    {
-                        let raw_lbl = line[..open].trim_end_matches(' ');
-                        let mut suffix = &line[close + 1..];
-                        while suffix.starts_with(' ') || suffix.starts_with('\t') {
-                            suffix = &suffix[1..];
-                        }
-                        if !suffix.starts_with('=') {
-                            None
-                        } else {
-                            let mut exp = &suffix[1..];
-                            while exp.starts_with(' ') || exp.starts_with('\t') {
-                                exp = &exp[1..];
-                            }
-                            let raw_fnm = &line[open + 1..close];
-                            let lb_opt = if algo == "blake2b" {
-                                if raw_lbl == "BLAKE2b" {
-                                    Some(512usize)
-                                } else if let Some(b_str) = raw_lbl.strip_prefix("BLAKE2b-") {
-                                    b_str.parse::<usize>().ok().filter(|&b| (8..=512).contains(&b) && b % 8 == 0)
-                                } else {
-                                    None
-                                }
-                            } else if raw_lbl.eq_ignore_ascii_case(algo) {
-                                Some(algo_default_bits)
-                            } else {
-                                None
-                            };
-                            lb_opt.map(|lb| (lb, raw_fnm.to_string(), exp.to_string()))
-                        }
-                    } else if let Some(sep_idx) = line.find([' ', '\t']) {
-                        let after = &line[sep_idx..];
-                        if after.len() < 2 || !matches!(after.as_bytes()[1], b' ' | b'*') {
-                            None
-                        } else {
-                            let exp = &line[..sep_idx];
-                            let raw_fnm = &after[2..];
-                            let lb = if algo == "blake2b" {
-                                exp.len() * 4
-                            } else {
-                                algo_default_bits
-                            };
-                            Some((lb, raw_fnm.to_string(), exp.to_string()))
-                        }
-                    } else {
-                        None
-                    };
-
-                let validated: Option<(usize, String, String)> =
-                    parsed_entry.and_then(|(lb, raw_fnm, exp)| {
-                        if exp.is_empty()
-                            || exp.len() > 128
-                            || exp.len() % 2 != 0
-                            || !exp.chars().all(|c| c.is_ascii_hexdigit())
-                            || exp.len() * 4 != lb
-                            || (algo == "blake2b" && !(8..=512).contains(&lb))
-                        {
-                            return None;
-                        }
-                        let fname = if is_escaped {
-                            unescape_fname(&raw_fnm)?
-                        } else {
-                            raw_fnm
-                        };
-                        if fname.is_empty() || (manifest == "-" && fname == "-") {
-                            return None;
-                        }
-                        Some((lb, fname, exp.to_ascii_lowercase()))
-                    });
-
-                let Some((line_bits, fname, expected_hex)) = validated else {
-                    malformed += 1;
-                    if warn_mode {
-                        err.push_str(&format!(
-                            "{cmd_name}: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
-                        ));
-                    }
-                    continue;
-                };
-
-                valid = true;
-                let (needs_esc, disp_fname) = escape_fname(&fname);
-                let disp_prefix = if needs_esc { "\\" } else { "" };
-                match inputs.digest(&fname, algo, line_bits) {
-                    Ok((actual, _)) => {
-                        if actual.eq_ignore_ascii_case(&expected_hex) {
-                            matched = true;
-                            if !quiet && !status_only {
-                                out.push_str(&format!("{disp_prefix}{disp_fname}: OK\n"));
-                            }
-                        } else {
-                            mismatched += 1;
-                            if !status_only {
-                                out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED\n"));
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        if ignore_missing && fname != "-" && e.starts_with("ENOENT:") { continue; }
-                        failures += 1;
-                        err.push_str(&format!("{cmd_name}: {e}\n"));
-                        if !status_only {
-                            out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
-                        }
-                    }
-                }
-            }
-            if !valid {
-                err.push_str(&format!(
-                    "{cmd_name}: {disp_m}: no properly formatted checksum lines found\n"
-                ));
-                overall_ok = false;
-            } else {
-                if !status_only {
-                    if malformed > 0 {
-                        err.push_str(&format!(
-                            "{cmd_name}: WARNING: {malformed} improperly formatted checksum line(s)\n"
-                        ));
-                    }
-                    if failures > 0 {
-                        err.push_str(&format!(
-                            "{cmd_name}: WARNING: {failures} listed file(s) could not be read\n"
-                        ));
-                    }
-                    if mismatched > 0 {
-                        err.push_str(&format!(
-                            "{cmd_name}: WARNING: {mismatched} computed checksum(s) did NOT match\n"
-                        ));
-                    }
-                    if ignore_missing && !matched {
-                        err.push_str(&format!("{cmd_name}: {disp_m}: no file was verified\n"));
-                    }
-                }
-                if !(matched && failures == 0 && mismatched == 0 && (!strict || malformed == 0)) {
-                    overall_ok = false;
-                }
-            }
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err,
-            exit_code: if overall_ok { 0 } else { 1 },
-        };
+        if files.is_empty() { files.push("-".into()); }
+        return inputs.verify(&cmd_name, algo, &files, report, write);
     }
 
     let term = if zero_delim { "\0" } else { "\n" };
@@ -1206,7 +1175,7 @@ fn cmd_hash(algo: &str, args: &[String], inputs: &mut ChecksumInputs, write: &mu
         let (needs_esc, disp) = if zero_delim {
             (false, f.to_string())
         } else {
-            escape_fname(f)
+            escape_sum_name(f)
         };
         let pfx = if needs_esc { "\\" } else { "" };
         if tag_mode {
@@ -1249,11 +1218,7 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
     let mut zero_delim = false;
     let mut binary_mode = false;
     let mut check_mode = false;
-    let mut quiet = false;
-    let mut status_only = false;
-    let mut warn_mode = false;
-    let mut strict = false;
-    let mut ignore_missing = false;
+    let mut report = SumReport::default();
     let mut files = Vec::new();
     let mut ended = false;
     let mut i = 0usize;
@@ -1319,11 +1284,11 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
                         "zero" => zero_delim = true,
                         "binary" => binary_mode = true,
                         "check" => check_mode = true,
-                        "quiet" => quiet = true,
-                        "status" => status_only = true,
-                        "warn" => warn_mode = true,
-                        "strict" => strict = true,
-                        "ignore-missing" => ignore_missing = true,
+                        "quiet" => report.mode = SumReportMode::Quiet,
+                        "status" => report.mode = SumReportMode::Status,
+                        "warn" => report.mode = SumReportMode::Warn,
+                        "strict" => report.strict = true,
+                        "ignore-missing" => report.ignore_missing = true,
                         _ => {}
                     }
                 }
@@ -1340,7 +1305,7 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
                 'b' => binary_mode = true,
                 'c' => check_mode = true,
                 'z' => zero_delim = true,
-                'w' => warn_mode = true,
+                'w' => report.mode = SumReportMode::Warn,
                 'a' | 'l' => {
                     let rest: String = chars[c_idx + 1..].iter().collect();
                     let val = if !rest.is_empty() {
@@ -1436,268 +1401,16 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
     if check_mode && is_numeric && algo != "crc" {
         return err_out(&format!("cksum: verification is not supported for '{algo}'\n"), 2);
     }
-    if !check_mode && (quiet || status_only || warn_mode || strict || ignore_missing) {
+    if !check_mode && (report.mode != SumReportMode::Normal || report.strict || report.ignore_missing) {
         return err_out("cksum: verification options require --check\n", 2);
     }
     if check_mode && (binary_mode || zero_delim || has_tag_flag || raw_mode || base64_mode) {
         return err_out("cksum: output options are not supported with --check\n", 2);
     }
 
-    let escape_fname = |f: &str| -> (bool, String) {
-        if f.contains('\\') || f.contains('\n') || f.contains('\r') {
-            let mut s = String::with_capacity(f.len() + 4);
-            for c in f.chars() {
-                match c {
-                    '\\' => s.push_str("\\\\"),
-                    '\n' => s.push_str("\\n"),
-                    '\r' => s.push_str("\\r"),
-                    _ => s.push(c),
-                }
-            }
-            (true, s)
-        } else {
-            (false, f.to_string())
-        }
-    };
-    let unescape_fname = |f: &str| -> Option<String> {
-        let mut out = String::new();
-        let mut chs = f.chars();
-        while let Some(c) = chs.next() {
-            if c == '\\' {
-                match chs.next() {
-                    Some('n') => out.push('\n'),
-                    Some('r') => out.push('\r'),
-                    Some('\\') => out.push('\\'),
-                    _ => return None,
-                }
-            } else {
-                out.push(c);
-            }
-        }
-        Some(out)
-    };
-
     if check_mode {
-        let manifests = if files.is_empty() {
-            vec!["-".to_string()]
-        } else {
-            files
-        };
-        let mut out = String::new();
-        let mut err = String::new();
-        let mut overall_ok = true;
-        for manifest in &manifests {
-            let (_, disp_m) = escape_fname(manifest);
-            let content = match inputs.manifest(manifest) {
-                Ok(text) => text,
-                Err(e) => {
-                    err.push_str(&format!("cksum: {e}\n"));
-                    overall_ok = false;
-                    continue;
-                }
-            };
-            let mut malformed = 0usize;
-            let mut failures = 0usize;
-            let mut mismatched = 0usize;
-            let mut valid = false;
-            let mut matched = false;
-            for (line_idx, raw_line) in content.lines().enumerate() {
-                let line_num = line_idx + 1;
-                let mut line = raw_line.trim_end_matches('\r');
-                if line.is_empty() || line.starts_with('#') {
-                    continue;
-                }
-                while line.starts_with(' ') || line.starts_with('\t') {
-                    line = &line[1..];
-                }
-                let is_escaped = line.starts_with('\\');
-                if is_escaped {
-                    line = &line[1..];
-                }
-                let parsed_entry: Option<(String, usize, String, String)> =
-                    if let Some(open) = line.find('(')
-                        && let Some(close) = line.rfind(')')
-                        && open < close
-                    {
-                        let raw_lbl = line[..open].trim_end_matches(' ');
-                        let mut suffix = &line[close + 1..];
-                        while suffix.starts_with(' ') || suffix.starts_with('\t') {
-                            suffix = &suffix[1..];
-                        }
-                        if !suffix.starts_with('=') {
-                            None
-                        } else {
-                            let mut exp = &suffix[1..];
-                            while exp.starts_with(' ') || exp.starts_with('\t') {
-                                exp = &exp[1..];
-                            }
-                            let raw_fnm = &line[open + 1..close];
-                            let (la, lb) = if raw_lbl == "BLAKE2b" {
-                                ("blake2b".to_string(), 512usize)
-                            } else if let Some(b_str) = raw_lbl.strip_prefix("BLAKE2b-") {
-                                ("blake2b".to_string(), b_str.parse().unwrap_or(0))
-                            } else if let Some(b_str) = raw_lbl.strip_prefix("SHA3-") {
-                                ("sha3".to_string(), b_str.parse().unwrap_or(0))
-                            } else {
-                                let low = raw_lbl.to_ascii_lowercase();
-                                let b = match low.as_str() {
-                                    "sha224" => 224,
-                                    "sha256" | "sm3" => 256,
-                                    "sha384" => 384,
-                                    "sha512" => 512,
-                                    "md5" => 128,
-                                    "sha1" => 160,
-                                    _ => 0,
-                                };
-                                (low, b)
-                            };
-                            if lb == 0 {
-                                None
-                            } else {
-                                Some((la, lb, raw_fnm.to_string(), exp.to_string()))
-                            }
-                        }
-                    } else if let Some(sep_idx) = line.find([' ', '\t']) {
-                        let after = &line[sep_idx..];
-                        if after.len() < 2 || !matches!(after.as_bytes()[1], b' ' | b'*') {
-                            None
-                        } else {
-                            let exp = &line[..sep_idx];
-                            let raw_fnm = &after[2..];
-                            let check_algo = if algo == "crc" {
-                                match exp.len() * 4 {
-                                    128 => "md5".to_string(),
-                                    160 => "sha1".to_string(),
-                                    224 => "sha224".to_string(),
-                                    256 => "sha256".to_string(),
-                                    384 => "sha384".to_string(),
-                                    512 => "sha512".to_string(),
-                                    _ => algo.clone(),
-                                }
-                            } else {
-                                algo.clone()
-                            };
-                            let lb = match check_algo.as_str() {
-                                "md5" => 128,
-                                "sha1" => 160,
-                                "sha224" => 224,
-                                "sha256" | "sm3" => 256,
-                                "sha384" => 384,
-                                "sha512" => 512,
-                                _ => resolved_bits,
-                            };
-                            Some((check_algo, lb, raw_fnm.to_string(), exp.to_string()))
-                        }
-                    } else {
-                        None
-                    };
-
-                let Some((line_algo, line_bits, raw_fnm, encoded_digest)) = parsed_entry else {
-                    malformed += 1;
-                    if warn_mode {
-                        err.push_str(&format!(
-                            "cksum: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
-                        ));
-                    }
-                    continue;
-                };
-                let Some(fname) = (if is_escaped {
-                    unescape_fname(&raw_fnm)
-                } else {
-                    Some(raw_fnm)
-                })
-                .filter(|f| !f.is_empty() && !(manifest == "-" && f == "-")) else {
-                    malformed += 1;
-                    if warn_mode {
-                        err.push_str(&format!(
-                            "cksum: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
-                        ));
-                    }
-                    continue;
-                };
-                let expected_hex = if encoded_digest.len() % 2 == 0
-                    && encoded_digest.chars().all(|c| c.is_ascii_hexdigit())
-                    && encoded_digest.len() * 4 == line_bits
-                {
-                    encoded_digest.to_ascii_lowercase()
-                } else if let Ok(decoded) = base64_decode_strict(&encoded_digest)
-                    && base64_encode(&decoded) == encoded_digest
-                    && decoded.len() * 8 == line_bits
-                {
-                    hex_encode(&decoded)
-                } else {
-                    malformed += 1;
-                    if warn_mode {
-                        err.push_str(&format!(
-                            "cksum: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
-                        ));
-                    }
-                    continue;
-                };
-
-                valid = true;
-                let (needs_esc, disp_fname) = escape_fname(&fname);
-                let disp_prefix = if needs_esc { "\\" } else { "" };
-                match inputs.digest(&fname, &line_algo, line_bits) {
-                    Ok((actual, _)) => {
-                        if actual.eq_ignore_ascii_case(&expected_hex) {
-                            matched = true;
-                            if !quiet && !status_only {
-                                out.push_str(&format!("{disp_prefix}{disp_fname}: OK\n"));
-                            }
-                        } else {
-                            mismatched += 1;
-                            if !status_only {
-                                out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED\n"));
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        if ignore_missing && fname != "-" && e.starts_with("ENOENT:") { continue; }
-                        failures += 1;
-                        err.push_str(&format!("cksum: {e}\n"));
-                        if !status_only {
-                            out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
-                        }
-                    }
-                }
-            }
-            if !valid {
-                err.push_str(&format!(
-                    "cksum: {disp_m}: no properly formatted checksum lines found\n"
-                ));
-                overall_ok = false;
-            } else {
-                if !status_only {
-                    if malformed > 0 {
-                        err.push_str(&format!(
-                            "cksum: WARNING: {malformed} improperly formatted checksum line(s)\n"
-                        ));
-                    }
-                    if failures > 0 {
-                        err.push_str(&format!(
-                            "cksum: WARNING: {failures} listed file(s) could not be read\n"
-                        ));
-                    }
-                    if mismatched > 0 {
-                        err.push_str(&format!(
-                            "cksum: WARNING: {mismatched} computed checksum(s) did NOT match\n"
-                        ));
-                    }
-                    if ignore_missing && !matched {
-                        err.push_str(&format!("cksum: {disp_m}: no file was verified\n"));
-                    }
-                }
-                if !(matched && failures == 0 && mismatched == 0 && (!strict || malformed == 0)) {
-                    overall_ok = false;
-                }
-            }
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err,
-            exit_code: if overall_ok { 0 } else { 1 },
-        };
+        if files.is_empty() { files.push("-".into()); }
+        return inputs.verify("cksum", &algo, &files, report, write);
     }
 
     let term = if zero_delim { "\0" } else { "\n" };
@@ -1735,7 +1448,7 @@ fn cmd_cksum(args: &[String], inputs: &mut ChecksumInputs, write: &mut super::Co
                 let (needs_esc, f_disp) = if zero_delim {
                     (false, f_raw.to_string())
                 } else {
-                    escape_fname(f_raw)
+                    escape_sum_name(f_raw)
                 };
                 let pfx = if needs_esc { "\\" } else { "" };
                 if tag {

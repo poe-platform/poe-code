@@ -720,6 +720,38 @@ test("checksum commands charge operands together and publish results before pull
   } finally { bash.dispose(); }
 });
 
+test("checksum verification publishes each report before reading the next manifest chunk", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/f":"abc"}});
+  const line = "900150983cd24fb0d6963f7d28e17f72  /f\n";
+  try {
+    for (const cmd of ["md5sum -cw", "cksum -cw -a md5"]) {
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const part of [line.slice(0,10),line.slice(10),"invalid\n",line]) {
+          pulls++; yield new TextEncoder().encode(part);
+        }
+      }};
+      await assert.rejects(bash.exec(cmd + " >/o 2>&1", {stdin,limits:{maxOutputBytes:8}}), {limit:"maxOutputBytes"});
+      assert.deepEqual([pulls,bash.readText("/o")], [3,"/f: OK\n"]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("checksum verification uses the last reporting option and validates records as UTF-8", async () => {
+  const hash = "900150983cd24fb0d6963f7d28e17f72";
+  const bash = new RustWasmBash({files:{"/f":"abc", "/m":Uint8Array.from([
+    ...new TextEncoder().encode(hash + "  /"), 255, 10, ...new TextEncoder().encode(hash + "  /f\n")
+  ])}});
+  try {
+    for (const cmd of ["md5sum", "cksum -a md5"]) {
+      const name = cmd.split(" ")[0];
+      const r = await bash.exec(cmd + " -c --status --warn /m 2>&1");
+      assert.deepEqual([r.exitCode,r.stdout],[0,name + ": /m: 1: improperly formatted md5 checksum line\n/f: OK\n" +
+        name + ": WARNING: 1 improperly formatted checksum line(s)\n"]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

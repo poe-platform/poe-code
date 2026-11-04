@@ -6528,6 +6528,44 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("unzip reads LZMA method 14 properties and validates the complete member before replacing a file",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const body=Uint8Array.from({length:3000},(_,i)=>i%19);await fs.writeFile("/item",body);
+    const r=await js.exec("zip -q -Zlzma seed.zip item");assert.equal(r.exitCode,0,r.stderr);
+    const seed=await fs.readFile("/seed.zip"),v=new DataView(seed.buffer,seed.byteOffset);
+    const start=30+v.getUint16(26,true)+v.getUint16(28,true),end=start+v.getUint32(18,true);
+    assert.equal(v.getUint16(8,true),14);
+    for(const change of ["none","no-eos","version","property","damaged","early-end","short-size","trailing"]){
+      let bytes=seed.slice();const h=new DataView(bytes.buffer),cd=h.getUint32(bytes.length-6,true);
+      if(change==="no-eos"){
+        // Raw LZMA1EXT output from liblzma for this same payload, without the end marker.
+        const raw=Buffer.from("00000052500a84f99bb28021a969d627e03e065b566e8a7062908272b6d43579710675ba174c547f8c","hex");
+        const packed=9+raw.length,delta=start+packed-end;
+        bytes=new Uint8Array(seed.length+delta);bytes.set(seed.subarray(0,start+9));bytes.set(raw,start+9);bytes.set(seed.subarray(end),end+delta);
+        const n=new DataView(bytes.buffer);bytes[6]&=~2;bytes[cd+delta+8]&=~2;
+        n.setUint32(18,packed,true);n.setUint32(cd+delta+20,packed,true);n.setUint32(bytes.length-6,cd+delta,true);
+      }
+      if(change==="version")bytes[start]=7;
+      if(change==="property")bytes[start+4]=255;
+      if(change==="damaged")bytes[start+9]=255;
+      if(change==="short-size"){h.setUint32(22,37,true);h.setUint32(cd+24,37,true);}
+      if(change==="early-end" || change==="trailing"){
+        const delta=change==="trailing"?1:-1,newBytes=new Uint8Array(seed.length+delta);
+        newBytes.set(bytes.subarray(0,end+Math.min(delta,0)));newBytes.set(bytes.subarray(end),end+delta);
+        const n=new DataView(newBytes.buffer);n.setUint32(18,end-start+delta,true);
+        n.setUint32(cd+delta+20,end-start+delta,true);n.setUint32(newBytes.length-6,cd+delta,true);bytes=newBytes;
+      }
+      for(const view of [fs,rust.fs]){await view.writeFile("/work.zip",bytes);await view.writeFile("/item",Uint8Array.of(7));}
+      const cmd="unzip -oq work.zip",ref=await js.exec(cmd),actual=await rust.exec(cmd);
+      const valid=change==="none" || change==="no-eos";assert.equal(ref.exitCode===0,valid,change+" "+ref.stderr);
+      assert.deepEqual([actual.exitCode,actual.stderr],[ref.exitCode,ref.stderr],change);
+      assert.deepEqual(await rust.fs.readFile("/item"),valid?body:Uint8Array.of(7));
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 for(const [method,description,label] of [["bzip2","bzipped","BZip2"],["lzma","lzma","LZMA"]])test("zip writes "+method+" members and honors store fallback and descriptors",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"});

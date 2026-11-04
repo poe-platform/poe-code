@@ -1845,6 +1845,12 @@ impl LzmaLenDecoder {
     }
 }
 
+#[derive(Clone,Copy)]
+enum LzmaEnd {
+    Size(usize),
+    Marker { maximum:usize },
+}
+
 struct LzmaState {
     lc: u32,
     lp: u32,
@@ -1929,18 +1935,23 @@ impl LzmaState {
         payload: &[u8],
         out: &mut Vec<u8>,
         dictionary_start: usize,
-        expected_len: Option<usize>,
-        allow_eopm: bool,
-    ) -> Result<(), String> {
+        dictionary_size: usize,
+        end: LzmaEnd,
+    ) -> Result<(usize,bool), String> {
         let mut rc = LzmaRangeDecoder::new(payload)?;
         let start_out_len = out.len();
         let pb_mask = (1usize << self.pb) - 1;
         let lp_mask = (1usize << self.lp) - 1;
         loop {
-            if let Some(exp) = expected_len && out.len() - start_out_len >= exp {
-                break;
+            let written=out.len()-start_out_len;
+            match end {
+                LzmaEnd::Size(size) if written==size=>break,
+                LzmaEnd::Size(size) if written>size=>return Err("Compressed data is corrupt".into()),
+                LzmaEnd::Marker{maximum} if written>maximum=>return Err("ZIP decoded byte limit exceeded or invalid value".into()),
+                _=>{}
             }
             let history = &out[dictionary_start..];
+            let available=history.len().min(dictionary_size);
             let pos_state = history.len() & pb_mask;
             if rc.decode_bit(&mut self.is_match[self.state][pos_state])? == 0 {
                 let prev_byte = history.last().copied().unwrap_or(0) as usize;
@@ -1950,7 +1961,7 @@ impl LzmaState {
                 let mut symbol = 1usize;
                 if self.state >= 7 {
                     let match_dist = self.reps[0] + 1;
-                    if match_dist > history.len() {
+                    if match_dist > available {
                         return Err("Compressed data is corrupt".into());
                     }
                     let mut match_byte = out[out.len() - match_dist] as usize;
@@ -1981,7 +1992,7 @@ impl LzmaState {
                         if rc.decode_bit(&mut self.is_rep0_long[self.state][pos_state])? == 0 {
                             self.state = if self.state < 7 { 9 } else { 11 };
                             let dist = self.reps[0] + 1;
-                            if dist > history.len() {
+                            if dist > available {
                                 return Err("Compressed data is corrupt".into());
                             }
                             let b = out[out.len() - dist];
@@ -2027,7 +2038,7 @@ impl LzmaState {
                             dist += rc.decode_direct_bits(num_direct_bits - 4)? << 4;
                             dist += rc.decode_bittree_reverse(&mut self.pos_align, 4)?;
                             if dist == 0xffff_ffff {
-                                if allow_eopm {
+                                if matches!(end,LzmaEnd::Marker{..}) {
                                     break;
                                 }
                                 return Err("Compressed data is corrupt".into());
@@ -2039,7 +2050,7 @@ impl LzmaState {
                     }
                 }
                 let dist = self.reps[0] + 1;
-                if dist > history.len() {
+                if dist > available {
                     return Err("Compressed data is corrupt".into());
                 }
                 for _ in 0..len {
@@ -2049,7 +2060,7 @@ impl LzmaState {
             }
         }
         rc.normalize()?;
-        Ok(())
+        Ok((rc.pos,rc.code==0))
     }
 }
 
@@ -2087,7 +2098,7 @@ pub fn lzma_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
     let expected = if has_eopm { None } else { Some(uncomp_size as usize) };
     let mut state = LzmaState::new(prop)?;
     let mut out = Vec::with_capacity(expected.unwrap_or(1024).min(1024 * 1024));
-    state.decode_chunk(&data[13..], &mut out, 0, expected, true)?;
+    state.decode_chunk(&data[13..], &mut out, 0, usize::MAX, expected.map_or(LzmaEnd::Marker{maximum:usize::MAX},LzmaEnd::Size))?;
     if let Some(exp) = expected && out.len() != exp {
         return Err("Compressed data is corrupt".into());
     }
@@ -2251,7 +2262,7 @@ pub fn xz_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                     let Some(ref mut st) = lzma_state else {
                         return Err("Compressed data is corrupt".into());
                     };
-                    st.decode_chunk(&data[pos..pos + comp_len], &mut out, dictionary_start, Some(uncomp_len), false)?;
+                    st.decode_chunk(&data[pos..pos + comp_len], &mut out, dictionary_start, usize::MAX, LzmaEnd::Size(uncomp_len))?;
                     pos += comp_len;
                 } else {
                     return Err("Compressed data is corrupt".into());
@@ -3757,6 +3768,7 @@ pub(super) struct ZipMember {
     central: std::ops::Range<usize>,
     local_start: usize,
     verifier: Option<u8>,
+    lzma_eos:bool,
     aes: Option<ZipAes>,
     pub name: String,
     pub method: u16,
@@ -3800,6 +3812,19 @@ impl ZipMember {
                 Cow::Owned(data)
             }
             12 => Cow::Owned(bzip2_decompress(&payload)?),
+            14 => {
+                let header=payload.get(..9).ok_or("ZIP truncated LZMA properties")?;
+                if header[..4]!=[9,4,5,0]{return Err("ZIP unsupported LZMA version or property length".into());}
+                if !valid_lzma_properties(header[4]){return Err("invalid LZMA properties or dictionary limit exceeded".into());}
+                let dictionary=u32::from_le_bytes(header[5..9].try_into().unwrap()).max(4096) as usize;
+                let end=if self.lzma_eos{LzmaEnd::Marker{maximum:self.size}}else{LzmaEnd::Size(self.size)};
+                let mut data=Vec::new();
+                let (used,finished)=LzmaState::new(header[4])?.decode_chunk(&payload[9..],&mut data,0,dictionary,end)
+                    .map_err(|e| if e=="Compressed data is corrupt" {"invalid compressed data or codec memory limit exceeded".to_owned()}else{e})?;
+                if !finished{return Err("invalid compressed data or codec memory limit exceeded".into());}
+                if used!=payload.len()-9{return Err("ZIP trailing compressed data".into());}
+                Cow::Owned(data)
+            }
             _ => return Err("ZIP unsupported compression method".into()),
         };
         if decoded.len() != self.size { return Err("ZIP uncompressed size mismatch".into()); }
@@ -3917,6 +3942,10 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         if method==99 && (flags&1==0 || flags & !0x80f!=0 || data[central_start+6..central_start+8]!=[51,0]){
             return Err("ZIP invalid AES flags or extraction version".into());
         }
+        if method==14 {
+            if flags & !0x80b!=0{return Err("ZIP unsupported general purpose flags".into());}
+            if data[central_start+6..central_start+8]!=[63,0]{return Err("ZIP unsupported LZMA extraction version".into());}
+        }
         if aes.is_some()!=(method==99){return Err("ZIP inconsistent AES method and extra field".into());}
         if let Some(a)=aes {
             if a.method!=8 && flags&6!=0{return Err("ZIP unsupported AES compression flags".into());}
@@ -3977,7 +4006,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
             0o644
         };
 
-        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
+        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
             payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });

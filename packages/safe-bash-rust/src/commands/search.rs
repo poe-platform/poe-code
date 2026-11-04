@@ -1,6 +1,7 @@
 mod expr_bre;
 mod fd_glob;
 mod grep_stream;
+mod rg_stream;
 use fd_glob::{FdGlob, IgnoreFile, RuleError};
 mod mdq_classes;
 mod mdq_class;
@@ -54,7 +55,7 @@ where
             fs,
             write,
         )),
-        "rg" => Some(cmd_rg(args, input, cwd, env, fs)),
+        "rg" => Some(cmd_rg(args, input, cwd, env, fs, write)),
         "find" => Some(cmd_find(args, cwd, env, fs, write, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env, ChildIo::Inherit { stderr_before: "" }))),
         "fd" => Some(cmd_fd(args, cwd, fs, write, &mut |words, cwd| {
             exec_sub(words, &mut String::new(), cwd, env, ChildIo::Inherit { stderr_before: "" })
@@ -2815,7 +2816,7 @@ fn cmd_grep(
         max_columns: None,
         stats: false,
     };
-    if literal { run_grep_engine(rx, targets, stdin, cwd, fs, cfg) }
+    if literal { run_grep_engine(rx, targets, stdin, cwd, fs, cfg, write) }
     else { grep_stream::run(rx, targets, stdin, cwd, fs, &cfg, line_buffered, finite_input_quota, write) }
 }
 
@@ -2825,6 +2826,7 @@ fn cmd_rg(
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut CommandWriter,
 ) -> BuiltinOutcome {
     let mut has_no_config = false;
     for a in raw_args {
@@ -3634,7 +3636,7 @@ fn cmd_rg(
             files: SearchFiles::Rg(files),
             max_columns,
             stats,
-        },
+        }, write,
     )
 }
 
@@ -3972,6 +3974,76 @@ impl GrepFiles<'_> {
     }
 }
 
+fn match_spans(rx: &ZeroRegex, subject: &[u8], offset: usize, unterminated: bool, is_rg: bool, capture: bool,
+    replacement: Option<&[RgReplacementPart]>, replacements: &mut BTreeMap<usize, Vec<u8>>) -> Vec<(usize, usize)> {
+    let mut spans = Vec::new();
+    rx.scan(subject, capture, |s, e, caps| {
+        if is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
+            || matches!(rx.search, RxSearch::Rg { empty_pattern: true, .. }) && s == subject.len() && unterminated) { return true; }
+        if let Some(parts) = replacement {
+            let mut expanded = Vec::new();
+            for part in parts {
+                expanded.extend_from_slice(match part {
+                    RgReplacementPart::Literal(text) => text.as_bytes(),
+                    RgReplacementPart::Match => &subject[s..e],
+                    RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or(&[][..], |(lo, hi)| &subject[lo..hi]),
+                });
+            }
+            replacements.insert(offset + s, expanded);
+        }
+        spans.push((s, e));
+        true
+    });
+    spans
+}
+
+fn emit_search_text(cfg: &GrepConfig, out: &mut String, chunk: &[u8], selected: bool, count: usize, ending: usize, has_replacement: bool, rec_term: char) {
+    let chunk = if cfg.trim {
+        let start = chunk.iter().position(|b| *b != b' ' && !(9..=13).contains(b)).unwrap_or(chunk.len());
+        &chunk[start..]
+    } else { chunk };
+    let piece = selected && cfg.only_matching && !cfg.invert;
+    let omitted = cfg.max_columns.is_some_and(|n| n > 0 && chunk.len() + if piece { 0 } else { ending } > n);
+    if omitted {
+        if has_replacement && selected {
+            out.push_str(&format!("[Omitted long line with {} matches]", if piece { 1 } else { count }));
+        } else if selected { out.push_str("[Omitted long matching line]"); }
+        else { out.push_str("[Omitted long context line]"); }
+    } else { out.push_str(&bytes_to_stream_string(chunk)); }
+    if cfg.crlf && !cfg.null_data && (piece || omitted) { out.push('\r'); }
+    out.push(rec_term);
+}
+
+fn render_search_record(cfg: &GrepConfig, out: &mut String, line: &[u8], spans: &[(usize,usize)], base: usize, number: usize, ending: usize,
+    selected: bool, filename: Option<&str>, is_rg: bool, has_replacement: bool, replacements: &BTreeMap<usize,Vec<u8>>, rec_term: char,
+    mut finish_piece: impl FnMut(&mut String) -> bool) -> bool {
+    let sep = if selected { ':' } else { '-' };
+    let pieces = cfg.only_matching && !cfg.invert && selected;
+    for i in 0..if pieces { spans.len() } else { 1 } {
+        let piece = pieces.then(|| spans[i]);
+        if !is_rg && piece.is_some_and(|(s,e)| s == e) { continue; }
+        if let Some(f) = filename {
+            out.push_str(f); out.push(if cfg.null_delim { '\0' } else { sep });
+        }
+        if cfg.line_number { out.push_str(&format!("{}{sep}", number)); }
+        if cfg.show_column && let Some((start, _)) = piece.or_else(|| spans.first().copied()) {
+            out.push_str(&format!("{}{sep}", start + 1));
+        }
+        if cfg.byte_offset { out.push_str(&format!("{}{sep}", base + piece.map_or(0, |p| p.0))); }
+        if cfg.initial_tab && (filename.is_some() || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
+        let expanded;
+        let text = if let Some((s, e)) = piece {
+            replacements.get(&(base + s)).map_or(&line[s..e], Vec::as_slice)
+        } else if has_replacement && selected {
+            expanded = apply_rg_line_replace(line, base, spans, replacements);
+            &expanded
+        } else { line };
+        emit_search_text(cfg, out, text, selected, spans.len(), ending, has_replacement, rec_term);
+        if !finish_piece(out) { return false; }
+    }
+    true
+}
+
 fn run_grep_engine(
     rx: ZeroRegex,
     targets: Vec<String>,
@@ -3979,6 +4051,7 @@ fn run_grep_engine(
     cwd: &str,
     fs: &dyn SafeBashFs,
     cfg: GrepConfig<'_>,
+    write: &mut CommandWriter,
 ) -> BuiltinOutcome {
     let replacement = cfg.replace.as_deref()
         .filter(|_| !(cfg.count_only || cfg.quiet || cfg.json_output || cfg.files_with_matches || cfg.files_without_match || cfg.invert))
@@ -4024,6 +4097,10 @@ fn run_grep_engine(
         let output_start = out.len();
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
+                if is_rg && targets.len() <= 1 && !multiline && !cfg.json_output && !cfg.stats
+                    && !(cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet) {
+                    return rg_stream::lines(&cfg, &rx, stdin, replacement.as_deref(), capture, write);
+                }
                 let mut bytes = Vec::new();
                 let presence_only = !multiline && !cfg.stats && !cfg.json_output
                     && (cfg.quiet || cfg.files_with_matches || cfg.files_without_match);
@@ -4173,26 +4250,9 @@ fn run_grep_engine(
         let mut file_submatch_count = 0usize;
 
         let mut replacements = BTreeMap::new();
-        let mut find_spans = |rx: &ZeroRegex, subject: &[u8], offset| {
-            let mut spans = Vec::new();
-            rx.scan(subject, capture, |s, e, caps| {
-                if is_rg && s == e && (spans.last().is_some_and(|&(_, end)| end == s)
-                    || matches!(rx.search, RxSearch::Rg { empty_pattern: true, .. }) && offset + s == content.len() && !content.ends_with(&[rec_term as u8])) { return true; }
-                if let Some(parts) = &replacement {
-                    let mut expanded = Vec::new();
-                    for part in parts {
-                        expanded.extend_from_slice(match part {
-                            RgReplacementPart::Literal(text) => text.as_bytes(),
-                            RgReplacementPart::Match => &subject[s..e],
-                            RgReplacementPart::Group(i) => caps.get(*i).copied().flatten().map_or(&[][..], |(lo, hi)| &subject[lo..hi]),
-                        });
-                    }
-                    replacements.insert(offset + s, expanded);
-                }
-                spans.push((s, e));
-                true
-            });
-            spans
+        let mut find_spans = |rx: &ZeroRegex, subject: &[u8], offset: usize| {
+            match_spans(rx, subject, offset, offset + subject.len() == content.len() && !content.ends_with(&[rec_term as u8]),
+                is_rg, capture, replacement.as_deref(), &mut replacements)
         };
         let limit = cfg.max_count.unwrap_or(usize::MAX);
         let whole_matches = !binary_records && multiline && replacement.is_none() && !cfg.invert && cfg.only_matching && !cfg.count_only && !cfg.json_output;
@@ -4479,20 +4539,7 @@ fn run_grep_engine(
         let line_show_filename = show_filename && !use_heading;
 
         let emit_text = |out: &mut String, chunk: &[u8], selected, count: usize, ending| {
-            let chunk = if cfg.trim {
-                let start = chunk.iter().position(|b| *b != b' ' && !(9..=13).contains(b)).unwrap_or(chunk.len());
-                &chunk[start..]
-            } else { chunk };
-            let piece = selected && cfg.only_matching && !cfg.invert;
-            let omitted = cfg.max_columns.is_some_and(|n| n > 0 && chunk.len() + if piece { 0 } else { ending } > n);
-            if omitted {
-                if replacement.is_some() && selected {
-                    out.push_str(&format!("[Omitted long line with {} matches]", if piece { 1 } else { count }));
-                } else if selected { out.push_str("[Omitted long matching line]"); }
-                else { out.push_str("[Omitted long context line]"); }
-            } else { out.push_str(&bytes_to_stream_string(chunk)); }
-            if cfg.crlf && !cfg.null_data && (piece || omitted) { out.push('\r'); }
-            out.push(rec_term);
+            emit_search_text(&cfg, out, chunk, selected, count, ending, replacement.is_some(), rec_term)
         };
 
         if multiline && replacement.is_some() {
@@ -4612,31 +4659,10 @@ fn run_grep_engine(
             start_record(&mut out, idx, idx);
             if !is_rg && cfg.only_matching && matched.is_none() { continue; }
             let spans = matched.map(|(_, spans)| spans).or_else(|| context_matches.get(&idx)).map_or(&[][..], Vec::as_slice);
-            let sep = if matched.is_some() { ':' } else { '-' };
-            let pieces = cfg.only_matching && !cfg.invert && matched.is_some();
-            for i in 0..if pieces { spans.len() } else { 1 } {
-                let piece = pieces.then(|| spans[i]);
-                if !is_rg && piece.is_some_and(|(s,e)| s == e) { continue; }
-                if line_show_filename && let Some(f) = fname {
-                    out.push_str(f); out.push(if cfg.null_delim { '\0' } else { sep });
-                }
-                if cfg.line_number { out.push_str(&format!("{}{sep}", idx + 1)); }
-                if cfg.show_column && let Some((start, _)) = piece.or_else(|| spans.first().copied()) {
-                    out.push_str(&format!("{}{sep}", start + 1));
-                }
-                let base = line_offsets[idx];
-                if cfg.byte_offset { out.push_str(&format!("{}{sep}", base + piece.map_or(0, |p| p.0))); }
-                if cfg.initial_tab && (line_show_filename || cfg.line_number || cfg.byte_offset) { out.push('\t'); }
-                let expanded;
-                let text = if let Some((s, e)) = piece {
-                    replacements.get(&(base + s)).map_or(&line[s..e], Vec::as_slice)
-                } else if replacement.is_some() && matched.is_some() {
-                    expanded = apply_rg_line_replace(line, base, spans, &replacements);
-                    &expanded
-                } else { line };
-                let ending = line_offsets.get(idx + 1).copied().unwrap_or(content.len()) - base - line.len();
-                emit_text(&mut out, text, matched.is_some(), spans.len(), ending);
-            }
+            let base = line_offsets[idx];
+            let ending = line_offsets.get(idx + 1).copied().unwrap_or(content.len()) - base - line.len();
+            render_search_record(&cfg, &mut out, line, spans, base, idx + 1, ending, matched.is_some(), fname.filter(|_| line_show_filename),
+                is_rg, replacement.is_some(), &replacements, rec_term, |_| true);
         }
         if let Some((off, _)) = late_binary { binary_notice(&mut out, off); }
         if cfg.stats && read_failed { failed_output_bytes += stream_byte_len(&out[output_start..]); }

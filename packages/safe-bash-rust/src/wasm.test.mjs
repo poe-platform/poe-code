@@ -8769,6 +8769,28 @@ test("awk reads only selected operands and shares the main reader with getline a
   } finally { sh.dispose(); }
 });
 
+test("rg publishes line and context batches and closes stdin when output stops", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const seen = [];
+    const result = await sh.exec("rg -nC1 hit >/matches", {stdin:{async *[Symbol.asyncIterator]() {
+      for (const chunk of ["before\nh", "it\n", "after\n", "binary\0tail\n", "unreachable"]) {
+        seen.push(Buffer.from(await sh.fs.readFile("/matches")).toString());
+        yield Buffer.from(chunk);
+      }
+    }}});
+    assert.deepEqual(seen, ["", "", "1-before\n2:hit\n", "1-before\n2:hit\n3-after\n"]);
+    assert.equal(result.exitCode, 0);
+    assert.equal(Buffer.from(await sh.fs.readFile("/matches")).toString(),
+      '1-before\n2:hit\n3-after\nbinary file matches (found "\\0" byte around offset 23)\n');
+    let pulls = 0, closed = 0;
+    await assert.rejects(sh.exec("rg -n a", {limits:{maxOutputBytes:1}, stdin:{async *[Symbol.asyncIterator]() {
+      try { for (const chunk of ["a\n","b\n","a\n"]) { pulls++; yield Buffer.from(chunk); } } finally { closed++; }
+    }}}), {limit:"maxOutputBytes"});
+    assert.deepEqual([pulls,closed], [1,1]);
+  } finally { sh.dispose(); }
+});
+
 test("grep accounts for named input setup even when max-count is zero", async () => {
   const sh = new RustWasmBash();
   try {

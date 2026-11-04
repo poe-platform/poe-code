@@ -1,4 +1,5 @@
 mod awk_input;
+mod awk_float;
 type StagedPatchWrites = Vec<(String, Option<Vec<u8>>)>;
 use crate::commands::search::{ZeroRegex, replace_regex_in_text};
 use crate::shell::builtins::BuiltinOutcome;
@@ -1831,6 +1832,16 @@ impl<'a> AwkState<'a> {
         }
     }
 
+    fn formatted(&mut self, result: Result<String, (i32, &str)>) -> String {
+        result.unwrap_or_else(|(status, message)| {
+            if self.runtime_err.is_none() {
+                self.runtime_err = Some(format!("awk: {message}\n"));
+                self.error_status = status;
+            }
+            String::new()
+        })
+    }
+
     fn arithmetic(&mut self, op: u8, left: f64, right: f64) -> String {
         if self.runtime_err.is_none() {
             if matches!(op, b'/' | b'%') && right == 0.0 {
@@ -2904,7 +2915,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
                         && num.fract() != 0.0
                         && state.ofmt != "%.6g"
                     {
-                        vals.push(format_awk_printf(&state.ofmt, &[v]));
+                        vals.push(state.formatted(format_awk_printf(&state.ofmt, &[v])));
                     } else {
                         vals.push(v);
                     }
@@ -2934,7 +2945,7 @@ fn exec_awk_statements(stmts: &[String], state: &mut AwkState) {
             if !args.is_empty() {
                 let fmt_str = eval_awk_expr(&args[0], state);
                 let vals: Vec<String> = args[1..].iter().map(|a| eval_awk_expr(a, state)).collect();
-                let formatted = format_awk_printf(&fmt_str, &vals);
+                let formatted = state.formatted(format_awk_printf(&fmt_str, &vals));
                 if let Some((append, target_expr)) = redir {
                     let target_path = eval_awk_expr(&target_expr, state);
                     state.write_redirect(&target_path, append, &formatted);
@@ -3431,7 +3442,7 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
                 && num.fract() != 0.0
                 && state.convfmt != "%.6g"
             {
-                joined.push_str(&format_awk_printf(&state.convfmt, &[v]));
+                joined.push_str(&state.formatted(format_awk_printf(&state.convfmt, &[v])));
             } else {
                 joined.push_str(&v);
             }
@@ -3959,7 +3970,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             }
             let fmt_str = eval_awk_expr(&args[0], state);
             let vals: Vec<String> = args[1..].iter().map(|a| eval_awk_expr(a, state)).collect();
-            Some(format_awk_printf(&fmt_str, &vals))
+            Some(state.formatted(format_awk_printf(&fmt_str, &vals)))
         }
         _ => {
             if let Some((params, body)) = state.funcs.get(fn_name).cloned() {
@@ -4243,33 +4254,7 @@ fn format_awk_num(n: f64) -> String {
     }
 }
 
-fn format_c_scientific(n: f64, prec: usize, upper: bool, alt_form: bool) -> String {
-    let is_neg = n.is_sign_negative() && n != 0.0;
-    let abs_n = n.abs();
-    let (mant, exp) = if abs_n == 0.0 {
-        (0.0, 0i32)
-    } else {
-        let mut e = abs_n.log10().floor() as i32;
-        let mut m = abs_n / 10f64.powi(e);
-        let factor = 10f64.powi(prec as i32);
-        if (m * factor).round() / factor >= 10.0 {
-            e += 1;
-            m /= 10.0;
-        }
-        (m, e)
-    };
-    let mut m_str = format!("{mant:.prec$}");
-    if alt_form && prec == 0 && !m_str.contains('.') {
-        m_str.push('.');
-    }
-    let e_ch = if upper { 'E' } else { 'e' };
-    let exp_sign = if exp >= 0 { '+' } else { '-' };
-    let exp_abs = exp.unsigned_abs();
-    let sign_prefix = if is_neg { "-" } else { "" };
-    format!("{sign_prefix}{m_str}{e_ch}{exp_sign}{exp_abs:02}")
-}
-
-fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
+fn format_awk_printf(fmt_str: &str, vals: &[String]) -> Result<String, (i32, &'static str)> {
     let mut out = String::new();
     let chars: Vec<char> = fmt_str.chars().collect();
     let mut i = 0usize;
@@ -4368,55 +4353,8 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
                     }
                     (text, true, false)
                 }
-                'f' | 'F' => {
-                    let n = parse_awk_f64(&val);
-                    let p = prec.unwrap_or(6);
-                    let mut s = format!("{n:.p$}");
-                    if alt_form && p == 0 && !s.contains('.') {
-                        s.push('.');
-                    }
-                    (s, true, true)
-                }
-                'e' | 'E' => {
-                    let n = parse_awk_f64(&val);
-                    let p = prec.unwrap_or(6);
-                    (format_c_scientific(n, p, conv == 'E', alt_form), true, true)
-                }
-                'g' | 'G' => {
-                    let n = parse_awk_f64(&val);
-                    let p = prec.unwrap_or(6).max(1);
-                    let abs_n = n.abs();
-                    let exp = if abs_n == 0.0 { 0 } else { abs_n.log10().floor() as i32 };
-                    let s = if exp < -4 || exp >= p as i32 {
-                        let sci = format_c_scientific(n, p - 1, conv == 'G', alt_form);
-                        if !alt_form {
-                            let e_ch = if conv == 'G' { 'E' } else { 'e' };
-                            if let Some((m, ex)) = sci.split_once(e_ch) {
-                                let m_clean = if m.contains('.') {
-                                    m.trim_end_matches('0').trim_end_matches('.')
-                                } else {
-                                    m
-                                };
-                                format!("{m_clean}{e_ch}{ex}")
-                            } else {
-                                sci
-                            }
-                        } else {
-                            sci
-                        }
-                    } else {
-                        let dec_places = (p as i32 - 1 - exp).max(0) as usize;
-                        let mut fx = format!("{n:.dec_places$}");
-                        if !alt_form {
-                            if fx.contains('.') {
-                                fx = fx.trim_end_matches('0').trim_end_matches('.').to_string();
-                            }
-                        } else if !fx.contains('.') {
-                            fx.push('.');
-                        }
-                        fx
-                    };
-                    (s, true, true)
+                'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
+                    (awk_float::format(parse_awk_f64(&val), conv, prec.unwrap_or(6), alt_form)?, true, true)
                 }
                 'c' => {
                     let ch_str = if let Ok(n) = val.parse::<u32>() {
@@ -4478,7 +4416,7 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
             i += 1;
         }
     }
-    out
+    Ok(out)
 }
 
 fn collect_rel_files(root: &str, rel_prefix: &str, fs: &dyn SafeBashFs, out: &mut Vec<String>) {
@@ -9682,6 +9620,26 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn awk_formats_rounded_significands_and_subnormals() {
+        let program = r#"BEGIN { printf "%.6g|%.6g|%.0e|%.1f|%.17e|%.0f|%#.1G", 999999.5, .00009999999, 2.5, 1.25, 5e-324, 1e21, 10 }"#;
+        let out = try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        assert_eq!((out.exit_code, out.stderr.as_str()), (0, ""));
+        assert_eq!(out.stdout, "1e+06|0.0001|3e+00|1.3|4.94065645841246544e-324|1e+21|1E+01");
+    }
+
+    #[test]
+    fn awk_float_format_failures_preserve_prior_output() {
+        for (fmt, arg, status, message) in [
+            ("%.100g", ".000125", 1, "awk: internal error\n"),
+            ("%f", r#""1e999""#, 2, "awk: cannot format a non-finite number\n"),
+        ] {
+            let program = format!(r#"BEGIN {{ print 1; printf "{fmt}", {arg}; print 2 }}"#);
+            let out = try_run_text_command("awk", &args(&[&program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (status, "1\n", message));
+        }
     }
 
     #[test]

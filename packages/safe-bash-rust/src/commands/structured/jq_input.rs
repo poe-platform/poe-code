@@ -2,9 +2,12 @@ use super::{JVal, SafeBashFs, jq_json::Parser};
 use crate::vfs::ChunkReader;
 use std::{borrow::Cow, cell::Cell, collections::VecDeque, fmt::Write, ops::Range, rc::Rc};
 
+pub(super) type Publisher<'a> = dyn FnMut(u32, &str) -> bool + 'a;
+
 #[derive(Default)]
 pub(super) struct JqInputs<'a> {
     reader: Option<Values<'a>>,
+    pub publish: Option<Box<Publisher<'a>>>,
     pub warnings: String,
     errors: VecDeque<Diagnostic>,
     pub remaining_output: usize,
@@ -18,6 +21,15 @@ struct Diagnostic {
 }
 
 impl JqInputs<'_> {
+    pub fn publish_staged(&mut self, fd: u32, text: &mut String) -> bool {
+        if let Some(publish) = &mut self.publish && !text.is_empty() {
+            let ok = publish(fd, text);
+            text.clear();
+            return ok;
+        }
+        true
+    }
+
     pub fn report(&mut self, error: &str, null_input: bool) -> Result<(), std::fmt::Error> {
         let mut text = String::from("jq: error (at ");
         let mut pending = None;
@@ -63,7 +75,7 @@ impl JqInputs<'_> {
         let Some(values) = &mut self.reader else {
             return Ok(None);
         };
-        let result = values.pull(&mut self.warnings, &mut self.remaining_output);
+        let result = values.pull(&mut self.warnings, &mut self.remaining_output, &mut self.publish);
         if result.is_err() {
             values.done = true;
         }
@@ -79,7 +91,7 @@ impl JqInputs<'_> {
 
 pub(super) enum Source<'a> {
     ShellJson(Option<&'a str>),
-    Stream(Option<super::super::CommandInput<'a>>),
+    Stream(Option<ChunkReader<'a>>),
     Json(Option<&'a str>),
     Xml(Option<super::super::CommandInput<'a>>),
 }
@@ -236,8 +248,7 @@ impl Bytes<'_> {
                     Cow::Owned(json.into_bytes())
                 }
                 Source::Stream(input) if path == "-" => {
-                    if let Some(mut input) = input.take() {
-                        let next: ChunkReader = Box::new(move |buf| input.next_stdin_chunk(buf));
+                    if let Some(next) = input.take() {
                         self.reader = Some(if self.raw { raw_lines(next, self.fs) } else { next });
                     }
                     continue;
@@ -284,7 +295,7 @@ struct Values<'a> {
 }
 
 impl Values<'_> {
-    fn value(&mut self, warnings: &mut String, remaining: &mut usize) -> Result<Option<JVal>, (i32, String)> {
+    fn value(&mut self, warnings: &mut String, remaining: &mut usize, publish: &mut Option<Box<Publisher<'_>>>) -> Result<Option<JVal>, (i32, String)> {
         if self.raw {
             let mut line = String::new();
             let limit = self.bytes.fs.shell_limits().max_memory_bytes;
@@ -369,6 +380,11 @@ impl Values<'_> {
                             let fs = self.bytes.fs;
                             (5, fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes))
                         })?;
+                        if let Some(write) = publish {
+                            let ok = write(2, warnings);
+                            warnings.clear();
+                            if !ok { return Err((2, String::new())); }
+                        }
                     } else {
                         return Err((5, format!("parse error: {message}")));
                     }
@@ -386,17 +402,17 @@ impl Values<'_> {
             }
         }
     }
-    fn pull(&mut self, warnings: &mut String, remaining: &mut usize) -> Result<Option<JVal>, (i32, String)> {
+    fn pull(&mut self, warnings: &mut String, remaining: &mut usize, publish: &mut Option<Box<Publisher<'_>>>) -> Result<Option<JVal>, (i32, String)> {
         if self.done {
             return Ok(None);
         }
         if self.slurp {
             self.done = true;
             if self.raw {
-                return self.value(warnings, remaining);
+                return self.value(warnings, remaining, publish);
             }
             let mut all = Vec::new();
-            while let Some(v) = self.value(warnings, remaining)? {
+            while let Some(v) = self.value(warnings, remaining, publish)? {
                 all.push(v);
             }
             return Ok(Some(JVal::Array(all)));
@@ -404,7 +420,7 @@ impl Values<'_> {
         if self.raw && self.bytes.peek()?.is_none() {
             return Ok(None);
         }
-        self.value(warnings, remaining)
+        self.value(warnings, remaining, publish)
     }
 }
 
@@ -457,6 +473,7 @@ pub(super) fn files<'a>(
         done: false,
     };
     JqInputs {
+        publish: None,
         reader: Some(values),
         file_error: None,
         warnings: String::new(),

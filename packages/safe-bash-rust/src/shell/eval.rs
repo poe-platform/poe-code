@@ -5070,6 +5070,7 @@ impl<'a> EvalState<'a> {
         let provided_devices = self.provided_devices;
         let mut sub_err: Option<EvalError> = None;
 
+        let jq_prefix = (effective_cmd == "jq").then(|| self.diag_prefix());
         let inherited_stdin = std::ptr::from_ref(&*stdin);
         let inherited_targets = &self.fd_table;
         let inherited_inputs = &self.in_fds;
@@ -5088,7 +5089,11 @@ impl<'a> EvalState<'a> {
                 if data.is_empty() { return true; }
                 let target = inherited_targets.get(&fd).unwrap_or(if fd == 1 { &FdTarget::Stdout } else { &FdTarget::Stderr });
                 if matches!(target, FdTarget::Closed | FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. }) {
-                    if fd != 2 { out.stderr.push_str(&format!("{effective_cmd}: Bad file descriptor\n")); }
+                    if fd != 2 {
+                        if let Some(prefix) = &jq_prefix { out.stderr.push_str(prefix); }
+                        else { out.stderr.push_str(effective_cmd); out.stderr.push_str(": "); }
+                        out.stderr.push_str("Bad file descriptor\n");
+                    }
                     out.exit_code = 1;
                     return false;
                 }

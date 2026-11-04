@@ -768,20 +768,34 @@ pub(crate) fn cmd_jq_with_env(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    utf8_output(cmd_jq_core(args, jq_input::Source::ShellJson(Some(stdin)), cwd, env, fs, None))
+    utf8_output(cmd_jq_core(args, jq_input::Source::ShellJson(Some(stdin)), cwd, env, fs, None, None))
 }
 
-pub(super) fn cmd_jq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let source = if stdin.file.is_some() { jq_input::Source::Stream(Some(stdin)) }
-        else { jq_input::Source::ShellJson(Some(stdin.text)) };
-    utf8_output(cmd_jq_core(args, source, cwd, env, fs, None))
+pub(super) fn cmd_jq(args: &[String], mut stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> Result<BuiltinOutcome, super::CommandFailure> {
+    let failure = std::cell::RefCell::new(None);
+    let source = if let Some(file) = stdin.file {
+        let failure = &failure;
+        jq_input::Source::Stream(Some(Box::new(move |buf| stdin.next_stdin_chunk(buf).inspect_err(|e| {
+            if matches!(file.source, super::InputSource::Chunks(_)) { failure.replace(Some(e.clone())); }
+        }))))
+    } else { jq_input::Source::ShellJson(Some(stdin.text)) };
+    let mut published = ok_out("");
+    let sink = Box::new(|fd, text: &str| failure.borrow().is_none() && write(fd, &crate::vfs::shell_text(text), &mut published));
+    let tail = utf8_output(cmd_jq_core(args, source, cwd, env, fs, None, Some(sink)));
+    if let Some(message) = failure.into_inner() {
+        return Err(super::CommandFailure { output: published, message });
+    }
+    if published.exit_code == 0 && write(1, &tail.stdout, &mut published) && write(2, &tail.stderr, &mut published) {
+        published.exit_code = tail.exit_code;
+    }
+    Ok(published)
 }
 
 pub(super) fn cmd_xq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.iter().any(|a| crate::vfs::stream_utf8(a).is_err()) {
         return err_out("xq: filters and filenames require valid UTF-8\n", 2);
     }
-    utf8_output(cmd_jq_core(args, jq_input::Source::Xml(Some(stdin)), cwd, env, fs, None))
+    utf8_output(cmd_jq_core(args, jq_input::Source::Xml(Some(stdin)), cwd, env, fs, None, None))
 }
 
 fn cmd_jq_core(
@@ -791,6 +805,7 @@ fn cmd_jq_core(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
     yq: Option<&YqDocuments<'_>>,
+    publish: Option<Box<jq_input::Publisher<'_>>>,
 ) -> BuiltinOutcome {
     let xml_input = matches!(stdin, jq_input::Source::Xml(_));
     let shell_text = !matches!(stdin, jq_input::Source::Json(_));
@@ -1017,6 +1032,7 @@ fn cmd_jq_core(
         filter.unwrap_or_else(|| ".".to_string())
     };
     let inputs = Rc::new(RefCell::new(jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors)));
+    inputs.borrow_mut().publish = publish;
     let mut vars = JqScope { call_depth: 0, stack_origin: (&raw const inputs).addr(), max_value_bytes: fs.shell_limits().max_memory_bytes, labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if yq.is_none() || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
@@ -1063,6 +1079,7 @@ fn cmd_jq_core(
             }
         };
         if inputs.borrow_mut().flush_errors(&mut stderr, false).is_err() { return err_out(&output_error(), 5); }
+        if !inputs.borrow_mut().publish_staged(2, &mut stderr) { return err_out("", 1); }
         let mut invocation_last = None;
         let emitted = visit_jq(&filter_str, &input_val, &vars, &mut |r| {
             if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
@@ -1092,6 +1109,7 @@ fn cmd_jq_core(
                 out.truncate(start);
                 return Err(JqFault::Halt(5, output_error()));
             }
+            if !input.publish_staged(1, &mut out) { return Err(JqFault::Halt(1, String::new())); }
             Ok(ControlFlow::Continue(()))
         });
         stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
@@ -1118,6 +1136,7 @@ fn cmd_jq_core(
             }
         }
         if inputs.borrow_mut().flush_errors(&mut stderr, false).is_err() { return err_out(&output_error(), 5); }
+        if !inputs.borrow_mut().publish_staged(2, &mut stderr) { return err_out("", 1); }
     }
 
     if inputs.borrow_mut().flush_errors(&mut stderr, true).is_err() { return err_out(&output_error(), 5); }
@@ -4885,7 +4904,7 @@ fn cmd_yq(
     }
 
     let yq = YqDocuments { docs: &doc_metas, next: Cell::new(0) };
-    let outcome = cmd_jq_core(&jq_args, jq_input::Source::Json(Some(&docs.join("\n"))), cwd, env, fs, (!xq_xml_mode).then_some(&yq));
+    let outcome = cmd_jq_core(&jq_args, jq_input::Source::Json(Some(&docs.join("\n"))), cwd, env, fs, (!xq_xml_mode).then_some(&yq), None);
 
     if outcome.exit_code != 0 {
         return outcome;

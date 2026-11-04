@@ -2102,6 +2102,46 @@ test("jq pulls stdin only for selected operands and stops after the last request
   } finally { sh.dispose(); }
 });
 
+test("jq publishes values and ready diagnostics before the next producer pull", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [args,chunks,limit,seen,final] of [
+      ["-R .", ["abc\n","def\n","ghi\n"], 6, ["",'"abc"\n'], '"abc"\n'],
+      ["-n inputs", ["1 ","2 ","3 "], 100, ["","1\n","1\n2\n"], "1\n2\n3\n"],
+      ["'if .==2 then error else . end'", ["1\n","2\n","3\n"], 128,
+        ["","1\n","1\njq: error (at <stdin>:2): 2\n"], "1\njq: error (at <stdin>:2): 2\n3\n"],
+      ["--seq -c .", ["\x1ebad\n","\x1e2\n"], 128,
+        ["","jq: ignoring parse error: Invalid numeric literal at line 2, column 0 (need RS to resync)\n"],
+        "jq: ignoring parse error: Invalid numeric literal at line 2, column 0 (need RS to resync)\n\x1e2\n"],
+    ]) {
+      const observed = [];
+      const stdin = {async *[Symbol.asyncIterator]() { for (const s of chunks) { observed.push(sh.readText("/out")); yield Buffer.from(s); } }};
+      const run = sh.exec("jq " + args + " >/out 2>&1", {stdin,limits:{maxOutputBytes:limit}});
+      if (limit === 6) await assert.rejects(run,{limit:"maxOutputBytes"});
+      else assert.equal((await run).exitCode,0,args);
+      assert.deepEqual([observed,sh.readText("/out")],[seen,final],args);
+    }
+  } finally { sh.dispose(); }
+});
+
+test("jq retains published bytes but reports a failed stdin producer at the shell line", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const filter of [".", "-n 'try inputs catch 99'", "'if .==2 then error else . end'"]) {
+      const stdin = {async *[Symbol.asyncIterator]() { yield Buffer.from("1 "); yield Buffer.from("2 "); throw Error("private message"); }};
+      const r = await sh.exec("\n\njq " + filter, {stdin});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [1, filter.startsWith("'if") ? "1\n" : "1\n2\n", "shell: line 3: internal error\n"], filter);
+    }
+    const broken = {async *[Symbol.asyncIterator]() { throw Error("private"); }};
+    const redirected = await sh.exec("\njq . 2>/err; cat /err", {stdin: broken});
+    assert.deepEqual([redirected.exitCode,redirected.stdout,redirected.stderr],[0,"shell: line 2: internal error\n",""]);
+    for (const [args, stderr] of [["-n 1 1>&-", "shell: line 2: Bad file descriptor\n"], ["--version 1>&-", "shell: line 2: Bad file descriptor\n"], ["--bad 2>&-", ""]]) {
+      const r = await sh.exec("\njq " + args);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[1,"",stderr], args);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("jq stops input generators after producing enough output and preserves results before errors", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/items": "1 2 3 4\n", "/workspace/good": "7 8" } });
   try {

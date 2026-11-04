@@ -950,7 +950,7 @@ where
         return Ok(Some(out));
     }
     if cmd == "jq" {
-        return Ok(Some(structured::cmd_jq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
+        return structured::cmd_jq(args, CommandInput { text: stdin, file }, cwd, env, fs, write).map(Some);
     }
     if cmd == "xq" {
         return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));

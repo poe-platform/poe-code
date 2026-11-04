@@ -504,6 +504,10 @@ pub trait SafeBashFs: Send + Sync {
             Ok((name, mode & 0o170000))
         }).collect()
     }
+    fn needs_readlink_lookup(&self, _path: &str) -> bool { self.has_path_capabilities() || self.default_device_view() }
+    fn readlink_supported(&self, path: &str) -> Result<bool, String> {
+        self.inspect_command_entry(path, true, "capabilitiesFor").map(|(entry, _)| self.supports_symbolic_links(&entry))
+    }
     fn supports_symbolic_links(&self, _entry: &str) -> bool { true }
     fn supports_hard_links(&self, _path: &str) -> bool { false }
     /// Create a second name for the source inode without following its final symlink.

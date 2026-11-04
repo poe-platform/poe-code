@@ -2221,23 +2221,38 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     };
     for target in &targets {
         if mode == 'L' {
-            let p = resolve_posix_path(cwd, target);
-            match fs.readlink(&p) {
-                Ok(t) => {
-                    out.push_str(&t);
-                    out.push_str(term);
-                }
-                _ => {
-                    if verbose_mode == "verbose" {
-                        if fs.exists(&p) || fs.lstat(&p).is_ok() {
-                            err_buf.push_str(&format!(
-                                "readlink: EINVAL: invalid argument, readlink '{p}'\n"
-                            ));
-                        } else {
-                            err_buf.push_str(&format!(
-                                "readlink: ENOENT: no such file or directory, readlink '{p}'\n"
-                            ));
+            let result = (|| {
+                let path = command_operand(cwd, target)?;
+                if fs.needs_readlink_lookup(&path) {
+                    let mut candidate = path.clone();
+                    loop {
+                        match fs.readlink_supported(&candidate) {
+                            Ok(true) => break,
+                            Ok(false) => return Err(format!("ENOTSUP: operation not supported, readlink '{path}'")),
+                            Err(e) => {
+                                let link = (e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:"))
+                                    && fs.inspect_command_entry(&candidate, false, "lstat").is_ok_and(|(_, s)| s.kind == VfsEntryKind::Symlink);
+                                if candidate == "/" || !(e.starts_with("ENOENT:") || link) { return Err(e); }
+                                candidate = crate::vfs::dirname_posix_path(&candidate);
+                            }
                         }
+                    }
+                }
+                let (entry, st) = fs.inspect_command_entry(&path, false, "readlink").map_err(|e| {
+                    if fs.default_device_view() && (e.starts_with("EINVAL: invalid argument '") || e.starts_with("ENOENT: no such file or directory, lstat '")) {
+                        e
+                    } else if e.starts_with("ELOOP:") && !fs.default_device_view() && !e.contains(", overlay '") {
+                        format!("ELOOP: too many symbolic links encountered, readlink '{path}'")
+                    } else { copy_error(&e, "readlink", &path) }
+                })?;
+                if st.kind != VfsEntryKind::Symlink { return Err(format!("EINVAL: invalid argument, readlink '{path}'")); }
+                fs.readlink(&entry).map_err(|e| copy_error(&e, "readlink", &path))
+            })();
+            match result {
+                Ok(t) => { out.push_str(&t); out.push_str(term); }
+                Err(e) => {
+                    if verbose_mode == "verbose" || verbose_mode == "default" && !e.contains("EINVAL") && !e.contains("ENOENT") {
+                        err_buf.push_str(&format!("readlink: {e}\n"));
                     }
                     exit_code = 1;
                 }

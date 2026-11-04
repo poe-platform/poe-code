@@ -1591,6 +1591,41 @@ test("plugin writes share quotas, apply umask on creation, and stop after the ha
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("native readlink resolves parent components and charges before filtering link errors", async () => {
+  const {Shell, MemoryFileSystem, readlinkCommands} = await import("@poe-platform/safe-bash");
+  for (const deviceView of ["default","provided"]) {
+    const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/",deviceView}).use(readlinkCommands()), rust = new RustWasmBash({cwd:"/",deviceView});
+    try {
+      for (const store of [fs,rust.fs]) {
+        await store.mkdir("/t/sub", {recursive:true});
+        await store.mkdir("/locked");
+        await store.chmod("/locked", 0);
+      }
+      const compare = async (script, limits) => {
+        const run = sh => sh.exec(script, {limits}).then(r => [r.exitCode,r.stdout,r.stderr], e => e.limit ?? e.message);
+        assert.deepEqual(await run(rust), await run(js), deviceView + ": " + script);
+      };
+      await compare("readlink /locked/f");
+      await compare("readlink /locked/ENOENT");
+      await compare("readlink -v /t/.. /missing/.. /missing");
+      for (const store of [fs,rust.fs]) {
+        await store.symlink("loop", "/loop");
+        await store.writeFile("/t/file", Uint8Array.of(1));
+        await store.symlink("file", "/t/link");
+        await store.symlink("/t/sub", "/s");
+      }
+      for (const [script, limits] of [
+        ["readlink /loop/sub"], ["readlink /s/../link"], ["readlink -v /missing/../t/link"], ["readlink /t/file/../link"],
+        ["readlink /t/link/"], ["readlink /locked/f"], ["readlink -q /locked/f"], ["readlink -v '' /t/file"],
+        ["readlink /t/link", {maxPathnameComponents:1}], ["readlink /t/link", {maxFileSystemOperations:1}],
+        ["readlink /t/link", {maxFileSystemOperations:2}],
+      ]) {
+        await compare(script, limits);
+      }
+    } finally { await js.dispose(); rust.dispose(); }
+  }
+});
+
 test("native du exclusions match UTF-16 units and literal extended-glob syntax", async () => {
   const {Shell, MemoryFileSystem, duCommands} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}).use(duCommands()), rust = new RustWasmBash({cwd:"/"});

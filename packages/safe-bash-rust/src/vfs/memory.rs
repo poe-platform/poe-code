@@ -1703,6 +1703,30 @@ impl SafeBashFs for MemoryVfs {
         Ok(children)
     }
 
+    fn needs_readlink_lookup(&self, path: &str) -> bool {
+        let Ok(state) = self.state.read() else { return true; };
+        if state.devices != Devices::Null { return state.devices != Devices::None; }
+        if state.symlink_entries != 0 || !path.starts_with('/') || path == "/dev" || path.starts_with("/dev/") { return true; }
+        // The device view skips its capability lookup only for clean paths with searchable ancestors.
+        let mut parent = "/";
+        for (index, part) in path[1..].split('/').enumerate() {
+            if index >= 256 || part.len() > 255 || matches!(part, "" | "." | "..") || part.contains('\0') { return true; }
+            match state.nodes.get(parent) {
+                Some(MemoryNode::Directory { mode, .. }) if mode & 0o100 != 0 => {}
+                None => {}
+                _ => return true,
+            }
+            parent = &path[..parent.trim_end_matches('/').len() + 1 + part.len()];
+        }
+        false
+    }
+
+    fn readlink_supported(&self, path: &str) -> Result<bool, String> {
+        let state = self.state.read().map_err(|_| "EIO: input/output error")?;
+        let entry = Self::device_operand(&state, path, true)?;
+        Ok(state.devices != Devices::Mounted && state.devices.entry(&entry).is_none())
+    }
+
     fn supports_symbolic_links(&self, entry: &str) -> bool {
         self.state.read().is_ok_and(|s| s.devices != Devices::Mounted && s.devices.entry(entry).is_none())
     }
@@ -1768,7 +1792,13 @@ impl SafeBashFs for MemoryVfs {
         Ok(String::from_utf8_lossy(&bytes).into_owned())
     }
 
-    fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
+    fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, FileStat), String> {
+        if syscall == "readlink" {
+            let state = self.state.read().map_err(|e| e.to_string())?;
+            if state.devices == Devices::Null && matches!(Self::device_operand(&state, path, false)?.as_str(), "/" | "/dev" | "/dev/null") {
+                return Err(format!("EINVAL: invalid argument '{path}'"));
+            }
+        }
         let entry = self.access_path(path, follow).or_else(|error| {
             if error.starts_with("EACCES:") {
                 let state = self.state.read().map_err(|e| e.to_string())?;
@@ -1780,7 +1810,10 @@ impl SafeBashFs for MemoryVfs {
             }
             Err(error)
         })?;
-        self.lstat(&entry).map(|st| (entry, st))
+        self.lstat(&entry).map(|st| (entry, st)).map_err(|error| {
+            if syscall == "readlink" && error.starts_with("ENOENT:") { format!("ENOENT: no such file or directory, readlink '{path}'") }
+            else { error }
+        })
     }
 
     fn stat(&self, path: &str) -> Result<FileStat, String> {

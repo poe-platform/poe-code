@@ -393,6 +393,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.directory_entries(&host_text(path), limit).map(|mut entries| { for (name, _) in &mut entries { if let std::borrow::Cow::Owned(s) = shell_text(name) { *name = s; } } entries }).map_err(quote_host_text)
     }
 
+    fn needs_readlink_lookup(&self, path: &str) -> bool { self.inner.needs_readlink_lookup(&host_text(path)) }
+    fn readlink_supported(&self, path: &str) -> Result<bool, String> {
+        self.budget.tick_fs_op()?;
+        self.budget.limits.check_path(path)?;
+        self.inner.readlink_supported(&host_text(path)).map_err(quote_host_text)
+    }
+
     fn supports_symbolic_links(&self, entry: &str) -> bool { self.inner.supports_symbolic_links(&host_text(entry)) }
     fn supports_hard_links(&self, path: &str) -> bool { self.inner.supports_hard_links(&host_text(path)) }
 

@@ -33,6 +33,7 @@ pub struct OverlayVfs {
     upper: Arc<dyn SafeBashFs>,
     whiteouts: Arc<RwLock<BTreeSet<String>>>,
     directories: Arc<Mutex<BTreeMap<String, DirectoryObservation>>>,
+    copied_links: Arc<Mutex<BTreeSet<String>>>,
 }
 
 struct OverlayDirectoryRead {
@@ -96,6 +97,7 @@ impl OverlayVfs {
             upper,
             whiteouts: Arc::new(RwLock::new(BTreeSet::new())),
             directories: Default::default(),
+            copied_links: Default::default(),
         }
     }
 
@@ -174,6 +176,33 @@ impl OverlayVfs {
             if let Some(d) = dirs.get_mut(path) && d.lower == lower { d.upper = upper; }
         }
         Ok(())
+    }
+
+    fn movable_link(layer: &dyn SafeBashFs, path: &str) -> Result<String, String> {
+        let target = layer.readlink(path)?;
+        let canonical = layer.access_path(path,true).and_then(|p| layer.lstat(&p).map(|_| p))
+            .map_err(|e| {
+                let reason = if e.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
+                    else { e.split_once(", ").map_or(e.as_str(),|(reason,_)| reason) };
+                format!("{reason}, realpath '{path}'")
+            })?;
+        let mut current = if target.starts_with('/') { "/".into() } else { super::dirname_posix_path(path) };
+        for component in target.split('/').filter(|s| !s.is_empty())
+            .chain(target.ends_with('/').then_some(".")) {
+            if layer.lstat(&current)?.kind != VfsEntryKind::Directory {
+                return Err(format!("ENOTSUP: symlink copy-up requires an alias-free target path, overlay '{path}'"));
+            }
+            match component {
+                "." => continue,
+                ".." => current = super::dirname_posix_path(&current),
+                name => current = format!("{}/{name}",current.trim_end_matches('/')),
+            }
+            if layer.lstat(&current)?.kind == VfsEntryKind::Symlink {
+                return Err(format!("ENOTSUP: symlink copy-up cannot preserve an ambiguous target alias, overlay '{path}'"));
+            }
+        }
+        if canonical != current { return Err(format!("ENOTSUP: backend cannot prove symlink semantics survive copy-up, overlay '{path}'")); }
+        Ok(target)
     }
 
     fn check_file_copy_up(&self, path: &str, st: &FileStat) -> Result<(), String> {
@@ -376,6 +405,7 @@ impl OverlayVfs {
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during removal".into()); }
         upper.remove_overlay_entry(lower, versions, &entry, operation == Removal::Rmdir, rm, None)?;
         if is_dir { self.forget_directory(&entry); }
+        self.copied_links.lock().unwrap().retain(|p| !super::is_path_within(&entry,p));
         whiteouts.insert(entry);
         Ok(())
     }
@@ -577,29 +607,54 @@ impl SafeBashFs for OverlayVfs {
         // Bring only the visible source subtree into the writable layer. A
         // lower file must remain readable through the original path until commit.
         let mut pending = vec![from.clone()];
+        let mut moved_links = Vec::new();
         while let Some(path) = pending.pop() {
             let stat = self.lstat(&path)?;
-            if self.upper.lstat(&path).is_err() {
-                match stat.kind {
-                    VfsEntryKind::File => self.upper.write_file(&path, &self.lower.read_file(&path)?)?,
-                    VfsEntryKind::Directory => self.upper.mkdir_all(&path)?,
-                    VfsEntryKind::Symlink => self.upper.symlink(&self.lower.readlink(&path)?, &path)?,
+            let lower = self.upper.lstat(&path).is_err();
+            let children = if stat.kind == VfsEntryKind::Directory {
+                if stat.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{path}'")); }
+                let mut names = self.list_dir(&path)?;
+                names.sort_unstable_by(|a,b| a.encode_utf16().cmp(b.encode_utf16()));
+                names
+            } else { Vec::new() };
+            if stat.kind == VfsEntryKind::Symlink {
+                let layer = if lower { &self.lower } else { &self.upper };
+                let target = Self::movable_link(layer.as_ref(),&path)?;
+                if lower {
+                    self.upper.symlink(&target,&path)?;
+                    self.copied_links.lock().unwrap().insert(path.clone());
                 }
-                if stat.kind != VfsEntryKind::Symlink {
-                    self.upper.chmod(&path, stat.mode)?;
-                    self.upper.set_times(&path, Some(stat.atime_ms), Some(stat.mtime_ms))?;
+                if self.copied_links.lock().unwrap().contains(&path) {
+                    moved_links.push((path.clone(),target));
                 }
+            } else if lower {
+                if stat.kind == VfsEntryKind::File {
+                    self.check_file_copy_up(&path,&stat)?;
+                    self.upper.write_file(&path,&self.lower.read_file(&path)?)?;
+                } else { self.upper.mkdir_all(&path)?; }
+                self.upper.chmod(&path, stat.mode)?;
+                self.upper.set_times(&path, Some(stat.atime_ms), Some(stat.mtime_ms))?;
             }
-            if stat.kind == VfsEntryKind::Directory {
-                for child in self.list_dir(&path)? {
-                    pending.push(format!("{path}/{child}"));
-                }
+            pending.extend(children.into_iter().rev().map(|name| format!("{path}/{name}")));
+        }
+        // Only links materialized from the lower layer carry its namespace.
+        // A relative target inside the moved tree moves with it; an outside
+        // target must still name the same entry after publication.
+        let relocate = |path: &str| format!("{to}{}", &path[from.len()..]);
+        for (path,target) in &moved_links {
+            let old = super::resolve_posix_path(&super::dirname_posix_path(path),target);
+            let expected = if !target.starts_with('/') && super::is_path_within(&from,&old) { relocate(&old) } else { old };
+            if super::resolve_posix_path(&super::dirname_posix_path(&relocate(path)),target) != expected {
+                return Err(format!("ENOTSUP: relocation changes an unprovable relative symlink target, overlay '{path}'"));
             }
         }
         let parent = crate::vfs::dirname_posix_path(&to);
         self.copy_up_directories(&parent, || self.upper.mkdir_all(&parent))?;
         let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
         self.upper.rename(&from, &to, no_replace)?;
+        let mut links = self.copied_links.lock().unwrap();
+        links.retain(|p| !super::is_path_within(&to,p));
+        for (path,_) in moved_links { links.remove(&path); links.insert(relocate(&path)); }
         if original.kind == VfsEntryKind::Directory { self.forget_directory(&from); self.forget_directory(&to); }
         whiteouts.insert(from);
         whiteouts.insert(to);
@@ -772,6 +827,7 @@ impl SafeBashFs for OverlayVfs {
         }
         self.upper.replace_entries(entries)?;
         self.directories.lock().unwrap().clear();
+        self.copied_links.lock().unwrap().clear();
         Ok(())
     }
 }
@@ -780,6 +836,19 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn rename_cannot_separate_one_name_from_a_lower_hardlink_group() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/src/f",b"keep").unwrap();
+        lower.hard_link("/src/f","/peer").unwrap();
+        let fs = OverlayVfs::new(lower, Arc::new(MemoryVfs::new()));
+        for path in ["/src/f","/src"] {
+            assert_eq!(fs.rename(path,"/out",false).unwrap_err(),"ENOTSUP: copy-up cannot preserve hardlink identity, overlay '/src/f'");
+            assert!(!fs.exists("/out"));
+            assert_eq!(fs.lstat("/src/f").unwrap().identity,fs.lstat("/peer").unwrap().identity);
+        }
+    }
 
     #[test]
     fn conditional_publications_respect_the_merged_namespace_and_file_version() {

@@ -3154,12 +3154,12 @@ test("overlay rename moves the merged tree without resurrecting hidden children"
     await fs.writeFile("/dir/a", "upper");
     await fs.unlink("/dir/deleted");
     await fs.unlink("/target/old");
-    await fs.symlink("missing", "/dir/link");
+    await fs.symlink("a", "/dir/link");
     await assert.rejects(fs.rename("/dir", "/target", { noReplace: true }), { code: "EEXIST" });
     await fs.rename("/dir", "/target");
     assert.equal(bash.readText("/target/a"), "upper");
     assert.equal(bash.readText("/target/nested/b"), "child");
-    assert.equal(await fs.readlink("/target/link"), "missing");
+    assert.equal(await fs.readlink("/target/link"), "a");
     for (const path of ["/dir", "/target/deleted", "/target/old"]) {
       await assert.rejects(fs.lstat(path), { code: "ENOENT" });
     }
@@ -12556,5 +12556,35 @@ test("overlay rename resolves dot components and requires directories at trailin
     const failure = await sh.exec("mv -T /w/moved/sub/file/ /w/out");
     assert.equal(failure.stderr,"mv: ENOTDIR: not a directory, overlay '/w/moved/sub/file'\n");
     assert.equal(sh.readText("/w/moved/sub/file"),"keep");
+  } finally { sh.dispose(); }
+});
+
+test("overlay rename verifies a link in its backing layer before moving it", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/lower":"keep"},symlinks:{"/w/alias":"lower","/w/chain":"alias"}});
+  try {
+    await sh.fs.symlink("lower","/w/upper");
+    await sh.fs.symlink("loop","/w/loop");
+    for (const [name,code,syscall] of [["upper","ENOENT","realpath"],["loop","ELOOP","realpath"],["chain","ENOTSUP","overlay"]]) {
+      await assert.rejects(sh.fs.rename("/w/"+name,"/w/moved"),{code,syscall,path:"/w/"+name});
+      assert.equal((await sh.fs.lstat("/w/"+name)).type,"symlink");
+      await assert.rejects(sh.fs.lstat("/w/moved"),{code:"ENOENT"});
+    }
+    await sh.fs.rename("/w/alias","/w/moved");
+    assert.equal(await sh.fs.readlink("/w/moved"),"lower");
+  } finally { sh.dispose(); }
+});
+
+test("overlay refuses to redirect a copied lower link when its parent changes", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs",files:{"/w/a":"A","/w/d/a":"other"},symlinks:{"/w/l":"a"}});
+  try {
+    await sh.fs.rename("/w/l","/w/renamed");
+    await sh.fs.writeFile("/w/a",new Uint8Array([65]));
+    await assert.rejects(sh.fs.rename("/w/renamed","/w/d/l"),{code:"ENOTSUP",syscall:"overlay",path:"/w/renamed"});
+    assert.equal(await sh.fs.readlink("/w/renamed"),"a");
+    await assert.rejects(sh.fs.lstat("/w/d/l"),{code:"ENOENT"});
+    await sh.fs.rm("/w/renamed");
+    await sh.fs.symlink("a","/w/renamed");
+    await sh.fs.rename("/w/renamed","/w/d/l");
+    assert.equal(await sh.fs.readlink("/w/d/l"),"a");
   } finally { sh.dispose(); }
 });

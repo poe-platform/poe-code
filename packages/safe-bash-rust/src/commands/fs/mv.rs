@@ -425,7 +425,7 @@ pub(super) fn cmd_mv(
                     fs.move_across_devices(&src, &target, None)
                 }
                 Err(e) if no_clobber && e.starts_with("EEXIST:") => return Ok(()),
-                Err(e) if e.contains(", overlay '") => Err(e),
+                Err(e) if e.contains(", overlay '") || e.contains(", realpath '") || e.contains(", lstat '") => Err(e),
                 Err(e) => Err(format!("{e}, rename '{src}' -> '{target}'")),
                 ok => ok,
             };

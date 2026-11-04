@@ -958,6 +958,9 @@ where
     if matches!(cmd, "base64" | "base32") {
         return Ok(Some(archive::run_base_cmd(cmd, args, CommandInput { text: stdin, file }, cwd, fs, write)));
     }
+    if cmd == "od" {
+        return Ok(Some(archive::cmd_od(args, CommandInput { text: stdin, file }, cwd, fs, write)));
+    }
     if cmd == "xxd" {
         return Ok(Some(archive::cmd_xxd(args, CommandInput { text: stdin, file }, cwd, env, fs, write)));
     }

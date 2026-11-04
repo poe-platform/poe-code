@@ -543,6 +543,43 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("od admits whole chunks but stops reading as soon as its range or output ends", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, limits, outcome, count] of [
+      ["od -N0", {}, "0000000\n", 0], ["od -j5 -N0", {}, "0000005\n", 2],
+      ["od -tx1 -N1", {maxInputBytes:3}, "maxInputBytes", 1],
+      ["od -w4", {maxOutputBytes:6}, "maxOutputBytes", 1],
+      ["od -S2", {maxOutputBytes:6}, "maxOutputBytes", 1],
+    ]) {
+      let pulls = 0, closes = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        try { for (const c of ["abc","def","ghi"]) { pulls++; yield new TextEncoder().encode(c + "\0"); } }
+        finally { closes++; }
+      }};
+      const run = bash.exec(cmd, {stdin,limits});
+      if (outcome.startsWith("max")) await assert.rejects(run, {limit:outcome});
+      else assert.equal((await run).stdout, outcome);
+      assert.deepEqual([pulls,closes], [count,Number(count > 0)], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("od checks only the operands its range needs and emits diagnostics in read order", async () => {
+  const bash = new RustWasmBash({files:{"/f":"abcd"}});
+  try {
+    for (const [cmd, code, output] of [
+      ["od -N0 /missing /f",1,"od: ENOENT: no such file or directory, stat '/missing'\n"],
+      ["od -N0 /f /missing",0,"0000000\n"],
+      ["od -N1 -tx1 /f /missing",0,"0000000 61\n0000001\n"],
+      ["od -An -w3 -tx2 /f /missing",1,"od: warning: invalid width 3; using 2 instead\n 6261\n 6463\nod: ENOENT: no such file or directory, readStream '/missing'\n"],
+    ]) {
+      const r = await bash.exec(cmd + " 2>&1");
+      assert.deepEqual([r.exitCode,r.stdout], [code,output], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("fold stops at the producer chunk that exhausts output", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

@@ -425,7 +425,7 @@ impl CommandInput<'_> {
         Ok(())
     }
 
-    fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: bool,
+    pub(super) fn read_operand(&mut self, name: &str, cwd: &str, fs: &dyn SafeBashFs, stat_first: bool,
         mut consume: impl FnMut(&[u8]) -> bool,
     ) -> Result<(), String> {
         if name == "-" { return self.read_stdin(consume); }

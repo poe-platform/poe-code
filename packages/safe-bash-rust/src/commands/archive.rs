@@ -24,7 +24,7 @@ pub fn try_run_archive_command(
         "base64" | "base32" => Some(run_base_cmd(cmd, args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
         "xxd" => Some(cmd_xxd(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, env, fs, &mut super::capture_write)),
         "strings" => Some(cmd_strings(args, stdin, cwd, fs)),
-        "od" => Some(cmd_od(args, stdin, cwd, fs)),
+        "od" => Some(cmd_od(args, super::CommandInput { text: &mut stdin.to_owned(), file: None }, cwd, fs, &mut super::capture_write)),
         "hexdump" => Some(cmd_hexdump(args, stdin, cwd, fs, false)),
         "hd" => Some(cmd_hexdump(args, stdin, cwd, fs, true)),
         "tar" => Some(cmd_tar(args, stdin, cwd, fs)),
@@ -2291,7 +2291,7 @@ fn format_od_row(
     text
 }
 
-fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+pub(super) fn cmd_od(args: &[String], mut input: super::CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut addr_radix = 'o';
     let mut big_endian = false;
     let mut verbose = false;
@@ -2526,54 +2526,6 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
     }
 
-    let mut data: Vec<u8> = Vec::new();
-    let mut exit_code = 0;
-    let mut err_buf = String::new();
-    if files.is_empty() {
-        data.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
-    } else {
-        let mut used_stdin = false;
-        for f in &files {
-            if f == "-" {
-                if !used_stdin {
-                    used_stdin = true;
-                    data.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
-                }
-            } else {
-                let full = resolve_posix_path(cwd, f);
-                if fs.is_dir(&full) {
-                    exit_code = 1;
-                    err_buf.push_str(&format!(
-                        "od: EISDIR: illegal operation on a directory, readStream '{full}'\n"
-                    ));
-                    continue;
-                }
-                match fs.read_file(&full) {
-                    Ok(b) => data.extend_from_slice(&b),
-                    Err(_) => {
-                        exit_code = 1;
-                        err_buf.push_str(&format!(
-                            "od: ENOENT: no such file or directory, readStream '{full}'\n"
-                        ));
-                    }
-                }
-            }
-        }
-    }
-
-    if skip_bytes > data.len() {
-        err_buf.push_str("od: cannot skip past end of input\n");
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: err_buf,
-            exit_code: 1,
-        };
-    }
-    let mut slice = &data[skip_bytes..];
-    if let Some(limit) = max_len {
-        slice = &slice[..limit.min(slice.len())];
-    }
-
     let fmt_addr = |addr: usize| -> String {
         match addr_radix {
             'n' => String::new(),
@@ -2582,36 +2534,6 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             _ => format!("{addr:07o}"),
         }
     };
-
-    if let Some(min_s) = strings_min {
-        let mut out = String::new();
-        let mut cur = String::new();
-        let mut start_addr = String::new();
-        let mut offset = skip_bytes;
-        for &b in slice {
-            if (32..=126).contains(&b) {
-                if cur.is_empty() {
-                    start_addr = fmt_addr(offset);
-                }
-                cur.push(b as char);
-            } else {
-                if b == 0 && cur.len() >= min_s {
-                    if start_addr.is_empty() {
-                        out.push_str(&format!("{cur}\n"));
-                    } else {
-                        out.push_str(&format!("{start_addr} {cur}\n"));
-                    }
-                }
-                cur.clear();
-            }
-            offset += 1;
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err_buf,
-            exit_code,
-        };
-    }
 
     let alignment = selected.iter().map(|f| f.size).max().unwrap_or(1);
     let width = if requested_width % alignment == 0 {
@@ -2624,42 +2546,126 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         .map(|f| ((od_field_width(f) + 1) as f64) / (f.size as f64))
         .fold(0.0f64, f64::max);
 
-    let mut out = String::new();
-    let mut prev_row: Option<&[u8]> = None;
-    let mut suppressed = false;
-    let mut offset = skip_bytes;
-    for row in slice.chunks(width) {
-        if !verbose && prev_row == Some(row) {
-            if !suppressed {
-                out.push_str("*\n");
-                suppressed = true;
-            }
-        } else {
-            let addr = fmt_addr(offset);
-            let pad = if selected.len() > 1 {
-                " ".repeat(addr.len())
-            } else {
-                String::new()
-            };
-            for (idx, fmt) in selected.iter().enumerate() {
-                let prefix = if idx == 0 { addr.as_str() } else { pad.as_str() };
-                out.push_str(prefix);
-                out.push_str(&format_od_row(row, fmt, big_endian, width, chars_per_byte));
-                out.push('\n');
-            }
-            prev_row = Some(row);
-            suppressed = false;
+    let mut out = ok_out("");
+    if width != requested_width && !write(2, &format!("od: warning: invalid width {requested_width}; using {width} instead\n"), &mut out) {
+        return out;
+    }
+    let mut left = max_len.unwrap_or(usize::MAX);
+    if skip_bytes == 0 && left == 0 && let Some(file) = files.first().filter(|f| !f.is_empty() && *f != "-") {
+        let path = crate::vfs::path::absolute_operand(cwd, file);
+        if let Err(e) = fs.inspect_command_entry(&path, true, "stat") {
+            let msg = super::coreutils::stream_file_error(e, "stat", &path);
+            write(2, &format!("od: {msg}\n"), &mut out);
+            out.exit_code = 1;
+            return out;
         }
-        offset += row.len();
     }
-    if addr_radix != 'n' {
-        out.push_str(&format!("{}\n", fmt_addr(offset)));
+
+    let mut first = true;
+    let mut previous = Vec::new();
+    let mut suppressed = false;
+    let mut formatted = String::new();
+    let mut emit_rows = |batch: &[u8], offset: &mut usize, out: &mut BuiltinOutcome, write: &mut super::CommandWriter| {
+        for row in batch.chunks(width) {
+            if !verbose && previous == row {
+                if !suppressed { formatted.push_str("*\n"); }
+                suppressed = true;
+            } else {
+                let addr = fmt_addr(*offset);
+                for (idx, fmt) in selected.iter().enumerate() {
+                    if idx == 0 { formatted.push_str(&addr); } else { formatted.push_str(&" ".repeat(addr.len())); }
+                    formatted.push_str(&format_od_row(row, fmt, big_endian, width, chars_per_byte));
+                    formatted.push('\n');
+                }
+                previous.clear();
+                previous.extend_from_slice(row);
+                suppressed = false;
+            }
+            *offset += row.len();
+            if first || formatted.len() >= 16384 {
+                first = false;
+                if !write(1, &formatted, out) { return false; }
+                formatted.clear();
+            }
+        }
+        let ok = formatted.is_empty() || write(1, &formatted, out);
+        formatted.clear();
+        ok
+    };
+
+    let mut offset = skip_bytes;
+    let mut skip = skip_bytes;
+    let limit = fs.max_input_bytes();
+    let mut available = limit;
+    let mut used_stdin = false;
+    let mut partial = Vec::new();
+    let mut text = String::new();
+    if files.is_empty() { files.push("-".into()); }
+    for file in files {
+        if skip == 0 && left == 0 { break; }
+        if file == "-" && std::mem::replace(&mut used_stdin, true) { continue; }
+        let mut writable = true;
+        let read = input.read_operand(&file, cwd, fs, false, |chunk| {
+            let Some(remaining) = available.checked_sub(chunk.len()) else {
+                fs.limit_error("maxInputBytes", limit);
+                writable = false;
+                return false;
+            };
+            available = remaining;
+            for block in chunk.chunks(8192) {
+                let discard = skip.min(block.len());
+                skip -= discard;
+                let take = left.min(block.len() - discard);
+                left -= take;
+                let mut bytes = &block[discard..discard + take];
+                if let Some(minimum) = strings_min {
+                    for &b in bytes {
+                        if (32..=126).contains(&b) { text.push(b as char); }
+                        else {
+                            if b == 0 && text.len() >= minimum {
+                                let addr = fmt_addr(offset - text.len());
+                                if !addr.is_empty() { text.insert(0, ' '); text.insert_str(0, &addr); }
+                                text.push('\n');
+                                if !write(1, &text, &mut out) { writable = false; return false; }
+                            }
+                            text.clear();
+                        }
+                        offset += 1;
+                    }
+                } else {
+                    if !partial.is_empty() {
+                        let end = bytes.len().min(width - partial.len());
+                        partial.extend_from_slice(&bytes[..end]);
+                        bytes = &bytes[end..];
+                        if partial.len() == width {
+                            if !emit_rows(&partial, &mut offset, &mut out, write) { writable = false; return false; }
+                            partial.clear();
+                        }
+                    }
+                    let full = bytes.len() / width * width;
+                    if full > 0 && !emit_rows(&bytes[..full], &mut offset, &mut out, write) { writable = false; return false; }
+                    partial.extend_from_slice(&bytes[full..]);
+                }
+                if left == 0 && skip == 0 { return false; }
+            }
+            true
+        });
+        if !writable { return out; }
+        if let Err(e) = read {
+            out.exit_code = 1;
+            if !write(2, &format!("od: {e}\n"), &mut out) || file == "-" ||
+                !["ENOENT:", "EACCES:", "EISDIR:", "ENOTDIR:", "EIO:"].iter().any(|code| e.starts_with(code)) {
+                return out;
+            }
+        }
     }
-    BuiltinOutcome {
-        stdout: out,
-        stderr: err_buf,
-        exit_code,
+    if skip != 0 {
+        out.exit_code = 1;
+        write(2, "od: cannot skip past end of input\n", &mut out);
+    } else if strings_min.is_none() && emit_rows(&partial, &mut offset, &mut out, write) && addr_radix != 'n' {
+        write(1, &format!("{}\n", fmt_addr(offset)), &mut out);
     }
+    out
 }
 
 pub struct TarEntry {

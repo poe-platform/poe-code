@@ -1,3 +1,4 @@
+import type { CommandContext, CommandDefinition, CommandResult, RegisterCommandOptions } from "safe-bash-contracts/command";
 import type { FileSystem, ShellSessionState, ShellSessionHooks, ShellExecOptions } from "@poe-platform/safe-bash";
 
 export interface RustWasmFileInit {
@@ -115,6 +116,19 @@ export class WasmFileSystem {
   statfs(targetPath?: string): Promise<Record<string, number>>;
 }
 
+type StreamCommandContext = Pick<CommandContext, "command" | "argv0" | "args" | "argumentValues" | "cwd" | "env" | "stdin" | "stdout" | "stderr" | "signal" | "capabilities">;
+type StreamCommand = Omit<CommandDefinition, "execute"> & {
+  readonly execute: (context: StreamCommandContext) => CommandResult | Promise<CommandResult>;
+};
+
+interface StreamCommandRegistry {
+  register(command: StreamCommand, options?: RegisterCommandOptions): this;
+  get(name: string): StreamCommand | undefined;
+  has(name: string): boolean;
+  unregister(name: string): boolean;
+  list(): readonly StreamCommand[];
+}
+
 export class RustWasmBash {
   readonly shell: RustWasmBash;
   readonly fs: WasmFileSystem;
@@ -127,6 +141,12 @@ export class RustWasmBash {
   };
 
   constructor(options?: RustWasmBashOptions);
+  register(command: StreamCommand, options?: RegisterCommandOptions): this;
+  use(plugin: {
+    readonly name?: string;
+    setup(host: {commands: StreamCommandRegistry; registerFileSystem: RustWasmBash["registerFileSystem"]}): void | Promise<void>;
+    dispose?(): void | Promise<void>;
+  }): this;
   mountDevices(): void;
   mkdirAll(dirPath: string): void;
   writeFile(filePath: string, data: string | Uint8Array): void;
@@ -150,7 +170,7 @@ export class RustWasmBash {
     exec(script: string, options?: RustWasmExecOptions): Promise<RustWasmExecResult>;
     dispose(): Promise<void>;
   };
-  dispose(): void;
+  dispose(): void | Promise<void>;
 }
 
 export function createRustWasmBash(options?: RustWasmBashOptions): RustWasmBash;

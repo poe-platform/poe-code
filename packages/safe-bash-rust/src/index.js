@@ -114,20 +114,21 @@ export class ShellLimitError extends Error {
 // linear memory. Save that range while awaiting input so another shell can run.
 const streamHosts = new WeakMap();
 let streamAdapter;
+function suspendingCallback(read, resume) {
+  // Call read(a,b,c), which may suspend, then resume on the restored Wasm VM stack.
+  streamAdapter ??= new WebAssembly.Module(Uint8Array.of(
+    0,97,115,109,1,0,0,0,1,14,2,96,3,127,127,127,0,96,3,127,127,127,1,127,
+    2,19,2,0,4,114,101,97,100,0,0,0,6,114,101,115,117,109,101,0,1,
+    3,2,1,1,7,8,1,4,110,101,120,116,0,2,10,20,1,18,0,32,0,32,1,32,2,16,0,32,0,32,1,32,2,16,1,11,
+  ));
+  return new WebAssembly.Instance(streamAdapter, {"":{read:new WebAssembly.Suspending(read),resume}}).exports.next;
+}
+
 function streamHost(x) {
   let host = streamHosts.get(x);
   if (host) return host;
-  // next(id,p,n): call read(id) [may suspend]; return resume(id,p,n).
-  // The synchronous resume import runs on the resumed VM stack, before Rust
-  // can access a local. Restoring in a promise handler races concurrent reads.
-  streamAdapter ??= new WebAssembly.Module(Uint8Array.of(
-    0,97,115,109,1,0,0,0,1,12,2,96,1,127,0,96,3,127,127,127,1,127,
-    2,19,2,0,4,114,101,97,100,0,0,0,6,114,101,115,117,109,101,0,1,
-    3,2,1,1,7,8,1,4,110,101,120,116,0,2,10,16,1,14,0,32,0,16,0,32,0,32,1,32,2,16,1,11,
-  ));
   const jobs = new Map(), table = x.__indirect_function_table;
-  const next = new WebAssembly.Instance(streamAdapter, { "": {
-    read: new WebAssembly.Suspending(async id => {
+  const next = suspendingCallback(async id => {
       const job = jobs.get(id);
       job.sp = x.__stack_pointer.value;
       job.stack = new Uint8Array(x.memory.buffer.slice(job.sp, job.top));
@@ -149,8 +150,7 @@ function streamHost(x) {
         job.status = -1;
         job.data = job.shell._allocBytes(encoder.encode("internal error"));
       }
-    }),
-    resume(id,p,n) {
+    }, (id,p,n) => {
       const job = jobs.get(id);
       new Uint8Array(x.memory.buffer, job.sp, job.stack.length).set(job.stack);
       x.__stack_pointer.value = job.sp;
@@ -162,13 +162,96 @@ function streamHost(x) {
         job.data = undefined; // Rust now owns this allocation.
       }
       return job.status;
-    },
-  }}).exports.next;
+    });
   const slot = table.grow(1);
   table.set(slot,next);
   host = { jobs, slot, exec:WebAssembly.promising(x.safe_bash_exec_stream) };
   streamHosts.set(x,host);
   return host;
+}
+
+// Each executing fork leases its own slots: concurrent handlers can resume in any order.
+const freeCommandSlots = new WeakMap();
+function bindHostCommands(shell, definitions, createArguments, options) {
+  const x = shell.exports, table = x.__indirect_function_table;
+  const free = freeCommandSlots.get(x) ?? [];
+  freeCommandSlots.set(x, free);
+  const slots = [], top = x.__stack_pointer.value;
+  const signal = options.signal ?? new AbortController().signal;
+  const release = () => {
+    for (const slot of slots) { table.set(slot, null); free.push(slot); }
+  };
+  try {
+    for (const definition of definitions) {
+      let sp, stack, streams, consumed, code;
+      const slot = free.pop() ?? table.grow(1);
+      slots.push(slot);
+      table.set(slot, suspendingCallback(async (ptr, len, reply) => {
+        const packet = new Uint8Array(x.memory.buffer, ptr, len).slice();
+        let remaining = new DataView(x.memory.buffer).getUint32(reply + 20, true);
+        sp = x.__stack_pointer.value;
+        stack = new Uint8Array(x.memory.buffer.slice(sp, top));
+        x.__stack_pointer.value = top;
+        let active = true;
+        streams = [[], []]; consumed = 0; code = 1;
+        try {
+          const view = new DataView(packet.buffer);
+          let offset = 0;
+          const word = () => { const n = view.getUint32(offset, true); offset += 4; return n; };
+          const field = () => { const n = word(); offset += n; return packet.subarray(offset - n, offset); };
+          const argc = word(), envc = word(), explicit = word(), cwd = decoder.decode(field());
+          const argv0 = explicit ? decoder.decode(field()) : undefined;
+          const argumentValues = createArguments(Array.from({length:argc}, field));
+          const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
+          const check = () => { signal.throwIfAborted(); if (!active) throw new Error("Command has finished"); };
+          const stdin = {async *[Symbol.asyncIterator]() {
+            check();
+            if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }
+          }};
+          const sink = index => ({async write(bytes) {
+            check();
+            if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
+            if (code === -3 || bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
+            remaining -= bytes.length;
+            if (bytes.length) streams[index].push(new Uint8Array(bytes));
+          }});
+          check();
+          const pending = definition.execute({command:definition.name, argv0, args:argumentValues.args, argumentValues,
+            cwd, env, stdin, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
+          const result = await (options.signal ? untilAbort(pending, signal) : pending);
+          if (code !== -3) {
+            if (!Number.isInteger(result?.exitCode) || result.exitCode < 0 || result.exitCode > 255) throw new RangeError("Invalid exit status");
+            code = result.exitCode;
+          }
+        } catch {
+          if (signal.aborted) code = -2;
+          else if (code !== -3) code = -4;
+        } finally { active = false; }
+      }, (_ptr, _len, reply) => {
+        new Uint8Array(x.memory.buffer, sp, stack.length).set(stack);
+        x.__stack_pointer.value = sp;
+        stack = undefined;
+        for (const [i,chunks] of streams.entries()) {
+          const len = chunks.reduce((n,chunk) => n + chunk.length, 0);
+          if (!len) continue;
+          const p = x.safe_bash_alloc(len);
+          const dest = new Uint8Array(x.memory.buffer,p,len);
+          let offset = 0;
+          for (const chunk of chunks) { dest.set(chunk,offset); offset += chunk.length; }
+          const v = new DataView(x.memory.buffer);
+          v.setUint32(reply + i * 8,p,true); v.setUint32(reply + i * 8 + 4,len,true);
+        }
+        new DataView(x.memory.buffer).setUint32(reply + 16,consumed,true);
+        streams = undefined;
+        return signal.aborted ? -2 : code;
+      }));
+      const name = shell._allocBytes(encoder.encode(definition.name));
+      try {
+        if (x.safe_bash_register_command(shell.sessionId,name.ptr,name.len,slot) !== 0) throw new Error("Could not register command: " + definition.name);
+      } finally { shell._freeBytes(name); }
+    }
+    return release;
+  } catch (error) { release(); throw error; }
 }
 
 async function untilAbort(pending, signal) {
@@ -961,6 +1044,10 @@ export class RustWasmBash extends WasmShell {
   #sessions = new Set();
   #companion;
   #filesystems = new Map();
+  #ready;
+  #commands;
+  #createArguments;
+  #plugins = [];
 
   #identityScopes = new Map();
   #scopeKeys = new WeakMap();
@@ -1371,6 +1458,8 @@ export class RustWasmBash extends WasmShell {
 
   async exec(script, options = {}) {
     if (!this.sessionId) throw new Error("Shell is disposed");
+    if (this.#ready) await this.#ready;
+    if (!this.sessionId) throw new Error("Shell is disposed");
     const filesystem = options?.fs;
     const externalFs = filesystem != null && filesystem !== this.fs;
     if (externalFs && !this._companion) {
@@ -1409,7 +1498,7 @@ export class RustWasmBash extends WasmShell {
     }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();
-    let elapsedMs;
+    let releaseCommands, elapsedMs;
     let res;
     try {
       const before = options.hooks?.beforeExec ?? this.hooks?.beforeExec;
@@ -1439,8 +1528,26 @@ export class RustWasmBash extends WasmShell {
       }
       let stdinData = options.stdin ?? "";
       const asyncInput = stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData;
+      if (this.#commands) {
+        const definitions = this.#commands.list();
+        if (definitions.length) {
+          if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
+            throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
+          }
+          releaseCommands = bindHostCommands(shell, definitions, this.#createArguments, options);
+        }
+      }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
         res = await execAsyncStdin(shell,script,stdinData,options.signal);
+      } else if (releaseCommands) {
+        const scriptBytes = shell._allocBytes(encoder.encode(script));
+        let input;
+        try {
+          input = shell._allocBytes(typeof stdinData === "string" ? encoder.encode(stdinData) : stdinData);
+          await WebAssembly.promising(shell.exports.safe_bash_exec)(shell.sessionId,scriptBytes.ptr,scriptBytes.len,input.ptr,input.len);
+          options.signal?.throwIfAborted();
+          res = shell._execResult();
+        } finally { shell._freeBytes(scriptBytes); if (input) shell._freeBytes(input); }
       } else {
         if (asyncInput) {
           stdinData = await collectAsyncStdin(stdinData, options.signal);
@@ -1451,6 +1558,7 @@ export class RustWasmBash extends WasmShell {
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
+      releaseCommands?.();
       shell.dispose();
     }
     if (elapsedMs > 0 && res.exitCode !== 1) {
@@ -1537,22 +1645,41 @@ export class RustWasmBash extends WasmShell {
     await this._companionSyncPromise;
   }
 
+  #install(setup) {
+    this.#ready = (this.#ready ?? import("safe-bash-contracts/command").then(({CommandRegistry, createCommandArguments}) => {
+      this.#commands = new CommandRegistry();
+      this.#createArguments = createCommandArguments;
+    })).then(setup);
+    this.#ready.catch(() => {});
+  }
+
   use(plugin) {
-    this.forceNative = false;
-    const comp = this._getOrCreateCompanionSync();
-    if (comp) {
-      comp.shell.use(plugin);
+    if (!this.sessionId) throw new Error("Shell is disposed");
+    if (this.companionFactory) {
+      this.forceNative = false;
+      this._getOrCreateCompanionSync().shell.use(plugin);
+    } else {
+      if (typeof plugin?.setup !== "function") throw new TypeError("Expected a shell plugin with setup");
+      this.#install(async () => {
+        await plugin.setup({commands:this.#commands, registerFileSystem:(scheme, factory) => this.registerFileSystem(scheme, factory)});
+        this.#plugins.push(plugin);
+      });
     }
     return this;
   }
 
   register(cmd, options) {
-    this.forceNative = false;
-    const comp = this._getOrCreateCompanionSync();
-    if (comp) {
-      comp.shell.register(cmd, options);
-    }
+    if (!this.sessionId) throw new Error("Shell is disposed");
+    if (this.companionFactory) {
+      this.forceNative = false;
+      this._getOrCreateCompanionSync().shell.register(cmd, options);
+    } else this.#install(() => { this.#commands.register(cmd, options); });
     return this;
+  }
+
+  execSync(script, stdin) {
+    if (this.#ready) throw new Error("Use exec() after installing a JavaScript plugin");
+    return super.execSync(script, stdin);
   }
 
   registerFileSystem(scheme, factory) {
@@ -1569,6 +1696,7 @@ export class RustWasmBash extends WasmShell {
   async createFileSystem(scheme, options = {}) {
     if (!this.sessionId) throw new Error("Shell is disposed");
     if (!this.companionFactory) {
+      if (this.#ready) await this.#ready;
       const factory = this.#filesystems.get(scheme);
       if (!factory) throw new Error(`Unknown filesystem scheme: ${scheme}`);
       return factory(options);
@@ -1636,6 +1764,9 @@ export class RustWasmBash extends WasmShell {
     for (const controller of this.#sessions) controller.abort(new Error("Shell session is disposed"));
     this.#sessions.clear();
     super.dispose();
+    if (this.#ready) return this.#ready.catch(() => {}).then(async () => {
+      for (const plugin of this.#plugins.splice(0).reverse()) await plugin.dispose?.();
+    });
   }
 }
 

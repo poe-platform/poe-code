@@ -1439,6 +1439,65 @@ test("async Rust commands pull stdin on demand and resume independently", {skip:
   } finally { bash.dispose(); }
 });
 
+test("standalone plugins run async handlers in Rust pipelines and sessions", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const bash = new RustWasmBash({cwd:"/"});
+  const trace = [];
+  try {
+    bash.use({name:"probe", async setup(host) {
+      await Promise.resolve();
+      trace.push("setup");
+      host.commands.register({name:"probe", async execute(ctx) {
+        trace.push([ctx.cwd, ctx.argv0, ctx.env.EXPORTED, ctx.env.LOCAL, ...ctx.args]);
+        await Promise.resolve();
+        for await (const chunk of ctx.stdin) await ctx.stdout.write(chunk);
+        await ctx.stderr.write(Uint8Array.of(254));
+        return {exitCode:23};
+      }});
+    }});
+    const r = await bash.exec("LOCAL=private; export EXPORTED=ok; /bin/probe arg > /out", {stdin:Uint8Array.of(255,0)});
+    assert.deepEqual([r.exitCode, ...r.stderrBytes], [23,254]);
+    assert.deepEqual([...bash.readFile("/out")], [255,0]);
+    assert.deepEqual(trace, ["setup", ["/","/bin/probe","ok",undefined,"arg"]]);
+    const session = bash.createSession();
+    try {
+      const piped = await session.exec("printf yes | probe | cat");
+      assert.equal(piped.stdout, "yes");
+      assert.deepEqual([...piped.stderrBytes], [254]);
+    } finally { await session.dispose(); }
+  } finally { await bash.dispose(); }
+});
+
+test("suspended plugin commands keep their own inputs, output limits and cancellation", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const bash = new RustWasmBash({cwd:"/"});
+  let release, entered;
+  const held = new Promise(r => { release = r; }), started = new Promise(r => { entered = r; });
+  bash.register({name:"hold", async execute(ctx) {
+    if (ctx.args[0] === "wait") { entered(); await held; }
+    for await (const bytes of ctx.stdin) await ctx.stdout.write(bytes);
+    return {exitCode:0};
+  }});
+  bash.register({name:"bad", async execute(ctx) {
+    await ctx.stderr.write(Uint8Array.of(88));
+    throw new Error("private handler failure");
+  }});
+  try {
+    const slow = bash.exec("hold wait >/slow", {stdin:"first"});
+    await started;
+    assert.equal((await bash.exec("hold", {stdin:"other"})).stdout, "other");
+    release();
+    assert.equal((await slow).exitCode, 0);
+    assert.equal(bash.readText("/slow"), "first");
+    await assert.rejects(bash.exec("hold; touch /late", {stdin:"abcd", limits:{maxOutputBytes:1}}), {limit:"maxOutputBytes"});
+    await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+    const bad = await bash.exec("true\nbad");
+    assert.deepEqual([bad.exitCode,bad.stderr], [1,"Xshell: line 2: internal error\n"]);
+    const ctrl = new AbortController(), reason = new Error("stop");
+    bash.register({name:"cancelme", execute() { ctrl.abort(reason); return new Promise(() => {}); }});
+    await assert.rejects(bash.exec("cancelme; touch /late", {signal:ctrl.signal}), e => e === reason);
+    await assert.rejects(bash.fs.stat("/late"), {code:"ENOENT"});
+  } finally { release(); await bash.dispose(); }
+});
+
 test("Wasm host commands inherit exported bindings and preserve bytes in native pipelines", async () => {
   const bash = new RustWasmBash({cwd:"/", env:{BASE:"initial"}});
   const x = bash.exports, table = x.__indirect_function_table, slot = table.grow(1);

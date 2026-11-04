@@ -23,6 +23,14 @@
     "lint": "cargo clippy --all-targets -- -D warnings"
   },
   "dependencies": {},
+  "peerDependencies": {
+    "safe-bash-contracts": "*"
+  },
+  "peerDependenciesMeta": {
+    "safe-bash-contracts": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@poe-code/config-mutations-rust": "*",
     "@poe-platform/safe-bash": "*",

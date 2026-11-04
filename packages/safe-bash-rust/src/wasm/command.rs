@@ -15,6 +15,7 @@ struct HostBuffer {
 pub struct HostReply {
     streams: [HostBuffer; 2],
     consumed: usize,
+    remaining_output: usize,
 }
 
 impl HostBuffer {
@@ -59,13 +60,17 @@ pub unsafe extern "C" fn safe_bash_register_command(
         packet[4..8].copy_from_slice(&envc.to_le_bytes());
         let input_start = packet.len();
         packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
-        let mut reply = Default::default();
+        let mut reply = HostReply { remaining_output: ctx.budget.remaining_output_bytes(), ..Default::default() };
         let code = unsafe { invoke(packet.as_ptr(), packet.len(), &mut reply) };
         let [stdout, stderr] = reply.streams.map(|buf| unsafe { buf.take() });
         if reply.consumed != 0 {
             let unread = packet[input_start..].get(reply.consumed..).ok_or("Host command consumed more than its stdin")?;
             ctx.unread_stdin = Some(bytes_to_stream_string(unread));
         }
+        if code == -2 { return Err(ctx.budget.record_exceeded("Execution aborted: cancelled".into())); }
+        if code == -3 { return Err(ctx.fs.limit_error("maxOutputBytes", ctx.budget.limits.max_output_bytes)); }
+        ctx.internal_error = code == -4;
+        let code = if ctx.internal_error { 1 } else { code };
         if !(0..=255).contains(&code) { return Err("Exit status must be an integer between 0 and 255".into()); }
         Ok(CommandResult {
             exit_code: code, stdout: bytes_to_stream_string(&stdout), stderr: bytes_to_stream_string(&stderr),

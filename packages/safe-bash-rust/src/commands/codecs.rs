@@ -3543,7 +3543,11 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             central[start+42..start+46].copy_from_slice(&(local as u32).to_le_bytes());
             // Named output already knows the sizes. Like the JS writer, put them
             // in the local header and drop any streaming descriptor on plain members.
-            if record.central[8] & 8 != 0 {
+            if record.central[8] & 9 == 9 {
+                // The traditional password verifier uses the DOS time when bit 3 is set.
+                out.extend_from_slice(&0x08074b50u32.to_le_bytes());
+                out.extend_from_slice(&record.central[16..28]);
+            } else if record.central[8] & 8 != 0 {
                 out[local+6] &= !8;
                 central[start+8] &= !8;
                 out[local+14..local+26].copy_from_slice(&record.central[16..28]);
@@ -3798,12 +3802,14 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     let (members,comment) = zip_directory(data.len(), |r| Ok(std::borrow::Cow::Borrowed(&data[r])))?;
     let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
     for member in members {
-        let decoded = member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]),None)?;
         let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
             if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central]}).is_some() { return Err("ZIP duplicate member name".into()); }
             (String::new(),Vec::new())
-        } else if member.typeflag == b'2' { (String::from_utf8_lossy(&decoded).into_owned(),Vec::new()) }
-        else { (String::new(),decoded.into_owned()) };
+        } else {
+            let decoded=member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]),None)?;
+            if member.typeflag==b'2' { (String::from_utf8_lossy(&decoded).into_owned(),Vec::new()) }
+            else { (String::new(),decoded.into_owned()) }
+        };
         out.push(crate::commands::archive::TarEntry {
             name: member.name,typeflag: member.typeflag,mode: member.mode,mtime: member.mtime,
             atime: None,uid: 0,gid: 0,linkname,content,

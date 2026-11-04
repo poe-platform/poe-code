@@ -5846,6 +5846,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut stdin_names = false;
     let mut has_password_opt = false;
     let mut has_encrypt_opt = false;
+    let mut test_archive=false;
     let mut selected_action: &str = "add";
     let mut literal = false;
     let mut descriptors = false;
@@ -5888,7 +5889,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         if a == "-L" || a == "--license" {
             return ok_out(ZIP_LICENSE_TEXT);
         }
-        if a == "-x" {
+        if a=="--test" {test_archive=true;}
+        else if a == "-x" {
             if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") || args[i + 1] == "@" {
                 return zip_err("option 'x' requires a value");
             }
@@ -6132,7 +6134,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     }
                     'q' => quiet = true,
                     'v' => { quiet = false; verbose = true; }
-                    'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
+                    'T' => test_archive=true,
+                    'c' | 'o' | 'X' | 'k' | 'g' | 'J' | 'A'
                     | 'F' | 'p' => {}
                     other => return zip_err(&format!("unsupported option: -{other}")),
                 }
@@ -6234,6 +6237,16 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         Vec::new()
     };
     let publish = |bytes: Vec<u8>, sources: &[_]| {
+        let mut report=String::new();
+        if test_archive && arch_name!="-" {
+            let valid=crate::commands::codecs::zip_directory(bytes.len(),|r|Ok(std::borrow::Cow::Borrowed(&bytes[r])))
+                .is_ok_and(|(entries,_)|!entries.is_empty() && entries.iter().all(|e|e.decode(std::borrow::Cow::Borrowed(&bytes[e.payload.clone()]),None).is_ok()));
+            if !quiet {report=format!("test of {} {}\n",zip_public_text(&arch_name),if valid {"OK"} else {"FAILED"});}
+            if !valid {
+                report.push_str("\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n");
+                return BuiltinOutcome {stdout:report,stderr:String::new(),exit_code:8};
+            }
+        }
         let result = if split_size != 0 {
             zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources,version)
         } else if let Some(st) = &dest && st.nlink.is_some_and(|n| n > 1) {
@@ -6243,7 +6256,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),replacement.as_ref().unwrap().version)
                 .map(|()| String::new())
         };
-        match result { Ok(report) => ok_out(&report), Err(e) => err_out(&format!("zip: {e}\n"),2) }
+        match result { Ok(split_report) => {report.push_str(&split_report);ok_out(&report)}, Err(e) => err_out(&format!("zip: {e}\n"),2) }
     };
     if show_files {
         let mut out = format!("Archive contains:\n");
@@ -6496,6 +6509,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     }
     let mut result = publish(out_bytes, &sources);
+    if test_archive && matches!(result.exit_code,0|8) {result.stdout.insert_str(0,&progress);progress.clear();}
     result.stdout.insert_str(0,&notices);
     if result.exit_code == 0 {
         result.stdout.push_str(&progress);

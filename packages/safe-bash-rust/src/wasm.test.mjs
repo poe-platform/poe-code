@@ -6528,6 +6528,50 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("zip -T verifies the resulting members before publication and before moving sources",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(37)}})),rust=new RustWasmBash({cwd:"/"});
+  try{
+    await fs.writeFile("/old",Uint8Array.of(17));
+    const plain=await js.exec("zip -q0 plain.zip old"),encrypted=await js.exec("zip -qP key encrypted.zip old");
+    assert.equal(plain.exitCode,0,plain.stderr);assert.equal(encrypted.exitCode,0,encrypted.stderr);
+    const good=await fs.readFile("/plain.zip"),bad=good.slice(),local=new DataView(bad.buffer);
+    bad[30+local.getUint16(26,true)+local.getUint16(28,true)]^=255;
+    for(const [input,success] of [[good,true],[bad,false],[await fs.readFile("/encrypted.zip"),false]]){
+      for(const view of [fs,rust.fs]){await view.writeFile("/work.zip",input);await view.writeFile("/source",Uint8Array.of(8));}
+      const cmd="zip -Tm work.zip source",ref=await js.exec(cmd),actual=await rust.exec(cmd);
+      assert.equal(ref.exitCode===0,success);assert.deepEqual([actual.exitCode,actual.stdout,actual.stderr],[ref.exitCode,ref.stdout,ref.stderr]);
+      if(!success)for(const view of [fs,rust.fs]){assert.deepEqual(await view.readFile("/source"),Uint8Array.of(8));assert.deepEqual(await view.readFile("/work.zip"),input);}
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
+test("ZIP edits retain encrypted members and their password verifier without decrypting them",async()=>{
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(37)}})),rust=new RustWasmBash({cwd:"/"});
+  try{
+    for(const view of [fs,rust.fs]){
+      await view.writeFile("/keep",new Uint8Array(501).fill(55));await view.writeFile("/extra",Uint8Array.of(9));
+      await view.utimes("/extra",1700000000000,1700000000000);
+    }
+    for(const profile of ["zipcrypto","aes-192-ae1"]){
+      const seed=await js.exec("zip -q -fd -P key --encryption "+profile+" "+profile+".zip keep");assert.equal(seed.exitCode,0,seed.stderr);
+      const archive=await fs.readFile("/"+profile+".zip");
+      for(const view of [fs,rust.fs])await view.writeFile("/work.zip",archive);
+      for(const cmd of ["zip -q work.zip extra","zip -qU -O copy.zip work.zip keep","zip -qd work.zip extra"]){
+        const ref=await js.exec(cmd),r=await rust.exec(cmd);assert.equal(ref.exitCode,0,ref.stderr);assert.equal(r.exitCode,0,r.stderr);
+        const path=cmd.includes("copy.zip")?"/copy.zip":"/work.zip";
+        const expect=await fs.readFile(path),actual=await rust.fs.readFile(path);
+        const central=bytes=>new DataView(bytes.buffer,bytes.byteOffset).getUint32(bytes.length-6,true);
+        const size=new DataView(expect.buffer,expect.byteOffset).getUint32(central(expect)+20,true);
+        const end=bytes=>{const v=new DataView(bytes.buffer,bytes.byteOffset);return 30+v.getUint16(26,true)+v.getUint16(28,true)+size+16;};
+        assert.deepEqual(actual.slice(0,end(actual)),expect.slice(0,end(expect)));
+        const check=await rust.exec("unzip -pPkey "+path+" keep");assert.deepEqual(check.stdoutBytes,new Uint8Array(501).fill(55));
+      }
+    }
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("unzip authenticates WinZip AES members before output or replacement",async()=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),js=new Shell({cwd:"/",fs}).use(archiveCommands({zipHost:{entropy:n=>new Uint8Array(n).fill(17)}})),rust=new RustWasmBash({cwd:"/"});

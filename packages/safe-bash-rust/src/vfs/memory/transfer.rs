@@ -149,7 +149,12 @@ impl MemoryVfs {
         let mut readers = 0;
         for (path, target, _) in entries.clone() {
             let node = &src.nodes[path];
-            if src.extra_links.contains_key(&node.ino()) { *links.entry(node.ino()).or_insert(0usize) += 1; }
+            let ino = node.ino();
+            if src.extra_links.contains_key(&ino) {
+                // Reading one name changes the shared inode's atime. Every copy
+                // uses the metadata inspected before the first name was read.
+                links.entry(ino).or_insert_with(|| (0usize,src.files.get(&ino).map(|f| f.atime_ms))).0 += 1;
+            }
             if matches!(node, MemoryNode::File { .. }) {
                 readers += 1;
                 if matches!(dst.nodes.get(target), Some(MemoryNode::File { .. })) {
@@ -159,7 +164,7 @@ impl MemoryVfs {
         }
         for (path, target, _) in entries.clone() {
             let node = &src.nodes[path];
-            if links.get(&node.ino()).is_some_and(|n| *n > 1) {
+            if links.get(&node.ino()).is_some_and(|(n,_)| *n > 1) {
                 admit(1)?; // capability for an atomic hardlink removal receipt
             }
             admit(2)?; // source mode and conditional removal capability
@@ -251,7 +256,7 @@ impl MemoryVfs {
                     admit(1)?; // openReadFile
                     let file = src.files.get_mut(&ino).unwrap();
                     if file.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source_name}'")); }
-                    let atime = file.atime_ms;
+                    let atime = links.get(&ino).and_then(|(_,time)| *time).unwrap_or(file.atime_ms);
                     admit(1)?; // stat the retained reader
                     if replacing {
                         if let Some(b) = budget && file.data.len() > b.limits.max_input_bytes {

@@ -657,6 +657,21 @@ mod tests {
     }
 
     #[test]
+    fn cross_mount_hardlink_copies_keep_the_access_time_from_before_either_read() {
+        let src = Arc::new(MemoryVfs::new());
+        src.write_file("/w/a",b"A").unwrap();
+        src.hard_link("/w/a","/w/b").unwrap();
+        src.set_times("/w/a",Some(123456.0),Some(654321.0)).unwrap();
+        let dst = Arc::new(MemoryVfs::new());
+        let fs = MountVfs::new(src).with_mount("/m",dst.clone());
+        fs.move_across_devices("/w","/m/out",None).unwrap();
+        for path in ["/out/a","/out/b"] {
+            let st = dst.lstat(path).unwrap();
+            assert_eq!((st.atime_ms,st.mtime_ms,st.nlink),(123456.0,654321.0,Some(1)),"{path}");
+        }
+    }
+
+    #[test]
     fn cross_mount_file_copy_charges_input_without_emitting_shell_output() {
         for existing in [false, true] {
             for input_limit in [0, 1] {

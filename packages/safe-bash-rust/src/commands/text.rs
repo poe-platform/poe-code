@@ -2542,6 +2542,7 @@ fn split_awk_statements(block: &str) -> Vec<String> {
 
 fn eval_awk_array_key(key_expr: &str, state: &mut AwkState) -> String {
     let inner = awk_ungroup(key_expr);
+    if !inner.contains(',') { return eval_awk_text(inner, state); }
     let parts = split_awk_top_args(inner);
     if parts.len() <= 1 {
         eval_awk_text(inner, state)
@@ -3163,15 +3164,11 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
             if op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
                 continue;
             }
+            let Some(target) = AwkTarget::resolve(lhs, state) else { return Scalar::Unset; };
+            let previous = if op == "=" { 0.0 } else { target.get(state).number() };
             let rval = eval_awk_value(rhs, state);
-            let final_val = if op == "=" {
-                rval
-            } else {
-                let lnum = eval_awk_value(lhs, state).number();
-                let rnum = rval.number();
-                state.arithmetic(op.as_bytes()[0], lnum, rnum)
-            };
-            assign_awk_lvalue(lhs, final_val.clone(), state);
+            let final_val = if op == "=" { rval } else { state.arithmetic(op.as_bytes()[0], previous, rval.number()) };
+            if state.runtime_err.is_none() { target.set(final_val.clone(), state); }
             return final_val;
         }
     }
@@ -3269,31 +3266,14 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
         return state.arithmetic(op, left, right);
     }
 
-    if let Some(var) = s.strip_suffix("++") {
-        let v = var.trim();
-        let old_val = eval_awk_value(v, state).number();
-        assign_awk_lvalue(v, Scalar::Number(old_val + 1.0), state);
-        return Scalar::Number(old_val);
-    }
-    if let Some(var) = s.strip_prefix("++") {
-        let v = var.trim();
-        let new_val = eval_awk_value(v, state).number() + 1.0;
-        assign_awk_lvalue(v, Scalar::Number(new_val), state);
-        return Scalar::Number(new_val);
-    }
-    if let Some(var) = s.strip_suffix("--") {
-        let v = var.trim();
-        let old_val = eval_awk_value(v, state).number();
-        assign_awk_lvalue(v, Scalar::Number(old_val - 1.0), state);
-        return Scalar::Number(old_val);
-    }
-    if let Some(var) = s.strip_prefix("--")
-        && !var.starts_with('-')
-    {
-        let v = var.trim();
-        let new_val = eval_awk_value(v, state).number() - 1.0;
-        assign_awk_lvalue(v, Scalar::Number(new_val), state);
-        return Scalar::Number(new_val);
+    for (op, delta) in [("++", 1.0), ("--", -1.0)] {
+        let (var, postfix) = if let Some(v) = s.strip_suffix(op) { (v, true) }
+            else if let Some(v) = s.strip_prefix(op) { (v, false) } else { continue };
+        let Some(target) = AwkTarget::resolve(var, state) else { return Scalar::Unset; };
+        let previous = target.get(state).number();
+        let next = previous + delta;
+        target.set(Scalar::Number(next), state);
+        return Scalar::Number(if postfix { previous } else { next });
     }
 
     if let Some(inner) = s.strip_prefix('!') {
@@ -3312,38 +3292,51 @@ fn eval_awk_value(expr: &str, state: &mut AwkState) -> Scalar {
         return state.field_index(field_expr).map_or(Scalar::Unset, |idx| state.get_field(idx));
     }
 
-    if let Some(open) = s.find('[') {
-        if s.ends_with(']') {
-            let arr_name = s[..open].trim();
-            let key_expr = &s[open + 1..s.len() - 1];
-            let key = eval_awk_array_key(key_expr, state);
-            return state
-                .arrays
-                .get(arr_name)
-                .and_then(|m| m.get(&key))
-                .cloned()
-                .unwrap_or_default();
-        }
+    if s.ends_with(']') && s.contains('[') && let Some(target) = AwkTarget::resolve(s, state) {
+        return target.get(state);
     }
 
     state.get_var(s)
 }
 
-fn assign_awk_lvalue(lval: &str, val: Scalar, state: &mut AwkState) {
-    let lv = lval.trim();
-    if let Some(f) = lv.strip_prefix('$') {
-        if let Some(idx) = state.field_index(f) { state.set_field(idx, val); }
-        return;
+enum AwkTarget<'a> {
+    Variable(&'a str),
+    Field(usize),
+    Element(&'a str, String),
+}
+
+impl<'a> AwkTarget<'a> {
+    fn resolve(expr: &'a str, state: &mut AwkState) -> Option<Self> {
+        let expr = awk_ungroup(expr);
+        if let Some(index) = expr.strip_prefix('$') { return state.field_index(index).map(Self::Field); }
+        if let Some((name, subscript)) = expr.strip_suffix(']').and_then(|s| s.split_once('[')) {
+            let key = eval_awk_array_key(subscript, state);
+            return state.runtime_err.is_none().then_some(Self::Element(name.trim(), key));
+        }
+        Some(Self::Variable(expr))
     }
-    if let Some(open) = lv.find('[') {
-        if lv.ends_with(']') {
-            let arr_name = lv[..open].trim().to_string();
-            let key = eval_awk_array_key(&lv[open + 1..lv.len() - 1], state);
-            state.arrays.entry(arr_name).or_default().insert(key, val);
-            return;
+
+    fn get(&self, state: &mut AwkState) -> Scalar {
+        match self {
+            Self::Variable(name) => state.get_var(name),
+            Self::Field(index) => state.get_field(*index),
+            Self::Element(name, key) => {
+                if let Some(value) = state.arrays.get(*name).and_then(|map| map.get(key)) {
+                    return value.clone();
+                }
+                state.arrays.entry((*name).to_owned()).or_default().insert(key.clone(), Scalar::Unset);
+                Scalar::Unset
+            }
         }
     }
-    state.set_var(lv, val);
+
+    fn set(self, value: Scalar, state: &mut AwkState) {
+        match self {
+            Self::Variable(name) => state.set_var(name, value),
+            Self::Field(index) => state.set_field(index, value),
+            Self::Element(name, key) => { state.arrays.entry(name.to_owned()).or_default().insert(key, value); }
+        }
+    }
 }
 
 fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
@@ -3680,10 +3673,12 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
             };
             let repl = eval_awk_text(&args[1], state);
             let target_lval = args.get(2).map(|s| s.as_str()).unwrap_or("$0");
-            let current = eval_awk_text(target_lval, state);
+            let Some(target) = AwkTarget::resolve(target_lval, state) else { return Some(Scalar::Unset); };
+            let value = target.get(state);
+            let current = state.formatted(value.text(Some(&state.convfmt)));
             let (updated, count) =
                 ZeroRegex::awk(&pat).replace_count(&current, &repl, fn_name == "gsub", None);
-            if count != 0 { assign_awk_lvalue(target_lval, Scalar::Text(updated), state); }
+            if count != 0 { target.set(Scalar::Text(updated), state); }
             Some(Scalar::Number(count as f64))
         }
         "int" => {
@@ -9400,6 +9395,23 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn awk_resolves_assignment_targets_once_before_evaluating_the_right_side() {
+        let program = r#"BEGIN {
+          i=0; a[0]=4; print a[i++]++,i,a[0],(1 in a);
+          i=0; print ++a[i++],i,a[0];
+          i=0; print a[i++]+=10,i,a[0];
+          i=0; print a[i++]=i++,i,a[0];
+          x=3; x+=(x=4); print x;
+          n=1; $1=2; print $(n++)++,n,$1,$2;
+          b[0]="abc"; i=0; print sub(/b/,"x",b[i++]),i,b[0];
+          print c["x"],length(c),("x" in c);
+          print d[0]+=length(d)
+        }"#;
+        let out = try_run_text_command("awk", &args(&[program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+        assert_eq!((out.exit_code,out.stdout.as_str(),out.stderr.as_str()), (0,"4 1 5 0\n6 1 6\n16 1 16\n1 2 1\n7\n2 2 3 \n1 1 axc\n 1 1\n1\n",""));
     }
 
     #[test]

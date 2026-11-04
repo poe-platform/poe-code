@@ -659,6 +659,35 @@ test("base encoders admit stdin chunks before writing and stop decoding invalid 
   } finally { bash.dispose(); }
 });
 
+test("pagers share one input allowance across files and stdin", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/f":"x"}});
+  try {
+    for (const cmd of ["less", "more"]) for (const flag of ["", " -N"]) {
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const data of [[0xc3], [0xa9, 10], [65]]) { pulls++; yield Uint8Array.from(data); }
+      }};
+      await assert.rejects(bash.exec(cmd + flag + " /f - >/o", {stdin, limits:{maxInputBytes:3}}), {limit:"maxInputBytes"});
+      assert.equal(pulls, 2);
+      assert.deepEqual([...await bash.fs.readFile("/o")], flag ? [] : [120, 0xc3]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("pagers report missing operands in order and decode formatted input per operand", async () => {
+  const bash = new RustWasmBash({files:{"/lead":Uint8Array.of(0xc3),"/tail":Uint8Array.of(0xa9)}});
+  try {
+    for (const cmd of ["less", "more"]) {
+      const raw = await bash.exec(cmd + " /lead /missing /tail 2>&1");
+      const diagnostic = cmd + ": /missing: ENOENT: no such file or directory, readFile '/missing'\n";
+      assert.equal(raw.exitCode, 1);
+      assert.deepEqual([...raw.stdoutBytes], [0xc3, ...new TextEncoder().encode(diagnostic), 0xa9]);
+      const text = await bash.exec(cmd + " -N /lead -", {stdin:Uint8Array.of(0xa9,10)});
+      assert.equal(text.stdout, "     1  ��\n");
+    }
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

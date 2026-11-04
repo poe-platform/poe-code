@@ -37,6 +37,7 @@ pub(super) fn try_run_coreutil_with_input(
     if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
+    if matches!(cmd, "less" | "more") { return Ok(Some(cmd_less_more(cmd, args, input, cwd, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
         Ok(out) => out,
@@ -73,7 +74,6 @@ fn coreutil(
         "cal" | "ncal" => cmd_cal(cmd, args, env),
         "getconf" => cmd_getconf(args, cwd, fs),
         "locale" => cmd_locale(args, env),
-        "less" | "more" => cmd_less_more(cmd, args, input.buffered()?, cwd, fs),
         "pathchk" => cmd_pathchk(args, cwd, fs),
         "expr" => cmd_expr(args, env),
         "bc" => cmd_bc(args, input.buffered()?, cwd, fs),
@@ -10993,9 +10993,10 @@ fn cmd_id(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) 
 fn cmd_less_more(
     cmd: &str,
     args: &[String],
-    stdin: &str,
+    mut stdin: CommandInput,
     cwd: &str,
     fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
     let mut number_lines = false;
     let mut squeeze_blank = false;
@@ -11112,63 +11113,61 @@ fn cmd_less_more(
     }
 
     let pass_through =
-        !number_lines && !squeeze_blank && start_line == 1 && start_pat.is_none();
-    let mut texts: Vec<String> = Vec::new();
-    let mut out = String::new();
-    let mut err_buf = String::new();
-    let mut exit_code = 0;
-    let mut stdin_used = false;
-
+        !number_lines && !squeeze_blank && start_line == 1 && start_pat.as_deref().unwrap_or("").is_empty();
+    let mut result = ok_out("");
+    let mut combined = String::new();
+    let limit = fs.max_input_bytes();
+    let mut remaining = limit;
+    let mut admit = |size| {
+        remaining = remaining.checked_sub(size).ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+        Ok::<(), String>(())
+    };
     for file in &files {
         if file == "-" {
-            let chunk = if stdin_used {
-                ""
-            } else {
-                stdin_used = true;
-                stdin
-            };
-            if pass_through {
-                out.push_str(chunk);
-            } else {
-                texts.push(chunk.to_string());
+            let mut bytes = Vec::new();
+            let mut status = Ok(());
+            let mut writable = true;
+            let read = stdin.read_stdin(|chunk| {
+                status = admit(chunk.len());
+                if status.is_err() { return false; }
+                if pass_through {
+                    writable = write(1, &crate::vfs::bytes_to_stream_string(chunk), &mut result);
+                } else {
+                    bytes.extend_from_slice(chunk);
+                }
+                writable
+            });
+            if let Err(e) = read.and(status) {
+                result.exit_code = 1;
+                write(2, &format!("{cmd}: {e}\n"), &mut result);
+                return result;
             }
+            if !writable { return result; }
+            if !pass_through { combined.push_str(&String::from_utf8_lossy(&bytes)); }
         } else {
             let path = resolve_posix_path(cwd, file);
-            match fs.read_file(&path) {
-                Ok(bytes) => {
+            match fs.read_single_chunk_input(&path, None) {
+                Ok(raw) => {
+                    if let Err(e) = admit(raw.len()) {
+                        result.exit_code = 1;
+                        write(2, &format!("{cmd}: {e}\n"), &mut result);
+                        return result;
+                    }
                     if pass_through {
-                        out.push_str(&crate::vfs::bytes_to_stream_string(&bytes));
+                        if !write(1, &crate::vfs::bytes_to_stream_string(&raw), &mut result) { return result; }
                     } else {
-                        texts.push(String::from_utf8_lossy(&bytes).into_owned());
+                        combined.push_str(&String::from_utf8_lossy(&raw));
                     }
                 }
                 Err(e) => {
-                    err_buf.push_str(&format!(
-                        "{cmd}: {file}: {}\n",
-                        e.replace(", open '", ", readFile '")
-                    ));
-                    exit_code = 1;
+                    result.exit_code = 1;
+                    let message = stream_file_error(e, "readFile", &path);
+                    if !write(2, &format!("{cmd}: {file}: {message}\n"), &mut result) { return result; }
                 }
             }
         }
     }
-
-    if pass_through {
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err_buf,
-            exit_code,
-        };
-    }
-
-    let combined = texts.join("");
-    if combined.is_empty() {
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err_buf,
-            exit_code,
-        };
-    }
+    if combined.is_empty() { return result; }
 
     let has_trailing_newline = combined.ends_with('\n');
     let mut raw_lines: Vec<&str> = combined.split('\n').collect();
@@ -11192,6 +11191,7 @@ fn cmd_less_more(
         }
     }
 
+    let mut out = String::new();
     let mut prev_blank = false;
     for (idx, &line) in raw_lines.iter().enumerate() {
         if idx < start_idx {
@@ -11212,11 +11212,8 @@ fn cmd_less_more(
             out.push('\n');
         }
     }
-    BuiltinOutcome {
-        stdout: out,
-        stderr: err_buf,
-        exit_code,
-    }
+    write(1, &crate::vfs::shell_text(&out), &mut result);
+    result
 }
 
 fn factor_mod_pow(mut base: u128, mut exp: u128, m: u128) -> u128 {

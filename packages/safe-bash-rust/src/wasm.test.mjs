@@ -12504,3 +12504,44 @@ test("mv removes a regular source only after a mounted device consumes it", asyn
     await assert.rejects(sh.fs.lstat("/w/a"),{code:"ENOENT"});
   } finally { sh.dispose(); }
 });
+
+test("mv checks the entry type before rejecting unsupported device operations", async () => {
+  const sh = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/w/dir/file":"keep"}});
+  try {
+    await sh.fs.symlink("dir/file","/w/l");
+    for (const [command,ops,error] of [
+      ["mv l /dev/null",11,"ENOTSUP: operation not supported, mv '/dev/null'"],
+      ["mv /dev/null out",9,"ENOTSUP: operation not supported, removeEntryConditional '/dev/null'"],
+      ["mv -T /dev/null dir",5,"EISDIR: illegal operation on a directory '/w/dir'"],
+    ]) {
+      const run = n => sh.exec(command,{cwd:"/w",limits:{maxFileSystemOperations:n}});
+      await assert.rejects(run(ops-1),/maxFileSystemOperations/);
+      const result = await run(ops);
+      assert.equal(result.exitCode,1);
+      assert.equal(result.stderr,"mv: "+error+"\n");
+    }
+    assert.equal(await sh.fs.readlink("/w/l"),"dir/file");
+    assert.equal(sh.readText("/w/dir/file"),"keep");
+  } finally { sh.dispose(); }
+});
+
+test("mv plans directory descendants before refusing publication on a device mount", async () => {
+  const sh = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/w/src/child":"keep"}});
+  try {
+    for (const [mode,target,n,error] of [
+      [0o755,"/dev/null",13,"ENOTDIR: not a directory '/dev/null'"],
+      [0o755,"/dev/absent",21,"ENOTSUP: operation not supported, mv '/dev/absent'"],
+      [0,"/dev/absent",15,"EACCES: permission denied, readdir '/w/src'"],
+      [0o444,"/dev/absent",16,"EACCES: permission denied, lstat '/w/src/child'"],
+    ]) {
+      await sh.fs.chmod("/w/src",mode);
+      const run = limit => sh.exec("mv src "+target,{cwd:"/w",limits:{maxFileSystemOperations:limit}});
+      await assert.rejects(run(n-1),/maxFileSystemOperations/);
+      const result = await run(n);
+      assert.equal(result.stderr,"mv: "+error+"\n");
+      assert.equal(result.exitCode,1);
+    }
+    await sh.fs.chmod("/w/src",0o755);
+    assert.equal(sh.readText("/w/src/child"),"keep");
+  } finally { sh.dispose(); }
+});

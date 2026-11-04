@@ -28,6 +28,24 @@ impl MemoryVfs {
                 "EBUSY: move entries changed during resolution '{display_from}'"
             ));
         }
+        // Both locks keep identity, permissions, and the read allocation stable.
+        // Coalesce observations under those locks, but admit the same operations
+        // as a routed copy before touching access times or unlinking the source.
+        let admit = |operations: usize| -> Result<(), String> {
+            if let Some(b) = budget {
+                b.check_cancelled()?;
+                for _ in 0..operations { b.tick_fs_op()?; }
+            }
+            Ok(())
+        };
+        if src.devices == Devices::Mounted && src.devices.entry(from).is_some_and(|name| !name.is_empty()) {
+            admit(2)?; // lstat source and destination before planning the removal
+            if destination.resolved_metadata(&dst,to).is_some_and(|st| st.kind == VfsEntryKind::Directory) {
+                return Err(format!("EISDIR: illegal operation on a directory '{display_to}'"));
+            }
+            admit(1)?; // parent snapshot
+            admit(2)?; // removal capability and conditional removal support
+        }
         if src.devices.entry(from).is_some() {
             return Err(format!(
                 "ENOTSUP: operation not supported, removeEntryConditional '{display_from}'"
@@ -63,23 +81,18 @@ impl MemoryVfs {
                 }
             }
         }
-        if dst.devices == Devices::Mounted && let MemoryNode::File { ino } = origin {
-            let ino = *ino;
-            // Both locks keep identity, permissions, and the read allocation stable.
-            // Coalesce observations under those locks, but admit the same operations
-            // as a routed copy before touching access times or unlinking the source.
-            let admit = |operations: usize| -> Result<(), String> {
-                if let Some(b) = budget {
-                    b.check_cancelled()?;
-                    for _ in 0..operations { b.tick_fs_op()?; }
-                }
-                Ok(())
-            };
+        if dst.devices == Devices::Mounted && !directory {
             admit(2)?; // lstat source and destination
+            if matches!(origin, MemoryNode::Symlink { .. }) { admit(1)?; } // readlink
             admit(1)?; // stat source parent for the conditional unlink
             let writable_parent = matches!(src.nodes.get(&crate::vfs::dirname_posix_path(from)),
                 Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300);
             admit(2)?; // admit source removal, then require atomic removal
+            let MemoryNode::File { ino } = origin else {
+                admit(1)?; // the device mount cannot publish a symbolic link
+                return Err(format!("ENOTSUP: operation not supported, mv '{display_to}'"));
+            };
+            let ino = *ino;
             admit(2)?; // select the destination writer, then admit publication
             let Some(device) = device else {
                 return Err(format!("ENOTSUP: operation not supported, mv '{display_to}'"));
@@ -118,6 +131,8 @@ impl MemoryVfs {
             return Ok(());
         }
         if device.is_none() && dst.devices == Devices::Mounted {
+            admit(2)?; // directory removal and conditional removal support
+            admit(1)?; // the mount cannot create the destination directory
             return Err(format!(
                 "ENOTSUP: operation not supported, mv '{display_to}'"
             ));

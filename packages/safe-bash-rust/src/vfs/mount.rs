@@ -48,6 +48,86 @@ impl MountVfs {
         let (_, fs, local) = self.location(&self.resolve(path, follow_final, WalkPurpose::AllowMissingParents)?);
         Ok((fs, local))
     }
+    /// Inspect the same routed entries that will be published. The transfer
+    /// checks the backing generations again under both namespace locks.
+    fn inspect_directory_move(&self, source: &str, target: &str, budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {
+        use super::{VfsEntryKind::{Directory, Symlink}, dirname_posix_path, is_path_within};
+        let admit = |path: &str| -> Result<(),String> {
+            if let Some(b) = budget {
+                b.check_cancelled()?;
+                b.limits.check_path(path)?;
+                b.tick_fs_op()?;
+            }
+            Ok(())
+        };
+        let inspect = |path: &str, follow| -> Result<Option<FileStat>,String> {
+            admit(path)?;
+            match self.inspect_command_entry(path,follow,if follow { "stat" } else { "lstat" }) {
+                Ok((_,st)) => Ok(Some(st)),
+                Err(e) if e.starts_with("ENOENT:") => Ok(None),
+                Err(e) => Err(e),
+            }
+        };
+        let list = |path: &str| {
+            admit(path)?;
+            self.list_dir(path).map_err(|e| format!("{}, readdir '{path}'", e.split_once(", ").map_or(e.as_str(),|(reason,_)| reason)))
+        };
+        let missing = |path: &str| format!("ENOENT: no such file or directory, lstat '{path}'");
+        let root = inspect(source,false)?.ok_or_else(|| missing(source))?;
+        let existing = inspect(target,false)?;
+        let into_self = || format!("EINVAL: cannot move a directory into itself '{target}'");
+        let same = |st: &FileStat| st.kind == Directory && root.identity.is_some() && st.identity == root.identity;
+        if is_path_within(source,target) { return Err(into_self()); }
+        let mut parent = dirname_posix_path(target);
+        loop {
+            let mut st = inspect(&parent,false)?;
+            if st.as_ref().is_some_and(|s| s.kind == Symlink) { st = inspect(&parent,true)?; }
+            if let Some(st) = st {
+                if same(&st) { return Err(into_self()); }
+                admit(&parent)?; // realpath
+                if let Ok(mut canonical) = self.access_path(&parent,true) {
+                    if is_path_within(source,&canonical) { return Err(into_self()); }
+                    loop {
+                        if inspect(&canonical,true)?.as_ref().is_some_and(same) { return Err(into_self()); }
+                        if canonical == "/" { break; }
+                        canonical = dirname_posix_path(&canonical);
+                    }
+                }
+            }
+            if parent == "/" { break; }
+            parent = dirname_posix_path(&parent);
+        }
+        let mut pending = vec![(source.to_owned(),target.to_owned())];
+        let mut root_stats = Some((root,existing));
+        while let Some((from,to)) = pending.pop() {
+            let (st,existing) = match root_stats.take() {
+                Some(pair) => pair,
+                None => (inspect(&from,false)?.ok_or_else(|| missing(&from))?, inspect(&to,false)?),
+            };
+            if let Some(other) = existing {
+                if st.identity.is_some() && st.identity == other.identity {
+                    return Err(format!("EINVAL: move source and destination are aliases '{from}' -> '{to}'"));
+                }
+                if (st.kind == Directory) != (other.kind == Directory) {
+                    let reason = if st.kind == Directory { "ENOTDIR: not a directory" } else { "EISDIR: illegal operation on a directory" };
+                    return Err(format!("{reason} '{to}'"));
+                }
+                if st.kind == Directory && !list(&to)?.is_empty() { return Err(format!("ENOTEMPTY: directory not empty '{to}'")); }
+            }
+            if st.kind == Symlink { admit(&from)?; self.readlink(&from)?; }
+            let dir = dirname_posix_path(&from);
+            inspect(&dir,true)?.ok_or_else(|| missing(&dir))?;
+            if st.kind == Directory {
+                let mut names = list(&from)?;
+                names.sort_unstable_by(|a,b| a.encode_utf16().cmp(b.encode_utf16()));
+                for name in names.into_iter().rev() {
+                    pending.push((format!("{from}/{name}"), format!("{to}/{name}")));
+                }
+            }
+        }
+        Ok(())
+    }
+
 }
 
 impl SafeBashFs for MountVfs {
@@ -225,6 +305,9 @@ impl SafeBashFs for MountVfs {
         let (dst_mount, dst, dst_path) = self.location(&to);
         let Some(src) = src.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, removeEntryConditional '{source}'")); };
         let Some(dst) = dst.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, mv '{destination}'")); };
+        if src.lstat(&src_path)?.kind == super::VfsEntryKind::Directory {
+            self.inspect_directory_move(source,destination,budget)?;
+        }
         src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), budget)
     }
 

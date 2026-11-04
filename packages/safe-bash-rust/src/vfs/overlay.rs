@@ -52,6 +52,27 @@ impl super::FileReadHandle for OverlayDirectoryRead {
 }
 
 impl OverlayVfs {
+    fn staged_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'static>, String> {
+        match self.stat(entry) {
+            Ok(st) if st.kind == VfsEntryKind::Directory => return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'")),
+            Err(e) if e.starts_with("ENOENT:") => {
+                if self.stat(&super::dirname_posix_path(entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+            }
+            Err(e) => return Err(e),
+            _ => {}
+        }
+        let stage = self.upper.scratch_file("/")?;
+        let path = path.to_owned();
+        let fs = self.clone();
+        Ok(Box::new(move |chunk| match chunk {
+            Some(bytes) => stage.write_at(None, bytes),
+            None => if exclusive { fs.create_file(&path, &stage.read_at(0, usize::MAX)?, mode) }
+                else { fs.write_command_path(&path, &stage.read_at(0, usize::MAX)?, append, mode) }.map_err(|e| {
+                if e.contains(", ") { e } else { format!("{e}, overlay '{path}'") }
+            }),
+        }))
+    }
+
     fn read_source(&self, path: &str) -> Result<(&dyn SafeBashFs, String), String> {
         let norm = self.access_path(path, true)?;
         let (fs, st) = if let Ok(st) = self.upper.lstat(&norm) {
@@ -353,23 +374,15 @@ impl SafeBashFs for OverlayVfs {
 
     fn overlay_backend(&self) -> Option<&Self> { Some(self) }
     fn start_command_stream(&self, path: &str, entry: &str, append: bool, exclusive: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
-        match self.stat(entry) {
-            Ok(st) if st.kind == VfsEntryKind::Directory => return Err(format!("EISDIR: illegal operation on a directory, overlay '{entry}'")),
-            Err(e) if e.starts_with("ENOENT:") => {
-                if self.stat(&super::dirname_posix_path(entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
-            }
-            Err(e) => return Err(e),
-            _ => {}
+        self.staged_stream(path, entry, append, exclusive, mode)
+    }
+
+    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+        if self.lower.memory_backend().is_none() || self.upper.memory_backend().is_none() {
+            return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
         }
-        let stage = self.upper.scratch_file("/")?;
-        let path = path.to_owned();
-        Ok(Box::new(move |chunk| match chunk {
-            Some(bytes) => stage.write_at(None, bytes),
-            None => if exclusive { self.create_file(&path, &stage.read_at(0, usize::MAX)?, mode) }
-                else { self.write_command_path(&path, &stage.read_at(0, usize::MAX)?, append, mode) }.map_err(|e| {
-                if e.contains(", ") { e } else { format!("{e}, overlay '{path}'") }
-            }),
-        }))
+        if self.lstat(path).is_ok() { return Err("EEXIST: file already exists".into()); }
+        self.staged_stream(path, path, false, true, mode).map(Some)
     }
 
     fn open_redirect_file(&self, path: &str, access: super::RedirectAccess, mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn super::OpenRedirectFile>>, String> {

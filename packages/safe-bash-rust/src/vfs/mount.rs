@@ -86,6 +86,14 @@ impl SafeBashFs for MountVfs {
         fs.supports_command_descriptor(&local)
     }
 
+    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+        if path == "/" || self.mounts.contains_key(path) {
+            return Err(format!("EBUSY: resource busy or locked, open '{path}'"));
+        }
+        let (fs, local) = self.route(path, false)?;
+        fs.open_exclusive_redirect(&local, mode)
+    }
+
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         let exclusive = access == super::RedirectAccess::Exclusive;
         if exclusive && (path == "/" || self.mounts.contains_key(path)) {

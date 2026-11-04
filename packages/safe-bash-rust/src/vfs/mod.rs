@@ -236,6 +236,11 @@ pub trait SafeBashFs: Send + Sync {
     /// Whether commands can request positioned descriptors at a resolved entry.
     fn supports_command_descriptor(&self, _entry: &str) -> bool { false }
 
+    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+        self.open_redirect_file(path, RedirectAccess::Exclusive, Some(mode))?;
+        Ok(None)
+    }
+
     /// None uses the filesystem’s path-based output or special-device operations.
     fn open_redirect_file(&self, path: &str, access: RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn OpenRedirectFile>>, String> {
         if matches!(access, RedirectAccess::ReadWrite | RedirectAccess::Write) { Err(format!("ENOTSUP: operation not supported, open '{path}'")) }

@@ -12263,3 +12263,39 @@ test("jq admits a single memory file when its JSON input is first requested", as
     } finally { sh.dispose(); }
   }
 });
+
+test("overlay noclobber publishes on last close and preserves a competing writer", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs"});
+  try {
+    const dup = await sh.exec("set -C; exec 3>/dup 4>&3; exec 3>&-; printf abc >&4; test -e /dup; echo $?; exec 4>&-; cat /dup");
+    assert.deepEqual([dup.exitCode,dup.stdout,dup.stderr],[0,"1\nabc",""]);
+    const race = await sh.exec("set -C; cat >/race", {stdin:{async *[Symbol.asyncIterator]() {
+      yield Buffer.from("abc");
+      await sh.fs.writeFile("/race",Buffer.from("RIVAL"));
+      yield Buffer.from("z");
+    }}});
+    assert.deepEqual([race.exitCode,race.stderr,sh.readText("/race")],[1,"shell: line 1: EEXIST: file already exists, overlay '/race'\n","RIVAL"]);
+    await assert.rejects(sh.exec("set -C; cat >/abort",{stdin:"abcd",limits:{maxOutputBytes:3}}),{limit:"maxOutputBytes"});
+    await assert.rejects(sh.fs.stat("/abort"),{code:"ENOENT"});
+    assert.equal((await sh.exec("set -C; false >/empty")).exitCode,1);
+    assert.equal(sh.readText("/empty"),"");
+    assert.equal((await sh.exec("set -C; echo a >/first >/missing/out")).exitCode,1);
+    await assert.rejects(sh.fs.stat("/first"),{code:"ENOENT"});
+  } finally { sh.dispose(); }
+});
+
+test("an exclusive exec descriptor reports a close conflict to its owning shell", async () => {
+  const sh = new RustWasmBash({profile:"overlay-cow-fs"});
+  try {
+    const open = "set -C; exec 3>/f; set +C; echo rival >/f; ";
+    for (const end of ["exit 7","exec 3>&-; echo late >/after"]) {
+      await sh.exec("rm -f /f");
+      await assert.rejects(sh.exec(open+end),{name:"FsError",code:"EEXIST",syscall:"overlay",path:"/f"});
+      assert.equal(sh.readText("/f"),"rival\n");
+      await assert.rejects(sh.fs.stat("/after"),{code:"ENOENT"});
+    }
+    await sh.exec("rm /f");
+    const sub = await sh.exec("("+open+"false); echo end");
+    assert.deepEqual([sub.exitCode,sub.stdout,sub.stderr],[0,"end\n","shell: line 1: EEXIST: file already exists, overlay '/f'\n"]);
+  } finally { sh.dispose(); }
+});

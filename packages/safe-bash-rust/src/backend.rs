@@ -135,6 +135,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.supports_command_descriptor(&host_text(entry))
     }
 
+    fn open_exclusive_redirect(&self, path: &str, mode: u32) -> Result<Option<crate::vfs::ChunkWriter<'static>>, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        let stream = self.inner.open_exclusive_redirect(&host_text(path), mode).map_err(quote_host_text)?;
+        Ok(stream.map(|mut write| Box::new(move |chunk: Option<&[u8]>| write(chunk).map_err(quote_host_text)) as crate::vfs::ChunkWriter<'static>))
+    }
+
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: Option<u32>) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
@@ -512,7 +519,7 @@ impl HybridBackend {
                     env: env.clone(),
                 }))
             }
-            Err(EvalError::Budget(msg)) => Some(Err(msg)),
+            Err(EvalError::Budget(msg) | EvalError::OutputClose(msg)) => Some(Err(msg)),
             Err(EvalError::UnportedCommand(_)) => None,
         }
     }

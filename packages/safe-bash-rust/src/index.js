@@ -867,6 +867,12 @@ class WasmShell {
     const cwd = decoder.decode(new Uint8Array(this.exports.memory.buffer, offset, cwdLen));
     this.state.cwd = cwd;
     if (exitCode === -124) {
+      const overlay = ", overlay '";
+      const at = stderr.indexOf(overlay);
+      if (at > 0 && stderr.endsWith("'") && stderr.startsWith("E")) {
+        const colon = stderr.indexOf(": ");
+        throw fsOperationError(stderr, "overlay", stderr.slice(at + overlay.length, -1), undefined, stderr.slice(colon + 2, at));
+      }
       const m = /Shell limit exceeded: (\w+)/.exec(stderr);
       if (m) {
         throw new this.ShellLimitError(m[1]);
@@ -893,7 +899,7 @@ class WasmShell {
       this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr, i.len);
       return this._execResult();
     } catch (err) {
-      if (i === undefined || err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
+      if (i === undefined || err?.[FS_ERROR_BRAND] || err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
         throw err;
       }
       const msg = err instanceof Error ? err.message : String(err);

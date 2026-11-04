@@ -32,6 +32,7 @@ use std::rc::Rc;
 pub enum EvalError {
     Syntax(String),
     Budget(String),
+    OutputClose(String),
     UnportedCommand(String),
 }
 
@@ -94,6 +95,15 @@ impl PartialEq for StdinStream {
 }
 impl Eq for StdinStream {}
 
+pub struct ExclusiveOutput(RefCell<crate::vfs::ChunkWriter<'static>>);
+impl std::fmt::Debug for ExclusiveOutput {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str("ExclusiveOutput") }
+}
+impl PartialEq for ExclusiveOutput {
+    fn eq(&self, other: &Self) -> bool { std::ptr::eq(self, other) }
+}
+impl Eq for ExclusiveOutput {}
+
 // The pathname output adapter shares its last written contents across opens of
 // the same name. Each independent open retains its own position.
 #[derive(Debug, PartialEq, Eq)]
@@ -136,6 +146,7 @@ pub enum FdTarget {
     SavedStdout { data: Rc<RefCell<String>>, pipe_peer_retired: Option<bool> },
     Stderr,
     SavedStderr(Rc<RefCell<String>>),
+    Exclusive { path: String, output: Rc<ExclusiveOutput> },
     File { path: String, file: Option<Rc<dyn crate::vfs::OpenRedirectFile>>, offset: Option<Rc<Cell<usize>>>, image: Option<Rc<PathOutput>> },
     InputFile {
         writable: bool,
@@ -204,6 +215,14 @@ impl FdWriter<'_> {
             }
             FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
                 let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
+            }
+            FdTarget::Exclusive { path, output } => {
+                let bytes = stream_string_to_bytes(data);
+                if let Err(e) = self.budget.add_output_bytes(bytes.len() - charged)
+                    .and_then(|_| output.0.borrow_mut()(Some(&bytes))) {
+                    out.stderr.push_str(&format!("{path}: {e}\n"));
+                    out.exit_code = 1;
+                }
             }
             FdTarget::File { path, file, offset, image } => {
                 let null = !self.provided_devices && path == "/dev/null";
@@ -280,6 +299,9 @@ pub struct EvalState<'a> {
     pub current_line: usize,
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
+    // An output remains private while its command runs or a descriptor still refers to it.
+    exclusive_outputs: Vec<(usize, Rc<ExclusiveOutput>)>,
+    stage_depth: usize,
     path_outputs: Rc<RefCell<Vec<std::rc::Weak<PathOutput>>>>,
     pub in_fds: BTreeMap<u32, InputCursor>,
     pub in_fd_aliases: BTreeMap<u32, u32>,
@@ -390,6 +412,8 @@ impl<'a> EvalState<'a> {
             current_line: 1,
             local_scopes: Vec::new(),
             fd_table,
+            exclusive_outputs: Vec::new(),
+            stage_depth: 0,
             path_outputs: Rc::default(),
             in_fds: BTreeMap::new(),
             in_fd_aliases: BTreeMap::new(),
@@ -542,6 +566,8 @@ impl<'a> EvalState<'a> {
             current_line: self.current_line,
             local_scopes: Vec::new(),
             fd_table: self.fd_table.clone(),
+            exclusive_outputs: Vec::new(),
+            stage_depth: 0,
             path_outputs: self.path_outputs.clone(),
             in_fds: self.in_fds.clone(),
             in_fd_aliases: self.in_fd_aliases.clone(),
@@ -655,7 +681,7 @@ impl<'a> EvalState<'a> {
                     | FdTarget::PipeStdout { .. }
                     | FdTarget::SavedStdout { .. }
                     | FdTarget::Stderr | FdTarget::SavedStderr(_)
-                    | FdTarget::File { .. }
+                    | FdTarget::File { .. } | FdTarget::Exclusive { .. }
                     | FdTarget::InputFile { writable: true, .. }
             )
         )
@@ -758,6 +784,7 @@ impl<'a> EvalState<'a> {
             out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
             self.last_exit = out.exit_code;
             self.run_exit_trap_if_needed(&mut out);
+            self.close_shell_outputs(&mut out)?;
             let final_code = out.exit_code;
             Ok(CommandResult {
                 stdout: out.stdout,
@@ -1259,6 +1286,7 @@ impl<'a> EvalState<'a> {
                             o.exit_code = code;
                         }
                         sub.run_exit_trap_if_needed(&mut o);
+                        sub.close_child_outputs(&mut o);
                         o
                     }
                     Err(EvalError::Syntax(msg)) => BuiltinOutcome {
@@ -1660,6 +1688,7 @@ impl<'a> EvalState<'a> {
                 stage_out.exit_code = code;
             }
             sub.run_exit_trap_if_needed(&mut stage_out);
+            sub.close_child_outputs(&mut stage_out);
             if !is_last {
                 // The next stage consumes stdout. Only stderr flows out of the pipeline.
                 let (stdout, stderr) = self.forwarded_output.get();
@@ -1724,6 +1753,44 @@ impl<'a> EvalState<'a> {
         Ok((stdout, stderr))
     }
 
+    fn finish_exclusive_outputs(&mut self, out: &mut BuiltinOutcome) -> Result<(), EvalError> {
+        if self.exclusive_outputs.is_empty() { return Ok(()); }
+        let mut failure = None;
+        let prefix = self.diag_prefix();
+        let cancelled = self.budget.check_cancelled().is_err();
+        self.exclusive_outputs.retain_mut(|(depth, output)| {
+            if *depth != 0 && *depth < self.stage_depth { return true; }
+            let persistent = *depth == 0;
+            if Rc::strong_count(output) > 1 { *depth = 0; return true; }
+            if !cancelled && let Err(e) = output.0.borrow_mut()(None) {
+                if persistent {
+                    failure.get_or_insert(EvalError::OutputClose(e));
+                } else if out.exit_code == 0 {
+                    out.stderr.push_str(&format!("{prefix}{e}\n"));
+                    out.exit_code = 1;
+                }
+            }
+            false
+        });
+        failure.map_or(Ok(()), Err)
+    }
+
+    fn close_shell_outputs(&mut self, out: &mut BuiltinOutcome) -> Result<(), EvalError> {
+        if !self.exclusive_outputs.is_empty() {
+            self.fd_table.retain(|_, fd| !matches!(fd, FdTarget::Exclusive { .. }));
+            return self.finish_exclusive_outputs(out);
+        }
+        Ok(())
+    }
+
+    fn close_child_outputs(&mut self, out: &mut BuiltinOutcome) {
+        if let Err(EvalError::OutputClose(e)) = self.close_shell_outputs(out) {
+            out.stderr.push_str(&format!("{}{e}\n", self.diag_prefix()));
+            out.exit_code = 1;
+            if self.exit_requested.is_some() { self.exit_requested = Some(1); }
+        }
+    }
+
     fn eval_pipeline_stage(
         &mut self,
         node: &CommandNode,
@@ -1753,7 +1820,10 @@ impl<'a> EvalState<'a> {
                 *dest = FdTarget::SavedStdout { data: Rc::clone(stdout.get_or_insert_with(Rc::default)), pipe_peer_retired };
             }
         }
-        let res = self.eval_command_node(node, stdin, standalone);
+        self.stage_depth += 1;
+        let mut res = self.eval_command_node(node, stdin, standalone);
+        if let Ok(out) = &mut res && let Err(e) = self.finish_exclusive_outputs(out) { res = Err(e); }
+        self.stage_depth -= 1;
         if stdout.is_some() || stderr.is_some() {
             for dest in self.fd_table.values_mut() {
                 match dest {
@@ -1883,6 +1953,7 @@ impl<'a> EvalState<'a> {
                     out.exit_code = code;
                 }
                 sub.run_exit_trap_if_needed(&mut out);
+                sub.close_child_outputs(&mut out);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.entry(dfd).or_default().replace(local_stdin);
                 }
@@ -5187,6 +5258,8 @@ impl<'a> EvalState<'a> {
                     current_line: 1,
                     local_scopes: Vec::new(),
                     fd_table,
+                    exclusive_outputs: Vec::new(),
+                    stage_depth: 0,
                     path_outputs: self.path_outputs.clone(),
                     in_fds: inherited_inputs.clone(),
                     in_fd_aliases: inherited_aliases.clone(),
@@ -5309,6 +5382,7 @@ impl<'a> EvalState<'a> {
                     let (a, b) = sub_eval.forwarded_output.get();
                     sub_eval.forwarded_output.set((outer_out + a, outer_err + b));
                 }
+                sub_eval.close_child_outputs(&mut out);
                 out.stdout.insert_str(0, &prefix.stdout);
                 out.stderr.insert_str(0, &prefix.stderr);
                 Ok(out)
@@ -6185,6 +6259,7 @@ impl<'a> EvalState<'a> {
                     out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
                     sub.last_exit = out.exit_code;
                     sub.run_exit_trap_if_needed(&mut out);
+                    sub.close_child_outputs(&mut out);
                     out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
                     Ok(out)
                 }
@@ -6198,12 +6273,14 @@ impl<'a> EvalState<'a> {
                     sub.last_exit = code;
                     sub.exit_requested = Some(code);
                     sub.run_exit_trap_if_needed(&mut out);
+                    sub.close_child_outputs(&mut out);
                     Ok(out)
                 }
                 Err(other) => Err(other),
             }
         } else {
-            let res = sub.eval_stdin_stream(stdin, &arg0, &self.diag_prefix());
+            let mut res = sub.eval_stdin_stream(stdin, &arg0, &self.diag_prefix());
+            if let Ok(out) = &mut res { sub.close_child_outputs(out); }
             self.budget.leave_substitution();
             res
         }
@@ -6674,6 +6751,7 @@ impl<'a> EvalState<'a> {
                 out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
                 sub.last_exit = out.exit_code;
                 sub.run_exit_trap_if_needed(&mut out);
+                sub.close_child_outputs(&mut out);
                 out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
                 Ok(out)
             }
@@ -8623,7 +8701,7 @@ impl<'a> EvalState<'a> {
             }
             if !self.is_fd_readable(fd_num) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path, .. }) if !self.is_default_null(path) => {
+                    Some(FdTarget::File { path, .. } | FdTarget::Exclusive { path, .. }) if !self.is_default_null(path) => {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
@@ -8684,7 +8762,7 @@ impl<'a> EvalState<'a> {
         if !self.is_fd_readable(fd_num) && nchars != Some(0) {
             if effective_timeout.is_some_and(|t| t > 0.0) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path, .. }) if !self.is_default_null(path) => {}
+                    Some(FdTarget::File { path, .. } | FdTarget::Exclusive { path, .. }) if !self.is_default_null(path) => {}
                     Some(FdTarget::PipeStdout { peer_retired } | FdTarget::SavedStdout { pipe_peer_retired: Some(peer_retired), .. }) => {
                         timed_out = !*peer_retired;
                     }
@@ -9496,7 +9574,7 @@ impl<'a> EvalState<'a> {
             }
             if let Err(err_msg) = this.assign_variable(&var_name, opt_val, false) {
                 let err_msg = match err_msg {
-                    EvalError::Syntax(m) | EvalError::Budget(m) | EvalError::UnportedCommand(m) => m,
+                    EvalError::Syntax(m) | EvalError::Budget(m) | EvalError::OutputClose(m) | EvalError::UnportedCommand(m) => m,
                 };
                 stderr.push_str(&format!("{err_msg}\n"));
                 return BuiltinOutcome {
@@ -9667,7 +9745,7 @@ impl<'a> EvalState<'a> {
         Ok((unread, description))
     }
 
-    fn open_output_target(&self, operand: &str, kind: &RedirectKind) -> Result<FdTarget, BuiltinOutcome> {
+    fn open_output_target(&self, operand: &str, kind: &RedirectKind, opened: &mut Vec<(usize, Rc<ExclusiveOutput>)>) -> Result<FdTarget, BuiltinOutcome> {
         use crate::vfs::RedirectAccess;
         let append = matches!(kind, RedirectKind::Append(_) | RedirectKind::BothAppend);
         let exclusive = self.noclobber && !append && !matches!(kind, RedirectKind::Clobber(_));
@@ -9696,7 +9774,11 @@ impl<'a> EvalState<'a> {
                 let entry = self.fs.access_path(&raw, !exclusive)?;
                 self.fs.command_descriptor_op()?;
                 if exclusive {
-                    self.fs.open_redirect_file(&entry, access, Some(mode))?;
+                    if let Some(stream) = self.fs.open_exclusive_redirect(&entry, mode)? {
+                        let output = Rc::new(ExclusiveOutput(RefCell::new(stream)));
+                        opened.push((self.stage_depth, output.clone()));
+                        return Ok(FdTarget::Exclusive { path: entry, output });
+                    }
                 } else {
                     self.fs.command_descriptor_op()?;
                     if self.fs.lstat(&entry).is_ok_and(|st| st.mode & 0o200 == 0) {
@@ -9851,6 +9933,7 @@ impl<'a> EvalState<'a> {
                 self.pending_stderr.push_str(&dummy.stderr);
             }
         }
+        let mut exclusive_outputs = Vec::new();
         let mut saved_fd_table: Vec<(u32, Option<FdTarget>)> = Vec::new();
         let mut saved_aliases: Vec<(u32, Option<u32>)> = Vec::new();
         let mut saved_in: Vec<(u32, Option<InputCursor>)> = Vec::new();
@@ -10077,7 +10160,7 @@ impl<'a> EvalState<'a> {
                         let is_digits = !src_str.is_empty()
                             && src_str.chars().all(|c| c.is_ascii_digit());
                         if !is_digits && matches!(r.kind, RedirectKind::DupOut { origin: DupOrigin::Default, .. }) {
-                            let opened = match self.open_output_target(&target, &r.kind) {
+                            let opened = match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
                                 Ok(opened) => opened,
                                 Err(mut err_out) => {
                                     self.route_outcome(&mut err_out);
@@ -10294,7 +10377,7 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let opened = match self.open_output_target(&target, &r.kind) {
+                    let opened = match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
                         Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
@@ -10332,7 +10415,7 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
-                    let opened = match self.open_output_target(&target, &r.kind) {
+                    let opened = match self.open_output_target(&target, &r.kind, &mut exclusive_outputs) {
                         Ok(opened) => opened,
                         Err(mut err_out) => {
                             self.route_outcome(&mut err_out);
@@ -10348,6 +10431,7 @@ impl<'a> EvalState<'a> {
             }
         }
 
+        self.exclusive_outputs.extend(exclusive_outputs);
         Ok((
             (saved_fd_table, saved_aliases),
             saved_in,
@@ -12149,6 +12233,7 @@ impl<'a> EvalState<'a> {
             out.exit_code = code;
         }
         sub.run_exit_trap_if_needed(&mut out);
+        sub.close_child_outputs(&mut out);
         sub.account_forwarded_output(&out.stdout, &out.stderr, sub.forwarded_output.take())?;
         if let Some(saved) = saved_stdout {
             let data = saved.take();

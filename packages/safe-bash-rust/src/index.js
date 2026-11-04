@@ -84,6 +84,106 @@ export class ShellLimitError extends Error {
   }
 }
 
+// JSPI preserves the Wasm VM stack. Rust also keeps addressable locals in
+// linear memory. Save that range while awaiting input so another shell can run.
+const streamHosts = new WeakMap();
+let streamAdapter;
+function streamHost(x) {
+  let host = streamHosts.get(x);
+  if (host) return host;
+  // next(id,p,n): call read(id) [may suspend]; return resume(id,p,n).
+  // The synchronous resume import runs on the resumed VM stack, before Rust
+  // can access a local. Restoring in a promise handler races concurrent reads.
+  streamAdapter ??= new WebAssembly.Module(Uint8Array.of(
+    0,97,115,109,1,0,0,0,1,12,2,96,1,127,0,96,3,127,127,127,1,127,
+    2,19,2,0,4,114,101,97,100,0,0,0,6,114,101,115,117,109,101,0,1,
+    3,2,1,1,7,8,1,4,110,101,120,116,0,2,10,16,1,14,0,32,0,16,0,32,0,32,1,32,2,16,1,11,
+  ));
+  const jobs = new Map(), table = x.__indirect_function_table;
+  const next = new WebAssembly.Instance(streamAdapter, { "": {
+    read: new WebAssembly.Suspending(async id => {
+      const job = jobs.get(id);
+      job.sp = x.__stack_pointer.value;
+      job.stack = new Uint8Array(x.memory.buffer.slice(job.sp, job.top));
+      x.__stack_pointer.value = job.top;
+      try {
+        job.signal?.throwIfAborted();
+        const read = job.iterator.next();
+        const result = await (job.signal ? untilAbort(read, job.signal) : read);
+        job.done = Boolean(result.done);
+        if (!job.done) {
+          let bytes = result.value;
+          if (!(bytes instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
+          // Allocating the transfer buffer can grow and detach Wasm memory.
+          if (bytes.buffer === x.memory.buffer) bytes = new Uint8Array(bytes);
+          job.data = job.shell._allocBytes(bytes);
+        }
+        job.status = job.done ? 0 : 1;
+      } catch {
+        job.status = -1;
+        job.data = job.shell._allocBytes(encoder.encode("internal error"));
+      }
+    }),
+    resume(id,p,n) {
+      const job = jobs.get(id);
+      new Uint8Array(x.memory.buffer, job.sp, job.stack.length).set(job.stack);
+      x.__stack_pointer.value = job.sp;
+      job.stack = undefined;
+      if (job.signal?.aborted) return -2;
+      if (job.data) {
+        const v = new DataView(x.memory.buffer);
+        v.setUint32(p,job.data.ptr,true); v.setUint32(n,job.data.len,true);
+        job.data = undefined; // Rust now owns this allocation.
+      }
+      return job.status;
+    },
+  }}).exports.next;
+  const slot = table.grow(1);
+  table.set(slot,next);
+  host = { jobs, slot, exec:WebAssembly.promising(x.safe_bash_exec_stream) };
+  streamHosts.set(x,host);
+  return host;
+}
+
+async function untilAbort(pending, signal) {
+  let onAbort;
+  const aborted = new Promise((_,reject) => {
+    onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort",onAbort,{once:true});
+    if (signal.aborted) onAbort();
+  });
+  try { return await Promise.race([pending,aborted]); }
+  finally { signal.removeEventListener("abort",onAbort); }
+}
+
+async function execAsyncStdin(shell, script, source, signal) {
+  // Start on an idle linear stack, including for calls from a reentrant host callback.
+  await Promise.resolve();
+  signal?.throwIfAborted();
+  const x = shell.exports, id = shell.sessionId, host = streamHost(x);
+  const iterator = source[Symbol.asyncIterator]();
+  const job = {shell,iterator,signal,top:x.__stack_pointer.value};
+  const code = shell._allocBytes(encoder.encode(script));
+  host.jobs.set(id,job);
+  try {
+    await host.exec(id,code.ptr,code.len,host.slot);
+    signal?.throwIfAborted();
+    return shell._execResult();
+  } finally {
+    host.jobs.delete(id);
+    shell._freeBytes(code);
+    if (job.data) shell._freeBytes(job.data);
+    if (!job.done && iterator.return) {
+      const closed = Promise.resolve().then(()=>iterator.return());
+      if (signal?.aborted) closed.catch(()=>{});
+      else {
+        try { await (signal ? untilAbort(closed,signal) : closed); }
+        catch (error) { if (signal?.aborted || job.status !== -1) throw error; }
+      }
+    }
+  }
+}
+
 async function collectAsyncStdin(source, signal) {
   const iterator = source[Symbol.asyncIterator]();
   let bytes = new Uint8Array(0), length = 0;
@@ -105,22 +205,13 @@ async function collectAsyncStdin(source, signal) {
       length = end;
     }
   }
-  let onAbort;
   try {
-    if (!signal) return await read();
-    const interrupted = new Promise((_, reject) => {
-      onAbort = () => reject(signal.reason);
-      signal.addEventListener("abort", onAbort, { once: true });
-      if (signal.aborted) onAbort();
-    });
-    return await Promise.race([read(), interrupted]);
+    return signal ? await untilAbort(read(), signal) : await read();
   } catch (error) {
     bytes = new Uint8Array(0);
     const closed = Promise.resolve().then(() => iterator.return?.()).catch(() => {});
     if (!signal?.aborted) await closed;
     throw error;
-  } finally {
-    if (onAbort) signal.removeEventListener("abort", onAbort);
   }
 }
 
@@ -746,6 +837,53 @@ class WasmShell {
     return JSON.parse(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), n)));
   }
 
+  _execResult() {
+    const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
+    const outLen = this.exports.safe_bash_output_len(this.sessionId);
+    if (outLen < 16) {
+      const empty = new Uint8Array(0);
+      return {
+        stdout: "",
+        stderr: "",
+        stdoutBytes: empty,
+        stderrBytes: empty,
+        exitCode: 1,
+        cwd: this.state.cwd,
+        env: this.state.env,
+      };
+    }
+    const view = new DataView(this.exports.memory.buffer, outPtr, outLen);
+    const exitCode = view.getInt32(0, true);
+    const stdoutLen = view.getUint32(4, true);
+    const stderrLen = view.getUint32(8, true);
+    const cwdLen = view.getUint32(12, true);
+    let offset = outPtr + 16;
+    const stdoutBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stdoutLen));
+    const stdout = decoder.decode(stdoutBytes);
+    offset += stdoutLen;
+    const stderrBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stderrLen));
+    const stderr = decoder.decode(stderrBytes);
+    offset += stderrLen;
+    const cwd = decoder.decode(new Uint8Array(this.exports.memory.buffer, offset, cwdLen));
+    this.state.cwd = cwd;
+    if (exitCode === -124) {
+      const m = /Shell limit exceeded: (\w+)/.exec(stderr);
+      if (m) {
+        throw new this.ShellLimitError(m[1]);
+      }
+      throw new Error(stderr.trim() || "Execution aborted");
+    }
+    return {
+      stdout,
+      stderr,
+      stdoutBytes,
+      stderrBytes,
+      exitCode,
+      cwd,
+      env: this.state.env,
+    };
+  }
+
   execSync(script, stdin = "") {
     if (!this.sessionId) throw new Error("Shell session is disposed");
     const s = this._allocBytes(encoder.encode(script));
@@ -753,50 +891,7 @@ class WasmShell {
     try {
       i = this._allocBytes(typeof stdin === "string" ? encoder.encode(stdin) : stdin);
       this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr, i.len);
-      const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
-      const outLen = this.exports.safe_bash_output_len(this.sessionId);
-      if (outLen < 16) {
-        const empty = new Uint8Array(0);
-        return {
-          stdout: "",
-          stderr: "",
-          stdoutBytes: empty,
-          stderrBytes: empty,
-          exitCode: 1,
-          cwd: this.state.cwd,
-          env: this.state.env,
-        };
-      }
-      const view = new DataView(this.exports.memory.buffer, outPtr, outLen);
-      const exitCode = view.getInt32(0, true);
-      const stdoutLen = view.getUint32(4, true);
-      const stderrLen = view.getUint32(8, true);
-      const cwdLen = view.getUint32(12, true);
-      let offset = outPtr + 16;
-      const stdoutBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stdoutLen));
-      const stdout = decoder.decode(stdoutBytes);
-      offset += stdoutLen;
-      const stderrBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stderrLen));
-      const stderr = decoder.decode(stderrBytes);
-      offset += stderrLen;
-      const cwd = decoder.decode(new Uint8Array(this.exports.memory.buffer, offset, cwdLen));
-      this.state.cwd = cwd;
-      if (exitCode === -124) {
-        const m = /Shell limit exceeded: (\w+)/.exec(stderr);
-        if (m) {
-          throw new this.ShellLimitError(m[1]);
-        }
-        throw new Error(stderr.trim() || "Execution aborted");
-      }
-      return {
-        stdout,
-        stderr,
-        stdoutBytes,
-        stderrBytes,
-        exitCode,
-        cwd,
-        env: this.state.env,
-      };
+      return this._execResult();
     } catch (err) {
       if (i === undefined || err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
         throw err;
@@ -1304,11 +1399,16 @@ export class RustWasmBash extends WasmShell {
         if (html !== undefined) shell._setBinding("\0limit_html_to_markdown_max_input_bytes", String(html));
       }
       let stdinData = options.stdin ?? "";
-      if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
-        stdinData = await collectAsyncStdin(stdinData, options.signal);
-        options.signal?.throwIfAborted();
+      const asyncInput = stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData;
+      if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {
+        res = await execAsyncStdin(shell,script,stdinData,options.signal);
+      } else {
+        if (asyncInput) {
+          stdinData = await collectAsyncStdin(stdinData, options.signal);
+          options.signal?.throwIfAborted();
+        }
+        res = shell.execSync(script, stdinData);
       }
-      res = shell.execSync(script, stdinData);
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {

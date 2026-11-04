@@ -615,6 +615,41 @@ test("a rejected beforeExec hook leaves stdin untouched", async () => {
   } finally { bash.dispose(); }
 });
 
+test("async Rust commands pull stdin on demand and resume independently", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    const events = [];
+    const unused = { [Symbol.asyncIterator]() { events.push("open"); return {
+      next() { events.push("read"); return {done:true}; }, return() { events.push("close"); },
+    }; } };
+    assert.equal((await bash.exec("echo ok",{stdin:unused})).stdout, "ok\n");
+    assert.deepEqual(events, ["open","close"]);
+    for (const order of [[0,1],[1,0]]) {
+      const entered = order.map(()=>Promise.withResolvers()), gates = order.map(()=>Promise.withResolvers());
+      const jobs = gates.map((gate,i)=>bash.exec(`echo ready > /flag${i}; sleep ${i+1}; { head -c1 <&3; head -c1; } 3<&0; echo :$SECONDS`,{
+        stdin:{async *[Symbol.asyncIterator]() {
+          entered[i].resolve(); await gate.promise;
+          yield Uint8Array.of(65+i,97+i); throw Error("unexpected extra pull");
+        }},
+      }));
+      await Promise.all(entered.map(e=>e.promise));
+      assert.equal(bash.execSync("cat /flag0 /flag1").stdout,"ready\nready\n");
+      bash.exports.memory.grow(1);
+      for (const i of order) gates[i].resolve();
+      for (const [i,r] of (await Promise.all(jobs)).entries()) {
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0, i===0 ? "Aa:1\n" : "Bb:2\n",""]);
+      }
+    }
+    const failed = await bash.exec("cat; echo rest",{stdin:{async *[Symbol.asyncIterator](){yield Uint8Array.of(120);throw Error("private");}}});
+    assert.deepEqual([failed.stdout,failed.stderr],["xrest\n","cat: internal error\n"]);
+    const malformed = {[Symbol.asyncIterator](){ return {
+      next(){return {value:"text"};}, return(){throw Error("cleanup after read failure");},
+    };}};
+    const invalid = await bash.exec("cat",{stdin:malformed});
+    assert.deepEqual([invalid.exitCode,invalid.stderr],[1,"cat: internal error\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("Wasm host stdin pulls after earlier writes, preserves chunks and shares fd offsets", () => {
   const bash = new RustWasmBash();
   const x = bash.exports, root = bash.sessionId;

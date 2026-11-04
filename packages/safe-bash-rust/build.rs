@@ -3,5 +3,6 @@ fn main() {
         // Let a host install a typed stdin callback without adding a required import.
         println!("cargo::rustc-link-arg-cdylib=--export-table");
         println!("cargo::rustc-link-arg-cdylib=--growable-table");
+        println!("cargo::rustc-link-arg-cdylib=--export=__stack_pointer");
     }
 }

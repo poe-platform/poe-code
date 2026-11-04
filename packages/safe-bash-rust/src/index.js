@@ -297,6 +297,16 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               return kind;
             } finally { bash._freeBytes(p); }
           };
+          const stageControls = settings => {
+            const opts = {...settings};
+            opts.signal = opts.signal && opts.signal !== signal ? AbortSignal.any([signal,opts.signal]) : signal;
+            return opts;
+          };
+          const stageEntry = ({path,stat}) => {
+            validatePath(path,maxComponents);
+            return {path,stat:{...stat}};
+          };
+          const stageReceipt = receipt => ({parent:stageEntry(receipt.parent),directory:stageEntry(receipt.directory),file:stageEntry(receipt.file)});
           const commandFs = {
             capabilities,
             async capabilitiesFor(path, settings) {
@@ -340,7 +350,8 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             async createStagedFile(directory, name, content, settings) {
               admitPath(directory, settings);
               validatePath(directory + "/" + name, maxComponents);
-              const receipt = await fs.createStagedFile(directory, name, content, settings);
+              const controls = stageControls(settings);
+              const receipt = await fs.createStagedFile(directory, name, content, controls);
               (stages ??= new Set()).add(receipt);
               if (!receipt.cleanup) return receipt;
               let removal;
@@ -362,27 +373,27 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 write: async (data,settings) => {
                   if (busy) await busy;
                   admitPath(receipt.file.path,settings);
-                  await receipt.writer.write(data,settings);
+                  await receipt.writer.write(data,stageControls(settings));
                 },
                 finish: async settings => {
                   if (busy) await busy;
                   admitPath(receipt.file.path,settings);
-                  return receipt.writer.finish(settings);
+                  return receipt.writer.finish(stageControls(settings));
                 },
               });
               return Object.freeze({...receipt,cleanup,...(writer && {writer})});
             },
             async publishStagedFile(receipt, path, settings) {
               admitPath(path, settings);
-              for (const key of ["parent","directory","file"]) validatePath(receipt[key].path, maxComponents);
-              for (const entry of settings.ancestors ?? []) validatePath(entry.path, maxComponents);
-              return fs.publishStagedFile(receipt, path, settings);
+              const controls = stageControls(settings);
+              if (controls.ancestors !== undefined) controls.ancestors = Array.from(controls.ancestors,stageEntry);
+              return fs.publishStagedFile(stageReceipt(receipt), path, controls);
             },
             async removeStagedFile(receipt, settings) {
-              admitPath(receipt.directory.path, settings);
-              validatePath(receipt.parent.path, maxComponents);
-              validatePath(receipt.file.path, maxComponents);
-              await fs.removeStagedFile(receipt, settings);
+              check();
+              const snapshot = stageReceipt(receipt), controls = stageControls(settings);
+              admitPath(snapshot.directory.path,controls);
+              await fs.removeStagedFile(snapshot, controls);
               stages?.delete(receipt);
             },
             async writeFileConditional(path, data, settings) {

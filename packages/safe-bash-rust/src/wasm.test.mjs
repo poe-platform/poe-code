@@ -2160,6 +2160,32 @@ test("aborting plugin staging cleans only the original unchanged entries",{skip:
   }
 });
 
+test("plugin staging validates the exact paths and command signal used for the mutation",{skip:!WebAssembly.Suspending},async()=>{
+  const sh=new RustWasmBash({cwd:"/",directories:["/one/two/three"]}), fs=sh.fs;
+  const ctrl=new AbortController(), reason=new Error("stop");
+  const root=await fs.lstat("/");
+  const make=(dir,parent)=>fs.createStagedFile(dir,"file",{type:"file",data:Uint8Array.of(1)},{parent});
+  const deep=await make("/one/two/three/.stage",await fs.lstat("/one/two/three"));
+  const stage=await make("/.stage",root);
+  let removed=false;
+  sh.register({name:"probe",async execute(ctx){
+    // A receipt getter must not be validated against one name then used with another.
+    const receipt=Object.fromEntries(["parent","directory","file"].map(key=>{
+      let reads=0;
+      return [key,{stat:deep[key].stat,get path(){return ++reads===1 ? stage[key].path : deep[key].path;}}];
+    }));
+    try {await ctx.fs.removeStagedFile(receipt);removed=true;} catch {}
+    await ctx.fs.publishStagedFile(stage,"/out",{parent:root,get destination(){ctrl.abort(reason);return null;}});
+    return {exitCode:0};
+  }});
+  try{
+    await assert.rejects(sh.exec("probe",{signal:ctrl.signal,limits:{maxPathnameComponents:3}}),e=>e===reason);
+    assert.equal(removed,false);
+    assert.deepEqual(await fs.readFile(deep.file.path),Uint8Array.of(1));
+    await assert.rejects(fs.lstat("/out"),{code:"ENOENT"});
+  }finally{await sh.dispose();}
+});
+
 test("retained staging writers serialize appends and cleanup follows the original parent",async()=>{
   const sh=new RustWasmBash({cwd:"/",directories:["/parent"]}), fs=sh.fs;
   try{

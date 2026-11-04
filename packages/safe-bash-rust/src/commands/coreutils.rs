@@ -96,7 +96,7 @@ fn coreutil(
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
         "shuf" => cmd_shuf(args, input.buffered()?, cwd, env, fs),
         "split" => cmd_split(args, input.buffered()?, cwd, env, fs),
-        "dd" => cmd_dd(args, input.buffered()?, cwd, fs),
+        "dd" => cmd_dd(args, input, cwd, fs),
         "install" => cmd_install(args, cwd, env, fs),
         _ => return Ok(None),
     }))
@@ -17176,7 +17176,7 @@ fn parse_dd_number(text: &str, warnings: &mut Vec<String>) -> Result<usize, Stri
     Ok(product)
 }
 
-fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_dd(args: &[String], stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut in_file: Option<String> = None;
     let mut out_file: Option<String> = None;
     let mut bs_opt: Option<usize> = None;
@@ -17424,11 +17424,11 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     skip_bytes |= iflags.contains("skip_bytes");
     seek_bytes |= oflags.contains("seek_bytes");
 
+    let skip_offset = if skip_bytes { skip } else { skip.saturating_mul(ibs) };
     let raw_in: Vec<u8> = if let Some(ref inf) = in_file {
         if inf == "/dev/null" {
             Vec::new()
         } else if inf == "/dev/zero" {
-            let skip_len = if skip_bytes { skip } else { skip.saturating_mul(ibs) };
             let cnt_len = match count {
                 Some(c) => {
                     if count_bytes {
@@ -17439,7 +17439,7 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 }
                 None => 0,
             };
-            vec![0u8; skip_len.saturating_add(cnt_len).min(16 * 1024 * 1024)]
+            vec![0u8; skip_offset.saturating_add(cnt_len).min(16 * 1024 * 1024)]
         } else {
             let full = resolve_posix_path(cwd, inf);
             match fs.read_file(&full) {
@@ -17453,7 +17453,32 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             }
         }
     } else {
-        crate::vfs::stream_string_to_bytes(stdin)
+        // With count=0 the stream adapter still skips whole 512-byte records.
+        let skip_read = if count == Some(0) && stdin.file.is_some_and(|s| matches!(s.source, super::InputSource::Chunks(_))) {
+            let records = if skip_bytes { skip / ibs } else { skip };
+            records.saturating_mul(512).saturating_add(if skip_bytes { skip % ibs } else { 0 })
+        } else { skip_offset };
+        let maximum = count.map_or(usize::MAX, |n| skip_read.saturating_add(if count_bytes { n } else { n.saturating_mul(ibs) }));
+        if maximum == 0 { Vec::new() }
+        else if let Some(source) = stdin.file {
+            let mut bytes = Vec::new();
+            let read = source.admit_bounded_read().and_then(|()| source.read(stdin.text, maximum, |chunk, _| {
+                bytes.extend_from_slice(chunk);
+                Ok((true, chunk.len()))
+            }));
+            if let Err(e) = read { return err_out(&format!("dd: error reading 'standard input': {e}\n"), 1); }
+            bytes
+        } else {
+            let mut bytes = stream_string_to_bytes(stdin.text);
+            if bytes.len() > fs.max_input_bytes() {
+                return err_out(&fs.limit_error("maxInputBytes", fs.max_input_bytes()), 1);
+            }
+            if maximum < bytes.len() {
+                *stdin.text = crate::vfs::bytes_to_stream_string(&bytes[maximum..]);
+                bytes.truncate(maximum);
+            } else { stdin.text.clear(); }
+            bytes
+        }
     };
 
     if let Some(ref outf) = out_file
@@ -17479,11 +17504,6 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
     }
 
-    let skip_offset = if skip_bytes {
-        skip
-    } else {
-        skip.saturating_mul(ibs)
-    };
     let after_skip = if skip_offset >= raw_in.len() {
         &[][..]
     } else {

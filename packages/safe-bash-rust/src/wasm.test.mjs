@@ -543,6 +543,29 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("dd honors count, charges the producer chunk, and leaves its unread suffix for the next command", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/in":"FILE"}});
+  try {
+    for (const [cmd, limits, expected, expectedPulls] of [
+      ["dd bs=4 count=1 status=none", {}, "abcd", 3],
+      ["dd bs=2 count=1 status=none; head -c1", {}, "abc", 2],
+      ["dd bs=99 count=0 status=none", {}, "", 0],
+      ["dd if=/in status=none; head -c2", {}, "FILEab", 1],
+      ["{ dd bs=2 count=1 status=none; head -c1; } </in", {}, "FIL", 0],
+      ["dd bs=1 count=1 status=none", {maxInputBytes:1}, "maxInputBytes", 1],
+    ]) {
+      let pulls = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        for (const c of ["ab","c","defg","hijk"]) { pulls++; yield new TextEncoder().encode(c); }
+      }};
+      const run = bash.exec(cmd, {stdin,limits});
+      if (expected === "maxInputBytes") await assert.rejects(run, {limit:expected});
+      else { const r = await run; assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,expected,""], cmd); }
+      assert.equal(pulls,expectedPulls,cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("od accepts safe integer ranges, including hexadecimal quantities with suffixes", async () => {
   const bash = new RustWasmBash();
   try {

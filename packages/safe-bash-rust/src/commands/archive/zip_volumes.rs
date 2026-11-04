@@ -134,17 +134,13 @@ pub(super) fn publish(
     size: usize,
     verbose: bool,
     inputs: &[(String, Option<EntryIdentity>)],
+    version: u64,
 ) -> Result<String, String> {
-    if size == 0 {
-        fs.write_file(dest, &bytes)?;
-        return Ok(String::new());
-    }
     if !dest.to_ascii_lowercase().ends_with(".zip") {
         return Err("split output requires a .zip filename".into());
     }
     let parts = partition(bytes, size)?;
     let count = parts.len();
-    let version = fs.generation();
     let mut files = Vec::new();
     let mut report = String::new();
     for (disk, part) in parts.into_iter().enumerate() {
@@ -174,7 +170,7 @@ pub(super) fn publish(
                 "split {}/{}: {} ({} bytes)\n",
                 disk + 1,
                 count,
-                path,
+                super::zip_public_text(&path),
                 part.len()
             ));
         }

@@ -6026,24 +6026,57 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     }
     if split_pause && split_size != 0 { return zip_err("split pause requires an explicit volume prompt capability"); }
-    let mut sources = Vec::new();
-    if arch_full != dest_full && let Ok(st) = fs.stat(&arch_full) { sources.push((arch_full.clone(),st.identity)); }
-    let publish = |bytes, sources: &[_]| match zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources) {
-        Ok(report) => ok_out(&report),
-        Err(e) => err_out(&format!("zip: {e}\n"),2),
+    let version = fs.generation();
+    let inspect = |path: &str| match fs.lstat(path) {
+        Ok(st) => Ok(Some(st)),
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
+        Err(e) => Err(err_out(&format!("zip: {e}\n"),2)),
     };
-    let mut entries = match fs.read_file(&arch_full) {
-        Ok(bytes) => match crate::commands::codecs::parse_zip_archive(&bytes) {
+    let input = match inspect(&arch_full) { Ok(st) => st, Err(error) => return error };
+    let dest = if dest_full == arch_full { input.clone() } else {
+        match inspect(&dest_full) { Ok(st) => st, Err(error) => return error }
+    };
+    if output_archive.is_some() && (arch_full == dest_full || input.as_ref().zip(dest.as_ref())
+        .is_some_and(|(a,b)| a.identity.is_some() && a.identity == b.identity)) {
+        return zip_err(&format!("--out path must be different than in path: {}",zip_public_text(&arch_name)));
+    }
+    let allow_linked = split_size == 0 && output_archive.is_none();
+    let safe = |st: &crate::vfs::FileStat| st.kind == crate::vfs::VfsEntryKind::File && st.identity.is_some()
+        && st.mode & 0o170000 == 0o100000 && st.nlink.is_some_and(|n| n == 1 || n > 1 && allow_linked);
+    if !show_files && dest.as_ref().is_some_and(|st| !safe(st)) {
+        return err_out("zip: output archive requires a regular, single-link file with known backing identity\n",2);
+    }
+    if input.as_ref().is_some_and(|st| !safe(st)) {
+        return err_out("zip: updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported\n",2);
+    }
+    let mut sources = Vec::new();
+    if arch_full != dest_full && let Some(st) = &input { sources.push((arch_full.clone(),st.identity.clone())); }
+    let mut linked_original = None;
+    let mut entries = if let Some(st) = &input {
+        let bytes = match fs.read_file(&arch_full) { Ok(b) => b, Err(e) => return err_out(&format!("zip: {e}\n"),2) };
+        let entries = match crate::commands::codecs::parse_zip_archive(&bytes) {
             Ok(entries) => entries,
             Err(e) => return err_out(&format!("zip: {e}\n"), 2),
-        },
-        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
-            if copy_mode || delete_mode || freshen_mode {
-                return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
-            }
-            Vec::new()
+        };
+        if split_size != 0 && output_archive.is_none() && !show_files {
+            return zip_err("split archives require a separate --out destination");
         }
-        Err(e) => return err_out(&format!("zip: {e}\n"), 2),
+        if st.nlink.is_some_and(|n| n > 1) { linked_original = Some(bytes); }
+        entries
+    } else {
+        if copy_mode || delete_mode || freshen_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
+        Vec::new()
+    };
+    let publish = |bytes: Vec<u8>, sources: &[_]| {
+        let result = if split_size != 0 {
+            zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources,version)
+        } else if let (Some(before), Some(st)) = (&linked_original, &dest) {
+            fs.commit_file_edit(&dest_full,st,before,&bytes,true).map(|()| String::new())
+        } else {
+            fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),version)
+                .map(|()| String::new())
+        };
+        match result { Ok(report) => ok_out(&report), Err(e) => err_out(&format!("zip: {e}\n"),2) }
     };
     if show_files {
         let mut out = format!("Archive contains:\n");
@@ -6096,6 +6129,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     };
     let _ = update_mode;
     let mut moves = Vec::new();
+    let mut skipped_archive = false;
     // Keep the original source spelling separate from the name stored in the ZIP.
     let mut members: BTreeMap<_,_> = entries.iter().enumerate()
         .map(|(index,e)| (e.name.clone(), (index,None::<String>))).collect();
@@ -6112,6 +6146,11 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             fs,
             &mut Vec::new(),
             &mut |stat, path, mut entry, root| {
+                if path == arch_full || path == dest_full || [input.as_ref(),dest.as_ref()].into_iter().flatten()
+                    .any(|archive| archive.identity.is_some() && archive.identity == stat.identity) {
+                    skipped_archive = true;
+                    return Ok(false);
+                }
                 if entry.typeflag == b'0' { entry.content = fs.read_file(&path)?; }
                 let source = if root { t.clone() } else {
                     let name = entry.name.trim_end_matches('/');
@@ -6198,6 +6237,9 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 entries.push(e);
             }
         }
+    }
+    if skipped_archive && members.values().all(|(_,source)| source.is_none()) && !read_comment {
+        return BuiltinOutcome { stdout:format!("\nzip error: Nothing to do! ({})\n",zip_public_text(&arch_name)),stderr:String::new(),exit_code:12 };
     }
     if read_comment {
         let mut comment_lines: Vec<&str> = Vec::new();

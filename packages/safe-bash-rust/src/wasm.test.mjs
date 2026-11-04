@@ -1498,6 +1498,42 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("ZIP updates exclude archive aliases, preserve retained readers, and validate destinations before moving inputs", async () => {
+  const {Shell,MemoryFileSystem,archiveCommands} = await import("@poe-platform/safe-bash");
+  for (const [link,command] of [
+    ["none","-qm out.zip out.zip two"], ["none","-qm out.zip out.zip"],
+    ["hard","-qm out.zip alias two"], ["sym","-qm out.zip alias two"],
+    ["sym","-qm alias two"], ["sym","-qm -O alias out.zip two"],
+    ["none","-qm -O copy.zip out.zip copy.zip two"], ["hard","-qm -O copy.zip out.zip two"],
+    ["none","-qm -O out.zip out.zip two"], ["none","-qm -s64k out.zip two"],
+  ]) {
+    const base = new MemoryFileSystem(), js = new Shell({fs:base,cwd:"/"}).use(archiveCommands()), rust = new RustWasmBash({cwd:"/"});
+    const run = async (sh,fs) => {
+      for (const [p,n] of [["one",1],["two",2],["copy.zip",3]]) {
+        await fs.writeFile("/"+p,Uint8Array.of(n));
+        await fs.utimes("/"+p,1700000000000,1700000000000);
+      }
+      assert.equal((await sh.exec("zip -q0 out.zip one")).exitCode,0);
+      await fs.chmod("/out.zip",0o751);
+      if (link === "hard") await fs.link("/out.zip","/alias.zip");
+      if (link === "sym") await fs.symlink("/out.zip","/alias.zip");
+      const old = await fs.stat("/out.zip");
+      const reader = await fs.openReadFile("/out.zip");
+      try {
+        const r = await sh.exec("zip "+command.replaceAll("alias","alias.zip"));
+        const states = [];
+        for (const name of ["out.zip","copy.zip","two","alias.zip"]) {
+          const st = await fs.lstat("/"+name).catch(()=>null);
+          states.push(!st ? null : [st.type,st.mode & 0o777, st.ino === old.ino, Buffer.from(await fs.readFile("/"+name)).toString("hex")]);
+        }
+        return [r.exitCode,r.stdout,r.stderr,states,Buffer.from(await reader.read(0,1024)).toString("hex")];
+      } finally { await reader.close(); }
+    };
+    try { assert.deepEqual(await run(rust,rust.fs),await run(js,base),command+" "+link); }
+    finally { await rust.dispose(); await js.dispose(); }
+  }
+});
+
 test("native zip splits at record boundaries and preserves occupied volume destinations on failure", async () => {
   const {Shell, MemoryFileSystem, archiveCommands} = await import("@poe-platform/safe-bash");
   for (const [size, flags, obstacle] of [

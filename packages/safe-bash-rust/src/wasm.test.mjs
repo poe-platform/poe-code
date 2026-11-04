@@ -543,6 +543,61 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("xxd validates all numeric options after opening named output and uses wide addresses", async () => {
+  const bash = new RustWasmBash({ files: { "/out": "old" } });
+  try {
+    for (const [args, code, stdout, stderr] of [
+      ["-gBAD -pb - /out", 2, "", "xxd: incompatible display modes\n"],
+      ["-sbad -s1", 2, "", "xxd: invalid number 'bad'\n"],
+      ["-c1 -s-0 -o4294967296", 0, "100000000: 78  x\n", ""],
+      ["-o9007199254740992", 2, "", "xxd: number out of range '9007199254740992'\n"],
+      ["-i -n var -s9", 4, "", "xxd: Sorry, cannot seek.\n"],
+    ]) {
+      const r = await bash.exec("xxd " + args, { stdin: "x" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr, bash.readText("/out")], [code, stdout, stderr, ""], args);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("xxd opens only the input needed by the selected range", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, code, stdout, pulls] of [
+      ["-p -l0", 0, "", 0], ["-p -l0 /absent", 0, "", 0],
+      ["-p -s1 -l1", 0, "62\n", 1], ["-p -s2 -l0", 0, "", 1],
+      ["-p -s9 -l0", 4, "", 3], ["-p -s-1", 2, "", 0],
+    ]) {
+      let n = 0;
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const text of ["ab", "cd", "ef"]) { n++; yield new TextEncoder().encode(text); }
+      }};
+      const r = await bash.exec("xxd " + args, { stdin });
+      assert.deepEqual([r.exitCode, r.stdout, n], [code, stdout, pulls], args);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("xxd publishes complete rows before pulling stdin and preserves them on failure", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({ files: { "/out": "previous" } });
+  try {
+    const first = "00000000: 6162  ab\n";
+    for (const [args, seenPrefix] of [["-c2", first], ["-i -n var -c2", "unsigned char var[] = {\n"]]) {
+      const seen = [];
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const text of ["ab", "cd", "ef"]) {
+          seen.push(bash.readText("/out"));
+          yield new TextEncoder().encode(text);
+        }
+      }};
+      await assert.rejects(bash.exec("xxd " + args + " - /out", {stdin, limits: {maxInputBytes: 2}}), {limit:"maxInputBytes"});
+      assert.deepEqual(seen, ["", seenPrefix], args);
+      assert.ok(bash.readText("/out").startsWith(seenPrefix), args);
+    }
+    const invalid = await bash.exec("xxd -pb - /out");
+    assert.deepEqual([invalid.exitCode, bash.readText("/out")], [2, ""]);
+  } finally { bash.dispose(); }
+});
+
 test("tab conversion commits each input chunk and stops reading on output failure", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

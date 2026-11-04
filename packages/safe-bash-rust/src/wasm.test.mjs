@@ -1591,6 +1591,40 @@ test("plugin writes share quotas, apply umask on creation, and stop after the ha
   } finally { await js.dispose(); await rust.dispose(); }
 });
 
+test("document plugin cleanup drains before the next command and preserves failures", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const {docxCommands} = await import("@poe-platform/safe-bash/commands/docx");
+  for (const native of [false, true]) {
+    const fs = new MemoryFileSystem();
+    const sh = native ? new RustWasmBash({cwd:"/"}) : new Shell({fs,cwd:"/"});
+    const store = native ? sh.fs : fs, trace = [];
+    const failures = [new Error("first"), new Error("second")];
+    sh.use(docxCommands({engine:{async execute(req) {
+      const count = Number(new TextDecoder().decode(req.args[0]));
+      trace.push("run");
+      for (let i = 0; i < 2; i++) req.registerCleanup(async () => {
+        await Promise.resolve();
+        trace.push(i);
+        await req.stdout.write(i === 0 ? Uint8Array.of(65) : new Uint8Array());
+        if (i < count) throw failures[i];
+      });
+      await req.stdout.write(Uint8Array.of(255));
+      return {exitCode:17};
+    }}}));
+    try {
+      const r = await sh.exec("docx 0; docx 0");
+      assert.deepEqual([r.exitCode, ...r.stdoutBytes], [17,255,65,255,65]);
+      assert.deepEqual(trace, ["run",0,1,"run",0,1]);
+      for (const count of [1,2]) {
+        await assert.rejects(sh.exec("docx " + count + " >/out; : >/late"), error =>
+          count === 1 ? error === failures[0] : error instanceof AggregateError && error.errors[0] === failures[0] && error.errors[1] === failures[1]);
+        assert.deepEqual([...await store.readFile("/out")], [255,65]);
+        await assert.rejects(store.stat("/late"), {code:"ENOENT"});
+      }
+    } finally { await sh.dispose(); }
+  }
+});
+
 test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash();
   const trace = [], failure = new Error("cleanup failed");

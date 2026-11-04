@@ -176,10 +176,14 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
-  const slots = [], top = x.__stack_pointer.value;
+  const slots = [], cleanupFailures = [], top = x.__stack_pointer.value;
   const signal = options.signal ?? new AbortController().signal;
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
+    if (!signal.aborted && cleanupFailures.length) {
+      if (cleanupFailures.length === 1) throw cleanupFailures[0];
+      throw new AggregateError(cleanupFailures, "Invocation cleanup failed");
+    }
   };
   try {
     for (const definition of definitions) {
@@ -197,7 +201,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
         x.__stack_pointer.value = top;
-        let active = true;
+        let active = true, outputOpen = true, cleanups;
         streams = [[], []]; consumed = 0; code = 1;
         try {
           const view = new DataView(packet.buffer);
@@ -208,7 +212,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
           const argv0 = explicit ? decoder.decode(field()) : undefined;
           const argumentValues = createArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
-          const check = () => { signal.throwIfAborted(); if (!active) throw new Error("Command has finished"); };
+          const check = (open = active) => { signal.throwIfAborted(); if (!open) throw new Error("Command has finished"); };
           const admitPath = (path, settings) => {
             check();
             settings?.signal?.throwIfAborted();
@@ -234,7 +238,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
             if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }
           }};
           const sink = index => ({async write(bytes) {
-            check();
+            check(outputOpen);
             if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected Uint8Array");
             if (code === -5) throw new ShellLimitError("maxFileSystemOperations");
             if (code === -3 || bytes.length > remaining) { code = -3; throw new ShellLimitError("maxOutputBytes"); }
@@ -242,7 +246,12 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
             if (bytes.length) streams[sharedOutput ? 0 : index].push(new Uint8Array(bytes));
           }});
           check();
-          const pending = definition.execute({command:definition.name, argv0, args:argumentValues.args, argumentValues,
+          const registerCleanup = cleanup => {
+            check();
+            if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
+            (cleanups ??= []).push(cleanup);
+          };
+          const pending = definition.execute({registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
             cwd, env, stdin, fs:commandFs, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
           const result = await (options.signal ? untilAbort(pending, signal) : pending);
           if (code >= 0) {
@@ -252,7 +261,18 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
         } catch {
           if (signal.aborted) code = -2;
           else if (code >= 0) code = -4;
-        } finally { active = false; }
+        } finally {
+          active = false;
+          if (cleanups) {
+            await Promise.all(cleanups.map(async cleanup => {
+              try { await cleanup(); } catch (error) { cleanupFailures.push(error); }
+            }));
+            // Stop the evaluator after routing accepted writes. The caller receives the original cleanup error.
+            if (cleanupFailures.length && (code >= 0 || code === -4)) code = -2;
+            else if (code === -3 || code === -5) cleanupFailures.length = 0;
+          }
+          outputOpen = false;
+        }
       }, (_ptr, _len, reply) => {
         new Uint8Array(x.memory.buffer, sp, stack.length).set(stack);
         x.__stack_pointer.value = sp;
@@ -1599,8 +1619,7 @@ export class RustWasmBash extends WasmShell {
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
-      releaseCommands?.();
-      shell.dispose();
+      try { releaseCommands?.(); } finally { shell.dispose(); }
     }
     if (elapsedMs > 0 && res.exitCode !== 1) {
       const waitMs = Math.min(elapsedMs, 50);

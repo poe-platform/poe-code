@@ -533,59 +533,71 @@ pub(crate) fn cmd_xxd(
                         Some(fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes));
                     return false;
                 }
-                let addr_str = if decimal_addr {
-                    format!("{offset:08}")
+                let skipped = autoskip && chunk.len() == cols && chunk.iter().all(|&b| b == 0);
+                let start_row = if skipped {
+                    zero_last.clear();
+                    &mut zero_last
                 } else {
-                    format!("{offset:08x}")
+                    finish_zeros(&mut out, &mut zero_run, &zero_second, &zero_last, false);
+                    &mut out
                 };
-                let mut hex_data = String::new();
-                let mut ascii = String::new();
+                if decimal_addr {
+                    write!(start_row, "{offset:08}: ").unwrap();
+                } else {
+                    write!(start_row, "{offset:08x}: ").unwrap();
+                }
+                let field_start = start_row.len();
                 for (idx, &b) in chunk.iter().enumerate() {
                     if !little_endian && group_bytes > 0 && idx > 0 && idx % group_bytes == 0 {
-                        hex_data.push(' ');
+                        start_row.push(' ');
                     }
                     if !little_endian {
                         if bits_mode {
-                            hex_data.push_str(&format!("{b:08b}"));
+                            const BITS: [&str; 16] = [
+                                "0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
+                                "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111",
+                            ];
+                            start_row.push_str(BITS[usize::from(b >> 4)]);
+                            start_row.push_str(BITS[usize::from(b & 15)]);
                         } else {
-                            put_hex(&mut hex_data, b);
+                            put_hex(start_row, b);
                         }
                     }
-                    ascii.push(if (0x20..=0x7e).contains(&b) {
-                        b as char
-                    } else {
-                        '.'
-                    });
                 }
                 if little_endian {
                     let mut start = 0usize;
                     while start < chunk.len() {
                         if start > 0 {
-                            hex_data.push(' ');
+                            start_row.push(' ');
                         }
                         for k in (start..start + octets).rev() {
                             if let Some(&b) = chunk.get(k) {
-                                put_hex(&mut hex_data, b);
+                                put_hex(start_row, b);
                             } else {
-                                hex_data.push_str("  ");
+                                start_row.push_str("  ");
                             }
                         }
                         start += octets;
                     }
                 }
-                let formatted = format!("{addr_str}: {hex_data:<width$}  {ascii}\n");
-                if autoskip && chunk.len() == cols && chunk.iter().all(|&b| b == 0) {
+                let used = start_row.len() - field_start;
+                start_row.extend(std::iter::repeat_n(' ', width.saturating_sub(used) + 2));
+                for &b in chunk {
+                    start_row.push(if (0x20..=0x7e).contains(&b) {
+                        b as char
+                    } else {
+                        '.'
+                    });
+                }
+                start_row.push('\n');
+                if skipped {
                     if zero_run == 0 {
-                        out.push_str(&formatted);
+                        out.push_str(&zero_last);
                     }
                     if zero_run == 1 {
-                        zero_second = formatted.clone();
+                        zero_second.clone_from(&zero_last);
                     }
                     zero_run += 1;
-                    zero_last = formatted;
-                } else {
-                    finish_zeros(&mut out, &mut zero_run, &zero_second, &zero_last, false);
-                    out.push_str(&formatted);
                 }
             }
             offset += chunk.len() as u64;

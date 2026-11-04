@@ -1018,61 +1018,18 @@ impl MemoryVfs {
     }
 
     fn device_operand(state: &MemoryState, path: &str, follow_final: bool) -> Result<String, String> {
-        if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
-        let not_dir = || format!("ENOTDIR: not a directory '{path}'");
-        // Device traversal rejects even a lexical /dev/null/.. before looking up links.
-        if path.contains("null/") {
-            let mut parts = Vec::new();
-            for part in path.split('/') {
-                if parts.as_slice() == ["dev","null"] { return Err(not_dir()); }
-                match part { "" | "." => {}, ".." => { parts.pop(); }, _ => parts.push(part) }
-            }
-        }
-        let mut pending: Vec<_> = path.split('/').rev().collect();
-        let mut current = String::from("/");
-        let mut failure = None;
-        let mut failed_at = usize::MAX;
-        let mut links = 0;
-        let mut absolute = path.starts_with('/');
-        while let Some(part) = pending.pop() {
-            if current == "/dev/null" { return Err(not_dir()); }
-            match part {
-                "" | "." => continue,
-                ".." => {
-                    current.truncate(current.rfind('/').unwrap_or(0).max(1));
-                    if current.len() < failed_at { failed_at = usize::MAX; }
-                    continue;
-                }
-                _ => {}
-            }
-            let parent_len = current.len();
-            if current != "/" { current.push('/'); }
-            current.push_str(part);
-            if (!follow_final && pending.is_empty()) || parent_len >= failed_at || matches!(current.as_str(),"/dev"|"/dev/null") { continue; }
-            let display = |p: &str| if absolute { p.to_owned() } else { p.trim_start_matches('/').to_owned() };
+        super::path::walk_device_path(path, follow_final, state.limits.max_symlink_hops,
+            super::path::DeviceTraversal::Classify, |_| Ok(None), |current, parent_len, display| {
             if matches!(state.nodes.get(&current[..parent_len]),Some(MemoryNode::Directory {mode,..}) if mode & 0o100 == 0) {
-                return Err(format!("EACCES: permission denied, lstat '{}'",display(&current)));
+                return Err(format!("EACCES: permission denied, lstat '{display}'"));
             }
-            match state.nodes.get(&current) {
-                Some(MemoryNode::Directory { .. }) => {}
-                Some(MemoryNode::Symlink { target,.. }) => {
-                    links += 1;
-                    if links > state.limits.max_symlink_hops { return Err(format!("ELOOP: too many symbolic links encountered '{path}'")); }
-                    if target.starts_with('/') { current.truncate(1); absolute = true; failed_at = usize::MAX; }
-                    else { current.truncate(parent_len); }
-                    pending.extend(target.split('/').rev());
-                }
-                node => {
-                    if pending.is_empty() { continue; }
-                    failed_at = current.len();
-                    failure.get_or_insert_with(|| if node.is_some() { not_dir() } else {
-                        format!("ENOENT: no such file or directory, lstat '{}'",display(&current))
-                    });
-                }
-            }
-        }
-        if matches!(current.as_str(),"/"|"/dev"|"/dev/null") && let Some(error) = failure { return Err(error); }
-        Ok(current)
+            Ok(match state.nodes.get(current) {
+                Some(MemoryNode::Directory {mode, ..}) => super::path::DeviceLookup::Directory(mode & 0o100 != 0),
+                Some(MemoryNode::Symlink { target,.. }) => super::path::DeviceLookup::Link(target.to_string()),
+                Some(_) => super::path::DeviceLookup::Other,
+                None => super::path::DeviceLookup::Missing,
+            })
+        })
     }
 
     fn mkdir_nodes(&self, state: &mut MemoryState, path: &str, recursive: bool, mode: u32) -> Result<(), (String, &'static str, String)> {

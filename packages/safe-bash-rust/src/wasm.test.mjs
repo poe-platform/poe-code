@@ -6147,6 +6147,54 @@ test("standalone Wasm executes against live caller-supplied files without inspec
   }finally{await sh.dispose();}
 });
 
+test("caller-supplied filesystems expose default devices without reading or changing shadowed files",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  for(const deviceView of ["default","provided"]){
+    const js=new Shell({cwd:"/",fs:new MemoryFileSystem(),deviceView}).use(agentCommands());
+    const rust=new RustWasmBash({cwd:"/",deviceView});
+    const run=async sh=>{
+      const fs=new MemoryFileSystem(), enc=new TextEncoder(), dec=new TextDecoder();
+      const result=[];
+      const exec=async script=>{const r=await sh.exec(script,{fs});result.push([r.exitCode,r.stdout,r.stderr]);};
+      await exec('test -d /dev; echo "$?"; test -c /dev/null; echo "$?"');
+      await fs.mkdir("/dev");
+      await fs.writeFile("/dev/null",enc.encode("private"));
+      await fs.writeFile("/dev/ordinary",enc.encode("visible"));
+      await fs.symlink("/dev","/devices");await fs.symlink("devices/null","/sink");
+      await exec("ls -1 /devices; cat /dev/ordinary; cat /sink");
+      await exec("printf changed | tee /sink; cat /devices/null");
+      await exec("rm /devices/null 2>/errors; echo $?; test -L /sink");
+      await exec("rm /sink; test -L /sink");
+      try{result.push(dec.decode(await fs.readFile("/dev/null")));}catch(e){result.push(e.code);}
+      return result;
+    };
+    try{
+      const reference=await run(js);
+      assert.equal(reference.at(-1),deviceView==="default"?"private":"ENOENT");
+      assert.deepEqual(await run(rust),reference,deviceView);
+    }finally{await js.dispose();await rust.dispose();}
+  }
+});
+
+test("a supplied mount keeps absolute device links local and rejects links crossing into virtual devices",{skip:!WebAssembly.Suspending},async()=>{
+  const {Shell,MemoryFileSystem,MountFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
+  const root=new MemoryFileSystem(), mounted=new MemoryFileSystem();
+  await mounted.mkdir("/dev");
+  await mounted.writeFile("/dev/null",new TextEncoder().encode("local"));
+  await mounted.symlink("/dev/null","/sink");
+  await mounted.symlink("../dev/null","/escape");
+  await root.symlink("/mounted/sink","/cross");
+  const fs=new MountFileSystem({root,mounts:{"/mounted":mounted}});
+  const js=new Shell({cwd:"/",fs}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{
+    const script="cat /mounted/sink; cat /cross 2>/err; echo $?; cat /mounted/escape 2>/err; echo $?";
+    const ref=await js.exec(script,{fs});
+    assert.equal(ref.stdout,"local1\n1\n");
+    const got=await rust.exec(script,{fs});
+    assert.deepEqual([got.exitCode,got.stdout,got.stderr],[ref.exitCode,ref.stdout,ref.stderr]);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("suspended host filesystem calls isolate concurrent forks and share the selected filesystem with plugins",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const first=new MemoryFileSystem(), second=new MemoryFileSystem(), bash=new RustWasmBash({cwd:"/"});

@@ -75,7 +75,7 @@ pub fn dirname_posix_path(path: &str) -> String {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(super) enum WalkPurpose {
+pub(crate) enum WalkPurpose {
     AllowMissingParents,
     OverlayAccess,
     OverlayCreate,
@@ -86,7 +86,7 @@ pub(super) enum WalkPurpose {
 
 // Absolute link targets are rooted at their own mount. Once a link is
 // followed, neither ".." nor the remaining path may enter another mount.
-pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
+pub(crate) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     path: &str,
     follow_final: bool,
     purpose: WalkPurpose,
@@ -262,6 +262,86 @@ pub(super) fn walk_memory_entry(
             }
         }
     }
+}
+
+pub(crate) enum DeviceLookup { Directory(bool), Link(String), Other, Missing }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DeviceTraversal { Classify, Access { devices: bool } }
+
+// Only the virtual entries shadow the backing filesystem. Ordinary paths retain
+// the backing operation's own missing-parent and creation rules.
+pub(crate) fn walk_device_path(
+    path: &str, follow_final: bool, max_hops: usize, traversal: DeviceTraversal,
+    mut namespace: impl FnMut(&str) -> Result<Option<String>,String>,
+    mut lookup: impl FnMut(&str,usize,&str) -> Result<DeviceLookup,String>,
+) -> Result<String,String> {
+    let strict = traversal != DeviceTraversal::Classify;
+    let devices = traversal != (DeviceTraversal::Access { devices:false });
+    if strict && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+    if path.contains('\0') { return Err("EINVAL: paths must be strings without NUL bytes, resolve".into()); }
+    let not_dir = || format!("ENOTDIR: not a directory '{path}'");
+    // Device traversal rejects even a lexical /dev/null/.. before looking up links.
+    if devices && path.contains("null/") {
+        let mut parts = Vec::new();
+        for part in path.split('/') {
+            if parts.as_slice() == ["dev","null"] { return Err(not_dir()); }
+            match part { "" | "." => {}, ".." => { parts.pop(); }, _ => parts.push(part) }
+        }
+    }
+    let mut pending: Vec<_> = path.split('/').rev().map(str::to_owned).collect();
+    let mut current = String::from("/");
+    let mut failure = None;
+    let mut failed_at = usize::MAX;
+    let mut links = 0;
+    let mut boundary: Option<String> = None;
+    let mut absolute = path.starts_with('/');
+    while let Some(part) = pending.pop() {
+        if devices && current == "/dev/null" { return Err(not_dir()); }
+        match part.as_str() {
+            "" | "." => continue,
+            ".." => {
+                if boundary.as_deref() == Some(&current) { return Err("EACCES: permission denied".into()); }
+                current.truncate(current.rfind('/').unwrap_or(0).max(1));
+                if current.len() < failed_at { failed_at = usize::MAX; }
+                continue;
+            }
+            _ => {}
+        }
+        let parent_len = current.len();
+        if current != "/" { current.push('/'); }
+        current.push_str(&part);
+        let virtual_entry = devices && matches!(current.as_str(), "/dev"|"/dev/null");
+        if let Some(root) = &boundary {
+            let selected = if virtual_entry { "/".to_owned() } else { namespace(&current)?.unwrap_or_else(|| "/".into()) };
+            if root != &selected { return Err("EACCES: permission denied".into()); }
+        }
+        if (!follow_final && pending.is_empty()) || parent_len >= failed_at || virtual_entry { continue; }
+        let display = if absolute { &current } else { current.trim_start_matches('/') };
+        match lookup(&current, parent_len, display)? {
+            DeviceLookup::Directory(false) if strict && !pending.is_empty() => return Err("EACCES: permission denied".into()),
+            DeviceLookup::Directory(_) => {}
+            DeviceLookup::Link(target) => {
+                if boundary.is_none() { boundary = namespace(&current)?; }
+                links += 1;
+                if links > max_hops { return Err(format!("ELOOP: too many symbolic links encountered '{path}'")); }
+                if target.starts_with('/') { current = boundary.clone().unwrap_or_else(|| "/".into()); absolute = true; failed_at = usize::MAX; }
+                else { current.truncate(parent_len); }
+                pending.extend(target.split('/').rev().map(str::to_owned));
+            }
+            node => {
+                if pending.is_empty() { continue; }
+                failed_at = current.len();
+                let error = || if matches!(node,DeviceLookup::Other) { not_dir() } else {
+                    format!("ENOENT: no such file or directory, lstat '{}'",display)
+                };
+                if strict { return Err(error()); }
+                failure.get_or_insert_with(error);
+            }
+        }
+    }
+    if matches!(current.as_str(),"/"|"/dev"|"/dev/null") && let Some(error) = failure { return Err(error); }
+    Ok(current)
 }
 
 pub fn is_path_within(root: &str, candidate: &str) -> bool {

@@ -1,3 +1,4 @@
+use crate::vfs::path::DeviceTraversal;
 use crate::vfs::{EntryIdentity, FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::sync::Arc;
 
@@ -33,6 +34,8 @@ type Callback = unsafe extern "C" fn(*const Request, *mut Reply, u32) -> i32;
 struct HostFs {
     call: Callback,
     max_input: usize,
+    devices: bool,
+    namespaced: bool,
 }
 impl HostFs {
     fn request(
@@ -68,6 +71,72 @@ impl HostFs {
         }
     }
 
+    fn device_path(
+        &self,
+        path: &str,
+        follow: bool,
+        traversal: DeviceTraversal,
+    ) -> Result<String, String> {
+        use crate::vfs::path::{DeviceLookup, walk_device_path};
+        walk_device_path(
+            path,
+            follow,
+            40,
+            traversal,
+            |p| {
+                if !self.namespaced {
+                    return Ok(None);
+                }
+                let bytes = self.request("namespace", p, &[], 0, 0)?;
+                let root =
+                    String::from_utf8(bytes).map_err(|_| "EIO: invalid filesystem namespace")?;
+                if !root.starts_with('/')
+                    || crate::vfs::normalize_posix_path(&root) != root
+                    || !crate::vfs::is_path_within(&root, p)
+                {
+                    return Err("EIO: invalid filesystem namespace".into());
+                }
+                Ok(Some(root))
+            },
+            |p, _, _| match self.metadata("lstat", p, 0) {
+                Ok(st) => Ok(match st.kind {
+                    VfsEntryKind::Symlink => DeviceLookup::Link(
+                        String::from_utf8(self.request("readlink", p, &[], 0, 0)?)
+                            .map_err(|_| "EIO: invalid link")?,
+                    ),
+                    VfsEntryKind::Directory => DeviceLookup::Directory(st.mode & 0o100 != 0),
+                    VfsEntryKind::File => DeviceLookup::Other,
+                }),
+                Err(e) if e.starts_with("ENOENT:") => Ok(DeviceLookup::Missing),
+                Err(e) if e.starts_with("ENOTSUP:") && !self.namespaced => Ok(DeviceLookup::Other),
+                Err(e) => Err(e),
+            },
+        )
+    }
+
+    fn reserved(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
+        if !self.devices {
+            return Ok(None);
+        }
+        Ok(
+            match self
+                .device_path(path, follow, DeviceTraversal::Classify)?
+                .as_str()
+            {
+                "/" => Some("/"),
+                "/dev" => Some("/dev"),
+                "/dev/null" => Some("/dev/null"),
+                _ => None,
+            },
+        )
+    }
+
+    fn mutable(&self, path: &str, follow: bool) -> Result<(), String> {
+        if self.reserved(path, follow)?.is_some() {
+            return Err(format!("EBUSY: resource busy or locked '{path}'"));
+        }
+        Ok(())
+    }
     fn own_stamp(&self, bytes: Vec<u8>) -> Result<crate::vfs::PublicationStamp, String> {
         let id = u32::from_le_bytes(
             bytes
@@ -138,6 +207,17 @@ impl HostFs {
     }
 }
 
+fn device_metadata(entry: &str) -> Result<FileStat, String> {
+    static DEVICES: std::sync::OnceLock<crate::vfs::MemoryVfs> = std::sync::OnceLock::new();
+    DEVICES
+        .get_or_init(|| {
+            let fs = crate::vfs::MemoryVfs::new();
+            fs.set_devices(crate::vfs::memory::Devices::Null);
+            fs
+        })
+        .stat(entry)
+}
+
 #[derive(Debug)]
 struct HostDescriptor {
     fs: HostFs,
@@ -180,6 +260,29 @@ impl crate::vfs::OpenRedirectFile for HostDescriptor {
     }
 }
 impl SafeBashFs for HostFs {
+    fn default_device_view(&self) -> bool {
+        self.devices
+    }
+
+    fn access_path(&self, path: &str, follow: bool) -> Result<String, String> {
+        if self.namespaced {
+            return self.device_path(
+                path,
+                follow,
+                DeviceTraversal::Access {
+                    devices: self.devices,
+                },
+            );
+        }
+        crate::vfs::path::walk_path(
+            path,
+            follow,
+            crate::vfs::path::WalkPurpose::Access,
+            |p| (None, self, p.to_owned()),
+            |_| false,
+        )
+    }
+
     fn supports_command_descriptor(&self, p: &str) -> bool {
         self.request("canOpen", p, &[], 0, 0)
             .is_ok_and(|b| b.first() == Some(&1))
@@ -199,6 +302,15 @@ impl SafeBashFs for HostFs {
             Exclusive => 4,
             ReadWrite => 5,
         };
+        if let Some(entry) = self.reserved(p, access != Exclusive)? {
+            if access == Exclusive {
+                return Err("EEXIST: file already exists".into());
+            }
+            if entry != "/dev/null" {
+                return Err("EISDIR: illegal operation on a directory".into());
+            }
+            return Ok(None);
+        }
         let reply = self.request("open", p, &[], flags, mode.unwrap_or(u32::MAX))?;
         if reply.is_empty() {
             if matches!(access, ReadWrite | Write) {
@@ -223,6 +335,7 @@ impl SafeBashFs for HostFs {
         mode: crate::vfs::PublicationMode,
     ) -> Result<crate::vfs::PublicationStamp, String> {
         use crate::vfs::PublicationMode::*;
+        self.mutable(path, false)?;
         let bytes = self.request(
             "observePublication",
             path,
@@ -237,6 +350,7 @@ impl SafeBashFs for HostFs {
         self.own_stamp(bytes)
     }
     fn observe_patch(&self, path: &str) -> Result<(u64, crate::vfs::PublicationStamp), String> {
+        self.mutable(path, false)?;
         let stamp = self.own_stamp(self.request("observePatch", path, &[], 0, 0)?)?;
         if stamp.version == 0 {
             return Err("filesystem does not support race-safe patch mutations".into());
@@ -297,31 +411,64 @@ impl SafeBashFs for HostFs {
         Ok(self.request("removePublished", path, &[], stamp as u32, 0)? == [1])
     }
     fn read_file(&self, p: &str) -> Result<Vec<u8>, String> {
+        match self.reserved(p, true)? {
+            Some("/dev/null") => return Ok(Vec::new()),
+            Some(_) => return Err(format!("EISDIR: illegal operation on a directory '{p}'")),
+            None => {}
+        }
         self.request("readFile", p, &[], self.max_input as u32, 0)
     }
     fn write_file(&self, p: &str, b: &[u8]) -> Result<(), String> {
+        match self.reserved(p, true)? {
+            Some("/dev/null") => return Ok(()),
+            Some(_) => return Err(format!("EISDIR: illegal operation on a directory '{p}'")),
+            None => {}
+        }
         self.request("writeFile", p, b, 0, 0).map(drop)
     }
     fn append_file(&self, p: &str, b: &[u8]) -> Result<(), String> {
+        match self.reserved(p, true)? {
+            Some("/dev/null") => return Ok(()),
+            Some(_) => return Err(format!("EISDIR: illegal operation on a directory '{p}'")),
+            None => {}
+        }
         self.request("appendFile", p, b, 0, 0).map(drop)
     }
     fn create_file(&self, p: &str, b: &[u8], m: u32) -> Result<(), String> {
+        if self.reserved(p, false)?.is_some() {
+            return Err("EEXIST: file already exists".into());
+        }
         self.request("writeFile", p, b, 1, m).map(drop)
     }
     fn mkdir_all(&self, p: &str) -> Result<(), String> {
+        match self.reserved(p, true)? {
+            Some("/dev/null") => return Err("EEXIST: file already exists".into()),
+            Some(_) => return Ok(()),
+            None => {}
+        }
         self.request("mkdir", p, &[], 1, 0o777).map(drop)
     }
     fn mkdir_one(&self, p: &str, m: u32) -> Result<(), String> {
+        if self.reserved(p, true)?.is_some() {
+            return Err("EEXIST: file already exists".into());
+        }
         self.request("mkdir", p, &[], 0, m).map(drop)
     }
     fn remove_path(&self, p: &str) -> Result<(), String> {
+        self.mutable(p, false)?;
         self.request("rm", p, &[], 1, 0).map(drop)
     }
     fn remove_one(&self, p: &str, d: bool) -> Result<(), String> {
+        if d && self.reserved(p, false)? == Some("/dev/null") {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        self.mutable(p, false)?;
         self.request(if d { "rmdir" } else { "unlink" }, p, &[], 0, 0)
             .map(drop)
     }
     fn rename(&self, p: &str, d: &str, no_replace: bool) -> Result<(), String> {
+        self.mutable(p, false)?;
+        self.mutable(d, false)?;
         self.request("rename", p, d.as_bytes(), no_replace as u32, 0)
             .map(drop)
     }
@@ -333,29 +480,58 @@ impl SafeBashFs for HostFs {
             .is_ok_and(|s| s.kind == VfsEntryKind::Directory)
     }
     fn list_dir(&self, p: &str) -> Result<Vec<String>, String> {
-        let names = self.request("readdir", p, &[], 0, 0)?;
-        names
+        let reserved = self.reserved(p, true)?;
+        if reserved == Some("/dev/null") {
+            return Err(format!("ENOTDIR: not a directory '{p}'"));
+        }
+        let names = match self.request("readdir", reserved.unwrap_or(p), &[], 0, 0) {
+            Err(e)
+                if reserved.is_some()
+                    && (e.starts_with("ENOENT:") || e.starts_with("ENOTDIR:")) =>
+            {
+                Vec::new()
+            }
+            result => result?,
+        };
+        let mut entries: Vec<String> = names
             .split(|&b| b == 0)
             .filter(|b| !b.is_empty())
             .map(|b| {
                 String::from_utf8(b.to_vec()).map_err(|_| "EIO: invalid directory entry".into())
             })
-            .collect()
+            .collect::<Result<_, String>>()?;
+        if let Some(name) = reserved.map(|dir| if dir == "/" { "dev" } else { "null" })
+            && !entries.iter().any(|n| n == name)
+        {
+            entries.push(name.into());
+        }
+        Ok(entries)
     }
     fn symlink(&self, t: &str, p: &str) -> Result<(), String> {
+        self.mutable(p, false)?;
         self.request("symlink", t, p.as_bytes(), 0, 0).map(drop)
     }
     fn readlink(&self, p: &str) -> Result<String, String> {
+        if self.reserved(p, false)?.is_some() {
+            return Err(format!("EINVAL: invalid argument '{p}'"));
+        }
         String::from_utf8(self.request("readlink", p, &[], 0, 0)?)
             .map_err(|_| "EIO: invalid link".into())
     }
     fn stat(&self, p: &str) -> Result<FileStat, String> {
+        if let Some(entry @ ("/dev" | "/dev/null")) = self.reserved(p, true)? {
+            return device_metadata(entry);
+        }
         self.metadata("stat", p, 0)
     }
     fn lstat(&self, p: &str) -> Result<FileStat, String> {
+        if let Some(entry @ ("/dev" | "/dev/null")) = self.reserved(p, false)? {
+            return device_metadata(entry);
+        }
         self.metadata("lstat", p, 0)
     }
     fn chmod(&self, p: &str, m: u32) -> Result<(), String> {
+        self.mutable(p, true)?;
         self.request("chmod", p, &[], 0, m).map(drop)
     }
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
@@ -368,7 +544,7 @@ impl SafeBashFs for HostFs {
 
 // Only a private execution fork is bound; the original shell retains its filesystem.
 #[unsafe(no_mangle)]
-pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback) -> i32 {
+pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback, namespaced: bool) -> i32 {
     let mut sessions = super::sessions().lock().unwrap();
     let Some(session) = sessions.get_mut(&id) else {
         return -1;
@@ -376,6 +552,8 @@ pub extern "C" fn safe_bash_bind_fs(id: u32, call: Callback) -> i32 {
     session.shell.fs = Arc::new(HostFs {
         call,
         max_input: session.shell.limits().max_input_bytes,
+        devices: !session.shell.backend.provided_devices,
+        namespaced,
     });
     0
 }

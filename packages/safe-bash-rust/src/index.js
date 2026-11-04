@@ -172,6 +172,14 @@ function streamHost(x) {
 
 // One callback belongs to one execution fork; the host filesystem remains live during the call.
 function bindExternalFs(shell,fs,options) {
+  const namespace=fs[Symbol.for("@poe-code/safe-fs/path-namespace/v1")];
+  let selectNamespace;
+  if(namespace!==undefined){
+    if(namespace===null || !Object.isFrozen(namespace) || typeof namespace.select!=="function")throw fsOperationError("EIO","namespace");
+    const select=namespace.select,capture=select[Symbol.for("@poe-code/safe-fs/capture-path-namespace/v1")];
+    selectNamespace=capture===undefined?select.bind(namespace):Reflect.apply(capture,select,[{signal:options.signal}]);
+    if(typeof selectNamespace!=="function")throw fsOperationError("EIO","namespace");
+  }
   const x=shell.exports, table=x.__indirect_function_table, top=x.__stack_pointer.value;
   const free=freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x,free);
@@ -215,6 +223,11 @@ function bindExternalFs(shell,fs,options) {
         const flags=word(24), mode=word(28), settings={signal:options.signal};
         if(op==="forgetPublication"){publications.delete(flags);return;}
         if(op!=="close" && op!=="removePublished")options.signal?.throwIfAborted();
+        if(op==="namespace"){
+          const root=selectNamespace(path);
+          if(typeof root!=="string")throw fsOperationError("EIO",op,path);
+          result=encoder.encode(root);return;
+        }
         if(op==="observePatch"){
           result=new Uint8Array(4);
           if(typeof fs.confineExtraction!=="function")return;
@@ -395,7 +408,7 @@ function bindExternalFs(shell,fs,options) {
       }
       result=undefined;return status;
     }));
-    if(x.safe_bash_bind_fs(shell.sessionId,slot)!==0)throw new Error("Could not bind the execution filesystem");
+    if(x.safe_bash_bind_fs(shell.sessionId,slot,namespace!==undefined)!==0)throw new Error("Could not bind the execution filesystem");
     return release;
   }catch(error){void release();throw error;}
 }

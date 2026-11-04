@@ -197,6 +197,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
         const sharedOutput = header.getUint32(reply + 24, true) !== 0;
         const remainingFsOps = header.getUint32(reply + 28, true), maxComponents = header.getUint32(reply + 32, true);
         const creationMode = header.getUint32(reply + 40, true);
+        const stdinIsDefault = header.getUint32(reply + 52, true) !== 0;
         fsOps = 0;
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
@@ -257,7 +258,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
             (cleanups ??= []).push(cleanup);
           };
           const pending = definition.execute({registerCleanup, command:definition.name, argv0, args:argumentValues.args, argumentValues,
-            cwd, env, stdin, fs:commandFs, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
+            cwd, env, stdin, stdinIsDefault, fs:commandFs, stdout:sink(0), stderr:sink(1), signal, capabilities:options.capabilities});
           const result = await (options.signal ? untilAbort(pending, signal) : pending);
           if (code >= 0) {
             if (!Number.isInteger(result?.exitCode) || result.exitCode < 0 || result.exitCode > 255) throw new RangeError("Invalid exit status");
@@ -1061,13 +1062,13 @@ class WasmShell {
     };
   }
 
-  execSync(script, stdin = "") {
+  execSync(script, stdin) {
     if (!this.sessionId) throw new Error("Shell session is disposed");
     const s = this._allocBytes(encoder.encode(script));
     let i;
     try {
-      i = this._allocBytes(typeof stdin === "string" ? encoder.encode(stdin) : stdin);
-      this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr, i.len);
+      i = this._allocBytes(stdin === undefined || typeof stdin === "string" ? encoder.encode(stdin) : stdin);
+      this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr || (stdin === undefined ? 0 : s.ptr), i.len);
       return this._execResult();
     } catch (err) {
       if (i === undefined || err?.[FS_ERROR_BRAND] || err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
@@ -1615,7 +1616,9 @@ export class RustWasmBash extends WasmShell {
         let input;
         try {
           input = shell._allocBytes(typeof stdinData === "string" ? encoder.encode(stdinData) : stdinData);
-          await WebAssembly.promising(shell.exports.safe_bash_exec)(shell.sessionId,scriptBytes.ptr,scriptBytes.len,input.ptr,input.len);
+          // A null pointer means omitted stdin; an explicit empty slice can borrow the script address.
+          const ptr = input.ptr || (options.stdin === undefined ? 0 : scriptBytes.ptr);
+          await WebAssembly.promising(shell.exports.safe_bash_exec)(shell.sessionId,scriptBytes.ptr,scriptBytes.len,ptr,input.len);
           options.signal?.throwIfAborted();
           res = shell._execResult();
         } finally { shell._freeBytes(scriptBytes); if (input) shell._freeBytes(input); }
@@ -1624,7 +1627,7 @@ export class RustWasmBash extends WasmShell {
           stdinData = await collectAsyncStdin(stdinData, options.signal);
           options.signal?.throwIfAborted();
         }
-        res = shell.execSync(script, stdinData);
+        res = shell.execSync(script, options.stdin === undefined ? undefined : stdinData);
       }
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);

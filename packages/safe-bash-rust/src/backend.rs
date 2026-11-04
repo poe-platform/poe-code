@@ -35,6 +35,7 @@ pub struct CommandContext<'a> {
     pub argv0: Option<&'a str>,
     pub args: &'a [String],
     pub stdin: &'a str,
+    pub stdin_is_default: bool,
     pub(crate) shared_output: bool,
     pub(crate) failure: Option<CommandFailure>,
     pub(crate) unread_stdin: Option<String>,
@@ -494,7 +495,7 @@ impl HybridBackend {
         limits: &ShellLimits,
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
-        self.execute_native_input(script, cwd, env, stdin, None, timeout_ms, limits, fs)
+        self.execute_native_input(script, cwd, env, Some(stdin), None, timeout_ms, limits, fs)
     }
 
     pub(crate) fn execute_native_input(
@@ -502,7 +503,7 @@ impl HybridBackend {
         script: &str,
         cwd: &mut String,
         env: &mut BTreeMap<String, String>,
-        stdin: &str,
+        stdin: Option<&str>,
         stream: Option<crate::shell::eval::FdTarget>,
         timeout_ms: Option<u64>,
         limits: &ShellLimits,
@@ -517,6 +518,7 @@ impl HybridBackend {
         let allow_fallback = self.mode == BackendMode::Hybrid && stream.is_none();
         let mut shell_cwd = shell_text(cwd).into_owned();
         let mut eval = EvalState::new(&mut shell_cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
+        if stdin.is_none() && stream.is_none() && !self.commands.is_empty() { eval.default_input_fds.insert(0); }
         if let Some(input) = stream { eval.fd_table.insert(0, input); }
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         eval.provided_devices = self.provided_devices;
@@ -525,7 +527,7 @@ impl HybridBackend {
             eval.exported_functions.clone_from(&bindings.exported_functions);
             eval.pos_args.clone_from(&bindings.positional);
         }
-        let (eval_res, elapsed_ms) = eval.eval_script_timed(script, stdin);
+        let (eval_res, elapsed_ms) = eval.eval_script_timed(script, stdin.unwrap_or(""));
         *cwd = host_text(eval.cwd).into_owned();
         self.last_elapsed_ms.store(elapsed_ms, Ordering::Relaxed);
         if let Err(exceeded_msg) = budget.check_exceeded() {

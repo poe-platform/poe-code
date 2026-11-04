@@ -183,7 +183,7 @@ impl Shell {
         for (k, v) in options.env {
             self.set_env(&k, &v);
         }
-        let stdin = options.stdin.as_deref().unwrap_or("");
+        let stdin = options.stdin.as_deref();
         let fs = options.fs.as_deref().unwrap_or(self.fs.as_ref());
 
         if self.backend.mode != BackendMode::TypeScriptOnly
@@ -226,7 +226,7 @@ impl Shell {
             script,
             &mut self.cwd,
             &mut self.env,
-            stdin,
+            stdin.unwrap_or(""),
             options.timeout_ms,
             fs,
         )?;

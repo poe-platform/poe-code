@@ -1099,7 +1099,7 @@ pub unsafe extern "C" fn safe_bash_exec(
     let script = unsafe { str_from_raw(script_ptr, script_len) };
     let bytes = unsafe { slice_from_raw(stdin_ptr, stdin_len) };
     exec_session(id, |shell| shell.exec_with_options(script, ExecOptions {
-        stdin: (!bytes.is_empty()).then(|| bytes_to_stream_string(bytes)),
+        stdin: (!stdin_ptr.is_null()).then(|| bytes_to_stream_string(bytes)),
         ..Default::default()
     }))
 }

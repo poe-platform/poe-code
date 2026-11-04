@@ -1498,6 +1498,33 @@ test("suspended plugin commands keep their own inputs, output limits and cancell
   } finally { release(); await bash.dispose(); }
 });
 
+test("plugin stdin reports the source of the current descriptor", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const js = new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()), rust = new RustWasmBash({cwd:"/"});
+  const probe = {name:"probe", async execute(ctx) {
+    await ctx.stdout.write(new TextEncoder().encode(String(ctx.stdinIsDefault) + "\n"));
+    return {exitCode:0};
+  }};
+  try {
+    for (const sh of [js, rust]) sh.register(probe);
+    for (const script of [
+      "probe", "probe <&0", ": | probe; probe", "probe </dev/null; probe", "probe <&-; probe",
+      "{ probe; } <<<x; probe", "f() { probe; }; f </dev/null; f", "probe 3<&0 <&3",
+      "exec 3<&0; probe </dev/null; probe <&3", "exec </dev/null; probe",
+      "printf hi > >(probe)", "exec 3<&0; : | probe <&3", "shopt -s lastpipe; : | { exec 0<&-; probe; }; probe",
+      "exec 3<&0; exec 0</dev/null; exec 0<&3; probe", "probe 3<&0-; probe",
+    ]) {
+      for (const input of [undefined, "", Uint8Array.of(97), () => (async function*(){})()]) {
+        const run = async sh => {
+          const r = await sh.exec(script, {stdin:typeof input === "function" ? input() : input});
+          return [r.exitCode,r.stdout,r.stderr];
+        };
+        assert.deepEqual(await run(rust), await run(js), script);
+      }
+    }
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
 test("plugin command failures preserve public diagnostics and redact private errors", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const {PublicDiagnostic} = await import("safe-bash-contracts/diagnostics");

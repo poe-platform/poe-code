@@ -39,7 +39,7 @@ pub enum EvalError {
 const INDEX_OUT_OF_RANGE: &str = "indexed array: index outside 0..2147483647";
 const STDIN_STREAM_FD: u32 = u32::MAX;
 type InputCursor = Rc<RefCell<String>>;
-type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
+type SavedFds = (Vec<(u32, Option<FdTarget>, bool)>, Vec<(u32, Option<u32>)>);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum DispatchMode { Shell, BypassFunctions, EnvShebang }
@@ -313,6 +313,8 @@ pub struct EvalState<'a> {
     pub current_line: usize,
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
+    pub(crate) default_input_fds: BTreeSet<u32>,
+    exec_replaced_stdin: bool,
     // An output remains private while its command runs or a descriptor still refers to it.
     exclusive_outputs: Vec<(usize, Rc<ExclusiveOutput>)>,
     stage_depth: usize,
@@ -426,6 +428,8 @@ impl<'a> EvalState<'a> {
             current_line: 1,
             local_scopes: Vec::new(),
             fd_table,
+            default_input_fds: BTreeSet::new(),
+            exec_replaced_stdin: false,
             exclusive_outputs: Vec::new(),
             stage_depth: 0,
             path_outputs: Rc::default(),
@@ -580,6 +584,8 @@ impl<'a> EvalState<'a> {
             current_line: self.current_line,
             local_scopes: Vec::new(),
             fd_table: self.fd_table.clone(),
+            default_input_fds: self.default_input_fds.clone(),
+            exec_replaced_stdin: false,
             exclusive_outputs: Vec::new(),
             stage_depth: 0,
             path_outputs: self.path_outputs.clone(),
@@ -777,8 +783,9 @@ impl<'a> EvalState<'a> {
         let saved = self.fd_table.insert(0, FdTarget::input_stream(move |_| chunks.next()));
         let alias = self.in_fd_aliases.remove(&0);
         let cursor = self.in_fds.remove(&0);
+        let default_input = self.default_input_fds.remove(&0);
         let result = self.eval_script_str(script, "");
-        self.restore_redirects((vec![(0, saved)], vec![(0, alias)]), vec![(0, cursor)]);
+        self.restore_redirects((vec![(0, saved, default_input)], vec![(0, alias)]), vec![(0, cursor)]);
         result
     }
 
@@ -1638,10 +1645,16 @@ impl<'a> EvalState<'a> {
             if use_lastpipe {
                 let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let outer_input = self.fd_table.remove(&0);
+                let outer_default = self.default_input_fds.remove(&0);
+                let previously_replaced = std::mem::take(&mut self.exec_replaced_stdin);
                 let stage_res = self.eval_pipeline_stage(cmd_node, &mut cur_stdin, None);
-                if let Some(target) = outer_input {
-                    self.fd_table.insert(0, target);
+                if self.exec_replaced_stdin {
+                    *stdin = std::mem::take(&mut cur_stdin);
+                } else {
+                    if outer_default { self.default_input_fds.insert(0); }
+                    if let Some(target) = outer_input { self.fd_table.insert(0, target); }
                 }
+                self.exec_replaced_stdin |= previously_replaced;
                 if let Some(p0) = prev_pipe0 {
                     self.env.insert("\0pipe_fd__0".to_string(), p0);
                 } else {
@@ -1669,6 +1682,7 @@ impl<'a> EvalState<'a> {
                 sub.async_default_stdin = self.async_default_stdin;
             } else {
                 sub.fd_table.remove(&0);
+                sub.default_input_fds.remove(&0);
                 sub.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
             }
             if !is_last {
@@ -1895,7 +1909,9 @@ impl<'a> EvalState<'a> {
                 };
                 let saved_stream = self.in_fds.remove(&STDIN_STREAM_FD);
                 let mut empty_stdin = String::new();
+                let was_default = self.default_input_fds.replace(0).is_some();
                 let res = self.eval_command_node(node, &mut empty_stdin, standalone);
+                if !was_default { self.default_input_fds.remove(&0); }
                 if let Some(stream) = stream { self.fd_table.insert(0, stream); }
                 if let Some(a0) = saved_alias0 {
                     self.in_fd_aliases.insert(0, a0);
@@ -3711,6 +3727,10 @@ impl<'a> EvalState<'a> {
                 self.restore_redirects(saved_fds, saved_in);
                 return Ok(err_out);
             }
+            if saved_fds.0.iter().any(|(fd, _, _)| *fd == 0) {
+                self.exec_replaced_stdin = true;
+                self.default_input_fds.remove(&0);
+            }
             if use_local {
                 let mut exec_saved_in = Vec::new();
                 self.materialize_stdin_aliases(stdin, &mut exec_saved_in);
@@ -3981,6 +4001,9 @@ impl<'a> EvalState<'a> {
                 let mut sub_cwd = self.cwd.clone();
                 let mut sub_env = self.env.clone();
                 let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+                sub.fd_table.remove(&0);
+                sub.in_fd_aliases.remove(&0);
+                sub.default_input_fds.remove(&0);
                 if let Ok(ast) = parse_script_with_extglob(&sub_cmd, sub.extglob_enabled())
                     && let Ok(sub_out) = sub.eval_script(&ast, &mut proc_stdin)
                 {
@@ -5089,6 +5112,7 @@ impl<'a> EvalState<'a> {
         {
             self.refresh_file_input(0, stdin)?;
             let mut ctx = CommandContext {
+                stdin_is_default: self.default_input_fds.contains(&0),
                 shared_output: self.fd_table.get(&1).zip(self.fd_table.get(&2)).is_some_and(|(a, b)| a.shares_output(b)),
                 failure: None,
                 unread_stdin: None,
@@ -5297,6 +5321,8 @@ impl<'a> EvalState<'a> {
                     current_line: 1,
                     local_scopes: Vec::new(),
                     fd_table,
+                    default_input_fds: self.default_input_fds.clone(),
+                    exec_replaced_stdin: false,
                     exclusive_outputs: Vec::new(),
                     stage_depth: 0,
                     path_outputs: self.path_outputs.clone(),
@@ -5354,6 +5380,7 @@ impl<'a> EvalState<'a> {
                 if !std::ptr::eq(inherited_stdin, sub_stdin) {
                     sub_eval.evacuate_in_fd_owner(0, &mut Vec::new());
                     sub_eval.fd_table.remove(&0);
+                    sub_eval.default_input_fds.remove(&0);
                     sub_eval.in_fds.remove(&0);
                     sub_eval.in_fd_aliases.remove(&0);
                 } else if let Some(target) = sub_eval.fd_table.get_mut(&0) {
@@ -9907,7 +9934,7 @@ impl<'a> EvalState<'a> {
             }
         }
         let mut exclusive_outputs = Vec::new();
-        let mut saved_fd_table: Vec<(u32, Option<FdTarget>)> = Vec::new();
+        let mut saved_fd_table = Vec::new();
         let mut saved_aliases: Vec<(u32, Option<u32>)> = Vec::new();
         let mut saved_in: Vec<(u32, Option<InputCursor>)> = Vec::new();
         let mut local_stdin = String::new();
@@ -9915,9 +9942,10 @@ impl<'a> EvalState<'a> {
         let mut dup_fd: Option<u32> = None;
 
         let record_saved_fd =
-            |fd_table: &BTreeMap<u32, FdTarget>, saved: &mut Vec<(u32, Option<FdTarget>)>, f: u32| {
-                if !saved.iter().any(|(k, _)| *k == f) {
-                    saved.push((f, fd_table.get(&f).cloned()));
+            |this: &mut Self, saved: &mut Vec<(u32, Option<FdTarget>, bool)>, f: u32| {
+                let was_default = this.default_input_fds.remove(&f);
+                if !saved.iter().any(|(k, _, _)| *k == f) {
+                    saved.push((f, this.fd_table.get(&f).cloned(), was_default));
                 }
             };
         let record_saved_alias =
@@ -9976,7 +10004,7 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_fd(self, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.in_fd_aliases.remove(fd);
                     match description {
@@ -10079,7 +10107,7 @@ impl<'a> EvalState<'a> {
                         return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(error)));
                     }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_fd(self, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.fd_table.remove(fd);
                     self.in_fd_aliases.remove(fd);
@@ -10111,7 +10139,7 @@ impl<'a> EvalState<'a> {
                     };
                     if target == "-" {
                         self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                        record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                        record_saved_fd(self, &mut saved_fd_table, *fd);
                         record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                         if *fd == 0 {
                             local_stdin.clear();
@@ -10140,8 +10168,8 @@ impl<'a> EvalState<'a> {
                                     return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                                 }
                             };
-                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
-                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
+                            record_saved_fd(self, &mut saved_fd_table, 1);
+                            record_saved_fd(self, &mut saved_fd_table, 2);
                             self.fd_table
                                 .insert(1, opened.clone());
                             self.fd_table.insert(2, opened);
@@ -10201,17 +10229,24 @@ impl<'a> EvalState<'a> {
                                     Some(err_out),
                                 ));
                             }
-                            if src_fd == *fd { continue; }
+                            if src_fd == *fd {
+                                // Keep the descriptor intact but remember that exec explicitly rebound it.
+                                let was_default = self.default_input_fds.contains(fd);
+                                record_saved_fd(self, &mut saved_fd_table, *fd);
+                                if was_default { self.default_input_fds.insert(*fd); }
+                                continue;
+                            }
                             if self.is_fd_readable(src_fd) {
                                 if move_fd {
                                     self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
                                 }
                                 self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                                record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                                record_saved_fd(self, &mut saved_fd_table, *fd);
                                 record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                                 if *fd != 0 && !saved_in.iter().any(|(f, _)| f == fd) {
                                     saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                 }
+                                if self.default_input_fds.contains(&src_fd) { self.default_input_fds.insert(*fd); }
                                 if let Some(file) = self.fd_table.get(&src_fd) && let Some(unread) = file.cursor() {
                                     self.in_fd_aliases.remove(fd);
                                     if *fd == 0 {
@@ -10274,7 +10309,7 @@ impl<'a> EvalState<'a> {
                                 }
                             } else {
                                 self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                                record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                                record_saved_fd(self, &mut saved_fd_table, *fd);
                                 record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                                 if !saved_in.iter().any(|(f, _)| f == fd) {
                                     saved_in.push((*fd, self.in_fds.get(fd).cloned()));
@@ -10300,7 +10335,7 @@ impl<'a> EvalState<'a> {
                                 self.fd_table.insert(*fd, inherited);
                             }
                             if move_fd && src_fd != *fd {
-                                record_saved_fd(&self.fd_table, &mut saved_fd_table, src_fd);
+                                record_saved_fd(self, &mut saved_fd_table, src_fd);
                                 record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, src_fd);
                                 if src_fd == 0 {
                                     self.fd_table.insert(0, FdTarget::Closed);
@@ -10358,7 +10393,7 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_fd(self, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     if *fd == 0 {
                         self.materialize_stdin_aliases(default_stdin, &mut saved_in);
@@ -10395,8 +10430,8 @@ impl<'a> EvalState<'a> {
                             return Ok(((saved_fd_table, saved_aliases), saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
                         }
                     };
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
-                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
+                    record_saved_fd(self, &mut saved_fd_table, 1);
+                    record_saved_fd(self, &mut saved_fd_table, 2);
                     self.fd_table
                         .insert(1, opened.clone());
                     self.fd_table.insert(2, opened);
@@ -10420,7 +10455,8 @@ impl<'a> EvalState<'a> {
         saved_fds: SavedFds,
         saved_in: Vec<(u32, Option<InputCursor>)>,
     ) {
-        for (fd, prev) in saved_fds.0.into_iter().rev() {
+        for (fd, prev, was_default) in saved_fds.0.into_iter().rev() {
+            if was_default { self.default_input_fds.insert(fd); } else { self.default_input_fds.remove(&fd); }
             match prev {
                 Some(target) => {
                     self.fd_table.insert(fd, target);

@@ -22,6 +22,7 @@ pub struct HostReply {
     used_fs_ops: usize,
     creation_mode: u32,
     diagnostic: HostBuffer,
+    stdin_is_default: u32,
 }
 
 impl HostBuffer {
@@ -68,6 +69,7 @@ pub unsafe extern "C" fn safe_bash_register_command(
         packet.extend_from_slice(&stream_string_to_bytes(ctx.stdin));
         let mut reply = HostReply {
             remaining_output: ctx.budget.remaining_output_bytes(), shared_output: u32::from(ctx.shared_output),
+            stdin_is_default: u32::from(ctx.stdin_is_default),
             remaining_fs_ops: ctx.budget.remaining_fs_ops(), max_path_components: ctx.budget.limits.max_pathname_components,
             creation_mode: 0o666 & !ctx.env.get("\0umask").and_then(|mask| u32::from_str_radix(mask, 8).ok()).unwrap_or(0o022),
             ..Default::default()

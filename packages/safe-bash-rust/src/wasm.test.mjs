@@ -6475,6 +6475,52 @@ test("ZIP updates both host hard links and refuses a competing write before publ
   finally{await js.dispose();await rust.dispose();}
 });
 
+test("ZIP reads an existing archive and its members in bounded ranges, and rejects a member changed mid-read",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
+  const payload=new Uint8Array(280000).fill(73);
+  const run=async sh=>{
+    const fs=new MemoryFileSystem(), limits=[], writes=[];let mutate=false,failWrite=false,opened=0,closed=0;
+    await fs.writeFile("/first",payload);await fs.writeFile("/second",payload);
+    const view=new Proxy(fs,{get(target,key){
+      if(key==="readFile")return ()=>{throw new Error("unexpected whole-file read");};
+      if(key==="openReadFile")return async(path,settings)=>{
+        const h=await fs.openReadFile(path,settings);opened++;
+        return {...h,async read(pos,n,opts){
+          limits.push(n);
+          const data=await h.read(pos,n,opts);
+          if(mutate && path==="/second"){mutate=false;await fs.writeFile(path,new Uint8Array(payload.length).fill(88));}
+          return data;
+        },async close(){closed++;await h.close();}};
+      };
+      if(key==="createStagedFile")return async(path,name,content,opts)=>{
+        const stage=await fs.createStagedFile(path,name,content,opts);writes.push(content.data?.length??0);
+        return {...stage,writer:{...stage.writer,async write(b,o){writes.push(b.length);
+          if(failWrite){failWrite=false;throw new Error("injected staged write failure");}
+          return stage.writer.write(b,o);}}};
+      };
+      const v=target[key];return typeof v==="function"?v.bind(target):v;
+    }});
+    assert.deepEqual(await sh.exec("zip -0q out.zip first",{fs:view}).then(r=>[r.exitCode,r.stderr]),[0,""]);
+    const original=await fs.readFile("/out.zip");
+    mutate=true;
+    const refused=await sh.exec("zip -0q out.zip second",{fs:view});
+    assert.notEqual(refused.exitCode,0);assert.equal(mutate,false);assert.deepEqual(await fs.readFile("/out.zip"),original);
+    failWrite=true;
+    assert.notEqual((await sh.exec("zip -0q out.zip second",{fs:view})).exitCode,0);
+    assert.equal(failWrite,false);assert.deepEqual(await fs.readFile("/out.zip"),original);
+    assert.deepEqual((await fs.readdir("/")).map(e=>e.name).sort(),["first","out.zip","second"]);
+    const update=await sh.exec("zip -0q out.zip second",{fs:view});
+    assert.deepEqual([update.exitCode,update.stderr],[0,""]);
+    const contents=await sh.exec("unzip -p out.zip second",{fs});
+    assert.equal(contents.exitCode,0);assert.deepEqual(contents.stdoutBytes,await fs.readFile("/second"));
+    assert.equal(opened,closed);assert.ok(opened>1);
+    assert.ok(limits.length>4 && Math.max(...limits)<=65536,"read range: "+Math.max(...limits));
+    assert.ok(writes.length>4 && Math.max(...writes)<=65536,"write range: "+Math.max(...writes));
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{for(const sh of [js,rust])await run(sh);}finally{await js.dispose();await rust.dispose();}
+});
+
 test("host apply_patch confines create, update, move and delete to the preflight directories",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"}),enc=new TextEncoder(),dec=new TextDecoder();

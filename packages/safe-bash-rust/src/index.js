@@ -192,17 +192,21 @@ function bindExternalFs(shell,fs,options) {
     if(closeErrors.length===1)throw closeErrors[0];
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
-  const stageOutput=async(view,path,data,guard,metadata)=>{
+  const stageOutput=async(view,path,data,guard,metadata,writeStage)=>{
     const settings={signal:options.signal}, parentDir=path.slice(0,path.lastIndexOf("/"));
     let stage;
     for(let attempt=0;;attempt++){
       try{
-        stage=await view.createStagedFile(parentDir+"/.safe-bash-stage-"+nextHandle++,"file",{type:"file",data},
+        stage=await view.createStagedFile(parentDir+"/.safe-bash-stage-"+nextHandle++,"file",{type:"file",data:data??new Uint8Array()},
           {...settings,...metadata,parent:guard.parent,retainCleanup:true});
         break;
       }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
     }
     try{
+      if(writeStage){
+        if(!stage.writer)throw fsOperationError("ENOTSUP","createStagedFile",path);
+        await writeStage(stage.writer);
+      }
       const finished=stage.writer?{...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}}:stage;
       await view.publishStagedFile(finished,path,{...settings,...guard});
     }finally{
@@ -219,8 +223,22 @@ function bindExternalFs(shell,fs,options) {
       try {
         const view=new DataView(x.memory.buffer), word=at=>view.getUint32(ptr+at,true);
         const field=at=>new Uint8Array(x.memory.buffer,word(at),word(at+4));
-        const op=decoder.decode(field(0)), path=decoder.decode(field(8)), data=field(16).slice();
+        const op=decoder.decode(field(0)), path=decoder.decode(field(8));
         const flags=word(24), mode=word(28), settings={signal:options.signal};
+        const start=word(16),length=word(20);
+        const obs=(op==="publish" || op==="replaceEntry") && publications.get(flags);
+        const chunked=length>65536 && obs?.retainedWriter && (op==="replaceEntry" || obs.stagedMutation);
+        // Rust owns the request bytes until this callback resumes. Stack storage
+        // can be reused during suspension; heap views must be renewed after memory grows.
+        const data=!chunked || start<top && start+length>sp ? field(16).slice() : undefined;
+        const writeStage=chunked ? async writer=>{
+          for(let offset=0;offset<length;offset+=65536){
+            settings.signal?.throwIfAborted();
+            const n=Math.min(65536,length-offset);
+            const bytes=data?data.slice(offset,offset+n):new Uint8Array(x.memory.buffer,start+offset,n).slice();
+            await writer.write(bytes,settings);
+          }
+        } : undefined;
         if(op==="forgetPublication"){publications.delete(flags);return;}
         if(op!=="close" && op!=="removePublished")options.signal?.throwIfAborted();
         if(op==="namespace"){
@@ -291,7 +309,7 @@ function bindExternalFs(shell,fs,options) {
             if(!caps?.atomicFileStaging || !caps.retainedStagingCleanup || !caps.guardedStagingPublication ||
               !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile)return;
             const resolution=await fs.prepareStagingResolution(path,settings), id=nextHandle++;
-            publications.set(id,{path,resolution,write,stagedMutation:caps.atomicStagedFileMutation===true});
+            publications.set(id,{path,resolution,write,stagedMutation:caps.atomicStagedFileMutation===true,retainedWriter:caps.retainedStagingWrite===true});
             new DataView(result.buffer).setUint32(0,id,true);return;
           }
           if(flags ? !write || typeof fs.removeFileConditional!=="function" : !write && !stream)return;
@@ -318,8 +336,8 @@ function bindExternalFs(shell,fs,options) {
               await confined.writeFileConditional(r.path,data,{...settings,parent:r.parent,expected:r.destination});return;
             }
           }
-          await stageOutput(fs,r.path,data,{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
-            ...(inPlace && {preserveIdentity:true})},{mode:inPlace?r.destination.mode&0o7777:mode});
+          await stageOutput(fs,r.path,chunked?undefined:data,{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
+            ...(inPlace && {preserveIdentity:true})},{mode:inPlace?r.destination.mode&0o7777:mode},writeStage);
           return;
         }
         if(op==="publicationAlias"){

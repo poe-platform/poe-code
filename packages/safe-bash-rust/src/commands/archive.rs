@@ -2178,21 +2178,32 @@ fn format_od_float(value: f64, size: usize) -> String {
     let magnitude = value.abs();
     let (min_normal, min_precision, max_precision) = if size == 4 { (f32::MIN_POSITIVE as f64, 6, 9) } else { (f64::MIN_POSITIVE, 15, 17) };
     let mut precision = if magnitude < min_normal { 1 } else { min_precision };
-    // toPrecision rounds decimal ties away from zero. Keep the exact leading
-    // digits of the binary value (even a subnormal has at most 1074 places).
-    let exact = format!("{magnitude:.1074e}");
-    let (significand, exponent) = exact.split_once('e').unwrap();
-    let exponent: i32 = exponent.parse().unwrap();
-    let digits: Vec<_> = significand.bytes().filter(|&b| b != b'.').take(max_precision + 1).collect();
-    let mut coefficient = digits[..precision].iter().fold(0u64, |n, b| n * 10 + u64::from(b - b'0'));
-    let rounded = loop {
-        let nearest = coefficient + u64::from(digits[precision] >= b'5');
-        let decimal = format!("{nearest}e{}", exponent - precision as i32 + 1).parse::<f64>().unwrap();
-        if precision == max_precision || (if size == 4 { (decimal as f32) as f64 } else { decimal }) == magnitude {
-            break decimal.copysign(value);
+    let power = magnitude.log10().floor() as i32;
+    // In binary64 the rounded number is the input itself. Only these two
+    // exponents can straddle the fixed/scientific boundary at 15–17 digits.
+    let rounded = if size == 8 && !(15..17).contains(&power) { value } else {
+        // At each precision the first discarded digit decides rounding. If
+        // rounding our extra digits could have created a decimal midpoint,
+        // inspect the exact expansion instead (JS rounds ties away from zero).
+        let short = format!("{:.*e}", max_precision + 2, magnitude);
+        let (mantissa, _) = short.split_once('e').unwrap();
+        let digits = if mantissa.ends_with('0') && mantissa.trim_end_matches('0').ends_with('5') {
+            format!("{:.*e}", if size == 4 { 149 } else { 1074 }, magnitude)
+        } else { short };
+        let (significand, exponent) = digits.split_once('e').unwrap();
+        let exponent: i32 = exponent.parse().unwrap();
+        let mut digits = significand.bytes().filter(|&b| b != b'.');
+        let mut coefficient = digits.by_ref().take(precision).fold(0u64, |n, b| n * 10 + u64::from(b - b'0'));
+        loop {
+            let next = digits.next().unwrap();
+            let nearest = coefficient + u64::from(next >= b'5');
+            let decimal = format!("{nearest}e{}", exponent - precision as i32 + 1).parse::<f64>().unwrap();
+            if precision == max_precision || (if size == 4 { (decimal as f32) as f64 } else { decimal }) == magnitude {
+                break decimal.copysign(value);
+            }
+            coefficient = coefficient * 10 + u64::from(next - b'0');
+            precision += 1;
         }
-        coefficient = coefficient * 10 + u64::from(digits[precision] - b'0');
-        precision += 1;
     };
     let js = mcp_protocol_rust::numbers::format(rounded);
     let power = rounded.abs().log10().floor() as i32;
@@ -2230,10 +2241,15 @@ fn format_od_row(
         text.push_str(&" ".repeat(lead_spaces));
         if fmt.size == 1 && (fmt.kind == 'x' || fmt.kind == 'o') {
             let b = row[offset];
+            text.push(' ');
             if fmt.kind == 'x' {
-                text.push_str(&format!(" {b:02x}"));
+                let hex = b"0123456789abcdef";
+                text.push(hex[(b >> 4) as usize] as char);
+                text.push(hex[(b & 15) as usize] as char);
             } else {
-                text.push_str(&format!(" {b:03o}"));
+                text.push((b'0' + (b >> 6)) as char);
+                text.push((b'0' + ((b >> 3) & 7)) as char);
+                text.push((b'0' + (b & 7)) as char);
             }
             offset += fmt.size;
             continue;

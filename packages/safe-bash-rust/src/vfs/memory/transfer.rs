@@ -2,15 +2,16 @@ use super::*;
 use crate::ExecutionBudget;
 
 impl MemoryVfs {
-    /// Both namespace locks stay held from receipt validation through destination
-    /// publication and source removal. Take them in device order for opposing moves.
+    /// Publish under both namespace locks. Return the refreshed source directory
+    /// snapshot so the mount router can recheck the original path before rmdir.
     pub(crate) fn transfer_to(
         &self,
         destination: &Self,
         source: (&str, &str, u64),
         target: (&str, &str, u64),
+        children: &[(String, String)],
         budget: Option<&ExecutionBudget>,
-    ) -> Result<(), String> {
+    ) -> Result<Option<FileStat>, String> {
         if self.id == destination.id {
             return Err("ENOTSUP: move between aliases of one mount".into());
         }
@@ -128,7 +129,7 @@ impl MemoryVfs {
             }
             Self::unlink_locked(&mut src, from);
             self.bump_generation();
-            return Ok(());
+            return Ok(None);
         }
         if device.is_none() && dst.devices == Devices::Mounted {
             admit(2)?; // directory removal and conditional removal support
@@ -165,21 +166,15 @@ impl MemoryVfs {
         let available = dst.limits.max_entries.saturating_sub(dst.entry_count())
             + usize::from(existing.is_some());
         let mut removals = Vec::new();
-        let prefix = format!("{from}/");
-        for (path, node) in std::iter::once((from, origin)).chain(
-            src.nodes
-                .range(prefix.clone()..)
-                .take_while(|(p, _)| directory && p.starts_with(&prefix))
-                .map(|(p, n)| (p.as_str(), n)),
-        ) {
-            let suffix = &path[from.len()..];
+        for (path, suffix) in std::iter::once((from, "")).chain(children.iter().map(|(p,s)| (p.as_str(),s.as_str()))) {
+            let node = src.nodes.get(path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
             let new_path = format!("{to}{suffix}");
             if let Some(b) = budget {
                 b.check_cancelled()?;
                 b.tick_fs_op()?;
                 b.limits.check_path(&format!("{display_to}{suffix}"))?;
             }
-            if !matches!(src.nodes.get(&crate::vfs::dirname_posix_path(path)), Some(MemoryNode::Directory {mode,..}) if mode & 0o300 == 0o300)
+            if !(directory && path == from) && !matches!(src.nodes.get(&crate::vfs::dirname_posix_path(path)), Some(MemoryNode::Directory {mode,..}) if mode & 0o300 == 0o300)
             {
                 return Err(format!(
                     "EACCES: permission denied, removeEntryConditional '{display_from}{suffix}'"
@@ -276,7 +271,7 @@ impl MemoryVfs {
                     );
                 }
             }
-            removals.push(path.to_owned());
+            if !directory || path != from { removals.push(path.to_owned()); }
         }
         if let Some(b) = budget {
             b.check_cancelled()?;
@@ -298,6 +293,19 @@ impl MemoryVfs {
             Self::unlink_locked(&mut src, &path);
         }
         self.bump_generation();
+        Ok(if directory { self.resolved_metadata(&src, from) } else { None })
+    }
+
+    pub(in crate::vfs) fn remove_moved_directory(&self, path: &str, parent: &FileStat, expected: &FileStat, version: u64) -> Result<(),String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let actual_parent = self.resolved_metadata(&state, &crate::vfs::dirname_posix_path(path));
+        if self.generation() != version
+            || !self.resolved_metadata(&state, path).is_some_and(|st| st.same_snapshot(expected))
+            || !actual_parent.is_some_and(|st| st.identity.is_some() && st.identity == parent.identity) {
+            return Err("EAGAIN: resource temporarily unavailable".into());
+        }
+        Self::remove_one_locked(&mut state,path,true)?;
+        self.bump_generation();
         Ok(())
     }
 }
@@ -318,7 +326,7 @@ mod tests {
                 &b,
                 ("/src", "/src", old),
                 ("/dst", "/mnt/dst", b.generation()),
-                None
+                &[], None
             )
             .unwrap_err()
             .starts_with("EBUSY")
@@ -330,7 +338,7 @@ mod tests {
                 &b,
                 ("/src", "/src", a.generation()),
                 ("/dst", "/mnt/dst", old),
-                None
+                &[], None
             )
             .unwrap_err()
             .starts_with("EBUSY")

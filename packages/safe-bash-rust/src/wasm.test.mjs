@@ -3878,6 +3878,30 @@ test("device metadata follows virtual traversal without granting access to backi
   } finally { bash.dispose(); }
 });
 
+test("a missing prefix cannot select a mounted device's directory removal capability", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/empty"]});
+  try {
+    const result = await bash.exec("rmdir -v --ignore-fail-on-non-empty /empty /missing/../dev");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "rmdir: removing directory, '/empty'\n");
+    assert.equal(result.stderr, "rmdir: ENOENT: no such file or directory, rmdir '/missing/../dev'\n");
+  } finally { bash.dispose(); }
+});
+
+test("rmdir checks whether an unsupported mounted directory is actually nonempty", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/empty"]});
+  try {
+    for (const [operand, op] of [["/dev/absent","readdir"], ["/dev/absent/","capabilitiesFor"], ["/dev/absent/child","capabilitiesFor"]]) {
+      const result = await bash.exec("rmdir -p --ignore-fail-on-non-empty " + operand);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "rmdir: ENOENT: no such file or directory, " + op + " '" + operand + "'\n");
+    }
+    const run = n => bash.exec("rmdir /dev/absent", {limits:{maxFileSystemOperations:n}});
+    await assert.rejects(run(7), {limit:"maxFileSystemOperations"});
+    assert.equal((await run(8)).exitCode, 1);
+  } finally { bash.dispose(); }
+});
+
 test("mounted removal requires a searchable directory before crossing a trailing slash", async () => {
   const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", directories:["/locked"]});
   try {

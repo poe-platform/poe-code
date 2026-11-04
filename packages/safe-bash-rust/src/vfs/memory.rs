@@ -1533,7 +1533,7 @@ impl SafeBashFs for MemoryVfs {
         self.mkdir_with_operation(path, recursive, mode, false).map_err(|(code, _, at)| (code, at))
     }
 
-    fn rmdir_capability_error(&self, path: &str, entry: Option<&str>) -> Result<Option<&'static str>, String> {
+    fn rmdir_support(&self, path: &str, entry: Option<&str>) -> Result<crate::vfs::RmdirSupport, String> {
         let state = self.state.read().map_err(|_| "EIO: input/output error")?;
         let resolved;
         let entry = match entry {
@@ -1542,9 +1542,9 @@ impl SafeBashFs for MemoryVfs {
             None => path,
         };
         Ok(match (state.devices, entry) {
-            (Devices::Null | Devices::Extended, "/dev") => Some("ENOTSUP: operation not supported"),
-            (Devices::Mounted, "/") => Some("ENOTEMPTY: directory not empty"),
-            _ => None,
+            (Devices::Null | Devices::Extended, "/dev") => super::RmdirSupport::Unsupported,
+            (Devices::Mounted, _) => super::RmdirSupport::InspectDirectory,
+            _ => super::RmdirSupport::Available,
         })
     }
 

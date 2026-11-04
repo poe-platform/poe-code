@@ -780,8 +780,8 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             }
             let mut candidate = path.clone();
             let mut resolved = entry.as_deref();
-            let refusal = loop {
-                match fs.rmdir_capability_error(&candidate, resolved) {
+            let support = loop {
+                match fs.rmdir_support(&candidate, resolved) {
                     Err(e) if e.starts_with("ENOENT:") && candidate != "/" => {
                         candidate = parent(&candidate);
                         resolved = None;
@@ -790,13 +790,19 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                     result => break result?,
                 }
             };
-            if let Some(reason) = refusal {
+            if support != crate::vfs::RmdirSupport::Available {
                 fs.command_descriptor_op()?;
-                if reason.starts_with("ENOTEMPTY:") {
+                let original = if candidate == path { support } else {
+                    fs.rmdir_support(&path, entry.as_deref()).map_err(|e| copy_error(&e, "capabilitiesFor", &path))?
+                };
+                if original == crate::vfs::RmdirSupport::InspectDirectory {
                     fs.command_descriptor_op()?;
-                    if ignore_non_empty { return Ok(()); }
+                    if !fs.list_dir(&path).map_err(|e| copy_error(&e, "readdir", &path))?.is_empty() {
+                        if ignore_non_empty { return Ok(()); }
+                        return Err(format!("ENOTEMPTY: directory not empty, rmdir '{path}'"));
+                    }
                 }
-                return Err(format!("{reason}, rmdir '{path}'"));
+                return Err(format!("ENOTSUP: operation not supported, rmdir '{path}'"));
             }
             if !preflight {
                 if let Err(e) = fs.remove_one(&path, true) {

@@ -198,6 +198,9 @@ pub trait FileReadHandle: Send + Sync {
 /// Bytes already charged by the shell that produced this redirect's data.
 pub struct RedirectCharge(pub(crate) usize);
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum RmdirSupport { Available, Unsupported, InspectDirectory }
+
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
@@ -473,8 +476,8 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     /// A missing rmdir capability stops the operand batch before its first mutation.
-    fn rmdir_capability_error(&self, path: &str, entry: Option<&str>) -> Result<Option<&'static str>, String> {
-        Ok((entry.unwrap_or(path) == "/dev" && self.default_device_view()).then_some("ENOTSUP: operation not supported"))
+    fn rmdir_support(&self, path: &str, entry: Option<&str>) -> Result<crate::vfs::RmdirSupport, String> {
+        Ok(if entry.unwrap_or(path) == "/dev" && self.default_device_view() { RmdirSupport::Unsupported } else { RmdirSupport::Available })
     }
 
     fn default_device_view(&self) -> bool { false }

@@ -205,14 +205,14 @@ impl MountVfs {
 }
 
 impl SafeBashFs for MountVfs {
-    fn rmdir_capability_error(&self, path: &str, entry: Option<&str>) -> Result<Option<&'static str>, String> {
+    fn rmdir_support(&self, path: &str, entry: Option<&str>) -> Result<crate::vfs::RmdirSupport, String> {
         let resolved;
         let entry = match entry {
             Some(entry) => entry,
-            None => { resolved = self.resolve(path, true, WalkPurpose::AllowMissingParents)?; &resolved }
+            None => { resolved = self.resolve(path, true, WalkPurpose::Access)?; &resolved }
         };
         let (_, fs, local) = self.location(entry);
-        fs.rmdir_capability_error(&local, Some(&local))
+        fs.rmdir_support(&local, Some(&local))
     }
 
     fn has_path_capabilities(&self) -> bool { true }

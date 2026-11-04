@@ -11179,13 +11179,14 @@ fn cmd_less_more(
     if let Some(ref pat) = start_pat
         && !pat.is_empty()
     {
-        let rx = crate::commands::search::ZeroRegex::new(
-            vec![pat.to_string()],
-            ignore_case,
-            false,
-            false,
-            false,
-        );
+        let rx = match super::search::ZeroRegex::extended(&crate::vfs::host_text(pat), ignore_case) {
+            Ok(rx) => rx,
+            Err(e) => {
+                result.exit_code = 1;
+                write(2, &format!("{cmd}: {e}\n"), &mut result);
+                return result;
+            }
+        };
         if let Some(found) = raw_lines.iter().position(|l| rx.is_match(l)) {
             start_idx = found;
         }

@@ -688,6 +688,20 @@ test("pagers report missing operands in order and decode formatted input per ope
   } finally { bash.dispose(); }
 });
 
+test("pager searches validate extended expressions and preserve quoted operators", async () => {
+  const bash = new RustWasmBash({files:{"/lines":"ignore\na(b)\nabab\n"}});
+  try {
+    for (const [pat, reason] of [["[","unterminated bracket expression"], ["(?=x)","quantifier without an expression"],
+      ["a**","nested quantifier is not supported"], ["\\1","pattern references an undefined or open capture group"]]) {
+      const r = await bash.exec("less -p '" + pat + "' /lines");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "", "less: " + reason + "\n"]);
+    }
+    const r = await bash.exec("more '+/a\\(b\\)' /lines");
+    assert.deepEqual([r.exitCode, r.stdout], [0, "a(b)\nabab\n"]);
+    assert.equal((await bash.exec("less -p '[' </dev/null")).exitCode, 0);
+  } finally { bash.dispose(); }
+});
+
 test("wc enforces input byte limits and counts UTF-8 across chunks", async () => {
   const bash = new RustWasmBash({files:{"/words":"abcd"}});
   const chunks = [Uint8Array.of(0x61,0xc3),Uint8Array.of(0xa9,10,0xe2),Uint8Array.of(0x82),Uint8Array.of(0xac)];

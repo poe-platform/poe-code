@@ -8785,6 +8785,24 @@ test("a filesystem quota rejects descriptor setup before truncation or the next 
   } finally { sh.dispose(); }
 });
 
+test("redirected output preserves each accepted 64 KiB descriptor write", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [redirect, limit, expected] of [
+      [">/out", "maxFileSystemOperations", 65536], [">>/out", "maxOutputBytes", 65539],
+      [">/dev/null", "maxFileSystemOperations", 3],
+    ]) {
+      await sh.fs.writeFile("/out", Buffer.from("old"));
+      let pulls = 0;
+      await assert.rejects(sh.exec("cat " + redirect + " 2>&1", {
+        limits:{[limit]:limit === "maxOutputBytes" ? 65536 : 5},
+        stdin:{async *[Symbol.asyncIterator]() { pulls++; yield Buffer.alloc(65537, 97); pulls++; yield Buffer.of(98); }},
+      }), {limit});
+      assert.deepEqual([pulls, (await sh.fs.readFile("/out")).length], [1, expected], redirect);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("rg JSON preserves Unicode and uses compact JSON escapes in lines and submatches", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {

@@ -167,24 +167,31 @@ impl FdWriter<'_> {
                     saved.borrow_mut().push_str(data);
                 }
             }
-            FdTarget::File { path, .. } | FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
-                if matches!(target, FdTarget::File { .. }) && self.budget.tick_fs_op().is_err() { return; }
+            FdTarget::InputFile { path, writable: true, .. } if !self.provided_devices && path == "/dev/null" => {
                 let _ = self.budget.add_output_bytes(stream_byte_len(data) - charged);
             }
             FdTarget::File { path, file, offset } => {
-                let bytes = stream_string_to_bytes(data);
-                let result = match file {
-                    Some(file) => self.budget.tick_fs_op()
-                        .and_then(|_| self.budget.add_output_bytes(bytes.len() - charged))
-                        .and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes)),
-                    None => self.fs.write_redirect_path(path, &bytes, true, crate::vfs::RedirectCharge(charged)),
-                };
-                match result {
-                    Ok(()) => if let Some(p) = offset { p.set(p.get() + bytes.len()); },
-                    Err(e) => {
+                let null = !self.provided_devices && path == "/dev/null";
+                let bytes = (!null).then(|| stream_string_to_bytes(data));
+                let len = bytes.as_ref().map_or_else(|| stream_byte_len(data), Vec::len);
+                // The filesystem output sink writes at most 64 KiB at a time. Each
+                // successful write remains visible if the next one exceeds a quota.
+                for start in (0..len).step_by(64 * 1024) {
+                    let end = (start + 64 * 1024).min(len);
+                    let size = end - start;
+                    let credit = charged.saturating_sub(start).min(size);
+                    let charge = || self.budget.tick_fs_op().and_then(|_| self.budget.add_output_bytes(size - credit));
+                    let result = match (&bytes, file) {
+                        (Some(bytes), Some(file)) => charge().and_then(|_| file.write_at(offset.as_ref().map(|p| p.get()), &bytes[start..end])),
+                        (Some(bytes), None) => self.fs.write_redirect_path(path, &bytes[start..end], true, crate::vfs::RedirectCharge(credit)),
+                        (None, _) => charge(),
+                    };
+                    if let Err(e) = result {
                         out.stderr.push_str(&format!("{path}: {e}\n"));
                         out.exit_code = 1;
+                        break;
                     }
+                    if let Some(p) = offset { p.set(p.get() + size); }
                 }
             }
             FdTarget::InputFile { writable: false, .. } | FdTarget::InputStream { .. } => {

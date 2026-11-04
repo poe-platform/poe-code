@@ -1563,6 +1563,34 @@ test("plugin file reads share the script's filesystem quota and obey path and si
   } finally { await bash.dispose(); }
 });
 
+test("plugin writes share quotas, apply umask on creation, and stop after the handler", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+  try {
+    for (const [sh,store] of [[js,fs],[rust,rust.fs]]) {
+      let saved;
+      sh.register({name:"save", async execute(ctx) {
+        saved = ctx.fs;
+        await ctx.fs.writeFile(ctx.args[0], Uint8Array.of(255), {flag:"wx"});
+        await ctx.fs.appendFile(ctx.args[0], Uint8Array.of(0));
+        return {exitCode:0};
+      }});
+      const script = "umask 077; save /out";
+      const r = await sh.exec(script, {limits:{maxOutputBytes:0}});
+      assert.deepEqual([r.exitCode,r.stderr], [0,""]);
+      assert.deepEqual([...await store.readFile("/out")], [255,0]);
+      assert.equal((await store.stat("/out")).mode & 0o777, 0o600);
+      await assert.rejects(sh.exec("save /partial; touch /late", {limits:{maxFileSystemOperations:1}}), {limit:"maxFileSystemOperations"});
+      assert.deepEqual([...await store.readFile("/partial")], [255]);
+      await assert.rejects(store.stat("/late"), {code:"ENOENT"});
+      if (sh === rust) {
+        await assert.rejects(saved.writeFile("/late", Uint8Array.of(1)), /finished/);
+        await assert.rejects(store.stat("/late"), {code:"ENOENT"});
+      }
+    }
+  } finally { await js.dispose(); await rust.dispose(); }
+});
+
 test("disposing a plugin shell cancels suspended handlers and attempts every plugin cleanup", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const bash = new RustWasmBash();
   const trace = [], failure = new Error("cleanup failed");

@@ -192,6 +192,7 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
         let remaining = header.getUint32(reply + 20, true);
         const sharedOutput = header.getUint32(reply + 24, true) !== 0;
         const remainingFsOps = header.getUint32(reply + 28, true), maxComponents = header.getUint32(reply + 32, true);
+        const creationMode = header.getUint32(reply + 40, true);
         fsOps = 0;
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
@@ -208,15 +209,26 @@ function bindHostCommands(shell, definitions, createArguments, validatePath, fs,
           const argumentValues = createArguments(Array.from({length:argc}, field));
           const env = Object.fromEntries(Array.from({length:envc}, () => [decoder.decode(field()),decoder.decode(field())]));
           const check = () => { signal.throwIfAborted(); if (!active) throw new Error("Command has finished"); };
-          const commandFs = {async readFile(path, settings) {
+          const admitPath = (path, settings) => {
             check();
             settings?.signal?.throwIfAborted();
             if (code === -3) throw new ShellLimitError("maxOutputBytes");
             if (fsOps >= remainingFsOps) { code = -5; throw new ShellLimitError("maxFileSystemOperations"); }
             fsOps++;
             validatePath(path, maxComponents);
-            return fs.readFile(path, settings);
-          }};
+          };
+          const write = async (operation, path, data, settings) => {
+            admitPath(path, settings);
+            const options = {...settings};
+            if (options.mode === undefined) options.mode = creationMode;
+            check();
+            return fs[operation](path, data, options);
+          };
+          const commandFs = {
+            async readFile(path, settings) { admitPath(path, settings); return fs.readFile(path, settings); },
+            writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
+            appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
+          };
           const stdin = {async *[Symbol.asyncIterator]() {
             check();
             if (!consumed && offset < packet.length) { consumed = packet.length - offset; yield packet.subarray(offset); }

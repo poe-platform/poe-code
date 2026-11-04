@@ -181,7 +181,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation"].map(key => [key, backing[key]]))});
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata"].map(key => [key, backing[key]]))});
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -301,7 +301,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               const kind = pathProfile(path, settings);
               const directory = kind === 2, regular = kind === 0;
               return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
-                atomicFileMutation:regular && capabilities.atomicFileMutation, open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
+                atomicFileMutation:regular && capabilities.atomicFileMutation, atomicDirectoryMetadata:regular && capabilities.atomicDirectoryMetadata, open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
                 rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
             },
@@ -339,7 +339,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
           };
-          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "unlink", "readlink", "realpath", "removeFileConditional"]) {
+          for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "unlink", "readlink", "realpath", "removeFileConditional", "prepareDirectory"]) {
             commandFs[operation] = async (path, settings) => {
               admitPath(path, settings);
               return fs[operation](path, settings);
@@ -736,7 +736,7 @@ function wasmDescriptor(bash, path, fd, kind, access, append) {
 
 const wasmCapabilities = Object.freeze({
   write: true, append: true, exclusiveCreate: true, read: true, retainedRead: true, streamingRead: true, stat: true, readdir: true, realpath: true, access: true,
-  conditionalChmod: true, atomicFileMutation:true, permissions: true, readlink: true, symlinks: true,
+  conditionalChmod: true, atomicFileMutation:true, atomicDirectoryMetadata:true, permissions: true, readlink: true, symlinks: true,
 });
 
 export class WasmFileSystem {
@@ -746,20 +746,25 @@ export class WasmFileSystem {
 
   get capabilities() {
     const backing = this.bash._companion?.fs;
-    if (!backing) return Object.freeze({...wasmCapabilities,
-      conditionalChmod:!!this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId),
-      atomicFileMutation:!!this.bash.exports.safe_bash_supports_file_mutation(this.bash.sessionId),
-    });
+    if (!backing) {
+      const memory = !!this.bash.exports.safe_bash_supports_file_mutation(this.bash.sessionId);
+      return Object.freeze({...wasmCapabilities,atomicFileMutation:memory,atomicDirectoryMetadata:memory,
+        conditionalChmod:!!this.bash.exports.safe_bash_supports_conditional_chmod(this.bash.sessionId)});
+    }
     return Object.freeze(Object.fromEntries(Object.keys(wasmCapabilities)
       .map(key => [key, backing.capabilities?.[key] === true])));
   }
 
   writeFileConditional(filePath, data, options) {
-    return this.bash._mutateFileConditional(filePath,data,options,false);
+    return this.bash._mutateConditional("writeFileConditional",filePath,data,options);
   }
 
   removeFileConditional(filePath, options) {
-    return this.bash._mutateFileConditional(filePath,undefined,options,true);
+    return this.bash._mutateConditional("removeFileConditional",filePath,undefined,options);
+  }
+
+  prepareDirectory(filePath, options) {
+    return this.bash._mutateConditional("prepareDirectory",filePath,undefined,options);
   }
 
   async access(filePath, mode = 0, options) {
@@ -1629,31 +1634,31 @@ export class RustWasmBash extends WasmShell {
       ...[s?.revision,s?.size,s?.mode,s?.nlink,s?.mtimeMs,s?.ctimeMs].map(n => typeof n === "number" ? n : NaN)];
   }
 
-  async _mutateFileConditional(filePath, data, options, removing) {
-    const {parent,expected,signal,mode = 0o666,atimeMs,mtimeMs,append} = options;
+  async _mutateConditional(name, filePath, data, options) {
+    const {parent,expected,signal,mode,atimeMs,mtimeMs,append} = options;
     signal?.throwIfAborted();
-    const name = removing ? "removeFileConditional" : "writeFileConditional";
+    const writing = name === "writeFileConditional";
     if (this._companion || this.companionFactory && !this.forceNative) {
       await this._ensureCompanionSynced();
       signal?.throwIfAborted();
       const fs = this._companion.fs;
       if (!fs[name]) throw fsOperationError("ENOTSUP",name,filePath);
-      return removing ? fs[name](filePath,options) : fs[name](filePath,data,options);
+      return writing ? fs[name](filePath,data,options) : fs[name](filePath,options);
     }
     if (typeof filePath !== "string") throw new TypeError("Filesystem paths must be strings");
-    if (!removing && !(data instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
+    if (writing && !(data instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
     const rows = this.#memoryReceipt(parent);
     if (expected !== null) rows.push(...this.#memoryReceipt(expected));
-    const flags = (removing ? 0 : 1) | (append ? 2 : 0) | (atimeMs !== undefined ? 4 : 0) | (mtimeMs !== undefined ? 8 : 0);
+    const flags = (name === "prepareDirectory" ? 16 | (mode !== undefined ? 32 : 0) : Number(writing)) | (append ? 2 : 0) | (atimeMs !== undefined ? 4 : 0) | (mtimeMs !== undefined ? 8 : 0);
     signal?.throwIfAborted();
     const p = this._allocBytes(encoder.encode(filePath));
     try {
       const receipt = this._allocBytes(new Uint8Array(new Float64Array(rows).buffer));
       try {
-        const bytes = this._allocBytes(removing ? new Uint8Array() : data);
+        const bytes = this._allocBytes(writing ? data : new Uint8Array());
         try {
           const n = this.exports.safe_bash_mutate_file_conditional(this.sessionId,p.ptr,p.len,receipt.ptr,receipt.len,bytes.ptr,bytes.len,flags,
-            typeof mode === "number" ? mode : NaN, typeof atimeMs === "number" ? atimeMs : NaN, typeof mtimeMs === "number" ? mtimeMs : NaN);
+            mode === undefined ? 0o666 : typeof mode === "number" ? mode : NaN, typeof atimeMs === "number" ? atimeMs : NaN, typeof mtimeMs === "number" ? mtimeMs : NaN);
           if (n === -1) throw new Error("Wasm session unavailable");
           const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
           if (n < 0) throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer,ptr,-n)));

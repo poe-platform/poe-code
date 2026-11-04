@@ -758,10 +758,14 @@ pub unsafe extern "C" fn safe_bash_mutate_file_conditional(
         let receipts = unsafe { slice_from_raw(receipt_ptr,receipt_len) };
         let parent = memory_receipt(&receipts[..72])?;
         let expected = receipts.get(72..144).map(memory_receipt).transpose()?;
+        let mode = if mode.fract()==0. && (0.0..=4095.0).contains(&mode) { mode as u32 } else { u32::MAX };
+        let atime_ms = (flags & 4 != 0).then_some(atime);
+        let mtime_ms = (flags & 8 != 0).then_some(mtime);
+        if flags & 16 != 0 {
+            return fs.prepare_directory(path,&parent,expected.as_ref(),(flags & 32 != 0).then_some(mode),atime_ms,mtime_ms).map(Some);
+        }
         let write = (flags & 1 != 0).then(|| crate::vfs::memory::ConditionalFileWrite {
-            bytes: unsafe { slice_from_raw(bytes_ptr,bytes_len) }, append: flags & 2 != 0,
-            mode: if mode.fract()==0. && (0.0..=4095.0).contains(&mode) { mode as u32 } else { u32::MAX },
-            atime_ms: (flags & 4 != 0).then_some(atime), mtime_ms: (flags & 8 != 0).then_some(mtime),
+            bytes: unsafe { slice_from_raw(bytes_ptr,bytes_len) }, append: flags & 2 != 0,mode,atime_ms,mtime_ms,
         });
         fs.mutate_file_conditional(path,&parent,expected.as_ref(),write)
     })();
@@ -770,7 +774,7 @@ pub unsafe extern "C" fn safe_bash_mutate_file_conditional(
         Ok(None) => 0,
         Err(e) => {
             let syscall = if e.starts_with("EAGAIN") || e.starts_with("ENOTSUP") { "fileStaging" }
-                else if flags & 1 != 0 { "writeFileConditional" } else { "removeFileConditional" };
+                else if flags & 16 != 0 { "prepareDirectory" } else if flags & 1 != 0 { "writeFileConditional" } else { "removeFileConditional" };
             sess.read_error(&e,syscall,path,None,None)
         }
     }

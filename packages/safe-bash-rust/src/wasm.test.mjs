@@ -2121,6 +2121,32 @@ test("split ZIP publishes in mounted and overlay directories and opens with the 
   }
 });
 
+test("Rust plugin directories support conditional creation and metadata restoration", {skip:typeof WebAssembly.Suspending!=="function"}, async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    await ref.mkdir("/member",{mode:0o751});await ref.utimes("/member",1700000000000,1700000000000);
+    assert.equal((await js.exec("zip -q0 -s64k input.zip member")).exitCode,0);
+    await rust.fs.writeFile("/input.zip",await ref.readFile("/input.zip"));rust.use(archiveCommands());
+    for(const [sh,fs] of [[js,ref],[rust,rust.fs]]) {
+      const r=await sh.exec("unzip -qo input.zip -d output");
+      assert.equal(r.exitCode,0,r.stderr);
+      const member=await fs.lstat("/output/member"); assert.equal(member.mode&0o777,0o751);assert.equal(member.mtimeMs,1700000000000);
+      const root=await fs.lstat("/");
+      const dir=await fs.prepareDirectory("/new",{parent:root,expected:null,mode:0o700});
+      await fs.writeFile("/new/file",Uint8Array.of(1));
+      const changed=await fs.prepareDirectory("/new",{parent:root,expected:dir,atimeMs:-1.5,mtimeMs:123.5});
+      assert.deepEqual([changed.mode&0o777,changed.atimeMs,changed.mtimeMs],[0o700,-1.5,123.5]);
+      await assert.rejects(fs.prepareDirectory("/new",{parent:root,expected:null}),{code:"EAGAIN"});
+      await fs.rm("/new",{recursive:true});await fs.mkdir("/new");
+      await assert.rejects(fs.prepareDirectory("/new/child",{parent:dir,expected:null}),{code:"EAGAIN"});
+      await assert.rejects(fs.prepareDirectory("/new",{parent:root,expected:dir,mode:0}),{code:"EAGAIN"});
+      await assert.rejects(fs.prepareDirectory("/invalid",{parent:root,expected:null,mtimeMs:NaN}),{code:"EINVAL"});
+      await assert.rejects(fs.lstat("/invalid"),{code:"ENOENT"});
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("plugin stdin reports the source of the current descriptor", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
   const js = new Shell({fs:new MemoryFileSystem(),cwd:"/"}).use(agentCommands()), rust = new RustWasmBash({cwd:"/"});

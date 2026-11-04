@@ -862,6 +862,39 @@ impl MemoryVfs {
         Ok(true)
     }
 
+    /// Create or restore a directory while both named identities are held under the namespace lock.
+    pub fn prepare_directory(&self, path: &str, parent: &FileStat, expected: Option<&FileStat>,
+        mode: Option<u32>, atime: Option<f64>, mtime: Option<f64>) -> Result<FileStat,String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if state.devices == Devices::Null { Self::check_device_mutation_operand(&state,path)?; }
+        let entry = Self::resolve_mutation_entry(&state,path)?;
+        if state.devices.entry(&entry).is_some() { return Err("EBUSY: resource busy or locked".into()); }
+        let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
+        let dir = self.resolved_metadata(&state,&super::dirname_posix_path(&entry)).ok_or_else(changed)?;
+        let current = self.resolved_metadata(&state,&entry);
+        if path.ends_with('/') && current.as_ref().is_some_and(|s| s.kind != VfsEntryKind::Directory) { return Err("ENOTDIR: not a directory".into()); }
+        dir.check_receipt(parent,false,path)?;
+        match (&current,expected) {
+            (Some(actual),Some(observed)) => actual.check_receipt(observed,false,path)?,
+            (None,None) => (),
+            _ => return Err(changed()),
+        }
+        if mode.is_some_and(|m| m > 0o7777) || [atime,mtime].into_iter().flatten().any(|t| !t.is_finite()) { return Err("EINVAL: invalid argument".into()); }
+        if current.is_none() {
+            if dir.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+            if state.entry_count() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
+            state.create_directory(entry.clone(),0o040000 | mode.unwrap_or(0o777));
+        }
+        let Some(MemoryNode::Directory {mode:permissions,atime_ms,mtime_ms,ctime_ms,revision,..}) = state.nodes.get_mut(&entry) else { return Err("ENOTDIR: not a directory".into()); };
+        if let Some(m) = mode { *permissions = 0o040000 | m; }
+        if let Some(t) = atime { *atime_ms = t; }
+        if let Some(t) = mtime { *mtime_ms = t; }
+        *ctime_ms = super::now_ms();
+        *revision += 1;
+        self.bump_generation();
+        Ok(self.resolved_metadata(&state,&entry).unwrap())
+    }
+
     /// Compare both receipts and mutate the named entry while holding one namespace lock.
     pub fn mutate_file_conditional(&self, path: &str, parent: &FileStat, expected: Option<&FileStat>,
         write: Option<ConditionalFileWrite<'_>>) -> Result<Option<FileStat>,String> {

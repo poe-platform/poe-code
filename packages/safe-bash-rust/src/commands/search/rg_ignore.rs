@@ -8,10 +8,7 @@ pub(super) struct Rules {
 }
 
 pub(super) fn read(fs: &dyn SafeBashFs, path: &str, base: &str, priority: u8) -> Result<IgnoreFile, RuleError> {
-    let bytes = (|| {
-        if fs.has_path_capabilities() { fs.access_path(path, true)?; }
-        fs.read_file(path)
-    })().map_err(|e| RuleError::Read(super::super::coreutils::stream_file_error(e, "readFile", path)))?;
+    let bytes = super::rg_auxiliary_bytes(fs, path, priority == 0).map_err(RuleError::Read)?;
     IgnoreFile::parse(String::from_utf8_lossy(&bytes).lines(), base, priority).map_err(RuleError::Pattern)
 }
 
@@ -68,6 +65,6 @@ impl Rules {
 
 pub(super) fn repository_marker(fs: &dyn SafeBashFs, directory: &str) -> bool {
     let path = format!("{}/.git", directory.trim_end_matches('/'));
-    if fs.has_path_capabilities() && fs.command_descriptor_op().is_err() { return false; }
+    if fs.indexed_directory_entry(&path).is_none() && fs.command_descriptor_op().is_err() { return false; }
     fs.inspect_command_entry(&path, false, "lstat").is_ok()
 }

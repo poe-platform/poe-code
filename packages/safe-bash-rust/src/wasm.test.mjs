@@ -12371,3 +12371,24 @@ test("rg CLI globs use cwd-relative path components and validate before visiting
     assert.deepEqual([folded.exitCode,folded.stdout,folded.stderr],[2,"d/b.ts\n","rg: bounded regex unsupported: glob case folding supports ASCII paths only\n"]);
   } finally { sh.dispose(); }
 });
+
+test("rg opens pattern and ignore files through the operand's actual ancestors", async () => {
+  for (const profile of ["warm-memory-fastpath","strict-budgets-mount-dev","overlay-cow-fs"]) {
+    const sh = new RustWasmBash({profile,cwd:"/w",files:{"/w/rules":"wrong","/w/sub/rules":"hit","/w/sub/dir/x":"","/w/priv/file":"hit","/w/data":"hit\n"}});
+    try {
+      assert.equal((await sh.exec("ln -s sub/dir alias")).exitCode,0);
+      await sh.fs.chmod("/w/priv",0);
+      for (const command of ["rg -f priv/../rules data","rg --files --ignore-file priv/../rules data"]) {
+        const r = await sh.exec(command);
+        const denied = profile === "warm-memory-fastpath" ? "readFile '/w/priv/../rules'" : profile === "strict-budgets-mount-dev" ? "capabilitiesFor '/w/priv/../rules'" : "overlay '/w/priv'";
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"","rg: EACCES: permission denied, "+denied+"\n"],profile+" "+command);
+      }
+      const empty = await sh.exec("rg -f '' data",{limits:{maxFileSystemOperations:0}});
+      assert.deepEqual([empty.exitCode,empty.stdout,empty.stderr],[2,"",profile === "warm-memory-fastpath"
+        ? "rg: ENOENT: no such file or directory ''\n" : "rg: invalid empty or NUL-containing path\n"]);
+      const alias = await sh.exec("rg -f alias/../rules data");
+      assert.deepEqual([alias.exitCode,alias.stdout,alias.stderr],profile === "overlay-cow-fs"
+        ? [2,"","rg: ENOENT: no such file or directory, realpath '/w/alias/../rules'\n"] : [0,"hit\n",""]);
+    } finally { sh.dispose(); }
+  }
+});

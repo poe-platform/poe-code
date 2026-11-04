@@ -104,7 +104,8 @@ impl SafeBashFs for MountVfs {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        let (fs, rel) = self.route(path, true)?;
+        let entry = self.access_path(path, true)?;
+        let (_, fs, rel) = self.location(&entry);
         fs.read_file(&rel)
     }
 

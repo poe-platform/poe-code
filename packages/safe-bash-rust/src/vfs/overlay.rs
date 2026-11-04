@@ -399,7 +399,11 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        let (fs, path) = self.read_source(path)?;
+        let (fs, path) = self.read_source(path).map_err(|e| {
+            if let Some(entry) = e.strip_prefix("ENOENT: no such file or directory, lstat ") {
+                format!("ENOENT: no such file or directory, overlay {entry}")
+            } else { e }
+        })?;
         fs.read_file(&path)
     }
 

@@ -1062,7 +1062,7 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        self.read_bytes(path, None)
+        self.read_bytes(&self.access_path(path, true)?, None)
     }
 
     fn read_single_chunk_input(&self, path: &str, budget: Option<&crate::ExecutionBudget>) -> Result<Vec<u8>, String> {

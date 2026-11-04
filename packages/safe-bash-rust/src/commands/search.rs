@@ -3466,10 +3466,13 @@ fn cmd_rg(
                 }
                 bytes
             } else {
-                let resolved = resolve_posix_path(cwd, pf);
-                match fs.read_file(&resolved) {
+                let path = search_path(cwd, pf);
+                if pf.is_empty() {
+                    return pattern_error(if fs.has_path_capabilities() { "invalid empty or NUL-containing path" } else { "ENOENT: no such file or directory ''" }.into());
+                }
+                match rg_auxiliary_bytes(fs, &path, true) {
                     Ok(bytes) => bytes,
-                    Err(e) => return pattern_error(search_fs_error(&e, "readFile", &resolved)),
+                    Err(e) => return pattern_error(e),
                 }
             };
             let Ok(text) = std::str::from_utf8(bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes)) else {
@@ -3490,6 +3493,9 @@ fn cmd_rg(
     if use_ignore_files {
         for operand in custom_ignore_files {
             let path = search_path(cwd, &operand);
+            if path.is_empty() || path.contains('\0') {
+                return BuiltinOutcome { stdout: String::new(), stderr: if no_messages { String::new() } else { "rg: invalid empty or NUL-containing path\n".into() }, exit_code: 2 };
+            }
             match rg_ignore::read(fs, &path, cwd, 0) {
                 Ok(file) => explicit.add(file),
                 Err(e) => return BuiltinOutcome { stdout: String::new(),
@@ -3864,6 +3870,20 @@ struct GrepFiles<'a> {
 fn search_path(cwd: &str, name: &str) -> String {
     if name.is_empty() || name.starts_with('/') { name.to_owned() }
     else { format!("{}/{name}", cwd.trim_end_matches('/')) }
+}
+
+// Explicit -f and --ignore-file operands query capabilities first. For discovered
+// ignore files the walker already knows the capabilities of direct memory directories.
+fn rg_auxiliary_bytes(fs: &dyn SafeBashFs, path: &str, explicit: bool) -> Result<Vec<u8>, String> {
+    let routed = fs.has_path_capabilities();
+    if routed || explicit && fs.indexed_directory_entry(path).is_none() {
+        let admission = if !routed && !path.is_empty() { resolve_posix_path("/", path) } else { path.to_owned() };
+        if let Err(e) = fs.inspect_command_entry(&admission, true, "capabilitiesFor")
+            && !(e.starts_with("ENOENT:") || e.starts_with("ENOTDIR:")) {
+            return Err(super::coreutils::stream_file_error(e, "capabilitiesFor", path));
+        }
+    }
+    fs.read_file(path).map_err(|e| super::coreutils::stream_file_error(e, "readFile", path))
 }
 
 fn search_fs_error(error: &str, op: &str, path: &str) -> String {

@@ -310,7 +310,7 @@ impl OverlayVfs {
         for p in descendants { dirs.remove(&p); }
     }
 
-    fn remove_entry(&self, path: &str, directory: bool, recursive: bool) -> Result<(), String> {
+    fn remove_entry(&self, path: &str, directory: bool, recursive: bool, expected: Option<(&FileStat, &FileStat)>) -> Result<(), String> {
         // Whiteouts are only inserted, so their count also identifies the visible namespace.
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
         let versions = (self.lower.generation(), self.upper.generation());
@@ -321,12 +321,17 @@ impl OverlayVfs {
         let entry = self.access_path(if recursive { path } else { trimmed }, false)?;
         if entry == "/" { return Err("EBUSY: resource busy or locked".into()); }
         let st = self.lstat(&entry)?;
+        let parent = self.stat(&crate::vfs::dirname_posix_path(&entry))?;
+        if let Some((dir, file)) = expected
+            && (entry != path || parent.identity.is_none() || parent.identity != dir.identity || !st.same_snapshot(file)) {
+            return Err(format!("EBUSY: input changed; input retained '{path}'"));
+        }
         if st.mode & 0o170000 == 0o020000 {
             return Err("EBUSY: resource busy or locked".into());
         }
         let is_dir = st.kind == VfsEntryKind::Directory;
         if !is_dir && (directory || path.ends_with('/')) { return Err("ENOTDIR: not a directory".into()); }
-        if self.stat(&crate::vfs::dirname_posix_path(&entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        if parent.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
         if is_dir && !recursive {
             if !directory { return Err("EISDIR: illegal operation on a directory".into()); }
             if !self.list_dir(&entry)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }
@@ -459,6 +464,10 @@ impl SafeBashFs for OverlayVfs {
         Ok(stamp)
     }
 
+    fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
+        self.remove_entry(path, false, false, Some((parent, expected)))
+    }
+
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
         let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend())
         else {
@@ -569,11 +578,11 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn remove_one(&self, path: &str, directory: bool) -> Result<(), String> {
-        self.remove_entry(path, directory, false)
+        self.remove_entry(path, directory, false, None)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        self.remove_entry(path, false, true)
+        self.remove_entry(path, false, true, None)
     }
 
     fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {

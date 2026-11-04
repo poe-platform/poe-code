@@ -75,6 +75,13 @@ pub struct FileStat {
 }
 
 impl FileStat {
+    pub(crate) fn same_snapshot(&self, other: &Self) -> bool {
+        self.identity.is_some() && self.identity == other.identity && self.revision == other.revision
+            && self.kind == other.kind && self.mode == other.mode && self.size == other.size
+            && self.nlink == other.nlink && self.mtime_ms == other.mtime_ms && self.ctime_ms == other.ctime_ms
+            && self.birthtime_ms == other.birthtime_ms && self.uid == other.uid && self.gid == other.gid
+    }
+
     pub(crate) fn check_chmod_receipt(&self, expected: &Self, unchanged: bool, path: &str) -> Result<(),String> {
         let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
         let Some(EntryIdentity::Memory(scope, _)) = expected.identity else {
@@ -384,6 +391,13 @@ pub trait SafeBashFs: Send + Sync {
     }
     fn replace_file_entry_with_mode(&self, path: &str, data: &[u8], mode: u32, version: u64) -> Result<(), String> {
         self.replace_file_entry_with_metadata(path, data, mode, (None, None), version)
+    }
+    /// Publish command-private staging bytes without charging them to stdout.
+    fn replace_staged_file(&self, path: &str, data: &[u8], version: u64) -> Result<(), String> {
+        self.replace_file_entry_with_mode(path, data, 0o600, version)
+    }
+    fn remove_unchanged_file(&self, _path: &str, _parent: &FileStat, _expected: &FileStat) -> Result<(), String> {
+        Err("ENOTSUP: atomic source removal unavailable (use -k or -c)".into())
     }
     /// Install mode and optional access/modification times (milliseconds) on the new inode before publication.
     fn replace_file_entry_with_metadata(&self, _path: &str, _data: &[u8], _mode: u32, _times: (Option<f64>, Option<f64>), _version: u64) -> Result<(), String> {

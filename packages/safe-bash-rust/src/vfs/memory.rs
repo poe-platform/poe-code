@@ -1314,6 +1314,21 @@ impl SafeBashFs for MemoryVfs {
         self.remove_entry(path, None).map(|_| ())
     }
 
+    fn remove_unchanged_file(&self, path: &str, parent: &FileStat, expected: &FileStat) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        let entry = Self::mutation_entry(&state, path)?;
+        let dir = self.resolved_metadata(&state, &super::dirname_posix_path(&entry));
+        if entry != path || expected.kind != VfsEntryKind::File || expected.revision.is_none()
+            || !self.resolved_metadata(&state, path).is_some_and(|st| st.same_snapshot(expected))
+            || !dir.as_ref().is_some_and(|st| st.identity.is_some() && st.identity == parent.identity) {
+            return Err(format!("EBUSY: input changed; input retained '{path}'"));
+        }
+        if dir.unwrap().mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        Self::unlink_locked(&mut state, path);
+        self.bump_generation();
+        Ok(())
+    }
+
     fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
         self.remove_entry(path, Some(publication))
     }

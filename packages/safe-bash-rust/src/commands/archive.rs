@@ -5413,7 +5413,8 @@ pub(super) fn cmd_gzip(
         return ok_out(&out);
     }
 
-    let decode = |data: &[u8]| {
+    let decode = |data: &[u8], private_output: bool| {
+        let force = force && !private_output;
         let pass = if is_gzip {
             force && !data.starts_with(&[0x1f, 0x8b])
         } else if is_bzip2 {
@@ -5458,18 +5459,6 @@ pub(super) fn cmd_gzip(
     if files.is_empty() {
         files.push("-".to_string());
     }
-    if test_mode {
-        for f in &files {
-            let path = (f != "-").then(|| resolve_posix_path(cwd, f));
-            let data = match read(path.as_deref()) { Ok(data) => data, Err(e) => return e };
-            if let Err(e) = decode(&data) {
-                return decode_error(&e);
-            }
-        }
-        return ok_out("");
-    }
-
-    let mut stdout_buf = String::new();
     let default_ext = match invoked {
         "bzip2" | "bunzip2" | "bzcat" => ".bz2",
         "xz" | "unxz" | "xzcat" => {
@@ -5490,124 +5479,155 @@ pub(super) fn cmd_gzip(
         _ => ".gz",
     };
     let ext = custom_suffix.as_deref().unwrap_or(default_ext);
-    if recursive {
-        let mut expanded = Vec::new();
-        for f in &files {
-            if f == "-" {
-                expanded.push("-".to_string());
-            } else {
-                let full = resolve_posix_path(cwd, f);
-                collect_gzip_files(&full, fs, decompress, ext, &mut expanded);
-            }
-        }
-        files = expanded;
+    use crate::vfs::{FileStat, VfsEntryKind, dirname_posix_path, path::absolute_operand};
+    use std::collections::BTreeSet;
+    struct Source {
+        operand: String,
+        real: String,
+        stat: FileStat,
+        parent: Option<FileStat>,
+        destination: Option<(String, Option<FileStat>)>,
     }
-    let compressed_exts = [
-        ".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2",
-        ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab",
-    ];
-    for f in &files {
-        if f == "-" {
-            let data = match read(None) { Ok(data) => data, Err(e) => return e };
-            if decompress {
-                match decode(&data) {
-                    Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
-                    Err(e) => return decode_error(&e),
+    let format = if is_gzip { "gzip" } else if is_bzip2 { "bzip2" } else if is_zstd { "zstd" } else { "xz" };
+    let destination = |source: &str| -> Result<String, String> {
+        let name = source.to_ascii_lowercase();
+        let standard = [".gz", ".z", "-gz", "-z", "_z"];
+        if !is_gzip && xz_format == "raw" && custom_suffix.is_none() {
+            return Err(format!("EINVAL: raw format requires a suffix (use -S or -c) '{source}'"));
+        }
+        if !decompress {
+            if !force && (if is_gzip {
+                name.ends_with(&ext.to_ascii_lowercase()) || standard.iter().chain([".tgz", ".taz"].iter()).any(|s| name.ends_with(s))
+            } else { source.ends_with(ext) }) {
+                return Err(format!("EINVAL: already has a {format} suffix (use -f to compress again) '{source}'"));
+            }
+            return Ok(format!("{source}{ext}"));
+        }
+        let suffix = if is_gzip {
+            if !ext.is_empty() && name.ends_with(&ext.to_ascii_lowercase()) { Some(ext) }
+            else if name.ends_with(".tgz") || name.ends_with(".taz") { return Ok(format!("{}.tar", &source[..source.len()-4])); }
+            else { standard.into_iter().find(|s| name.ends_with(s)) }
+        } else if is_xz && custom_suffix.is_none() && source.ends_with(".lzma") { Some(".lzma") }
+        else { source.ends_with(ext).then_some(ext) };
+        let suffix = suffix.ok_or_else(|| format!("EINVAL: unknown {format} suffix (use -c for stdout) '{source}'"))?;
+        let target = &source[..source.len()-suffix.len()];
+        if target.ends_with('/') { return Err(format!("EINVAL: empty output filename '{source}'")); }
+        Ok(target.to_owned())
+    };
+    let existing = |path: &str| match fs.lstat(path) {
+        Ok(st) => Ok(Some(st)),
+        Err(e) if e.starts_with("ENOENT:") => Ok(None),
+        Err(e) => Err(e),
+    };
+    let compressed_exts = [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2",
+        ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"];
+    let mut plans = Vec::new();
+    let mut result = ok_out("");
+    files.reverse();
+    while let Some(f) = files.pop() {
+        if f == "-" { plans.push(None); continue; }
+        if exclude_compressed && !decompress && compressed_exts.iter().any(|suf| f.ends_with(suf)) { continue; }
+        let plan = (|| -> Result<(), String> {
+            let mut operand = absolute_operand(cwd, &f);
+            if f.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+            let inspect = |path: &str| fs.inspect_command_entry(path, false, "lstat");
+            let (real, stat) = match inspect(&operand) {
+                Err(e) if e.starts_with("ENOENT:") => {
+                    let missing = if e.starts_with("ENOENT: no such file or directory, stat ") {
+                        format!("ENOENT: no such file or directory, lstat '{operand}'")
+                    } else { e };
+                    if !decompress || !is_gzip || operand.to_ascii_lowercase().ends_with(&ext.to_ascii_lowercase()) { return Err(missing); }
+                    operand.push_str(ext);
+                    inspect(&operand).map_err(|e| if e.starts_with("ENOENT:") { missing } else { e })?
                 }
-            } else {
-                let comp = compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check);
-                stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&comp));
-            }
-            continue;
-        }
-        if exclude_compressed && !decompress && compressed_exts.iter().any(|suf| f.ends_with(suf)) {
-            continue;
-        }
-        let mut full = resolve_posix_path(cwd, f);
-        if !fs.exists(&full) && decompress && is_gzip {
-            let cand = format!("{full}{ext}");
-            if fs.exists(&cand) {
-                full = cand;
-            }
-        }
-        let data = match read(Some(&full)) { Ok(data) => data, Err(e) => return e };
-        if decompress {
-            let dec = match decode(&data) {
-                Ok(d) => d,
-                Err(e) => return decode_error(&e),
+                other => other?,
             };
-            if to_stdout {
-                stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&dec));
-            } else {
-                let out_path = if is_gzip
-                    && custom_suffix.is_none()
-                    && (full.ends_with(".tgz") || full.ends_with(".taz"))
-                {
-                    format!("{}.tar", &full[..full.len() - 4])
-                } else if let Some(stripped) = full.strip_suffix(ext) {
-                    stripped.to_string()
-                } else if custom_suffix.is_none()
-                    && matches!(invoked, "xz" | "unxz" | "xzcat")
-                    && full.ends_with(".lzma")
-                {
-                    full[..full.len() - 5].to_string()
-                } else {
-                    return err_out(&format!("{invoked}: {f}: unknown suffix -- ignored\n"), 1);
-                };
-                if !force && fs.exists(&out_path) {
-                    return err_out(&format!("{invoked}: {out_path}: already exists\n"), 1);
-                }
-                let _ = fs.write_file(&out_path, &dec);
-                if !keep && out_path != full {
-                    let _ = fs.remove(&full, false);
-                }
+            if recursive && stat.kind == VfsEntryKind::Directory {
+                let entries = fs.read_dir(&real)?;
+                files.extend(entries.into_iter().rev().map(|name| format!("{}/{name}", real.trim_end_matches('/'))));
+                return Ok(());
             }
-        } else {
-            let comp = compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check);
-            if to_stdout {
-                stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&comp));
-            } else {
-                if !force && full.ends_with(ext) {
-                    return err_out(
-                        &format!("{invoked}: {f} already has {ext} suffix -- unchanged\n"),
-                        1,
-                    );
-                }
-                let out_path = format!("{full}{ext}");
-                if !force && fs.exists(&out_path) {
-                    return err_out(&format!("{invoked}: {out_path}: already exists\n"), 1);
-                }
-                let _ = fs.write_file(&out_path, &comp);
+            if recursive && stat.kind == VfsEntryKind::Symlink { return Ok(()); }
+            if stat.kind != VfsEntryKind::File || stat.mode & 0o170000 != 0o100000 {
+                return Err(format!("EINVAL: input must be a regular, non-symlink file '{operand}'"));
+            }
+            let mut parent = None;
+            let dest = if to_stdout || test_mode { None } else {
+                let target = destination(&real)?;
                 if !keep {
-                    let _ = fs.remove(&full, false);
+                    if !force && stat.nlink.unwrap_or(1) > 1 {
+                        return Err(format!("EINVAL: input has multiple links (use -k or -f) '{operand}'"));
+                    }
+                    if stat.revision.is_none() { return Err(format!("ENOTSUP: atomic source removal unavailable (use -k or -c) '{operand}'")); }
+                    parent = Some(fs.lstat(&dirname_posix_path(&real))?);
                 }
-            }
+                let dest = existing(&target)?;
+                if let Some(st) = &dest {
+                    if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 || st.identity == stat.identity {
+                        return Err(format!("EINVAL: destination is not a distinct regular file '{target}'"));
+                    }
+                    if !force { return Err(format!("EEXIST: file already exists '{target}'")); }
+                }
+                Some((target, dest))
+            };
+            plans.push(Some(Source { operand, real, stat, parent, destination: dest }));
+            Ok(())
+        })();
+        if let Err(e) = plan {
+            result.exit_code = 1;
+            result.stderr.push_str(&format!("{invoked}: {e}\n"));
         }
     }
-    ok_out(&stdout_buf)
-}
-
-fn collect_gzip_files(
-    path: &str,
-    fs: &dyn SafeBashFs,
-    decompress: bool,
-    ext: &str,
-    out: &mut Vec<String>,
-) {
-    if fs.is_dir(path) {
-        if let Ok(entries) = fs.read_dir(path) {
-            for e in entries {
-                let child = format!("{}/{e}", path.trim_end_matches('/'));
-                collect_gzip_files(&child, fs, decompress, ext, out);
-            }
-        }
-    } else if fs.exists(path) {
-        if decompress && path.ends_with(ext) {
-            out.push(path.to_string());
-        } else if !decompress && !path.ends_with(ext) {
-            out.push(path.to_string());
+    let sources: BTreeSet<_> = plans.iter().flatten().map(|p| &p.real).collect();
+    let identities: BTreeSet<_> = plans.iter().flatten().filter_map(|p| p.stat.identity.as_ref()).collect();
+    let mut destinations = BTreeSet::new();
+    for (path, stat) in plans.iter().flatten().filter_map(|p| p.destination.as_ref()) {
+        if !destinations.insert(path) || sources.contains(path)
+            || stat.as_ref().and_then(|s| s.identity.as_ref()).is_some_and(|id| identities.contains(id)) {
+            result.exit_code = 1;
+            result.stderr.push_str(&format!("{invoked}: EINVAL: multiple operands share a source or destination path '{path}'\n"));
+            return result;
         }
     }
+    for plan in plans {
+        let failure = |e: String| err_out(&format!("{invoked}: {e}\n"), 1);
+        let run = (|| {
+            let check_source = || {
+                if let Some(p) = &plan {
+                    let (entry, stat) = fs.inspect_command_entry(&p.operand, false, "lstat")?;
+                    if entry != p.real || !p.stat.same_snapshot(&stat) {
+                        return Err(format!("EBUSY: input identity or metadata changed; input retained '{}'", p.operand));
+                    }
+                }
+                Ok(())
+            };
+            check_source().map_err(failure)?;
+            let data = read(plan.as_ref().map(|p| p.real.as_str()))?;
+            let output = if decompress || test_mode { decode(&data, plan.as_ref().is_some_and(|p| p.destination.is_some())).map_err(|e| decode_error(&e))? }
+                else { compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check) };
+            let version = fs.generation();
+            check_source().map_err(failure)?;
+            if let Some(p) = &plan && let Some((target, expected)) = &p.destination {
+                let current = existing(target).map_err(failure)?;
+                if !match (expected, &current) {
+                    (Some(a), Some(b)) => a.same_snapshot(b), (None, None) => true, _ => false,
+                } { return Err(failure(format!("EBUSY: destination changed during compression '{target}'"))); }
+                fs.replace_staged_file(target, &output, version).map_err(failure)?;
+                if let Some(parent) = &p.parent {
+                    fs.remove_unchanged_file(&p.real, parent, &p.stat).map_err(failure)?;
+                }
+            } else if !test_mode {
+                result.stdout.push_str(&crate::vfs::bytes_to_stream_string(&output));
+            }
+            Ok(())
+        })();
+        if let Err(e) = run {
+            result.stderr.push_str(&e.stderr);
+            result.exit_code = e.exit_code;
+            if e.stderr.starts_with("Execution aborted: Shell limit exceeded:") { break; }
+        }
+    }
+    result
 }
 
 fn ensure_zip_suffix(path: &str) -> String {
@@ -10264,6 +10284,24 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn compressing_lower_layer_files_preserves_links_and_removes_only_the_visible_source() {
+        use std::sync::Arc;
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/dir/src", b"input").unwrap();
+        lower.write_file("/dir/src.gz", b"old").unwrap();
+        lower.hard_link("/dir/src.gz", "/old-link").unwrap();
+        let overlay = crate::vfs::OverlayVfs::new(lower.clone(), Arc::new(MemoryVfs::new()));
+        let run = try_run_archive_command("gzip", &args(&["-f", "/dir/src"]), "", "/", &BTreeMap::new(), &overlay).unwrap();
+        assert_eq!(run.exit_code, 0, "{}", run.stderr);
+        assert!(!overlay.exists("/dir/src"));
+        assert_eq!(overlay.read_file("/old-link").unwrap(), b"old");
+        assert_eq!(lower.read_file("/dir/src").unwrap(), b"input");
+        assert_eq!(lower.read_file("/dir/src.gz").unwrap(), b"old");
+        let read = try_run_archive_command("gunzip", &args(&["-c", "/dir/src.gz"]), "", "/", &BTreeMap::new(), &overlay).unwrap();
+        assert_eq!((read.exit_code, read.stdout.as_str()), (0, "input"));
     }
 
     #[test]

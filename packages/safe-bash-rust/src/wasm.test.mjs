@@ -9080,6 +9080,87 @@ test("compression commands charge only their selected inputs and stop pulling at
   } finally { bash.dispose(); }
 });
 
+test("named compression preserves aliased inputs and atomically replaces only the output entry", async () => {
+  for (const profile of ["memory-fs", "overlay-cow-fs"]) {
+    const bash = new RustWasmBash({ cwd: "/", ...(profile === "memory-fs" ? {} : { profile }) });
+    try {
+      const run = (s, options) => bash.exec(s, options);
+      assert.equal((await run("printf original > /input; printf other > /other; ln -s /other /input.gz")).exitCode, 0);
+      const traversal = await run("gzip /missing/../input");
+      assert.equal(traversal.stderr, profile === "memory-fs"
+        ? "gzip: ENOENT: no such file or directory, lstat '/missing/../input'\n"
+        : "gzip: ENOENT: no such file or directory, overlay '/missing'\n");
+      const symlink = await run("gzip -f /input");
+      assert.equal(symlink.exitCode, 1, profile);
+      assert.match(symlink.stderr, /destination is not a distinct regular file/);
+      assert.equal((await run("cat /other /input")).stdout, "otheroriginal");
+      assert.equal((await run("rm /input.gz")).exitCode, 0);
+      if (profile === "memory-fs") {
+        assert.equal((await run("ln /input /input.gz")).exitCode, 0);
+        assert.equal((await run("gzip -f /input")).exitCode, 1);
+        assert.equal((await run("rm /input.gz && ln /input /alias")).exitCode, 0);
+        assert.equal((await run("gzip /input")).exitCode, 1);
+        assert.equal((await run("ln /other /input.gz")).exitCode, 0);
+      } else {
+        await bash.fs.writeFile("/input.gz", "previous");
+      }
+      assert.equal((await run("gzip -f /input", { limits: { maxOutputBytes: 1 } })).exitCode, 0);
+      assert.equal((await run("gunzip -c /input.gz; cat /other")).stdout, "originalother");
+      if (profile === "memory-fs") assert.equal(bash.readText("/alias"), "original");
+      assert.equal((await bash.fs.stat("/input.gz")).mode & 0o777, 0o600);
+      assert.equal((await run("test -e /input")).exitCode, 1);
+      await run("printf keep > /src; mkdir /src.gz");
+      assert.equal((await run("gzip -f /src")).exitCode, 1);
+      assert.equal((await run("cat /src")).stdout, "keep");
+    } finally { bash.dispose(); }
+  }
+});
+
+test("compression rejects overlapping plans before reading stdin or changing files", async () => {
+  const bash = new RustWasmBash({ cwd: "/", files: { "/a": "original" } });
+  try {
+    let pulled = false;
+    const stdin = { async *[Symbol.asyncIterator]() { pulled = true; yield Buffer.from("stdin"); } };
+    const result = await bash.exec("gzip - /a /a", { stdin });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /multiple operands share a source or destination path/);
+    assert.equal(pulled, false);
+    assert.equal(bash.readText("/a"), "original");
+    await assert.rejects(bash.fs.stat("/a.gz"), {code: "ENOENT"});
+  } finally { bash.dispose(); }
+});
+
+test("failed compression publication retains the source and previous destination", async () => {
+  const bash = new RustWasmBash({ cwd: "/", memoryFsOptions: { maxFileBytes: 16 } });
+  try {
+    await bash.fs.writeFile("/a", "raw");
+    await bash.fs.writeFile("/a.gz", "old");
+    for (const command of ["gzip -f /a", "gunzip -f /a.gz"]) {
+      const result = await bash.exec(command);
+      assert.notEqual(result.exitCode, 0, command);
+      assert.deepEqual([bash.readText("/a"), bash.readText("/a.gz")], ["raw", "old"]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("compression retains files changed while an earlier operand is suspended", { skip: !WebAssembly.Suspending }, async () => {
+  for (const path of ["/a", "/a.gz"]) {
+    const bash = new RustWasmBash({ cwd: "/", files: { "/a": "before" } });
+    try {
+      const stdin = { async *[Symbol.asyncIterator]() {
+        await bash.fs.writeFile(path, "new");
+        yield Buffer.from("stdin");
+      }};
+      const r = await bash.exec("gzip -f - /a", { stdin });
+      assert.equal(r.exitCode, 1);
+      assert.match(r.stderr, /EBUSY:/);
+      assert.equal(bash.readText("/a"), path === "/a" ? "new" : "before");
+      if (path === "/a.gz") assert.equal(bash.readText(path), "new");
+      else await assert.rejects(bash.fs.stat("/a.gz"), {code: "ENOENT"});
+    } finally { bash.dispose(); }
+  }
+});
+
 test("gunzip checks each member's optional header and trailer", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem();

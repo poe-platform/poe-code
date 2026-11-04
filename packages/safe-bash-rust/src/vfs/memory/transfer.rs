@@ -165,20 +165,14 @@ impl MemoryVfs {
         };
         let available = dst.limits.max_entries.saturating_sub(dst.entry_count())
             + usize::from(existing.is_some());
-        let mut removals = Vec::new();
-        for (path, suffix) in std::iter::once((from, "")).chain(children.iter().map(|(p,s)| (p.as_str(),s.as_str()))) {
+        let entries = std::iter::once((from, "")).chain(children.iter().map(|(p,s)| (p.as_str(),s.as_str())));
+        for (path, suffix) in entries.clone() {
             let node = src.nodes.get(path).ok_or_else(|| format!("ENOENT: no such file or directory, lstat '{path}'"))?;
             let new_path = format!("{to}{suffix}");
             if let Some(b) = budget {
                 b.check_cancelled()?;
                 b.tick_fs_op()?;
                 b.limits.check_path(&format!("{display_to}{suffix}"))?;
-            }
-            if !(directory && path == from) && !matches!(src.nodes.get(&crate::vfs::dirname_posix_path(path)), Some(MemoryNode::Directory {mode,..}) if mode & 0o300 == 0o300)
-            {
-                return Err(format!(
-                    "EACCES: permission denied, removeEntryConditional '{display_from}{suffix}'"
-                ));
             }
             if device.is_none() && staged.nodes.len() >= available {
                 return Err("ENOSPC: inode limit exceeded".into());
@@ -271,7 +265,6 @@ impl MemoryVfs {
                     );
                 }
             }
-            if !directory || path != from { removals.push(path.to_owned()); }
         }
         if let Some(b) = budget {
             b.check_cancelled()?;
@@ -289,10 +282,16 @@ impl MemoryVfs {
             dst.total_bytes += added;
             destination.bump_generation();
         }
-        for path in removals.into_iter().rev() {
-            Self::unlink_locked(&mut src, &path);
+        for (path, suffix) in entries.rev() {
+            if suffix.is_empty() && directory { break; }
+            let is_directory = matches!(src.nodes.get(path), Some(MemoryNode::Directory { .. }));
+            Self::remove_one_locked(&mut src,path,is_directory).map_err(|e| {
+                let operand = if suffix.is_empty() { display_from.to_owned() }
+                    else { normalize_posix_path(&format!("{display_from}{suffix}")) };
+                format!("{e}, removeEntryConditional '{operand}'")
+            })?;
+            self.bump_generation();
         }
-        self.bump_generation();
         Ok(if directory { self.resolved_metadata(&src, from) } else { None })
     }
 

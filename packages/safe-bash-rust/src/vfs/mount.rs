@@ -587,6 +587,28 @@ mod tests {
     use crate::vfs::MemoryVfs;
 
     #[test]
+    fn cross_mount_permission_failure_keeps_the_copy_and_completed_source_unlinks() {
+        let root = Arc::new(MemoryVfs::new());
+        root.mkdir_all("/w/d").unwrap();
+        for p in ["/w/a","/w/z","/w/d/b"] { root.write_file(p,p.as_bytes()).unwrap(); }
+        root.chmod("/w/d",0o555).unwrap();
+        let dst = Arc::new(MemoryVfs::new());
+        let fs = MountVfs::new(root.clone()).with_mount("/m",dst.clone());
+        let error = fs.move_across_devices("/w/.", "/m/copy", None).unwrap_err();
+        for p in ["a","d/b","z"] {
+            assert_eq!(dst.read_file(&format!("/copy/{p}")).unwrap(),format!("/w/{p}").as_bytes());
+        }
+        assert_eq!(error, "EACCES: permission denied, removeEntryConditional '/w/d/b'");
+        assert!(!root.exists("/w/z"));
+        assert!(root.exists("/w/a"));
+        assert!(root.exists("/w/d/b"));
+        let error = fs.move_across_devices("/w/d/b","/m/single",None).unwrap_err();
+        assert_eq!(error, "EACCES: permission denied, removeEntryConditional '/w/d/b'");
+        assert_eq!(dst.read_file("/single").unwrap(), b"/w/d/b");
+        assert!(root.exists("/w/d/b"));
+    }
+
+    #[test]
     fn cross_mount_move_copies_only_the_child_entries_selected_during_planning() {
         for alternate in [false,true] {
             let root = Arc::new(MemoryVfs::new());

@@ -175,8 +175,15 @@ function bindExternalFs(shell,fs,options) {
   const x=shell.exports, table=x.__indirect_function_table, top=x.__stack_pointer.value;
   const free=freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x,free);
-  const slot=free.pop() ?? table.grow(1);
-  const release=()=>{table.set(slot,null);free.push(slot);};
+  const slot=free.pop() ?? table.grow(1), handles=new Map(), closeErrors=[];
+  let nextHandle=1;
+  const release=async()=>{
+    table.set(slot,null);free.push(slot);
+    const closed=await Promise.allSettled([...handles.values()].map(h=>h.close()));
+    for(const r of closed)if(r.status==="rejected")closeErrors.push(r.reason);
+    if(closeErrors.length===1)throw closeErrors[0];
+    if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
+  };
   let stack,sp,result,status;
   try {
     table.set(slot,suspendingCallback(async ptr=>{
@@ -189,11 +196,45 @@ function bindExternalFs(shell,fs,options) {
         const field=at=>new Uint8Array(x.memory.buffer,word(at),word(at+4));
         const op=decoder.decode(field(0)), path=decoder.decode(field(8)), data=field(16).slice();
         const flags=word(24), mode=word(28), settings={signal:options.signal};
-        options.signal?.throwIfAborted();
-        if(typeof fs[op]!=="function")throw fsOperationError("ENOTSUP",op,path);
+        if(op!=="close")options.signal?.throwIfAborted();
+        const h=handles.get(flags);
+        if(op==="close"){
+          handles.delete(flags);
+          try{await h.close();}catch(e){closeErrors.push(e);}
+          return;
+        }
+        if(op==="pread"){
+          const b=new Uint8Array(mode), at=new DataView(data.buffer,data.byteOffset).getUint32(0,true);
+          const n=await h.read(b,at,settings);
+          if(!Number.isSafeInteger(n)||n<0||n>b.length)throw fsOperationError("EIO","read");
+          result=b.subarray(0,n);return;
+        }
+        if(op==="pwrite"){
+          let pos=0;
+          while(pos<data.length){
+            const n=await h.write(data.subarray(pos),mode===0xffffffff?null:mode+pos,settings);
+            if(!Number.isSafeInteger(n)||n<=0||n>data.length-pos)throw fsOperationError("EIO","write");
+            pos+=n;
+          }
+          return;
+        }
+        if(op==="ftruncate"){await h.truncate(mode,settings);return;}
+        if(op==="canOpen" || op==="open"){
+          const creation=flags===4?"exclusive":flags===0||mode===0xffffffff?"never":"ifMissing";
+          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,creation}):fs.capabilities;
+          const supported=typeof fs.open==="function" && caps?.open===true;
+          if(op==="canOpen"){result=Uint8Array.of(Number(supported));return;}
+          if(!supported)return;
+          const descriptor=await fs.open(path,{...settings,creation,access:flags===0?"read":flags===5?"readwrite":"write",
+            truncate:flags===2,append:flags===3,...(mode===0xffffffff?{}:{mode,exactMode:true})});
+          const id=nextHandle++;
+          handles.set(id,descriptor);
+          result=new Uint8Array(4);new DataView(result.buffer).setUint32(0,id,true);return;
+        }
+        if(op!=="fstat" && typeof fs[op]!=="function")throw fsOperationError("ENOTSUP",op,path);
         switch(op) {
-          case "stat":case "lstat":{
-            const s=await fs[op](path,settings);
+          case "stat":case "lstat":case "fstat":{
+            const s=op==="fstat"?await h.stat(settings):await fs[op](path,settings);
             result=new Uint8Array(new Float64Array([s.mode,s.size,s.atimeMs,s.mtimeMs,s.ctimeMs,s.birthtimeMs,
               s.revision,s.nlink,s.uid,s.gid,s.dev,s.ino,s.allocatedBytes,s.ioBlockSize,s.preferredIoBlockSize,s.filesystemType==="memory"?1:0]).buffer);
             break;
@@ -215,7 +256,7 @@ function bindExternalFs(shell,fs,options) {
         status=-1;
         const known=error?.[FS_ERROR_BRAND] === true;
         result=encoder.encode(options.signal?.aborted?"Execution aborted: cancelled":known?error.message:"internal error");
-        if(!known && !options.signal?.aborted)options.onInternalError?.(error);
+        if(!known && !options.signal?.aborted){try{options.onInternalError?.(error);}catch{ /* Keep observer failures private. */ }}
       }
     },(_ptr,reply)=>{
       new Uint8Array(x.memory.buffer,sp,stack.length).set(stack);x.__stack_pointer.value=sp;
@@ -228,7 +269,7 @@ function bindExternalFs(shell,fs,options) {
     }));
     if(x.safe_bash_bind_fs(shell.sessionId,slot)!==0)throw new Error("Could not bind the execution filesystem");
     return release;
-  }catch(error){release();throw error;}
+  }catch(error){void release();throw error;}
 }
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
@@ -2293,7 +2334,7 @@ export class RustWasmBash extends WasmShell {
       elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
-      try { releaseCommands?.(); } finally { releaseFs?.(); shell.dispose(); }
+      try { releaseCommands?.(); } finally { try { if(releaseFs)await releaseFs(); } finally { shell.dispose(); } }
     }
     if (elapsedMs > 0 && res.exitCode !== 1) {
       const waitMs = Math.min(elapsedMs, 50);

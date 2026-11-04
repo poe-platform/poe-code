@@ -6173,6 +6173,24 @@ test("suspended host filesystem calls isolate concurrent forks and share the sel
   }finally{resume.resolve();await bash.dispose();}
 });
 
+test("a supplied filesystem keeps redirected descriptors on the opened file after a rename",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),bash=new RustWasmBash({cwd:"/"});
+  const handles=new Set(),open=fs.open.bind(fs);
+  fs.open=async(...args)=>{
+    const handle=await open(...args);handles.add(handle);
+    return new Proxy(handle,{get(target,key){
+      if(key==="close")return async(...options)=>{await handle.close(...options);assert.ok(handles.delete(handle));};
+      const v=target[key];return typeof v==="function"?v.bind(target):v;
+    }});
+  };
+  try{
+    const r=await bash.exec("printf old > /a; exec 3<>/a; mv /a /b; printf new > /a; printf X >&3; exec 3>&-; cat /a /b",{fs});
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"newXld",""]);
+    assert.equal(handles.size,0);
+  }finally{await bash.dispose();}
+});
+
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
   try {

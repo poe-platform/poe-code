@@ -29,6 +29,7 @@ pub struct Reply {
 }
 type Callback = unsafe extern "C" fn(*const Request, *mut Reply, u32) -> i32;
 
+#[derive(Debug, Clone, Copy)]
 struct HostFs {
     call: Callback,
     max_input: usize,
@@ -67,8 +68,8 @@ impl HostFs {
         }
     }
 
-    fn metadata(&self, operation: &str, path: &str) -> Result<FileStat, String> {
-        let data = self.request(operation, path, &[], 0, 0)?;
+    fn metadata(&self, operation: &str, path: &str, handle: u32) -> Result<FileStat, String> {
+        let data = self.request(operation, path, &[], handle, 0)?;
         let numbers: Vec<_> = data
             .chunks_exact(8)
             .map(|b| f64::from_le_bytes(b.try_into().unwrap()))
@@ -121,7 +122,84 @@ impl HostFs {
     }
 }
 
+#[derive(Debug)]
+struct HostDescriptor {
+    fs: HostFs,
+    id: u32,
+}
+
+impl Drop for HostDescriptor {
+    fn drop(&mut self) {
+        let _ = self.fs.request("close", "", &[], self.id, 0);
+    }
+}
+impl crate::vfs::OpenRedirectFile for HostDescriptor {
+    fn stat(&self) -> Result<FileStat, String> {
+        self.fs.metadata("fstat", "", self.id)
+    }
+    fn read_at(&self, offset: usize, limit: usize) -> Result<Vec<u8>, String> {
+        self.fs.request(
+            "pread",
+            "",
+            &(offset as u32).to_le_bytes(),
+            self.id,
+            limit.min(65536) as u32,
+        )
+    }
+    fn write_at(&self, offset: Option<usize>, bytes: &[u8]) -> Result<(), String> {
+        self.fs
+            .request(
+                "pwrite",
+                "",
+                bytes,
+                self.id,
+                offset.map_or(u32::MAX, |n| n as u32),
+            )
+            .map(drop)
+    }
+    fn truncate_to(&self, len: usize) -> Result<(), String> {
+        self.fs
+            .request("ftruncate", "", &[], self.id, len as u32)
+            .map(drop)
+    }
+}
 impl SafeBashFs for HostFs {
+    fn supports_command_descriptor(&self, p: &str) -> bool {
+        self.request("canOpen", p, &[], 0, 0)
+            .is_ok_and(|b| b.first() == Some(&1))
+    }
+    fn open_redirect_file(
+        &self,
+        p: &str,
+        access: crate::vfs::RedirectAccess,
+        mode: Option<u32>,
+    ) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
+        use crate::vfs::RedirectAccess::*;
+        let flags = match access {
+            Read => 0,
+            Write => 1,
+            Truncate => 2,
+            Append => 3,
+            Exclusive => 4,
+            ReadWrite => 5,
+        };
+        let reply = self.request("open", p, &[], flags, mode.unwrap_or(u32::MAX))?;
+        if reply.is_empty() {
+            if matches!(access, ReadWrite | Write) {
+                return Err("ENOTSUP: operation not supported".into());
+            }
+            if access == Exclusive {
+                self.create_file(p, &[], mode.ok_or("EINVAL: missing creation mode")?)?;
+            }
+            return Ok(None);
+        }
+        let id = u32::from_le_bytes(
+            reply
+                .try_into()
+                .map_err(|_| "EIO: invalid host descriptor")?,
+        );
+        Ok(Some(std::rc::Rc::new(HostDescriptor { fs: *self, id })))
+    }
     fn read_file(&self, p: &str) -> Result<Vec<u8>, String> {
         self.request("readFile", p, &[], self.max_input as u32, 0)
     }
@@ -176,10 +254,10 @@ impl SafeBashFs for HostFs {
             .map_err(|_| "EIO: invalid link".into())
     }
     fn stat(&self, p: &str) -> Result<FileStat, String> {
-        self.metadata("stat", p)
+        self.metadata("stat", p, 0)
     }
     fn lstat(&self, p: &str) -> Result<FileStat, String> {
-        self.metadata("lstat", p)
+        self.metadata("lstat", p, 0)
     }
     fn chmod(&self, p: &str, m: u32) -> Result<(), String> {
         self.request("chmod", p, &[], 0, m).map(drop)

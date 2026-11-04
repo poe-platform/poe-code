@@ -113,6 +113,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.access_path(&host_text(path), follow_final).map(quote_host_text).map_err(quote_host_text)
     }
 
+    fn command_create_path(&self, path: &str) -> Result<String, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.command_create_path(&host_text(path)).map(quote_host_text).map_err(quote_host_text)
+    }
+
     fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, crate::vfs::FileStat), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
@@ -129,6 +135,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.inner.open_redirect_file(&host_text(path), access, create_mode).map_err(quote_host_text)
+    }
+
+    fn write_command_path(&self, path: &str, bytes: &[u8], append: bool, mode: u32) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(bytes.len())?;
+        self.inner.write_command_path(&host_text(path), bytes, append, mode).map_err(quote_host_text)
     }
 
     fn write_command_file_at(&self, file: &dyn crate::vfs::OpenRedirectFile, offset: usize, bytes: &[u8]) -> Result<(), String> {

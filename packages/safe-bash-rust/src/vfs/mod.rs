@@ -190,6 +190,24 @@ pub trait SafeBashFs: Send + Sync {
         path::walk_path(path, follow_final, path::WalkPurpose::Access, |p| (None, self, p.to_owned()), |_| false)
     }
 
+    /// Resolve a command descriptor's create-if-missing capability query.
+    fn command_create_path(&self, path: &str) -> Result<String, String> {
+        if path.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+        let resolved = if let Some(memory) = self.memory_backend() {
+            path::walk_path(path, true, path::WalkPurpose::CommandCreate, |p| (None, memory, p.to_owned()), |_| false)
+        } else { self.access_path(path, true) };
+        resolved.map_err(|e| {
+            if let Some(parent) = e.strip_prefix("ENOENT: no such file or directory, stat ") {
+                format!("ENOENT: no such file or directory, lstat {parent}")
+            } else if e == "ENOTDIR: not a directory" {
+                if path.ends_with('/') { format!("EISDIR: illegal operation on a directory '{path}'") }
+                else { format!("{e} '{path}'") }
+            } else if e.starts_with("ELOOP:") {
+                format!("ELOOP: too many symbolic links encountered '{path}'")
+            } else { e }
+        })
+    }
+
     /// Inspect a shell operand without collapsing unsearched ancestors or trailing slashes.
     fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
         let entry = self.access_path(path, follow)?;
@@ -208,6 +226,29 @@ pub trait SafeBashFs: Send + Sync {
             if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
             Ok(None)
         }
+    }
+
+    /// A command's named writeFile/appendFile opens the path afresh for each write.
+    fn write_command_path(&self, path: &str, bytes: &[u8], append: bool, mode: u32) -> Result<(), String> {
+        let entry = self.access_path(path, true)?;
+        let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        if let Some(handle) = self.open_redirect_file(&entry, access, mode)? {
+            if !bytes.is_empty() { handle.write_at(if append { None } else { Some(0) }, bytes)?; }
+            return Ok(());
+        }
+        // Path-only filesystems (including overlays) perform the write themselves.
+        let create = match self.lstat(&entry) {
+            Ok(st) if st.kind == VfsEntryKind::Directory => return Err("EISDIR: illegal operation on a directory".into()),
+            Ok(st) if st.mode & 0o200 == 0 => return Err("EACCES: permission denied".into()),
+            Ok(_) => false,
+            Err(e) if e.starts_with("ENOENT:") => {
+                if self.stat(&dirname_posix_path(&entry))?.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+                true
+            }
+            Err(e) => return Err(e),
+        };
+        if create && mode != 0o644 { return self.create_file(&entry, bytes, mode); }
+        if append { self.append_file(&entry, bytes) } else { self.write_file(&entry, bytes) }
     }
 
     /// Write to a retained command output at the specified byte offset.

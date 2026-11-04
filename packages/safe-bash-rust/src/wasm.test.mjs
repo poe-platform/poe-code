@@ -543,6 +543,38 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("xxd negative seeks stat the requested path before a zero-length range", async () => {
+  const bash = new RustWasmBash({files:{"/f":"x"}});
+  try {
+    for (const [path, code, message] of [
+      ["/missing/../f", 2, "ENOENT: no such file or directory, stat '/missing/../f'"],
+      ["/f/", 1, "ENOTDIR: not a directory, stat '/f/'"], ["''", 2, "negative seek requires an input file"],
+    ]) {
+      const r = await bash.exec("xxd -s-1 -l0 " + path);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [code, "", "xxd: " + message + "\n"]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("xxd traverses output parents before resolving .. and honors file permissions", async () => {
+  const bash = new RustWasmBash({files:{"/out":"keep","/readonly":{content:"keep",mode:0o444}}});
+  try {
+    await bash.exec("mkdir -p /real/sub; ln -s /real/sub /link");
+    for (const [flags, missing, denied] of [
+      ["-p", "writeFile '/missing/../out'", "writeFile"], ["-rp", "lstat '/missing'", "open"],
+    ]) {
+      const missingParent = await bash.exec("xxd " + flags + " - /missing/../out", {stdin:"41"});
+      assert.deepEqual([missingParent.exitCode, missingParent.stderr, bash.readText("/out")],
+        [2, "xxd: ENOENT: no such file or directory, " + missing + "\n", "keep"]);
+      const readonly = await bash.exec("xxd " + flags + " - /readonly", {stdin:"41"});
+      assert.deepEqual([readonly.exitCode, readonly.stderr, bash.readText("/readonly")],
+        [1, "xxd: EACCES: permission denied, " + denied + " '/readonly'\n", "keep"]);
+      const written = await bash.exec("umask 077; xxd " + flags + " - /link/../" + denied + "; stat -c %a /real/" + denied, {stdin:"41"});
+      assert.deepEqual([written.exitCode, written.stdout, written.stderr], [0, "600\n", ""]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("xxd reverse patches the opened file without truncating or reopening it", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash({files:{"/target":"abcdef"}});
   try {

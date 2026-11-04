@@ -1,4 +1,4 @@
-use super::{BuiltinOutcome, SafeBashFs, err_out, ok_out, resolve_posix_path};
+use super::{BuiltinOutcome, SafeBashFs, err_out, ok_out};
 use crate::commands::{CommandInput, CommandWriter, coreutils::stream_file_error};
 use std::fmt::Write;
 
@@ -7,6 +7,14 @@ fn input_error(e: &str) -> BuiltinOutcome {
         &format!("xxd: {e}\n"),
         if e.starts_with("ENOENT:") { 2 } else { 1 },
     )
+}
+
+fn named_write_error(error: String, operation: &str, path: &str) -> String {
+    if path == "/" && error.starts_with("EISDIR:") {
+        "EISDIR: illegal operation on a directory '/'".into()
+    } else {
+        stream_file_error(error, operation, path)
+    }
 }
 
 fn read_input(
@@ -205,15 +213,20 @@ pub(crate) fn cmd_xxd(
         return err_out(&format!("xxd: extra operand '{}'\n", operands[2]), 2);
     }
     let infile = operands.first().map(String::as_str).unwrap_or("-");
+    let mode = 0o666
+        & !env
+            .get("\0umask")
+            .and_then(|s| u32::from_str_radix(s, 8).ok())
+            .unwrap_or(0o022);
     let outpath = operands
         .get(1)
         .filter(|name| name.as_str() != "-")
-        .map(|s| resolve_posix_path(cwd, s));
+        .map(|s| crate::vfs::path::absolute_operand(cwd, s));
     if !reverse
         && let Some(path) = &outpath
-        && let Err(e) = fs.write_file(path, &[])
+        && let Err(e) = fs.write_command_path(path, &[], false, mode)
     {
-        return input_error(&e);
+        return input_error(&named_write_error(e, "writeFile", path));
     }
     if (plain && (bits_mode || c_include || little_endian))
         || (little_endian && (bits_mode || c_include))
@@ -290,20 +303,15 @@ pub(crate) fn cmd_xxd(
         );
     }
     if reverse {
-        let mode = 0o666
-            & !env
-                .get("\0umask")
-                .and_then(|s| u32::from_str_radix(s, 8).ok())
-                .unwrap_or(0o022);
         let descriptor = if let Some(path) = &outpath {
-            let entry = match fs.access_path(path, true) {
-                Ok(p) => p,
+            let entry = match fs.command_create_path(path) {
+                Ok(entry) => entry,
                 Err(e) => return input_error(&e),
             };
             match fs.open_redirect_file(&entry, crate::vfs::RedirectAccess::Write, mode) {
                 Ok(descriptor) => descriptor,
                 Err(e) => {
-                    let op = if e.starts_with("EISDIR:") {
+                    let op = if e.starts_with("EISDIR:") && path == "/" {
                         "capabilitiesFor"
                     } else {
                         "open"
@@ -480,12 +488,13 @@ pub(crate) fn cmd_xxd(
     }
 
     let seek_offset = if seek < 0 {
-        if infile == "-" {
+        if infile == "-" || infile.is_empty() {
             return err_out("xxd: negative seek requires an input file\n", 2);
         }
-        let size = match fs.stat(&resolve_posix_path(cwd, infile)) {
-            Ok(st) => st.size as u64,
-            Err(e) => return input_error(&e),
+        let path = crate::vfs::path::absolute_operand(cwd, infile);
+        let size = match fs.inspect_command_entry(&path, true, "stat") {
+            Ok((_, st)) => st.size as u64,
+            Err(e) => return input_error(&stream_file_error(e, "stat", &path)),
         };
         let Some(start) = size.checked_sub(seek.unsigned_abs()) else {
             return err_out("xxd: Sorry, cannot seek.\n", 4);
@@ -565,10 +574,10 @@ pub(crate) fn cmd_xxd(
             return true;
         }
         let ok = if let Some(path) = &outpath {
-            match fs.append_file(path, out.as_bytes()) {
+            match fs.write_command_path(path, out.as_bytes(), true, mode) {
                 Ok(()) => true,
                 Err(e) => {
-                    result = input_error(&e);
+                    result = input_error(&named_write_error(e, "appendFile", path));
                     false
                 }
             }

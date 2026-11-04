@@ -78,6 +78,7 @@ pub fn dirname_posix_path(path: &str) -> String {
 pub(super) enum WalkPurpose {
     AllowMissingParents,
     OverlayAccess,
+    CommandCreate,
     Access,
     Rename,
 }
@@ -91,7 +92,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     location: impl Fn(&str) -> (Option<&'a str>, &'a F, String),
     mount_parent: impl Fn(&str) -> bool,
 ) -> Result<String, String> {
-    let access = matches!(purpose, WalkPurpose::Access | WalkPurpose::OverlayAccess);
+    let access = matches!(purpose, WalkPurpose::Access | WalkPurpose::OverlayAccess | WalkPurpose::CommandCreate);
     let mut link_checks = Vec::new();
     let mut current = "/".to_string();
     let mut pending: Vec<String> = path
@@ -125,6 +126,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             }
             if st.is_some_and(|st| st.mode & 0o100 == 0) {
                 if purpose == WalkPurpose::OverlayAccess { return Err(format!("EACCES: permission denied, overlay '{current}'")); }
+                if purpose == WalkPurpose::CommandCreate { return Err(format!("EACCES: permission denied, access '{current}'")); }
                 if access {
                     if matches!(part.as_str(), "." | "..") { return Err("EACCES: permission denied".into()); }
                     let denied = format!("{}/{part}", current.trim_end_matches('/'));

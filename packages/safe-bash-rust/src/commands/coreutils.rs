@@ -12737,7 +12737,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         if fs.lstat(&full).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File) {
             return Err(format!("csplit: unsafe output file '{fname}'\n"));
         }
-        let stamp=fs.observe_publication(&full,version,true).map_err(|e|format!("csplit: {fname}: {e}\n"))?;
+        let stamp=fs.observe_publication(&full,version,crate::vfs::PublicationMode::Rollback).map_err(|e|format!("csplit: {fname}: {e}\n"))?;
         let publication = fs.publish_file(&full, piece, input_path.as_slice(), stamp.version).map_err(|e| {
             match e.as_str() {
                 "INVALID_VALUE: Input and output VFS identities must be distinct" =>

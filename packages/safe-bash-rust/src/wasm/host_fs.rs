@@ -204,9 +204,20 @@ impl SafeBashFs for HostFs {
         &self,
         path: &str,
         _generation: u64,
-        cleanup:bool,
+        mode: crate::vfs::PublicationMode,
     ) -> Result<crate::vfs::PublicationStamp, String> {
-        let bytes = self.request("observePublication", path, &[], cleanup as u32, 0)?;
+        use crate::vfs::PublicationMode::*;
+        let bytes = self.request(
+            "observePublication",
+            path,
+            &[],
+            match mode {
+                Write => 0,
+                Rollback => 1,
+                Replace => 2,
+            },
+            0,
+        )?;
         let id = u32::from_le_bytes(
             bytes
                 .try_into()
@@ -243,6 +254,19 @@ impl SafeBashFs for HostFs {
         }
         self.request("publish", path, data, stamp as u32, 0)?;
         Ok(stamp)
+    }
+    fn replace_file_entry_with_mode(
+        &self,
+        path: &str,
+        bytes: &[u8],
+        mode: u32,
+        stamp: u64,
+    ) -> Result<(), String> {
+        if stamp == 0 {
+            return Err("ENOTSUP: retained file replacement is unsupported".into());
+        }
+        self.request("replaceEntry", path, bytes, stamp as u32, mode)
+            .map(drop)
     }
     fn remove_published(&self, path: &str, stamp: u64) -> Result<bool, String> {
         Ok(self.request("removePublished", path, &[], stamp as u32, 0)? == [1])

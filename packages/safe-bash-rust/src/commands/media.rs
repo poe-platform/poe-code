@@ -489,7 +489,7 @@ fn publish_magick_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Resul
         if stat.mode & 0o300 != 0o300 {
             return Err(format!("EACCES: permission denied, writeFile '{target}'"));
         }
-        let stamp=fs.observe_publication(&target,version,false)?;
+        let stamp=fs.observe_publication(&target,version,crate::vfs::PublicationMode::Write)?;
         return match fs.publish_file(&target, bytes, &[], stamp.version) {
             Ok(_) => Ok(()),
             Err(e) if e.starts_with("UNSUPPORTED_CAPABILITY:") => fs.write_file(&target, bytes),
@@ -9441,7 +9441,7 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         image_files.push((out_path,rendered.into_bytes()));
         for (name, bytes) in image_files {
             let path=resolve_posix_path(cwd,&name);
-            if fs.observe_publication(&path,fs.generation(),false).and_then(|stamp| fs.publish_file(&path,&bytes,&[],stamp.version)).is_err() {
+            if fs.observe_publication(&path,fs.generation(),crate::vfs::PublicationMode::Write).and_then(|stamp| fs.publish_file(&path,&bytes,&[],stamp.version)).is_err() {
                 return err_out(&format!("I/O Error: Couldn't open html file '{name}'\n"),0);
             }
         }
@@ -10166,7 +10166,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 if parent.mode & 0o300 != 0o300 {
                     return Err("EACCES".into());
                 }
-                let stamp=fs.observe_publication(&entry,version,false)?;
+                let stamp=fs.observe_publication(&entry,version,crate::vfs::PublicationMode::Write)?;
                 fs.publish_file(&entry, &data, &[], stamp.version)
             });
             if result.is_err() {

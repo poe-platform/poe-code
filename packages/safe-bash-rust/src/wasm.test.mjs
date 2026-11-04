@@ -6262,6 +6262,33 @@ test("csplit rollback on a supplied filesystem removes only its own output",{ski
   }finally{await sh.dispose();}
 });
 
+test("ZIP stages a fresh host file, preserves retained readers and cleans up a refused publication",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"}),enc=new TextEncoder();
+  await fs.writeFile("/a",enc.encode("initial"));await fs.writeFile("/b",enc.encode("extra"));
+  try{
+    const first=await sh.exec("zip -q out.zip a",{fs});
+    assert.deepEqual([first.exitCode,first.stderr],[0,""]);
+    await fs.chmod("/out.zip",0o600);
+    const old=await fs.openReadFile("/out.zip"), before=await fs.readFile("/out.zip");
+    try{
+      const update=await sh.exec("zip -q out.zip b",{fs});
+      assert.deepEqual([update.exitCode,update.stderr],[0,""]);
+      assert.deepEqual(await old.read(0,before.length+10000),before);
+      assert.notDeepEqual(await fs.readFile("/out.zip"),before);
+      assert.equal((await fs.stat("/out.zip")).mode&0o777,0o600);
+    }finally{await old.close();}
+    const publish=fs.publishStagedFile.bind(fs);
+    fs.publishStagedFile=async(stage,path,opts)=>{
+      await fs.writeFile(path,enc.encode("replacement"));return publish(stage,path,opts);
+    };
+    const refused=await sh.exec("zip -q race.zip a",{fs});
+    assert.notEqual(refused.exitCode,0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/race.zip")),"replacement");
+    assert.deepEqual((await fs.readdir("/")).map(e=>e.name).sort(),["a","b","out.zip","race.zip"]);
+  }finally{await sh.dispose();}
+});
+
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
   try {

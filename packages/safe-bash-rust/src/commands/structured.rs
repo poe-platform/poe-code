@@ -26909,7 +26909,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
 
     let output_version = if output == "-" { None } else {
-        match fs.observe_publication(&resolve_posix_path(cwd,&output),fs.generation(),false) {
+        match fs.observe_publication(&resolve_posix_path(cwd,&output),fs.generation(),crate::vfs::PublicationMode::Write) {
             Ok(stamp)=>Some(stamp), Err(e)=>return err_out(&format!("mmdc: E_IO: {e}\n"),1)
         }
     };

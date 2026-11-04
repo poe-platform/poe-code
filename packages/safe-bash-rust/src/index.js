@@ -199,10 +199,17 @@ function bindExternalFs(shell,fs,options) {
         if(op==="forgetPublication"){publications.delete(flags);return;}
         if(op!=="close" && op!=="removePublished")options.signal?.throwIfAborted();
         if(op==="observePublication"){
-          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,create:true}):fs.capabilities;
+          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,create:true,...(flags===2 && {stagingResolution:true})}):fs.capabilities;
           const write=caps?.atomicFileMutation && typeof fs.writeFileConditional==="function";
           const stream=caps?.atomicFilePublication && typeof fs.publishFileConditional==="function";
           result=new Uint8Array(4);
+          if(flags===2){
+            if(!caps?.atomicFileStaging || !caps.retainedStagingCleanup || !caps.guardedStagingPublication ||
+              !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile)return;
+            const resolution=await fs.prepareStagingResolution(path,settings), id=nextHandle++;
+            publications.set(id,{path,resolution});
+            new DataView(result.buffer).setUint32(0,id,true);return;
+          }
           if(flags ? !write || typeof fs.removeFileConditional!=="function" : !write && !stream)return;
           const parent=await fs.stat(path.slice(0,path.lastIndexOf("/"))||"/",settings);
           let expected;
@@ -211,6 +218,28 @@ function bindExternalFs(shell,fs,options) {
           const id=nextHandle++;
           publications.set(id,{path,parent,expected,write});
           new DataView(result.buffer).setUint32(0,id,true);return;
+        }
+        if(op==="replaceEntry"){
+          const obs=publications.get(flags);
+          if(!obs?.resolution || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
+          const r=obs.resolution, parentDir=r.path.slice(0,r.path.lastIndexOf("/"));
+          r.validate();
+          let stage;
+          for(let attempt=0;;attempt++){
+            try{
+              stage=await fs.createStagedFile(parentDir+"/.safe-bash-stage-"+nextHandle++,"file",{type:"file",data},
+                {...settings,mode,parent:r.parent,retainCleanup:true});
+              break;
+            }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
+          }
+          try{
+            const finished=stage.writer?{...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}}:stage;
+            await fs.publishStagedFile(finished,r.path,{...settings,parent:r.parent,destination:r.destination,
+              ancestors:r.ancestors,commitGuard:r.validate});
+          }finally{
+            try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}
+          }
+          return;
         }
         if(op==="publicationAlias"){
           const observation=publications.get(flags), dst=observation.expected;

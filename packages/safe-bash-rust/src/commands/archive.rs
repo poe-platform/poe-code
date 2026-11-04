@@ -6104,6 +6104,11 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if split_pause && split_size != 0 { return zip_err("split pause requires an explicit volume prompt capability"); }
     let version = fs.generation();
+    let replacement = if !show_files && split_size == 0 {
+        match fs.observe_publication(&dest_full,version,crate::vfs::PublicationMode::Replace) {
+            Ok(stamp)=>Some(stamp),Err(e)=>return err_out(&format!("zip: {e}\n"),2)
+        }
+    } else {None};
     let inspect = |path: &str| match fs.lstat(path) {
         Ok(st) => Ok(Some(st)),
         Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
@@ -6151,7 +6156,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if let Some(st) = &dest && st.nlink.is_some_and(|n| n > 1) {
             fs.commit_file_edit(&dest_full,st,&original,&bytes,true).map(|()| String::new())
         } else {
-            fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),version)
+            fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),replacement.as_ref().unwrap().version)
                 .map(|()| String::new())
         };
         match result { Ok(report) => ok_out(&report), Err(e) => err_out(&format!("zip: {e}\n"),2) }

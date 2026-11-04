@@ -489,7 +489,7 @@ pub(super) fn wkhtmltopdf(
     doc.title = title_opt.clone().unwrap_or_default();
     let out_arg = pos_args.pop().unwrap().path;
     let output_version = if out_arg == "-" {None} else {
-        match fs.observe_publication(&resolve_posix_path(cwd,out_arg),fs.generation(),false) {
+        match fs.observe_publication(&resolve_posix_path(cwd,out_arg),fs.generation(),crate::vfs::PublicationMode::Write) {
             Ok(stamp)=>Some(stamp),Err(e)=>return err_out(&format!("wkhtmltopdf: {e}\n"),1)
         }
     };

@@ -6257,6 +6257,33 @@ test("suspended host filesystem calls isolate concurrent forks and share the sel
   }finally{resume.resolve();await bash.dispose();}
 });
 
+test("ln and cp -l use the supplied filesystem's hard links and respect path capabilities",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem,MountFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
+  const exercise=async sh=>{
+    const fs=new MemoryFileSystem(), enc=new TextEncoder();
+    await fs.mkdir("/directory");await fs.writeFile("/a",enc.encode("one"));await fs.symlink("a","/s");
+    const result=[];
+    for(const script of ["ln /a /alias; cp -l /a /copy; printf two > /alias; cat /a /copy",
+      "ln -P /s /physical; readlink /physical; ln -L /s /logical; cat /logical",
+      "ln /dev/null /forbidden","ln /directory /bad"]){
+      const r=await sh.exec(script,{fs});result.push([r.exitCode,r.stdout,r.stderr]);
+    }
+    const query=fs.capabilitiesFor?.bind(fs);
+    fs.capabilitiesFor=async(p,o)=>({...(await query?.(p,o) ?? fs.capabilities),...(p==="/occupied" && {hardlinks:false})});
+    await fs.writeFile("/occupied",enc.encode("keep"));
+    const denied=await sh.exec("ln -f /a /occupied",{fs});
+    const other=new MemoryFileSystem(), mount=new MountFileSystem({root:fs,mounts:{"/other":other}});
+    const cross=await sh.exec("ln /a /other/alias",{fs:mount});
+    await assert.rejects(other.lstat("/alias"),{code:"ENOENT"});
+    return [...result,[cross.exitCode,cross.stderr],[denied.exitCode,denied.stderr],new TextDecoder().decode(await fs.readFile("/occupied")),(await fs.stat("/a")).nlink];
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()), rust=new RustWasmBash({cwd:"/"});
+  try{
+    const ref=await exercise(js);assert.equal(ref[0][1],"twotwo");assert.equal(ref.at(-2),"keep");assert.equal(ref.at(-1),4);
+    assert.deepEqual(await exercise(rust),ref);
+  }finally{await js.dispose();await rust.dispose();}
+});
+
 test("a supplied filesystem keeps redirected descriptors on the opened file after a rename",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),bash=new RustWasmBash({cwd:"/"});

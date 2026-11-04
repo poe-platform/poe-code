@@ -507,6 +507,22 @@ impl SafeBashFs for HostFs {
         }
         Ok(entries)
     }
+    fn supports_hard_links(&self, path: &str) -> bool {
+        self.reserved_device(path, false)
+            .is_ok_and(|entry| entry.is_none())
+            && self
+                .request("canLink", path, &[], 0, 0)
+                .is_ok_and(|reply| reply == [1])
+    }
+    fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
+        if self.reserved_device(source, false)?.is_some()
+            || self.reserved_device(destination, false)?.is_some()
+        {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        self.request("link", source, destination.as_bytes(), 0, 0)
+            .map(drop)
+    }
     fn symlink(&self, t: &str, p: &str) -> Result<(), String> {
         self.mutable(p, false)?;
         self.request("symlink", t, p.as_bytes(), 0, 0).map(drop)

@@ -937,6 +937,7 @@ fn copy_error(error: &str, op: &str, path: &str) -> String {
 }
 
 fn hard_link_error(error: &str, source: &str, destination: &str) -> String {
+    if error.ends_with(&format!(", link '{source}' -> '{destination}'")) { return error.to_owned(); }
     if error.starts_with("EBUSY:") { format!("{error} '{source}'") }
     else if error.starts_with("ENOENT:") || error.starts_with("EACCES:") { copy_error(error, "link", destination) }
     else { format!("{error}, link '{source}' -> '{destination}'") }

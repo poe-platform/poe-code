@@ -8924,6 +8924,30 @@ test("redirected output preserves each accepted 64 KiB descriptor write", {skip:
   } finally { sh.dispose(); }
 });
 
+test("rg publishes matches and read errors in operand order", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash({files:{"/f":"hit file\n"}});
+  try {
+    const contents = async () => Buffer.from(await sh.fs.readFile("/out")).toString();
+    const seen = [];
+    const result = await sh.exec("rg hit /f - /f >/out 2>&1", {stdin:{async *[Symbol.asyncIterator]() {
+      seen.push(await contents());
+      yield Buffer.from("hit stdin\npartial");
+      seen.push(await contents());
+      throw Error("input failed");
+    }}});
+    assert.deepEqual(seen, ["/f:hit file\n", "/f:hit file\n<stdin>:hit stdin\n"]);
+    assert.deepEqual([result.exitCode,await contents()], [2,seen[1]+"rg: internal error\n/f:hit file\n"]);
+  } finally { sh.dispose(); }
+});
+
+test("rg keeps earlier directory matches when a later file chunk contains a NUL", async () => {
+  const sh = new RustWasmBash({files:{"/d/f":"a\n"+"b".repeat(65536)+"\na\0b\n"}});
+  try {
+    const result = await sh.exec("rg a /d");
+    assert.deepEqual([result.exitCode,result.stdout,result.stderr], [0,"/d/f:a\n",""]);
+  } finally { sh.dispose(); }
+});
+
 test("rg JSON preserves Unicode and uses compact JSON escapes in lines and submatches", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {

@@ -4113,6 +4113,9 @@ fn run_grep_engine(
         SearchFiles::Rg(files) => Box::new(files.inputs(&targets, cwd, fs, stdin.file.is_some() || !stdin.text.is_empty())),
     };
 
+    if is_rg && !cfg.multiline {
+        return rg_stream::lines(&cfg, &rx, inputs, multiple_files, stdin, fs, cwd, replacement.as_deref(), capture, write);
+    }
     let mut out = String::new();
     let mut any_match = false;
     let mut total_matches = 0usize;
@@ -4132,17 +4135,11 @@ fn run_grep_engine(
     for input in inputs {
         if failed_batch { break; }
         let mut matched_count = 0usize;
-        let mut binary_start = 0;
-        let mut late_binary = None;
         let mut read_failed = false;
         let mut chunk_ends = Vec::new();
         let output_start = out.len();
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
-                if is_rg && targets.len() <= 1 && !multiline
-                    && (cfg.json_output || !(cfg.count_only || cfg.files_with_matches || cfg.files_without_match || cfg.quiet)) {
-                    return rg_stream::lines(&cfg, &rx, stdin, replacement.as_deref(), capture, write);
-                }
                 let mut bytes = Vec::new();
                 let presence_only = !multiline && !cfg.stats && !cfg.json_output
                     && (cfg.quiet || cfg.files_with_matches || cfg.files_without_match);
@@ -4168,21 +4165,9 @@ fn run_grep_engine(
                     let display = !(cfg.count_only || cfg.quiet || cfg.files_with_matches || cfg.files_without_match);
                     let mut after = if display && (is_rg || !(cfg.only_matching && cfg.invert)) { cfg.after_ctx } else { 0 };
                     let (mut start, mut hits) = (0, 0);
-                    let mut binary = false;
                     stdin.read_stdin(|chunk| {
                         let base = bytes.len();
                         bytes.extend_from_slice(chunk);
-                        if binary_delimiter && !binary && let Some(nul) = chunk.iter().position(|&b| b == 0) {
-                            binary = true;
-                            binary_start = start;
-                            if hits > 0 && display && !cfg.json_output {
-                                // Text from completed records in previous chunks has already been printed.
-                                let consumed = chunk.iter().position(|&b| delimiter(b)).unwrap() + 1;
-                                late_binary = Some((base + nul, base + consumed));
-                                bytes.truncate(start);
-                                return false;
-                            }
-                        }
                         for (i, _) in chunk.iter().enumerate().filter(|(_, b)| delimiter(**b)) {
                             let line = &bytes[start..base + i];
                             start = base + i + 1;
@@ -4190,8 +4175,7 @@ fn run_grep_engine(
                                 && (line.contains(&0) || std::str::from_utf8(line).is_err()) { return false; }
                             if hits == limit { after -= 1; }
                             else if selected(line) { hits += 1; }
-                            if hits == limit && after == 0 || binary && display && !cfg.json_output && (hits != 0 || cfg.before_ctx != 0) {
-                                // Keep the whole delivered chunk: rg detects NUL before emitting any of its records.
+                            if hits == limit && after == 0 {
                                 return false;
                             }
                         }
@@ -4363,7 +4347,7 @@ fn run_grep_engine(
                     if !cfg.no_messages { err.push_str("grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n"); }
                     break;
                 }
-                if binary_records && line_offsets[idx] > binary_start && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) {
+                if binary_records && line_offsets[idx] > 0 && trailing && !cfg.json_output && (matched_count > 0 || cfg.before_ctx > 0) {
                     file_searched = line_offsets[idx];
                     break;
                 }
@@ -4450,7 +4434,7 @@ fn run_grep_engine(
                 }
             }
         }
-        if !read_failed { bytes_searched += late_binary.map_or(file_searched, |(_, searched)| searched); }
+        if !read_failed { bytes_searched += file_searched; }
         if cfg.json_output {
             if matched_count == 0 || cfg.quiet { continue; }
             let path_text = fname.unwrap_or("<stdin>");
@@ -4684,7 +4668,6 @@ fn run_grep_engine(
             render_search_record(&cfg, &mut out, line, spans, base, idx + 1, ending, matched.is_some(), fname.filter(|_| line_show_filename),
                 is_rg, replacement.is_some(), &replacements, rec_term, |_| true);
         }
-        if let Some((off, _)) = late_binary { binary_notice(&mut out, off); }
         if cfg.stats && read_failed { failed_output_bytes += stream_byte_len(&out[output_start..]); }
     }
 

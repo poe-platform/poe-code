@@ -6195,6 +6195,42 @@ test("a supplied mount keeps absolute device links local and rejects links cross
   }finally{await js.dispose();await rust.dispose();}
 });
 
+test("host plugins see the same device namespace as native commands on a supplied filesystem",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  for(const deviceView of ["default","provided"]){
+    const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/",deviceView});
+    const enc=new TextEncoder(),dec=new TextDecoder();
+    await fs.mkdir("/dev");await fs.writeFile("/dev/null",enc.encode("keep"));await fs.symlink("/dev/null","/sink");await fs.writeFile("/dev/other",enc.encode("visible"));
+    let seen;
+    sh.register({name:"inspect-device",async execute(ctx){
+      const [s,b]=await Promise.all([ctx.fs.stat("/sink"),ctx.fs.readFile("/sink")]);
+      await ctx.fs.writeFile("/sink",enc.encode("edited"));
+      let streamed="";
+      for await(const chunk of ctx.fs.readStream("/sink"))streamed+=dec.decode(chunk);
+      const handle=await ctx.fs.openReadFile("/sink");
+      let retained;
+      try{retained=dec.decode(await handle.read(0,100));}finally{await handle.close();}
+      seen=[s.type,dec.decode(b),(await ctx.fs.capabilitiesFor("/sink")).open,streamed,retained,
+        (await ctx.fs.readdir("/dev")).map(e=>[e.name,e.type]).sort(),
+        (await ctx.fs.lstat("/sink")).type];
+      if(deviceView==="default"){
+        await assert.rejects(ctx.fs.rename("/dev/null","/leak"),{code:"EBUSY"});
+        await assert.rejects(ctx.fs.chmod("/sink",0o111),{code:"EBUSY"});
+        await assert.rejects(ctx.fs.readdir("/dev",{maxEntries:1}),{code:"EFBIG"});
+      }
+      return {exitCode:0};
+    }});
+    try{
+      const r=await sh.exec("inspect-device",{fs});
+      assert.deepEqual([r.exitCode,r.stderr],[0,""]);
+      assert.deepEqual(seen,deviceView==="default"
+        ?["character","",true,"","",[["null","character"],["other","file"]],"symlink"]
+        :["file","keep",true,"edited","edited",[["null","file"],["other","file"]],"symlink"]);
+      assert.equal(dec.decode(await fs.readFile("/dev/null")),deviceView==="default"?"keep":"edited");
+    }finally{await sh.dispose();}
+  }
+});
+
 test("suspended host filesystem calls isolate concurrent forks and share the selected filesystem with plugins",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const first=new MemoryFileSystem(), second=new MemoryFileSystem(), bash=new RustWasmBash({cwd:"/"});

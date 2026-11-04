@@ -52,6 +52,13 @@ fn field(packet: &mut &[u8]) -> Result<String, String> {
 
 fn invoke_child(ctx: &mut crate::CommandContext<'_>, mut request: &[u8], middleware_input:&mut Option<String>, pending:&mut Option<(MiddlewareFlow,i32)>) -> Result<(i32, Vec<u8>, usize), String> {
     let flags = word(&mut request)?;
+    if matches!(flags,133|134) {
+        let path=bytes_to_stream_string(request);
+        return match ctx.fs.reserved_device(&path,flags==133) {
+            Ok(entry) => Ok((match entry { Some("/dev/null")=>1,Some("/dev")=>2,Some("/")=>3,_=>0 },Vec::new(),0)),
+            Err(e) => Ok((4,e.into_bytes(),0)),
+        };
+    }
     if flags == 132 {
         let input = middleware_input.as_mut().ok_or("No middleware input")?;
         return Ok((0,ctx.read_middleware_input(input)?,0));

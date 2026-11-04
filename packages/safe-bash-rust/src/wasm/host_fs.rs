@@ -114,25 +114,8 @@ impl HostFs {
         )
     }
 
-    fn reserved(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
-        if !self.devices {
-            return Ok(None);
-        }
-        Ok(
-            match self
-                .device_path(path, follow, DeviceTraversal::Classify)?
-                .as_str()
-            {
-                "/" => Some("/"),
-                "/dev" => Some("/dev"),
-                "/dev/null" => Some("/dev/null"),
-                _ => None,
-            },
-        )
-    }
-
     fn mutable(&self, path: &str, follow: bool) -> Result<(), String> {
-        if self.reserved(path, follow)?.is_some() {
+        if self.reserved_device(path, follow)?.is_some() {
             return Err(format!("EBUSY: resource busy or locked '{path}'"));
         }
         Ok(())
@@ -260,6 +243,23 @@ impl crate::vfs::OpenRedirectFile for HostDescriptor {
     }
 }
 impl SafeBashFs for HostFs {
+    fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
+        if !self.devices {
+            return Ok(None);
+        }
+        Ok(
+            match self
+                .device_path(path, follow, DeviceTraversal::Classify)?
+                .as_str()
+            {
+                "/" => Some("/"),
+                "/dev" => Some("/dev"),
+                "/dev/null" => Some("/dev/null"),
+                _ => None,
+            },
+        )
+    }
+
     fn default_device_view(&self) -> bool {
         self.devices
     }
@@ -302,7 +302,7 @@ impl SafeBashFs for HostFs {
             Exclusive => 4,
             ReadWrite => 5,
         };
-        if let Some(entry) = self.reserved(p, access != Exclusive)? {
+        if let Some(entry) = self.reserved_device(p, access != Exclusive)? {
             if access == Exclusive {
                 return Err("EEXIST: file already exists".into());
             }
@@ -411,7 +411,7 @@ impl SafeBashFs for HostFs {
         Ok(self.request("removePublished", path, &[], stamp as u32, 0)? == [1])
     }
     fn read_file(&self, p: &str) -> Result<Vec<u8>, String> {
-        match self.reserved(p, true)? {
+        match self.reserved_device(p, true)? {
             Some("/dev/null") => return Ok(Vec::new()),
             Some(_) => return Err(format!("EISDIR: illegal operation on a directory '{p}'")),
             None => {}
@@ -419,7 +419,7 @@ impl SafeBashFs for HostFs {
         self.request("readFile", p, &[], self.max_input as u32, 0)
     }
     fn write_file(&self, p: &str, b: &[u8]) -> Result<(), String> {
-        match self.reserved(p, true)? {
+        match self.reserved_device(p, true)? {
             Some("/dev/null") => return Ok(()),
             Some(_) => return Err(format!("EISDIR: illegal operation on a directory '{p}'")),
             None => {}
@@ -427,7 +427,7 @@ impl SafeBashFs for HostFs {
         self.request("writeFile", p, b, 0, 0).map(drop)
     }
     fn append_file(&self, p: &str, b: &[u8]) -> Result<(), String> {
-        match self.reserved(p, true)? {
+        match self.reserved_device(p, true)? {
             Some("/dev/null") => return Ok(()),
             Some(_) => return Err(format!("EISDIR: illegal operation on a directory '{p}'")),
             None => {}
@@ -435,13 +435,13 @@ impl SafeBashFs for HostFs {
         self.request("appendFile", p, b, 0, 0).map(drop)
     }
     fn create_file(&self, p: &str, b: &[u8], m: u32) -> Result<(), String> {
-        if self.reserved(p, false)?.is_some() {
+        if self.reserved_device(p, false)?.is_some() {
             return Err("EEXIST: file already exists".into());
         }
         self.request("writeFile", p, b, 1, m).map(drop)
     }
     fn mkdir_all(&self, p: &str) -> Result<(), String> {
-        match self.reserved(p, true)? {
+        match self.reserved_device(p, true)? {
             Some("/dev/null") => return Err("EEXIST: file already exists".into()),
             Some(_) => return Ok(()),
             None => {}
@@ -449,7 +449,7 @@ impl SafeBashFs for HostFs {
         self.request("mkdir", p, &[], 1, 0o777).map(drop)
     }
     fn mkdir_one(&self, p: &str, m: u32) -> Result<(), String> {
-        if self.reserved(p, true)?.is_some() {
+        if self.reserved_device(p, true)?.is_some() {
             return Err("EEXIST: file already exists".into());
         }
         self.request("mkdir", p, &[], 0, m).map(drop)
@@ -459,7 +459,7 @@ impl SafeBashFs for HostFs {
         self.request("rm", p, &[], 1, 0).map(drop)
     }
     fn remove_one(&self, p: &str, d: bool) -> Result<(), String> {
-        if d && self.reserved(p, false)? == Some("/dev/null") {
+        if d && self.reserved_device(p, false)? == Some("/dev/null") {
             return Err("ENOTDIR: not a directory".into());
         }
         self.mutable(p, false)?;
@@ -480,7 +480,7 @@ impl SafeBashFs for HostFs {
             .is_ok_and(|s| s.kind == VfsEntryKind::Directory)
     }
     fn list_dir(&self, p: &str) -> Result<Vec<String>, String> {
-        let reserved = self.reserved(p, true)?;
+        let reserved = self.reserved_device(p, true)?;
         if reserved == Some("/dev/null") {
             return Err(format!("ENOTDIR: not a directory '{p}'"));
         }
@@ -512,20 +512,20 @@ impl SafeBashFs for HostFs {
         self.request("symlink", t, p.as_bytes(), 0, 0).map(drop)
     }
     fn readlink(&self, p: &str) -> Result<String, String> {
-        if self.reserved(p, false)?.is_some() {
+        if self.reserved_device(p, false)?.is_some() {
             return Err(format!("EINVAL: invalid argument '{p}'"));
         }
         String::from_utf8(self.request("readlink", p, &[], 0, 0)?)
             .map_err(|_| "EIO: invalid link".into())
     }
     fn stat(&self, p: &str) -> Result<FileStat, String> {
-        if let Some(entry @ ("/dev" | "/dev/null")) = self.reserved(p, true)? {
+        if let Some(entry @ ("/dev" | "/dev/null")) = self.reserved_device(p, true)? {
             return device_metadata(entry);
         }
         self.metadata("stat", p, 0)
     }
     fn lstat(&self, p: &str) -> Result<FileStat, String> {
-        if let Some(entry @ ("/dev" | "/dev/null")) = self.reserved(p, false)? {
+        if let Some(entry @ ("/dev" | "/dev/null")) = self.reserved_device(p, false)? {
             return device_metadata(entry);
         }
         self.metadata("lstat", p, 0)

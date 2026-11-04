@@ -415,7 +415,7 @@ function bindExternalFs(shell,fs,options) {
 
 // Each executing fork leases its own slots: concurrent handlers can resume in any order.
 const freeCommandSlots = new WeakMap();
-function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, bindFileOutputBudget, fs, supportsOpen, options, middleware, composeMiddleware) {
+function bindHostCommands(shell, definitions, commandContract, validatePath, diagnostics, bindFileOutputBudget, fs, supportsOpen, options, middleware, composeMiddleware, ownedDeviceFs) {
   const x = shell.exports, table = x.__indirect_function_table;
   const free = freeCommandSlots.get(x) ?? [];
   freeCommandSlots.set(x, free);
@@ -427,7 +427,9 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const capabilities = Object.freeze({open:supportsOpen, ...Object.fromEntries(
     ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead", "streamingRead", "atomicFileMutation", "atomicDirectoryMetadata", "atomicFileStaging", "atomicStagingAncestry", "retainedStagingWrite", "retainedStagingCleanup"].map(key => [key, backing[key]]))});
 
+  let deviceShell;
   const release = () => {
+    deviceShell?.dispose();
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
     if (!executionSignal.aborted && cleanupFailures.length) {
       if (cleanupFailures.length === 1) throw cleanupFailures[0];
@@ -492,19 +494,62 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             chargeFs();
             validatePath(path, maxComponents);
           };
+          const external = ownedDeviceFs !== undefined;
+          const deviceKind = (p,follow) => {
+            const call=tail.then(()=>exchange([Uint8Array.of(follow?133:134,0,0,0),encoder.encode(p)],signal));
+            tail=call.catch(()=>{});
+            return call.then(({status,bytes})=>{
+              if(status===4){const text=decoder.decode(bytes);throw fsErr(text.split(":",1)[0],text);}
+              return status;
+            });
+          };
+          const mutable = async p => {
+            if(external && await deviceKind(p,false))throw fsOperationError("EBUSY",undefined,p);
+          };
+          const route = async (operation,p,args,follow=true) => {
+            if(!external)return fs[operation](p,...args);
+            const kind=await deviceKind(p,follow);
+            if(kind===0)return fs[operation](p,...args);
+            const canonical=[null,"/dev/null","/dev","/"][kind];
+            if(operation==="readdir" && kind!==1){
+              const limit=args[0]?.maxEntries;
+              if(limit!==undefined && limit!==Infinity && (!Number.isSafeInteger(limit) || limit<0))throw fsOperationError("EINVAL","readdir",p);
+              let entries;
+              try{entries=await fs.readdir(canonical,...args);}catch(e){
+                if(e?.code!=="ENOENT" && e?.code!=="ENOTDIR")throw e;
+                entries=[];
+              }
+              const names=new Map();
+              for(const e of entries){
+                const name=typeof e==="string"?e:e.name;
+                if(name==="." || name==="..")continue;
+                if(!name || name.includes("/") || name.includes("\0"))throw fsOperationError("EIO","readdir",p);
+                names.set(name,e);
+              }
+              const name=kind===2?"null":"dev";
+              names.set(name,{name,type:kind===2?"character":"directory"});
+              if(limit!==undefined && names.size>limit)throw fsOperationError("EFBIG","readdir",p);
+              return [...names.values()];
+            }
+            if(["rm","unlink","chmod","writeFileConditional","removeFileConditional","prepareDirectory"].includes(operation))throw fsOperationError("EBUSY",undefined,p);
+            if(kind===3 && ["stat","lstat","access","openReadFile","readFile","readStream","open","realpath","readlink"].includes(operation))
+              return fs[operation](canonical,...args);
+            const virtual=ownedDeviceFs ?? (deviceShell??=new RustWasmBash({cwd:"/"})).fs;
+            return virtual[operation](canonical,...args);
+          };
           const write = async (operation, path, data, settings) => {
             admitPath(path, settings);
             const options = {...settings};
             if (options.mode === undefined) options.mode = creationMode;
             check();
-            return fs[operation](path, data, options);
+            return route(operation,path,[data,options]);
           };
           const openHandle = async (operation, path, settings) => {
             admitPath(path, settings);
             if (operation === "open" && settings?.mode === undefined && ["ifMissing","exclusive"].includes(settings?.creation)) {
               settings = {...settings, mode:creationMode};
             }
-            const opening = fs[operation](path, settings);
+            const opening = route(operation,path,[settings],operation!=="open" || settings?.creation!=="exclusive");
             let closing;
             const close = () => closing ??= opening.then(handle => handle.close(), () => {}).finally(() => handles.delete(close));
             (handles ??= new Set()).add(close);
@@ -557,46 +602,55 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             capabilities,
             async capabilitiesFor(path, settings) {
               admitPath(path, settings);
-              const kind = pathProfile(path, settings);
+              const follow = settings?.stagingResolution ? settings.followFinalSymlink===true : settings?.create!==undefined || settings?.creation!=="exclusive";
+              const kind = external ? await deviceKind(path,follow) : pathProfile(path, settings);
+              if(external && (kind===2 || kind===3) && settings?.create!==undefined)throw fsOperationError("EISDIR","capabilitiesFor",path);
+              if(external && (kind===0 || kind===3)){
+                const actual=await fs.capabilitiesFor?.(path,settings) ?? backing;
+                return Object.freeze(Object.fromEntries(Object.keys(capabilities).map(key=>[key,actual[key]])));
+              }
               const directory = kind === 2, regular = kind === 0;
               return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
                 retainedStagingWrite:regular && capabilities.retainedStagingWrite, retainedStagingCleanup:regular && capabilities.retainedStagingCleanup,
                 atomicFileStaging:regular && capabilities.atomicFileStaging, atomicStagingAncestry:regular && capabilities.atomicStagingAncestry,
-                atomicFileMutation:regular && capabilities.atomicFileMutation, atomicDirectoryMetadata:regular && capabilities.atomicDirectoryMetadata, open:supportsOpen && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
+                atomicFileMutation:regular && capabilities.atomicFileMutation, atomicDirectoryMetadata:regular && capabilities.atomicDirectoryMetadata, open:(external && kind===1 || supportsOpen) && !directory, retainedRead:!directory, streamingRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular,
                 mkdir:regular, recursiveMkdir:regular, remove:regular, removeDirectory:regular, recursiveRemove:regular,
                 rename:regular, atomicRename:regular, atomicRenameNoReplace:regular, symlinks:regular});
             },
             async rename(source, destination, settings) {
               admitPath(source, settings);
               validatePath(destination, maxComponents);
-              if (settings?.noReplace && pathProfile(destination, settings) !== 0) throw fsOperationError("ENOTSUP","rename",source,destination);
+              if(external){await mutable(source);await mutable(destination);}
+              if (!external && settings?.noReplace && pathProfile(destination, settings) !== 0) throw fsOperationError("ENOTSUP","rename",source,destination);
               return fs.rename(source, destination, settings);
             },
             async symlink(target, path, settings) {
               admitPath(path, settings);
+              if(external)await mutable(path);
               return fs.symlink(target, path, settings);
             },
             openReadFile(path, settings) { return openHandle("openReadFile", path, settings); },
             open(path, settings) { return openHandle("open", path, settings); },
             async access(path, mode, settings) {
               admitPath(path, settings);
-              return fs.access(path, mode, settings);
+              return route("access",path,[mode,settings]);
             },
             async chmod(path, mode, settings) {
               admitPath(path, settings);
-              return fs.chmod(path, mode, settings);
+              return route("chmod",path,[mode,settings]);
             },
             async mkdir(path, settings) {
               admitPath(path, settings);
               const options = {...settings};
               if (options.mode === undefined) options.mode = directoryMode;
               check();
-              return fs.mkdir(path, options);
+              return route("mkdir",path,[options]);
             },
             async createStagedFile(directory, name, content, settings) {
               admitPath(directory, settings);
               validatePath(directory + "/" + name, maxComponents);
               const controls = stageControls(settings);
+              if(external)await mutable(directory);
               const receipt = await fs.createStagedFile(directory, name, content, controls);
               (stages ??= new Set()).add(receipt);
               if (!receipt.cleanup) return receipt;
@@ -633,18 +687,24 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
               admitPath(path, settings);
               const controls = stageControls(settings);
               if (controls.ancestors !== undefined) controls.ancestors = Array.from(controls.ancestors,stageEntry);
-              return fs.publishStagedFile(stageReceipt(receipt), path, controls);
+              const snapshot=stageReceipt(receipt);
+              if(external){
+                for(const entry of [snapshot.directory.path,snapshot.file.path,path])await mutable(entry);
+                if(controls.ancestors?.some(e=>e.path==="/dev" || e.path.startsWith("/dev/")) && await deviceKind("/dev",false))throw fsOperationError("ENOTSUP",undefined,path);
+              }
+              return fs.publishStagedFile(snapshot, path, controls);
             },
             async removeStagedFile(receipt, settings) {
               check();
               const snapshot = stageReceipt(receipt), controls = stageControls(settings);
               admitPath(snapshot.directory.path,controls);
+              if(external){await mutable(snapshot.directory.path);await mutable(snapshot.file.path);}
               await fs.removeStagedFile(snapshot, controls);
               stages?.delete(receipt);
             },
             async writeFileConditional(path, data, settings) {
               admitPath(path,settings);
-              return fs.writeFileConditional(path,data,settings);
+              return route("writeFileConditional",path,[data,settings],false);
             },
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },
             appendFile(path, data, settings) { return write("appendFile", path, data, settings); },
@@ -652,7 +712,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           for (const operation of ["readFile", "stat", "lstat", "readdir", "rm", "unlink", "readlink", "realpath", "removeFileConditional", "prepareDirectory"]) {
             commandFs[operation] = async (path, settings) => {
               admitPath(path, settings);
-              return fs[operation](path, settings);
+              return route(operation,path,[settings],!["lstat","rm","unlink","readlink","removeFileConditional","prepareDirectory"].includes(operation));
             };
           }
           for (const [key,method] of Object.entries(commandFs)) {
@@ -662,7 +722,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             const admission = busy?.then(() => admitPath(path,settings));
             if (admission) admission.catch(()=>{}); else admitPath(path,settings);
             const options = {...settings,signal:settings?.signal && settings.signal !== signal ? AbortSignal.any([signal,settings.signal]) : signal};
-            const iterator = fs.readStream(path,options)[Symbol.asyncIterator]();
+            const iterator = external ? (async function*(){yield* await route("readStream",path,[options]);})() : fs.readStream(path,options)[Symbol.asyncIterator]();
             const close = () => iterator.return().finally(()=>handles.delete(close));
             (handles ??= new Set()).add(close);
             return {
@@ -2449,7 +2509,7 @@ export class RustWasmBash extends WasmShell {
           if (typeof WebAssembly.Suspending !== "function" || typeof WebAssembly.promising !== "function") {
             throw new Error("Standalone JavaScript command handlers require WebAssembly Promise Integration");
           }
-          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, externalFs ? filesystem : this.fs, externalFs ? filesystem.capabilities?.open===true : !this.#overlay, options, this.#middleware, this.#composeMiddleware);
+          releaseCommands = bindHostCommands(shell, definitions, this.#commandContract, this.#validatePath, this.#diagnostics, this.#bindFileOutputBudget, externalFs ? filesystem : this.fs, externalFs ? filesystem.capabilities?.open===true : !this.#overlay, options, this.#middleware, this.#composeMiddleware,externalFs ? (this.#overlay || this._companion ? null : this.fs) : undefined);
         }
       }
       if (asyncInput && typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function") {

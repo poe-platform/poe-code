@@ -516,6 +516,13 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn default_device_view(&self) -> bool { false }
+    /// Select a reserved device path for an already admitted host operation.
+    fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>, String> {
+        if !self.default_device_view() { return Ok(None); }
+        Ok(match self.access_path(path,follow)?.as_str() {
+            "/" => Some("/"), "/dev" => Some("/dev"), "/dev/null" => Some("/dev/null"), _ => None,
+        })
+    }
 
     /// Create one new directory. Never change an existing entry's permissions.
     fn mkdir_one(&self, _path: &str, _mode: u32) -> Result<(), String> {

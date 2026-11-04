@@ -403,6 +403,10 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn default_device_view(&self) -> bool { self.inner.default_device_view() }
+    fn reserved_device(&self, path: &str, follow: bool) -> Result<Option<&'static str>,String> {
+        self.budget.limits.check_path(path)?;
+        self.inner.reserved_device(&host_text(path),follow)
+    }
 
     fn mkdir_with_operation(&self, path: &str, recursive: bool, mode: u32, try_backing: bool) -> Result<(), (String, &'static str, String)> {
         self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())

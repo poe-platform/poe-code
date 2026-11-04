@@ -2478,9 +2478,10 @@ fn cmd_grep(
     fs: &dyn SafeBashFs,
     write: &mut CommandWriter,
 ) -> BuiltinOutcome {
-    let literal = invoked_as == "grep" && args.len() <= 2 && args.get(1).is_none_or(|f| f == "-" || !f.starts_with('-'))
-        && args.first().is_some_and(|p| !p.is_empty() && p != "^" && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
+    let ascii_pattern = invoked_as == "grep" && args.len() <= 2 && args.first().is_some_and(|p|
+        !p.is_empty() && p.len() <= 64 && !p.starts_with('-') && p.strip_prefix('^').unwrap_or(p)
             .bytes().all(|b| (32..=126).contains(&b) && !br"$()*+.?[\]^{|}".contains(&b)));
+    let literal = ascii_pattern && args[0] != "^" && args.get(1).is_none_or(|f| f == "-" || !f.starts_with('-'));
     if literal && args.get(1).is_none_or(|f| f == "-") {
         return grep_literal_stdin(&args[0], stdin, write);
     }
@@ -2777,7 +2778,7 @@ fn cmd_grep(
         GrepConfig {
             // Production's single-pattern ASCII shortcut checks every input line.
             grep_input: if literal { GrepInput::PlainLiteral }
-                else if bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
+                else if ascii_pattern && !text || bounded_ere && !use_vm { GrepInput::Bounded(invoked_as) } else { GrepInput::Bytes },
             ascii_record_rx: None,
             invert,
             count_only,
@@ -4019,6 +4020,7 @@ fn run_grep_engine(
         let mut binary_start = 0;
         let mut late_binary = None;
         let mut read_failed = false;
+        let mut chunk_ends = Vec::new();
         let output_start = out.len();
         let (fname, content, explicit) = match input {
             SearchInput::Stdin => {
@@ -4074,6 +4076,23 @@ fn run_grep_engine(
                                 return false;
                             }
                         }
+                        true
+                    })
+                } else if matches!(cfg.grep_input, GrepInput::Bounded(_)) {
+                    let mut start = 0;
+                    stdin.read_stdin(|chunk| {
+                        let base = bytes.len();
+                        bytes.extend_from_slice(chunk);
+                        for (i, _) in chunk.iter().enumerate().filter(|(_, b)| delimiter(**b)) {
+                            let end = base + i;
+                            let line = &bytes[start..end];
+                            start = end + 1;
+                            if line.contains(&0) || std::str::from_utf8(line).is_err() {
+                                bytes.truncate(start);
+                                return false;
+                            }
+                        }
+                        if start > base { chunk_ends.push(start); }
                         true
                     })
                 } else { stdin.append_bytes(&mut bytes) };
@@ -4256,8 +4275,10 @@ fn run_grep_engine(
                             || cfg.files_without_match || binary_records && trailing && !cfg.json_output { 1 } else { 128 };
                         batch_end = idx + 1;
                         let mut bytes = line.len();
+                        let next_chunk = chunk_ends.partition_point(|&end| end <= line_offsets[idx]);
+                        let end = chunk_ends.get(next_chunk).copied().unwrap_or(usize::MAX);
                         while batch_end < lines.len() && batch_end - idx < batch_size
-                            && bytes < 65536 && bytes + lines[batch_end].len() <= 65536
+                            && line_offsets[batch_end] < end && bytes < 65536 && bytes + lines[batch_end].len() <= 65536
                             && (batch_end + 1 < lines.len() || content.ends_with(&[rec_term as u8])) {
                             bytes += lines[batch_end].len();
                             batch_end += 1;

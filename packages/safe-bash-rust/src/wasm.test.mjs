@@ -8603,6 +8603,25 @@ test("grep charges one direct memory file read before checking its input bytes",
   } finally { sh.dispose(); }
 });
 
+test("grep with an option after the pattern validates batches at stdin chunk boundaries", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash();
+  try {
+    const error = "grep: bounded regex unsupported: literal patterns and subjects require valid non-NUL UTF-8 bytes\n";
+    for (const [args, chunks, output, pulls] of [
+      ["a -n", ["a\na\0\n","a\n"], "", 1],
+      ["a -n", ["a\npart","ial\0\n","a\n"], "1:a\n", 2],
+      ["a -n", ["a\n","a\0"], "1:a\n", 2],
+      ["a -n", ["a\n",Buffer.from([255,10]),"a\n"], "1:a\n", 2],
+    ]) {
+      let pulled = 0;
+      const r = await sh.exec("grep " + args, {stdin: {async *[Symbol.asyncIterator]() {
+        for (const chunk of chunks) { pulled++; yield Buffer.from(chunk); }
+      }}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,pulled], [2,output,error,pulls], args);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("grep validates plain ASCII searches record by record and preserves earlier output", async () => {
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(), js=new Shell({cwd:"/",fs}).use(agentCommands()), rs=new RustWasmBash({cwd:"/"});

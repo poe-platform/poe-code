@@ -3678,6 +3678,11 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
         return Err("ZIP multi-disk archive requires an explicit VFS volume resolver".into());
     }
     let total_entries = u16::from_le_bytes([data[eocd + 10], data[eocd + 11]]) as usize;
+    let split = data.starts_with(b"PK\x07\x08");
+    let disk_members = u16::from_le_bytes([data[eocd + 8],data[eocd + 9]]) as usize;
+    if disk_members != total_entries && !(split && disk_members == 65535) {
+        return Err(if split { "ZIP inconsistent per-disk member count" } else { "ZIP inconsistent member count" }.into());
+    }
     let central_size = u32::from_le_bytes(data[eocd + 12..eocd + 16].try_into().unwrap()) as usize;
     let central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
     let cmt_len = u16::from_le_bytes([data[eocd + 20], data[eocd + 21]]) as usize;
@@ -3687,6 +3692,8 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     }
 
     let mut out = Vec::with_capacity(total_entries + 1);
+    let mut spans = std::collections::BTreeMap::<usize,usize>::new();
+    let overlap = "ZIP overlapping spans, gaps or self-extracting prefix are unsupported";
     let mut pos = central_offset;
     for _ in 0..total_entries {
         if eocd - pos < 46 {
@@ -3709,6 +3716,9 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
         let ext_attr = u32::from_le_bytes(data[pos + 38..pos + 42].try_into().unwrap());
         let local_off = u32::from_le_bytes(data[pos + 42..pos + 46].try_into().unwrap()) as usize;
 
+        if data[pos+34..pos+36] != [0,0] {
+            return Err(if split { "ZIP disk offset outside volume" } else { "ZIP multi-disk archive requires a volume resolver" }.into());
+        }
         if name_len + extra_len + entry_cmt_len > eocd - pos - 46 {
             return Err("truncated central directory entry".into());
         }
@@ -3749,6 +3759,28 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
         if payload_start.checked_add(comp_size).is_none_or(|end| end > central_offset) {
             return Err("truncated entry data".into());
         }
+        let central = &data[central_start..pos];
+        let local = &data[local_off..payload_start+comp_size];
+        if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
+        if local[30..30+l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
+        if retained.is_some() && central[8] & 1 != 0 { return Err("ZIP encrypted member requires a password".into()); }
+        let descriptor = central[8] & 8 != 0;
+        if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
+            .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
+            return Err("ZIP central/local size or CRC mismatch".into());
+        }
+        let mut stop = payload_start + comp_size;
+        if descriptor {
+            let tail = &data[payload_start+comp_size..central_offset];
+            let unsigned = tail.starts_with(&central[16..28]);
+            let signed = tail.strip_prefix(&0x08074b50u32.to_le_bytes()).is_some_and(|t|t.starts_with(&central[16..28]));
+            if unsigned == signed { return Err("ZIP truncated, ambiguous or mismatched data descriptor".into()); }
+            stop += if signed { 16 } else { 12 };
+        }
+        // Reject aliases before decoding their payload a second time.
+        if spans.range(..=local_off).next_back().is_some_and(|(_,end)| *end > local_off)
+            || spans.range(local_off..stop).next().is_some() { return Err(overlap.into()); }
+        spans.insert(local_off,stop);
         let raw_payload = &data[payload_start..payload_start + comp_size];
         let decoded = match method {
             0 => raw_payload.to_vec(),
@@ -3760,26 +3792,9 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
             return Err("CRC or size mismatch".into());
         }
 
-        if let Some(records) = retained.as_deref_mut() {
-            let central = &data[central_start..pos];
-            let local = &data[local_off..payload_start+comp_size];
-            if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
-            if local[30..30+l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
-            if central[8] & 1 != 0 { return Err("ZIP encrypted member requires a password".into()); }
-            let descriptor = central[8] & 8 != 0;
-            if local[14..26].chunks_exact(4).zip(central[16..28].chunks_exact(4))
-                .any(|(a,b)| a != b && !(descriptor && a == [0;4])) {
-                return Err("ZIP central/local size or CRC mismatch".into());
-            }
-            if descriptor {
-                let tail = &data[payload_start+comp_size..central_offset];
-                let unsigned = tail.starts_with(&central[16..28]);
-                let signed = tail.strip_prefix(&0x08074b50u32.to_le_bytes()).is_some_and(|t|t.starts_with(&central[16..28]));
-                if unsigned == signed { return Err("ZIP truncated, ambiguous or mismatched data descriptor".into()); }
-            }
-            if records.insert(name.clone(),ZipRecord {local,central}).is_some() {
-                return Err("ZIP duplicate member name".into());
-            }
+        if let Some(records) = retained.as_deref_mut()
+            && records.insert(name.clone(),ZipRecord {local,central}).is_some() {
+            return Err("ZIP duplicate member name".into());
         }
 
         let host = version_made_by >> 8;
@@ -3821,6 +3836,12 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
         });
     }
 
+    let mut covered = if split { 4 } else { spans.first_key_value().map_or(central_offset,|(start,_)| *start) };
+    for (start,end) in spans {
+        if start != covered { return Err(overlap.into()); }
+        covered = end;
+    }
+    if covered != central_offset { return Err("ZIP unreferenced local data is unsupported".into()); }
     if pos != eocd {
         return Err("ZIP central directory size or member count mismatch".into());
     }

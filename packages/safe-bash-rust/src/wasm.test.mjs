@@ -2002,6 +2002,44 @@ test("native zip splits at record boundaries and preserves occupied volume desti
   }
 });
 
+test("unzip validates disk numbers, local headers and record coverage before extraction",async () => {
+  const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
+  const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
+  try {
+    await ref.writeFile("/item",Uint8Array.of(65));
+    for(const split of [false,true]) {
+      assert.equal((await js.exec("zip -q0 -fd "+(split?"-s64k ":"")+(split?"split":"plain")+".zip item")).exitCode,0);
+      const seed=Buffer.from(await ref.readFile(split?"/split.zip":"/plain.zip"));
+      const central=seed.indexOf(Buffer.from([80,75,1,2])), end=seed.lastIndexOf(Buffer.from([80,75,5,6]));
+      const local=seed.readUInt32LE(central+42);
+      for(const kind of ["valid","disk","count","local name","method","CRC","descriptor","tail gap","overlap",...(split?["marker gap"]:[])]) {
+        let b=Buffer.from(seed);
+        if(kind==="disk") b.writeUInt16LE(1,central+34);
+        if(kind==="count") b.writeUInt16LE(0,end+8);
+        if(kind==="local name") b[local+30]^=1;
+        if(kind==="method") b[local+8]^=1;
+        if(kind==="CRC") b.writeUInt32LE(123,local+14);
+        if(kind==="descriptor") b[central-1]^=1;
+        if(kind==="tail gap") {b.writeUInt32LE(central+1,end+16);b=Buffer.concat([b.subarray(0,central),Buffer.alloc(1),b.subarray(central)]);}
+        if(kind==="marker gap") {b.writeUInt32LE(local+1,central+42);b.writeUInt32LE(central+1,end+16);b=Buffer.concat([b.subarray(0,local),Buffer.alloc(1),b.subarray(local)]);}
+        if(kind==="overlap") {
+          b.writeUInt16LE(2,end+8);b.writeUInt16LE(2,end+10);b.writeUInt32LE(2*(end-central),end+12);
+          b=Buffer.concat([b.subarray(0,end),b.subarray(central,end),b.subarray(end)]);
+        }
+        const run=async (sh,fs) => {
+          await fs.writeFile("/input.zip",b); await fs.writeFile("/item",Uint8Array.of(90));
+          const r=await sh.exec("unzip -qo input.zip");
+          return [r.exitCode,r.stderr,...await fs.readFile("/item")];
+        };
+        const expected=await run(js,ref);
+        assert.deepEqual([expected[0],expected[2]],kind==="valid"?[0,65]:[2,90],kind);
+        assert.deepEqual(await run(rust,rust.fs),expected,kind+" split="+split);
+      }
+      await ref.writeFile("/item",Uint8Array.of(65));
+    }
+  } finally {await js.dispose();await rust.dispose();}
+});
+
 test("split ZIP reserves all volumes before replacing files or removing move sources", async () => {
   const bash = new RustWasmBash({cwd:"/case", memoryFsOptions:{maxBytes:250000}});
   try {

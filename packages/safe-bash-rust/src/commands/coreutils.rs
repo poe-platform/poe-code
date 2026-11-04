@@ -3066,227 +3066,78 @@ fn validate_nl_style(s: &str) -> Result<(), String> {
 
 fn parse_nl_signed(s: &str) -> Result<i64, String> {
     let t = s.trim();
-    t.parse::<i64>()
-        .map_err(|_| format!("nl: invalid line number: '{s}'\n"))
-}
-
-fn parse_nl_positive_usize(s: &str) -> Result<usize, String> {
-    let t = s.trim();
-    match t.parse::<usize>() {
-        Ok(v) if v >= 1 => Ok(v),
-        _ => Err(format!("nl: invalid number: '{s}'\n")),
+    let digits = t.strip_prefix(['+', '-']).unwrap_or(t);
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(format!("nl: invalid line number: '{s}'\n"));
     }
+    t.parse().map_err(|_| format!("nl: line number out of range: '{s}'\n"))
 }
 
 fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
-    let mut header_style = "n".to_string();
-    let mut body_style = "t".to_string();
-    let mut footer_style = "n".to_string();
-    let mut num_fmt = "rn".to_string();
-    let mut sep = "\t".to_string();
-    let mut width = 6usize;
-    let mut start_num = 1i64;
-    let mut incr = 1i64;
-    let mut join_blanks = 1usize;
+    let mut values = BTreeMap::new();
     let mut no_renumber = false;
-    let mut default_delim: [u8; 2] = [b'\\', b':'];
-    let mut delim_bytes: Vec<u8> = default_delim.to_vec();
+    let mut default_delim = [b'\\', b':'];
+    let mut delim_bytes = default_delim.to_vec();
     let mut files = Vec::new();
-    let mut i = 0usize;
-    let mut end_opts = false;
-
-    let apply_delim = |val: &str, def: &mut [u8; 2], cur: &mut Vec<u8>| {
-        let next = crate::vfs::stream_string_to_bytes(val);
-        if next.len() == 1 {
-            def[0] = next[0];
-            *cur = def.to_vec();
-        } else if next.len() == 2 {
-            def[0] = next[0];
-            def[1] = next[1];
-            *cur = def.to_vec();
-        } else {
-            *cur = next;
-        }
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
+        if arg == "--" { files.extend(args.cloned()); break; }
+        let (key, value) = if let Some(long) = arg.strip_prefix("--") {
+            let (name, inline) = long.split_once('=').map_or((long, None), |(n, v)| (n, Some(v)));
+            let key = match name {
+                "no-renumber" => {
+                    if inline.is_some() { return err_out("nl: option '--no-renumber' does not take an argument\n", 1); }
+                    no_renumber = true;
+                    continue;
+                }
+                "header-numbering" => 'h', "body-numbering" => 'b', "footer-numbering" => 'f',
+                "starting-line-number" => 'v', "line-increment" => 'i', "join-blank-lines" => 'l',
+                "number-separator" => 's', "number-width" => 'w', "number-format" => 'n', "section-delimiter" => 'd',
+                _ => return err_out(&format!("nl: unrecognized option '{arg}'\n"), 1),
+            };
+            let Some(value) = inline.or_else(|| args.next().map(String::as_str)) else {
+                return err_out(&format!("nl: option '--{name}' requires an argument\n"), 1);
+            };
+            (key, value)
+        } else if let Some(short) = arg.strip_prefix('-').filter(|s| !s.is_empty()) {
+            let tail = short.trim_start_matches('p');
+            no_renumber |= tail.len() != short.len();
+            let mut chars = tail.chars();
+            let Some(key) = chars.next() else { continue; };
+            if !"hbfvilswnd".contains(key) { return err_out(&format!("nl: invalid option -- '{key}'\n"), 1); }
+            let value = if chars.as_str().is_empty() {
+                let Some(value) = args.next() else { return err_out(&format!("nl: option requires an argument -- '{key}'\n"), 1); };
+                value.as_str()
+            } else { chars.as_str() };
+            (key, value)
+        } else { files.push(arg.clone()); continue; };
+        if key == 'd' {
+            let next = stream_string_to_bytes(value);
+            if matches!(next.len(), 1 | 2) {
+                default_delim[..next.len()].copy_from_slice(&next);
+                delim_bytes = default_delim.to_vec();
+            } else { delim_bytes = next; }
+        } else { values.insert(key, value); }
+    }
+    let header_style = *values.get(&'h').unwrap_or(&"n");
+    let body_style = *values.get(&'b').unwrap_or(&"t");
+    let footer_style = *values.get(&'f').unwrap_or(&"n");
+    for st in [header_style, body_style, footer_style] {
+        if let Err(msg) = validate_nl_style(st) { return err_out(&msg, 1); }
+    }
+    let start_num = match parse_nl_signed(values.get(&'v').unwrap_or(&"1")) { Ok(n) => n, Err(e) => return err_out(&e, 1) };
+    let incr = match parse_nl_signed(values.get(&'i').unwrap_or(&"1")) { Ok(n) => n, Err(e) => return err_out(&e, 1) };
+    const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
+    let integer = |key, default, minimum| {
+        let text = *values.get(&key).unwrap_or(&default);
+        text.parse::<u64>().ok().filter(|n| (minimum..=MAX_SAFE_INTEGER).contains(n))
+            .ok_or_else(|| err_out(&format!("nl: invalid number '{text}'\n"), 1))
     };
-
-    while i < args.len() {
-        let a = &args[i];
-        if !end_opts && a == "--" {
-            end_opts = true;
-            i += 1;
-            continue;
-        }
-        if end_opts || !a.starts_with('-') || a == "-" {
-            files.push(a.clone());
-            i += 1;
-            continue;
-        }
-        if a.starts_with("--") {
-            let (opt, val_opt) = match a.split_once('=') {
-                Some((k, v)) => (k, Some(v.to_string())),
-                None => (a.as_str(), None),
-            };
-            if opt == "--no-renumber" {
-                if val_opt.is_some() {
-                    return err_out(&format!("nl: option '{opt}' doesn't allow an argument\n"), 1);
-                }
-                no_renumber = true;
-                i += 1;
-                continue;
-            }
-            let need_val = |i_ref: &mut usize| -> Result<String, BuiltinOutcome> {
-                if let Some(v) = val_opt.clone() {
-                    *i_ref += 1;
-                    Ok(v)
-                } else if *i_ref + 1 < args.len() {
-                    let v = args[*i_ref + 1].clone();
-                    *i_ref += 2;
-                    Ok(v)
-                } else {
-                    Err(err_out(&format!("nl: option '{opt}' requires an argument\n"), 1))
-                }
-            };
-            match opt {
-                "--header-numbering" => {
-                    header_style = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                }
-                "--body-numbering" => {
-                    body_style = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                }
-                "--footer-numbering" => {
-                    footer_style = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                }
-                "--starting-line-number" => {
-                    let v = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                    match parse_nl_signed(&v) {
-                        Ok(n) => start_num = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    }
-                }
-                "--line-increment" => {
-                    let v = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                    match parse_nl_signed(&v) {
-                        Ok(n) => incr = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    }
-                }
-                "--join-blank-lines" => {
-                    let v = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                    match parse_nl_positive_usize(&v) {
-                        Ok(n) => join_blanks = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    }
-                }
-                "--number-separator" => {
-                    sep = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                }
-                "--number-width" => {
-                    let v = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                    match parse_nl_positive_usize(&v) {
-                        Ok(n) => width = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    }
-                }
-                "--number-format" => {
-                    num_fmt = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                }
-                "--section-delimiter" => {
-                    let v = match need_val(&mut i) {
-                        Ok(v) => v,
-                        Err(e) => return e,
-                    };
-                    apply_delim(&v, &mut default_delim, &mut delim_bytes);
-                }
-                _ => return err_out(&format!("nl: unrecognized option '{a}'\n"), 1),
-            }
-            continue;
-        }
-
-        let chars: Vec<char> = a[1..].chars().collect();
-        let mut ci = 0usize;
-        while ci < chars.len() {
-            let ch = chars[ci];
-            if ch == 'p' {
-                no_renumber = true;
-                ci += 1;
-                continue;
-            }
-            if matches!(ch, 'h' | 'b' | 'f' | 'v' | 'i' | 'l' | 's' | 'w' | 'n' | 'd') {
-                let rest: String = chars[ci + 1..].iter().collect();
-                let val = if !rest.is_empty() {
-                    rest
-                } else if i + 1 < args.len() {
-                    i += 1;
-                    args[i].clone()
-                } else {
-                    return err_out(&format!("nl: option requires an argument -- '{ch}'\n"), 1);
-                };
-                match ch {
-                    'h' => header_style = val,
-                    'b' => body_style = val,
-                    'f' => footer_style = val,
-                    'v' => match parse_nl_signed(&val) {
-                        Ok(n) => start_num = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    },
-                    'i' => match parse_nl_signed(&val) {
-                        Ok(n) => incr = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    },
-                    'l' => match parse_nl_positive_usize(&val) {
-                        Ok(n) => join_blanks = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    },
-                    's' => sep = val,
-                    'w' => match parse_nl_positive_usize(&val) {
-                        Ok(n) => width = n,
-                        Err(msg) => return err_out(&msg, 1),
-                    },
-                    'n' => num_fmt = val,
-                    'd' => apply_delim(&val, &mut default_delim, &mut delim_bytes),
-                    _ => unreachable!(),
-                }
-                break;
-            } else {
-                return err_out(&format!("nl: invalid option -- '{ch}'\n"), 1);
-            }
-        }
-        i += 1;
-    }
-
-    for st in [&header_style, &body_style, &footer_style] {
-        if let Err(msg) = validate_nl_style(st) {
-            return err_out(&msg, 1);
-        }
-    }
-    if !matches!(num_fmt.as_str(), "ln" | "rn" | "rz") {
+    let join_blanks = match integer('l', "1", 0) { Ok(n) => n.max(1), Err(e) => return e };
+    let width = match integer('w', "6", 1) { Ok(n) => n, Err(e) => return e };
+    let num_fmt = *values.get(&'n').unwrap_or(&"rn");
+    let sep = values.get(&'s').unwrap_or(&"\t");
+    if !matches!(num_fmt, "ln" | "rn" | "rz") {
         return err_out(&format!("nl: invalid line numbering format: '{num_fmt}'\n"), 1);
     }
 
@@ -3295,13 +3146,14 @@ fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
     } else {
         files
     };
-    let sep_bytes = crate::vfs::stream_string_to_bytes(&sep);
+    let sep_bytes = crate::vfs::stream_string_to_bytes(sep);
+    if width + sep_bytes.len() as u64 > MAX_SAFE_INTEGER { return err_out("nl: EFBIG: stream-format number field limit exceeded\n", 1); }
     let d1 = delim_bytes.as_slice();
     let d2 = delim_bytes.repeat(2);
     let d3 = delim_bytes.repeat(3);
-    let mut style = &body_style;
+    let mut style = body_style;
     let mut n = Some(start_num);
-    let mut blanks = 0usize;
+    let mut blanks = 0u64;
     let mut out = ok_out("");
     let mut first = true;
     for name in &targets {
@@ -3316,13 +3168,13 @@ fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
                 ok
             };
             let mut emit = |line: &[u8]| {
-                let next = if d1.is_empty() { None } else if line == d3 { Some(&header_style) }
-                    else if line == d2 { Some(&body_style) } else if line == d1 { Some(&footer_style) } else { None };
+                let next = if d1.is_empty() { None } else if line == d3 { Some(header_style) }
+                    else if line == d2 { Some(body_style) } else if line == d1 { Some(footer_style) } else { None };
                 if let Some(next) = next {
                     style = next;
                     if !no_renumber { n = Some(start_num); }
                 } else {
-                    let numbered = match style.as_str() {
+                    let numbered = match style {
                         "a" => {
                             if line.is_empty() { blanks += 1; }
                             let number = !line.is_empty() || blanks == join_blanks;
@@ -3340,15 +3192,15 @@ fn cmd_nl(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBash
                         label = value.to_string();
                         n = value.checked_add(incr);
                     }
-                    let mut padding = if numbered { width.saturating_sub(label.len()) } else { width.saturating_add(sep_bytes.len()) };
+                    let mut padding = if numbered { width.saturating_sub(label.len() as u64) } else { width + sep_bytes.len() as u64 };
                     let pad_byte = if numbered && num_fmt == "rz" { b'0' } else { b' ' };
                     let mut label = label.as_bytes();
                     if numbered && num_fmt == "ln" { batch.extend_from_slice(label); label = &[]; }
                     if pad_byte == b'0' && label.starts_with(b"-") { batch.push(b'-'); label = &label[1..]; }
                     while padding > 0 {
-                        let count = padding.min(16384 - batch.len());
+                        let count = padding.min((16384 - batch.len()) as u64) as usize;
                         batch.resize(batch.len() + count, pad_byte);
-                        padding -= count;
+                        padding -= count as u64;
                         if batch.len() == 16384 && !flush(&mut batch) { writable = false; return false; }
                     }
                     batch.extend_from_slice(label);

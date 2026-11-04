@@ -543,6 +543,24 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("nl validates the last option values in production order, independently of Wasm word size", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, input, stdout, stderr] of [
+      ["-wbad --number-width=2 -vbad -v1 -ba -l0","\n"," 1\t\n",""],
+      ["-vbad -bQ","","","nl: invalid numbering style: 'Q'\n"],
+      ["-v9223372036854775808","","","nl: line number out of range: '9223372036854775808'\n"],
+      ["-w' 2'","","","nl: invalid number ' 2'\n"],
+      ["-w4294967296","\\:\n","\n",""],
+      ["-w9007199254740991","","","nl: EFBIG: stream-format number field limit exceeded\n"],
+      ["--no-renumber=no","","","nl: option '--no-renumber' does not take an argument\n"],
+    ]) {
+      const r = await bash.exec("nl " + args, {stdin:input});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [stderr ? 1 : 0,stdout,stderr], args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("nl stops pulling stdin on output failure and closes it on line number overflow", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   try {

@@ -1,4 +1,5 @@
 mod awk_input;
+mod awk_source;
 mod awk_float;
 mod awk_value;
 use awk_value::Scalar;
@@ -2167,7 +2168,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                         saw_explicit_prog = true;
                         saw_prog_file = true;
                     }
-                    program_parts.push(String::from_utf8_lossy(&b).into_owned());
+                    program_parts.push(crate::vfs::bytes_to_stream_string(&b));
                 }
                 Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
             }
@@ -2182,7 +2183,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
                 Ok(b) => {
                     saw_explicit_prog = true;
                     saw_prog_file = true;
-                    program_parts.push(String::from_utf8_lossy(&b).into_owned());
+                    program_parts.push(crate::vfs::bytes_to_stream_string(&b));
                 }
                 Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
             }
@@ -2194,7 +2195,7 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             let p = resolve_posix_path(cwd, rest);
             match fs.read_file(&p) {
                 Ok(b) => {
-                    program_parts.push(String::from_utf8_lossy(&b).into_owned());
+                    program_parts.push(crate::vfs::bytes_to_stream_string(&b));
                 }
                 Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
             }
@@ -2233,6 +2234,12 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     if program_parts.is_empty() {
         return err_out("awk: missing awk program\n", 2);
     }
+    let prog_str = program_parts.join("\n");
+
+    let (mut rules, funcs) = match awk_source::parse_rules(&prog_str) {
+        Ok(program) => program,
+        Err(e) => return err_out(&format!("awk: {e}\n"), 2),
+    };
     if let Some(ref dbg) = debug_file {
         if !saw_prog_file {
             return err_out("awk: debugging requires a program supplied with -f\n", 2);
@@ -2265,9 +2272,6 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
             return ok_out("");
         }
     }
-    let prog_str = program_parts.join("\n");
-
-    let (mut rules, funcs) = parse_awk_rules(&prog_str);
     let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
     let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs, stdin, output, mode);
     state.operand_assignments = operand_assignments;
@@ -2358,142 +2362,6 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
     }
 
     state.finish()
-}
-
-fn parse_awk_rules(
-    prog: &str,
-) -> (Vec<AwkRule>, AwkFuncMap) {
-    let mut rules = Vec::new();
-    let mut funcs = BTreeMap::new();
-    let chars: Vec<char> = prog.chars().collect();
-    let mut idx = 0usize;
-
-    while idx < chars.len() {
-        while idx < chars.len() && (chars[idx].is_whitespace() || chars[idx] == ';') {
-            idx += 1;
-        }
-        if idx >= chars.len() {
-            break;
-        }
-        if chars[idx] == '#' {
-            while idx < chars.len() && chars[idx] != '\n' {
-                idx += 1;
-            }
-            continue;
-        }
-
-        let mut cond_str = String::new();
-        let mut in_quote = false;
-        let mut in_regex = false;
-        while idx < chars.len()
-            && ((in_quote || in_regex)
-                || (chars[idx] != '{' && chars[idx] != '\n' && chars[idx] != ';'))
-        {
-            let c = chars[idx];
-            if c == '\\' && idx + 1 < chars.len() {
-                cond_str.push(c);
-                cond_str.push(chars[idx + 1]);
-                idx += 2;
-                continue;
-            }
-            if c == '"' && !in_regex {
-                in_quote = !in_quote;
-            } else if c == '/' && !in_quote {
-                in_regex = !in_regex;
-            }
-            cond_str.push(c);
-            idx += 1;
-        }
-        let cond_trim = cond_str.trim().to_string();
-
-        while idx < chars.len() && chars[idx].is_whitespace() && chars[idx] != '\n' {
-            idx += 1;
-        }
-
-        let body = if idx < chars.len() && chars[idx] == '{' {
-            idx += 1;
-            let mut depth = 1i32;
-            let mut b = String::new();
-            let mut q = false;
-            let mut in_rx = false;
-            while idx < chars.len() && depth > 0 {
-                let c = chars[idx];
-                if c == '\\' && idx + 1 < chars.len() {
-                    b.push(c);
-                    b.push(chars[idx + 1]);
-                    idx += 2;
-                    continue;
-                }
-                if c == '\n' {
-                    in_rx = false;
-                }
-                if c == '"' && !in_rx {
-                    q = !q;
-                } else if !q {
-                    if c == '/' {
-                        if in_rx {
-                            in_rx = false;
-                        } else if awk_prev_allows_regex(&b) {
-                            in_rx = true;
-                        }
-                    } else if !in_rx {
-                        if c == '{' {
-                            depth += 1;
-                        } else if c == '}' {
-                            depth -= 1;
-                            if depth == 0 {
-                                idx += 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-                b.push(c);
-                idx += 1;
-            }
-            b
-        } else {
-            "print".to_string()
-        };
-
-        if let Some(fn_sig) = cond_trim.strip_prefix("function ") {
-            let fn_sig = fn_sig.trim();
-            if let Some(open) = fn_sig.find('(')
-                && let Some(close) = fn_sig.rfind(')')
-            {
-                let fn_name = fn_sig[..open].trim().to_string();
-                let params: Vec<String> = fn_sig[open + 1..close]
-                    .split(',')
-                    .map(|p| p.trim().to_string())
-                    .filter(|p| !p.is_empty())
-                    .collect();
-                funcs.insert(fn_name, (params, body));
-                continue;
-            }
-        }
-
-        let cond = match cond_trim.as_str() {
-            "" => AwkCond::Constant(true),
-            "BEGIN" => AwkCond::Begin,
-            "END" => AwkCond::End,
-            other => {
-                if other.trim_start_matches(['+', '-']).starts_with(|c: char| c.is_ascii_digit() || c == '.')
-                    && let Ok(n) = other.parse::<f64>() && n.is_finite() {
-                    AwkCond::Constant(n != 0.0)
-                } else {
-                    let parts = split_awk_top_args(other);
-                    if parts.len() == 2 { AwkCond::Range(parts[0].clone(), parts[1].clone()) }
-                    else { AwkCond::Expr(other.to_string()) }
-                }
-            }
-        };
-        rules.push(AwkRule {
-            cond,
-            body: split_awk_statements(&body),
-            in_range: false,
-        });
-    }
-    (rules, funcs)
 }
 
 fn eval_awk_cond(expr: &str, state: &mut AwkState) -> bool {

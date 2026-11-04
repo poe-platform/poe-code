@@ -8643,6 +8643,48 @@ test("awk printf and sprintf measure string width and precision in input bytes",
   } finally { sh.dispose(); }
 });
 
+test("awk reads the entire program before actions, file writes or stdin", async () => {
+  const sh = new RustWasmBash();
+  try {
+    for (const [source, message] of [
+      ['BEGIN{print 1 > "/out"} 0{print 1e999}', "non-finite numeric literal"],
+      ['BEGIN{print 1} function unused(){return 1.0e+309}', "non-finite numeric literal"],
+      ['{ print $1 / 1e999 }', "non-finite numeric literal"],
+      ['BEGIN{print 1} /unfinished', "unterminated regular expression literal"],
+      ['BEGIN{print 1} { print "oops\n" }', "newline in string literal"],
+      ['BEGIN{print 1} { print 2;', "unterminated action block"],
+    ]) {
+      let reads = 0;
+      const r = await sh.exec("awk '" + source + "'", {stdin:{async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("3\n"); }}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,reads], [2,"","awk: "+message+"\n",0], source);
+      await assert.rejects(sh.fs.readFile("/out"));
+    }
+    const good = await sh.exec(`awk 'BEGIN { n1e999 = 2; # ignored } / " 1e999
+      print n1e999, "1e999", "x" ~ /[a/#]1e999/, 1e-999 }'`);
+    assert.deepEqual([good.exitCode,good.stdout,good.stderr], [0,"2 1e999 0 0\n",""]);
+  } finally { sh.dispose(); }
+});
+
+test("awk keeps source-file bytes and parses the program before opening debugger commands", async () => {
+  const sh = new RustWasmBash({files:{"/quit":"quit\n"}});
+  try {
+    await sh.fs.writeFile("/program", Buffer.from([66,69,71,73,78,123,112,114,105,110,116,32,34,255,34,125]));
+    const raw = await sh.exec("awk -f /program");
+    assert.deepEqual([raw.exitCode, Buffer.from(raw.stdoutBytes).toString("hex")], [0, "ff0a"]);
+    for (const [source, error] of [
+      ["BEGIN{print 1e999}", "non-finite numeric literal"],
+      ['BEGIN{print "é"; print é}', "unsupported token 'Ã' at byte 24"],
+      ["BEGIN{print &}", "unsupported token '&' at byte 12"],
+    ]) {
+      await sh.fs.writeFile("/program", Buffer.from(source));
+      for (const debug of ["/quit","/missing"]) {
+        const r = await sh.exec("awk -D"+debug+" -f /program");
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr], [2,"","awk: "+error+"\n"],source);
+      }
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk rejects non-finite arithmetic and math functions before subsequent writes", async () => {
   const sh = new RustWasmBash();
   try {

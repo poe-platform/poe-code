@@ -18296,37 +18296,39 @@ fn cmd_install(
     let mut err_buf = String::new();
     let mut exit_code = 0;
 
-    let (sources, target_dir_opt, single_dest_opt): (Vec<String>, Option<String>, Option<String>) =
-        if dir_mode {
-            (files, None, None)
-        } else if let Some(td) = target_dir {
-            (files, Some(td), None)
+    let mut sources = files;
+    let mut target_dir_opt = target_dir;
+    let mut single_dest_opt = None;
+    if !dir_mode {
+        let explicit = target_dir_opt.is_some();
+        let target = target_dir_opt.as_ref().unwrap_or_else(|| sources.last().unwrap());
+        let target_label = fmt_quote::quote(target, true, false);
+        if explicit && target.is_empty() {
+            return err_out("install: failed to access '': No such file or directory\n", 1);
+        }
+        let kind = if no_target_dir || target.is_empty() {
+            None
         } else {
-            let last = files.last().unwrap().clone();
-            let last_resolved = resolve_posix_path(cwd, &last);
-            if !no_target_dir && fs.is_dir(&last_resolved) {
-                (files[..files.len() - 1].to_vec(), Some(last), None)
-            } else if files.len() > 2 {
-                let reason = if fs.exists(&last_resolved) {
-                    "Not a directory"
-                } else {
-                    "No such file or directory"
-                };
-                return err_out(&format!("install: target '{last}': {reason}\n"), 1);
-            } else {
-                (vec![files[0].clone()], None, Some(last))
+            match fs.inspect_command_entry(&absolute_operand(cwd, target), true, "stat") {
+                Ok((_, stat)) => Some(stat.kind),
+                Err(e) => match install_reason(&e) {
+                    "No such file or directory" => None,
+                    "Not a directory" | "Too many levels of symbolic links" if !explicit => None,
+                    reason if explicit => return err_out(&format!("install: failed to access {target_label}: {reason}\n"), 1),
+                    _ => return err_out(&format!("install: {e}\n"), 1),
+                }
             }
         };
-
-    if let Some(ref td) = target_dir_opt {
-        let td_resolved = resolve_posix_path(cwd, td);
-        if !fs.is_dir(&td_resolved) && (fs.exists(&td_resolved) || !create_dirs) {
-            let reason = if fs.exists(&td_resolved) {
-                "Not a directory"
-            } else {
-                "No such file or directory"
-            };
-            return err_out(&format!("install: failed to access '{td}': {reason}\n"), 1);
+        if kind == Some(VfsEntryKind::Directory) {
+            if !explicit { target_dir_opt = sources.pop(); }
+        } else if explicit || sources.len() > 2 {
+            if !(explicit && create_dirs && kind.is_none()) {
+                let action = if explicit { "failed to access" } else { "target" };
+                let reason = if kind.is_some() { "Not a directory" } else { "No such file or directory" };
+                return err_out(&format!("install: {action} {target_label}: {reason}\n"), 1);
+            }
+        } else {
+            single_dest_opt = sources.pop();
         }
     }
 
@@ -21255,6 +21257,49 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn install_empty_operands_never_redirect_a_copy_to_root() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/w/f", b"source").unwrap();
+        fs.write_file("/f", b"keep").unwrap();
+        fs.chmod("/f", 0o640).unwrap();
+        let before = fs.stat("/f").unwrap();
+        for (operands, diagnostic) in [
+            (vec!["f", ""], "cannot overwrite directory '' with non-directory 'f'"),
+            (vec!["-D", "f", ""], "cannot overwrite directory '' with non-directory 'f'"),
+            (vec!["-T", "f", ""], "cannot overwrite directory '' with non-directory 'f'"),
+            (vec!["missing", ""], "cannot stat 'missing': No such file or directory"),
+            (vec!["f", "f", ""], "target '': No such file or directory"),
+            (vec!["-Dt", "", "f"], "failed to access '': No such file or directory"),
+            (vec!["-t", "", "f"], "failed to access '': No such file or directory"),
+            (vec!["", "/f"], "cannot stat '': No such file or directory"),
+        ] {
+            let r = cmd_install(&args(&operands), "/w", &BTreeMap::new(), &fs);
+            assert_eq!(fs.read_file("/f").unwrap(), b"keep", "{operands:?}");
+            let after = fs.stat("/f").unwrap();
+            assert_eq!((&after.identity, after.mode), (&before.identity, before.mode));
+            assert_eq!(r.exit_code, 1, "{operands:?}");
+            assert_eq!(r.stderr, format!("install: {diagnostic}\n"), "{operands:?}");
+        }
+    }
+
+    #[test]
+    fn install_classifies_target_directories_after_traversing_links_and_parents() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/w/f", b"source").unwrap();
+        fs.mkdir_all("/target/deep").unwrap();
+        fs.mkdir_all("/target/dir").unwrap();
+        fs.symlink("/target/deep", "/w/jump").unwrap();
+        for operands in [vec!["f", "jump/../dir"], vec!["-t", "jump/../dir", "f"]] {
+            let r = cmd_install(&args(&operands), "/w", &BTreeMap::new(), &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(fs.read_file("/target/dir/f").unwrap(), b"source");
+            fs.remove_one("/target/dir/f", false).unwrap();
+        }
+        let r = cmd_install(&args(&["f", "f", "missing/.."]), "/w", &BTreeMap::new(), &fs);
+        assert_eq!(r.stderr, "install: target 'missing/..': No such file or directory\n");
     }
 
     #[test]

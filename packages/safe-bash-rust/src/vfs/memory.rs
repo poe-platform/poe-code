@@ -339,6 +339,14 @@ impl MemoryState {
     }
 }
 
+pub struct ConditionalFileWrite<'a> {
+    pub bytes: &'a [u8],
+    pub append: bool,
+    pub mode: u32,
+    pub atime_ms: Option<f64>,
+    pub mtime_ms: Option<f64>,
+}
+
 #[derive(Clone)]
 pub struct MemoryVfs {
     id: u64,
@@ -854,6 +862,49 @@ impl MemoryVfs {
         Ok(true)
     }
 
+    /// Compare both receipts and mutate the named entry while holding one namespace lock.
+    pub fn mutate_file_conditional(&self, path: &str, parent: &FileStat, expected: Option<&FileStat>,
+        write: Option<ConditionalFileWrite<'_>>) -> Result<Option<FileStat>,String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        if state.devices == Devices::Null { Self::check_device_mutation_operand(&state, path)?; }
+        let entry = Self::resolve_mutation_entry(&state, path)?;
+        let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
+        if state.devices.entry(&entry).is_some() { return Err("EBUSY: resource busy or locked".into()); }
+        let dir = self.resolved_metadata(&state, &super::dirname_posix_path(&entry)).ok_or_else(changed)?;
+        let current = self.resolved_metadata(&state,&entry);
+        if path.ends_with('/') && current.as_ref().is_some_and(|s| s.kind != VfsEntryKind::Directory) {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        dir.check_receipt(parent, false, path)?;
+        match (&current, expected) {
+            (Some(s), Some(e)) => s.check_receipt(e, true, path)?,
+            (None, None) if write.is_some() => {},
+            _ => return Err(changed()),
+        }
+        if current.as_ref().is_some_and(|s| s.kind != VfsEntryKind::File) { return Err("EINVAL: invalid argument".into()); }
+        if let Some(w) = write {
+            if w.mode > 0o7777 || [w.atime_ms,w.mtime_ms].into_iter().flatten().any(|n|
+                !(0.0..=9_007_199_254_740_991.0).contains(&n) || n.fract() != 0.) { return Err("EINVAL: invalid argument".into()); }
+            if current.as_ref().map_or(dir.mode & 0o300 != 0o300, |s| s.mode & 0o200 == 0) {
+                return Err("EACCES: permission denied".into());
+            }
+            if path.ends_with('/') { return Err("ENOENT: no such file or directory".into()); }
+            Self::store_file(&mut state, entry.clone(), if w.append { &[] } else { w.bytes },
+                0o100000 | w.mode, None, w.append.then_some(w.bytes))?;
+            let ino = state.nodes[&entry].ino();
+            let file = state.files.get_mut(&ino).unwrap();
+            if let Some(time) = w.atime_ms { file.atime_ms = time; }
+            if let Some(time) = w.mtime_ms { file.mtime_ms = time; }
+            self.bump_generation();
+            Ok(self.resolved_metadata(&state,&entry))
+        } else {
+            if dir.mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+            Self::unlink_locked(&mut state,&entry);
+            self.bump_generation();
+            Ok(None)
+        }
+    }
+
     /// Change the inspected entry without following a final symbolic link.
     /// Receipts come from lstat on this filesystem. Check every component and
     /// apply the change under one lock, including for hard-linked entries.
@@ -876,7 +927,7 @@ impl MemoryVfs {
     fn check_chmod_receipt(&self, state: &MemoryState, path: &str, expected: &FileStat, unchanged: bool, searchable: bool) -> Result<(), String> {
         let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
         let current = self.resolved_metadata(state,path).ok_or_else(changed)?;
-        current.check_chmod_receipt(expected, unchanged, path)?;
+        current.check_receipt(expected, unchanged && current.kind != VfsEntryKind::Directory, path)?;
         if searchable && current.mode & 0o100 == 0 { return Err(format!("EACCES: permission denied, verifyDirectoryAncestry '{path}'")); }
         Ok(())
     }
@@ -2107,6 +2158,30 @@ mod tests {
             assert_eq!(fs.rename(from,to,false).unwrap_err().split(':').next(),Some(reason),"{from} -> {to}");
         }
         assert_eq!(fs.read_file("/d/file").unwrap(),b"keep");
+    }
+
+    #[test]
+    fn only_one_publisher_can_use_a_file_revision() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/out", b"old").unwrap();
+        let parent = fs.stat("/").unwrap();
+        let expected = fs.stat("/out").unwrap();
+        let start = std::sync::Barrier::new(2);
+        let publish = |bytes: &'static [u8]| {
+            start.wait();
+            fs.mutate_file_conditional("/out", &parent, Some(&expected), Some(ConditionalFileWrite {
+                bytes, append: false, mode: 0o666, atime_ms: None, mtime_ms: None,
+            }))
+        };
+        let (a,b) = std::thread::scope(|scope| {
+            let first = scope.spawn(|| publish(b"first"));
+            let second = publish(b"second");
+            (first.join().unwrap(), second)
+        });
+        let (winner, stale, bytes) = if a.is_ok() { (a,b,b"first".as_slice()) } else { (b,a,b"second".as_slice()) };
+        assert_eq!(winner.unwrap().unwrap(), fs.stat("/out").unwrap());
+        assert!(stale.unwrap_err().starts_with("EAGAIN:"));
+        assert_eq!(fs.read_file("/out").unwrap(), bytes);
     }
 
     #[test]

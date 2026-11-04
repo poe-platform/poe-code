@@ -83,7 +83,7 @@ impl FileStat {
             && self.birthtime_ms == other.birthtime_ms && self.uid == other.uid && self.gid == other.gid
     }
 
-    pub(crate) fn check_chmod_receipt(&self, expected: &Self, unchanged: bool, path: &str) -> Result<(),String> {
+    pub(crate) fn check_receipt(&self, expected: &Self, unchanged: bool, path: &str) -> Result<(),String> {
         let changed = || format!("EAGAIN: entry changed, fileStaging '{path}'");
         let Some(EntryIdentity::Memory(scope, _)) = expected.identity else {
             return Err("ENOTSUP: missing filesystem identity".into());
@@ -92,7 +92,7 @@ impl FileStat {
             return Err("ENOTSUP: different filesystem identity".into());
         }
         if expected.identity != self.identity || expected.kind != self.kind { return Err(changed()); }
-        if unchanged && self.kind != VfsEntryKind::Directory {
+        if unchanged {
             if self.revision.is_none() || expected.revision.is_none() {
                 return Err("ENOTSUP: missing file revision".into());
             }

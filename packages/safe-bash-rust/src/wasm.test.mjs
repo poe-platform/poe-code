@@ -6514,9 +6514,15 @@ test("ZIP reads an existing archive and its members in bounded ranges, and rejec
     assert.equal(opened,closed);assert.ok(opened>1);
     assert.ok(limits.length>4 && Math.max(...limits)<=65536,"read range: "+Math.max(...limits));
     assert.ok(writes.length>4 && Math.max(...writes)<=65536,"write range: "+Math.max(...writes));
+    limits.length=0;
+    const listing=await sh.exec("unzip -Z1 out.zip",{fs:view});
+    assert.deepEqual([listing.exitCode,listing.stdout],[0,"first\nsecond\n"]);
+    assert.ok(limits.reduce((sum,n)=>sum+n,0)<200000,"listing read unselected payloads");
+    limits.length=0;
     const contents=await sh.exec("unzip -p out.zip second",{fs:view});
     assert.deepEqual([contents.exitCode,contents.stderr],[0,""]);
     assert.deepEqual(contents.stdoutBytes,await fs.readFile("/second"));
+    assert.ok(limits.reduce((sum,n)=>sum+n,0)<200000+payload.length,"extract read unselected payloads");
     assert.equal(opened,closed);
   };
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});

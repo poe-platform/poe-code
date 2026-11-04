@@ -5722,38 +5722,74 @@ fn remove_zip_sources(fs: &dyn SafeBashFs, mut moves: Vec<ZipMove>, quiet: bool,
     Ok(())
 }
 
-fn zip_read_file(fs: &dyn SafeBashFs, path: &str, expected: &crate::vfs::FileStat) -> Result<Vec<u8>,String> {
-    if expected.mode & 0o170000 != 0o100000 { return fs.read_file(path); }
-    let changed = || format!("source changed while reading: {path}");
-    let unchanged = |mut stat: crate::vfs::FileStat| {
-        stat.atime_ms = expected.atime_ms;
-        stat == *expected
-    };
-    let limit = fs.max_input_bytes();
-    if expected.size > limit { return Err(fs.limit_error("maxInputBytes",limit)); }
-    let handle = match fs.open_read_file(path,false) {
-        Ok(handle) => handle,
-        Err(e) if e.starts_with("ENOTSUP:") => {
-            let data=fs.read_file(path)?;
-            if data.len()!=expected.size || !unchanged(fs.stat(path)?) { return Err(changed()); }
-            return Ok(data);
+enum ZipInput<'a> {
+    Bytes(Vec<u8>),
+    Retained { fs: &'a dyn SafeBashFs, path: &'a str, expected: &'a crate::vfs::FileStat, handle: Box<dyn crate::vfs::FileReadHandle> },
+}
+
+impl<'a> ZipInput<'a> {
+    fn open(fs: &'a dyn SafeBashFs, path: &'a str, expected: &'a crate::vfs::FileStat) -> Result<Self,String> {
+        if expected.mode & 0o170000 != 0o100000 { return fs.read_file(path).map(Self::Bytes); }
+        let limit = fs.max_input_bytes();
+        if expected.size > limit { return Err(fs.limit_error("maxInputBytes",limit)); }
+        match fs.open_read_file(path,false) {
+            Ok(handle) => {
+                let input = Self::Retained { fs,path,expected,handle };
+                input.validate()?;
+                Ok(input)
+            }
+            Err(e) if e.starts_with("ENOTSUP:") => {
+                let data = fs.read_file(path)?;
+                let mut stat = fs.stat(path)?;
+                stat.atime_ms = expected.atime_ms;
+                if data.len()!=expected.size || stat!=*expected { return Err(format!("source changed while reading: {path}")); }
+                Ok(Self::Bytes(data))
+            }
+            Err(e) => Err(e),
         }
-        Err(e) => return Err(e),
-    };
-    fs.command_descriptor_op()?;
-    if !unchanged(handle.stat()?) { return Err(changed()); }
-    let mut data=Vec::new();
-    while data.len()<expected.size {
-        let n=(expected.size-data.len()).min(65536);
-        fs.command_descriptor_op()?;
-        let chunk=handle.read(data.len() as u64,n)?;
-        if chunk.is_empty() || chunk.len()>n {return Err(changed());}
-        data.try_reserve(chunk.len()).map_err(|_|"ENOMEM: insufficient memory for ZIP input")?;
-        data.extend_from_slice(&chunk);
     }
-    fs.command_descriptor_op()?;
-    if !unchanged(handle.stat()?) {return Err(changed());}
-    Ok(data)
+
+    fn len(&self) -> usize {
+        match self { Self::Bytes(b) => b.len(), Self::Retained { expected,.. } => expected.size }
+    }
+
+    fn validate(&self) -> Result<(),String> {
+        if let Self::Retained {fs,handle,expected,path} = self {
+            fs.command_descriptor_op()?;
+            let mut stat = handle.stat()?;
+            stat.atime_ms = expected.atime_ms;
+            if stat != **expected { return Err(format!("source changed while reading: {path}")); }
+        }
+        Ok(())
+    }
+
+    fn read(&self, range: std::ops::Range<usize>) -> Result<std::borrow::Cow<'_,[u8]>,String> {
+        use std::borrow::Cow;
+        match self {
+            Self::Bytes(data) => Ok(Cow::Borrowed(&data[range])),
+            Self::Retained { fs,handle,path,.. } => {
+                let mut data=Vec::new();
+                while data.len()<range.len() {
+                    let n=(range.len()-data.len()).min(65536);
+                    fs.command_descriptor_op()?;
+                    let chunk=handle.read((range.start+data.len()) as u64,n)?;
+                    if chunk.is_empty() || chunk.len()>n {return Err(format!("source changed while reading: {path}"));}
+                    if data.is_empty() && chunk.len()==range.len() { return Ok(Cow::Owned(chunk)); }
+                    data.try_reserve(chunk.len()).map_err(|_|"ENOMEM: insufficient memory for ZIP input")?;
+                    data.extend_from_slice(&chunk);
+                }
+                Ok(Cow::Owned(data))
+            }
+        }
+    }
+}
+
+fn zip_read_file(fs: &dyn SafeBashFs, path: &str, expected: &crate::vfs::FileStat) -> Result<Vec<u8>,String> {
+    let input = ZipInput::open(fs,path,expected)?;
+    if let ZipInput::Bytes(bytes) = input { return Ok(bytes); }
+    let bytes = input.read(0..input.len())?;
+    input.validate()?;
+    Ok(bytes.into_owned())
 }
 
 fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -6693,17 +6729,23 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             9,
         );
     };
-    let bytes = match zip_read_file(fs, &full, &stat) {
-        Ok(bytes) => bytes,
+    let archive_input = match ZipInput::open(fs, &full, &stat) {
+        Ok(input) => input,
         Err(e) => return err_out(&format!("unzip: {}\n", tar_format::display(&e)), 2),
     };
     let quiet = quiet_level != 0;
     let heading = !quiet && !names_only && !pipe_to_stdout;
     let mut out = if heading { format!("Archive:  {}\n",unzip_filtered(&arch)) } else { String::new() };
     let failure = |stdout: String,message: &str| BuiltinOutcome { stdout, stderr: format!("unzip: {}\n",tar_format::display(message)), exit_code: 2 };
-    let (entries,comment) = match crate::commands::codecs::zip_directory(&bytes) {
+    let (entries,comment) = match crate::commands::codecs::zip_directory(archive_input.len(), |r| archive_input.read(r)) {
         Ok(index) => index,
         Err(e) => return failure(out,&e),
+    };
+    if let Err(e) = archive_input.validate() { return failure(out,&e); }
+    let decode = |entry: &crate::commands::codecs::ZipMember| {
+        let payload = archive_input.read(entry.payload.clone())?;
+        archive_input.validate()?;
+        entry.decode(payload)
     };
     let render_comment = |comment: &[u8]| {
         let mut bytes = Vec::new();
@@ -6718,7 +6760,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         if !bytes.is_empty() && !bytes.ends_with(b"\n") { bytes.push(b'\n'); }
         crate::vfs::bytes_to_stream_string(&bytes)
     };
-    if heading || show_comment { out.push_str(&render_comment(comment)); }
+    if heading || show_comment { out.push_str(&render_comment(&comment)); }
     if show_comment { return ok_out(&out); }
     if entries.is_empty() {
         return BuiltinOutcome {stdout:out,stderr:format!("warning [{}]:  zipfile is empty\n",unzip_filtered(&arch)),exit_code:1};
@@ -6774,12 +6816,12 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     let method = match entry.method { 0=>"Stored".into(),8=>"Defl:N".into(),12=>"BZip2".into(),14=>"LZMA".into(),n=>format!("m{n}") };
                     writeln!(out,"{size:>8}  {method:<6} {compressed:>8} {:>3}% {date} {:08x}  {name}",ratio(size,compressed),entry.crc).unwrap();
                 } else { writeln!(out,"{size:>9}  {date}   {name}").unwrap(); }
-                out.push_str(&render_comment(entry.comment));
+                out.push_str(&render_comment(&entry.comment));
             } else {
                 if !test_only && pipe_headers && !pipe_to_stdout && !quiet {
                     writeln!(out,"{}: {}  ",action(entry.method),padded(&entry.name)).unwrap();
                 }
-                let data = match entry.decode() { Ok(bytes)=>bytes,Err(e)=>return failure(out,&e) };
+                let data = match decode(entry) { Ok(bytes)=>bytes,Err(e)=>return failure(out,&e) };
                 if test_only {
                     if !quiet { writeln!(out,"    testing: {} OK",padded(&entry.name)).unwrap(); }
                 } else {
@@ -6851,7 +6893,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     };
                     if is_dir {
                         if entry.size != 0 { return Err("directory has nonempty payload".into()); }
-                        entry.decode()?;
+                        decode(entry)?;
                         match existing {
                             Some(st) if st.kind == Directory => (),
                             Some(_) => return Err("directory destination is not a directory".into()),
@@ -6914,7 +6956,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if entry.size > fs.remaining_output_bytes().saturating_sub(prompt_bytes) {
                         return Err(fs.limit_error("maxOutputBytes",fs.shell_limits().max_output_bytes));
                     }
-                    let data = entry.decode()?;
+                    let data = decode(entry)?;
                     if entry.typeflag == b'2' {
                         let target = std::str::from_utf8(&data).map_err(|_| "invalid UTF-8 archive name or metadata")?;
                         check_tar_symlink(fs,&out_dir,&dest,target)?;

@@ -3668,31 +3668,33 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
     read_zip_members(data, None)
 }
 
-pub(super) struct ZipMember<'a> {
-    record: ZipRecord<'a>,
+pub(super) struct ZipMember {
+    central: std::ops::Range<usize>,
+    local_start: usize,
+    encrypted: bool,
     pub name: String,
     pub method: u16,
     pub size: usize,
     pub crc: u32,
-    pub payload: &'a [u8],
-    pub comment: &'a [u8],
+    pub payload: std::ops::Range<usize>,
+    pub comment: Vec<u8>,
     pub typeflag: u8,
     pub mode: u32,
     pub mtime: f64,
 }
 
-impl<'a> ZipMember<'a> {
-    pub fn decode(&self) -> Result<std::borrow::Cow<'a,[u8]>,String> {
+impl ZipMember {
+    pub fn decode<'a>(&self, payload: std::borrow::Cow<'a,[u8]>) -> Result<std::borrow::Cow<'a,[u8]>,String> {
         use std::borrow::Cow;
-        if self.record.central[8] & 1 != 0 { return Err("ZIP encrypted member requires a password".into()); }
+        if self.encrypted { return Err("ZIP encrypted member requires a password".into()); }
         let decoded = match self.method {
-            0 => Cow::Borrowed(self.payload),
+            0 => payload,
             8 => {
-                let (data,used) = inflate_raw_bounded(self.payload,self.size).map_err(|e| if e == "inflated data exceeds input limit" { "ZIP uncompressed size mismatch".into() } else { e })?;
-                if used != self.payload.len() { return Err("ZIP trailing compressed data".into()); }
+                let (data,used) = inflate_raw_bounded(&payload,self.size).map_err(|e| if e == "inflated data exceeds input limit" { "ZIP uncompressed size mismatch".into() } else { e })?;
+                if used != payload.len() { return Err("ZIP trailing compressed data".into()); }
                 Cow::Owned(data)
             }
-            12 => Cow::Owned(bzip2_decompress(self.payload)?),
+            12 => Cow::Owned(bzip2_decompress(&payload)?),
             _ => return Err("ZIP unsupported compression method".into()),
         };
         if decoded.len() != self.size { return Err("ZIP uncompressed size mismatch".into()); }
@@ -3702,12 +3704,12 @@ impl<'a> ZipMember<'a> {
 }
 
 pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut ZipRecords<'a>>) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
-    let (members,comment) = zip_directory(data)?;
+    let (members,comment) = zip_directory(data.len(), |r| Ok(std::borrow::Cow::Borrowed(&data[r])))?;
     let mut out = Vec::with_capacity(members.len() + usize::from(!comment.is_empty()));
     for member in members {
-        let decoded = member.decode()?;
+        let decoded = member.decode(std::borrow::Cow::Borrowed(&data[member.payload.clone()]))?;
         let (linkname,content) = if let Some(records) = retained.as_deref_mut() {
-            if records.insert(member.name.clone(),member.record).is_some() { return Err("ZIP duplicate member name".into()); }
+            if records.insert(member.name.clone(),ZipRecord {local:&data[member.local_start..member.payload.end],central:&data[member.central]}).is_some() { return Err("ZIP duplicate member name".into()); }
             (String::new(),Vec::new())
         } else if member.typeflag == b'2' { (String::from_utf8_lossy(&decoded).into_owned(),Vec::new()) }
         else { (String::new(),decoded.into_owned()) };
@@ -3719,19 +3721,20 @@ pub(super) fn read_zip_members<'a>(data: &'a [u8], mut retained: Option<&mut Zip
     if !comment.is_empty() {
         out.push(crate::commands::archive::TarEntry {
             name: "__ZIP_COMMENT__".to_owned(),typeflag: ZIP_COMMENT_TYPE,mode: 0o644,mtime: 1700000000.,
-            atime: None,uid: 0,gid: 0,linkname: String::new(),content: comment.to_vec(),
+            atime: None,uid: 0,gid: 0,linkname: String::new(),content: comment,
         });
     }
     Ok(out)
 }
 
-pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),String> {
-    if data.len() < 22 {
+pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize>) -> Result<std::borrow::Cow<'a,[u8]>,String>) -> Result<(Vec<ZipMember>,Vec<u8>),String> {
+    if size < 22 {
         return Err("ZIP missing end record".into());
     }
-    let min_eocd = data.len().saturating_sub(22 + 65535);
+    let tail_start = size.saturating_sub(22 + 65535);
+    let data = read(tail_start..size)?;
     let mut eocd_pos: Option<usize> = None;
-    for pos in (min_eocd..=data.len() - 22).rev() {
+    for pos in (0..=data.len() - 22).rev() {
         if u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) == 0x0605_4b50 {
             let cmt_len = u16::from_le_bytes([data[pos + 20], data[pos + 21]]) as usize;
             if data.len() - pos - 22 == cmt_len && eocd_pos.replace(pos).is_some() {
@@ -3747,7 +3750,7 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
         return Err("ZIP multi-disk archive requires an explicit VFS volume resolver".into());
     }
     let total_entries = u16::from_le_bytes([data[eocd + 10], data[eocd + 11]]) as usize;
-    let split = data.starts_with(b"PK\x07\x08");
+    let split = read(0..4)?.as_ref() == b"PK\x07\x08";
     let disk_members = u16::from_le_bytes([data[eocd + 8],data[eocd + 9]]) as usize;
     if disk_members != total_entries && !(split && disk_members == 65535) {
         return Err(if split { "ZIP inconsistent per-disk member count" } else { "ZIP inconsistent member count" }.into());
@@ -3756,16 +3759,18 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
     let central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
     let cmt_len = u16::from_le_bytes([data[eocd + 20], data[eocd + 21]]) as usize;
 
-    if central_offset.checked_add(central_size) != Some(eocd) {
+    if central_offset.checked_add(central_size) != Some(tail_start + eocd) {
         return Err("corrupt central directory".into());
     }
 
     let mut out = Vec::with_capacity(total_entries + 1);
     let mut spans = std::collections::BTreeMap::<usize,usize>::new();
     let overlap = "ZIP overlapping spans, gaps or self-extracting prefix are unsupported";
-    let mut pos = central_offset;
+    let comment = data[eocd+22..eocd+22+cmt_len].to_vec();
+    let data = read(central_offset..tail_start + eocd)?;
+    let mut pos = 0;
     for _ in 0..total_entries {
-        if eocd - pos < 46 {
+        if central_size - pos < 46 {
             return Err("truncated central directory".into());
         }
         if u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) != 0x0201_4b50 {
@@ -3788,7 +3793,7 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
         if data[pos+34..pos+36] != [0,0] {
             return Err(if split { "ZIP disk offset outside volume" } else { "ZIP multi-disk archive requires a volume resolver" }.into());
         }
-        if name_len + extra_len + entry_cmt_len > eocd - pos - 46 {
+        if name_len + extra_len + entry_cmt_len > central_size - pos - 46 {
             return Err("truncated central directory entry".into());
         }
         let name = String::from_utf8_lossy(&data[pos + 46..pos + 46 + name_len]).to_string();
@@ -3817,21 +3822,18 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
             ex_pos += len;
         }
 
-        if local_off.checked_add(30).is_none_or(|end| end > central_offset)
-            || u32::from_le_bytes(data[local_off..local_off + 4].try_into().unwrap()) != 0x0403_4b50
-        {
-            return Err("invalid local header".into());
-        }
-        let l_name_len = u16::from_le_bytes([data[local_off + 26], data[local_off + 27]]) as usize;
-        let l_extra_len = u16::from_le_bytes([data[local_off + 28], data[local_off + 29]]) as usize;
+        if local_off.checked_add(30).is_none_or(|end| end > central_offset) { return Err("invalid local header".into()); }
+        let local = read(local_off..local_off+30)?;
+        if !local.starts_with(b"PK\x03\x04") { return Err("invalid local header".into()); }
+        let l_name_len = u16::from_le_bytes([local[26], local[27]]) as usize;
+        let l_extra_len = u16::from_le_bytes([local[28], local[29]]) as usize;
         let payload_start = (local_off + 30).checked_add(l_name_len + l_extra_len).ok_or("invalid local header")?;
         if payload_start.checked_add(comp_size).is_none_or(|end| end > central_offset) {
             return Err("truncated entry data".into());
         }
         let central = &data[central_start..pos];
-        let local = &data[local_off..payload_start+comp_size];
         if local[4..14] != central[6..16] { return Err("ZIP central/local metadata mismatch".into()); }
-        if local[30..30+l_name_len] != central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
+        if read(local_off+30..local_off+30+l_name_len)?.as_ref() != &central[46..46+name_len] { return Err("ZIP central/local filename mismatch".into()); }
         if !matches!(method,0|8|12|14|99) { return Err("ZIP unsupported compression method".into()); }
         if method == 0 && central[8] & 1 == 0 && comp_size != uncomp_size { return Err("ZIP stored size mismatch".into()); }
         let descriptor = central[8] & 8 != 0;
@@ -3841,7 +3843,7 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
         }
         let mut stop = payload_start + comp_size;
         if descriptor {
-            let tail = &data[payload_start+comp_size..central_offset];
+            let tail = read(stop..stop.saturating_add(16).min(central_offset))?;
             let unsigned = tail.starts_with(&central[16..28]);
             let signed = tail.strip_prefix(&0x08074b50u32.to_le_bytes()).is_some_and(|t|t.starts_with(&central[16..28]));
             if unsigned == signed { return Err("ZIP truncated, ambiguous or mismatched data descriptor".into()); }
@@ -3867,8 +3869,8 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
             0o644
         };
 
-        out.push(ZipMember { name,method,size:uncomp_size,crc,record:ZipRecord {local,central},
-            payload:&data[payload_start..payload_start+comp_size],comment:&central[central.len()-entry_cmt_len..],
+        out.push(ZipMember { name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,encrypted:central[8]&1!=0,
+            payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
         });
     }
@@ -3879,8 +3881,8 @@ pub(super) fn zip_directory(data: &[u8]) -> Result<(Vec<ZipMember<'_>>,&[u8]),St
         covered = end;
     }
     if covered != central_offset { return Err("ZIP unreferenced local data is unsupported".into()); }
-    if pos != eocd {
+    if pos != central_size {
         return Err("ZIP central directory size or member count mismatch".into());
     }
-    Ok((out,&data[eocd+22..eocd+22+cmt_len]))
+    Ok((out,comment))
 }

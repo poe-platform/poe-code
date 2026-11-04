@@ -672,6 +672,7 @@ impl SafeBashFs for OverlayVfs {
     }
 
     fn directory_entries(&self, path: &str, limit: usize) -> Result<Vec<(String, u32)>, String> {
+        if self.stat(path)?.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{path}'")); }
         let mut entries = BTreeMap::new();
         if self.upper.is_dir(path) { entries.extend(self.upper.directory_entries(path, limit)?); }
         if !self.is_deleted(path) && self.lower.is_dir(path) {

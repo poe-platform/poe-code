@@ -21,6 +21,8 @@ pub(super) struct Local {
 }
 
 impl Rules {
+    pub(super) fn has_explicit(&self) -> bool { !self.files.is_empty() }
+
     pub(super) fn add(&mut self, file: IgnoreFile) { Rc::make_mut(&mut self.files).push(Rc::new(file)); }
 
     pub(super) fn selected(&self, path: &str, directory: bool) -> Option<bool> {
@@ -35,13 +37,13 @@ impl Rules {
         selected
     }
 
-    pub(super) fn load(&mut self, options: &RgFiles, fs: &dyn SafeBashFs, directory: &str, entries: Option<&[String]>,
+    pub(super) fn load(&mut self, options: &RgFiles, fs: &dyn SafeBashFs, directory: &str, entries: Option<&[(String, u32)]>,
         cache: &mut BTreeMap<(String, bool), Local>, errors: &mut Vec<String>) {
         let local = cache.entry((directory.to_owned(), self.repository)).or_insert_with(|| {
             let path = |name: &str| format!("{}/{name}", directory.trim_end_matches('/'));
-            let present = |name: &str| entries.map(|names| names.binary_search_by(|s| s.as_str().cmp(name)).is_ok())
+            let present = |name: &str| entries.map(|names| names.binary_search_by(|s| s.0.as_str().cmp(name)).is_ok())
                 .or_else(|| fs.indexed_directory_entry(&path(name)));
-            let root = present(".git").unwrap_or_else(|| fs.inspect_command_entry(&path(".git"), false, "lstat").is_ok());
+            let root = present(".git").unwrap_or_else(|| repository_marker(fs, directory));
             let mut files = Vec::new();
             if options.respect_ignore {
                 for (priority, name) in [(1, ".gitignore"), (2, ".ignore"), (3, ".rgignore")] {
@@ -62,4 +64,10 @@ impl Rules {
         }
         if !local.files.is_empty() { Rc::make_mut(&mut self.files).extend(local.files.iter().cloned()); }
     }
+}
+
+pub(super) fn repository_marker(fs: &dyn SafeBashFs, directory: &str) -> bool {
+    let path = format!("{}/.git", directory.trim_end_matches('/'));
+    if fs.has_path_capabilities() && fs.command_descriptor_op().is_err() { return false; }
+    fs.inspect_command_entry(&path, false, "lstat").is_ok()
 }

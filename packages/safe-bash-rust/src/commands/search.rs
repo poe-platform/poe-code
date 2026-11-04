@@ -3730,20 +3730,20 @@ enum SearchFiles<'a> { Grep(GrepFiles<'a>), Rg(RgFiles) }
 impl RgFiles {
     fn inputs<'a>(&'a self, targets: &[String], cwd: &'a str, fs: &'a dyn SafeBashFs, stdin: bool)
         -> impl Iterator<Item = Result<SearchInput, String>> + 'a {
-        enum Visit { Entry(String, usize, rg_ignore::Rules), Leave(String), Error(String) }
+        enum Visit { Entry(String, usize, Option<(u32, String)>, rg_ignore::Rules), Leave(String), Error(String) }
         let mut cache = BTreeMap::new();
-        let mut pending: Vec<_> = targets.iter().rev().map(|t| Visit::Entry(t.clone(), 0, self.explicit.clone())).collect();
+        let mut pending: Vec<_> = targets.iter().rev().map(|t| Visit::Entry(t.clone(), 0, None, self.explicit.clone())).collect();
         let implicit = targets.is_empty();
         if implicit {
-            pending.push(Visit::Entry(if stdin { "-" } else { "." }.into(), 0, self.explicit.clone()));
+            pending.push(Visit::Entry(if stdin { "-" } else { "." }.into(), 0, None, self.explicit.clone()));
         }
         let mut ancestors = BTreeMap::new();
         let positive_glob = self.globs.iter().any(|p| !p.strip_prefix("i:").unwrap_or(p).starts_with('!'));
         std::iter::from_fn(move || loop {
-            let (label, depth, mut rules) = match pending.pop()? {
+            let (label, depth, mode, mut rules) = match pending.pop()? {
                 Visit::Error(e) => return Some(Ok(SearchInput::Error(format!("rg: {e}\n")))),
                 Visit::Leave(path) => { ancestors.remove(&path); continue; }
-                Visit::Entry(label, depth, rules) => (label, depth, rules),
+                Visit::Entry(label, depth, mode, rules) => (label, depth, mode, rules),
             };
             let explicit = depth == 0;
             if explicit && label == "-" { return Some(Ok(SearchInput::Stdin)); }
@@ -3753,23 +3753,40 @@ impl RgFiles {
                 && !(e.starts_with("ENOENT:") || e.starts_with("ENOTDIR:")) {
                 return Some(Err(format!("rg: {}\n", super::coreutils::stream_file_error(e, "capabilitiesFor", &path))));
             }
-            // The production walker can recognize a regular file from the direct
-            // memory directory index. Only the subsequent read consumes an operation.
-            if explicit && !self.list_files_only && !path.ends_with('/') && path != "/dev" && !path.starts_with("/dev/")
-                && fs.indexed_directory_entry(&path) == Some(true) && fs.lstat(&path).is_ok_and(|st| st.kind == VfsEntryKind::File) {
-                return Some(Ok(SearchInput::File(label, path, true)));
-            }
             let report = |e, op| {
                 let message = format!("rg: {}\n", super::coreutils::stream_file_error(e, op, &path));
                 Some(if message.starts_with("rg: Execution aborted:") { Err(message) } else { Ok(SearchInput::Error(message)) })
             };
-            let (resolved, stat) = match fs.inspect_command_entry(&path, explicit || self.follow, "stat") {
-                Ok(entry) => entry,
-                Err(e) => return report(e, "stat"),
+            let logical = resolve_posix_path(cwd, &label);
+            let parent = crate::vfs::dirname_posix_path(&logical);
+            let mut indexed_root = false;
+            if explicit && fs.indexed_directory_entry(&path) == Some(true) && let Ok(st) = fs.lstat(&path) {
+                if !self.list_files_only && !path.ends_with('/') && st.kind == VfsEntryKind::File {
+                    return Some(Ok(SearchInput::File(label, path, true)));
+                }
+                indexed_root = st.kind == VfsEntryKind::Directory && st.mode & 0o400 != 0 && parent == "/"
+                    && !self.explicit.has_explicit() && fs.indexed_directory_entry("/.git") == Some(false)
+                    && (!self.respect_ignore || ["/.gitignore", "/.ignore", "/.rgignore"].iter().all(|p| fs.indexed_directory_entry(p) == Some(false)));
+            }
+            let link = matches!(mode, Some((0o120000, _)));
+            let (mut resolved, kind) = match mode {
+                Some((0o120000, _)) if !self.follow => continue,
+                Some((0o120000, _)) | None if !indexed_root => {
+                    if !explicit && fs.has_path_capabilities() && let Err(e) = fs.command_descriptor_op() { return report(e, "stat"); }
+                    match fs.inspect_command_entry(&path, true, "stat") {
+                        Ok((entry, st)) => (entry, st.mode & 0o170000),
+                        Err(e) => return report(e, "stat"),
+                    }
+                }
+                Some((kind, child)) => (child, kind),
+                None => (logical.clone(), 0o040000),
             };
-            let directory = stat.kind == VfsEntryKind::Directory;
+            let directory = kind == 0o040000;
             if !explicit {
-                if stat.kind == VfsEntryKind::Symlink { continue; }
+                if link && directory {
+                    if fs.has_path_capabilities() && let Err(e) = fs.command_descriptor_op() { return report(e, "realpath"); }
+                    if let Err(e) = fs.access_path(&path, true) { return report(e, "realpath"); }
+                }
                 if directory && let Some(ancestor) = ancestors.get(&resolved) {
                     return Some(Ok(SearchInput::Error(format!("rg: File system loop found: {label} points to an ancestor {ancestor}\n"))));
                 }
@@ -3778,26 +3795,27 @@ impl RgFiles {
                     Some(false) => continue,
                     Some(true) => {}
                     None => {
-                        let included = rules.selected(&resolve_posix_path(cwd, &label), directory);
+                        let included = rules.selected(&logical, directory);
                         if !directory && positive_glob || included == Some(false) { continue; }
                         let selected = (!directory).then(|| self.types.selected(base)).flatten();
                         if !selected.or(included).unwrap_or_else(|| self.show_hidden || !base.starts_with('.')) { continue; }
                     }
                 }
-                if !directory && self.max_filesize.is_some_and(|max| stat.size > max) { continue; }
+                if !directory && kind != 0o100000 { continue; }
+                if !directory && let Some(max) = self.max_filesize {
+                    if fs.has_path_capabilities() && let Err(e) = fs.command_descriptor_op() { return report(e, "stat"); }
+                    match fs.inspect_command_entry(&path, true, "stat") {
+                        Ok((_, st)) if st.size > max => continue,
+                        Err(e) => return report(e, "stat"),
+                        _ => {}
+                    }
+                }
             }
             if !directory { return Some(Ok(SearchInput::File(label, resolved, explicit))); }
-            if self.max_depth.is_some_and(|max| depth >= max) { continue; }
-            let mut entries = match fs.read_dir(&resolved) {
-                Ok(entries) => entries,
-                Err(e) => return report(e, "readdir"),
-            };
-            entries.sort_unstable();
-            let logical = resolve_posix_path(cwd, &label);
             let mut errors = Vec::new();
-            if explicit {
+            if explicit && !indexed_root {
                 let mut parents = Vec::new();
-                let mut dir = crate::vfs::dirname_posix_path(&logical);
+                let mut dir = parent;
                 loop {
                     parents.push(dir.clone());
                     if dir == "/" { break; }
@@ -3808,15 +3826,37 @@ impl RgFiles {
                         rules.load(self, fs, parent, None, &mut cache, &mut errors);
                     }
                 } else if self.respect_ignore && !self.no_ignore_vcs && self.require_git {
-                    rules.repository = parents.iter().any(|p| fs.lstat(&format!("{}/.git", p.trim_end_matches('/'))).is_ok());
+                    rules.repository = parents.iter().any(|p| rg_ignore::repository_marker(fs, p));
                 }
             }
+            if self.max_depth.is_some_and(|max| depth >= max) {
+                pending.extend(errors.into_iter().rev().map(Visit::Error));
+                continue;
+            }
+            // readdir already supplies the type of every child. Only followed links and
+            // size-filtered files need a further stat; a routed directory needs a realpath.
+            if fs.has_path_capabilities() {
+                if let Err(e) = fs.command_descriptor_op() { return report(e, "capabilitiesFor"); }
+                resolved = match fs.access_path(&path, true) { Ok(p) => p, Err(e) => return report(e, "realpath") };
+            }
+            if let Err(e) = fs.command_descriptor_op() { return report(e, "readdir"); }
+            let mut entries = match fs.directory_entries(&resolved, usize::MAX) {
+                Ok(entries) => entries,
+                Err(e) => {
+                    errors.push(super::coreutils::stream_file_error(e, "readdir", &path));
+                    pending.extend(errors.into_iter().rev().map(Visit::Error));
+                    continue;
+                }
+            };
+            entries.sort_unstable_by(|a, b| a.0.cmp(&b.0));
             rules.load(self, fs, &logical, Some(&entries), &mut cache, &mut errors);
             ancestors.insert(resolved.clone(), label.clone());
-            pending.push(Visit::Leave(resolved));
+            pending.push(Visit::Leave(resolved.clone()));
             let prefix = label.strip_suffix('/').unwrap_or(&label);
-            pending.extend(entries.into_iter().rev().map(|child| Visit::Entry(
-                if implicit && explicit { child } else { format!("{prefix}/{child}") }, depth + 1, rules.clone())));
+            pending.extend(entries.into_iter().rev().map(|(child, kind)| {
+                let entry = format!("{}/{child}", resolved.trim_end_matches('/'));
+                Visit::Entry(if implicit && explicit { child } else { format!("{prefix}/{child}") }, depth + 1, Some((kind, entry)), rules.clone())
+            }));
             pending.extend(errors.into_iter().rev().map(Visit::Error));
         })
     }

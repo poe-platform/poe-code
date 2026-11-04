@@ -12341,3 +12341,14 @@ test("rg inherits ignore rules by directory, source priority and repository boun
     assert.deepEqual([bad.exitCode,bad.stdout,bad.stderr],[2,"d/sub/file\nd/sub/gitfile\n","rg: invalid glob: unclosed glob brace\n"]);
   } finally { sh.dispose(); }
 });
+
+test("recursive rg uses directory entry types and charges ignore lookups before reads", async () => {
+  for (const [profile,ops] of [["warm-memory-fastpath",3],["strict-budgets-mount-dev",16],["overlay-cow-fs",16]]) {
+    const sh = new RustWasmBash({profile,files:{"/d/a":"h\n","/d/n/b":"h\n","/d/.hidden":"h\n","/d/.ignore":"ignored\n","/d/ignored":"h\n","/d/.gitignore":"gitfile\n","/d/gitfile":"h\n"}});
+    try {
+      await assert.rejects(sh.exec("rg --files /d",{limits:{maxFileSystemOperations:ops-1}}),{limit:"maxFileSystemOperations"});
+      const r = await sh.exec("rg --files /d",{limits:{maxFileSystemOperations:ops}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"/d/a\n/d/gitfile\n/d/n/b\n",""],profile);
+    } finally { sh.dispose(); }
+  }
+});

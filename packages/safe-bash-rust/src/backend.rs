@@ -326,6 +326,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.remove_path(&host_text(path)).map_err(quote_host_text)
     }
 
+    fn mkdir(&self, path: &str, recursive: bool, mode: u32) -> Result<(), (String, String)> {
+        self.budget.limits.check_path(path).and_then(|()| self.budget.tick_fs_op())
+            .map_err(|error| (error, path.to_owned()))?;
+        self.inner.mkdir(&host_text(path), recursive, mode).map_err(|(code, p)| (code, quote_host_text(p)))
+    }
+
     fn mkdir_one(&self, path: &str, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

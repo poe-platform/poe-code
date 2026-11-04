@@ -605,88 +605,66 @@ fn cmd_mkdir(
         None => None,
     };
 
-    for a in &operands {
-        let p = match command_operand(cwd,a) {
-            Ok(p) => normalize_posix_path(&p),
-            Err(e) => { stderr.push_str(&format!("mkdir: {e}\n")); code = 1; continue; }
-        };
-        let exists = fs.exists(&p) || fs.lstat(&p).is_ok();
-        if exists {
-            if recursive && fs.is_dir(&p) {
-                continue;
-            }
-            stderr.push_str(&format!("mkdir: EEXIST: file already exists, mkdir '{p}'\n"));
-            code = 1;
-            continue;
+    let direct = !verbose && explicit_mode.is_none() && umask_val & 0o300 == 0
+        && operands.iter().all(|a| {
+            let p = absolute_operand(cwd, a);
+            p != "/dev" && !p.starts_with("/dev/")
+        }) && fs.link_free_memory();
+    let stat = |path: &str, follow: bool| {
+        let op = if follow { "stat" } else { "lstat" };
+        match fs.inspect_command_entry(path, follow, op) {
+            Ok((_, st)) => Ok(Some(st)),
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => Ok(None),
+            Err(e) if follow && (e.starts_with("ELOOP:") || e.starts_with("ENOTDIR:"))
+                && fs.inspect_command_entry(path, false, "lstat").is_ok_and(|(_, st)| st.kind == VfsEntryKind::Symlink) => Ok(None),
+            Err(e) if e.starts_with("ENOTDIR: not a directory '") => Err(e),
+            Err(e) => Err(copy_error(&e, op, path)),
         }
-        let mut new_parents = Vec::new();
-        if !recursive {
-            let parent = crate::vfs::dirname_posix_path(&p);
-            if !fs.exists(&parent) || !fs.is_dir(&parent) {
-                if !fs.exists(&parent) && fs.lstat(&parent).is_err() {
-                    stderr.push_str(&format!(
-                        "mkdir: ENOENT: no such file or directory, mkdir '{p}'\n"
-                    ));
-                } else {
-                    stderr.push_str(&format!(
-                        "mkdir: ENOTDIR: not a directory, mkdir '{p}'\n"
-                    ));
-                }
-                code = 1;
-                continue;
-            }
-        } else {
-            // Check that no existing ancestor component is a non-directory
-            let mut anc = String::new();
-            let mut blocked = false;
-            for seg in p.split('/').filter(|s| !s.is_empty()) {
-                anc.push('/');
-                anc.push_str(seg);
-                if !fs.exists(&anc) && fs.lstat(&anc).is_err() {
-                    if anc != p { new_parents.push(anc.clone()); }
-                } else if !fs.is_dir(&anc) {
-                    stderr.push_str(&format!(
-                        "mkdir: ENOTDIR: not a directory, mkdir '{p}'\n"
-                    ));
-                    code = 1;
-                    blocked = true;
-                    break;
-                }
-            }
-            if blocked {
-                continue;
-            }
+    };
+    let mkdir = |path: &str, parents, mode| fs.mkdir(path, parents, mode).map_err(|(code, path)| {
+        let reason = match code.as_str() {
+            "ENOENT" => "no such file or directory", "EEXIST" => "file already exists",
+            "ENOTDIR" => "not a directory", "EACCES" => "permission denied",
+            "ELOOP" => "too many symbolic links encountered", "EBUSY" => "resource busy or locked",
+            "ENAMETOOLONG" => "name too long", "ENOSPC" => "no space left on device",
+            "ENOTSUP" => "operation not supported", "EINVAL" => "invalid argument",
+            "EROFS" => "read-only file system", _ => return code,
+        };
+        format!("{code}: {reason}, mkdir '{path}'")
+    });
+    let mut create = |operand: &str| -> Result<(), String> {
+        let path = command_operand(cwd, operand)?;
+        if !direct && let Some(st) = stat(&path, recursive)? {
+            if recursive && st.kind == VfsEntryKind::Directory { return Ok(()); }
+            return Err(format!("EEXIST: file already exists, mkdir '{path}'"));
         }
         let mut created = Vec::new();
         if verbose {
             if recursive {
+                let normalized = normalize_posix_path(&path);
                 let mut seen = std::collections::BTreeSet::new();
-                let bytes = a.as_bytes();
-                for idx in 1..bytes.len() {
-                    if bytes[idx] != b'/' || bytes[idx - 1] == b'/' {
-                        continue;
-                    }
-                    let parent_op = &a[..idx];
-                    let parent_p = resolve_posix_path(cwd, parent_op);
-                    if parent_p == p || !seen.insert(parent_p.clone()) {
-                        continue;
-                    }
-                    if !fs.exists(&parent_p) && fs.lstat(&parent_p).is_err() {
-                        created.push(parent_op.to_string());
+                for (index, _) in operand.match_indices('/') {
+                    if index == 0 || operand.as_bytes()[index - 1] == b'/' { continue; }
+                    let parent = &operand[..index];
+                    let p = resolve_posix_path(cwd, parent);
+                    if p != normalized && seen.insert(p.clone()) && stat(&p, true)?.is_none() {
+                        created.push(parent);
                     }
                 }
             }
-            created.push(a.clone());
+            created.push(operand);
         }
-        let result = new_parents.iter().try_for_each(|parent| fs.mkdir_one(parent, default_mode | 0o300))
-            .and_then(|()| fs.mkdir_one(&p, explicit_mode.unwrap_or(default_mode)));
-        if let Err(e) = result {
-            stderr.push_str(&format!("mkdir: cannot create directory '{a}': {e}\n"));
+        if recursive && (explicit_mode.is_some() || umask_val & 0o300 != 0) {
+            mkdir(&crate::vfs::dirname_posix_path(&path), true, default_mode | 0o300)?;
+        }
+        mkdir(&path, recursive, explicit_mode.unwrap_or(default_mode))?;
+        for d in created { stdout.push_str(&format!("mkdir: created directory {}\n", display_operand(d))); }
+        Ok(())
+    };
+    for a in &operands {
+        if let Err(e) = create(a) {
+            stderr.push_str(&format!("mkdir: {e}\n"));
             code = 1;
-        } else {
-            for d in created {
-                stdout.push_str(&format!("mkdir: created directory {}\n", display_operand(&d)));
-            }
         }
     }
     BuiltinOutcome {
@@ -7315,6 +7293,31 @@ mod tests {
         let result = cmd_du(&args(&["-B1", "Cargo.toml"]), "/", &Default::default(), &fs);
         assert_eq!(result.exit_code, 0);
         assert_eq!(result.stdout, format!("{allocated}\tCargo.toml\n"));
+    }
+
+    #[test]
+    fn mkdir_walks_the_operand_before_resolving_parent_components() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/dir/child").unwrap();
+        fs.symlink("/dir/child", "/alias").unwrap();
+        let run = |a: &[&str]| cmd_mkdir(&args(a), "/", &BTreeMap::new(), &fs);
+        let r = run(&["/alias/../out"]);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert!(fs.is_dir("/dir/out"));
+        assert!(!fs.exists("/out"));
+
+        fs.write_file("/file", b"x").unwrap();
+        let r = run(&["-pv", "/new/../file/child"]);
+        assert_eq!(r.stderr, "mkdir: ENOTDIR: not a directory, mkdir '/new/../file/child'\n");
+        assert_eq!(r.stdout, "");
+        assert!(fs.is_dir("/new"));
+
+        fs.symlink("/absent", "/dead").unwrap();
+        let r = run(&["-pvm", "500", "/dead/out"]);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        assert_eq!(r.stdout, "mkdir: created directory '/dead'\nmkdir: created directory '/dead/out'\n");
+        assert_eq!(fs.lstat("/absent").unwrap().mode & 0o777, 0o755);
+        assert_eq!(fs.lstat("/absent/out").unwrap().mode & 0o777, 0o500);
     }
 
     #[test]

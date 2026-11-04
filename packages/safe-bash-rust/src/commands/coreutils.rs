@@ -36,6 +36,7 @@ pub(super) fn try_run_coreutil_with_input(
     }
     if cmd == "date" { return cmd_date(args, input, cwd, env, fs).map(Some); }
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) { return Ok(Some(info)); }
+    if cmd == "shuf" { return Ok(Some(cmd_shuf(args, input, cwd, env, fs, write))); }
     if cmd == "dd" { return Ok(Some(cmd_dd(args, input, cwd, env, fs, write))); }
     if cmd == "cat" { return Ok(Some(cmd_cat(args, input, cwd, fs, write))); }
     if matches!(cmd, "less" | "more") { return Ok(Some(cmd_less_more(cmd, args, input, cwd, fs, write))); }
@@ -95,7 +96,6 @@ fn coreutil(
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, fs),
         "pr" => cmd_pr(args, input.buffered()?, cwd, env, fs),
         "column" => cmd_column(args, input.buffered()?, cwd, fs),
-        "shuf" => cmd_shuf(args, input, cwd, env, fs),
         "split" => cmd_split(args, input.buffered()?, cwd, env, fs),
         "install" => cmd_install(args, cwd, env, fs),
         _ => return Ok(None),
@@ -16138,6 +16138,7 @@ fn cmd_shuf<'a>(
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &'a dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
     let mut echo_mode = false;
     let mut repeat = false;
@@ -16181,10 +16182,10 @@ fn cmd_shuf<'a>(
                 let (Some(lo), Some(hi)) = (parse_dec(lo_s), parse_dec(hi_s)) else {
                     return Err(err_out(&format!("shuf: invalid input range: '{val}'\n"), 1));
                 };
-                if lo > hi {
+                let Ok(length) = u64::try_from(i128::from(hi) - i128::from(lo) + 1) else {
                     return Err(err_out(&format!("shuf: invalid input range: '{val}'\n"), 1));
-                }
-                range = Some((lo, hi - lo + 1));
+                };
+                range = Some((lo, length));
             }
             "o" => {
                 if let Some(ref prev) = out_file
@@ -16434,55 +16435,90 @@ fn cmd_shuf<'a>(
     }
     let ahead = if repeat || count < size { count } else { size };
 
-    if repeat && count > 0 && size == 0 {
-        return err_out("shuf: no lines to repeat\n", 1);
-    }
+    let mut swaps: BTreeMap<u64, u64> = BTreeMap::new();
+    let mut choose = |index| -> Result<u64, String> {
+        if repeat { return rng.choose(size); }
+        let pick = index + rng.choose(size - index)?;
+        let chosen = swaps.remove(&pick).unwrap_or(pick);
+        if pick != index { let replacement = swaps.remove(&index).unwrap_or(index); swaps.insert(pick, replacement); }
+        Ok(chosen)
+    };
 
-    let mut chosen_indices: Vec<u64> = Vec::with_capacity(ahead as usize);
-    if !repeat {
-        let mut swaps: BTreeMap<u64, u64> = BTreeMap::new();
+    // Named randomness or output requires the permutation to succeed before opening the sink.
+    let prepared = !repeat && (out_file.is_some() || random_source.is_some());
+    let mut permutation = Vec::new();
+    if prepared {
         for index in 0..ahead {
-            let offset = match rng.choose(size - index) {
-                Ok(v) => v,
+            match choose(index) {
+                Ok(n) => permutation.push(n),
                 Err(msg) => return err_out(&msg, 1),
-            };
-            let pick = index + offset;
-            let chosen = swaps.get(&pick).copied().unwrap_or(pick);
-            if pick != index {
-                let cur = swaps.get(&index).copied().unwrap_or(index);
-                swaps.insert(pick, cur);
             }
-            chosen_indices.push(chosen);
-        }
-    } else {
-        for _ in 0..ahead {
-            let chosen = match rng.choose(size) {
-                Ok(v) => v,
-                Err(msg) => return err_out(&msg, 1),
-            };
-            chosen_indices.push(chosen);
         }
     }
+    let mut target = if let Some(name) = out_file.as_deref() {
+        let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+        match fs.open_command_stream(&absolute_operand(cwd, name), false, false, mode, None) {
+            Ok(sink) => Some(sink),
+            Err(e) if !name.is_empty() && name.bytes().all(|b| b == b'/') && e.starts_with("EISDIR:") =>
+                return fail_open(name, "EEXIST: file exists"),
+            Err(e) => return fail_open(name, &e),
+        }
+    } else { None };
+    if repeat && count != 0 && size == 0 { return err_out("shuf: no lines to repeat\n", 1); }
 
-    let mut out_bytes: Vec<u8> = Vec::new();
-    for chosen in chosen_indices {
-        if let Some((lo, _)) = range {
-            out_bytes.extend_from_slice((lo + chosen).to_string().as_bytes());
-            out_bytes.push(sep);
-        } else if let Some(rec) = records.get(chosen as usize) {
-            out_bytes.extend_from_slice(rec);
+    let mut out = ok_out("");
+    let mut emitted = 0usize;
+    let limit = fs.shell_limits().max_output_bytes;
+    let mut flush = |bytes: &[u8], out: &mut BuiltinOutcome| {
+        if let Some(sink) = &mut target {
+            if let Err(e) = sink(Some(bytes)) {
+                out.exit_code = 1;
+                out.stderr.push_str(&format!("shuf: write error: {}\n", install_reason(&e)));
+                return false;
+            }
+        } else if !write(1, &crate::vfs::bytes_to_stream_string(bytes), out) { return false; }
+        // Direct native callers can supply a capturing writer without a shell budget.
+        emitted = emitted.saturating_add(bytes.len());
+        if emitted > limit {
+            out.exit_code = 1;
+            out.stderr.push_str(&fs.limit_error("maxOutputBytes", limit));
+            return false;
+        }
+        true
+    };
+    let mut batch = Vec::new();
+    for index in 0..ahead {
+        let chosen = if prepared { permutation[index as usize] } else {
+            match choose(index) {
+                Ok(n) => n,
+                Err(msg) => { out.exit_code = 1; out.stderr.push_str(&msg); return out; }
+            }
+        };
+        let number;
+        let mut bytes = if let Some((lo, _)) = range {
+            number = { let mut b = (lo + chosen).to_string().into_bytes(); b.push(sep); b };
+            number.as_slice()
+        } else { records[chosen as usize].as_slice() };
+        while !bytes.is_empty() {
+            let n = (16384 - batch.len()).min(bytes.len());
+            batch.extend_from_slice(&bytes[..n]);
+            bytes = &bytes[n..];
+            if batch.len() == 16384 {
+                if !flush(&batch, &mut out) { return out; }
+                batch.clear();
+            }
+        }
+        if repeat && random_source.is_some() && !batch.is_empty() {
+            if !flush(&batch, &mut out) { return out; }
+            batch.clear();
         }
     }
-
-    if let Some(of) = out_file {
-        let p = resolve_posix_path(cwd, &of);
-        if let Err(e) = fs.write_file(&p, &out_bytes) {
-            return err_out(&format!("shuf: {of}: {e}\n"), 1);
-        }
-        ok_out("")
-    } else {
-        ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    if !batch.is_empty() && !flush(&batch, &mut out) { return out; }
+    if let Some(mut sink) = target && let Err(e) = sink(None) {
+        out.exit_code = 1;
+        out.stderr.push_str(&format!("shuf: write error: {}\n", install_reason(&e)));
     }
+    out
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

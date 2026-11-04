@@ -543,6 +543,23 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("shuf stops unbounded output at the sink and keeps records written before random input ends", async () => {
+  const bash = new RustWasmBash({files:{"/rand":Uint8Array.of(2),"/o":"old"}});
+  try {
+    for (const args of ["-r -e X","-i 0-4294967295"]) {
+      await assert.rejects(bash.exec("shuf " + args, {limits:{maxOutputBytes:3}}), {limit:"maxOutputBytes"});
+    }
+    for (const output of [""," -o /o"]) {
+      const r = await bash.exec("shuf -r -e A B --random-source=/rand" + output);
+      const records = "A\nB\nA\nA\nA\nA\nA\nA\n";
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,bash.readText("/o")],
+        [1,output ? "" : records,"shuf: '/rand': end of file\n",output ? records : "old"]);
+    }
+    const empty = await bash.exec("shuf -r -e -o /o");
+    assert.deepEqual([empty.exitCode,empty.stderr,bash.readText("/o")], [1,"shuf: no lines to repeat\n",""]);
+  } finally { bash.dispose(); }
+});
+
 test("shuf draws from host entropy in the same byte order as a named random source", async t => {
   const bash = new RustWasmBash();
   try {

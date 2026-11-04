@@ -291,7 +291,7 @@ function bindExternalFs(shell,fs,options) {
             if(!caps?.atomicFileStaging || !caps.retainedStagingCleanup || !caps.guardedStagingPublication ||
               !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile)return;
             const resolution=await fs.prepareStagingResolution(path,settings), id=nextHandle++;
-            publications.set(id,{path,resolution});
+            publications.set(id,{path,resolution,write,stagedMutation:caps.atomicStagedFileMutation===true});
             new DataView(result.buffer).setUint32(0,id,true);return;
           }
           if(flags ? !write || typeof fs.removeFileConditional!=="function" : !write && !stream)return;
@@ -303,12 +303,23 @@ function bindExternalFs(shell,fs,options) {
           publications.set(id,{path,parent,expected,write});
           new DataView(result.buffer).setUint32(0,id,true);return;
         }
-        if(op==="replaceEntry"){
+        if(op==="replaceEntry" || op==="publish" && publications.get(flags)?.resolution){
           const obs=publications.get(flags);
           if(!obs?.resolution || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
           const r=obs.resolution;
           r.validate();
-          await stageOutput(fs,r.path,data,{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate},{mode});
+          const inPlace=op==="publish";
+          if(inPlace){
+            if(!r.destination || r.destination.nlink<=1)throw fsOperationError("EAGAIN",op,path);
+            if(!obs.write)throw fsOperationError("ENOTSUP",op,path);
+            if(!obs.stagedMutation){
+              if(!fs.confineExtraction)throw fsOperationError("ENOTSUP",op,path);
+              const confined=await fs.confineExtraction([r.path.slice(0,r.path.lastIndexOf("/"))||"/"],{...settings,commitGuard:r.validate});
+              await confined.writeFileConditional(r.path,data,{...settings,parent:r.parent,expected:r.destination});return;
+            }
+          }
+          await stageOutput(fs,r.path,data,{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate,
+            ...(inPlace && {preserveIdentity:true})},{mode:inPlace?r.destination.mode&0o7777:mode});
           return;
         }
         if(op==="publicationAlias"){

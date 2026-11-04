@@ -6400,6 +6400,49 @@ test("ZIP stages a fresh host file, preserves retained readers and cleans up a r
   }finally{await sh.dispose();}
 });
 
+test("ZIP updates both host hard links and refuses a competing write before publication",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem,Shell,agentCommands}=await import("@poe-platform/safe-bash");
+  const run=async (sh,race,staged)=>{
+    const fs=new MemoryFileSystem(),enc=new TextEncoder();
+    await fs.writeFile("/a",enc.encode("first"));await fs.writeFile("/b",enc.encode("second"));
+    assert.equal((await sh.exec("zip -q out.zip a",{fs})).exitCode,0);
+    await fs.link("/out.zip","/alias");await fs.chmod("/out.zip",0o640);
+    const initial=await fs.stat("/alias"), fd=await fs.open("/alias",{access:"read",creation:"never"});
+    try{
+      if(!staged)fs.capabilitiesFor=async()=>({...fs.capabilities,atomicStagedFileMutation:false});
+      const publish=fs.publishStagedFile.bind(fs);
+      const write=fs.writeFileConditional.bind(fs);
+      let modified=false;
+      fs.publishStagedFile=async(stage,path,opts)=>{
+        if(race && staged && path==="/out.zip"){
+          await fs.writeFile("/alias",enc.encode("competitor"));modified=true;
+        }
+        return publish(stage,path,opts);
+      };
+      if(!staged){
+        const compete=async()=>{if(race && !modified){await fs.writeFile("/alias",enc.encode("competitor"));modified=true;}};
+        const confine=fs.confineExtraction.bind(fs);
+        fs.confineExtraction=async(...args)=>{const view=await confine(...args);await compete();return view;};
+        fs.writeFileConditional=async(p,...args)=>{if(p==="/out.zip")await compete();return write(p,...args);};
+      }
+      const r=await sh.exec("zip -q out.zip b",{fs});
+      const after=await fs.stat("/out.zip");
+      assert.equal(after.ino,initial.ino);assert.equal(after.nlink,2);assert.equal(after.mode,initial.mode);
+      assert.equal((await fd.stat()).size,after.size);
+      assert.deepEqual(await fs.readFile("/alias"),await fs.readFile("/out.zip"));
+      assert.deepEqual((await fs.readdir("/")).map(e=>e.name).sort(),["a","alias","b","out.zip"]);
+      if(race){assert.ok(modified);assert.notEqual(r.exitCode,0);assert.equal(new TextDecoder().decode(await fs.readFile("/alias")),"competitor");}
+      else{
+        assert.deepEqual([r.exitCode,r.stderr],[0,""]);
+        const listed=await sh.exec("unzip -p alias b",{fs});assert.deepEqual([listed.exitCode,listed.stdout,listed.stderr],[0,"second",""]);
+      }
+    }finally{await fd.close();}
+  };
+  const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
+  try{for(const sh of [js,rust])for(const staged of [true,false])for(const race of [false,true])await run(sh,race,staged);}
+  finally{await js.dispose();await rust.dispose();}
+});
+
 test("host apply_patch confines create, update, move and delete to the preflight directories",{skip:!WebAssembly.Suspending},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"}),enc=new TextEncoder(),dec=new TextDecoder();

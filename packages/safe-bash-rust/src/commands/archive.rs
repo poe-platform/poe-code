@@ -6146,7 +6146,6 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         entries
     } else {
-        original = Vec::new();
         if copy_mode || delete_mode { return err_out(&format!("zip: cannot read {arch_name}\n"),1); }
         Vec::new()
     };
@@ -6154,7 +6153,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let result = if split_size != 0 {
             zip_volumes::publish(fs,&dest_full,bytes,split_size,split_verbose,sources,version)
         } else if let Some(st) = &dest && st.nlink.is_some_and(|n| n > 1) {
-            fs.commit_file_edit(&dest_full,st,&original,&bytes,true).map(|()| String::new())
+            if st.mode & 0o200 == 0 { return err_out(&format!("zip: EACCES: permission denied, access '{dest_full}'\n"),2); }
+            fs.publish_file(&dest_full,&bytes,&[],replacement.as_ref().unwrap().version).map(|_| String::new())
         } else {
             fs.replace_file_entry_with_mode(&dest_full,&bytes,dest.as_ref().map_or(0o644,|st| st.mode & 0o7777),replacement.as_ref().unwrap().version)
                 .map(|()| String::new())

@@ -491,7 +491,7 @@ impl SafeBashFs for RealVfs {
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         #[cfg(unix)]
         {
-            let host = self.walk(&self.root, path, Walk::Entry, false)?;
+            let host = self.walk(&self.root, path, Walk::RenameEntry, false)?;
             let parent = host
                 .parent()
                 .filter(|p| p.starts_with(&self.root))
@@ -509,8 +509,7 @@ impl SafeBashFs for RealVfs {
             {
                 return Err(error);
             }
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-            std::os::unix::fs::symlink(stored, host).map_err(|e| e.to_string())
+            std::os::unix::fs::symlink(stored, host).map_err(mutation_error)
         }
         #[cfg(not(unix))]
         {
@@ -633,6 +632,10 @@ mod tests {
             assert_eq!(vfs.stat("/shared/nested").unwrap().mode & 0o777, 0o777);
             assert!(vfs.mkdir_one("/shared", 0o700).is_err());
             assert_eq!(vfs.stat("/shared").unwrap().mode & 0o777, 0o777);
+            for destination in ["/absent/link", "/absent/../wrong"] {
+                assert!(vfs.symlink("confined.txt", destination).unwrap_err().starts_with("ENOENT:"));
+            }
+            assert!(!vfs.exists("/absent") && vfs.lstat("/wrong").is_err());
             vfs.symlink("confined.txt", "/alias").unwrap();
             vfs.chmod("/alias", 0o610).unwrap();
             vfs.set_mtime("/alias", 1_600_000_001_234).unwrap();

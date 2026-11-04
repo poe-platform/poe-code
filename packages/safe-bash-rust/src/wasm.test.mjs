@@ -8562,6 +8562,22 @@ test("rg preserves carriage returns in records and applies CRLF to match and omi
   } finally { rs.dispose(); }
 });
 
+test("awk admits a direct memory operand before charging the read at the start of record processing", async () => {
+  const sh = new RustWasmBash({files:{"/f":"abc\ndef\n"}});
+  try {
+    await sh.fs.symlink("/f","/link");
+    for (const path of ["/f","/link"]) {
+      const cmd = "awk 'BEGIN{print 1} {print;exit}' " + path;
+      await assert.rejects(sh.exec(cmd,{limits:{maxFileSystemOperations:0,maxInputBytes:7}}), {limit:"maxInputBytes"});
+      await assert.rejects(sh.exec(cmd,{limits:{maxFileSystemOperations:0,maxInputBytes:8}}), {limit:"maxFileSystemOperations"});
+      const r = await sh.exec(cmd,{limits:{maxFileSystemOperations:1,maxInputBytes:8}});
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"1\nabc\n",""]);
+    }
+    const r = await sh.exec("awk 1 /dev/stdin",{stdin:"from stdin\n"});
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"from stdin\n",""]);
+  } finally { sh.dispose(); }
+});
+
 test("awk publishes completed output before pulling stdin and keeps it on failure", {skip: !WebAssembly.Suspending}, async () => {
   const sh = new RustWasmBash();
   try {

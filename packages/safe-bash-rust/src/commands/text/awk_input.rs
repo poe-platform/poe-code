@@ -1,8 +1,14 @@
 use super::{AwkState, is_valid_awk_ident, parse_awk_f64, unescape_sed_text};
 use crate::vfs::{ChunkReader, bytes_to_stream_string};
 
+enum Source<'a> {
+    Stdin,
+    File(ChunkReader<'a>),
+    Snapshot,
+}
+
 pub(super) struct Reader<'a> {
-    file: Option<ChunkReader<'a>>,
+    source: Source<'a>,
     chunk: Vec<u8>,
     at: usize,
 }
@@ -13,9 +19,12 @@ impl Reader<'_> {
         let mut newlines = 0;
         loop {
             if self.at == self.chunk.len() {
-                if !output.flush() { return Err(String::new()); }
-                if let Some(next) = &mut self.file { next(&mut self.chunk)?; }
-                else { stdin.next_stdin_chunk(&mut self.chunk)?; }
+                if !matches!(self.source, Source::Snapshot) && !output.flush() { return Err(String::new()); }
+                match &mut self.source {
+                    Source::Stdin => stdin.next_stdin_chunk(&mut self.chunk)?,
+                    Source::File(next) => next(&mut self.chunk)?,
+                    Source::Snapshot => self.chunk.clear(),
+                }
                 self.at = 0;
                 if self.chunk.is_empty() {
                     if partial.is_empty() { return Ok(None); }
@@ -50,7 +59,7 @@ impl Reader<'_> {
 }
 
 impl AwkState<'_> {
-    pub(super) fn read_main(&mut self) -> Option<String> {
+    pub(super) fn read_main(&mut self, mut record_phase_start: bool) -> Option<String> {
         loop {
             if self.reader.is_none() {
                 let name = loop {
@@ -68,16 +77,25 @@ impl AwkState<'_> {
                     break next;
                 };
                 self.saw_file = true;
-                let file = if name == "-" { None } else {
-                    match super::super::coreutils::open_record_input(&name, &self.cwd, self.vfs, false) {
-                        Ok(next) => Some(next),
-                        Err(e) => { self.runtime_err = Some(format!("awk: {e}\n")); self.error_status = 1; return None; }
-                    }
+                let path = crate::vfs::path::absolute_operand(&self.cwd, &name);
+                let reader = if name == "-" || name == "/dev/stdin" {
+                    Ok(Reader { source: Source::Stdin, chunk: Vec::new(), at: 0 })
+                } else if record_phase_start && self.vfs.supplies_single_chunk_input() && path != "/dev" && !path.starts_with("/dev/") {
+                    self.vfs.read_single_chunk_input(&path, None)
+                        .map(|chunk| Reader { source: Source::Snapshot, chunk, at: 0 })
+                        .map_err(|e| super::super::coreutils::stream_file_error(e, "readStream", &path))
+                } else {
+                    super::super::coreutils::open_record_input(&name, &self.cwd, self.vfs, false)
+                        .map(|next| Reader { source: Source::File(next), chunk: Vec::new(), at: 0 })
                 };
-                self.reader = Some(Reader { file, chunk: Vec::new(), at: 0 });
+                match reader {
+                    Ok(reader) => self.reader = Some(reader),
+                    Err(e) => { self.runtime_err = Some(format!("awk: {e}\n")); self.error_status = 1; return None; }
+                }
                 self.set_var("FILENAME", name);
                 self.fnr = 0;
             }
+            record_phase_start = false;
             let rs = crate::vfs::stream_string_to_bytes(&self.rs);
             if rs.len() > 1 {
                 self.runtime_err = Some("awk: RS must be one byte or empty for paragraph records\n".into());

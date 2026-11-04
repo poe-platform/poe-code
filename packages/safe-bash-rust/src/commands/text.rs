@@ -1836,7 +1836,7 @@ impl<'a> AwkState<'a> {
     }
 
     fn read_getline_from_stream(&mut self, into_var: Option<&str>) -> String {
-        if let Some(l) = self.read_main() {
+        if let Some(l) = self.read_main(false) {
             if let Some(vn) = into_var
                 && !vn.is_empty()
             {
@@ -2251,7 +2251,8 @@ fn run_awk<'a>(args: &[String], stdin: super::CommandInput<'a>, cwd: &str, env: 
         && rules.iter().any(|r| !matches!(r.cond, AwkCond::Begin));
 
     if needs_input {
-        'input_loop: while let Some(line) = state.read_main() {
+        let mut record_phase_start = state.reader.is_none();
+        'input_loop: while let Some(line) = state.read_main(std::mem::take(&mut record_phase_start)) {
             state.set_line(&line);
             state.next_requested = false;
 

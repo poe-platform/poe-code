@@ -181,7 +181,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
   const {onInternalError} = options;
   const backing = fs.capabilities;
   const capabilities = Object.freeze(Object.fromEntries(
-    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate"].map(key => [key, backing[key]])));
+    ["read", "write", "append", "stat", "access", "realpath", "exclusiveCreate", "retainedRead"].map(key => [key, backing[key]])));
 
   const release = () => {
     for (const slot of slots) { table.set(slot, null); free.push(slot); }
@@ -210,7 +210,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
         sp = x.__stack_pointer.value;
         stack = new Uint8Array(x.memory.buffer.slice(sp, top));
         x.__stack_pointer.value = top;
-        let active = true, outputOpen = true, cleanups;
+        let active = true, outputOpen = true, cleanups, readers;
         streams = [[], []]; consumed = 0; code = 1;
         try {
           const view = new DataView(packet.buffer);
@@ -251,9 +251,26 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
                 if (kind < 0) throw readOperationError(decoder.decode(new Uint8Array(x.memory.buffer,x.safe_bash_output_ptr(bash.sessionId),-kind)));
                 const directory = kind === 2, regular = kind === 0;
                 return Object.freeze({...capabilities, write:!directory, append:!directory, exclusiveCreate:!directory,
-                  permissions:regular, readdir:kind !== 1, readlink:regular, mkdir:regular, recursiveMkdir:regular,
+                  retainedRead:!directory, permissions:regular, readdir:kind !== 1, readlink:regular, mkdir:regular, recursiveMkdir:regular,
                   remove:regular, removeDirectory:regular, recursiveRemove:regular});
               } finally { bash._freeBytes(p); }
+            },
+            async openReadFile(path, settings) {
+              admitPath(path, settings);
+              const opening = fs.openReadFile(path, settings);
+              let closing;
+              const close = () => closing ??= opening.then(handle => handle.close(), () => {}).finally(() => readers.delete(close));
+              (readers ??= new Set()).add(close);
+              try {
+                const handle = await opening;
+                check();
+                return {
+                  close,
+                  async read(position, maximum, opts) { admitPath(path, opts); return handle.read(position, maximum, opts); },
+                  async stat(opts) { admitPath(path, opts); return handle.stat(opts); },
+                  ...(handle.seekEnd && {async seekEnd(opts) { admitPath(path, opts); return handle.seekEnd(opts); }}),
+                };
+              } catch (error) { await close(); throw error; }
             },
             async access(path, mode, settings) {
               admitPath(path, settings);
@@ -314,6 +331,7 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
           }
         } finally {
           active = false;
+          if (readers) for (const close of readers) (cleanups ??= []).push(close);
           if (cleanups) {
             await Promise.all(cleanups.map(async cleanup => {
               try { await cleanup(); } catch (error) { cleanupFailures.push(error); }

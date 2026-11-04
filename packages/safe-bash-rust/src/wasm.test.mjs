@@ -1795,6 +1795,46 @@ test("plugin filesystem queries resolve permissions at the target, including dev
   assert.deepEqual(await run(rust,rust.fs),await run(js,fs));
 });
 
+test("plugin retained reads share quotas, survive replacement, and close at command exit", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const {Shell,MemoryFileSystem} = await import("@poe-platform/safe-bash");
+  async function run(sh,fs,limit) {
+    await fs.writeFile("/a",Uint8Array.of(0,255,4));
+    let handle;
+    const seen = [];
+    sh.register({name:"retain",async execute({fs}) {
+      handle = await fs.openReadFile("/a");
+      seen.push((await handle.stat()).size);
+      await fs.rm("/a");
+      await fs.writeFile("/a",Uint8Array.of(99));
+      seen.push([...await handle.read(1,2)]);
+      return {exitCode:0};
+    }});
+    try {
+      const r = await sh.exec("retain",{limits:{maxFileSystemOperations:limit}}).then(r=>[r.exitCode,r.stderr],e=>e.limit);
+      const late = handle && await handle.read(0,1).then(()=>"read",()=>"rejected");
+      return [r,seen,late];
+    } finally { await sh.dispose(); }
+  }
+  for (const limit of [0,1,2,3,4,5]) {
+    const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});
+    assert.deepEqual(await run(rust,rust.fs,limit),await run(js,fs,limit),"quota "+limit);
+  }
+});
+
+test("unfinished plugin readers release unlinked storage before the next command", {skip:typeof WebAssembly.Suspending !== "function"}, async () => {
+  const bash = new RustWasmBash({cwd:"/",memoryFsOptions:{maxBytes:100},files:{"/f":new Uint8Array(80)}});
+  try {
+    bash.register({name:"hold", async execute({fs}) {
+      await fs.openReadFile("/f");
+      await fs.rm("/f");
+      return {exitCode:0};
+    }});
+    const r = await bash.exec("hold");
+    assert.equal(r.exitCode,0,r.stderr);
+    await bash.fs.writeFile("/later",new Uint8Array(90));
+  } finally { await bash.dispose(); }
+});
+
 test("plugin directory creation and removal honor umask and share the execution quota", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const run = async (sh, fs, maxFileSystemOperations) => {

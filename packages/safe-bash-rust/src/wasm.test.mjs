@@ -12483,3 +12483,24 @@ test("mv retries destination lstat before reporting a non-directory ancestor", a
     } finally { sh.dispose(); }
   }
 });
+
+test("mv removes a regular source only after a mounted device consumes it", async () => {
+  const sh = new RustWasmBash({profile:"strict-budgets-mount-dev",files:{"/w/a":""}});
+  try {
+    for (const [size,limit] of [[0,22],[1,23],[65537,24]]) {
+      const data = new Uint8Array(size).fill(65);
+      await sh.fs.writeFile("/w/a",data);
+      const move = n => sh.exec("mv /w/a /dev/null",{limits:{maxFileSystemOperations:n,maxOutputBytes:1}});
+      await assert.rejects(move(limit-1),/maxFileSystemOperations/);
+      assert.deepEqual(new Uint8Array(await sh.fs.readFile("/w/a")),data);
+      assert.equal((await move(limit)).exitCode,0);
+      await assert.rejects(sh.fs.lstat("/w/a"),{code:"ENOENT"});
+    }
+    await sh.fs.writeFile("/w/a",new Uint8Array(4));
+    await assert.rejects(sh.exec("mv /w/a /dev/null",{limits:{maxInputBytes:3}}),/maxInputBytes/);
+    assert.equal((await sh.fs.lstat("/w/a")).size,4);
+    await sh.fs.writeFile("/w/a",new Uint8Array());
+    assert.equal((await sh.exec("mv /w/a /dev/urandom")).exitCode,0);
+    await assert.rejects(sh.fs.lstat("/w/a"),{code:"ENOENT"});
+  } finally { sh.dispose(); }
+});

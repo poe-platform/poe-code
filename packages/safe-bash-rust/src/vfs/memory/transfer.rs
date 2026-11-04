@@ -63,6 +63,60 @@ impl MemoryVfs {
                 }
             }
         }
+        if dst.devices == Devices::Mounted && let MemoryNode::File { ino } = origin {
+            let ino = *ino;
+            // Both locks keep identity, permissions, and the read allocation stable.
+            // Coalesce observations under those locks, but admit the same operations
+            // as a routed copy before touching access times or unlinking the source.
+            let admit = |operations: usize| -> Result<(), String> {
+                if let Some(b) = budget {
+                    b.check_cancelled()?;
+                    for _ in 0..operations { b.tick_fs_op()?; }
+                }
+                Ok(())
+            };
+            admit(2)?; // lstat source and destination
+            admit(1)?; // stat source parent for the conditional unlink
+            let writable_parent = matches!(src.nodes.get(&crate::vfs::dirname_posix_path(from)),
+                Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300);
+            admit(2)?; // admit source removal, then require atomic removal
+            admit(2)?; // select the destination writer, then admit publication
+            let Some(device) = device else {
+                return Err(format!("ENOTSUP: operation not supported, mv '{display_to}'"));
+            };
+            admit(1)?; // admit retained reads
+            admit(1)?; // recheck source before copying
+            admit(1)?; // openReadFile
+            let file = src.files.get_mut(&ino).unwrap();
+            if file.mode & 0o400 == 0 {
+                return Err(format!("EACCES: permission denied, openReadFile '{display_from}'"));
+            }
+            admit(1)?; // fstat the retained inode
+            admit(2)?; // select its destination writer and open the stream
+            let mut consumed = 0;
+            loop {
+                admit(1)?; // positioned read, including the final EOF
+                file.atime_ms = crate::vfs::now_ms();
+                let size = (file.data.len() - consumed).min(65536);
+                if size == 0 { break; }
+                consumed += size;
+                if let Some(b) = budget && consumed > b.limits.max_input_bytes {
+                    return Err(b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", b.limits.max_input_bytes)));
+                }
+                if device == "urandom" {
+                    return Err(format!("EPERM: operation not permitted, writeStream '{display_to}'"));
+                }
+            }
+            admit(1)?; // mounted devices have no permissions or timestamps to preserve
+            admit(2)?; // recheck the plan, then the entry about to be removed
+            admit(1)?; // removeEntryConditional
+            if !writable_parent {
+                return Err(format!("EACCES: permission denied, removeEntryConditional '{display_from}'"));
+            }
+            Self::unlink_locked(&mut src, from);
+            self.bump_generation();
+            return Ok(());
+        }
         if device.is_none() && dst.devices == Devices::Mounted {
             return Err(format!(
                 "ENOTSUP: operation not supported, mv '{display_to}'"

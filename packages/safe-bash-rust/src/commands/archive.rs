@@ -5800,6 +5800,27 @@ fn zip_read_file(fs: &dyn SafeBashFs, path: &str, expected: &crate::vfs::FileSta
     Ok(bytes.into_owned())
 }
 
+// A checker may write a log or edit a move source. Pin every directory on
+// the paths used for publication, plus the archive files themselves. An
+// unobservable or symlinked path keeps the stricter whole-filesystem guard.
+fn zip_checker_paths<'a>(fs: &dyn SafeBashFs, files: [&'a str;3]) -> Option<BTreeMap<&'a str,Option<crate::vfs::FileStat>>> {
+    use crate::vfs::VfsEntryKind::{Directory,File};
+    let mut observed = BTreeMap::new();
+    for path in files {
+        for end in path.match_indices('/').map(|(i,_)| i).chain([path.len()]) {
+            let name = if end==0 { "/" } else { &path[..end] };
+            if observed.contains_key(name) { continue; }
+            let stat = match fs.lstat(name) {
+                Ok(s) if s.identity.is_some() && (s.kind==Directory || s.kind==File && s.revision.is_some()) => Some(s),
+                Err(e) if end==path.len() && e.starts_with("ENOENT:") => None,
+                _ => return None,
+            };
+            observed.insert(name,stat);
+        }
+    }
+    Some(observed)
+}
+
 fn zip_test_words(value: &str) -> Result<Vec<String>, &'static str> {
     if value.is_empty() { return Err("option TT requires a value"); }
     let forbidden = |c| "\n\r\0;|&<>$`".contains(c);
@@ -6286,6 +6307,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
         let mut stamp = replacement.as_ref().map_or(version,|r|r.version);
         let mut report=String::new();
         if test_archive && arch_name!="-" {
+            let mut checker_changes = 0;
             let result = fs.validate_staged_file(&dest_full, &bytes, stamp, &mut |path| {
                 let mut remaining = fs.shell_limits().max_expansion_bytes;
                 let mut words = vec![checker[0].clone()];
@@ -6302,10 +6324,25 @@ pub(super) fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBash
                     if path.len() >= remaining { return false; }
                     words.push(path.to_owned());
                 }
-                invoke(&words)
+                let files=[dest_full.as_str(),arch_full.as_str(),path];
+                let observed=(split_size==0 && fs.generation()!=0).then(|| zip_checker_paths(fs,files)).flatten();
+                let before=fs.generation();
+                let valid=invoke(&words);
+                let after=fs.generation();
+                if valid && after!=before && let Some(old)=observed && let Some(current)=zip_checker_paths(fs,files)
+                    && old.iter().all(|(p,st)| match (st,&current[p]) {
+                        (None,None)=>true,
+                        (Some(a),Some(b)) if a.kind==crate::vfs::VfsEntryKind::Directory =>
+                            a.kind==b.kind && a.identity==b.identity && a.mode==b.mode,
+                        (Some(a),Some(b))=>a.same_snapshot(b),
+                        _=>false,
+                    }) {
+                    checker_changes=after.wrapping_sub(before);
+                }
+                valid
             });
             let valid = match result {
-                Ok((valid,next)) => { stamp=next; valid }
+                Ok((valid,next)) => { stamp=next.wrapping_add(checker_changes); valid }
                 Err(e) => return err_out(&format!("zip: {e}\n"),2),
             };
             if !quiet {report=format!("test of {} {}\n",zip_public_text(&arch_name),if valid {"OK"} else {"FAILED"});}

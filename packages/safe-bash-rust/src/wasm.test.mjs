@@ -6669,10 +6669,11 @@ test("zip -T dispatches a replacement unzip and retains competing writes",async(
   }
 });
 
-test("zip -m on a supplied filesystem removes owned aliases but preserves a changed source",async()=>{
+test("zip -m removes owned aliases but preserves a source changed by its checker",async()=>{
   const {Shell,archiveCommands,MemoryFileSystem}=await import("@poe-platform/safe-bash");
-  for(const rust of [false,true]){
-    const fs=new MemoryFileSystem(),sh=rust?new RustWasmBash({cwd:"/"}):new Shell({fs,cwd:"/"}).use(archiveCommands());
+  const reference=new MemoryFileSystem();
+  for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
+    const fs=supplied??sh.fs;
     try{
       await fs.mkdir("/tree");await fs.writeFile("/tree/a",Uint8Array.of(4));await fs.link("/tree/a","/tree/b");
       await fs.writeFile("/changed",Uint8Array.of(5));
@@ -6683,6 +6684,19 @@ test("zip -m on a supplied filesystem removes owned aliases but preserves a chan
       for(const [name,c] of [["tree/a",4],["tree/b",4],["changed",5]])assert.deepEqual((await sh.exec("unzip -p work.zip "+name,{fs})).stdoutBytes,Uint8Array.of(c));
     }finally{await sh.dispose();}
   }
+});
+
+test("zip rejects a checker that moves the archive parent under a replacement ancestor",async()=>{
+  const sh=new RustWasmBash({cwd:"/",directories:["/top/dest"],files:{"/src":"original"}});
+  sh.register({name:"swap",async execute(ctx){
+    await ctx.fs.rename("/top","/saved");await ctx.fs.mkdir("/top");
+    await ctx.fs.rename("/saved/dest","/top/dest");return {exitCode:0};
+  }});
+  try{
+    const r=await sh.exec("zip -qTm -TT swap /top/dest/work.zip src");
+    assert.equal(r.exitCode,2);assert.match(r.stderr,/EAGAIN/);assert.equal((await sh.exec("cat src")).stdout,"original");
+    assert.deepEqual(await sh.fs.readdir("/top/dest"),[]);
+  }finally{await sh.dispose();}
 });
 
 test("zip -T verifies the resulting members before publication and before moving sources",async()=>{

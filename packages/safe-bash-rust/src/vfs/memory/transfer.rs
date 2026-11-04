@@ -59,6 +59,7 @@ impl MemoryVfs {
         let directory = matches!(origin, MemoryNode::Directory { .. });
         let device = dst.devices.entry(to);
         let existing = dst.nodes.get(to);
+        if !directory { admit(2)?; } // lstat source and destination; directory inspection already did both
         if existing.is_some() || device.is_some() {
             let target_dir =
                 matches!(existing, Some(MemoryNode::Directory { .. })) || device == Some("");
@@ -82,10 +83,11 @@ impl MemoryVfs {
                 }
             }
         }
-        if dst.devices == Devices::Mounted && !directory {
-            admit(2)?; // lstat source and destination
+        if !directory {
             if matches!(origin, MemoryNode::Symlink { .. }) { admit(1)?; } // readlink
             admit(1)?; // stat source parent for the conditional unlink
+        }
+        if dst.devices == Devices::Mounted && !directory {
             let writable_parent = matches!(src.nodes.get(&crate::vfs::dirname_posix_path(from)),
                 Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300);
             admit(2)?; // admit source removal, then require atomic removal
@@ -141,6 +143,43 @@ impl MemoryVfs {
         let entries = std::iter::once((from, to, "")).chain(children.iter().map(|p| (p.source.as_str(),p.target.as_str(),p.suffix.as_str())));
         let operand = |base: &str, suffix: &str| if suffix.is_empty() { base.to_owned() }
             else { normalize_posix_path(&format!("{base}{suffix}")) };
+        // Inspect capabilities for the entire plan before publishing even the root.
+        // A target below a not-yet-created directory retries at each missing parent.
+        let mut links = HashMap::new();
+        let mut readers = 0;
+        for (path, target, _) in entries.clone() {
+            let node = &src.nodes[path];
+            if src.extra_links.contains_key(&node.ino()) { *links.entry(node.ino()).or_insert(0usize) += 1; }
+            if matches!(node, MemoryNode::File { .. }) {
+                readers += 1;
+                if matches!(dst.nodes.get(target), Some(MemoryNode::File { .. })) {
+                    admit(4)?; // staging capability, capture resolution, validate it, and inspect ancestry capability
+                }
+            }
+        }
+        for (path, target, _) in entries.clone() {
+            let node = &src.nodes[path];
+            if links.get(&node.ino()).is_some_and(|n| *n > 1) {
+                admit(1)?; // capability for an atomic hardlink removal receipt
+            }
+            admit(2)?; // source mode and conditional removal capability
+            let existing = dst.nodes.get(target);
+            let queries = match node {
+                MemoryNode::Directory { .. } => usize::from(existing.is_none()),
+                MemoryNode::Symlink { .. } => 1 + usize::from(existing.is_some()),
+                MemoryNode::File { .. } if matches!(existing,Some(MemoryNode::File { .. })) => 0,
+                MemoryNode::File { .. } => 2, // writer selection and destination mode
+            };
+            if queries == 0 { continue; }
+            let mut candidate = target;
+            loop {
+                admit(queries)?;
+                let parent = candidate.rsplit_once('/').map_or("", |(p,_)| p);
+                if parent.is_empty() || dst.nodes.contains_key(parent) { break; }
+                candidate = parent;
+            }
+        }
+        admit(readers)?; // retained read capability for each regular file
         let mut metadata = Vec::new();
         for (path, target, suffix) in entries.clone() {
             let device = dst.devices.entry(target);
@@ -163,18 +202,19 @@ impl MemoryVfs {
                 Some(reason) => Err(format!("{reason}, {operation} '{target_name}'")),
                 None => Ok(()),
             };
-            let storage_error = |err: String, operation: &str| {
+            let storage_error = |err: String, operation: &str, name: &str| {
                 let reason = if err.starts_with("EFBIG:") { "EFBIG: file too large" }
                     else if err.starts_with("ENOSPC:") { "ENOSPC: no space left on device" } else { &err };
-                format!("{reason}, {operation} '{target_name}'")
+                format!("{reason}, {operation} '{name}'")
             };
             match node {
                 MemoryNode::Directory { mode, atime_ms, mtime_ms, .. } => {
                     if mode & 0o500 != 0o500 { return Err(format!("EACCES: permission denied, readdir '{source_name}'")); }
                     if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
                     if !existed {
+                        admit(1)?;
                         check_parent("mkdir")?;
-                        dst.admit_new_file(0).map_err(|e| storage_error(e,"mkdir"))?;
+                        dst.admit_new_file(0).map_err(|e| storage_error(e,"mkdir",&target_name))?;
                         dst.create_directory(target.to_owned(),0o40700);
                         destination.bump_generation();
                     }
@@ -182,9 +222,15 @@ impl MemoryVfs {
                 }
                 MemoryNode::Symlink { target: link, .. } => {
                     if device.is_some() { return Err(format!("ENOTSUP: operation not supported, mv '{target_name}'")); }
+                    if existed {
+                        admit(1)?;
+                        check_parent("rm")?;
+                        Self::unlink_locked(&mut dst,target);
+                        destination.bump_generation();
+                    }
+                    admit(1)?;
                     check_parent("symlink")?;
-                    if existed { Self::unlink_locked(&mut dst,target); destination.bump_generation(); }
-                    dst.admit_new_file(0).map_err(|e| storage_error(e,"symlink"))?;
+                    dst.admit_new_file(0).map_err(|e| storage_error(e,"symlink",&target_name))?;
                     let now = super::super::now_ms();
                     let ino = dst.allocate_ino();
                     dst.parent_changed(target,now);
@@ -195,55 +241,108 @@ impl MemoryVfs {
                 MemoryNode::File { ino } => {
                     let ino = *ino;
                     if matches!(dst.nodes.get(target),Some(MemoryNode::Symlink { .. })) {
+                        admit(1)?;
                         check_parent("rm")?;
                         Self::unlink_locked(&mut dst,target);
                         destination.bump_generation();
                     }
+                    let replacing = dst.nodes.contains_key(target);
+                    if replacing { admit(1)?; } // validate the captured staging resolution
+                    admit(1)?; // openReadFile
                     let file = src.files.get_mut(&ino).unwrap();
                     if file.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source_name}'")); }
                     let atime = file.atime_ms;
-                    let replacing = dst.nodes.contains_key(target);
+                    admit(1)?; // stat the retained reader
+                    if replacing {
+                        if let Some(b) = budget && file.data.len() > b.limits.max_input_bytes {
+                            return Err(b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", b.limits.max_input_bytes)));
+                        }
+                        let parent = crate::vfs::dirname_posix_path(target);
+                        let mut stage = None;
+                        for n in 1..=128 {
+                            let candidate = format!("{}/.mv-{n}",parent.trim_end_matches('/'));
+                            if candidate == target { continue; }
+                            admit(1)?; // createStagedFile
+                            if !dst.nodes.contains_key(&candidate) {
+                                stage = Some((candidate,n));
+                                break;
+                            }
+                        }
+                        let Some((stage,n)) = stage else { return Err(format!("EEXIST: move staging attempt limit exceeded '{target_name}'")); };
+                        let name = format!("{}/.mv-{n}",crate::vfs::dirname_posix_path(&target_name).trim_end_matches('/'));
+                        if let Some(reason) = parent_error { return Err(format!("{reason}, createStagedFile '{name}'")); }
+                        if dst.limits.max_entries.saturating_sub(dst.entry_count()) < 2 {
+                            return Err(format!("ENOSPC: no space left on device, createStagedFile '{name}'"));
+                        }
+                        let entry = format!("{stage}/entry");
+                        dst.create_directory(stage.clone(),0o40700);
+                        let staged = dst.insert_new_file(entry.clone(),vec![],file.mode,None);
+                        dst.files.get_mut(&staged).unwrap().set_times((Some(atime),Some(file.mtime_ms)));
+                        destination.bump_generation();
+                        let copy = (|| -> Result<(),String> {
+                            for chunk in file.data.chunks(65536) {
+                                admit(1)?; // retained read
+                                file.atime_ms = super::super::now_ms();
+                                admit(1)?; // staging write
+                                Self::store_file(&mut dst,entry.clone(),&[],file.mode,None,Some(chunk))
+                                    .map_err(|e| storage_error(e,"stagedWrite",&format!("{name}/entry")))?;
+                            }
+                            admit(1)?; // EOF
+                            file.atime_ms = super::super::now_ms();
+                            admit(1)?; // seal the staging writer and restore metadata
+                            dst.files.get_mut(&staged).unwrap().set_times((Some(atime),Some(file.mtime_ms)));
+                            admit(4)?; // stat retained reader and original path, publish, validate commit guard
+                            Self::unlink_locked(&mut dst,target);
+                            let mut node = dst.nodes.remove(&entry).unwrap();
+                            let now = super::super::now_ms();
+                            node.status_changed(&mut dst.files,now);
+                            dst.parent_changed(&entry,now);
+                            dst.parent_changed(target,now);
+                            dst.nodes.insert(target.to_owned(),node);
+                            Ok(())
+                        })();
+                        // Cleanup itself consumes an operation. If it is refused,
+                        // the staged name (and any uncommitted bytes) stays visible.
+                        admit(1)?;
+                        Self::unlink_locked(&mut dst,&entry);
+                        Self::unlink_locked(&mut dst,&stage);
+                        copy?;
+                        continue;
+                    }
+                    admit(2)?; // select and open the destination stream
                     if device.is_none() {
                         check_parent("writeStream")?;
-                        if !replacing {
-                            Self::store_file(&mut dst,target.to_owned(),&[],file.mode,None,None).map_err(|e| storage_error(e,"writeStream"))?;
-                            destination.bump_generation();
-                        }
+                        Self::store_file(&mut dst,target.to_owned(),&[],file.mode,None,None).map_err(|e| storage_error(e,"writeStream",&target_name))?;
+                        destination.bump_generation();
                     }
                     let mut consumed = 0;
-                    file.atime_ms = super::super::now_ms();
                     for chunk in file.data.chunks(65536) {
+                        admit(1)?; // positioned read
+                        file.atime_ms = super::super::now_ms();
                         consumed += chunk.len();
-                        if let Some(b) = budget {
-                            if consumed > b.limits.max_input_bytes {
-                                return Err(b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", b.limits.max_input_bytes)));
-                            }
-                            b.check_cancelled()?;
+                        if let Some(b) = budget && consumed > b.limits.max_input_bytes {
+                            return Err(b.record_exceeded(crate::ShellLimits::limit_error("maxInputBytes", b.limits.max_input_bytes)));
                         }
                         match device {
                             Some("full") => return Err(format!("ENOSPC: no space left on device, writeStream '{target_name}'")),
                             Some("urandom") => return Err(format!("EPERM: operation not permitted, writeStream '{target_name}'")),
-                            None if !replacing => {
-                                Self::store_file(&mut dst,target.to_owned(),&[],file.mode,None,Some(chunk)).map_err(|e| storage_error(e,"writeStream"))?;
+                            None => {
+                                Self::store_file(&mut dst,target.to_owned(),&[],file.mode,None,Some(chunk)).map_err(|e| storage_error(e,"writeStream",&target_name))?;
                             }
                             _ => {}
                         }
                     }
-                    if device.is_none() {
-                        // Overwriting a regular file publishes a separate inode after
-                        // the copy succeeds, so aliases of the old file keep their data.
-                        if replacing {
-                            Self::replace_inode(&mut dst,target.to_owned(),&file.data,file.mode)?;
-                            destination.bump_generation();
-                        }
-                        metadata.push((target,file.mode,atime,file.mtime_ms));
-                    }
+                    admit(1)?; // final EOF, including empty files
+                    file.atime_ms = super::super::now_ms();
+                    if device.is_none() { metadata.push((target,file.mode,atime,file.mtime_ms)); }
                 }
             }
         }
         if let Some(b) = budget { b.check_cancelled()?; }
         for (path,mode,accessed,modified) in metadata.into_iter().rev() {
+            admit(2)?; // target metadata capability and chmod
             destination.set_mode_locked(&mut dst,path,mode)?;
+            admit(1)?; // utimes
             match dst.nodes.get_mut(path) {
                 Some(MemoryNode::Directory {atime_ms,mtime_ms,..}) => { *atime_ms = accessed; *mtime_ms = modified; }
                 Some(MemoryNode::File {ino}) => {
@@ -253,8 +352,10 @@ impl MemoryVfs {
                 _ => unreachable!(),
             }
         }
+        admit(1 + children.len())?; // recheck every source before the first removal
         for (path, _, suffix) in entries.rev() {
             if suffix.is_empty() && directory { break; }
+            admit(2)?; // recheck entry and removeEntryConditional
             let is_directory = matches!(src.nodes.get(path), Some(MemoryNode::Directory { .. }));
             Self::remove_one_locked(&mut src,path,is_directory).map_err(|e| {
                 let operand = if suffix.is_empty() { display_from.to_owned() }

@@ -345,10 +345,12 @@ impl SafeBashFs for MountVfs {
         let retained = src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), plan.as_ref().map_or(&[][..], |p| &p.children), budget)?;
         if let (Some(plan), Some(expected)) = (plan, retained) {
             // Removing the children may have removed a component of the original operand.
+            if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // recheck root
             let version = src.generation();
             let entry = self.resolve(source,false,WalkPurpose::Access).map_err(|e|
                 format!("{}, lstat '{source}'", e.split_once(", ").map_or(e.as_str(), |(reason,_)| reason)))?;
             if entry != from { return Err(format!("EBUSY: move source changed before removal '{source}'")); }
+            if let Some(b) = budget { b.check_cancelled()?; b.tick_fs_op()?; } // conditional rmdir
             src.remove_moved_directory(&src_path, &plan.parent, &expected, version)
                 .map_err(|e| format!("{e}, removeEntryConditional '{source}'"))?;
         }
@@ -592,6 +594,67 @@ impl SafeBashFs for MountVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn cross_mount_operation_limit_preserves_each_admitted_copy_and_unlink() {
+        for directory in [false,true] {
+            let (create, write, unlink, finish) = if directory { (34,35,46,48) } else { (16,17,24,24) };
+            for limit in 0..=finish {
+                let src = Arc::new(MemoryVfs::new());
+                src.write_file("/w/f", b"A").unwrap();
+                let dst = Arc::new(MemoryVfs::new());
+                let fs = MountVfs::new(src.clone()).with_mount("/m",dst.clone());
+                let mut sh = crate::Shell::new(Arc::new(fs), crate::ShellOptions { cwd:Some("/".into()), ..Default::default() });
+                sh.use_provided_devices();
+                sh.set_limits(crate::ShellLimits { max_filesystem_operations:limit, ..Default::default() });
+                let result = sh.exec(if directory { "mv -T /w /m/copy" } else { "mv -T /w/f /m/copy" });
+                if limit < finish { assert!(result.unwrap_err().contains("maxFileSystemOperations")); }
+                else { assert_eq!(result.unwrap().exit_code,0); }
+                let bytes = dst.read_file(if directory { "/copy/f" } else { "/copy" }).ok();
+                assert_eq!(bytes, (limit>=create).then(|| if limit>=write { b"A".to_vec() } else { vec![] }), "limit {limit}");
+                assert_eq!(src.exists("/w/f"),limit<unlink,"limit {limit}");
+                if directory {
+                    assert_eq!(dst.exists("/copy"),limit>=29);
+                    assert_eq!(src.exists("/w"),limit<finish);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn cross_mount_overwrite_only_publishes_after_staging_and_never_reuses_an_occupied_name() {
+        for (occupied, limit, published, moved) in [
+            (0,18,false,false), (0,20,false,false), (0,25,false,false), (0,26,true,false), (1,26,false,false),
+            (1,27,true,false), (1,30,true,false), (1,31,true,true), (128,1000,false,false),
+        ] {
+            let src = Arc::new(MemoryVfs::new());
+            src.write_file("/source",b"A").unwrap();
+            src.chmod("/source",0o640).unwrap();
+            let dst = Arc::new(MemoryVfs::new());
+            dst.write_file("/copy",b"old").unwrap();
+            dst.hard_link("/copy","/alias").unwrap();
+            for n in 1..=occupied { dst.write_file(&format!("/.mv-{n}"),b"reserved").unwrap(); }
+            let fs = MountVfs::new(src.clone()).with_mount("/m",dst.clone());
+            let mut sh = crate::Shell::new(Arc::new(fs), crate::ShellOptions { cwd:Some("/".into()), ..Default::default() });
+            sh.use_provided_devices();
+            sh.set_limits(crate::ShellLimits { max_filesystem_operations:limit, ..Default::default() });
+            let result = sh.exec("mv -T /source /m/copy");
+            if occupied == 128 {
+                assert_eq!(result.unwrap().stderr, "mv: EEXIST: move staging attempt limit exceeded '/m/copy'\n");
+            } else if moved { assert_eq!(result.unwrap().exit_code,0); }
+            else { assert!(result.unwrap_err().contains("maxFileSystemOperations")); }
+            assert_eq!(dst.read_file("/alias").unwrap(),b"old");
+            assert_eq!(dst.read_file("/copy").unwrap(), if published { &b"A"[..] } else { &b"old"[..] });
+            if published { assert_eq!(dst.lstat("/copy").unwrap().mode & 0o777,0o640); }
+            assert_eq!(src.exists("/source"),!moved);
+            for n in 1..=occupied { assert_eq!(dst.read_file(&format!("/.mv-{n}")).unwrap(),b"reserved"); }
+            let stage = format!("/.mv-{}",occupied+1);
+            assert_eq!(dst.exists(&stage), occupied < 128 && (18+occupied..27+occupied).contains(&limit));
+            let staged = dst.read_file(&format!("{stage}/entry")).ok();
+            assert_eq!(staged, (occupied < 128 && (18+occupied..26+occupied).contains(&limit))
+                .then(|| if limit < 20+occupied { vec![] } else { b"A".to_vec() }));
+        }
+    }
 
     #[test]
     fn cross_mount_file_copy_charges_input_without_emitting_shell_output() {

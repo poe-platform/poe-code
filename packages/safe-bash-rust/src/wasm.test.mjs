@@ -8709,6 +8709,19 @@ test("awk ordchr reads and writes bytes, including through redirection", async (
   } finally { sh.dispose(); }
 });
 
+test("awk systime returns whole seconds on either side of the Unix epoch", async t => {
+  let ms = 0;
+  t.mock.method(Date, "now", () => ms);
+  const sh = new RustWasmBash();
+  try {
+    for (const [instant, seconds] of [[-1,-1],[1999,1],[2208988800999,2208988800]]) {
+      ms = instant;
+      const r = await sh.exec(`awk 'BEGIN { printf "%.0f",systime() }'`);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [0,String(seconds),""]);
+    }
+  } finally { sh.dispose(); }
+});
+
 test("awk keeps source-file bytes and parses the program before opening debugger commands", async () => {
   const sh = new RustWasmBash({files:{"/quit":"quit\n"}});
   try {

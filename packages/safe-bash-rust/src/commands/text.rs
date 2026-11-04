@@ -3389,6 +3389,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
     let args = split_awk_top_args(args_str);
 
     match fn_name {
+        "systime" => Some(Scalar::Number((crate::vfs::now_ms() / 1000.0).floor())),
         "length" => {
             if let Some(first) = args.first() {
                 let trimmed = first.trim();

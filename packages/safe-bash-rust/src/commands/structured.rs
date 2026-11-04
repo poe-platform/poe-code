@@ -771,6 +771,12 @@ pub(crate) fn cmd_jq_with_env(
     utf8_output(cmd_jq_core(args, jq_input::Source::ShellJson(Some(stdin)), cwd, env, fs, None))
 }
 
+pub(super) fn cmd_jq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let source = if stdin.file.is_some() { jq_input::Source::Stream(Some(stdin)) }
+        else { jq_input::Source::ShellJson(Some(stdin.text)) };
+    utf8_output(cmd_jq_core(args, source, cwd, env, fs, None))
+}
+
 pub(super) fn cmd_xq(args: &[String], stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.iter().any(|a| crate::vfs::stream_utf8(a).is_err()) {
         return err_out("xq: filters and filenames require valid UTF-8\n", 2);

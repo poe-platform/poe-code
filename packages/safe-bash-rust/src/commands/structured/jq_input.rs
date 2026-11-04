@@ -79,6 +79,7 @@ impl JqInputs<'_> {
 
 pub(super) enum Source<'a> {
     ShellJson(Option<&'a str>),
+    Stream(Option<super::super::CommandInput<'a>>),
     Json(Option<&'a str>),
     Xml(Option<super::super::CommandInput<'a>>),
 }
@@ -111,16 +112,21 @@ fn input_file<'a>(fs: &'a dyn SafeBashFs, path: String, shell_text: bool, raw: b
         if shell_text { crate::vfs::host_text(&e).into_owned() } else { e }
     };
     let mut next = opened.map_err(&read_error)?;
-    if !raw { return Ok(Box::new(move |chunk| next(chunk).map_err(&read_error))); }
+    let next: ChunkReader = Box::new(move |chunk| next(chunk).map_err(&read_error));
+    Ok(if raw { raw_lines(next, fs) } else { next })
+}
+
+// Decode a raw line as one byte sequence even when UTF-8 straddles input chunks.
+fn raw_lines<'a>(mut next: ChunkReader<'a>, fs: &'a dyn SafeBashFs) -> ChunkReader<'a> {
     let mut chunk = Vec::new();
     let mut at = 0;
     let mut eof = false;
     let limit = fs.shell_limits().max_memory_bytes;
-    Ok(Box::new(move |line| {
+    Box::new(move |line| {
         line.clear();
         while !eof {
             if at == chunk.len() {
-                next(&mut chunk).map_err(&read_error)?;
+                next(&mut chunk)?;
                 at = 0;
                 if chunk.is_empty() { eof = true; break; }
             }
@@ -133,7 +139,7 @@ fn input_file<'a>(fs: &'a dyn SafeBashFs, path: String, shell_text: bool, raw: b
             if newline.is_some() { break; }
         }
         Ok(())
-    }))
+    })
 }
 
 impl Bytes<'_> {
@@ -204,7 +210,7 @@ impl Bytes<'_> {
             let Some(path) = self.files.next() else {
                 return Ok(None);
             };
-            if self.raw && path == "-" && matches!(self.stdin, Source::Xml(None)) {
+            if self.raw && path == "-" && matches!(self.stdin, Source::Xml(None) | Source::Stream(None)) {
                 continue;
             }
             let shell_text = !matches!(self.stdin, Source::Json(_));
@@ -229,13 +235,20 @@ impl Bytes<'_> {
                     json.push('\n');
                     Cow::Owned(json.into_bytes())
                 }
+                Source::Stream(input) if path == "-" => {
+                    if let Some(mut input) = input.take() {
+                        let next: ChunkReader = Box::new(move |buf| input.next_stdin_chunk(buf));
+                        self.reader = Some(if self.raw { raw_lines(next, self.fs) } else { next });
+                    }
+                    continue;
+                }
                 Source::Json(input) if path == "-" => Cow::Borrowed(input.take().unwrap_or_default().as_bytes()),
                 Source::ShellJson(input) if path == "-" => {
                     let text = input.take().unwrap_or_default();
                     if text.contains(crate::vfs::is_stream_byte) { Cow::Owned(crate::vfs::stream_string_to_bytes(text)) }
                     else { Cow::Borrowed(text.as_bytes()) }
                 }
-                Source::Json(_) | Source::ShellJson(_) => {
+                Source::Json(_) | Source::ShellJson(_) | Source::Stream(_) => {
                     let full = crate::vfs::path::absolute_operand(self.cwd, &path);
                     if self.single_chunk && self.fs.supplies_single_chunk_input() && full != "/dev" && !full.starts_with("/dev/") {
                         let bytes = self.fs.read_single_chunk_input(&full, None).map_err(|e| {
@@ -413,7 +426,7 @@ pub(super) fn files<'a>(
     let remaining_output = if matches!(&stdin, Source::Json(_)) { usize::MAX } else { fs.remaining_output_bytes() };
     let values = Values {
         bytes: Bytes {
-            single_chunk: !raw && files.len() == 1 && matches!(stdin, Source::ShellJson(Some(_))),
+            single_chunk: !raw && files.len() == 1 && matches!(stdin, Source::ShellJson(Some(_)) | Source::Stream(Some(_))),
             files: files.into_iter(),
             remaining: fs.max_input_bytes(),
             raw,

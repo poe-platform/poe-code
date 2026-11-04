@@ -2083,6 +2083,25 @@ test("jq ranges and limits stream numeric arguments and stop when their consumer
   } finally { bash.dispose(); }
 });
 
+test("jq pulls stdin only for selected operands and stops after the last requested value", {skip: !WebAssembly.Suspending}, async () => {
+  const sh = new RustWasmBash({files:{"/f":"42\n"}});
+  try {
+    for (const [args, code, pulls, stdout] of [
+      ["--version",0,0,"jq-1.7.1\n"], ["-n 123",0,0,"123\n"], [". /f",0,0,"42\n"],
+      ["badfilter",3,0,""], ["-n 'first(inputs)'",0,1,"1\n"], ["-n 'limit(2;inputs)'",0,2,"1\n2\n"],
+      ["-Rn 'first(inputs)'",0,1,'"1"\n'],
+    ]) {
+      let seen = 0;
+      const stdin = {async *[Symbol.asyncIterator]() { for (const s of ["1\n","2\n","3\n"]) { seen++; yield Buffer.from(s); } }};
+      const r = await sh.exec("jq " + args, {stdin});
+      assert.deepEqual([r.exitCode,seen,r.stdout], [code,pulls,stdout], args);
+    }
+    const stdin = {async *[Symbol.asyncIterator]() { yield Uint8Array.of(0xc3); yield Uint8Array.of(0xa9,10,120); }};
+    const r = await sh.exec("jq -Rr . - /f -", {stdin});
+    assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"é\nx42\n",""]);
+  } finally { sh.dispose(); }
+});
+
 test("jq stops input generators after producing enough output and preserves results before errors", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/items": "1 2 3 4\n", "/workspace/good": "7 8" } });
   try {

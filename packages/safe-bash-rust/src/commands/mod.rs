@@ -949,6 +949,9 @@ where
     if let Some(out) = fs::try_run_fs_with_input(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs) {
         return Ok(Some(out));
     }
+    if cmd == "jq" {
+        return Ok(Some(structured::cmd_jq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
+    }
     if cmd == "xq" {
         return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
     }

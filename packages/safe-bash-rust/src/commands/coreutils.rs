@@ -398,7 +398,7 @@ fn visit_complete_records(chunk: &[u8], delimiter: impl Fn(u8) -> bool, pending:
 }
 
 impl CommandInput<'_> {
-    fn next_stdin_chunk(&mut self, chunk: &mut Vec<u8>) -> Result<(), String> {
+    pub(super) fn next_stdin_chunk(&mut self, chunk: &mut Vec<u8>) -> Result<(), String> {
         chunk.clear();
         if let Some(source) = self.file {
             source.read(self.text, 65536, |bytes, _| { chunk.extend_from_slice(bytes); Ok((false, bytes.len())) })

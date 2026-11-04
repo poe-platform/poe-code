@@ -41,6 +41,7 @@ pub(super) fn try_run_coreutil_with_input(
     if cmd == "expand" { return Ok(Some(cmd_expand(args, input, cwd, fs, write))); }
     if cmd == "unexpand" { return Ok(Some(cmd_unexpand(args, input, cwd, fs, write))); }
     if cmd == "rev" { return Ok(Some(cmd_rev(args, input, cwd, env, fs, write))); }
+    if cmd == "fold" { return Ok(Some(cmd_fold(args, input, cwd, env, fs, write))); }
     if cmd == "nl" { return Ok(Some(cmd_nl(args, input, cwd, fs, write))); }
     if cmd == "tee" { return Ok(Some(cmd_tee(args, input, cwd, env, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
@@ -89,7 +90,6 @@ fn coreutil(
         "factor" => cmd_factor(args, input, env.contains_key("POSIXLY_CORRECT")),
         "tsort" => cmd_tsort(args, input.buffered()?, cwd, env, fs),
         "truncate" => cmd_truncate(args, cwd, env, fs),
-        "fold" => cmd_fold(args, input, cwd, env, fs),
         "fmt" => cmd_fmt(args, input, cwd, env, fs),
         "csplit" => cmd_csplit(args, input.buffered()?, cwd, fs),
         "pr" => cmd_pr(args, input.buffered()?, cwd, env, fs),
@@ -11293,6 +11293,7 @@ fn cmd_fold(
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    write: &mut super::CommandWriter,
 ) -> BuiltinOutcome {
     if args.len() == 1 && (args[0] == "--help" || args[0] == "--version") {
         return ok_out(if args[0] == "--help" {
@@ -11419,97 +11420,111 @@ fn cmd_fold(
     } else {
         files
     };
-    let mut out_bytes: Vec<u8> = Vec::new();
-    let mut stderr = String::new();
-    let mut exit_code = 0;
-
+    let mut out = ok_out("");
+    let mut batch = Vec::new();
     for f in &inputs {
-        let mut line_buf: Vec<u8> = Vec::new();
+        let mut line_buf = Vec::new();
         let mut col = 0u64;
-        let mut last_blank: Option<usize> = None;
-        let mut consume = |unit_slice: &[u8], cp: u32, valid: bool, direct: bool| {
-            if cp == 10 {
-                out_bytes.extend_from_slice(&line_buf);
-                out_bytes.push(b'\n');
-                line_buf.clear();
-                col = 0;
-                last_blank = None;
-                return;
-            }
-            // The original admits a direct ASCII NUL as one column when it
-            // fits. On overflow, or when drained by the decoder, it uses wcwidth.
-            if cp == 0 && direct && col < width {
-                col += 1;
-                line_buf.push(0);
-                return;
-            }
-            while adjust_col(col, cp, unit_slice.len(), valid) > width && !line_buf.is_empty() {
-                if break_spaces && let Some(lb) = last_blank {
-                    out_bytes.extend_from_slice(&line_buf[..lb]);
-                    out_bytes.push(b'\n');
-                    line_buf.drain(..lb);
-                    col = 0;
-                    last_blank = None;
-                    let mut roff = 0usize;
-                    while roff < line_buf.len() {
-                        let (rcp, rulen, rvalid) = decode_fold_unit(&line_buf[roff..], utf8, true).unwrap();
-                        col = if rcp == 0 { col + 1 } else { adjust_col(col, rcp, rulen, rvalid) };
-                        roff += rulen;
-                        if rcp == 32 || rcp == 9 {
-                            last_blank = Some(roff);
-                        }
+        let mut last_blank = None;
+        let mut pending = [0u8; 4];
+        let mut len = 0;
+        let mut transfer = |chunk: &[u8], eof: bool| {
+            let mut emit = |mut bytes: &[u8]| {
+                while !bytes.is_empty() {
+                    let count = (16384 - batch.len()).min(bytes.len());
+                    batch.extend_from_slice(&bytes[..count]);
+                    bytes = &bytes[count..];
+                    if batch.len() == 16384 {
+                        if !write(1, &crate::vfs::bytes_to_stream_string(&batch), &mut out) { return false; }
+                        batch.clear();
                     }
-                } else {
-                    out_bytes.extend_from_slice(&line_buf);
-                    out_bytes.push(b'\n');
+                }
+                true
+            };
+            let mut emit_line = |line: &[u8]| emit(line) && emit(b"\n");
+            let mut consume = |unit_slice: &[u8], cp: u32, valid: bool, direct: bool| {
+                if cp == 10 {
+                    if !emit_line(&line_buf) { return false; }
                     line_buf.clear();
                     col = 0;
                     last_blank = None;
+                    return true;
                 }
-            }
-            col = adjust_col(col, cp, unit_slice.len(), valid);
-            line_buf.extend_from_slice(unit_slice);
-            if break_spaces && (cp == 32 || cp == 9) {
-                last_blank = Some(line_buf.len());
-            }
-        };
-        let mut pending = [0u8; 4];
-        let mut len = 0;
-        let result = stdin.read_operand(f, cwd, fs, true, |chunk| {
+                // The original admits a direct ASCII NUL as one column when it
+                // fits. On overflow, or when drained by the decoder, it uses wcwidth.
+                if cp == 0 && direct && col < width {
+                    col += 1;
+                    line_buf.push(0);
+                    return true;
+                }
+                while adjust_col(col, cp, unit_slice.len(), valid) > width && !line_buf.is_empty() {
+                    if break_spaces && let Some(lb) = last_blank {
+                        if !emit_line(&line_buf[..lb]) { return false; }
+                        line_buf.drain(..lb);
+                        col = 0;
+                        last_blank = None;
+                        let mut roff = 0usize;
+                        while roff < line_buf.len() {
+                            let (rcp, rulen, rvalid) = decode_fold_unit(&line_buf[roff..], utf8, true).unwrap();
+                            col = if rcp == 0 { col + 1 } else { adjust_col(col, rcp, rulen, rvalid) };
+                            roff += rulen;
+                            if rcp == 32 || rcp == 9 {
+                                last_blank = Some(roff);
+                            }
+                        }
+                    } else {
+                        if !emit_line(&line_buf) { return false; }
+                        line_buf.clear();
+                        col = 0;
+                        last_blank = None;
+                    }
+                }
+                col = adjust_col(col, cp, unit_slice.len(), valid);
+                line_buf.extend_from_slice(unit_slice);
+                if break_spaces && (cp == 32 || cp == 9) {
+                    last_blank = Some(line_buf.len());
+                }
+                true
+            };
             for byte in chunk {
                 if len == 0 && (!utf8 || byte.is_ascii()) {
-                    consume(std::slice::from_ref(byte), u32::from(*byte), byte.is_ascii(), true);
+                    if !consume(std::slice::from_ref(byte), u32::from(*byte), byte.is_ascii(), true) { return false; }
                     continue;
                 }
                 pending[len] = *byte;
                 len += 1;
                 while len != 0 {
                     let Some((cp, used, valid)) = decode_fold_unit(&pending[..len], true, false) else { break };
-                    consume(&pending[..used], cp, valid, false);
+                    if !consume(&pending[..used], cp, valid, false) { return false; }
                     pending.copy_within(used..len, 0);
                     len -= used;
                 }
             }
-            true
+            if eof {
+                for byte in &pending[..len] {
+                    if !consume(std::slice::from_ref(byte), u32::from(*byte), false, false) { return false; }
+                }
+                if !emit(&line_buf) { return false; }
+            }
+            let written = batch.is_empty() || write(1, &crate::vfs::bytes_to_stream_string(&batch), &mut out);
+            batch.clear();
+            written
+        };
+        let mut writable = true;
+        let read = stdin.read_operand(f, cwd, fs, true, |chunk| {
+            writable = transfer(chunk, false);
+            writable
         });
-        if let Err(e) = result {
-            stderr.push_str(&format!("fold: {e}\n"));
-            exit_code = 1;
-            continue;
-        }
-        for byte in &pending[..len] {
-            consume(std::slice::from_ref(byte), u32::from(*byte), false, false);
-        }
-        if !line_buf.is_empty() {
-            out_bytes.extend_from_slice(&line_buf);
+        if !writable { break; }
+        match read {
+            Ok(()) => { if !transfer(&[], true) { break; } }
+            Err(e) => {
+                out.exit_code = 1;
+                if !write(2, &format!("fold: {e}\n"), &mut out) { break; }
+            }
         }
     }
-
-    BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-        stderr,
-        exit_code,
-    }
+    out
 }
 
 fn parse_fmt_width_val(text: &str, max_val: usize, is_goal: bool, unicode: bool) -> Result<usize, String> {

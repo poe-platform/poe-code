@@ -543,6 +543,29 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("fold stops at the producer chunk that exhausts output", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, count] of [["fold -w3",2], ["fold /missing - 2>&1",0]]) {
+      let pulls = 0, closes = 0;
+      const stdin = {async *[Symbol.asyncIterator]() {
+        try { for (const line of ["abc","def","ghi"]) { pulls++; yield new TextEncoder().encode(line + "\n"); } }
+        finally { closes++; }
+      }};
+      await assert.rejects(bash.exec(cmd, {stdin, limits:{maxOutputBytes:6}}), {limit:"maxOutputBytes"});
+      assert.deepEqual([pulls, closes], [count, Number(count > 0)], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("fold reports operand errors before wrapping later input", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const r = await bash.exec("fold -w2 /missing - 2>&1", {stdin:"abcd"});
+    assert.deepEqual([r.exitCode,r.stdout], [1,"fold: ENOENT: no such file or directory, stat '/missing'\nab\ncd"]);
+  } finally { bash.dispose(); }
+});
+
 test("nl validates the last option values in production order, independently of Wasm word size", async () => {
   const bash = new RustWasmBash();
   try {

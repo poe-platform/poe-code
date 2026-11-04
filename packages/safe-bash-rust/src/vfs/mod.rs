@@ -429,6 +429,9 @@ pub trait SafeBashFs: Send + Sync {
     fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
         Err("filesystem does not support race-safe patch mutations".into())
     }
+    fn observe_patch(&self,path:&str)->Result<(u64,PublicationStamp),String> {
+        self.patch_revision(path).map(|(scope,version)|(scope,PublicationStamp::new(version,None)))
+    }
     /// Replace or unlink a regular file only at the inspected revision. Return the revision after this change.
     fn patch_file(&self, _path: &str, _bytes: Option<&[u8]>, _expected: (u64, u64)) -> Result<u64, String> {
         Err("filesystem does not support race-safe patch mutations".into())

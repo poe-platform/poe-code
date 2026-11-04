@@ -7894,11 +7894,11 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     let mut scopes = BTreeMap::new();
     let mut revisions = BTreeMap::new();
     for (path, ordinal) in paths {
-        let (scope, version) = match fs.patch_revision(&path) {
+        let (scope, stamp) = match fs.observe_patch(&path) {
             Ok(v) => v, Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
         };
-        scopes.insert(path, (scope, ordinal));
-        revisions.entry(scope).or_insert(version);
+        revisions.entry(scope).or_insert(stamp.version);
+        scopes.insert(path, (scope, ordinal, stamp));
     }
     let mut identities = std::collections::BTreeSet::new();
     let mut unreadable = None;
@@ -8136,7 +8136,7 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     }
 
     for (path, data) in staged_ops {
-        let (scope, ordinal) = scopes[&path];
+        let (scope, ordinal, _) = scopes[&path];
         let revision = revisions.get_mut(&scope).unwrap();
         match fs.patch_file(&path, data.as_deref(), (scope, *revision)) {
             Ok(new) => *revision = new,

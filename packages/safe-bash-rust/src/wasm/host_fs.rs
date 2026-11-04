@@ -68,6 +68,22 @@ impl HostFs {
         }
     }
 
+    fn own_stamp(&self, bytes: Vec<u8>) -> Result<crate::vfs::PublicationStamp, String> {
+        let id = u32::from_le_bytes(
+            bytes
+                .try_into()
+                .map_err(|_| "EIO: invalid publication stamp")?,
+        );
+        let fs = *self;
+        Ok(crate::vfs::PublicationStamp::new(
+            id.into(),
+            (id != 0).then(|| {
+                Box::new(move || {
+                    let _ = fs.request("forgetPublication", "", &[], id, 0);
+                }) as Box<dyn FnOnce()>
+            }),
+        ))
+    }
     fn metadata(&self, operation: &str, path: &str, handle: u32) -> Result<FileStat, String> {
         let data = self.request(operation, path, &[], handle, 0)?;
         let numbers: Vec<_> = data
@@ -218,20 +234,29 @@ impl SafeBashFs for HostFs {
             },
             0,
         )?;
-        let id = u32::from_le_bytes(
-            bytes
-                .try_into()
-                .map_err(|_| "EIO: invalid publication stamp")?,
-        );
-        let fs = *self;
-        Ok(crate::vfs::PublicationStamp::new(
-            id.into(),
-            (id != 0).then(|| {
-                Box::new(move || {
-                    let _ = fs.request("forgetPublication", "", &[], id, 0);
-                }) as Box<dyn FnOnce()>
-            }),
-        ))
+        self.own_stamp(bytes)
+    }
+    fn observe_patch(&self, path: &str) -> Result<(u64, crate::vfs::PublicationStamp), String> {
+        let stamp = self.own_stamp(self.request("observePatch", path, &[], 0, 0)?)?;
+        if stamp.version == 0 {
+            return Err("filesystem does not support race-safe patch mutations".into());
+        }
+        Ok((stamp.version, stamp))
+    }
+    fn patch_file(
+        &self,
+        path: &str,
+        bytes: Option<&[u8]>,
+        expected: (u64, u64),
+    ) -> Result<u64, String> {
+        self.request(
+            "patchFile",
+            path,
+            bytes.unwrap_or_default(),
+            expected.0 as u32,
+            u32::from(bytes.is_some()),
+        )?;
+        Ok(expected.1)
     }
     fn publish_file(
         &self,

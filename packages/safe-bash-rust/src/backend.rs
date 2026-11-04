@@ -270,6 +270,11 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.patch_revision(&host_text(path)).map_err(quote_host_text)
     }
 
+    fn observe_patch(&self,path:&str)->Result<(u64,crate::vfs::PublicationStamp),String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.observe_patch(&host_text(path)).map_err(quote_host_text)
+    }
     fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

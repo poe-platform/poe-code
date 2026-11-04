@@ -6289,6 +6289,45 @@ test("ZIP stages a fresh host file, preserves retained readers and cleans up a r
   }finally{await sh.dispose();}
 });
 
+test("host apply_patch confines create, update, move and delete to the preflight directories",{skip:!WebAssembly.Suspending},async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"}),enc=new TextEncoder(),dec=new TextDecoder();
+  const patch=body=>sh.exec("apply_patch",{fs,stdin:"*** Begin Patch\n"+body+"\n*** End Patch\n"});
+  try{
+    await fs.mkdir("/root");await fs.writeFile("/root/data",enc.encode("old\n"),{mode:0o600});
+    await fs.link("/root/data","/alias");
+    const update=await patch("*** Update File: root/data\n@@\n-old\n+new\n*** Add File: root/nested/file\n+created");
+    assert.deepEqual([update.exitCode,update.stderr],[0,""]);
+    assert.equal(dec.decode(await fs.readFile("/alias")),"new\n");
+    assert.equal((await fs.stat("/root/data")).mode&0o777,0o600);
+    const before=await fs.stat("/root/data");
+    const same=await patch("*** Update File: root/data\n@@\n-new\n+new");
+    assert.equal(same.exitCode,0,same.stderr);
+    assert.equal((await fs.stat("/root/data")).revision,before.revision);
+    const move=await patch("*** Update File: root/nested/file\n*** Move to: root/moved\n*** Delete File: root/data");
+    assert.deepEqual([move.exitCode,move.stderr],[0,""]);
+    assert.equal(dec.decode(await fs.readFile("/root/moved")),"created\n");
+    await assert.rejects(fs.stat("/root/nested/file"),{code:"ENOENT"});
+    await assert.rejects(fs.stat("/root/data"),{code:"ENOENT"});
+    const confine=fs.confineExtraction.bind(fs);
+    fs.confineExtraction=async(...args)=>{
+      const view=await confine(...args);
+      return new Proxy(view,{get(target,key){
+        if(key==="publishStagedFile")return async(...publish)=>{
+          await fs.rename("/root","/old");await fs.mkdir("/root");await fs.writeFile("/root/moved",enc.encode("new owner"));
+          return target.publishStagedFile(...publish);
+        };
+        return Reflect.get(target,key);
+      }});
+    };
+    const changed=await patch("*** Update File: root/moved\n@@\n-created\n+wrong");
+    assert.notEqual(changed.exitCode,0);
+    assert.equal(dec.decode(await fs.readFile("/root/moved")),"new owner");
+    assert.equal(dec.decode(await fs.readFile("/old/moved")),"created\n");
+    assert.deepEqual((await fs.readdir("/old")).map(x=>x.name).sort(),["moved","nested"]);
+  }finally{await sh.dispose();}
+});
+
 test("explicitly selecting the native filesystem uses the current Wasm files", async () => {
   const bash = new RustWasmBash({ files: { "/file": "original" }, companionFactory() { throw new Error("unexpected companion"); } });
   try {

@@ -184,6 +184,23 @@ function bindExternalFs(shell,fs,options) {
     if(closeErrors.length===1)throw closeErrors[0];
     if(closeErrors.length)throw new AggregateError(closeErrors,"Filesystem descriptor cleanup failed");
   };
+  const stageOutput=async(view,path,data,guard,metadata)=>{
+    const settings={signal:options.signal}, parentDir=path.slice(0,path.lastIndexOf("/"));
+    let stage;
+    for(let attempt=0;;attempt++){
+      try{
+        stage=await view.createStagedFile(parentDir+"/.safe-bash-stage-"+nextHandle++,"file",{type:"file",data},
+          {...settings,...metadata,parent:guard.parent,retainCleanup:true});
+        break;
+      }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
+    }
+    try{
+      const finished=stage.writer?{...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}}:stage;
+      await view.publishStagedFile(finished,path,{...settings,...guard});
+    }finally{
+      try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}
+    }
+  };
   let stack,sp,result,status;
   try {
     table.set(slot,suspendingCallback(async ptr=>{
@@ -198,6 +215,60 @@ function bindExternalFs(shell,fs,options) {
         const flags=word(24), mode=word(28), settings={signal:options.signal};
         if(op==="forgetPublication"){publications.delete(flags);return;}
         if(op!=="close" && op!=="removePublished")options.signal?.throwIfAborted();
+        if(op==="observePatch"){
+          result=new Uint8Array(4);
+          if(typeof fs.confineExtraction!=="function")return;
+          const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,settings):fs.capabilities;
+          if(!caps?.atomicFileMutation || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeFileConditional)return;
+          const stage=caps.retainedStagingWrite && caps.retainedStagingCleanup && caps.atomicStagedFileMutation;
+          if(!stage && !fs.writeFileConditional)return;
+          const directory=path.slice(0,path.lastIndexOf("/"))||"/";
+          let root=directory;
+          for(;;){
+            try{await fs.lstat(root,settings);break;}
+            catch(error){if(root==="/" || error?.code!=="ENOENT")throw error;}
+            root=root.slice(0,root.lastIndexOf("/"))||"/";
+          }
+          const view=await fs.confineExtraction([root],settings);
+          let expected=null;
+          try{expected=await view.lstat(path,settings);}catch(error){if(error?.code!=="ENOENT")throw error;}
+          const parent=root===directory?await view.lstat(root,settings):undefined;
+          const id=nextHandle++;
+          publications.set(id,{path,view,expected,parent,root,directory,stage});
+          new DataView(result.buffer).setUint32(0,id,true);return;
+        }
+        if(op==="patchFile"){
+          const obs=publications.get(flags);
+          if(!obs || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
+          const {view,expected}=obs;
+          let parent=obs.parent;
+          if(!mode){
+            if(!parent || !expected)throw fsOperationError("ENOENT",op,path);
+            await view.removeFileConditional(path,{...settings,parent,expected});return;
+          }
+          if(!parent){
+            let current=obs.root;
+            for(const part of obs.directory.slice(current.length).split("/").filter(Boolean)){
+              current=(current==="/"?"":current)+"/"+part;
+              try{await view.mkdir(current,settings);}catch(error){if(error?.code!=="EEXIST")throw error;}
+              parent=await view.lstat(current,settings);
+              if(parent.type!=="directory")throw fsOperationError("ENOTDIR",op,current);
+            }
+          }
+          if(expected?.size===data.length){
+            const current=await view.readFile(path,{...settings,maxBytes:data.length});
+            if(current.length===data.length && current.every((byte,i)=>byte===data[i])){
+              const stat=await view.lstat(path,settings);
+              if(["identityScope","opaqueIdentity","opaqueVersion","dev","ino","revision","mode","size","nlink","mtimeMs","ctimeMs"].some(key=>stat[key]!==expected[key]))
+                throw fsOperationError("EAGAIN",op,path);
+              return;
+            }
+          }
+          if(obs.stage)await stageOutput(view,path,data,{parent,destination:expected,...(expected && {preserveIdentity:true})},
+            expected?{atimeMs:expected.atimeMs}:{});
+          else await view.writeFileConditional(path,data,{...settings,parent,expected,...(expected && {mode:expected.mode&0o7777})});
+          return;
+        }
         if(op==="observePublication"){
           const caps=fs.capabilitiesFor?await fs.capabilitiesFor(path,{...settings,create:true,...(flags===2 && {stagingResolution:true})}):fs.capabilities;
           const write=caps?.atomicFileMutation && typeof fs.writeFileConditional==="function";
@@ -222,23 +293,9 @@ function bindExternalFs(shell,fs,options) {
         if(op==="replaceEntry"){
           const obs=publications.get(flags);
           if(!obs?.resolution || obs.path!==path)throw fsOperationError("EAGAIN",op,path);
-          const r=obs.resolution, parentDir=r.path.slice(0,r.path.lastIndexOf("/"));
+          const r=obs.resolution;
           r.validate();
-          let stage;
-          for(let attempt=0;;attempt++){
-            try{
-              stage=await fs.createStagedFile(parentDir+"/.safe-bash-stage-"+nextHandle++,"file",{type:"file",data},
-                {...settings,mode,parent:r.parent,retainCleanup:true});
-              break;
-            }catch(error){if(error?.code!=="EEXIST" || attempt>=31)throw error;}
-          }
-          try{
-            const finished=stage.writer?{...stage,file:{...stage.file,stat:await stage.writer.finish(settings)}}:stage;
-            await fs.publishStagedFile(finished,r.path,{...settings,parent:r.parent,destination:r.destination,
-              ancestors:r.ancestors,commitGuard:r.validate});
-          }finally{
-            try{await stage.cleanup.remove();}finally{await stage.cleanup.close();}
-          }
+          await stageOutput(fs,r.path,data,{parent:r.parent,destination:r.destination,ancestors:r.ancestors,commitGuard:r.validate},{mode});
           return;
         }
         if(op==="publicationAlias"){

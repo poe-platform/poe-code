@@ -74,6 +74,11 @@ impl SafeBashFs for MountVfs {
         fs.scratch_file(&local)
     }
 
+    fn start_command_stream(&self, _path: &str, entry: &str, append: bool, mode: u32) -> Result<super::ChunkWriter<'_>, String> {
+        let (_, fs, local) = self.location(entry);
+        fs.start_command_stream(&local, &local, append, mode)
+    }
+
     fn open_redirect_file(&self, path: &str, access: crate::vfs::RedirectAccess, create_mode: u32) -> Result<Option<std::rc::Rc<dyn crate::vfs::OpenRedirectFile>>, String> {
         let exclusive = access == super::RedirectAccess::Exclusive;
         if exclusive && (path == "/" || self.mounts.contains_key(path)) {

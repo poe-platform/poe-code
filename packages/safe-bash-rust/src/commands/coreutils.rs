@@ -41,6 +41,7 @@ pub(super) fn try_run_coreutil_with_input(
     if cmd == "expand" { return Ok(Some(cmd_expand(args, input, cwd, fs, write))); }
     if cmd == "unexpand" { return Ok(Some(cmd_unexpand(args, input, cwd, fs, write))); }
     if cmd == "rev" { return Ok(Some(cmd_rev(args, input, cwd, env, fs, write))); }
+    if cmd == "tee" { return Ok(Some(cmd_tee(args, input, cwd, env, fs, write))); }
     if cmd == "tr" { return Ok(Some(cmd_tr(args, input, write))); }
     Ok(match coreutil(cmd, args, input, cwd, env, fs) {
         Ok(out) => out,
@@ -66,7 +67,6 @@ fn coreutil(
         "dos2unix" => cmd_dos2unix(args, input.buffered()?, cwd, fs, false),
         "unix2dos" => cmd_dos2unix(args, input.buffered()?, cwd, fs, true),
         "iconv" => cmd_iconv(args, input.buffered()?, cwd, env, fs),
-        "tee" => cmd_tee(args, input.buffered()?, cwd, fs),
         "sponge" => cmd_sponge(args, input.buffered()?, cwd, fs),
         "seq" => cmd_seq(args),
         "yes" => cmd_yes(args, env.contains_key("POSIXLY_CORRECT")),
@@ -4131,7 +4131,7 @@ fn cmd_comm(args: &[String], mut stdin: CommandInput, cwd: &str, fs: &dyn SafeBa
     }
 }
 
-fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_tee(args: &[String], mut input: CommandInput, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> BuiltinOutcome {
     let mut append = false;
     let mut error_mode: Option<String> = None;
     let mut files = Vec::new();
@@ -4164,6 +4164,8 @@ fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             error_mode = Some(m.to_string());
             i += 1;
+        } else if let Some((opt @ ("--append" | "--ignore-interrupts"), _)) = a.split_once('=') {
+            return err_out(&format!("tee: option '{opt}' does not take an argument\n"), 2);
         } else if a.starts_with("--") {
             return err_out(&format!("tee: unrecognized option '{a}'\n"), 2);
         } else {
@@ -4180,73 +4182,46 @@ fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let exit_on_error = matches!(error_mode.as_deref(), Some("exit" | "exit-nopipe"));
-    let mut valid_paths = Vec::new();
-    let mut stderr = String::new();
-    let mut code = 0;
-
-    for f in &files {
-        let p = resolve_posix_path(cwd, f);
-        if fs.is_dir(&p) {
-            stderr.push_str(&format!(
-                "tee: EISDIR: illegal operation on a directory, writeStream '{p}'\n"
-            ));
-            code = 1;
-            if exit_on_error {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr,
-                    exit_code: 1,
-                };
-            }
-            continue;
-        }
-        let parent = dirname_posix_path(&p);
-        if !fs.is_dir(&parent) {
-            stderr.push_str(&format!(
-                "tee: ENOENT: no such file or directory, writeStream '{p}'\n"
-            ));
-            code = 1;
-            if exit_on_error {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr,
-                    exit_code: 1,
-                };
-            }
-            continue;
-        }
-        valid_paths.push((f.clone(), p));
-    }
-
-    let in_bytes = crate::vfs::stream_string_to_bytes(stdin);
-    for (_f, p) in valid_paths {
-        let data = if append && fs.exists(&p) {
-            let mut prev = fs.read_file(&p).unwrap_or_default();
-            prev.extend_from_slice(&in_bytes);
-            prev
-        } else {
-            in_bytes.clone()
-        };
-        if fs.write_file(&p, &data).is_err() {
-            stderr.push_str(&format!(
-                "tee: ENOENT: no such file or directory, writeStream '{p}'\n"
-            ));
-            code = 1;
-            if exit_on_error {
-                return BuiltinOutcome {
-                    stdout: stdin.to_string(),
-                    stderr,
-                    exit_code: 1,
-                };
+    let mode = 0o666 & !env.get("\0umask").and_then(|s| u32::from_str_radix(s, 8).ok()).unwrap_or(0o022);
+    let mut targets = Vec::new();
+    let mut out = ok_out("");
+    for f in files {
+        let path = absolute_operand(cwd, &f);
+        match fs.open_command_stream(&path, append, mode, None) {
+            Ok(target) => targets.push((path, target)),
+            Err(e) => {
+                out.exit_code = 1;
+                if !write(2, &format!("tee: {e}\n"), &mut out) || exit_on_error { return out; }
             }
         }
     }
-
-    BuiltinOutcome {
-        stdout: stdin.to_string(),
-        stderr,
-        exit_code: code,
+    let mut stopped = false;
+    let read = input.read_stdin(|chunk| {
+        if !write(1, &crate::vfs::bytes_to_stream_string(chunk), &mut out) { stopped = true; return false; }
+        targets.retain_mut(|(path, target)| {
+            if stopped { return true; }
+            if let Err(e) = target(Some(chunk)) {
+                out.exit_code = 1;
+                let message = stream_file_error(e, "writeStream", path);
+                stopped = !write(2, &format!("tee: {message}\n"), &mut out) || exit_on_error;
+                false
+            } else { true }
+        });
+        !stopped
+    });
+    if let Err(e) = read {
+        out.exit_code = 1;
+        write(2, &format!("tee: {e}\n"), &mut out);
+    } else if !stopped {
+        for (path, mut target) in targets {
+            if let Err(e) = target(None) {
+                out.exit_code = 1;
+                let message = stream_file_error(e, "writeStream", &path);
+                if !write(2, &format!("tee: {message}\n"), &mut out) { break; }
+            }
+        }
     }
+    out
 }
 
 fn cmd_sponge(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

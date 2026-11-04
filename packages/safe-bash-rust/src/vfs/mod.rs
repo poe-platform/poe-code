@@ -175,6 +175,9 @@ impl Eq for dyn OpenRedirectFile {}
 /// Replace the buffer with the next file chunk, or clear it at EOF.
 pub type ChunkReader<'a> = Box<dyn FnMut(&mut Vec<u8>) -> Result<(), String> + 'a>;
 
+/// Some writes the next producer chunk, None finishes, and dropping aborts.
+pub type ChunkWriter<'a> = Box<dyn FnMut(Option<&[u8]>) -> Result<(), String> + 'a>;
+
 /// Positioned reads and metadata on the same opened object, even after unlink.
 pub trait FileReadHandle: Send + Sync {
     fn stat(&self) -> Result<FileStat, String>;
@@ -226,6 +229,60 @@ pub trait SafeBashFs: Send + Sync {
             if access == RedirectAccess::Exclusive { self.create_file(path, &[], create_mode)?; }
             Ok(None)
         }
+    }
+
+    fn open_command_stream<'a>(&'a self, path: &str, append: bool, mode: u32, budget: Option<&'a crate::ExecutionBudget>) -> Result<ChunkWriter<'a>, String> {
+        if path.is_empty() { return Err("ENOENT: no such file or directory ''".into()); }
+        if let Some(b) = budget {
+            // tee and its output adapter each query capabilities before access(W_OK).
+            b.tick_fs_op()?; b.tick_fs_op()?; b.tick_fs_op()?;
+        }
+        let access = self.access_path(path, true);
+        let diagnostic = |e: String, syscall: &str| {
+            if e.contains(", overlay '") || e.contains(", realpath '") || e.contains(", lstat '") && e.starts_with("EACCES:") {
+                e
+            } else {
+                format!("{}, {syscall} '{path}'", e.split(", ").next().unwrap_or(&e))
+            }
+        };
+        if let Ok(entry) = &access {
+            if self.lstat(entry).is_ok_and(|st| st.mode & 0o200 == 0) {
+                let syscall = if self.overlay_backend().is_some() { "overlay" } else { "access" };
+                return Err(format!("EACCES: permission denied, {syscall} '{entry}'"));
+            }
+        } else if let Err(e) = &access {
+            if !e.starts_with("ENOENT:") { return Err(diagnostic(e.clone(), "access")); }
+        }
+        if let Some(b) = budget { b.tick_fs_op()?; }
+        let entry = access.map_err(|e| diagnostic(e, "writeStream"))?;
+        if entry == "/" { return Err(format!("EISDIR: illegal operation on a directory '{path}'")); }
+        let mut stream = self.start_command_stream(path, &entry, append, mode).map_err(|e| diagnostic(e, "writeStream"))?;
+        Ok(Box::new(move |chunk| {
+            if let (Some(b), Some(bytes)) = (budget, chunk) { b.add_output_bytes(bytes.len())?; }
+            stream(chunk)
+        }))
+    }
+
+    fn start_command_stream(&self, _path: &str, entry: &str, append: bool, mode: u32) -> Result<ChunkWriter<'_>, String> {
+        let access = if append { RedirectAccess::Append } else { RedirectAccess::Truncate };
+        if let Some(handle) = self.open_redirect_file(entry, access, mode)? {
+            let mut cursor = 0;
+            return Ok(Box::new(move |chunk| {
+                if let Some(bytes) = chunk {
+                    for part in bytes.chunks(65536) {
+                        handle.write_at(if append { None } else { Some(cursor) }, part)?;
+                        cursor += part.len();
+                    }
+                }
+                Ok(())
+            }));
+        }
+        self.write_command_path(entry, &[], append, mode)?;
+        let entry = entry.to_owned();
+        Ok(Box::new(move |chunk| {
+            if let Some(bytes) = chunk { self.append_file(&entry, bytes)?; }
+            Ok(())
+        }))
     }
 
     /// A command's named writeFile/appendFile opens the path afresh for each write.

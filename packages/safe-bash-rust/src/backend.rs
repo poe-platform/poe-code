@@ -137,6 +137,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.open_redirect_file(&host_text(path), access, create_mode).map_err(quote_host_text)
     }
 
+    fn open_command_stream<'b>(&'b self, path: &str, append: bool, mode: u32, _: Option<&'b ExecutionBudget>) -> Result<crate::vfs::ChunkWriter<'b>, String> {
+        self.budget.limits.check_path(path)?;
+        let mut stream = self.inner.open_command_stream(&host_text(path), append, mode, Some(self.budget)).map_err(quote_host_text)?;
+        Ok(Box::new(move |chunk| stream(chunk).map_err(quote_host_text)))
+    }
+
     fn write_command_path(&self, path: &str, bytes: &[u8], append: bool, mode: u32) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

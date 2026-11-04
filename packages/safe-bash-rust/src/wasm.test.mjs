@@ -543,6 +543,72 @@ test("text utilities report redirected input errors after the bytes already read
   } finally { bash.dispose(); }
 });
 
+test("tee admits targets before reading and keeps each accepted chunk on quota failure", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, limit, seenExpected, final] of [
+      ["tee /t", 7, ["", "abc"], "abc"], ["tee -a /t", 11, ["old", "oldabc"], "oldabc"],
+      ["tee --output-error=exit /absent/f /t", 100, [], "old"],
+    ]) {
+      await bash.fs.writeFile("/t", "old");
+      const seen = [];
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const chunk of ["abc","def","ghi"]) { seen.push(bash.readText("/t")); yield new TextEncoder().encode(chunk); }
+      }};
+      const run = bash.exec(cmd, {stdin, limits:{maxOutputBytes:limit}});
+      if (limit !== 100) await assert.rejects(run, {limit:"maxOutputBytes"});
+      else assert.equal((await run).exitCode, 1);
+      assert.deepEqual([seen, bash.readText("/t")], [seenExpected, final], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("tee keeps writing the open inode after a rename, including an append-only target", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({files:{"/t":{content:"old",mode:0o200}}});
+  try {
+    const r = await bash.exec("tee -a /t", {stdin:{async *[Symbol.asyncIterator]() {
+      yield Uint8Array.of(0,255);
+      await bash.fs.rename("/t","/renamed");
+      await bash.fs.writeFile("/t","replacement");
+      yield Uint8Array.of(65);
+    }}});
+    await bash.fs.chmod("/renamed", 0o644);
+    assert.deepEqual([r.exitCode, [...r.stdoutBytes], r.stderr, bash.readText("/t"), [...await bash.fs.readFile("/renamed")]],
+      [0, [0,255,65], "", "replacement", [111,108,100,0,255,65]]);
+  } finally { bash.dispose(); }
+});
+
+test("tee leaves an overlay destination intact until the stream succeeds", {skip: !WebAssembly.Suspending}, async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs",files:{"/t":"old"}});
+  try {
+    for (const limit of [7,100]) {
+      const seen = [];
+      const stdin = { async *[Symbol.asyncIterator]() {
+        for (const chunk of ["abc","def","ghi"]) { seen.push(bash.readText("/t")); yield new TextEncoder().encode(chunk); }
+      }};
+      const run = bash.exec("tee /t", {stdin,limits:{maxOutputBytes:limit}});
+      if (limit === 7) await assert.rejects(run, {limit:"maxOutputBytes"});
+      else assert.equal((await run).stdout, "abcdefghi");
+      assert.deepEqual([seen, bash.readText("/t")], limit === 7 ? [["old","old"],"old"] : [["old","old","old"],"abcdefghi"]);
+    }
+  } finally { bash.dispose(); }
+});
+
+test("tee reports overlay errors against the failing entry", async () => {
+  const bash = new RustWasmBash({profile:"overlay-cow-fs", files:{"/readonly":{content:"keep", mode:0o444}, "/dir/file":"keep"}});
+  try {
+    for (const [path, error] of [
+      ["/readonly", "EACCES: permission denied, overlay '/readonly'"],
+      ["/dir", "EISDIR: illegal operation on a directory, overlay '/dir'"],
+      ["/missing/file", "ENOENT: no such file or directory, overlay '/missing'"],
+      ["/dir/file/x", "ENOTDIR: not a directory, overlay '/dir/file'"],
+    ]) {
+      const r = await bash.exec("tee " + path + " 2>&1", {stdin:"input"});
+      assert.deepEqual([r.exitCode, r.stdout], [1, "tee: " + error + "\ninput"]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("xxd negative seeks stat the requested path before a zero-length range", async () => {
   const bash = new RustWasmBash({files:{"/f":"x"}});
   try {
